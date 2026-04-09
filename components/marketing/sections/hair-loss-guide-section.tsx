@@ -1,9 +1,26 @@
 "use client"
 
+import { useState } from "react"
 import Link from "next/link"
 import { motion } from "framer-motion"
 import { useReducedMotion } from "@/components/ui/motion"
-import { BadgeCheck, Brain, FlaskConical, Stethoscope, ShieldAlert, Monitor, Repeat } from "lucide-react"
+import {
+  BadgeCheck,
+  Brain,
+  FlaskConical,
+  Stethoscope,
+  ShieldAlert,
+  Monitor,
+  Repeat,
+  Layers,
+  RefreshCw,
+  CalendarClock,
+  AlertCircle,
+  XCircle,
+  LineChart,
+} from "lucide-react"
+import { cn } from "@/lib/utils"
+import { NORWOOD_STAGES } from "@/lib/marketing/hair-loss-hook-quiz"
 
 // =============================================================================
 // DATA
@@ -77,6 +94,206 @@ const GUIDE_SECTIONS = [
     link: { href: "/prescriptions", label: "Request a repeat prescription" },
   },
 ] as const
+
+// -----------------------------------------------------------------------------
+// Extended guide sections (Phase 2C Bundle 2)
+// -----------------------------------------------------------------------------
+
+interface MiniBlock {
+  readonly heading: string
+  readonly body: string
+}
+
+interface ExtendedSection {
+  readonly id: string
+  readonly icon: typeof Brain
+  readonly title: string
+  readonly opening: string
+  readonly mini_blocks?: readonly MiniBlock[]
+  readonly numbered_list?: readonly MiniBlock[]
+  readonly body?: string
+  readonly closing?: string
+}
+
+const EXTENDED_GUIDE_SECTIONS: readonly ExtendedSection[] = [
+  {
+    id: "types-of-hair-loss",
+    icon: Layers,
+    title: "Types of hair loss: what's treatable and what isn't",
+    opening:
+      "Not every kind of hair loss responds the same way — and a few kinds don't respond to online assessment at all. A quick taxonomy so you know where yours fits.",
+    mini_blocks: [
+      {
+        heading: "Androgenetic alopecia (male and female pattern)",
+        body: "The most common cause by a wide margin. Follicles gradually shrink under hormonal influence. This is what online assessment is built for — treatment works, and the earlier you start, the more you preserve.",
+      },
+      {
+        heading: "Telogen effluvium",
+        body: "Temporary shedding triggered by stress, illness, surgery, childbirth, thyroid issues, or nutritional deficiencies. Often resolves on its own within 3–6 months once the trigger is addressed. A doctor can help identify the trigger.",
+      },
+      {
+        heading: "Traction alopecia",
+        body: "Caused by repeated pulling or tension — tight ponytails, braids, certain hairstyles. Stops progressing once the tension is removed. Early-caught cases often recover; long-standing cases can leave permanent scarring.",
+      },
+      {
+        heading: "Scarring alopecias (cicatricial)",
+        body: "A group of inflammatory conditions that destroy follicles permanently. These need in-person specialist assessment (dermatologist). Online assessment is not appropriate — if you see visibly scarred or reddened patches of scalp, please see a GP in person.",
+      },
+      {
+        heading: "Autoimmune (alopecia areata and friends)",
+        body: "Sudden patchy hair loss caused by the immune system attacking follicles. Distinct from the gradual recession of androgenetic alopecia. These also need in-person assessment — online telehealth is not the right first step.",
+      },
+    ],
+    closing:
+      "If you're not sure which category you're in, the intake flow asks the right questions to route you appropriately.",
+  },
+  {
+    id: "growth-cycle",
+    icon: RefreshCw,
+    title: "The hair growth cycle, explained",
+    opening:
+      "Hair doesn't grow continuously. Each follicle cycles through three phases — and that's why treatment takes months to show results.",
+    mini_blocks: [
+      {
+        heading: "Anagen (growth phase, 2–7 years)",
+        body: "Active growth. Most follicles on a healthy scalp are in anagen at any given time. This is the phase where treatment has the most leverage.",
+      },
+      {
+        heading: "Catagen (transition, 2–3 weeks)",
+        body: "A short regression phase where the follicle detaches from its blood supply and prepares to shed.",
+      },
+      {
+        heading: "Telogen (rest and shed, 3 months)",
+        body: "The follicle rests, then the old hair sheds to make room for a new one. Seeing more shed hair in the shower usually means telogen, not catastrophe.",
+      },
+    ],
+    closing:
+      "Treatment shifts follicles out of telogen and back into anagen — which is why you often see MORE shedding in the first month of treatment before things improve. It's working; it just doesn't feel like it yet.",
+  },
+  {
+    id: "typical-timeline",
+    icon: CalendarClock,
+    title: "Typical treatment timeline",
+    opening:
+      "Month by month, what most patients experience on consistent treatment.",
+    numbered_list: [
+      {
+        heading: "Month 1",
+        body: "Paradoxical shedding sometimes increases as follicles shift phase. Uncomfortable but expected.",
+      },
+      {
+        heading: "Month 2",
+        body: "Shedding typically stabilises.",
+      },
+      {
+        heading: "Month 3",
+        body: "First signs in the mirror — hairline feels less thin, shedding in the shower less dramatic.",
+      },
+      {
+        heading: "Month 6",
+        body: "Clear improvement visible in photos compared to month 0.",
+      },
+      {
+        heading: "Month 9",
+        body: "Regrowth is usually obvious to the person and often to others.",
+      },
+      {
+        heading: "Month 12",
+        body: "Full treatment window — most of the improvement that's going to happen has happened by now.",
+      },
+    ],
+    closing:
+      "This is an average. Some people respond faster, some slower. Consistency matters more than anything else.",
+  },
+  {
+    id: "side-effects-honest",
+    icon: AlertCircle,
+    title: "Side effects: the honest version",
+    opening:
+      "Most side effects are uncommon, but it's worth knowing what to watch for.",
+    mini_blocks: [
+      {
+        heading: "Physical",
+        body: "Scalp irritation from topical treatments is the most common issue and usually manageable by switching formulation. Other physical side effects are uncommon and usually reversible if treatment stops.",
+      },
+      {
+        heading: "Mental health and sexual function",
+        body: "A small percentage of patients on oral treatment report changes in mood, libido, or sexual function. The data is genuinely mixed on how often this happens and how persistent it is. If you notice any of these while on treatment, tell the doctor — it's not embarrassing, it's clinically relevant.",
+      },
+      {
+        heading: "How to spot them early",
+        body: "Keep a note of how you feel in the first 2–3 months. If something shifts, flag it. Doctors are much more effective when they have a clear baseline to compare against.",
+      },
+    ],
+  },
+  {
+    id: "if-you-stop",
+    icon: XCircle,
+    title: "If you stop treatment",
+    opening: "Be honest with yourself about this one before you start.",
+    body: "Treatment is effectively maintenance — not a cure. If you stop, hair that was preserved or regrown on treatment typically reverts within 6–12 months, often back to where you'd have been if you'd never started. That's not a reason to avoid treatment — it's a reason to factor ongoing commitment into the decision. If budget or lifestyle makes long-term commitment impractical, talk to the doctor about whether treatment is the right move for you right now.",
+  },
+] as const
+
+// -----------------------------------------------------------------------------
+// Norwood stages reveal — client sub-component, inline
+// -----------------------------------------------------------------------------
+
+/**
+ * Tap-to-reveal strip of 7 Norwood stage chips. Kept inline in this file
+ * because the parent guide section is already a client component, and a
+ * sibling file would be strictly more indirection for a ~40-line helper.
+ */
+function NorwoodStagesReveal() {
+  const [selectedStage, setSelectedStage] = useState<number>(1)
+  const selected = NORWOOD_STAGES.find((s) => s.stage === selectedStage)
+
+  return (
+    <div>
+      <div
+        role="tablist"
+        aria-label="Norwood hair loss stages"
+        className="flex flex-wrap gap-2"
+      >
+        {NORWOOD_STAGES.map((stage) => {
+          const active = stage.stage === selectedStage
+          return (
+            <button
+              key={stage.stage}
+              type="button"
+              role="tab"
+              aria-selected={active}
+              onClick={() => setSelectedStage(stage.stage)}
+              className={cn(
+                "rounded-full px-3 py-1.5 text-xs font-medium transition-colors",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                active
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-muted-foreground hover:bg-muted/70",
+              )}
+            >
+              {stage.label}
+            </button>
+          )
+        })}
+      </div>
+      <div
+        role="tabpanel"
+        aria-live="polite"
+        className="mt-4 rounded-xl border border-border/50 bg-muted/30 p-4 text-sm leading-relaxed text-muted-foreground"
+      >
+        {selected ? (
+          <>
+            <span className="font-medium text-foreground">
+              {selected.label}:
+            </span>{" "}
+            {selected.description}
+          </>
+        ) : null}
+      </div>
+    </div>
+  )
+}
 
 // =============================================================================
 // COMPONENT
@@ -155,6 +372,104 @@ export function HairLossGuideSection() {
               </div>
             </motion.div>
           ))}
+
+          {/* Extended guide sections — Phase 2C Bundle 2 */}
+          {EXTENDED_GUIDE_SECTIONS.map((section, i) => (
+            <motion.div
+              key={section.id}
+              initial={animate ? { opacity: 0, y: 16 } : {}}
+              whileInView={animate ? { opacity: 1, y: 0 } : undefined}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: i * 0.05 }}
+            >
+              <div className="flex items-start gap-4">
+                <div className="shrink-0 mt-0.5 w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <section.icon className="w-4.5 h-4.5 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-lg font-semibold text-foreground mb-3">
+                    {section.title}
+                  </h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    {section.opening}
+                  </p>
+
+                  {section.mini_blocks && (
+                    <div className="mt-4 space-y-4">
+                      {section.mini_blocks.map((block, j) => (
+                        <div key={j}>
+                          <h4 className="text-sm font-semibold text-foreground">
+                            {block.heading}
+                          </h4>
+                          <p className="mt-1 text-sm text-muted-foreground leading-relaxed">
+                            {block.body}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {section.numbered_list && (
+                    <ol className="mt-4 space-y-3">
+                      {section.numbered_list.map((item, j) => (
+                        <li
+                          key={j}
+                          className="flex items-start gap-3 text-sm leading-relaxed"
+                        >
+                          <span className="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
+                            {j + 1}
+                          </span>
+                          <span className="text-muted-foreground">
+                            <span className="font-semibold text-foreground">
+                              {item.heading}:
+                            </span>{" "}
+                            {item.body}
+                          </span>
+                        </li>
+                      ))}
+                    </ol>
+                  )}
+
+                  {section.body && (
+                    <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
+                      {section.body}
+                    </p>
+                  )}
+
+                  {section.closing && (
+                    <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
+                      {section.closing}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          ))}
+
+          {/* Norwood stages visualiser */}
+          <motion.div
+            initial={animate ? { opacity: 0, y: 16 } : {}}
+            whileInView={animate ? { opacity: 1, y: 0 } : undefined}
+            viewport={{ once: true }}
+            transition={{ duration: 0.4 }}
+          >
+            <div className="flex items-start gap-4">
+              <div className="shrink-0 mt-0.5 w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                <LineChart className="w-4.5 h-4.5 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-lg font-semibold text-foreground mb-3">
+                  Norwood stages at a glance
+                </h3>
+                <p className="text-sm text-muted-foreground leading-relaxed mb-4">
+                  Tap a stage to see what it describes. The Norwood scale is
+                  the standard way doctors classify male pattern hair loss —
+                  from minor temple recession through extensive loss.
+                </p>
+                <NorwoodStagesReveal />
+              </div>
+            </div>
+          </motion.div>
         </div>
 
         {/* Clinical governance link */}
