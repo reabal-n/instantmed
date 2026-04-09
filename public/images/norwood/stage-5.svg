@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
+  <title>Hair loss stage 5</title>
+  <circle cx="60" cy="60" r="52" fill="#FDFBF7" stroke="#0F172A" stroke-opacity="0.6" stroke-width="2"/>
+  <circle cx="60" cy="62" r="48" fill="#0B2545" fill-opacity="0.85"/>
+  <ellipse cx="60" cy="38" rx="38" ry="18" fill="#FDFBF7"/>
+  <ellipse cx="60" cy="82" rx="26" ry="16" fill="#FDFBF7"/>
+</svg>
