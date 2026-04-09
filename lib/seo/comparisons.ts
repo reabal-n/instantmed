@@ -44,8 +44,7 @@ export interface ComparisonPage extends Omit<SEOPage, 'type'> {
 }
 
 export const comparisonPages: ComparisonPage[] = [
-  // All medication comparison pages removed for Google Ads compliance
-  // Previously included: tadalafil-vs-sildenafil, finasteride-vs-minoxidil, trimethoprim-vs-nitrofurantoin
+  // All medication comparison pages removed for Google Ads + TGA Schedule 4 compliance.
 ]
 
 export function getComparisonBySlug(slug: string): ComparisonPage | undefined {

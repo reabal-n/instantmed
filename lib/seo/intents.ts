@@ -236,7 +236,6 @@ export const intentPages: IntentPage[] = [
     links: {
       related: [
         { type: 'condition', slug: 'uti', title: 'UTI Information & Treatment' },
-        { type: 'medication', slug: 'trimethoprim', title: 'Trimethoprim for UTI' },
       ],
     },
     intent: {

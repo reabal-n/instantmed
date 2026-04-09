@@ -64,6 +64,19 @@ const nextConfig = {
         destination: "/",
         permanent: true
       },
+      // Drug detail pages — consolidated into /prescriptions (TGA Schedule 4 compliance).
+      // The live drug-detail pages at /prescriptions/med/[slug] exposed Schedule 4
+      // drug names to the consumer surface; removed in favour of a single consult CTA.
+      {
+        source: "/prescriptions/med",
+        destination: "/prescriptions",
+        permanent: true
+      },
+      {
+        source: "/prescriptions/med/:path*",
+        destination: "/prescriptions",
+        permanent: true
+      },
       // Consolidate duplicate service routes to canonical paths
       {
         source: "/medical-certificates",

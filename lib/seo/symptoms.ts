@@ -103,7 +103,6 @@ export const symptomPages: SymptomPage[] = [
     links: {
       related: [
         { type: 'condition', slug: 'uti', title: 'UTI Treatment Information' },
-        { type: 'medication', slug: 'trimethoprim', title: 'Trimethoprim for UTI' },
         { type: 'intent', slug: 'uti-treatment-online', title: 'Get UTI Treatment Online' },
       ],
     },

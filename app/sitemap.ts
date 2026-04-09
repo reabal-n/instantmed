@@ -1,11 +1,10 @@
 import type { MetadataRoute } from "next"
-import { getAllMedications } from "@/lib/data/medications"
 
 const BUILD_DATE = new Date()
 const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://instantmed.com.au"
 
 /**
- * Root sitemap — static pages, service pages, med cert locations, prescription meds.
+ * Root sitemap — static pages, service pages, med cert locations.
  * Content-type sitemaps live in their respective route directories
  * (conditions/, symptoms/, locations/, etc.) for GSC per-type index visibility.
  */
@@ -70,8 +69,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "adelaide", "gold-coast", "canberra", "hobart", "darwin",
   ]
 
-  const prescriptionMedSlugs = getAllMedications().map(m => m.slug)
-
   return [
     ...pillarPages.map((route) => ({
       url: `${baseUrl}${route}`,
@@ -94,12 +91,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...medCertLocationSlugs.map((slug) => ({
       url: `${baseUrl}/medical-certificate/${slug}`,
       lastModified: BUILD_DATE,
-      changeFrequency: "monthly" as const,
-      priority: 0.7,
-    })),
-    ...prescriptionMedSlugs.map((slug) => ({
-      url: `${baseUrl}/prescriptions/med/${slug}`,
-      lastModified: new Date("2026-03-31"),
       changeFrequency: "monthly" as const,
       priority: 0.7,
     })),
