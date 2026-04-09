@@ -102,7 +102,7 @@ function makeIntakeRow(overrides: Record<string, unknown> = {}) {
       id: "patient-1",
       full_name: "Test Patient",
       email: "patient@example.com",
-      auth_user_id: "clerk_test",
+      auth_user_id: "test-auth-user-id",
     }],
     ...overrides,
   }

@@ -1,20 +1,20 @@
 /**
  * E2E Test Login Endpoint
- * 
+ *
  * This endpoint is ONLY available in automated test environments.
  * It allows Playwright tests to authenticate as seeded test users
- * without going through the full Clerk OAuth flow.
- * 
+ * without going through the full OAuth flow.
+ *
  * Security:
  * - Only enabled when NODE_ENV === "test" OR PLAYWRIGHT === "1"
  * - Requires X-E2E-SECRET header matching E2E_SECRET env var
  * - Only accepts requests from localhost unless E2E_ALLOWED_HOSTS is set
  * - Only authenticates known test user IDs
- * 
+ *
  * Required env vars for E2E:
  *   PLAYWRIGHT=1
  *   E2E_SECRET=<secret>
- * 
+ *
  * Usage from Playwright:
  *   await page.request.post('/api/test/login', {
  *     headers: { 'X-E2E-SECRET': process.env.E2E_SECRET },
@@ -26,11 +26,11 @@ import { timingSafeEqual } from "crypto"
 import { NextRequest, NextResponse } from "next/server"
 import { cookies } from "next/headers"
 
-// Test user Clerk IDs (must match seed.ts)
+// Test user auth IDs (must match seed.ts)
 const TEST_USERS = {
-  operator: "user_e2e_operator_001",  // admin + doctor
-  doctor: "user_e2e_doctor_001",      // doctor only (not admin)
-  patient: "user_e2e_patient_001",
+  operator: "e2e00000-auth-0000-0000-000000000001",  // admin + doctor
+  doctor: "e2e00000-auth-0000-0000-000000000003",    // doctor only (not admin)
+  patient: "e2e00000-auth-0000-0000-000000000002",
 } as const
 
 type TestUserType = keyof typeof TEST_USERS
@@ -50,22 +50,22 @@ function isE2ETestModeEnabled(): boolean {
 function isAllowedHost(request: NextRequest): boolean {
   const host = request.headers.get("host") || ""
   const origin = request.headers.get("origin") || ""
-  
+
   // Default allowed hosts
   const defaultAllowed = ["localhost", "127.0.0.1"]
-  
+
   // Parse E2E_ALLOWED_HOSTS (comma-separated)
   const allowedHostsEnv = process.env.E2E_ALLOWED_HOSTS || ""
   const customAllowed = allowedHostsEnv.split(",").map(h => h.trim()).filter(Boolean)
-  
+
   const allAllowed = [...defaultAllowed, ...customAllowed]
-  
+
   // Check host header
   const hostWithoutPort = host.split(":")[0]
   if (allAllowed.includes(hostWithoutPort)) {
     return true
   }
-  
+
   // Check origin header
   try {
     const originUrl = new URL(origin)
@@ -75,7 +75,7 @@ function isAllowedHost(request: NextRequest): boolean {
   } catch {
     // Invalid or missing origin - check host only
   }
-  
+
   return false
 }
 
@@ -138,14 +138,14 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  const clerkUserId = TEST_USERS[userType]
+  const authUserId = TEST_USERS[userType]
 
   // Set a test session cookie that our auth helpers can recognize
   // This is a simplified auth bypass for E2E testing only
   const cookieStore = await cookies()
-  
+
   // Set a custom e2e auth cookie that we'll check in our auth helpers
-  cookieStore.set("__e2e_auth_user_id", clerkUserId, {
+  cookieStore.set("__e2e_auth_user_id", authUserId, {
     httpOnly: true,
     secure: false, // Allow in development
     sameSite: "lax",
@@ -198,7 +198,7 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({
     success: true,
     userType,
-    clerkUserId,
+    authUserId,
     role,
     e2eRunId: e2eRunId || null,
     message: `E2E session created for ${userType} user`,

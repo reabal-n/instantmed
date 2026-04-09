@@ -356,7 +356,7 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
       .maybeSingle()
 
     // Use auth_user_id as primary distinctId (matches client-side posthog.identify)
-    // Fall back to patientId for guest checkouts without Clerk accounts
+    // Fall back to patientId for guest checkouts without authenticated accounts
     const posthogDistinctId = phProfile?.auth_user_id || patientId || intakeId
 
     trackIntakeFunnelStep({

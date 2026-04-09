@@ -104,7 +104,7 @@ jobs:
           #   - link-text (cookie-banner "Learn more" → descriptive text)
           #
           # performance + best-practices stay at "warn" — third-party SDKs
-          # (Clerk, PostHog, Sentry) hurt those scores but aren't blockers
+          # (PostHog, Sentry) hurt those scores but aren't blockers
           # for a pre-launch telehealth marketing site.
           lhci autorun \
             --collect.startServerCommand="pnpm start" \

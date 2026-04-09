@@ -5,12 +5,8 @@ import { AppSignInButton } from "@/components/shared/app-sign-in-button"
 import Link from "next/link"
 
 /**
- * Auth controls for the footer — must be a client component to use Clerk hooks.
+ * Auth controls for the footer — client component for auth state.
  * Shows "Sign in" when signed out, "My account" when signed in.
- *
- * Uses conditional rendering (not <SignedOut>/<SignedIn>) so the sign-in link
- * is visible immediately — Clerk's wrapper components render nothing until
- * their JS bundle loads, which can take several seconds.
  */
 export function FooterAuth() {
   const { user, isLoaded } = useAuth()

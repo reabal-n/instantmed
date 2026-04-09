@@ -381,18 +381,3 @@ export async function getUserEmailFromAuthUserId(authUserId: string): Promise<st
   return authUser.user.email
 }
 
-/**
- * Get user email from auth_user_id (primary method for Clerk auth)
- */
-export async function getUserEmailFromClerkUserId(clerkUserId: string): Promise<string | null> {
-  const serviceClient = createServiceRoleClient()
-  
-  // Get email from profile
-  const { data: profile } = await serviceClient
-    .from("profiles")
-    .select("email")
-    .eq("auth_user_id", clerkUserId)
-    .single()
-  
-  return profile?.email ?? null
-}

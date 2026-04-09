@@ -2,8 +2,8 @@
  * Verification Code Email Template
  *
  * Sent when a user signs up or signs in with OTP.
- * Replaces the default Clerk verification email with InstantMed branding.
- * Routed through Resend via the Clerk emails.created webhook.
+ * InstantMed-branded verification code email.
+ * Sent via Resend when a user signs up or signs in with OTP.
  */
 
 import * as React from "react"

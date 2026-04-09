@@ -58,7 +58,7 @@ export function IntakesClient({ intakes: initialIntakes, patientId, pagination }
     setIsRefreshing(true)
     try {
       // Use Next.js router.refresh() instead of direct Supabase client query
-      // The browser Supabase client has no auth session (Clerk-based auth), so
+      // The browser Supabase client has no auth session (server-based auth), so
       // RLS policies block all rows. router.refresh() triggers a server-side
       // re-render which uses the service role client and bypasses RLS.
       router.refresh()

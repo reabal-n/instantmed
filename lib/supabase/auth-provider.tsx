@@ -87,7 +87,7 @@ export function SupabaseAuthProvider({ children }: SupabaseAuthProviderProps) {
 
 /**
  * Access auth state in client components.
- * Drop-in replacement for Clerk's useUser()/useAuth()/useClerk() hooks.
+ * Client-side auth hook providing user, session, and sign-out.
  *
  * @example
  * const { user, isSignedIn, signOut } = useAuth()

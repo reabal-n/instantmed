@@ -12,7 +12,7 @@ export function AppSignInButton({
   children,
 }: {
   children?: React.ReactNode
-  /** @deprecated mode was a Clerk concept — kept for API compat during migration */
+  /** @deprecated mode is unused — kept for API compat */
   mode?: string
 }) {
   return (

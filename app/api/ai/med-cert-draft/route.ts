@@ -46,10 +46,10 @@ export async function POST(request: NextRequest) {
   
   try {
     // Rate limiting
-    const { userId: clerkUserId } = await auth()
+    const { userId: authUserId } = await auth()
     
-    if (clerkUserId) {
-      const rateLimitResponse = await applyRateLimit(request, 'ai', clerkUserId)
+    if (authUserId) {
+      const rateLimitResponse = await applyRateLimit(request, 'ai', authUserId)
       if (rateLimitResponse) {
         return rateLimitResponse
       }

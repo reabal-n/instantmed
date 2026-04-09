@@ -101,8 +101,6 @@ const PRICING_FEATURES = [
   "Full refund if we can't help",
 ]
 
-const RELATED_ARTICLES: Array<{ title: string; href: string }> = []
-
 const ED_HOW_IT_WORKS_STEPS = [
   {
     number: "1",
@@ -140,7 +138,7 @@ function HeroSection({
   const animate = !prefersReducedMotion
 
   return (
-    <section aria-label="ED treatment service overview" className="relative overflow-hidden pt-8 pb-10 sm:pt-16 sm:pb-20 lg:pt-20 lg:pb-24">
+    <section aria-label="ED treatment service overview" className="relative overflow-hidden pt-6 pb-6 sm:pt-16 sm:pb-20 lg:pt-20 lg:pb-24">
       <div className="mx-auto max-w-5xl px-6 sm:px-8 lg:px-10">
         <div className="flex flex-col lg:flex-row items-center lg:gap-12 xl:gap-14">
           {/* Text content */}
@@ -194,7 +192,7 @@ function HeroSection({
             {/* CTA */}
             <motion.div
               ref={ctaRef}
-              className="flex flex-col sm:flex-row items-center gap-3 justify-center lg:justify-start mb-6"
+              className="flex flex-col sm:flex-row items-center gap-3 justify-center lg:justify-start mb-4 sm:mb-6"
               initial={animate ? { opacity: 0, y: 12 } : {}}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.12 }}
@@ -218,6 +216,22 @@ function HeroSection({
                   8am–10pm AEST, 7 days
                 </p>
               </div>
+            </motion.div>
+
+            {/* Quick quiz anchor — low-commitment engagement hook */}
+            <motion.div
+              className="flex justify-center lg:justify-start mb-4 sm:mb-6"
+              initial={animate ? { opacity: 0 } : {}}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.4, delay: 0.18 }}
+            >
+              <a
+                href="#ed-quiz"
+                className="inline-flex items-center gap-1.5 text-xs font-medium text-primary/80 hover:text-primary transition-colors dark:text-primary/70 dark:hover:text-primary/90"
+              >
+                Not sure? Take a 30-second quiz
+                <ChevronDown className="h-3.5 w-3.5" aria-hidden="true" />
+              </a>
             </motion.div>
 
             {/* Trust signals — hidden on mobile to keep CTA above fold */}
@@ -265,36 +279,9 @@ function HeroSection({
           </div>
 
           {/* Mobile mockup — below text content */}
-          <div className="lg:hidden mt-8 w-full max-w-sm mx-auto">
+          <div className="lg:hidden mt-4 w-full max-w-xs mx-auto">
             <EDHeroMockup />
           </div>
-        </div>
-      </div>
-    </section>
-  )
-}
-
-/** Related blog articles — internal links for SEO */
-function RelatedArticles() {
-  if (RELATED_ARTICLES.length === 0) return null
-
-  return (
-    <section aria-label="Related articles" className="py-12 lg:py-16">
-      <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-        <h2 className="text-sm font-medium text-muted-foreground mb-4 text-center">
-          Related reading
-        </h2>
-        <div className="flex flex-wrap justify-center gap-3">
-          {RELATED_ARTICLES.map((article) => (
-            <Link
-              key={article.href}
-              href={article.href}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white dark:bg-card border border-border/30 dark:border-white/15 text-sm text-foreground hover:border-primary/30 hover:shadow-sm transition-all"
-            >
-              {article.title}
-              <ArrowRight className="h-3 w-3 text-muted-foreground" aria-hidden="true" />
-            </Link>
-          ))}
         </div>
       </div>
     </section>
@@ -393,7 +380,7 @@ export function ErectileDysfunctionLanding() {
           <EdPrevalenceCalculator />
 
           {/* 4. Hook quiz — engagement after normalisation */}
-          <section className="py-12 lg:py-16 px-4 sm:px-6 lg:px-8">
+          <section id="ed-quiz" className="py-12 lg:py-16 px-4 sm:px-6 lg:px-8 scroll-mt-20">
             <EdHookQuiz />
           </section>
 
@@ -479,9 +466,6 @@ export function ErectileDysfunctionLanding() {
         {/* Content hub cross-links — distributes PageRank to condition/symptom/guide pages */}
         <ContentHubLinks service="consult" />
 
-        {/* Related articles — SEO internal linking (empty until ED blog slugs exist) */}
-        <RelatedArticles />
-
         {/* Exit-intent overlay — desktop only, once per session */}
         {!isDisabled && (
           <ExitIntentOverlay
@@ -506,7 +490,7 @@ export function ErectileDysfunctionLanding() {
         >
           <div className="bg-white/90 dark:bg-card/90 backdrop-blur-lg border-t border-border/50 px-4 pt-2.5 pb-3 safe-area-pb">
             <p className="text-xs text-muted-foreground text-center mb-2">
-              Discreet ED treatment. No call needed.
+              2-min form · Doctor-reviewed · No call needed
             </p>
             <Button
               asChild

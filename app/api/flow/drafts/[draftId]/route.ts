@@ -24,7 +24,7 @@ async function verifyDraftOwnership(
   supabase: ReturnType<typeof createServiceRoleClient>,
   draftId: string,
   sessionId: string,
-  clerkUserId: string | null
+  authUserId: string | null
 ): Promise<{ draft: Record<string, unknown> | null; error: NextResponse | null }> {
   const { data: draft, error } = await supabase
     .from("intake_drafts")
@@ -38,11 +38,11 @@ async function verifyDraftOwnership(
   }
 
   // If draft has a user_id and caller is authenticated, verify they match
-  if (draft.user_id && clerkUserId) {
+  if (draft.user_id && authUserId) {
     const { data: callerProfile } = await supabase
       .from("profiles")
       .select("id")
-      .eq("auth_user_id", clerkUserId)
+      .eq("auth_user_id", authUserId)
       .single()
 
     if (!callerProfile || callerProfile.id !== draft.user_id) {
@@ -68,7 +68,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
     const { draftId } = await context.params
     const { searchParams } = new URL(request.url)
     const sessionId = searchParams.get("sessionId")
-    const { userId: clerkUserId } = await auth()
+    const { userId: authUserId } = await auth()
 
     if (!draftId) {
       return NextResponse.json(
@@ -88,7 +88,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
     const supabase = createServiceRoleClient()
 
     // Verify ownership (sessionId + user_id if authenticated)
-    const ownership = await verifyDraftOwnership(supabase, draftId, sessionId, clerkUserId)
+    const ownership = await verifyDraftOwnership(supabase, draftId, sessionId, authUserId)
     if (ownership.error) return ownership.error
 
     const { data: draft, error } = await supabase
@@ -149,7 +149,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     if (csrfError) return csrfError
 
     const { draftId } = await context.params
-    const { userId: clerkUserId } = await auth()
+    const { userId: authUserId } = await auth()
 
     if (!draftId) {
       return NextResponse.json(
@@ -178,7 +178,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     const supabase = createServiceRoleClient()
 
     // Verify ownership (sessionId + user_id if authenticated)
-    const ownership = await verifyDraftOwnership(supabase, draftId, sessionId, clerkUserId)
+    const ownership = await verifyDraftOwnership(supabase, draftId, sessionId, authUserId)
     if (ownership.error) {
       logger.warn("Draft not found or access denied", { draftId, sessionId })
       return NextResponse.json(
@@ -248,7 +248,7 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
     const { draftId } = await context.params
     const { searchParams } = new URL(request.url)
     const sessionId = searchParams.get("sessionId")
-    const { userId: clerkUserId } = await auth()
+    const { userId: authUserId } = await auth()
 
     if (!draftId) {
       return NextResponse.json(
@@ -268,7 +268,7 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
     const supabase = createServiceRoleClient()
 
     // Verify ownership (sessionId + user_id if authenticated)
-    const ownership = await verifyDraftOwnership(supabase, draftId, sessionId, clerkUserId)
+    const ownership = await verifyDraftOwnership(supabase, draftId, sessionId, authUserId)
     if (ownership.error) return ownership.error
 
     const { error } = await supabase

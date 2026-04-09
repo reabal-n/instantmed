@@ -119,7 +119,7 @@ export default async function RequestPage({
     )
   }
 
-  // Wrap auth in try-catch — if Clerk/Supabase is temporarily unavailable,
+  // Wrap auth in try-catch — if Supabase Auth is temporarily unavailable,
   // fall through to guest checkout rather than crashing the server component
   let user: Awaited<ReturnType<typeof getCurrentUser>> = null
   let profile: Awaited<ReturnType<typeof getUserProfile>> = null

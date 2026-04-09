@@ -5,7 +5,7 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 /**
  * Lightweight endpoint for polling intake status from the success page.
  * Uses service-role to bypass RLS (client Supabase has no auth session).
- * Ownership verified via Clerk auth + patient_id check.
+ * Ownership verified via auth session + patient_id check.
  */
 export async function GET(req: NextRequest) {
   const { userId } = await auth()
@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
 
   const supabase = createServiceRoleClient()
 
-  // Look up profile by Clerk user ID
+  // Look up profile by auth user ID
   const { data: profile } = await supabase
     .from("profiles")
     .select("id")

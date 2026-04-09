@@ -5,8 +5,7 @@
  * for both authentication and data storage. All server-side auth flows go
  * through this module — it is the single chokepoint.
  *
- * Migration note: Replaced Clerk (clerkAuth/currentUser) with Supabase Auth
- * (supabase.auth.getUser()) in PR 2 of the auth migration.
+ * All server-side auth flows go through Supabase Auth (supabase.auth.getUser()).
  */
 
 import { cache } from "react"
@@ -426,7 +425,7 @@ export async function signOut() {
 
 /**
  * Auth function for server components/actions and API routes.
- * Returns { userId } — drop-in replacement for Clerk's auth().
+ * Returns { userId } for server components/actions and API routes.
  *
  * Used by API routes that import { auth } from "@/lib/auth".
  */

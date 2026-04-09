@@ -40,7 +40,7 @@ interface BulkActionResult {
 }
 
 export async function POST(request: NextRequest) {
-  let clerkUserId: string | null = null
+  let actorUserId: string | null = null
 
   try {
     const rateLimitResponse = await applyRateLimit(request, "sensitive")
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
     }
 
     const { userId, profile } = authResult
-    clerkUserId = userId
+    actorUserId = userId
 
     const supabase = createServiceRoleClient()
 
@@ -177,7 +177,7 @@ export async function POST(request: NextRequest) {
         let refundResult = null
         if (action === "decline") {
           try {
-            refundResult = await refundIfEligible(id, clerkUserId)
+            refundResult = await refundIfEligible(id, actorUserId)
           } catch (refundError) {
             log.error("Refund processing failed in bulk action", { intakeId: id }, refundError)
             refundResult = { refunded: false, reason: "Refund processing error" }
@@ -218,7 +218,7 @@ export async function POST(request: NextRequest) {
       results,
     })
   } catch (error) {
-    log.error("Bulk action failed", { clerkUserId }, error)
+    log.error("Bulk action failed", { actorUserId }, error)
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

@@ -28,7 +28,7 @@ export async function PATCH(request: Request) {
     const csrfError = await requireValidCsrf(request)
     if (csrfError) return csrfError
 
-    // getCurrentProfile() resolves the caller from Clerk → profiles table.
+    // getCurrentProfile() resolves the caller from auth session → profiles table.
     // Returns null if unauthenticated or profile missing.
     const profile = await getCurrentProfile()
     if (!profile) {

@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
 
     const supabase = createServiceRoleClient()
 
-    // Resolve profile ID from Clerk user for ownership tracking
+    // Resolve profile ID from authenticated user for ownership tracking
     const { data: callerProfile } = await supabase
       .from("profiles")
       .select("id")

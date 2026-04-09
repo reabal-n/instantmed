@@ -27,9 +27,9 @@ export async function GET(
     const { id: certificateId } = await params
 
     // 1. Authenticate user
-    const { userId: clerkUserId } = await auth()
+    const { userId: authUserId } = await auth()
 
-    if (!clerkUserId) {
+    if (!authUserId) {
       return NextResponse.json(
         { error: "Authentication required" },
         { status: 401 }
