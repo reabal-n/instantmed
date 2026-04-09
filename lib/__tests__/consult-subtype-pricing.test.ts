@@ -129,7 +129,11 @@ describe('Consult Subtype Price Mapping - Missing Env Vars', () => {
       ...originalEnv,
       // Only set the default consult price
       STRIPE_PRICE_CONSULT: 'price_consult_default',
-      // Don't set subtype-specific prices
+      // Explicitly clear subtype-specific prices (may exist in .env.local)
+      STRIPE_PRICE_CONSULT_ED: '',
+      STRIPE_PRICE_CONSULT_HAIR_LOSS: '',
+      STRIPE_PRICE_CONSULT_WOMENS_HEALTH: '',
+      STRIPE_PRICE_CONSULT_WEIGHT_LOSS: '',
     }
   })
 

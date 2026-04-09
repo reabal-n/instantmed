@@ -10,6 +10,13 @@ export default defineConfig({
     environment: 'node',
     include: ['lib/__tests__/**/*.test.{ts,tsx}'],
     setupFiles: ['./lib/__tests__/setup.ts'],
+    // Zod 4's `export { z }` re-export pattern breaks under vitest's
+    // module transformation — force vitest to use the CJS entry instead.
+    server: {
+      deps: {
+        inline: ['zod'],
+      },
+    },
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
