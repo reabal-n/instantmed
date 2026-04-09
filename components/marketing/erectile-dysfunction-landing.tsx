@@ -24,6 +24,8 @@ import { RotatingText } from "@/components/marketing/rotating-text"
 import { EDHeroMockup } from "@/components/marketing/mockups/ed-hero-mockup"
 import { PricingSection } from "@/components/marketing/sections/pricing-section"
 import { LiveWaitTime } from "@/components/marketing/live-wait-time"
+import { ContextualMessage } from "@/components/marketing/contextual-message"
+import { RecentReviewsTicker } from "@/components/marketing/recent-reviews-ticker"
 import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter } from "@/components/marketing/footer"
 import { ContentHubLinks } from "@/components/seo/content-hub-links"
@@ -72,6 +74,18 @@ const FinalCtaSection = dynamic(
 const EdOutcomesSection = dynamic(
   () => import("@/components/marketing/sections/ed-outcomes-section").then((m) => m.EdOutcomesSection),
   { loading: () => <div className="min-h-[150px]" /> },
+)
+const EdHookQuiz = dynamic(
+  () => import("@/components/marketing/sections/ed-hook-quiz").then((m) => m.EdHookQuiz),
+  { loading: () => <div className="min-h-[500px]" />, ssr: false },
+)
+const EdPrevalenceCalculator = dynamic(
+  () => import("@/components/marketing/sections/ed-prevalence-calculator").then((m) => m.EdPrevalenceCalculator),
+  { loading: () => <div className="min-h-[400px]" /> },
+)
+const EdMechanismExplainer = dynamic(
+  () => import("@/components/marketing/sections/ed-mechanism-explainer").then((m) => m.EdMechanismExplainer),
+  { loading: () => <div className="min-h-[500px]" /> },
 )
 
 // =============================================================================
@@ -533,8 +547,29 @@ export function ErectileDysfunctionLanding() {
           {/* 1. Hero */}
           <HeroSection ctaRef={heroCTARef} onCTAClick={handleHeroCTA} />
 
-          {/* Live wait time — ED routed via consult queue */}
-          <LiveWaitTime variant="strip" services={["consult"]} />
+          {/* Live wait time — ED routed via consult queue (ED-specific label) */}
+          <LiveWaitTime variant="strip" services={["consult-ed"]} />
+
+          {/* 2. ED hook quiz — engagement + self-qualification immediately below hero */}
+          <EdHookQuiz />
+
+          {/* 3. Social proof band — AnimatedStat + ContextualMessage + anonymous ticker */}
+          <section aria-label="Social proof" className="py-8 lg:py-12 border-b border-border/30 dark:border-white/10">
+            <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 flex flex-col items-center gap-4 text-center">
+              <p className="text-base sm:text-lg text-foreground font-medium">
+                <AnimatedStat
+                  value={SOCIAL_PROOF.averageRating}
+                  suffix="/5"
+                  decimals={1}
+                />{" "}
+                <span className="text-muted-foreground text-sm sm:text-base">
+                  patient rating &middot; AHPRA-registered doctors
+                </span>
+              </p>
+              <ContextualMessage service="ed" className="text-sm text-muted-foreground italic" />
+              <RecentReviewsTicker format="anonymous" artifact="treatment" />
+            </div>
+          </section>
 
           {/* Recent activity ticker */}
           <RecentActivityTicker />
@@ -550,14 +585,20 @@ export function ErectileDysfunctionLanding() {
             ctaHref="/request?service=consult&subtype=ed"
           />
 
-          {/* 3. Long-form guide — E-E-A-T content for SEO depth */}
+          {/* 3. Prevalence calculator — context-setting, reduces shame */}
+          <EdPrevalenceCalculator />
+
+          {/* 4. Mechanism explainer — builds clinical trust via education */}
+          <EdMechanismExplainer />
+
+          {/* 5. Long-form guide — E-E-A-T content for SEO depth */}
           <EDGuideSection />
+
+          {/* 6. Balanced outcomes framing — what treatment is/isn't, contraindications visible */}
+          <EdOutcomesSection />
 
           {/* Doctor profile — trust signal, this page only */}
           <DoctorProfileSection />
-
-          {/* Balanced outcomes framing — what treatment is/isn't, contraindications visible */}
-          <EdOutcomesSection />
 
           {/* 4. Pricing */}
           <PricingSection
