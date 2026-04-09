@@ -163,21 +163,92 @@ export const consultReasonStepSchema = z.object({
   consultUrgency: nonEmptyString("Please indicate how urgent this is"),
 })
 
-export const edAssessmentStepSchema = z.object({
-  edOnset: nonEmptyString("Please indicate when symptoms started"),
-  edFrequency: nonEmptyString("Please indicate how often this occurs"),
-  edMorningErections: nonEmptyString("Please answer this question"),
+// ---------------------------------------------------------------------------
+// ED Intake — 4-step validation
+// ---------------------------------------------------------------------------
+
+export const edGoalsStepSchema = z.object({
+  edGoal: nonEmptyString("Please select your main goal"),
+  edDuration: nonEmptyString("Please indicate how long this has been a concern"),
   edAgeConfirmed: z.literal(true, {
-    error: "Please confirm your age",
+    error: "Please confirm you are 18 or older",
   }),
-  edPreference: nonEmptyString("Please select a treatment preference"),
 })
 
-export const edSafetyStepSchema = z.object({
-  edSafety_nitrates: nonEmptyString("Please answer this safety question"),
-  edSafety_recentHeartEvent: nonEmptyString("Please answer this safety question"),
-  edSafety_severeHeartCondition: nonEmptyString("Please answer this safety question"),
-  edSafety_previousEdMeds: nonEmptyString("Please answer this safety question"),
+export const edAssessmentStepSchema = z.object({
+  iief1: z.number({ error: "Please rate your confidence" }).min(1).max(5),
+  iief2: z.number({ error: "Please answer this question" }).min(1).max(5),
+  iief3: z.number({ error: "Please answer this question" }).min(1).max(5),
+  iief4: z.number({ error: "Please answer this question" }).min(1).max(5),
+  iief5: z.number({ error: "Please answer this question" }).min(1).max(5),
+})
+
+export const edHealthStepSchema = z
+  .object({
+    edNitrates: z.boolean({ error: "Please answer this safety question" }),
+    edRecentHeartEvent: z.boolean({ error: "Please answer this safety question" }),
+    edSevereHeart: z.boolean({ error: "Please answer this safety question" }),
+    edGpCleared: z.boolean().optional(),
+    edHypertension: z.boolean().optional(),
+    edDiabetes: z.boolean().optional(),
+    edBpMedication: z.boolean().optional(),
+    has_allergies: z.union([z.literal("yes"), z.literal("no")]).optional(),
+    known_allergies: z.string().optional(),
+    has_conditions: z.union([z.literal("yes"), z.literal("no")]).optional(),
+    existing_conditions: z.string().optional(),
+    takes_medications: z.union([z.literal("yes"), z.literal("no")]).optional(),
+    current_medications: z.string().optional(),
+    previousEdMeds: z.boolean().optional(),
+    edPreviousTreatment: z.string().optional(),
+    edPreviousEffectiveness: z.string().optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.edNitrates === true) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["edNitrates"],
+        message: "This service is not suitable for patients taking nitrates",
+      })
+    }
+    if (data.edRecentHeartEvent === true && !data.edGpCleared) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["edGpCleared"],
+        message: "Please confirm your GP has cleared you",
+      })
+    }
+    if (data.edSevereHeart === true && !data.edGpCleared) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["edGpCleared"],
+        message: "Please confirm your GP has cleared you",
+      })
+    }
+    if (data.has_allergies === "yes" && !data.known_allergies?.trim()) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["known_allergies"],
+        message: "Please list your allergies",
+      })
+    }
+    if (data.has_conditions === "yes" && !data.existing_conditions?.trim()) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["existing_conditions"],
+        message: "Please list your conditions",
+      })
+    }
+    if (data.takes_medications === "yes" && !data.current_medications?.trim()) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["current_medications"],
+        message: "Please list your medications",
+      })
+    }
+  })
+
+export const edPreferencesStepSchema = z.object({
+  edPreference: nonEmptyString("Please select a treatment preference"),
 })
 
 export const hairLossAssessmentStepSchema = z.object({
@@ -268,12 +339,20 @@ export function validateConsultReasonStep(answers: Record<string, unknown>): Val
   return runSchema(consultReasonStepSchema, answers)
 }
 
+export function validateEdGoalsStep(answers: Record<string, unknown>): ValidationResult {
+  return runSchema(edGoalsStepSchema, answers)
+}
+
 export function validateEdAssessmentStep(answers: Record<string, unknown>): ValidationResult {
   return runSchema(edAssessmentStepSchema, answers)
 }
 
-export function validateEdSafetyStep(answers: Record<string, unknown>): ValidationResult {
-  return runSchema(edSafetyStepSchema, answers)
+export function validateEdHealthStep(answers: Record<string, unknown>): ValidationResult {
+  return runSchema(edHealthStepSchema, answers)
+}
+
+export function validateEdPreferencesStep(answers: Record<string, unknown>): ValidationResult {
+  return runSchema(edPreferencesStepSchema, answers)
 }
 
 export function validateHairLossAssessmentStep(answers: Record<string, unknown>): ValidationResult {
