@@ -10,17 +10,20 @@
 
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { 
-  AlertTriangle, 
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import {
+  AlertTriangle,
   AlertCircle,
-  Calendar, 
-  Thermometer, 
+  Calendar,
+  Thermometer,
   Activity,
   FileText,
   Pill,
   Heart,
+  ShieldAlert,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { getContraindicationRationale } from "@/lib/clinical/contraindication-rationales"
 
 /** Convert camelCase or snake_case keys into readable labels */
 function formatFieldLabel(key: string): string {
@@ -468,26 +471,58 @@ export function ClinicalSummary({ answers, consultSubtype, className, inline }: 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
               {subtypeFields.map(([key, value]) => {
                 const isHighlighted = subtypeHighlightSet.has(key)
+                // Strip edSafety_ prefix for rationale lookup (e.g. edSafety_nitrates → nitrates)
+                const rationaleKey = key.startsWith("edSafety_") ? key.replace("edSafety_", "") : key
+                const rationale = getContraindicationRationale(rationaleKey, value)
+                const fieldLabel = FIELD_LABELS[key] || formatFieldLabel(key)
                 return (
-                  <div 
-                    key={key} 
+                  <div
+                    key={key}
                     className={cn(
                       "flex items-start gap-2 p-3 rounded-lg text-sm",
+                      rationale?.severity === "destructive" ? "bg-destructive/10 border border-destructive/20" :
                       isHighlighted ? "bg-warning-light border border-warning-border" : "bg-muted/30"
                     )}
                   >
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs text-muted-foreground font-medium">
-                        {FIELD_LABELS[key] || formatFieldLabel(key)}
-                      </p>
+                      {rationale ? (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div
+                                className={cn(
+                                  "flex items-center gap-1.5 cursor-help",
+                                  rationale.severity === "destructive" && "text-destructive",
+                                  rationale.severity === "warning" && "text-warning",
+                                )}
+                              >
+                                {rationale.severity === "destructive" ? (
+                                  <ShieldAlert className="h-3.5 w-3.5 shrink-0" />
+                                ) : (
+                                  <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                                )}
+                                <span className="text-xs font-medium">{fieldLabel}</span>
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-xs text-left">
+                              <p className="text-xs leading-relaxed">{rationale.text}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      ) : (
+                        <p className="text-xs text-muted-foreground font-medium">
+                          {fieldLabel}
+                        </p>
+                      )}
                       <p className={cn(
                         "font-medium mt-0.5",
-                        isHighlighted && "text-warning"
+                        rationale?.severity === "destructive" && "text-destructive",
+                        !rationale && isHighlighted && "text-warning"
                       )}>
                         {formatValue(key, value)}
                       </p>
                     </div>
-                    {isHighlighted && (
+                    {!rationale && isHighlighted && (
                       <AlertTriangle className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
                     )}
                   </div>
