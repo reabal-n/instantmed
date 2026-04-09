@@ -42,11 +42,11 @@ function getTierLabel(tier: EdHookQuizTier): string {
 function getTierPillClasses(tier: EdHookQuizTier): string {
   switch (tier) {
     case "severe":
-      return "bg-amber-50 text-amber-900 border-amber-200 dark:bg-amber-950/40 dark:text-amber-200 dark:border-amber-900/60"
+      return "bg-warning/10 text-warning border-warning/30"
     case "moderate":
       return "bg-primary/10 text-primary border-primary/30"
     case "mild":
-      return "bg-emerald-50 text-emerald-900 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-200 dark:border-emerald-900/60"
+      return "bg-success/10 text-success border-success/30"
   }
 }
 
