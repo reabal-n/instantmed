@@ -139,6 +139,16 @@ CREATE POLICY intake_photos_patient_insert ON storage.objects
 
 -- Service role has implicit full access; no explicit policy needed.
 
+-- =============================================================================
+-- intakes: add needs_followup_review flag
+-- =============================================================================
+ALTER TABLE public.intakes
+  ADD COLUMN IF NOT EXISTS needs_followup_review boolean NOT NULL DEFAULT false;
+
+CREATE INDEX IF NOT EXISTS idx_intakes_needs_followup_review
+  ON public.intakes (needs_followup_review)
+  WHERE needs_followup_review = true;
+
 COMMENT ON TABLE public.intake_followups IS
   'Post-approval follow-up check-ins for ED and hair-loss patients. Three rows (month_3, month_6, month_12) created per intake on approval.';
 COMMENT ON TABLE public.followup_email_log IS

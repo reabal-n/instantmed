@@ -59,7 +59,7 @@ export function FollowupTrackerCard({ followups }: Props) {
       className={cn(
         "bg-white dark:bg-card border shadow-md shadow-primary/[0.06]",
         isOverdue
-          ? "border-amber-300 dark:border-amber-700"
+          ? "border-warning/30 dark:border-warning/40"
           : "border-border/50",
       )}
     >
@@ -73,7 +73,7 @@ export function FollowupTrackerCard({ followups }: Props) {
                 return (
                   <div key={m} className="flex items-center gap-1">
                     {done ? (
-                      <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                      <CheckCircle2 className="h-4 w-4 text-success" />
                     ) : current ? (
                       <Clock
                         className={cn(

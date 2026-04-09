@@ -90,7 +90,7 @@ export function IntakeDetailFollowups({
               className={cn(
                 "p-4 rounded-lg border",
                 flagged
-                  ? "border-amber-300 bg-amber-50/30"
+                  ? "border-warning/30 bg-warning/5"
                   : "border-border/50 bg-muted/20",
               )}
             >

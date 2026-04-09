@@ -123,7 +123,7 @@ export async function submitFollowup(
         .update({
           needs_followup_review: true,
           updated_at: now,
-        } as Record<string, unknown>)
+        })
         .eq("id", existing.intake_id)
     } catch {
       // Non-critical -- do not block the submission
