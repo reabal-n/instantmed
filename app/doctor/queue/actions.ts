@@ -89,6 +89,41 @@ export async function updateStatusAction(
       await markAsReviewed(intakeId, profile.id)
     }
 
+    // Phase 3: create follow-up rows for ED/hair-loss consults on approval
+    if (status === "approved") {
+      try {
+        const { createServiceRoleClient } = await import("@/lib/supabase/service-role")
+        const supabase = createServiceRoleClient()
+        const { data: intakeRow } = await supabase
+          .from("intakes")
+          .select("id, patient_id, subtype, category")
+          .eq("id", intakeId)
+          .single()
+
+        if (
+          intakeRow?.category === "consult" &&
+          (intakeRow.subtype === "ed" || intakeRow.subtype === "hair_loss")
+        ) {
+          const { createFollowupsForIntake } = await import("@/lib/data/followups")
+          await createFollowupsForIntake(supabase, {
+            intakeId: intakeRow.id,
+            patientId: intakeRow.patient_id,
+            subtype: intakeRow.subtype,
+          })
+        }
+      } catch (err) {
+        // Non-critical: log and continue. Approval itself already succeeded.
+        Sentry.captureException(err, {
+          tags: { action: "create_followups", intake_id: intakeId },
+          level: "warning",
+        })
+        logger.warn("Failed to create followups post-approval", {
+          intakeId,
+          error: err instanceof Error ? err.message : String(err),
+        })
+      }
+    }
+
     revalidatePath("/doctor/dashboard")
     revalidatePath(`/doctor/intakes/${intakeId}`)
 
