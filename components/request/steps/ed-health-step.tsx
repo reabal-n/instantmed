@@ -42,6 +42,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion"
 import { cn } from "@/lib/utils"
+import { usePostHog } from "@/components/providers/posthog-provider"
 import { useRequestStore } from "../store"
 import { useKeyboardNavigation } from "@/hooks/use-keyboard-navigation"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
@@ -106,6 +107,7 @@ function SectionComplete({ complete }: { complete: boolean }) {
 
 export default function EdHealthStep({ onNext, onBack }: EdHealthStepProps) {
   const router = useRouter()
+  const posthog = usePostHog()
   const { answers, setAnswer } = useRequestStore()
 
   // Hard block state
@@ -331,6 +333,12 @@ export default function EdHealthStep({ onNext, onBack }: EdHealthStepProps) {
         type="multiple"
         defaultValue={["heart"]}
         className="space-y-3"
+        onValueChange={(openSections: string[]) => {
+          posthog?.capture("ed_health_sections_viewed", {
+            open_sections: openSections,
+            section_count: openSections.length,
+          })
+        }}
       >
         {/* ----------------------------------------------------------------- */}
         {/* Section 1: Heart & blood pressure */}
