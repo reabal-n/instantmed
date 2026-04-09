@@ -94,12 +94,10 @@ function encryptProfilePhi<T extends Record<string, unknown>>(
 
   const encrypted: Record<string, unknown> = { ...data }
 
-  // Encrypt medicare_number — write encrypted only (no more plaintext dual-write)
+  // Encrypt medicare_number — dual-write: encrypted + plaintext
+  // Plaintext kept for doctor dashboard visibility and Parchment eScript integration
   if (data.medicare_number) {
     encrypted.medicare_number_encrypted = encryptField(data.medicare_number)
-    // Clear plaintext on write — existing plaintext will be read as fallback
-    // until the column is dropped (planned: 2026-06-01 after backfill confirmed)
-    encrypted.medicare_number = null
   }
 
   // Encrypt date_of_birth

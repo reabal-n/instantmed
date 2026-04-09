@@ -196,7 +196,7 @@ export async function updateMedicareAction(
   const { error } = await supabase
     .from("profiles")
     .update({
-      medicare_number: data.medicareNumber ? encryptIfNeeded(data.medicareNumber) : null,
+      medicare_number: data.medicareNumber || null,
       medicare_irn: data.medicareIrn || null,
       medicare_expiry: data.medicareExpiry || null,
       consent_myhr: data.consentMyhr,
