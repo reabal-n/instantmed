@@ -10,11 +10,12 @@ import { fetchCertPreviewDataAction, approveWithPreviewDataAction } from "@/app/
 import type { CertificatePreviewData } from "@/components/doctor/certificate-preview-dialog"
 import { logViewedIntakeAnswersAction, logViewedSafetyFlagsAction } from "@/app/actions/clinician-audit"
 import { acquireIntakeLockAction, releaseIntakeLockAction, extendIntakeLockAction } from "@/app/actions/intake-lock"
-import type { IntakeWithDetails, IntakeWithPatient, IntakeStatus, DeclineReasonCode } from "@/types/db"
+import type { IntakeWithDetails, IntakeWithPatient, IntakeStatus } from "@/types/db"
 import type { AIDraft } from "@/app/actions/draft-approval"
 import { useDoctorShortcuts } from "@/hooks/use-doctor-shortcuts"
 import { toast } from "sonner"
-import { IntakeDetailHeader, DECLINE_REASONS } from "./intake-detail-header"
+import { IntakeDetailHeader } from "./intake-detail-header"
+import { useIntakeDialogs } from "./use-intake-dialogs"
 import { IntakeDetailAnswers } from "./intake-detail-answers"
 import { IntakeDetailDrafts } from "./intake-detail-drafts"
 import { IntakeDetailFollowups, type DoctorFollowupRow } from "./intake-detail-followups"
@@ -82,20 +83,8 @@ export function IntakeDetailClient({
   const [doctorNotes, setDoctorNotes] = useState(intake.doctor_notes || "")
   const [noteSaved, setNoteSaved] = useState(false)
   const [isAiPrefilled, setIsAiPrefilled] = useState(false)
-  const [showDeclineDialog, setShowDeclineDialog] = useState(initialAction === "decline")
-  const [showScriptDialog, setShowScriptDialog] = useState(false)
-  const [showRefundDialog, setShowRefundDialog] = useState(false)
+  const dialogs = useIntakeDialogs(initialAction === "decline")
   const [actionMessage, setActionMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
-  const [declineReason, setDeclineReason] = useState(DECLINE_REASONS[0].template)
-  const [declineReasonCode, setDeclineReasonCode] = useState<DeclineReasonCode>("requires_examination")
-
-  // P0 DOCTOR_WORKLOAD_AUDIT: Auto-populate template when reason changes
-  const handleDeclineReasonCodeChange = (code: DeclineReasonCode) => {
-    setDeclineReasonCode(code)
-    const template = DECLINE_REASONS.find(r => r.code === code)?.template || ""
-    setDeclineReason(template)
-  }
-  const [parchmentReference, setParchmentReference] = useState("")
 
   // Certificate preview dialog
   const [showCertPreview, setShowCertPreview] = useState(false)
@@ -241,15 +230,15 @@ export function IntakeDetailClient({
     },
     onDecline: () => {
       if (!["approved", "declined", "completed"].includes(intake.status)) {
-        setShowDeclineDialog(true)
+        dialogs.openDeclineDialog()
       }
     },
     onNext: () => router.push("/doctor/dashboard"),
     onNote: () => notesRef.current?.focus(),
     onEscape: () => {
-      setShowDeclineDialog(false)
-      setShowScriptDialog(false)
-      setShowRefundDialog(false)
+      dialogs.closeDeclineDialog()
+      dialogs.closeScriptDialog()
+      dialogs.closeRefundDialog()
     },
     disabled: isPending,
   })
@@ -351,11 +340,11 @@ export function IntakeDetailClient({
   }
 
   const handleDecline = async () => {
-    if (!declineReason.trim()) return
+    if (!dialogs.declineReason.trim()) return
     startTransition(async () => {
-      const result = await declineIntakeAction(intake.id, declineReasonCode, declineReason)
+      const result = await declineIntakeAction(intake.id, dialogs.declineReasonCode, dialogs.declineReason)
       if (result.success) {
-        setShowDeclineDialog(false)
+        dialogs.closeDeclineDialog()
         toast.success("Case declined and patient notified")
         setTimeout(advanceToNext, 1000)
       } else {
@@ -417,9 +406,9 @@ export function IntakeDetailClient({
 
   const handleMarkScriptSent = async () => {
     startTransition(async () => {
-      const result = await markScriptSentAction(intake.id, parchmentReference || undefined)
+      const result = await markScriptSentAction(intake.id, dialogs.parchmentReference || undefined)
       if (result.success) {
-        setShowScriptDialog(false)
+        dialogs.closeScriptDialog()
         toast.success("Script marked as sent")
         setTimeout(advanceToNext, 1000)
       } else {
@@ -432,7 +421,7 @@ export function IntakeDetailClient({
     startTransition(async () => {
       const result = await issueRefundAction(intake.id)
       if (result.success) {
-        setShowRefundDialog(false)
+        dialogs.closeRefundDialog()
         const amountText = result.amount ? ` ($${(result.amount / 100).toFixed(2)})` : ""
         toast.success(`Refund processed${amountText}`)
         setTimeout(advanceToNext, 1000)
@@ -503,18 +492,7 @@ export function IntakeDetailClient({
         isLoadingPreview={isLoadingPreview}
         isViewingCert={isViewingCert}
         actionMessage={actionMessage}
-        showDeclineDialog={showDeclineDialog}
-        setShowDeclineDialog={setShowDeclineDialog}
-        showScriptDialog={showScriptDialog}
-        setShowScriptDialog={setShowScriptDialog}
-        showRefundDialog={showRefundDialog}
-        setShowRefundDialog={setShowRefundDialog}
-        declineReason={declineReason}
-        setDeclineReason={setDeclineReason}
-        declineReasonCode={declineReasonCode}
-        onDeclineReasonCodeChange={handleDeclineReasonCodeChange}
-        parchmentReference={parchmentReference}
-        setParchmentReference={setParchmentReference}
+        dialogs={dialogs}
         showCertPreview={showCertPreview}
         setShowCertPreview={setShowCertPreview}
         certPreviewData={certPreviewData}

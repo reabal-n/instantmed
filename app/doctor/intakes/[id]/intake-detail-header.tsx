@@ -41,6 +41,7 @@ import { CertificatePreviewDialog, type CertificatePreviewData } from "@/compone
 import { PdfViewerDialog } from "@/components/doctor/pdf-viewer-dialog"
 import { formatIntakeStatus } from "@/lib/format-intake"
 import type { IntakeWithDetails, IntakeStatus, DeclineReasonCode } from "@/types/db"
+import type { IntakeDialogState } from "./use-intake-dialogs"
 
 // P0 DOCTOR_WORKLOAD_AUDIT: Pre-filled decline reason templates to equalize approve/decline effort
 export const DECLINE_REASONS: { code: DeclineReasonCode; label: string; template: string }[] = [
@@ -106,18 +107,7 @@ interface IntakeDetailHeaderProps {
   isLoadingPreview: boolean
   isViewingCert: boolean
   actionMessage: { type: "success" | "error"; text: string } | null
-  showDeclineDialog: boolean
-  setShowDeclineDialog: (val: boolean) => void
-  showScriptDialog: boolean
-  setShowScriptDialog: (val: boolean) => void
-  showRefundDialog: boolean
-  setShowRefundDialog: (val: boolean) => void
-  declineReason: string
-  setDeclineReason: (val: string) => void
-  declineReasonCode: DeclineReasonCode
-  onDeclineReasonCodeChange: (code: DeclineReasonCode) => void
-  parchmentReference: string
-  setParchmentReference: (val: string) => void
+  dialogs: IntakeDialogState
   showCertPreview: boolean
   setShowCertPreview: (val: boolean) => void
   certPreviewData: CertificatePreviewData | null
@@ -141,18 +131,7 @@ export function IntakeDetailHeader({
   isLoadingPreview,
   isViewingCert,
   actionMessage,
-  showDeclineDialog,
-  setShowDeclineDialog,
-  showScriptDialog,
-  setShowScriptDialog,
-  showRefundDialog,
-  setShowRefundDialog,
-  declineReason,
-  setDeclineReason,
-  declineReasonCode,
-  onDeclineReasonCodeChange,
-  parchmentReference,
-  setParchmentReference,
+  dialogs,
   showCertPreview,
   setShowCertPreview,
   certPreviewData,
@@ -249,7 +228,7 @@ export function IntakeDetailHeader({
 
             {/* Mark script as sent (for awaiting_script status) */}
             {intake.status === "awaiting_script" && (
-              <Button onClick={() => setShowScriptDialog(true)} className="bg-blue-600 hover:bg-blue-700">
+              <Button onClick={dialogs.openScriptDialog} className="bg-blue-600 hover:bg-blue-700">
                 <Send className="h-4 w-4 mr-2" />
                 Mark Script Sent
               </Button>
@@ -273,7 +252,7 @@ export function IntakeDetailHeader({
 
             {/* Decline */}
             {!["approved", "declined", "completed"].includes(intake.status) && (
-              <Button variant="destructive" onClick={() => setShowDeclineDialog(true)} disabled={isPending}>
+              <Button variant="destructive" onClick={dialogs.openDeclineDialog} disabled={isPending}>
                 <XCircle className="h-4 w-4 mr-2" />
                 Decline
               </Button>
@@ -281,7 +260,7 @@ export function IntakeDetailHeader({
 
             {/* Refund - show for paid intakes that haven't been refunded */}
             {intake.payment_status === "paid" && (
-              <Button variant="outline" onClick={() => setShowRefundDialog(true)} disabled={isPending} className="text-warning border-warning-border hover:bg-warning-light">
+              <Button variant="outline" onClick={dialogs.openRefundDialog} disabled={isPending} className="text-warning border-warning-border hover:bg-warning-light">
                 <CreditCard className="h-4 w-4 mr-2" />
                 Issue Refund
               </Button>
@@ -312,7 +291,7 @@ export function IntakeDetailHeader({
       </Card>
 
       {/* Decline Dialog */}
-      <AlertDialog open={showDeclineDialog} onOpenChange={setShowDeclineDialog}>
+      <AlertDialog open={dialogs.showDeclineDialog} onOpenChange={(open) => { if (!open) dialogs.closeDeclineDialog() }}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Decline Request</AlertDialogTitle>
@@ -323,7 +302,7 @@ export function IntakeDetailHeader({
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label>Reason</Label>
-              <Select value={declineReasonCode} onValueChange={(v) => onDeclineReasonCodeChange(v as DeclineReasonCode)}>
+              <Select value={dialogs.declineReasonCode} onValueChange={(v) => dialogs.onDeclineReasonCodeChange(v as DeclineReasonCode)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -338,8 +317,8 @@ export function IntakeDetailHeader({
               <Label>Details</Label>
               <Textarea
                 placeholder="Provide additional details..."
-                value={declineReason}
-                onChange={(e) => setDeclineReason(e.target.value)}
+                value={dialogs.declineReason}
+                onChange={(e) => dialogs.setDeclineReason(e.target.value)}
               />
             </div>
           </div>
@@ -350,7 +329,7 @@ export function IntakeDetailHeader({
                 e.preventDefault()
                 onDecline()
               }}
-              disabled={!declineReason.trim() || isPending}
+              disabled={!dialogs.declineReason.trim() || isPending}
               className="bg-destructive hover:bg-destructive/90"
             >
               {isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
@@ -361,7 +340,7 @@ export function IntakeDetailHeader({
       </AlertDialog>
 
       {/* Script Sent Dialog */}
-      <AlertDialog open={showScriptDialog} onOpenChange={setShowScriptDialog}>
+      <AlertDialog open={dialogs.showScriptDialog} onOpenChange={(open) => { if (!open) dialogs.closeScriptDialog() }}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Mark Script as Sent</AlertDialogTitle>
@@ -374,8 +353,8 @@ export function IntakeDetailHeader({
               <Label>Parchment Reference (optional)</Label>
               <Input
                 placeholder="e.g., PAR-12345"
-                value={parchmentReference}
-                onChange={(e) => setParchmentReference(e.target.value)}
+                value={dialogs.parchmentReference}
+                onChange={(e) => dialogs.setParchmentReference(e.target.value)}
               />
             </div>
           </div>
@@ -390,7 +369,7 @@ export function IntakeDetailHeader({
       </AlertDialog>
 
       {/* Refund Dialog */}
-      <AlertDialog open={showRefundDialog} onOpenChange={setShowRefundDialog}>
+      <AlertDialog open={dialogs.showRefundDialog} onOpenChange={(open) => { if (!open) dialogs.closeRefundDialog() }}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Issue Refund</AlertDialogTitle>
