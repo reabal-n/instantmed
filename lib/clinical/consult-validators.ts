@@ -164,7 +164,7 @@ export function validateEdConsult(answers: Answers): ConsultValidationResult {
   requireOneOf(answers, "edPreference", "Medication preference", ED_PREFERENCE_VALUES, errors)
 
   // Safety checks — nitrates
-  const nitrates = str(answers, "edSafety_nitrates")
+  const nitrates = str(answers, "edNitrates")
   if (nitrates === "yes") {
     flags.push({
       type: "safety_block",
@@ -175,9 +175,9 @@ export function validateEdConsult(answers: Answers): ConsultValidationResult {
   }
 
   // Safety checks — recent cardiac event
-  const recentHeart = str(answers, "edSafety_recentHeartEvent")
+  const recentHeart = str(answers, "edRecentHeartEvent")
   if (recentHeart === "yes") {
-    const managed = bool(answers, "edSafety_managedCondition")
+    const managed = bool(answers, "edGpCleared")
     if (!managed) {
       flags.push({
         type: "safety_block",
@@ -196,9 +196,9 @@ export function validateEdConsult(answers: Answers): ConsultValidationResult {
   }
 
   // Safety checks — severe heart condition
-  const severeHeart = str(answers, "edSafety_severeHeartCondition")
+  const severeHeart = str(answers, "edSevereHeart")
   if (severeHeart === "yes") {
-    const managed = bool(answers, "edSafety_managedCondition")
+    const managed = bool(answers, "edGpCleared")
     if (!managed) {
       flags.push({
         type: "safety_block",

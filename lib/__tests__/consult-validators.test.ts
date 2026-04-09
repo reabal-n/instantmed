@@ -105,7 +105,7 @@ describe("validateEdConsult", () => {
   })
 
   it("blocks on nitrate use", () => {
-    const result = validateEdConsult({ ...validEd, edSafety_nitrates: "yes" })
+    const result = validateEdConsult({ ...validEd, edNitrates: "yes" })
     expect(result.valid).toBe(false)
     expect(result.flags).toContainEqual(
       expect.objectContaining({ type: "safety_block", reason: "nitrate_interaction" })
@@ -115,8 +115,8 @@ describe("validateEdConsult", () => {
   it("blocks on unmanaged recent cardiac event", () => {
     const result = validateEdConsult({
       ...validEd,
-      edSafety_recentHeartEvent: "yes",
-      edSafety_managedCondition: false,
+      edRecentHeartEvent: "yes",
+      edGpCleared: false,
     })
     expect(result.valid).toBe(false)
     expect(result.flags).toContainEqual(
@@ -127,8 +127,8 @@ describe("validateEdConsult", () => {
   it("allows managed cardiac event with clinical note", () => {
     const result = validateEdConsult({
       ...validEd,
-      edSafety_recentHeartEvent: "yes",
-      edSafety_managedCondition: true,
+      edRecentHeartEvent: "yes",
+      edGpCleared: true,
     })
     expect(result.valid).toBe(true)
     expect(result.flags).toContainEqual(

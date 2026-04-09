@@ -270,10 +270,9 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
       }
       const ED_DURATION_LABELS: Record<string, string> = {
         less_than_3_months: 'Less than 3 months',
-        under_3_months: 'Less than 3 months',
         '3_to_12_months': '3\u201312 months',
         '1_to_3_years': '1\u20133 years',
-        over_3_years: '3+ years',
+        '3_plus_years': '3+ years',
       }
       const ED_PREF_LABELS: Record<string, string> = {
         daily: 'Daily (always ready)',

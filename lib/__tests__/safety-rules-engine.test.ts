@@ -338,7 +338,7 @@ describe("Safety Rules Engine", () => {
       const result = evaluateSafety("consult", {
         emergency_symptoms: [],
         consultSubtype: "ed",
-        edSafety_nitrates: true,
+        edNitrates: true,
       })
       expect(result.outcome).toBe("DECLINE")
       expect(
@@ -352,7 +352,7 @@ describe("Safety Rules Engine", () => {
       const result = evaluateSafety("consult", {
         emergency_symptoms: [],
         consultSubtype: "ed",
-        edSafety_recentHeartEvent: true,
+        edRecentHeartEvent: true,
       })
       expect(result.outcome).toBe("DECLINE")
       expect(
@@ -366,7 +366,7 @@ describe("Safety Rules Engine", () => {
       const result = evaluateSafety("consult", {
         emergency_symptoms: [],
         consultSubtype: "ed",
-        edSafety_severeHeartCondition: true,
+        edSevereHeart: true,
       })
       expect(result.outcome).toBe("REQUIRES_CALL")
       expect(

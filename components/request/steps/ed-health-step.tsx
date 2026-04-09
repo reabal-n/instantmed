@@ -183,11 +183,10 @@ export default function EdHealthStep({ onNext, onBack }: EdHealthStepProps) {
     return true
   }, [edNitrates, edRecentHeartEvent, edSevereHeart, edGpCleared])
 
-  const bpComplete = useMemo(() => {
-    return edHypertension !== undefined &&
-      edDiabetes !== undefined &&
-      edBpMedication !== undefined
-  }, [edHypertension, edDiabetes, edBpMedication])
+  const bpComplete = useMemo(
+    () => edHypertension !== undefined || edDiabetes !== undefined || edBpMedication !== undefined,
+    [edHypertension, edDiabetes, edBpMedication],
+  )
 
   const medicationsComplete = useMemo(() => {
     if (takesMedications === undefined) return false
@@ -227,9 +226,10 @@ export default function EdHealthStep({ onNext, onBack }: EdHealthStepProps) {
     if (edNitrates === undefined) return false
     // Soft block without GP clearance
     if (gpClearanceRequired) return false
-    // All sections must be complete
+    // All required sections must be complete
+    // NOTE: bpComplete is intentionally excluded — BP/diabetes fields are
+    // informational (optional). bpComplete only drives the section checkmark.
     return heartComplete &&
-      bpComplete &&
       medicationsComplete &&
       allergiesComplete &&
       conditionsComplete &&
@@ -238,7 +238,6 @@ export default function EdHealthStep({ onNext, onBack }: EdHealthStepProps) {
     edNitrates,
     gpClearanceRequired,
     heartComplete,
-    bpComplete,
     medicationsComplete,
     allergiesComplete,
     conditionsComplete,
@@ -307,7 +306,7 @@ export default function EdHealthStep({ onNext, onBack }: EdHealthStepProps) {
             }}
             className="w-full"
           >
-            Go back and change answer
+            I made a mistake — I do NOT take nitrates
           </Button>
         </div>
       </div>
@@ -552,7 +551,7 @@ export default function EdHealthStep({ onNext, onBack }: EdHealthStepProps) {
                   id="ed-previous-treatment"
                   value={edPreviousTreatment}
                   onChange={(e) => setAnswer("edPreviousTreatment", e.target.value)}
-                  placeholder="What did you try? e.g., Sildenafil 50mg, Tadalafil 10mg"
+                  placeholder="What did you try? e.g., a daily tablet, an as-needed medication"
                   className="min-h-[80px] text-sm"
                 />
 

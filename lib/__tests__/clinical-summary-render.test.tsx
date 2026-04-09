@@ -2,14 +2,14 @@
  * Clinical Summary Render Tests
  *
  * Regression guard for the doctor-portal field-name bug (2026-04-09):
- * intake writes camelCase keys (edOnset, hairPattern, edSafety_nitrates,
+ * intake writes camelCase keys (edOnset, hairPattern, edNitrates,
  * etc.) but the subtype field map used to expect only snake_case. This
  * test locks in that ClinicalSummary renders camelCase ED and hair-loss
  * answers into the subtype-specific assessment panel with readable labels.
  *
  * Fixture keys are grounded in the actual intake step components:
  *   - components/request/steps/ed-assessment-step.tsx
- *   - components/request/steps/ed-safety-step.tsx
+ *   - components/request/steps/ed-health-step.tsx
  *   - components/request/steps/hair-loss-assessment-step.tsx
  */
 
@@ -23,7 +23,7 @@ function render(element: React.ReactElement): string {
 }
 
 describe("ClinicalSummary — ED subtype (camelCase keys)", () => {
-  // Mirrors the keys written by ed-assessment-step.tsx + ed-safety-step.tsx
+  // Mirrors the keys written by ed-assessment-step.tsx + ed-health-step.tsx
   const edAnswers = {
     // Assessment step
     edAgeConfirmed: true,
@@ -34,11 +34,11 @@ describe("ClinicalSummary — ED subtype (camelCase keys)", () => {
     edDiabetes: false,
     edPreference: "prn",
     edAdditionalInfo: "Recently started new job, lots of stress",
-    // Safety step — note the edSafety_ prefix and string "yes"/"no" values
-    edSafety_nitrates: "no",
-    edSafety_recentHeartEvent: "no",
-    edSafety_severeHeartCondition: "no",
-    edSafety_previousEdMeds: "yes",
+    // Safety fields — flat keys from ed-health-step.tsx
+    edNitrates: "no",
+    edRecentHeartEvent: "no",
+    edSevereHeart: "no",
+    previousEdMeds: "yes",
   }
 
   it("renders the ED Assessment panel heading", () => {
@@ -56,7 +56,7 @@ describe("ClinicalSummary — ED subtype (camelCase keys)", () => {
     expect(html).toContain("Uncontrolled Diabetes")
   })
 
-  it("renders readable labels for edSafety_* prefixed safety fields", () => {
+  it("renders readable labels for ED safety fields", () => {
     const html = render(<ClinicalSummary answers={edAnswers} consultSubtype="ed" />)
     expect(html).toContain("Nitrate Use")
     expect(html).toContain("Recent Heart Event")
@@ -64,22 +64,22 @@ describe("ClinicalSummary — ED subtype (camelCase keys)", () => {
     expect(html).toContain("Previous ED Medication Use")
   })
 
-  it("does NOT auto-format camelCase keys to 'Ed Onset' or 'Ed Safety Nitrates'", () => {
+  it("does NOT auto-format camelCase keys to 'Ed Onset' or 'Ed Nitrates'", () => {
     const html = render(<ClinicalSummary answers={edAnswers} consultSubtype="ed" />)
     expect(html).not.toContain("Ed Onset")
     expect(html).not.toContain("Ed Frequency")
-    expect(html).not.toContain("Ed Safety Nitrates")
-    expect(html).not.toContain("Ed Safety Recent Heart Event")
+    expect(html).not.toContain("Ed Nitrates")
+    expect(html).not.toContain("Ed Recent Heart Event")
   })
 
-  it("renders the optional edSafety_managedCondition flag when present", () => {
+  it("renders the optional edGpCleared flag when present", () => {
     const withManagedCondition = {
       ...edAnswers,
-      edSafety_recentHeartEvent: "yes",
-      edSafety_managedCondition: true,
+      edRecentHeartEvent: "yes",
+      edGpCleared: true,
     }
     const html = render(<ClinicalSummary answers={withManagedCondition} consultSubtype="ed" />)
-    expect(html).toContain("Cardiac Condition Managed")
+    expect(html).toContain("GP Cleared Cardiac Condition")
   })
 })
 
@@ -130,7 +130,7 @@ describe("ClinicalSummary — hair loss subtype (camelCase keys)", () => {
 })
 
 describe("ClinicalSummary — legacy snake_case compat", () => {
-  it("still renders legacy snake_case ED keys when present", () => {
+  it("still renders legacy snake_case ED keys in Additional Information", () => {
     const legacyEd = {
       ed_onset: "sudden",
       ed_frequency: "half_the_time",
@@ -139,9 +139,10 @@ describe("ClinicalSummary — legacy snake_case compat", () => {
       cardiovascular_history: "none",
     }
     const html = render(<ClinicalSummary answers={legacyEd} consultSubtype="ed" />)
-    expect(html).toContain("Erectile Dysfunction Assessment")
-    // Labels for legacy keys can use auto-format or explicit — just make
-    // sure the answers aren't hidden.
+    // Legacy snake_case keys from old intakes fall through to "Additional Information"
+    // since the ED fields array now uses the new camelCase keys (edGoal, iiefTotal, etc.)
+    expect(html).toContain("Additional Information")
+    // The actual values must still be visible — not hidden
     expect(html).toContain("sudden")
     expect(html).toContain("half_the_time")
   })

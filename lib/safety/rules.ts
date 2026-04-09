@@ -354,7 +354,7 @@ const consultRules: SafetyRule[] = [
     description: 'Patient is taking nitrates and requesting ED medication - absolute contraindication. Defense-in-depth: ED safety step also hard-blocks nitrate users.',
     conditions: [
       { fieldId: 'consultSubtype', operator: 'equals', value: 'ed' },
-      { fieldId: 'edSafety_nitrates', operator: 'equals', value: true },
+      { fieldId: 'edNitrates', operator: 'equals', value: true },
     ],
     conditionLogic: 'AND',
     outcome: 'DECLINE',
@@ -373,7 +373,7 @@ const consultRules: SafetyRule[] = [
     description: 'Patient had heart attack or stroke and requesting ED medication. Defense-in-depth: ED safety step also hard-blocks.',
     conditions: [
       { fieldId: 'consultSubtype', operator: 'equals', value: 'ed' },
-      { fieldId: 'edSafety_recentHeartEvent', operator: 'equals', value: true },
+      { fieldId: 'edRecentHeartEvent', operator: 'equals', value: true },
     ],
     conditionLogic: 'AND',
     outcome: 'DECLINE',
@@ -392,7 +392,7 @@ const consultRules: SafetyRule[] = [
     description: 'Patient reports severe heart condition and requesting ED medication. Defense-in-depth: ED safety step also hard-blocks.',
     conditions: [
       { fieldId: 'consultSubtype', operator: 'equals', value: 'ed' },
-      { fieldId: 'edSafety_severeHeartCondition', operator: 'equals', value: true },
+      { fieldId: 'edSevereHeart', operator: 'equals', value: true },
     ],
     conditionLogic: 'AND',
     outcome: 'REQUIRES_CALL',
