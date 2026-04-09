@@ -54,6 +54,21 @@ import type { IntakeWithPatient } from "@/types/db"
 import type { PaginationInfo } from "./types"
 import { revokeAIApproval } from "@/app/actions/revoke-ai-approval"
 
+/**
+ * Map a consult subtype to a short scanning-aid label for the queue chip.
+ * Returns null for general / null / undefined / unknown so the chip is hidden.
+ */
+function getConsultSubtypeLabel(subtype: string | null | undefined): string | null {
+  if (!subtype) return null
+  const labels: Record<string, string> = {
+    ed: "ED",
+    hair_loss: "Hair Loss",
+    womens_health: "Women's Health",
+    weight_loss: "Weight Loss",
+  }
+  return labels[subtype] ?? null
+}
+
 export interface QueueTableProps {
   filteredIntakes: IntakeWithPatient[]
   intakes?: IntakeWithPatient[]
@@ -214,6 +229,14 @@ export function QueueTable({
                         <Badge variant="outline" className="text-xs">
                           {service?.short_name || formatServiceType(service?.type || "")}
                         </Badge>
+                        {(() => {
+                          const subtypeLabel = getConsultSubtypeLabel(intake.subtype)
+                          return subtypeLabel ? (
+                            <Badge variant="secondary" className="text-xs">
+                              {subtypeLabel}
+                            </Badge>
+                          ) : null
+                        })()}
                         {intake.is_priority && (
                           <Badge className="bg-warning-light text-warning border-warning-border">
                             <Zap className="w-3 h-3 mr-1" />
