@@ -15,6 +15,7 @@ import type { QueueClientProps } from "./types"
 import type { IntakeStatus, IntakeWithPatient } from "@/types/db"
 import { formatServiceType } from "@/lib/format-intake"
 import { calculateWaitTime, getWaitTimeSeverity, calculateSlaCountdown } from "@/lib/doctor/queue-utils"
+import { SERVICE_TYPES } from "@/lib/doctor/service-types"
 import { useQueueRealtime } from "@/lib/doctor/use-queue-realtime"
 import { QueueFilters } from "./queue-filters"
 import { QueueTable } from "./queue-table"
@@ -132,19 +133,19 @@ export function QueueClient({
   }, [openPanel, router])
 
   const handleApprove = useCallback(async (intakeId: string, serviceType?: string | null) => {
-    if (serviceType === "med_certs") {
+    if (serviceType === SERVICE_TYPES.MED_CERTS) {
       // Open review panel — doctor uses the certificate preview dialog there
       openReviewPanel(intakeId)
       return
     }
     startTransition(async () => {
-      const newStatus: IntakeStatus = serviceType === "common_scripts" || serviceType === "repeat_rx"
+      const newStatus: IntakeStatus = serviceType === SERVICE_TYPES.COMMON_SCRIPTS || serviceType === SERVICE_TYPES.REPEAT_RX
         ? "awaiting_script"
         : "approved"
       const result = await updateStatusAction(intakeId, newStatus)
       if (result.success) {
         setIntakes((prev) => prev.filter((r) => r.id !== intakeId))
-        if (serviceType === "common_scripts" || serviceType === "repeat_rx") {
+        if (serviceType === SERVICE_TYPES.COMMON_SCRIPTS || serviceType === SERVICE_TYPES.REPEAT_RX) {
           // Open panel for script workflow (mark sent, etc.)
           openReviewPanel(intakeId)
         } else {

@@ -49,6 +49,7 @@ import { toast } from "sonner"
 import { EmptyState } from "@/components/ui/empty-state"
 import { capture } from "@/lib/analytics/capture"
 import { formatServiceType } from "@/lib/format-intake"
+import { SERVICE_TYPES } from "@/lib/doctor/service-types"
 import { calculateAge } from "@/lib/format"
 import type { IntakeWithPatient } from "@/types/db"
 import type { PaginationInfo } from "./types"
@@ -328,9 +329,9 @@ export function QueueTable({
                         ) : (
                           <CheckCircle className="h-4 w-4 mr-1.5" />
                         )}
-                        {service?.type === "med_certs"
+                        {service?.type === SERVICE_TYPES.MED_CERTS
                           ? "Review & Build"
-                          : service?.type === "common_scripts"
+                          : service?.type === SERVICE_TYPES.COMMON_SCRIPTS
                           ? "Approve Script"
                           : "Approve"}
                       </Button>

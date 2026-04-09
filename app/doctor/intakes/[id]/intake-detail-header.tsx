@@ -42,6 +42,7 @@ import { PdfViewerDialog } from "@/components/doctor/pdf-viewer-dialog"
 import { formatIntakeStatus } from "@/lib/format-intake"
 import type { IntakeWithDetails, IntakeStatus, DeclineReasonCode } from "@/types/db"
 import type { IntakeDialogState } from "./use-intake-dialogs"
+import { SERVICE_TYPES } from "@/lib/doctor/service-types"
 
 // P0 DOCTOR_WORKLOAD_AUDIT: Pre-filled decline reason templates to equalize approve/decline effort
 export const DECLINE_REASONS: { code: DeclineReasonCode; label: string; template: string }[] = [
@@ -211,7 +212,7 @@ export function IntakeDetailHeader({
         <CardContent className="px-4 py-4">
           <div className="flex flex-wrap gap-3">
             {/* For med certs - preview then approve: shows preview dialog first */}
-            {service?.type === "med_certs" && ["paid", "in_review"].includes(intake.status) && (
+            {service?.type === SERVICE_TYPES.MED_CERTS && ["paid", "in_review"].includes(intake.status) && (
               <Button onClick={onMedCertApprove} className="bg-emerald-600 hover:bg-emerald-700" disabled={isPending || isLoadingPreview}>
                 {(isPending || isLoadingPreview) ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-2" />}
                 {isLoadingPreview ? "Loading Preview..." : isPending ? "Generating Certificate..." : "Approve & Send Certificate"}
@@ -219,7 +220,7 @@ export function IntakeDetailHeader({
             )}
 
             {/* For repeat scripts - approve then mark sent externally */}
-            {(service?.type === "repeat_rx" || service?.type === "common_scripts") && intake.status === "paid" && (
+            {(service?.type === SERVICE_TYPES.REPEAT_RX || service?.type === SERVICE_TYPES.COMMON_SCRIPTS) && intake.status === "paid" && (
               <Button onClick={() => onStatusChange("awaiting_script")} className="bg-primary hover:bg-primary/90" disabled={isPending}>
                 {isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-2" />}
                 {isPending ? "Approving..." : "Approve Script"}
@@ -235,7 +236,7 @@ export function IntakeDetailHeader({
             )}
 
             {/* For consults - approve after call with notes */}
-            {service?.type === "consults" && intake.status === "paid" && (
+            {service?.type === SERVICE_TYPES.CONSULTS && intake.status === "paid" && (
               <Button onClick={() => onStatusChange("approved")} className="bg-primary hover:bg-primary/90" disabled={isPending}>
                 {isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-2" />}
                 {isPending ? "Completing..." : "Complete Consultation"}
@@ -243,7 +244,7 @@ export function IntakeDetailHeader({
             )}
 
             {/* Generic approve for other services */}
-            {!["med_certs", "repeat_rx", "common_scripts", "consults"].includes(service?.type || "") && intake.status === "paid" && (
+            {!(Object.values(SERVICE_TYPES) as string[]).includes(service?.type || "") && intake.status === "paid" && (
               <Button onClick={() => onStatusChange("approved")} className="bg-primary hover:bg-primary/90" disabled={isPending}>
                 {isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-2" />}
                 {isPending ? "Approving..." : "Approve"}
