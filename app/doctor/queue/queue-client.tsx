@@ -1,8 +1,7 @@
 "use client"
 
-import { useState, useEffect, useTransition, useMemo, useCallback, useRef } from "react"
+import { useState, useEffect, useTransition, useMemo, useCallback } from "react"
 import { useRouter } from "next/navigation"
-import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { AlertTriangle, RefreshCw } from "lucide-react"
 import { updateStatusAction, declineIntakeAction, flagForFollowupAction, getDeclineReasonTemplatesAction } from "./actions"
@@ -16,6 +15,7 @@ import type { QueueClientProps } from "./types"
 import type { IntakeStatus, IntakeWithPatient } from "@/types/db"
 import { formatServiceType } from "@/lib/format-intake"
 import { calculateWaitTime, getWaitTimeSeverity, calculateSlaCountdown } from "@/lib/doctor/queue-utils"
+import { useQueueRealtime } from "@/lib/doctor/use-queue-realtime"
 import { QueueFilters } from "./queue-filters"
 import { QueueTable } from "./queue-table"
 
@@ -58,9 +58,6 @@ export function QueueClient({
   const [revokeReason, setRevokeReason] = useState("")
   const [declineTemplatesLoaded, setDeclineTemplatesLoaded] = useState(false)
   const [infoTemplatesLoaded, setInfoTemplatesLoaded] = useState(false)
-  const lastSyncTimeRef = useRef<Date>(new Date())
-  const [isStale, setIsStale] = useState(false)
-  const [isReconnecting, setIsReconnecting] = useState(false)
   const [, setTick] = useState(0) // Forces re-render for live wait time ticking
   const [soundMuted, setSoundMuted] = useState(() => {
     if (typeof window !== "undefined") {
@@ -97,78 +94,28 @@ export function QueueClient({
     }
   }, [soundMuted])
 
-  // Real-time subscription — client-side state updates (no router.refresh on INSERT)
-  useEffect(() => {
-    const supabase = createClient()
-    const staleCheckInterval: NodeJS.Timeout = setInterval(() => {
-      const now = new Date()
-      const timeSinceSync = now.getTime() - lastSyncTimeRef.current.getTime()
-      if (timeSinceSync > 90000) {
-        setIsStale(true)
-      }
-    }, 30000)
+  // Real-time subscription with exponential backoff reconnection
+  const handleInsert = useCallback((newRow: IntakeWithPatient) => {
+    setIntakes((prev) => {
+      if (prev.some((r) => r.id === newRow.id)) return prev
+      return [newRow, ...prev]
+    })
+  }, [])
 
-    // Background soft-refresh every 60s to catch missed updates
-    const softRefreshInterval: NodeJS.Timeout = setInterval(() => {
-      router.refresh()
-    }, 60000)
+  const handleUpdate = useCallback((updated: Partial<IntakeWithPatient> & { id: string }) => {
+    setIntakes((prev) => prev.map((r) => (r.id === updated.id ? { ...r, ...updated } : r)))
+  }, [])
 
-    const channel = supabase
-      .channel("queue-updates")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "intakes",
-          filter: "status=in.(paid,in_review,pending_info,awaiting_script)",
-        },
-        (payload) => {
-          lastSyncTimeRef.current = new Date()
-          setIsStale(false)
+  const handleDelete = useCallback((id: string) => {
+    setIntakes((prev) => prev.filter((r) => r.id !== id))
+  }, [])
 
-          if (payload.eventType === "INSERT") {
-            const newRow = payload.new as IntakeWithPatient
-            const serviceData = newRow.service as { short_name?: string } | undefined
-            const serviceName = serviceData?.short_name || "New request"
-            const patientName = newRow.patient?.full_name
-            playNotificationSound()
-            toast.info(
-              patientName
-                ? `${serviceName} from ${patientName}`
-                : `${serviceName} added to queue`,
-              { duration: 5000 }
-            )
-            // Add directly to local state — no full page refresh needed
-            setIntakes((prev) => {
-              // Avoid duplicates if real-time fires twice
-              if (prev.some((r) => r.id === newRow.id)) return prev
-              return [newRow, ...prev]
-            })
-          } else if (payload.eventType === "UPDATE") {
-            setIntakes((prev) => prev.map((r) => (r.id === payload.new.id ? { ...r, ...payload.new } : r)))
-          } else if (payload.eventType === "DELETE") {
-            setIntakes((prev) => prev.filter((r) => r.id !== payload.old.id))
-          }
-        },
-      )
-      .subscribe((status) => {
-        if (status === "SUBSCRIBED") {
-          lastSyncTimeRef.current = new Date()
-          setIsStale(false)
-          setIsReconnecting(false)
-        } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
-          setIsStale(true)
-          setIsReconnecting(true)
-        }
-      })
-
-    return () => {
-      supabase.removeChannel(channel)
-      clearInterval(staleCheckInterval)
-      clearInterval(softRefreshInterval)
-    }
-  }, [router, playNotificationSound])
+  const { isStale, isReconnecting } = useQueueRealtime({
+    onInsert: handleInsert,
+    onUpdate: handleUpdate,
+    onDelete: handleDelete,
+    playNotificationSound,
+  })
 
   // Open intake review in a slide-over panel (stays on queue)
   const openReviewPanel = useCallback((intakeId: string) => {
