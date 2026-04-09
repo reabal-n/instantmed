@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { submitFollowupSchema } from "@/app/actions/followups"
+import { submitFollowupSchema } from "@/lib/validation/followup-schema"
 
 describe("submitFollowupSchema", () => {
   it("accepts valid payload", () => {
