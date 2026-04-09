@@ -120,3 +120,7 @@ export type { ExitIntentLastChanceEmailProps } from "./exit-intent-last-chance"
 // --- Decline Re-Engagement (2h post-decline) ---
 export { DeclineReengagementEmail, declineReengagementSubject } from "./decline-reengagement"
 export type { DeclineReengagementEmailProps } from "./decline-reengagement"
+
+// --- Treatment Follow-Up (ED/hair-loss milestone check-ins) ---
+export { TreatmentFollowupEmail, treatmentFollowupSubject } from "./treatment-followup"
+export type { TreatmentFollowupEmailProps } from "./treatment-followup"

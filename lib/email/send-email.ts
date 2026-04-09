@@ -58,6 +58,7 @@ export type EmailType =
   | "exit_intent_social_proof"
   | "exit_intent_last_chance"
   | "decline_reengagement"
+  | "treatment_followup"
 
 interface SendEmailParams {
   to: string
