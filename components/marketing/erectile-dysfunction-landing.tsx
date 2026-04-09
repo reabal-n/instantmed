@@ -69,8 +69,8 @@ const FinalCtaSection = dynamic(
   () => import("@/components/marketing/sections/final-cta-section").then((m) => m.FinalCtaSection),
   { loading: () => <div className="min-h-[300px]" /> },
 )
-const EDLimitationsSection = dynamic(
-  () => import("@/components/marketing/sections/ed-limitations-section").then((m) => m.EDLimitationsSection),
+const EdOutcomesSection = dynamic(
+  () => import("@/components/marketing/sections/ed-outcomes-section").then((m) => m.EdOutcomesSection),
   { loading: () => <div className="min-h-[150px]" /> },
 )
 
@@ -556,8 +556,8 @@ export function ErectileDysfunctionLanding() {
           {/* Doctor profile — trust signal, this page only */}
           <DoctorProfileSection />
 
-          {/* Pre-qualify before pricing — reduces bad-fit conversions */}
-          <EDLimitationsSection />
+          {/* Balanced outcomes framing — what treatment is/isn't, contraindications visible */}
+          <EdOutcomesSection />
 
           {/* 4. Pricing */}
           <PricingSection
