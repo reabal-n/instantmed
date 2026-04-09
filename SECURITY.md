@@ -59,31 +59,13 @@ Field-level **envelope encryption** using **AES-256-GCM** with unique IV per ope
 
 **RPC:** `atomicApproveCertificate()` (migration `20260311014239`) writes both `patient_name` and `patient_name_enc` via `p_patient_name_enc` parameter. App layer uses `prepareCertificatePatientNameWrite()` before calling the RPC.
 
-### Pending: Medicare Plaintext Removal
+### Medicare: Permanent Dual-Write
 
-**Deadline: 2026-06-01.** Medicare number is currently stored in both `profiles.medicare_number` (plaintext) and `profiles.medicare_number_encrypted` (AES-256-GCM) for rollback safety. Once the encrypted column is confirmed fully populated and stable, the plaintext column must be dropped.
+Medicare number is stored in both `profiles.medicare_number` (plaintext) and `profiles.medicare_number_encrypted` (AES-256-GCM). **Plaintext is kept permanently** — the doctor dashboard displays it directly and the Parchment eScript integration requires an unencrypted medicare number for prescription generation.
 
-Plan: `docs/plans/2026-06-01-medicare-plaintext-removal.md`. Tracked at `lib/data/profiles.ts:97` — `TODO(security)`.
+### Phase 2 Dual-Write (Other PHI Fields)
 
-### Pending: Phase 2 Dual-Write Cutover
-
-**Target: ~2 weeks post-launch (exact date TBD at launch).** The Phase 2 PHI fields (added March 2026) are currently in dual-write mode — plaintext and encrypted columns are both written on every write, and reads prefer the encrypted column with a plaintext fallback.
-
-The dual-write is indefinitely safe, but the plaintext columns remain a liability in a data breach scenario. Once the platform has been live for ~2 weeks with zero decryption errors in Sentry, execute the cutover:
-
-**Step 1 — Disable plaintext reads (flip flag, monitor 1 week):**
-1. Set `PHI_ENCRYPTION_READ_ENABLED=true` and `PHI_ENCRYPTION_WRITE_ENABLED=true` (already set)
-2. Remove the plaintext fallback from each `read*()` wrapper in `lib/security/phi-field-wrappers.ts`
-3. Deploy. Watch Sentry for `[PHI]` decryption errors for 7 days.
-
-**Step 2 — Drop plaintext columns (after 7 days clean):**
-Create a migration that drops the plaintext columns from:
-- `patient_notes` → `content`, `doctor_notes`
-- `issued_certificates` → `patient_name`
-- `document_drafts` → `data`
-- `intake_answers` → `answers`, `allergy_details`, `medical_conditions`
-
-**Tracked by:** `TODO(phi-cutover)` comments in `lib/security/phi-field-wrappers.ts`.
+The Phase 2 PHI fields (added March 2026) are in dual-write mode — plaintext and encrypted columns are both written on every write, and reads prefer the encrypted column with a plaintext fallback. This is indefinitely safe. Post-launch, if a plaintext cutover is desired for non-medicare fields, create a new plan at that time.
 
 ### Dual-Write Pattern
 
