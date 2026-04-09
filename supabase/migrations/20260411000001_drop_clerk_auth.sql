@@ -6,17 +6,15 @@
 --   1. Rewrites all RLS policies to use auth.uid() = auth_user_id (no Clerk branches)
 --   2. Drops the requesting_clerk_user_id() helper function
 --   3. Drops the clerk_user_id column and its index
---   4. Re-adds NOT NULL on auth_user_id (was made nullable for Clerk-only users)
+--   4. Keeps auth_user_id nullable for guest checkout flow
 
 -- ── 1. Fix profiles RLS policies ────────────────────────────────────────────
 
--- Drop all existing profile policies that reference clerk_user_id
 DROP POLICY IF EXISTS "Users can view own profile" ON public.profiles;
 DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
 DROP POLICY IF EXISTS "profiles_update_own" ON public.profiles;
 DROP POLICY IF EXISTS "Service role can insert profiles" ON public.profiles;
 
--- Recreate clean policies using only auth.uid() = auth_user_id
 CREATE POLICY "profiles_select_own" ON public.profiles
   FOR SELECT
   USING (auth.uid() = auth_user_id);
@@ -52,20 +50,31 @@ CREATE POLICY "referral_credits_select_own" ON referral_credits
     profile_id = (SELECT id FROM profiles WHERE auth_user_id = auth.uid() LIMIT 1)
   );
 
--- ── 3. Drop requesting_clerk_user_id() function ────────────────────────────
+-- ── 3. Fix delivery_tracking RLS policy ─────────────────────────────────────
+-- This policy referenced requesting_clerk_user_id() — must drop before the function
+
+DROP POLICY IF EXISTS "Doctors can view delivery tracking" ON delivery_tracking;
+
+CREATE POLICY "Doctors can view delivery tracking" ON delivery_tracking
+  FOR SELECT USING (
+    EXISTS (
+      SELECT 1 FROM profiles
+      WHERE profiles.auth_user_id = auth.uid()
+        AND profiles.role = 'doctor'
+    )
+  );
+
+-- ── 4. Drop requesting_clerk_user_id() function ────────────────────────────
 
 DROP FUNCTION IF EXISTS public.requesting_clerk_user_id();
 
--- ── 4. Drop clerk_user_id column ────────────────────────────────────────────
+-- ── 5. Drop clerk_user_id column ────────────────────────────────────────────
 
 DROP INDEX IF EXISTS idx_profiles_clerk_user_id;
 ALTER TABLE public.profiles DROP COLUMN IF EXISTS clerk_user_id;
 
--- ── 5. Re-add NOT NULL constraint on auth_user_id ───────────────────────────
--- Was made nullable in 20250120000001 for Clerk-only users (no longer needed).
--- Guest profiles (auth_user_id IS NULL) get linked on sign-up, so we keep
--- nullable for now — the handle_new_user() trigger sets it on auth.users insert.
--- NOTE: Kept nullable to support guest checkout flow (profiles created before
--- the user has a Supabase Auth account).
+-- ── 6. Keep auth_user_id nullable for guest checkout flow ───────────────────
+-- Guest profiles (auth_user_id IS NULL) get linked on sign-up via
+-- handle_new_user() trigger.
 
 -- Done. All Clerk auth references removed from the database layer.
