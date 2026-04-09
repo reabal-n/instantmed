@@ -2,8 +2,6 @@ import { describe, it, expect } from "vitest"
 import {
   edGoalsStepSchema,
   edAssessmentStepSchema,
-  edHealthStepSchema,
-  edPreferencesStepSchema,
   validateEdGoalsStep,
   validateEdAssessmentStep,
   validateEdHealthStep,
