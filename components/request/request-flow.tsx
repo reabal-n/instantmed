@@ -73,8 +73,7 @@ const SAFETY_PRE_CHECK_STEPS = new Set([
   'symptoms',          // med-cert: after symptom selection
   'medication',        // prescription/repeat-script: after medication selection
   'medical-history',   // shared: after medical history (catches drug interactions)
-  'ed-assessment',     // ED consult: after ED-specific questions
-  'ed-safety',         // ED consult: after safety screening (nitrates, cardiac)
+  'ed-health',         // ED consult: after health screening (nitrates, cardiac, medical history)
   'weight-loss-assessment', // Weight loss: after BMI/screening
   'consult-reason',    // General consult: after describing concern
 ])
