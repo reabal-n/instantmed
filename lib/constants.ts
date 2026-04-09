@@ -72,6 +72,13 @@ export const PRICING_DISPLAY = {
   RANGE: `$${PRICING.MED_CERT.toFixed(2)} - $${PRICING.CONSULT.toFixed(2)}`,
 } as const
 
+// Review aggregate schema — used across service landing pages for structured data
+// Update these when real review count changes. Must reflect genuine reviews only.
+export const REVIEW_AGGREGATE = {
+  ratingValue: 4.8,
+  reviewCount: 49,
+} as const
+
 // Consent/terms version for compliance audit (align with Terms page "Last updated")
 export const TERMS_VERSION = "2026-02"
 export const TELEHEALTH_CONSENT_VERSION = "2026-02"

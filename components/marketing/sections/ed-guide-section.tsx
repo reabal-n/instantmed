@@ -1,5 +1,6 @@
 "use client"
 
+import { useRef } from "react"
 import Link from "next/link"
 import { motion } from "framer-motion"
 import { useReducedMotion } from "@/components/ui/motion"
@@ -32,7 +33,7 @@ const GUIDE_SECTIONS = [
     icon: HeartPulse,
     title: "Understanding erectile dysfunction",
     paragraphs: [
-      "Erectile dysfunction (ED) is more common than most people realise. Australian research suggests around one in five men over 40 experience ED regularly, and the likelihood increases with age. It\u2019s not a character flaw or a sign of weakness \u2014 it\u2019s a medical condition with well-understood biology and effective treatments. The reason early medical review matters is that ED is often the first visible symptom of something else going on: most commonly reduced blood flow from cardiovascular disease, but also diabetes, high blood pressure, hormonal changes, certain medications, and psychological factors like stress, anxiety, or depression.",
+      "Erectile dysfunction (ED) is more common than most people realise. The Men in Australia Telephone Survey (MATeS, Holden et al., 2005) found that at least one in five Australian men over 40 experience ED regularly, rising to nearly two in three men over 70. It\u2019s not a character flaw or a sign of weakness \u2014 it\u2019s a medical condition with well-understood biology and effective treatments. The reason early medical review matters is that ED is often the first visible symptom of something else going on: most commonly reduced blood flow from cardiovascular disease, but also diabetes, high blood pressure, hormonal changes, certain medications, and psychological factors like stress, anxiety, or depression.",
       "The underlying mechanism in the majority of cases is vascular. An erection depends on blood flowing into and staying within the penis, which requires healthy arteries, healthy nerves, and the right hormonal signals. When any of those links break down \u2014 narrowed arteries, nerve damage from diabetes, low testosterone, medication side effects \u2014 the result is difficulty achieving or maintaining an erection. Because the blood vessels involved are smaller than those in the heart, ED can be an early warning sign for cardiovascular problems that haven\u2019t caused symptoms elsewhere yet. This is one of the reasons a rushed, chatbot-style assessment is the wrong approach to ED.",
       "Psychological and situational factors matter too. Performance anxiety, relationship stress, work pressure, poor sleep, alcohol, and recreational drug use can all contribute \u2014 sometimes as the main cause, more often alongside physical factors. A good assessment considers both sides rather than assuming one or the other. For some people the right first step is medication; for others it\u2019s investigating an underlying condition; for others it\u2019s addressing lifestyle factors or talking to a GP or psychologist in person. A responsible online service helps you figure out which.",
     ],
@@ -63,7 +64,7 @@ const GUIDE_SECTIONS = [
     title: "Safety, contraindications, and side effects",
     paragraphs: [
       "Oral ED treatments are not safe for everyone. The single hardest contraindication is nitrate medication \u2014 if you take nitrates for chest pain (glyceryl trinitrate, isosorbide, or similar), combining them with these treatments can cause a life-threatening drop in blood pressure. This is a hard stop, not a precaution. Our safety screening flags nitrates explicitly, and the doctor confirms it as part of their review. We do not prescribe around this rule.",
-      "Other situations where these treatments may not be safe or may need modification include recent heart attack or stroke, uncontrolled high or low blood pressure, severe heart failure, significant liver or kidney disease, and certain eye conditions. Some medications interact \u2014 particularly alpha-blockers used for blood pressure or enlarged prostate, some antifungals, and some HIV medications. The questionnaire asks about these directly, and the doctor performs the final clinical review.",
+      "Other situations where these treatments may not be safe or may need modification include recent heart attack or stroke, uncontrolled high or low blood pressure, severe heart failure, significant liver or kidney disease, and certain eye conditions (NAION). Some medications interact \u2014 particularly alpha-blockers (e.g., tamsulosin, prazosin) used for blood pressure or enlarged prostate, some antifungals, and some HIV medications. Our screening asks about these directly, and the reviewing doctor performs the final clinical check per TGA prescribing guidelines.",
       "The most common side effects of oral ED treatments are mild and temporary: headache, flushing, nasal congestion, indigestion, or (rarely) visual disturbance. Most people tolerate them well. Rarer but more serious side effects \u2014 sudden vision loss, sudden hearing loss, prolonged painful erection lasting more than four hours \u2014 need urgent medical attention and are discussed with you before you start. Honest, upfront information about risks is part of the service.",
     ],
   },
@@ -150,12 +151,15 @@ export function EDGuideSection() {
   const prefersReducedMotion = useReducedMotion()
   const animate = !prefersReducedMotion
   const posthog = usePostHog()
+  const prevOpen = useRef<Set<string>>(new Set(["understanding"]))
 
   const handleAccordionChange = (values: string[]) => {
-    // Fire event for each newly opened section
-    values.forEach((id) => {
+    // Only fire for NEWLY opened sections (not closes)
+    const newlyOpened = values.filter((id) => !prevOpen.current.has(id))
+    newlyOpened.forEach((id) => {
       posthog?.capture("ed_guide_section_opened", { section: id })
     })
+    prevOpen.current = new Set(values)
   }
 
   return (
@@ -357,7 +361,7 @@ export function EDGuideSection() {
             >
               our clinical governance framework
             </Link>
-            . We never automate clinical decisions.
+            , RACGP telehealth standards, and TGA prescribing guidelines. We never automate clinical decisions.
           </p>
         </motion.div>
       </div>

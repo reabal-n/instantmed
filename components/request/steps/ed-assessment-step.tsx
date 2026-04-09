@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useEffect, useCallback } from "react"
+import { useMemo, useEffect, useCallback, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { TrendingUp, Info } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -9,6 +9,7 @@ import { useReducedMotion } from "@/components/ui/motion"
 import { stagger, fadeUp } from "@/lib/motion"
 import { useRequestStore } from "../store"
 import { useKeyboardNavigation } from "@/hooks/use-keyboard-navigation"
+import { ED_HOOK_QUIZ_KEY, type EdHookQuizResult } from "@/lib/marketing/ed-hook-quiz"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 
 // ---------------------------------------------------------------------------
@@ -79,34 +80,49 @@ const IIEF_QUESTIONS: IIEFQuestion[] = [
 
 const SCALE_VALUES = [1, 2, 3, 4, 5] as const
 
+/**
+ * IIEF-5 interpretation bands — aligned with Rosen et al., 1999 (validated cutoffs).
+ *
+ * Standard:  22-25 No ED · 17-21 Mild · 12-16 Mild-moderate · 8-11 Moderate · 5-7 Severe
+ * We use patient-friendly labels rather than clinical terminology.
+ */
 function getInterpretation(total: number): ScoreInterpretation {
   if (total >= 22) {
     return {
-      label: "Mild",
+      label: "Minimal",
       description:
-        "Your responses suggest mild difficulty. A doctor can still help.",
+        "Your responses suggest minimal difficulty. A doctor can still assess whether support would help.",
       colorClass: "text-success",
     }
   }
   if (total >= 17) {
     return {
-      label: "Mild\u2013moderate",
+      label: "Mild",
       description:
-        "Moderate symptoms like these respond well to treatment.",
-      colorClass: "text-primary",
+        "Mild symptoms like these often respond well to treatment.",
+      colorClass: "text-success",
     }
   }
   if (total >= 12) {
     return {
+      label: "Mild\u2013moderate",
+      description:
+        "Treatment is very effective at this level.",
+      colorClass: "text-primary",
+    }
+  }
+  if (total >= 8) {
+    return {
       label: "Moderate",
-      description: "Treatment is very effective at this level.",
+      description:
+        "Our doctors regularly help patients in your situation.",
       colorClass: "text-primary",
     }
   }
   return {
     label: "Significant",
     description:
-      "Our doctors regularly help patients in your situation.",
+      "You\u2019re not alone \u2014 effective treatment options exist. A doctor will review your full picture.",
     colorClass: "text-warning",
   }
 }
@@ -183,6 +199,29 @@ function ScalePicker({
 export default function EdAssessmentStep({ onNext, onBack }: EdAssessmentStepProps) {
   const { answers, setAnswer } = useRequestStore()
   const prefersReducedMotion = useReducedMotion()
+  const preSeeded = useRef(false)
+
+  // Pre-seed from hook quiz (landing page) — confidence → iief1, satisfaction → iief5
+  useEffect(() => {
+    if (preSeeded.current) return
+    preSeeded.current = true
+    try {
+      const raw = typeof window !== "undefined"
+        ? sessionStorage.getItem(ED_HOOK_QUIZ_KEY)
+        : null
+      if (!raw) return
+      const quiz: EdHookQuizResult = JSON.parse(raw)
+      // Only pre-seed fields that haven't been answered yet
+      if (answers.iief1 === undefined && quiz.answers[1] != null) {
+        setAnswer("iief1", quiz.answers[1]) // hook Q2 (confidence) → iief1
+      }
+      if (answers.iief5 === undefined && quiz.answers[2] != null) {
+        setAnswer("iief5", quiz.answers[2]) // hook Q3 (satisfaction) → iief5
+      }
+    } catch {
+      // sessionStorage unavailable or corrupt — silently skip
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps -- one-time mount seed
 
   // Read IIEF values from store
   const iief1 = (answers.iief1 as number | undefined) ?? null
@@ -321,8 +360,8 @@ export default function EdAssessmentStep({ onNext, onBack }: EdAssessmentStepPro
       >
         <Info className="w-3.5 h-3.5 text-muted-foreground shrink-0 mt-0.5" />
         <p className="text-xs text-muted-foreground leading-relaxed">
-          This is the IIEF-5, a validated clinical questionnaire used by doctors
-          worldwide to assess erectile function.
+          Based on the IIEF-5 (Rosen et al., 1999), a validated questionnaire
+          used by doctors worldwide to assess erectile function.
         </p>
       </motion.div>
 

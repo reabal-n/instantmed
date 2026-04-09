@@ -17,7 +17,7 @@
  * 6. Previous ED treatment
  */
 
-import { useState, useCallback, useMemo } from "react"
+import { useState, useCallback, useMemo, useRef } from "react"
 import { useRouter } from "next/navigation"
 import {
   HeartPulse,
@@ -110,6 +110,9 @@ export default function EdHealthStep({ onNext, onBack }: EdHealthStepProps) {
   const posthog = usePostHog()
   const { answers, setAnswer } = useRequestStore()
 
+  // Track previously open sections so analytics only fires on NEW opens
+  const prevOpenSections = useRef<Set<string>>(new Set(["heart"]))
+
   // Hard block state
   const [isBlocked, setIsBlocked] = useState(false)
   const [blockReason, setBlockReason] = useState("")
@@ -120,6 +123,7 @@ export default function EdHealthStep({ onNext, onBack }: EdHealthStepProps) {
 
   // Section 1: Heart & blood pressure
   const edNitrates = answers.edNitrates as boolean | undefined
+  const edAlphaBlockers = answers.edAlphaBlockers as boolean | undefined
   const edRecentHeartEvent = answers.edRecentHeartEvent as boolean | undefined
   const edSevereHeart = answers.edSevereHeart as boolean | undefined
   const edGpCleared = answers.edGpCleared as boolean | undefined
@@ -164,7 +168,7 @@ export default function EdHealthStep({ onNext, onBack }: EdHealthStepProps) {
   // Soft block: GP clearance required
   // ---------------------------------------------------------------------------
 
-  const softBlockActive = (edRecentHeartEvent === true || edSevereHeart === true)
+  const softBlockActive = (edRecentHeartEvent === true || edSevereHeart === true || edAlphaBlockers === true)
   const gpClearanceRequired = softBlockActive && edGpCleared !== true
 
   // ---------------------------------------------------------------------------
@@ -176,12 +180,13 @@ export default function EdHealthStep({ onNext, onBack }: EdHealthStepProps) {
     if (edNitrates === undefined) return false
     // If nitrates are true, section is "answered" (but blocked)
     if (edNitrates === true) return true
-    // Heart event & severe heart must be answered
+    // Alpha-blockers, heart event & severe heart must be answered
+    if (edAlphaBlockers === undefined) return false
     if (edRecentHeartEvent === undefined || edSevereHeart === undefined) return false
     // If soft block is active, GP clearance must be checked
-    if ((edRecentHeartEvent || edSevereHeart) && edGpCleared !== true) return false
+    if ((edRecentHeartEvent || edSevereHeart || edAlphaBlockers) && edGpCleared !== true) return false
     return true
-  }, [edNitrates, edRecentHeartEvent, edSevereHeart, edGpCleared])
+  }, [edNitrates, edAlphaBlockers, edRecentHeartEvent, edSevereHeart, edGpCleared])
 
   const bpComplete = useMemo(
     () => edHypertension !== undefined || edDiabetes !== undefined || edBpMedication !== undefined,
@@ -333,10 +338,14 @@ export default function EdHealthStep({ onNext, onBack }: EdHealthStepProps) {
         defaultValue={["heart"]}
         className="space-y-3"
         onValueChange={(openSections: string[]) => {
-          posthog?.capture("ed_health_sections_viewed", {
-            open_sections: openSections,
-            section_count: openSections.length,
-          })
+          const newlyOpened = openSections.filter((s) => !prevOpenSections.current.has(s))
+          if (newlyOpened.length > 0) {
+            posthog?.capture("ed_health_sections_viewed", {
+              opened_sections: newlyOpened,
+              total_open: openSections.length,
+            })
+          }
+          prevOpenSections.current = new Set(openSections)
         }}
       >
         {/* ----------------------------------------------------------------- */}
@@ -360,6 +369,15 @@ export default function EdHealthStep({ onNext, onBack }: EdHealthStepProps) {
               onChange={handleNitrateChange}
             />
 
+            {/* Alpha-blocker toggle */}
+            <SwitchField
+              id="ed-alpha-blockers"
+              label="Do you take alpha-blockers?"
+              helpText="e.g., tamsulosin (Flomaxtra), prazosin, doxazosin — used for blood pressure or prostate"
+              checked={edAlphaBlockers === true}
+              onChange={(checked) => setAnswer("edAlphaBlockers", checked)}
+            />
+
             {/* Recent cardiac event */}
             <SwitchField
               id="ed-recent-heart-event"
@@ -381,7 +399,9 @@ export default function EdHealthStep({ onNext, onBack }: EdHealthStepProps) {
               <Alert variant="default" className="border-warning/30 bg-warning/5">
                 <AlertTriangle className="w-4 h-4 text-warning" />
                 <AlertDescription className="text-sm">
-                  This condition requires clearance from your GP before we can prescribe.
+                  {edAlphaBlockers
+                    ? "Alpha-blockers can interact with ED medication, causing a drop in blood pressure. Your GP should confirm it\u2019s safe to combine them."
+                    : "This condition requires clearance from your GP before we can prescribe."}
                 </AlertDescription>
               </Alert>
             )}

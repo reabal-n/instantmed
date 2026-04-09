@@ -3,6 +3,7 @@ export const revalidate = 86400
 import { MedCertLanding } from "@/components/marketing/med-cert-landing"
 import { SpeakableSchema, MedCertHowToSchema, FAQSchema, BreadcrumbSchema, MedicalServiceSchema, ReviewAggregateSchema } from "@/components/seo/healthcare-schema"
 import { MED_CERT_FAQ } from "@/lib/data/med-cert-faq"
+import { REVIEW_AGGREGATE } from "@/lib/constants"
 
 export default function Page() {
   return (
@@ -25,7 +26,7 @@ export default function Page() {
         description="Get a valid medical certificate for work or study reviewed by an Australian registered doctor. Available same day."
         price="19.95"
       />
-      <ReviewAggregateSchema ratingValue={4.8} reviewCount={49} />
+      <ReviewAggregateSchema ratingValue={REVIEW_AGGREGATE.ratingValue} reviewCount={REVIEW_AGGREGATE.reviewCount} />
       <MedCertLanding />
     </>
   )

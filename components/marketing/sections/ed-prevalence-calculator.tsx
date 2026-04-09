@@ -167,8 +167,9 @@ export function EdPrevalenceCalculator({
             </Link>
           </Button>
           <p className="max-w-[640px] text-center text-xs text-muted-foreground">
-            Rates from published community surveys, including the
-            Massachusetts Male Aging Study. Illustrative only.
+            Rates from the Men in Australia Telephone Survey (MATeS,
+            Holden et al., 2005) and published international community
+            surveys. Illustrative only.
           </p>
         </div>
       </div>

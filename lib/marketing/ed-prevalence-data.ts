@@ -1,10 +1,12 @@
 /**
  * ED prevalence rates by age decade.
  *
- * Rates are conservative estimates drawn from published literature
- * (primarily MMAS — Massachusetts Male Aging Study — cross-referenced
- * with AU-specific reviews where available). These numbers are
- * illustrative, not diagnostic. Footnoted on the page with the source.
+ * Rates are conservative estimates cross-referenced from:
+ * - MATeS (Men in Australia Telephone Survey, Holden et al., 2005) — 5,990 AU men
+ * - BEACH (Bettering the Evaluation And Care of Health) study
+ * - MMAS (Massachusetts Male Aging Study, Feldman et al., 1994) — international baseline
+ *
+ * These numbers are illustrative, not diagnostic. Footnoted on the page with source.
  */
 
 export type Decade = "20s" | "30s" | "40s" | "50s" | "60s" | "70s+"
@@ -24,20 +26,20 @@ export const ED_PREVALENCE_BY_DECADE: Record<Decade, PrevalenceEntry> = {
     source: "Published community surveys; illustrative",
   },
   "40s": {
-    rate: 22,
-    source: "Massachusetts Male Aging Study (MMAS), illustrative",
+    rate: 21,
+    source: "MATeS (Holden et al., 2005); illustrative",
   },
   "50s": {
-    rate: 34,
-    source: "Massachusetts Male Aging Study (MMAS), illustrative",
+    rate: 33,
+    source: "MATeS (Holden et al., 2005); illustrative",
   },
   "60s": {
-    rate: 45,
-    source: "Massachusetts Male Aging Study (MMAS), illustrative",
+    rate: 46,
+    source: "MATeS (Holden et al., 2005); illustrative",
   },
   "70s+": {
-    rate: 60,
-    source: "Massachusetts Male Aging Study (MMAS), illustrative",
+    rate: 64,
+    source: "MATeS (Holden et al., 2005); illustrative",
   },
 }
 

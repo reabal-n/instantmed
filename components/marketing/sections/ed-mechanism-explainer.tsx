@@ -111,55 +111,41 @@ function ResponseVesselSvg() {
   )
 }
 
-/** Frame 3: Duration window — horizontal timeline bar with highlighted active window */
+/** Frame 3: Duration window — two timeline bars showing short-acting vs daily options */
 function DurationTimelineSvg() {
   return (
     <svg
       viewBox="0 0 240 200"
       className="h-40 w-auto"
       role="img"
-      aria-label="Duration window timeline from 0 to 6 hours with active window highlighted"
+      aria-label="Duration comparison: as-needed (4 to 6 hours) versus daily (up to 36 hours)"
     >
-      {/* Background bar */}
-      <rect
-        x="20"
-        y="85"
-        width="200"
-        height="14"
-        rx="7"
-        className="fill-muted"
-      />
-      {/* Active window (~0.5h to ~5h) */}
-      <rect
-        x="36"
-        y="85"
-        width="150"
-        height="14"
-        rx="7"
-        className="fill-primary"
-        opacity="0.85"
-      />
-      {/* Tick marks */}
-      <line x1="20" y1="105" x2="20" y2="113" className="stroke-muted-foreground" strokeWidth="1.5" opacity="0.6" />
-      <line x1="53" y1="105" x2="53" y2="113" className="stroke-muted-foreground" strokeWidth="1.5" opacity="0.6" />
-      <line x1="120" y1="105" x2="120" y2="113" className="stroke-muted-foreground" strokeWidth="1.5" opacity="0.6" />
-      <line x1="220" y1="105" x2="220" y2="113" className="stroke-muted-foreground" strokeWidth="1.5" opacity="0.6" />
-      {/* Tick labels */}
-      <text x="20" y="130" textAnchor="middle" className="fill-muted-foreground" fontSize="11" opacity="0.7">0h</text>
-      <text x="53" y="130" textAnchor="middle" className="fill-muted-foreground" fontSize="11" opacity="0.7">1h</text>
-      <text x="120" y="130" textAnchor="middle" className="fill-muted-foreground" fontSize="11" opacity="0.7">3h</text>
-      <text x="220" y="130" textAnchor="middle" className="fill-muted-foreground" fontSize="11" opacity="0.7">6h</text>
+      {/* As-needed bar */}
+      <text x="20" y="62" className="fill-muted-foreground" fontSize="10" fontWeight="500" opacity="0.8">As-needed</text>
+      <rect x="20" y="68" width="200" height="12" rx="6" className="fill-muted" />
+      <rect x="30" y="68" width="80" height="12" rx="6" className="fill-primary" opacity="0.7" />
+      <text x="20" y="94" className="fill-muted-foreground" fontSize="9" opacity="0.6">0h</text>
+      <text x="110" y="94" textAnchor="middle" className="fill-muted-foreground" fontSize="9" opacity="0.6">4-6h</text>
+      <text x="220" y="94" textAnchor="end" className="fill-muted-foreground" fontSize="9" opacity="0.6">36h</text>
+
+      {/* Daily bar */}
+      <text x="20" y="118" className="fill-muted-foreground" fontSize="10" fontWeight="500" opacity="0.8">Daily</text>
+      <rect x="20" y="124" width="200" height="12" rx="6" className="fill-muted" />
+      <rect x="20" y="124" width="200" height="12" rx="6" className="fill-primary" opacity="0.5" />
+      <text x="20" y="150" className="fill-muted-foreground" fontSize="9" opacity="0.6">0h</text>
+      <text x="220" y="150" textAnchor="end" className="fill-muted-foreground" fontSize="9" opacity="0.6">36h</text>
+
       {/* Label */}
       <text
         x="120"
-        y="168"
+        y="178"
         textAnchor="middle"
         className="fill-muted-foreground"
-        fontSize="12"
+        fontSize="11"
         fontWeight="500"
         opacity="0.7"
       >
-        Duration window
+        Duration depends on type
       </text>
     </svg>
   )
