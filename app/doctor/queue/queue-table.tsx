@@ -212,12 +212,12 @@ export function QueueTable({
                     onToggleExpand(intake.id)
                   }}
                 >
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-3 min-w-0">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3">
+                    <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                       {isExpanded ? (
-                        <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
+                        <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground hidden sm:block" />
                       ) : (
-                        <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                        <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground hidden sm:block" />
                       )}
                       <UserCard
                         name={intake.patient.full_name}
@@ -225,7 +225,7 @@ export function QueueTable({
                         size="sm"
                         className="shrink-0"
                       />
-                      <div className="min-w-0 flex items-center gap-2 flex-wrap">
+                      <div className="min-w-0 flex items-center gap-1.5 flex-wrap">
                         <Badge variant="outline" className="text-xs">
                           {service?.short_name || formatServiceType(service?.type || "")}
                         </Badge>
@@ -263,7 +263,7 @@ export function QueueTable({
                         )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 shrink-0">
+                    <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
                       {intake.sla_deadline ? (
                         <div
                           className={cn(
