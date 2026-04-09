@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import dynamic from "next/dynamic"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion } from "framer-motion"
 import { useReducedMotion } from "@/components/ui/motion"
 import { useCallback, useEffect, useRef, useState } from "react"
 import {
@@ -26,6 +26,7 @@ import { PricingSection } from "@/components/marketing/sections/pricing-section"
 import { LiveWaitTime } from "@/components/marketing/live-wait-time"
 import { ContextualMessage } from "@/components/marketing/contextual-message"
 import { AnimatedStat } from "@/components/marketing/animated-stat"
+import { RecentReviewsTicker } from "@/components/marketing/recent-reviews-ticker"
 import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter } from "@/components/marketing/footer"
 import { ContentHubLinks } from "@/components/seo/content-hub-links"
@@ -106,18 +107,6 @@ const SOCIAL_PROOF_STATS = [
   { icon: ShieldCheck, value: SOCIAL_PROOF.employerAcceptancePercent, suffix: "%", label: "employer accepted", color: "text-success" },
 ]
 
-const RECENT_ACTIVITY_ENTRIES = [
-  { name: "Sarah", city: "Melbourne", minutesAgo: 23 },
-  { name: "James", city: "Sydney", minutesAgo: 41 },
-  { name: "Priya", city: "Brisbane", minutesAgo: 12 },
-  { name: "Tom", city: "Perth", minutesAgo: 55 },
-  { name: "Emily", city: "Adelaide", minutesAgo: 8 },
-  { name: "Liam", city: "Gold Coast", minutesAgo: 34 },
-  { name: "Anh", city: "Canberra", minutesAgo: 17 },
-  { name: "Rachel", city: "Hobart", minutesAgo: 47 },
-]
-
-
 const RELATED_ARTICLES = [
   { title: "Your Sick Leave Rights in Australia", href: "/blog/sick-leave-rights-australia" },
   { title: "Medical Certificates for Mental Health Days", href: "/blog/medical-certificate-mental-health-day" },
@@ -127,44 +116,6 @@ const RELATED_ARTICLES = [
 // =============================================================================
 // SMALL COMPONENTS
 // =============================================================================
-
-/** Live activity ticker — rotates through recent certificate deliveries */
-function RecentActivityTicker() {
-  const [index, setIndex] = useState(0)
-  const prefersReducedMotion = useReducedMotion()
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setIndex((prev) => (prev + 1) % RECENT_ACTIVITY_ENTRIES.length)
-    }, 4000)
-    return () => clearInterval(interval)
-  }, [])
-
-  const entry = RECENT_ACTIVITY_ENTRIES[index]
-
-  return (
-    <div
-      aria-live="polite"
-      className="flex items-center justify-center gap-2 py-3 text-xs text-muted-foreground"
-    >
-      <CheckCircle2 className="h-3.5 w-3.5 text-success shrink-0" />
-      <div className="relative h-5 overflow-hidden">
-        <AnimatePresence mode="wait">
-          <motion.span
-            key={index}
-            className="block leading-5"
-            initial={prefersReducedMotion ? {} : { opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={prefersReducedMotion ? {} : { opacity: 0, y: -8 }}
-            transition={{ duration: 0.25 }}
-          >
-            {entry.name} from {entry.city} received their certificate {entry.minutesAgo} min ago
-          </motion.span>
-        </AnimatePresence>
-      </div>
-    </div>
-  )
-}
 
 // =============================================================================
 // SECTION COMPONENTS
@@ -497,7 +448,7 @@ export function MedCertLanding() {
           <LiveWaitTime variant="strip" services={["med-cert"]} />
 
           {/* Recent activity ticker */}
-          <RecentActivityTicker />
+          <RecentReviewsTicker format="named" artifact="certificate" />
 
           {/* Social proof stats */}
           <SocialProofStrip />
