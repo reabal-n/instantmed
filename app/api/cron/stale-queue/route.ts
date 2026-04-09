@@ -8,6 +8,8 @@ import * as Sentry from "@sentry/nextjs"
 import { getFeatureFlags } from "@/lib/feature-flags"
 import { sendTelegramAlert, escapeMarkdown } from "@/lib/notifications/telegram"
 
+const logger = createLogger("stale-queue")
+
 function formatServiceType(category: string | null): string {
   if (category === "medical_certificate") return "medical certificate"
   if (category === "prescription") return "prescription"
