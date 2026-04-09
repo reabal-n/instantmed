@@ -19,14 +19,11 @@ import { MagneticButton } from "@/components/ui/magnetic-button"
 import { DoctorAvailabilityPill } from "@/components/shared/doctor-availability-pill"
 import { RotatingText } from "@/components/marketing/rotating-text"
 import { EDHeroMockup } from "@/components/marketing/mockups/ed-hero-mockup"
-import { PricingSection } from "@/components/marketing/sections/pricing-section"
 import { LiveWaitTime } from "@/components/marketing/live-wait-time"
 import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter } from "@/components/marketing/footer"
-import { ContentHubLinks } from "@/components/seo/content-hub-links"
 import { ReturningPatientBanner } from "@/components/shared/returning-patient-banner"
 import { MarketingPageShell } from "@/components/shared/marketing-page-shell"
-import { RegulatoryPartners } from "@/components/marketing/media-mentions"
 import { PRICING, CONTACT_EMAIL } from "@/lib/constants"
 import {
   getTestimonialsByService,
@@ -80,6 +77,18 @@ const EdPrevalenceCalculator = dynamic(
 const EdMechanismExplainer = dynamic(
   () => import("@/components/marketing/sections/ed-mechanism-explainer").then((m) => m.EdMechanismExplainer),
   { loading: () => <div className="min-h-[500px]" /> },
+)
+const PricingSection = dynamic(
+  () => import("@/components/marketing/sections/pricing-section").then((m) => m.PricingSection),
+  { loading: () => <div className="min-h-[400px]" /> },
+)
+const RegulatoryPartners = dynamic(
+  () => import("@/components/marketing/media-mentions").then((m) => m.RegulatoryPartners),
+  { loading: () => <div className="min-h-[120px]" /> },
+)
+const ContentHubLinks = dynamic(
+  () => import("@/components/seo/content-hub-links").then((m) => m.ContentHubLinks),
+  { loading: () => <div className="min-h-[200px]" /> },
 )
 
 // =============================================================================
