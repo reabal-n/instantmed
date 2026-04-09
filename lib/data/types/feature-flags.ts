@@ -42,6 +42,9 @@ export const FLAG_KEYS = {
   AUTO_APPROVE_DAILY_CAP: "auto_approve_daily_cap",
   AUTO_APPROVE_MAX_DURATION_DAYS: "auto_approve_max_duration_days",
   AUTO_APPROVE_DRY_RUN: "auto_approve_dry_run",
+  TELEGRAM_NOTIFICATIONS_ENABLED: "telegram_notifications_enabled",
+  DOCTOR_ALERT_THRESHOLD_HOURS: "doctor_alert_threshold_hours",
+  PATIENT_DELAY_EMAIL_HOURS: "patient_delay_email_hours",
 } as const
 
 export type FlagKey = (typeof FLAG_KEYS)[keyof typeof FLAG_KEYS]
@@ -83,6 +86,9 @@ export interface FeatureFlags {
   auto_approve_daily_cap: number
   auto_approve_max_duration_days: number
   auto_approve_dry_run: boolean
+  telegram_notifications_enabled: boolean
+  doctor_alert_threshold_hours: number
+  patient_delay_email_hours: number
 }
 
 // ============================================================================
@@ -129,6 +135,9 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   auto_approve_daily_cap: 50,
   auto_approve_max_duration_days: 3,
   auto_approve_dry_run: false,
+  telegram_notifications_enabled: true,
+  doctor_alert_threshold_hours: 1,
+  patient_delay_email_hours: 2,
 }
 
 // ============================================================================
@@ -264,6 +273,18 @@ export function getFlagInfo(key: FlagKey): { label: string; description: string 
       label: "Auto-Approve Dry Run",
       description: "When enabled, auto-approval evaluates eligibility but does not issue certificates. Logs what would have been approved.",
     },
+    telegram_notifications_enabled: {
+      label: "Telegram Notifications",
+      description: "Master toggle for all Telegram alerts — doctor stale-queue pings and new intake notifications.",
+    },
+    doctor_alert_threshold_hours: {
+      label: "Doctor Alert Threshold (hours)",
+      description: "Hours a paid intake must wait before the doctor receives a Telegram stale-queue alert.",
+    },
+    patient_delay_email_hours: {
+      label: "Patient Delay Email (hours)",
+      description: "Hours a paid intake must wait before the patient receives a delay notification email.",
+    },
   }
   return info[key]
 }
@@ -317,6 +338,8 @@ export function isNumberFlag(key: FlagKey): boolean {
     FLAG_KEYS.AUTO_APPROVE_RATE_LIMIT_5MIN,
     FLAG_KEYS.AUTO_APPROVE_DAILY_CAP,
     FLAG_KEYS.AUTO_APPROVE_MAX_DURATION_DAYS,
+    FLAG_KEYS.DOCTOR_ALERT_THRESHOLD_HOURS,
+    FLAG_KEYS.PATIENT_DELAY_EMAIL_HOURS,
   ]
   return numberFlags.includes(key)
 }
