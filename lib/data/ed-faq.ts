@@ -17,7 +17,7 @@ export const ED_FAQ = [
   },
   {
     question: "Which treatments can I be prescribed?",
-    answer: "Our doctors can assess you for PDE5 inhibitors (the medication class that includes sildenafil and tadalafil) based on your individual health profile. The specific treatment and dose is determined by the doctor after reviewing your assessment.",
+    answer: "Our doctors can assess you for a class of prescription oral treatments based on your individual health profile. The specific treatment and dose is determined by the doctor after reviewing your assessment.",
   },
   {
     question: "Is it safe to take ED medication with my current medications?",

@@ -6,7 +6,7 @@ import { CheckCircle2, AlertCircle } from "lucide-react"
 
 const CAN_HELP = [
   "First-time or ongoing erectile dysfunction assessment",
-  "Repeat PDE5 inhibitor prescriptions (sildenafil, tadalafil)",
+  "Repeat oral ED treatment prescriptions",
   "Treatment plan review if your current medication isn't working",
 ] as const
 
