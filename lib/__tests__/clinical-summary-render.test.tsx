@@ -2,10 +2,15 @@
  * Clinical Summary Render Tests
  *
  * Regression guard for the doctor-portal field-name bug (2026-04-09):
- * intake writes camelCase keys (edOnset, hairPattern, etc.) but the
- * subtype field map used to expect only snake_case. This test locks
- * in that ClinicalSummary renders camelCase ED and hair-loss answers
- * into the subtype-specific assessment panel with readable labels.
+ * intake writes camelCase keys (edOnset, hairPattern, edSafety_nitrates,
+ * etc.) but the subtype field map used to expect only snake_case. This
+ * test locks in that ClinicalSummary renders camelCase ED and hair-loss
+ * answers into the subtype-specific assessment panel with readable labels.
+ *
+ * Fixture keys are grounded in the actual intake step components:
+ *   - components/request/steps/ed-assessment-step.tsx
+ *   - components/request/steps/ed-safety-step.tsx
+ *   - components/request/steps/hair-loss-assessment-step.tsx
  */
 
 import { describe, it, expect } from "vitest"
@@ -18,19 +23,22 @@ function render(element: React.ReactElement): string {
 }
 
 describe("ClinicalSummary — ED subtype (camelCase keys)", () => {
+  // Mirrors the keys written by ed-assessment-step.tsx + ed-safety-step.tsx
   const edAnswers = {
-    edOnset: "gradual_over_months",
-    edFrequency: "most_of_the_time",
-    edMorningErections: "rarely",
+    // Assessment step
     edAgeConfirmed: true,
+    edOnset: "gradual",
+    edFrequency: "often",
+    edMorningErections: "rarely",
     edHypertension: false,
     edDiabetes: false,
-    edPreference: "as_needed",
+    edPreference: "prn",
     edAdditionalInfo: "Recently started new job, lots of stress",
-    nitrates: false,
-    recentHeartEvent: false,
-    severeHeartCondition: false,
-    previousEdMeds: "never",
+    // Safety step — note the edSafety_ prefix and string "yes"/"no" values
+    edSafety_nitrates: "no",
+    edSafety_recentHeartEvent: "no",
+    edSafety_severeHeartCondition: "no",
+    edSafety_previousEdMeds: "yes",
   }
 
   it("renders the ED Assessment panel heading", () => {
@@ -38,35 +46,57 @@ describe("ClinicalSummary — ED subtype (camelCase keys)", () => {
     expect(html).toContain("Erectile Dysfunction Assessment")
   })
 
-  it("renders readable labels for camelCase ED fields", () => {
+  it("renders readable labels for camelCase ED assessment fields", () => {
     const html = render(<ClinicalSummary answers={edAnswers} consultSubtype="ed" />)
-    expect(html).toContain("ED onset")
-    expect(html).toContain("Frequency of ED")
-    expect(html).toContain("Morning erections")
-    expect(html).toContain("Treatment preference")
-    expect(html).toContain("Nitrate use")
-    expect(html).toContain("Recent heart event")
-    expect(html).toContain("Severe heart condition")
-    expect(html).toContain("Previous ED medication use")
+    expect(html).toContain("ED Onset")
+    expect(html).toContain("ED Frequency")
+    expect(html).toContain("Morning Erections")
+    expect(html).toContain("Treatment Preference")
+    expect(html).toContain("Uncontrolled Hypertension")
+    expect(html).toContain("Uncontrolled Diabetes")
   })
 
-  it("does NOT auto-format camelCase keys to 'Ed Onset'", () => {
+  it("renders readable labels for edSafety_* prefixed safety fields", () => {
+    const html = render(<ClinicalSummary answers={edAnswers} consultSubtype="ed" />)
+    expect(html).toContain("Nitrate Use")
+    expect(html).toContain("Recent Heart Event")
+    expect(html).toContain("Severe Heart Condition")
+    expect(html).toContain("Previous ED Medication Use")
+  })
+
+  it("does NOT auto-format camelCase keys to 'Ed Onset' or 'Ed Safety Nitrates'", () => {
     const html = render(<ClinicalSummary answers={edAnswers} consultSubtype="ed" />)
     expect(html).not.toContain("Ed Onset")
     expect(html).not.toContain("Ed Frequency")
-    expect(html).not.toContain("Ed Morning Erections")
+    expect(html).not.toContain("Ed Safety Nitrates")
+    expect(html).not.toContain("Ed Safety Recent Heart Event")
+  })
+
+  it("renders the optional edSafety_managedCondition flag when present", () => {
+    const withManagedCondition = {
+      ...edAnswers,
+      edSafety_recentHeartEvent: "yes",
+      edSafety_managedCondition: true,
+    }
+    const html = render(<ClinicalSummary answers={withManagedCondition} consultSubtype="ed" />)
+    expect(html).toContain("Cardiac Condition Managed")
   })
 })
 
 describe("ClinicalSummary — hair loss subtype (camelCase keys)", () => {
+  // Mirrors the keys written by hair-loss-assessment-step.tsx
   const hairLossAnswers = {
-    hairPattern: "crown_thinning",
-    hairDuration: "1-3_years",
-    hairFamilyHistory: "father_paternal",
-    hairPreviousTreatments: "none",
-    hairMedicationPreference: "oral",
-    hairScalpConditions: "none",
+    // Main assessment fields (always present for a completed intake)
+    hairPattern: "male_pattern",
+    hairDuration: "1_to_2_years",
+    hairFamilyHistory: "yes_father",
+    hairMedicationPreference: "finasteride",
     hairAdditionalInfo: "Noticed more hair in the shower",
+    // Previous-treatment toggles (only true ones typically present)
+    triedMinoxidil: true,
+    triedBiotin: true,
+    // Scalp condition toggles
+    scalpDandruff: true,
   }
 
   it("renders the Hair Loss Assessment panel heading", () => {
@@ -74,20 +104,28 @@ describe("ClinicalSummary — hair loss subtype (camelCase keys)", () => {
     expect(html).toContain("Hair Loss Assessment")
   })
 
-  it("renders readable labels for camelCase hair-loss fields", () => {
+  it("renders readable labels for the 5 main hair-loss assessment fields", () => {
     const html = render(<ClinicalSummary answers={hairLossAnswers} consultSubtype="hair_loss" />)
-    expect(html).toContain("Hair loss pattern")
-    expect(html).toContain("Duration of hair loss")
-    expect(html).toContain("Family history")
-    expect(html).toContain("Previous hair-loss treatments")
-    expect(html).toContain("Treatment preference")
-    expect(html).toContain("Scalp conditions")
+    expect(html).toContain("Hair Loss Pattern")
+    expect(html).toContain("Hair Loss Duration")
+    expect(html).toContain("Family History")
+    expect(html).toContain("Treatment Preference")
+    expect(html).toContain("Additional Context")
   })
 
-  it("does NOT auto-format camelCase keys to 'Hair Pattern'", () => {
+  it("renders readable labels for previous-treatment and scalp toggles", () => {
     const html = render(<ClinicalSummary answers={hairLossAnswers} consultSubtype="hair_loss" />)
-    expect(html).not.toContain("Hair Duration")
-    expect(html).not.toContain("Hair Family History")
+    expect(html).toContain("Tried Minoxidil")
+    expect(html).toContain("Tried Biotin")
+    expect(html).toContain("Scalp Dandruff")
+  })
+
+  it("does NOT auto-format camelCase keys to 'Hair Pattern' or 'Tried Minoxidil'-style fallbacks", () => {
+    const html = render(<ClinicalSummary answers={hairLossAnswers} consultSubtype="hair_loss" />)
+    // "Hair Pattern" would be the auto-format fallback — we override with "Hair Loss Pattern"
+    expect(html).not.toContain('">Hair Pattern<')
+    expect(html).not.toContain('">Hair Duration<')
+    expect(html).not.toContain('">Hair Family History<')
   })
 })
 

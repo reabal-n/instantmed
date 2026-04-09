@@ -71,6 +71,40 @@ const FIELD_LABELS: Record<string, string> = {
   yellow_flags: "Caution Flags",
   // Consent
   telehealth_consent_given: "Telehealth Consent",
+  // ED subtype — camelCase keys written by ed-assessment-step.tsx
+  edOnset: "ED Onset",
+  edFrequency: "ED Frequency",
+  edMorningErections: "Morning Erections",
+  edAgeConfirmed: "Age 18+ Confirmed",
+  edHypertension: "Uncontrolled Hypertension",
+  edDiabetes: "Uncontrolled Diabetes",
+  edPreference: "Treatment Preference",
+  edAdditionalInfo: "Additional Context",
+  // ED safety — edSafety_ prefixed keys written by ed-safety-step.tsx
+  edSafety_nitrates: "Nitrate Use",
+  edSafety_recentHeartEvent: "Recent Heart Event",
+  edSafety_severeHeartCondition: "Severe Heart Condition",
+  edSafety_previousEdMeds: "Previous ED Medication Use",
+  edSafety_managedCondition: "Cardiac Condition Managed",
+  // Hair loss — camelCase keys written by hair-loss-assessment-step.tsx
+  hairPattern: "Hair Loss Pattern",
+  hairDuration: "Hair Loss Duration",
+  hairFamilyHistory: "Family History",
+  hairMedicationPreference: "Treatment Preference",
+  hairAdditionalInfo: "Additional Context",
+  // Hair loss — previous-treatment boolean toggles
+  triedMinoxidil: "Tried Minoxidil",
+  triedFinasteride: "Tried Finasteride",
+  triedBiotin: "Tried Biotin",
+  triedShampoos: "Tried Medicated Shampoos",
+  triedPRP: "Tried PRP",
+  triedOther: "Tried Other Treatment",
+  // Hair loss — scalp condition boolean toggles
+  scalpDandruff: "Scalp Dandruff",
+  scalpPsoriasis: "Scalp Psoriasis",
+  scalpItching: "Scalp Itching",
+  scalpFolliculitis: "Scalp Folliculitis",
+  scalpNone: "No Scalp Conditions",
 }
 
 // Fields to highlight as critical (red - requires immediate attention)
@@ -100,16 +134,45 @@ const CONSULT_SUBTYPE_FIELDS: Record<string, { label: string; fields: string[]; 
   ed: {
     label: "Erectile Dysfunction Assessment",
     fields: [
-      "ed_duration", "ed_onset", "ed_frequency", "ed_severity",
+      // Assessment step — ed-assessment-step.tsx
+      "edOnset", "edFrequency", "edMorningErections",
+      "edAgeConfirmed", "edHypertension", "edDiabetes",
+      "edPreference", "edAdditionalInfo",
+      // Safety step — ed-safety-step.tsx (note edSafety_ prefix)
+      "edSafety_nitrates", "edSafety_recentHeartEvent",
+      "edSafety_severeHeartCondition", "edSafety_previousEdMeds",
+      "edSafety_managedCondition",
+      // Reserved for planned intake rewrite (IIEF-5, expanded safety).
+      // Not written by today's intake — retained so the doctor portal
+      // renders them correctly the moment the rewrite lands.
+      "ed_onset", "ed_frequency", "ed_severity", "ed_duration",
       "morning_erections", "libido_changes", "relationship_impact",
       "previous_ed_treatment", "cardiovascular_history", "diabetes_status",
       "current_medications_ed", "nitrate_use", "alpha_blocker_use",
     ],
-    highlight: ["nitrate_use", "cardiovascular_history"],
+    highlight: [
+      "edSafety_nitrates", "nitrate_use",
+      "edSafety_recentHeartEvent", "edSafety_severeHeartCondition",
+      "edSafety_managedCondition",
+      "edHypertension", "edDiabetes",
+      "cardiovascular_history",
+    ],
   },
   hair_loss: {
     label: "Hair Loss Assessment",
     fields: [
+      // Main assessment fields — hair-loss-assessment-step.tsx
+      "hairPattern", "hairDuration", "hairFamilyHistory",
+      "hairMedicationPreference", "hairAdditionalInfo",
+      // Previous-treatment boolean toggles
+      "triedMinoxidil", "triedFinasteride", "triedBiotin",
+      "triedShampoos", "triedPRP", "triedOther",
+      // Scalp condition boolean toggles
+      "scalpDandruff", "scalpPsoriasis", "scalpItching",
+      "scalpFolliculitis", "scalpNone",
+      // Reserved for planned intake rewrite (Norwood scale, expanded
+      // history). Not written by today's intake — retained so the doctor
+      // portal renders them correctly the moment the rewrite lands.
       "hair_loss_duration", "hair_loss_pattern", "hair_loss_family_history",
       "hair_loss_previous_treatment", "scalp_condition", "recent_stress",
       "recent_illness", "diet_changes", "thyroid_history",
