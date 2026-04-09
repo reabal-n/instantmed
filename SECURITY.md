@@ -210,15 +210,15 @@ Defined in `next.config.mjs`. Key directives (production — `unsafe-eval` is **
 
 ```
 default-src 'self';
-script-src 'self' 'unsafe-inline' https://js.stripe.com https://www.googletagmanager.com https://www.google-analytics.com https://challenges.cloudflare.com https://*.clerk.accounts.dev https://*.clerk.com https://clerk.instantmed.com.au;
+script-src 'self' 'unsafe-inline' https://js.stripe.com https://www.googletagmanager.com https://www.google-analytics.com https://challenges.cloudflare.com;
 worker-src 'self' blob:;
 child-src 'self' blob:;
 style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
 font-src 'self' https://fonts.gstatic.com data:;
-img-src 'self' data: blob: https://*.supabase.co https://images.unsplash.com https://raw.githubusercontent.com https://svgl.app https://api.dicebear.com https://img.clerk.com https://*.clerk.com https://*.googleusercontent.com https://*.gravatar.com https://*.stripe.com https://pagead2.googlesyndication.com;
-connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://*.google-analytics.com https://*.google.com https://www.googletagmanager.com https://*.googleadservices.com https://*.doubleclick.net https://*.sentry.io https://api.resend.com https://challenges.cloudflare.com https://*.posthog.com https://us.i.posthog.com https://*.clerk.accounts.dev https://*.clerk.com https://clerk.instantmed.com.au https://accounts.instantmed.com.au https://pagead2.googlesyndication.com;
-frame-src 'self' https://js.stripe.com https://challenges.cloudflare.com https://*.clerk.accounts.dev https://*.clerk.com https://clerk.instantmed.com.au https://accounts.instantmed.com.au;
-form-action 'self' https://*.supabase.co https://accounts.google.com https://*.clerk.accounts.dev https://*.clerk.com https://clerk.instantmed.com.au https://accounts.instantmed.com.au;
+img-src 'self' data: blob: https://*.supabase.co https://images.unsplash.com https://raw.githubusercontent.com https://svgl.app https://api.dicebear.com https://*.googleusercontent.com https://*.gravatar.com https://*.stripe.com https://pagead2.googlesyndication.com;
+connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://*.google-analytics.com https://*.google.com https://www.googletagmanager.com https://*.googleadservices.com https://*.doubleclick.net https://*.sentry.io https://api.resend.com https://challenges.cloudflare.com https://*.posthog.com https://us.i.posthog.com https://accounts.google.com https://pagead2.googlesyndication.com;
+frame-src 'self' https://js.stripe.com https://challenges.cloudflare.com;
+form-action 'self' https://*.supabase.co https://accounts.google.com;
 frame-ancestors 'self';
 object-src 'none';
 base-uri 'self';
@@ -264,14 +264,13 @@ All webhooks use signature verification (not CSRF).
 | Provider | Verification |
 |----------|-------------|
 | **Stripe** | `stripe.webhooks.constructEvent(body, req.headers['stripe-signature'], webhookSecret)` |
-| **Clerk** | Svix: `new Webhook(WEBHOOK_SECRET).verify(payload, headers)` |
 | **Resend** | Svix: `new Webhook(RESEND_WEBHOOK_SECRET).verify(payload, headers)` |
 
 ---
 
 ## Authentication & Authorization
 
-**Provider:** Clerk. Session duration: 7 days (with refresh). MFA: available, optional for patients, recommended for clinicians.
+**Provider:** Supabase Auth. Cookie-based sessions with JWT refresh via middleware. Auth methods: email magic link + Google OAuth. MFA: available via Supabase, optional for patients, recommended for clinicians.
 
 ### CSRF Protection (`lib/security/csrf.ts`)
 
@@ -363,7 +362,7 @@ Monitoring: Sentry (errors, CSP), PostHog (behavior), Supabase (DB audit logs).
 
 | Classification | Variables | Rule |
 |----------------|-----------|------|
-| **Critical** | `SUPABASE_SERVICE_ROLE_KEY`, `STRIPE_SECRET_KEY`, `ENCRYPTION_KEY`, `CLERK_SECRET_KEY` | Never expose, never log |
+| **Critical** | `SUPABASE_SERVICE_ROLE_KEY`, `STRIPE_SECRET_KEY`, `ENCRYPTION_KEY` | Never expose, never log |
 | **Sensitive** | `STRIPE_WEBHOOK_SECRET`, `INTERNAL_API_SECRET`, `RESEND_API_KEY` | Server-only |
 | **Public** | `NEXT_PUBLIC_*` (Supabase URL, anon key, Stripe publishable key) | Safe for client |
 

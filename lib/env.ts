@@ -89,13 +89,6 @@ const serverEnvSchema = z.object({
   CRON_SECRET: z.string().optional(),
   OPS_CRON_SECRET: z.string().optional(),
 
-  // Clerk webhook verification
-  CLERK_WEBHOOK_SECRET: z.string().optional(),
-
-  // Clerk auth (public key needed for client SDK)
-  NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string().optional(),
-  CLERK_SECRET_KEY: z.string().optional(),
-
   // Stripe publishable key (public, for client checkout)
   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().optional(),
 
@@ -127,8 +120,6 @@ const productionRequirements = z.object({
   UPSTASH_REDIS_REST_URL: z.string().url("Production requires UPSTASH_REDIS_REST_URL for rate limiting"),
   UPSTASH_REDIS_REST_TOKEN: z.string().min(1, "Production requires UPSTASH_REDIS_REST_TOKEN for rate limiting"),
   CRON_SECRET: z.string().min(1, "Production requires CRON_SECRET"),
-  CLERK_SECRET_KEY: z.string().min(1, "Production requires CLERK_SECRET_KEY for authentication"),
-  CLERK_WEBHOOK_SECRET: z.string().min(1, "Production requires CLERK_WEBHOOK_SECRET"),
   RESEND_API_KEY: z.string().min(1, "Production requires RESEND_API_KEY for email delivery"),
   PHI_ENCRYPTION_ENABLED: z.literal("true", { error: "Production requires PHI_ENCRYPTION_ENABLED=true" }),
   PHI_MASTER_KEY: z.string().min(32, "Production requires PHI_MASTER_KEY (min 32 chars)"),

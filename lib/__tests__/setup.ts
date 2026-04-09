@@ -113,16 +113,8 @@ vi.mock('@/lib/stripe/client', () => ({
 }))
 
 // ============================================================================
-// CLERK MOCK
+// AUTH MOCK
 // ============================================================================
-
-vi.mock('@clerk/nextjs', () => ({
-  auth: vi.fn(() => Promise.resolve({ userId: 'test-user-id' })),
-  currentUser: vi.fn(() => Promise.resolve({
-    id: 'test-user-id',
-    emailAddresses: [{ emailAddress: 'test@example.com' }],
-  })),
-}))
 
 vi.mock('@/lib/auth', () => ({
   auth: vi.fn(() => Promise.resolve({ userId: 'test-user-id' })),
