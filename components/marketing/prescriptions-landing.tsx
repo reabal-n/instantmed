@@ -19,6 +19,8 @@ import {
   ClipboardList,
   Stethoscope,
   Smartphone,
+  RefreshCw,
+  FileText,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -26,7 +28,6 @@ import { MagneticButton } from "@/components/ui/magnetic-button"
 import { DoctorAvailabilityPill } from "@/components/shared/doctor-availability-pill"
 import { RotatingText } from "@/components/marketing/rotating-text"
 import { EScriptHeroMockup } from "@/components/marketing/mockups/escript-hero-mockup"
-import { PricingSection } from "@/components/marketing/sections/pricing-section"
 import { LiveWaitTime } from "@/components/marketing/live-wait-time"
 import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter } from "@/components/marketing/footer"
@@ -85,15 +86,6 @@ const ROTATING_BADGES = [
   "Any pharmacy in Australia",
   "Same-day delivery",
   "Full refund if we can\u2019t help",
-]
-
-const PRICING_FEATURES = [
-  "Reviewed by an AHPRA-registered GP",
-  "Sent straight to your phone",
-  "Works at any pharmacy in Australia",
-  "Repeats included where appropriate",
-  "Message your doctor with questions",
-  "PBS subsidies may apply at pharmacy",
 ]
 
 const SOCIAL_PROOF_STATS = [
@@ -400,10 +392,10 @@ function HeroSection({
             <h1
               className="text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight mb-3 sm:mb-6 leading-[1.15] animate-hero-headline"
             >
-              Repeat medication,{" "}
+              Your prescription,{" "}
               <br className="hidden sm:block" />
               <span className="text-premium-gradient">
-                reviewed by a real Australian doctor.
+                without the waiting room.
               </span>
             </h1>
 
@@ -415,7 +407,8 @@ function HeroSection({
               transition={{ duration: 0.4, delay: 0.1 }}
             >
               An AHPRA-registered GP reviews your request and sends an
-              eScript straight to your phone. Take it to any pharmacy.
+              eScript straight to your phone. Any pharmacy in Australia,
+              same day.
             </motion.p>
 
             {/* Rotating secondary proof badge */}
@@ -434,7 +427,7 @@ function HeroSection({
             {/* CTA */}
             <motion.div
               ref={ctaRef}
-              className="flex flex-col sm:flex-row items-center gap-3 justify-center lg:justify-start mb-6"
+              className="flex flex-col sm:flex-row items-center gap-3 justify-center lg:justify-start mb-4"
               initial={animate ? { opacity: 0, y: 12 } : {}}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.12 }}
@@ -450,11 +443,45 @@ function HeroSection({
                   <Link href={isDisabled ? "/contact" : "/request?service=prescription"}>
                     {isDisabled
                       ? "Contact us"
-                      : `Renew your medication \u2014 $${PRICING.REPEAT_SCRIPT.toFixed(2)}`}
+                      : `Renew medication \u2014 $${PRICING.REPEAT_SCRIPT.toFixed(2)}`}
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Link>
                 </Button>
               </MagneticButton>
+              <Button
+                asChild
+                variant="outline"
+                size="lg"
+                className="h-12 px-6 text-base"
+                disabled={isDisabled}
+              >
+                <Link href={isDisabled ? "/contact" : "/request?service=consult"}>
+                  New prescription
+                </Link>
+              </Button>
+            </motion.div>
+            {/* Sub-CTA labels */}
+            <motion.div
+              className="flex flex-col sm:flex-row items-center gap-x-6 gap-y-1 justify-center lg:justify-start mb-4 text-xs text-muted-foreground"
+              initial={animate ? { opacity: 0 } : {}}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.4, delay: 0.18 }}
+            >
+              <span className="flex items-center gap-1">
+                <RefreshCw className="h-3 w-3 shrink-0 text-primary" />
+                Renewing an existing script — from ${PRICING.REPEAT_SCRIPT.toFixed(2)}
+              </span>
+              <span className="flex items-center gap-1">
+                <FileText className="h-3 w-3 shrink-0 text-muted-foreground" />
+                Need something new — ${PRICING.NEW_SCRIPT.toFixed(2)}
+              </span>
+            </motion.div>
+            <motion.div
+              className="flex flex-col items-center lg:items-start gap-0.5 mb-6"
+              initial={animate ? { opacity: 0 } : {}}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.4, delay: 0.2 }}
+            >
               <div className="flex flex-col items-center lg:items-start gap-0.5">
                 <p className="text-xs text-muted-foreground">
                   {SOCIAL_PROOF_DISPLAY.gpComparisonComplex}
@@ -595,6 +622,156 @@ function HowItWorksInline({ onCTAClick, isDisabled }: { onCTAClick?: () => void;
             </Link>
           </Button>
         </motion.div>
+      </div>
+    </section>
+  )
+}
+
+/** Service differentiation — repeat ($29.95) vs new prescription ($49.95) */
+function ServiceComparisonSection({ isDisabled }: { isDisabled?: boolean }) {
+  const prefersReducedMotion = useReducedMotion()
+  const animate = !prefersReducedMotion
+
+  const services = [
+    {
+      icon: RefreshCw,
+      title: "Repeat prescription",
+      subtitle: "Renew a medication you already take",
+      price: PRICING.REPEAT_SCRIPT,
+      priceNote: "one-time fee",
+      href: "/request?service=prescription",
+      badge: "Most common",
+      badgeColor: "bg-primary/10 text-primary",
+      highlight: true,
+      bullets: [
+        "Medication you've been prescribed before",
+        "eScript sent to your phone via SMS",
+        "Works at any pharmacy Australia-wide",
+        "PBS subsidies apply at the pharmacy",
+        "Repeats included where appropriate",
+      ],
+    },
+    {
+      icon: FileText,
+      title: "New prescription",
+      subtitle: "Start a medication you haven't used before",
+      price: PRICING.NEW_SCRIPT,
+      priceNote: "one-time fee",
+      href: "/request?service=consult",
+      badge: null,
+      badgeColor: "",
+      highlight: false,
+      bullets: [
+        "Medication you haven't been prescribed",
+        "Doctor assessment included",
+        "eScript sent to your phone via SMS",
+        "Full refund if unsuitable",
+        "Most requests reviewed same day",
+      ],
+    },
+  ]
+
+  return (
+    <section id="pricing" aria-label="Service options" className="py-16 lg:py-20">
+      <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+        <motion.div
+          className="text-center mb-10"
+          initial={animate ? { opacity: 0, y: 12 } : {}}
+          whileInView={animate ? { opacity: 1, y: 0 } : undefined}
+          viewport={{ once: true }}
+          transition={{ duration: 0.4 }}
+        >
+          <p className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-background px-3 py-1.5 text-xs font-medium text-foreground/70 shadow-sm shadow-primary/[0.04] mb-4">
+            Pricing
+          </p>
+          <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground mb-3">
+            Repeat or new — one flat fee.
+          </h2>
+          <p className="text-muted-foreground max-w-xl mx-auto text-balance">
+            No hidden costs. Full refund if we can&apos;t help.
+          </p>
+        </motion.div>
+
+        <div className="grid md:grid-cols-2 gap-6">
+          {services.map((service, i) => (
+            <motion.div
+              key={service.title}
+              className={cn(
+                "relative rounded-2xl border p-6 flex flex-col transition-all duration-300",
+                service.highlight
+                  ? "bg-white dark:bg-card border-primary/30 ring-2 ring-primary shadow-lg shadow-primary/[0.1] hover:shadow-xl hover:shadow-primary/[0.15] hover:-translate-y-1"
+                  : "bg-white dark:bg-card border-border/50 dark:border-white/15 shadow-md shadow-primary/[0.06] dark:shadow-none hover:shadow-lg hover:shadow-primary/[0.08] hover:-translate-y-0.5"
+              )}
+              initial={animate ? { opacity: 0, y: 16 } : {}}
+              whileInView={animate ? { opacity: 1, y: 0 } : undefined}
+              viewport={{ once: true }}
+              transition={{ duration: 0.35, delay: i * 0.1 }}
+            >
+              {service.badge && (
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                  <span className={cn("inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border border-primary/20", service.badgeColor)}>
+                    {service.badge}
+                  </span>
+                </div>
+              )}
+
+              <div className="flex items-start gap-4 mb-5">
+                <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <service.icon className="h-5 w-5 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-foreground">{service.title}</h3>
+                  <p className="text-sm text-muted-foreground">{service.subtitle}</p>
+                </div>
+              </div>
+
+              <div className="mb-5">
+                <span className="text-4xl font-semibold tracking-tight text-foreground">
+                  ${service.price.toFixed(2)}
+                </span>
+                <span className="text-sm text-muted-foreground ml-2">{service.priceNote}</span>
+              </div>
+
+              <ul className="space-y-2.5 mb-6 flex-1">
+                {service.bullets.map((bullet) => (
+                  <li key={bullet} className="flex items-start gap-2 text-sm text-muted-foreground">
+                    <CheckCircle2 className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                    {bullet}
+                  </li>
+                ))}
+              </ul>
+
+              <Button
+                asChild
+                size="lg"
+                variant={service.highlight ? "default" : "outline"}
+                className={cn(
+                  "w-full h-11 font-semibold",
+                  service.highlight && "shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30"
+                )}
+                disabled={isDisabled}
+              >
+                <Link href={isDisabled ? "/contact" : service.href}>
+                  {isDisabled ? "Contact us" : `Get ${service.title.toLowerCase()}`}
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+            </motion.div>
+          ))}
+        </div>
+
+        <motion.p
+          className="text-center text-xs text-muted-foreground mt-6"
+          initial={animate ? { opacity: 0 } : {}}
+          whileInView={animate ? { opacity: 1 } : undefined}
+          viewport={{ once: true }}
+          transition={{ duration: 0.4, delay: 0.25 }}
+        >
+          Not sure which you need?{" "}
+          <span className="font-medium text-foreground">
+            Repeat = medication you already take. New = something you haven&apos;t been prescribed.
+          </span>
+        </motion.p>
       </div>
     </section>
   )
@@ -741,13 +918,6 @@ export function PrescriptionsLanding() {
       ? columnsData
       : getTestimonialsForColumns().slice(0, 9)
 
-  const pricingColors = {
-    light: "bg-primary/10",
-    text: "text-primary",
-    border: "border-primary/20",
-    button: "bg-primary hover:bg-primary/90",
-  }
-
   // CTA click handlers with analytics
   const handleHeroCTA = useCallback(() => analytics.trackCTAClick("hero"), [analytics])
   const handleHowItWorksCTA = useCallback(() => analytics.trackCTAClick("how_it_works"), [analytics])
@@ -816,22 +986,8 @@ export function PrescriptionsLanding() {
           {/* Pre-qualify before pricing — reduces bad-fit conversions */}
           <PrescriptionLimitationsSection />
 
-          {/* 5. Pricing */}
-          <PricingSection
-            title="One flat fee. Save $30–60 vs a GP."
-            subtitle="One flat fee — no hidden costs. Full refund if we can't help."
-            price={PRICING.REPEAT_SCRIPT}
-            originalPrice="~$80"
-            features={PRICING_FEATURES}
-            ctaText={
-              isDisabled
-                ? "Contact us"
-                : `Renew your medication \u2014 $${PRICING.REPEAT_SCRIPT.toFixed(2)}`
-            }
-            ctaHref={isDisabled ? "/contact" : "/request?service=prescription"}
-            colors={pricingColors}
-            showComparisonTable={false}
-          />
+          {/* 5. Service comparison — repeat vs new Rx */}
+          <ServiceComparisonSection isDisabled={isDisabled} />
 
           {/* 6. Testimonials */}
           <TestimonialsSection
