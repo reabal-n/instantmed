@@ -1,7 +1,7 @@
 import { Suspense } from "react"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth"
 import { getDoctorQueue, getIntakeMonitoringStats, getSlaBreachIntakes, getAIApprovedIntakes, getAutoApprovalMetrics, getRecentlyCompletedIntakes, getTodayEarnings } from "@/lib/data/intakes"
-import { getDoctorIdentity, isDoctorIdentityComplete } from "@/lib/data/doctor-identity"
+import { getDoctorIdentity, isDoctorIdentityComplete, type DoctorIdentity } from "@/lib/data/doctor-identity"
 import { QueueClient } from "../queue/queue-client"
 import { IntakeMonitor } from "@/components/doctor/intake-monitor"
 import { IdentityIncompleteBanner } from "@/components/doctor/identity-incomplete-banner"
@@ -15,14 +15,20 @@ export const metadata = {
   title: "Doctor Dashboard",
 }
 
-/** Stats section — fetches monitoring stats, SLA, identity, AI metrics, earnings */
-async function DoctorStatsSection({ profileId }: { profileId: string }) {
+/** Stats section — fetches monitoring stats, SLA, AI metrics. Identity + earnings come from parent. */
+async function DoctorStatsSection({
+  profileId,
+  doctorIdentity,
+  todayEarnings,
+}: {
+  profileId: string
+  doctorIdentity: DoctorIdentity | null
+  todayEarnings: number
+}) {
   const results = await Promise.allSettled([
     getIntakeMonitoringStats(),
     getSlaBreachIntakes(),
-    getDoctorIdentity(profileId),
     getAutoApprovalMetrics(),
-    getTodayEarnings(),
   ])
 
   const monitoringStats = results[0].status === "fulfilled"
@@ -31,18 +37,14 @@ async function DoctorStatsSection({ profileId }: { profileId: string }) {
   const slaData = results[1].status === "fulfilled"
     ? results[1].value
     : { breached: 0, approaching: 0 }
-  const doctorIdentity = results[2].status === "fulfilled"
+  const autoApprovalMetrics = results[2].status === "fulfilled"
     ? results[2].value
     : null
-  const autoApprovalMetrics = results[3].status === "fulfilled"
-    ? results[3].value
-    : null
-  const todayEarnings = results[4].status === "fulfilled" ? results[4].value : 0
 
   // Log failures for monitoring
   results.forEach((result, index) => {
     if (result.status === "rejected") {
-      const names = ["monitoring", "sla", "identity", "ai-metrics", "today-earnings"]
+      const names = ["monitoring", "sla", "ai-metrics"]
       log.error(`Failed to fetch ${names[index]} data`, { profileId }, result.reason)
     }
   })
@@ -75,40 +77,38 @@ async function DoctorStatsSection({ profileId }: { profileId: string }) {
   )
 }
 
-/** Queue section — fetches the review queue and AI-approved intakes */
+/** Queue section — fetches the review queue and AI-approved intakes. Identity + earnings come from parent. */
 async function DoctorQueueSection({
   profileId,
   page,
   pageSize,
+  doctorIdentity,
+  todayEarnings,
 }: {
   profileId: string
   page: number
   pageSize: number
+  doctorIdentity: DoctorIdentity | null
+  todayEarnings: number
 }) {
   const results = await Promise.allSettled([
     getDoctorQueue({ page, pageSize, doctorId: profileId }),
-    getDoctorIdentity(profileId),
     getAIApprovedIntakes({ limit: 20 }),
     getRecentlyCompletedIntakes({ limit: 8 }),
-    getTodayEarnings(),
   ])
 
   const queueResult = results[0].status === "fulfilled"
     ? results[0].value
     : { data: [], total: 0, page: 1, pageSize }
-  const doctorIdentity = results[1].status === "fulfilled"
+  const aiApprovedIntakes = results[1].status === "fulfilled"
     ? results[1].value
-    : null
-  const aiApprovedIntakes = results[2].status === "fulfilled"
-    ? results[2].value
     : []
-  const recentlyCompleted = results[3].status === "fulfilled" ? results[3].value : []
-  const todayEarnings = results[4].status === "fulfilled" ? results[4].value : 0
+  const recentlyCompleted = results[2].status === "fulfilled" ? results[2].value : []
 
   // Log failures for monitoring
   results.forEach((result, index) => {
     if (result.status === "rejected") {
-      const names = ["queue", "identity", "ai-approved", "recently-completed", "today-earnings"]
+      const names = ["queue", "ai-approved", "recently-completed"]
       log.error(`Failed to fetch ${names[index]} data`, { profileId }, result.reason)
     }
   })
@@ -208,6 +208,21 @@ export default async function DoctorDashboardPage({
   const page = Math.max(1, parseInt(params.page || "1", 10))
   const pageSize = Math.min(100, Math.max(10, parseInt(params.pageSize || "50", 10)))
 
+  // Fetch shared data once — deduplicates the 2 redundant DB calls that were in both sections
+  const [identityResult, earningsResult] = await Promise.allSettled([
+    getDoctorIdentity(profile.id),
+    getTodayEarnings(),
+  ])
+  const doctorIdentity = identityResult.status === "fulfilled" ? identityResult.value : null
+  const todayEarnings = earningsResult.status === "fulfilled" ? earningsResult.value : 0
+
+  if (identityResult.status === "rejected") {
+    log.error("Failed to fetch identity data", { profileId: profile.id }, identityResult.reason)
+  }
+  if (earningsResult.status === "rejected") {
+    log.error("Failed to fetch today-earnings data", { profileId: profile.id }, earningsResult.reason)
+  }
+
   return (
     <div className="space-y-4">
       {/* Page Header */}
@@ -229,14 +244,14 @@ export default async function DoctorDashboardPage({
         </div>
       </div>
 
-      {/* Stats — streams in first (fast queries) */}
+      {/* Stats — streams in independently */}
       <Suspense fallback={<StatsSkeleton />}>
-        <DoctorStatsSection profileId={profile.id} />
+        <DoctorStatsSection profileId={profile.id} doctorIdentity={doctorIdentity} todayEarnings={todayEarnings} />
       </Suspense>
 
-      {/* Queue — streams in after stats */}
+      {/* Queue — streams in independently */}
       <Suspense fallback={<QueueSkeleton />}>
-        <DoctorQueueSection profileId={profile.id} page={page} pageSize={pageSize} />
+        <DoctorQueueSection profileId={profile.id} page={page} pageSize={pageSize} doctorIdentity={doctorIdentity} todayEarnings={todayEarnings} />
       </Suspense>
     </div>
   )
