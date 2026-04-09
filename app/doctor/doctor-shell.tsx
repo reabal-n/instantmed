@@ -15,7 +15,7 @@ import { useAuth } from '@/lib/supabase/auth-provider'
  * - Keyboard shortcuts discovery hint (shown once to new doctors)
  * - Real-time notifications for new intakes
  *
- * Note: Session timeout warning removed - Clerk handles session refresh automatically
+ * Note: Session timeout warning removed - Supabase Auth handles session refresh automatically
  */
 
 interface DoctorShellProps {

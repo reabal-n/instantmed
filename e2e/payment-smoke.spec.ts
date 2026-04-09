@@ -103,12 +103,12 @@ async function gotoRequest(page: Page, url: string) {
   await page.goto(url)
   await page.waitForLoadState("networkidle")
 
-  // Dismiss Clerk keyless banner if present (dev only)
+  // Dismiss dev overlays if present
   await page.evaluate(() => {
     const style = document.createElement("style")
     style.textContent = `
-      [id*="clerk-keyless"], [data-nextjs-dialog-overlay],
-      [data-nextjs-toast], [class*="nextjs-portal"] { display: none !important; }
+      [data-nextjs-dialog-overlay], [data-nextjs-toast],
+      [class*="nextjs-portal"] { display: none !important; }
     `
     document.head.appendChild(style)
   })

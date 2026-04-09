@@ -59,7 +59,7 @@ export default function CookiePolicyPage() {
                   out of these cookies.
                 </p>
                 <ul>
-                  <li><strong>Authentication cookies</strong> — Keep you logged in during your session (Clerk)</li>
+                  <li><strong>Authentication cookies</strong> — Keep you logged in during your session (Supabase Auth)</li>
                   <li><strong>Security cookies</strong> — Help protect against cross-site request forgery (CSRF)</li>
                   <li><strong>Session cookies</strong> — Remember your preferences during a single visit</li>
                 </ul>
@@ -103,7 +103,7 @@ export default function CookiePolicyPage() {
                     </thead>
                     <tbody className="divide-y divide-border/30">
                       {[
-                        { name: "Clerk", purpose: "Authentication", url: "https://clerk.com/privacy", label: "clerk.com/privacy" },
+                        { name: "Supabase", purpose: "Authentication", url: "https://supabase.com/privacy", label: "supabase.com/privacy" },
                         { name: "PostHog", purpose: "Analytics", url: "https://posthog.com/privacy", label: "posthog.com/privacy" },
                         { name: "Stripe", purpose: "Payments", url: "https://stripe.com/au/privacy", label: "stripe.com/privacy" },
                         { name: "Sentry", purpose: "Error tracking", url: "https://sentry.io/privacy/", label: "sentry.io/privacy" },

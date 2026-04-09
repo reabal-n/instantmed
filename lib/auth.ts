@@ -26,7 +26,7 @@ function escapeIlike(input: string): string {
 // Explicit column list for all profile queries (avoids select("*"))
 // ============================================================================
 const PROFILE_COLUMNS = `
-  id, auth_user_id, clerk_user_id, email, full_name, first_name, last_name,
+  id, auth_user_id, email, full_name, first_name, last_name,
   date_of_birth, role, phone, address_line1, suburb, state, postcode,
   medicare_number, medicare_irn, medicare_expiry,
   ahpra_number, ahpra_verified, ahpra_verified_at, ahpra_verified_by,

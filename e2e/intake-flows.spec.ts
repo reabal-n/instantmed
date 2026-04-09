@@ -24,7 +24,6 @@ import { waitForPageLoad } from "./helpers/test-utils"
 /**
  * Dismiss overlays that can block clicks on page elements:
  * - Cookie consent banner
- * - Clerk keyless mode banner (dev only)
  * - Next.js dev tools issues badge
  */
 async function dismissOverlays(page: Page) {
@@ -33,23 +32,6 @@ async function dismissOverlays(page: Page) {
   if (await essentialOnly.isVisible({ timeout: 2000 }).catch(() => false)) {
     await essentialOnly.click()
     await page.waitForTimeout(300)
-  }
-
-  // Clerk keyless mode banner — collapse it if present
-  const clerkBanner = page.getByRole("button", { name: /Clerk is in keyless mode/i })
-  if (await clerkBanner.isVisible({ timeout: 1000 }).catch(() => false)) {
-    // Hide the entire Clerk keyless overlay via JS
-    await page.evaluate(() => {
-      const el = document.querySelector('[id*="clerk-keyless"]') as HTMLElement
-      if (el) el.style.display = 'none'
-      // Also try removing by text content
-      document.querySelectorAll('button').forEach(btn => {
-        if (btn.textContent?.includes('Clerk is in keyless mode')) {
-          const parent = btn.closest('[style*="position"]') || btn.parentElement?.parentElement
-          if (parent instanceof HTMLElement) parent.style.display = 'none'
-        }
-      })
-    })
   }
 
   // Next.js Dev Tools issues overlay — collapse it
@@ -63,11 +45,10 @@ async function dismissOverlays(page: Page) {
 
   // Also try hiding all dev tool overlays via CSS
   await page.evaluate(() => {
-    // Hide Next.js dev tools and Clerk overlays that float over content
     const style = document.createElement('style')
     style.textContent = `
       [data-nextjs-dialog-overlay], [data-nextjs-toast],
-      [class*="nextjs-portal"], [id*="clerk-keyless"],
+      [class*="nextjs-portal"],
       button[aria-label="Open chat assistant"],
       [data-nextjs-dev-toolbar] { display: none !important; }
     `

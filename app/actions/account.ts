@@ -5,7 +5,7 @@ import { auth } from "@/lib/auth"
 import { revalidatePath } from "next/cache"
 
 /**
- * Helper to get the current authenticated Clerk user ID
+ * Helper to get the current authenticated user ID
  */
 async function getAuthUserId(): Promise<string | null> {
   const { userId } = await auth()
@@ -26,16 +26,25 @@ export async function changePassword(
 }
 
 /**
- * Request password reset - now handled by Clerk
- * Users should use the Clerk Account Portal for password management
+ * Request password reset via Supabase Auth magic link
  */
-export async function requestPasswordReset(_email: string): Promise<{ success: boolean; error: string | null }> {
-  // Password reset is handled by Clerk Account Portal
-  // Redirect users to: https://accounts.instantmed.com.au/user
-  return { 
-    success: false, 
-    error: "Password reset is managed through your account settings. Please visit the account portal." 
+export async function requestPasswordReset(email: string): Promise<{ success: boolean; error: string | null }> {
+  if (!email) {
+    return { success: false, error: "Email is required" }
   }
+
+  const supabase = createServiceRoleClient()
+  const { error } = await supabase.auth.admin.generateLink({
+    type: "magiclink",
+    email,
+  })
+
+  if (error) {
+    // Don't leak whether the email exists
+    return { success: true, error: null }
+  }
+
+  return { success: true, error: null }
 }
 
 export async function deleteAccount(): Promise<{ success: boolean; error: string | null }> {
