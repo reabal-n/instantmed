@@ -4,7 +4,8 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useUser, useClerk } from "@clerk/nextjs"
+import { useAuth } from "@/lib/supabase/auth-provider"
+import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Loader2, Shield, CheckCircle } from "lucide-react"
 import { logger } from "@/lib/observability/logger"
@@ -40,28 +41,27 @@ interface InlineAuthStepProps {
 
 export function InlineAuthStep({ onBack, onAuthComplete, serviceName }: InlineAuthStepProps) {
   const router = useRouter()
-  const { user, isLoaded, isSignedIn } = useUser()
-  const { openSignIn } = useClerk()
+  const { user, isLoaded, isSignedIn } = useAuth()
 
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [profileChecked, setProfileChecked] = useState(false)
 
-  // Handle auth - when user is signed in via Clerk, ensure profile and complete flow
+  // Handle auth - when user is signed in, ensure profile and complete flow
   useEffect(() => {
     const completeAuth = async () => {
       if (!isLoaded || !isSignedIn || !user || profileChecked) return
-      
+
       setIsLoading(true)
       setProfileChecked(true)
-      
+
       try {
         // Fetch or create profile from Supabase
         const response = await fetch('/api/profile/ensure', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
         })
-        
+
         if (response.ok) {
           const { profileId } = await response.json()
           if (profileId) {
@@ -82,16 +82,21 @@ export function InlineAuthStep({ onBack, onAuthComplete, serviceName }: InlineAu
     completeAuth()
   }, [isLoaded, isSignedIn, user, profileChecked, onAuthComplete, router])
 
-  const handleSignIn = () => {
-    // Open Clerk sign-in modal or redirect
+  const handleGoogleSignIn = async () => {
+    const supabase = createClient()
     const returnUrl = window.location.pathname + window.location.search
-    openSignIn({
-      forceRedirectUrl: returnUrl,
+    const { error: oauthError } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(returnUrl)}`,
+      },
     })
+    if (oauthError) {
+      setError("Failed to start Google sign in")
+    }
   }
 
   const handleEmailSignIn = () => {
-    // Redirect to sign-in page with return URL
     const returnUrl = encodeURIComponent(window.location.pathname + window.location.search)
     router.push(`/sign-in?redirect=${returnUrl}`)
   }
@@ -139,7 +144,7 @@ export function InlineAuthStep({ onBack, onAuthComplete, serviceName }: InlineAu
 
       <div className="space-y-3">
         <Button
-          onClick={handleSignIn}
+          onClick={handleGoogleSignIn}
           disabled={isLoading}
           className="w-full h-12 rounded-xl bg-background hover:bg-muted text-foreground border border-border shadow-sm"
         >

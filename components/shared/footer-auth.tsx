@@ -1,6 +1,6 @@
 "use client"
 
-import { useUser } from "@clerk/nextjs"
+import { useAuth } from "@/lib/supabase/auth-provider"
 import { AppSignInButton } from "@/components/shared/app-sign-in-button"
 import Link from "next/link"
 
@@ -13,7 +13,7 @@ import Link from "next/link"
  * their JS bundle loads, which can take several seconds.
  */
 export function FooterAuth() {
-  const { user, isLoaded } = useUser()
+  const { user, isLoaded } = useAuth()
 
   if (isLoaded && user) {
     return (

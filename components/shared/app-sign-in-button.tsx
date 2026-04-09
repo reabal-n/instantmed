@@ -1,26 +1,23 @@
 "use client"
 
-import { SignInButton } from "@clerk/nextjs"
+import Link from "next/link"
 
 /**
- * Central wrapper for Clerk's SignInButton.
+ * Central sign-in entry point.
  *
- * CRITICAL: All sign-in entry points MUST route through /auth/post-signin
- * for profile linking. This wrapper enforces that invariant in one place
- * so individual call sites can never forget it.
- *
- * Use this instead of importing SignInButton from @clerk/nextjs directly.
+ * Renders children as a link to /sign-in. All sign-in entry points
+ * route through this component to enforce consistent behavior.
  */
 export function AppSignInButton({
   children,
-  mode = "modal",
-  ...props
-}: Omit<React.ComponentProps<typeof SignInButton>, "forceRedirectUrl"> & {
+}: {
   children?: React.ReactNode
+  /** @deprecated mode was a Clerk concept — kept for API compat during migration */
+  mode?: string
 }) {
   return (
-    <SignInButton mode={mode} forceRedirectUrl="/auth/post-signin" {...props}>
+    <Link href="/sign-in">
       {children}
-    </SignInButton>
+    </Link>
   )
 }

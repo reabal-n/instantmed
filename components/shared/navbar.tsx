@@ -6,7 +6,7 @@ import { useState, useEffect } from "react"
 import { motion, type Variants } from "framer-motion"
 import { useReducedMotion } from "@/components/ui/motion"
 import { useTheme } from "next-themes"
-import { useUser, useClerk } from "@clerk/nextjs"
+import { useAuth } from "@/lib/supabase/auth-provider"
 import { AppSignInButton } from "@/components/shared/app-sign-in-button"
 import { LogOut } from "lucide-react"
 import { BrandLogo } from "@/components/shared/brand-logo"
@@ -40,8 +40,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
   const pathname = usePathname()
   const { theme } = useTheme()
   const isDarkTheme = theme === "dark"
-  const { signOut } = useClerk()
-  const { user, isLoaded: isClerkLoaded } = useUser()
+  const { signOut, user, isLoaded } = useAuth()
   const prefersReducedMotion = useReducedMotion()
 
   useEffect(() => {
@@ -52,15 +51,10 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
 
   const handleSignOut = async () => {
     setIsLoggingOut(true)
-    // Clear httpOnly profile_linked cookie before Clerk sign-out
-    // so the middleware safety net works correctly on next sign-in
-    await fetch("/api/auth/sign-out", { method: "POST" }).catch(() => {})
     await signOut()
-    router.push("/")
-    router.refresh()
   }
 
-  const firstName = user?.firstName || userName?.split(" ")[0] || "User"
+  const firstName = user?.user_metadata?.full_name?.split(" ")[0] || userName?.split(" ")[0] || "User"
   const isActivePath = (path: string) => pathname === path || pathname?.startsWith(path + "/")
 
   return (
@@ -121,7 +115,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                     pathname={pathname}
                     handleSignOut={handleSignOut}
                     isLoggingOut={isLoggingOut}
-                    isClerkLoaded={isClerkLoaded}
+                    isLoaded={isLoaded}
                     user={user}
                   />
                 </>
@@ -135,7 +129,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                   pathname={pathname}
                   handleSignOut={handleSignOut}
                   isLoggingOut={isLoggingOut}
-                  isClerkLoaded={isClerkLoaded}
+                  isLoaded={isLoaded}
                   user={user}
                 />
               )}
@@ -148,7 +142,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                   pathname={pathname}
                   handleSignOut={handleSignOut}
                   isLoggingOut={isLoggingOut}
-                  isClerkLoaded={isClerkLoaded}
+                  isLoaded={isLoaded}
                   user={user}
                 />
               )}
@@ -173,7 +167,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
           <div className="space-y-3">
             {variant === "marketing" && (
               <>
-                {isClerkLoaded && user ? (
+                {isLoaded && user ? (
                   <Button
                     variant="outline"
                     className="w-full rounded-xl bg-white dark:bg-card hover:bg-muted/50 dark:hover:bg-white/10 border-border/40 transition-all flex items-center justify-center"

@@ -1,4 +1,3 @@
-import { auth } from "@clerk/nextjs/server"
 import { NextResponse, type NextRequest } from "next/server"
 import { createLogger } from "@/lib/observability/logger"
 import { createClient } from "@/lib/supabase/server"
@@ -6,18 +5,13 @@ import { createClient } from "@/lib/supabase/server"
 const log = createLogger("auth-callback")
 
 /**
- * AUTH CALLBACK — dual-mode (Supabase + Clerk)
+ * AUTH CALLBACK — Supabase PKCE code exchange
  *
- * Supabase flow (magic link / Google OAuth):
+ * Flow:
  *   1. User clicks magic link or completes Google OAuth
  *   2. Supabase redirects here with ?code=xxx
- *   3. We exchange the code for a session via PKCE
- *   4. Redirect to ?next destination or /patient
- *
- * Clerk flow (legacy — will be removed in PR 4):
- *   1. User signs in via Clerk Account Portal
- *   2. Clerk redirects here (no ?code param)
- *   3. We delegate to /auth/post-signin for profile linking
+ *   3. We exchange the code for a session
+ *   4. Redirect to ?next destination or /auth/post-signin for profile linking
  */
 export async function GET(request: NextRequest) {
   const { searchParams, origin: requestOrigin } = new URL(request.url)
@@ -35,50 +29,24 @@ export async function GET(request: NextRequest) {
       ? `${forwardedProto}://${forwardedHost}`
       : requestOrigin
 
-  // ── Supabase flow: exchange PKCE code for session ───────────────
-  if (code) {
-    log.info("Supabase auth callback — exchanging code for session")
-    const supabase = await createClient()
-    const { error } = await supabase.auth.exchangeCodeForSession(code)
-
-    if (error) {
-      log.error("Supabase code exchange failed", { error: error.message })
-      return NextResponse.redirect(`${origin}/auth/error?message=${encodeURIComponent(error.message)}`)
-    }
-
-    // Successful auth — redirect to destination
-    const destination = next ? decodeURIComponent(next) : "/patient"
-    log.info("Supabase auth success, redirecting", { destination })
-    return NextResponse.redirect(`${origin}${destination}`)
+  if (!code) {
+    log.warn("Auth callback called without code parameter")
+    return NextResponse.redirect(`${origin}/sign-in`)
   }
 
-  // ── Clerk flow (legacy) ─────────────────────────────────────────
-  log.info("Clerk auth callback - delegating to post-signin", { origin, next })
+  log.info("Supabase auth callback — exchanging code for session")
+  const supabase = await createClient()
+  const { error } = await supabase.auth.exchangeCodeForSession(code)
 
-  const { userId } = await auth()
-
-  if (!userId) {
-    log.info("No Clerk user in callback, delegating to post-signin auth waiter")
-    return NextResponse.redirect(`${origin}/auth/post-signin`)
+  if (error) {
+    log.error("Supabase code exchange failed", { error: error.message })
+    return NextResponse.redirect(`${origin}/auth/error?message=${encodeURIComponent(error.message)}`)
   }
 
-  let postSignInUrl = `${origin}/auth/post-signin`
-
-  if (next) {
-    try {
-      const nextUrl = new URL(decodeURIComponent(next), origin)
-      const intakeId = nextUrl.searchParams.get("intake_id")
-
-      if (intakeId) {
-        postSignInUrl += `?intake_id=${intakeId}&redirect=${encodeURIComponent(next)}`
-      } else {
-        postSignInUrl += `?redirect=${encodeURIComponent(next)}`
-      }
-    } catch {
-      postSignInUrl += `?redirect=${encodeURIComponent(next)}`
-    }
-  }
-
-  log.info("Redirecting to post-signin", { postSignInUrl })
-  return NextResponse.redirect(postSignInUrl)
+  // Successful auth — redirect through post-signin for profile linking
+  const destination = next
+    ? `/auth/post-signin?redirect=${encodeURIComponent(next)}`
+    : "/auth/post-signin"
+  log.info("Supabase auth success, redirecting", { destination })
+  return NextResponse.redirect(`${origin}${destination}`)
 }
