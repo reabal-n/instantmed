@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { auth } from "@clerk/nextjs/server"
+import { auth } from "@/lib/auth"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
 import { requireValidCsrf } from "@/lib/security/csrf"
@@ -42,7 +42,7 @@ async function verifyDraftOwnership(
     const { data: callerProfile } = await supabase
       .from("profiles")
       .select("id")
-      .eq("clerk_user_id", clerkUserId)
+      .eq("auth_user_id", clerkUserId)
       .single()
 
     if (!callerProfile || callerProfile.id !== draft.user_id) {

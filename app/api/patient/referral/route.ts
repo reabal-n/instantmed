@@ -1,4 +1,4 @@
-import { auth } from "@clerk/nextjs/server"
+import { auth } from "@/lib/auth"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { NextResponse } from "next/server"
 
@@ -24,11 +24,11 @@ export async function GET(req: Request) {
   // Verify ownership
   const { data: profile } = await supabase
     .from("profiles")
-    .select("id, clerk_user_id, referral_code")
+    .select("id, auth_user_id, referral_code")
     .eq("id", patientId)
     .maybeSingle()
 
-  if (!profile || profile.clerk_user_id !== userId) {
+  if (!profile || profile.auth_user_id !== userId) {
     return NextResponse.json({ error: "Not found" }, { status: 404 })
   }
 

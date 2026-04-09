@@ -4,7 +4,7 @@ import { getModelWithConfig, isAIConfigured, AI_MODEL_CONFIG } from "@/lib/ai/pr
 import { getApiAuth } from "@/lib/auth"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
-import { auth } from "@clerk/nextjs/server"
+import { auth } from "@/lib/auth"
 import { MED_CERT_DRAFT_PROMPT, FALLBACK_RESPONSES, PROMPT_VERSION } from "@/lib/ai/prompts"
 import { logAIAudit } from "@/lib/ai/audit"
 import { calculateConfidence } from "@/lib/ai/confidence"

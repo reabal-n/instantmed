@@ -1,7 +1,8 @@
 "use server"
 
-import { auth as clerkAuth } from "@clerk/nextjs/server"
+import { auth } from "@/lib/auth"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
+import { createClient } from "@/lib/supabase/server"
 import { createLogger } from "@/lib/observability/logger"
 
 const log = createLogger("ensure-profile")
@@ -11,19 +12,13 @@ const log = createLogger("ensure-profile")
  * This is the ONLY place where profiles are created - server-side only using service role.
  *
  * Flow:
- * 1. Verify caller's Clerk session matches the requested userId
- * 2. Check if profile exists (by clerk_user_id)
+ * 1. Verify caller's Supabase Auth session matches the requested userId
+ * 2. Check if profile exists (by auth_user_id)
  * 3. If found: do nothing, return existing profile ID
  * 4. If not found: create profile server-side using service role client
- *
- * IMPORTANT:
- * - This is a server action ("use server") - can ONLY be called from server
- * - Uses service role client to bypass RLS
- * - Never create profiles on the client - always use this function
- * - Uses clerk_user_id (Clerk user ID format: user_2xxx...)
  */
 export async function ensureProfile(
-  userId: string, // Clerk user ID (user_2xxx...)
+  userId: string,
   userEmail: string,
   options?: {
     fullName?: string
@@ -31,9 +26,8 @@ export async function ensureProfile(
   }
 ): Promise<{ profileId: string | null; error: string | null }> {
   try {
-    // SECURITY: Verify the caller's Clerk session matches the requested userId.
-    // Prevents creation/modification of profiles for other users.
-    const { userId: sessionUserId } = await clerkAuth()
+    // SECURITY: Verify the caller's session matches the requested userId
+    const { userId: sessionUserId } = await auth()
     if (!sessionUserId || sessionUserId !== userId) {
       log.warn("ensureProfile caller mismatch", { requestedUserId: userId, sessionUserId: sessionUserId ?? "none" })
       return { profileId: null, error: "Unauthorized" }
@@ -52,75 +46,78 @@ export async function ensureProfile(
       const { data, error } = await supabase
         .from("profiles")
         .select("id, email, full_name")
-        .eq("clerk_user_id", userId)
+        .eq("auth_user_id", userId)
         .maybeSingle()
       return { data, error }
     }
 
     // Step 1: Wait for database trigger with exponential backoff retry
-    // The trigger runs AFTER INSERT on auth.users
     let existingProfile = null
     let selectError = null
     const maxAttempts = 3
-    
+
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       const result = await checkExistingProfile()
       existingProfile = result.data
       selectError = result.error
-      
+
       if (existingProfile || selectError) break
-      
-      // Exponential backoff: 100ms, 200ms, 400ms
+
       const delay = 100 * Math.pow(2, attempt)
       await new Promise(resolve => setTimeout(resolve, delay))
     }
-    
-    // Step 2: Check result after retries
 
     if (selectError) {
       log.error("Error checking for existing profile", { userId, code: selectError.code }, selectError)
       return { profileId: null, error: `Database error: ${selectError.message}` }
     }
 
-    // If profile exists (created by trigger), return it
     if (existingProfile) {
       log.info("Found existing profile (likely from trigger)", { userId, profileId: existingProfile.id })
       return { profileId: existingProfile.id, error: null }
     }
 
-    // Step 3: Profile doesn't exist - create it manually
+    // Step 2: Profile doesn't exist - create it manually
     if (!userEmail) {
       log.error("No email provided for profile creation", { userId })
       return { profileId: null, error: "Email is required to create a profile." }
     }
 
+    // Get user metadata from Supabase Auth for name/avatar
+    const supabaseAuth = await createClient()
+    const { data: { user } } = await supabaseAuth.auth.getUser()
+
     log.info("Creating new profile manually", { userId, email: userEmail })
 
-    // Only include required fields - onboarding_completed has a default value in DB
     const profileData: Record<string, unknown> = {
-      clerk_user_id: userId,
+      auth_user_id: userId,
       email: userEmail,
-      full_name: options?.fullName || userEmail.split("@")[0] || "User",
+      full_name: options?.fullName
+        || user?.user_metadata?.full_name
+        || user?.user_metadata?.name
+        || userEmail.split("@")[0]
+        || "User",
       role: "patient",
     }
-    
-    // Only add optional fields if provided
+
     if (options?.dateOfBirth) {
       profileData.date_of_birth = options.dateOfBirth
     }
 
-    // Use UPSERT to prevent race conditions between check and insert
+    if (user?.user_metadata?.avatar_url) {
+      profileData.avatar_url = user.user_metadata.avatar_url
+    }
+
     const { data: newProfile, error: insertError } = await supabase
       .from("profiles")
-      .upsert(profileData, { 
-        onConflict: "clerk_user_id",
-        ignoreDuplicates: false 
+      .upsert(profileData, {
+        onConflict: "auth_user_id",
+        ignoreDuplicates: false
       })
       .select("id")
       .single()
 
     if (insertError) {
-      // Handle any remaining edge cases
       if (insertError.code === "23505") {
         log.info("Duplicate key on upsert - fetching existing", { userId })
         const { data: existingAfterError } = await checkExistingProfile()
@@ -129,17 +126,17 @@ export async function ensureProfile(
         }
       }
 
-      log.error("Failed to create profile", { 
-        userId, 
-        code: insertError.code, 
+      log.error("Failed to create profile", {
+        userId,
+        code: insertError.code,
         message: insertError.message,
         details: insertError.details,
         hint: insertError.hint
       }, insertError)
-      
-      return { 
-        profileId: null, 
-        error: `Failed to create profile: ${insertError.message} (code: ${insertError.code})` 
+
+      return {
+        profileId: null,
+        error: `Failed to create profile: ${insertError.message} (code: ${insertError.code})`
       }
     }
 
@@ -151,9 +148,9 @@ export async function ensureProfile(
     return { profileId: newProfile.id, error: null }
   } catch (err) {
     log.error("Unexpected error in ensureProfile", { userId }, err)
-    return { 
-      profileId: null, 
-      error: err instanceof Error ? err.message : "We couldn't set up your profile. Please try signing in again." 
+    return {
+      profileId: null,
+      error: err instanceof Error ? err.message : "We couldn't set up your profile. Please try signing in again."
     }
   }
 }

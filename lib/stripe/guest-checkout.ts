@@ -309,9 +309,9 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
     // First check if an authenticated profile exists (user already has account)
     const { data: existingAuthProfile } = await supabase
       .from("profiles")
-      .select("id, clerk_user_id")
+      .select("id, auth_user_id")
       .eq("email", normalizedEmail)
-      .not("clerk_user_id", "is", null)
+      .not("auth_user_id", "is", null)
       .single()
 
     if (existingAuthProfile) {
@@ -326,9 +326,9 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
     // to prevent profile hijacking via email guessing
     const { data: existingGuestProfile } = await supabase
       .from("profiles")
-      .select("id, clerk_user_id, email_verified")
+      .select("id, auth_user_id, email_verified")
       .eq("email", normalizedEmail)
-      .is("clerk_user_id", null)
+      .is("auth_user_id", null)
       .single()
 
     if (existingGuestProfile) {
@@ -357,7 +357,7 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
           full_name: input.guestName || normalizedEmail.split("@")[0],
           date_of_birth: input.guestDateOfBirth || null,
           phone: input.guestPhone || null, // P1 FIX: Store phone for eScript SMS
-          clerk_user_id: null,
+          auth_user_id: null,
           role: "patient",
         })
         .select("id")

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { auth } from "@clerk/nextjs/server"
+import { auth } from "@/lib/auth"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { sendPaymentReceivedEmail } from "@/lib/email/template-sender"
 import { createLogger } from "@/lib/observability/logger"
@@ -35,8 +35,8 @@ export async function POST(request: Request) {
     }
 
     // Require authentication — only the intake owner should resend
-    const { userId: clerkUserId } = await auth()
-    if (!clerkUserId) {
+    const { userId } = await auth()
+    if (!userId) {
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 })
     }
 
@@ -71,14 +71,14 @@ export async function POST(request: Request) {
     const { data: callerProfile } = await supabase
       .from("profiles")
       .select("id")
-      .eq("clerk_user_id", clerkUserId)
+      .eq("auth_user_id", userId)
       .single()
 
     const patientData = intake.patient
     const patient = Array.isArray(patientData) ? patientData[0] : patientData
 
     if (!callerProfile || !patient || patient.id !== callerProfile.id) {
-      log.warn("User attempted to resend confirmation for intake they don't own", { intakeId, clerkUserId })
+      log.warn("User attempted to resend confirmation for intake they don't own", { intakeId, userId })
       return NextResponse.json(
         { success: false, error: "Forbidden" },
         { status: 403 }

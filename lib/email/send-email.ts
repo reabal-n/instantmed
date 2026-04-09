@@ -1350,10 +1350,10 @@ async function reconstructEmailContent(row: OutboxRow): Promise<{
 
     const isGuest = !ctx.patient.email ? false : !(await supabase
       .from("profiles")
-      .select("clerk_user_id")
+      .select("auth_user_id")
       .eq("id", ctx.patient.id)
       .single()
-      .then(r => r.data?.clerk_user_id))
+      .then(r => r.data?.auth_user_id))
 
     const { RequestReceivedEmail } = await import("@/components/email/templates/request-received")
     const template = RequestReceivedEmail({

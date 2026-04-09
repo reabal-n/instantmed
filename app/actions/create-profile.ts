@@ -21,7 +21,7 @@ export async function createOrGetProfile(
     const { data: existing } = await supabase
       .from("profiles")
       .select("id")
-      .eq("clerk_user_id", userId)
+      .eq("auth_user_id", userId)
       .maybeSingle()
 
     if (existing) {
@@ -32,7 +32,7 @@ export async function createOrGetProfile(
     const { data: created, error } = await supabase
       .from("profiles")
       .insert({
-        clerk_user_id: userId,
+        auth_user_id: userId,
         full_name: fullName || "Patient",
         role: "patient",
         ...(dateOfBirth ? { date_of_birth: dateOfBirth } : {}),

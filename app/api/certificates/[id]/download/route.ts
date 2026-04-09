@@ -6,7 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server"
-import { auth } from "@clerk/nextjs/server"
+import { auth } from "@/lib/auth"
 import * as Sentry from "@sentry/nextjs"
 import { getCurrentProfile } from "@/lib/data/profiles"
 import { applyRateLimit } from "@/lib/rate-limit/redis"

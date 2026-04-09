@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createLogger } from "@/lib/observability/logger"
 const log = createLogger("route")
-import { auth } from "@clerk/nextjs/server"
+import { auth } from "@/lib/auth"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 
@@ -19,14 +19,14 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ results: [] })
   }
 
-  const { userId: clerkUserId } = await auth()
+  const { userId } = await auth()
 
-  if (!clerkUserId) {
+  if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
   // Rate limit
-  const rateLimitResponse = await applyRateLimit(request, "standard", clerkUserId)
+  const rateLimitResponse = await applyRateLimit(request, "standard", userId)
   if (rateLimitResponse) return rateLimitResponse
 
   const supabase = createServiceRoleClient()
@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
     const { data: callerProfile } = await supabase
       .from("profiles")
       .select("role")
-      .eq("clerk_user_id", clerkUserId)
+      .eq("auth_user_id", userId)
       .single()
 
     if (!callerProfile || (callerProfile.role !== "doctor" && callerProfile.role !== "admin")) {
@@ -127,7 +127,7 @@ export async function GET(request: NextRequest) {
       const { data: profile } = await supabase
         .from("profiles")
         .select("id")
-        .eq("clerk_user_id", clerkUserId)
+        .eq("auth_user_id", userId)
         .single()
 
       if (profile) {

@@ -61,7 +61,7 @@ export async function deleteAccount(): Promise<{ success: boolean; error: string
       medicare_number: null,
       medicare_irn: null,
     })
-    .eq("clerk_user_id", userId)
+    .eq("auth_user_id", userId)
 
   if (updateError) {
     return { success: false, error: updateError.message }
@@ -89,7 +89,7 @@ export async function updateNotificationPreferences(
       email_notifications: emailNotifications,
       sms_notifications: smsNotifications,
     })
-    .eq("clerk_user_id", userId)
+    .eq("auth_user_id", userId)
 
   if (error) {
     return { success: false, error: error.message }

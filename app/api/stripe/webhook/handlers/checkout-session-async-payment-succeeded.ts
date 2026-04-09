@@ -100,7 +100,7 @@ export async function handleAsyncPaymentSucceeded(ctx: WebhookContext): Promise<
         try {
           const { data: patientProfile } = await supabase
             .from("profiles")
-            .select("email, full_name, clerk_user_id")
+            .select("email, full_name, auth_user_id")
             .eq("id", asyncEmailPatientId)
             .single()
 
@@ -133,7 +133,7 @@ export async function handleAsyncPaymentSucceeded(ctx: WebhookContext): Promise<
           })
 
           // Send guest account completion email if this was a guest checkout
-          const isGuestCheckout = asyncEmailSessionMetadata?.guest_checkout === "true" || !patientProfile.clerk_user_id
+          const isGuestCheckout = asyncEmailSessionMetadata?.guest_checkout === "true" || !patientProfile.auth_user_id
           if (isGuestCheckout) {
             const guestServiceName = asyncEmailSessionMetadata?.service_slug || "medical certificate"
             sendGuestCompleteAccountEmail({

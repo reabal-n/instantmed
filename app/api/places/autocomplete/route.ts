@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { auth } from "@clerk/nextjs/server"
+import { auth } from "@/lib/auth"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 
 const GOOGLE_API_KEY = process.env.GOOGLE_PLACES_API_KEY

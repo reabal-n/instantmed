@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
         signature_storage_path,
         onboarding_completed
       `)
-      .eq("clerk_user_id", userId)
+      .eq("auth_user_id", userId)
       .single()
 
     if (error || !profile) {

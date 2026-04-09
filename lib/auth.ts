@@ -1,14 +1,18 @@
 /**
- * Authentication helpers using Clerk + Supabase
- * 
- * This module provides authentication utilities that work with Clerk for auth
- * and Supabase for data storage.
+ * Authentication helpers using Supabase Auth
+ *
+ * This module provides authentication utilities that work with Supabase Auth
+ * for both authentication and data storage. All server-side auth flows go
+ * through this module — it is the single chokepoint.
+ *
+ * Migration note: Replaced Clerk (clerkAuth/currentUser) with Supabase Auth
+ * (supabase.auth.getUser()) in PR 2 of the auth migration.
  */
 
 import { cache } from "react"
 import { redirect } from "next/navigation"
 import { cookies } from "next/headers"
-import { auth as clerkAuth, currentUser } from "@clerk/nextjs/server"
+import { createClient } from "@/lib/supabase/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import type { Profile } from "@/types/db"
 
@@ -42,12 +46,10 @@ const PROFILE_COLUMNS = `
  * Check if E2E test mode is enabled.
  * Returns true ONLY if NODE_ENV === "test" OR PLAYWRIGHT === "1"
  * This is intentionally strict to prevent bypass in development/staging.
- * 
+ *
  * CRITICAL: Explicitly blocked in Vercel production to prevent any possible bypass.
  */
 function isE2ETestModeEnabled(): boolean {
-  // P0 SECURITY: Explicitly block E2E bypass in Vercel production and preview
-  // Exception: allow when PLAYWRIGHT=1 (E2E tests running locally with VERCEL_ENV simulated in .env.local)
   const isE2ETest = process.env.PLAYWRIGHT === "1"
   if (!isE2ETest && (process.env.VERCEL_ENV === "production" || process.env.VERCEL_ENV === "preview")) {
     return false
@@ -58,10 +60,9 @@ function isE2ETestModeEnabled(): boolean {
 
 /**
  * Check for E2E test auth cookies (only in test mode).
- * Returns the test user's clerk ID if valid E2E session exists.
+ * Returns the test user's auth_user_id (UUID) if valid E2E session exists.
  */
-async function getE2EAuthUser(): Promise<{ clerkUserId: string } | null> {
-  // Only allow when NODE_ENV=test OR PLAYWRIGHT=1
+async function getE2EAuthUser(): Promise<{ userId: string } | null> {
   if (!isE2ETestModeEnabled()) {
     return null
   }
@@ -69,9 +70,9 @@ async function getE2EAuthUser(): Promise<{ clerkUserId: string } | null> {
   try {
     const cookieStore = await cookies()
     const e2eUserId = cookieStore.get("__e2e_auth_user_id")?.value
-    
+
     if (e2eUserId) {
-      return { clerkUserId: e2eUserId }
+      return { userId: e2eUserId }
     }
   } catch {
     // Cookies not available (e.g., in API route without request context)
@@ -85,7 +86,6 @@ export interface AuthenticatedUser {
   user: {
     id: string
     email?: string | null
-    // Backward-compatible user_metadata for existing code
     user_metadata?: {
       full_name?: string
       date_of_birth?: string
@@ -109,13 +109,13 @@ export const getAuthenticatedUserWithProfile = cache(async (): Promise<Authentic
     const { data: profile } = await supabase
       .from("profiles")
       .select(PROFILE_COLUMNS)
-      .eq("clerk_user_id", e2eAuth.clerkUserId)
+      .eq("auth_user_id", e2eAuth.userId)
       .single()
 
     if (profile) {
       return {
         user: {
-          id: e2eAuth.clerkUserId,
+          id: e2eAuth.userId,
           email: (profile as unknown as Profile).email ?? null,
           user_metadata: {
             full_name: (profile as unknown as Profile).full_name ?? undefined,
@@ -127,43 +127,34 @@ export const getAuthenticatedUserWithProfile = cache(async (): Promise<Authentic
     }
   }
 
-  // Normal Clerk auth flow
-  const { userId } = await clerkAuth()
-  
-  if (!userId) {
-    return null
-  }
+  // Supabase Auth flow — verify session via cookies
+  const supabaseAuth = await createClient()
+  const { data: { user } } = await supabaseAuth.auth.getUser()
 
-  const user = await currentUser()
   if (!user) {
     return null
   }
 
   const supabase = createServiceRoleClient()
 
-  // Find profile by clerk_user_id
+  // Find profile by auth_user_id (Supabase Auth UUID)
   const { data: profile } = await supabase
     .from("profiles")
     .select(PROFILE_COLUMNS)
-    .eq("clerk_user_id", userId)
+    .eq("auth_user_id", user.id)
     .single()
 
   if (!profile) {
     return null
   }
 
-  const primaryEmail = user.emailAddresses.find(
-    e => e.id === user.primaryEmailAddressId
-  )?.emailAddress
-
   return {
     user: {
-      id: userId,
-      email: primaryEmail ?? null,
-      // Populate user_metadata from profile for backward compatibility
+      id: user.id,
+      email: user.email ?? null,
       user_metadata: {
-        full_name: profile.full_name ?? undefined,
-        date_of_birth: profile.date_of_birth ?? undefined,
+        full_name: (profile as unknown as Profile).full_name ?? undefined,
+        date_of_birth: (profile as unknown as Profile).date_of_birth ?? undefined,
       },
     },
     profile: profile as unknown as Profile,
@@ -174,58 +165,53 @@ export const getAuthenticatedUserWithProfile = cache(async (): Promise<Authentic
  * Get authenticated user, creating a profile if one doesn't exist.
  * Used for onboarding and first-time user flows.
  * Also links guest profiles by email if found.
+ *
+ * Note: The handle_new_user() DB trigger normally creates profiles on
+ * auth.users insert. This function is a safety net for race conditions
+ * and guest profile linking.
  */
 export async function getOrCreateAuthenticatedUser(): Promise<AuthenticatedUser | null> {
-  const { userId } = await clerkAuth()
+  const supabaseAuth = await createClient()
+  const { data: { user } } = await supabaseAuth.auth.getUser()
 
-  if (!userId) {
-    return null
-  }
-
-  const user = await currentUser()
   if (!user) {
     return null
   }
 
-  const rawEmail = user.emailAddresses.find(
-    e => e.id === user.primaryEmailAddressId
-  )?.emailAddress
-
-  // Normalize email to lowercase for consistent storage
-  const primaryEmail = rawEmail?.toLowerCase()
-
+  const primaryEmail = user.email?.toLowerCase()
   const supabase = createServiceRoleClient()
 
-  // Try to find existing profile by clerk_user_id
+  // Try to find existing profile by auth_user_id
   let { data: profile } = await supabase
     .from("profiles")
     .select(PROFILE_COLUMNS)
-    .eq("clerk_user_id", userId)
+    .eq("auth_user_id", user.id)
     .single()
 
-  // If no profile found by clerk_user_id, check for guest profile to link
-  // Check for profiles where clerk_user_id is NULL or empty string
+  // If no profile found, check for guest profile to link by email
   if (!profile && primaryEmail) {
     const { data: guestProfile } = await supabase
       .from("profiles")
       .select(PROFILE_COLUMNS)
       .ilike("email", escapeIlike(primaryEmail))
-      .or('clerk_user_id.is.null,clerk_user_id.eq.""')
+      .is("auth_user_id", null)
       .maybeSingle()
 
-    if (guestProfile && (!guestProfile.clerk_user_id || guestProfile.clerk_user_id === "")) {
-      // Link the guest profile to this Clerk user
-      const fullName = user.fullName || [user.firstName, user.lastName].filter(Boolean).join(' ') || primaryEmail.split('@')[0]
+    if (guestProfile) {
+      // Link the guest profile to this Supabase Auth user
+      const fullName = user.user_metadata?.full_name
+        || user.user_metadata?.name
+        || primaryEmail.split('@')[0]
 
       const { data: linkedProfile, error: linkError } = await supabase
         .from("profiles")
         .update({
-          clerk_user_id: userId,
+          auth_user_id: user.id,
           email: primaryEmail,
           full_name: fullName,
-          first_name: user.firstName || null,
-          last_name: user.lastName || null,
-          avatar_url: user.imageUrl || null,
+          first_name: user.user_metadata?.first_name || null,
+          last_name: user.user_metadata?.last_name || null,
+          avatar_url: user.user_metadata?.avatar_url || null,
           email_verified: true,
           email_verified_at: new Date().toISOString(),
         })
@@ -236,11 +222,11 @@ export async function getOrCreateAuthenticatedUser(): Promise<AuthenticatedUser 
       if (!linkError && linkedProfile) {
         profile = linkedProfile
       } else {
-        // If linking failed, another process may have linked it - try to find it
+        // If linking failed, another process may have linked it
         const { data: nowLinkedProfile } = await supabase
           .from("profiles")
           .select(PROFILE_COLUMNS)
-          .eq("clerk_user_id", userId)
+          .eq("auth_user_id", user.id)
           .single()
 
         if (nowLinkedProfile) {
@@ -251,19 +237,21 @@ export async function getOrCreateAuthenticatedUser(): Promise<AuthenticatedUser 
   }
 
   // Create new profile if none exists and no guest profile to link
+  // (safety net — handle_new_user() trigger should have created it)
   if (!profile && primaryEmail) {
-    const fullName = user.fullName || [user.firstName, user.lastName].filter(Boolean).join(' ') || primaryEmail.split('@')[0]
+    const fullName = user.user_metadata?.full_name
+      || user.user_metadata?.name
+      || primaryEmail.split('@')[0]
 
-    // P1 FIX: Clerk users have verified emails - mark as verified for guest profile linking security
     const { data: newProfile, error } = await supabase
       .from("profiles")
       .insert({
-        clerk_user_id: userId,
+        auth_user_id: user.id,
         email: primaryEmail,
         full_name: fullName,
-        first_name: user.firstName || null,
-        last_name: user.lastName || null,
-        avatar_url: user.imageUrl || null,
+        first_name: user.user_metadata?.first_name || null,
+        last_name: user.user_metadata?.last_name || null,
+        avatar_url: user.user_metadata?.avatar_url || null,
         role: "patient",
         onboarding_completed: false,
         email_verified: true,
@@ -273,12 +261,12 @@ export async function getOrCreateAuthenticatedUser(): Promise<AuthenticatedUser 
       .single()
 
     if (error) {
-      // Handle race condition - profile might have been created by webhook
+      // Handle race condition — trigger or concurrent request may have created it
       if (error.code === '23505') {
         const { data: raceProfile } = await supabase
           .from("profiles")
           .select(PROFILE_COLUMNS)
-          .eq("clerk_user_id", userId)
+          .eq("auth_user_id", user.id)
           .single()
 
         if (raceProfile) {
@@ -296,9 +284,8 @@ export async function getOrCreateAuthenticatedUser(): Promise<AuthenticatedUser 
 
   return {
     user: {
-      id: userId,
+      id: user.id,
       email: primaryEmail ?? null,
-      // Populate user_metadata from profile for backward compatibility
       user_metadata: {
         full_name: (profile as unknown as Profile).full_name ?? undefined,
         date_of_birth: (profile as unknown as Profile).date_of_birth ?? undefined,
@@ -311,17 +298,6 @@ export async function getOrCreateAuthenticatedUser(): Promise<AuthenticatedUser 
 /**
  * Require authentication with one of the specified roles.
  * Redirects to sign-in if not authenticated, or appropriate dashboard if wrong role.
- * 
- * @param allowedRoles - Array of roles that can access this resource
- * @param options - Additional options for role checking
- * @returns AuthenticatedUser if authorized
- * 
- * @example
- * // Admin-only route
- * await requireRole(["admin"])
- * 
- * // Doctor or admin route
- * await requireRole(["doctor", "admin"])
  */
 export async function requireRole(
   allowedRoles: Array<"patient" | "doctor" | "admin">,
@@ -333,21 +309,19 @@ export async function requireRole(
   const authUser = await getAuthenticatedUserWithProfile()
 
   if (!authUser) {
-    // Distinguish between "not authenticated" and "authenticated but no profile"
-    // to avoid redirect loops between /sign-in and Clerk
-    const { userId } = await clerkAuth()
-    if (userId) {
-      // Authenticated at Clerk but no profile — create it via post-signin
+    // Check if user is authenticated but has no profile yet
+    const supabaseAuth = await createClient()
+    const { data: { user } } = await supabaseAuth.auth.getUser()
+    if (user) {
+      // Authenticated but no profile — send to post-signin for profile creation
       redirect("/auth/post-signin")
     }
     redirect("/sign-in")
   }
 
   const userRole = authUser.profile.role
-  
-  // Check if user's role is in the allowed list
+
   if (!allowedRoles.includes(userRole as "patient" | "doctor" | "admin")) {
-    // Redirect to the appropriate dashboard based on role
     if (options?.redirectTo) {
       redirect(options.redirectTo)
     } else if (userRole === "patient") {
@@ -365,30 +339,21 @@ export async function requireRole(
 /**
  * Non-redirecting role check for server actions.
  * Returns null instead of throwing redirect() on auth failure.
- * 
- * Use this in server actions where redirect() would propagate as a
- * NEXT_REDIRECT error and cause unexpected client-side navigation.
- * 
- * @example
- * const authResult = await requireRoleOrNull(["doctor", "admin"])
- * if (!authResult) {
- *   return { success: false, error: "Unauthorized or session expired" }
- * }
  */
 export async function requireRoleOrNull(
   allowedRoles: Array<"patient" | "doctor" | "admin">
 ): Promise<AuthenticatedUser | null> {
   const authUser = await getAuthenticatedUserWithProfile()
-  
+
   if (!authUser) {
     return null
   }
-  
+
   const userRole = authUser.profile.role
   if (!allowedRoles.includes(userRole as "patient" | "doctor" | "admin")) {
     return null
   }
-  
+
   return authUser
 }
 
@@ -402,41 +367,35 @@ export async function getOptionalAuth(): Promise<AuthenticatedUser | null> {
 /**
  * Get the current authenticated user (without profile)
  */
-export async function getCurrentUser(): Promise<{ 
+export async function getCurrentUser(): Promise<{
   id: string
   email?: string | null
   user_metadata?: { full_name?: string; date_of_birth?: string }
 } | null> {
-  const { userId } = await clerkAuth()
-  if (!userId) return null
-  
-  const user = await currentUser()
+  const supabaseAuth = await createClient()
+  const { data: { user } } = await supabaseAuth.auth.getUser()
   if (!user) return null
-  
-  const primaryEmail = user.emailAddresses.find(
-    e => e.id === user.primaryEmailAddressId
-  )?.emailAddress
-  
+
   return {
-    id: userId,
-    email: primaryEmail ?? null,
+    id: user.id,
+    email: user.email ?? null,
     user_metadata: {
-      full_name: user.fullName || [user.firstName, user.lastName].filter(Boolean).join(' '),
+      full_name: user.user_metadata?.full_name || user.user_metadata?.name,
     },
   }
 }
 
 /**
- * Get a user's profile by their Clerk user ID
+ * Get a user's profile by their auth_user_id (Supabase Auth UUID)
  */
-export async function getUserProfile(clerkUserId: string): Promise<Profile | null> {
+export async function getUserProfile(authUserId: string): Promise<Profile | null> {
   const supabase = createServiceRoleClient()
   const { data: profile, error } = await supabase
     .from("profiles")
     .select(PROFILE_COLUMNS)
-    .eq("clerk_user_id", clerkUserId)
+    .eq("auth_user_id", authUserId)
     .single()
-  
+
   if (error || !profile) return null
   return profile as unknown as Profile
 }
@@ -458,32 +417,35 @@ export async function requirePatientAuth(options?: {
 }
 
 /**
- * Sign out - clears Clerk session and redirects to home page.
- * Note: Client-side sign out should use Clerk's useClerk().signOut() hook.
- * This server-side version redirects to Clerk's sign-out endpoint.
+ * Sign out - redirect to sign-in page.
+ * Note: Client-side sign out should use useAuth().signOut() from the auth provider.
  */
 export async function signOut() {
   redirect("/sign-in")
 }
 
 /**
- * Get the Clerk auth state
- * Use this for lightweight auth checks without profile data
- */
-export async function getClerkAuth() {
-  const { userId } = await clerkAuth()
-  return { userId: userId ?? null }
-}
-
-/**
- * Auth function for server components/actions.
- * Returns { userId } for use in server-side authentication checks.
+ * Auth function for server components/actions and API routes.
+ * Returns { userId } — drop-in replacement for Clerk's auth().
+ *
+ * Used by API routes that import { auth } from "@/lib/auth".
  */
 export async function auth(): Promise<{ userId: string | null; redirectToSignIn: () => never }> {
-  const { userId } = await clerkAuth()
-  return { 
-    userId: userId ?? null,
-    redirectToSignIn: () => redirect("/sign-in") as never
+  // Check E2E bypass first
+  const e2eAuth = await getE2EAuthUser()
+  if (e2eAuth) {
+    return {
+      userId: e2eAuth.userId,
+      redirectToSignIn: () => redirect("/sign-in") as never,
+    }
+  }
+
+  const supabaseAuth = await createClient()
+  const { data: { user } } = await supabaseAuth.auth.getUser()
+
+  return {
+    userId: user?.id ?? null,
+    redirectToSignIn: () => redirect("/sign-in") as never,
   }
 }
 
@@ -494,8 +456,16 @@ export async function auth(): Promise<{ userId: string | null; redirectToSignIn:
 export async function getApiAuth(): Promise<{ userId: string; profile: Profile } | null> {
   // Check for E2E test auth first (non-production only)
   const e2eAuth = await getE2EAuthUser()
-  const clerkResult = await clerkAuth()
-  const userId = e2eAuth?.clerkUserId || clerkResult.userId
+
+  let userId: string | null = null
+
+  if (e2eAuth) {
+    userId = e2eAuth.userId
+  } else {
+    const supabaseAuth = await createClient()
+    const { data: { user } } = await supabaseAuth.auth.getUser()
+    userId = user?.id ?? null
+  }
 
   if (!userId) {
     return null
@@ -505,7 +475,7 @@ export async function getApiAuth(): Promise<{ userId: string; profile: Profile }
   const { data: profile } = await supabase
     .from("profiles")
     .select(PROFILE_COLUMNS)
-    .eq("clerk_user_id", userId)
+    .eq("auth_user_id", userId)
     .single()
 
   if (!profile) {
@@ -517,7 +487,7 @@ export async function getApiAuth(): Promise<{ userId: string; profile: Profile }
 
 /**
  * Require authentication in API routes.
- * Returns user info or throws/returns null for unauthorized.
+ * Returns user info or throws for unauthorized.
  */
 export async function requireApiAuth(): Promise<{ userId: string; profile: Profile }> {
   const result = await getApiAuth()
@@ -532,15 +502,6 @@ export async function requireApiAuth(): Promise<{ userId: string; profile: Profi
 /**
  * Require authentication AND role check for API routes.
  * Returns null if not authenticated or role doesn't match.
- *
- * Use this in API route handlers for defense-in-depth role enforcement
- * (middleware protects the route path, this verifies the actual role).
- *
- * @example
- * const auth = await requireApiRole(["doctor", "admin"])
- * if (!auth) {
- *   return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
- * }
  */
 export async function requireApiRole(
   allowedRoles: Array<"patient" | "doctor" | "admin">

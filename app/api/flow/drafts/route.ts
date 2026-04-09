@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { auth } from "@clerk/nextjs/server"
+import { auth } from "@/lib/auth"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
 import { requireValidCsrf } from "@/lib/security/csrf"
@@ -25,8 +25,8 @@ export async function POST(request: NextRequest) {
     if (rateLimitResponse) return rateLimitResponse
 
     // Authenticate the request
-    const { userId: clerkUserId } = await auth()
-    if (!clerkUserId) {
+    const { userId } = await auth()
+    if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
     const { data: callerProfile } = await supabase
       .from("profiles")
       .select("id")
-      .eq("clerk_user_id", clerkUserId)
+      .eq("auth_user_id", userId)
       .single()
 
     // Check if draft already exists for this session + service
@@ -133,8 +133,8 @@ export async function GET(request: NextRequest) {
     if (rateLimitResponse) return rateLimitResponse
 
     // Authenticate the request
-    const { userId: clerkUserId } = await auth()
-    if (!clerkUserId) {
+    const { userId } = await auth()
+    if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
@@ -154,7 +154,7 @@ export async function GET(request: NextRequest) {
     const { data: callerProfile } = await supabase
       .from("profiles")
       .select("id")
-      .eq("clerk_user_id", clerkUserId)
+      .eq("auth_user_id", userId)
       .single()
 
     let query = supabase
