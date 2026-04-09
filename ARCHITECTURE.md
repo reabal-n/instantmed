@@ -46,7 +46,9 @@ app/request/page.tsx -> RequestFlow -> step-router.tsx (lazy) -> steps/*.tsx
 |---------|-------|
 | `med-cert` | certificate, symptoms, details, review, checkout |
 | `prescription` / `repeat-script` | medication, medication-history, medical-history, details, review, checkout |
-| `consult` | consult-reason, medical-history, details, review, checkout |
+| `consult` (general) | consult-reason, medical-history, details, review, checkout |
+| `consult` (ED) | ed-goals, ed-assessment (IIEF-5), ed-health (consolidated safety + medical history), ed-preferences, details (+ height/weight/BMI), review, checkout |
+| `consult` (hair loss) | hair-loss-assessment, medical-history, details, review, checkout |
 
 **Adding steps:** (1) Create component in `components/request/steps/` implementing `StepProps`, (2) register lazy import in `step-router.tsx`, (3) add definition to `lib/request/step-registry.ts`. Steps support conditional skip via `getStepsForService(type, { isAuthenticated, hasProfile, hasMedicare, answers })`.
 
