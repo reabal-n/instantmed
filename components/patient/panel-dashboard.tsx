@@ -28,6 +28,7 @@ import { capture } from "@/lib/analytics/capture"
 import { INTAKE_STATUS, type IntakeStatus } from "@/lib/status"
 import { formatDate, formatRelative } from "@/lib/format"
 import { needsRenewalSoon, getDaysUntilExpiry } from "@/lib/prescriptions"
+import { FollowupTrackerCard, type FollowupRow } from "@/components/patient/followup-tracker-card"
 
 /**
  * Panel-Based Patient Dashboard
@@ -71,6 +72,7 @@ interface PatientDashboardProps {
   error?: string | null
   profileData?: ProfileData
   subscription?: SubscriptionData | null
+  followups?: FollowupRow[]
 }
 
 /** Resolve status config from lib/status.ts — single source of truth */
@@ -86,6 +88,7 @@ export function PanelDashboard({
   error,
   profileData,
   subscription,
+  followups,
 }: PatientDashboardProps) {
   const { openPanel } = usePanel()
   const router = useRouter()
@@ -198,6 +201,11 @@ export function PanelDashboard({
             })
           }
         />
+      )}
+
+      {/* Follow-up Tracker */}
+      {followups && followups.length > 0 && (
+        <FollowupTrackerCard followups={followups} />
       )}
 
       {/* Subscription Card */}

@@ -68,7 +68,7 @@ async function PatientDashboardContent({
   fullName: string
   profileData: ProfileData
 }) {
-  const [dashboardData, subscriptionData] = await Promise.all([
+  const [dashboardData, subscriptionData, followupData] = await Promise.all([
     getPatientDashboardData(patientId),
     (async () => {
       try {
@@ -81,6 +81,19 @@ async function PatientDashboardContent({
         return data
       } catch {
         return null
+      }
+    })(),
+    (async () => {
+      try {
+        const { data } = await createServiceRoleClient()
+          .from("intake_followups")
+          .select("id, subtype, milestone, due_at, completed_at, skipped")
+          .eq("patient_id", patientId)
+          .eq("skipped", false)
+          .order("due_at", { ascending: true })
+        return data ?? []
+      } catch {
+        return []
       }
     })(),
   ])
@@ -96,6 +109,7 @@ async function PatientDashboardContent({
       error={error}
       profileData={profileData}
       subscription={subscriptionData}
+      followups={followupData}
     />
   )
 }
