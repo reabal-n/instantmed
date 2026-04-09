@@ -15,6 +15,7 @@ import { IntakeReviewPanel } from "@/components/doctor/intake-review-panel"
 import type { QueueClientProps } from "./types"
 import type { IntakeStatus, IntakeWithPatient } from "@/types/db"
 import { formatServiceType } from "@/lib/format-intake"
+import { calculateWaitTime, getWaitTimeSeverity, calculateSlaCountdown } from "@/lib/doctor/queue-utils"
 import { QueueFilters } from "./queue-filters"
 import { QueueTable } from "./queue-table"
 
@@ -168,48 +169,6 @@ export function QueueClient({
       clearInterval(softRefreshInterval)
     }
   }, [router, playNotificationSound])
-
-  const calculateWaitTime = (createdAt: string) => {
-    const created = new Date(createdAt)
-    const now = new Date()
-    const diffMs = now.getTime() - created.getTime()
-    const diffMins = Math.floor(diffMs / (1000 * 60))
-    const diffHours = Math.floor(diffMins / 60)
-    if (diffHours > 0) return `${diffHours}h ${diffMins % 60}m`
-    return `${diffMins}m`
-  }
-
-  const getWaitTimeSeverity = (createdAt: string, slaDeadline?: string | null) => {
-    if (slaDeadline) {
-      const deadline = new Date(slaDeadline)
-      const now = new Date()
-      const diffMins = Math.floor((deadline.getTime() - now.getTime()) / (1000 * 60))
-      if (diffMins < 0) return "critical" as const
-      if (diffMins < 30) return "warning" as const
-      return "normal" as const
-    }
-    const created = new Date(createdAt)
-    const now = new Date()
-    const diffMins = Math.floor((now.getTime() - created.getTime()) / (1000 * 60))
-    if (diffMins > 60) return "critical" as const
-    if (diffMins > 30) return "warning" as const
-    return "normal" as const
-  }
-
-  const calculateSlaCountdown = (slaDeadline: string | null | undefined): string | null => {
-    if (!slaDeadline) return null
-    const deadline = new Date(slaDeadline)
-    const now = new Date()
-    const diffMs = deadline.getTime() - now.getTime()
-    const diffMins = Math.floor(diffMs / (1000 * 60))
-    if (diffMins < 0) {
-      const overdueMins = Math.abs(diffMins)
-      const overdueHours = Math.floor(overdueMins / 60)
-      return overdueHours > 0 ? `${overdueHours}h ${overdueMins % 60}m overdue` : `${overdueMins}m overdue`
-    }
-    const hours = Math.floor(diffMins / 60)
-    return hours > 0 ? `${hours}h ${diffMins % 60}m left` : `${diffMins}m left`
-  }
 
   // Open intake review in a slide-over panel (stays on queue)
   const openReviewPanel = useCallback((intakeId: string) => {
