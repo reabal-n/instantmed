@@ -123,8 +123,6 @@ describe('Consult Subtype → Stripe Price ID Mapping', () => {
 })
 
 describe('Consult Subtype Price Mapping - Missing Env Vars', () => {
-  const ORIGINAL_NODE_ENV = process.env.NODE_ENV
-
   beforeEach(() => {
     vi.resetModules()
     process.env = {
@@ -133,18 +131,16 @@ describe('Consult Subtype Price Mapping - Missing Env Vars', () => {
       STRIPE_PRICE_CONSULT: 'price_consult_default',
       // Don't set subtype-specific prices
     }
-    // Default to dev so the fallback path is exercised
-    process.env.NODE_ENV = 'development'
   })
 
   afterEach(() => {
     process.env = originalEnv
-    process.env.NODE_ENV = ORIGINAL_NODE_ENV
+    vi.unstubAllEnvs()
     vi.resetModules()
   })
 
   it('falls back to default when subtype-specific env var missing (dev only)', async () => {
-    process.env.NODE_ENV = 'development'
+    vi.stubEnv('NODE_ENV', 'development')
     const { getPriceIdForRequest } = await import('@/lib/stripe/price-mapping')
 
     // ED price env var is not set, should fall back to default in dev/test
@@ -157,7 +153,7 @@ describe('Consult Subtype Price Mapping - Missing Env Vars', () => {
   })
 
   it('throws in production when subtype-specific env var missing', async () => {
-    process.env.NODE_ENV = 'production'
+    vi.stubEnv('NODE_ENV', 'production')
     const { getPriceIdForRequest } = await import('@/lib/stripe/price-mapping')
 
     // Mischarging is worse than a 500 — prod must fail loud
