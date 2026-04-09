@@ -10,6 +10,41 @@ import { tryClaimEvent, recordEventError, addToDeadLetterQueue } from "./utils"
 
 const log = createLogger("stripe-webhook:checkout-completed")
 
+type ServiceDisplayNameInput = {
+  serviceSlug?: string
+  category?: string
+  subtype?: string
+}
+
+/**
+ * Resolve a human-friendly service name for patient emails + doctor notifications.
+ * Consult intakes distinguish by subtype (ED, hair loss, etc.) so patients and
+ * doctors see the specific pathway, not just "Consultation".
+ */
+function getServiceDisplayName(input: ServiceDisplayNameInput): string {
+  const { serviceSlug = "", category = "", subtype = "" } = input
+
+  if (category === "consult" || serviceSlug === "consult") {
+    const subtypeLabels: Record<string, string> = {
+      ed: "ED Consultation",
+      hair_loss: "Hair Loss Consultation",
+      womens_health: "Women's Health Consultation",
+      weight_loss: "Weight Loss Consultation",
+      new_medication: "New Medication Request",
+      general: "General Consultation",
+    }
+    return subtypeLabels[subtype] ?? "Consultation"
+  }
+
+  const slugDisplayNames: Record<string, string> = {
+    "med-cert-sick": "Medical Certificate",
+    "med-cert-carer": "Carers Certificate",
+    "common-scripts": "Prescription",
+    "consult": "Consultation",
+  }
+  return slugDisplayNames[serviceSlug] ?? "Medical Request"
+}
+
 export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promise<HandlerResult> {
   const { event, supabase, startTime } = ctx
   const session = event.data.object as Stripe.Checkout.Session
@@ -627,13 +662,11 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
           const { sendEmail } = await import("@/lib/email/send-email")
           const { RequestReceivedEmail, requestReceivedSubject } = await import("@/components/email/templates/request-received")
 
-          const slugDisplayNames: Record<string, string> = {
-            "med-cert-sick": "Medical Certificate",
-            "med-cert-carer": "Medical Certificate",
-            "common-scripts": "Prescription",
-            "consult": "Consultation",
-          }
-          const serviceName = slugDisplayNames[session.metadata?.service_slug ?? ""] || "Medical Request"
+          const serviceName = getServiceDisplayName({
+            serviceSlug: session.metadata?.service_slug,
+            category: session.metadata?.category,
+            subtype: session.metadata?.subtype,
+          })
 
           const amountFormatted = `$${(session.amount_total / 100).toFixed(2)}`
           const isGuest = session.metadata?.guest_checkout === "true" || !patientProfile.clerk_user_id
@@ -671,16 +704,14 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
         import("@/lib/notifications/telegram")
           .then(({ notifyNewIntakeViaTelegram }) => {
             const serviceSlug = session.metadata?.service_slug ?? ""
-            const slugDisplayNames: Record<string, string> = {
-              "med-cert-sick": "Medical Certificate",
-              "med-cert-carer": "Carers Certificate",
-              "common-scripts": "Prescription",
-              "consult": "Consultation",
-            }
             return notifyNewIntakeViaTelegram({
               intakeId,
               patientName: patientProfile.full_name || "Patient",
-              serviceName: slugDisplayNames[serviceSlug] || "Medical Request",
+              serviceName: getServiceDisplayName({
+                serviceSlug,
+                category: session.metadata?.category,
+                subtype: session.metadata?.subtype,
+              }),
               amount: `$${(session.amount_total! / 100).toFixed(2)}`,
               serviceSlug,
             })
