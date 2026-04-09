@@ -24,6 +24,7 @@ import { RotatingText } from "@/components/marketing/rotating-text"
 import { MedCertHeroMockup } from "@/components/marketing/mockups/med-cert-hero-mockup"
 import { PricingSection } from "@/components/marketing/sections/pricing-section"
 import { LiveWaitTime } from "@/components/marketing/live-wait-time"
+import { ContextualMessage } from "@/components/marketing/contextual-message"
 import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter } from "@/components/marketing/footer"
 import { ContentHubLinks } from "@/components/seo/content-hub-links"
@@ -161,41 +162,6 @@ function RecentActivityTicker() {
         </AnimatePresence>
       </div>
     </div>
-  )
-}
-
-/** Day-of-week contextual hero message — time-aware copy near hero CTA */
-function ContextualMessage() {
-  const [message, setMessage] = useState<string | null>(null)
-
-  useEffect(() => {
-    // AEST is UTC+10 (same pattern as ClosingCountdown)
-    const now = new Date()
-    const aestOffset = 10 * 60 // minutes
-    const utc = now.getTime() + now.getTimezoneOffset() * 60_000
-    const aest = new Date(utc + aestOffset * 60_000)
-    const hour = aest.getHours()
-    const day = aest.getDay() // 0 = Sunday, 1 = Monday, ...
-
-    if (day === 1 && hour < 12) {
-      setMessage("Calling in sick? Most certificates are delivered before your boss checks email.")
-    } else if (day === 0 && hour >= 17) {
-      setMessage("Get sorted tonight \u2014 certificate ready before Monday morning.")
-    } else if (day >= 1 && day <= 5 && hour >= 18) {
-      setMessage("Too late for a GP? Medical certificates are available 24/7.")
-    } else if ((day === 0 || day === 6) && hour >= 8 && hour < 17) {
-      setMessage("Weekend and your GP is closed? We\u2019re open right now.")
-    } else {
-      setMessage(null)
-    }
-  }, [])
-
-  if (!message) return null
-
-  return (
-    <p className="text-xs text-muted-foreground/80 italic mt-1">
-      {message}
-    </p>
   )
 }
 
@@ -421,7 +387,7 @@ function HeroSection({
                   <Clock className="h-3 w-3 shrink-0" />
                   Available 24/7
                 </p>
-                <ContextualMessage />
+                <ContextualMessage service="med-cert" className="text-xs text-muted-foreground/80 italic mt-1" />
               </div>
             </motion.div>
 
