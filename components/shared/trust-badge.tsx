@@ -497,7 +497,7 @@ function SocialProofBadge({ config, className, reducedMotion }: { config: BadgeC
     if (reducedMotion) return
     const controls = animate(motionCount, count, { duration: 1.2, ease: 'easeOut' })
     return controls.stop
-  }, [reducedMotion]) // motionCount is a stable ref
+  }, [reducedMotion, count, motionCount])
 
   return (
     <div
@@ -624,7 +624,7 @@ export function TrustBadgeGrid({ preset, badges, className }: TrustBadgeGridProp
     <TooltipProvider>
       <div className={cn('grid grid-cols-2 md:grid-cols-4 gap-4', className)}>
         {entries.map((entry) => {
-          const { id, variant } = resolveEntry(entry)
+          const { id } = resolveEntry(entry)
           const config = BADGE_REGISTRY[id]
           const Icon = config.icon
           return (

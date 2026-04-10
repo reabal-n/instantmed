@@ -12,8 +12,6 @@ import {
   AlertCircle,
   PhoneOff,
   Clock,
-  Star,
-  ShieldCheck,
   Gift,
   Pill,
 } from "lucide-react"

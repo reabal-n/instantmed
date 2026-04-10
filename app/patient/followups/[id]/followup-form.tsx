@@ -31,7 +31,7 @@ const RATING_LABELS = [
   { v: 5, label: "Very well" },
 ] as const
 
-export function FollowupForm({ followupId, subtype, milestone }: Props) {
+export function FollowupForm({ followupId, subtype: _subtype, milestone }: Props) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [rating, setRating] = useState<number>(0)

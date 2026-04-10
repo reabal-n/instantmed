@@ -2,7 +2,6 @@ import { describe, it, expect } from "vitest"
 import {
   formatTickerEntry,
   type TickerEntry,
-  type TickerFormat,
 } from "@/lib/marketing/review-ticker-data"
 
 describe("formatTickerEntry — named format (med cert, hair loss)", () => {

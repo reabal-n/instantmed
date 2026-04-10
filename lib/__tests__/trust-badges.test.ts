@@ -51,7 +51,7 @@ describe('BADGE_REGISTRY', () => {
 describe('BADGE_PRESETS', () => {
   it('all preset entries reference valid badge IDs', () => {
     const validIds = new Set(Object.keys(BADGE_REGISTRY))
-    for (const [presetName, entries] of Object.entries(BADGE_PRESETS)) {
+    for (const [_presetName, entries] of Object.entries(BADGE_PRESETS)) {
       for (const entry of entries) {
         const id = typeof entry === 'string' ? entry : entry.id
         expect([...validIds]).toContain(id)

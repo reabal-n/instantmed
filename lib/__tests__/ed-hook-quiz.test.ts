@@ -3,7 +3,6 @@ import {
   ED_HOOK_QUIZ_QUESTIONS,
   scoreEdHookQuiz,
   ED_HOOK_QUIZ_KEY,
-  type EdHookQuizTier,
 } from "@/lib/marketing/ed-hook-quiz"
 
 describe("ED_HOOK_QUIZ_QUESTIONS", () => {
