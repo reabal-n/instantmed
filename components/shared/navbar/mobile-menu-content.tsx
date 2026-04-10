@@ -6,7 +6,6 @@ import {
   LayoutDashboard,
   ClipboardList,
   Settings,
-  Shield,
   ListChecks,
   DollarSign,
 } from "lucide-react"
@@ -42,23 +41,18 @@ export function MobileMenuContent({ variant, onClose }: MobileMenuContentProps) 
         ))}
         <AnimatedMobileMenu.Divider />
         <AnimatedMobileMenu.Item
-          item={{ label: "Why us?", href: "/trust", icon: <Shield className="h-5 w-5" /> }}
+          item={{ label: "How it Works", href: "/how-it-works", icon: <ListChecks className="h-5 w-5" /> }}
           index={3}
           onClose={onClose}
         />
         <AnimatedMobileMenu.Item
-          item={{ label: "How it Works", href: "/how-it-works", icon: <ListChecks className="h-5 w-5" /> }}
+          item={{ label: "Health Guides", href: "/blog", icon: <FileText className="h-5 w-5" /> }}
           index={4}
           onClose={onClose}
         />
         <AnimatedMobileMenu.Item
-          item={{ label: "Health Guides", href: "/blog", icon: <FileText className="h-5 w-5" /> }}
-          index={5}
-          onClose={onClose}
-        />
-        <AnimatedMobileMenu.Item
           item={{ label: "Pricing", href: "/pricing", icon: <DollarSign className="h-5 w-5" /> }}
-          index={6}
+          index={5}
           onClose={onClose}
         />
       </>

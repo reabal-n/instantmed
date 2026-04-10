@@ -110,8 +110,6 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                     firstName={firstName}
                     isActivePath={isActivePath}
                     pathname={pathname}
-                    handleSignOut={handleSignOut}
-                    isLoggingOut={isLoggingOut}
                     isLoaded={isLoaded}
                     user={user}
                   />
@@ -124,8 +122,6 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                   firstName={firstName}
                   isActivePath={isActivePath}
                   pathname={pathname}
-                  handleSignOut={handleSignOut}
-                  isLoggingOut={isLoggingOut}
                   isLoaded={isLoaded}
                   user={user}
                 />
@@ -137,8 +133,6 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                   firstName={firstName}
                   isActivePath={isActivePath}
                   pathname={pathname}
-                  handleSignOut={handleSignOut}
-                  isLoggingOut={isLoggingOut}
                   isLoaded={isLoaded}
                   user={user}
                 />

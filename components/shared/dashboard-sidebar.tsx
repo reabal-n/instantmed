@@ -24,9 +24,11 @@ import {
   Menu,
   X,
   Plus,
+  LogOut,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { KeyboardShortcutsModal } from "@/components/doctor/keyboard-shortcuts-modal"
+import { useAuth } from "@/lib/supabase/auth-provider"
 
 interface NavItem {
   href: string
@@ -113,17 +115,24 @@ function NavLink({ item, isActive, badgeCount }: { item: NavItem; isActive: bool
   )
 }
 
-export function DashboardSidebar({ 
-  variant, 
+export function DashboardSidebar({
+  variant,
   userName = "User",
   userRole,
   isAdmin = false,
-  pendingCount = 0, 
-  requestCount = 0 
+  pendingCount = 0,
+  requestCount = 0
 }: DashboardSidebarProps) {
   const pathname = usePathname()
+  const { signOut } = useAuth()
+  const [isSigningOut, setIsSigningOut] = useState(false)
   const navItems = variant === "patient" ? patientNavItems : doctorNavItems
   const baseHref = variant === "patient" ? "/patient" : "/doctor/dashboard"
+
+  const handleSignOut = async () => {
+    setIsSigningOut(true)
+    await signOut()
+  }
 
   const handleExport = () => {
     window.location.href = "/api/doctor/export?format=csv"
@@ -236,16 +245,24 @@ export function DashboardSidebar({
         {/* Spacer to push user card down */}
         <div className="flex-1 min-h-4" />
 
-        {/* User Profile */}
+        {/* User Profile + Sign Out */}
         <div className="px-4 mt-auto">
           <div className="flex items-center gap-2.5 px-2 py-2.5 rounded-lg">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-foreground text-xs font-semibold">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-foreground text-xs font-semibold shrink-0">
               {initials}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-foreground truncate leading-tight">{userName}</p>
               <p className="text-xs text-muted-foreground capitalize leading-tight">{userRole || variant}</p>
             </div>
+            <button
+              onClick={handleSignOut}
+              disabled={isSigningOut}
+              title="Sign out"
+              className="h-7 w-7 flex items-center justify-center rounded-lg text-muted-foreground/60 hover:text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-50 shrink-0"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+            </button>
           </div>
         </div>
       </div>
@@ -264,9 +281,17 @@ export function MobileDashboardNav({
   requestCount?: number
 }) {
   const [open, setOpen] = useState(false)
+  const [isSigningOut, setIsSigningOut] = useState(false)
   const pathname = usePathname()
+  const { signOut } = useAuth()
   const navItems = variant === "patient" ? patientNavItems : doctorNavItems
   const baseHref = variant === "patient" ? "/patient" : "/doctor/dashboard"
+
+  const handleSignOut = async () => {
+    setIsSigningOut(true)
+    setOpen(false)
+    await signOut()
+  }
 
   // Close drawer on route change
   useEffect(() => {
@@ -368,17 +393,25 @@ export function MobileDashboardNav({
           </div>
         </div>
 
-        {/* Quick action */}
-        {variant === "patient" && (
-          <div className="px-4 py-3 border-t border-border/40">
+        {/* Footer: quick action + sign out */}
+        <div className="px-4 py-3 border-t border-border/40 space-y-2">
+          {variant === "patient" && (
             <Button asChild className="w-full h-9 text-sm">
               <Link href="/request" onClick={() => setOpen(false)}>
                 <Plus className="w-4 h-4 mr-2" />
                 New Request
               </Link>
             </Button>
-          </div>
-        )}
+          )}
+          <button
+            onClick={handleSignOut}
+            disabled={isSigningOut}
+            className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-50"
+          >
+            <LogOut className="w-4 h-4" />
+            {isSigningOut ? "Signing out…" : "Sign out"}
+          </button>
+        </div>
       </nav>
     </div>
   )
