@@ -662,14 +662,17 @@ export function RequestFlow({
   const handleSelectService = useCallback((service: UnifiedServiceType, consultSubtype?: string) => {
     // Set the service type (does not reset other drafts)
     setServiceType(service)
-    
-    // Navigate with URL params (URL is source of truth for subtype)
+
+    // Set consultSubtype in answers so step registry branches correctly.
+    // The mount-only effect (line ~263) handles direct URL navigation,
+    // but client-side navigation from the hub doesn't remount the component.
     if (service === 'consult' && consultSubtype) {
+      setAnswer('consultSubtype', consultSubtype)
       router.push(`/request?service=${service}&subtype=${consultSubtype}`)
     } else {
       router.push(`/request?service=${service}`)
     }
-  }, [setServiceType, router])
+  }, [setServiceType, setAnswer, router])
 
   // No service param provided - show service hub
   if (initialService === null && !rawServiceParam) {
