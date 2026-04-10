@@ -4,12 +4,10 @@ import type React from "react"
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { DoctorAvailabilityPill } from '@/components/shared/doctor-availability-pill'
-import { SOCIAL_PROOF_DISPLAY } from '@/lib/social-proof'
 import { motion } from 'framer-motion'
 import { useReducedMotion } from '@/components/ui/motion'
-import { HeroProductMockup } from '@/components/marketing/hero-product-mockup'
+import { HeroOutcomeMockup } from '@/components/marketing/hero-outcome-mockup'
 import { TrustBadgeRow } from '@/components/shared/trust-badge'
 
 const LCP_CLASSES = "text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-6 leading-relaxed text-balance"
@@ -45,21 +43,6 @@ export function Hero({ children }: { children?: React.ReactNode }) {
               </p>
             )}
 
-            {/* Price anchor above CTAs */}
-            <motion.div
-              className="flex flex-wrap items-center justify-center lg:justify-start gap-3 mb-8"
-              initial={prefersReducedMotion ? {} : { y: 12 }}
-              animate={{ y: 0 }}
-              transition={{ duration: 0.4, delay: 0.12 }}
-            >
-              <Badge variant="price" shape="pill" size="lg" className="hover:bg-emerald-500/15 transition-colors duration-200 cursor-default">
-                Medical certificates from $19.95
-              </Badge>
-              <p className="text-xs text-muted-foreground mt-1 text-center lg:text-left">
-                {SOCIAL_PROOF_DISPLAY.gpComparison} clinic
-              </p>
-            </motion.div>
-
             {/* CTAs */}
             <motion.div
               className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start mb-8"
@@ -72,8 +55,8 @@ export function Hero({ children }: { children?: React.ReactNode }) {
                 size="lg"
                 className="px-8 h-12 text-base font-semibold shadow-md shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 transition-all active:scale-[0.98]"
               >
-                <Link href="/request?service=med-cert">
-                  Get your medical certificate
+                <Link href="/request">
+                  Get started
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
@@ -83,8 +66,8 @@ export function Hero({ children }: { children?: React.ReactNode }) {
                 size="lg"
                 className="h-12 px-8 text-base font-semibold"
               >
-                <Link href="/request?service=prescription">
-                  Renew medication
+                <Link href="/pricing">
+                  See pricing
                 </Link>
               </Button>
             </motion.div>
@@ -96,13 +79,20 @@ export function Hero({ children }: { children?: React.ReactNode }) {
               animate={{ y: 0 }}
               transition={{ duration: 0.5, delay: 0.3 }}
             >
-              <TrustBadgeRow preset="hero_generic" className="mt-4" />
+              <TrustBadgeRow
+                badges={[
+                  { id: 'social_proof', variant: 'styled' },
+                  { id: 'no_call', variant: 'styled' },
+                  'refund',
+                ]}
+                className="mt-4"
+              />
             </motion.div>
           </div>
 
           {/* Hero product mockup — desktop */}
           <div className="hidden lg:block relative shrink-0 mt-0">
-            <HeroProductMockup />
+            <HeroOutcomeMockup />
           </div>
         </div>
       </div>
