@@ -11,6 +11,8 @@ type CTALocation =
   | "final_cta"
   | "sticky_mobile"
   | "exit_intent"
+  | "employer_link"
+  | "verify_link"
 
 /**
  * Analytics hook for service landing pages.

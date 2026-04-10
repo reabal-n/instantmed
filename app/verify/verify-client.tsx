@@ -48,31 +48,55 @@ export function VerifyClient() {
   const [code, setCode] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [result, setResult] = useState<VerificationResult | null>(null)
+  const [bulkResults, setBulkResults] = useState<Array<{ code: string; result: VerificationResult }>>([])
   const [hasSearched, setHasSearched] = useState(false)
+  const [isBulkMode, setIsBulkMode] = useState(false)
 
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    const cleanCode = normalizeVerificationCode(code)
-    if (!cleanCode) return
+    // #17 — Bulk verification: split by commas, newlines, or spaces
+    const codes = code
+      .split(/[,\n]+/)
+      .map((c) => normalizeVerificationCode(c.trim()))
+      .filter(Boolean) as string[]
+
+    if (codes.length === 0) return
 
     setIsLoading(true)
     setHasSearched(true)
 
-    try {
-      const response = await fetch(`/api/verify?code=${encodeURIComponent(cleanCode)}`)
-      const data = await response.json()
-
-      if (response.ok) {
-        setResult(data)
-      } else {
-        setResult({ valid: false, error: data.error || "Verification failed" })
+    // Single code — use original flow
+    if (codes.length === 1) {
+      setIsBulkMode(false)
+      setBulkResults([])
+      try {
+        const response = await fetch(`/api/verify?code=${encodeURIComponent(codes[0])}`)
+        const data = await response.json()
+        setResult(response.ok ? data : { valid: false, error: data.error || "Verification failed" })
+      } catch {
+        setResult({ valid: false, error: "Unable to verify. Please try again." })
+      } finally {
+        setIsLoading(false)
       }
-    } catch {
-      setResult({ valid: false, error: "Unable to verify. Please try again." })
-    } finally {
-      setIsLoading(false)
+      return
     }
+
+    // Bulk mode — verify each code sequentially
+    setIsBulkMode(true)
+    setResult(null)
+    const results: Array<{ code: string; result: VerificationResult }> = []
+    for (const c of codes.slice(0, 10)) { // Cap at 10
+      try {
+        const response = await fetch(`/api/verify?code=${encodeURIComponent(c)}`)
+        const data = await response.json()
+        results.push({ code: c, result: response.ok ? data : { valid: false, error: data.error || "Verification failed" } })
+      } catch {
+        results.push({ code: c, result: { valid: false, error: "Unable to verify" } })
+      }
+    }
+    setBulkResults(results)
+    setIsLoading(false)
   }
 
   const formatDocumentType = (type: string, subtype: string) => {
@@ -111,10 +135,11 @@ export function VerifyClient() {
               value={code}
               onChange={(e) => setCode(e.target.value.toUpperCase())}
               className="text-center text-lg font-mono tracking-wider h-12"
-              maxLength={25}
             />
             <p className="text-xs text-muted-foreground text-center">
               The verification code can be found on the document or in the email you received.
+              <br />
+              <span className="text-muted-foreground/60">HR teams: paste multiple codes separated by commas to verify in bulk (max 10).</span>
             </p>
           </div>
           <Button
@@ -285,6 +310,39 @@ export function VerifyClient() {
             </div>
           )}
         </>
+      )}
+
+      {/* #17 — Bulk Results */}
+      {isBulkMode && bulkResults.length > 0 && (
+        <div className="glass-card rounded-2xl p-6 md:p-8 space-y-4">
+          <h3 className="text-lg font-semibold text-foreground">
+            Bulk Verification Results ({bulkResults.filter((r) => r.result.valid).length}/{bulkResults.length} valid)
+          </h3>
+          <div className="space-y-3">
+            {bulkResults.map((item, i) => (
+              <div
+                key={i}
+                className={`flex items-center gap-3 rounded-xl p-3 text-sm ${
+                  item.result.valid
+                    ? "bg-success-light/50 border border-success-border/50"
+                    : "bg-destructive-light/50 border border-destructive/20"
+                }`}
+              >
+                {item.result.valid ? (
+                  <CheckCircle className="h-4 w-4 text-success shrink-0" />
+                ) : (
+                  <XCircle className="h-4 w-4 text-destructive shrink-0" />
+                )}
+                <span className="font-mono text-xs">{item.code}</span>
+                <span className="text-muted-foreground ml-auto text-xs">
+                  {item.result.valid
+                    ? item.result.certificate?.patientName || item.result.document?.patient_name || "Valid"
+                    : item.result.error || "Invalid"}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
       )}
 
       {/* Info Section */}

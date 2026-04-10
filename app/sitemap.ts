@@ -64,6 +64,31 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/medical-certificate/jury-duty",
   ]
 
+  // Employer verification pages — high-intent long-tail SEO
+  const employerPages = [
+    "/for/employers",
+    "/for/universities",
+    "/for/employers/woolworths",
+    "/for/employers/coles",
+    "/for/employers/telstra",
+    "/for/employers/commonwealth-bank",
+    "/for/employers/anz",
+    "/for/employers/westpac",
+    "/for/employers/nab",
+    "/for/employers/amazon",
+    "/for/employers/bhp",
+    "/for/employers/bunnings",
+    "/for/employers/jb-hi-fi",
+    "/for/employers/mcdonalds",
+    "/for/employers/sonic-healthcare",
+    "/for/employers/qantas",
+    "/for/employers/deloitte",
+    "/for/employers/pwc",
+    "/for/employers/kpmg",
+    "/for/employers/bupa",
+    "/verify",
+  ]
+
   const medCertLocationSlugs = [
     "sydney", "parramatta", "melbourne", "brisbane", "perth",
     "adelaide", "gold-coast", "canberra", "hobart", "darwin",
@@ -93,6 +118,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: BUILD_DATE,
       changeFrequency: "monthly" as const,
       priority: 0.7,
+    })),
+    ...employerPages.map((route) => ({
+      url: `${baseUrl}${route}`,
+      lastModified: BUILD_DATE,
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
     })),
   ]
 }

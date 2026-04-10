@@ -1,11 +1,13 @@
 import type { Metadata } from "next"
 import Link from "next/link"
-import Image from "next/image"
 import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter, LiveWaitTime, StatsStrip, MediaMentions } from "@/components/marketing"
+import { EmployerLogoMarquee } from "@/components/shared/employer-logo-marquee"
+import { SampleCertificate } from "@/components/marketing/sample-certificate"
 import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { CONTACT_EMAIL } from "@/lib/constants"
 import { Star } from "lucide-react"
 import {
   Shield,
@@ -13,7 +15,7 @@ import {
   FileText,
   Search,
   ExternalLink,
-  Building2,
+  GraduationCap,
   Lock,
   HelpCircle,
   Mail,
@@ -23,65 +25,45 @@ import {
   Scale,
   BadgeCheck,
   ClipboardCheck,
-  AlertTriangle,
+  Building2,
 } from "lucide-react"
-import { SampleCertificate } from "@/components/marketing/sample-certificate"
-import { CONTACT_EMAIL } from "@/lib/constants"
 
 export const metadata: Metadata = {
-  title: "For Employers | Verify Medical Certificates",
+  title: "For Universities | Verify Medical Certificates",
   description:
-    "Information for employers on how to verify InstantMed medical certificates. Learn about our verification process, what certificates include, and how to confirm authenticity.",
+    "Information for universities and educational institutions on verifying InstantMed medical certificates for special consideration, deferred exams, and assessment extensions.",
   openGraph: {
-    title: "For Employers | InstantMed",
+    title: "For Universities | InstantMed",
     description:
-      "Learn how to verify medical certificates issued by InstantMed. Quick, secure verification for employers.",
+      "Learn how to verify medical certificates issued by InstantMed. Quick, secure verification for university administrators.",
+  },
+  alternates: {
+    canonical: "https://instantmed.com.au/for/universities",
   },
 }
 
-const employerLogos = [
-  { name: 'Woolworths', src: '/logos/woolworths.png', width: 90, maxWidth: 90 },
-  { name: 'Coles', src: '/logos/coles.png', width: 70, maxWidth: 70 },
-  { name: 'Telstra', src: '/logos/telstra.png', width: 80, maxWidth: 80 },
-  { name: 'Commonwealth Bank', src: '/logos/commonwealthbank.png', width: 50, maxWidth: 50 },
-  { name: 'ANZ', src: '/logos/ANZ.png', width: 60, maxWidth: 60 },
-  { name: 'Westpac', src: '/logos/westpac.png', width: 80, maxWidth: 80 },
-  { name: 'NAB', src: '/logos/nab.png', width: 60, maxWidth: 60 },
-  { name: 'Amazon', src: '/logos/amazon.png', width: 90, maxWidth: 90 },
-  { name: 'BHP', src: '/logos/BHP.png', width: 60, maxWidth: 60 },
-  { name: 'Bunnings', src: '/logos/bunnings.png', width: 90, maxWidth: 90 },
-  { name: 'JB Hi-Fi', src: '/logos/jbhifi.png', width: 70, maxWidth: 70 },
-  { name: "McDonald's", src: '/logos/mcdonalds.png', width: 40, maxWidth: 40 },
-  { name: 'Sonic Healthcare', src: '/logos/sonichealthcare.png', width: 110, maxWidth: 110 },
-  { name: 'Qantas', src: '/logos/qantas.svg', width: 80, maxWidth: 80 },
-  { name: 'Deloitte', src: '/logos/deloitte.svg', width: 80, maxWidth: 80 },
-  { name: 'PwC', src: '/logos/pwc.svg', width: 50, maxWidth: 50 },
-  { name: 'KPMG', src: '/logos/kpmg.svg', width: 60, maxWidth: 60 },
-  { name: 'Bupa', src: '/logos/bupa.svg', width: 60, maxWidth: 60 },
-]
-
-const employeeTestimonials = [
+const studentTestimonials = [
   {
-    name: "Sarah M.",
-    location: "Bondi, NSW",
-    text: "Woke up with gastro at 6am, had my cert by 8:30. HR didn't question it.",
+    name: "Emily T.",
+    location: "Randwick, NSW",
+    text: "Had a migraine the morning of my final. Got a medical certificate within an hour and submitted my special consideration application the same day. Uni approved it no questions asked.",
     rating: 5,
   },
   {
-    name: "Tom H.",
-    location: "Carlton, VIC",
-    text: "Missed an exam and needed a cert for special consideration. Done before my next lecture. The doctor asked follow-up questions too which made it feel legit.",
+    name: "James W.",
+    location: "Clayton, VIC",
+    text: "Needed a cert for a deferred exam after a stomach bug. The doctor was thorough and the certificate had everything my faculty required. Way easier than trying to get a same-day GP appointment during exam week.",
     rating: 5,
   },
   {
-    name: "Nick B.",
-    location: "Pyrmont, NSW",
-    text: "Gastro the night before a big work thing. Cert was in my inbox by 7am. Exactly what I needed.",
+    name: "Priya K.",
+    location: "St Lucia, QLD",
+    text: "Got sick during my nursing placement week and needed documentation fast. Certificate was professional, had the AHPRA number, and my placement coordinator accepted it immediately.",
     rating: 5,
   },
 ]
 
-export default function EmployersPage() {
+export default function UniversitiesPage() {
   const certificateFeatures = [
     "Patient's full name",
     "Date of issue",
@@ -94,54 +76,34 @@ export default function EmployersPage() {
 
   const faqs = [
     {
-      question: "Are online medical certificates legally valid?",
+      question: "Are online medical certificates valid for special consideration?",
       answer:
-        "Yes. Certificates issued by AHPRA-registered doctors via telehealth carry the same legal weight as those from in-person GP visits. The Medical Board of Australia recognises telehealth as a legitimate healthcare delivery method.",
+        "Yes. Certificates issued by AHPRA-registered doctors via telehealth carry the same validity as those from in-person GP visits. The Medical Board of Australia recognises telehealth as a legitimate healthcare delivery method, and universities across Australia accept telehealth-issued certificates for special consideration applications.",
     },
     {
-      question: "Can I reject an online medical certificate?",
+      question: "Can students get backdated certificates?",
       answer:
-        "Under the Fair Work Act, employers must accept 'reasonable evidence' of illness. A certificate from an AHPRA-registered doctor meets this standard. Rejecting a valid certificate could constitute a breach.",
-    },
-    {
-      question: "How do I verify an InstantMed certificate?",
-      answer:
-        "Enter the unique verification code at instantmed.com.au/verify. This confirms the certificate was genuinely issued by our practice, the dates match, and the doctor is AHPRA-registered.",
+        "Certificates can cover absences up to 48 hours prior if clinically appropriate. The doctor makes this determination based on the student's reported symptoms. This is particularly relevant for students who fall ill during exams or assessments and are unable to see a doctor on the day.",
     },
     {
       question: "What information is on the certificate?",
       answer:
-        "Doctor's full name, AHPRA registration number, date of consultation, patient's name and DOB, period of unfitness, unique verification ID, doctor's signature, and practice details.",
+        "Doctor's full name, AHPRA registration number, date of consultation, patient's name and DOB, period of unfitness, unique verification ID, doctor's signature, and practice details. This includes all elements typically required by university special consideration policies.",
     },
     {
-      question: "Can I ask the employee what they were sick with?",
+      question: "How do we verify a certificate?",
       answer:
-        "Generally, no. Under Australian privacy law, employees are not required to disclose their specific diagnosis. The certificate confirms unfitness for work — that's the extent of what employers are entitled to know.",
+        "Enter the unique verification code at instantmed.com.au/verify. This confirms the certificate was genuinely issued by our practice, the dates match, and the doctor is AHPRA-registered. This is more robust than paper certificates which typically have no verification mechanism.",
     },
     {
-      question: "What if I suspect a certificate is fraudulent?",
+      question: "Do certificates meet university requirements?",
       answer:
-        `Use our verification portal. If the certificate ID doesn't verify, contact us at ${CONTACT_EMAIL}. We take fraudulent use seriously and cooperate with workplace investigations.`,
+        "Yes. Our certificates contain all elements required by Australian universities for special consideration: registered practitioner details, AHPRA registration number, dates of unfitness, practitioner signature, and practice details. They align with TEQSA's expectations for supporting documentation in academic integrity processes.",
     },
     {
-      question: "Do your certificates meet Fair Work requirements?",
+      question: "Can we set up an institutional arrangement?",
       answer:
-        "Yes. They contain all elements required under the Fair Work Act: registered practitioner details, dates of unfitness, practitioner signature, and AHPRA registration number.",
-    },
-    {
-      question: "Can employees get backdated certificates?",
-      answer:
-        "Certificates can cover absences up to 48 hours prior if clinically appropriate. The doctor makes this determination based on the patient's reported symptoms.",
-    },
-    {
-      question: "How quickly can employees get a certificate?",
-      answer:
-        "Most certificates are issued in under 30 minutes, available 24/7. This means employees can produce a certificate whenever they need one.",
-    },
-    {
-      question: "Can we set up a corporate account?",
-      answer:
-        `Contact us at ${CONTACT_EMAIL} to discuss volume arrangements for your organisation.`,
+        `Contact us at ${CONTACT_EMAIL} to discuss institutional arrangements, bulk verification workflows, or integration with your special consideration systems.`,
     },
   ]
 
@@ -169,16 +131,18 @@ export default function EmployersPage() {
         <section className="relative pt-32 pb-16 overflow-hidden bg-linear-to-b from-background to-blue-50/30 dark:to-blue-950/10">
           <div className="max-w-3xl mx-auto px-4 text-center">
               <Badge className="mb-4 bg-primary/10 text-primary border-0 px-4 py-1.5">
-                <Building2 className="w-3.5 h-3.5 mr-1.5" />
-                For Employers & HR Teams
+                <GraduationCap className="w-3.5 h-3.5 mr-1.5" />
+                For Universities &amp; Education
               </Badge>
               <h1 className="text-4xl md:text-5xl font-semibold text-foreground tracking-tight mb-6">
                 Verifying InstantMed{" "}
                 <span className="text-primary">Medical Certificates</span>
+                {" "}for Universities
               </h1>
               <p className="text-lg text-muted-foreground mb-8">
-                Everything you need to know about verifying the authenticity of 
-                medical certificates issued through InstantMed.
+                Everything you need to know about verifying medical certificates
+                submitted for special consideration, deferred exams, and
+                assessment extensions.
               </p>
               <Button asChild size="lg" className="rounded-full">
                 <Link href="/verify">
@@ -189,28 +153,9 @@ export default function EmployersPage() {
           </div>
         </section>
 
-        {/* Employer logos */}
-        <section className="py-12 border-b border-border/30 dark:border-white/10">
-          <div className="max-w-5xl mx-auto px-4">
-            <p className="text-xs font-medium text-muted-foreground/60 text-center mb-8 uppercase tracking-widest">
-              Used by employees at Australia&apos;s leading organisations
-            </p>
-            <div className="flex flex-wrap justify-center items-center gap-5 md:gap-8">
-              {employerLogos.map((logo) => (
-                <div key={logo.name} className="flex items-center justify-center rounded-lg bg-white dark:bg-white/90 border border-border/30 dark:border-transparent px-3 py-2 shadow-sm">
-                  <Image
-                    src={logo.src}
-                    alt={logo.name}
-                    width={logo.width}
-                    height={32}
-
-                    style={{ maxWidth: logo.maxWidth }}
-                    className="h-7 w-auto object-contain"
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
+        {/* Logo Marquee */}
+        <section className="border-b border-border/30 dark:border-white/10">
+          <EmployerLogoMarquee />
         </section>
 
         {/* About InstantMed */}
@@ -221,8 +166,8 @@ export default function EmployersPage() {
               </h2>
               <div className="bg-card rounded-2xl border p-6 md:p-8 space-y-4">
                 <p className="text-muted-foreground">
-                  InstantMed is a registered Australian telehealth provider that offers 
-                  medical certificates and repeat prescriptions through online consultations 
+                  InstantMed is a registered Australian telehealth provider that offers
+                  medical certificates and repeat prescriptions through online consultations
                   with AHPRA-registered doctors.
                 </p>
                 <p className="text-muted-foreground">
@@ -266,9 +211,9 @@ export default function EmployersPage() {
                       Locate the verification code
                     </h3>
                     <p className="text-sm text-muted-foreground">
-                      Find the unique code on the certificate. It typically appears in the format 
-                      <code className="mx-1 px-1.5 py-0.5 bg-muted rounded text-xs">IM-ABC12345</code> 
-                      or 
+                      Find the unique code on the certificate. It typically appears in the format
+                      <code className="mx-1 px-1.5 py-0.5 bg-muted rounded text-xs">IM-ABC12345</code>
+                      or
                       <code className="mx-1 px-1.5 py-0.5 bg-muted rounded text-xs">MC-12345678</code>.
                       You can also scan the QR code if one is present.
                     </p>
@@ -302,8 +247,9 @@ export default function EmployersPage() {
                       Review the results
                     </h3>
                     <p className="text-sm text-muted-foreground">
-                      If valid, you&apos;ll see the certificate details including the patient name, 
-                      dates, and issuing doctor. Compare these with the document you received.
+                      If valid, you&apos;ll see the certificate details including the student&apos;s name,
+                      dates, and issuing doctor. Compare these with the document submitted for
+                      special consideration.
                     </p>
                   </div>
                 </div>
@@ -320,7 +266,7 @@ export default function EmployersPage() {
               <div className="grid lg:grid-cols-2 gap-8 items-start">
                 {/* Sample certificate preview */}
                 <SampleCertificate />
-                
+
                 {/* Features list */}
                 <div>
                   <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
@@ -355,7 +301,7 @@ export default function EmployersPage() {
                   </div>
                   <h3 className="font-semibold text-foreground mb-2">AHPRA-Registered Doctors</h3>
                   <p className="text-sm text-muted-foreground">
-                    Every certificate is issued by a doctor registered with the Australian 
+                    Every certificate is issued by a doctor registered with the Australian
                     Health Practitioner Regulation Agency.
                   </p>
                   <Link
@@ -373,9 +319,9 @@ export default function EmployersPage() {
                   <div className="w-14 h-14 rounded-full bg-success-light flex items-center justify-center mx-auto mb-4">
                     <Lock className="w-7 h-7 text-success" />
                   </div>
-                  <h3 className="font-semibold text-foreground mb-2">Secure & Tamper-Proof</h3>
+                  <h3 className="font-semibold text-foreground mb-2">Secure &amp; Tamper-Proof</h3>
                   <p className="text-sm text-muted-foreground">
-                    Each certificate has a unique verification code. Our system detects 
+                    Each certificate has a unique verification code. Our system detects
                     any alterations or duplications.
                   </p>
                 </div>
@@ -386,7 +332,7 @@ export default function EmployersPage() {
                   </div>
                   <h3 className="font-semibold text-foreground mb-2">Clinical Standards</h3>
                   <p className="text-sm text-muted-foreground">
-                    Our protocols align with RACGP standards and are overseen by 
+                    Our protocols align with RACGP standards and are overseen by
                     a Medical Director with FRACGP qualification.
                   </p>
                   <Link
@@ -401,16 +347,16 @@ export default function EmployersPage() {
           </div>
         </section>
 
-        {/* Employer's Guide */}
+        {/* University Guide */}
         <section className="py-16">
           <div className="max-w-3xl mx-auto px-4">
             <div className="text-center mb-10">
               <Badge className="mb-4 bg-primary/10 text-primary border-0 px-4 py-1.5">
                 <BookOpen className="w-3.5 h-3.5 mr-1.5" />
-                Employer Guide
+                University Guide
               </Badge>
               <h2 className="text-2xl md:text-3xl font-semibold text-foreground">
-                An employer&apos;s guide to telehealth medical certificates
+                A university administrator&apos;s guide to telehealth medical certificates
               </h2>
             </div>
 
@@ -421,17 +367,17 @@ export default function EmployersPage() {
                   <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                     <Scale className="w-5 h-5 text-primary" />
                   </div>
-                  <h3 className="text-lg font-semibold text-foreground">The legal standing of telehealth certificates</h3>
+                  <h3 className="text-lg font-semibold text-foreground">The validity of telehealth certificates in higher education</h3>
                 </div>
                 <div className="space-y-3 text-sm text-muted-foreground">
                   <p>
-                    Since the expansion of telehealth during 2020, the Medical Board of Australia has formally recognised telehealth as a legitimate healthcare delivery method. Certificates issued via telehealth by AHPRA-registered practitioners carry identical legal weight to those from in-person consultations.
+                    Since the expansion of telehealth during 2020, the Medical Board of Australia has formally recognised telehealth as a legitimate healthcare delivery method. Certificates issued via telehealth by AHPRA-registered practitioners carry identical legal and clinical weight to those from in-person consultations.
                   </p>
                   <p>
-                    The Fair Work Act requires &quot;a medical certificate or statutory declaration&quot; as evidence of illness — it does not specify the mode of consultation. Multiple Fair Work Commission decisions have upheld telehealth certificates as valid evidence, and no distinction is drawn between certificates issued following a face-to-face appointment versus a telehealth assessment.
+                    TEQSA&apos;s Higher Education Standards Framework requires institutions to have fair and transparent processes for managing student grievances, including illness-related academic adjustments. Telehealth-issued certificates from registered practitioners meet the evidentiary standard expected for special consideration, deferred examinations, and assessment extensions.
                   </p>
                   <p>
-                    For employers, this means a medical certificate from InstantMed carries the same obligations and protections as one from any other registered medical practice in Australia.
+                    For university administrators, this means a medical certificate from InstantMed should be treated identically to one from any other registered medical practice in Australia.
                   </p>
                 </div>
               </div>
@@ -461,42 +407,38 @@ export default function EmployersPage() {
                 </div>
               </div>
 
-              {/* 3. Fair Work obligations */}
+              {/* 3. Special consideration processes */}
               <div className="bg-card rounded-2xl border p-6 md:p-8">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                     <BadgeCheck className="w-5 h-5 text-primary" />
                   </div>
-                  <h3 className="text-lg font-semibold text-foreground">Your obligations under the Fair Work Act</h3>
+                  <h3 className="text-lg font-semibold text-foreground">Special consideration and deferred assessments</h3>
                 </div>
                 <div className="space-y-3 text-sm text-muted-foreground">
                   <p>
-                    Employers can request a medical certificate for any period of personal/carer&apos;s leave. However, this must be applied consistently — you cannot require certificates from some employees and not others for the same absence duration. Policies that single out individuals or apply different thresholds may constitute adverse action.
+                    Most Australian universities require students to submit a medical certificate within 3-5 business days of a missed assessment. InstantMed certificates are typically issued within 30 minutes, available 24/7 — meaning students can obtain documentation promptly, even on weekends, public holidays, or during after-hours exam periods when GP clinics are closed.
                   </p>
                   <p>
-                    You must accept certificates from any registered medical practitioner, not just a specific clinic or your preferred provider. You cannot require the employee to disclose their diagnosis — the certificate confirms unfitness for work, and that is the extent of the information you are entitled to receive. Sick leave policies should be clearly communicated to all employees in advance, ideally in writing.
+                    Our certificates contain all elements typically required by university special consideration policies: practitioner details, AHPRA registration, consultation date, period of unfitness, and the practitioner&apos;s signature. Faculties should assess the certificate on its merits, applying the same standards as any certificate from a registered medical practice.
                   </p>
                 </div>
               </div>
 
-              {/* 4. Managing patterns */}
+              {/* 4. Student privacy */}
               <div className="bg-card rounded-2xl border p-6 md:p-8">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                    <AlertTriangle className="w-5 h-5 text-primary" />
+                    <Lock className="w-5 h-5 text-primary" />
                   </div>
-                  <h3 className="text-lg font-semibold text-foreground">Managing sick leave patterns</h3>
+                  <h3 className="text-lg font-semibold text-foreground">Student privacy and health information</h3>
                 </div>
                 <div className="space-y-3 text-sm text-muted-foreground">
                   <p>
-                    If you are concerned about frequent absences, the appropriate response is a formal performance management process — not challenging individual certificates. Employers can request a medical assessment through an independent medical examiner for ongoing fitness-for-duty concerns, but this is a separate process from standard sick leave and should be handled with legal advice.
+                    Under Australian privacy law, students are not required to disclose their specific diagnosis. The certificate confirms unfitness for study or assessment — that is the extent of what institutions are entitled to know. Requiring students to provide additional clinical details beyond what appears on the certificate may breach privacy obligations.
                   </p>
                   <p>
-                    The Fair Work Ombudsman provides{" "}
-                    <a href="https://www.fairwork.gov.au/leave/sick-and-carers-leave" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-                      detailed guidance
-                    </a>{" "}
-                    on managing excessive absenteeism within the bounds of the law.
+                    InstantMed complies with the Australian Privacy Principles and stores patient health information in accordance with the Privacy Act 1988. We do not share patient clinical details with educational institutions beyond what is stated on the certificate itself.
                   </p>
                 </div>
               </div>
@@ -507,7 +449,7 @@ export default function EmployersPage() {
                   <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                     <Search className="w-5 h-5 text-primary" />
                   </div>
-                  <h3 className="text-lg font-semibold text-foreground">Verification and fraud prevention</h3>
+                  <h3 className="text-lg font-semibold text-foreground">Verification and academic integrity</h3>
                 </div>
                 <div className="space-y-3 text-sm text-muted-foreground">
                   <p>
@@ -522,7 +464,7 @@ export default function EmployersPage() {
                     <a href={`mailto:${CONTACT_EMAIL}`} className="text-primary hover:underline">
                       {CONTACT_EMAIL}
                     </a>
-                    . We investigate all reports and take fraudulent use seriously.
+                    . We investigate all reports and cooperate with academic integrity processes where appropriate.
                   </p>
                 </div>
               </div>
@@ -543,17 +485,17 @@ export default function EmployersPage() {
           </div>
         </section>
 
-        {/* Employee testimonials */}
+        {/* Student testimonials */}
         <section className="py-16">
           <div className="max-w-4xl mx-auto px-4">
             <h2 className="text-2xl md:text-3xl font-semibold text-foreground mb-2 text-center">
-              What employees say
+              What students say
             </h2>
             <p className="text-center text-muted-foreground text-sm mb-10">
-              Real reviews from employees whose certificates were accepted without issue.
+              Real reviews from students whose certificates were accepted for special consideration.
             </p>
             <div className="grid md:grid-cols-3 gap-5">
-              {employeeTestimonials.map((t) => (
+              {studentTestimonials.map((t) => (
                 <div key={t.name} className="bg-card rounded-2xl border p-5 space-y-3">
                   <div className="flex gap-0.5">
                     {Array.from({ length: t.rating }).map((_, i) => (
@@ -586,45 +528,6 @@ export default function EmployersPage() {
                   </div>
                 ))}
               </div>
-          </div>
-        </section>
-
-        {/* #19 — Employer onboarding kit teaser */}
-        <section className="py-10 border-t border-border/30">
-          <div className="max-w-3xl mx-auto px-4 text-center">
-            <p className="text-sm text-muted-foreground">
-              Need a verification guide for your HR team?{" "}
-              <a
-                href={`mailto:${CONTACT_EMAIL}?subject=Employer%20Verification%20Guide%20Request&body=Please%20send%20the%20employer%20verification%20guide%20for%20our%20HR%20team.%0A%0AOrganisation:%0AContact%20name:`}
-                className="text-primary hover:underline font-medium"
-              >
-                Request our free employer guide
-              </a>
-              {" "}&mdash; includes verification instructions, FAQ, and InstantMed contact details for your shared drive.
-            </p>
-          </div>
-        </section>
-
-        {/* #20 — Corporate account interest */}
-        <section className="py-16 bg-primary/5 dark:bg-primary/10">
-          <div className="max-w-xl mx-auto px-4 text-center">
-            <Badge className="mb-4 bg-primary/10 text-primary border-0 px-4 py-1.5">
-              <Building2 className="w-3.5 h-3.5 mr-1.5" />
-              Corporate Accounts
-            </Badge>
-            <h2 className="text-2xl font-semibold text-foreground mb-3">
-              Volume arrangements for your organisation
-            </h2>
-            <p className="text-muted-foreground mb-6 text-sm">
-              Streamline sick leave management for your team. Corporate accounts include
-              bulk verification, dedicated support, and volume pricing.
-            </p>
-            <Button asChild size="lg" className="rounded-full">
-              <a href={`mailto:${CONTACT_EMAIL}?subject=Corporate%20Account%20Enquiry&body=Organisation%20name:%0ANumber%20of%20employees:%0AEnquiry:`}>
-                <Mail className="w-4 h-4 mr-2" />
-                Enquire About Corporate Accounts
-              </a>
-            </Button>
           </div>
         </section>
 

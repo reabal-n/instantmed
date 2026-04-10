@@ -7,11 +7,13 @@ import { useReducedMotion } from "@/components/ui/motion"
 import { useCallback, useEffect, useRef, useState } from "react"
 import {
   ArrowRight,
+  Building2,
   CheckCircle2,
   ChevronDown,
   AlertCircle,
   Clock,
   Gift,
+  Search,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -20,6 +22,7 @@ import { DoctorAvailabilityPill } from "@/components/shared/doctor-availability-
 import { RotatingText } from "@/components/marketing/rotating-text"
 import { MedCertHeroMockup } from "@/components/marketing/mockups/med-cert-hero-mockup"
 import { LiveWaitTime } from "@/components/marketing/live-wait-time"
+import { EmployerLogoMarquee } from "@/components/shared/employer-logo-marquee"
 import { ContextualMessage } from "@/components/marketing/contextual-message"
 import { AnimatedStat } from "@/components/marketing/animated-stat"
 import { STAT_PRESETS } from "@/components/marketing/total-patients-counter"
@@ -117,10 +120,6 @@ const PRICING_FEATURES = [
 
 const SOCIAL_PROOF_STATS = STAT_PRESETS['med-cert']
 
-const EMPLOYER_NAMES = [
-  "Woolworths", "Coles", "ANZ", "Commonwealth Bank", "Telstra",
-  "BHP", "NAB", "Westpac", "Qantas", "Bunnings",
-]
 
 // =============================================================================
 // SECTION COMPONENTS
@@ -165,27 +164,34 @@ function SocialProofStrip() {
   )
 }
 
-/** Employer acceptance callout */
-function EmployerCalloutStrip() {
+/** Employer acceptance — logo marquee + verify/employer links */
+function EmployerCalloutStrip({ onEmployerClick, onVerifyClick }: { onEmployerClick?: () => void; onVerifyClick?: () => void }) {
   return (
-    <div className="bg-success/5 border-y border-success/15">
-      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-4">
-        <p className="text-center text-sm text-success/90 font-medium flex items-center justify-center gap-2 mb-3">
+    <div className="border-y border-border/30 dark:border-white/10 bg-muted/20">
+      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+        <p className="text-center text-sm text-success/90 font-medium flex items-center justify-center gap-2 pt-6">
           <CheckCircle2 className="h-4 w-4 shrink-0" aria-hidden="true" />
-          Accepted by {SOCIAL_PROOF.employerAcceptancePercent}% of Australian employers and universities — identical to an in-person GP certificate
+          Accepted by {SOCIAL_PROOF.employerAcceptancePercent}% of Australian employers and universities
         </p>
-        <div className="flex flex-wrap justify-center gap-1.5">
-          {EMPLOYER_NAMES.map((name) => (
-            <span
-              key={name}
-              className="text-[11px] font-medium text-success/70 dark:text-success/60 px-2.5 py-1 rounded-full border border-success/20 bg-success/5 dark:bg-success/10"
-            >
-              {name}
-            </span>
-          ))}
-          <span className="text-[11px] font-medium text-success/50 px-2.5 py-1 rounded-full border border-success/10 bg-success/5">
-            + more
-          </span>
+        <EmployerLogoMarquee className="py-5" />
+        <div className="flex items-center justify-center gap-4 pb-6 text-xs text-muted-foreground">
+          <Link
+            href="/for/employers"
+            onClick={onEmployerClick}
+            className="inline-flex items-center gap-1.5 font-medium text-primary/80 hover:text-primary transition-colors"
+          >
+            <Building2 className="h-3.5 w-3.5" aria-hidden="true" />
+            For Employers & HR
+          </Link>
+          <span className="text-border dark:text-white/20">|</span>
+          <Link
+            href="/verify"
+            onClick={onVerifyClick}
+            className="inline-flex items-center gap-1.5 font-medium text-primary/80 hover:text-primary transition-colors"
+          >
+            <Search className="h-3.5 w-3.5" aria-hidden="true" />
+            Verify a Certificate
+          </Link>
         </div>
       </div>
     </div>
@@ -397,6 +403,8 @@ export function MedCertLanding() {
   const handleCertPreviewCTA = useCallback(() => analytics.trackCTAClick("certificate_preview"), [analytics])
   const handleFinalCTA = useCallback(() => analytics.trackCTAClick("final_cta"), [analytics])
   const handleStickyCTA = useCallback(() => analytics.trackCTAClick("sticky_mobile"), [analytics])
+  const handleEmployerClick = useCallback(() => analytics.trackCTAClick("employer_link"), [analytics])
+  const handleVerifyClick = useCallback(() => analytics.trackCTAClick("verify_link"), [analytics])
   const handleFAQOpen = useCallback((question: string, index: number) => analytics.trackFAQOpen(question, index), [analytics])
 
   return (
@@ -449,7 +457,7 @@ export function MedCertLanding() {
           <CertificatePreviewSection onCTAClick={handleCertPreviewCTA} />
 
           {/* 7. Employer acceptance — contextual after "what you get" */}
-          <EmployerCalloutStrip />
+          <EmployerCalloutStrip onEmployerClick={handleEmployerClick} onVerifyClick={handleVerifyClick} />
 
           {/* 8. Guide — E-E-A-T content mid-funnel (Fair Work, validity, telehealth) */}
           <MedCertGuideSection />

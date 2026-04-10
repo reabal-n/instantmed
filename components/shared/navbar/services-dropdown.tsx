@@ -5,11 +5,12 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import { useReducedMotion } from "@/components/ui/motion"
-import { ChevronDown } from "lucide-react"
+import { ChevronDown, Building2 } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { cn } from "@/lib/utils"
@@ -38,10 +39,12 @@ export function ServicesDropdown({ isActivePath }: ServicesDropdownProps) {
     isActivePath("/prescriptions") ||
     isActivePath("/repeat-prescriptions") ||
     isActivePath("/erectile-dysfunction") ||
-    isActivePath("/hair-loss")
+    isActivePath("/hair-loss") ||
+    isActivePath("/for/employers")
 
   const handleTriggerMouseEnter = () => {
     services.forEach(service => router.prefetch(service.href))
+    router.prefetch("/for/employers")
   }
 
   return (
@@ -117,6 +120,19 @@ export function ServicesDropdown({ isActivePath }: ServicesDropdownProps) {
                     </DropdownMenuItem>
                   )
                 })}
+
+                <DropdownMenuSeparator className="my-1.5 bg-border/40" />
+                <DropdownMenuItem asChild className="rounded-xl p-0 focus:bg-primary/10 dark:focus:bg-primary/20">
+                  <Link href="/for/employers" className="flex items-center gap-3 px-3 py-2.5 w-full">
+                    <div className="w-8 h-8 rounded-lg bg-amber-50 dark:bg-amber-500/10 flex items-center justify-center">
+                      <Building2 className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-foreground">For Employers</p>
+                      <p className="text-xs text-muted-foreground">Verify certificates</p>
+                    </div>
+                  </Link>
+                </DropdownMenuItem>
               </motion.div>
             </DropdownMenuContent>
           )}

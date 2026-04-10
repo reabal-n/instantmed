@@ -20,6 +20,8 @@ import {
   Mail,
   HelpCircle,
   Ban,
+  Link2,
+  Check,
 } from "lucide-react"
 import { formatIntakeStatus } from "@/lib/format-intake"
 import { INTAKE_STATUS, type IntakeStatus as StatusKey } from "@/lib/status"
@@ -166,6 +168,26 @@ function TimelineEntry({
       <span className="text-muted-foreground">{label}:</span>
       <span>{new Date(date).toLocaleDateString("en-AU", DATE_FORMAT)}</span>
     </div>
+  )
+}
+
+/** #18 — One-click copy verification link for sharing with employer */
+function CopyVerifyLinkButton({ verificationCode }: { verificationCode: string }) {
+  const [copied, setCopied] = useState(false)
+  const url = `https://instantmed.com.au/verify?code=${encodeURIComponent(verificationCode)}`
+
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(url)
+    setCopied(true)
+    capture("verification_link_copied", { code: verificationCode })
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  return (
+    <Button variant="outline" size="sm" className="gap-2" onClick={handleCopy}>
+      {copied ? <Check className="h-4 w-4 text-success" /> : <Link2 className="h-4 w-4" />}
+      {copied ? "Copied!" : "Copy Verify Link"}
+    </Button>
   )
 }
 
@@ -577,15 +599,21 @@ export function IntakeDetailClient({
 
                         {/* Send to Employer - Only for med_certs */}
                         {intake.service?.type === "med_certs" && (
-                          <SendToEmployerDialog
-                            intakeId={intake.id}
-                            trigger={
-                              <Button variant="outline" size="sm" className="gap-2">
-                                <Mail className="h-4 w-4" />
-                                Email to Employer
-                              </Button>
-                            }
-                          />
+                          <>
+                            <SendToEmployerDialog
+                              intakeId={intake.id}
+                              trigger={
+                                <Button variant="outline" size="sm" className="gap-2">
+                                  <Mail className="h-4 w-4" />
+                                  Email to Employer
+                                </Button>
+                              }
+                            />
+                            {/* #18 — Copy shareable verification link */}
+                            {document.verification_code && (
+                              <CopyVerifyLinkButton verificationCode={document.verification_code} />
+                            )}
+                          </>
                         )}
                       </div>
                     </div>
