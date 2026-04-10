@@ -26,7 +26,7 @@ export function ProgressBar({ steps, currentIndex, onStepClick }: ProgressBarPro
             type="button"
             onClick={() => isClickable && onStepClick(step.id, i)}
             disabled={!isClickable}
-            className={`flex-1 group min-h-[44px] sm:min-h-0 ${isClickable ? 'cursor-pointer' : 'cursor-default'}`}
+            className={`flex-1 group min-h-[36px] sm:min-h-0 ${isClickable ? 'cursor-pointer' : 'cursor-default'}`}
             aria-current={isCurrent ? 'step' : undefined}
             aria-label={`${step.shortLabel}${isCompleted ? ' (completed)' : isCurrent ? ' (current)' : ''}`}
           >

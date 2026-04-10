@@ -11,7 +11,8 @@
  */
 
 import { useState, useEffect, useCallback, useMemo } from "react"
-import { AlertTriangle } from "lucide-react"
+import { usePostHog } from "@/components/providers/posthog-provider"
+import { AlertTriangle, ArrowRight } from "lucide-react"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -52,6 +53,7 @@ const SYMPTOM_DURATION_OPTIONS = [
 
 export default function SymptomsStep({ onNext }: SymptomsStepProps) {
   const { answers, setAnswer } = useRequestStore()
+  const posthog = usePostHog()
   
   const symptoms = useMemo(() => (answers.symptoms as string[]) || [], [answers.symptoms])
   const symptomDetails = (answers.symptomDetails as string) || ""
@@ -116,9 +118,10 @@ export default function SymptomsStep({ onNext }: SymptomsStepProps) {
   const handleNext = useCallback(() => {
     if (validate()) {
       recordStepCompletion('symptoms', { symptoms })
+      posthog?.capture('step_completed', { step: 'symptoms', symptom_count: symptoms.length, duration: symptomDuration })
       onNext()
     }
-  }, [validate, symptoms, onNext])
+  }, [validate, symptoms, symptomDuration, posthog, onNext])
 
   const isCarer = certType === "carer"
   const detailsQuality = validateSymptomTextQuality(symptomDetails)
@@ -152,7 +155,7 @@ export default function SymptomsStep({ onNext }: SymptomsStepProps) {
               <button
                 key={s}
                 onClick={() => toggleSymptom(s)}
-                className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+                className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 outline-none"
               >
                 + {s}
               </button>
@@ -224,8 +227,8 @@ export default function SymptomsStep({ onNext }: SymptomsStepProps) {
           {symptomDuration === "week_plus" && (
             <p className="text-xs text-muted-foreground">
               Ongoing symptoms may benefit from a{" "}
-              <a href="/request?service=consult" className="text-primary underline underline-offset-2 hover:text-primary/80">
-                general consultation
+              <a href="/request" className="text-primary underline underline-offset-2 hover:text-primary/80">
+                consultation
               </a>{" "}
               for a more thorough assessment.
             </p>
@@ -314,7 +317,14 @@ export default function SymptomsStep({ onNext }: SymptomsStepProps) {
         className="w-full h-12"
         disabled={!canContinue}
       >
-        Continue
+        {canContinue ? (
+          <>
+            Continue to your details
+            <ArrowRight className="w-4 h-4" />
+          </>
+        ) : (
+          "Continue"
+        )}
       </Button>
     </div>
   )

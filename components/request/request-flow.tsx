@@ -487,6 +487,7 @@ export function RequestFlow({
       total_steps: activeSteps.length,
       is_authenticated: isAuthenticated,
     })
+    trackFunnelStep('intake_complete', analyticsServiceType)
     router.push('/patient/intakes/success')
   }, [analyticsServiceType, activeSteps.length, isAuthenticated, router, posthog])
 
@@ -590,19 +591,38 @@ export function RequestFlow({
     dragX.set(0)
   }, [currentStepIndex, handleBack, dragX])
 
-  // Browser back button / unsaved changes warning
+  // Browser back button / unsaved changes warning + passive abandonment tracking
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      // Track passive abandonment via sendBeacon (fires even on tab close)
+      if (currentStepIndex > 0 && serviceType) {
+        const payload = JSON.stringify({
+          api_key: posthog?.config?.token,
+          event: 'intake_abandoned_passive',
+          properties: {
+            distinct_id: posthog?.get_distinct_id(),
+            service_type: analyticsServiceType,
+            step_id: currentStepId,
+            step_number: currentStepIndex + 1,
+          },
+          timestamp: new Date().toISOString(),
+        })
+        navigator.sendBeacon?.(
+          `${posthog?.config?.api_host ?? 'https://us.i.posthog.com'}/capture/`,
+          new Blob([payload], { type: 'application/json' }),
+        )
+      }
+
       if (hasUnsavedChanges && currentStepIndex > 0) {
         e.preventDefault()
         e.returnValue = ''
         return ''
       }
     }
-    
+
     window.addEventListener('beforeunload', handleBeforeUnload)
     return () => window.removeEventListener('beforeunload', handleBeforeUnload)
-  }, [hasUnsavedChanges, currentStepIndex])
+  }, [hasUnsavedChanges, currentStepIndex, serviceType, analyticsServiceType, currentStepId, posthog])
 
   // Keyboard navigation: Escape to go back
   // Note: Enter to continue is handled by individual step components
@@ -653,6 +673,12 @@ export function RequestFlow({
 
   // No service param provided - show service hub
   if (initialService === null && !rawServiceParam) {
+    return <ServiceHubScreen onSelectService={handleSelectService} />
+  }
+
+  // Consult without subtype → redirect to service hub (no general consult)
+  // Active subtypes: ed, hair_loss. Coming soon: womens_health, weight_loss.
+  if (initialService === 'consult' && !initialSubtype) {
     return <ServiceHubScreen onSelectService={handleSelectService} />
   }
 
@@ -792,7 +818,7 @@ export function RequestFlow({
       <motion.main 
         ref={contentRef}
         className={`max-w-lg mx-auto px-4 py-6 sm:pb-6 touch-pan-y ${
-          currentStepId === 'checkout' || currentStepId === 'review' ? 'pb-6' : 'pb-28'
+          currentStepId === 'checkout' || currentStepId === 'review' ? 'pb-6' : 'pb-[calc(5rem+env(safe-area-inset-bottom))]'
         }`}
         drag="x"
         dragConstraints={{ left: 0, right: 0 }}

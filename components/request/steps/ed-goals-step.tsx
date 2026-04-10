@@ -8,10 +8,10 @@
  */
 
 import { motion } from "framer-motion"
-import { Target, Sparkles, Shield, Heart, Stethoscope } from "lucide-react"
+import { usePostHog } from "@/components/providers/posthog-provider"
+import { Target, Sparkles, Shield, Heart, Stethoscope, ArrowRight } from "lucide-react"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
-import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Switch } from "@/components/ui/switch"
 import { cn } from "@/lib/utils"
 import { stagger } from "@/lib/motion"
@@ -44,6 +44,7 @@ const DURATION_OPTIONS = [
 
 export default function EdGoalsStep({ onNext }: EdGoalsStepProps) {
   const { answers, setAnswer } = useRequestStore()
+  const posthog = usePostHog()
   const prefersReducedMotion = useReducedMotion()
 
   const edAgeConfirmed = answers.edAgeConfirmed as boolean | undefined
@@ -54,6 +55,7 @@ export default function EdGoalsStep({ onNext }: EdGoalsStepProps) {
 
   const handleNext = () => {
     if (isComplete) {
+      posthog?.capture('step_completed', { step: 'ed-goals', goal: edGoal, duration: edDuration })
       onNext()
     }
   }
@@ -110,6 +112,7 @@ export default function EdGoalsStep({ onNext }: EdGoalsStepProps) {
                 onClick={() => setAnswer("edGoal", option.value)}
                 className={cn(
                   "flex items-center gap-2.5 p-3 rounded-xl border text-left cursor-pointer transition-all text-sm",
+                  "focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 outline-none",
                   isSelected
                     ? "border-primary bg-primary/5 ring-1 ring-primary/30"
                     : "border-border hover:border-primary/50"
@@ -160,21 +163,20 @@ export default function EdGoalsStep({ onNext }: EdGoalsStepProps) {
         </div>
       </div>
 
-      {/* Trust message */}
-      <Alert variant="default" className="border-primary/20 bg-primary/5">
-        <Heart className="w-4 h-4" />
-        <AlertDescription className="text-xs">
-          Your answers help our doctor understand your situation. All information is kept strictly confidential.
-        </AlertDescription>
-      </Alert>
-
       {/* Continue button */}
       <Button
         onClick={handleNext}
         disabled={!isComplete}
         className="w-full h-12 text-base font-medium"
       >
-        Continue
+        {isComplete ? (
+          <>
+            Continue to assessment
+            <ArrowRight className="w-4 h-4" />
+          </>
+        ) : (
+          "Continue"
+        )}
       </Button>
     </div>
   )

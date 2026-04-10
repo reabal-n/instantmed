@@ -5,6 +5,7 @@ import { Clock } from "lucide-react"
 
 // Estimated time per step type (in seconds)
 export const STEP_TIME_ESTIMATES: Record<string, number> = {
+  'safety': 15,
   'certificate': 30,
   'symptoms': 45,
   'medication': 60,

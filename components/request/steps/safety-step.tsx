@@ -15,6 +15,7 @@ import { useReducedMotion } from "@/components/ui/motion"
 import { EmergencyGate } from "@/components/shared/emergency-gate"
 import { Button } from "@/components/ui/button"
 import { CheckCircle, ArrowRight } from "lucide-react"
+import { usePostHog } from "@/components/providers/posthog-provider"
 import { useRequestStore } from "../store"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 
@@ -35,11 +36,13 @@ const SERVICE_NAMES: Record<UnifiedServiceType, string> = {
 export default function SafetyStep({ serviceType, onNext }: SafetyStepProps) {
   const { safetyConfirmed, setSafetyConfirmed } = useRequestStore()
   const prefersReducedMotion = useReducedMotion()
+  const posthog = usePostHog()
 
   const handleAcknowledge = useCallback(() => {
     setSafetyConfirmed(true)
+    posthog?.capture('step_completed', { step: 'safety', service_type: serviceType })
     onNext()
-  }, [setSafetyConfirmed, onNext])
+  }, [setSafetyConfirmed, posthog, serviceType, onNext])
 
   // Already confirmed (navigated back) — show compact confirmation with continue
   if (safetyConfirmed) {

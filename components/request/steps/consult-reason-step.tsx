@@ -8,14 +8,16 @@
  * the category selector is hidden — only details + urgency are shown.
  */
 
-import { useState, useEffect } from "react"
-import { Stethoscope, MessageSquare, Info } from "lucide-react"
+import { useState, useEffect, useCallback } from "react"
+import { usePostHog } from "@/components/providers/posthog-provider"
+import { Stethoscope, MessageSquare, Info, ArrowRight } from "lucide-react"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { EnhancedSelectionButton } from "@/components/shared/enhanced-selection-button"
 import { useRequestStore } from "../store"
+import { useKeyboardNavigation } from "@/hooks/use-keyboard-navigation"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 import { CONSULT_SUBTYPE_LABELS, type ConsultSubtype } from "@/lib/request/step-registry"
 
@@ -31,7 +33,6 @@ interface ConsultReasonStepProps {
 const CONSULT_CATEGORIES = [
   { value: "skin", label: "Skin condition", description: "Rash, acne, eczema, or other skin concern" },
   { value: "infection", label: "Infection", description: "May need antibiotics or antiviral treatment" },
-  { value: "new_medication", label: "Starting new medication", description: "Need a new prescription or recommendation" },
   { value: "mental_health", label: "Mental health", description: "Anxiety, depression, stress, or mood concerns" },
   { value: "general", label: "Other / General concern", description: "Something else not listed above" },
 ] as const
@@ -41,7 +42,6 @@ const SUBTYPE_TO_CATEGORY: Record<string, string> = {
   'general': 'general',
   'skin': 'skin',
   'infection': 'infection',
-  'new_medication': 'new_medication',
   'mental_health': 'mental_health',
 }
 
@@ -61,31 +61,6 @@ const CATEGORY_GUIDANCE: Record<string, {
     helperText: "Include symptoms, duration, and whether you think antibiotics may be needed.",
     suggestedTopics: ["Main symptoms", "Duration", "Fever", "Previous antibiotics"],
   },
-  new_medication: {
-    placeholder: "Describe what medication you need, what it's for, and any relevant medical history...",
-    helperText: "Include the medication name (if known), reason for starting, and any allergies.",
-    suggestedTopics: ["Medication name", "Reason for starting", "Allergies", "Current medications"],
-  },
-  ed: {
-    placeholder: "Describe when you first noticed symptoms, how often they occur, and any relevant health conditions...",
-    helperText: "Include information about onset, frequency, and any medications you currently take.",
-    suggestedTopics: ["When symptoms started", "Frequency", "Current medications", "Other health conditions"],
-  },
-  hair_loss: {
-    placeholder: "Describe the pattern of hair loss, when you first noticed it, and any family history...",
-    helperText: "Include where hair loss is occurring and any changes to your routine.",
-    suggestedTopics: ["Pattern of loss", "Duration", "Family history", "Recent changes"],
-  },
-  weight_loss: {
-    placeholder: "Describe your weight goals, current diet and exercise, and any previous attempts...",
-    helperText: "Include your current weight, target, and any relevant health conditions.",
-    suggestedTopics: ["Current weight", "Target weight", "Diet history", "Exercise routine"],
-  },
-  womens_health: {
-    placeholder: "Describe your concern, relevant symptoms, and any relevant menstrual or reproductive history...",
-    helperText: "Include cycle regularity, any current contraception, and symptom timing.",
-    suggestedTopics: ["Main concern", "Symptom timing", "Current contraception", "Relevant history"],
-  },
   mental_health: {
     placeholder: "Describe what you're experiencing — e.g., anxiety, low mood, sleep issues — how long, and how it's affecting your daily life...",
     helperText: "Include how long you've been experiencing this, what triggers it, and any previous treatment.",
@@ -100,6 +75,7 @@ const CATEGORY_GUIDANCE: Record<string, {
 
 export default function ConsultReasonStep({ onNext }: ConsultReasonStepProps) {
   const { answers, setAnswer } = useRequestStore()
+  const posthog = usePostHog()
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   // Pre-fill from hub subtype selection
@@ -122,7 +98,7 @@ export default function ConsultReasonStep({ onNext }: ConsultReasonStepProps) {
     }
   }, [consultSubtype, consultCategory, setAnswer])
 
-  const validate = () => {
+  const validate = useCallback(() => {
     const newErrors: Record<string, string> = {}
 
     if (!consultCategory) {
@@ -139,15 +115,21 @@ export default function ConsultReasonStep({ onNext }: ConsultReasonStepProps) {
 
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
-  }
+  }, [consultCategory, consultDetails, consultUrgency])
 
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     if (validate()) {
+      posthog?.capture('step_completed', { step: 'consult-reason', category: consultCategory, urgency: consultUrgency })
       onNext()
     }
-  }
+  }, [validate, posthog, consultCategory, consultUrgency, onNext])
 
   const isComplete = consultCategory && consultDetails?.length >= 20 && consultUrgency
+
+  useKeyboardNavigation({
+    onNext: isComplete ? handleNext : undefined,
+    enabled: Boolean(isComplete),
+  })
 
   // Friendly label for pre-selected subtype
   const subtypeLabel = consultSubtype
@@ -191,7 +173,7 @@ export default function ConsultReasonStep({ onNext }: ConsultReasonStepProps) {
             ))}
           </div>
           {errors.consultCategory && (
-            <p className="text-xs text-destructive">{errors.consultCategory}</p>
+            <p className="text-xs text-destructive" role="alert" aria-live="polite">{errors.consultCategory}</p>
           )}
         </div>
       )}
@@ -237,7 +219,7 @@ export default function ConsultReasonStep({ onNext }: ConsultReasonStepProps) {
         />
         <div className="flex justify-between text-xs">
           {errors.consultDetails ? (
-            <p className="text-destructive">{errors.consultDetails}</p>
+            <p className="text-destructive" role="alert" aria-live="polite">{errors.consultDetails}</p>
           ) : (
             <p className="text-muted-foreground">Minimum 20 characters</p>
           )}
@@ -280,17 +262,24 @@ export default function ConsultReasonStep({ onNext }: ConsultReasonStepProps) {
           </EnhancedSelectionButton>
         </div>
         {errors.consultUrgency && (
-          <p className="text-xs text-destructive">{errors.consultUrgency}</p>
+          <p className="text-xs text-destructive" role="alert" aria-live="polite">{errors.consultUrgency}</p>
         )}
       </div>
 
       {/* Continue button */}
-      <Button 
-        onClick={handleNext} 
+      <Button
+        onClick={handleNext}
         className="w-full h-12"
         disabled={!isComplete}
       >
-        Continue
+        {isComplete ? (
+          <>
+            Continue to medical history
+            <ArrowRight className="w-4 h-4" />
+          </>
+        ) : (
+          "Continue"
+        )}
       </Button>
     </div>
   )

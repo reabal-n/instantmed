@@ -11,7 +11,8 @@
  */
 
 import { useState, useEffect, useCallback } from "react"
-import { Info, Plus, X, ShieldAlert } from "lucide-react"
+import { usePostHog } from "@/components/providers/posthog-provider"
+import { Info, Plus, X, ShieldAlert, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert"
 import { MedicationSearch, type SelectedPBSProduct } from "@/components/shared/medication-search"
@@ -46,6 +47,7 @@ interface MedicationEntry {
 
 export default function MedicationStep({ onNext }: MedicationStepProps) {
   const { answers, setAnswers, setAnswer } = useRequestStore()
+  const posthog = usePostHog()
 
   // Support both single (legacy) and multi-medication modes
   const existingMedications = answers.medications as MedicationEntry[] | undefined
@@ -176,9 +178,10 @@ export default function MedicationStep({ onNext }: MedicationStepProps) {
           addRecentMedication({ name: med.name })
         }
       }
+      posthog?.capture('step_completed', { step: 'medication', medication_count: medications.filter(m => m.product || m.name).length })
       onNext()
     }
-  }, [validate, medications, onNext])
+  }, [validate, medications, posthog, onNext])
 
   const isComplete = medications.some(m => m.product || m.name)
   const hasNoErrors = Object.keys(errors).length === 0
@@ -213,7 +216,7 @@ export default function MedicationStep({ onNext }: MedicationStepProps) {
       )}
 
       {/* Recent medications suggestion */}
-      {recentMeds.length > 0 && !selectedMedication && !medicationName && (
+      {recentMeds.length > 0 && !medications.some(m => m.product || m.name) && (
         <div className="p-3 rounded-lg border bg-muted/30">
           <p className="text-xs text-muted-foreground mb-2">Previously requested:</p>
           <div className="flex flex-wrap gap-1.5">
@@ -221,7 +224,7 @@ export default function MedicationStep({ onNext }: MedicationStepProps) {
               <button
                 key={med.name}
                 onClick={() => handleRecentMedClick(med)}
-                className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+                className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 outline-none"
               >
                 + {med.name}{med.strength ? ` ${med.strength}` : ''}
               </button>
@@ -295,12 +298,19 @@ export default function MedicationStep({ onNext }: MedicationStepProps) {
       )}
 
       {/* Continue button */}
-      <Button 
-        onClick={handleNext} 
+      <Button
+        onClick={handleNext}
         className="w-full h-12"
         disabled={!canContinue}
       >
-        Continue
+        {canContinue ? (
+          <>
+            Continue to history
+            <ArrowRight className="w-4 h-4" />
+          </>
+        ) : (
+          "Continue"
+        )}
       </Button>
     </div>
   )

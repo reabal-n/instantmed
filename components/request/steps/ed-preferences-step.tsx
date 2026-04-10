@@ -9,7 +9,8 @@
  */
 
 import { motion } from "framer-motion"
-import { CalendarDays, Clock, Stethoscope, ShieldCheck } from "lucide-react"
+import { usePostHog } from "@/components/providers/posthog-provider"
+import { CalendarDays, Clock, Stethoscope, ShieldCheck, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { stagger } from "@/lib/motion"
@@ -63,6 +64,7 @@ const PREFERENCE_OPTIONS: PreferenceOption[] = [
 
 export default function EdPreferencesStep({ onNext }: EdPreferencesStepProps) {
   const { answers, setAnswer } = useRequestStore()
+  const posthog = usePostHog()
   const prefersReducedMotion = useReducedMotion()
 
   const edPreference = (answers.edPreference as string) || ""
@@ -71,6 +73,7 @@ export default function EdPreferencesStep({ onNext }: EdPreferencesStepProps) {
 
   const handleNext = () => {
     if (isComplete) {
+      posthog?.capture('step_completed', { step: 'ed-preferences', preference: edPreference })
       onNext()
     }
   }
@@ -111,6 +114,7 @@ export default function EdPreferencesStep({ onNext }: EdPreferencesStepProps) {
               onClick={() => setAnswer("edPreference", option.value)}
               className={cn(
                 "w-full text-left p-4 rounded-2xl border cursor-pointer transition-all",
+                "focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 outline-none",
                 isSelected
                   ? "border-primary ring-2 ring-primary shadow-lg shadow-primary/[0.1] bg-white dark:bg-card"
                   : "bg-white dark:bg-card border-border/50 shadow-md shadow-primary/[0.06] hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/[0.08]"
@@ -173,7 +177,14 @@ export default function EdPreferencesStep({ onNext }: EdPreferencesStepProps) {
         disabled={!isComplete}
         className="w-full h-12 text-base font-medium"
       >
-        Continue
+        {isComplete ? (
+          <>
+            Continue to your details
+            <ArrowRight className="w-4 h-4" />
+          </>
+        ) : (
+          "Continue"
+        )}
       </Button>
     </div>
   )

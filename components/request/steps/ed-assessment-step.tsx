@@ -1,8 +1,9 @@
 "use client"
 
 import { useMemo, useEffect, useCallback, useRef } from "react"
+import { usePostHog } from "@/components/providers/posthog-provider"
 import { motion, AnimatePresence } from "framer-motion"
-import { TrendingUp, Info } from "lucide-react"
+import { TrendingUp, Info, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { useReducedMotion } from "@/components/ui/motion"
@@ -166,6 +167,7 @@ function ScalePicker({
                 onClick={() => onChange(n)}
                 className={cn(
                   "w-11 h-11 rounded-full border-2 flex items-center justify-center text-sm font-semibold transition-all shrink-0",
+                  "focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 outline-none",
                   isSelected
                     ? "border-primary bg-primary text-primary-foreground scale-110"
                     : "border-border/50 bg-white dark:bg-card text-muted-foreground hover:border-primary/40"
@@ -198,6 +200,7 @@ function ScalePicker({
 
 export default function EdAssessmentStep({ onNext, onBack }: EdAssessmentStepProps) {
   const { answers, setAnswer } = useRequestStore()
+  const posthog = usePostHog()
   const prefersReducedMotion = useReducedMotion()
   const preSeeded = useRef(false)
 
@@ -252,10 +255,11 @@ export default function EdAssessmentStep({ onNext, onBack }: EdAssessmentStepPro
   const interpretation = iiefTotal !== null ? getInterpretation(iiefTotal) : null
 
   const handleNext = useCallback(() => {
-    if (allAnswered) {
+    if (allAnswered && iiefTotal !== null) {
+      posthog?.capture('step_completed', { step: 'ed-assessment', iief_total: iiefTotal, severity: interpretation?.label })
       onNext()
     }
-  }, [allAnswered, onNext])
+  }, [allAnswered, iiefTotal, interpretation, posthog, onNext])
 
   useKeyboardNavigation({
     onNext: allAnswered ? handleNext : undefined,
@@ -294,7 +298,7 @@ export default function EdAssessmentStep({ onNext, onBack }: EdAssessmentStepPro
           <motion.div
             key={q.id}
             variants={itemVariants}
-            className="bg-white dark:bg-card border border-border/50 shadow-sm shadow-primary/[0.04] rounded-xl p-4 space-y-3"
+            className="bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06] rounded-xl p-4 space-y-3"
           >
             <p className="text-[15px] font-medium leading-snug">
               {q.question}
@@ -319,7 +323,7 @@ export default function EdAssessmentStep({ onNext, onBack }: EdAssessmentStepPro
             animate="animate"
             exit="exit"
             className={cn(
-              "bg-white dark:bg-card border border-border/50 shadow-sm shadow-primary/[0.04] rounded-xl p-4",
+              "bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06] rounded-xl p-4",
               "flex items-start gap-3"
             )}
           >
@@ -372,7 +376,14 @@ export default function EdAssessmentStep({ onNext, onBack }: EdAssessmentStepPro
           disabled={!allAnswered}
           className="w-full h-12 text-base font-medium"
         >
-          Continue
+          {allAnswered ? (
+            <>
+              Continue to health screening
+              <ArrowRight className="w-4 h-4" />
+            </>
+          ) : (
+            "Continue"
+          )}
         </Button>
       </motion.div>
     </motion.div>

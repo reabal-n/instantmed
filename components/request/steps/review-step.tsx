@@ -6,6 +6,7 @@
  */
 
 import { useState } from "react"
+import { usePostHog } from "posthog-js/react"
 import { Edit2, ChevronDown, ChevronUp, ShieldCheck, RefreshCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -14,20 +15,13 @@ import { LegitScriptSeal } from "@/components/marketing/legitscript-seal"
 import { GoogleAdsCert } from "@/components/marketing/google-ads-cert"
 import { useRequestStore } from "../store"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
-import { PRICING } from "@/lib/constants"
+import { getDisplayPrice, getServiceDisplayLabel, CONSULT_SUBTYPE_DISPLAY_LABELS } from "@/lib/request/display-helpers"
 
 interface ReviewStepProps {
   serviceType: UnifiedServiceType
   onNext: () => void
   onBack?: () => void
   onComplete?: () => void
-}
-
-const SERVICE_LABELS: Record<UnifiedServiceType, string> = {
-  'med-cert': 'Medical Certificate',
-  'prescription': 'Prescription Request',
-  'repeat-script': 'Repeat Prescription',
-  'consult': 'Doctor Consultation',
 }
 
 const CERT_TYPE_LABELS: Record<string, string> = {
@@ -87,7 +81,7 @@ function ReviewSection({
   onEdit?: () => void
 }) {
   return (
-    <div className="rounded-2xl border border-border/60 dark:border-white/10 bg-white dark:bg-card shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+    <div className="rounded-2xl border border-border/50 bg-white dark:bg-card shadow-md shadow-primary/[0.06]">
       <div className="px-5 pt-4 pb-2.5 flex items-center justify-between">
         <h3 className="text-sm font-medium text-foreground">{title}</h3>
         {onEdit && (
@@ -113,44 +107,26 @@ function ReviewSection({
   )
 }
 
-function getPriceForService(serviceType: UnifiedServiceType, answers: Record<string, unknown>): number {
-  if (serviceType === 'med-cert') {
-    const duration = String(answers.duration || '2')
-    if (duration === '1') return PRICING.MED_CERT
-    if (duration === '3') return PRICING.MED_CERT_3DAY
-    return PRICING.MED_CERT_2DAY
-  }
-  if (serviceType === 'prescription' || serviceType === 'repeat-script') return PRICING.REPEAT_SCRIPT
-  if (serviceType === 'consult') {
-    const subtype = String(answers.consultSubtype || '')
-    if (subtype === 'ed') return PRICING.MENS_HEALTH
-    if (subtype === 'hair_loss') return PRICING.HAIR_LOSS
-    if (subtype === 'womens_health') return PRICING.WOMENS_HEALTH
-    if (subtype === 'weight_loss') return PRICING.WEIGHT_LOSS
-    return PRICING.CONSULT
-  }
-  return PRICING.CONSULT
-}
-
 export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
   const { answers, firstName, lastName, email, phone, dob, goToStep, safetyConfirmed, setSafetyConfirmed } = useRequestStore()
+  const posthog = usePostHog()
+
+  const handleContinue = () => {
+    posthog?.capture('step_completed', {
+      step: 'review',
+      service_type: serviceType,
+      consult_subtype: answers.consultSubtype,
+      has_safety_consent: safetyConfirmed,
+    })
+    onNext()
+  }
 
   // Build review sections based on service type
   const sections: { title: string; items: { label: string; value: string }[]; stepId?: string }[] = []
 
   // Service info
-  const CONSULT_SUBTYPE_REVIEW_LABELS: Record<string, string> = {
-    general: 'General Consultation',
-    new_medication: 'General Consultation',
-    ed: 'ED Consultation',
-    hair_loss: 'Hair Loss Consultation',
-    womens_health: "Women's Health Consultation",
-    weight_loss: 'Weight Management Consultation',
-  }
   const consultSubtypeForLabel = answers.consultSubtype as string | undefined
-  const serviceLabel = serviceType === 'consult' && consultSubtypeForLabel
-    ? CONSULT_SUBTYPE_REVIEW_LABELS[consultSubtypeForLabel] || SERVICE_LABELS[serviceType]
-    : SERVICE_LABELS[serviceType]
+  const serviceLabel = getServiceDisplayLabel(serviceType, consultSubtypeForLabel)
 
   sections.push({
     title: 'Request Type',
@@ -244,11 +220,10 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
     if (consultCategory || consultDetails) {
       const CATEGORY_LABELS: Record<string, string> = {
         general: 'General consultation',
-        new_medication: 'General consultation',
-        ed: 'Erectile dysfunction',
-        hair_loss: 'Hair loss treatment',
-        womens_health: "Women's health",
-        weight_loss: 'Weight management',
+        skin: 'Skin condition',
+        infection: 'Infection',
+        mental_health: 'Mental health',
+        ...CONSULT_SUBTYPE_DISPLAY_LABELS,
       }
       sections.push({
         title: 'Consultation Details',
@@ -577,7 +552,7 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
       <div className="space-y-3 pt-1">
         {/* Price summary — show before CTA so there's no payment surprise */}
         {(() => {
-          const price = getPriceForService(serviceType, answers)
+          const price = getDisplayPrice(serviceType, answers)
           return (
             <div className="flex items-center justify-between px-4 py-3 rounded-2xl bg-muted/40 dark:bg-white/5 border border-border/40">
               <span className="text-sm text-muted-foreground">Total today</span>
@@ -606,7 +581,7 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
           )}
         </div>
 
-        <Button onClick={onNext} className="w-full h-12" disabled={!safetyConfirmed}>
+        <Button onClick={handleContinue} className="w-full h-12" disabled={!safetyConfirmed}>
           Continue to payment
         </Button>
 

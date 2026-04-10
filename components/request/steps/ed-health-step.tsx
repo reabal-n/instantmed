@@ -19,6 +19,7 @@
 
 import { useState, useCallback, useMemo, useRef } from "react"
 import { useRouter } from "next/navigation"
+import { usePostHog } from "@/components/providers/posthog-provider"
 import {
   HeartPulse,
   Activity,
@@ -28,6 +29,7 @@ import {
   AlertTriangle,
   XCircle,
   CheckCircle2,
+  ArrowRight,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
@@ -42,7 +44,6 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion"
 import { cn } from "@/lib/utils"
-import { usePostHog } from "@/components/providers/posthog-provider"
 import { useRequestStore } from "../store"
 import { useKeyboardNavigation } from "@/hooks/use-keyboard-navigation"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
@@ -250,8 +251,11 @@ export default function EdHealthStep({ onNext, onBack }: EdHealthStepProps) {
   ])
 
   const handleNext = useCallback(() => {
-    if (canContinue) onNext()
-  }, [canContinue, onNext])
+    if (canContinue) {
+      posthog?.capture('step_completed', { step: 'ed-health' })
+      onNext()
+    }
+  }, [canContinue, posthog, onNext])
 
   // Keyboard navigation
   useKeyboardNavigation({
@@ -593,6 +597,7 @@ export default function EdHealthStep({ onNext, onBack }: EdHealthStepProps) {
                         className={cn(
                           "flex-1 px-3 py-2 text-sm rounded-lg border transition-colors",
                           "hover:bg-accent hover:text-accent-foreground",
+                          "focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 outline-none",
                           edPreviousEffectiveness === option.value
                             ? "border-primary bg-primary/5 text-primary font-medium"
                             : "border-border text-muted-foreground"
@@ -615,7 +620,14 @@ export default function EdHealthStep({ onNext, onBack }: EdHealthStepProps) {
         className="w-full h-12"
         disabled={!canContinue}
       >
-        Continue
+        {canContinue ? (
+          <>
+            Continue to preferences
+            <ArrowRight className="w-4 h-4" />
+          </>
+        ) : (
+          "Continue"
+        )}
       </Button>
     </div>
   )

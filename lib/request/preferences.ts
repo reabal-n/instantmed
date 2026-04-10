@@ -14,6 +14,7 @@ const MAX_RECENT_ITEMS = 5
 export interface UserPreferences {
   // Service preferences
   lastServiceType?: string
+  lastConsultSubtype?: string
   
   // Certificate preferences
   preferredCertType?: 'work' | 'study' | 'carer'

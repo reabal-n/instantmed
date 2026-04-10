@@ -11,6 +11,8 @@
  */
 
 import { useState, useCallback } from "react"
+import { usePostHog } from "@/components/providers/posthog-provider"
+import { ArrowRight } from "lucide-react"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
@@ -95,6 +97,7 @@ function YesNoQuestion({
 
 export default function MedicalHistoryStep({ onNext }: MedicalHistoryStepProps) {
   const { answers, setAnswer } = useRequestStore()
+  const posthog = usePostHog()
 
   const hasAllergies = answers.hasAllergies as boolean | undefined
   const allergies = (answers.allergies as string) || ""
@@ -139,9 +142,10 @@ export default function MedicalHistoryStep({ onNext }: MedicalHistoryStepProps) 
 
   const handleNext = useCallback(() => {
     if (validate()) {
+      posthog?.capture('step_completed', { step: 'medical-history', has_allergies: hasAllergies, has_conditions: hasConditions, has_other_meds: hasOtherMedications })
       onNext()
     }
-  }, [validate, onNext])
+  }, [validate, posthog, hasAllergies, hasConditions, hasOtherMedications, onNext])
 
   const isComplete =
     hasAllergies !== undefined && (!hasAllergies || allergies.trim()) &&
@@ -159,7 +163,7 @@ export default function MedicalHistoryStep({ onNext }: MedicalHistoryStepProps) 
   return (
     <div className="space-y-4">
       {/* Clinical questions — required */}
-      <div className="rounded-2xl border border-border/60 bg-white dark:bg-card shadow-[0_1px_3px_rgba(0,0,0,0.04)] p-4 space-y-5">
+      <div className="rounded-2xl border border-border/50 bg-white dark:bg-card shadow-md shadow-primary/[0.06] p-4 space-y-5">
         <YesNoQuestion
           label="Any allergies?"
           helpText="Drug, food, or environmental allergies"
@@ -250,7 +254,14 @@ export default function MedicalHistoryStep({ onNext }: MedicalHistoryStepProps) 
         className="w-full h-12"
         disabled={!canContinue}
       >
-        Continue
+        {canContinue ? (
+          <>
+            Continue to your details
+            <ArrowRight className="w-4 h-4" />
+          </>
+        ) : (
+          "Continue"
+        )}
       </Button>
     </div>
   )

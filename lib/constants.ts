@@ -48,6 +48,7 @@ export const PRICING = {
   REFERRAL: 29.95,
   PATHOLOGY: 29.95,
   PRIORITY_FEE: 9.95,    // Express review fee
+  REPEAT_RX_MONTHLY: 19.95, // Repeat Rx subscription (monthly)
 } as const
 
 // Formatted pricing strings for display — use these everywhere in UI/SEO/marketing

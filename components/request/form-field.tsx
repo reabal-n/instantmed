@@ -56,7 +56,7 @@ export function FormField({
       </div>
       {hint && <p id={hintId} className="text-xs text-muted-foreground">{hint}</p>}
       {children}
-      {error && <p id={errorId} className="text-xs text-destructive mt-1" role="alert">{error}</p>}
+      {error && <p id={errorId} className="text-xs text-destructive mt-1" role="alert" aria-live="polite">{error}</p>}
     </div>
   )
 }

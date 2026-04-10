@@ -2,16 +2,16 @@
 
 /**
  * Step Router - Dynamically renders the current step component
- * 
+ *
  * This component handles:
  * - Lazy loading step components
- * - Step transitions with animations
  * - Error boundaries for step failures
+ *
+ * Note: Transitions are owned by request-flow.tsx's AnimatePresence.
+ * Do NOT add a second AnimatePresence here — it causes ghost renders.
  */
 
 import { Suspense, lazy, useMemo } from "react"
-import { motion, AnimatePresence } from "framer-motion"
-import { useReducedMotion } from "@/components/ui/motion"
 import { StepErrorBoundary } from "./step-error-boundary"
 import type { UnifiedServiceType, UnifiedStepId } from "@/lib/request/step-registry"
 import { SkeletonForm } from "@/components/ui/skeleton"
@@ -45,7 +45,8 @@ export interface StepRouterProps {
   serviceType: UnifiedServiceType
   currentStepId: UnifiedStepId
   componentPath: string
-  direction: 1 | -1
+  /** @deprecated Transitions owned by request-flow.tsx AnimatePresence */
+  direction?: 1 | -1
   onNext: () => void
   onBack: () => void
   onComplete: () => void
@@ -65,31 +66,14 @@ function StepNotFound({ componentPath }: { componentPath: string }) {
   )
 }
 
-const variants = {
-  enter: (direction: number) => ({
-    x: direction > 0 ? 20 : -20,
-    opacity: 0,
-  }),
-  center: {
-    x: 0,
-    opacity: 1,
-  },
-  exit: (direction: number) => ({
-    x: direction < 0 ? 20 : -20,
-    opacity: 0,
-  }),
-}
-
 export function StepRouter({
   serviceType,
   currentStepId,
   componentPath,
-  direction,
   onNext,
   onBack,
   onComplete,
 }: StepRouterProps) {
-  const prefersReducedMotion = useReducedMotion()
   const StepComponent = useMemo(() => {
     const key = componentPath as StepComponentKey
     return stepComponents[key] || null
@@ -100,27 +84,15 @@ export function StepRouter({
   }
 
   return (
-    <AnimatePresence mode="wait" custom={direction}>
-      <motion.div
-        key={currentStepId}
-        custom={direction}
-        variants={variants}
-        initial={prefersReducedMotion ? {} : "enter"}
-        animate="center"
-        exit="exit"
-        transition={{ duration: prefersReducedMotion ? 0 : 0.2, ease: "easeOut" }}
-      >
-        <StepErrorBoundary stepId={currentStepId}>
-          <Suspense fallback={<StepLoadingFallback />}>
-            <StepComponent
-              serviceType={serviceType}
-              onNext={onNext}
-              onBack={onBack}
-              onComplete={onComplete}
-            />
-          </Suspense>
-        </StepErrorBoundary>
-      </motion.div>
-    </AnimatePresence>
+    <StepErrorBoundary stepId={currentStepId}>
+      <Suspense fallback={<StepLoadingFallback />}>
+        <StepComponent
+          serviceType={serviceType}
+          onNext={onNext}
+          onBack={onBack}
+          onComplete={onComplete}
+        />
+      </Suspense>
+    </StepErrorBoundary>
   )
 }

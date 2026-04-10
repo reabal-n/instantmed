@@ -22,6 +22,7 @@ import { createCheckoutFromUnifiedFlow } from "@/app/actions/unified-checkout"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 import { getQueueEstimate } from "@/lib/data/queue-availability"
 import { PRICING as APP_PRICING, MED_CERT_DURATIONS, PRICING_DISPLAY } from "@/lib/constants"
+import { getDisplayPrice, getServiceDisplayLabel, CONSULT_SUBTYPE_DISPLAY_LABELS } from "@/lib/request/display-helpers"
 import { trackFunnelStep } from "@/lib/analytics/conversion-tracking"
 
 // Prices sourced from lib/constants.ts (single source of truth)
@@ -44,13 +45,7 @@ const PRICING: Record<UnifiedServiceType, { base: number; label: string }> = {
   },
 }
 
-const CONSULT_SUBTYPE_LABELS: Record<string, string> = {
-  general: 'General Consultation',
-  ed: 'ED Consultation',
-  hair_loss: 'Hair Loss Consultation',
-  womens_health: "Women's Health Consultation",
-  weight_loss: 'Weight Management Consultation',
-}
+// Use CONSULT_SUBTYPE_DISPLAY_LABELS from display-helpers (single source of truth)
 
 const PAYMENT_METHODS = ['Visa', 'Mastercard', 'Amex', 'Apple Pay', 'Google Pay']
 
@@ -77,27 +72,25 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
   const isRepeatScript = serviceType === 'prescription' || serviceType === 'repeat-script'
   const [subscribeAndSave, setSubscribeAndSave] = useState(isRepeatScript) // Default ON for repeat scripts
 
-  useEffect(() => {
-    getQueueEstimate().then((est) => setEstimatedWait(est.estimatedWait)).catch(() => {})
-  }, [])
-
-  const pricing = PRICING[serviceType] || PRICING['med-cert']
-
-  // Get dynamic price based on service type and subtype
   const duration = answers.duration as string | undefined
   const consultSubtype = answers.consultSubtype as string | undefined
 
-  let price = pricing.base
-  if (serviceType === 'med-cert' && duration) {
-    const durationNum = Number(duration) as keyof typeof MED_CERT_DURATIONS.prices
-    price = MED_CERT_DURATIONS.prices[durationNum] ?? pricing.base
-  } else if (serviceType === 'consult') {
-    price = getConsultSubtypePrice(consultSubtype)
-  }
+  // Fetch queue estimate on mount
+  useEffect(() => {
+    getQueueEstimate()
+      .then((est) => setEstimatedWait(est.estimatedWait))
+      .catch(() => setEstimatedWait("within hours"))
+  }, [])
 
-  const displayLabel = serviceType === 'consult' && consultSubtype
-    ? CONSULT_SUBTYPE_LABELS[consultSubtype] || pricing.label
-    : pricing.label
+  // Track checkout view once on mount
+  useEffect(() => {
+    posthog?.capture('checkout_viewed', { service_type: serviceType, consult_subtype: consultSubtype })
+  }, [posthog, serviceType, consultSubtype])
+
+  const pricing = PRICING[serviceType] || PRICING['med-cert']
+
+  const price = getDisplayPrice(serviceType, answers)
+  const displayLabel = getServiceDisplayLabel(serviceType, consultSubtype)
 
   // Single consent controls both toggles
   const handleConsentChange = (checked: boolean) => {
@@ -249,7 +242,7 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
               {subscribeAndSave ? (
                 <>
                   <span className="line-through text-muted-foreground/60 mr-1">${price.toFixed(2)}</span>
-                  $19.95
+                  ${APP_PRICING.REPEAT_RX_MONTHLY.toFixed(2)}
                 </>
               ) : (
                 `$${price.toFixed(2)}`
@@ -271,7 +264,7 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
             </div>
             <div className="text-right">
               <span className="text-2xl font-semibold text-primary">
-                ${((subscribeAndSave ? 19.95 : price) + (isPriority ? APP_PRICING.PRIORITY_FEE : 0)).toFixed(2)}
+                ${((subscribeAndSave ? APP_PRICING.REPEAT_RX_MONTHLY : price) + (isPriority ? APP_PRICING.PRIORITY_FEE : 0)).toFixed(2)}
               </span>
             </div>
           </div>
@@ -331,11 +324,11 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
                 <RefreshCw className="w-4 h-4 text-primary" />
                 <span className="text-sm font-medium">Subscribe & save</span>
                 <Badge variant="secondary" className="text-xs font-semibold text-primary bg-primary/10">
-                  Save ${(price - 19.95).toFixed(2)}/mo
+                  Save ${(price - APP_PRICING.REPEAT_RX_MONTHLY).toFixed(2)}/mo
                 </Badge>
               </div>
               <p className="text-xs text-muted-foreground mt-0.5">
-                $19.95/mo instead of ${price.toFixed(2)} per script. Includes 1 repeat per month. Cancel anytime.
+                ${APP_PRICING.REPEAT_RX_MONTHLY.toFixed(2)}/mo instead of ${price.toFixed(2)} per script. Includes 1 repeat per month. Cancel anytime.
               </p>
             </div>
           </div>
@@ -355,7 +348,10 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
           <span onClick={(e) => e.stopPropagation()} className="mt-0.5 shrink-0">
             <Switch
               checked={isPriority}
-              onCheckedChange={setIsPriority}
+              onCheckedChange={(val) => {
+                setIsPriority(val)
+                if (val) posthog?.capture('express_review_opted_in', { service_type: serviceType })
+              }}
             />
           </span>
           <div className="flex-1">
@@ -434,8 +430,8 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
             onClick={handleCheckout}
             isLoading={isProcessing}
             disabled={!canCheckout}
-            price={`$${((subscribeAndSave ? 19.95 : price) + (isPriority ? APP_PRICING.PRIORITY_FEE : 0)).toFixed(2)}${subscribeAndSave ? "/mo" : ""}`}
-            label="Continue to payment"
+            price={`$${((subscribeAndSave ? APP_PRICING.REPEAT_RX_MONTHLY : price) + (isPriority ? APP_PRICING.PRIORITY_FEE : 0)).toFixed(2)}${subscribeAndSave ? "/mo" : ""}`}
+            label={`Pay $${((subscribeAndSave ? APP_PRICING.REPEAT_RX_MONTHLY : price) + (isPriority ? APP_PRICING.PRIORITY_FEE : 0)).toFixed(2)}${subscribeAndSave ? "/mo" : ""}`}
             loadingLabel="Processing..."
             variant="prominent"
           />

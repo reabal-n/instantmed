@@ -13,7 +13,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react"
 import { usePostHog } from "@/components/providers/posthog-provider"
-import { User, Mail, Phone, Calendar, MapPin, Sparkles, Lock, EyeOff, CreditCard, Users } from "lucide-react"
+import { User, Mail, Phone, Calendar, MapPin, Sparkles, Lock, EyeOff, CreditCard, Users, ArrowRight } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -230,6 +230,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
           name: `${firstName} ${lastName}`.trim() || undefined,
         })
       }
+      posthog?.capture('step_completed', { step: 'details', service_type: serviceType })
       onNext()
     } else {
       // Scroll to first error field for better UX
@@ -303,7 +304,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
             onBlur={() => handleBlur('firstName', firstName)}
             placeholder="Jane"
             data-error={touched.firstName && errors.firstName ? "true" : undefined}
-            className={`h-11 ${touched.firstName && errors.firstName ? 'border-destructive' : ''}`}
+            className={cn("h-11", touched.firstName && errors.firstName && "border-destructive")}
           />
         </FormField>
         
@@ -318,7 +319,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
             onBlur={() => handleBlur('lastName', lastName)}
             placeholder="Smith"
             data-error={touched.lastName && errors.lastName ? "true" : undefined}
-            className={`h-11 ${touched.lastName && errors.lastName ? 'border-destructive' : ''}`}
+            className={cn("h-11", touched.lastName && errors.lastName && "border-destructive")}
           />
         </FormField>
       </div>
@@ -338,7 +339,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
           onBlur={() => handleBlur('email', email)}
           placeholder="jane@example.com"
           data-error={touched.email && errors.email ? "true" : undefined}
-          className={`h-11 ${touched.email && errors.email ? 'border-destructive' : ''}`}
+          className={cn("h-11", touched.email && errors.email && "border-destructive")}
         />
       </FormField>
 
@@ -356,7 +357,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
           onChange={(e) => setIdentity({ dob: e.target.value })}
           onBlur={() => handleBlur('dob', dob)}
           data-error={touched.dob && errors.dob ? "true" : undefined}
-          className={`h-11 ${touched.dob && errors.dob ? 'border-destructive' : ''}`}
+          className={cn("h-11", touched.dob && errors.dob && "border-destructive")}
           max={new Date(Date.now() - 18 * 365.25 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}
         />
       </FormField>
@@ -370,7 +371,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
           helpContent={{ title: "Why do we ask this?", content: "Required by Australian prescribing regulations for eScript generation. Select the option that matches your Medicare record." }}
         >
           <Select value={sex} onValueChange={(val) => setAnswer("sex", val)}>
-            <SelectTrigger className={`h-11 ${touched.sex && !sex ? "border-destructive" : ""}`}>
+            <SelectTrigger className={cn("h-11", touched.sex && !sex && "border-destructive")}>
               <SelectValue placeholder="Select..." />
             </SelectTrigger>
             <SelectContent>
@@ -398,7 +399,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
           onBlur={() => handleBlur('phone', phone)}
           placeholder="0412 345 678"
           data-error={touched.phone && errors.phone ? "true" : undefined}
-          className={`h-11 ${touched.phone && errors.phone ? 'border-destructive' : ''}`}
+          className={cn("h-11", touched.phone && errors.phone && "border-destructive")}
         />
         {needsPhone && (
           <p className="text-xs text-muted-foreground mt-1.5 flex items-center gap-1.5">
@@ -428,7 +429,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
             onBlur={() => handleBlur('medicareNumber', medicareNumber)}
             placeholder="1234 56789 0"
             data-error={touched.medicareNumber && errors.medicareNumber ? "true" : undefined}
-            className={`h-11 ${touched.medicareNumber && errors.medicareNumber ? 'border-destructive' : ''}`}
+            className={cn("h-11", touched.medicareNumber && errors.medicareNumber && "border-destructive")}
           />
           {medicareNumber.length === 10 && !errors.medicareNumber && (
             <p className="text-xs text-muted-foreground mt-1">
@@ -452,7 +453,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
             onChange={(val) => setAnswer("addressLine1", val)}
             onAddressSelect={handleAddressSelect}
             placeholder="Start typing your address..."
-            className={`h-11 ${touched.addressLine1 && errors.addressLine1 ? 'border-destructive' : ''}`}
+            className={cn("h-11", touched.addressLine1 && errors.addressLine1 && "border-destructive")}
           />
           {(suburb || state || postcode) && (
             <p className="text-xs text-muted-foreground mt-1">
@@ -533,9 +534,17 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
       {/* Continue button — always clickable so validate() fires and surfaces errors */}
       <Button
         onClick={handleNext}
+        variant={canContinue ? "default" : "secondary"}
         className="w-full h-12"
       >
-        Continue
+        {canContinue ? (
+          <>
+            Review your request
+            <ArrowRight className="w-4 h-4" />
+          </>
+        ) : (
+          "Continue"
+        )}
       </Button>
     </div>
   )

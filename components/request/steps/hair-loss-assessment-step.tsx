@@ -1,7 +1,8 @@
 "use client"
 
-import { useState } from "react"
-import { Scissors, AlertCircle, Pill, Droplets } from "lucide-react"
+import { useState, useMemo } from "react"
+import { usePostHog } from "@/components/providers/posthog-provider"
+import { Scissors, AlertCircle, Pill, Droplets, ArrowRight } from "lucide-react"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
@@ -10,6 +11,7 @@ import { Switch } from "@/components/ui/switch"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { cn } from "@/lib/utils"
 import { useRequestStore } from "../store"
+import { useKeyboardNavigation } from "@/hooks/use-keyboard-navigation"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 
 interface HairLossAssessmentStepProps {
@@ -60,6 +62,7 @@ const SCALP_CONDITIONS = [
 
 export default function HairLossAssessmentStep({ onNext }: HairLossAssessmentStepProps) {
   const { answers, setAnswer } = useRequestStore()
+  const posthog = usePostHog()
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   const hairPattern = (answers.hairPattern as string) || ""
@@ -90,11 +93,24 @@ export default function HairLossAssessmentStep({ onNext }: HairLossAssessmentSte
 
   const handleNext = () => {
     if (validate()) {
+      posthog?.capture('step_completed', { step: 'hair-loss-assessment', pattern: hairPattern, preference: hairMedicationPreference })
       onNext()
     }
   }
 
   const isComplete = hairPattern && hairDuration && hairFamilyHistory && hairMedicationPreference
+
+  useKeyboardNavigation({
+    onNext: isComplete ? handleNext : undefined,
+    enabled: Boolean(isComplete),
+  })
+
+  // Progressive disclosure: reveal sections as earlier required fields are answered
+  const showDuration = !!hairPattern
+  const showFamilyHistory = showDuration && !!hairDuration
+  const showTreatments = showFamilyHistory && !!hairFamilyHistory
+  const showPreference = showTreatments
+  const showScalp = showPreference && !!hairMedicationPreference
 
   return (
     <div className="space-y-6">
@@ -134,14 +150,15 @@ export default function HairLossAssessmentStep({ onNext }: HairLossAssessmentSte
           ))}
         </RadioGroup>
         {errors.hairPattern && (
-          <p className="text-xs text-destructive flex items-center gap-1">
+          <p className="text-xs text-destructive flex items-center gap-1" role="alert" aria-live="polite">
             <AlertCircle className="w-3 h-3" />
             {errors.hairPattern}
           </p>
         )}
       </div>
 
-      {/* Duration */}
+      {/* Duration — visible after pattern selected */}
+      {showDuration && (
       <div className="space-y-3">
         <Label className="text-sm font-medium">
           How long have you been experiencing hair loss?
@@ -169,14 +186,16 @@ export default function HairLossAssessmentStep({ onNext }: HairLossAssessmentSte
           ))}
         </RadioGroup>
         {errors.hairDuration && (
-          <p className="text-xs text-destructive flex items-center gap-1">
+          <p className="text-xs text-destructive flex items-center gap-1" role="alert" aria-live="polite">
             <AlertCircle className="w-3 h-3" />
             {errors.hairDuration}
           </p>
         )}
       </div>
+      )}
 
-      {/* Family history */}
+      {/* Family history — visible after duration selected */}
+      {showFamilyHistory && (
       <div className="space-y-3">
         <Label className="text-sm font-medium">
           Do you have a family history of hair loss?
@@ -204,14 +223,16 @@ export default function HairLossAssessmentStep({ onNext }: HairLossAssessmentSte
           ))}
         </RadioGroup>
         {errors.hairFamilyHistory && (
-          <p className="text-xs text-destructive flex items-center gap-1">
+          <p className="text-xs text-destructive flex items-center gap-1" role="alert" aria-live="polite">
             <AlertCircle className="w-3 h-3" />
             {errors.hairFamilyHistory}
           </p>
         )}
       </div>
+      )}
 
-      {/* Previous treatments — toggle list */}
+      {/* Previous treatments — visible after family history */}
+      {showTreatments && (
       <div className="space-y-3">
         <Label className="text-sm font-medium">
           Which treatments have you tried before?
@@ -238,7 +259,10 @@ export default function HairLossAssessmentStep({ onNext }: HairLossAssessmentSte
         </div>
       </div>
 
-      {/* Preferred medication — styled option cards */}
+      )}
+
+      {/* Preferred medication — visible after treatments section */}
+      {showPreference && (
       <div className="space-y-3">
         <Label className="text-sm font-medium">
           Which treatment option interests you?
@@ -251,6 +275,7 @@ export default function HairLossAssessmentStep({ onNext }: HairLossAssessmentSte
             onClick={() => setAnswer("hairMedicationPreference", "finasteride")}
             className={cn(
               "flex flex-col items-start gap-3 p-4 rounded-xl border text-left cursor-pointer transition-all",
+              "focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 outline-none",
               hairMedicationPreference === "finasteride"
                 ? "border-primary bg-primary/5 ring-1 ring-primary/30"
                 : "border-border hover:border-primary/50"
@@ -278,6 +303,7 @@ export default function HairLossAssessmentStep({ onNext }: HairLossAssessmentSte
             onClick={() => setAnswer("hairMedicationPreference", "minoxidil")}
             className={cn(
               "flex flex-col items-start gap-3 p-4 rounded-xl border text-left cursor-pointer transition-all",
+              "focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 outline-none",
               hairMedicationPreference === "minoxidil"
                 ? "border-primary bg-primary/5 ring-1 ring-primary/30"
                 : "border-border hover:border-primary/50"
@@ -300,14 +326,17 @@ export default function HairLossAssessmentStep({ onNext }: HairLossAssessmentSte
           </button>
         </div>
         {errors.hairMedicationPreference && (
-          <p className="text-xs text-destructive flex items-center gap-1">
+          <p className="text-xs text-destructive flex items-center gap-1" role="alert" aria-live="polite">
             <AlertCircle className="w-3 h-3" />
             {errors.hairMedicationPreference}
           </p>
         )}
       </div>
 
-      {/* Scalp conditions — toggle list */}
+      )}
+
+      {/* Scalp conditions — visible after preference selected */}
+      {showScalp && (
       <div className="space-y-3">
         <Label className="text-sm font-medium">
           Do you have any scalp conditions?
@@ -334,7 +363,10 @@ export default function HairLossAssessmentStep({ onNext }: HairLossAssessmentSte
         </div>
       </div>
 
-      {/* Additional info */}
+      )}
+
+      {/* Additional info — visible after scalp */}
+      {showScalp && (
       <div className="space-y-2">
         <Label className="text-sm font-medium">
           Anything else relevant?
@@ -347,13 +379,22 @@ export default function HairLossAssessmentStep({ onNext }: HairLossAssessmentSte
         />
       </div>
 
+      )}
+
       {/* Continue button */}
       <Button
         onClick={handleNext}
         disabled={!isComplete}
         className="w-full h-12 text-base font-medium"
       >
-        Continue
+        {isComplete ? (
+          <>
+            Continue to your details
+            <ArrowRight className="w-4 h-4" />
+          </>
+        ) : (
+          "Continue"
+        )}
       </Button>
     </div>
   )

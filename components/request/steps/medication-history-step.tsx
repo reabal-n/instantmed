@@ -10,8 +10,8 @@
  */
 
 import { useState, useCallback } from "react"
-import { useRouter } from "next/navigation"
-import { History, Stethoscope, ArrowLeft } from "lucide-react"
+import { usePostHog } from "@/components/providers/posthog-provider"
+import { History, Stethoscope, ArrowLeft, ArrowRight } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
@@ -38,7 +38,7 @@ const PRESCRIPTION_HISTORY_OPTIONS = [
 ] as const
 
 export default function MedicationHistoryStep({ onNext, onBack }: MedicationHistoryStepProps) {
-  const router = useRouter()
+  const posthog = usePostHog()
   const { answers, setAnswer } = useRequestStore()
   
   const prescriptionHistory = answers.prescriptionHistory as string | undefined
@@ -71,9 +71,10 @@ export default function MedicationHistoryStep({ onNext, onBack }: MedicationHist
 
   const handleNext = useCallback(() => {
     if (validate()) {
+      posthog?.capture('step_completed', { step: 'medication-history', prescription_history: prescriptionHistory, has_side_effects: hasSideEffects })
       onNext()
     }
-  }, [validate, onNext])
+  }, [validate, posthog, prescriptionHistory, hasSideEffects, onNext])
 
   const isNeverPrescribed = prescriptionHistory === "never"
   const isComplete = prescriptionHistory && !isNeverPrescribed && (hasSideEffects === false || (hasSideEffects && sideEffects.trim()))
@@ -128,41 +129,16 @@ export default function MedicationHistoryStep({ onNext, onBack }: MedicationHist
             <Stethoscope className="w-5 h-5 text-primary shrink-0 mt-0.5" />
             <div className="space-y-1">
               <AlertTitle className="text-sm font-medium text-foreground">
-                Looks like a new prescription for you
+                This service is for repeat prescriptions only
               </AlertTitle>
               <AlertDescription className="text-sm text-muted-foreground">
-                Since this isn&apos;t a repeat, our doctors need a quick consultation first to make sure it&apos;s safe and right for you. We&apos;ll carry your details over so you don&apos;t have to start again.
+                We can only prescribe medications you&apos;ve been prescribed before by another doctor.
+                For a new prescription, please visit your GP. We do offer specialty consultations
+                for ED and hair loss treatment.
               </AlertDescription>
             </div>
           </div>
           <div className="flex flex-col sm:flex-row gap-2 pt-2">
-            <Button
-              onClick={() => {
-                // Encode medication context in URL for consult handoff (survives refresh)
-                const medicationName = answers.medicationName as string | undefined
-                const medicationStrength = answers.medicationStrength as string | undefined
-
-                // Build URL with context params
-                const params = new URLSearchParams({
-                  service: 'consult',
-                  subtype: 'new-medication',
-                })
-
-                // Add medication context if available
-                if (medicationName) {
-                  const medicationContext = medicationStrength
-                    ? `${medicationName} ${medicationStrength}`
-                    : medicationName
-                  params.set('medication', medicationContext)
-                }
-
-                router.push(`/request?${params.toString()}`)
-              }}
-              className="flex-1 gap-2"
-            >
-              <Stethoscope className="w-4 h-4" />
-              Continue to consult ($49.95)
-            </Button>
             <Button
               variant="outline"
               onClick={() => {
@@ -172,7 +148,16 @@ export default function MedicationHistoryStep({ onNext, onBack }: MedicationHist
               className="flex-1 gap-2"
             >
               <ArrowLeft className="w-4 h-4" />
-              Back
+              Change medication
+            </Button>
+            <Button
+              variant="ghost"
+              asChild
+              className="flex-1 gap-2"
+            >
+              <a href="/request">
+                Browse other services
+              </a>
             </Button>
           </div>
         </div>
@@ -234,12 +219,19 @@ export default function MedicationHistoryStep({ onNext, onBack }: MedicationHist
       )}
 
       {/* Continue button */}
-      <Button 
-        onClick={handleNext} 
+      <Button
+        onClick={handleNext}
         className="w-full h-12"
         disabled={!canContinue}
       >
-        Continue
+        {canContinue ? (
+          <>
+            Continue to medical history
+            <ArrowRight className="w-4 h-4" />
+          </>
+        ) : (
+          "Continue"
+        )}
       </Button>
     </div>
   )
