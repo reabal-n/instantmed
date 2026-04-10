@@ -44,7 +44,7 @@ export async function findReviewRequestCandidates(): Promise<ApprovedIntake[]> {
       patient_id,
       category,
       approved_at,
-      patient:profiles!patient_id(email, first_name)
+      patient:profiles!patient_id(email, first_name, email_bounced)
     `)
     .in("status", ["approved", "completed"])
     .is("review_email_sent_at", null)
@@ -59,7 +59,7 @@ export async function findReviewRequestCandidates(): Promise<ApprovedIntake[]> {
   return (data || []).map(item => {
     const patient = Array.isArray(item.patient) ? item.patient[0] : item.patient
     return { ...item, patient: patient ?? null }
-  }) as ApprovedIntake[]
+  }).filter(item => !item.patient || !(item.patient as Record<string, unknown>).email_bounced) as ApprovedIntake[]
 }
 
 /**
@@ -78,7 +78,7 @@ export async function findReviewFollowupCandidates(): Promise<ApprovedIntake[]> 
       patient_id,
       category,
       approved_at,
-      patient:profiles!patient_id(email, first_name)
+      patient:profiles!patient_id(email, first_name, email_bounced)
     `)
     .in("status", ["approved", "completed"])
     .not("review_email_sent_at", "is", null)
@@ -94,7 +94,7 @@ export async function findReviewFollowupCandidates(): Promise<ApprovedIntake[]> 
   return (data || []).map(item => {
     const patient = Array.isArray(item.patient) ? item.patient[0] : item.patient
     return { ...item, patient: patient ?? null }
-  }) as ApprovedIntake[]
+  }).filter(item => !item.patient || !(item.patient as Record<string, unknown>).email_bounced) as ApprovedIntake[]
 }
 
 /**

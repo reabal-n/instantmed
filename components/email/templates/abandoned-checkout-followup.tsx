@@ -27,7 +27,7 @@ export function AbandonedCheckoutFollowupEmail({
   const firstName = patientName.split(" ")[0]
 
   return (
-    <BaseEmail previewText={`Your ${serviceName} request won't be saved much longer`} appUrl={appUrl}>
+    <BaseEmail previewText={`Your ${serviceName} request won't be saved much longer`} appUrl={appUrl} showFooterReview={false}>
       <HeroBlock
         icon="⚡"
         headline="Your request expires soon"

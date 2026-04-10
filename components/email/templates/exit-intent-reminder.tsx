@@ -26,7 +26,7 @@ export function ExitIntentReminderEmail({
   appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au",
 }: ExitIntentReminderEmailProps) {
   return (
-    <BaseEmail previewText={`Still thinking? Here's everything you need to get started.`} appUrl={appUrl}>
+    <BaseEmail previewText={`Still thinking? Here's everything you need to get started.`} appUrl={appUrl} showFooterReview={false}>
       <HeroBlock
         icon="💭"
         headline="Still thinking it over?"

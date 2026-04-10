@@ -40,6 +40,16 @@ import {
   RefundIssuedEmail, refundIssuedEmailSubject,
   VerificationCodeEmail, verificationCodeSubject,
   StillReviewingEmail, stillReviewingSubject,
+  FollowUpReminderEmail, followUpReminderSubject,
+  ExitIntentSocialProofEmail, exitIntentSocialProofSubject,
+  ExitIntentLastChanceEmail, exitIntentLastChanceSubject,
+  ExitIntentReminderEmail, exitIntentReminderSubject,
+  DeclineReengagementEmail, declineReengagementSubject,
+  TreatmentFollowupEmail, treatmentFollowupSubject,
+  ReviewRequestEmail, reviewRequestSubject,
+  ReviewFollowupEmail, reviewFollowupSubject,
+  AbandonedCheckoutFollowupEmail, abandonedCheckoutFollowupSubject,
+  SubscriptionNudgeEmail, subscriptionNudgeSubject,
 } from "@/components/email/templates"
 
 // ============================================================================
@@ -932,6 +942,131 @@ describe("Email Templates", () => {
       expect(html).toMatchSnapshot()
     })
   })
+
+  describe("ExitIntentReminderEmail", () => {
+    it("renders content", () => {
+      const html = render(
+        <ExitIntentReminderEmail service="Medical Certificate" price="$19.95" ctaUrl="https://instantmed.com.au/request" appUrl={APP_URL} />
+      )
+      expectBaseEmailStructure(html)
+      expectContains(html, "Medical Certificate")
+    })
+
+    it("subject is non-empty", () => {
+      expect(exitIntentReminderSubject("Medical Certificate")).toBeTruthy()
+    })
+  })
+
+  describe("ExitIntentSocialProofEmail", () => {
+    it("renders content", () => {
+      const html = render(
+        <ExitIntentSocialProofEmail service="Medical Certificate" price="$19.95" ctaUrl="https://instantmed.com.au/request" appUrl={APP_URL} />
+      )
+      expectBaseEmailStructure(html)
+      expectContains(html, "97%")
+    })
+
+    it("subject is non-empty", () => {
+      expect(exitIntentSocialProofSubject()).toBeTruthy()
+    })
+  })
+
+  describe("ExitIntentLastChanceEmail", () => {
+    it("renders content", () => {
+      const html = render(
+        <ExitIntentLastChanceEmail service="Medical Certificate" price="$19.95" ctaUrl="https://instantmed.com.au/request" appUrl={APP_URL} />
+      )
+      expectBaseEmailStructure(html)
+    })
+
+    it("subject is non-empty", () => {
+      expect(exitIntentLastChanceSubject("Medical Certificate")).toBeTruthy()
+    })
+  })
+
+  describe("DeclineReengagementEmail", () => {
+    it("renders content", () => {
+      const html = render(
+        <DeclineReengagementEmail patientName="Test Patient" declinedService="Medical Certificate" appUrl={APP_URL} />
+      )
+      expectBaseEmailStructure(html)
+      expectContains(html, "Test")
+    })
+
+    it("subject is non-empty", () => {
+      expect(declineReengagementSubject()).toBeTruthy()
+    })
+  })
+
+  describe("TreatmentFollowupEmail", () => {
+    it("renders content", () => {
+      const html = render(
+        <TreatmentFollowupEmail patientName="Test Patient" followupId="fu-001" subtype="ed" milestone="month_3" baseUrl={APP_URL} />
+      )
+      expectBaseEmailStructure(html)
+      expectContains(html, "Test")
+    })
+
+    it("subject is non-empty", () => {
+      expect(treatmentFollowupSubject("ed", "month_3")).toBeTruthy()
+    })
+  })
+
+  describe("ReviewRequestEmail", () => {
+    it("renders content", () => {
+      const html = render(
+        <ReviewRequestEmail patientName="Test Patient" serviceName="Medical Certificate" appUrl={APP_URL} />
+      )
+      expectBaseEmailStructure(html)
+      expectContains(html, "Test")
+    })
+
+    it("subject is non-empty", () => {
+      expect(reviewRequestSubject).toBeTruthy()
+    })
+  })
+
+  describe("ReviewFollowupEmail", () => {
+    it("renders content", () => {
+      const html = render(
+        <ReviewFollowupEmail patientName="Test Patient" appUrl={APP_URL} />
+      )
+      expectBaseEmailStructure(html)
+      expectContains(html, "Test")
+    })
+
+    it("subject is non-empty", () => {
+      expect(reviewFollowupSubject).toBeTruthy()
+    })
+  })
+
+  describe("AbandonedCheckoutFollowupEmail", () => {
+    it("renders content", () => {
+      const html = render(
+        <AbandonedCheckoutFollowupEmail patientName="Test Patient" serviceName="Medical Certificate" resumeUrl="https://instantmed.com.au/request?resume=abc" appUrl={APP_URL} />
+      )
+      expectBaseEmailStructure(html)
+      expectContains(html, "Test")
+    })
+
+    it("subject is non-empty", () => {
+      expect(abandonedCheckoutFollowupSubject("Medical Certificate")).toBeTruthy()
+    })
+  })
+
+  describe("SubscriptionNudgeEmail", () => {
+    it("renders content", () => {
+      const html = render(
+        <SubscriptionNudgeEmail patientName="Test Patient" appUrl={APP_URL} />
+      )
+      expectBaseEmailStructure(html)
+      expectContains(html, "Test")
+    })
+
+    it("subject is non-empty", () => {
+      expect(subscriptionNudgeSubject).toBeTruthy()
+    })
+  })
 })
 
 // ============================================================================
@@ -966,12 +1101,21 @@ describe("Email Template Cross-Checks", () => {
       <RefundIssuedEmail key="23" patientName="Test" requestType="Med Cert" requestId="R12" appUrl={APP_URL} />,
       <VerificationCodeEmail key="24" code="123456" appUrl={APP_URL} />,
       <StillReviewingEmail key="25" patientName="Test" requestType="Med Cert" requestId="R13" appUrl={APP_URL} />,
+      <ExitIntentReminderEmail key="26" service="Medical Certificate" price="$19.95" ctaUrl="https://instantmed.com.au/request" appUrl={APP_URL} />,
+      <ExitIntentSocialProofEmail key="27" service="Medical Certificate" price="$19.95" ctaUrl="https://instantmed.com.au/request" appUrl={APP_URL} />,
+      <ExitIntentLastChanceEmail key="28" service="Medical Certificate" price="$19.95" ctaUrl="https://instantmed.com.au/request" appUrl={APP_URL} />,
+      <DeclineReengagementEmail key="29" patientName="Test" declinedService="Medical Certificate" appUrl={APP_URL} />,
+      <TreatmentFollowupEmail key="30" patientName="Test" followupId="fu-001" subtype="ed" milestone="month_3" baseUrl={APP_URL} />,
+      <ReviewRequestEmail key="31" patientName="Test" serviceName="Medical Certificate" appUrl={APP_URL} />,
+      <ReviewFollowupEmail key="32" patientName="Test" appUrl={APP_URL} />,
+      <AbandonedCheckoutFollowupEmail key="33" patientName="Test" serviceName="Medical Certificate" resumeUrl="https://instantmed.com.au/request?resume=abc" appUrl={APP_URL} />,
+      <SubscriptionNudgeEmail key="34" patientName="Test" appUrl={APP_URL} />,
     ]
 
     for (const template of templates) {
       const html = render(template)
-      // Must start with <html> and end with </html>
-      expect(html).toMatch(/^<html>/)
+      // Must start with <html (with optional lang attr) and end with </html>
+      expect(html).toMatch(/^<html[\s>]/)
       expect(html).toMatch(/<\/html>$/)
       // Must have body
       expect(html).toContain("<body")
@@ -1229,6 +1373,33 @@ describe("Link validation", () => {
         appUrl={APP_URL}
       />
     ),
+    ExitIntentReminderEmail: (
+      <ExitIntentReminderEmail service="Medical Certificate" price="$19.95" ctaUrl="https://instantmed.com.au/request" appUrl={APP_URL} />
+    ),
+    ExitIntentSocialProofEmail: (
+      <ExitIntentSocialProofEmail service="Medical Certificate" price="$19.95" ctaUrl="https://instantmed.com.au/request" appUrl={APP_URL} />
+    ),
+    ExitIntentLastChanceEmail: (
+      <ExitIntentLastChanceEmail service="Medical Certificate" price="$19.95" ctaUrl="https://instantmed.com.au/request" appUrl={APP_URL} />
+    ),
+    DeclineReengagementEmail: (
+      <DeclineReengagementEmail patientName="Test Patient" declinedService="Medical Certificate" appUrl={APP_URL} />
+    ),
+    TreatmentFollowupEmail: (
+      <TreatmentFollowupEmail patientName="Test Patient" followupId="fu-001" subtype="ed" milestone="month_3" baseUrl={APP_URL} />
+    ),
+    ReviewRequestEmail: (
+      <ReviewRequestEmail patientName="Test Patient" serviceName="Medical Certificate" appUrl={APP_URL} />
+    ),
+    ReviewFollowupEmail: (
+      <ReviewFollowupEmail patientName="Test Patient" appUrl={APP_URL} />
+    ),
+    AbandonedCheckoutFollowupEmail: (
+      <AbandonedCheckoutFollowupEmail patientName="Test Patient" serviceName="Medical Certificate" resumeUrl="https://instantmed.com.au/request?resume=abc" appUrl={APP_URL} />
+    ),
+    SubscriptionNudgeEmail: (
+      <SubscriptionNudgeEmail patientName="Test Patient" appUrl={APP_URL} />
+    ),
   }
 
   /** Extract all href values from rendered HTML */
@@ -1281,6 +1452,111 @@ describe("Link validation", () => {
           expect(href).not.toContain("${")
         }
       })
+    })
+  }
+})
+
+// =============================================
+// Google Review UTM tracking
+// =============================================
+
+describe("Google Review UTM tracking", () => {
+  // Templates that include Google review links (footer or inline)
+  const reviewTemplates: Record<string, React.ReactElement> = {
+    MedCertPatientEmail: (
+      <MedCertPatientEmail
+        patientName="Test"
+        downloadUrl="https://instantmed.com.au/dl/abc"
+        dashboardUrl="https://instantmed.com.au/patient/intakes/123"
+        verificationCode="ABC-1234"
+        appUrl={APP_URL}
+      />
+    ),
+    ScriptSentEmail: (
+      <ScriptSentEmail
+        patientName="Test"
+        requestId="REQ-001"
+        escriptReference="ES-001"
+        appUrl={APP_URL}
+      />
+    ),
+    FollowUpReminderEmail: (
+      <FollowUpReminderEmail
+        patientName="Test"
+        appUrl={APP_URL}
+      />
+    ),
+  }
+
+  for (const [name, element] of Object.entries(reviewTemplates)) {
+    it(`${name} — Google review links include utm_source=email`, () => {
+      const html = renderToStaticMarkup(element)
+      // Find all g.page review hrefs
+      const reviewUrls = html.match(/g\.page\/r\/[^"&;]+/g)
+      expect(reviewUrls?.length, `${name} should have at least one review link`).toBeGreaterThan(0)
+      // Every review link must have UTM tracking
+      expect(html).toContain("utm_source=email")
+    })
+  }
+})
+
+// =============================================
+// Preheader length validation
+// =============================================
+
+describe("Preheader length validation", () => {
+  // Render all templates and check that previewText (preheader) stays ≤80 chars
+  // This prevents email clients from appending body text to the subject line
+  const allTemplates: Record<string, React.ReactElement> = {
+    MedCertPatientEmail: <MedCertPatientEmail patientName="Test" dashboardUrl="https://example.com" appUrl={APP_URL} />,
+    ScriptSentEmail: <ScriptSentEmail patientName="Test" requestId="R1" appUrl={APP_URL} />,
+    ConsultApprovedEmail: <ConsultApprovedEmail patientName="Test" requestId="R1" appUrl={APP_URL} />,
+    RequestDeclinedEmail: <RequestDeclinedEmail patientName="Test" requestType="Medical Certificate" requestId="R1" appUrl={APP_URL} />,
+    WelcomeEmail: <WelcomeEmail patientName="Test Patient" appUrl={APP_URL} />,
+    VerificationCodeEmail: <VerificationCodeEmail code="123456" appUrl={APP_URL} />,
+    PaymentReceiptEmail: <PaymentReceiptEmail patientName="Test" serviceName="Med Cert" amount="$19.95" intakeRef="IM-1" paidAt="1 Jan" dashboardUrl="https://example.com" appUrl={APP_URL} />,
+    StillReviewingEmail: <StillReviewingEmail patientName="Test" requestType="Medical Certificate" requestId="R1" appUrl={APP_URL} />,
+  }
+
+  for (const [name, element] of Object.entries(allTemplates)) {
+    it(`${name} preheader is ≤80 chars`, () => {
+      const html = renderToStaticMarkup(element)
+      // Extract preheader: hidden div content before the first visible table
+      const preheaderMatch = html.match(/display:none[^>]*>([^<]+)</)
+      if (preheaderMatch) {
+        // Strip the invisible padding characters
+        const preheader = preheaderMatch[1].replace(/[\u00A0\u200C]/g, "").trim()
+        expect(preheader.length).toBeLessThanOrEqual(80)
+      }
+    })
+  }
+})
+
+// =============================================
+// Referral CTA UTM tracking
+// =============================================
+
+describe("Referral CTA UTM tracking", () => {
+  const referralTemplates: Record<string, React.ReactElement> = {
+    MedCertPatientEmail: (
+      <MedCertPatientEmail patientName="Test" dashboardUrl="https://example.com" appUrl={APP_URL} />
+    ),
+    WelcomeEmail: (
+      <WelcomeEmail patientName="Test" appUrl={APP_URL} />
+    ),
+    ScriptSentEmail: (
+      <ScriptSentEmail patientName="Test" requestId="R1" appUrl={APP_URL} />
+    ),
+  }
+
+  for (const [name, element] of Object.entries(referralTemplates)) {
+    it(`${name} — referral links include utm_source=email`, () => {
+      const html = renderToStaticMarkup(element)
+      // Find referral link
+      const referralMatch = html.match(/href="[^"]*tab=referrals[^"]*"/)
+      expect(referralMatch, `${name} should have a referral link`).toBeTruthy()
+      expect(html).toContain("utm_source=email")
+      expect(html).toContain("utm_campaign=referral")
     })
   }
 })

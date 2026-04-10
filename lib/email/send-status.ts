@@ -30,7 +30,7 @@ async function buildTemplateElement(
         }),
         subject: data.requestType
           ? `Good news! Your ${data.requestType} has been approved`
-          : consultApprovedSubject,
+          : consultApprovedSubject(),
       }
     }
 

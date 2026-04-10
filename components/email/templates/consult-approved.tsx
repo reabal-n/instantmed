@@ -12,9 +12,8 @@ import {
   Button,
   Box,
   Heading,
-  GoogleReviewCTA,
+  ReferralCTA,
 } from "../base-email"
-import { GOOGLE_REVIEW_URL } from "@/lib/constants"
 
 export interface ConsultApprovedEmailProps {
   patientName: string
@@ -33,9 +32,9 @@ export function ConsultApprovedEmail({
 
   return (
     <BaseEmail
-      previewText="Your consultation has been reviewed — here's what's next ✅"
+      previewText={`${firstName}, your consultation is complete — here's what's next ✅`}
       appUrl={appUrl}
-      showFooterReview={false}
+      showFooterReview
     >
       <HeroBlock
         icon="✓"
@@ -62,9 +61,10 @@ export function ConsultApprovedEmail({
         View details
       </Button>
 
-      <GoogleReviewCTA href={GOOGLE_REVIEW_URL} />
+      <ReferralCTA appUrl={appUrl} />
     </BaseEmail>
   )
 }
 
-export const consultApprovedSubject = "Good news — your consultation is all done ✅"
+export const consultApprovedSubject = (firstName?: string) =>
+  firstName ? `${firstName}, your consultation is all done ✅` : "Good news — your consultation is all done ✅"

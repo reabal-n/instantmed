@@ -12,10 +12,9 @@ import {
   Button,
   Box,
   Heading,
-  GoogleReviewCTA,
   colors,
+  ReferralCTA,
 } from "../base-email"
-import { GOOGLE_REVIEW_URL } from "@/lib/constants"
 
 export interface ScriptSentEmailProps {
   patientName: string
@@ -36,7 +35,7 @@ export function ScriptSentEmail({
     <BaseEmail
       previewText="Your eScript is ready — check your phone 💊"
       appUrl={appUrl}
-      showFooterReview={false}
+      showFooterReview
     >
       <HeroBlock
         icon="💊"
@@ -75,9 +74,10 @@ export function ScriptSentEmail({
         View request
       </Button>
 
-      <GoogleReviewCTA href={GOOGLE_REVIEW_URL} />
+      <ReferralCTA appUrl={appUrl} />
     </BaseEmail>
   )
 }
 
-export const scriptSentEmailSubject = "Your eScript is on its way 💊"
+export const scriptSentEmailSubject = (firstName?: string) =>
+  firstName ? `${firstName}, your eScript is on its way 💊` : "Your eScript is on its way 💊"

@@ -279,7 +279,7 @@ export async function markScriptSentAction(
         await sendEmail({
           to: intake.patient.email,
           toName: patientName,
-          subject: scriptSentEmailSubject,
+          subject: scriptSentEmailSubject(patientName?.split(" ")[0]),
           template: React.createElement(ScriptSentEmail, {
             patientName,
             requestId: intakeId,

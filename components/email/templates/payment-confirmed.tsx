@@ -30,7 +30,7 @@ export function PaymentConfirmedEmail({
   const firstName = patientName.split(" ")[0]
 
   return (
-    <BaseEmail previewText={`Payment received, ${amount} for your ${requestType} ✅`} appUrl={appUrl}>
+    <BaseEmail previewText={`Payment received, ${amount} for your ${requestType} ✅`} appUrl={appUrl} showFooterReview={false}>
       <StatusBanner title="Payment received ✅" variant="success" />
 
       <Text>Hi {firstName},</Text>

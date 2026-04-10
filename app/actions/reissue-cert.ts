@@ -291,7 +291,7 @@ export async function reissueCertificateAction(
           await sendEmail({
             to: patient.email,
             toName: patient.full_name,
-            subject: `${medCertPatientEmailSubject} (Updated)`,
+            subject: `${medCertPatientEmailSubject(patient.full_name?.split(" ")[0])} (Updated)`,
             template: MedCertPatientEmail({
               patientName: patient.full_name,
               downloadUrl,

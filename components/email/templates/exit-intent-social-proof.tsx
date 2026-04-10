@@ -31,7 +31,7 @@ export function ExitIntentSocialProofEmail({
   openTrackingUrl,
 }: ExitIntentSocialProofEmailProps) {
   return (
-    <BaseEmail previewText="Here's what happens after you hit submit." appUrl={appUrl}>
+    <BaseEmail previewText="Here's what happens after you hit submit." appUrl={appUrl} showFooterReview={false}>
       <HeroBlock
         icon="📊"
         headline="Here&apos;s what actually happens"

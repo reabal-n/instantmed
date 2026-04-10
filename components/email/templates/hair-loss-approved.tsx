@@ -14,9 +14,8 @@ import {
   Heading,
   List,
   HeroBlock,
-  GoogleReviewCTA,
+  ReferralCTA,
 } from "../base-email"
-import { GOOGLE_REVIEW_URL } from "@/lib/constants"
 
 export interface HairLossApprovedEmailProps {
   patientName: string
@@ -47,7 +46,7 @@ export function HairLossApprovedEmail({
     <BaseEmail
       previewText={`✅ ${firstName}, your ${medicationName} treatment is ready`}
       appUrl={appUrl}
-      showFooterReview={false}
+      showFooterReview
     >
       <HeroBlock
         icon="✓"
@@ -128,10 +127,10 @@ export function HairLossApprovedEmail({
         View Request Details
       </Button>
 
-      <GoogleReviewCTA href={GOOGLE_REVIEW_URL} />
+      <ReferralCTA appUrl={appUrl} />
     </BaseEmail>
   )
 }
 
-export const hairLossApprovedSubject = (medicationName: string) =>
-  `Your ${medicationName} treatment has been approved`
+export const hairLossApprovedSubject = (medicationName: string, firstName?: string) =>
+  firstName ? `${firstName}, your ${medicationName} treatment is approved` : `Your ${medicationName} treatment has been approved`

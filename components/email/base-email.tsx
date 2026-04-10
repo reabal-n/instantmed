@@ -9,7 +9,8 @@
  */
 
 import * as React from "react"
-import { COMPANY_NAME, ABN, GOOGLE_REVIEW_URL } from "@/lib/constants"
+import { COMPANY_NAME, ABN, COMPANY_ADDRESS_SHORT, GOOGLE_REVIEW_URL } from "@/lib/constants"
+import { getPatientCount, GOOGLE_REVIEWS } from "@/lib/social-proof"
 
 /* eslint-disable @next/next/no-head-element -- Email templates, not Next.js pages */
 
@@ -77,8 +78,9 @@ interface BaseEmailProps {
 }
 
 export function BaseEmail({ children, previewText, appUrl = "https://instantmed.com.au", showFooterReview = true }: BaseEmailProps) {
+  const patientFloor = Math.max(500, Math.floor(getPatientCount() / 500) * 500)
   return (
-    <html>
+    <html lang="en-AU">
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -103,6 +105,24 @@ export function BaseEmail({ children, previewText, appUrl = "https://instantmed.
               color: #e5e5e5 !important;
             }
             .email-card a { color: #60A5FA !important; }
+            .google-review-pill { background-color: #262626 !important; border-color: #404040 !important; }
+            .google-review-pill p { color: #d4d4d4 !important; }
+            .google-review-pill .g-muted { color: #a3a3a3 !important; }
+            .google-review-btn { background-color: #3B82F6 !important; color: #ffffff !important; }
+            .email-box { background-color: #1f1f1f !important; border-color: #333 !important; }
+            .email-code-block { background-color: #1f1f1f !important; border-color: #333 !important; }
+          }
+          @media (max-width: 480px) {
+            .email-card td[style*="padding: 40px"] { padding: 24px 20px !important; }
+            .email-card td[style*="padding:40px"] { padding: 24px 20px !important; }
+            .email-content { padding: 24px 20px 28px 20px !important; }
+            .email-footer td { padding-left: 20px !important; padding-right: 20px !important; }
+          }
+          a[href*="privacy"], a[href*="terms"], a[href*="preferences"] {
+            text-decoration: none;
+          }
+          a[href*="privacy"]:hover, a[href*="terms"]:hover, a[href*="preferences"]:hover {
+            text-decoration: underline !important;
           }
         `}</style>
       </head>
@@ -198,7 +218,7 @@ export function BaseEmail({ children, previewText, appUrl = "https://instantmed.
                                   {/* eslint-disable-next-line @next/next/no-img-element */}
                                   <img
                                     src={`${appUrl}/branding/wordmark.png`}
-                                    alt="InstantMed"
+                                    alt=""
                                     width="130"
                                     height="auto"
                                     style={{
@@ -251,37 +271,67 @@ export function BaseEmail({ children, previewText, appUrl = "https://instantmed.
                           <tbody>
                             {showFooterReview && (
                             <tr>
-                              <td style={{ padding: "24px 40px", textAlign: "center" as const, borderBottom: `1px solid ${colors.borderLight}` }}>
+                              <td style={{ padding: "20px 40px", textAlign: "center" as const, borderBottom: `1px solid ${colors.borderLight}` }}>
                                 <div
+                                  className="google-review-pill"
                                   style={{
-                                    backgroundColor: "#FFFBEB",
-                                    border: "1px solid #FDE68A",
-                                    borderRadius: "12px",
-                                    padding: "18px 20px",
+                                    backgroundColor: colors.cardBg,
+                                    border: `1px solid ${colors.border}`,
+                                    borderRadius: "10px",
+                                    padding: "14px 16px",
                                   }}
                                 >
-                                  <p style={{ margin: "0 0 6px 0", fontSize: "20px", lineHeight: "1" }}>⭐⭐⭐⭐⭐</p>
-                                  <p style={{ margin: "0 0 4px 0", fontSize: "14px", fontWeight: "600", color: colors.text }}>
-                                    Loving InstantMed?
-                                  </p>
-                                  <p style={{ margin: "0 0 10px 0", fontSize: "12px", color: colors.textSecondary, lineHeight: "1.5" }}>
-                                    A quick Google review means a lot — it helps more Australians find fast, easy healthcare.
-                                  </p>
-                                  <a
-                                    href={GOOGLE_REVIEW_URL}
-                                    style={{
-                                      display: "inline-block",
-                                      padding: "8px 20px",
-                                      backgroundColor: colors.accent,
-                                      color: "#ffffff",
-                                      fontSize: "13px",
-                                      fontWeight: "600",
-                                      textDecoration: "none",
-                                      borderRadius: "8px",
-                                    }}
-                                  >
-                                    Leave a review →
-                                  </a>
+                                  <table role="presentation" cellPadding="0" cellSpacing="0" style={{ margin: "0 auto" }}>
+                                    <tbody>
+                                      <tr>
+                                        <td style={{ verticalAlign: "middle", paddingRight: "10px" }}>
+                                          <div
+                                            style={{
+                                              width: "30px",
+                                              height: "30px",
+                                              borderRadius: "50%",
+                                              backgroundColor: "#4285F4",
+                                              color: "#ffffff",
+                                              fontSize: "16px",
+                                              fontWeight: "700",
+                                              lineHeight: "30px",
+                                              textAlign: "center" as const,
+                                            }}
+                                          >
+                                            G
+                                          </div>
+                                        </td>
+                                        <td style={{ verticalAlign: "middle", textAlign: "left" as const }}>
+                                          <p style={{ margin: "0 0 1px 0", fontSize: "13px", fontWeight: "600", color: colors.text, lineHeight: "1.3" }}>
+                                            <span style={{ color: "#F59E0B", fontSize: "12px", letterSpacing: "1px" }}>★★★★★</span>
+                                            {" "}5.0 on Google
+                                          </p>
+                                          <p className="g-muted" style={{ margin: 0, fontSize: "11px", color: colors.textMuted, lineHeight: "1.4" }}>
+                                            Help others find fast, easy healthcare
+                                          </p>
+                                        </td>
+                                        <td style={{ verticalAlign: "middle", paddingLeft: "14px" }}>
+                                          <a
+                                            className="google-review-btn"
+                                            href={`${GOOGLE_REVIEW_URL}?utm_source=email&utm_medium=footer_cta&utm_campaign=review`}
+                                            style={{
+                                              display: "inline-block",
+                                              padding: "6px 16px",
+                                              backgroundColor: colors.accent,
+                                              color: "#ffffff",
+                                              fontSize: "12px",
+                                              fontWeight: "600",
+                                              textDecoration: "none",
+                                              borderRadius: "6px",
+                                              whiteSpace: "nowrap" as const,
+                                            }}
+                                          >
+                                            Leave a review
+                                          </a>
+                                        </td>
+                                      </tr>
+                                    </tbody>
+                                  </table>
                                 </div>
                               </td>
                             </tr>
@@ -319,13 +369,32 @@ export function BaseEmail({ children, previewText, appUrl = "https://instantmed.
                                 </p>
                                 <p
                                   style={{
-                                    margin: 0,
+                                    margin: "0 0 6px 0",
+                                    fontSize: "11px",
+                                    color: colors.textMuted,
+                                    letterSpacing: "0.02em",
+                                  }}
+                                >
+                                  Trusted by {patientFloor.toLocaleString()}+ Australians · {GOOGLE_REVIEWS.rating} ★ on Google
+                                </p>
+                                <p
+                                  style={{
+                                    margin: "0 0 4px 0",
                                     fontSize: "11px",
                                     color: colors.textMuted,
                                     letterSpacing: "0.02em",
                                   }}
                                 >
                                   {COMPANY_NAME} · ABN {ABN}
+                                </p>
+                                <p
+                                  style={{
+                                    margin: 0,
+                                    fontSize: "10px",
+                                    color: colors.textMuted,
+                                  }}
+                                >
+                                  {COMPANY_ADDRESS_SHORT}
                                 </p>
                               </td>
                             </tr>
@@ -458,6 +527,7 @@ export function Box({ children, variant = "default" }: BoxProps) {
   const styles = variantStyles[variant]
   return (
     <div
+      className="email-box"
       style={{
         backgroundColor: styles.backgroundColor,
         border: `1px solid ${styles.borderColor}`,
@@ -491,7 +561,6 @@ export function StatusBanner({ title, variant = "success" }: StatusBannerProps) 
         borderRadius: "10px",
         padding: "12px 18px",
         marginBottom: "14px",
-        display: "flex",
       }}
     >
       <table role="presentation" cellPadding="0" cellSpacing="0" style={{ width: "100%" }}>
@@ -552,32 +621,34 @@ interface VerificationCodeProps {
 export function VerificationCode({ code, verifyUrl }: VerificationCodeProps) {
   return (
     <div
+      className="email-code-block"
       style={{
         backgroundColor: colors.surfaceSubtle,
         border: `1px solid ${colors.border}`,
-        borderRadius: "10px",
-        padding: "16px 20px",
+        borderRadius: "8px",
+        padding: "10px 16px",
         margin: "14px 0",
         textAlign: "center" as const,
       }}
     >
-      <p style={{ margin: "0 0 4px 0", fontSize: "11px", color: colors.textSecondary, fontWeight: "600", textTransform: "uppercase" as const, letterSpacing: "1px" }}>
+      <p style={{ margin: "0 0 2px 0", fontSize: "10px", color: colors.textSecondary, fontWeight: "600", textTransform: "uppercase" as const, letterSpacing: "1px" }} aria-hidden="true">
         Verification Code
       </p>
       <p
+        aria-label={`Verification code: ${code.split("").join(" ")}`}
         style={{
           margin: 0,
-          fontSize: "22px",
+          fontSize: "18px",
           fontFamily: "'SF Mono', 'Fira Code', Consolas, monospace",
           fontWeight: "700",
           color: colors.text,
-          letterSpacing: "4px",
+          letterSpacing: "3px",
         }}
       >
         {code}
       </p>
       {verifyUrl && (
-        <p style={{ margin: "12px 0 0 0", fontSize: "12px", color: colors.textMuted }}>
+        <p style={{ margin: "6px 0 0 0", fontSize: "11px", color: colors.textMuted }}>
           Verify at{" "}
           <a href={verifyUrl} style={{ color: colors.accent, textDecoration: "none" }}>
             {verifyUrl.replace("https://", "")}
@@ -713,22 +784,63 @@ interface GoogleReviewCTAProps {
 }
 
 export function GoogleReviewCTA({ href }: GoogleReviewCTAProps) {
+  const trackingHref = `${href}${href.includes("?") ? "&" : "?"}utm_source=email&utm_medium=inline_cta&utm_campaign=review`
   return (
     <div
       style={{
-        textAlign: "center" as const,
-        padding: "16px 0 4px",
         borderTop: `1px solid ${colors.borderLight}`,
         margin: "4px 0 0 0",
+        padding: "16px 0 4px",
       }}
     >
-      <p style={{ margin: 0, fontSize: "14px", color: colors.textBody, lineHeight: "1.6" }}>
-        ⭐ Happy with InstantMed?{" "}
-        <a href={href} style={{ color: colors.accent, fontWeight: 600, textDecoration: "none" }}>
-          Leave a quick Google review
-        </a>
-        {" "}— takes 30 seconds.
-      </p>
+      <table role="presentation" cellPadding="0" cellSpacing="0" className="google-review-pill" style={{ margin: "0 auto", borderRadius: "8px", border: `1px solid ${colors.borderLight}`, padding: "8px 14px" }}>
+        <tbody>
+          <tr>
+            <td style={{ verticalAlign: "middle", paddingRight: "10px" }}>
+              {/* Google G circle */}
+              <div
+                style={{
+                  width: "26px",
+                  height: "26px",
+                  borderRadius: "50%",
+                  backgroundColor: "#4285F4",
+                  color: "#ffffff",
+                  fontSize: "14px",
+                  fontWeight: "700",
+                  lineHeight: "26px",
+                  textAlign: "center" as const,
+                }}
+              >
+                G
+              </div>
+            </td>
+            <td style={{ verticalAlign: "middle" }}>
+              <p style={{ margin: 0, fontSize: "13px", color: colors.text, fontWeight: "600", lineHeight: "1.3" }}>
+                <span style={{ color: "#F59E0B", fontSize: "11px", letterSpacing: "1px" }}>★★★★★</span>
+                {" "}5.0 on Google
+              </p>
+            </td>
+            <td style={{ verticalAlign: "middle", paddingLeft: "14px" }}>
+              <a
+                href={trackingHref}
+                style={{
+                  display: "inline-block",
+                  padding: "5px 14px",
+                  fontSize: "12px",
+                  fontWeight: "600",
+                  color: colors.accent,
+                  textDecoration: "none",
+                  border: `1px solid ${colors.border}`,
+                  borderRadius: "6px",
+                  lineHeight: "1.4",
+                }}
+              >
+                Leave a review →
+              </a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   )
 }
@@ -749,7 +861,7 @@ export function ReferralCTA({ appUrl }: ReferralCTAProps) {
     >
       <p style={{ margin: 0, fontSize: "14px", color: colors.textBody, lineHeight: "1.6" }}>
         Know someone who could use InstantMed?{" "}
-        <a href={`${appUrl}/patient`} style={{ color: colors.accent, fontWeight: 600, textDecoration: "none" }}>
+        <a href={`${appUrl}/patient?tab=referrals&utm_source=email&utm_medium=referral_cta&utm_campaign=referral`} style={{ color: colors.accent, fontWeight: 600, textDecoration: "none" }}>
           Refer a friend — you both get $5 off
         </a>
       </p>

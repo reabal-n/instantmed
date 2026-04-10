@@ -10,6 +10,7 @@ import * as React from "react"
 import {
   BaseEmail,
   Text,
+  VerificationCode as VerificationCodeBlock,
   Box,
   Heading,
   colors,
@@ -39,31 +40,7 @@ export function VerificationCodeEmail({
     >
       <Text>Here&apos;s your verification code. Enter it where prompted to continue:</Text>
 
-      {/* Code block */}
-      <div
-        style={{
-          backgroundColor: colors.surfaceSubtle,
-          border: `1px solid ${colors.border}`,
-          borderRadius: "8px",
-          padding: "28px 24px",
-          margin: "20px 0",
-          textAlign: "center" as const,
-        }}
-      >
-        <p
-          style={{
-            margin: 0,
-            fontSize: "36px",
-            fontFamily: "'SF Mono', 'Fira Code', Consolas, monospace",
-            fontWeight: "700",
-            color: colors.text,
-            letterSpacing: "8px",
-            lineHeight: "1.2",
-          }}
-        >
-          {code}
-        </p>
-      </div>
+      <VerificationCodeBlock code={code} />
 
       <Text muted small>
         This code expires in 10 minutes. Keep it to yourself — we won&apos;t

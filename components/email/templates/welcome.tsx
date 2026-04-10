@@ -6,7 +6,7 @@
  */
 
 import * as React from "react"
-import { BaseEmail, HeroBlock, Text, Button } from "../base-email"
+import { BaseEmail, HeroBlock, Text, Button, ReferralCTA } from "../base-email"
 
 export interface WelcomeEmailProps {
   patientName: string
@@ -41,6 +41,8 @@ export function WelcomeEmail({
       </Text>
 
       <Button href={`${appUrl}/start`}>Make your first request</Button>
+
+      <ReferralCTA appUrl={appUrl} />
     </BaseEmail>
   )
 }

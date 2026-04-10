@@ -185,7 +185,7 @@ export async function POST(request: Request) {
         await sendEmail({
           to: fullIntake.patient.email,
           toName: patientName,
-          subject: scriptSentEmailSubject,
+          subject: scriptSentEmailSubject(patientName?.split(" ")[0]),
           template: React.createElement(ScriptSentEmail, {
             patientName,
             requestId: intake.id,

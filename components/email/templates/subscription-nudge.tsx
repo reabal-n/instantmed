@@ -29,7 +29,7 @@ export function SubscriptionNudgeEmail({
   const firstName = patientName.split(" ")[0]
 
   return (
-    <BaseEmail previewText="Save $10/month with a repeat prescription subscription" appUrl={appUrl}>
+    <BaseEmail previewText="Save $10/month with a repeat prescription subscription" appUrl={appUrl} showFooterReview={false}>
       <Text>Hi {firstName},</Text>
 
       <Text>

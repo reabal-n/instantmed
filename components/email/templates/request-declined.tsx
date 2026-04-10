@@ -50,7 +50,7 @@ export function RequestDeclinedEmail({
 
   return (
     <BaseEmail
-      previewText={`We weren\u2019t able to help with your ${requestType} this time \u2014 here\u2019s what to do next`}
+      previewText={`We couldn\u2019t help with your ${requestType} this time \u2014 next steps inside`}
       appUrl={appUrl}
       showFooterReview={false}
     >

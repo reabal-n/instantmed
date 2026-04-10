@@ -52,6 +52,7 @@ export function RequestReceivedEmail({
     <BaseEmail
       previewText={`Payment confirmed · ${requestType} · ${amount} — a doctor is on it now`}
       appUrl={appUrl}
+      showFooterReview={false}
     >
       <HeroBlock
         icon="✓"

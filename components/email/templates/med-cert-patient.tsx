@@ -12,9 +12,8 @@ import {
   Text,
   Button,
   VerificationCode,
-  GoogleReviewCTA,
+  ReferralCTA,
 } from "../base-email"
-import { GOOGLE_REVIEW_URL } from "@/lib/constants"
 
 export interface MedCertPatientEmailProps {
   patientName: string
@@ -39,7 +38,7 @@ export function MedCertPatientEmail({
     <BaseEmail
       previewText="Your medical certificate is approved and ready to download 🎉"
       appUrl={appUrl}
-      showFooterReview={false}
+      showFooterReview
     >
       <HeroBlock
         icon="🎉"
@@ -67,9 +66,10 @@ export function MedCertPatientEmail({
         <VerificationCode code={verificationCode} verifyUrl={`${appUrl}/verify`} />
       )}
 
-      <GoogleReviewCTA href={GOOGLE_REVIEW_URL} />
+      <ReferralCTA appUrl={appUrl} />
     </BaseEmail>
   )
 }
 
-export const medCertPatientEmailSubject = "🎉 Your medical certificate is ready"
+export const medCertPatientEmailSubject = (firstName?: string) =>
+  firstName ? `${firstName}, your medical certificate is ready 🎉` : "🎉 Your medical certificate is ready"

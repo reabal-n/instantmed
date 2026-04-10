@@ -26,7 +26,7 @@ const TEMPLATE_REGISTRY: Record<
       const { MedCertPatientEmail, medCertPatientEmailSubject } = await import(
         "@/components/email/templates/med-cert-patient"
       )
-      return { component: MedCertPatientEmail as unknown as React.FC<Record<string, unknown>>, subject: medCertPatientEmailSubject }
+      return { component: MedCertPatientEmail as unknown as React.FC<Record<string, unknown>>, subject: medCertPatientEmailSubject() }
     },
   },
   med_cert_employer: {
@@ -50,7 +50,7 @@ const TEMPLATE_REGISTRY: Record<
       const { ScriptSentEmail, scriptSentEmailSubject } = await import(
         "@/components/email/templates/script-sent"
       )
-      return { component: ScriptSentEmail as unknown as React.FC<Record<string, unknown>>, subject: scriptSentEmailSubject }
+      return { component: ScriptSentEmail as unknown as React.FC<Record<string, unknown>>, subject: scriptSentEmailSubject() }
     },
   },
   request_declined: {

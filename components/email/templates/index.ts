@@ -124,3 +124,23 @@ export type { DeclineReengagementEmailProps } from "./decline-reengagement"
 // --- Treatment Follow-Up (ED/hair-loss milestone check-ins) ---
 export { TreatmentFollowupEmail, treatmentFollowupSubject } from "./treatment-followup"
 export type { TreatmentFollowupEmailProps } from "./treatment-followup"
+
+// --- Abandoned Checkout Follow-Up (urgency reminder) ---
+export { AbandonedCheckoutFollowupEmail, abandonedCheckoutFollowupSubject } from "./abandoned-checkout-followup"
+export type { AbandonedCheckoutFollowupProps } from "./abandoned-checkout-followup"
+
+// --- Exit Intent Reminder (email 1 of nurture sequence) ---
+export { ExitIntentReminderEmail, exitIntentReminderSubject } from "./exit-intent-reminder"
+export type { ExitIntentReminderEmailProps } from "./exit-intent-reminder"
+
+// --- Review Request (day-2 post-approval) ---
+export { ReviewRequestEmail, reviewRequestSubject } from "./review-request"
+export type { ReviewRequestEmailProps } from "./review-request"
+
+// --- Review Follow-Up (day-7 nudge) ---
+export { ReviewFollowupEmail, reviewFollowupSubject } from "./review-followup"
+export type { ReviewFollowupEmailProps } from "./review-followup"
+
+// --- Subscription Nudge (repeat Rx upsell) ---
+export { SubscriptionNudgeEmail, subscriptionNudgeSubject } from "./subscription-nudge"
+export type { SubscriptionNudgeEmailProps } from "./subscription-nudge"

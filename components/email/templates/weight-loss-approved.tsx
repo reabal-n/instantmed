@@ -14,9 +14,8 @@ import {
   Heading,
   List,
   HeroBlock,
-  GoogleReviewCTA,
+  ReferralCTA,
 } from "../base-email"
-import { GOOGLE_REVIEW_URL } from "@/lib/constants"
 
 export interface WeightLossApprovedEmailProps {
   patientName: string
@@ -49,7 +48,7 @@ export function WeightLossApprovedEmail({
     <BaseEmail
       previewText={`✅ ${firstName}, your ${medicationName} prescription is ready`}
       appUrl={appUrl}
-      showFooterReview={false}
+      showFooterReview
     >
       <HeroBlock
         icon="✓"
@@ -147,10 +146,10 @@ export function WeightLossApprovedEmail({
         View Request Details
       </Button>
 
-      <GoogleReviewCTA href={GOOGLE_REVIEW_URL} />
+      <ReferralCTA appUrl={appUrl} />
     </BaseEmail>
   )
 }
 
-export const weightLossApprovedSubject = (medicationName: string) =>
-  `Your ${medicationName} prescription has been approved`
+export const weightLossApprovedSubject = (medicationName: string, firstName?: string) =>
+  firstName ? `${firstName}, your ${medicationName} prescription is approved` : `Your ${medicationName} prescription has been approved`

@@ -30,7 +30,7 @@ export function ExitIntentLastChanceEmail({
   openTrackingUrl,
 }: ExitIntentLastChanceEmailProps) {
   return (
-    <BaseEmail previewText={`Your ${service.toLowerCase()} is a 2-minute form away.`} appUrl={appUrl}>
+    <BaseEmail previewText={`Your ${service.toLowerCase()} is a 2-minute form away.`} appUrl={appUrl} showFooterReview={false}>
       <HeroBlock
         icon="👋"
         headline="We&apos;re here when you&apos;re ready"

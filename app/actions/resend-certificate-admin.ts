@@ -104,7 +104,7 @@ export async function resendCertificateAdmin(intakeId: string): Promise<ResendCe
       const emailResult = await sendEmail({
         to: patient.email,
         toName: patient.full_name,
-        subject: `${medCertPatientEmailSubject} (Resent)`,
+        subject: `${medCertPatientEmailSubject(patient.full_name?.split(" ")[0])} (Resent)`,
         template: MedCertPatientEmail({
           patientName: patient.full_name,
           downloadUrl,
