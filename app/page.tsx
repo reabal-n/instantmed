@@ -3,31 +3,21 @@ import type { Metadata } from 'next'
 import { cn } from '@/lib/utils'
 import {
   Hero,
-  ServicePicker,
   HowItWorks,
   MarketingFooter,
-  LiveWaitTime,
-  StatsStrip,
 } from '@/components/marketing'
-import { PatientReviews } from '@/components/marketing/patient-reviews'
 import { Navbar } from '@/components/shared/navbar'
 import { HashScrollHandler } from '@/components/shared/hash-scroll-handler'
 import { FAQSchema, SpeakableSchema } from '@/components/seo/healthcare-schema'
 import { faqItems } from '@/lib/marketing/homepage'
 import { ReturningPatientBanner } from '@/components/shared/returning-patient-banner'
 import { getFeatureFlags } from '@/lib/feature-flags'
-import Link from 'next/link'
-import { CTABanner, SectionHeader } from '@/components/sections'
+import { CTABanner } from '@/components/sections'
 import { AccordionSection } from '@/components/sections'
 import { MarketingPageShell } from '@/components/shared/marketing-page-shell'
-import { DoctorCredibility } from '@/components/marketing/doctor-credibility'
-import { TotalPatientsCounter } from '@/components/marketing/total-patients-counter'
-import { RegulatorLogoMarquee } from '@/components/shared/regulator-logo-marquee'
-import { EmployerLogoMarquee } from '@/components/shared/employer-logo-marquee'
-import { TrustBadgeRow } from '@/components/shared/trust-badge'
-import { TrustBadgeFloat } from '@/components/shared/trust-badge-float'
-import { GoogleReviewsBadge } from '@/components/marketing/google-reviews-badge'
 import { AfterHoursMedCertBanner } from '@/components/shared/after-hours-med-cert-banner'
+import { ServiceCards } from '@/components/marketing/service-cards'
+import { SocialProofSection } from '@/components/marketing/social-proof-section'
 
 export const revalidate = 3600
 
@@ -136,79 +126,25 @@ export default async function HomePage() {
       </Suspense>
 
       <main className="relative">
-        {/* Hero with main value prop — LCP p passed as children for server render */}
+        {/* 1. Hero with main value prop */}
         <Hero>
-          <p className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-6 leading-relaxed text-balance">
-            Medical certificates in under 30 minutes, 24/7. Repeat medication and discreet treatment for ED and hair loss — reviewed by AHPRA-registered Australian doctors. No appointments, no waiting rooms, no video calls.
+          <p className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-8 leading-relaxed text-balance">
+            Medical certificates, repeat prescriptions, and discreet treatment for ED and hair loss — reviewed by AHPRA-registered Australian doctors. From $19.95.
           </p>
         </Hero>
 
-        {/* Live wait times - shows current doctor response times */}
-        <LiveWaitTime variant="strip" />
+        {/* 2. Service cards — what we offer */}
+        <ServiceCards />
 
-        {/* Trust badges - regulator logo marquee */}
-        <RegulatorLogoMarquee className="px-4" />
-
-        {/* Google reviews badge — renders only when GOOGLE_REVIEWS.enabled = true */}
-        <div className="flex justify-center pb-2">
-          <GoogleReviewsBadge />
-        </div>
-
-        {/* Core services - what we offer */}
-        <ServicePicker />
-
-        {/* How it works - 3 steps */}
+        {/* 3. How it works — 3 steps */}
         <Suspense fallback={<SectionSkeleton />}>
           <HowItWorks />
         </Suspense>
 
-        {/* Patient reviews - authentic social proof */}
-        <Suspense fallback={<SectionSkeleton height="h-64" />}>
-          <PatientReviews />
-        </Suspense>
+        {/* 4. Social proof — reviews, doctor credibility, stats */}
+        <SocialProofSection />
 
-        {/* Doctor credibility */}
-        <DoctorCredibility
-          variant="section"
-          stats={['experience', 'sameDay', 'returnRate', 'reviews']}
-        />
-
-        {/* Employer logo marquee — reinforces that real workplaces accept our certs */}
-        <EmployerLogoMarquee className="py-4" />
-
-        {/* Key stats strip */}
-        <StatsStrip className="bg-muted/20 border-y border-border/30" />
-
-        {/* Content hubs — internal links for crawl discovery */}
-        <section className="py-16 px-4">
-          <SectionHeader
-            title="Browse by Topic"
-            subtitle="Find the information you need"
-            highlightWords={["Topic"]}
-          />
-          <div className="mx-auto max-w-4xl grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-            {[
-              { label: "Health Conditions", href: "/conditions", description: "48 conditions covered" },
-              { label: "Symptom Guide", href: "/symptoms", description: "Common symptoms explained" },
-              { label: "How-To Guides", href: "/guides", description: "Step-by-step health guides" },
-              { label: "Compare Services", href: "/compare", description: "See how we stack up" },
-              { label: "Locations", href: "/locations", description: "Find your nearest city" },
-            ].map((hub) => (
-              <Link
-                key={hub.href}
-                href={hub.href}
-                className="group rounded-2xl border border-border/50 bg-white dark:bg-card p-4 shadow-sm shadow-primary/[0.04] hover:shadow-md hover:border-primary/20 transition-all"
-              >
-                <h3 className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">
-                  {hub.label}
-                </h3>
-                <p className="text-xs text-muted-foreground mt-1">{hub.description}</p>
-              </Link>
-            ))}
-          </div>
-        </section>
-
-        {/* FAQs */}
+        {/* 5. FAQs */}
         <AccordionSection
           id="faq"
           pill="FAQ"
@@ -217,28 +153,16 @@ export default async function HomePage() {
           groups={faqGroups}
         />
 
-        {/* Social proof before final CTA */}
-        <div className="mx-auto max-w-4xl px-4 pb-4 flex justify-center">
-          <TotalPatientsCounter variant="badge" />
-        </div>
-
-        {/* Final CTA */}
+        {/* 6. Final CTA */}
         <CTABanner
           title="Ready when you are"
           subtitle="Tell us what's going on, a doctor reviews it, and you're sorted. No appointments, no waiting rooms."
           ctaText="Get started"
           ctaHref="/request"
         />
-
-        {/* Pre-footer trust badges */}
-        <div className="flex justify-center pb-8">
-          <TrustBadgeRow preset="pre_cta" />
-        </div>
       </main>
 
-      {/* Floating trust badge — sticky bottom */}
-      <TrustBadgeFloat />
-
+      {/* 7. Footer */}
       <MarketingFooter />
     </div>
     </MarketingPageShell>
