@@ -93,7 +93,7 @@ export function isConcerningValue(val: unknown): boolean {
   return !benign.has(str)
 }
 
-export const MIN_CLINICAL_NOTES_LENGTH = 20
+export const MIN_CLINICAL_NOTES_LENGTH = 50
 
 export function formatDate(dateString: string) {
   return new Date(dateString).toLocaleDateString("en-AU", {

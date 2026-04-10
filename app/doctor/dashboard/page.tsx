@@ -6,6 +6,7 @@ import { QueueClient } from "../queue/queue-client"
 import { IntakeMonitor } from "@/components/doctor/intake-monitor"
 import { IdentityIncompleteBanner } from "@/components/doctor/identity-incomplete-banner"
 import { DashboardErrorBoundary } from "@/components/doctor/dashboard-error-boundary"
+import { DashboardHeader } from "./dashboard-header"
 import { Skeleton } from "@/components/ui/skeleton"
 import { createLogger } from "@/lib/observability/logger"
 
@@ -209,12 +210,14 @@ export default async function DoctorDashboardPage({
   const pageSize = Math.min(100, Math.max(10, parseInt(params.pageSize || "50", 10)))
 
   // Fetch shared data once — deduplicates the 2 redundant DB calls that were in both sections
-  const [identityResult, earningsResult] = await Promise.allSettled([
+  const [identityResult, earningsResult, availabilityResult] = await Promise.allSettled([
     getDoctorIdentity(profile.id),
     getTodayEarnings(),
+    import("@/app/actions/doctor-availability").then((m) => m.getDoctorAvailabilityAction()),
   ])
   const doctorIdentity = identityResult.status === "fulfilled" ? identityResult.value : null
   const todayEarnings = earningsResult.status === "fulfilled" ? earningsResult.value : 0
+  const doctorAvailable = availabilityResult.status === "fulfilled" ? availabilityResult.value.available : true
 
   if (identityResult.status === "rejected") {
     log.error("Failed to fetch identity data", { profileId: profile.id }, identityResult.reason)
@@ -225,24 +228,7 @@ export default async function DoctorDashboardPage({
 
   return (
     <div className="space-y-4">
-      {/* Page Header */}
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground font-sans">Review Queue</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">Patient requests awaiting your review</p>
-        </div>
-        <div className="hidden sm:flex items-center gap-1.5 text-xs text-muted-foreground/60 font-mono">
-          <kbd className="px-1.5 py-0.5 rounded border border-border/40 bg-muted/40">j</kbd>
-          <kbd className="px-1.5 py-0.5 rounded border border-border/40 bg-muted/40">k</kbd>
-          <span className="text-muted-foreground/40">navigate</span>
-          <span className="mx-1 text-muted-foreground/20">·</span>
-          <kbd className="px-1.5 py-0.5 rounded border border-border/40 bg-muted/40">a</kbd>
-          <span className="text-muted-foreground/40">approve</span>
-          <span className="mx-1 text-muted-foreground/20">·</span>
-          <kbd className="px-1.5 py-0.5 rounded border border-border/40 bg-muted/40">d</kbd>
-          <span className="text-muted-foreground/40">decline</span>
-        </div>
-      </div>
+      <DashboardHeader initialAvailable={doctorAvailable} />
 
       {/* Stats — streams in independently */}
       <Suspense fallback={<StatsSkeleton />}>

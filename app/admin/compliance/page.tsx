@@ -5,7 +5,7 @@ import { ShieldCheck, Eye, Clock, AlertTriangle, Users, FileSearch } from "lucid
 export const dynamic = "force-dynamic"
 
 export default async function ComplianceDashboardPage() {
-  await requireRole(["admin"])
+  await requireRole(["admin"], { redirectTo: "/doctor/dashboard" })
 
   const supabase = createServiceRoleClient()
 

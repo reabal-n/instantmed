@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { FileText, Save, Loader2 } from "lucide-react"
 import { useIntakeReview } from "@/components/doctor/review/intake-review-context"
 import { FormattingToolbar } from "@/components/doctor/review/formatting-toolbar"
+import { MIN_CLINICAL_NOTES_LENGTH } from "@/components/doctor/review/utils"
 
 export function ClinicalNotesEditor() {
   const {
@@ -105,11 +106,16 @@ export function ClinicalNotesEditor() {
               </div>
               <div className="flex items-center gap-2">
                 {noteSaved && <span className="text-xs text-emerald-600">Saved!</span>}
-                {doctorNotes && (
-                  <span className="text-xs text-muted-foreground tabular-nums">
-                    {doctorNotes.length} chars
-                  </span>
-                )}
+                <span
+                  className={`text-xs tabular-nums ${
+                    doctorNotes.trim().length >= MIN_CLINICAL_NOTES_LENGTH
+                      ? "text-muted-foreground"
+                      : "text-amber-600 dark:text-amber-500"
+                  }`}
+                  aria-live="polite"
+                >
+                  {doctorNotes.trim().length}/{MIN_CLINICAL_NOTES_LENGTH} min
+                </span>
               </div>
             </div>
           </>

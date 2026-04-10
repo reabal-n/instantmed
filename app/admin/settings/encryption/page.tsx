@@ -5,7 +5,7 @@ import { Shield, Lock, Unlock, AlertTriangle, CheckCircle2 } from "lucide-react"
 export const dynamic = "force-dynamic"
 
 export default async function EncryptionDashboardPage() {
-  await requireRole(["admin"])
+  await requireRole(["admin"], { redirectTo: "/doctor/dashboard" })
 
   const supabase = createServiceRoleClient()
 

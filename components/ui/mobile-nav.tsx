@@ -100,7 +100,7 @@ const doctorMoreItems: NavItem[] = [
     href: "/doctor/certificates",
   },
   {
-    label: "All Requests",
+    label: "Admin Queue",
     icon: Shield,
     href: "/admin",
   },

@@ -1130,3 +1130,41 @@ export function compareForEdits(
 
   return edits
 }
+
+// ============================================================================
+// DELIVERY STATUS
+// ============================================================================
+
+export interface CertDeliveryStatus {
+  emailSentAt: string | null
+  emailFailedAt: string | null
+  emailFailureReason: string | null
+  emailOpenedAt: string | null
+  resendCount: number
+}
+
+/**
+ * Get certificate delivery status for an intake (for doctor visibility).
+ * Returns null if no certificate exists.
+ */
+export async function getCertDeliveryStatus(intakeId: string): Promise<CertDeliveryStatus | null> {
+  const supabase = createServiceRoleClient()
+  const { data, error } = await supabase
+    .from("issued_certificates")
+    .select("email_sent_at, email_failed_at, email_failure_reason, email_opened_at, resend_count")
+    .eq("intake_id", intakeId)
+    .in("status", ["valid", "expired"])
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  if (error || !data) return null
+
+  return {
+    emailSentAt: data.email_sent_at,
+    emailFailedAt: data.email_failed_at,
+    emailFailureReason: data.email_failure_reason,
+    emailOpenedAt: data.email_opened_at,
+    resendCount: data.resend_count,
+  }
+}

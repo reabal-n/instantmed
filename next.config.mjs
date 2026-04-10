@@ -121,12 +121,7 @@ const nextConfig = {
       },
       {
         source: "/admin/ops/email-outbox",
-        destination: "/doctor/admin/email-outbox",
-        permanent: true
-      },
-      {
-        source: "/admin/performance-dashboard",
-        destination: "/admin/performance",
+        destination: "/admin/email-hub",
         permanent: true
       },
       // Malformed URL — redirect /& (broken links, typos) to homepage

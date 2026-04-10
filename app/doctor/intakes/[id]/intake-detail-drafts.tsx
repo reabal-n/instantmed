@@ -11,6 +11,7 @@ import { RepeatPrescriptionChecklist } from "@/components/doctor/repeat-prescrip
 import { formatDateTime } from "@/lib/format"
 import type { IntakeWithDetails } from "@/types/db"
 import type { AIDraft } from "@/app/actions/draft-approval"
+import { MIN_CLINICAL_NOTES_LENGTH } from "@/components/doctor/review/utils"
 
 interface IntakeDetailDraftsProps {
   intake: IntakeWithDetails
@@ -154,13 +155,13 @@ export function IntakeDetailDrafts({
                 {/* Minimum-length hint for AHPRA defensibility */}
                 <span
                   className={`text-xs tabular-nums ${
-                    doctorNotes.trim().length >= 50
+                    doctorNotes.trim().length >= MIN_CLINICAL_NOTES_LENGTH
                       ? "text-muted-foreground"
                       : "text-amber-600 dark:text-amber-500"
                   }`}
                   aria-live="polite"
                 >
-                  {doctorNotes.trim().length}/50 min
+                  {doctorNotes.trim().length}/{MIN_CLINICAL_NOTES_LENGTH} min
                 </span>
               </div>
             </>

@@ -4,10 +4,8 @@ import { useState, useEffect, useTransition, useMemo, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { AlertTriangle, RefreshCw } from "lucide-react"
-import { updateStatusAction, declineIntakeAction, flagForFollowupAction, getDeclineReasonTemplatesAction } from "./actions"
-import { getInfoRequestTemplatesAction, requestMoreInfoAction } from "@/app/actions/request-more-info"
+import { updateStatusAction } from "./actions"
 import { toast } from "sonner"
-import { capture } from "@/lib/analytics/capture"
 import { usePanel } from "@/components/panels/panel-provider"
 import { useDebounce } from "@/hooks/use-debounce"
 import { IntakeReviewPanel } from "@/components/doctor/intake-review-panel"
@@ -19,6 +17,7 @@ import { SERVICE_TYPES } from "@/lib/doctor/service-types"
 import { useQueueRealtime } from "@/lib/doctor/use-queue-realtime"
 import { QueueFilters } from "./queue-filters"
 import { QueueTable } from "./queue-table"
+import { useQueueDialogs } from "./use-queue-dialogs"
 
 export function QueueClient({
   intakes: initialIntakes,
@@ -44,21 +43,8 @@ export function QueueClient({
   const [searchQuery, setSearchQuery] = useState("")
   const debouncedSearch = useDebounce(searchQuery, 200)
   const [statusFilter, setStatusFilter] = useState<"all" | "review" | "pending_info" | "scripts">("all")
-  const [isPending, startTransition] = useTransition()
-  const [declineDialog, setDeclineDialog] = useState<string | null>(null)
-  const [declineReasonCode, setDeclineReasonCode] = useState("")
-  const [declineReasonNote, setDeclineReasonNote] = useState("")
-  const [declineTemplates, setDeclineTemplates] = useState<Array<{ code: string; label: string; description: string | null; requires_note: boolean }>>([])
-  const [infoDialog, setInfoDialog] = useState<string | null>(null)
-  const [infoTemplateCode, setInfoTemplateCode] = useState("")
-  const [infoMessage, setInfoMessage] = useState("")
-  const [infoTemplates, setInfoTemplates] = useState<Array<{ code: string; label: string; description: string | null; message_template: string | null }>>([])
-  const [flagDialog, setFlagDialog] = useState<string | null>(null)
-  const [flagReason, setFlagReason] = useState("")
-  const [revokeDialog, setRevokeDialog] = useState<string | null>(null)
-  const [revokeReason, setRevokeReason] = useState("")
-  const [declineTemplatesLoaded, setDeclineTemplatesLoaded] = useState(false)
-  const [infoTemplatesLoaded, setInfoTemplatesLoaded] = useState(false)
+  const [, startTransition] = useTransition()
+  const dialogs = useQueueDialogs({ intakes, setIntakes })
   const [, setTick] = useState(0) // Forces re-render for live wait time ticking
   const [soundMuted, setSoundMuted] = useState(() => {
     if (typeof window !== "undefined") {
@@ -157,60 +143,6 @@ export function QueueClient({
     })
   }, [openReviewPanel, startTransition])
 
-  // Lazy-load decline templates only when dialog opens
-  useEffect(() => {
-    if (declineDialog && !declineTemplatesLoaded) {
-      getDeclineReasonTemplatesAction().then((result) => {
-        if (result.success && result.templates) {
-          setDeclineTemplates(result.templates)
-          setDeclineTemplatesLoaded(true)
-        }
-      })
-    }
-  }, [declineDialog, declineTemplatesLoaded])
-
-  // Lazy-load info templates only when dialog opens
-  useEffect(() => {
-    if (infoDialog && !infoTemplatesLoaded) {
-      getInfoRequestTemplatesAction().then((result) => {
-        if (result.success && result.templates) {
-          setInfoTemplates(result.templates)
-          setInfoTemplatesLoaded(true)
-        }
-      })
-    }
-  }, [infoDialog, infoTemplatesLoaded])
-
-  const selectedTemplate = declineTemplates.find((t) => t.code === declineReasonCode)
-  const requiresNote = selectedTemplate?.requires_note || declineReasonCode === "other"
-
-  const handleDeclineTemplateChange = (code: string) => {
-    setDeclineReasonCode(code)
-    const template = declineTemplates.find((t) => t.code === code)
-    if (template?.description && !declineReasonNote) setDeclineReasonNote(template.description)
-  }
-
-  const handleInfoTemplateChange = (code: string) => {
-    setInfoTemplateCode(code)
-    const template = infoTemplates.find((t) => t.code === code)
-    if (template?.message_template) setInfoMessage(template.message_template)
-  }
-
-  const handleRequestInfo = async () => {
-    if (!infoDialog || !infoTemplateCode) return
-    startTransition(async () => {
-      const result = await requestMoreInfoAction(infoDialog, infoTemplateCode, infoMessage)
-      if (result.success) {
-        toast.success("Information request sent to patient")
-        setInfoDialog(null)
-        setInfoTemplateCode("")
-        setInfoMessage("")
-        router.refresh()
-      } else {
-        toast.error(result.error || "Failed to send request")
-      }
-    })
-  }
 
   const hasRedFlags = useCallback((intake: IntakeWithPatient): boolean => {
     if (intake.flagged_for_followup) return true
@@ -302,7 +234,7 @@ export function QueueClient({
         case "d": // Open decline dialog
           if (expandedId) {
             e.preventDefault()
-            setDeclineDialog(expandedId)
+            dialogs.setDeclineDialog(expandedId)
           }
           break
       }
@@ -310,67 +242,7 @@ export function QueueClient({
 
     window.addEventListener("keydown", handleKeyDown)
     return () => window.removeEventListener("keydown", handleKeyDown)
-  }, [expandedId, filteredIntakes, openReviewPanel, handleApprove])
-
-  const handleDecline = async () => {
-    if (!declineDialog || !declineReasonCode) return
-    if (requiresNote && !declineReasonNote.trim()) return
-    const declinedId = declineDialog
-    startTransition(async () => {
-      const result = await declineIntakeAction(declinedId, declineReasonCode, declineReasonNote || undefined)
-      if (result.success) {
-        capture("doctor_decline_submitted", {
-          intake_id: declinedId,
-          reason_code: declineReasonCode,
-        })
-        // Store declined intake for potential undo
-        const declinedIntake = intakes.find((r) => r.id === declinedId)
-        setIntakes((prev) => prev.filter((r) => r.id !== declinedId))
-        setDeclineDialog(null)
-        setDeclineReasonCode("")
-        setDeclineReasonNote("")
-        toast.success("Case declined and patient notified", {
-          action: declinedIntake
-            ? {
-                label: "Undo",
-                onClick: () => {
-                  startTransition(async () => {
-                    const undoResult = await updateStatusAction(declinedId, "paid")
-                    if (undoResult.success) {
-                      setIntakes((prev) => [declinedIntake, ...prev])
-                      toast.success("Decline reversed — case restored to queue")
-                      router.refresh()
-                    } else {
-                      toast.error(undoResult.error || "Failed to undo decline")
-                    }
-                  })
-                },
-              }
-            : undefined,
-          duration: 8000,
-        })
-      } else {
-        toast.error(result.error || "Failed to decline")
-      }
-    })
-  }
-
-  const handleFlag = async () => {
-    if (!flagDialog || !flagReason.trim()) return
-    startTransition(async () => {
-      const result = await flagForFollowupAction(flagDialog, flagReason)
-      if (result.success) {
-        setIntakes((prev) =>
-          prev.map((r) => (r.id === flagDialog ? { ...r, flagged_for_followup: true } : r))
-        )
-        toast.success("Flagged for follow-up")
-        setFlagDialog(null)
-        setFlagReason("")
-      } else {
-        toast.error(result.error || "Failed to flag case")
-      }
-    })
-  }
+  }, [expandedId, filteredIntakes, openReviewPanel, handleApprove, dialogs])
 
   return (
     <div className="space-y-6">
@@ -421,7 +293,7 @@ export function QueueClient({
         intakes={intakes}
         expandedId={expandedId}
         onToggleExpand={(id) => setExpandedId(expandedId === id ? null : id)}
-        isPending={isPending}
+        isPending={dialogs.isPending}
         identityComplete={identityComplete}
         onApprove={handleApprove}
         hasRedFlags={hasRedFlags}
@@ -429,33 +301,7 @@ export function QueueClient({
         getWaitTimeSeverity={getWaitTimeSeverity}
         calculateSlaCountdown={calculateSlaCountdown}
         openReviewPanel={openReviewPanel}
-        declineDialog={declineDialog}
-        setDeclineDialog={setDeclineDialog}
-        declineReasonCode={declineReasonCode}
-        setDeclineReasonCode={setDeclineReasonCode}
-        declineReasonNote={declineReasonNote}
-        setDeclineReasonNote={setDeclineReasonNote}
-        declineTemplates={declineTemplates}
-        handleDecline={handleDecline}
-        handleDeclineTemplateChange={handleDeclineTemplateChange}
-        requiresNote={requiresNote}
-        infoDialog={infoDialog}
-        setInfoDialog={setInfoDialog}
-        infoTemplateCode={infoTemplateCode}
-        infoMessage={infoMessage}
-        setInfoMessage={setInfoMessage}
-        infoTemplates={infoTemplates}
-        handleRequestInfo={handleRequestInfo}
-        handleInfoTemplateChange={handleInfoTemplateChange}
-        flagDialog={flagDialog}
-        setFlagDialog={setFlagDialog}
-        flagReason={flagReason}
-        setFlagReason={setFlagReason}
-        handleFlag={handleFlag}
-        revokeDialog={revokeDialog}
-        setRevokeDialog={setRevokeDialog}
-        revokeReason={revokeReason}
-        setRevokeReason={setRevokeReason}
+        dialogs={dialogs}
         aiApprovedIntakes={aiApprovedIntakes}
         recentlyCompleted={recentlyCompleted}
         pagination={pagination}

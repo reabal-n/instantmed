@@ -8,7 +8,7 @@ import { useReducedMotion } from "@/components/ui/motion"
 import { useTheme } from "next-themes"
 import { useAuth } from "@/lib/supabase/auth-provider"
 import { AppSignInButton } from "@/components/shared/app-sign-in-button"
-import { LogOut } from "lucide-react"
+import { LogOut, LayoutDashboard } from "lucide-react"
 import { BrandLogo } from "@/components/shared/brand-logo"
 import { Button } from "@/components/uix"
 import { AnimatedMobileMenu, MenuToggle } from "@/components/ui/animated-mobile-menu"
@@ -95,9 +95,6 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                 <>
                   <ServicesDropdown isActivePath={isActivePath} />
 
-                  <AnimatedNavLink href="/trust" isActive={isActivePath("/trust")}>
-                    Why us?
-                  </AnimatedNavLink>
                   <AnimatedNavLink href="/how-it-works" isActive={isActivePath("/how-it-works")}>
                     How it Works
                   </AnimatedNavLink>
@@ -170,18 +167,19 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                 {isLoaded && user ? (
                   <Button
                     variant="outline"
-                    className="w-full rounded-xl bg-white dark:bg-card hover:bg-muted/50 dark:hover:bg-white/10 border-border/40 transition-all flex items-center justify-center"
+                    className="w-full rounded-xl bg-white dark:bg-card hover:bg-muted/50 dark:hover:bg-white/10 border-border/40 transition-all flex items-center justify-center gap-2"
                     onClick={() => {
                       setMobileMenuOpen(false)
-                      router.push("/patient/settings")
+                      router.push("/dashboard")
                     }}
                   >
-                    Settings
+                    <LayoutDashboard className="h-4 w-4" />
+                    Dashboard
                   </Button>
                 ) : (
                   <AppSignInButton>
                     <Button variant="outline" className="w-full rounded-xl bg-white dark:bg-card hover:bg-muted/50 dark:hover:bg-white/10 border-border/40 transition-all flex items-center justify-center">
-                      Sign in
+                      Log in
                     </Button>
                   </AppSignInButton>
                 )}

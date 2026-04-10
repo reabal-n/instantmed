@@ -1,9 +1,12 @@
+import { requireRole } from "@/lib/auth"
 import { AuditLogClient } from "./audit-client"
 import { getAuditLogsAction, getAuditLogStatsAction } from "@/app/actions/admin-config"
 
 export const dynamic = "force-dynamic"
 
 export default async function AuditLogPage() {
+  await requireRole(["admin"], { redirectTo: "/doctor/dashboard" })
+
   const results = await Promise.allSettled([
     getAuditLogsAction({}, 1, 50),
     getAuditLogStatsAction(),

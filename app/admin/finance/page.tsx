@@ -1,9 +1,12 @@
+import { requireRole } from "@/lib/auth"
 import { FinanceDashboardClient } from "./finance-client"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 export const dynamic = "force-dynamic"
 
 export default async function FinanceDashboardPage() {
+  await requireRole(["admin"], { redirectTo: "/doctor/dashboard" })
+
   const supabase = createServiceRoleClient()
 
   const now = new Date()

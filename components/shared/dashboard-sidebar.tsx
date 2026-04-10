@@ -50,7 +50,7 @@ const doctorNavItems: NavItem[] = [
   { href: "/doctor/scripts", label: "Scripts", icon: ClipboardList },
   { href: "/doctor/certificates", label: "Certificates", icon: FileCheck },
   { href: "/doctor/patients", label: "Patients", icon: Users },
-  { href: "/admin", label: "All Requests", icon: FileText },
+  { href: "/admin", label: "Admin Queue", icon: FileText },
   { href: "/doctor/analytics", label: "Analytics", icon: BarChart3 },
   { href: "/doctor/settings/identity", label: "Settings", icon: Settings },
 ]

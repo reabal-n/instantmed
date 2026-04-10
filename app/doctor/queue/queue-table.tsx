@@ -54,6 +54,7 @@ import { SERVICE_TYPES } from "@/lib/doctor/service-types"
 import { calculateAge } from "@/lib/format"
 import type { IntakeWithPatient } from "@/types/db"
 import type { PaginationInfo } from "./types"
+import type { QueueDialogState } from "./use-queue-dialogs"
 import { revokeAIApproval } from "@/app/actions/revoke-ai-approval"
 
 /**
@@ -84,41 +85,7 @@ export interface QueueTableProps {
   getWaitTimeSeverity: (createdAt: string, slaDeadline?: string | null) => "normal" | "warning" | "critical"
   calculateSlaCountdown: (slaDeadline: string | null | undefined) => string | null
   openReviewPanel: (intakeId: string) => void
-
-  // Decline dialog
-  declineDialog: string | null
-  setDeclineDialog: (id: string | null) => void
-  declineReasonCode: string
-  setDeclineReasonCode: (code: string) => void
-  declineReasonNote: string
-  setDeclineReasonNote: (note: string) => void
-  declineTemplates: Array<{ code: string; label: string; description: string | null; requires_note: boolean }>
-  handleDecline: () => void
-  handleDeclineTemplateChange: (code: string) => void
-  requiresNote: boolean
-
-  // Info dialog
-  infoDialog: string | null
-  setInfoDialog: (id: string | null) => void
-  infoTemplateCode: string
-  infoMessage: string
-  setInfoMessage: (msg: string) => void
-  infoTemplates: Array<{ code: string; label: string; description: string | null; message_template: string | null }>
-  handleRequestInfo: () => void
-  handleInfoTemplateChange: (code: string) => void
-
-  // Flag dialog
-  flagDialog: string | null
-  setFlagDialog: (id: string | null) => void
-  flagReason: string
-  setFlagReason: (reason: string) => void
-  handleFlag: () => void
-
-  // Revoke dialog
-  revokeDialog: string | null
-  setRevokeDialog: (id: string | null) => void
-  revokeReason: string
-  setRevokeReason: (reason: string) => void
+  dialogs: QueueDialogState
 
   // Extra sections
   aiApprovedIntakes: IntakeWithPatient[]
@@ -139,33 +106,35 @@ export function QueueTable({
   getWaitTimeSeverity,
   calculateSlaCountdown,
   openReviewPanel,
-  declineDialog,
-  setDeclineDialog,
-  declineReasonCode,
-  setDeclineReasonCode,
-  declineReasonNote,
-  setDeclineReasonNote,
-  declineTemplates,
-  handleDecline,
-  handleDeclineTemplateChange,
-  requiresNote,
-  infoDialog,
-  setInfoDialog,
-  infoTemplateCode,
-  infoMessage,
-  setInfoMessage,
-  infoTemplates,
-  handleRequestInfo,
-  handleInfoTemplateChange,
-  flagDialog,
-  setFlagDialog,
-  flagReason,
-  setFlagReason,
-  handleFlag,
-  revokeDialog,
-  setRevokeDialog,
-  revokeReason,
-  setRevokeReason,
+  dialogs: {
+    declineDialog,
+    setDeclineDialog,
+    declineReasonCode,
+    setDeclineReasonCode,
+    declineReasonNote,
+    setDeclineReasonNote,
+    declineTemplates,
+    handleDecline,
+    handleDeclineTemplateChange,
+    requiresNote,
+    infoDialog,
+    setInfoDialog,
+    infoTemplateCode,
+    infoMessage,
+    setInfoMessage,
+    infoTemplates,
+    handleRequestInfo,
+    handleInfoTemplateChange,
+    flagDialog,
+    setFlagDialog,
+    flagReason,
+    setFlagReason,
+    handleFlag,
+    revokeDialog,
+    setRevokeDialog,
+    revokeReason,
+    setRevokeReason,
+  },
   aiApprovedIntakes,
   recentlyCompleted,
   pagination,
