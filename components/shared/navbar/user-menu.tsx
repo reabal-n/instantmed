@@ -20,6 +20,7 @@ import {
 import { AppSignInButton } from "@/components/shared/app-sign-in-button"
 import { NotificationBell } from "@/components/shared/notification-bell"
 import { AnimatedNavLink } from "@/components/shared/navbar/animated-nav-link"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { services } from "@/components/shared/navbar/services-dropdown"
 import { useServiceAvailability } from "@/components/providers/service-availability-provider"
 
@@ -66,11 +67,20 @@ export function UserMenu({
             Dashboard
           </Link>
         ) : (
-          <AppSignInButton>
-            <button className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors px-2 py-1 rounded-md hover:bg-muted/50">
-              Log in
-            </button>
-          </AppSignInButton>
+          <TooltipProvider delayDuration={400}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <AppSignInButton>
+                  <button className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors px-2 py-1 rounded-md hover:bg-muted/50">
+                    Log in
+                  </button>
+                </AppSignInButton>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="text-xs">
+                Already have an account?
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         )}
       </div>
     )

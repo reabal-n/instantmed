@@ -60,7 +60,8 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
   return (
     <>
       <header
-        className={cn("fixed left-0 right-0 z-50 px-4 sm:px-6 top-0 pt-2")}
+        className={cn("fixed left-0 right-0 z-50 px-4 sm:px-6 top-0")}
+        style={{ paddingTop: 'max(0.5rem, env(safe-area-inset-top))' }}
       >
         <motion.nav
           className={cn(
