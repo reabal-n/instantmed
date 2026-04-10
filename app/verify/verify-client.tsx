@@ -18,6 +18,7 @@ import {
 } from "lucide-react"
 import { CONTACT_EMAIL } from "@/lib/constants"
 import { normalizeVerificationCode } from "@/lib/utils/code-normalization"
+import { capture } from "@/lib/analytics/capture"
 
 interface VerificationResult {
   valid: boolean
@@ -73,29 +74,35 @@ export function VerifyClient() {
       try {
         const response = await fetch(`/api/verify?code=${encodeURIComponent(codes[0])}`)
         const data = await response.json()
-        setResult(response.ok ? data : { valid: false, error: data.error || "Verification failed" })
+        const verifyResult = response.ok ? data : { valid: false, error: data.error || "Verification failed" }
+        setResult(verifyResult)
+        // #12 — Track verification attempts in PostHog
+        capture("certificate_verified", { code: codes[0], valid: verifyResult.valid, mode: "single" })
       } catch {
         setResult({ valid: false, error: "Unable to verify. Please try again." })
+        capture("certificate_verified", { code: codes[0], valid: false, mode: "single", error: true })
       } finally {
         setIsLoading(false)
       }
       return
     }
 
-    // Bulk mode — verify each code sequentially
+    // #6 — Bulk mode: progressive results (render each as it resolves)
     setIsBulkMode(true)
     setResult(null)
-    const results: Array<{ code: string; result: VerificationResult }> = []
-    for (const c of codes.slice(0, 10)) { // Cap at 10
+    setBulkResults([])
+    for (const c of codes.slice(0, 10)) {
       try {
         const response = await fetch(`/api/verify?code=${encodeURIComponent(c)}`)
         const data = await response.json()
-        results.push({ code: c, result: response.ok ? data : { valid: false, error: data.error || "Verification failed" } })
+        const r = response.ok ? data : { valid: false, error: data.error || "Verification failed" }
+        setBulkResults((prev) => [...prev, { code: c, result: r }])
       } catch {
-        results.push({ code: c, result: { valid: false, error: "Unable to verify" } })
+        setBulkResults((prev) => [...prev, { code: c, result: { valid: false, error: "Unable to verify" } }])
       }
     }
-    setBulkResults(results)
+    // #12 — Track bulk verification
+    capture("certificate_verified", { count: codes.length, mode: "bulk" })
     setIsLoading(false)
   }
 

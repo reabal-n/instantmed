@@ -36,6 +36,7 @@ export const metadata: Metadata = {
     title: "For Universities | InstantMed",
     description:
       "Learn how to verify medical certificates issued by InstantMed. Quick, secure verification for university administrators.",
+    images: [{ url: "https://instantmed.com.au/og/universities.png", width: 1200, height: 630, alt: "InstantMed for Universities" }],
   },
   alternates: {
     canonical: "https://instantmed.com.au/for/universities",

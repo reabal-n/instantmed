@@ -17,6 +17,7 @@ import {
   ArrowRight,
   HelpCircle,
 } from "lucide-react"
+import { ContentPageTracker } from "@/components/analytics/content-page-tracker"
 
 const EMPLOYER_DATA: Record<string, { name: string; logo: string; logoWidth: number; industry: string }> = {
   woolworths:       { name: "Woolworths",         logo: "/logos/woolworths.png",        logoWidth: 120, industry: "retail" },
@@ -98,12 +99,31 @@ export default async function EmployerCompanyPage({ params }: { params: Promise<
     })),
   }
 
+  // #2 — Breadcrumb schema for SERP breadcrumbs
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: "https://instantmed.com.au" },
+      { "@type": "ListItem", position: 2, name: "For Employers", item: "https://instantmed.com.au/for/employers" },
+      { "@type": "ListItem", position: 3, name: employer.name, item: `https://instantmed.com.au/for/employers/${company}` },
+    ],
+  }
+
+  // #4 — Cross-links to other employer pages
+  const otherEmployers = Object.entries(EMPLOYER_DATA)
+    .filter(([slug]) => slug !== company)
+    .slice(0, 6)
+
   return (
     <div className="flex min-h-screen flex-col">
-      {/* #6 — FAQ Schema for rich snippets */}
       <script id="faq-schema" type="application/ld+json"
         suppressHydrationWarning dangerouslySetInnerHTML={{ __html: safeJsonLd(faqSchema) }} />
+      <script id="breadcrumb-schema" type="application/ld+json"
+        suppressHydrationWarning dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbSchema) }} />
       <Navbar variant="marketing" />
+      {/* #11 — PostHog tracking for employer company pages */}
+      <ContentPageTracker pageType="employer" slug={company} />
 
       <main className="flex-1">
         {/* Hero */}
@@ -218,6 +238,33 @@ export default async function EmployerCompanyPage({ params }: { params: Promise<
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Link>
             </Button>
+          </div>
+        </section>
+
+        {/* #4 — Cross-links to other employer pages */}
+        <section className="py-12 border-t border-border/30">
+          <div className="max-w-3xl mx-auto px-4">
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground/50 text-center mb-6">
+              Other organisations
+            </p>
+            <div className="flex flex-wrap justify-center gap-2">
+              {otherEmployers.map(([slug, data]) => (
+                <Link
+                  key={slug}
+                  href={`/for/employers/${slug}`}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-border/50 bg-card px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground hover:border-primary/30 transition-colors"
+                >
+                  {data.name}
+                </Link>
+              ))}
+              <Link
+                href="/for/employers"
+                className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/5 px-3 py-1.5 text-xs text-primary font-medium hover:bg-primary/10 transition-colors"
+              >
+                View all employers
+                <ArrowRight className="w-3 h-3" />
+              </Link>
+            </div>
           </div>
         </section>
 

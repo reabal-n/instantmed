@@ -39,13 +39,40 @@ interface EmployerLogoMarqueeProps {
   hideHeading?: boolean
 }
 
+function LogoRow({ logos, className }: { logos: typeof EMPLOYER_LOGOS; className?: string }) {
+  return (
+    <div className={cn('flex items-center gap-10 shrink-0', className)}>
+      <TooltipProvider delayDuration={200}>
+        {logos.map((logo, i) => (
+          <Tooltip key={i}>
+            <TooltipTrigger asChild>
+              <div className="shrink-0 h-8 w-24 flex items-center justify-center">
+                <Image
+                  src={logo.src}
+                  alt={logo.name}
+                  width={96}
+                  height={32}
+                  className="object-contain h-6 w-auto opacity-40 grayscale hover:opacity-70 hover:grayscale-0 transition-all duration-300 dark:brightness-150 dark:contrast-75"
+                />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="text-xs">
+              Accepted by {logo.name} employees
+            </TooltipContent>
+          </Tooltip>
+        ))}
+      </TooltipProvider>
+    </div>
+  )
+}
+
 export function EmployerLogoMarquee({ className, hideHeading }: EmployerLogoMarqueeProps) {
   const prefersReducedMotion = useReducedMotion()
   const sectionRef = useRef<HTMLDivElement>(null)
   const posthog = usePostHog()
   const tracked = useRef(false)
 
-  // #13 — Track marquee visibility in PostHog
+  // Track marquee visibility in PostHog
   useEffect(() => {
     const el = sectionRef.current
     if (!el || tracked.current) return
@@ -63,6 +90,32 @@ export function EmployerLogoMarquee({ className, hideHeading }: EmployerLogoMarq
     return () => observer.disconnect()
   }, [posthog])
 
+  // #7 — Reduced motion: static wrapped grid instead of scrolling marquee
+  if (prefersReducedMotion) {
+    return (
+      <div ref={sectionRef} className={cn('py-8', className)}>
+        {!hideHeading && (
+          <p className="text-center text-xs font-semibold uppercase tracking-widest text-muted-foreground/50 mb-6">
+            Accepted by employees at
+          </p>
+        )}
+        <div className="flex flex-wrap justify-center items-center gap-6 px-4 max-w-4xl mx-auto">
+          {EMPLOYER_LOGOS.map((logo) => (
+            <div key={logo.name} className="shrink-0 h-8 w-24 flex items-center justify-center">
+              <Image
+                src={logo.src}
+                alt={logo.name}
+                width={96}
+                height={32}
+                className="object-contain h-6 w-auto opacity-40 grayscale dark:brightness-150 dark:contrast-75"
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div ref={sectionRef} className={cn('py-8', className)}>
       {!hideHeading && (
@@ -70,39 +123,14 @@ export function EmployerLogoMarquee({ className, hideHeading }: EmployerLogoMarq
           Accepted by employees at
         </p>
       )}
-      <div className="relative overflow-hidden group/marquee">
+      {/* #1 — Two parallel tracks for seamless infinite loop */}
+      <div className="relative overflow-hidden group/marquee" role="marquee" aria-label="Logos of employers who accept InstantMed certificates">
         <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-background to-transparent z-10" />
         <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-background to-transparent z-10" />
 
-        <div className="flex" aria-hidden="true">
-          {/* #9 — Pause on hover, #12 — slower on mobile (animate-marquee-slow on sm:) */}
-          <div className={cn(
-            'flex items-center gap-10 px-8',
-            !prefersReducedMotion && 'animate-marquee-slow sm:animate-marquee group-hover/marquee:[animation-play-state:paused]',
-          )}>
-            <TooltipProvider delayDuration={200}>
-              {[...EMPLOYER_LOGOS, ...EMPLOYER_LOGOS].map((logo, i) => (
-                /* #10 — Tooltip on hover */
-                <Tooltip key={i}>
-                  <TooltipTrigger asChild>
-                    <div className="shrink-0 h-8 w-24 flex items-center justify-center">
-                      <Image
-                        src={logo.src}
-                        alt={logo.name}
-                        width={96}
-                        height={32}
-                        /* #11 — Dark mode: boost brightness for SVG logos */
-                        className="object-contain h-6 w-auto opacity-40 grayscale hover:opacity-70 hover:grayscale-0 transition-all duration-300 dark:brightness-150 dark:contrast-75"
-                      />
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom" className="text-xs">
-                    Accepted by {logo.name} employees
-                  </TooltipContent>
-                </Tooltip>
-              ))}
-            </TooltipProvider>
-          </div>
+        <div className="flex w-max animate-marquee-slow sm:animate-marquee group-hover/marquee:[animation-play-state:paused]">
+          <LogoRow logos={EMPLOYER_LOGOS} className="px-5" />
+          <LogoRow logos={EMPLOYER_LOGOS} className="px-5" />
         </div>
       </div>
     </div>

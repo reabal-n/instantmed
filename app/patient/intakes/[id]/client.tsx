@@ -174,7 +174,8 @@ function TimelineEntry({
 /** #18 — One-click copy verification link for sharing with employer */
 function CopyVerifyLinkButton({ verificationCode }: { verificationCode: string }) {
   const [copied, setCopied] = useState(false)
-  const url = `https://instantmed.com.au/verify?code=${encodeURIComponent(verificationCode)}`
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://instantmed.com.au"
+  const url = `${baseUrl}/verify?code=${encodeURIComponent(verificationCode)}`
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(url)

@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react"
 import { usePathname } from "next/navigation"
 
 interface ContentPageTrackerProps {
-  pageType: "condition" | "symptom" | "guide" | "medication" | "compare" | "intent" | "location" | "audience" | "blog"
+  pageType: "condition" | "symptom" | "guide" | "medication" | "compare" | "intent" | "location" | "audience" | "blog" | "employer"
   slug: string
   /** Optional service recommendation type shown on the page */
   serviceRecommendation?: "med-cert" | "consult" | "prescription" | "both"
