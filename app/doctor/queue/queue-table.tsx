@@ -42,6 +42,7 @@ import {
   ShieldAlert,
   Sparkles,
   Loader2,
+  Eye,
 } from "lucide-react"
 import { MessageSquare } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -431,6 +432,25 @@ export function QueueTable({
                       }}
                     >
                       Review
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-xs shrink-0"
+                      onClick={async (e) => {
+                        e.stopPropagation()
+                        try {
+                          const res = await fetch(`/api/doctor/certificates/${intake.id}/download`)
+                          if (!res.ok) { toast.error("Certificate not available"); return }
+                          const blob = await res.blob()
+                          window.open(URL.createObjectURL(blob), "_blank")
+                        } catch {
+                          toast.error("Failed to load certificate")
+                        }
+                      }}
+                    >
+                      <Eye className="h-3.5 w-3.5 mr-1" />
+                      PDF
                     </Button>
                     <Button
                       variant="ghost"

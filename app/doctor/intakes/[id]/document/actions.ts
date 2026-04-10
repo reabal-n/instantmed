@@ -422,6 +422,7 @@ export async function generatePreviewPdfAction(
       endDate: formatDateLong(previewData.endDate),
       certificateRef,
       issueDate: formatShortDate(previewData.consultDate),
+      isPreview: true,
     })
 
     if (!result.success || !result.buffer) {

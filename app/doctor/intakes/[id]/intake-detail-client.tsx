@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { approveDraft, regenerateDrafts } from "@/app/actions/draft-approval"
 import { updateStatusAction, saveDoctorNotesAction, declineIntakeAction, markScriptSentAction, issueRefundAction } from "@/app/doctor/queue/actions"
 import { resendCertificateAdmin } from "@/app/actions/resend-certificate-admin"
+import { reissueCertificateAction } from "@/app/actions/reissue-cert"
 import { approveDateCorrection } from "@/app/actions/request-date-correction"
 import { fetchCertPreviewDataAction, approveWithPreviewDataAction } from "@/app/doctor/intakes/[id]/document/actions"
 import type { CertificatePreviewData } from "@/components/doctor/certificate-preview-dialog"
@@ -91,6 +92,10 @@ export function IntakeDetailClient({
   const [certPreviewData, setCertPreviewData] = useState<CertificatePreviewData | null>(null)
   const [isLoadingPreview, setIsLoadingPreview] = useState(false)
   const [isRegenerating, setIsRegenerating] = useState(false)
+
+  // Reissue certificate dialog
+  const [showReissueDialog, setShowReissueDialog] = useState(false)
+  const [reissuePreviewData, setReissuePreviewData] = useState<CertificatePreviewData | null>(null)
 
   const service = intake.service as { name?: string; type?: string; short_name?: string } | undefined
 
@@ -455,6 +460,46 @@ export function IntakeDetailClient({
     })
   }
 
+  const handleReissueCertificate = async () => {
+    setIsLoadingPreview(true)
+    try {
+      const result = await fetchCertPreviewDataAction(intake.id, draftId || "")
+      if (result.success && result.data) {
+        setReissuePreviewData(result.data)
+        setShowReissueDialog(true)
+      } else {
+        toast.error(result.error || "Failed to load certificate data")
+      }
+    } catch {
+      toast.error("Failed to load certificate data")
+    } finally {
+      setIsLoadingPreview(false)
+    }
+  }
+
+  const handleReissueConfirm = async (editedData: CertificatePreviewData, notifyPatient?: boolean) => {
+    startTransition(async () => {
+      const result = await reissueCertificateAction({
+        intakeId: intake.id,
+        patientName: editedData.patientName,
+        patientDob: editedData.patientDob,
+        certificateType: editedData.certificateType,
+        startDate: editedData.startDate,
+        endDate: editedData.endDate,
+        medicalReason: editedData.medicalReason,
+        notifyPatient: notifyPatient ?? false,
+      })
+
+      if (result.success) {
+        setShowReissueDialog(false)
+        toast.success("Certificate reissued successfully")
+        router.refresh()
+      } else {
+        toast.error(result.error || "Failed to reissue certificate")
+      }
+    })
+  }
+
   const [isViewingCert, setIsViewingCert] = useState(false)
   const [certPdfUrl, setCertPdfUrl] = useState<string | null>(null)
 
@@ -508,6 +553,11 @@ export function IntakeDetailClient({
         onResendCertificate={handleResendCertificate}
         onViewCertificate={handleViewCertificate}
         onCertPreviewConfirm={handleCertPreviewConfirm}
+        showReissueDialog={showReissueDialog}
+        setShowReissueDialog={setShowReissueDialog}
+        reissuePreviewData={reissuePreviewData}
+        onReissueCertificate={handleReissueCertificate}
+        onReissueConfirm={handleReissueConfirm}
       />
 
       <IntakeDetailAnswers

@@ -148,7 +148,11 @@ export function DocumentBuilderClient({
         consultDate: new Date().toISOString().split("T")[0],
       })
       if (result.success && result.pdfDataUrl) {
-        setPreviewUrl(result.pdfDataUrl)
+        const base64 = result.pdfDataUrl.split(",")[1]
+        const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0))
+        const blob = new Blob([bytes], { type: "application/pdf" })
+        if (previewUrl) URL.revokeObjectURL(previewUrl)
+        setPreviewUrl(URL.createObjectURL(blob))
       } else {
         setActionMessage({ type: "error", text: result.error || "Failed to generate preview" })
       }

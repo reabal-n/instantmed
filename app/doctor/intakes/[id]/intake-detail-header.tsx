@@ -35,6 +35,7 @@ import {
   Loader2,
   Send,
   Mail,
+  Sparkles,
 } from "lucide-react"
 import { INTAKE_STATUS, type IntakeStatus as StatusType } from "@/lib/status"
 import { CertificatePreviewDialog, type CertificatePreviewData } from "@/components/doctor/certificate-preview-dialog"
@@ -124,6 +125,11 @@ interface IntakeDetailHeaderProps {
   onResendCertificate: () => void
   onViewCertificate: () => void
   onCertPreviewConfirm: (data: CertificatePreviewData) => void
+  showReissueDialog: boolean
+  setShowReissueDialog: (val: boolean) => void
+  reissuePreviewData: CertificatePreviewData | null
+  onReissueCertificate: () => void
+  onReissueConfirm: (data: CertificatePreviewData, notifyPatient?: boolean) => void
 }
 
 export function IntakeDetailHeader({
@@ -148,6 +154,11 @@ export function IntakeDetailHeader({
   onResendCertificate,
   onViewCertificate,
   onCertPreviewConfirm,
+  showReissueDialog,
+  setShowReissueDialog,
+  reissuePreviewData,
+  onReissueCertificate,
+  onReissueConfirm,
 }: IntakeDetailHeaderProps) {
   const service = intake.service as { type?: string } | undefined
 
@@ -202,6 +213,44 @@ export function IntakeDetailHeader({
                   Edit & Resend
                 </Link>
               </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* AI Auto-Approved Info */}
+      {intake.ai_approved && (
+        <Card className="border-violet-200/50 dark:border-violet-500/20 bg-violet-50/50 dark:bg-violet-500/5">
+          <CardContent className="px-4 py-3">
+            <div className="flex items-start gap-3">
+              <div className="rounded-full bg-violet-100 dark:bg-violet-500/20 p-1.5 shrink-0 mt-0.5">
+                <Sparkles className="h-3.5 w-3.5 text-violet-600 dark:text-violet-400" />
+              </div>
+              <div className="space-y-1 min-w-0">
+                <p className="text-sm font-medium text-violet-700 dark:text-violet-300">
+                  AI Auto-Approved
+                  {(() => {
+                    const approvedAt = (intake as unknown as Record<string, unknown>).ai_approved_at
+                    if (!approvedAt) return null
+                    return (
+                      <span className="font-normal text-violet-500 dark:text-violet-400 ml-2 text-xs">
+                        {new Date(String(approvedAt)).toLocaleString("en-AU", {
+                          day: "numeric", month: "short", hour: "2-digit", minute: "2-digit",
+                        })}
+                      </span>
+                    )
+                  })()}
+                </p>
+                {(() => {
+                  const reason = (intake as unknown as Record<string, unknown>).ai_approval_reason
+                  if (!reason) return null
+                  return (
+                    <p className="text-xs text-violet-600/80 dark:text-violet-400/80">
+                      {String(reason)}
+                    </p>
+                  )
+                })()}
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -275,11 +324,9 @@ export function IntakeDetailHeader({
                   {isViewingCert ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <FileText className="h-4 w-4 mr-2" />}
                   View Certificate
                 </Button>
-                <Button variant="outline" asChild>
-                  <Link href={`/doctor/intakes/${intake.id}/document`}>
-                    <Save className="h-4 w-4 mr-2" />
-                    Edit & Resend
-                  </Link>
+                <Button variant="outline" onClick={onReissueCertificate} disabled={isPending || isLoadingPreview}>
+                  {isLoadingPreview ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
+                  Edit & Reissue
                 </Button>
                 <Button variant="outline" onClick={onResendCertificate} disabled={isPending}>
                   {isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Mail className="h-4 w-4 mr-2" />}
@@ -396,6 +443,18 @@ export function IntakeDetailHeader({
           data={certPreviewData}
           onConfirm={onCertPreviewConfirm}
           isPending={isPending}
+        />
+      )}
+
+      {/* Reissue Certificate Dialog */}
+      {reissuePreviewData && (
+        <CertificatePreviewDialog
+          open={showReissueDialog}
+          onOpenChange={setShowReissueDialog}
+          data={reissuePreviewData}
+          onConfirm={onReissueConfirm}
+          isPending={isPending}
+          mode="reissue"
         />
       )}
 

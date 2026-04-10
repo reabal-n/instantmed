@@ -63,6 +63,7 @@ export default async function VerifyCertificateRefPage({ params }: Props) {
   const cert = await getCertificateByRef(certificate_ref.toUpperCase())
 
   const isRevoked = cert?.status === "revoked"
+  const isSuperseded = cert?.status === "superseded"
   const isValid = cert?.status === "valid"
 
   return (
@@ -165,6 +166,22 @@ export default async function VerifyCertificateRefPage({ params }: Props) {
                 <p className="text-xs text-muted-foreground text-center">
                   If you believe this is an error, please contact {CONTACT_EMAIL}
                 </p>
+              </div>
+            </div>
+          ) : isSuperseded ? (
+            <div className="glass-card rounded-2xl p-6 md:p-8 border border-border">
+              <div className="space-y-5">
+                <div className="flex items-center gap-4">
+                  <div className="rounded-full bg-muted p-3 shrink-0">
+                    <AlertTriangle className="h-7 w-7 text-warning" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-semibold text-foreground">Certificate Superseded</h3>
+                    <p className="text-muted-foreground text-sm">
+                      This certificate has been replaced by an updated version. Please contact the patient or {CONTACT_EMAIL} for the current certificate.
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           ) : (

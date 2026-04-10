@@ -12,7 +12,7 @@
  *   - QR code (right of footer, links to /verify?id=...)
  */
 
-import { PDFDocument, rgb, StandardFonts, type PDFFont } from "pdf-lib"
+import { PDFDocument, rgb, StandardFonts, degrees, type PDFFont } from "pdf-lib"
 import QRCode from "qrcode"
 import * as fs from "fs/promises"
 import * as path from "path"
@@ -43,6 +43,7 @@ export interface TemplatePdfInput {
   endDate: string          // formatted display string
   certificateRef: string   // IM-WORK-20260218-00847
   issueDate: string        // formatted date for header e.g. "18/02/2026"
+  isPreview?: boolean      // if true, stamps a diagonal "PREVIEW ONLY" watermark
 }
 
 export interface TemplatePdfResult {
@@ -308,6 +309,19 @@ export async function renderTemplatePdf(input: TemplatePdfInput): Promise<Templa
       width: LAYOUT.qrSize,
       height: LAYOUT.qrSize,
     })
+
+    // ---- PREVIEW watermark (diagonal, semi-transparent) ----
+    if (sanitisedInput.isPreview) {
+      page.drawText("PREVIEW ONLY", {
+        x: 95,
+        y: PAGE_HEIGHT / 2 - 20,
+        size: 64,
+        font: fontBold,
+        color: rgb(0.85, 0.1, 0.1),
+        opacity: 0.12,
+        rotate: degrees(45),
+      })
+    }
 
     // ---- Save ----
     const pdfBytes = await pdfDoc.save()
