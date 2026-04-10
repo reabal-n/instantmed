@@ -123,7 +123,7 @@ export type { DeclineReengagementEmailProps } from "./decline-reengagement"
 
 // --- Treatment Follow-Up (ED/hair-loss milestone check-ins) ---
 export { TreatmentFollowupEmail, treatmentFollowupSubject } from "./treatment-followup"
-export type { TreatmentFollowupEmailProps } from "./treatment-followup"
+export type { TreatmentFollowupEmailProps, FollowupSubtype, FollowupMilestone } from "./treatment-followup"
 
 // --- Abandoned Checkout Follow-Up (urgency reminder) ---
 export { AbandonedCheckoutFollowupEmail, abandonedCheckoutFollowupSubject } from "./abandoned-checkout-followup"

@@ -62,7 +62,7 @@ interface ProcessResult {
 export async function processTreatmentFollowups(now: Date = new Date()): Promise<ProcessResult> {
   const result: ProcessResult = { processed: 0, sent: 0, skipped: 0, errors: 0 }
   const supabase = createServiceRoleClient()
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au"
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au"
 
   // Candidates: due, not completed, not skipped
   const { data: candidates, error: fetchErr } = await supabase
@@ -133,7 +133,7 @@ export async function processTreatmentFollowups(now: Date = new Date()): Promise
           followupId: row.id,
           subtype,
           milestone,
-          baseUrl,
+          appUrl,
         }),
         emailType: "treatment_followup",
         intakeId: row.intake_id,

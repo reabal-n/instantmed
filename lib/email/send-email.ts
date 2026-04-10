@@ -58,6 +58,7 @@ export type EmailType =
   | "referral_credit"
   | "refund_issued"
   | "still_reviewing"
+  | "exit_intent_reminder"
   | "exit_intent_social_proof"
   | "exit_intent_last_chance"
   | "decline_reengagement"
@@ -80,6 +81,7 @@ const MARKETING_EMAIL_TYPES: ReadonlySet<EmailType> = new Set([
   "review_request",
   "review_followup",
   "repeat_rx_reminder",
+  "exit_intent_reminder",
   "exit_intent_social_proof",
   "exit_intent_last_chance",
   "decline_reengagement",

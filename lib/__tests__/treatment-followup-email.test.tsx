@@ -13,7 +13,7 @@ describe("TreatmentFollowupEmail", () => {
         followupId="fu_123"
         subtype="ed"
         milestone="month_3"
-        baseUrl="https://instantmed.com.au"
+        appUrl="https://instantmed.com.au"
       />
     )
     expect(html).toContain("Alex")
@@ -30,7 +30,7 @@ describe("TreatmentFollowupEmail", () => {
         followupId="fu_456"
         subtype="hair_loss"
         milestone="month_12"
-        baseUrl="https://instantmed.com.au"
+        appUrl="https://instantmed.com.au"
       />
     )
     expect(html).toContain("Sam")

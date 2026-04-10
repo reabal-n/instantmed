@@ -63,7 +63,7 @@ export async function captureExitIntentEmail(formData: {
       to: email,
       subject: exitIntentReminderSubject(label),
       template: ExitIntentReminderEmail({ service: label, price, ctaUrl, appUrl }),
-      emailType: "generic",
+      emailType: "exit_intent_reminder",
       tags: [
         { name: "category", value: "exit_intent_reminder" },
         { name: "service", value: service },

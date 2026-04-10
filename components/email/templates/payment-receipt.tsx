@@ -42,6 +42,7 @@ export function PaymentReceiptEmail({
     <BaseEmail
       previewText={`Payment confirmed, ${amount} for ${serviceName} ✅`}
       appUrl={appUrl}
+      showFooterReview={false}
     >
       <HeroBlock
         icon="✓"

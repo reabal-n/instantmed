@@ -1001,7 +1001,7 @@ describe("Email Templates", () => {
   describe("TreatmentFollowupEmail", () => {
     it("renders content", () => {
       const html = render(
-        <TreatmentFollowupEmail patientName="Test Patient" followupId="fu-001" subtype="ed" milestone="month_3" baseUrl={APP_URL} />
+        <TreatmentFollowupEmail patientName="Test Patient" followupId="fu-001" subtype="ed" milestone="month_3" appUrl={APP_URL} />
       )
       expectBaseEmailStructure(html)
       expectContains(html, "Test")
@@ -1105,7 +1105,7 @@ describe("Email Template Cross-Checks", () => {
       <ExitIntentSocialProofEmail key="27" service="Medical Certificate" price="$19.95" ctaUrl="https://instantmed.com.au/request" appUrl={APP_URL} />,
       <ExitIntentLastChanceEmail key="28" service="Medical Certificate" price="$19.95" ctaUrl="https://instantmed.com.au/request" appUrl={APP_URL} />,
       <DeclineReengagementEmail key="29" patientName="Test" declinedService="Medical Certificate" appUrl={APP_URL} />,
-      <TreatmentFollowupEmail key="30" patientName="Test" followupId="fu-001" subtype="ed" milestone="month_3" baseUrl={APP_URL} />,
+      <TreatmentFollowupEmail key="30" patientName="Test" followupId="fu-001" subtype="ed" milestone="month_3" appUrl={APP_URL} />,
       <ReviewRequestEmail key="31" patientName="Test" serviceName="Medical Certificate" appUrl={APP_URL} />,
       <ReviewFollowupEmail key="32" patientName="Test" appUrl={APP_URL} />,
       <AbandonedCheckoutFollowupEmail key="33" patientName="Test" serviceName="Medical Certificate" resumeUrl="https://instantmed.com.au/request?resume=abc" appUrl={APP_URL} />,
@@ -1386,7 +1386,7 @@ describe("Link validation", () => {
       <DeclineReengagementEmail patientName="Test Patient" declinedService="Medical Certificate" appUrl={APP_URL} />
     ),
     TreatmentFollowupEmail: (
-      <TreatmentFollowupEmail patientName="Test Patient" followupId="fu-001" subtype="ed" milestone="month_3" baseUrl={APP_URL} />
+      <TreatmentFollowupEmail patientName="Test Patient" followupId="fu-001" subtype="ed" milestone="month_3" appUrl={APP_URL} />
     ),
     ReviewRequestEmail: (
       <ReviewRequestEmail patientName="Test Patient" serviceName="Medical Certificate" appUrl={APP_URL} />

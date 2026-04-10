@@ -4,7 +4,12 @@ import { createLogger } from "@/lib/observability/logger"
 const logger = createLogger("email-warmup")
 
 // Progressive warmup schedule (daily send limits)
-// Override with DAILY_EMAIL_LIMIT env var to set a fixed cap, or 0 to disable
+// Override with DAILY_EMAIL_LIMIT env var to set a fixed cap, or 0 to disable.
+//
+// LAUNCH NOTE: Default of 200/day is for domain warmup. At launch, set
+// DAILY_EMAIL_LIMIT=0 in production to disable the cap. Transactional +
+// lifecycle + marketing emails will easily exceed 200/day on day one.
+// Re-enable with a higher cap only if Resend flags deliverability issues.
 const DEFAULT_DAILY_LIMIT = 200
 
 /**

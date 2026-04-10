@@ -603,16 +603,6 @@ export function StatusBanner({ title, variant = "success" }: StatusBannerProps) 
   )
 }
 
-// Keep SuccessBanner for backwards compatibility
-interface SuccessBannerProps2 {
-  icon?: string
-  title: string
-}
-
-export function SuccessBanner({ title }: SuccessBannerProps2) {
-  return <StatusBanner title={title} variant="success" />
-}
-
 interface VerificationCodeProps {
   code: string
   verifyUrl?: string

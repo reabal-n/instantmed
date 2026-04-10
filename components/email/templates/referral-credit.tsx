@@ -70,12 +70,12 @@ export function ReferralCreditEmail({
         <DetailRow label="Applied to" value="Your next request" />
       </Box>
 
-      <Button href={`${appUrl}/patient`}>View Your Credits</Button>
+      <Button href={`${appUrl}/patient?utm_source=email&utm_medium=cta&utm_campaign=referral_credit`}>View Your Credits</Button>
 
       <Text muted small>
         Credits are applied automatically at checkout. Share your referral link
         to keep earning — find it on your{" "}
-        <a href={`${appUrl}/patient`} style={{ color: colors.accent, fontWeight: 500 }}>
+        <a href={`${appUrl}/patient?utm_source=email&utm_medium=link&utm_campaign=referral_credit`} style={{ color: colors.accent, fontWeight: 500 }}>
           dashboard
         </a>
         .

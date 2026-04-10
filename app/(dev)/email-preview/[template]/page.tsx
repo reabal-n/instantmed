@@ -509,7 +509,7 @@ const templates: Record<string, {
         followupId="mock-followup-id"
         subtype="ed"
         milestone="month_3"
-        baseUrl={mock.appUrl}
+        appUrl={mock.appUrl}
       />
     ),
   },

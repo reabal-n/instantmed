@@ -15,7 +15,7 @@ export interface TreatmentFollowupEmailProps {
   followupId: string
   subtype: FollowupSubtype
   milestone: FollowupMilestone
-  baseUrl: string
+  appUrl?: string
 }
 
 const MILESTONE_LABEL: Record<FollowupMilestone, string> = {
@@ -57,17 +57,17 @@ export function TreatmentFollowupEmail({
   followupId,
   subtype,
   milestone,
-  baseUrl,
+  appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au",
 }: TreatmentFollowupEmailProps) {
   const label = MILESTONE_LABEL[milestone]
   const framing = SUBTYPE_FRAMING[subtype][milestone]
-  const ctaHref = `${baseUrl}/patient/followups/${followupId}`
-  const skipHref = `${baseUrl}/patient/followups/${followupId}/skip`
+  const ctaHref = `${appUrl}/patient/followups/${followupId}`
+  const skipHref = `${appUrl}/patient/followups/${followupId}/skip`
 
   return (
     <BaseEmail
       previewText={`Your ${label} treatment check-in is ready`}
-      appUrl={baseUrl}
+      appUrl={appUrl}
       showFooterReview={false}
     >
       <HeroBlock
