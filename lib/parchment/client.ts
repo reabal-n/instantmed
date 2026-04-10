@@ -139,7 +139,7 @@ export async function createPatient(
       "Authorization": `Bearer ${token}`,
       "x-organization-secret": config.organizationSecret,
     },
-    body: JSON.stringify(patient),
+    body: JSON.stringify({ ...patient, partner_id: config.partnerId }),
   })
 
   if (!res.ok) {
