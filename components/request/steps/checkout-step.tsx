@@ -464,10 +464,12 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
           </div>
 
           {/* Stripe + payment methods — single trust line */}
-          <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground/60">
-            <Lock className="h-3 w-3" />
-            <span>Secured by Stripe</span>
-            <span className="mx-1">·</span>
+          <div className="flex flex-wrap items-center justify-center gap-x-1.5 gap-y-1 text-xs text-muted-foreground/60">
+            <span className="flex items-center gap-1">
+              <Lock className="h-3 w-3" />
+              Secured by Stripe
+            </span>
+            <span aria-hidden="true">·</span>
             {PAYMENT_METHODS.map((method) => (
               <span key={method} className="px-1.5 py-0.5 rounded bg-muted/30 border border-border/30">
                 {method}
