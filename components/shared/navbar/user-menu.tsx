@@ -8,6 +8,7 @@ import {
   ChevronDown,
   LayoutDashboard,
   ClipboardList,
+  FileText,
 } from "lucide-react"
 import { Button } from "@/components/uix"
 import {
@@ -159,6 +160,14 @@ export function UserMenu({
           gradient="radial-gradient(circle, rgba(168,85,247,0.15) 0%, rgba(168,85,247,0.06) 50%, rgba(168,85,247,0) 100%)"
         >
           Patients
+        </AnimatedNavLink>
+        <AnimatedNavLink
+          href="/doctor/intakes"
+          icon={<FileText className="h-4 w-4" aria-hidden="true" />}
+          isActive={isActivePath("/doctor/intakes")}
+          gradient="radial-gradient(circle, rgba(34,197,94,0.15) 0%, rgba(34,197,94,0.06) 50%, rgba(34,197,94,0) 100%)"
+        >
+          Intakes
         </AnimatedNavLink>
 
         {/* Static avatar — settings & sign out live in the sidebar */}

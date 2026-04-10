@@ -64,9 +64,11 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
       >
         <motion.nav
           className={cn(
-            "relative mx-auto max-w-5xl rounded-2xl",
-            "p-1 bg-linear-to-b from-background/80 to-background/40 backdrop-blur-lg border border-border/40 shadow-lg",
-            scrolled && "shadow-xl border-border/60",
+            "relative mx-auto max-w-5xl rounded-2xl p-1 border shadow-lg",
+            "transition-[border-color,box-shadow,background-color] duration-300",
+            scrolled
+              ? "bg-background/95 backdrop-blur-xl border-border/60 shadow-xl"
+              : "bg-linear-to-b from-background/80 to-background/40 backdrop-blur-lg border-border/40",
           )}
           role="navigation"
           aria-label="Main navigation"
@@ -95,13 +97,25 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                 <>
                   <ServicesDropdown isActivePath={isActivePath} />
 
-                  <AnimatedNavLink href="/how-it-works" isActive={isActivePath("/how-it-works")}>
+                  <AnimatedNavLink
+                    href="/how-it-works"
+                    isActive={isActivePath("/how-it-works")}
+                    gradient="radial-gradient(circle, rgba(59,130,246,0.15) 0%, rgba(59,130,246,0.06) 50%, rgba(59,130,246,0) 100%)"
+                  >
                     How it Works
                   </AnimatedNavLink>
-                  <AnimatedNavLink href="/blog" isActive={isActivePath("/blog")}>
+                  <AnimatedNavLink
+                    href="/blog"
+                    isActive={isActivePath("/blog")}
+                    gradient="radial-gradient(circle, rgba(34,197,94,0.15) 0%, rgba(34,197,94,0.06) 50%, rgba(34,197,94,0) 100%)"
+                  >
                     Health Guides
                   </AnimatedNavLink>
-                  <AnimatedNavLink href="/pricing" isActive={isActivePath("/pricing")}>
+                  <AnimatedNavLink
+                    href="/pricing"
+                    isActive={isActivePath("/pricing")}
+                    gradient="radial-gradient(circle, rgba(245,158,11,0.15) 0%, rgba(245,158,11,0.06) 50%, rgba(245,158,11,0) 100%)"
+                  >
                     Pricing
                   </AnimatedNavLink>
 
