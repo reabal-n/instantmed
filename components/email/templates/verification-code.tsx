@@ -35,6 +35,7 @@ export function VerificationCodeEmail({
     <BaseEmail
       previewText={`Your InstantMed verification code is ${code}`}
       appUrl={appUrl}
+      showFooterReview={false}
     >
       <Text>Here&apos;s your verification code. Enter it where prompted to continue:</Text>
 
@@ -81,13 +82,6 @@ export function VerificationCodeEmail({
         </Box>
       )}
 
-      <Text muted small>
-        Questions? Just reply to this email or visit our{" "}
-        <a href={`${appUrl}/contact`} style={{ color: colors.accent, fontWeight: 500, textDecoration: "none" }}>
-          help centre
-        </a>
-        .
-      </Text>
     </BaseEmail>
   )
 }

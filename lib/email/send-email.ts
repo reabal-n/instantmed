@@ -18,6 +18,9 @@ import { logger } from "@/lib/observability/logger"
 import { isEmailSuppressed, htmlToPlainText } from "./utils"
 import { CONTACT_EMAIL } from "@/lib/constants"
 import { recordDeliverySent } from "@/lib/monitoring/delivery-tracking"
+import { signUnsubscribeToken } from "@/lib/crypto/unsubscribe-token"
+import { checkDailySendLimit, incrementDailySendCount } from "./warmup"
+import { UNSUBSCRIBE_PLACEHOLDER } from "@/components/email/base-email"
 
 // ============================================
 // TYPES
@@ -59,6 +62,30 @@ export type EmailType =
   | "exit_intent_last_chance"
   | "decline_reengagement"
   | "treatment_followup"
+  | "abandoned_checkout_followup"
+  | "subscription_nudge"
+  | "follow_up_reminder"
+  | "verification_code"
+  // Review lifecycle emails (cron-triggered)
+  | "review_request"
+  | "review_followup"
+  | "payment_retry"
+
+// Email types that are marketing/engagement — get auto List-Unsubscribe headers
+const MARKETING_EMAIL_TYPES: ReadonlySet<EmailType> = new Set([
+  "abandoned_checkout",
+  "abandoned_checkout_followup",
+  "subscription_nudge",
+  "follow_up_reminder",
+  "review_request",
+  "review_followup",
+  "repeat_rx_reminder",
+  "exit_intent_social_proof",
+  "exit_intent_last_chance",
+  "decline_reengagement",
+  "treatment_followup",
+  "referral_credit",
+])
 
 interface SendEmailParams {
   to: string
@@ -126,6 +153,32 @@ function isRetryableError(statusCode?: number, errorMessage?: string): boolean {
 }
 
 // ============================================
+// UNSUBSCRIBE URL INJECTION
+// ============================================
+
+/**
+ * Replace the __UNSUBSCRIBE_URL__ placeholder in rendered HTML with a real
+ * signed preference-center URL. Falls back to auth-gated settings page
+ * for system emails without a patientId.
+ */
+function injectUnsubscribeUrl(html: string, patientId?: string): string {
+  if (!html.includes(UNSUBSCRIBE_PLACEHOLDER)) return html
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au"
+  let url: string
+  if (patientId) {
+    try {
+      const token = signUnsubscribeToken(patientId)
+      url = `${appUrl}/email-preferences?token=${token}`
+    } catch {
+      url = `${appUrl}/account?tab=notifications`
+    }
+  } else {
+    url = `${appUrl}/account?tab=notifications`
+  }
+  return html.replaceAll(UNSUBSCRIBE_PLACEHOLDER, url)
+}
+
+// ============================================
 // EMAIL VALIDATION
 // ============================================
 
@@ -172,6 +225,29 @@ interface OutboxEntry {
 async function createPendingOutbox(entry: Omit<OutboxEntry, "status">): Promise<string | null> {
   try {
     const supabase = createServiceRoleClient()
+
+    // Idempotency guard: skip if an identical email was created in the last 5 minutes
+    // Prevents duplicate outbox rows from double-submissions or race conditions
+    const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString()
+    const { data: existing } = await supabase
+      .from("email_outbox")
+      .select("id")
+      .eq("email_type", entry.email_type)
+      .eq("to_email", entry.to_email)
+      .eq("intake_id", entry.intake_id || "")
+      .gte("created_at", fiveMinAgo)
+      .in("status", ["pending", "sent", "sending"])
+      .limit(1)
+      .maybeSingle()
+
+    if (existing) {
+      logger.info("[Email] Idempotency guard: duplicate outbox row skipped", {
+        existingId: existing.id,
+        emailType: entry.email_type,
+      })
+      return existing.id
+    }
+
     const { data, error } = await supabase
       .from("email_outbox")
       .insert({
@@ -377,10 +453,10 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
     return { success: false, error }
   }
 
-  // Render React template to HTML
+  // Render React template to HTML, then inject signed unsubscribe URL
   let html: string
   try {
-    html = await renderEmailToHtml(template)
+    html = injectUnsubscribeUrl(await renderEmailToHtml(template), patientId)
   } catch (err) {
     const error = `Template render failed: ${err instanceof Error ? err.message : "Unknown"}`
     logger.error("[Email] " + error, { emailType })
@@ -462,7 +538,7 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
   if (suppressed) {
     const error = "Email address previously bounced or complained"
     logger.warn("[Email] Suppressed", { to: sanitizeEmailForLog(to) })
-    
+
     await logToOutbox({
       email_type: emailType,
       to_email: to,
@@ -475,6 +551,39 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
       patient_id: patientId,
       certificate_id: certificateId,
       metadata,
+    })
+
+    return { success: false, error }
+  }
+
+  // Check daily send limit (domain warmup)
+  const warmupCheck = await checkDailySendLimit()
+  if (!warmupCheck.allowed) {
+    const error = `Daily send limit reached (${warmupCheck.current}/${warmupCheck.limit})`
+    logger.warn("[Email] " + error, { emailType })
+
+    // Alert if warmup is blocking transactional (non-marketing) emails
+    if (!MARKETING_EMAIL_TYPES.has(emailType)) {
+      Sentry.captureMessage("Warmup limit blocking transactional email", {
+        level: "warning",
+        tags: { email_type: emailType, alert_type: "warmup_transactional_blocked" },
+        extra: { current: warmupCheck.current, limit: warmupCheck.limit, intakeId },
+      })
+    }
+
+    // Log to outbox as failed so dispatcher can retry later
+    await logToOutbox({
+      email_type: emailType,
+      to_email: to,
+      to_name: toName,
+      subject,
+      status: "failed",
+      provider: "resend",
+      error_message: error,
+      intake_id: intakeId,
+      patient_id: patientId,
+      certificate_id: certificateId,
+      metadata: { ...metadata, warmup_limited: true },
     })
 
     return { success: false, error }
@@ -495,6 +604,28 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
     ],
     ...(headers && Object.keys(headers).length > 0 && { headers }),
     ...(attachments && attachments.length > 0 && { attachments }),
+  }
+
+  // Auto-inject headers for marketing emails (Australian Spam Act + RFC 8058)
+  if (MARKETING_EMAIL_TYPES.has(emailType)) {
+    body.headers = {
+      ...(body.headers as Record<string, string> || {}),
+      "Precedence": "bulk", // Reduces auto-reply storms, signals bulk mail to ESPs
+    }
+    if (patientId) {
+      try {
+        const unsubToken = signUnsubscribeToken(patientId)
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au"
+        const unsubUrl = `${appUrl}/api/unsubscribe?token=${unsubToken}&type=marketing`
+        body.headers = {
+          ...(body.headers as Record<string, string>),
+          "List-Unsubscribe": `<${unsubUrl}>`,
+          "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+        }
+      } catch {
+        logger.warn("[Email] Failed to generate unsubscribe token", { emailType })
+      }
+    }
   }
 
   // TWO-PHASE WRITE: Create pending outbox row BEFORE attempting send
@@ -576,6 +707,23 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
         attempts: attempt + 1,
       })
 
+      // Track in PostHog for email→conversion funnels
+      try {
+        const { getPostHogClient } = await import("@/lib/posthog-server")
+        getPostHogClient().capture({
+          distinctId: patientId || "system",
+          event: "email_sent",
+          properties: {
+            email_type: emailType,
+            intake_id: intakeId,
+            is_marketing: MARKETING_EMAIL_TYPES.has(emailType),
+            provider_message_id: data.id,
+          },
+        })
+      } catch {
+        // Non-blocking
+      }
+
       // Record delivery for health monitoring
       recordDeliverySent({
         messageId: data.id,
@@ -594,6 +742,9 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
           attempts: attempt + 1,
         })
       }
+
+      // Increment daily send counter for warmup tracking
+      incrementDailySendCount().catch(() => {})
 
       return { success: true, messageId: data.id, outboxId: outboxId || undefined }
 
@@ -685,7 +836,7 @@ export async function sendFromOutboxRow(row: OutboxRow): Promise<{ success: bool
       })
       return { success: false, error: reconstructed.error }
     }
-    html = reconstructed.html!
+    html = injectUnsubscribeUrl(reconstructed.html!, row.patient_id || undefined)
     textBody = reconstructed.text || htmlToPlainText(html)
   } catch (err) {
     const error = err instanceof Error ? err.message : "Reconstruction failed"
@@ -698,6 +849,7 @@ export async function sendFromOutboxRow(row: OutboxRow): Promise<{ success: bool
   }
 
   // Build request body
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au"
   const body: Record<string, unknown> = {
     from: env.resendFromEmail,
     to: [row.to_email],
@@ -706,6 +858,21 @@ export async function sendFromOutboxRow(row: OutboxRow): Promise<{ success: bool
     text: textBody,
     reply_to: CONTACT_EMAIL,
     tags: [{ name: "email_type", value: row.email_type }],
+  }
+
+  // Inject List-Unsubscribe headers for marketing emails on retry (mirrors sendEmail)
+  if (MARKETING_EMAIL_TYPES.has(row.email_type)) {
+    body.headers = { "Precedence": "bulk" }
+    if (row.patient_id) {
+      try {
+        const unsubToken = signUnsubscribeToken(row.patient_id)
+        const unsubUrl = `${appUrl}/api/unsubscribe?token=${unsubToken}&type=marketing`
+        ;(body.headers as Record<string, string>)["List-Unsubscribe"] = `<${unsubUrl}>`
+        ;(body.headers as Record<string, string>)["List-Unsubscribe-Post"] = "List-Unsubscribe=One-Click"
+      } catch {
+        // Non-blocking
+      }
+    }
   }
 
   try {

@@ -8,7 +8,7 @@
 import * as React from "react"
 import {
   BaseEmail,
-  SuccessBanner,
+  HeroBlock,
   Text,
   Button,
   Box,
@@ -43,7 +43,12 @@ export function PaymentReceiptEmail({
       previewText={`Payment confirmed, ${amount} for ${serviceName} ✅`}
       appUrl={appUrl}
     >
-      <SuccessBanner title="Payment confirmed" />
+      <HeroBlock
+        icon="✓"
+        headline="Payment confirmed"
+        subtitle={`${amount} · ${serviceName}`}
+        variant="success"
+      />
 
       <Text>Hi {firstName},</Text>
 
@@ -80,13 +85,6 @@ export function PaymentReceiptEmail({
         .
       </Text>
 
-      <Text muted small>
-        Questions? Reply to this email or visit our{" "}
-        <a href={`${appUrl}/contact`} style={{ color: colors.accent, fontWeight: 500 }}>
-          help centre
-        </a>
-        .
-      </Text>
     </BaseEmail>
   )
 }

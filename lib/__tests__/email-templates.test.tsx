@@ -77,7 +77,7 @@ describe("Email Templates", () => {
     it("renders with base structure and patient name", () => {
       const html = render(<WelcomeEmail patientName="Sarah Chen" appUrl={APP_URL} />)
       expectBaseEmailStructure(html)
-      expectContains(html, "Sarah", "welcome")
+      expectContains(html, "Sarah", "Good to have you")
     })
 
     it("extracts first name correctly", () => {
@@ -86,8 +86,10 @@ describe("Email Templates", () => {
     })
 
     it("subject is non-empty string", () => {
-      expect(welcomeEmailSubject).toBeTruthy()
-      expect(typeof welcomeEmailSubject).toBe("string")
+      const subject = welcomeEmailSubject("Sarah Chen")
+      expect(subject).toBeTruthy()
+      expect(typeof subject).toBe("string")
+      expect(subject).toContain("Sarah")
     })
 
     it("matches snapshot", () => {
@@ -1007,5 +1009,297 @@ describe("Email Template Cross-Checks", () => {
       expect(html).not.toContain(">undefined<")
       expect(html).not.toContain(">null<")
     }
+  })
+})
+
+// ============================================================================
+// LINK VALIDATION
+// ============================================================================
+
+describe("Link validation", () => {
+  /**
+   * Registry of all templates with mock data. Iterating over this ensures
+   * every template is covered automatically — adding a new template here
+   * is the only step needed to include it in link checks.
+   */
+  const templateRegistry: Record<string, React.ReactElement> = {
+    WelcomeEmail: <WelcomeEmail patientName="Test Patient" appUrl={APP_URL} />,
+    MedCertPatientEmail: (
+      <MedCertPatientEmail
+        patientName="Test Patient"
+        downloadUrl="https://instantmed.com.au/dl/abc123"
+        dashboardUrl="https://instantmed.com.au/patient/intakes/123"
+        verificationCode="ABC-1234"
+        appUrl={APP_URL}
+      />
+    ),
+    MedCertEmployerEmail: (
+      <MedCertEmployerEmail
+        patientName="Test Patient"
+        employerName="Jane Manager"
+        companyName="Acme Corp"
+        downloadUrl="https://instantmed.com.au/dl/emp-abc123"
+        verificationCode="XYZ-9876"
+        certStartDate="1 March 2026"
+        certEndDate="3 March 2026"
+        appUrl={APP_URL}
+      />
+    ),
+    ScriptSentEmail: (
+      <ScriptSentEmail
+        patientName="Test Patient"
+        requestId="REQ-001"
+        escriptReference="ESCRIPT-ABC123"
+        appUrl={APP_URL}
+      />
+    ),
+    RequestDeclinedEmail: (
+      <RequestDeclinedEmail
+        patientName="Test Patient"
+        requestType="Medical Certificate"
+        requestId="REQ-002"
+        reason="Insufficient clinical information"
+        appUrl={APP_URL}
+      />
+    ),
+    PaymentReceiptEmail: (
+      <PaymentReceiptEmail
+        patientName="Test Patient"
+        serviceName="Medical Certificate (1 Day)"
+        amount="$19.95"
+        intakeRef="IM-20260301-XYZ"
+        paidAt="1 March 2026, 9:30 AM AEST"
+        dashboardUrl="https://instantmed.com.au/patient/intakes/123"
+        appUrl={APP_URL}
+      />
+    ),
+    PaymentConfirmedEmail: (
+      <PaymentConfirmedEmail
+        patientName="Test Patient"
+        requestType="Medical Certificate"
+        amount="$19.95"
+        requestId="REQ-003"
+        appUrl={APP_URL}
+      />
+    ),
+    PaymentFailedEmail: (
+      <PaymentFailedEmail
+        patientName="Test Patient"
+        serviceName="Repeat Prescription"
+        failureReason="Card declined"
+        retryUrl="https://instantmed.com.au/retry/xyz"
+        appUrl={APP_URL}
+      />
+    ),
+    PaymentRetryEmail: (
+      <PaymentRetryEmail
+        patientName="Test Patient"
+        requestType="Medical Certificate"
+        amount="$19.95"
+        paymentUrl="https://instantmed.com.au/pay/abc"
+        appUrl={APP_URL}
+      />
+    ),
+    NeedsMoreInfoEmail: (
+      <NeedsMoreInfoEmail
+        patientName="Test Patient"
+        requestType="Prescription"
+        requestId="REQ-004"
+        doctorMessage="Please provide more details about your symptoms."
+        appUrl={APP_URL}
+      />
+    ),
+    GuestCompleteAccountEmail: (
+      <GuestCompleteAccountEmail
+        patientName="Test Patient"
+        requestType="Medical Certificate"
+        intakeId="intake-123"
+        completeAccountUrl="https://instantmed.com.au/auth/complete-account?intake_id=intake-123"
+        appUrl={APP_URL}
+      />
+    ),
+    AbandonedCheckoutEmail: (
+      <AbandonedCheckoutEmail
+        patientName="Test Patient"
+        serviceName="Medical Certificate"
+        resumeUrl="https://instantmed.com.au/request?resume=abc"
+        hoursAgo={4}
+        appUrl={APP_URL}
+      />
+    ),
+    ConsultApprovedEmail: (
+      <ConsultApprovedEmail
+        patientName="Test Patient"
+        requestId="REQ-005"
+        doctorNotes="Recommend follow-up in 2 weeks."
+        appUrl={APP_URL}
+      />
+    ),
+    EdApprovedEmail: (
+      <EdApprovedEmail
+        patientName="Test Patient"
+        medicationName="Sildenafil 50mg"
+        requestId="REQ-006"
+        appUrl={APP_URL}
+      />
+    ),
+    HairLossApprovedEmail: (
+      <HairLossApprovedEmail
+        patientName="Test Patient"
+        medicationName="Finasteride 1mg"
+        requestId="REQ-007"
+        appUrl={APP_URL}
+      />
+    ),
+    WeightLossApprovedEmail: (
+      <WeightLossApprovedEmail
+        patientName="Test Patient"
+        medicationName="Semaglutide 0.25mg"
+        requestId="REQ-008"
+        appUrl={APP_URL}
+      />
+    ),
+    WomensHealthApprovedEmail: (
+      <WomensHealthApprovedEmail
+        patientName="Test Patient"
+        medicationName="Levonorgestrel"
+        treatmentType="contraception"
+        requestId="REQ-009"
+        appUrl={APP_URL}
+      />
+    ),
+    PrescriptionApprovedEmail: (
+      <PrescriptionApprovedEmail
+        patientName="Test Patient"
+        medicationName="Amoxicillin 500mg"
+        intakeId="intake-456"
+        appUrl={APP_URL}
+      />
+    ),
+    RepeatRxReminderEmail: (
+      <RepeatRxReminderEmail
+        patientName="Test Patient"
+        medicationName="Salbutamol"
+        reorderUrl="https://instantmed.com.au/request?service=prescription"
+        appUrl={APP_URL}
+      />
+    ),
+    ReferralCreditEmail: (
+      <ReferralCreditEmail
+        patientName="Test Patient"
+        creditAmount="$5.00"
+        friendName="Jamie"
+        appUrl={APP_URL}
+      />
+    ),
+    IntakeSubmittedEmail: (
+      <IntakeSubmittedEmail
+        patientName="Test Patient"
+        requestType="Medical Certificate"
+        requestId="REQ-010"
+        appUrl={APP_URL}
+      />
+    ),
+    RequestReceivedEmail: (
+      <RequestReceivedEmail
+        patientName="Test Patient"
+        requestType="Medical Certificate"
+        amount="$19.95"
+        requestId="REQ-011"
+        appUrl={APP_URL}
+      />
+    ),
+    RefundIssuedEmail: (
+      <RefundIssuedEmail
+        patientName="Test Patient"
+        requestType="Medical Certificate"
+        requestId="REQ-012"
+        amountFormatted="$19.95"
+        appUrl={APP_URL}
+      />
+    ),
+    VerificationCodeEmail: (
+      <VerificationCodeEmail code="847291" appUrl={APP_URL} />
+    ),
+    StillReviewingEmail: (
+      <StillReviewingEmail
+        patientName="Test Patient"
+        requestType="Medical Certificate"
+        requestId="REQ-013"
+        appUrl={APP_URL}
+      />
+    ),
+  }
+
+  /** Extract all href values from rendered HTML */
+  function extractHrefs(html: string): string[] {
+    const hrefRegex = /href="([^"]*)"/g
+    const hrefs: string[] = []
+    let match: RegExpExecArray | null
+    while ((match = hrefRegex.exec(html)) !== null) {
+      hrefs.push(match[1])
+    }
+    return hrefs
+  }
+
+  for (const [templateName, element] of Object.entries(templateRegistry)) {
+    describe(templateName, () => {
+      const html = render(element)
+      const hrefs = extractHrefs(html)
+
+      it("contains at least one link", () => {
+        expect(hrefs.length).toBeGreaterThan(0)
+      })
+
+      it("has no empty href values", () => {
+        for (const href of hrefs) {
+          expect(href.trim()).not.toBe("")
+        }
+      })
+
+      it("has no href containing 'undefined'", () => {
+        for (const href of hrefs) {
+          expect(href).not.toContain("undefined")
+        }
+      })
+
+      it("has no href containing 'null'", () => {
+        for (const href of hrefs) {
+          expect(href).not.toContain("null")
+        }
+      })
+
+      it("all hrefs start with http://, https://, mailto:, or are known placeholders", () => {
+        const ALLOWED_PATTERNS = /^(https?:\/\/|mailto:|__UNSUBSCRIBE_URL__|#$)/
+        for (const href of hrefs) {
+          expect(href).toMatch(ALLOWED_PATTERNS)
+        }
+      })
+
+      it("has no broken template interpolation in hrefs", () => {
+        for (const href of hrefs) {
+          expect(href).not.toContain("${")
+        }
+      })
+    })
+  }
+})
+
+// =============================================
+// From-domain alignment
+// =============================================
+
+describe("From-domain alignment", () => {
+  it("RESEND_FROM_EMAIL domain matches NEXT_PUBLIC_APP_URL domain", () => {
+    // In prod, emails must be sent from the same domain as the app
+    // to pass SPF/DKIM alignment checks. This catches misconfigurations.
+    // Use production defaults — test env has localhost which is irrelevant.
+    const appUrl = "https://instantmed.com.au"
+    const fromEmail = process.env.RESEND_FROM_EMAIL || "InstantMed <support@instantmed.com.au>"
+
+    const appDomain = new URL(appUrl).hostname.replace(/^www\./, "")
+    const fromDomain = fromEmail.match(/@([^>]+)/)?.[1] || ""
+
+    expect(fromDomain).toBe(appDomain)
   })
 })

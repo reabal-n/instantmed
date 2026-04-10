@@ -1,19 +1,12 @@
 /**
  * Welcome Email Template
- * 
+ *
  * Sent to new patients after account creation.
+ * Warm handshake — not a brochure.
  */
 
 import * as React from "react"
-import {
-  BaseEmail,
-  Heading,
-  Text,
-  Button,
-  Box,
-  List,
-  colors,
-} from "../base-email"
+import { BaseEmail, HeroBlock, Text, Button } from "../base-email"
 
 export interface WelcomeEmailProps {
   patientName: string
@@ -28,39 +21,29 @@ export function WelcomeEmail({
 
   return (
     <BaseEmail
-      previewText="Welcome to InstantMed — good to have you 👍"
+      previewText={`Good to have you, ${firstName} — no waiting rooms, no phone tag.`}
       appUrl={appUrl}
+      showFooterReview={false}
     >
-      <Heading>Hey {firstName}, welcome 👋</Heading>
+      <HeroBlock
+        icon="👋"
+        headline={`Good to have you, ${firstName}`}
+        variant="info"
+      />
 
       <Text>
-        You&apos;re all set. No waiting rooms, no phone tag — just fill in
-        a short form and a real Australian doctor reviews it, usually within
-        the hour.
+        No waiting rooms, no phone tag. Fill in a short form, a real Australian
+        doctor reviews it, and you&apos;re done — usually within the hour.
       </Text>
 
-      <Box>
-        <Heading as="h3">What you can do with InstantMed</Heading>
-        <List
-          items={[
-            "Medical certificates — from $19.95, reviewed within the hour",
-            "Repeat prescriptions — any Australian pharmacy",
-            "GP consultations — from $49.95, no video call needed",
-          ]}
-        />
-      </Box>
-
-      <Button href={`${appUrl}/start`}>Get started</Button>
-
-      <Text muted small>
-        Questions? Reply to this email or visit our{" "}
-        <a href={`${appUrl}/contact`} style={{ color: colors.accent, fontWeight: 500 }}>
-          help centre
-        </a>
-        .
+      <Text small muted>
+        Trusted by thousands of Australians for fast, confidential healthcare.
       </Text>
+
+      <Button href={`${appUrl}/start`}>Make your first request</Button>
     </BaseEmail>
   )
 }
 
-export const welcomeEmailSubject = "Welcome to InstantMed 👋"
+export const welcomeEmailSubject = (patientName: string) =>
+  `Good to have you, ${patientName.split(" ")[0]} 👋`

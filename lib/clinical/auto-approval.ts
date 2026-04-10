@@ -21,7 +21,7 @@ import { checkEmergencySymptoms, checkRedFlagPatterns } from "./triage-rules-eng
  *
  * Format: MAJOR.MINOR (major = structural changes, minor = keyword/threshold updates)
  */
-export const ELIGIBILITY_ENGINE_VERSION = "2.2"
+export const ELIGIBILITY_ENGINE_VERSION = "2.3"
 
 /**
  * Human-readable manifest of all checks the engine applies.
@@ -42,7 +42,6 @@ export const ELIGIBILITY_CHECK_MANIFEST = [
   "chronic_condition_soft_block",
   "pregnancy_keyword_block",
   "duration_within_limit",
-  "backdating_within_1_day",
   "symptom_text_substantive",
   "ai_clinical_note_exists_and_ready",
   "ai_draft_review_flag_soft_only",
@@ -78,7 +77,7 @@ interface PatientInfo {
 // ============================================================================
 
 const MENTAL_HEALTH_KEYWORDS = [
-  "depression", "depressed", "mental health", "stress leave",
+  "depression", "depressed",
   "psychiatric", "ptsd", "bipolar", "psychosis", "eating disorder",
   "mental breakdown", "nervous breakdown", "ocd",
   // Defense-in-depth: also caught by checkEmergencySymptoms, but listed here
@@ -96,10 +95,8 @@ const INJURY_KEYWORDS = [
 ]
 
 const CHRONIC_CONDITION_KEYWORDS = [
-  "chronic", "ongoing condition", "relapse",
-  "long-term", "long term", "recurring", "fibromyalgia", "crohn",
-  "lupus", "multiple sclerosis", "ms flare", "rheumatoid",
-  "endometriosis", "celiac",
+  "chronic", "relapse",
+  "long-term", "long term", "recurring",
 ]
 
 const PREGNANCY_KEYWORDS = [
@@ -116,16 +113,14 @@ const PREGNANCY_KEYWORDS = [
 // ============================================================================
 
 const SOFT_BLOCK_MENTAL_HEALTH = [
-  "anxiety", "anxious", "panic", "panic attack", "burnout", "stress",
+  "panic", "panic attack", "burnout",
 ]
 
 const SOFT_BLOCK_INJURY = [
-  "accident", "fall", "sprain", "injury", "injured", "broken", "wound",
+  "accident", "fall", "wound",
 ]
 
-const SOFT_BLOCK_CHRONIC = [
-  "flare up", "flare-up", "flareup", "ibs", "irritable bowel",
-]
+const SOFT_BLOCK_CHRONIC: string[] = []
 
 // ============================================================================
 // HELPERS
@@ -245,10 +240,9 @@ export function extractStartDate(answers: Record<string, unknown> | null): strin
  * 7. No chronic condition keywords
  * 8. No pregnancy keywords
  * 9. Duration is 1-N days (N configurable, default 3)
- * 10. Start date not backdated > 1 day
- * 11. Symptom text is not empty (must have actual medical reason)
- * 12. AI clinical note draft exists with status "ready"
- * 13. AI draft flags.requiresReview === false
+ * 10. Symptom text is not empty (must have actual medical reason)
+ * 11. AI clinical note draft exists with status "ready"
+ * 12. AI draft flags.requiresReview === false
  */
 export function evaluateAutoApprovalEligibility(
   intake: { service_type: string; subtype?: string | null },
@@ -397,31 +391,18 @@ export function evaluateAutoApprovalEligibility(
     flags.push("duration_invalid")
   }
 
-  // 10. Backdating check (start date should not be > 1 day in the past)
-  // Compare AEST date strings — patients are Australian so the reference clock is Sydney.
-  // Subtract 24h from now and re-express in AEST to get "yesterday in Sydney".
-  const startDateStr = extractStartDate(answers)
-  if (startDateStr) {
-    const yesterdayAest = new Date(Date.now() - 24 * 60 * 60 * 1000)
-      .toLocaleDateString("en-CA", { timeZone: "Australia/Sydney" })
-
-    if (startDateStr < yesterdayAest) {
-      flags.push("backdated_too_far")
-    }
-  }
-
-  // 11. Symptom text must be substantive (not empty/generic)
+  // 10. Symptom text must be substantive (not empty/generic)
   if (!symptomText || symptomText.trim().length < 5) {
     flags.push("empty_symptom_text")
   }
 
-  // 12. AI draft exists and is ready
+  // 11. AI draft exists and is ready
   if (!drafts.clinicalNote) {
     flags.push("missing_clinical_note_draft")
   } else if (drafts.clinicalNote.status !== "ready") {
     flags.push(`draft_not_ready: ${drafts.clinicalNote.status}`)
   } else {
-    // 13. AI draft review flag — soft flag only (doctor batch review still applies)
+    // 12. AI draft review flag — soft flag only (doctor batch review still applies)
     // Treating this as a hard block was too aggressive: the AI model flags "anxiety"
     // and other common mild symptoms as requiring review even when clinically appropriate
     // for a standard 1-3 day cert. Batch review catches any concerns post-approval.

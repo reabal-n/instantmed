@@ -8,26 +8,45 @@ import { createLogger } from "@/lib/observability/logger"
 const logger = createLogger("email-utils")
 
 /**
- * Check if an email address has bounced or complained recently
- * Used to prevent sending to addresses that will bounce (protects sender reputation)
+ * Check if an email address should be suppressed.
+ *
+ * Suppression rules:
+ * - Complaint → always suppress (spam report = permanent)
+ * - Hard bounce → suppress after 1 occurrence
+ * - Soft bounce → suppress only if 3+ soft bounces in last 24 hours
+ *                 (allows retry after transient mailbox-full etc.)
  */
 export async function isEmailSuppressed(email: string): Promise<boolean> {
   const supabase = createServiceRoleClient()
-  
-  const { data, error } = await supabase
-    .from("email_outbox")
-    .select("id, delivery_status")
-    .eq("to_email", email)
-    .in("delivery_status", ["bounced", "complained"])
-    .limit(1)
-    .maybeSingle()
-  
-  if (error) {
-    logger.warn("Failed to check email suppression", { email: email.replace(/(.{2}).*@/, "$1***@"), error: error.message })
-    return false // Don't block on error, but log it
+
+  try {
+    // Check for complaint or hard bounce (permanent suppress)
+    const { data: hardSuppress } = await supabase
+      .from("email_outbox")
+      .select("id")
+      .eq("to_email", email)
+      .or("delivery_status.eq.complained,and(delivery_status.eq.bounced,metadata->>bounce_type.eq.hard)")
+      .limit(1)
+      .maybeSingle()
+
+    if (hardSuppress) return true
+
+    // Check for repeated soft bounces (3+ in last 24h = temporary suppress)
+    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+    const { count } = await supabase
+      .from("email_outbox")
+      .select("id", { count: "exact", head: true })
+      .eq("to_email", email)
+      .eq("delivery_status", "bounced")
+      .gte("created_at", oneDayAgo)
+
+    if ((count || 0) >= 3) return true
+
+    return false
+  } catch (error) {
+    logger.warn("Failed to check email suppression", { email: email.replace(/(.{2}).*@/, "$1***@"), error })
+    return false // Fail open
   }
-  
-  return !!data
 }
 
 /**

@@ -7,11 +7,11 @@
 import * as React from "react"
 import {
   BaseEmail,
+  HeroBlock,
   Heading,
   Text,
   Button,
   Box,
-  colors,
 } from "../base-email"
 
 export interface RefundIssuedEmailProps {
@@ -35,8 +35,14 @@ export function RefundIssuedEmail({
     <BaseEmail
       previewText={`Your ${requestType} refund has been processed ✅`}
       appUrl={appUrl}
+      showFooterReview={false}
     >
-      <Heading>Refund processed</Heading>
+      <HeroBlock
+        icon="✓"
+        headline="Refund processed"
+        subtitle={amountFormatted || "Your payment is being returned"}
+        variant="success"
+      />
 
       <Text>Hi {firstName},</Text>
 
@@ -61,13 +67,6 @@ export function RefundIssuedEmail({
         View Request Details
       </Button>
 
-      <Text muted small>
-        Questions? Reply to this email or visit our{" "}
-        <a href={`${appUrl}/contact`} style={{ color: colors.accent, fontWeight: 500 }}>
-          help centre
-        </a>
-        .
-      </Text>
     </BaseEmail>
   )
 }

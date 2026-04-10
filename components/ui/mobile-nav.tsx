@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { usePathname, useRouter } from "next/navigation"
 import { useAuth } from "@/lib/supabase/auth-provider"
-import { Home, FileText, User, FolderOpen, MoreHorizontal, ClipboardList, Activity, MessageSquare, X, Settings, BarChart3, Shield, LogOut, FileCheck } from "lucide-react"
+import { Home, FileText, User, FolderOpen, MoreHorizontal, ClipboardList, Activity, MessageSquare, X, Settings, BarChart3, Shield, ShieldAlert, LogOut, FileCheck } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface NavItem {
@@ -108,6 +108,11 @@ const doctorMoreItems: NavItem[] = [
     label: "Analytics",
     icon: BarChart3,
     href: "/doctor/analytics",
+  },
+  {
+    label: "Email Suppression",
+    icon: ShieldAlert,
+    href: "/doctor/email-suppression",
   },
   {
     label: "Settings",

@@ -10,7 +10,6 @@ import {
   Text,
   Button,
   Box,
-  colors,
 } from "../base-email"
 
 export interface NeedsMoreInfoEmailProps {
@@ -35,7 +34,7 @@ export function NeedsMoreInfoEmail({
   const firstName = patientName.split(" ")[0]
 
   return (
-    <BaseEmail previewText="The doctor has a quick question for you 🩺" appUrl={appUrl}>
+    <BaseEmail previewText="The doctor has a quick question for you 🩺" appUrl={appUrl} showFooterReview={false}>
       <StatusBanner title="The doctor has a question" variant="warning" />
 
       <Text>Hi {firstName},</Text>
@@ -68,13 +67,6 @@ export function NeedsMoreInfoEmail({
         Your spot in the queue is saved.
       </Text>
 
-      <Text muted small>
-        Questions? Reply to this email or visit our{" "}
-        <a href={`${appUrl}/contact`} style={{ color: colors.accent, fontWeight: 500 }}>
-          help centre
-        </a>
-        .
-      </Text>
     </BaseEmail>
   )
 }

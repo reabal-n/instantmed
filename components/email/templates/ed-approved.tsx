@@ -8,15 +8,13 @@
 import * as React from "react"
 import {
   BaseEmail,
+  HeroBlock,
   Text,
   Button,
   Box,
   Heading,
   List,
-  SuccessBanner,
   GoogleReviewCTA,
-  ReferralCTA,
-  colors,
 } from "../base-email"
 import { GOOGLE_REVIEW_URL } from "@/lib/constants"
 
@@ -49,23 +47,22 @@ export function EdApprovedEmail({
     <BaseEmail
       previewText={`✅ ${firstName}, your ${medicationName} prescription is ready`}
       appUrl={appUrl}
+      showFooterReview={false}
     >
-      <SuccessBanner title="Prescription approved" />
+      <HeroBlock
+        icon="✓"
+        headline="Prescription approved"
+        subtitle={medicationName}
+        variant="success"
+      />
 
       <Text>Hi {firstName},</Text>
 
       <Text>
-        Good news — your prescription for{" "}
-        <strong>{medicationName}</strong> has been approved. Your eScript will arrive by SMS shortly.
+        Your prescription for <strong>{medicationName}</strong> has been approved.
+        Your eScript will arrive by SMS shortly — take your phone to any pharmacy and they&apos;ll scan the QR code.
+        Bring your Medicare card for any PBS subsidy.
       </Text>
-
-      <Box variant="info">
-        <Heading as="h3">eScript arriving via SMS</Heading>
-        <Text small>
-          Take your phone to any pharmacy. The pharmacist will scan your eScript QR code
-          to dispense your medication. Bring your Medicare card for any PBS subsidy.
-        </Text>
-      </Box>
 
       {sildenafil && (
         <Box>
@@ -89,7 +86,6 @@ export function EdApprovedEmail({
             items={[
               "Take at least 30 minutes before sexual activity",
               "Effects can last up to 36 hours, giving you more flexibility",
-              "Alternatively, your doctor may prescribe a low daily dose (2.5–5mg)",
               "Can be taken with or without food",
               "Do NOT take with nitrate medications (e.g. GTN spray) — this can cause a dangerous drop in blood pressure",
             ]}
@@ -101,8 +97,7 @@ export function EdApprovedEmail({
         <Box>
           <Heading as="h3">How to take your medication</Heading>
           <Text small>
-            Follow the instructions provided by your doctor and the pharmacist.
-            Take your medication as prescribed and do not exceed the recommended dose.
+            Follow the instructions from your doctor and pharmacist. Take as prescribed and do not exceed the recommended dose.
           </Text>
         </Box>
       )}
@@ -114,28 +109,19 @@ export function EdApprovedEmail({
             "Common side effects: headache, flushing, nasal congestion, indigestion — these usually pass quickly",
             "Avoid excessive alcohol — it can reduce effectiveness and increase side effects",
             "Do NOT combine with nitrate medications or recreational drugs containing nitrates (e.g. poppers)",
-            "Seek urgent medical attention if you experience chest pain, an erection lasting more than 4 hours, or sudden vision/hearing changes",
+            "Seek urgent medical attention for chest pain, an erection lasting more than 4 hours, or sudden vision/hearing changes",
           ]}
         />
       </Box>
 
       <Button href={`${appUrl}/track/${requestId}`}>
-        View Request Details
+        View request
       </Button>
 
-      <Text muted small>
-        Questions? Reply to this email or visit our{" "}
-        <a href={`${appUrl}/contact`} style={{ color: colors.accent, fontWeight: 500 }}>
-          help centre
-        </a>
-        .
-      </Text>
-
       <GoogleReviewCTA href={GOOGLE_REVIEW_URL} />
-      <ReferralCTA appUrl={appUrl} />
     </BaseEmail>
   )
 }
 
 export const edApprovedSubject = (medicationName: string) =>
-  `Your ${medicationName} prescription has been approved`
+  `Your ${medicationName} prescription has been approved ✅`

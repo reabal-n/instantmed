@@ -1,8 +1,7 @@
 "use server"
 
 import { createElement } from "react"
-import { renderEmailToHtml } from "./react-renderer-server"
-import { sendViaResend } from "./resend"
+import { sendEmail } from "./send-email"
 import { VerificationCodeEmail, verificationCodeSubject } from "@/components/email/templates/verification-code"
 import { createLogger } from "@/lib/observability/logger"
 import { CONTACT_EMAIL } from "@/lib/constants"
@@ -30,20 +29,17 @@ export async function sendVerificationEmail({
     throw new Error("Verification code is required")
   }
 
-  const html = await renderEmailToHtml(
-    createElement(VerificationCodeEmail, {
+  const subject = verificationCodeSubject(code)
+
+  const result = await sendEmail({
+    to,
+    subject,
+    template: createElement(VerificationCodeEmail, {
       code,
       requestedFrom,
       requestedAt,
-    })
-  )
-
-  const subject = verificationCodeSubject(code)
-
-  const result = await sendViaResend({
-    to,
-    subject,
-    html,
+    }),
+    emailType: "verification_code",
     from: `InstantMed <notifications@instantmed.com.au>`,
     replyTo: CONTACT_EMAIL,
     tags: [
@@ -57,5 +53,5 @@ export async function sendVerificationEmail({
     throw new Error(`Failed to send verification email: ${result.error}`)
   }
 
-  log.info("Verification email sent", { to, resendId: result.id })
+  log.info("Verification email sent", { to, messageId: result.messageId })
 }

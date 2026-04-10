@@ -9,7 +9,7 @@
  */
 
 import * as React from "react"
-import { COMPANY_NAME, ABN } from "@/lib/constants"
+import { COMPANY_NAME, ABN, GOOGLE_REVIEW_URL } from "@/lib/constants"
 
 /* eslint-disable @next/next/no-head-element -- Email templates, not Next.js pages */
 
@@ -64,13 +64,19 @@ const colors = {
 // System sans-serif stack — web fonts get stripped by most email clients, causing serif fallback
 const fontFamily = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
 
+// Placeholder replaced by sendEmail() / sendFromOutboxRow() with a signed preference-center URL.
+// Using a data-URI-safe literal that can't collide with real content.
+export const UNSUBSCRIBE_PLACEHOLDER = "__UNSUBSCRIBE_URL__"
+
 interface BaseEmailProps {
   children: React.ReactNode
   previewText?: string
   appUrl?: string
+  /** Show the Google Review CTA in the footer. Default true. Set false on templates that have in-body GoogleReviewCTA or where a review ask is inappropriate (declined, failed, etc). */
+  showFooterReview?: boolean
 }
 
-export function BaseEmail({ children, previewText, appUrl = "https://instantmed.com.au" }: BaseEmailProps) {
+export function BaseEmail({ children, previewText, appUrl = "https://instantmed.com.au", showFooterReview = true }: BaseEmailProps) {
   return (
     <html>
       <head>
@@ -236,18 +242,55 @@ export function BaseEmail({ children, previewText, appUrl = "https://instantmed.
                       <td
                         className="email-footer"
                         style={{
-                          padding: "32px 40px",
+                          padding: "0",
                           borderTop: `1px solid ${colors.borderLight}`,
                           backgroundColor: colors.surfaceWarm,
                         }}
                       >
                         <table role="presentation" cellPadding="0" cellSpacing="0" style={{ width: "100%" }}>
                           <tbody>
+                            {showFooterReview && (
                             <tr>
-                              <td style={{ textAlign: "center" as const }}>
+                              <td style={{ padding: "24px 40px", textAlign: "center" as const, borderBottom: `1px solid ${colors.borderLight}` }}>
+                                <div
+                                  style={{
+                                    backgroundColor: "#FFFBEB",
+                                    border: "1px solid #FDE68A",
+                                    borderRadius: "12px",
+                                    padding: "18px 20px",
+                                  }}
+                                >
+                                  <p style={{ margin: "0 0 6px 0", fontSize: "20px", lineHeight: "1" }}>⭐⭐⭐⭐⭐</p>
+                                  <p style={{ margin: "0 0 4px 0", fontSize: "14px", fontWeight: "600", color: colors.text }}>
+                                    Loving InstantMed?
+                                  </p>
+                                  <p style={{ margin: "0 0 10px 0", fontSize: "12px", color: colors.textSecondary, lineHeight: "1.5" }}>
+                                    A quick Google review means a lot — it helps more Australians find fast, easy healthcare.
+                                  </p>
+                                  <a
+                                    href={GOOGLE_REVIEW_URL}
+                                    style={{
+                                      display: "inline-block",
+                                      padding: "8px 20px",
+                                      backgroundColor: colors.accent,
+                                      color: "#ffffff",
+                                      fontSize: "13px",
+                                      fontWeight: "600",
+                                      textDecoration: "none",
+                                      borderRadius: "8px",
+                                    }}
+                                  >
+                                    Leave a review →
+                                  </a>
+                                </div>
+                              </td>
+                            </tr>
+                            )}
+                            <tr>
+                              <td style={{ padding: "20px 40px", textAlign: "center" as const }}>
                                 <p
                                   style={{
-                                    margin: "0 0 16px 0",
+                                    margin: "0 0 12px 0",
                                     fontSize: "12px",
                                     color: colors.textSecondary,
                                     lineHeight: "1.8",
@@ -261,17 +304,13 @@ export function BaseEmail({ children, previewText, appUrl = "https://instantmed.
                                     Terms
                                   </a>
                                   <span style={{ margin: "0 8px", color: colors.border }}>·</span>
-                                  <a href={`${appUrl}/contact`} style={{ color: colors.textSecondary, textDecoration: "none" }}>
-                                    Contact
-                                  </a>
-                                  <span style={{ margin: "0 8px", color: colors.border }}>·</span>
-                                  <a href={`${appUrl}/account?tab=notifications`} style={{ color: colors.textSecondary, textDecoration: "none" }}>
-                                    Preferences
+                                  <a href={UNSUBSCRIBE_PLACEHOLDER} style={{ color: colors.textSecondary, textDecoration: "none" }}>
+                                    Manage preferences
                                   </a>
                                 </p>
                                 <p
                                   style={{
-                                    margin: "0 0 8px 0",
+                                    margin: "0 0 6px 0",
                                     fontSize: "12px",
                                     color: colors.textSecondary,
                                   }}

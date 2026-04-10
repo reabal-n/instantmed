@@ -100,6 +100,14 @@
     {
       "path": "/api/cron/treatment-followup",
       "schedule": "0 23 * * *"
+    },
+    {
+      "path": "/api/cron/outbox-archival",
+      "schedule": "0 4 * * *"
+    },
+    {
+      "path": "/api/cron/email-digest",
+      "schedule": "0 22 * * 0"
     }
   ]
 }

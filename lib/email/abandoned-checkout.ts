@@ -1,9 +1,10 @@
 "use server"
 
+import * as React from "react"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { sendViaResend } from "./resend"
-import { renderAbandonedCheckoutEmail } from "@/components/email/templates/abandoned-checkout"
-import { renderAbandonedCheckoutFollowupEmail, abandonedCheckoutFollowupSubject } from "@/components/email/templates/abandoned-checkout-followup"
+import { sendEmail } from "./send-email"
+import { AbandonedCheckoutEmail } from "@/components/email/templates/abandoned-checkout"
+import { AbandonedCheckoutFollowupEmail, abandonedCheckoutFollowupSubject } from "@/components/email/templates/abandoned-checkout-followup"
 import { getAppUrl } from "@/lib/env"
 import { createLogger } from "@/lib/observability/logger"
 import { captureRedisWarning } from "@/lib/observability/redis-sentry"
@@ -102,47 +103,24 @@ export async function sendAbandonedCheckoutEmail(intake: AbandonedIntake): Promi
   const hoursAgo = Math.round((Date.now() - new Date(intake.created_at).getTime()) / (1000 * 60 * 60))
   const resumeUrl = `${appUrl}/patient/intakes/${intake.id}?retry=true`
   
-  const html = renderAbandonedCheckoutEmail({
-    patientName,
-    serviceName,
-    resumeUrl,
-    appUrl,
-    hoursAgo,
-  })
-  
-  // Generate unsubscribe URL for marketing emails (Spam Act compliance)
-  const unsubscribeUrl = `${appUrl}/patient/settings?unsubscribe=marketing`
-  
-  const result = await sendViaResend({
+  const result = await sendEmail({
     to: patient.email,
     subject: `Complete your ${serviceName} request`,
-    html,
+    template: React.createElement(AbandonedCheckoutEmail, {
+      patientName,
+      serviceName,
+      resumeUrl,
+      appUrl,
+      hoursAgo,
+    }),
+    emailType: "abandoned_checkout",
+    intakeId: intake.id,
+    patientId: intake.patient_id,
     tags: [
       { name: "category", value: "abandoned_checkout" },
       { name: "intake_id", value: intake.id },
     ],
-    headers: {
-      "List-Unsubscribe": `<${unsubscribeUrl}>`,
-      "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
-    },
   })
-  
-  // Log to email_outbox for audit trail
-  try {
-    const supabase = createServiceRoleClient()
-    await supabase.from("email_outbox").insert({
-      email_type: "abandoned_checkout",
-      to_email: patient.email,
-      intake_id: intake.id,
-      patient_id: intake.patient_id,
-      subject: `Complete your ${serviceName} request`,
-      status: result.success ? 'sent' : 'failed',
-      provider_message_id: result.id,
-      sent_at: result.success ? new Date().toISOString() : null,
-      error_message: result.error,
-      metadata: { category: intake.category },
-    })
-  } catch { /* non-blocking */ }
 
   if (result.success) {
     // Mark as sent to avoid duplicate emails
@@ -225,44 +203,23 @@ export async function sendAbandonedFollowupEmail(intake: AbandonedIntake): Promi
   const serviceName = SERVICE_NAMES[intake.category || ""] || "your request"
   const resumeUrl = `${appUrl}/patient/intakes/${intake.id}?retry=true`
 
-  const html = renderAbandonedCheckoutFollowupEmail({
-    patientName,
-    serviceName,
-    resumeUrl,
-    appUrl,
-  })
-
-  const unsubscribeUrl = `${appUrl}/patient/settings?unsubscribe=marketing`
-
-  const result = await sendViaResend({
+  const result = await sendEmail({
     to: patient.email,
     subject: abandonedCheckoutFollowupSubject(serviceName),
-    html,
+    template: React.createElement(AbandonedCheckoutFollowupEmail, {
+      patientName,
+      serviceName,
+      resumeUrl,
+      appUrl,
+    }),
+    emailType: "abandoned_checkout_followup",
+    intakeId: intake.id,
+    patientId: intake.patient_id,
     tags: [
       { name: "category", value: "abandoned_checkout_followup" },
       { name: "intake_id", value: intake.id },
     ],
-    headers: {
-      "List-Unsubscribe": `<${unsubscribeUrl}>`,
-      "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
-    },
   })
-
-  try {
-    const supabase = createServiceRoleClient()
-    await supabase.from("email_outbox").insert({
-      email_type: "abandoned_checkout_followup",
-      to_email: patient.email,
-      intake_id: intake.id,
-      patient_id: intake.patient_id,
-      subject: abandonedCheckoutFollowupSubject(serviceName),
-      status: result.success ? 'sent' : 'failed',
-      provider_message_id: result.id,
-      sent_at: result.success ? new Date().toISOString() : null,
-      error_message: result.error,
-      metadata: { category: intake.category },
-    })
-  } catch { /* non-blocking */ }
 
   if (result.success) {
     const supabase = createServiceRoleClient()

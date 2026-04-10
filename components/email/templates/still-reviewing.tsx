@@ -8,11 +8,10 @@
 import * as React from "react"
 import {
   BaseEmail,
-  Heading,
+  HeroBlock,
   Text,
   Button,
   Box,
-  colors,
 } from "../base-email"
 
 export interface StillReviewingEmailProps {
@@ -34,8 +33,14 @@ export function StillReviewingEmail({
     <BaseEmail
       previewText={`Still on it, your ${requestType} is nearly done ⏳`}
       appUrl={appUrl}
+      showFooterReview={false}
     >
-      <Heading>Still on it ⏳</Heading>
+      <HeroBlock
+        icon="⏳"
+        headline="Still on it"
+        subtitle={`Your ${requestType} is nearly done`}
+        variant="info"
+      />
 
       <Text>Hi {firstName},</Text>
 
@@ -55,13 +60,6 @@ export function StillReviewingEmail({
         Check your request
       </Button>
 
-      <Text muted small>
-        Questions? Reply to this email or visit our{" "}
-        <a href={`${appUrl}/contact`} style={{ color: colors.accent, fontWeight: 500 }}>
-          help centre
-        </a>
-        .
-      </Text>
     </BaseEmail>
   )
 }

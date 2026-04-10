@@ -1,5 +1,6 @@
 import {
   BaseEmail,
+  HeroBlock,
   Heading,
   Text,
   Button,
@@ -30,7 +31,11 @@ export function ExitIntentLastChanceEmail({
 }: ExitIntentLastChanceEmailProps) {
   return (
     <BaseEmail previewText={`Your ${service.toLowerCase()} is a 2-minute form away.`} appUrl={appUrl}>
-      <Heading>We&apos;re here when you&apos;re ready</Heading>
+      <HeroBlock
+        icon="👋"
+        headline="We&apos;re here when you&apos;re ready"
+        variant="neutral"
+      />
 
       <Text>
         Just a quick note — your <strong>{service}</strong> request is still
@@ -62,13 +67,11 @@ export function ExitIntentLastChanceEmail({
         .
       </Text>
 
-      {unsubscribeUrl && (
-        <Text muted small style={{ textAlign: "center" as const, marginTop: "24px" }}>
-          <a href={unsubscribeUrl} style={{ color: "#A8A29E", textDecoration: "underline", fontSize: "11px" }}>
-            Unsubscribe from these reminders
-          </a>
-        </Text>
-      )}
+      <Text muted small style={{ textAlign: "center" as const, marginTop: "24px" }}>
+        <a href={unsubscribeUrl || "#"} style={{ color: "#A8A29E", textDecoration: "underline", fontSize: "11px" }}>
+          Unsubscribe from these reminders
+        </a>
+      </Text>
 
       {/* Open tracking pixel */}
       {openTrackingUrl && (

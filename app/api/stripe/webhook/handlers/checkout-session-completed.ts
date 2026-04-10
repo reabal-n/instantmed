@@ -681,6 +681,12 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
               amount: amountFormatted,
               requestId: intakeId,
               isGuest,
+              paidAt: new Date().toLocaleDateString("en-AU", {
+                timeZone: "Australia/Sydney",
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              }),
             }),
             emailType: "request_received",
             intakeId,

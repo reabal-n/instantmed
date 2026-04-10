@@ -41,6 +41,12 @@ import { VerificationCodeEmail } from "@/components/email/templates/verification
 import { ReviewRequestEmail } from "@/components/email/templates/review-request"
 import { ReviewFollowupEmail } from "@/components/email/templates/review-followup"
 import { SubscriptionNudgeEmail } from "@/components/email/templates/subscription-nudge"
+import { DeclineReengagementEmail } from "@/components/email/templates/decline-reengagement"
+import { ExitIntentReminderEmail } from "@/components/email/templates/exit-intent-reminder"
+import { ExitIntentSocialProofEmail } from "@/components/email/templates/exit-intent-social-proof"
+import { ExitIntentLastChanceEmail } from "@/components/email/templates/exit-intent-last-chance"
+import { TreatmentFollowupEmail } from "@/components/email/templates/treatment-followup"
+import { FollowUpReminderEmail } from "@/components/email/templates/follow-up-reminder"
 
 export const dynamic = "force-dynamic"
 
@@ -434,6 +440,76 @@ const templates: Record<string, {
       <SubscriptionNudgeEmail
         patientName={mock.patientName}
         appUrl={mock.appUrl}
+      />
+    ),
+  },
+  "decline-reengagement": {
+    name: "Decline Re-Engagement",
+    subject: "We're still here to help — other options for you",
+    render: () => (
+      <DeclineReengagementEmail
+        patientName={mock.patientName}
+        declinedService="Repeat Prescription"
+        appUrl={mock.appUrl}
+      />
+    ),
+  },
+  "exit-intent-reminder": {
+    name: "Exit Intent — Reminder",
+    subject: "Your Medical Certificate — ready when you are",
+    render: () => (
+      <ExitIntentReminderEmail
+        service="Medical Certificate"
+        price="$19.95"
+        ctaUrl={`${mock.appUrl}/request?service=medical-certificate`}
+        appUrl={mock.appUrl}
+      />
+    ),
+  },
+  "exit-intent-social-proof": {
+    name: "Exit Intent — Social Proof",
+    subject: "97% of requests approved within an hour",
+    render: () => (
+      <ExitIntentSocialProofEmail
+        service="Medical Certificate"
+        price="$19.95"
+        ctaUrl={`${mock.appUrl}/request?service=medical-certificate`}
+        appUrl={mock.appUrl}
+      />
+    ),
+  },
+  "exit-intent-last-chance": {
+    name: "Exit Intent — Last Chance",
+    subject: "Still need that medical certificate?",
+    render: () => (
+      <ExitIntentLastChanceEmail
+        service="Medical Certificate"
+        price="$19.95"
+        ctaUrl={`${mock.appUrl}/request?service=medical-certificate`}
+        appUrl={mock.appUrl}
+      />
+    ),
+  },
+  "follow-up-reminder": {
+    name: "Follow-Up Reminder (Day 3)",
+    subject: "Checking in: how are you feeling?",
+    render: () => (
+      <FollowUpReminderEmail
+        patientName={mock.patientName}
+        appUrl={mock.appUrl}
+      />
+    ),
+  },
+  "treatment-followup": {
+    name: "Treatment Follow-Up",
+    subject: "Time for your 3-month check-in",
+    render: () => (
+      <TreatmentFollowupEmail
+        patientName={mock.patientName}
+        followupId="mock-followup-id"
+        subtype="ed"
+        milestone="month_3"
+        baseUrl={mock.appUrl}
       />
     ),
   },

@@ -1,8 +1,9 @@
 import "server-only"
 
+import * as React from "react"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { sendViaResend } from "./resend"
-import { renderSubscriptionNudgeEmail, subscriptionNudgeSubject } from "@/components/email/templates/subscription-nudge"
+import { sendEmail } from "./send-email"
+import { SubscriptionNudgeEmail, subscriptionNudgeSubject } from "@/components/email/templates/subscription-nudge"
 import { getAppUrl } from "@/lib/env"
 import { createLogger } from "@/lib/observability/logger"
 import { canSendMarketingEmail } from "@/app/actions/email-preferences"
@@ -102,38 +103,18 @@ export async function sendSubscriptionNudgeEmail(intake: RepeatRxIntake): Promis
 
   const patientName = patient.first_name || "there"
 
-  const html = renderSubscriptionNudgeEmail({ patientName, appUrl })
-  const unsubscribeUrl = `${appUrl}/patient/settings?unsubscribe=marketing`
-
-  const result = await sendViaResend({
+  const result = await sendEmail({
     to: patient.email,
     subject: subscriptionNudgeSubject,
-    html,
+    template: React.createElement(SubscriptionNudgeEmail, { patientName, appUrl }),
+    emailType: "subscription_nudge",
+    intakeId: intake.id,
+    patientId: intake.patient_id,
     tags: [
       { name: "category", value: "subscription_nudge" },
       { name: "intake_id", value: intake.id },
     ],
-    headers: {
-      "List-Unsubscribe": `<${unsubscribeUrl}>`,
-      "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
-    },
   })
-
-  try {
-    const supabase = createServiceRoleClient()
-    await supabase.from("email_outbox").insert({
-      email_type: "subscription_nudge",
-      to_email: patient.email,
-      intake_id: intake.id,
-      patient_id: intake.patient_id,
-      subject: subscriptionNudgeSubject,
-      status: result.success ? "sent" : "failed",
-      provider_message_id: result.id,
-      sent_at: result.success ? new Date().toISOString() : null,
-      error_message: result.error,
-      metadata: { category: "prescription" },
-    })
-  } catch { /* non-blocking */ }
 
   if (result.success) {
     const supabase = createServiceRoleClient()

@@ -195,6 +195,42 @@ const templates = [
     description: "Repeat Rx subscription upsell sent 30 days after approval",
     category: "engagement",
   },
+  {
+    slug: "decline-reengagement",
+    name: "Decline Re-Engagement",
+    description: "Sent ~2h after decline suggesting alternative services",
+    category: "engagement",
+  },
+  {
+    slug: "exit-intent-reminder",
+    name: "Exit Intent — Reminder (Email 1)",
+    description: "First nurture email after exit intent capture",
+    category: "engagement",
+  },
+  {
+    slug: "exit-intent-social-proof",
+    name: "Exit Intent — Social Proof (Email 2)",
+    description: "Social proof follow-up showing approval stats",
+    category: "engagement",
+  },
+  {
+    slug: "exit-intent-last-chance",
+    name: "Exit Intent — Last Chance (Email 3)",
+    description: "Final gentle nudge in the exit intent sequence",
+    category: "engagement",
+  },
+  {
+    slug: "follow-up-reminder",
+    name: "Follow-Up Reminder (Day 3)",
+    description: "Gentle check-in sent 3 days after med cert approval",
+    category: "engagement",
+  },
+  {
+    slug: "treatment-followup",
+    name: "Treatment Follow-Up",
+    description: "Treatment milestone check-in for followup tracker",
+    category: "engagement",
+  },
 ]
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -262,7 +298,7 @@ export default function EmailPreviewIndex() {
             <li>Base layout in <code className="px-1 py-0.5 bg-gray-200 rounded">components/email/base-email.tsx</code></li>
             <li>Sending via <code className="px-1 py-0.5 bg-gray-200 rounded">lib/email/send-email.ts</code></li>
             <li>All sends are logged to <code className="px-1 py-0.5 bg-gray-200 rounded">email_outbox</code> table</li>
-            <li><code className="px-1 py-0.5 bg-gray-200 rounded">follow-up-reminder</code> uses raw HTML (not React Email) — not previewable here</li>
+            <li>All templates use React Email components</li>
           </ul>
         </div>
       </div>

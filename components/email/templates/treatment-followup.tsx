@@ -1,4 +1,11 @@
 import * as React from "react"
+import {
+  BaseEmail,
+  HeroBlock,
+  Text,
+  Button,
+  colors,
+} from "../base-email"
 
 export type FollowupSubtype = "ed" | "hair_loss"
 export type FollowupMilestone = "month_3" | "month_6" | "month_12"
@@ -58,44 +65,35 @@ export function TreatmentFollowupEmail({
   const skipHref = `${baseUrl}/patient/followups/${followupId}/skip`
 
   return (
-    <html>
-      <body style={{ fontFamily: "system-ui, -apple-system, sans-serif", color: "#1a1a1a", maxWidth: 560, margin: "0 auto", padding: 24 }}>
-        <h1 style={{ fontSize: 22, marginBottom: 16 }}>Hi {patientName},</h1>
+    <BaseEmail
+      previewText={`Your ${label} treatment check-in is ready`}
+      appUrl={baseUrl}
+      showFooterReview={false}
+    >
+      <HeroBlock
+        icon="📋"
+        headline={`Your ${label} check-in`}
+        subtitle="Takes about a minute"
+        variant="info"
+      />
 
-        <p style={{ fontSize: 16, lineHeight: 1.6, marginBottom: 16 }}>
-          {framing}
-        </p>
+      <Text>Hi {patientName},</Text>
 
-        <p style={{ fontSize: 16, lineHeight: 1.6, marginBottom: 24 }}>
-          This takes about a minute. Your responses go straight to your doctor.
-        </p>
+      <Text>{framing}</Text>
 
-        <div style={{ textAlign: "center", margin: "32px 0" }}>
-          <a
-            href={ctaHref}
-            style={{
-              display: "inline-block",
-              padding: "14px 28px",
-              backgroundColor: "#0ea5e9",
-              color: "#ffffff",
-              textDecoration: "none",
-              borderRadius: 8,
-              fontWeight: 600,
-              fontSize: 16,
-            }}
-          >
-            Share your {label} update
-          </a>
-        </div>
+      <Text>
+        This takes about a minute. Your responses go straight to your doctor.
+      </Text>
 
-        <p style={{ fontSize: 13, color: "#64748b", lineHeight: 1.5, marginTop: 32, borderTop: "1px solid #e2e8f0", paddingTop: 16 }}>
-          Not relevant anymore? <a href={skipHref} style={{ color: "#64748b" }}>Skip this check-in</a> and we won&apos;t send more reminders for this milestone.
-        </p>
+      <Button href={ctaHref}>Share your {label} update</Button>
 
-        <p style={{ fontSize: 12, color: "#94a3b8", marginTop: 16 }}>
-          InstantMed Pty Ltd · Level 1/457–459 Elizabeth Street, Surry Hills NSW 2010 · support@instantmed.com.au
-        </p>
-      </body>
-    </html>
+      <Text muted small style={{ textAlign: "center" as const, marginTop: "24px" }}>
+        Not relevant anymore?{" "}
+        <a href={skipHref} style={{ color: colors.textSecondary, textDecoration: "underline" }}>
+          Skip this check-in
+        </a>{" "}
+        and we won&apos;t send more reminders for this milestone.
+      </Text>
+    </BaseEmail>
   )
 }

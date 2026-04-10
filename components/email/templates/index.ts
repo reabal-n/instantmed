@@ -38,7 +38,7 @@ export { PaymentFailedEmail, paymentFailedSubject } from "./payment-failed"
 export type { PaymentFailedEmailProps } from "./payment-failed"
 
 // --- Payment Retry ---
-export { PaymentRetryEmail, paymentRetrySubject, renderPaymentRetryEmailToHtml } from "./payment-retry"
+export { PaymentRetryEmail, paymentRetrySubject } from "./payment-retry"
 export type { PaymentRetryEmailProps } from "./payment-retry"
 
 // --- Needs More Info ---
@@ -50,7 +50,7 @@ export { GuestCompleteAccountEmail, guestCompleteAccountSubject } from "./guest-
 export type { GuestCompleteAccountEmailProps } from "./guest-complete-account"
 
 // --- Abandoned Checkout ---
-export { AbandonedCheckoutEmail, abandonedCheckoutSubject, renderAbandonedCheckoutEmail } from "./abandoned-checkout"
+export { AbandonedCheckoutEmail, abandonedCheckoutSubject } from "./abandoned-checkout"
 export type { AbandonedCheckoutEmailProps } from "./abandoned-checkout"
 
 // --- Consult Approved ---
@@ -102,7 +102,7 @@ export { VerificationCodeEmail, verificationCodeSubject } from "./verification-c
 export type { VerificationCodeEmailProps } from "./verification-code"
 
 // --- Follow-Up Reminder (day-3 post med cert approval) ---
-export { renderFollowUpReminderEmail, followUpReminderSubject } from "./follow-up-reminder"
+export { FollowUpReminderEmail, followUpReminderSubject } from "./follow-up-reminder"
 export type { FollowUpReminderEmailProps } from "./follow-up-reminder"
 
 // --- Still Reviewing (45-min follow-up for pending requests) ---

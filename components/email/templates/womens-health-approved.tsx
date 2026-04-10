@@ -13,10 +13,8 @@ import {
   Box,
   Heading,
   List,
-  SuccessBanner,
+  HeroBlock,
   GoogleReviewCTA,
-  ReferralCTA,
-  colors,
 } from "../base-email"
 import { GOOGLE_REVIEW_URL } from "@/lib/constants"
 
@@ -43,8 +41,14 @@ export function WomensHealthApprovedEmail({
     <BaseEmail
       previewText={`✅ ${firstName}, your ${medicationName} prescription is ready`}
       appUrl={appUrl}
+      showFooterReview={false}
     >
-      <SuccessBanner title="Treatment approved" />
+      <HeroBlock
+        icon="✓"
+        headline="Treatment approved"
+        subtitle={medicationName}
+        variant="success"
+      />
 
       <Text>Hi {firstName},</Text>
 
@@ -120,16 +124,7 @@ export function WomensHealthApprovedEmail({
         View Request Details
       </Button>
 
-      <Text muted small>
-        Questions? Reply to this email or visit our{" "}
-        <a href={`${appUrl}/contact`} style={{ color: colors.accent, fontWeight: 500 }}>
-          help centre
-        </a>
-        .
-      </Text>
-
       <GoogleReviewCTA href={GOOGLE_REVIEW_URL} />
-      <ReferralCTA appUrl={appUrl} />
     </BaseEmail>
   )
 }

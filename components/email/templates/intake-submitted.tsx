@@ -15,7 +15,6 @@ import {
   Heading,
   List,
   DetailRow,
-  colors,
 } from "../base-email"
 
 export interface IntakeSubmittedEmailProps {
@@ -41,6 +40,7 @@ export function IntakeSubmittedEmail({
     <BaseEmail
       previewText={`Your ${requestType} request is with a doctor now 👍`}
       appUrl={appUrl}
+      showFooterReview={false}
     >
       <StatusBanner title="Request submitted" variant="info" />
 
@@ -71,13 +71,6 @@ export function IntakeSubmittedEmail({
         Track Your Request
       </Button>
 
-      <Text muted small>
-        Questions? Reply to this email or visit our{" "}
-        <a href={`${appUrl}/contact`} style={{ color: colors.accent, fontWeight: 500 }}>
-          help centre
-        </a>
-        .
-      </Text>
     </BaseEmail>
   )
 }

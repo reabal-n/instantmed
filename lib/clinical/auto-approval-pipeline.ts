@@ -347,7 +347,33 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
       .eq("intake_id", intakeId)
       .eq("is_ai_generated", true)
 
-    const clinicalNoteDraft = drafts?.find(d => d.type === "clinical_note") || null
+    let clinicalNoteDraft = drafts?.find(d => d.type === "clinical_note") || null
+
+    // If clinical note is missing, generate on-the-fly before blocking.
+    // Handles cases where the after() callback failed or retry queue hasn't run yet.
+    if (!clinicalNoteDraft) {
+      log.info("Auto-approval: clinical note draft missing, attempting on-the-fly generation", { intakeId })
+      try {
+        const { generateDraftsForIntake } = await import("@/app/actions/generate-drafts")
+        const genResult = await generateDraftsForIntake(intakeId)
+        if (genResult.success) {
+          const { data: freshDrafts } = await supabase
+            .from("document_drafts")
+            .select("id, type, status, content")
+            .eq("intake_id", intakeId)
+            .eq("is_ai_generated", true)
+          clinicalNoteDraft = freshDrafts?.find(d => d.type === "clinical_note") || null
+          if (clinicalNoteDraft) {
+            log.info("Auto-approval: clinical note generated on-the-fly", { intakeId })
+          }
+        }
+      } catch (genErr) {
+        log.warn("Auto-approval: on-the-fly draft generation failed, proceeding without draft", {
+          intakeId,
+          error: genErr instanceof Error ? genErr.message : String(genErr),
+        })
+      }
+    }
 
     // 6. Extract patient info for age check
     const patientRaw = intake.patient as unknown

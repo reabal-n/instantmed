@@ -4,14 +4,14 @@ import { BADGE_REGISTRY, BADGE_PRESETS, resolveEntry, type BadgeId } from '@/lib
 const HERO_BADGE_MAX = 4 // hero CTA area layout constraint — more than 4 pills looks cluttered
 
 describe('BADGE_REGISTRY', () => {
-  it('contains all 24 expected badge IDs', () => {
+  it('contains all expected badge IDs', () => {
     const expected: BadgeId[] = [
       'ahpra','tga','racgp','medical_director','refund','privacy',
       'stripe','ssl','pci','au_data',
       'no_call','no_speaking','form_only','no_waiting_room','no_appointment',
       'from_your_phone','no_face_to_face','fast_form','same_day',
       'legally_valid','no_medicare','real_gp','instant_pdf',
-      'social_proof',
+      'social_proof','legitscript','google_pharmacy',
     ]
     expect(Object.keys(BADGE_REGISTRY)).toEqual(expect.arrayContaining(expected))
     expect(Object.keys(BADGE_REGISTRY)).toHaveLength(expected.length)

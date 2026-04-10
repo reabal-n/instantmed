@@ -50,6 +50,7 @@ export function MedCertEmployerEmail({
     <BaseEmail
       previewText={`Medical certificate for ${patientName}`}
       appUrl={appUrl}
+      showFooterReview={false}
     >
       {/* Professional header banner */}
       <div

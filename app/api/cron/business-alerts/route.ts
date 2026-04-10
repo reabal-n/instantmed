@@ -134,6 +134,30 @@ export async function GET(request: NextRequest) {
       })
     }
 
+    // 6. Critical email delivery SLA — med_cert_patient and script_sent must be delivered within 10 min
+    const tenMinAgo = new Date(now.getTime() - 10 * 60 * 1000)
+    const { count: slaBreaches } = await supabase
+      .from("email_outbox")
+      .select("id", { count: "exact", head: true })
+      .in("email_type", ["med_cert_patient", "script_sent"])
+      .in("status", ["sent"])
+      .neq("delivery_status", "delivered")
+      .lt("sent_at", tenMinAgo.toISOString())
+      .gte("sent_at", oneHourAgo.toISOString())
+
+    if (slaBreaches && slaBreaches > 0) {
+      alerts.push({
+        metric: "email_delivery_sla_breach",
+        severity: slaBreaches >= 3 ? "critical" : "warning",
+        detail: `${slaBreaches} critical emails (cert/script) not delivered within 10min`,
+      })
+      trackBusinessMetric({
+        metric: "sla_breach",
+        severity: slaBreaches >= 3 ? "critical" : "warning",
+        metadata: { count: slaBreaches, window: "10m", types: "med_cert_patient,script_sent", breach_type: "email_delivery" },
+      })
+    }
+
     // SLA queue monitoring is handled by the stale-queue cron (Telegram reminders to doctor)
 
     // Fire Sentry alerts for critical items
@@ -192,6 +216,7 @@ export async function GET(request: NextRequest) {
         bounced_emails: bouncedEmails || 0,
         stuck_pending_emails: stuckPending || 0,
         high_risk_waiting: highRiskWaiting || 0,
+        email_sla_breaches: slaBreaches || 0,
       },
       checked_at: now.toISOString(),
     })

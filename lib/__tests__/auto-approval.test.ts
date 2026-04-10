@@ -201,24 +201,23 @@ describe("evaluateAutoApprovalEligibility", () => {
     expect(result.disqualifyingFlags.some(f => f.includes("mental_health"))).toBe(true)
   })
 
-  it("approves 'anxiety' as co-symptom (default makeAnswers has 2 symptoms)", () => {
+  it("approves 'anxiety' with no flags (engine v2.3: unblocked)", () => {
     const result = evaluateAutoApprovalEligibility(
       makeIntake(),
       makeAnswers({ symptomDetails: "Severe anxiety making it hard to work" }),
       makeReadyDraft()
     )
     expect(result.eligible).toBe(true)
-    expect(result.softFlags).toContain("anxiety_co_symptom")
+    expect(result.disqualifyingFlags).toHaveLength(0)
   })
 
-  it("blocks 'anxiety' as sole symptom", () => {
+  it("approves 'anxiety' as sole symptom (engine v2.3: unblocked)", () => {
     const result = evaluateAutoApprovalEligibility(
       makeIntake(),
       makeAnswers({ symptoms: ["Anxiety"], symptomDetails: "Severe anxiety making it hard to work" }),
       makeReadyDraft()
     )
-    expect(result.eligible).toBe(false)
-    expect(result.disqualifyingFlags.some(f => f.includes("mental_health"))).toBe(true)
+    expect(result.eligible).toBe(true)
   })
 
   // ---- Injury ----
@@ -243,34 +242,24 @@ describe("evaluateAutoApprovalEligibility", () => {
     expect(result.disqualifyingFlags.some(f => f.includes("injury"))).toBe(true)
   })
 
-  it("approves 'injury' as co-symptom (engine v2.2: moved to soft-block)", () => {
+  it("approves 'injury' with no flags (engine v2.3: unblocked)", () => {
     const result = evaluateAutoApprovalEligibility(
       makeIntake(),
       makeAnswers({ symptomDetails: "Back injury making it hard to work" }),
       makeReadyDraft()
     )
     expect(result.eligible).toBe(true)
-    expect(result.softFlags).toContain("injury_co_symptom")
+    expect(result.disqualifyingFlags).toHaveLength(0)
   })
 
-  it("approves 'injured' as co-symptom", () => {
+  it("approves 'injured' with no flags (engine v2.3: unblocked)", () => {
     const result = evaluateAutoApprovalEligibility(
       makeIntake(),
       makeAnswers({ symptomDetails: "Injured my knee at the gym" }),
       makeReadyDraft()
     )
     expect(result.eligible).toBe(true)
-    expect(result.softFlags).toContain("injured_co_symptom")
-  })
-
-  it("blocks 'injury' as sole symptom", () => {
-    const result = evaluateAutoApprovalEligibility(
-      makeIntake(),
-      makeAnswers({ symptoms: ["Back pain"], symptomDetails: "Injury to my back" }),
-      makeReadyDraft()
-    )
-    expect(result.eligible).toBe(false)
-    expect(result.disqualifyingFlags.some(f => f.includes("injury"))).toBe(true)
+    expect(result.disqualifyingFlags).toHaveLength(0)
   })
 
   it("rejects intake with 'workers comp'", () => {
@@ -295,14 +284,14 @@ describe("evaluateAutoApprovalEligibility", () => {
     expect(result.disqualifyingFlags.some(f => f.includes("chronic"))).toBe(true)
   })
 
-  it("approves 'flare up' as co-symptom (default makeAnswers has 2 symptoms)", () => {
+  it("approves 'flare up' with no flags (engine v2.3: unblocked)", () => {
     const result = evaluateAutoApprovalEligibility(
       makeIntake(),
       makeAnswers({ symptomDetails: "Back pain flare up" }),
       makeReadyDraft()
     )
     expect(result.eligible).toBe(true)
-    expect(result.softFlags).toContain("flare up_co_symptom")
+    expect(result.disqualifyingFlags).toHaveLength(0)
   })
 
   // ---- Pregnancy ----
@@ -342,7 +331,7 @@ describe("evaluateAutoApprovalEligibility", () => {
 
   // ---- Backdating ----
 
-  it("rejects start date backdated more than 1 day", () => {
+  it("allows start date in the past (engine v2.3: backdating check removed)", () => {
     const threeDaysAgo = new Date()
     threeDaysAgo.setDate(threeDaysAgo.getDate() - 3)
     const result = evaluateAutoApprovalEligibility(
@@ -350,19 +339,7 @@ describe("evaluateAutoApprovalEligibility", () => {
       makeAnswers({ start_date: threeDaysAgo.toISOString().split("T")[0] }),
       makeReadyDraft()
     )
-    expect(result.eligible).toBe(false)
-    expect(result.disqualifyingFlags).toContain("backdated_too_far")
-  })
-
-  it("allows start date yesterday (1 day back)", () => {
-    // Mirror production logic: subtract 24h from now, express in Sydney timezone
-    const yesterdayAest = new Date(Date.now() - 24 * 60 * 60 * 1000)
-      .toLocaleDateString("en-CA", { timeZone: "Australia/Sydney" })
-    const result = evaluateAutoApprovalEligibility(
-      makeIntake(),
-      makeAnswers({ start_date: yesterdayAest }),
-      makeReadyDraft()
-    )
+    expect(result.eligible).toBe(true)
     expect(result.disqualifyingFlags).not.toContain("backdated_too_far")
   })
 
@@ -389,7 +366,7 @@ describe("evaluateAutoApprovalEligibility", () => {
   })
 
   it("treats draft requiresReview=true as a soft flag (still eligible)", () => {
-    // ENGINE v2.2: AI draft requiresReview was demoted from hard block
+    // ENGINE v2.3: AI draft requiresReview was demoted from hard block
     // to soft flag because the AI model over-flags common mild symptoms
     // (anxiety, fatigue, etc.) that are clinically appropriate for a
     // standard 1-3 day cert. Doctor batch review still catches concerns
@@ -520,14 +497,14 @@ describe("evaluateAutoApprovalEligibility", () => {
 
   // ---- Expanded keyword coverage ----
 
-  it("approves 'anxious' as co-symptom (default makeAnswers has 2 symptoms)", () => {
+  it("approves 'anxious' with no flags (engine v2.3: unblocked)", () => {
     const result = evaluateAutoApprovalEligibility(
       makeIntake(),
       makeAnswers({ symptomDetails: "Feeling very anxious and can't sleep" }),
       makeReadyDraft()
     )
     expect(result.eligible).toBe(true)
-    expect(result.softFlags).toContain("anxious_co_symptom")
+    expect(result.disqualifyingFlags).toHaveLength(0)
   })
 
   it("rejects intake with 'selfharm' (no space)", () => {
@@ -550,14 +527,14 @@ describe("evaluateAutoApprovalEligibility", () => {
     expect(result.disqualifyingFlags.some(f => f.includes("injury"))).toBe(true)
   })
 
-  it("rejects intake with 'endometriosis' keyword", () => {
+  it("approves 'endometriosis' with no flags (engine v2.3: unblocked)", () => {
     const result = evaluateAutoApprovalEligibility(
       makeIntake(),
       makeAnswers({ symptomDetails: "Endometriosis flare up" }),
       makeReadyDraft()
     )
-    expect(result.eligible).toBe(false)
-    expect(result.disqualifyingFlags.some(f => f.includes("chronic"))).toBe(true)
+    expect(result.eligible).toBe(true)
+    expect(result.disqualifyingFlags).toHaveLength(0)
   })
 
   // ---- Multiple flags ----
@@ -665,7 +642,7 @@ describe("evaluateAutoApprovalEligibility", () => {
       makeReadyDraft()
     )
     expect(result.eligible).toBe(true)
-    expect(result.softFlags).toContain("anxiety_co_symptom")
+    expect(result.disqualifyingFlags).toHaveLength(0)
   })
 
   it("approves 'panic' as co-symptom alongside physical symptoms", () => {
@@ -707,7 +684,7 @@ describe("evaluateAutoApprovalEligibility", () => {
     expect(result.softFlags).toContain("fall_co_symptom")
   })
 
-  it("approves 'sprain' as co-symptom", () => {
+  it("approves 'sprain' with no flags (engine v2.3: unblocked)", () => {
     const result = evaluateAutoApprovalEligibility(
       makeIntake(),
       makeAnswers({
@@ -717,10 +694,10 @@ describe("evaluateAutoApprovalEligibility", () => {
       makeReadyDraft()
     )
     expect(result.eligible).toBe(true)
-    expect(result.softFlags).toContain("sprain_co_symptom")
+    expect(result.disqualifyingFlags).toHaveLength(0)
   })
 
-  it("approves 'ibs' as co-symptom", () => {
+  it("approves 'ibs' with no flags (engine v2.3: unblocked)", () => {
     const result = evaluateAutoApprovalEligibility(
       makeIntake(),
       makeAnswers({
@@ -730,10 +707,10 @@ describe("evaluateAutoApprovalEligibility", () => {
       makeReadyDraft()
     )
     expect(result.eligible).toBe(true)
-    expect(result.softFlags).toContain("ibs_co_symptom")
+    expect(result.disqualifyingFlags).toHaveLength(0)
   })
 
-  it("still blocks 'stress leave' even as co-symptom (hard-blocked)", () => {
+  it("approves 'stress leave' with no flags (engine v2.3: unblocked)", () => {
     const result = evaluateAutoApprovalEligibility(
       makeIntake(),
       makeAnswers({
@@ -742,8 +719,8 @@ describe("evaluateAutoApprovalEligibility", () => {
       }),
       makeReadyDraft()
     )
-    expect(result.eligible).toBe(false)
-    expect(result.disqualifyingFlags.some(f => f.includes("mental_health"))).toBe(true)
+    expect(result.eligible).toBe(true)
+    expect(result.disqualifyingFlags).toHaveLength(0)
   })
 
   it("still blocks 'depression' even as co-symptom (hard-blocked)", () => {

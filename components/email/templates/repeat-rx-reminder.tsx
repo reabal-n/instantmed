@@ -81,11 +81,7 @@ export function RepeatRxReminderEmail({
       </Button>
 
       <Text muted small>
-        Questions? Reply to this email or visit our{" "}
-        <a href={`${appUrl}/contact`} style={{ color: colors.accent, fontWeight: 500 }}>
-          help centre
-        </a>
-        . You can unsubscribe from reminders in your{" "}
+        You can unsubscribe from reminders in your{" "}
         <a href={`${appUrl}/patient/settings`} style={{ color: colors.accent, fontWeight: 500 }}>
           account settings
         </a>

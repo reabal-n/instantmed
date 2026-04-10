@@ -3,7 +3,6 @@
  *
  * Sent to patient when their medical certificate is approved and ready.
  * Primary CTA: direct signed download link (works for guests & auth users).
- * Secondary: dashboard link for account holders.
  */
 
 import * as React from "react"
@@ -12,13 +11,8 @@ import {
   HeroBlock,
   Text,
   Button,
-  Box,
-  Heading,
-  List,
   VerificationCode,
   GoogleReviewCTA,
-  ReferralCTA,
-  colors,
 } from "../base-email"
 import { GOOGLE_REVIEW_URL } from "@/lib/constants"
 
@@ -43,20 +37,26 @@ export function MedCertPatientEmail({
 
   return (
     <BaseEmail
-      previewText="Your medical certificate has been approved and is ready to download."
+      previewText="Your medical certificate is approved and ready to download 🎉"
       appUrl={appUrl}
+      showFooterReview={false}
     >
       <HeroBlock
-        icon="✓"
+        icon="🎉"
         headline="Your certificate is ready"
-        subtitle="Medical Certificate"
+        subtitle="Medical Certificate · Approved"
         variant="success"
       />
 
       <Text>Hi {firstName},</Text>
 
       <Text>
-        Approved — your <strong>Medical Certificate</strong> is ready to download.
+        Your <strong>Medical Certificate</strong> has been approved and is ready to download.
+        Forward it to your employer, uni, or wherever it&apos;s needed — they can verify it anytime at{" "}
+        <a href={`${appUrl}/verify`} style={{ color: "#2563EB", textDecoration: "none", fontWeight: 500 }}>
+          instantmed.com.au/verify
+        </a>
+        .
       </Text>
 
       <Button href={downloadUrl || dashboardUrl}>
@@ -67,36 +67,9 @@ export function MedCertPatientEmail({
         <VerificationCode code={verificationCode} verifyUrl={`${appUrl}/verify`} />
       )}
 
-      <Box>
-        <Heading as="h3">What to do next</Heading>
-        <List
-          items={[
-            "Download and save your certificate",
-            "Forward it to your employer, uni, or wherever it's needed",
-            "They can verify it anytime at instantmed.com.au/verify",
-          ]}
-        />
-      </Box>
-
-      <Text muted small style={{ textAlign: "center" as const }}>
-        Need to renew a prescription?{" "}
-        <a href={`${appUrl}/request?service=prescription`} style={{ color: colors.accent, fontWeight: 500 }}>
-          Repeat prescriptions from $29.95
-        </a>
-      </Text>
-
       <GoogleReviewCTA href={GOOGLE_REVIEW_URL} />
-      <ReferralCTA appUrl={appUrl} />
-
-      <Text muted small>
-        Questions? Reply to this email or visit our{" "}
-        <a href={`${appUrl}/contact`} style={{ color: colors.accent, fontWeight: 500 }}>
-          help centre
-        </a>
-        .
-      </Text>
     </BaseEmail>
   )
 }
 
-export const medCertPatientEmailSubject = "Your medical certificate is ready"
+export const medCertPatientEmailSubject = "🎉 Your medical certificate is ready"

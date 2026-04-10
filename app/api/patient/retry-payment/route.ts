@@ -1,9 +1,10 @@
+import * as React from "react"
 import * as Sentry from "@sentry/nextjs"
 import { getApiAuth } from "@/lib/auth"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { NextRequest, NextResponse } from "next/server"
-import { sendViaResend } from "@/lib/email/resend"
-import { renderPaymentRetryEmailToHtml } from "@/components/email/templates/payment-retry"
+import { sendEmail } from "@/lib/email/send-email"
+import { PaymentRetryEmail, paymentRetrySubject } from "@/components/email/templates/payment-retry"
 import { env } from "@/lib/env"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
@@ -96,35 +97,24 @@ export async function POST(request: NextRequest) {
     const patientEmail = authResult.profile.email
     
     if (patientEmail) {
-      const emailHtml = renderPaymentRetryEmailToHtml({
-        patientName: authResult.profile.full_name || "there",
-        requestType: invoice.description || "service",
-        amount: `$${((invoice.amount_cents || 0) / 100).toFixed(2)}`,
-        paymentUrl,
-      })
-
-      const emailResult = await sendViaResend({
+      await sendEmail({
         to: patientEmail,
-        subject: "Complete your InstantMed payment",
-        html: emailHtml,
+        toName: authResult.profile.full_name || undefined,
+        subject: paymentRetrySubject(),
+        template: React.createElement(PaymentRetryEmail, {
+          patientName: authResult.profile.full_name || "there",
+          requestType: invoice.description || "service",
+          amount: `$${((invoice.amount_cents || 0) / 100).toFixed(2)}`,
+          paymentUrl,
+        }),
+        emailType: "payment_retry",
+        patientId: authResult.profile.id,
+        metadata: { invoice_id: invoiceId },
         tags: [
           { name: "category", value: "payment_retry" },
           { name: "invoice_id", value: invoiceId },
         ],
       })
-      try {
-        await supabase.from("email_outbox").insert({
-          email_type: "payment_retry",
-          to_email: patientEmail,
-          patient_id: authResult.profile.id,
-          subject: "Complete your InstantMed payment",
-          status: emailResult.success ? "sent" : "failed",
-          provider_message_id: emailResult.id,
-          sent_at: emailResult.success ? new Date().toISOString() : null,
-          error_message: emailResult.error,
-          metadata: { invoice_id: invoiceId },
-        })
-      } catch { /* non-blocking */ }
     }
 
     return NextResponse.json(

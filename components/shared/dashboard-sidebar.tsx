@@ -14,6 +14,7 @@ import {
   ClipboardList,
   Settings,
   Shield,
+  ShieldAlert,
   Keyboard,
   ChevronRight,
   LayoutDashboard,
@@ -54,6 +55,7 @@ const doctorNavItems: NavItem[] = [
   { href: "/doctor/patients", label: "Patients", icon: Users },
   { href: "/admin", label: "Admin Queue", icon: FileText },
   { href: "/doctor/analytics", label: "Analytics", icon: BarChart3 },
+  { href: "/doctor/email-suppression", label: "Email Suppression", icon: ShieldAlert },
   { href: "/doctor/settings/identity", label: "Settings", icon: Settings },
 ]
 

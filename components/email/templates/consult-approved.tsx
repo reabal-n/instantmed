@@ -7,15 +7,12 @@
 import * as React from "react"
 import {
   BaseEmail,
+  HeroBlock,
   Text,
   Button,
   Box,
   Heading,
-  List,
-  SuccessBanner,
   GoogleReviewCTA,
-  ReferralCTA,
-  colors,
 } from "../base-email"
 import { GOOGLE_REVIEW_URL } from "@/lib/constants"
 
@@ -38,14 +35,20 @@ export function ConsultApprovedEmail({
     <BaseEmail
       previewText="Your consultation has been reviewed — here's what's next ✅"
       appUrl={appUrl}
+      showFooterReview={false}
     >
-      <SuccessBanner title="Consultation reviewed" />
+      <HeroBlock
+        icon="✓"
+        headline="Consultation complete"
+        subtitle="Your doctor has reviewed your request"
+        variant="success"
+      />
 
       <Text>Hi {firstName},</Text>
 
       <Text>
-        Your doctor has reviewed your consultation and everything looks good.
-        Here are the details and recommended next steps.
+        Your doctor has reviewed your consultation. If a prescription was issued,
+        your eScript will arrive via SMS. If a referral was provided, it&apos;ll be in your account.
       </Text>
 
       {doctorNotes && (
@@ -55,34 +58,13 @@ export function ConsultApprovedEmail({
         </Box>
       )}
 
-      <Box>
-        <Heading as="h3">What to do next</Heading>
-        <List
-          items={[
-            "If a prescription was issued, your eScript will arrive via SMS",
-            "If a referral was provided, it will be available in your account",
-            "Follow any instructions provided by your doctor",
-            "Book a follow-up consultation if your symptoms persist or change",
-          ]}
-        />
-      </Box>
-
       <Button href={`${appUrl}/track/${requestId}`}>
-        View Request Details
+        View details
       </Button>
 
-      <Text muted small>
-        Questions? Reply to this email or visit our{" "}
-        <a href={`${appUrl}/contact`} style={{ color: colors.accent, fontWeight: 500 }}>
-          help centre
-        </a>
-        .
-      </Text>
-
       <GoogleReviewCTA href={GOOGLE_REVIEW_URL} />
-      <ReferralCTA appUrl={appUrl} />
     </BaseEmail>
   )
 }
 
-export const consultApprovedSubject = "Good news — your consultation is all done"
+export const consultApprovedSubject = "Good news — your consultation is all done ✅"

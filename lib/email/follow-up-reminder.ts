@@ -1,8 +1,9 @@
 import "server-only"
 
+import * as React from "react"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { sendViaResend } from "./resend"
-import { renderFollowUpReminderEmail, followUpReminderSubject } from "@/components/email/templates/follow-up-reminder"
+import { sendEmail } from "./send-email"
+import { FollowUpReminderEmail, followUpReminderSubject } from "@/components/email/templates/follow-up-reminder"
 import { getAppUrl } from "@/lib/env"
 import { createLogger } from "@/lib/observability/logger"
 
@@ -93,39 +94,18 @@ export async function sendFollowUpReminderEmail(intake: ApprovedMedCertIntake): 
   const lastName = patient.last_name || ""
   const patientName = [firstName, lastName].filter(Boolean).join(" ") || "there"
 
-  const html = renderFollowUpReminderEmail({ patientName, appUrl })
-  const unsubscribeUrl = `${appUrl}/patient/settings?unsubscribe=marketing`
-
-  const result = await sendViaResend({
+  const result = await sendEmail({
     to: patient.email,
     subject: followUpReminderSubject,
-    html,
+    template: React.createElement(FollowUpReminderEmail, { patientName, appUrl }),
+    emailType: "follow_up_reminder",
+    intakeId: intake.id,
+    patientId: intake.patient_id,
     tags: [
       { name: "category", value: "follow_up_reminder" },
       { name: "intake_id", value: intake.id },
     ],
-    headers: {
-      "List-Unsubscribe": `<${unsubscribeUrl}>`,
-      "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
-    },
   })
-
-  // Audit trail
-  try {
-    const supabase = createServiceRoleClient()
-    await supabase.from("email_outbox").insert({
-      email_type: "follow_up_reminder",
-      to_email: patient.email,
-      intake_id: intake.id,
-      patient_id: intake.patient_id,
-      subject: followUpReminderSubject,
-      status: result.success ? "sent" : "failed",
-      provider_message_id: result.id,
-      sent_at: result.success ? new Date().toISOString() : null,
-      error_message: result.error,
-      metadata: { category: "medical_certificate" },
-    })
-  } catch { /* non-blocking */ }
 
   if (result.success) {
     const supabase = createServiceRoleClient()

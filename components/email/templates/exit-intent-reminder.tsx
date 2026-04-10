@@ -1,5 +1,6 @@
 import {
   BaseEmail,
+  HeroBlock,
   Heading,
   Text,
   Button,
@@ -26,7 +27,11 @@ export function ExitIntentReminderEmail({
 }: ExitIntentReminderEmailProps) {
   return (
     <BaseEmail previewText={`Still thinking? Here's everything you need to get started.`} appUrl={appUrl}>
-      <Heading>Still thinking it over?</Heading>
+      <HeroBlock
+        icon="💭"
+        headline="Still thinking it over?"
+        variant="info"
+      />
 
       <Text>
         No rush. You were looking at our <strong>{service}</strong> — here&apos;s

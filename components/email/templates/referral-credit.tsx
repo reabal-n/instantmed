@@ -8,7 +8,7 @@
 import * as React from "react"
 import {
   BaseEmail,
-  SuccessBanner,
+  HeroBlock,
   Text,
   Button,
   Box,
@@ -41,7 +41,12 @@ export function ReferralCreditEmail({
       previewText={`Nice one — you've earned a ${creditAmount} credit 👍`}
       appUrl={appUrl}
     >
-      <SuccessBanner title="Referral credit earned" />
+      <HeroBlock
+        icon="🎁"
+        headline="Referral credit earned"
+        subtitle={creditAmount}
+        variant="success"
+      />
 
       <Text>Hi {firstName},</Text>
 
@@ -76,13 +81,6 @@ export function ReferralCreditEmail({
         .
       </Text>
 
-      <Text muted small>
-        Questions? Reply to this email or visit our{" "}
-        <a href={`${appUrl}/contact`} style={{ color: colors.accent, fontWeight: 500 }}>
-          help centre
-        </a>
-        .
-      </Text>
     </BaseEmail>
   )
 }

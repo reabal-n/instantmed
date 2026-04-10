@@ -96,7 +96,7 @@ describe("Exit Intent Email Templates", () => {
       expect(html).toContain('height="1"')
     })
 
-    it("omits unsubscribe and pixel when not provided", () => {
+    it("uses fallback href and omits pixel when URLs not provided", () => {
       const html = render(
         <ExitIntentSocialProofEmail
           service="Medical Certificate"
@@ -105,7 +105,9 @@ describe("Exit Intent Email Templates", () => {
           appUrl={APP_URL}
         />
       )
-      expect(html).not.toContain("Unsubscribe from these reminders")
+      // Unsubscribe link always renders (Spam Act compliance) but uses "#" fallback
+      expect(html).toContain("Unsubscribe from these reminders")
+      expect(html).toContain('href="#"')
       expect(html).not.toContain("/api/exit-intent/open")
     })
 

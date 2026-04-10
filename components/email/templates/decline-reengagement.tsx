@@ -7,6 +7,7 @@
 
 import {
   BaseEmail,
+  HeroBlock,
   Heading,
   Text,
   Button,
@@ -36,8 +37,13 @@ export function DeclineReengagementEmail({
     <BaseEmail
       previewText="Your request was declined, but we may still be able to help."
       appUrl={appUrl}
+      showFooterReview={false}
     >
-      <Heading>We may still be able to help</Heading>
+      <HeroBlock
+        icon="💡"
+        headline="We may still be able to help"
+        variant="info"
+      />
 
       <Text>Hi {firstName},</Text>
 

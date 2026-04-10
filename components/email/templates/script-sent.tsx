@@ -1,20 +1,18 @@
 /**
  * Script Sent Email Template
- * 
+ *
  * Sent to patient when their prescription has been sent via eScript.
  */
 
 import * as React from "react"
 import {
   BaseEmail,
+  HeroBlock,
   Text,
   Button,
   Box,
   Heading,
-  List,
-  SuccessBanner,
   GoogleReviewCTA,
-  ReferralCTA,
   colors,
 } from "../base-email"
 import { GOOGLE_REVIEW_URL } from "@/lib/constants"
@@ -36,17 +34,23 @@ export function ScriptSentEmail({
 
   return (
     <BaseEmail
-      previewText="Your eScript is ready — check your phone ✅"
+      previewText="Your eScript is ready — check your phone 💊"
       appUrl={appUrl}
+      showFooterReview={false}
     >
-      <SuccessBanner title="Your eScript has been sent" />
+      <HeroBlock
+        icon="💊"
+        headline="Your eScript is on its way"
+        subtitle="Check your phone for the SMS"
+        variant="success"
+      />
 
       <Text>Hi {firstName},</Text>
 
       <Text>
-        Your prescription has been approved and the eScript has been sent to
-        your phone via SMS. Take your phone to any pharmacy to pick up your
-        medication.
+        Your prescription has been approved and the eScript is heading to your phone via SMS.
+        Take your phone to any pharmacy — the pharmacist will scan the QR code to dispense your medication.
+        Bring your Medicare card for any PBS subsidy.
       </Text>
 
       {escriptReference && (
@@ -64,39 +68,16 @@ export function ScriptSentEmail({
           >
             {escriptReference}
           </p>
-          <Text muted small style={{ margin: "8px 0 0 0" }}>
-            Show this reference at any pharmacy to collect your prescription.
-          </Text>
         </Box>
       )}
 
-      <Box>
-        <Heading as="h3">What happens next</Heading>
-        <List
-          items={[
-            "Check your phone for the eScript SMS",
-            "Visit any pharmacy to collect your medication",
-            "Show your Medicare card and the eScript to the pharmacist",
-          ]}
-        />
-      </Box>
-
       <Button href={`${appUrl}/track/${requestId}`} variant="secondary">
-        View Request Details
+        View request
       </Button>
 
-      <Text muted small>
-        Questions? Reply to this email or visit our{" "}
-        <a href={`${appUrl}/contact`} style={{ color: colors.accent, fontWeight: 500 }}>
-          help centre
-        </a>
-        .
-      </Text>
-
       <GoogleReviewCTA href={GOOGLE_REVIEW_URL} />
-      <ReferralCTA appUrl={appUrl} />
     </BaseEmail>
   )
 }
 
-export const scriptSentEmailSubject = "Your eScript is on its way"
+export const scriptSentEmailSubject = "Your eScript is on its way 💊"

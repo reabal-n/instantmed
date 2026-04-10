@@ -1,8 +1,8 @@
 /**
  * Request Received Email Template
  *
- * Sent after Stripe payment succeeds. Combines payment receipt with
- * "your request is being reviewed" guidance in a single email.
+ * Sent after Stripe payment succeeds. Combines payment receipt (invoice)
+ * with review status in a single email.
  */
 
 import * as React from "react"
@@ -12,11 +12,10 @@ import {
   Text,
   Button,
   Box,
-  Heading,
-  List,
   DetailRow,
   colors,
 } from "../base-email"
+import { COMPANY_NAME, ABN } from "@/lib/constants"
 
 export interface RequestReceivedEmailProps {
   patientName: string
@@ -24,11 +23,12 @@ export interface RequestReceivedEmailProps {
   amount: string
   requestId: string
   isGuest?: boolean
+  paidAt?: string
   appUrl?: string
 }
 
 export function requestReceivedSubject(requestType: string) {
-  return `All sorted, your ${requestType} is with a doctor now 👍`
+  return `All sorted — your ${requestType} is with a doctor 👍`
 }
 
 export function RequestReceivedEmail({
@@ -37,18 +37,25 @@ export function RequestReceivedEmail({
   amount,
   requestId,
   isGuest,
+  paidAt,
   appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au",
 }: RequestReceivedEmailProps) {
   const firstName = patientName.split(" ")[0]
+  const dateStr = paidAt || new Date().toLocaleDateString("en-AU", {
+    timeZone: "Australia/Sydney",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  })
 
   return (
     <BaseEmail
-      previewText={`Your ${requestType} is with a doctor. We'll be in touch shortly`}
+      previewText={`Payment confirmed · ${requestType} · ${amount} — a doctor is on it now`}
       appUrl={appUrl}
     >
       <HeroBlock
         icon="✓"
-        headline="You're all set 👍"
+        headline="You&apos;re all set 👍"
         subtitle={`${requestType} · ${amount}`}
         variant="info"
       />
@@ -56,29 +63,33 @@ export function RequestReceivedEmail({
       <Text>Hi {firstName},</Text>
 
       <Text>
-        Payment confirmed. Your <strong>{requestType}</strong> is now with
-        a doctor. We&apos;ll email you the moment there&apos;s an update.
+        Payment confirmed — your <strong>{requestType}</strong> is with a doctor now.
+        We&apos;ll email you the moment it&apos;s done, usually within the hour.
       </Text>
 
+      {/* Tax receipt */}
       <Box>
+        <p
+          style={{
+            margin: "0 0 12px 0",
+            fontSize: "11px",
+            fontWeight: "700",
+            color: colors.textSecondary,
+            textTransform: "uppercase" as const,
+            letterSpacing: "1px",
+          }}
+        >
+          Tax Receipt · {COMPANY_NAME} · ABN {ABN}
+        </p>
         <table role="presentation" cellPadding="0" cellSpacing="0" style={{ width: "100%" }}>
           <tbody>
-            <DetailRow label="Reference" value={requestId.slice(0, 8).toUpperCase()} />
-            <DetailRow label="Amount paid" value={amount} />
-            <DetailRow label="Status" value="In review" />
+            <DetailRow label="Service" value={requestType} bold />
+            <DetailRow label="Amount paid" value={amount} bold />
+            <DetailRow label="GST included" value={`$${(parseFloat(amount.replace(/[^0-9.]/g, "")) / 11).toFixed(2)}`} />
+            <DetailRow label="Date" value={dateStr} />
+            <DetailRow label="Reference" value={requestId.slice(0, 8).toUpperCase()} mono />
           </tbody>
         </table>
-      </Box>
-
-      <Box>
-        <Heading as="h3">What happens next</Heading>
-        <List
-          items={[
-            "A doctor reviews your request (usually within an hour)",
-            "You'll get an email as soon as it's done",
-            "No phone call needed. We'll reach out if anything else is required.",
-          ]}
-        />
       </Box>
 
       <Button href={`${appUrl}/track/${requestId}`}>
@@ -86,27 +97,13 @@ export function RequestReceivedEmail({
       </Button>
 
       {isGuest && (
-        <Box>
-          <Heading as="h3">Save your details for next time</Heading>
-          <Text small>
-            Create a free account to track your request, download documents, and reorder faster.
-          </Text>
-          <Button href={`${appUrl}/auth/complete-account?intake_id=${requestId}`}>
-            Create account
-          </Button>
-          <Text muted small style={{ textAlign: "center" as const }}>
-            No pressure. Your certificate will be emailed to you either way.
-          </Text>
-        </Box>
+        <Text small muted style={{ textAlign: "center" as const }}>
+          Want to track this on your dashboard?{" "}
+          <a href={`${appUrl}/auth/complete-account?intake_id=${requestId}`} style={{ color: colors.accent, fontWeight: 500 }}>
+            Create a free account
+          </a>
+        </Text>
       )}
-
-      <Text muted small>
-        Questions? Just reply to this email or visit our{" "}
-        <a href={`${appUrl}/contact`} style={{ color: colors.accent, fontWeight: 500 }}>
-          help centre
-        </a>
-        .
-      </Text>
     </BaseEmail>
   )
 }

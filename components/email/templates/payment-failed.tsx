@@ -6,7 +6,6 @@ import {
   Button,
   Box,
   List,
-  colors,
 } from "../base-email"
 
 export interface PaymentFailedEmailProps {
@@ -31,7 +30,7 @@ export function PaymentFailedEmail({
   const firstName = patientName.split(" ")[0]
 
   return (
-    <BaseEmail previewText={`We couldn't process your payment. Here's how to fix it ⏱️`} appUrl={appUrl}>
+    <BaseEmail previewText={`We couldn't process your payment. Here's how to fix it ⏱️`} appUrl={appUrl} showFooterReview={false}>
       <StatusBanner title="Payment could not be processed" variant="warning" />
 
       <Text>Hi {firstName},</Text>
@@ -76,13 +75,6 @@ export function PaymentFailedEmail({
         </Text>
       </Box>
 
-      <Text muted small>
-        Questions? Reply to this email or visit our{" "}
-        <a href={`${appUrl}/contact`} style={{ color: colors.accent, fontWeight: 500 }}>
-          help centre
-        </a>
-        .
-      </Text>
     </BaseEmail>
   )
 }

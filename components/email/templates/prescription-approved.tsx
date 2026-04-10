@@ -11,12 +11,7 @@ import {
   HeroBlock,
   Text,
   Button,
-  Box,
-  Heading,
-  List,
   GoogleReviewCTA,
-  ReferralCTA,
-  colors,
 } from "../base-email"
 import { GOOGLE_REVIEW_URL } from "@/lib/constants"
 
@@ -39,10 +34,11 @@ export function PrescriptionApprovedEmail({
     <BaseEmail
       previewText={`Your ${medicationName} prescription is approved — eScript on its way 💊`}
       appUrl={appUrl}
+      showFooterReview={false}
     >
       <HeroBlock
-        icon="✓"
-        headline="Prescription approved 💊"
+        icon="💊"
+        headline="Prescription approved"
         subtitle={medicationName}
         variant="success"
       />
@@ -51,35 +47,15 @@ export function PrescriptionApprovedEmail({
 
       <Text>
         Your <strong>{medicationName}</strong> prescription has been approved.
-        You&apos;ll get an eScript via <strong>SMS</strong> shortly — take it
-        to any pharmacy in Australia.
+        Your eScript will arrive via <strong>SMS</strong> shortly — take your phone to any pharmacy and they&apos;ll scan the QR code.
+        Bring your Medicare card for PBS-subsidised medications.
       </Text>
 
-      <Box>
-        <Heading as="h3">What to do next</Heading>
-        <List
-          items={[
-            "Check your phone for the eScript SMS (usually a few minutes)",
-            "Take your phone to any pharmacy — they'll scan the QR code",
-            "Bring your Medicare card for PBS-subsidised medications",
-          ]}
-        />
-      </Box>
-
       <Button href={`${appUrl}/track/${intakeId}`}>
-        View request details
+        View request
       </Button>
 
       <GoogleReviewCTA href={GOOGLE_REVIEW_URL} />
-      <ReferralCTA appUrl={appUrl} />
-
-      <Text muted small>
-        Questions? Reply to this email or visit our{" "}
-        <a href={`${appUrl}/contact`} style={{ color: colors.accent, fontWeight: 500 }}>
-          help centre
-        </a>
-        .
-      </Text>
     </BaseEmail>
   )
 }

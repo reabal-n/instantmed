@@ -1,9 +1,10 @@
 import "server-only"
 
+import * as React from "react"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { sendViaResend } from "./resend"
-import { renderReviewRequestEmail, reviewRequestSubject } from "@/components/email/templates/review-request"
-import { renderReviewFollowupEmail, reviewFollowupSubject } from "@/components/email/templates/review-followup"
+import { sendEmail } from "./send-email"
+import { reviewRequestSubject, ReviewRequestEmail } from "@/components/email/templates/review-request"
+import { reviewFollowupSubject, ReviewFollowupEmail } from "@/components/email/templates/review-followup"
 import { getAppUrl } from "@/lib/env"
 import { createLogger } from "@/lib/observability/logger"
 import { canSendMarketingEmail } from "@/app/actions/email-preferences"
@@ -97,7 +98,7 @@ export async function findReviewFollowupCandidates(): Promise<ApprovedIntake[]> 
 }
 
 /**
- * Send the day-2 review request email
+ * Send the day-2 review request email via the centralized sendEmail system
  */
 export async function sendReviewRequestEmail(intake: ApprovedIntake): Promise<boolean> {
   const appUrl = getAppUrl()
@@ -124,39 +125,19 @@ export async function sendReviewRequestEmail(intake: ApprovedIntake): Promise<bo
 
   const patientName = patient.first_name || "there"
   const serviceName = SERVICE_NAMES[intake.category || ""] || "your request"
-
-  const html = renderReviewRequestEmail({ patientName, serviceName, appUrl })
-  const unsubscribeUrl = `${appUrl}/patient/settings?unsubscribe=marketing`
-
-  const result = await sendViaResend({
+  const result = await sendEmail({
     to: patient.email,
     subject: reviewRequestSubject,
-    html,
+    template: React.createElement(ReviewRequestEmail, { patientName, serviceName, appUrl }),
+    emailType: "review_request" as import("./send-email").EmailType,
+    intakeId: intake.id,
+    patientId: intake.patient_id,
+    metadata: { category: intake.category },
     tags: [
       { name: "category", value: "review_request" },
       { name: "intake_id", value: intake.id },
     ],
-    headers: {
-      "List-Unsubscribe": `<${unsubscribeUrl}>`,
-      "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
-    },
   })
-
-  try {
-    const supabase = createServiceRoleClient()
-    await supabase.from("email_outbox").insert({
-      email_type: "review_request",
-      to_email: patient.email,
-      intake_id: intake.id,
-      patient_id: intake.patient_id,
-      subject: reviewRequestSubject,
-      status: result.success ? "sent" : "failed",
-      provider_message_id: result.id,
-      sent_at: result.success ? new Date().toISOString() : null,
-      error_message: result.error,
-      metadata: { category: intake.category },
-    })
-  } catch { /* non-blocking */ }
 
   if (result.success) {
     const supabase = createServiceRoleClient()
@@ -174,7 +155,7 @@ export async function sendReviewRequestEmail(intake: ApprovedIntake): Promise<bo
 }
 
 /**
- * Send the day-7 review followup email
+ * Send the day-7 review followup email via the centralized sendEmail system
  */
 export async function sendReviewFollowupEmail(intake: ApprovedIntake): Promise<boolean> {
   const appUrl = getAppUrl()
@@ -199,39 +180,19 @@ export async function sendReviewFollowupEmail(intake: ApprovedIntake): Promise<b
   }
 
   const patientName = patient.first_name || "there"
-
-  const html = renderReviewFollowupEmail({ patientName, appUrl })
-  const unsubscribeUrl = `${appUrl}/patient/settings?unsubscribe=marketing`
-
-  const result = await sendViaResend({
+  const result = await sendEmail({
     to: patient.email,
     subject: reviewFollowupSubject,
-    html,
+    template: React.createElement(ReviewFollowupEmail, { patientName, appUrl }),
+    emailType: "review_followup" as import("./send-email").EmailType,
+    intakeId: intake.id,
+    patientId: intake.patient_id,
+    metadata: { category: intake.category },
     tags: [
       { name: "category", value: "review_followup" },
       { name: "intake_id", value: intake.id },
     ],
-    headers: {
-      "List-Unsubscribe": `<${unsubscribeUrl}>`,
-      "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
-    },
   })
-
-  try {
-    const supabase = createServiceRoleClient()
-    await supabase.from("email_outbox").insert({
-      email_type: "review_followup",
-      to_email: patient.email,
-      intake_id: intake.id,
-      patient_id: intake.patient_id,
-      subject: reviewFollowupSubject,
-      status: result.success ? "sent" : "failed",
-      provider_message_id: result.id,
-      sent_at: result.success ? new Date().toISOString() : null,
-      error_message: result.error,
-      metadata: { category: intake.category },
-    })
-  } catch { /* non-blocking */ }
 
   if (result.success) {
     const supabase = createServiceRoleClient()

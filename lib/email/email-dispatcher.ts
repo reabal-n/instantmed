@@ -3,6 +3,7 @@ import "server-only"
 import * as Sentry from "@sentry/nextjs"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { sendFromOutboxRow, claimOutboxRow } from "@/lib/email/send-email"
+import { checkDailySendLimit, incrementDailySendCount } from "@/lib/email/warmup"
 import { createLogger } from "@/lib/observability/logger"
 
 const logger = createLogger("email-dispatcher")
@@ -26,24 +27,45 @@ const BACKOFF_MINUTES = [0, 1, 2, 5, 10, 30, 60, 60, 60, 60]
 // Email types that the dispatcher can reconstruct and resend
 // Must match the types handled by reconstructEmailHtml() in send-email.ts
 const SUPPORTED_EMAIL_TYPES = [
+  // Core approvals & outcomes
   "med_cert_patient",
+  "med_cert_employer",
   "script_sent",
   "request_declined",
-  "payment_received",
   "prescription_approved",
-  "refund_notification",
-  "payment_failed",
-  "guest_complete_account",
-  "welcome",
-  "needs_more_info",
   "consult_approved",
   "ed_approved",
   "hair_loss_approved",
   "weight_loss_approved",
   "womens_health_approved",
-  "med_cert_employer",
+  "needs_more_info",
+  // Payments
+  "payment_received",
+  "refund_notification",
+  "payment_failed",
   "payment_confirmed",
+  "refund_issued",
+  // Lifecycle
+  "welcome",
+  "guest_complete_account",
+  "intake_submitted",
   "request_received",
+  "request_approved",
+  "still_reviewing",
+  "verification_code",
+  // Engagement & retention
+  "abandoned_checkout",
+  "abandoned_checkout_followup",
+  "repeat_rx_reminder",
+  "subscription_nudge",
+  "follow_up_reminder",
+  "referral_credit",
+  "review_request",
+  "review_followup",
+  "exit_intent_social_proof",
+  "exit_intent_last_chance",
+  "decline_reengagement",
+  "treatment_followup",
 ] as const
 
 function isSupportedEmailType(emailType: string): boolean {
@@ -112,8 +134,18 @@ export interface DispatcherResult {
  * This is the core dispatcher logic used by both cron and ops routes.
  */
 export async function processEmailDispatch(): Promise<DispatcherResult> {
+  // Respect domain warmup — if daily limit is hit, skip entire batch
+  const warmup = await checkDailySendLimit()
+  if (!warmup.allowed) {
+    logger.info("[Email Dispatcher] Skipping batch — daily send limit reached", {
+      current: warmup.current,
+      limit: warmup.limit,
+    })
+    return { processed: 0, sent: 0, failed: 0, skipped: 0, results: [], message: `Daily send limit reached (${warmup.current}/${warmup.limit})` }
+  }
+
   const supabase = createServiceRoleClient()
-  
+
   // Fetch pending/failed emails that might be eligible for retry
   const { data: candidates, error: fetchError } = await supabase
     .from("email_outbox")
@@ -197,6 +229,7 @@ export async function processEmailDispatch(): Promise<DispatcherResult> {
 
     if (result.success) {
       sent++
+      incrementDailySendCount().catch(() => {})
     } else {
       failed++
       // Alert if this failure just exhausted all retries
@@ -230,7 +263,7 @@ export async function processEmailDispatch(): Promise<DispatcherResult> {
 }
 
 /**
- * Get email dispatcher queue stats.
+ * Get email dispatcher queue stats using count queries (no full-table scan).
  */
 export async function getEmailDispatcherStats(): Promise<{
   pending: number
@@ -239,20 +272,32 @@ export async function getEmailDispatcherStats(): Promise<{
   total: number
 }> {
   const supabase = createServiceRoleClient()
-  
-  const { data: stats } = await supabase
-    .from("email_outbox")
-    .select("status, retry_count")
-    .in("status", ["pending", "failed"])
 
-  const pending = stats?.filter(r => r.status === "pending").length || 0
-  const failed = stats?.filter(r => r.status === "failed").length || 0
-  const exhausted = stats?.filter(r => r.retry_count >= MAX_RETRIES).length || 0
+  const [pendingRes, failedRes, exhaustedRes] = await Promise.all([
+    supabase
+      .from("email_outbox")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "pending"),
+    supabase
+      .from("email_outbox")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "failed")
+      .lt("retry_count", MAX_RETRIES),
+    supabase
+      .from("email_outbox")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "failed")
+      .gte("retry_count", MAX_RETRIES),
+  ])
+
+  const pending = pendingRes.count || 0
+  const failed = failedRes.count || 0
+  const exhausted = exhaustedRes.count || 0
 
   return {
     pending,
     failed,
     exhausted,
-    total: stats?.length || 0,
+    total: pending + failed + exhausted,
   }
 }
