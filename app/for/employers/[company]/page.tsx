@@ -49,10 +49,10 @@ export async function generateMetadata({ params }: { params: Promise<{ company: 
   if (!employer) return {}
 
   return {
-    title: `Verify Medical Certificates | ${employer.name} Employees | InstantMed`,
+    title: `Verify Medical Certificates | ${employer.name} Employees`,
     description: `${employer.name} employees and HR teams can verify InstantMed medical certificates instantly. AHPRA-registered doctors, accepted by all Australian employers.`,
     openGraph: {
-      title: `Verify Medical Certificates | ${employer.name} | InstantMed`,
+      title: `Verify Medical Certificates | ${employer.name}`,
       description: `How ${employer.name} HR teams verify InstantMed medical certificates.`,
     },
     alternates: {
