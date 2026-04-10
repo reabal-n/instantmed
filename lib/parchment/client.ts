@@ -51,23 +51,26 @@ function getConfig() {
 // TOKEN CACHE
 // ============================================================================
 
-let cachedToken: { accessToken: string; expiresAt: number } | null = null
+let cachedToken: { accessToken: string; expiresAt: number; userId: string } | null = null
 
 /**
  * Get a valid JWT token, using cache when possible.
  * Tokens are cached with a 60s buffer before expiry.
+ *
+ * @param userId - Parchment user ID for the prescriber (required by API)
+ * @param scopes - Permission scopes to request
  */
-async function getToken(scopes: string[]): Promise<string> {
+async function getToken(userId: string, scopes: string[]): Promise<string> {
   const now = Date.now()
 
-  // Return cached token if still valid (60s buffer)
-  if (cachedToken && cachedToken.expiresAt > now + 60_000) {
+  // Return cached token if still valid (60s buffer) and same user
+  if (cachedToken && cachedToken.expiresAt > now + 60_000 && cachedToken.userId === userId) {
     return cachedToken.accessToken
   }
 
   const config = getConfig()
 
-  const res = await fetch(`${config.apiUrl}/external/v1/token`, {
+  const res = await fetch(`${config.apiUrl}/v1/token`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -75,7 +78,7 @@ async function getToken(scopes: string[]): Promise<string> {
       "x-partner-secret": config.partnerSecret,
       "x-organization-id": config.organizationId,
       "x-organization-secret": config.organizationSecret,
-      "x-user-id": "system", // Token requests don't require a specific user
+      "x-user-id": userId,
     },
     body: JSON.stringify({
       grantType: "client_credentials",
@@ -97,9 +100,10 @@ async function getToken(scopes: string[]): Promise<string> {
   cachedToken = {
     accessToken: parsed.data.accessToken,
     expiresAt: now + parsed.data.expiresIn * 1000,
+    userId,
   }
 
-  log.info("Token acquired", { scopes, expiresIn: parsed.data.expiresIn })
+  log.info("Token acquired", { userId, scopes, expiresIn: parsed.data.expiresIn })
   return cachedToken.accessToken
 }
 
@@ -121,12 +125,12 @@ export async function createPatient(
   patient: CreatePatientRequest,
 ): Promise<CreatePatientResponse["data"]> {
   const config = getConfig()
-  const token = await getToken([
+  const token = await getToken(userId, [
     PARCHMENT_SCOPES.CREATE_PATIENT,
     PARCHMENT_SCOPES.READ_PATIENT,
   ])
 
-  const url = `${config.apiUrl}/external/v1/organizations/${config.organizationId}/users/${userId}/patients`
+  const url = `${config.apiUrl}/v1/organizations/${config.organizationId}/users/${userId}/patients`
 
   const res = await fetch(url, {
     method: "POST",
@@ -166,9 +170,9 @@ export async function updatePatient(
   patient: Partial<CreatePatientRequest>,
 ): Promise<void> {
   const config = getConfig()
-  const token = await getToken([PARCHMENT_SCOPES.UPDATE_PATIENT])
+  const token = await getToken(userId, [PARCHMENT_SCOPES.UPDATE_PATIENT])
 
-  const url = `${config.apiUrl}/external/v1/organizations/${config.organizationId}/users/${userId}/patients/${parchmentPatientId}`
+  const url = `${config.apiUrl}/v1/organizations/${config.organizationId}/users/${userId}/patients/${parchmentPatientId}`
 
   const res = await fetch(url, {
     method: "PUT",
@@ -207,7 +211,7 @@ export async function getSsoUrl(
 ): Promise<ParchmentSsoResponse["data"]> {
   const config = getConfig()
 
-  const res = await fetch(`${config.apiUrl}/external/v1/sso`, {
+  const res = await fetch(`${config.apiUrl}/v1/sso`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -243,11 +247,16 @@ export async function getSsoUrl(
  * List all users in the Parchment organization.
  * Used for linking a doctor's InstantMed account to their Parchment user.
  */
-export async function listUsers(): Promise<ListUsersResponse["data"]> {
+export async function listUsers(callerUserId?: string): Promise<ListUsersResponse["data"]> {
   const config = getConfig()
-  const token = await getToken([PARCHMENT_SCOPES.READ_USERS])
+  // For org-level operations, use provided userId or fall back to any known user
+  const userId = callerUserId || process.env.PARCHMENT_DEFAULT_USER_ID || ""
+  if (!userId) {
+    throw new Error("No Parchment user ID available for token generation. Set PARCHMENT_DEFAULT_USER_ID or pass callerUserId.")
+  }
+  const token = await getToken(userId, [PARCHMENT_SCOPES.READ_USERS])
 
-  const url = `${config.apiUrl}/external/v1/organizations/${config.organizationId}/users?limit=100`
+  const url = `${config.apiUrl}/v1/organizations/${config.organizationId}/users?limit=100`
 
   const res = await fetch(url, {
     method: "GET",

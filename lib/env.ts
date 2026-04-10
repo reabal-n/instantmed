@@ -98,6 +98,7 @@ const serverEnvSchema = z.object({
   PARCHMENT_ORGANIZATION_ID: z.string().optional(),
   PARCHMENT_ORGANIZATION_SECRET: z.string().optional(),
   PARCHMENT_WEBHOOK_SECRET: z.string().optional(),
+  PARCHMENT_DEFAULT_USER_ID: z.string().optional(),
 
   // Stripe publishable key (public, for client checkout)
   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().optional(),
