@@ -1,9 +1,9 @@
 "use client";
 
-import { motion, useInView } from "framer-motion";
+import { motion } from "framer-motion";
 import { useRef } from "react";
 import { cn } from "@/lib/utils";
-import { scrollRevealConfig, useReducedMotion } from "@/components/ui/motion";
+import { useScrollReveal, useReducedMotion } from "@/components/ui/motion";
 
 // Persists across React StrictMode's simulated remount — DOM nodes are preserved.
 const _played = new WeakSet<Element>()
@@ -28,11 +28,7 @@ export function WordReveal({
   wordDuration = 0.4,
 }: WordRevealProps) {
   const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, {
-    once: scrollRevealConfig.once,
-    margin: scrollRevealConfig.margin as `${number}px`,
-    amount: scrollRevealConfig.threshold,
-  });
+  const isInView = useScrollReveal(ref);
   const prefersReducedMotion = useReducedMotion();
 
   if (isInView && ref.current) _played.add(ref.current)

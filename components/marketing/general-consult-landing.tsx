@@ -223,7 +223,7 @@ function RecentActivityTicker() {
           <motion.span
             key={index}
             className="block leading-5"
-            initial={prefersReducedMotion ? {} : { opacity: 0, y: 8 }}
+            initial={prefersReducedMotion ? {} : { y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={prefersReducedMotion ? {} : { opacity: 0, y: -8 }}
             transition={{ duration: 0.25 }}
@@ -338,7 +338,7 @@ function SocialProofStrip() {
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <motion.div
           className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8"
-          initial={animate ? { opacity: 0, y: 10 } : {}}
+          initial={animate ? { y: 10 } : {}}
           whileInView={animate ? { opacity: 1, y: 0 } : undefined}
           viewport={{ once: true }}
           transition={{ duration: 0.4 }}
@@ -347,7 +347,7 @@ function SocialProofStrip() {
             <motion.div
               key={stat.label}
               className="flex items-center gap-3"
-              initial={animate ? { opacity: 0, y: 10 } : {}}
+              initial={animate ? { y: 10 } : {}}
               whileInView={animate ? { opacity: 1, y: 0 } : undefined}
               viewport={{ once: true }}
               transition={{ duration: 0.3, delay: i * 0.08 }}
@@ -389,7 +389,7 @@ function HeroSection({
             {/* Doctor availability pill */}
             <motion.div
               className="flex justify-center lg:justify-start mb-4 sm:mb-8"
-              initial={animate ? { opacity: 0, y: -10 } : {}}
+              initial={animate ? { y: -10 } : {}}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4 }}
             >
@@ -410,7 +410,7 @@ function HeroSection({
             {/* Subheadline */}
             <motion.p
               className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-3 sm:mb-4 leading-relaxed text-balance"
-              initial={animate ? { opacity: 0, y: 12 } : {}}
+              initial={animate ? { y: 12 } : {}}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.1 }}
             >
@@ -421,7 +421,7 @@ function HeroSection({
             {/* Rotating secondary proof badge */}
             <motion.div
               className="flex justify-center lg:justify-start mb-6"
-              initial={animate ? { opacity: 0 } : {}}
+              initial={{}}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.4, delay: 0.15 }}
             >
@@ -435,7 +435,7 @@ function HeroSection({
             <motion.div
               ref={ctaRef}
               className="flex flex-col sm:flex-row items-center gap-3 justify-center lg:justify-start mb-6"
-              initial={animate ? { opacity: 0, y: 12 } : {}}
+              initial={animate ? { y: 12 } : {}}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.12 }}
             >
@@ -469,7 +469,7 @@ function HeroSection({
             {/* Trust signals */}
             <motion.div
               className="hidden sm:flex flex-col gap-2"
-              initial={animate ? { opacity: 0 } : {}}
+              initial={{}}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.3 }}
             >
@@ -491,7 +491,7 @@ function HeroSection({
             {/* Secondary anchor CTA — desktop only */}
             <motion.div
               className="hidden sm:flex justify-center lg:justify-start mt-4"
-              initial={animate ? { opacity: 0 } : {}}
+              initial={{}}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.45 }}
             >
@@ -531,7 +531,7 @@ function HowItWorksInline({ onCTAClick, isDisabled }: { onCTAClick?: () => void;
         {/* Header */}
         <motion.div
           className="text-center mb-12"
-          initial={animate ? { opacity: 0, y: 20 } : {}}
+          initial={animate ? { y: 20 } : {}}
           whileInView={animate ? { opacity: 1, y: 0 } : undefined}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
@@ -550,7 +550,7 @@ function HowItWorksInline({ onCTAClick, isDisabled }: { onCTAClick?: () => void;
             <motion.div
               key={step.title}
               className="relative flex flex-col items-center text-center md:items-start md:text-left"
-              initial={animate ? { opacity: 0, y: 20 } : {}}
+              initial={animate ? { y: 20 } : {}}
               whileInView={animate ? { opacity: 1, y: 0 } : undefined}
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: i * 0.1 }}
@@ -574,7 +574,7 @@ function HowItWorksInline({ onCTAClick, isDisabled }: { onCTAClick?: () => void;
         {/* CTA after steps */}
         <motion.div
           className="flex justify-center"
-          initial={animate ? { opacity: 0, y: 10 } : {}}
+          initial={animate ? { y: 10 } : {}}
           whileInView={animate ? { opacity: 1, y: 0 } : undefined}
           viewport={{ once: true }}
           transition={{ duration: 0.4, delay: 0.3 }}
@@ -764,7 +764,7 @@ export function GeneralConsultLanding() {
             <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
               <motion.div
                 className="text-center mb-10"
-                initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
+                initial={prefersReducedMotion ? {} : { y: 20 }}
                 whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5 }}
@@ -790,7 +790,7 @@ export function GeneralConsultLanding() {
 
               <motion.div
                 className="mt-10 text-center"
-                initial={prefersReducedMotion ? {} : { opacity: 0 }}
+                initial={{}}
                 whileInView={prefersReducedMotion ? undefined : { opacity: 1 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.3 }}
@@ -880,7 +880,7 @@ export function GeneralConsultLanding() {
         {/* Sticky desktop CTA — top bar, appears after hero scrolls out */}
         <motion.div
           className="hidden lg:block fixed top-0 left-0 right-0 z-40"
-          initial={prefersReducedMotion ? {} : { y: -60, opacity: 0 }}
+          initial={prefersReducedMotion ? {} : { y: -60 }}
           animate={prefersReducedMotion
             ? { opacity: showStickyCTA ? 1 : 0 }
             : { y: showStickyCTA ? 0 : -60, opacity: showStickyCTA ? 1 : 0 }

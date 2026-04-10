@@ -283,7 +283,42 @@ Centered headline + animated stat counters. Used on: pricing, trust.
 
 ---
 
-## 7. Section Components
+## 7. Service Icon Tiles
+
+All service icons use the `ServiceIconTile` component (`components/icons/service-icons.tsx`). No raw icon components or local icon containers — always use this.
+
+**Visual treatment:** White-filled SVG icons on a per-service linear gradient tile (`135deg`), with a soft colored box-shadow.
+
+```tsx
+<ServiceIconTile iconKey="Lightning" color="blue" size="md" />
+```
+
+**Sizes:**
+
+| Size | Classes | Use |
+|------|---------|-----|
+| `sm` | `w-8 h-8 rounded-lg` | Nav dropdowns, mobile menu, compact rows |
+| `md` | `w-10 h-10 rounded-xl` | Compact cards |
+| `lg` | `w-12 h-12 rounded-xl` | Main service cards (homepage grid) |
+
+**Color tokens (`serviceColorConfig`):**
+
+| Token | Gradient | Use |
+|-------|----------|-----|
+| `emerald` | `#10B981 → #059669` | Medical Certificates |
+| `cyan` | `#0EA5E9 → #0284C7` | Repeat Medication |
+| `blue` | `#6366F1 → #4F46E5` | ED Treatment |
+| `violet` | `#A855F7 → #7C3AED` | Hair Loss |
+| `pink` | `#EC4899 → #DB2777` | Women's Health |
+| `rose` | `#F43F5E → #E11D48` | Weight Loss |
+
+**Icon keys:** `"FileText"` · `"Pill"` · `"Lightning"` · `"Sparkles"` · `"Heart"` · `"Flame"`
+
+**SVG fill pattern (duotone effect):** Primary shape `rgba(255,255,255,0.92)` · Secondary/depth `rgba(255,255,255,0.38–0.5)` · Content lines `rgba(0,0,0,0.10–0.16)`. The gradient background shows through semi-transparent white, creating a natural two-tone look.
+
+---
+
+## 8. Section Components
 
 Reusable section building blocks. All accept `pill`, `title`, `subtitle`, `highlightWords` props via `SectionHeader`.
 
@@ -299,7 +334,7 @@ Reusable section building blocks. All accept `pill`, `title`, `subtitle`, `highl
 
 ---
 
-## 8. Announcement Pill (Hero Badge)
+## 9. Announcement Pill (Hero Badge)
 
 Trust signal above the hero headline. Centered or left-aligned to match hero variant.
 
@@ -317,7 +352,7 @@ Max ~40 chars. Examples:
 
 ---
 
-## 9. Pills
+## 10. Pills
 
 ### Section Pills
 
@@ -350,7 +385,7 @@ className="bg-muted/50 dark:bg-white/[0.06] border border-border/50
 
 ---
 
-## 10. Components
+## 11. Components
 
 ### Button
 
@@ -403,7 +438,7 @@ className="bg-white dark:bg-card border border-border
 
 ---
 
-## 11. Motion
+## 12. Motion
 
 ```css
 --ease-out:    cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -470,7 +505,7 @@ initial={prefersReducedMotion ? false : { opacity: 0, y: 16 }}  // DO NOT USE
 
 ---
 
-## 12. Lottie Animations
+## 13. Lottie Animations
 
 Use `LottieAnimation` from `@/components/ui/lottie-animation` for empty states, success, error, and loading feedback.
 
@@ -484,7 +519,7 @@ Respects `useReducedMotion`. Lazy-loads `lottie-web`. Use `loop={false}` for one
 
 ---
 
-## 13. Layout
+## 14. Layout
 
 ### Grids
 
@@ -514,7 +549,7 @@ className="grid grid-cols-[240px_1fr] min-h-screen"
 
 ---
 
-## 14. Trust Logos
+## 15. Trust Logos
 
 Three regulatory logos displayed on service and marketing pages:
 
@@ -529,7 +564,7 @@ Dark mode: `rounded dark:bg-white/90 dark:p-0.5` — adds white backing for PNGs
 
 ---
 
-## 15. Voice & Copy Rules
+## 16. Voice & Copy Rules
 
 | Write this | Not this |
 |------------|----------|

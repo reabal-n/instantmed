@@ -1,12 +1,12 @@
 "use client";
 
-import { motion, useInView } from "framer-motion";
+import { motion } from "framer-motion";
 import { useRef } from "react";
 import { cn } from "@/lib/utils";
 import { SectionHeader } from "./section-header";
 import { DottedGrid } from "@/components/marketing/dotted-grid";
 import type { SectionProps, FeatureItem } from "./types";
-import { scrollRevealConfig, useReducedMotion } from "@/components/ui/motion";
+import { useScrollReveal, useReducedMotion } from "@/components/ui/motion";
 
 interface FeatureGridProps extends SectionProps {
   pill?: string;
@@ -34,10 +34,7 @@ export function FeatureGrid({
   id,
 }: FeatureGridProps) {
   const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, {
-    once: scrollRevealConfig.once,
-    amount: 0.1,
-  });
+  const isInView = useScrollReveal(ref);
   const prefersReducedMotion = useReducedMotion();
 
   return (

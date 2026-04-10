@@ -1,34 +1,16 @@
 'use client'
 
 import Link from 'next/link'
-import { ArrowRight, AlertCircle, Sparkles } from 'lucide-react'
+import { ArrowRight, AlertCircle } from 'lucide-react'
 import { serviceCategories } from '@/lib/marketing/homepage'
 import { motion, type Variants } from 'framer-motion'
 import { useReducedMotion } from '@/components/ui/motion'
-import { DocumentPremium, PillPremium, StethoscopePremium } from '@/components/icons/certification-logos'
+import { ServiceIconTile } from '@/components/icons/service-icons'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { useServiceAvailability, type ServiceId } from '@/components/providers/service-availability-provider'
 import { WaitlistForm } from '@/components/marketing/waitlist-form'
 
-const iconMap: Record<string, React.ComponentType<{ className?: string; style?: React.CSSProperties }>> = {
-  FileText: DocumentPremium,
-  Pill: PillPremium,
-  Stethoscope: StethoscopePremium,
-  Sparkles: Sparkles,
-}
-
-const colorConfig: Record<string, {
-  accent: string
-  light: string
-}> = {
-  emerald: { accent: '#059669', light: 'rgba(5, 150, 105, 0.08)' },
-  cyan: { accent: '#0891b2', light: 'rgba(8, 145, 178, 0.08)' },
-  blue: { accent: '#3B82F6', light: 'rgba(59, 130, 246, 0.08)' },
-  violet: { accent: '#8B5CF6', light: 'rgba(139, 92, 246, 0.08)' },
-  pink: { accent: '#EC4899', light: 'rgba(236, 72, 153, 0.08)' },
-  rose: { accent: '#F43F5E', light: 'rgba(244, 63, 94, 0.08)' },
-}
 
 function useServiceCardVariants() {
   const prefersReducedMotion = useReducedMotion()
@@ -63,8 +45,6 @@ interface ServiceCardProps {
 }
 
 function ServiceCard({ service, disabled }: ServiceCardProps) {
-  const Icon = iconMap[service.icon] || DocumentPremium
-  const colors = colorConfig[service.color] || colorConfig.emerald
 
   return (
     <Link
@@ -108,12 +88,7 @@ function ServiceCard({ service, disabled }: ServiceCardProps) {
           ],
         )}>
           {/* Icon */}
-          <div
-            className="w-10 h-10 rounded-lg flex items-center justify-center mb-4"
-            style={{ backgroundColor: colors.light }}
-          >
-            <Icon className="w-5 h-5" style={{ color: colors.accent }} />
-          </div>
+          <ServiceIconTile iconKey={service.icon} color={service.color} size="lg" className="mb-4" />
 
           {/* Title + Price */}
           <h3 className="text-base font-semibold text-foreground group-hover:text-primary transition-colors duration-300 mb-0.5">
@@ -153,9 +128,6 @@ interface ComingSoonCardProps {
 }
 
 function ComingSoonCard({ service }: ComingSoonCardProps) {
-  const Icon = iconMap[service.icon] || DocumentPremium
-  const colors = colorConfig[service.color] || colorConfig.emerald
-
   return (
     <div className="relative h-full">
       {/* Coming Soon badge */}
@@ -173,12 +145,7 @@ function ComingSoonCard({ service }: ComingSoonCardProps) {
         'opacity-75',
       )}>
         {/* Icon */}
-        <div
-          className="w-10 h-10 rounded-lg flex items-center justify-center mb-4"
-          style={{ backgroundColor: colors.light }}
-        >
-          <Icon className="w-5 h-5" style={{ color: colors.accent }} />
-        </div>
+        <ServiceIconTile iconKey={service.icon} color={service.color} size="lg" className="mb-4" />
 
         {/* Title + Price */}
         <h3 className="text-base font-semibold text-foreground mb-0.5">

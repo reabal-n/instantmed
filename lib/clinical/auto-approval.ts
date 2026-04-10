@@ -21,7 +21,7 @@ import { checkEmergencySymptoms, checkRedFlagPatterns } from "./triage-rules-eng
  *
  * Format: MAJOR.MINOR (major = structural changes, minor = keyword/threshold updates)
  */
-export const ELIGIBILITY_ENGINE_VERSION = "2.1"
+export const ELIGIBILITY_ENGINE_VERSION = "2.2"
 
 /**
  * Human-readable manifest of all checks the engine applies.
@@ -88,10 +88,10 @@ const MENTAL_HEALTH_KEYWORDS = [
 ]
 
 const INJURY_KEYWORDS = [
-  "injury", "injured", "workers comp", "workers compensation",
-  "work cover", "workcover", "broken", "fracture", "fractured",
+  "workers comp", "workers compensation",
+  "work cover", "workcover", "fracture", "fractured",
   "collision", "assault", "surgery", "surgical", "post-operative",
-  "post-op", "wound", "laceration", "concussion",
+  "post-op", "laceration", "concussion",
   "whiplash", "dislocation", "dislocated", "burns", "burn injury", "severe burn", "stitches",
 ]
 
@@ -120,7 +120,7 @@ const SOFT_BLOCK_MENTAL_HEALTH = [
 ]
 
 const SOFT_BLOCK_INJURY = [
-  "accident", "fall", "sprain",
+  "accident", "fall", "sprain", "injury", "injured", "broken", "wound",
 ]
 
 const SOFT_BLOCK_CHRONIC = [

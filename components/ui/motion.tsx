@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useInView } from "framer-motion"
 
 /**
  * InstantMed Motion System — Hooks & Scroll Config
@@ -22,12 +23,30 @@ import * as React from "react"
 export const scrollRevealConfig = {
   threshold: 0,
   once: true,
-  margin: "-50px",
+  /** Pre-fire 100px before the element enters the viewport so transforms
+   *  complete by the time the content is actually visible. */
+  margin: "-100px",
 } as const;
 
 // ===========================================
 // HOOKS
 // ===========================================
+
+/**
+ * Drop-in replacement for the raw `useInView` pattern used across sections/.
+ * Reads all options from `scrollRevealConfig` so there's one place to tune globally.
+ *
+ * Usage:
+ *   const ref = useRef<HTMLDivElement>(null)
+ *   const isInView = useScrollReveal(ref)
+ */
+export function useScrollReveal(ref: React.RefObject<Element>) {
+  return useInView(ref, {
+    once: scrollRevealConfig.once,
+    amount: scrollRevealConfig.threshold,
+    margin: scrollRevealConfig.margin,
+  })
+}
 
 /**
  * Reactive hook for reduced motion preference.

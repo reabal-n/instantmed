@@ -5,13 +5,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import { useReducedMotion } from "@/components/ui/motion"
-import {
-  FileText,
-  Pill,
-  ChevronDown,
-  HeartPulse,
-  Sparkles,
-} from "lucide-react"
+import { ChevronDown } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,12 +14,13 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { cn } from "@/lib/utils"
 import { useServiceAvailability, type ServiceId } from "@/components/providers/service-availability-provider"
+import { ServiceIconTile } from "@/components/icons/service-icons"
 
-export const services: Array<{ serviceId: ServiceId; title: string; href: string; description: string; icon: typeof FileText; badge?: string }> = [
-  { serviceId: "med-cert", title: "Medical Certificates", href: "/medical-certificate", description: "Work, uni & carer's leave", icon: FileText },
-  { serviceId: "scripts", title: "Repeat Medication", href: "/repeat-prescriptions", description: "Medications you already take", icon: Pill },
-  { serviceId: "consult", title: "ED Treatment", href: "/erectile-dysfunction", description: "Discreet, no call needed", icon: HeartPulse, badge: "Popular" },
-  { serviceId: "consult", title: "Hair Loss Treatment", href: "/hair-loss", description: "Doctor-reviewed treatment plan", icon: Sparkles },
+export const services: Array<{ serviceId: ServiceId; title: string; href: string; description: string; iconKey: string; color: string; badge?: string }> = [
+  { serviceId: "med-cert", title: "Medical Certificates", href: "/medical-certificate", description: "Work, uni & carer's leave",       iconKey: "FileText",  color: "emerald" },
+  { serviceId: "scripts",  title: "Repeat Medication",    href: "/repeat-prescriptions",  description: "Medications you already take", iconKey: "Pill",       color: "cyan"    },
+  { serviceId: "consult",  title: "ED Treatment",         href: "/erectile-dysfunction",  description: "Discreet, no call needed",     iconKey: "Lightning",  color: "blue",   badge: "Popular" },
+  { serviceId: "consult",  title: "Hair Loss Treatment",  href: "/hair-loss",             description: "Doctor-reviewed treatment plan", iconKey: "Sparkles", color: "violet"  },
 ]
 
 interface ServicesDropdownProps {
@@ -94,9 +89,7 @@ export function ServicesDropdown({ isActivePath }: ServicesDropdownProps) {
                     >
                       {disabled ? (
                         <div className="flex items-center gap-3 px-3 py-2.5 w-full">
-                          <div className="p-1.5 rounded-lg bg-primary/10 dark:bg-accent-teal/15">
-                            <service.icon className="h-4 w-4 text-muted-foreground" />
-                          </div>
+                          <ServiceIconTile iconKey={service.iconKey} color={service.color} size="sm" />
                           <div>
                             <p className="text-sm font-medium text-muted-foreground">{service.title}</p>
                             <p className="text-xs text-muted-foreground">Temporarily unavailable</p>
@@ -107,9 +100,7 @@ export function ServicesDropdown({ isActivePath }: ServicesDropdownProps) {
                           href={service.href}
                           className="flex items-center gap-3 px-3 py-2.5 w-full"
                         >
-                          <div className="p-1.5 rounded-lg bg-primary/10 dark:bg-accent-teal/15 transition-colors">
-                            <service.icon className="h-4 w-4 text-primary" />
-                          </div>
+                          <ServiceIconTile iconKey={service.iconKey} color={service.color} size="sm" />
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2">
                               <p className="text-sm font-medium text-foreground">{service.title}</p>

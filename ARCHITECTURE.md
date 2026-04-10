@@ -486,6 +486,30 @@ Also re-exports common shadcn/Radix primitives: `Spinner`, `Progress`, `Skeleton
 
 **File organization:** `components/ui/` (67 primitives), `components/shared/` (39 shared), `components/uix/` (UIX wrappers), plus domain directories (`admin/`, `doctor/`, `patient/`, `request/`, `marketing/`).
 
+### Service Icon Tiles (`ServiceIconTile`)
+
+Single source of truth for service icons across the entire UI. Import from `@/components/icons/service-icons`.
+
+```tsx
+<ServiceIconTile iconKey="Lightning" color="blue" size="sm" />
+```
+
+**Props:**
+
+| Prop | Type | Values |
+|------|------|--------|
+| `iconKey` | `string` | `"FileText"`, `"Pill"`, `"Lightning"`, `"Sparkles"`, `"Heart"`, `"Flame"` |
+| `color` | `string` | `"emerald"`, `"cyan"`, `"blue"`, `"violet"`, `"pink"`, `"rose"` |
+| `size` | `"sm" \| "md" \| "lg"` | sm=nav/dropdown, md=compact cards, lg=main service cards |
+| `className` | `string?` | Optional extra classes (e.g. `"mb-4"`) |
+
+**Sizes:** `sm` → `w-8 h-8 rounded-lg` · `md` → `w-10 h-10 rounded-xl` · `lg` → `w-12 h-12 rounded-xl`
+
+**Color → service mapping** (canonical, matches `services-dropdown.tsx`):
+- `emerald` = Medical Certificates · `cyan` = Repeat Medication · `blue` = ED Treatment · `violet` = Hair Loss
+
+**Used in:** `services-dropdown.tsx`, `mobile-menu-content.tsx`, `user-menu.tsx`, `service-cards.tsx`, `service-picker.tsx`. Do not create local icon containers — always use `ServiceIconTile`.
+
 ### Service Page Patterns
 
 Two patterns coexist intentionally. Use this decision rule for every new service/marketing page:

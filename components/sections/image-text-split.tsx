@@ -1,11 +1,11 @@
 "use client";
 
-import { motion, useInView } from "framer-motion";
+import { motion } from "framer-motion";
 import { useRef, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { ClipPathImage } from "@/components/ui/morning/clip-path-image";
 import { WordReveal } from "@/components/ui/morning/word-reveal";
-import { scrollRevealConfig, useReducedMotion } from "@/components/ui/motion";
+import { useScrollReveal, useReducedMotion } from "@/components/ui/motion";
 import type { SectionProps } from "./types";
 
 interface ImageTextSplitProps extends SectionProps {
@@ -30,10 +30,7 @@ export function ImageTextSplit({
   id,
 }: ImageTextSplitProps) {
   const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, {
-    once: scrollRevealConfig.once,
-    amount: scrollRevealConfig.threshold,
-  });
+  const isInView = useScrollReveal(ref);
   const prefersReducedMotion = useReducedMotion();
 
   return (

@@ -1,11 +1,11 @@
 'use client'
 
 import Link from 'next/link'
-import { ArrowRight, Check, ShieldCheck, Stethoscope, Clock, AlertCircle, Sparkles } from 'lucide-react'
+import { ArrowRight, Check, ShieldCheck, Stethoscope, Clock, AlertCircle } from 'lucide-react'
 import { serviceCategories } from '@/lib/marketing/homepage'
 import { motion, type Variants } from 'framer-motion'
 import { useReducedMotion } from '@/components/ui/motion'
-import { DocumentPremium, PillPremium, StethoscopePremium } from '@/components/icons/certification-logos'
+import { ServiceIconTile } from '@/components/icons/service-icons'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { useServiceAvailability, type ServiceId } from '@/components/providers/service-availability-provider'
@@ -21,44 +21,6 @@ const mockupMap: Record<string, React.ComponentType> = {
   'hair-loss': HairLossHeroMockup,
 }
 
-const iconMap = {
-  FileText: DocumentPremium,
-  Pill: PillPremium,
-  Stethoscope: StethoscopePremium,
-  Sparkles: Sparkles,
-}
-
-const colorConfig: Record<string, { 
-  gradient: string
-  accent: string
-  light: string
-  chipColor: "primary" | "secondary" | "success" | "warning" | "danger" 
-}> = {
-  emerald: { 
-    gradient: 'from-emerald-400 to-teal-500',
-    accent: '#059669', 
-    light: 'rgba(5, 150, 105, 0.08)', 
-    chipColor: 'success' 
-  },
-  cyan: { 
-    gradient: 'from-cyan-400 to-blue-500',
-    accent: '#0891b2', 
-    light: 'rgba(8, 145, 178, 0.08)', 
-    chipColor: 'primary' 
-  },
-  blue: {
-    gradient: 'from-blue-400 to-sky-500',
-    accent: '#3B82F6',
-    light: 'rgba(59, 130, 246, 0.08)',
-    chipColor: 'primary'
-  },
-  violet: {
-    gradient: 'from-violet-400 to-purple-500',
-    accent: '#8B5CF6',
-    light: 'rgba(139, 92, 246, 0.08)',
-    chipColor: 'primary',
-  },
-}
 
 // Trust signals — unique per section, no duplicates with hero/trust-badge-slider
 const trustSignals = [
@@ -143,8 +105,6 @@ export function ServicePicker() {
           viewport={{ once: true, amount: 0 }}
         >
           {serviceCategories.map((service) => {
-            const Icon = iconMap[service.icon as keyof typeof iconMap] || DocumentPremium
-            const colors = colorConfig[service.color as keyof typeof colorConfig] || colorConfig.emerald
             const displayPrice = service.priceFrom
             const disabled = isServiceDisabled(service.id as ServiceId)
             const ServiceMockup = mockupMap[service.id]
@@ -191,12 +151,7 @@ export function ServicePicker() {
                       <div className="p-4 pb-3 flex-1 flex flex-col">
                         {/* Icon + title row */}
                         <div className="flex items-center gap-2.5 mb-2">
-                          <motion.div
-                            className="relative w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden shrink-0 icon-spin-hover"
-                            style={{ backgroundColor: colors.light }}
-                          >
-                            <Icon className="w-4 h-4 relative z-10" style={{ color: colors.accent }} />
-                          </motion.div>
+                          <ServiceIconTile iconKey={service.icon} color={service.color} size="sm" />
                           <div>
                             <h3 className="text-base font-semibold text-foreground group-hover:text-primary transition-colors duration-300">
                               {service.title}

@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useInView } from "framer-motion";
+import { motion } from "framer-motion";
 import { useRef } from "react";
 import { cn } from "@/lib/utils";
 import {
@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/accordion";
 import { SectionHeader } from "./section-header";
 import type { SectionProps } from "./types";
-import { scrollRevealConfig, useReducedMotion } from "@/components/ui/motion";
+import { useScrollReveal, useReducedMotion } from "@/components/ui/motion";
 
 const MotionAccordionItem = motion.create(AccordionItem);
 
@@ -45,10 +45,7 @@ export function AccordionSection({
   id,
 }: AccordionSectionProps) {
   const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, {
-    once: scrollRevealConfig.once,
-    amount: 0.1,
-  });
+  const isInView = useScrollReveal(ref);
   const prefersReducedMotion = useReducedMotion();
 
   return (

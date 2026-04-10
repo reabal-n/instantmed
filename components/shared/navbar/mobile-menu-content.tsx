@@ -12,6 +12,7 @@ import {
 import { AnimatedMobileMenu } from "@/components/ui/animated-mobile-menu"
 import { services } from "@/components/shared/navbar/services-dropdown"
 import { useServiceAvailability } from "@/components/providers/service-availability-provider"
+import { ServiceIconTile } from "@/components/icons/service-icons"
 
 interface MobileMenuContentProps {
   variant: "marketing" | "patient" | "doctor"
@@ -32,7 +33,7 @@ export function MobileMenuContent({ variant, onClose }: MobileMenuContentProps) 
               label: service.title,
               href: service.href,
               description: isServiceDisabled(service.serviceId) ? "Temporarily unavailable" : service.description,
-              icon: <service.icon className="h-5 w-5" />,
+              icon: <ServiceIconTile iconKey={service.iconKey} color={service.color} size="sm" />,
               disabled: isServiceDisabled(service.serviceId),
             }}
             index={index}
@@ -86,7 +87,7 @@ export function MobileMenuContent({ variant, onClose }: MobileMenuContentProps) 
               label: service.title,
               href: service.href,
               description: isServiceDisabled(service.serviceId) ? "Temporarily unavailable" : service.description,
-              icon: <service.icon className="h-5 w-5" />,
+              icon: <ServiceIconTile iconKey={service.iconKey} color={service.color} size="sm" />,
               disabled: isServiceDisabled(service.serviceId),
             }}
             index={index + 3}

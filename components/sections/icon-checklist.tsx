@@ -1,12 +1,12 @@
 "use client";
 
-import { motion, useInView } from "framer-motion";
+import { motion } from "framer-motion";
 import { useRef } from "react";
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SectionHeader } from "./section-header";
 import type { SectionProps, ChecklistItem } from "./types";
-import { scrollRevealConfig, useReducedMotion } from "@/components/ui/motion";
+import { useScrollReveal, useReducedMotion } from "@/components/ui/motion";
 
 interface IconChecklistProps extends SectionProps {
   pill?: string;
@@ -28,10 +28,7 @@ export function IconChecklist({
   id,
 }: IconChecklistProps) {
   const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, {
-    once: scrollRevealConfig.once,
-    amount: 0.1,
-  });
+  const isInView = useScrollReveal(ref);
   const prefersReducedMotion = useReducedMotion();
 
   return (

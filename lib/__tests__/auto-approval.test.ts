@@ -243,6 +243,36 @@ describe("evaluateAutoApprovalEligibility", () => {
     expect(result.disqualifyingFlags.some(f => f.includes("injury"))).toBe(true)
   })
 
+  it("approves 'injury' as co-symptom (engine v2.2: moved to soft-block)", () => {
+    const result = evaluateAutoApprovalEligibility(
+      makeIntake(),
+      makeAnswers({ symptomDetails: "Back injury making it hard to work" }),
+      makeReadyDraft()
+    )
+    expect(result.eligible).toBe(true)
+    expect(result.softFlags).toContain("injury_co_symptom")
+  })
+
+  it("approves 'injured' as co-symptom", () => {
+    const result = evaluateAutoApprovalEligibility(
+      makeIntake(),
+      makeAnswers({ symptomDetails: "Injured my knee at the gym" }),
+      makeReadyDraft()
+    )
+    expect(result.eligible).toBe(true)
+    expect(result.softFlags).toContain("injured_co_symptom")
+  })
+
+  it("blocks 'injury' as sole symptom", () => {
+    const result = evaluateAutoApprovalEligibility(
+      makeIntake(),
+      makeAnswers({ symptoms: ["Back pain"], symptomDetails: "Injury to my back" }),
+      makeReadyDraft()
+    )
+    expect(result.eligible).toBe(false)
+    expect(result.disqualifyingFlags.some(f => f.includes("injury"))).toBe(true)
+  })
+
   it("rejects intake with 'workers comp'", () => {
     const result = evaluateAutoApprovalEligibility(
       makeIntake(),
@@ -359,7 +389,7 @@ describe("evaluateAutoApprovalEligibility", () => {
   })
 
   it("treats draft requiresReview=true as a soft flag (still eligible)", () => {
-    // ENGINE v2.1: AI draft requiresReview was demoted from hard block
+    // ENGINE v2.2: AI draft requiresReview was demoted from hard block
     // to soft flag because the AI model over-flags common mild symptoms
     // (anxiety, fatigue, etc.) that are clinically appropriate for a
     // standard 1-3 day cert. Doctor batch review still catches concerns

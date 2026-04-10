@@ -212,7 +212,7 @@ function TreatmentOptions() {
           <motion.div
             key={treatment.id}
             className="rounded-2xl border border-border/50 dark:border-white/15 bg-white dark:bg-card shadow-md shadow-primary/[0.06] dark:shadow-none p-5 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/[0.08] transition-all duration-300"
-            initial={prefersReducedMotion ? {} : { opacity: 0, y: 16 }}
+            initial={prefersReducedMotion ? {} : { y: 16 }}
             animate={
               prefersReducedMotion
                 ? {}

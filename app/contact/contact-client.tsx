@@ -89,7 +89,7 @@ export function ContactClient() {
           <div className="mx-auto max-w-lg text-center">
             <div className="rounded-2xl border border-border/50 dark:border-white/15 bg-white dark:bg-card shadow-lg shadow-primary/[0.06] dark:shadow-none p-10">
               <motion.div
-                initial={prefersReducedMotion ? {} : { opacity: 0, scale: 0.9 }}
+                initial={prefersReducedMotion ? {} : { scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
               >
@@ -201,7 +201,7 @@ function ContactInfoCard({ prefersReducedMotion }: { prefersReducedMotion: boole
   return (
     <motion.div
       ref={ref}
-      initial={prefersReducedMotion ? {} : { opacity: 0, y: 16 }}
+      initial={prefersReducedMotion ? {} : { y: 16 }}
       animate={prefersReducedMotion ? {} : isInView ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.4, delay: 0.1, ease: [0.25, 0.1, 0.25, 1] }}
     >
@@ -277,7 +277,7 @@ function FAQLinkCard({ prefersReducedMotion }: { prefersReducedMotion: boolean |
   return (
     <motion.div
       ref={ref}
-      initial={prefersReducedMotion ? {} : { opacity: 0, y: 16 }}
+      initial={prefersReducedMotion ? {} : { y: 16 }}
       animate={prefersReducedMotion ? {} : isInView ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.4, delay: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
     >
@@ -327,7 +327,7 @@ function ContactFormCard({
     <motion.div
       ref={ref}
       className="lg:col-span-3"
-      initial={prefersReducedMotion ? {} : { opacity: 0, y: 16 }}
+      initial={prefersReducedMotion ? {} : { y: 16 }}
       animate={prefersReducedMotion ? {} : isInView ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.4, delay: 0.15, ease: [0.25, 0.1, 0.25, 1] }}
     >

@@ -42,7 +42,7 @@ export function BlurFade({
   blur = "6px",
 }: BlurFadeProps) {
   const ref = useRef<HTMLDivElement>(null)
-  const isInView = useInView(ref, { once: true, margin: "-50px" })
+  const isInView = useInView(ref, { once: true, margin: "-100px" })
   const prefersReducedMotion = useReducedMotion()
 
   // Register on first visibility; check on subsequent mounts (StrictMode remount)

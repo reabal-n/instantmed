@@ -22,6 +22,7 @@ import { NotificationBell } from "@/components/shared/notification-bell"
 import { AnimatedNavLink } from "@/components/shared/navbar/animated-nav-link"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { services } from "@/components/shared/navbar/services-dropdown"
+import { ServiceIconTile } from "@/components/icons/service-icons"
 import { useServiceAvailability } from "@/components/providers/service-availability-provider"
 
 interface UserMenuProps {
@@ -125,7 +126,7 @@ export function UserMenu({
                   onClick={() => !disabled && router.push(service.href)}
                 >
                   <div className="flex items-center gap-2">
-                    <service.icon className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+                    <ServiceIconTile iconKey={service.iconKey} color={service.color} size="sm" />
                     <div>
                       <p className="text-sm font-medium">{service.title}</p>
                       <p className="text-xs text-muted-foreground">

@@ -1,10 +1,10 @@
 "use client";
 
-import { motion, useInView } from "framer-motion";
+import { motion } from "framer-motion";
 import { useRef } from "react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
-import { scrollRevealConfig, useReducedMotion } from "@/components/ui/motion";
+import { useScrollReveal, useReducedMotion } from "@/components/ui/motion";
 
 // Persists across React StrictMode's simulated remount — DOM nodes are preserved.
 const _played = new WeakSet<Element>()
@@ -36,10 +36,7 @@ export function ClipPathImage({
   direction = "bottom",
 }: ClipPathImageProps) {
   const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, {
-    once: scrollRevealConfig.once,
-    amount: scrollRevealConfig.threshold,
-  });
+  const isInView = useScrollReveal(ref);
   const prefersReducedMotion = useReducedMotion();
 
   if (isInView && ref.current) _played.add(ref.current)

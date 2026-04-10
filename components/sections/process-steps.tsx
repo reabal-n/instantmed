@@ -1,12 +1,12 @@
 "use client";
 
-import { motion, useInView } from "framer-motion";
+import { motion } from "framer-motion";
 import { useRef } from "react";
 import { cn } from "@/lib/utils";
 import { SectionHeader } from "./section-header";
 import { DottedGrid } from "@/components/marketing/dotted-grid";
 import type { SectionProps, ProcessStep } from "./types";
-import { scrollRevealConfig, useReducedMotion } from "@/components/ui/motion";
+import { useScrollReveal, useReducedMotion } from "@/components/ui/motion";
 
 interface ProcessStepsProps extends SectionProps {
   pill?: string;
@@ -26,10 +26,7 @@ export function ProcessSteps({
   id,
 }: ProcessStepsProps) {
   const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, {
-    once: scrollRevealConfig.once,
-    amount: scrollRevealConfig.threshold,
-  });
+  const isInView = useScrollReveal(ref);
   const prefersReducedMotion = useReducedMotion();
 
   return (

@@ -3,17 +3,19 @@
 import { motion, useInView, useSpring, useMotionValue } from "framer-motion";
 import { useRef, useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
-import { scrollRevealConfig, useReducedMotion } from "@/components/ui/motion";
+import { useScrollReveal, useReducedMotion } from "@/components/ui/motion";
 import type { SectionProps, StatItem } from "./types";
 
 function AnimatedNumber({ value, prefix = "", suffix = "" }: { value: number; prefix?: string; suffix?: string }) {
   const ref = useRef<HTMLSpanElement>(null);
   const isInView = useInView(ref, { once: true, amount: 0 });
   const prefersReducedMotion = useReducedMotion();
-  const motionValue = useMotionValue(0);
+  // Warm-start at 30% so the counter never dead-starts from 0 on fast connections.
+  const warmStart = Math.round(value * 0.3);
+  const motionValue = useMotionValue(warmStart);
   // Inline spring config to avoid Transition vs SpringOptions type mismatch
   const spring = useSpring(motionValue, { stiffness: 300, damping: 20, mass: 1 });
-  const [display, setDisplay] = useState(0);
+  const [display, setDisplay] = useState(warmStart);
 
   useEffect(() => {
     if (isInView && !prefersReducedMotion) {
@@ -43,10 +45,7 @@ interface StatStripProps extends SectionProps {
 
 export function StatStrip({ stats, className, id }: StatStripProps) {
   const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, {
-    once: scrollRevealConfig.once,
-    amount: scrollRevealConfig.threshold,
-  });
+  const isInView = useScrollReveal(ref);
   const prefersReducedMotion = useReducedMotion();
 
   return (

@@ -331,7 +331,7 @@ function SocialProofStrip() {
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <motion.div
           className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8"
-          initial={animate ? { opacity: 0, y: 10 } : {}}
+          initial={animate ? { y: 10 } : {}}
           whileInView={animate ? { opacity: 1, y: 0 } : undefined}
           viewport={{ once: true }}
           transition={{ duration: 0.4 }}
@@ -340,7 +340,7 @@ function SocialProofStrip() {
             <motion.div
               key={stat.label}
               className="flex items-center gap-3"
-              initial={animate ? { opacity: 0, y: 10 } : {}}
+              initial={animate ? { y: 10 } : {}}
               whileInView={animate ? { opacity: 1, y: 0 } : undefined}
               viewport={{ once: true }}
               transition={{ duration: 0.3, delay: i * 0.08 }}
@@ -382,7 +382,7 @@ function HeroSection({
             {/* Doctor availability pill */}
             <motion.div
               className="flex justify-center lg:justify-start mb-4 sm:mb-8"
-              initial={animate ? { opacity: 0, y: -10 } : {}}
+              initial={animate ? { y: -10 } : {}}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4 }}
             >
@@ -403,7 +403,7 @@ function HeroSection({
             {/* Subheadline */}
             <motion.p
               className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-3 sm:mb-4 leading-relaxed text-balance"
-              initial={animate ? { opacity: 0, y: 12 } : {}}
+              initial={animate ? { y: 12 } : {}}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.1 }}
             >
@@ -415,7 +415,7 @@ function HeroSection({
             {/* Rotating secondary proof badge */}
             <motion.div
               className="flex justify-center lg:justify-start mb-6"
-              initial={animate ? { opacity: 0 } : {}}
+              initial={{}}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.4, delay: 0.15 }}
             >
@@ -429,7 +429,7 @@ function HeroSection({
             <motion.div
               ref={ctaRef}
               className="flex flex-col sm:flex-row items-center gap-3 justify-center lg:justify-start mb-4"
-              initial={animate ? { opacity: 0, y: 12 } : {}}
+              initial={animate ? { y: 12 } : {}}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.12 }}
             >
@@ -464,7 +464,7 @@ function HeroSection({
             {/* Sub-CTA labels */}
             <motion.div
               className="flex flex-col sm:flex-row items-center gap-x-6 gap-y-1 justify-center lg:justify-start mb-4 text-xs text-muted-foreground"
-              initial={animate ? { opacity: 0 } : {}}
+              initial={{}}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.4, delay: 0.18 }}
             >
@@ -479,7 +479,7 @@ function HeroSection({
             </motion.div>
             <motion.div
               className="flex flex-col items-center lg:items-start gap-0.5 mb-6"
-              initial={animate ? { opacity: 0 } : {}}
+              initial={{}}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.4, delay: 0.2 }}
             >
@@ -499,7 +499,7 @@ function HeroSection({
             {/* Trust signals */}
             <motion.div
               className="hidden sm:flex flex-col gap-2"
-              initial={animate ? { opacity: 0 } : {}}
+              initial={{}}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.3 }}
             >
@@ -522,7 +522,7 @@ function HeroSection({
             {/* Secondary anchor CTA — desktop only */}
             <motion.div
               className="hidden sm:flex justify-center lg:justify-start mt-4"
-              initial={animate ? { opacity: 0 } : {}}
+              initial={{}}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.45 }}
             >
@@ -561,7 +561,7 @@ function HowItWorksInline({ onCTAClick, isDisabled }: { onCTAClick?: () => void;
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <motion.div
           className="text-center mb-12"
-          initial={animate ? { opacity: 0, y: 12 } : {}}
+          initial={animate ? { y: 12 } : {}}
           whileInView={animate ? { opacity: 1, y: 0 } : undefined}
           viewport={{ once: true }}
           transition={{ duration: 0.4 }}
@@ -579,7 +579,7 @@ function HowItWorksInline({ onCTAClick, isDisabled }: { onCTAClick?: () => void;
             <motion.div
               key={step.step}
               className="relative bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-md shadow-primary/[0.06] dark:shadow-none rounded-2xl p-6 text-center"
-              initial={animate ? { opacity: 0, y: 16 } : {}}
+              initial={animate ? { y: 16 } : {}}
               whileInView={animate ? { opacity: 1, y: 0 } : undefined}
               viewport={{ once: true }}
               transition={{ duration: 0.35, delay: i * 0.1 }}
@@ -606,7 +606,7 @@ function HowItWorksInline({ onCTAClick, isDisabled }: { onCTAClick?: () => void;
         {/* CTA after steps */}
         <motion.div
           className="flex justify-center mt-10"
-          initial={animate ? { opacity: 0, y: 10 } : {}}
+          initial={animate ? { y: 10 } : {}}
           whileInView={animate ? { opacity: 1, y: 0 } : undefined}
           viewport={{ once: true }}
           transition={{ duration: 0.35, delay: 0.3 }}
@@ -678,7 +678,7 @@ function ServiceComparisonSection({ isDisabled }: { isDisabled?: boolean }) {
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
         <motion.div
           className="text-center mb-10"
-          initial={animate ? { opacity: 0, y: 12 } : {}}
+          initial={animate ? { y: 12 } : {}}
           whileInView={animate ? { opacity: 1, y: 0 } : undefined}
           viewport={{ once: true }}
           transition={{ duration: 0.4 }}
@@ -704,7 +704,7 @@ function ServiceComparisonSection({ isDisabled }: { isDisabled?: boolean }) {
                   ? "bg-white dark:bg-card border-primary/30 ring-2 ring-primary shadow-lg shadow-primary/[0.1] hover:shadow-xl hover:shadow-primary/[0.15] hover:-translate-y-1"
                   : "bg-white dark:bg-card border-border/50 dark:border-white/15 shadow-md shadow-primary/[0.06] dark:shadow-none hover:shadow-lg hover:shadow-primary/[0.08] hover:-translate-y-0.5"
               )}
-              initial={animate ? { opacity: 0, y: 16 } : {}}
+              initial={animate ? { y: 16 } : {}}
               whileInView={animate ? { opacity: 1, y: 0 } : undefined}
               viewport={{ once: true }}
               transition={{ duration: 0.35, delay: i * 0.1 }}
@@ -764,7 +764,7 @@ function ServiceComparisonSection({ isDisabled }: { isDisabled?: boolean }) {
 
         <motion.p
           className="text-center text-xs text-muted-foreground mt-6"
-          initial={animate ? { opacity: 0 } : {}}
+          initial={{}}
           whileInView={animate ? { opacity: 1 } : undefined}
           viewport={{ once: true }}
           transition={{ duration: 0.4, delay: 0.25 }}
@@ -787,7 +787,7 @@ function FinalCTAInline({ onCTAClick, isDisabled }: { onCTAClick?: () => void; i
     <section aria-label="Get started" className="py-20 lg:py-24 bg-linear-to-br from-primary/5 via-primary/10 to-sky-100/50 dark:from-primary/10 dark:via-primary/5 dark:to-card">
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center">
         <motion.div
-          initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
+          initial={prefersReducedMotion ? {} : { y: 20 }}
           whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
           viewport={{ once: true }}
         >
@@ -856,7 +856,7 @@ function PrescriptionFAQSection({ onFAQOpen }: { onFAQOpen?: (question: string, 
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
         <motion.div
           className="text-center mb-10"
-          initial={animate ? { opacity: 0, y: 12 } : {}}
+          initial={animate ? { y: 12 } : {}}
           whileInView={animate ? { opacity: 1, y: 0 } : undefined}
           viewport={{ once: true }}
           transition={{ duration: 0.4 }}
@@ -1079,7 +1079,7 @@ export function PrescriptionsLanding() {
         {/* Sticky desktop CTA — top bar, appears after hero scrolls out */}
         <motion.div
           className="hidden lg:block fixed top-0 left-0 right-0 z-40"
-          initial={prefersReducedMotion ? {} : { y: -60, opacity: 0 }}
+          initial={prefersReducedMotion ? {} : { y: -60 }}
           animate={prefersReducedMotion
             ? { opacity: showStickyCTA ? 1 : 0 }
             : { y: showStickyCTA ? 0 : -60, opacity: showStickyCTA ? 1 : 0 }

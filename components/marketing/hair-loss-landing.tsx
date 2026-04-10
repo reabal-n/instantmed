@@ -2,8 +2,8 @@
 
 import Link from "next/link"
 import dynamic from "next/dynamic"
-import { motion, AnimatePresence, useInView } from "framer-motion"
-import { useReducedMotion, scrollRevealConfig } from "@/components/ui/motion"
+import { motion, AnimatePresence } from "framer-motion"
+import { useReducedMotion, useScrollReveal } from "@/components/ui/motion"
 import { useCallback, useEffect, useRef, useState } from "react"
 import {
   ArrowRight,
@@ -213,7 +213,7 @@ function RecentActivityTicker() {
           <motion.span
             key={index}
             className="block leading-5"
-            initial={prefersReducedMotion ? {} : { opacity: 0, y: 8 }}
+            initial={prefersReducedMotion ? {} : { y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={prefersReducedMotion ? {} : { opacity: 0, y: -8 }}
             transition={{ duration: 0.25 }}
@@ -296,7 +296,7 @@ function SocialProofStrip() {
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <motion.div
           className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8"
-          initial={animate ? { opacity: 0, y: 10 } : {}}
+          initial={animate ? { y: 10 } : {}}
           whileInView={animate ? { opacity: 1, y: 0 } : undefined}
           viewport={{ once: true }}
           transition={{ duration: 0.4 }}
@@ -305,7 +305,7 @@ function SocialProofStrip() {
             <motion.div
               key={stat.label}
               className="flex items-center gap-3"
-              initial={animate ? { opacity: 0, y: 10 } : {}}
+              initial={animate ? { y: 10 } : {}}
               whileInView={animate ? { opacity: 1, y: 0 } : undefined}
               viewport={{ once: true }}
               transition={{ duration: 0.3, delay: i * 0.08 }}
@@ -345,7 +345,7 @@ function HeroSection({
             {/* Doctor availability pill */}
             <motion.div
               className="flex justify-center lg:justify-start mb-4 sm:mb-8"
-              initial={animate ? { opacity: 0, y: -10 } : {}}
+              initial={animate ? { y: -10 } : {}}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4 }}
             >
@@ -366,7 +366,7 @@ function HeroSection({
             {/* Subheadline */}
             <motion.p
               className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-3 sm:mb-4 leading-relaxed text-balance"
-              initial={animate ? { opacity: 0, y: 12 } : {}}
+              initial={animate ? { y: 12 } : {}}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.1 }}
             >
@@ -377,7 +377,7 @@ function HeroSection({
             {/* Rotating secondary proof badge */}
             <motion.div
               className="flex justify-center lg:justify-start mb-6"
-              initial={animate ? { opacity: 0 } : {}}
+              initial={{}}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.4, delay: 0.15 }}
             >
@@ -391,7 +391,7 @@ function HeroSection({
             <motion.div
               ref={ctaRef}
               className="flex flex-col sm:flex-row items-center gap-3 justify-center lg:justify-start mb-6"
-              initial={animate ? { opacity: 0, y: 12 } : {}}
+              initial={animate ? { y: 12 } : {}}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.12 }}
             >
@@ -419,7 +419,7 @@ function HeroSection({
             {/* Trust signals — hidden on mobile to keep CTA above fold */}
             <motion.div
               className="hidden sm:flex flex-col gap-2"
-              initial={animate ? { opacity: 0 } : {}}
+              initial={{}}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.3 }}
             >
@@ -442,7 +442,7 @@ function HeroSection({
             {/* Secondary anchor CTA — desktop only */}
             <motion.div
               className="hidden sm:flex justify-center lg:justify-start mt-4"
-              initial={animate ? { opacity: 0 } : {}}
+              initial={{}}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.45 }}
             >
@@ -474,7 +474,7 @@ function HeroSection({
 /** Treatment options grid — oral / topical / combination cards */
 function TreatmentOptions() {
   const ref = useRef<HTMLDivElement>(null)
-  const isInView = useInView(ref, { once: scrollRevealConfig.once, amount: 0.1 })
+  const isInView = useScrollReveal(ref)
   const prefersReducedMotion = useReducedMotion()
 
   return (
@@ -497,7 +497,7 @@ function TreatmentOptions() {
             <motion.div
               key={treatment.id}
               className="rounded-2xl border border-border/50 dark:border-white/15 bg-white dark:bg-card shadow-md shadow-primary/[0.06] dark:shadow-none p-5 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/[0.08] transition-all duration-300"
-              initial={prefersReducedMotion ? {} : { opacity: 0, y: 16 }}
+              initial={prefersReducedMotion ? {} : { y: 16 }}
               animate={
                 prefersReducedMotion
                   ? {}
@@ -831,7 +831,7 @@ export function HairLossLanding() {
         {/* Sticky desktop CTA — top bar, appears after hero scrolls out */}
         <motion.div
           className="hidden lg:block fixed top-0 left-0 right-0 z-40"
-          initial={prefersReducedMotion ? {} : { y: -60, opacity: 0 }}
+          initial={prefersReducedMotion ? {} : { y: -60 }}
           animate={prefersReducedMotion
             ? { opacity: showStickyCTA ? 1 : 0 }
             : { y: showStickyCTA ? 0 : -60, opacity: showStickyCTA ? 1 : 0 }
