@@ -27,7 +27,7 @@ export function ConsultChatMockup({ compact = false }: ConsultChatMockupProps) {
           "rounded-2xl bg-white dark:bg-card border border-border/50 shadow-xl shadow-primary/[0.08] dark:shadow-none space-y-3",
           compact ? "p-4" : "p-5"
         )}
-        initial={animate ? { opacity: 0, y: 20 } : {}}
+        initial={animate ? { y: 20 } : {}}
         whileInView={animate ? { opacity: 1, y: 0 } : undefined}
         viewport={{ once: true }}
         transition={{ duration: 0.5, delay: 0.2, ease: "easeOut" }}
@@ -92,7 +92,7 @@ export function ConsultChatMockup({ compact = false }: ConsultChatMockupProps) {
         {!compact && (
           <motion.div
             className="absolute -top-3 -right-3 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white dark:bg-card border border-border/50 shadow-lg shadow-primary/[0.06] text-xs font-medium text-muted-foreground"
-            initial={animate ? { opacity: 0, scale: 0.8 } : {}}
+            initial={animate ? { scale: 0.8 } : {}}
             whileInView={animate ? { opacity: 1, scale: 1 } : undefined}
             viewport={{ once: true }}
             transition={{ duration: 0.4, delay: 0.5, ease: "easeOut" }}
@@ -106,7 +106,7 @@ export function ConsultChatMockup({ compact = false }: ConsultChatMockupProps) {
         {!compact && (
           <motion.div
             className="absolute -top-3 -left-3 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white dark:bg-card border border-border/50 shadow-lg shadow-primary/[0.06] text-xs font-medium text-muted-foreground"
-            initial={animate ? { opacity: 0, scale: 0.8 } : {}}
+            initial={animate ? { scale: 0.8 } : {}}
             whileInView={animate ? { opacity: 1, scale: 1 } : undefined}
             viewport={{ once: true }}
             transition={{ duration: 0.4, delay: 0.65, ease: "easeOut" }}
@@ -121,7 +121,7 @@ export function ConsultChatMockup({ compact = false }: ConsultChatMockupProps) {
       {!compact && (
         <motion.div
           className="absolute -bottom-8 -right-4 xl:-right-8 rounded-xl bg-white dark:bg-card border border-border/50 shadow-lg shadow-primary/[0.06] dark:shadow-none p-3 min-w-[210px]"
-          initial={animate ? { opacity: 0, x: 20 } : {}}
+          initial={animate ? { x: 20 } : {}}
           whileInView={animate ? { opacity: 1, x: 0 } : undefined}
           viewport={{ once: true }}
           transition={{ duration: 0.5, delay: 0.6, ease: "easeOut" }}

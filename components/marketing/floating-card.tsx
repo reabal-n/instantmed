@@ -26,7 +26,7 @@ export function FloatingCard({ children, className, delay = 0, direction = "up" 
         "rounded-2xl bg-white dark:bg-card border border-border/50 shadow-xl shadow-primary/[0.08] dark:shadow-none",
         className
       )}
-      initial={prefersReducedMotion ? {} : { opacity: 0, ...directionOffset[direction] }}
+      initial={prefersReducedMotion ? {} : { ...directionOffset[direction] }}
       whileInView={prefersReducedMotion ? {} : { opacity: 1, x: 0, y: 0 }}
       viewport={{ once: true, margin: "-50px" }}
       transition={{ duration: 0.5, delay, ease: "easeOut" }}

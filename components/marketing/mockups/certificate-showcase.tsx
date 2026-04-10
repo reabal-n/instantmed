@@ -144,7 +144,7 @@ export function CertificateShowcaseMockup() {
       {/* Floating badges */}
       <motion.div
         className="absolute -top-3 -right-3 sm:-right-6 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white dark:bg-card border border-border/50 shadow-lg shadow-primary/[0.06] dark:shadow-none"
-        initial={animate ? { opacity: 0, scale: 0.8 } : {}}
+        initial={animate ? { scale: 0.8 } : {}}
         whileInView={animate ? { opacity: 1, scale: 1 } : undefined}
         viewport={{ once: true }}
         transition={{ duration: 0.4, delay: 0.6 }}
@@ -155,7 +155,7 @@ export function CertificateShowcaseMockup() {
 
       <motion.div
         className="absolute -bottom-3 -left-3 sm:-left-6 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white dark:bg-card border border-border/50 shadow-lg shadow-primary/[0.06] dark:shadow-none"
-        initial={animate ? { opacity: 0, scale: 0.8 } : {}}
+        initial={animate ? { scale: 0.8 } : {}}
         whileInView={animate ? { opacity: 1, scale: 1 } : undefined}
         viewport={{ once: true }}
         transition={{ duration: 0.4, delay: 0.8 }}
@@ -167,7 +167,7 @@ export function CertificateShowcaseMockup() {
       {/* Verified badge — pulsing dot signals live verification */}
       <motion.div
         className="absolute -bottom-3 right-4 sm:right-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white dark:bg-card border border-success/30 shadow-lg shadow-success/[0.08] dark:shadow-none"
-        initial={animate ? { opacity: 0, scale: 0.8 } : {}}
+        initial={animate ? { scale: 0.8 } : {}}
         whileInView={animate ? { opacity: 1, scale: 1 } : undefined}
         viewport={{ once: true }}
         transition={{ duration: 0.4, delay: 1.0 }}

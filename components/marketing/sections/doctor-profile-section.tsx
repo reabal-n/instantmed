@@ -17,7 +17,7 @@ export function DoctorProfileSection() {
     <section aria-label="Reviewed by a real doctor" className="py-16 lg:py-20 bg-muted/20 dark:bg-muted/10">
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
         <motion.div
-          initial={animate ? { opacity: 0, y: 20 } : {}}
+          initial={animate ? { y: 20 } : {}}
           whileInView={animate ? { opacity: 1, y: 0 } : undefined}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}

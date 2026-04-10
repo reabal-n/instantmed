@@ -151,7 +151,6 @@ export function PatientsListClient({ patients, currentPage, totalPages, totalPat
                 <TableHead scope="col">Patient</TableHead>
                 <TableHead scope="col">Contact</TableHead>
                 <TableHead scope="col">Location</TableHead>
-                <TableHead scope="col">Medicare</TableHead>
                 <TableHead scope="col">Status</TableHead>
                 <TableHead scope="col">Joined</TableHead>
                 <TableHead scope="col" className="w-10"></TableHead>
@@ -193,15 +192,6 @@ export function PatientsListClient({ patients, currentPage, totalPages, totalPat
                           <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
                             <MapPin className="h-3 w-3" />
                             {patient.suburb}, {patient.state}
-                          </span>
-                        ) : (
-                          <span className="text-sm text-muted-foreground/50">Not provided</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {patient.medicare_number ? (
-                          <span className="text-sm font-mono text-muted-foreground">
-                            ****{patient.medicare_number.slice(-4)}
                           </span>
                         ) : (
                           <span className="text-sm text-muted-foreground/50">Not provided</span>

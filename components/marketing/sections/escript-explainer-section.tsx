@@ -44,7 +44,7 @@ export function EScriptExplainerSection() {
         {/* Header */}
         <motion.div
           className="text-center mb-12"
-          initial={animate ? { opacity: 0, y: 20 } : {}}
+          initial={animate ? { y: 20 } : {}}
           whileInView={animate ? { opacity: 1, y: 0 } : undefined}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
@@ -64,7 +64,7 @@ export function EScriptExplainerSection() {
             <motion.div
               key={step.title}
               className="rounded-2xl bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-md shadow-primary/[0.06] dark:shadow-none p-6 text-center"
-              initial={animate ? { opacity: 0, y: 20 } : {}}
+              initial={animate ? { y: 20 } : {}}
               whileInView={animate ? { opacity: 1, y: 0 } : undefined}
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: index * 0.1 }}

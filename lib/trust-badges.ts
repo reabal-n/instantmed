@@ -12,6 +12,7 @@ export type BadgeId =
   | 'from_your_phone' | 'no_face_to_face' | 'fast_form' | 'same_day'
   | 'legally_valid' | 'no_medicare' | 'real_gp' | 'instant_pdf'
   | 'social_proof'
+  | 'legitscript' | 'google_pharmacy'
 
 export type BadgeVariant = 'plain' | 'styled'
 
@@ -195,6 +196,27 @@ export const BADGE_REGISTRY: Record<BadgeId, BadgeConfig> = {
     hasStyledTier: true,
     tooltip: 'Real patients across Australia — number grows daily',
   },
+
+  // ── Third-party certifications ────────────────────────────────────────
+  legitscript: {
+    id: 'legitscript',
+    label: 'LegitScript certified',
+    icon: BadgeCheck,
+    iconColor: 'text-[#00A651]',
+    pillClass: 'bg-emerald-50 border-emerald-200 text-emerald-800 dark:bg-emerald-950/40 dark:border-emerald-800 dark:text-emerald-300',
+    hasStyledTier: true,
+    tooltip: 'LegitScript certified healthcare merchant — the global verification standard used by Google, Bing, Meta, and major payment processors for online pharmacies and telehealth providers',
+    tooltipHref: 'https://www.legitscript.com/websites/?checker_keywords=instantmed.com.au',
+  },
+  google_pharmacy: {
+    id: 'google_pharmacy',
+    label: 'Google Ads certified',
+    icon: ShieldCheck,
+    iconColor: 'text-[#4285F4]',
+    pillClass: 'bg-blue-50 border-blue-200 text-blue-800 dark:bg-blue-950/40 dark:border-blue-800 dark:text-blue-300',
+    hasStyledTier: true,
+    tooltip: 'Google Ads Online Pharmacy Certification — approved to advertise healthcare services on Google Search (Account: 920-501-0513)',
+  },
 }
 
 // ── Presets ────────────────────────────────────────────────────────────
@@ -258,10 +280,18 @@ export const BADGE_PRESETS: Record<string, PresetEntry[]> = {
     'ssl',
     { id: 'au_data', variant: 'styled' },
     'ahpra',
+    { id: 'legitscript', variant: 'styled' },
+    { id: 'google_pharmacy', variant: 'styled' },
   ],
 
   // Footer strip — all plain
   footer: ['ahpra', 'tga', 'medical_director', 'refund', 'privacy'],
+
+  // Third-party certification logos — styled logo cards
+  trust_certifications: [
+    { id: 'legitscript', variant: 'styled' },
+    { id: 'google_pharmacy', variant: 'styled' },
+  ],
 
   // Sticky float sidebar
   float: [

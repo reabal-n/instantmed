@@ -127,6 +127,8 @@ async function fetchFlagsFromDB(): Promise<FeatureFlags> {
         flags.doctor_alert_threshold_hours = typeof row.value === "number" ? row.value : 1
       } else if (row.key === FLAG_KEYS.PATIENT_DELAY_EMAIL_HOURS) {
         flags.patient_delay_email_hours = typeof row.value === "number" ? row.value : 2
+      } else if (row.key === FLAG_KEYS.PARCHMENT_EMBEDDED_PRESCRIBING) {
+        flags.parchment_embedded_prescribing = row.value === true
       }
     }
 

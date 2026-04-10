@@ -61,7 +61,7 @@ export function SectionHeader({
       {subtitle && (
         <motion.p
           className="mt-4 text-lg text-muted-foreground leading-relaxed"
-          initial={prefersReducedMotion ? {} : { opacity: 0, y: 8 }}
+          initial={prefersReducedMotion ? {} : { y: 8 }}
           animate={
             prefersReducedMotion
               ? {}

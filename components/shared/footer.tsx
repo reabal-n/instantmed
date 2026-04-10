@@ -3,6 +3,7 @@ import { BrandLogo } from "@/components/shared/brand-logo"
 import { FooterAuth } from "@/components/shared/footer-auth"
 import { StripeBadge } from "@/components/checkout/trust-badges"
 import { LegitScriptSeal } from "@/components/marketing/legitscript-seal"
+import { GoogleAdsCert } from "@/components/marketing/google-ads-cert"
 import { MapPin, Mail, Phone } from "lucide-react"
 import { TrustBadgeRow } from '@/components/shared/trust-badge'
 import { footerLinks } from "@/lib/marketing/homepage"
@@ -148,6 +149,8 @@ export function Footer({ variant = "marketing" }: FooterProps) {
             <StripeBadge variant="powered-by" />
             <div className="hidden sm:block h-6 w-px bg-border/50" aria-hidden="true" />
             <LegitScriptSeal size="sm" />
+            <div className="hidden sm:block h-6 w-px bg-border/50" aria-hidden="true" />
+            <GoogleAdsCert size="sm" />
           </div>
           <TrustBadgeRow preset="footer" className="text-xs" />
         </div>

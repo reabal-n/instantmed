@@ -19,7 +19,7 @@ export function TrustSection({ config, colors }: TrustSectionProps) {
     <section className="py-16 lg:py-24 bg-muted/20 dark:bg-muted/10">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <motion.div
-          initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
+          initial={prefersReducedMotion ? {} : { y: 20 }}
           whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
           viewport={{ once: true }}
           className="text-center mb-12"
@@ -35,7 +35,7 @@ export function TrustSection({ config, colors }: TrustSectionProps) {
             return (
               <motion.div
                 key={i}
-                initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
+                initial={prefersReducedMotion ? {} : { y: 20 }}
                 whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.4, delay: i * 0.1 }}

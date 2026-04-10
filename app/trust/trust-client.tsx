@@ -29,6 +29,7 @@ import { useReducedMotion } from "@/components/ui/motion"
 import { cn } from "@/lib/utils"
 import { TrustGuideSection } from "@/components/marketing/sections/trust-guide-section"
 import { LegitScriptSeal } from "@/components/marketing/legitscript-seal"
+import { GoogleAdsCert } from "@/components/marketing/google-ads-cert"
 
 // Morning Canvas components
 import { SplitHero } from "@/components/heroes"
@@ -115,7 +116,7 @@ const testimonials = [
 // ─── Animation variants ────────────────────────────────────────────
 
 const fadeUp = {
-  hidden: { opacity: 0, y: 24 },
+  hidden: { y: 24 },
   visible: { opacity: 1, y: 0 },
 }
 
@@ -162,12 +163,9 @@ export default function TrustPage() {
               <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500" />
               100% Australian-based · AHPRA registered · Privacy Act compliant
             </p>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
               <LegitScriptSeal size="md" />
-              <div className="text-xs text-muted-foreground">
-                <p className="font-medium text-foreground">LegitScript certified</p>
-                <p className="text-muted-foreground/80">Healthcare merchant verification</p>
-              </div>
+              <GoogleAdsCert size="md" />
             </div>
           </div>
         </SplitHero>
@@ -452,7 +450,7 @@ function TestimonialSection({ patientCount, mounted: _mounted }: { patientCount:
         <TestimonialGrid />
 
         <motion.div
-          initial={shouldReduce ? undefined : { opacity: 0 }}
+          initial={shouldReduce ? undefined : {}}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5, delay: 0.3 }}

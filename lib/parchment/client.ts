@@ -21,6 +21,7 @@ import {
   type CreatePatientRequest,
   type CreatePatientResponse,
   type ParchmentSsoResponse,
+  type ParchmentUser,
   type ListUsersResponse,
 } from "./types"
 
@@ -51,7 +52,8 @@ function getConfig() {
 // TOKEN CACHE
 // ============================================================================
 
-let cachedToken: { accessToken: string; expiresAt: number; userId: string } | null = null
+/** Per-user token cache — avoids serving doctor A's token to doctor B in shared serverless instances */
+const tokenCache = new Map<string, { accessToken: string; expiresAt: number }>()
 
 /**
  * Get a valid JWT token, using cache when possible.
@@ -63,9 +65,10 @@ let cachedToken: { accessToken: string; expiresAt: number; userId: string } | nu
 async function getToken(userId: string, scopes: string[]): Promise<string> {
   const now = Date.now()
 
-  // Return cached token if still valid (60s buffer) and same user
-  if (cachedToken && cachedToken.expiresAt > now + 60_000 && cachedToken.userId === userId) {
-    return cachedToken.accessToken
+  // Return cached token if still valid (60s buffer)
+  const cached = tokenCache.get(userId)
+  if (cached && cached.expiresAt > now + 60_000) {
+    return cached.accessToken
   }
 
   const config = getConfig()
@@ -97,19 +100,22 @@ async function getToken(userId: string, scopes: string[]): Promise<string> {
   const json = await res.json()
   const parsed = parchmentTokenResponseSchema.parse(json)
 
-  cachedToken = {
+  tokenCache.set(userId, {
     accessToken: parsed.data.accessToken,
     expiresAt: now + parsed.data.expiresIn * 1000,
-    userId,
-  }
+  })
 
   log.info("Token acquired", { userId, scopes, expiresIn: parsed.data.expiresIn })
-  return cachedToken.accessToken
+  return parsed.data.accessToken
 }
 
-/** Force-clear the cached token (useful after 401 errors) */
-export function clearTokenCache(): void {
-  cachedToken = null
+/** Force-clear cached token(s) — called after 401 errors to force re-auth */
+export function clearTokenCache(userId?: string): void {
+  if (userId) {
+    tokenCache.delete(userId)
+  } else {
+    tokenCache.clear()
+  }
 }
 
 // ============================================================================
@@ -143,6 +149,7 @@ export async function createPatient(
   })
 
   if (!res.ok) {
+    if (res.status === 401) clearTokenCache(userId)
     const body = await res.text().catch(() => "")
     const err = new Error(`Parchment create patient failed: ${res.status} ${body}`)
     log.error("Create patient failed", { status: res.status, partnerId: patient.partner_patient_id }, err)
@@ -159,40 +166,6 @@ export async function createPatient(
   })
 
   return parsed.data
-}
-
-/**
- * Update a patient in Parchment.
- */
-export async function updatePatient(
-  userId: string,
-  parchmentPatientId: string,
-  patient: Partial<CreatePatientRequest>,
-): Promise<void> {
-  const config = getConfig()
-  const token = await getToken(userId, [PARCHMENT_SCOPES.UPDATE_PATIENT])
-
-  const url = `${config.apiUrl}/v1/organizations/${config.organizationId}/users/${userId}/patients/${parchmentPatientId}`
-
-  const res = await fetch(url, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${token}`,
-      "x-organization-secret": config.organizationSecret,
-    },
-    body: JSON.stringify(patient),
-  })
-
-  if (!res.ok) {
-    const body = await res.text().catch(() => "")
-    const err = new Error(`Parchment update patient failed: ${res.status} ${body}`)
-    log.error("Update patient failed", { status: res.status, parchmentPatientId }, err)
-    Sentry.captureException(err, { extra: { status: res.status, body } })
-    throw err
-  }
-
-  log.info("Patient updated in Parchment", { parchmentPatientId })
 }
 
 // ============================================================================
@@ -245,6 +218,7 @@ export async function getSsoUrl(
 
 /**
  * List all users in the Parchment organization.
+ * Auto-paginates through all results using `lastKey` cursor.
  * Used for linking a doctor's InstantMed account to their Parchment user.
  */
 export async function listUsers(callerUserId?: string): Promise<ListUsersResponse["data"]> {
@@ -256,28 +230,47 @@ export async function listUsers(callerUserId?: string): Promise<ListUsersRespons
   }
   const token = await getToken(userId, [PARCHMENT_SCOPES.READ_USERS])
 
-  const url = `${config.apiUrl}/v1/organizations/${config.organizationId}/users?limit=100`
+  const allUsers: ParchmentUser[] = []
+  let lastKey: string | null = null
+  const PAGE_LIMIT = 100
+  const MAX_PAGES = 50 // Safety cap to prevent infinite loops
 
-  const res = await fetch(url, {
-    method: "GET",
-    headers: {
-      "Authorization": `Bearer ${token}`,
-      "x-organization-secret": config.organizationSecret,
-    },
-  })
+  for (let page = 0; page < MAX_PAGES; page++) {
+    const params = new URLSearchParams({ limit: String(PAGE_LIMIT) })
+    if (lastKey) params.set("lastKey", lastKey)
 
-  if (!res.ok) {
-    const body = await res.text().catch(() => "")
-    const err = new Error(`Parchment list users failed: ${res.status} ${body}`)
-    log.error("List users failed", { status: res.status }, err)
-    Sentry.captureException(err, { extra: { status: res.status, body } })
-    throw err
+    const url = `${config.apiUrl}/v1/organizations/${config.organizationId}/users?${params.toString()}`
+
+    const res = await fetch(url, {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "x-organization-secret": config.organizationSecret,
+      },
+    })
+
+    if (!res.ok) {
+      if (res.status === 401) clearTokenCache(userId)
+      const body = await res.text().catch(() => "")
+      const err = new Error(`Parchment list users failed: ${res.status} ${body}`)
+      log.error("List users failed", { status: res.status, page }, err)
+      Sentry.captureException(err, { extra: { status: res.status, body, page } })
+      throw err
+    }
+
+    const json = await res.json()
+    const parsed = listUsersResponseSchema.parse(json)
+
+    allUsers.push(...parsed.data.users)
+    lastKey = parsed.data.pagination.lastKey
+
+    if (!lastKey) break // No more pages
   }
 
-  const json = await res.json()
-  const parsed = listUsersResponseSchema.parse(json)
-
-  return parsed.data
+  return {
+    users: allUsers,
+    pagination: { total: allUsers.length, limit: PAGE_LIMIT, lastKey: null },
+  }
 }
 
 // ============================================================================

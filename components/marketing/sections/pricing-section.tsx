@@ -69,7 +69,7 @@ export function PricingSection({
     <section id="pricing" className={cn('py-16 lg:py-24', className)}>
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
         <motion.div
-          initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
+          initial={prefersReducedMotion ? {} : { y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           className="text-center mb-10"
@@ -83,7 +83,7 @@ export function PricingSection({
         </motion.div>
 
         <motion.div
-          initial={prefersReducedMotion ? {} : { opacity: 0, y: 30 }}
+          initial={prefersReducedMotion ? {} : { y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           className={cn('rounded-2xl p-8 lg:p-10 border-2 text-center', colors.light, colors.border)}

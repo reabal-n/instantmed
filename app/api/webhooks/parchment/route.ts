@@ -57,6 +57,18 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid payload" }, { status: 400 })
   }
 
+  // Validate organization and partner IDs match our configuration
+  const expectedOrgId = process.env.PARCHMENT_ORGANIZATION_ID
+  const expectedPartnerId = process.env.PARCHMENT_PARTNER_ID
+  if (expectedOrgId && payload.organization_id !== expectedOrgId) {
+    log.warn("Webhook organization_id mismatch", { expected: expectedOrgId, received: payload.organization_id })
+    return NextResponse.json({ error: "Organization mismatch" }, { status: 403 })
+  }
+  if (expectedPartnerId && payload.partner_id !== expectedPartnerId) {
+    log.warn("Webhook partner_id mismatch", { expected: expectedPartnerId, received: payload.partner_id })
+    return NextResponse.json({ error: "Partner mismatch" }, { status: 403 })
+  }
+
   // Only handle prescription.created events
   if (payload.event_type !== "prescription.created") {
     log.info("Ignoring webhook event", { eventType: payload.event_type, eventId: payload.event_id })
@@ -107,30 +119,53 @@ export async function POST(request: Request) {
       return NextResponse.json({ received: true, warning: "Patient not found" })
     }
 
-    // Find the most recent awaiting_script intake for this patient
-    const { data: intake } = await supabase
+    // Atomically claim the most recent awaiting_script intake for this patient.
+    // The WHERE status='awaiting_script' AND parchment_reference IS NULL prevents
+    // races between the webhook and a concurrent "Mark Sent Manually" click.
+    const { data: claimed, error: claimError } = await supabase
       .from("intakes")
-      .select("id, parchment_reference")
+      .update({
+        parchment_reference: scid,
+        updated_at: new Date().toISOString(),
+      })
       .eq("patient_id", patientProfileId)
       .eq("status", "awaiting_script")
+      .is("parchment_reference", null)
       .order("created_at", { ascending: false })
       .limit(1)
-      .single()
+      .select("id, parchment_reference")
+      .maybeSingle()
 
-    if (!intake) {
-      log.warn("No awaiting_script intake found for patient", { patientProfileId, scid })
-      // Return 200 — the intake may have already been processed
+    if (claimError) {
+      log.error("Failed to claim intake for webhook", { patientProfileId, scid }, new Error(String(claimError)))
+      return NextResponse.json({ error: "Failed to claim intake" }, { status: 500 })
+    }
+
+    // Check if already processed (idempotency) or no intake found
+    if (!claimed) {
+      // Could be: (a) already processed by this SCID, (b) manually marked sent, (c) no awaiting_script intake
+      const { data: existing } = await supabase
+        .from("intakes")
+        .select("id, parchment_reference")
+        .eq("patient_id", patientProfileId)
+        .eq("parchment_reference", scid)
+        .maybeSingle()
+
+      if (existing) {
+        log.info("Webhook already processed (idempotent)", { intakeId: existing.id, scid })
+        return NextResponse.json({ received: true })
+      }
+
+      log.warn("No claimable awaiting_script intake found for patient", { patientProfileId, scid })
       return NextResponse.json({ received: true, warning: "No awaiting_script intake found" })
     }
 
-    // Idempotency: skip if already processed with this SCID
-    if (intake.parchment_reference === scid) {
-      log.info("Webhook already processed (idempotent)", { intakeId: intake.id, scid })
-      return NextResponse.json({ received: true })
-    }
+    const intake = claimed
 
-    // Mark script as sent with the SCID
-    const success = await updateScriptSent(intake.id, true, undefined, scid)
+    // Mark script as sent and transition status
+    // Include event_id in script_notes for webhook idempotency audit trail
+    const scriptNotes = `Webhook event: ${payload.event_id}`
+    const success = await updateScriptSent(intake.id, true, scriptNotes, scid)
 
     if (!success) {
       log.error("Failed to mark script sent via webhook", { intakeId: intake.id, scid })

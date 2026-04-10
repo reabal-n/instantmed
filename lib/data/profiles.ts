@@ -201,6 +201,7 @@ export async function getProfileById(profileId: string): Promise<Profile | null>
       phone,
       phone_encrypted,
       role,
+      sex,
       medicare_number,
       medicare_number_encrypted,
       medicare_irn,

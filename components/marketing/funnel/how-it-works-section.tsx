@@ -21,7 +21,7 @@ export function HowItWorksSection({ config, colors }: HowItWorksSectionProps) {
     <section id="how-it-works" className="py-16 lg:py-24">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <motion.div
-          initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
+          initial={prefersReducedMotion ? {} : { y: 20 }}
           whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
           viewport={{ once: true }}
           className="text-center mb-12"
@@ -40,7 +40,7 @@ export function HowItWorksSection({ config, colors }: HowItWorksSectionProps) {
             return (
               <motion.div
                 key={step.number}
-                initial={prefersReducedMotion ? {} : { opacity: 0, y: 30 }}
+                initial={prefersReducedMotion ? {} : { y: 30 }}
                 whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: i * 0.1 }}
@@ -78,7 +78,7 @@ export function HowItWorksSection({ config, colors }: HowItWorksSectionProps) {
         </div>
 
         <motion.div
-          initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
+          initial={prefersReducedMotion ? {} : { y: 20 }}
           whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
           viewport={{ once: true }}
           className="text-center mt-12"

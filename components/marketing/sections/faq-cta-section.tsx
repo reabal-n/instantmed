@@ -31,7 +31,7 @@ export function FaqCtaSection({
         {/* Header */}
         <motion.div
           className="text-center mb-10"
-          initial={animate ? { opacity: 0, y: 20 } : {}}
+          initial={animate ? { y: 20 } : {}}
           whileInView={animate ? { opacity: 1, y: 0 } : undefined}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
@@ -59,7 +59,7 @@ export function FaqCtaSection({
         {/* Contact */}
         <motion.div
           className="mt-10 text-center"
-          initial={animate ? { opacity: 0 } : {}}
+          initial={{}}
           whileInView={animate ? { opacity: 1 } : undefined}
           viewport={{ once: true }}
           transition={{ delay: 0.3 }}

@@ -163,6 +163,22 @@ function validateServerEnv() {
     }
   }
   
+  // Soft check: warn if Parchment feature would be enabled but env vars are missing
+  const parchmentVars = [
+    "PARCHMENT_API_URL",
+    "PARCHMENT_PARTNER_ID",
+    "PARCHMENT_PARTNER_SECRET",
+    "PARCHMENT_ORGANIZATION_ID",
+    "PARCHMENT_ORGANIZATION_SECRET",
+    "PARCHMENT_WEBHOOK_SECRET",
+  ]
+  const hasSomeParchment = parchmentVars.some((v) => !!process.env[v])
+  const hasAllParchment = parchmentVars.every((v) => !!process.env[v])
+  if (hasSomeParchment && !hasAllParchment) {
+    const missing = parchmentVars.filter((v) => !process.env[v])
+    log.warn(`Parchment partially configured — missing: ${missing.join(", ")}. Embedded prescribing will fail.`, {})
+  }
+
   return parsed.data
 }
 

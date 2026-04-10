@@ -57,7 +57,7 @@ export function FeatureGrid({
         {features.map((feature, i) => (
           <motion.div
             key={feature.title}
-            initial={prefersReducedMotion ? {} : { opacity: 0, y: 20, scale: 0.95 }}
+            initial={prefersReducedMotion ? {} : { y: 20, scale: 0.95 }}
             animate={
               prefersReducedMotion
                 ? {}

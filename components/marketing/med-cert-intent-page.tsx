@@ -293,7 +293,7 @@ export function MedCertIntentPage({ config }: MedCertIntentPageProps) {
             <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
               <motion.div
                 className="text-center mb-10"
-                initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
+                initial={prefersReducedMotion ? {} : { y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5 }}
@@ -307,7 +307,7 @@ export function MedCertIntentPage({ config }: MedCertIntentPageProps) {
               </motion.div>
               <motion.div
                 className="space-y-6"
-                initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
+                initial={prefersReducedMotion ? {} : { y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: 0.1 }}
@@ -320,7 +320,7 @@ export function MedCertIntentPage({ config }: MedCertIntentPageProps) {
               </motion.div>
               <motion.div
                 className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 mt-10"
-                initial={prefersReducedMotion ? {} : { opacity: 0, y: 10 }}
+                initial={prefersReducedMotion ? {} : { y: 10 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: 0.2 }}
@@ -354,7 +354,7 @@ export function MedCertIntentPage({ config }: MedCertIntentPageProps) {
               <div className="flex flex-col lg:flex-row items-center gap-10 lg:gap-14">
                 <motion.div
                   className="shrink-0 w-64 lg:w-72 aspect-square rounded-2xl overflow-hidden shadow-lg"
-                  initial={prefersReducedMotion ? {} : { opacity: 0, x: -20 }}
+                  initial={prefersReducedMotion ? {} : { x: -20 }}
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.5 }}
@@ -369,7 +369,7 @@ export function MedCertIntentPage({ config }: MedCertIntentPageProps) {
                 </motion.div>
                 <motion.div
                   className="flex-1 text-center lg:text-left"
-                  initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
+                  initial={prefersReducedMotion ? {} : { y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.5, delay: 0.1 }}
@@ -415,7 +415,7 @@ export function MedCertIntentPage({ config }: MedCertIntentPageProps) {
           <section className="py-8">
             <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
               <motion.div
-                initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
+                initial={prefersReducedMotion ? {} : { y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5 }}

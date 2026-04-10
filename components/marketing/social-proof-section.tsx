@@ -46,7 +46,7 @@ export function SocialProofSection() {
         {/* Header */}
         <motion.div
           className="text-center mb-10"
-          initial={prefersReducedMotion ? {} : { y: 20, opacity: 0 }}
+          initial={prefersReducedMotion ? {} : { y: 20 }}
           whileInView={{ y: 0, opacity: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
@@ -62,7 +62,7 @@ export function SocialProofSection() {
         {/* Stats row */}
         <motion.div
           className="flex flex-wrap items-center justify-center gap-6 sm:gap-10 mb-12"
-          initial={prefersReducedMotion ? {} : { y: 10, opacity: 0 }}
+          initial={prefersReducedMotion ? {} : { y: 10 }}
           whileInView={{ y: 0, opacity: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.4, delay: 0.1 }}

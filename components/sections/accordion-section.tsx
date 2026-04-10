@@ -71,7 +71,7 @@ export function AccordionSection({
           const categoryAnimation = {
             className:
               "mb-4 text-lg font-semibold text-foreground" as const,
-            initial: prefersReducedMotion ? {} : { opacity: 0, y: 8 },
+            initial: prefersReducedMotion ? {} : { y: 8 },
             animate: prefersReducedMotion
               ? {}
               : isInView
@@ -93,7 +93,7 @@ export function AccordionSection({
                     key={item.question}
                     value={`${gi}-${ii}`}
                     className="rounded-xl border border-border/30 dark:border-border/50 bg-white dark:bg-card px-5 transition-all hover:shadow-sm hover:shadow-primary/[0.04]"
-                    initial={prefersReducedMotion ? {} : { opacity: 0, y: 8 }}
+                    initial={prefersReducedMotion ? {} : { y: 8 }}
                     animate={
                       prefersReducedMotion
                         ? {}

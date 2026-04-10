@@ -43,7 +43,7 @@ function useServiceCardVariants() {
   const itemVariants: Variants = prefersReducedMotion
     ? { hidden: {}, visible: {} }
     : {
-        hidden: { y: 24, opacity: 0 },
+        hidden: { y: 24 },
         visible: {
           y: 0,
           opacity: 1,
@@ -235,7 +235,7 @@ export function ServiceCards() {
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, amount: 0.2 }}
+          viewport={{ once: true, amount: 0 }}
         >
           {activeServices.map((service) => {
             const disabled = isServiceDisabled(service.id as ServiceId)

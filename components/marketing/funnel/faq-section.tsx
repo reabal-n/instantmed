@@ -22,7 +22,7 @@ export function FaqSection({ config }: FaqSectionProps) {
         {/* Section Header */}
         <motion.div
           className="text-center mb-10"
-          initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
+          initial={prefersReducedMotion ? {} : { y: 20 }}
           whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
@@ -44,7 +44,7 @@ export function FaqSection({ config }: FaqSectionProps) {
         {/* Contact support */}
         <motion.div
           className="mt-10 text-center"
-          initial={prefersReducedMotion ? {} : { opacity: 0 }}
+          initial={prefersReducedMotion ? {} : {}}
           whileInView={prefersReducedMotion ? undefined : { opacity: 1 }}
           viewport={{ once: true }}
           transition={{ delay: 0.3 }}

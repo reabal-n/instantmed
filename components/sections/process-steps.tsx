@@ -64,7 +64,7 @@ export function ProcessSteps({
             <motion.div
               key={step.number}
               className="relative text-center px-4"
-              initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
+              initial={prefersReducedMotion ? {} : { y: 20 }}
               animate={
                 prefersReducedMotion
                   ? {}
@@ -105,7 +105,7 @@ export function ProcessSteps({
             <motion.div
               key={step.number}
               className="flex gap-4 relative"
-              initial={prefersReducedMotion ? {} : { opacity: 0, x: -12 }}
+              initial={prefersReducedMotion ? {} : { x: -12 }}
               animate={
                 prefersReducedMotion
                   ? {}

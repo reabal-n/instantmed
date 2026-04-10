@@ -80,7 +80,7 @@ export function ConsultGuideSection() {
         {/* Header */}
         <motion.div
           className="text-center mb-12"
-          initial={animate ? { opacity: 0, y: 20 } : {}}
+          initial={animate ? { y: 20 } : {}}
           whileInView={animate ? { opacity: 1, y: 0 } : undefined}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
@@ -103,7 +103,7 @@ export function ConsultGuideSection() {
           {GUIDE_SECTIONS.map((section, i) => (
             <motion.div
               key={section.id}
-              initial={animate ? { opacity: 0, y: 16 } : {}}
+              initial={animate ? { y: 16 } : {}}
               whileInView={animate ? { opacity: 1, y: 0 } : undefined}
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: i * 0.05 }}
@@ -147,7 +147,7 @@ export function ConsultGuideSection() {
         {/* Clinical governance link */}
         <motion.div
           className="mt-12 pt-8 border-t border-border/40 text-center"
-          initial={animate ? { opacity: 0 } : {}}
+          initial={{}}
           whileInView={animate ? { opacity: 1 } : undefined}
           viewport={{ once: true }}
           transition={{ delay: 0.3 }}

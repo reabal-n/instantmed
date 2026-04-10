@@ -1,5 +1,5 @@
 import type Stripe from "stripe"
-import { NextResponse } from "next/server"
+import { NextResponse, after } from "next/server"
 import { sendGuestCompleteAccountEmail } from "@/lib/email/template-sender"
 import { createLogger } from "@/lib/observability/logger"
 import type { WebhookContext, HandlerResult } from "./types"
@@ -96,7 +96,8 @@ export async function handleAsyncPaymentSucceeded(ctx: WebhookContext): Promise<
       const asyncEmailSessionMetadata = session.metadata
       const asyncEmailAmountTotal = session.amount_total
 
-      ;(async () => {
+      // Uses after() to keep the serverless function alive until email completes.
+      after(async () => {
         try {
           const { data: patientProfile } = await supabase
             .from("profiles")
@@ -150,7 +151,7 @@ export async function handleAsyncPaymentSucceeded(ctx: WebhookContext): Promise<
         } catch (emailErr) {
           log.warn("Async payment confirmation email error (non-fatal)", { intakeId: asyncEmailIntakeId }, emailErr)
         }
-      })()
+      })
     }
 
     log.info("Async payment confirmed - intake marked as paid", { intakeId, paymentIntentId })

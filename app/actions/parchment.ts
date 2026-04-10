@@ -1,6 +1,6 @@
 "use server"
 
-import { requireRole } from "@/lib/auth"
+import { requireRoleOrNull } from "@/lib/auth"
 import { syncPatientToParchment } from "@/lib/parchment/sync-patient"
 import { getSsoUrl, listUsers } from "@/lib/parchment/client"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -21,7 +21,7 @@ const log = createLogger("parchment-actions")
 export async function getParchmentPrescribeUrlAction(
   intakeId: string,
 ): Promise<{ success: boolean; error?: string; ssoUrl?: string; parchmentPatientId?: string }> {
-  const authResult = await requireRole(["doctor", "admin"])
+  const authResult = await requireRoleOrNull(["doctor", "admin"])
   if (!authResult) {
     return { success: false, error: "Unauthorized" }
   }
@@ -100,7 +100,7 @@ export async function listParchmentUsersAction(): Promise<{
   error?: string
   users?: Array<{ user_id: string; full_name: string }>
 }> {
-  const authResult = await requireRole(["doctor", "admin"])
+  const authResult = await requireRoleOrNull(["doctor", "admin"])
   if (!authResult) {
     return { success: false, error: "Unauthorized" }
   }
@@ -123,7 +123,7 @@ export async function listParchmentUsersAction(): Promise<{
 export async function linkParchmentUserAction(
   parchmentUserId: string,
 ): Promise<{ success: boolean; error?: string }> {
-  const authResult = await requireRole(["doctor", "admin"])
+  const authResult = await requireRoleOrNull(["doctor", "admin"])
   if (!authResult) {
     return { success: false, error: "Unauthorized" }
   }
@@ -133,6 +133,13 @@ export async function linkParchmentUserAction(
   }
 
   try {
+    // Validate the user ID exists in Parchment before saving
+    const usersData = await listUsers()
+    const validUser = usersData.users.find((u) => u.user_id === parchmentUserId.trim())
+    if (!validUser) {
+      return { success: false, error: "Parchment user ID not found. Check the ID and try again." }
+    }
+
     const supabase = createServiceRoleClient()
 
     const { error } = await supabase
@@ -150,6 +157,7 @@ export async function linkParchmentUserAction(
     log.info("Parchment account linked", {
       doctorId: authResult.profile.id,
       parchmentUserId,
+      parchmentUserName: validUser.full_name,
     })
 
     return { success: true }

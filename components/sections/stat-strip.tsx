@@ -8,7 +8,7 @@ import type { SectionProps, StatItem } from "./types";
 
 function AnimatedNumber({ value, prefix = "", suffix = "" }: { value: number; prefix?: string; suffix?: string }) {
   const ref = useRef<HTMLSpanElement>(null);
-  const isInView = useInView(ref, { once: true, amount: 0.5 });
+  const isInView = useInView(ref, { once: true, amount: 0 });
   const prefersReducedMotion = useReducedMotion();
   const motionValue = useMotionValue(0);
   // Inline spring config to avoid Transition vs SpringOptions type mismatch
@@ -63,7 +63,7 @@ export function StatStrip({ stats, className, id }: StatStripProps) {
           <motion.div
             key={stat.label}
             className="text-center"
-            initial={prefersReducedMotion ? {} : { opacity: 0, y: 12 }}
+            initial={prefersReducedMotion ? {} : { y: 12 }}
             animate={
               prefersReducedMotion
                 ? {}

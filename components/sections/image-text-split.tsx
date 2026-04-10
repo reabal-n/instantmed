@@ -56,7 +56,7 @@ export function ImageTextSplit({
           />
           <motion.p
             className="mt-4 text-muted-foreground leading-relaxed"
-            initial={prefersReducedMotion ? {} : { opacity: 0, y: 8 }}
+            initial={prefersReducedMotion ? {} : { y: 8 }}
             animate={
               prefersReducedMotion
                 ? {}
@@ -71,7 +71,7 @@ export function ImageTextSplit({
           {children && (
             <motion.div
               className="mt-6"
-              initial={prefersReducedMotion ? {} : { opacity: 0, y: 8 }}
+              initial={prefersReducedMotion ? {} : { y: 8 }}
               animate={
                 prefersReducedMotion
                   ? {}

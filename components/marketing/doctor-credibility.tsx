@@ -116,7 +116,7 @@ export function DoctorCredibility({
     <section className={cn('py-16', className)}>
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <motion.div
-          initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
+          initial={prefersReducedMotion ? {} : { y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           className="text-center mb-10"
@@ -136,7 +136,7 @@ export function DoctorCredibility({
             return (
               <motion.div
                 key={key}
-                initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
+                initial={prefersReducedMotion ? {} : { y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1, duration: 0.4 }}

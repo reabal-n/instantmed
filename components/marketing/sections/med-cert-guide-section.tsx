@@ -192,7 +192,7 @@ export function MedCertGuideSection() {
         {/* Header */}
         <motion.div
           className="text-center mb-10"
-          initial={animate ? { opacity: 0, y: 20 } : {}}
+          initial={animate ? { y: 20 } : {}}
           whileInView={animate ? { opacity: 1, y: 0 } : undefined}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
@@ -212,7 +212,7 @@ export function MedCertGuideSection() {
 
         {/* Accordion — flat style, all collapsed by default */}
         <motion.div
-          initial={animate ? { opacity: 0, y: 16 } : {}}
+          initial={animate ? { y: 16 } : {}}
           whileInView={animate ? { opacity: 1, y: 0 } : undefined}
           viewport={{ once: true }}
           transition={{ duration: 0.5, delay: 0.1 }}
@@ -240,7 +240,7 @@ export function MedCertGuideSection() {
         {/* Clinical governance link */}
         <motion.div
           className="mt-10 pt-6 border-t border-border/40 text-center"
-          initial={animate ? { opacity: 0 } : {}}
+          initial={{}}
           whileInView={animate ? { opacity: 1 } : undefined}
           viewport={{ once: true }}
           transition={{ delay: 0.3 }}

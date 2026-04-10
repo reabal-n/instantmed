@@ -25,9 +25,11 @@ Centralized badge definitions with icon, color, tooltip, and styled/plain tiers.
 
 | Export | Type | What it provides |
 |--------|------|-----------------|
-| `BADGE_REGISTRY` | `Record<BadgeId, BadgeConfig>` | 24 badges across 5 categories: Credential (ahpra, tga, racgp, medical_director, refund, privacy), Payment/Security (stripe, ssl, pci, au_data), Friction-free (no_call, no_speaking, form_only, no_waiting_room, no_appointment, from_your_phone, no_face_to_face, fast_form, same_day), Outcome (legally_valid, no_medicare, real_gp, instant_pdf), Social proof (social_proof). |
-| `BADGE_PRESETS` | `Record<string, PresetEntry[]>` | Pre-configured badge sets: `hero_medcert`, `hero_rx`, `hero_consult`, `hero_generic`, `doctor_credibility`, `pre_cta`, `medcert_pricing`, `medcert_outcome`, `checkout`, `footer`, `float`. |
+| `BADGE_REGISTRY` | `Record<BadgeId, BadgeConfig>` | 26 badges across 6 categories: Credential (ahpra, tga, racgp, medical_director, refund, privacy), Payment/Security (stripe, ssl, pci, au_data), Friction-free (no_call, no_speaking, form_only, no_waiting_room, no_appointment, from_your_phone, no_face_to_face, fast_form, same_day), Outcome (legally_valid, no_medicare, real_gp, instant_pdf), Social proof (social_proof), **Certifications (legitscript, google_pharmacy)**. |
+| `BADGE_PRESETS` | `Record<string, PresetEntry[]>` | Pre-configured badge sets: `hero_medcert`, `hero_rx`, `hero_consult`, `hero_generic`, `doctor_credibility`, `pre_cta`, `medcert_pricing`, `medcert_outcome`, `checkout`, `footer`, `float`, **`trust_certifications`**. |
 | `resolveEntry()` | `function` | Normalizes `PresetEntry` (string or `{id, variant}`) to `{id, variant}`. |
+
+**Certification badges:** `legitscript` and `google_pharmacy` have styled tiers that render actual logos (LegitScript seal image, Google "G" multicolor SVG). Use `<TrustBadgeRow preset="trust_certifications" />` for an inline row, or the standalone components `LegitScriptSeal` (`components/marketing/legitscript-seal.tsx`) and `GoogleAdsCert` (`components/marketing/google-ads-cert.tsx`) for larger dedicated displays (e.g. footer logo row, trust page hero).
 
 **Rule:** Max 2 styled badges per row. Never put `no_call` + `no_speaking` together (redundant). Use `BADGE_PRESETS` for standard placements; compose custom sets from `BADGE_REGISTRY` for page-specific needs.
 

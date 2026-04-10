@@ -62,7 +62,7 @@ export function RegulatoryPartners({ variant = 'strip', className = '', exclude 
             {visiblePartners.map((partner, index) => (
               <motion.div
                 key={partner.name}
-                initial={prefersReducedMotion ? {} : { opacity: 0, y: 6 }}
+                initial={prefersReducedMotion ? {} : { y: 6 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: prefersReducedMotion ? 0 : index * 0.08, duration: 0.35 }}
@@ -109,7 +109,7 @@ export function RegulatoryPartners({ variant = 'strip', className = '', exclude 
             {visiblePartners.map((partner, index) => (
               <motion.div
                 key={partner.name}
-                initial={prefersReducedMotion ? {} : { opacity: 0, y: 10 }}
+                initial={prefersReducedMotion ? {} : { y: 10 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: prefersReducedMotion ? 0 : index * 0.1 }}

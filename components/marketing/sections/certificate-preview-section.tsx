@@ -33,7 +33,7 @@ export function CertificatePreviewSection({ onCTAClick }: { onCTAClick?: () => v
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           {/* Text content */}
           <motion.div
-            initial={animate ? { opacity: 0, x: -20 } : {}}
+            initial={animate ? { x: -20 } : {}}
             whileInView={animate ? { opacity: 1, x: 0 } : undefined}
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
@@ -101,7 +101,7 @@ export function CertificatePreviewSection({ onCTAClick }: { onCTAClick?: () => v
 
           {/* Certificate mockup */}
           <motion.div
-            initial={animate ? { opacity: 0, x: 20 } : {}}
+            initial={animate ? { x: 20 } : {}}
             whileInView={animate ? { opacity: 1, x: 0 } : undefined}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.15 }}

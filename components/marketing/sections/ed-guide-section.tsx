@@ -171,7 +171,7 @@ export function EDGuideSection() {
         {/* Header */}
         <motion.div
           className="text-center mb-8"
-          initial={animate ? { opacity: 0, y: 20 } : {}}
+          initial={animate ? { y: 20 } : {}}
           whileInView={animate ? { opacity: 1, y: 0 } : undefined}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
@@ -348,7 +348,7 @@ export function EDGuideSection() {
         {/* Clinical governance link */}
         <motion.div
           className="mt-8 pt-6 border-t border-border/40 text-center"
-          initial={animate ? { opacity: 0 } : {}}
+          initial={{}}
           whileInView={animate ? { opacity: 1 } : undefined}
           viewport={{ once: true }}
           transition={{ delay: 0.3 }}

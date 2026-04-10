@@ -25,6 +25,7 @@ import {
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { MagneticButton } from "@/components/ui/magnetic-button"
+import { TrustBadgeRow } from "@/components/shared/trust-badge"
 import { DoctorAvailabilityPill } from "@/components/shared/doctor-availability-pill"
 import { RotatingText } from "@/components/marketing/rotating-text"
 import { EScriptHeroMockup } from "@/components/marketing/mockups/escript-hero-mockup"
@@ -215,7 +216,7 @@ function RecentActivityTicker() {
           <motion.span
             key={index}
             className="block leading-5"
-            initial={prefersReducedMotion ? {} : { opacity: 0, y: 8 }}
+            initial={prefersReducedMotion ? {} : { y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={prefersReducedMotion ? {} : { opacity: 0, y: -8 }}
             transition={{ duration: 0.25 }}
@@ -515,6 +516,7 @@ function HeroSection({
                   No call required
                 </div>
               </div>
+              <TrustBadgeRow preset="trust_certifications" className="justify-center lg:justify-start" />
             </motion.div>
 
             {/* Secondary anchor CTA — desktop only */}

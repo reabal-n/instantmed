@@ -73,7 +73,7 @@ export function HowItWorksSection({
         {/* Header */}
         <motion.div
           className="text-center mb-12"
-          initial={animate ? { opacity: 0, y: 20 } : {}}
+          initial={animate ? { y: 20 } : {}}
           whileInView={animate ? { opacity: 1, y: 0 } : undefined}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
@@ -128,7 +128,7 @@ export function HowItWorksSection({
         {/* CTA */}
         <motion.div
           className="mt-12 text-center"
-          initial={animate ? { opacity: 0, y: 10 } : {}}
+          initial={animate ? { y: 10 } : {}}
           whileInView={animate ? { opacity: 1, y: 0 } : undefined}
           viewport={{ once: true }}
           transition={{ delay: 0.3 }}

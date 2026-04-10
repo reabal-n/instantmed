@@ -1,5 +1,5 @@
 import type Stripe from "stripe"
-import { NextResponse } from "next/server"
+import { NextResponse, after } from "next/server"
 import { stripe } from "@/lib/stripe/client"
 import { sendRefundEmail } from "@/lib/email/template-sender"
 import { createLogger } from "@/lib/observability/logger"
@@ -92,10 +92,11 @@ export async function handleChargeRefunded(ctx: WebhookContext): Promise<Handler
 
       // Send refund notification email (non-blocking to respect Stripe 3s timeout).
       // If this fails, the email-dispatcher cron will retry from the outbox.
+      // Uses after() to keep the serverless function alive until email completes.
       const refundIntakeId = intakeId
       const refundAmountCents = charge.amount_refunded
       const refundIsFullRefund = isFullRefund
-      ;(async () => {
+      after(async () => {
         try {
           const { data: intake } = await supabase
             .from("intakes")
@@ -126,7 +127,7 @@ export async function handleChargeRefunded(ctx: WebhookContext): Promise<Handler
         } catch (emailError) {
           log.error("Failed to send refund notification email", { intakeId: refundIntakeId }, emailError)
         }
-      })()
+      })
     } else {
       log.warn("No intake found to update for refund", { paymentIntentId })
     }

@@ -75,7 +75,7 @@ export function SupportedMedicationsSection() {
         {/* Header */}
         <motion.div
           className="text-center mb-10"
-          initial={animate ? { opacity: 0, y: 20 } : {}}
+          initial={animate ? { y: 20 } : {}}
           whileInView={animate ? { opacity: 1, y: 0 } : undefined}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
@@ -95,7 +95,7 @@ export function SupportedMedicationsSection() {
             <motion.div
               key={cat.name}
               className="rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none p-4"
-              initial={animate ? { opacity: 0, y: 20 } : {}}
+              initial={animate ? { y: 20 } : {}}
               whileInView={animate ? { opacity: 1, y: 0 } : undefined}
               viewport={{ once: true }}
               transition={{ duration: 0.3, delay: index * 0.05 }}

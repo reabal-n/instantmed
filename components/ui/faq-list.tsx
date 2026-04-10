@@ -81,7 +81,7 @@ export function FAQList({
         {items.map((item, index) => (
           <motion.div
             key={index.toString()}
-            initial={shouldAnimate ? { opacity: 0, y: 8 } : {}}
+            initial={shouldAnimate ? { y: 8 } : {}}
             whileInView={shouldAnimate ? { opacity: 1, y: 0 } : undefined}
             viewport={{ once: true }}
             transition={{ duration: 0.3, delay: index * 0.04 }}
@@ -113,7 +113,7 @@ export function FAQList({
           <div key={gi}>
             <motion.h3
               className="mb-4 text-lg font-semibold text-foreground"
-              initial={shouldAnimate ? { opacity: 0, y: 8 } : {}}
+              initial={shouldAnimate ? { y: 8 } : {}}
               whileInView={shouldAnimate ? { opacity: 1, y: 0 } : undefined}
               viewport={{ once: true }}
               transition={{ duration: 0.3, delay: gi * 0.08 }}
@@ -128,7 +128,7 @@ export function FAQList({
               {group.items.map((item, ii) => (
                 <motion.div
                   key={ii}
-                  initial={shouldAnimate ? { opacity: 0, y: 8 } : {}}
+                  initial={shouldAnimate ? { y: 8 } : {}}
                   whileInView={
                     shouldAnimate ? { opacity: 1, y: 0 } : undefined
                   }

@@ -42,7 +42,7 @@ export function TestimonialsColumnsWrapper({
     <section className={cn("relative", className)}>
       <div className="container z-10 mx-auto px-4">
         <motion.div
-          initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+          initial={prefersReducedMotion ? false : { y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.5, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
           viewport={{ once: true }}

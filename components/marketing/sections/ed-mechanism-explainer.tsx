@@ -188,7 +188,7 @@ export function EdMechanismExplainer({ className }: EdMechanismExplainerProps) {
   const firstFrameRef = useRef<HTMLDivElement>(null)
   const firstFrameInView = useInView(firstFrameRef, {
     once: true,
-    amount: 0.4,
+    amount: 0,
   })
   const viewedFiredRef = useRef(false)
 
@@ -222,7 +222,7 @@ export function EdMechanismExplainer({ className }: EdMechanismExplainerProps) {
         {/* Frames grid */}
         <div className="grid gap-6 lg:grid-cols-3">
           {FRAMES.map((frame, i) => {
-            const initial = prefersReducedMotion ? undefined : { opacity: 0, y: 24 }
+            const initial = prefersReducedMotion ? undefined : { y: 24 }
             const whileInView = prefersReducedMotion ? undefined : { opacity: 1, y: 0 }
             return (
               <motion.div
@@ -231,7 +231,7 @@ export function EdMechanismExplainer({ className }: EdMechanismExplainerProps) {
                 className="rounded-2xl border border-border/50 bg-white dark:bg-card shadow-md shadow-primary/[0.06] p-6"
                 initial={initial}
                 whileInView={whileInView}
-                viewport={{ once: true, amount: 0.4 }}
+                viewport={{ once: true, amount: 0 }}
                 transition={{
                   duration: 0.5,
                   delay: prefersReducedMotion ? 0 : i * 0.1,

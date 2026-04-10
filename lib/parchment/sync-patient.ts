@@ -17,11 +17,73 @@ import type { AustralianState } from "@/types/db"
 
 const log = createLogger("parchment-sync")
 
+/** Throws — used as a never-returning expression in object literals where IIFE syntax fails */
+function throwMissingDob(profileId: string): never {
+  throw new Error(`Patient ${profileId} has no date_of_birth — cannot sync to Parchment`)
+}
+
 /** Map InstantMed state abbreviations to Parchment format (same: NSW, VIC, etc.) */
 function mapState(state: AustralianState | string | null): string | undefined {
   if (!state) return undefined
   // Parchment uses the same AU state abbreviations
   return state.toUpperCase()
+}
+
+/**
+ * Parse street number from address line 1.
+ *
+ * Australian addresses typically look like:
+ *   "1 Main Street"
+ *   "12/34 Smith Road"          → street_number: "12/34"
+ *   "Unit 5, 22 King Street"    → street_number: "5/22"   (normalise to slash)
+ *   "Level 1/457-459 Elizabeth Street" → street_number: "1/457-459"
+ *
+ * Parchment requires `street_number` and `street_name` as separate fields.
+ * If we can't parse a number, we put everything in `street_name` and leave
+ * `street_number` undefined — Parchment may still reject, but this handles
+ * the common 95% case.
+ */
+function parseStreetAddress(addressLine1: string | null): {
+  street_number?: string
+  street_name?: string
+} {
+  if (!addressLine1) return {}
+
+  const trimmed = addressLine1.trim()
+
+  // Try: "Unit X, Y Street Name" or "Apt X, Y Street Name"
+  const unitCommaMatch = trimmed.match(
+    /^(?:unit|apt|suite|lot|level)\s+(\S+)\s*,\s*(\d[\d/a-zA-Z-]*)\s+(.+)$/i
+  )
+  if (unitCommaMatch) {
+    return {
+      street_number: `${unitCommaMatch[1]}/${unitCommaMatch[2]}`,
+      street_name: unitCommaMatch[3],
+    }
+  }
+
+  // Try: "Level 1/457 Elizabeth Street" — keyword + number(s) + street (no comma)
+  const keywordNoCommaMatch = trimmed.match(
+    /^(?:unit|apt|suite|lot|level)\s+(\d[\d/a-zA-Z-]*)\s+(.+)$/i
+  )
+  if (keywordNoCommaMatch) {
+    return {
+      street_number: keywordNoCommaMatch[1],
+      street_name: keywordNoCommaMatch[2],
+    }
+  }
+
+  // Try: leading number(s) possibly with slash/dash (e.g. "12/34", "457-459", "1A")
+  const numberMatch = trimmed.match(/^(\d[\d/a-zA-Z-]*)\s+(.+)$/)
+  if (numberMatch) {
+    return {
+      street_number: numberMatch[1],
+      street_name: numberMatch[2],
+    }
+  }
+
+  // Fallback: can't parse — put everything in street_name
+  return { street_name: trimmed }
 }
 
 /**
@@ -88,7 +150,7 @@ export async function syncPatientToParchment(
   const patientData: CreatePatientRequest = {
     family_name: familyName,
     given_name: givenName,
-    date_of_birth: profile.date_of_birth || "1900-01-01", // Required — fallback should not happen in practice
+    date_of_birth: profile.date_of_birth ?? throwMissingDob(patientProfileId),
     sex: parchmentSex,
     partner_patient_id: patientProfileId, // Our profile.id — used for webhook matching
     // Optional fields
@@ -97,10 +159,10 @@ export async function syncPatientToParchment(
     ...(profile.medicare_number ? { medicare_card_number: profile.medicare_number } : {}),
     ...(profile.medicare_irn ? { medicare_irn: String(profile.medicare_irn) } : {}),
     ...(profile.medicare_expiry ? { medicare_valid_to: profile.medicare_expiry } : {}),
-    // Address
+    // Address — Parchment requires street_number + street_name as separate fields
     ...((profile.address_line1 || profile.suburb) ? {
       australian_street_address: {
-        street_name: profile.address_line1 || undefined,
+        ...parseStreetAddress(profile.address_line1),
         suburb: profile.suburb || undefined,
         state: mapState(profile.state),
         postcode: profile.postcode || undefined,
@@ -111,7 +173,8 @@ export async function syncPatientToParchment(
   try {
     const result = await createPatient(prescriberParchmentUserId, patientData)
 
-    // Save parchment_patient_id on profile
+    // Save parchment_patient_id on profile — use conditional update to handle TOCTOU race.
+    // If two concurrent calls both created the patient in Parchment, the first writer wins.
     const { error: updateError } = await supabase
       .from("profiles")
       .update({
@@ -119,6 +182,7 @@ export async function syncPatientToParchment(
         updated_at: new Date().toISOString(),
       })
       .eq("id", patientProfileId)
+      .is("parchment_patient_id", null) // Only write if not already set
 
     if (updateError) {
       // Patient was created in Parchment but we couldn't save the ID.
@@ -132,13 +196,38 @@ export async function syncPatientToParchment(
       })
     }
 
+    // Re-read in case another concurrent call won the race
+    const { data: refreshed } = await supabase
+      .from("profiles")
+      .select("parchment_patient_id")
+      .eq("id", patientProfileId)
+      .single()
+
+    const finalId = refreshed?.parchment_patient_id || result.parchment_patient_id
+
     log.info("Patient synced to Parchment", {
       patientProfileId,
-      parchmentPatientId: result.parchment_patient_id,
+      parchmentPatientId: finalId,
     })
 
-    return result.parchment_patient_id
+    return finalId
   } catch (error) {
+    // If Parchment rejected the create because partner_patient_id already exists,
+    // another concurrent call may have succeeded — re-check the profile.
+    const { data: fallback } = await supabase
+      .from("profiles")
+      .select("parchment_patient_id")
+      .eq("id", patientProfileId)
+      .single()
+
+    if (fallback?.parchment_patient_id) {
+      log.info("Patient already synced (concurrent race resolved)", {
+        patientProfileId,
+        parchmentPatientId: fallback.parchment_patient_id,
+      })
+      return fallback.parchment_patient_id
+    }
+
     log.error("Failed to sync patient to Parchment", { patientProfileId }, error instanceof Error ? error : new Error(String(error)))
     throw error
   }

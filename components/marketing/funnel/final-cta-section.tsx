@@ -21,7 +21,7 @@ export function FinalCtaSection({ config, colors, isDisabled }: FinalCtaSectionP
     <section className={cn('py-16 lg:py-24 bg-linear-to-br', colors.gradient)}>
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center">
         <motion.div
-          initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
+          initial={prefersReducedMotion ? {} : { y: 20 }}
           whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
           viewport={{ once: true }}
         >

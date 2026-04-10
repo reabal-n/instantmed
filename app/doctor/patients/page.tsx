@@ -15,11 +15,9 @@ async function getPatients(page: number) {
   const { data, error, count } = await supabase
     .from("profiles")
     .select(`
-      id, auth_user_id, auth_user_id, email, full_name, first_name, last_name,
+      id, auth_user_id, email, full_name, first_name, last_name,
       date_of_birth, role, phone, address_line1, suburb, state, postcode,
-      medicare_number, medicare_irn, medicare_expiry,
-      ahpra_number, ahpra_verified, ahpra_verified_at, ahpra_verified_by,
-      provider_number, consent_myhr, onboarding_completed,
+      onboarding_completed,
       email_verified, email_verified_at,
       avatar_url, stripe_customer_id, created_at, updated_at
     `, { count: "exact" })

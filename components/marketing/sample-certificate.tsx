@@ -19,7 +19,7 @@ export function SampleCertificate({ className = '', animate = true }: SampleCert
   const shouldAnimate = animate && !prefersReducedMotion
   const Wrapper = shouldAnimate ? motion.div : 'div'
   const wrapperProps = shouldAnimate ? {
-    initial: { opacity: 0, y: 20 },
+    initial: { y: 20 },
     whileInView: { opacity: 1, y: 0 },
     viewport: { once: true },
     transition: { duration: 0.5 },

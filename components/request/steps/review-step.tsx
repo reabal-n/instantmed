@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import { LegitScriptSeal } from "@/components/marketing/legitscript-seal"
+import { GoogleAdsCert } from "@/components/marketing/google-ads-cert"
 import { useRequestStore } from "../store"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 import { PRICING } from "@/lib/constants"
@@ -621,6 +622,7 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
             </span>
           </div>
           <LegitScriptSeal size="sm" />
+          <GoogleAdsCert size="sm" />
         </div>
       </div>
     </div>

@@ -27,7 +27,7 @@ function TimelineItem({ step, index }: { step: TimelineStep; index: number }) {
     <motion.div
       ref={ref}
       className="relative flex gap-6 pb-12 last:pb-0"
-      initial={prefersReducedMotion ? {} : { opacity: 0, x: -20 }}
+      initial={prefersReducedMotion ? {} : { x: -20 }}
       animate={
         prefersReducedMotion
           ? {}

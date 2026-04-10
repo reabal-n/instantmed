@@ -311,6 +311,7 @@ function HeroSection({
               transition={{ duration: 0.5, delay: 0.3 }}
             >
               <TrustBadgeRow preset="hero_medcert" className="mt-3" />
+              <TrustBadgeRow preset="trust_certifications" className="justify-center lg:justify-start mt-1" />
             </motion.div>
 
             {/* Secondary anchor CTA */}

@@ -165,6 +165,10 @@ export async function saveDoctorNotesAction(
   intakeId: string,
   notes: string,
 ): Promise<{ success: boolean; error?: string }> {
+  if (!isValidUUID(intakeId)) {
+    return { success: false, error: "Invalid intake ID" }
+  }
+
   const { profile } = await requireRole(["doctor", "admin"])
   if (!profile) {
     return { success: false, error: "Unauthorized" }
@@ -212,6 +216,10 @@ export async function flagForFollowupAction(
   intakeId: string,
   reason: string,
 ): Promise<{ success: boolean; error?: string }> {
+  if (!isValidUUID(intakeId)) {
+    return { success: false, error: "Invalid intake ID" }
+  }
+
   const { profile } = await requireRole(["doctor", "admin"])
   if (!profile) {
     return { success: false, error: "Unauthorized" }
@@ -235,6 +243,9 @@ export async function markScriptSentAction(
     return { success: false, error: "Unauthorized" }
   }
 
+  const { createServiceRoleClient: createSR } = await import("@/lib/supabase/service-role")
+  const supabase = createSR()
+
   const success = await updateScriptSent(intakeId, true, scriptNotes, parchmentReference)
   if (!success) {
     return { success: false, error: "Failed to mark script sent" }
@@ -242,30 +253,44 @@ export async function markScriptSentAction(
 
   // Send email notification to patient via the centralized sendEmail pipeline
   // This ensures outbox logging, retry support, Sentry capture, and the modern React template
+  // Skip email if the webhook already sent one (check email_outbox for existing script_sent)
   try {
     const React = await import("react")
     const { sendEmail } = await import("@/lib/email/send-email")
     const { ScriptSentEmail, scriptSentEmailSubject } = await import("@/components/email/templates/script-sent")
     const { getIntakeWithDetails } = await import("@/lib/data/intakes")
-    
-    const intake = await getIntakeWithDetails(intakeId)
-    if (intake?.patient?.email) {
-      const patientName = intake.patient.full_name || "Patient"
 
-      await sendEmail({
-        to: intake.patient.email,
-        toName: patientName,
-        subject: scriptSentEmailSubject,
-        template: React.createElement(ScriptSentEmail, {
-          patientName,
-          requestId: intakeId,
-          escriptReference: parchmentReference,
-        }),
-        emailType: "script_sent",
-        intakeId,
-        patientId: intake.patient.id,
-        metadata: parchmentReference ? { parchmentReference } : {},
-      })
+    // Dedup: skip email if webhook already sent one for this intake
+    const { data: existingEmail } = await supabase
+      .from("email_outbox")
+      .select("id")
+      .eq("intake_id", intakeId)
+      .eq("email_type", "script_sent")
+      .limit(1)
+      .maybeSingle()
+
+    if (existingEmail) {
+      logger.info("Skipping script_sent email — already sent (likely via webhook)", { intakeId })
+    } else {
+      const intake = await getIntakeWithDetails(intakeId)
+      if (intake?.patient?.email) {
+        const patientName = intake.patient.full_name || "Patient"
+
+        await sendEmail({
+          to: intake.patient.email,
+          toName: patientName,
+          subject: scriptSentEmailSubject,
+          template: React.createElement(ScriptSentEmail, {
+            patientName,
+            requestId: intakeId,
+            escriptReference: parchmentReference,
+          }),
+          emailType: "script_sent",
+          intakeId,
+          patientId: intake.patient.id,
+          metadata: parchmentReference ? { parchmentReference } : {},
+        })
+      }
     }
   } catch (emailErr) {
     // Email is non-critical, don't fail the action -- but log to Sentry

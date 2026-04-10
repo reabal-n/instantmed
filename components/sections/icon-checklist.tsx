@@ -54,7 +54,7 @@ export function IconChecklist({
           <motion.div
             key={item.text}
             className="flex gap-3 rounded-xl border border-border/50 dark:border-white/15 bg-white dark:bg-card shadow-sm shadow-primary/[0.04] dark:shadow-none p-4 hover:-translate-y-0.5 hover:shadow-md hover:shadow-primary/[0.08] transition-all duration-300"
-            initial={prefersReducedMotion ? {} : { opacity: 0, x: -12 }}
+            initial={prefersReducedMotion ? {} : { x: -12 }}
             animate={
               prefersReducedMotion
                 ? {}

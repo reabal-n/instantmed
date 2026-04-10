@@ -20,7 +20,7 @@ import * as React from "react"
 
 /** Scroll reveal defaults for IntersectionObserver-based animations */
 export const scrollRevealConfig = {
-  threshold: 0.15,
+  threshold: 0,
   once: true,
   margin: "-50px",
 } as const;

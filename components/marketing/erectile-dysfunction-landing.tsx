@@ -16,6 +16,7 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { MagneticButton } from "@/components/ui/magnetic-button"
+import { TrustBadgeRow } from "@/components/shared/trust-badge"
 import { DoctorAvailabilityPill } from "@/components/shared/doctor-availability-pill"
 import { RotatingText } from "@/components/marketing/rotating-text"
 import { EDHeroMockup } from "@/components/marketing/mockups/ed-hero-mockup"
@@ -263,6 +264,7 @@ function HeroSection({
                   No call required
                 </div>
               </div>
+              <TrustBadgeRow preset="trust_certifications" className="justify-center lg:justify-start" />
             </motion.div>
 
             {/* Secondary anchor CTA — desktop only */}

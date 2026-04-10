@@ -58,7 +58,7 @@ export function SpecialisedConsultsSection() {
     <section aria-label="Specialised consultations" className="py-12 lg:py-16">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <motion.div
-          initial={animate ? { opacity: 0, y: 20 } : {}}
+          initial={animate ? { y: 20 } : {}}
           whileInView={animate ? { opacity: 1, y: 0 } : {}}
           viewport={{ once: true, margin: "-50px" }}
           transition={{ duration: 0.4 }}
@@ -77,7 +77,7 @@ export function SpecialisedConsultsSection() {
           {consults.map((consult, i) => (
             <motion.div
               key={consult.title}
-              initial={animate ? { opacity: 0, y: 20 } : {}}
+              initial={animate ? { y: 20 } : {}}
               whileInView={animate ? { opacity: 1, y: 0 } : {}}
               viewport={{ once: true, margin: "-30px" }}
               transition={{ duration: 0.3, delay: animate ? i * 0.05 : 0 }}

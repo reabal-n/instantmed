@@ -70,7 +70,7 @@ export function CertificateTypeSelector({
         {/* Header */}
         <motion.div
           className="text-center mb-8"
-          initial={animate ? { opacity: 0, y: 20 } : {}}
+          initial={animate ? { y: 20 } : {}}
           whileInView={animate ? { opacity: 1, y: 0 } : undefined}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
@@ -100,7 +100,7 @@ export function CertificateTypeSelector({
                     ? "border-primary ring-2 ring-primary/20"
                     : "border-border/50 hover:border-primary/30 hover:shadow-lg",
                 )}
-                initial={animate ? { opacity: 0, y: 16 } : {}}
+                initial={animate ? { y: 16 } : {}}
                 whileInView={animate ? { opacity: 1, y: 0 } : undefined}
                 viewport={{ once: true }}
                 transition={{ duration: 0.4, delay: i * 0.08 }}

@@ -11,13 +11,6 @@ import { z } from "zod"
 // AUTH
 // ============================================================================
 
-export const parchmentTokenRequestSchema = z.object({
-  grantType: z.literal("client_credentials"),
-  scope: z.array(z.string()).min(1),
-})
-
-export type ParchmentTokenRequest = z.infer<typeof parchmentTokenRequestSchema>
-
 export const parchmentTokenResponseSchema = z.object({
   success: z.literal(true),
   statusCode: z.number(),

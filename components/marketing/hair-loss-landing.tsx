@@ -19,6 +19,7 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { MagneticButton } from "@/components/ui/magnetic-button"
+import { TrustBadgeRow } from "@/components/shared/trust-badge"
 import { DoctorAvailabilityPill } from "@/components/shared/doctor-availability-pill"
 import { RotatingText } from "@/components/marketing/rotating-text"
 import { HairLossHeroMockup } from "@/components/marketing/mockups/hair-loss-hero-mockup"
@@ -435,6 +436,7 @@ function HeroSection({
                   No call required
                 </div>
               </div>
+              <TrustBadgeRow preset="trust_certifications" className="justify-center lg:justify-start" />
             </motion.div>
 
             {/* Secondary anchor CTA — desktop only */}

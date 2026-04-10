@@ -411,7 +411,7 @@ export function IntakeDetailClient({
 
   const handleMarkScriptSent = async () => {
     startTransition(async () => {
-      const result = await markScriptSentAction(intake.id, dialogs.parchmentReference || undefined)
+      const result = await markScriptSentAction(intake.id, undefined, dialogs.parchmentReference || undefined)
       if (result.success) {
         dialogs.closeScriptDialog()
         toast.success("Script marked as sent")

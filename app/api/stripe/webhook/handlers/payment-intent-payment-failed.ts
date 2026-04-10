@@ -1,5 +1,5 @@
 import type Stripe from "stripe"
-import { NextResponse } from "next/server"
+import { NextResponse, after } from "next/server"
 import { sendPaymentFailedEmail } from "@/lib/email/template-sender"
 import { createLogger } from "@/lib/observability/logger"
 import { trackBusinessMetric } from "@/lib/posthog-server"
@@ -48,9 +48,10 @@ export async function handlePaymentIntentFailed(ctx: WebhookContext): Promise<Ha
 
     // Send payment failure notification (non-blocking to respect Stripe 3s timeout).
     // If this fails, the email-dispatcher cron will retry from the outbox.
+    // Uses after() to keep the serverless function alive until email completes.
     const failedIntakeId = intakeId
     const failureMessage = paymentIntent.last_payment_error?.message || "Your payment could not be processed"
-    ;(async () => {
+    after(async () => {
       try {
         const { data: intake } = await supabase
           .from("intakes")
@@ -75,6 +76,6 @@ export async function handlePaymentIntentFailed(ctx: WebhookContext): Promise<Ha
       } catch (emailError) {
         log.error("Failed to send payment failure notification", { intakeId: failedIntakeId }, emailError)
       }
-    })()
+    })
   }
 }

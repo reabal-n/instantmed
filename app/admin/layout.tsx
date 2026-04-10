@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 import { requireRole } from "@/lib/auth"
-import { AdminSidebar } from "@/components/admin/admin-sidebar"
+import { AdminSidebar, MobileAdminNav } from "@/components/admin/admin-sidebar"
 
 export const metadata: Metadata = {
   title: "Admin Dashboard",
@@ -27,6 +27,9 @@ export default async function AdminLayout({
       />
       <main className="flex-1 min-w-0 py-8 px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-6xl">
+          <div className="mb-4 lg:hidden">
+            <MobileAdminNav />
+          </div>
           {children}
         </div>
       </main>

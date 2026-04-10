@@ -40,7 +40,7 @@ export function CTABanner({
       <motion.div
         ref={ref}
         className="mx-auto max-w-4xl rounded-3xl bg-white dark:bg-card border border-border/50 shadow-lg shadow-primary/[0.06] p-10 lg:p-16 text-center relative overflow-hidden"
-        initial={prefersReducedMotion ? {} : { opacity: 0, y: 20, scale: 0.98 }}
+        initial={prefersReducedMotion ? {} : { y: 20, scale: 0.98 }}
         animate={
           prefersReducedMotion
             ? {}

@@ -61,7 +61,7 @@ export function ComparisonTable({
               "grid grid-cols-[1fr_120px_120px] gap-0 px-6 py-4 text-sm hover:bg-muted/30 transition-colors duration-200",
               i < items.length - 1 && "border-b border-border/50"
             )}
-            initial={prefersReducedMotion ? {} : { opacity: 0, x: -12 }}
+            initial={prefersReducedMotion ? {} : { x: -12 }}
             animate={
               prefersReducedMotion
                 ? {}
