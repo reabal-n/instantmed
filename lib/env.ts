@@ -91,6 +91,14 @@ const serverEnvSchema = z.object({
   CRON_SECRET: z.string().optional(),
   OPS_CRON_SECRET: z.string().optional(),
 
+  // Parchment ePrescribing
+  PARCHMENT_API_URL: z.string().url().optional(),
+  PARCHMENT_PARTNER_ID: z.string().optional(),
+  PARCHMENT_PARTNER_SECRET: z.string().optional(),
+  PARCHMENT_ORGANIZATION_ID: z.string().optional(),
+  PARCHMENT_ORGANIZATION_SECRET: z.string().optional(),
+  PARCHMENT_WEBHOOK_SECRET: z.string().optional(),
+
   // Stripe publishable key (public, for client checkout)
   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().optional(),
 

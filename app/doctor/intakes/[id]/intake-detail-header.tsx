@@ -44,6 +44,7 @@ import { formatIntakeStatus } from "@/lib/format-intake"
 import type { IntakeWithDetails, IntakeStatus, DeclineReasonCode } from "@/types/db"
 import type { IntakeDialogState } from "./use-intake-dialogs"
 import { SERVICE_TYPES } from "@/lib/doctor/service-types"
+import type { CertDeliveryStatus } from "@/lib/data/issued-certificates"
 
 // P0 DOCTOR_WORKLOAD_AUDIT: Pre-filled decline reason templates to equalize approve/decline effort
 export const DECLINE_REASONS: { code: DeclineReasonCode; label: string; template: string }[] = [
@@ -125,11 +126,13 @@ interface IntakeDetailHeaderProps {
   onResendCertificate: () => void
   onViewCertificate: () => void
   onCertPreviewConfirm: (data: CertificatePreviewData) => void
+  onOpenParchmentPrescribe?: () => void
   showReissueDialog: boolean
   setShowReissueDialog: (val: boolean) => void
   reissuePreviewData: CertificatePreviewData | null
   onReissueCertificate: () => void
   onReissueConfirm: (data: CertificatePreviewData, notifyPatient?: boolean) => void
+  certDelivery?: CertDeliveryStatus | null
 }
 
 export function IntakeDetailHeader({
@@ -154,11 +157,13 @@ export function IntakeDetailHeader({
   onResendCertificate,
   onViewCertificate,
   onCertPreviewConfirm,
+  onOpenParchmentPrescribe,
   showReissueDialog,
   setShowReissueDialog,
   reissuePreviewData,
   onReissueCertificate,
   onReissueConfirm,
+  certDelivery,
 }: IntakeDetailHeaderProps) {
   const service = intake.service as { type?: string } | undefined
 
@@ -176,9 +181,43 @@ export function IntakeDetailHeader({
             Back to Queue
           </Link>
         </Button>
-        <Badge className={getStatusColor(intake.status)}>
-          {formatIntakeStatus(intake.status)}
-        </Badge>
+        <div className="flex items-center gap-2">
+          <Badge className={getStatusColor(intake.status)}>
+            {formatIntakeStatus(intake.status)}
+          </Badge>
+          {certDelivery && (
+            <Badge
+              variant="outline"
+              className={
+                certDelivery.emailOpenedAt
+                  ? "border-emerald-300 text-emerald-700 dark:border-emerald-700 dark:text-emerald-400"
+                  : certDelivery.emailFailedAt
+                    ? "border-destructive/50 text-destructive"
+                    : certDelivery.emailSentAt
+                      ? "border-blue-300 text-blue-700 dark:border-blue-700 dark:text-blue-400"
+                      : "border-amber-300 text-amber-700 dark:border-amber-700 dark:text-amber-400"
+              }
+              title={
+                certDelivery.emailFailedAt
+                  ? `Failed: ${certDelivery.emailFailureReason || "Unknown error"}`
+                  : certDelivery.emailOpenedAt
+                    ? "Patient opened the certificate email"
+                    : certDelivery.emailSentAt
+                      ? "Certificate email sent, awaiting open"
+                      : "Certificate email pending"
+              }
+            >
+              <Mail className="h-3 w-3 mr-1" />
+              {certDelivery.emailOpenedAt
+                ? "Opened"
+                : certDelivery.emailFailedAt
+                  ? "Failed"
+                  : certDelivery.emailSentAt
+                    ? "Sent"
+                    : "Pending"}
+            </Badge>
+          )}
+        </div>
       </div>
 
       {/* Action Message */}
@@ -276,12 +315,24 @@ export function IntakeDetailHeader({
               </Button>
             )}
 
-            {/* Mark script as sent (for awaiting_script status) */}
+            {/* Prescribe / Mark script as sent (for awaiting_script status) */}
             {intake.status === "awaiting_script" && (
-              <Button onClick={dialogs.openScriptDialog} className="bg-blue-600 hover:bg-blue-700">
-                <Send className="h-4 w-4 mr-2" />
-                Mark Script Sent
-              </Button>
+              <>
+                {onOpenParchmentPrescribe && (
+                  <Button onClick={onOpenParchmentPrescribe} className="bg-blue-600 hover:bg-blue-700">
+                    <Send className="h-4 w-4 mr-2" />
+                    Prescribe
+                  </Button>
+                )}
+                <Button
+                  variant={onOpenParchmentPrescribe ? "outline" : "default"}
+                  onClick={dialogs.openScriptDialog}
+                  className={onOpenParchmentPrescribe ? "" : "bg-blue-600 hover:bg-blue-700"}
+                >
+                  {!onOpenParchmentPrescribe && <Send className="h-4 w-4 mr-2" />}
+                  Mark Sent Manually
+                </Button>
+              </>
             )}
 
             {/* For consults - approve after call with notes */}

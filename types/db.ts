@@ -363,6 +363,7 @@ export interface Profile {
   first_name?: string | null // Given name
   last_name?: string | null // Family name
   date_of_birth: string | null // ISO date string
+  sex: "M" | "F" | "N" | "I" | null // For prescribing: Male, Female, Not stated, Intersex
   role: UserRole
   // Contact & address fields (DB uses address_line_1, app maps to address_line1)
   phone: string | null
@@ -401,6 +402,9 @@ export interface Profile {
   // Identity verification
   certificate_identity_complete?: boolean | null
   signature_storage_path?: string | null
+  // Parchment ePrescribing
+  parchment_user_id?: string | null // Parchment user ID (doctors)
+  parchment_patient_id?: string | null // Parchment patient ID (patients)
   // Stripe customer linking
   stripe_customer_id: string | null
   // Timestamps

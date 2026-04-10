@@ -1,11 +1,13 @@
 import { notFound } from "next/navigation"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth"
 import { getIntakeWithDetails, getPatientIntakes, getNextQueueIntakeId } from "@/lib/data/intakes"
+import { getCertDeliveryStatus } from "@/lib/data/issued-certificates"
 import { getOrCreateMedCertDraftForIntake } from "@/lib/data/documents"
 import { IntakeDetailClient } from "./intake-detail-client"
 import { logClinicianOpenedRequest } from "@/lib/audit/compliance-audit"
 import { getAIDraftsForIntake } from "@/app/actions/draft-approval"
 import { getPendingDateCorrection } from "@/app/actions/request-date-correction"
+import { getFeatureFlags } from "@/lib/feature-flags"
 import { calculateAge } from "@/lib/format"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import type { DoctorFollowupRow } from "./intake-detail-followups"
@@ -40,14 +42,16 @@ export default async function DoctorIntakeDetailPage({
   const { data: patientHistory } = await getPatientIntakes(intake.patient.id, { pageSize: 6 })
   const previousIntakes = patientHistory.filter((r: { id: string }) => r.id !== id).slice(0, 5)
 
-  // Fetch AI drafts and next intake ID in parallel
-  const [aiDrafts, nextIntakeId, medCertDraft, pendingCorrection] = await Promise.all([
+  // Fetch AI drafts, next intake, cert delivery status in parallel
+  const [aiDrafts, nextIntakeId, medCertDraft, pendingCorrection, certDelivery, featureFlags] = await Promise.all([
     getAIDraftsForIntake(id),
     getNextQueueIntakeId(id),
     (intake.service as { type?: string } | undefined)?.type === "med_certs"
       ? getOrCreateMedCertDraftForIntake(id)
       : Promise.resolve(null),
     getPendingDateCorrection(id),
+    getCertDeliveryStatus(id),
+    getFeatureFlags(),
   ])
 
   // Phase 3: fetch follow-ups for ED/hair-loss consults
@@ -91,6 +95,8 @@ export default async function DoctorIntakeDetailPage({
       draftId={medCertDraft?.id || null}
       pendingCorrection={pendingCorrection}
       followups={followups}
+      certDelivery={certDelivery}
+      parchmentEnabled={featureFlags.parchment_embedded_prescribing}
     />
   )
 }

@@ -594,6 +594,7 @@ Required env vars validated at startup via Zod in `lib/env.ts`:
 - **Monitoring**: `SENTRY_DSN`, `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT`
 - **Analytics**: `NEXT_PUBLIC_POSTHOG_KEY`, `NEXT_PUBLIC_POSTHOG_HOST`
 - **Alerts**: `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, `TELEGRAM_WEBHOOK_SECRET` (optional)
+- **Parchment**: `PARCHMENT_API_URL`, `PARCHMENT_PARTNER_ID`, `PARCHMENT_PARTNER_SECRET`, `PARCHMENT_ORGANIZATION_ID`, `PARCHMENT_ORGANIZATION_SECRET`, `PARCHMENT_WEBHOOK_SECRET` (all optional — required only when `parchment_embedded_prescribing` feature flag is enabled)
 - **Other**: `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_SITE_URL`, `ADMIN_EMAILS`, `GOOGLE_PLACES_API_KEY`, `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION`
 
 ---

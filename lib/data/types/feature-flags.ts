@@ -45,6 +45,7 @@ export const FLAG_KEYS = {
   TELEGRAM_NOTIFICATIONS_ENABLED: "telegram_notifications_enabled",
   DOCTOR_ALERT_THRESHOLD_HOURS: "doctor_alert_threshold_hours",
   PATIENT_DELAY_EMAIL_HOURS: "patient_delay_email_hours",
+  PARCHMENT_EMBEDDED_PRESCRIBING: "parchment_embedded_prescribing",
 } as const
 
 export type FlagKey = (typeof FLAG_KEYS)[keyof typeof FLAG_KEYS]
@@ -89,6 +90,7 @@ export interface FeatureFlags {
   telegram_notifications_enabled: boolean
   doctor_alert_threshold_hours: number
   patient_delay_email_hours: number
+  parchment_embedded_prescribing: boolean
 }
 
 // ============================================================================
@@ -138,6 +140,7 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   telegram_notifications_enabled: true,
   doctor_alert_threshold_hours: 1,
   patient_delay_email_hours: 2,
+  parchment_embedded_prescribing: false,
 }
 
 // ============================================================================
@@ -284,6 +287,10 @@ export function getFlagInfo(key: FlagKey): { label: string; description: string 
     patient_delay_email_hours: {
       label: "Patient Delay Email (hours)",
       description: "Hours a paid intake must wait before the patient receives a delay notification email.",
+    },
+    parchment_embedded_prescribing: {
+      label: "Parchment Embedded Prescribing",
+      description: "Enable embedded Parchment ePrescribing iframe in the doctor dashboard. When off, doctors use the manual 'Mark Sent' workflow.",
     },
   }
   return info[key]

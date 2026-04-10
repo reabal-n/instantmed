@@ -13,11 +13,12 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react"
 import { usePostHog } from "@/components/providers/posthog-provider"
-import { User, Mail, Phone, Calendar, MapPin, Sparkles, Lock, EyeOff, CreditCard } from "lucide-react"
+import { User, Mail, Phone, Calendar, MapPin, Sparkles, Lock, EyeOff, CreditCard, Users } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { AddressAutocomplete, type AddressComponents } from "@/components/ui/address-autocomplete"
 import { useRequestStore } from "../store"
@@ -50,6 +51,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
   const state = (answers.state as string) || ""
   const postcode = (answers.postcode as string) || ""
   const medicareNumber = (answers.medicareNumber as string) || ""
+  const sex = (answers.sex as string) || ""
   const consultSubtype = answers.consultSubtype as string | undefined
 
   // BMI auto-calculation for ED subtype
@@ -238,7 +240,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
     }
   }
 
-  const isComplete = firstName && lastName && email && dob && (!needsPhone || phone) && (!needsPrescriptionDetails || (medicareNumber && addressLine1))
+  const isComplete = firstName && lastName && email && dob && (!needsPhone || phone) && (!needsPrescriptionDetails || (medicareNumber && addressLine1 && sex))
   const hasNoErrors = Object.keys(errors).length === 0
   const canContinue = isComplete && hasNoErrors
   
@@ -358,6 +360,28 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
           max={new Date(Date.now() - 18 * 365.25 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}
         />
       </FormField>
+
+      {/* Sex — required for prescriptions (eScript generation) */}
+      {needsPrescriptionDetails && (
+        <FormField
+          label="Sex"
+          required
+          icon={Users}
+          helpContent={{ title: "Why do we ask this?", content: "Required by Australian prescribing regulations for eScript generation. Select the option that matches your Medicare record." }}
+        >
+          <Select value={sex} onValueChange={(val) => setAnswer("sex", val)}>
+            <SelectTrigger className={`h-11 ${touched.sex && !sex ? "border-destructive" : ""}`}>
+              <SelectValue placeholder="Select..." />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="M">Male</SelectItem>
+              <SelectItem value="F">Female</SelectItem>
+              <SelectItem value="I">Intersex / Indeterminate</SelectItem>
+              <SelectItem value="N">Prefer not to say</SelectItem>
+            </SelectContent>
+          </Select>
+        </FormField>
+      )}
 
       {/* Phone - required for prescriptions */}
       <FormField

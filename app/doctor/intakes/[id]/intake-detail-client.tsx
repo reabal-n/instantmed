@@ -11,6 +11,8 @@ import { fetchCertPreviewDataAction, approveWithPreviewDataAction } from "@/app/
 import type { CertificatePreviewData } from "@/components/doctor/certificate-preview-dialog"
 import { logViewedIntakeAnswersAction, logViewedSafetyFlagsAction } from "@/app/actions/clinician-audit"
 import { acquireIntakeLockAction, releaseIntakeLockAction, extendIntakeLockAction } from "@/app/actions/intake-lock"
+import { usePanel } from "@/components/panels/panel-provider"
+import { ParchmentPrescribePanel } from "@/components/doctor/parchment-prescribe-panel"
 import type { IntakeWithDetails, IntakeWithPatient, IntakeStatus } from "@/types/db"
 import type { AIDraft } from "@/app/actions/draft-approval"
 import { useDoctorShortcuts } from "@/hooks/use-doctor-shortcuts"
@@ -20,6 +22,8 @@ import { useIntakeDialogs } from "./use-intake-dialogs"
 import { IntakeDetailAnswers } from "./intake-detail-answers"
 import { IntakeDetailDrafts } from "./intake-detail-drafts"
 import { IntakeDetailFollowups, type DoctorFollowupRow } from "./intake-detail-followups"
+import { MIN_CLINICAL_NOTES_LENGTH } from "@/components/doctor/review/utils"
+import type { CertDeliveryStatus } from "@/lib/data/issued-certificates"
 
 interface PendingCorrection {
   id: string
@@ -41,6 +45,8 @@ interface IntakeDetailClientProps {
   draftId?: string | null
   pendingCorrection?: PendingCorrection | null
   followups?: DoctorFollowupRow[]
+  certDelivery?: CertDeliveryStatus | null
+  parchmentEnabled?: boolean
 }
 
 /**
@@ -78,6 +84,8 @@ export function IntakeDetailClient({
   draftId,
   pendingCorrection,
   followups = [],
+  certDelivery,
+  parchmentEnabled = false,
 }: IntakeDetailClientProps) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
@@ -92,10 +100,6 @@ export function IntakeDetailClient({
   const [certPreviewData, setCertPreviewData] = useState<CertificatePreviewData | null>(null)
   const [isLoadingPreview, setIsLoadingPreview] = useState(false)
   const [isRegenerating, setIsRegenerating] = useState(false)
-
-  // Reissue certificate dialog
-  const [showReissueDialog, setShowReissueDialog] = useState(false)
-  const [reissuePreviewData, setReissuePreviewData] = useState<CertificatePreviewData | null>(null)
 
   const service = intake.service as { name?: string; type?: string; short_name?: string } | undefined
 
@@ -215,10 +219,7 @@ export function IntakeDetailClient({
     }
   }, [aiDrafts, intake.doctor_notes])
 
-  // P1 RK-1: Minimum clinical notes length for defensibility. 50 chars
-  // forces a meaningful sentence — "ok" or "looks fine" are not enough for
-  // a defensible record if AHPRA or a plaintiff ever asks to see notes.
-  const MIN_CLINICAL_NOTES_LENGTH = 50
+  // P1 RK-1: Minimum clinical notes length for defensibility (shared constant)
 
   // P2 DOCTOR_WORKLOAD_AUDIT: Keyboard shortcuts for faster workflow
   useDoctorShortcuts({
@@ -248,15 +249,14 @@ export function IntakeDetailClient({
     disabled: isPending,
   })
 
-  // Auto-advance: go to next intake in queue, or back to queue if none
-  // Uses window.location for clean navigation to avoid React hydration/hook
-  // mismatches when transitioning between pages during async state updates
+  // Auto-advance: go to next intake in queue, or back to queue
   const advanceToNext = () => {
     if (nextIntakeId) {
-      window.location.href = `/doctor/intakes/${nextIntakeId}`
+      router.push(`/doctor/intakes/${nextIntakeId}`)
     } else {
-      window.location.href = "/doctor/dashboard"
+      router.push("/doctor/dashboard")
     }
+    router.refresh()
   }
 
   // Med cert approval: show preview dialog first, then approve on confirm
@@ -422,6 +422,24 @@ export function IntakeDetailClient({
     })
   }
 
+  // Open embedded Parchment prescribing in a slide-over panel
+  const { openPanel } = usePanel()
+  const handleOpenParchmentPrescribe = () => {
+    openPanel({
+      id: `parchment-prescribe-${intake.id}`,
+      type: "sheet",
+      component: (
+        <ParchmentPrescribePanel
+          intakeId={intake.id}
+          patientName={intake.patient?.full_name || "Patient"}
+          onScriptSent={() => {
+            dialogs.openScriptDialog()
+          }}
+        />
+      ),
+    })
+  }
+
   const handleMarkRefunded = async () => {
     startTransition(async () => {
       const result = await issueRefundAction(intake.id)
@@ -465,8 +483,8 @@ export function IntakeDetailClient({
     try {
       const result = await fetchCertPreviewDataAction(intake.id, draftId || "")
       if (result.success && result.data) {
-        setReissuePreviewData(result.data)
-        setShowReissueDialog(true)
+        dialogs.setReissuePreviewData(result.data)
+        dialogs.setShowReissueDialog(true)
       } else {
         toast.error(result.error || "Failed to load certificate data")
       }
@@ -491,7 +509,7 @@ export function IntakeDetailClient({
       })
 
       if (result.success) {
-        setShowReissueDialog(false)
+        dialogs.setShowReissueDialog(false)
         toast.success("Certificate reissued successfully")
         router.refresh()
       } else {
@@ -553,11 +571,13 @@ export function IntakeDetailClient({
         onResendCertificate={handleResendCertificate}
         onViewCertificate={handleViewCertificate}
         onCertPreviewConfirm={handleCertPreviewConfirm}
-        showReissueDialog={showReissueDialog}
-        setShowReissueDialog={setShowReissueDialog}
-        reissuePreviewData={reissuePreviewData}
+        onOpenParchmentPrescribe={parchmentEnabled ? handleOpenParchmentPrescribe : undefined}
+        showReissueDialog={dialogs.showReissueDialog}
+        setShowReissueDialog={dialogs.setShowReissueDialog}
+        reissuePreviewData={dialogs.reissuePreviewData}
         onReissueCertificate={handleReissueCertificate}
         onReissueConfirm={handleReissueConfirm}
+        certDelivery={certDelivery}
       />
 
       <IntakeDetailAnswers

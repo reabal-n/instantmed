@@ -446,7 +446,7 @@ All tables have RLS policies. PHI fields use AES-256-GCM field-level encryption.
 | **Patient** (14) | `/api/patient/*` | `certificates/[id]/download`, `documents/[intakeId]/download`, `get-invoices`, `download-invoice`, `health-profile`, `intake-status`, `messages` (GET/POST), `profile` (PATCH), `referral`, `refill-prescription`, `retry-payment`, `resend-confirmation`, `last-prescription`, `update-profile` |
 | **Med Cert** (2) | `/api/med-cert/*` | `preview` (GET), `render` (POST) |
 | **Stripe Portal** (1) | `/api/stripe/customer-portal` | POST → creates Stripe billing portal session for subscription management |
-| **Webhooks** (4) | `/api/stripe/webhook`, `/api/stripe/verify-payment`, `/api/webhooks/resend`, `/api/webhooks/telegram` | Per-provider signature verification; webhook handlers include `invoice.payment_succeeded`, `customer.subscription.deleted` |
+| **Webhooks** (5) | `/api/stripe/webhook`, `/api/stripe/verify-payment`, `/api/webhooks/resend`, `/api/webhooks/telegram`, `/api/webhooks/parchment` | Per-provider signature verification; webhook handlers include `invoice.payment_succeeded`, `customer.subscription.deleted`, `prescription.created` (Parchment) |
 | **Misc** (12) | Various | `/api/certificates/[id]/download`, `/api/health`, `/api/medications/search`, `/api/verify`, `/api/unsubscribe`, `/api/search`, `/api/profile/ensure` |
 
 ### Server-Only Module Pattern

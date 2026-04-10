@@ -18,13 +18,24 @@ import {
   FileSignature,
   Pause,
   Play,
+  Pill,
+  Link2,
 } from "lucide-react"
 import { Switch } from "@/components/ui/switch"
+import { Badge } from "@/components/ui/badge"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import {
   saveDoctorIdentityAction,
   uploadSignatureAction,
 } from "@/app/actions/doctor-identity"
 import { setDoctorAvailabilityAction } from "@/app/actions/doctor-availability"
+import { listParchmentUsersAction, linkParchmentUserAction } from "@/app/actions/parchment"
 import {
   validateProviderNumber,
   validateAhpraNumber,
@@ -33,9 +44,10 @@ import {
 
 interface IdentitySettingsClientProps {
   initialData: DoctorIdentity
+  parchmentUserId?: string | null
 }
 
-export function IdentitySettingsClient({ initialData }: IdentitySettingsClientProps) {
+export function IdentitySettingsClient({ initialData, parchmentUserId: initialParchmentUserId }: IdentitySettingsClientProps) {
   const [isPending, startTransition] = useTransition()
   const [message, setMessage] = useState<{
     type: "success" | "error"
@@ -54,6 +66,13 @@ export function IdentitySettingsClient({ initialData }: IdentitySettingsClientPr
 
   const [doctorAvailable, setDoctorAvailable] = useState(initialData.doctor_available !== false)
   const [availabilitySaving, setAvailabilitySaving] = useState(false)
+
+  // Parchment linking state
+  const [parchmentUserId, setParchmentUserId] = useState(initialParchmentUserId || "")
+  const [parchmentUsers, setParchmentUsers] = useState<Array<{ user_id: string; full_name: string }>>([])
+  const [parchmentLoading, setParchmentLoading] = useState(false)
+  const [parchmentLinking, setParchmentLinking] = useState(false)
+  const [selectedParchmentUser, setSelectedParchmentUser] = useState("")
 
   // Track changes
   const hasChanges =
@@ -145,6 +164,33 @@ export function IdentitySettingsClient({ initialData }: IdentitySettingsClientPr
     },
     []
   )
+
+  // Load Parchment users for linking
+  const handleLoadParchmentUsers = useCallback(async () => {
+    setParchmentLoading(true)
+    const result = await listParchmentUsersAction()
+    setParchmentLoading(false)
+    if (result.success && result.users) {
+      setParchmentUsers(result.users)
+    } else {
+      setMessage({ type: "error", text: result.error || "Failed to load Parchment users" })
+    }
+  }, [])
+
+  // Link Parchment account
+  const handleLinkParchment = useCallback(async () => {
+    if (!selectedParchmentUser) return
+    setParchmentLinking(true)
+    const result = await linkParchmentUserAction(selectedParchmentUser)
+    setParchmentLinking(false)
+    if (result.success) {
+      setParchmentUserId(selectedParchmentUser)
+      setMessage({ type: "success", text: "Parchment account linked successfully" })
+      setTimeout(() => setMessage(null), 5000)
+    } else {
+      setMessage({ type: "error", text: result.error || "Failed to link account" })
+    }
+  }, [selectedParchmentUser])
 
   const handleAvailabilityChange = useCallback(async (checked: boolean) => {
     setDoctorAvailable(checked)
@@ -372,6 +418,91 @@ export function IdentitySettingsClient({ initialData }: IdentitySettingsClientPr
               </p>
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Parchment Integration */}
+      <Card className="rounded-xl border-border/50">
+        <CardHeader className="py-3 px-4">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Pill className="h-4 w-4" />
+            Parchment ePrescribing
+          </CardTitle>
+          <CardDescription>
+            Link your Parchment Health account for embedded prescribing
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="px-4 py-3 space-y-4">
+          {parchmentUserId ? (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="text-success border-success-border bg-success-light/40">
+                  <Link2 className="h-3 w-3 mr-1" />
+                  Connected
+                </Badge>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-muted-foreground text-xs">Parchment User ID</Label>
+                <p className="text-sm font-mono">{parchmentUserId}</p>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="text-muted-foreground">
+                  Not connected
+                </Badge>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Link your account to prescribe directly from the intake review panel.
+              </p>
+              {parchmentUsers.length === 0 ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleLoadParchmentUsers}
+                  disabled={parchmentLoading}
+                >
+                  {parchmentLoading ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Link2 className="h-4 w-4 mr-2" />
+                  )}
+                  Link Parchment Account
+                </Button>
+              ) : (
+                <div className="space-y-3">
+                  <div className="space-y-2">
+                    <Label>Select your Parchment user</Label>
+                    <Select value={selectedParchmentUser} onValueChange={setSelectedParchmentUser}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a user…" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {parchmentUsers.map((u) => (
+                          <SelectItem key={u.user_id} value={u.user_id}>
+                            {u.full_name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <Button
+                    size="sm"
+                    onClick={handleLinkParchment}
+                    disabled={!selectedParchmentUser || parchmentLinking}
+                  >
+                    {parchmentLinking ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Link2 className="h-4 w-4 mr-2" />
+                    )}
+                    Confirm Link
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
 

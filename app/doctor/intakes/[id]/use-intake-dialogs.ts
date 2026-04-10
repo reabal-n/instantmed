@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from "react"
 import type { DeclineReasonCode } from "@/types/db"
+import type { CertificatePreviewData } from "@/components/doctor/certificate-preview-dialog"
 import { DECLINE_REASONS } from "./intake-detail-header"
 
 export interface IntakeDialogState {
@@ -25,6 +26,12 @@ export interface IntakeDialogState {
   showRefundDialog: boolean
   openRefundDialog: () => void
   closeRefundDialog: () => void
+
+  // Reissue
+  showReissueDialog: boolean
+  setShowReissueDialog: (val: boolean) => void
+  reissuePreviewData: CertificatePreviewData | null
+  setReissuePreviewData: (val: CertificatePreviewData | null) => void
 }
 
 export function useIntakeDialogs(initialOpenDecline = false): IntakeDialogState {
@@ -36,6 +43,8 @@ export function useIntakeDialogs(initialOpenDecline = false): IntakeDialogState 
   const [parchmentReference, setParchmentReference] = useState("")
 
   const [showRefundDialog, setShowRefundDialog] = useState(false)
+  const [showReissueDialog, setShowReissueDialog] = useState(false)
+  const [reissuePreviewData, setReissuePreviewData] = useState<CertificatePreviewData | null>(null)
 
   const openDeclineDialog = useCallback(() => setShowDeclineDialog(true), [])
   const closeDeclineDialog = useCallback(() => {
@@ -77,5 +86,9 @@ export function useIntakeDialogs(initialOpenDecline = false): IntakeDialogState 
     showRefundDialog,
     openRefundDialog,
     closeRefundDialog,
+    showReissueDialog,
+    setShowReissueDialog,
+    reissuePreviewData,
+    setReissuePreviewData,
   }
 }
