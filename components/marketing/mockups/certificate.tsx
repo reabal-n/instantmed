@@ -44,7 +44,7 @@ export function CertificateMockup() {
         <div className="flex items-end justify-between pt-1.5 border-t border-border/20">
           <div className="space-y-0.5">
             <div className="w-14 h-[3px] rounded bg-foreground/15 mb-0.5" />
-            <span className="text-[8px] font-medium text-foreground/70">Dr. S. Thompson</span>
+            <span className="text-[8px] font-medium text-foreground/70">Your GP</span>
             <span className="text-[7px] text-muted-foreground block">AHPRA: MED0001234567</span>
           </div>
           {/* Seal */}
