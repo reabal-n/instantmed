@@ -59,7 +59,7 @@ export function GoogleAdsCert({ size = "sm", className }: GoogleAdsCertProps) {
 
       <div className="leading-tight">
         <p className={cn("font-semibold text-foreground", isLarge ? "text-sm" : "text-xs")}>
-          Google Ads
+          Google
         </p>
         <p className={cn("text-muted-foreground", isLarge ? "text-xs" : "text-[10px]")}>
           Pharmacy Certified

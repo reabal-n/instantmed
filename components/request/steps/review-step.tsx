@@ -621,8 +621,10 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
               {serviceType === 'consult' ? "Money-back guarantee" : "Full refund if declined"}
             </span>
           </div>
-          <LegitScriptSeal size="sm" />
-          <GoogleAdsCert size="sm" />
+          <div className="flex items-center gap-3">
+            <LegitScriptSeal size="sm" />
+            <GoogleAdsCert size="sm" />
+          </div>
         </div>
       </div>
     </div>

@@ -228,12 +228,12 @@ export default function CertificateStep({ onNext }: CertificateStepProps) {
 
       {/* Start date */}
       <FormField
-        label="Start date"
+        label="When did your absence start?"
         required
-        hint="Certificates cover existing absences only — future dates are not available"
+        hint="Pick the first day you were too unwell to work or study — today is the latest you can select"
         helpContent={{
-          title: "Which date should I choose?",
-          content: "Select the first day you were unwell or unable to work/study. You can select up to 2 days ago. Future dates cannot be certified — for a planned or future absence, a consultation is required."
+          title: "Why can't I pick a future date?",
+          content: "Australian regulations require a doctor to certify an absence that has already occurred. If you need a certificate for a planned absence (e.g. surgery), a general consultation is required instead."
         }}
       >
         <Input
@@ -241,10 +241,9 @@ export default function CertificateStep({ onNext }: CertificateStepProps) {
           value={startDate}
           onChange={(e) => setAnswer("startDate", e.target.value)}
           className="h-11 mt-2"
-          min={(() => { const d = new Date(); d.setDate(d.getDate() - 2); return d.toISOString().split("T")[0] })()}
+          min={(() => { const d = new Date(); d.setDate(d.getDate() - 14); return d.toISOString().split("T")[0] })()}
           max={new Date().toISOString().split("T")[0]}
         />
-        <p className="text-xs text-muted-foreground mt-1">DD/MM/YYYY</p>
       </FormField>
 
       {/* Continue button */}

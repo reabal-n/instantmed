@@ -575,7 +575,7 @@ Dark mode: `rounded dark:bg-white/90 dark:p-0.5` — adds white backing for PNGs
 
 ---
 
-## 16. Do / Don't
+## 17. Do / Don't
 
 | Do | Don't |
 |----|-------|

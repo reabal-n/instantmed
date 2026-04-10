@@ -10,7 +10,7 @@ import { usePostHog } from "@/components/providers/posthog-provider"
 import { motion } from "framer-motion"
 import { useReducedMotion } from "@/components/ui/motion"
 import { stagger } from "@/lib/motion"
-import { Check, Shield, Clock, Smartphone, MessageSquare, Lock, ShieldCheck, UserX, Zap, RefreshCw } from "lucide-react"
+import { Check, Clock, Smartphone, MessageSquare, Lock, ShieldCheck, UserX, Zap, RefreshCw } from "lucide-react"
 import { Switch } from "@/components/ui/switch"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
@@ -72,10 +72,8 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
   const [estimatedWait, setEstimatedWait] = useState(serviceType === 'med-cert' ? "~30 min" : "1–2 hours")
   const [showCheckmark, setShowCheckmark] = useState(false)
   const [consentGiven, setConsentGiven] = useState(false)
-  // Default Express Review ON for med-cert only — auto-approval flow with smallest base
-  // price. AOV uplift +50% on cheapest service, lowest dark-pattern surface because
-  // it's a near-instant service anyway. Patient can untoggle in one click.
-  const [isPriority, setIsPriority] = useState(serviceType === 'med-cert')
+  // Express Review defaults OFF — patient opts in consciously
+  const [isPriority, setIsPriority] = useState(false)
   const isRepeatScript = serviceType === 'prescription' || serviceType === 'repeat-script'
   const [subscribeAndSave, setSubscribeAndSave] = useState(isRepeatScript) // Default ON for repeat scripts
 
@@ -285,17 +283,6 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
         </div>
       </motion.div>
 
-      {/* Trust badges */}
-      <motion.div variants={stagger.item} className="flex flex-wrap items-center justify-center gap-4 text-xs text-muted-foreground">
-        <span className="flex items-center gap-1">
-          <Shield className="w-3.5 h-3.5 text-primary" />
-          AHPRA-registered doctors
-        </span>
-        <span className="flex items-center gap-1">
-          <Clock className="w-3.5 h-3.5 text-primary" />
-          {estimatedWait} review
-        </span>
-      </motion.div>
 
       {/* What you'll get - prescription specific */}
       {(serviceType === 'prescription' || serviceType === 'repeat-script') && (
@@ -355,30 +342,30 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
         </motion.div>
       )}
 
-      {/* Express review toggle */}
+      {/* Express review toggle — opt-in only */}
       <motion.div variants={stagger.item}>
         <div
-          className={`w-full p-3.5 rounded-xl border-2 text-left transition-all duration-200 flex items-start gap-3 cursor-pointer ${
+          className={`w-full p-3.5 rounded-xl border text-left transition-all duration-200 flex items-start gap-3 cursor-pointer ${
             isPriority
-              ? "border-amber-400 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-500/60"
-              : "border-border hover:border-amber-300/60"
+              ? "border-amber-300/70 bg-amber-50/60 dark:bg-amber-950/20 dark:border-amber-600/40"
+              : "border-border/60 bg-muted/20 hover:border-border"
           }`}
           onClick={() => setIsPriority(!isPriority)}
         >
-          <span onClick={(e) => e.stopPropagation()} className="mt-1 shrink-0">
+          <span onClick={(e) => e.stopPropagation()} className="mt-0.5 shrink-0">
             <Switch
               checked={isPriority}
               onCheckedChange={setIsPriority}
             />
           </span>
           <div className="flex-1">
-            <div className="flex items-center gap-2">
-              <Zap className="w-4 h-4 text-amber-500" />
-              <span className="text-sm font-medium">Express Review</span>
-              <span className="text-xs font-semibold text-amber-600 dark:text-amber-400">+{PRICING_DISPLAY.PRIORITY_FEE}</span>
+            <div className="flex items-center gap-1.5">
+              <Zap className={`w-3.5 h-3.5 ${isPriority ? "text-amber-500" : "text-muted-foreground"}`} />
+              <span className={`text-sm font-medium ${isPriority ? "" : "text-muted-foreground"}`}>Express Review</span>
+              <span className="text-xs text-muted-foreground">+{PRICING_DISPLAY.PRIORITY_FEE}</span>
             </div>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Jump to the front of the queue. Your request gets priority review by our doctors.
+              Move to the front of the queue for priority review.
             </p>
           </div>
         </div>
