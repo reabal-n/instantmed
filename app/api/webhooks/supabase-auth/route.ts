@@ -110,19 +110,27 @@ export async function POST(req: Request) {
 
   // --- Verify Standard Webhooks signature ---
   const body = await req.text()
-  const headers = {
-    "webhook-id": req.headers.get("webhook-id") ?? "",
-    "webhook-timestamp": req.headers.get("webhook-timestamp") ?? "",
-    "webhook-signature": req.headers.get("webhook-signature") ?? "",
+  const svixHeaders = {
+    "webhook-id": req.headers.get("webhook-id") ?? req.headers.get("svix-id") ?? "",
+    "webhook-timestamp": req.headers.get("webhook-timestamp") ?? req.headers.get("svix-timestamp") ?? "",
+    "webhook-signature": req.headers.get("webhook-signature") ?? req.headers.get("svix-signature") ?? "",
   }
 
   let payload: SupabaseAuthHookPayload
 
   try {
-    const wh = new Webhook(hookSecret)
-    payload = wh.verify(body, headers) as SupabaseAuthHookPayload
+    // Strip "v1," prefix — svix expects "whsec_<base64>" only
+    const secret = hookSecret.startsWith("v1,") ? hookSecret.slice(3) : hookSecret
+    const wh = new Webhook(secret)
+    payload = wh.verify(body, svixHeaders) as SupabaseAuthHookPayload
   } catch (err) {
-    log.error("Webhook signature verification failed", {}, toError(err))
+    log.error("Webhook signature verification failed", {
+      hasWebhookId: !!svixHeaders["webhook-id"],
+      hasWebhookTimestamp: !!svixHeaders["webhook-timestamp"],
+      hasWebhookSignature: !!svixHeaders["webhook-signature"],
+      bodyLength: body.length,
+      bodyPreview: body.slice(0, 100),
+    }, toError(err))
     return NextResponse.json(
       { error: "Invalid webhook signature" },
       { status: 401 }
