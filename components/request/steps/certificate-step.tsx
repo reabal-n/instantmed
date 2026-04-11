@@ -1,14 +1,15 @@
 "use client"
 
 /**
- * Certificate Step — type + date range selection
+ * Certificate Step — type + duration + start date
  *
- * Date model: 5-chip range selector (-2 to +2 days from today).
- * Any contiguous range of 1–3 chips. No forced anchor on today.
- * Duration is derived from the selected range — no separate duration control.
+ * Date model: two-question layout.
+ * 1. How many days? (1/2/3 chips with prices)
+ * 2. Starting from? (4 chips: day before yesterday, yesterday, today, tomorrow)
+ * Certificates capped at 3 days max.
  */
 
-import { useState, useEffect, useCallback, useMemo, useRef } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { usePostHog } from "@/components/providers/posthog-provider"
 import { Briefcase, GraduationCap, Heart, Shield, ArrowRight } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -35,12 +36,16 @@ const CERT_TYPES = [
 ] as const
 
 type CertType = "work" | "study" | "carer"
+type Duration = 1 | 2 | 3
 
-// ─── Date range helpers ───────────────────────────────────────────────────
+const DURATION_OPTIONS: Duration[] = [1, 2, 3]
 
-/** Chips span -2 (2 days ago) → +2 (day after tomorrow) */
+// ─── Date helpers ─────────────────────────────────────────────────────────
+
 const WIN_MIN = -2
-const WIN_MAX = 2
+const WIN_MAX = 1
+
+const START_OFFSETS = [-2, -1, 0, 1] as const
 
 function offsetToDate(offset: number): Date {
   const d = new Date()
@@ -83,24 +88,23 @@ export default function CertificateStep({ onNext }: CertificateStepProps) {
   const posthog = usePostHog()
 
   const certType = answers.certType as CertType | undefined
-
-  // Offsets from today. null = nothing selected yet.
-  const [rangeStart, setRangeStart] = useState<number | null>(null)
-  const [rangeEnd, setRangeEnd] = useState<number | null>(null)
+  const [selectedDays, setSelectedDays] = useState<Duration | null>(null)
+  const [startOffset, setStartOffset] = useState<number | null>(null)
 
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [touched, setTouched] = useState<Record<string, boolean>>({})
 
-  const dateRef = useRef<HTMLDivElement>(null)
+  const durationRef = useRef<HTMLDivElement>(null)
+  const startDateRef = useRef<HTMLDivElement>(null)
 
-  // Restore range from store on mount (user navigating back)
+  // Restore from store on mount (user navigating back)
   useEffect(() => {
     if (answers.startDate && answers.duration) {
-      const startOffset = isoToOffset(answers.startDate as string)
-      if (startOffset !== null) {
-        const dur = Number(answers.duration)
-        setRangeStart(startOffset)
-        setRangeEnd(Math.min(startOffset + dur - 1, WIN_MAX))
+      const offset = isoToOffset(answers.startDate as string)
+      const dur = Number(answers.duration) as Duration
+      if (offset !== null && [1, 2, 3].includes(dur)) {
+        setStartOffset(offset)
+        setSelectedDays(dur)
       }
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
@@ -113,104 +117,20 @@ export default function CertificateStep({ onNext }: CertificateStepProps) {
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Derived
-  const duration =
-    rangeStart !== null && rangeEnd !== null ? rangeEnd - rangeStart + 1 : null
-  const price = duration
-    ? MED_CERT_DURATIONS.prices[duration as 1 | 2 | 3]
-    : null
-
-  // Sync to store on every range change
+  // Sync to store on every selection change
   useEffect(() => {
-    if (rangeStart !== null && rangeEnd !== null) {
-      setAnswer("startDate", offsetToISO(rangeStart))
-      setAnswer("duration", String(rangeEnd - rangeStart + 1))
+    if (startOffset !== null && selectedDays !== null) {
+      setAnswer("startDate", offsetToISO(startOffset))
+      setAnswer("duration", String(selectedDays))
     }
-  }, [rangeStart, rangeEnd, setAnswer])
+  }, [startOffset, selectedDays, setAnswer])
 
-  // ── Chip interaction ──────────────────────────────────────────────────
+  // Derived
+  const price = selectedDays ? MED_CERT_DURATIONS.prices[selectedDays] : null
+  const endOffset =
+    startOffset !== null && selectedDays !== null ? startOffset + selectedDays - 1 : null
 
-  const handleChipClick = useCallback(
-    (offset: number) => {
-      setErrors((prev) => {
-        const e = { ...prev }
-        delete e.dateRange
-        return e
-      })
-
-      if (rangeStart === null || rangeEnd === null) {
-        setRangeStart(offset)
-        setRangeEnd(offset)
-        return
-      }
-
-      if (offset < rangeStart) {
-        if (rangeEnd - offset + 1 <= 3) {
-          setRangeStart(offset) // extend left
-        } else {
-          setRangeStart(offset) // start fresh
-          setRangeEnd(offset)
-        }
-      } else if (offset > rangeEnd) {
-        if (offset - rangeStart + 1 <= 3) {
-          setRangeEnd(offset) // extend right
-        } else {
-          setRangeStart(offset) // start fresh
-          setRangeEnd(offset)
-        }
-      } else {
-        // Within current range
-        if (rangeStart === rangeEnd) return // single chip — no-op
-        if (offset === rangeStart) {
-          setRangeStart(rangeStart + 1) // contract left
-        } else if (offset === rangeEnd) {
-          setRangeEnd(rangeEnd - 1) // contract right
-        } else {
-          setRangeStart(offset) // reset to single
-          setRangeEnd(offset)
-        }
-      }
-    },
-    [rangeStart, rangeEnd]
-  )
-
-  // ── Extend-your-cover nudge ───────────────────────────────────────────
-
-  const nudge = useMemo(() => {
-    if (rangeStart === null || rangeEnd === null || duration !== 1) return null
-
-    // Future-only selection → offer to add the day before (toward today)
-    if (rangeStart > 0 && rangeStart > WIN_MIN) {
-      return {
-        text: `Add ${summaryLabel(rangeStart - 1).toLowerCase()} for $10 more`,
-        onApply: () => setRangeStart((s) => (s !== null ? s - 1 : s)),
-      }
-    }
-
-    // Today or past → offer to add tomorrow
-    if (rangeEnd < WIN_MAX) {
-      const nextLabel = summaryLabel(rangeEnd + 1).toLowerCase()
-      return {
-        text:
-          rangeStart === 0
-            ? `Add tomorrow for $10 more — covers your recovery period`
-            : `Add ${nextLabel} for $10 more`,
-        onApply: () => setRangeEnd((e) => (e !== null ? e + 1 : e)),
-      }
-    }
-
-    // At right edge, try extending left
-    if (rangeStart > WIN_MIN) {
-      return {
-        text: `Add ${summaryLabel(rangeStart - 1).toLowerCase()} for $10 more`,
-        onApply: () => setRangeStart((s) => (s !== null ? s - 1 : s)),
-      }
-    }
-
-    return null
-  }, [rangeStart, rangeEnd, duration])
-
-  // ── Cert type click (with auto-advance) ──────────────────────────────
+  // ── Cert type click ───────────────────────────────────────────────────
 
   const handleCertTypeClick = useCallback(
     (typeId: string) => {
@@ -221,51 +141,77 @@ export default function CertificateStep({ onNext }: CertificateStepProps) {
         return e
       })
       setTimeout(() => {
-        dateRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" })
+        durationRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" })
       }, 300)
     },
     [setAnswer]
   )
+
+  // ── Duration click ────────────────────────────────────────────────────
+
+  const handleDaysClick = useCallback(
+    (days: Duration) => {
+      setSelectedDays(days)
+      setErrors((prev) => {
+        const e = { ...prev }
+        delete e.duration
+        return e
+      })
+      if (startOffset === null) {
+        setTimeout(() => {
+          startDateRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" })
+        }, 300)
+      }
+    },
+    [startOffset]
+  )
+
+  // ── Start date click ──────────────────────────────────────────────────
+
+  const handleStartOffsetClick = useCallback((offset: number) => {
+    setStartOffset(offset)
+    setErrors((prev) => {
+      const e = { ...prev }
+      delete e.startDate
+      return e
+    })
+  }, [])
 
   // ── Validation + submit ───────────────────────────────────────────────
 
   const validate = useCallback(() => {
     const newErrors: Record<string, string> = {}
     if (!certType) newErrors.certType = "Please select certificate type"
-    if (rangeStart === null || rangeEnd === null)
-      newErrors.dateRange = "Please select your absence dates"
+    if (!selectedDays) newErrors.duration = "Please select how many days"
+    if (startOffset === null) newErrors.startDate = "Please select a start date"
     setErrors(newErrors)
-    setTouched({ certType: true, dateRange: true })
+    setTouched({ certType: true, duration: true, startDate: true })
     return Object.keys(newErrors).length === 0
-  }, [certType, rangeStart, rangeEnd])
+  }, [certType, selectedDays, startOffset])
 
   const handleNext = useCallback(() => {
     if (validate()) {
       savePreferences({ preferredCertType: certType })
-      recordStepCompletion("certificate", {
-        certType,
-        duration: String(duration),
+      recordStepCompletion("certificate", { certType, duration: String(selectedDays) })
+      posthog?.capture("step_completed", {
+        step: "certificate",
+        cert_type: certType,
+        duration: selectedDays,
       })
-      posthog?.capture('step_completed', { step: 'certificate', cert_type: certType, duration })
       onNext()
     }
-  }, [validate, certType, duration, posthog, onNext])
+  }, [validate, certType, selectedDays, posthog, onNext])
 
   const canContinue =
     !!certType &&
-    rangeStart !== null &&
-    rangeEnd !== null &&
+    selectedDays !== null &&
+    startOffset !== null &&
     Object.keys(errors).length === 0
 
   useKeyboardNavigation({
     onNext: canContinue ? handleNext : undefined,
     enabled: Boolean(canContinue),
   })
-
-  const chips = useMemo(
-    () => Array.from({ length: WIN_MAX - WIN_MIN + 1 }, (_, i) => WIN_MIN + i),
-    []
-  )
 
   // ── Render ────────────────────────────────────────────────────────────
 
@@ -326,111 +272,110 @@ export default function CertificateStep({ onNext }: CertificateStepProps) {
         </div>
       </FormField>
 
-      {/* Date range picker */}
-      <div ref={dateRef}>
+      {/* How many days? */}
+      <div ref={durationRef}>
         <FormField
-          label="Which days do you need covered?"
+          label="How many days?"
           required
-          error={touched.dateRange ? errors.dateRange : undefined}
-          hint={
-            rangeStart === null
-              ? "Tap a day to select it. Tap adjacent days to extend the range — up to 3 days."
-              : undefined
-          }
+          error={touched.duration ? errors.duration : undefined}
           helpContent={{
-            title: "Can I include future dates?",
+            title: "Which duration do I need?",
             content:
-              "Yes — if you're unwell now but worked today, you can select just tomorrow or the day after. A doctor reviews your dates and approves based on your symptoms.",
+              "Select the number of days you were unable to work or study. Certificates are capped at 3 days — for longer periods, please see your GP.",
           }}
         >
-          <div className="mt-2 space-y-3">
-            {/* 5-chip range row */}
-            <div className="flex gap-1.5" role="group" aria-label="Certificate dates">
-              {chips.map((offset) => {
-                const inRange =
-                  rangeStart !== null &&
-                  rangeEnd !== null &&
-                  offset >= rangeStart &&
-                  offset <= rangeEnd
-                const isStart = offset === rangeStart
-                const isEnd = offset === rangeEnd
-                const isSingle = isStart && isEnd && inRange
-
-                return (
-                  <button
-                    key={offset}
-                    type="button"
-                    aria-pressed={inRange}
-                    onClick={() => handleChipClick(offset)}
+          <div className="flex gap-2 mt-2">
+            {DURATION_OPTIONS.map((days) => {
+              const p = MED_CERT_DURATIONS.prices[days]
+              const isSelected = selectedDays === days
+              return (
+                <button
+                  key={days}
+                  type="button"
+                  aria-pressed={isSelected}
+                  onClick={() => handleDaysClick(days)}
+                  className={cn(
+                    "flex-1 flex flex-col items-center gap-0.5 py-3 rounded-xl text-sm font-medium border transition-all duration-150 touch-manipulation",
+                    isSelected
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-background text-foreground border-border/60 hover:border-primary/50 hover:bg-primary/5"
+                  )}
+                >
+                  <span>
+                    {days} {days === 1 ? "day" : "days"}
+                  </span>
+                  <span
                     className={cn(
-                      "flex-1 py-2.5 text-xs font-medium transition-all duration-150 touch-manipulation min-w-0",
-                      inRange
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-background text-foreground border border-border/60 hover:border-primary/50 hover:bg-primary/5 rounded-xl",
-                      inRange &&
-                        (isSingle
-                          ? "rounded-xl"
-                          : isStart
-                          ? "rounded-l-xl rounded-r-sm"
-                          : isEnd
-                          ? "rounded-r-xl rounded-l-sm"
-                          : "rounded-sm")
+                      "text-xs",
+                      isSelected ? "text-primary-foreground/80" : "text-muted-foreground"
                     )}
                   >
-                    {chipLabel(offset)}
-                  </button>
-                )
-              })}
-            </div>
-
-            {/* Live summary card */}
-            {rangeStart !== null && rangeEnd !== null && duration && price && (
-              <div className="flex items-center justify-between px-3 py-2.5 rounded-xl bg-primary/5 border border-primary/15">
-                <div>
-                  <p className="text-xs font-medium text-foreground">
-                    {rangeStart === rangeEnd
-                      ? `${summaryLabel(rangeStart)} · 1 day`
-                      : `${summaryLabel(rangeStart)} → ${summaryLabel(rangeEnd)} · ${duration} days`}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    No waiting rooms · reviewed within ~1 hour
-                  </p>
-                </div>
-                <span className="text-base font-semibold text-primary shrink-0 ml-3">
-                  ${price}
-                </span>
-              </div>
-            )}
-
-            {/* Extend-your-cover nudge */}
-            {nudge && (
-              <div className="flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-800/40">
-                <p className="text-xs text-amber-800 dark:text-amber-300 leading-snug">
-                  {nudge.text}
-                </p>
-                <button
-                  type="button"
-                  onClick={nudge.onApply}
-                  className="shrink-0 text-xs font-semibold text-amber-700 dark:text-amber-300 underline underline-offset-2 hover:text-amber-900 dark:hover:text-amber-100 transition-colors whitespace-nowrap"
-                >
-                  Add →
+                    ${p}
+                  </span>
                 </button>
-              </div>
-            )}
-
-            <p className="text-xs text-muted-foreground">
-              Need more than 3 days?{" "}
-              <a
-                href="/request"
-                className="text-primary underline underline-offset-2 hover:text-primary/80"
-              >
-                Book a consultation
-              </a>
-              .
-            </p>
+              )
+            })}
           </div>
         </FormField>
       </div>
+
+      {/* Starting from? */}
+      <div ref={startDateRef}>
+        <FormField
+          label="Starting from?"
+          required
+          error={touched.startDate ? errors.startDate : undefined}
+          helpContent={{
+            title: "Can I include future dates?",
+            content:
+              "Yes — if you're already unwell but need to cover tomorrow too, select today as the start date. A doctor reviews your dates based on your symptoms.",
+          }}
+        >
+          <div className="flex gap-1.5 mt-2">
+            {START_OFFSETS.map((offset) => {
+              const isSelected = startOffset === offset
+              return (
+                <button
+                  key={offset}
+                  type="button"
+                  aria-pressed={isSelected}
+                  onClick={() => handleStartOffsetClick(offset)}
+                  className={cn(
+                    "flex-1 py-2.5 text-xs font-medium rounded-xl border transition-all duration-150 touch-manipulation",
+                    isSelected
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-background text-foreground border-border/60 hover:border-primary/50 hover:bg-primary/5"
+                  )}
+                >
+                  {chipLabel(offset)}
+                </button>
+              )
+            })}
+          </div>
+        </FormField>
+      </div>
+
+      {/* Live summary card */}
+      {selectedDays !== null && startOffset !== null && endOffset !== null && price && (
+        <div className="flex items-center justify-between px-3 py-2.5 rounded-xl bg-primary/5 border border-primary/15">
+          <div>
+            <p className="text-xs font-medium text-foreground">
+              {selectedDays === 1
+                ? `${summaryLabel(startOffset)} · 1 day`
+                : `${summaryLabel(startOffset)} → ${summaryLabel(endOffset)} · ${selectedDays} days`}
+            </p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              No waiting rooms · reviewed within ~1 hour
+            </p>
+          </div>
+          <span className="text-base font-semibold text-primary shrink-0 ml-3">${price}</span>
+        </div>
+      )}
+
+      {/* GP note — longer absences */}
+      <p className="text-xs text-muted-foreground">
+        Need more than 3 days off? Please visit your GP for an extended certificate.
+      </p>
 
       {/* Continue */}
       <Button onClick={handleNext} className="w-full h-12" disabled={!canContinue}>
