@@ -1,10 +1,31 @@
 import { Webhook } from 'svix'
 import { headers } from 'next/headers'
-import { WebhookEvent } from '@clerk/nextjs/server'
+
 import { createServiceRoleClient } from '@/lib/supabase/service-role'
 import { createLogger } from '@/lib/observability/logger'
 import { toError } from "@/lib/errors"
 import { sendClerkVerificationEmail } from '@/lib/email/clerk-emails'
+
+interface ClerkEmailAddress {
+  id: string
+  email_address: string
+}
+
+interface WebhookEvent {
+  type: string
+  data: {
+    id?: string
+    email_addresses?: ClerkEmailAddress[]
+    primary_email_address_id?: string
+    first_name?: string | null
+    last_name?: string | null
+    image_url?: string | null
+    to_email_address?: string
+    slug?: string
+    data?: Record<string, string>
+    template_variables?: Record<string, string>
+  }
+}
 
 /** Escape ILIKE special characters to prevent wildcard injection */
 function escapeIlike(input: string): string {
