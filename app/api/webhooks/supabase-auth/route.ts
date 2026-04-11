@@ -17,9 +17,9 @@
 import { NextResponse } from "next/server"
 import { Webhook } from "svix"
 import React from "react"
-import ReactDOMServer from "react-dom/server"
 
 import { toError } from "@/lib/errors"
+import { renderEmailToHtml } from "@/lib/email/react-renderer-server"
 import { MagicLinkEmail } from "@/components/email/templates/magic-link"
 import { applyRateLimit, getClientIdentifier } from "@/lib/rate-limit/redis"
 
@@ -155,11 +155,12 @@ export async function POST(req: Request) {
 
   const subject = getSubject(emailData.email_action_type, firstName)
 
-  // --- Render email ---
+  // --- Render email (uses dynamic import of react-dom/server internally) ---
   let html: string
   try {
-    const element = React.createElement(MagicLinkEmail, { loginUrl: verifyUrl, appUrl })
-    html = "<!DOCTYPE html>" + ReactDOMServer.renderToStaticMarkup(element)
+    html = await renderEmailToHtml(
+      React.createElement(MagicLinkEmail, { loginUrl: verifyUrl, appUrl })
+    )
     console.log("[auth-webhook] Step 5: rendered", html.length, "chars")
   } catch (err) {
     console.error("[auth-webhook] FAIL: Render:", toError(err).message)
