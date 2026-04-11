@@ -221,6 +221,8 @@ export interface Intake {
   payment_status: string
   claimed_by: string | null
   claimed_at: string | null
+  parchment_reference: string | null
+  script_sent: boolean | null
   created_at: string
   updated_at: string
 }

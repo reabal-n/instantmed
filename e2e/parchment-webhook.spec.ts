@@ -19,7 +19,6 @@
 import { createHmac, randomUUID } from "crypto"
 import { test, expect } from "@playwright/test"
 import {
-  getSupabaseClient,
   isDbAvailable,
   seedTestIntake,
   cleanupTestIntake,
