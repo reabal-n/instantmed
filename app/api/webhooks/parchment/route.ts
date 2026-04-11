@@ -5,6 +5,24 @@ import { webhookPayloadSchema } from "@/lib/parchment/types"
 import { updateScriptSent } from "@/lib/data/intakes"
 import { createLogger } from "@/lib/observability/logger"
 import * as Sentry from "@sentry/nextjs"
+import { Redis } from "@upstash/redis"
+
+// Short-lived Redis dedup key — 60s window catches rapid duplicate deliveries
+// before the DB claim write completes. Fails open if Redis is unavailable.
+const redis = process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
+  ? Redis.fromEnv()
+  : null
+
+async function acquireWebhookLock(scid: string): Promise<boolean> {
+  if (!redis) return true // fail open
+  try {
+    // SET NX EX 60 — returns "OK" if set, null if key already exists
+    const result = await redis.set(`parchment:lock:${scid}`, "1", { nx: true, ex: 60 })
+    return result === "OK"
+  } catch {
+    return true // fail open on Redis error
+  }
+}
 
 const log = createLogger("parchment-webhook")
 
@@ -76,6 +94,14 @@ export async function POST(request: Request) {
   }
 
   const { patient_id, partner_patient_id, scid, user_id } = payload.data
+
+  // Fast-path dedup: Redis lock prevents duplicate processing within 60s.
+  // Falls through to DB-level idempotency check on cache miss or Redis error.
+  const lockAcquired = await acquireWebhookLock(scid)
+  if (!lockAcquired) {
+    log.info("Webhook deduplicated via Redis lock", { scid, eventId: payload.event_id })
+    return NextResponse.json({ received: true, deduplicated: true })
+  }
 
   log.info("Processing prescription.created webhook", {
     eventId: payload.event_id,

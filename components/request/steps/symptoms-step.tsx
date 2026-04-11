@@ -225,13 +225,20 @@ export default function SymptomsStep({ serviceType, onNext }: SymptomsStepProps)
             ))}
           </div>
           {symptomDuration === "week_plus" && (
-            <p className="text-xs text-muted-foreground">
-              Ongoing symptoms may benefit from a{" "}
-              <a href="/request" className="text-primary underline underline-offset-2 hover:text-primary/80">
-                consultation
-              </a>{" "}
-              for a more thorough assessment.
-            </p>
+            <div className="rounded-lg border border-primary/20 bg-primary/5 px-3 py-2.5 space-y-1">
+              <p className="text-xs font-medium text-foreground">Ongoing for a week?</p>
+              <p className="text-xs text-muted-foreground">
+                A{" "}
+                <a
+                  href="/request?service=consult"
+                  className="text-primary underline underline-offset-2 hover:text-primary/80"
+                >
+                  general consult ($49.95)
+                </a>{" "}
+                gives you a more thorough assessment — recommended for symptoms that aren&apos;t improving.
+                You can still continue with a certificate below.
+              </p>
+            </div>
           )}
         </div>
       </FormField>

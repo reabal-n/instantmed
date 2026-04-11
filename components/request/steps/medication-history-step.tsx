@@ -74,7 +74,7 @@ export default function MedicationHistoryStep({ serviceType, onNext, onBack }: M
       posthog?.capture('step_completed', { step: 'medication-history', service_type: serviceType, prescription_history: prescriptionHistory, has_side_effects: hasSideEffects })
       onNext()
     }
-  }, [validate, posthog, prescriptionHistory, hasSideEffects, onNext])
+  }, [validate, posthog, serviceType, prescriptionHistory, hasSideEffects, onNext])
 
   const isNeverPrescribed = prescriptionHistory === "never"
   const isComplete = prescriptionHistory && !isNeverPrescribed && (hasSideEffects === false || (hasSideEffects && sideEffects.trim()))

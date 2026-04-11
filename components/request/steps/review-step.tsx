@@ -5,7 +5,7 @@
  * Shows all collected information for patient to verify
  */
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { usePostHog } from "posthog-js/react"
 import { Edit2, ChevronDown, ChevronUp, ShieldCheck, RefreshCw, Zap } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -110,6 +110,7 @@ function ReviewSection({
 export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
   const { answers, firstName, lastName, email, phone, dob, goToStep, safetyConfirmed, setSafetyConfirmed } = useRequestStore()
   const posthog = usePostHog()
+  const consentRef = useRef<HTMLDivElement>(null)
 
   const handleContinue = () => {
     posthog?.capture('step_completed', {
@@ -119,6 +120,12 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
       has_safety_consent: safetyConfirmed,
     })
     onNext()
+  }
+
+  const handleDisabledClick = () => {
+    consentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    // Focus the checkbox to make the requirement visually obvious
+    consentRef.current?.querySelector('button')?.focus()
   }
 
   // Build review sections based on service type
@@ -561,7 +568,7 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
           )
         })()}
 
-        <div className={`rounded-2xl border p-4 transition-colors duration-200 ${safetyConfirmed ? 'border-border/50 dark:border-white/10 bg-muted/30 dark:bg-white/5' : 'border-amber-200/60 dark:border-amber-800/40 bg-amber-50/40 dark:bg-amber-950/20'}`}>
+        <div ref={consentRef} className={`rounded-2xl border p-4 transition-colors duration-200 ${safetyConfirmed ? 'border-border/50 dark:border-white/10 bg-muted/30 dark:bg-white/5' : 'border-amber-200/60 dark:border-amber-800/40 bg-amber-50/40 dark:bg-amber-950/20'}`}>
           <div className="flex items-start gap-3">
             <Checkbox
               id="safety-consent"
@@ -581,9 +588,12 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
           )}
         </div>
 
-        <Button onClick={handleContinue} className="w-full h-12" disabled={!safetyConfirmed}>
-          Continue to payment
-        </Button>
+        {/* Wrapper captures click even when inner button is disabled — scrolls to consent */}
+        <div onClick={!safetyConfirmed ? handleDisabledClick : undefined} className="w-full">
+          <Button onClick={handleContinue} className="w-full h-12" disabled={!safetyConfirmed}>
+            Continue to payment
+          </Button>
+        </div>
 
         <p className="text-center text-[11px] text-muted-foreground/60 flex items-center justify-center gap-1">
           <Zap className="w-3 h-3 text-amber-400" />
