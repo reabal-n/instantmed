@@ -16,6 +16,7 @@ import { createLogger } from "@/lib/observability/logger"
 import { toError } from "@/lib/errors"
 import { renderEmailToHtml } from "@/lib/email/react-renderer-server"
 import { MagicLinkEmail } from "@/components/email/templates/magic-link"
+import { applyRateLimit, getClientIdentifier } from "@/lib/rate-limit/redis"
 
 const log = createLogger("supabase-auth-webhook")
 
@@ -80,6 +81,11 @@ function getSubject(actionType: string, firstName?: string): string {
 // --- Route Handler ---
 
 export async function POST(req: Request) {
+  // Rate limit: 30 requests/min. Fail-open if Redis is unavailable.
+  const identifier = getClientIdentifier(req) || "supabase-auth-webhook"
+  const rateLimitResponse = await applyRateLimit(req, "webhookAuth", identifier)
+  if (rateLimitResponse) return rateLimitResponse
+
   const hookSecret = process.env.SUPABASE_AUTH_WEBHOOK_HOOK_SECRET
   if (!hookSecret) {
     log.error("Missing SUPABASE_AUTH_WEBHOOK_HOOK_SECRET")
