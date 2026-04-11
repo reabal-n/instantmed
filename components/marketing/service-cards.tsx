@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { ArrowRight, AlertCircle } from 'lucide-react'
+import { ArrowRight, AlertCircle, Check } from 'lucide-react'
 import { serviceCategories } from '@/lib/marketing/homepage'
 import { motion, type Variants } from 'framer-motion'
 import { useReducedMotion } from '@/components/ui/motion'
@@ -83,7 +83,7 @@ function ServiceCard({ service, disabled }: ServiceCardProps) {
           'transition-all duration-300',
           disabled && 'opacity-60',
           !disabled && [
-            'hover:shadow-xl hover:shadow-primary/[0.1] hover:-translate-y-1',
+            'hover:shadow-xl hover:shadow-primary/[0.1] hover:-translate-y-1 hover:border-primary/30',
             service.popular && 'ring-2 ring-primary/30 dark:ring-accent-teal/20 shadow-xl shadow-primary/[0.08]',
           ],
         )}>
@@ -98,10 +98,22 @@ function ServiceCard({ service, disabled }: ServiceCardProps) {
             From ${service.priceFrom.toFixed(2)}
           </p>
 
-          {/* Description (2-line) */}
-          <p className="text-sm text-muted-foreground line-clamp-2 mb-4 flex-1">
+          {/* Description */}
+          <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
             {service.description}
           </p>
+
+          {/* Feature checkmarks */}
+          {service.benefits && (
+            <ul className="space-y-1.5 mb-4 flex-1">
+              {service.benefits.map((benefit, idx) => (
+                <li key={idx} className="flex items-start gap-2 text-sm text-muted-foreground">
+                  <Check className="h-3.5 w-3.5 text-emerald-500 dark:text-emerald-400 mt-0.5 shrink-0" />
+                  <span>{benefit}</span>
+                </li>
+              ))}
+            </ul>
+          )}
 
           {/* CTA */}
           {disabled ? (
@@ -145,7 +157,7 @@ function ComingSoonCard({ service }: ComingSoonCardProps) {
         'opacity-75',
       )}>
         {/* Icon */}
-        <ServiceIconTile iconKey={service.icon} color={service.color} size="lg" className="mb-4" />
+        <ServiceIconTile iconKey={service.icon} color={service.color} size="lg" className="mb-4 grayscale opacity-60" />
 
         {/* Title + Price */}
         <h3 className="text-base font-semibold text-foreground mb-0.5">
@@ -155,10 +167,22 @@ function ComingSoonCard({ service }: ComingSoonCardProps) {
           From ${service.priceFrom.toFixed(2)}
         </p>
 
-        {/* Description (2-line) */}
-        <p className="text-sm text-muted-foreground line-clamp-2 mb-4 flex-1">
+        {/* Description */}
+        <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
           {service.description}
         </p>
+
+        {/* Feature checkmarks (muted for coming soon) */}
+        {service.benefits && (
+          <ul className="space-y-1.5 mb-4 flex-1">
+            {service.benefits.map((benefit, idx) => (
+              <li key={idx} className="flex items-start gap-2 text-sm text-muted-foreground/70">
+                <Check className="h-3.5 w-3.5 text-muted-foreground/40 mt-0.5 shrink-0" />
+                <span>{benefit}</span>
+              </li>
+            ))}
+          </ul>
+        )}
 
         {/* Waitlist CTA */}
         <WaitlistForm serviceId={service.id} />
