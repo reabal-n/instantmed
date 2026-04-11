@@ -10,7 +10,7 @@ import { usePostHog } from "@/components/providers/posthog-provider"
 import { motion } from "framer-motion"
 import { useReducedMotion } from "@/components/ui/motion"
 import { stagger } from "@/lib/motion"
-import { Check, Clock, Smartphone, MessageSquare, Lock, ShieldCheck, UserX, Zap, RefreshCw } from "lucide-react"
+import { Check, Clock, Smartphone, MessageSquare, Lock, ShieldCheck, UserX, RefreshCw } from "lucide-react"
 import { Switch } from "@/components/ui/switch"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
@@ -198,7 +198,7 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
       )}
 
       {/* Summary card */}
-      <motion.div variants={stagger.item} className="p-4 rounded-xl border bg-card space-y-3">
+      <motion.div variants={stagger.item} className="p-4 rounded-2xl border border-border/50 bg-white dark:bg-card shadow-md shadow-primary/[0.06] space-y-3">
         <h3 className="text-sm font-medium flex items-center gap-2">
           <Check className="w-4 h-4 text-primary" />
           Request Summary
@@ -335,17 +335,21 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
         </motion.div>
       )}
 
-      {/* Express review toggle - opt-in only */}
+      {/* Express review toggle - opt-in, understated */}
       <motion.div variants={stagger.item}>
         <div
-          className={`w-full p-3.5 rounded-xl border text-left transition-all duration-200 flex items-start gap-3 cursor-pointer ${
+          className={`w-full px-3.5 py-3 rounded-xl border text-left transition-all duration-200 flex items-center gap-3 cursor-pointer ${
             isPriority
-              ? "border-amber-300/70 bg-amber-50/60 dark:bg-amber-950/20 dark:border-amber-600/40"
-              : "border-border/60 bg-muted/20 hover:border-border"
+              ? "border-primary/30 bg-primary/[0.03]"
+              : "border-border/40 hover:border-border/60"
           }`}
-          onClick={() => setIsPriority(!isPriority)}
+          onClick={() => {
+            const next = !isPriority
+            setIsPriority(next)
+            if (next) posthog?.capture('express_review_opted_in', { service_type: serviceType })
+          }}
         >
-          <span onClick={(e) => e.stopPropagation()} className="mt-0.5 shrink-0">
+          <span onClick={(e) => e.stopPropagation()} className="shrink-0">
             <Switch
               checked={isPriority}
               onCheckedChange={(val) => {
@@ -354,15 +358,11 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
               }}
             />
           </span>
-          <div className="flex-1">
-            <div className="flex items-center gap-1.5">
-              <Zap className={`w-3.5 h-3.5 ${isPriority ? "text-amber-500" : "text-muted-foreground"}`} />
-              <span className={`text-sm font-medium ${isPriority ? "" : "text-muted-foreground"}`}>Express Review</span>
-              <span className="text-xs text-muted-foreground">+{PRICING_DISPLAY.PRIORITY_FEE}</span>
-            </div>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Move to the front of the queue for priority review.
-            </p>
+          <div className="flex-1 flex items-center justify-between gap-2">
+            <span className="text-sm text-muted-foreground">
+              Express Review
+            </span>
+            <span className="text-xs text-muted-foreground/70">+{PRICING_DISPLAY.PRIORITY_FEE}</span>
           </div>
         </div>
       </motion.div>

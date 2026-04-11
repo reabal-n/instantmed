@@ -68,7 +68,7 @@ export default function EdGoalsStep({ onNext }: EdGoalsStepProps) {
   return (
     <div className="space-y-6">
       {/* Age gate */}
-      <div className="flex items-start gap-3 p-4 rounded-xl border bg-muted/30">
+      <div className="flex items-start gap-3 p-4 rounded-2xl border border-border/50 bg-white dark:bg-card shadow-md shadow-primary/[0.06]">
         <Switch
           id="edAgeConfirmed"
           checked={edAgeConfirmed === true}
@@ -178,6 +178,11 @@ export default function EdGoalsStep({ onNext }: EdGoalsStepProps) {
           "Continue"
         )}
       </Button>
+      {isComplete && (
+        <p className="text-[11px] text-muted-foreground/60 text-center hidden sm:block">
+          Press Enter to continue
+        </p>
+      )}
     </div>
   )
 }

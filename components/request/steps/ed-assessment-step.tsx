@@ -357,15 +357,17 @@ export default function EdAssessmentStep({ onNext, onBack }: EdAssessmentStepPro
         )}
       </AnimatePresence>
 
-      {/* Info note */}
+      {/* Science footnote */}
       <motion.div
         variants={itemVariants}
         className="flex items-start gap-2 px-1"
       >
         <Info className="w-3.5 h-3.5 text-muted-foreground shrink-0 mt-0.5" />
         <p className="text-xs text-muted-foreground leading-relaxed">
-          Based on the IIEF-5 (Rosen et al., 1999), a validated questionnaire
-          used by doctors worldwide to assess erectile function.
+          These questions are from the{" "}
+          <span className="font-medium text-foreground/70">IIEF-5</span>, a
+          clinically validated assessment used by doctors in over 30 countries.
+          <span className="text-muted-foreground/60 ml-1">(Rosen et al., J Urology, 1999)</span>
         </p>
       </motion.div>
 
@@ -385,6 +387,11 @@ export default function EdAssessmentStep({ onNext, onBack }: EdAssessmentStepPro
             "Continue"
           )}
         </Button>
+        {allAnswered && (
+          <p className="text-[11px] text-muted-foreground/60 text-center hidden sm:block mt-2">
+            Press Enter to continue
+          </p>
+        )}
       </motion.div>
     </motion.div>
   )

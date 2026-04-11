@@ -186,6 +186,11 @@ export default function EdPreferencesStep({ onNext }: EdPreferencesStepProps) {
           "Continue"
         )}
       </Button>
+      {isComplete && (
+        <p className="text-[11px] text-muted-foreground/60 text-center hidden sm:block">
+          Press Enter to continue
+        </p>
+      )}
     </div>
   )
 }
