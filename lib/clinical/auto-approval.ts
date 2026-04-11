@@ -314,6 +314,11 @@ export function evaluateAutoApprovalEligibility(
   const symptomCount = Array.isArray(answers?.symptoms) ? (answers.symptoms as unknown[]).length : 0
   const hasCoSymptoms = symptomCount >= 2
 
+  // Track which entries in flags[] originated from soft-block keyword lists
+  // (as opposed to hard-block lists or structural checks like empty_symptom_text).
+  // Used below to determine whether ALL flags are soft-origin (enabling fast-paths).
+  const softOriginFlags = new Set<string>()
+
   // 3. Emergency symptoms (always hard-block)
   const emergencyResult = checkEmergencySymptoms(symptomText)
   if (emergencyResult.isEmergency) {
@@ -338,7 +343,9 @@ export function evaluateAutoApprovalEligibility(
     if (hasCoSymptoms) {
       softFlags.push(...softMentalHealthMatches.map(k => `${k}_co_symptom`))
     } else {
-      flags.push(`mental_health: ${softMentalHealthMatches.join(", ")}`)
+      const f = `mental_health: ${softMentalHealthMatches.join(", ")}`
+      flags.push(f)
+      softOriginFlags.add(f)
     }
   }
 
@@ -354,6 +361,8 @@ export function evaluateAutoApprovalEligibility(
     if (hasCoSymptoms) {
       softFlags.push(...softInjuryMatches.map(k => `${k}_co_symptom`))
     } else {
+      // Intentionally NOT added to softOriginFlags — injury soft-flags always
+      // require doctor review even for 1-day certs (workers comp risk)
       flags.push(`injury: ${softInjuryMatches.join(", ")}`)
     }
   }
@@ -370,7 +379,9 @@ export function evaluateAutoApprovalEligibility(
     if (hasCoSymptoms) {
       softFlags.push(...softChronicMatches.map(k => `${k}_co_symptom`))
     } else {
-      flags.push(`chronic: ${softChronicMatches.join(", ")}`)
+      const f = `chronic: ${softChronicMatches.join(", ")}`
+      flags.push(f)
+      softOriginFlags.add(f)
     }
   }
 
@@ -414,7 +425,10 @@ export function evaluateAutoApprovalEligibility(
 
   // TUNING: For 1-day certificates with mild common symptoms, allow auto-approval
   // even if soft-block keywords are present. These are the most common and lowest-risk requests.
-  const hasOnlySoftFlags = flags.length > 0 && flags.every(f => softFlags.includes(f))
+  // hasOnlySoftFlags: every flag in flags[] originated from a soft-block keyword list
+  // (tracked via softOriginFlags). Hard-block lists, emergency checks, and structural
+  // checks (empty_symptom_text, duration_unknown) are never soft-origin.
+  const hasOnlySoftFlags = flags.length > 0 && flags.every(f => softOriginFlags.has(f))
   if (hasOnlySoftFlags && durationDays === 1) {
     return result({
       eligible: true,

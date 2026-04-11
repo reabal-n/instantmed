@@ -293,6 +293,7 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
         status,
         subtype,
         patient_id,
+        auto_approval_attempts,
         service:services!service_id(
           id,
           slug,
