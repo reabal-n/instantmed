@@ -109,7 +109,7 @@ interface IntakeAnswers {
 
 /**
  * Extract all patient-reported text from intake answers (lowercased).
- * Terms that appear in this text are allowed in AI output — the forbidden lists
+ * Terms that appear in this text are allowed in AI output - the forbidden lists
  * should only catch AI *hallucinations*, not echoes of patient-reported data.
  */
 function getPatientReportedText(answers: IntakeAnswers): string {
@@ -356,7 +356,7 @@ function normalizeCertType(type: string): "work" | "study" | "carer" | null {
 function containsForbiddenDiagnosisTerm(text: string): { found: boolean; term: string } | null {
   const lower = text.toLowerCase()
 
-  // Exact substring match for full terms (safe — multi-word or long enough)
+  // Exact substring match for full terms (safe - multi-word or long enough)
   for (const term of FORBIDDEN_DIAGNOSIS_TERMS) {
     if (lower.includes(term.toLowerCase())) {
       return { found: true, term }

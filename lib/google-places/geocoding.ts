@@ -47,7 +47,7 @@ export async function verifyAddress(address: {
   const apiKey = process.env.GOOGLE_PLACES_API_KEY
 
   if (!apiKey) {
-    // Gracefully degrade — accept the address as-is without verification
+    // Gracefully degrade - accept the address as-is without verification
     return {
       success: true,
       verified: false,
@@ -107,7 +107,7 @@ export async function verifyAddress(address: {
     const data = await response.json()
 
     if (data.status !== "OK" || !data.results || data.results.length === 0) {
-      // Can't verify, but don't block — accept as-is
+      // Can't verify, but don't block - accept as-is
       return {
         success: true,
         verified: false,

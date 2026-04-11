@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
           fontFamily: "system-ui, sans-serif",
         }}
       >
-        {/* Top bar — brand + type badge */}
+        {/* Top bar - brand + type badge */}
         <div style={{ display: "flex", alignItems: "center", gap: "20px", marginBottom: "40px" }}>
           {/* Brand mark */}
           <div

@@ -22,7 +22,7 @@ export const maxDuration = 60
  *
  * generateDraftsForIntake is idempotent (skips if drafts already exist), but
  * without a concurrency lock two overlapping runs can call it for the same
- * intake simultaneously — burning duplicate AI tokens. The lock makes
+ * intake simultaneously - burning duplicate AI tokens. The lock makes
  * each 5-minute window a single-writer window.
  *
  * Required env: CRON_SECRET
@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
 
   await recordCronHeartbeat("retry-drafts")
 
-  // Acquire concurrency lock — prevents overlapping runs from double-processing rows
+  // Acquire concurrency lock - prevents overlapping runs from double-processing rows
   const lock = await acquireCronLock("retry-drafts")
   if (!lock.acquired) {
     return NextResponse.json({

@@ -45,7 +45,7 @@ import {
 import { useServiceAvailability } from "@/components/providers/service-availability-provider"
 import { useLandingAnalytics } from "@/hooks/use-landing-analytics"
 
-// Below-fold lazy loads — keep initial bundle small
+// Below-fold lazy loads - keep initial bundle small
 const TestimonialsSection = dynamic(
   () => import("@/components/marketing/sections/testimonials-section").then((m) => m.TestimonialsSection),
   { loading: () => <div className="min-h-[500px]" /> },
@@ -129,7 +129,7 @@ const HOW_IT_WORKS_STEPS = [
   {
     icon: FileCheck,
     title: "Treatment plan",
-    description: "Receive your prescription, referral, or medical advice &mdash; all digitally, same day.",
+    description: "Receive your prescription, referral, or medical advice - all digitally, same day.",
     time: "Same day",
   },
 ]
@@ -144,7 +144,7 @@ const RELATED_ARTICLES = [
 // SMALL COMPONENTS
 // =============================================================================
 
-/** Closing time countdown — shows "Closes in Xh Ym" during operating hours */
+/** Closing time countdown - shows "Closes in Xh Ym" during operating hours */
 function ClosingCountdown() {
   const [label, setLabel] = useState<string | null>(null)
 
@@ -194,7 +194,7 @@ function ClosingCountdown() {
   )
 }
 
-/** Live activity ticker — rotates through recent consult completions */
+/** Live activity ticker - rotates through recent consult completions */
 function RecentActivityTicker() {
   const [index, setIndex] = useState(0)
   const prefersReducedMotion = useReducedMotion()
@@ -232,7 +232,7 @@ function RecentActivityTicker() {
   )
 }
 
-/** Day-of-week contextual hero message — time-aware copy near hero CTA */
+/** Day-of-week contextual hero message - time-aware copy near hero CTA */
 function ContextualMessage() {
   const [message, setMessage] = useState<string | null>(null)
 
@@ -392,7 +392,7 @@ function HeroSection({
               <DoctorAvailabilityPill />
             </motion.div>
 
-            {/* Headline — plain h1 with CSS animation so LCP text is visible on first paint */}
+            {/* Headline - plain h1 with CSS animation so LCP text is visible on first paint */}
             <h1
               className="text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight mb-3 sm:mb-6 leading-[1.15] animate-hero-headline"
             >
@@ -411,7 +411,7 @@ function HeroSection({
               transition={{ duration: 0.4, delay: 0.1 }}
             >
               A full clinical assessment with an AHPRA-registered GP.
-              Medication, referrals, and medical advice &mdash; without the waiting room.
+              Medication, referrals, and medical advice - without the waiting room.
             </motion.p>
 
             {/* Rotating secondary proof badge */}
@@ -484,7 +484,7 @@ function HeroSection({
               </div>
             </motion.div>
 
-            {/* Secondary anchor CTA — desktop only */}
+            {/* Secondary anchor CTA - desktop only */}
             <motion.div
               className="hidden sm:flex justify-center lg:justify-start mt-4"
               initial={{}}
@@ -501,12 +501,12 @@ function HeroSection({
             </motion.div>
           </div>
 
-          {/* Hero product mockup — desktop only */}
+          {/* Hero product mockup - desktop only */}
           <div className="hidden lg:block relative shrink-0 mt-0">
             <ConsultChatMockup />
           </div>
 
-          {/* Mobile mockup — compact, below text content */}
+          {/* Mobile mockup - compact, below text content */}
           <div className="lg:hidden mt-8 w-full max-w-sm mx-auto">
             <ConsultChatMockup compact />
           </div>
@@ -516,7 +516,7 @@ function HeroSection({
   )
 }
 
-/** How It Works — inline 3-step section */
+/** How It Works - inline 3-step section */
 function HowItWorksInline({ onCTAClick, isDisabled }: { onCTAClick?: () => void; isDisabled?: boolean }) {
   const prefersReducedMotion = useReducedMotion()
   const animate = !prefersReducedMotion
@@ -536,7 +536,7 @@ function HowItWorksInline({ onCTAClick, isDisabled }: { onCTAClick?: () => void;
             How it works
           </h2>
           <p className="text-muted-foreground max-w-lg mx-auto text-sm">
-            Three steps to a doctor consultation &mdash; no waiting room, no travel.
+            Three steps to a doctor consultation - no waiting room, no travel.
           </p>
         </motion.div>
 
@@ -593,7 +593,7 @@ function HowItWorksInline({ onCTAClick, isDisabled }: { onCTAClick?: () => void;
   )
 }
 
-/** Related blog articles — internal links for SEO */
+/** Related blog articles - internal links for SEO */
 function RelatedArticles() {
   return (
     <section aria-label="Related articles" className="py-12 lg:py-16">
@@ -640,7 +640,7 @@ export function GeneralConsultLanding() {
     return () => observer.disconnect()
   }, [])
 
-  // Testimonials data — service-specific with fallback
+  // Testimonials data - service-specific with fallback
   const serviceTestimonials = getTestimonialsByService("consultation")
   const columnsData = serviceTestimonials.slice(0, 9).map((t) => ({
     text: t.text,
@@ -708,19 +708,19 @@ export function GeneralConsultLanding() {
           {/* Expect a call reassurance */}
           <ExpectCallStrip />
 
-          {/* 2. How It Works — inline 3-step */}
+          {/* 2. How It Works - inline 3-step */}
           <HowItWorksInline onCTAClick={handleHowItWorksCTA} isDisabled={isDisabled} />
 
-          {/* Common concerns — what you can consult about */}
+          {/* Common concerns - what you can consult about */}
           <CommonConcernsSection />
 
-          {/* Specialised consults — hair loss, weight loss, etc. */}
+          {/* Specialised consults - hair loss, weight loss, etc. */}
           <SpecialisedConsultsSection />
 
-          {/* Doctor profile — trust signal */}
+          {/* Doctor profile - trust signal */}
           <DoctorProfileSection />
 
-          {/* Pre-qualify before pricing — reduces bad-fit conversions */}
+          {/* Pre-qualify before pricing - reduces bad-fit conversions */}
           <ConsultLimitationsSection />
 
           {/* 3. Pricing */}
@@ -752,7 +752,7 @@ export function GeneralConsultLanding() {
             subtitle="Real reviews from Australians who\u2019ve used our service"
           />
 
-          {/* Regulatory Partners — Medicare excluded */}
+          {/* Regulatory Partners - Medicare excluded */}
           <RegulatoryPartners className="py-12" exclude={["Medicare"]} />
 
           {/* 5. FAQ */}
@@ -813,7 +813,7 @@ export function GeneralConsultLanding() {
                 <Link href="/patient" className="text-primary underline underline-offset-2 hover:no-underline font-medium">
                   Refer a friend
                 </Link>
-                {" "}&mdash; you both get $5 off.
+                {" "}- you both get $5 off.
               </p>
             </div>
           </div>
@@ -824,14 +824,14 @@ export function GeneralConsultLanding() {
 
         <MarketingFooter />
 
-        {/* Content hub cross-links — distributes PageRank to condition/symptom/guide pages */}
+        {/* Content hub cross-links - distributes PageRank to condition/symptom/guide pages */}
         <ContentHubLinks service="consult" />
 
-        {/* Related articles — SEO internal linking, after footer */}
+        {/* Related articles - SEO internal linking, after footer */}
         <RelatedArticles />
 
 
-        {/* Sticky mobile CTA — bottom drawer, appears after hero scrolls out */}
+        {/* Sticky mobile CTA - bottom drawer, appears after hero scrolls out */}
         <motion.div
           className="fixed bottom-0 left-0 right-0 z-50 lg:hidden"
           initial={prefersReducedMotion ? {} : { y: 100 }}
@@ -863,7 +863,7 @@ export function GeneralConsultLanding() {
           </div>
         </motion.div>
 
-        {/* Sticky desktop CTA — top bar, appears after hero scrolls out */}
+        {/* Sticky desktop CTA - top bar, appears after hero scrolls out */}
         <motion.div
           className="hidden lg:block fixed top-0 left-0 right-0 z-40"
           initial={prefersReducedMotion ? {} : { y: -60 }}

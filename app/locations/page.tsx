@@ -129,7 +129,7 @@ export default function LocationsPage() {
 
             <div className="mt-12 p-6 rounded-xl bg-muted/50 text-center">
               <p className="text-sm text-muted-foreground">
-                <strong>Not in a major city?</strong> No worries — InstantMed works anywhere in Australia with internet
+                <strong>Not in a major city?</strong> No worries - InstantMed works anywhere in Australia with internet
                 access. We serve regional and rural areas just as well as the cities.
               </p>
             </div>

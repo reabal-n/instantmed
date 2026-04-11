@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import { BreadcrumbSchema } from "@/components/seo/healthcare-schema"
 
-// Revalidate every 24 hours — trust content is mostly static
+// Revalidate every 24 hours - trust content is mostly static
 export const revalidate = 86400
 
 export const metadata: Metadata = {
@@ -35,9 +35,9 @@ export const metadata: Metadata = {
 }
 
 /**
- * /trust layout — BreadcrumbSchema only.
+ * /trust layout - BreadcrumbSchema only.
  *
- * Previously ALSO emitted FAQSchema — but trust-client.tsx emits its own
+ * Previously ALSO emitted FAQSchema - but trust-client.tsx emits its own
  * FAQPage JSON-LD inline (with the full trustFAQs data), creating a
  * duplicate FAQPage on the same URL. GSC flagged this as critical
  * 2026-04-06. Removed from layout in the same fix as /general-consult

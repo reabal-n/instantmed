@@ -214,7 +214,7 @@ async function searchPBSByField(
   try {
     const url = new URL(`${PBS_API_BASE_URL}/items`)
     url.searchParams.set("limit", String(Math.min(limit * 2, 50)))
-    // Append % wildcard for partial/prefix matching — PBS API requires exact match otherwise
+    // Append % wildcard for partial/prefix matching - PBS API requires exact match otherwise
     url.searchParams.set(field, `${query}%`)
 
     const response = await fetchWithTimeout(url.toString(), {

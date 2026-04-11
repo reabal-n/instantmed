@@ -6,7 +6,7 @@ import { CheckCircle2, Phone } from "lucide-react"
 // COMPONENT
 // =============================================================================
 
-/** Reassurance strip — most consults include a brief phone call */
+/** Reassurance strip - most consults include a brief phone call */
 export function ExpectCallStrip() {
   return (
     <div className="bg-primary/5 border-y border-primary/15">

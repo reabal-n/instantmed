@@ -43,9 +43,9 @@ export function verifyCronRequest(request: NextRequest): NextResponse | null {
     if (cronSecret && authHeader && safeCompare(authHeader, `Bearer ${cronSecret}`)) {
       return null
     }
-    // If CRON_SECRET not configured, reject — fail-closed for security
+    // If CRON_SECRET not configured, reject - fail-closed for security
     if (!cronSecret) {
-      logger.error("CRON_SECRET not configured — rejecting cron request even with Vercel signature", {
+      logger.error("CRON_SECRET not configured - rejecting cron request even with Vercel signature", {
         hasVercelSignature: true,
       })
       return NextResponse.json(
@@ -120,7 +120,7 @@ export async function acquireCronLock(
     const now = new Date()
     const expiresAt = new Date(now.getTime() + maxDurationSeconds * 1000)
 
-    // Try to claim lock — delete any expired locks first
+    // Try to claim lock - delete any expired locks first
     await supabase
       .from("cron_locks")
       .delete()
@@ -138,7 +138,7 @@ export async function acquireCronLock(
 
     if (error) {
       if (error.code === "23505") {
-        // Lock already held — check age for monitoring
+        // Lock already held - check age for monitoring
         const { data: existing } = await supabase
           .from("cron_locks")
           .select("locked_at")

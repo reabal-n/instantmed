@@ -33,7 +33,7 @@ const WOMENS_HEALTH_OPTIONS = [
   {
     value: 'morning_after',
     label: 'Emergency contraception (morning-after pill)',
-    description: 'Time-sensitive — most effective when taken early',
+    description: 'Time-sensitive - most effective when taken early',
   },
   {
     value: 'period_pain',

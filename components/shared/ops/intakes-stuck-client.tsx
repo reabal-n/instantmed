@@ -5,7 +5,7 @@
  *
  * Displays intakes that are stuck in SLA-breaching states.
  *
- * Shared component — use basePath to control URL prefix.
+ * Shared component - use basePath to control URL prefix.
  */
 
 import { useState } from "react"

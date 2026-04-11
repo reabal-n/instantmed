@@ -129,7 +129,7 @@ export function CertificatesListClient({
           Certificates
         </h1>
         <p className="text-sm text-muted-foreground mt-1">
-          All issued medical certificates — search, filter, download.
+          All issued medical certificates - search, filter, download.
         </p>
       </div>
 

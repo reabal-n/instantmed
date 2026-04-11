@@ -82,7 +82,7 @@ async function sendGenericNotification(
   const message = [
     `💰 *New request received*`,
     ``,
-    `*${escapeMarkdown(opts.serviceName)}* — ${escapeMarkdown(opts.amount)}`,
+    `*${escapeMarkdown(opts.serviceName)}* - ${escapeMarkdown(opts.amount)}`,
     `Patient: ${escapeMarkdown(firstName)}`,
     `Ref: \`${refId}\``,
     ``,
@@ -157,7 +157,7 @@ async function sendMedCertNotification(
   const message = [
     `💰 *New med cert request*`,
     ``,
-    `*${escapeMarkdown(opts.serviceName)}* — ${escapeMarkdown(opts.amount)}`,
+    `*${escapeMarkdown(opts.serviceName)}* - ${escapeMarkdown(opts.amount)}`,
     `Patient: ${escapeMarkdown(firstName)}`,
     `Ref: \`${refId}\``,
     summary,

@@ -28,7 +28,7 @@ export async function checkResendRateLimit(
   patientId: string,
 ): Promise<{ allowed: boolean }> {
   if (!limiter) {
-    // Redis not configured — fail open
+    // Redis not configured - fail open
     return { allowed: true }
   }
 

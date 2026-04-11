@@ -16,7 +16,7 @@ import { PRICING, REVIEW_AGGREGATE } from '@/lib/constants'
 
 export const metadata: Metadata = {
   title: 'Online Prescription Australia | Repeat & New Medication | InstantMed',
-  description: `Renew your regular medications or get a new prescription online. AHPRA-registered Australian doctors review your request and send an eScript to your phone — any pharmacy, same day. Repeat from $${PRICING.REPEAT_SCRIPT.toFixed(2)}.`,
+  description: `Renew your regular medications or get a new prescription online. AHPRA-registered Australian doctors review your request and send an eScript to your phone - any pharmacy, same day. Repeat from $${PRICING.REPEAT_SCRIPT.toFixed(2)}.`,
   keywords: [
     'online prescription australia',
     'repeat prescription online',

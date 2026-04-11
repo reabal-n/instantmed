@@ -18,7 +18,7 @@ export interface SymptomData {
     text: string
     href: string
   }
-  /** Clinical triage perspective — how a GP thinks about this symptom */
+  /** Clinical triage perspective - how a GP thinks about this symptom */
   doctorPerspective?: string
   /** When this symptom typically warrants a medical certificate */
   certGuidance?: string
@@ -112,7 +112,7 @@ export const symptoms: Record<string, SymptomData> = {
       text: "Get assessed by a doctor",
       href: "/request?service=consult&symptom=sore-throat"
     },
-    doctorPerspective: "When assessing a sore throat, the first question I ask myself is whether this is likely viral or bacterial — because the treatment is completely different. The majority of sore throats (around 70-80%) are viral and will resolve on their own. I use the modified Centor criteria to estimate the probability of strep throat: sudden onset, high fever, tonsillar exudate, swollen anterior cervical lymph nodes, and absence of cough each score a point. A score of 3 or more raises the probability enough to consider antibiotics. What I am most alert to is peritonsillar abscess (quinsy) — a unilateral swelling that causes difficulty opening the mouth, a muffled voice, and drooling. This requires urgent drainage. For most sore throats, effective pain management with paracetamol, ibuprofen, and salt water gargles is genuinely all that is needed.",
+    doctorPerspective: "When assessing a sore throat, the first question I ask myself is whether this is likely viral or bacterial - because the treatment is completely different. The majority of sore throats (around 70-80%) are viral and will resolve on their own. I use the modified Centor criteria to estimate the probability of strep throat: sudden onset, high fever, tonsillar exudate, swollen anterior cervical lymph nodes, and absence of cough each score a point. A score of 3 or more raises the probability enough to consider antibiotics. What I am most alert to is peritonsillar abscess (quinsy) - a unilateral swelling that causes difficulty opening the mouth, a muffled voice, and drooling. This requires urgent drainage. For most sore throats, effective pain management with paracetamol, ibuprofen, and salt water gargles is genuinely all that is needed.",
     certGuidance: "A sore throat severe enough to prevent speaking normally, swallowing, or concentrating warrants a medical certificate. Most people need 2-3 days. If you work in a customer-facing or phone-based role, voice rest may require slightly longer.",
   },
   "headache": {
@@ -200,8 +200,8 @@ export const symptoms: Record<string, SymptomData> = {
       text: "Speak with a doctor",
       href: "/request?service=consult&symptom=headache"
     },
-    doctorPerspective: "Headaches are incredibly common and almost always benign, but the clinical skill lies in recognising the rare dangerous headache. The red flags I screen for are: sudden onset 'thunderclap' headache (reaching maximum intensity within seconds — possible subarachnoid haemorrhage), headache with fever and neck stiffness (possible meningitis), headache after head injury, new headache in someone over 50, headache with visual changes or neurological symptoms, and headache that wakes you from sleep. If none of these are present, the headache is almost certainly a tension headache or migraine. Tension headaches feel like a band squeezing around the head. Migraines are typically one-sided, throbbing, and accompanied by nausea or light sensitivity. For chronic headaches, medication overuse is a paradoxically common cause — regular use of painkillers more than 10-15 days per month can create a cycle of rebound headaches.",
-    certGuidance: "Severe headaches — particularly migraines with nausea, visual disturbances, or light sensitivity — legitimately prevent work. Most people need 1-2 days. If headaches are causing frequent absences, discuss preventive treatment with your GP.",
+    doctorPerspective: "Headaches are incredibly common and almost always benign, but the clinical skill lies in recognising the rare dangerous headache. The red flags I screen for are: sudden onset 'thunderclap' headache (reaching maximum intensity within seconds - possible subarachnoid haemorrhage), headache with fever and neck stiffness (possible meningitis), headache after head injury, new headache in someone over 50, headache with visual changes or neurological symptoms, and headache that wakes you from sleep. If none of these are present, the headache is almost certainly a tension headache or migraine. Tension headaches feel like a band squeezing around the head. Migraines are typically one-sided, throbbing, and accompanied by nausea or light sensitivity. For chronic headaches, medication overuse is a paradoxically common cause - regular use of painkillers more than 10-15 days per month can create a cycle of rebound headaches.",
+    certGuidance: "Severe headaches - particularly migraines with nausea, visual disturbances, or light sensitivity - legitimately prevent work. Most people need 1-2 days. If headaches are causing frequent absences, discuss preventive treatment with your GP.",
   },
   "fatigue": {
     name: "Fatigue & Tiredness",
@@ -291,7 +291,7 @@ export const symptoms: Record<string, SymptomData> = {
       text: "Get assessed by a doctor",
       href: "/request?service=consult&symptom=fatigue"
     },
-    doctorPerspective: "Fatigue is one of the most challenging symptoms in medicine because it has so many possible causes. When someone tells me they are always tired, my approach is systematic: first, I assess lifestyle factors — sleep quality, work hours, stress, diet, exercise, alcohol, caffeine. These account for the majority of fatigue. Second, I consider medical causes that need screening: iron deficiency (very common in menstruating women), thyroid dysfunction, diabetes, vitamin D deficiency, sleep apnoea, depression, and chronic infections. Third, I ask about the pattern — is the fatigue constant or episodic? Does rest help? Is it physical exhaustion or mental fog? These distinctions guide investigation. Blood tests are often warranted to rule out treatable causes. The reassurance I give patients is that most causes of fatigue are identifiable and treatable.",
+    doctorPerspective: "Fatigue is one of the most challenging symptoms in medicine because it has so many possible causes. When someone tells me they are always tired, my approach is systematic: first, I assess lifestyle factors - sleep quality, work hours, stress, diet, exercise, alcohol, caffeine. These account for the majority of fatigue. Second, I consider medical causes that need screening: iron deficiency (very common in menstruating women), thyroid dysfunction, diabetes, vitamin D deficiency, sleep apnoea, depression, and chronic infections. Third, I ask about the pattern - is the fatigue constant or episodic? Does rest help? Is it physical exhaustion or mental fog? These distinctions guide investigation. Blood tests are often warranted to rule out treatable causes. The reassurance I give patients is that most causes of fatigue are identifiable and treatable.",
     certGuidance: "Fatigue severe enough to impair concentration, reaction time, or physical function is a legitimate reason for time off. If your work involves driving, operating machinery, or making safety-critical decisions, working while severely fatigued is genuinely dangerous.",
   },
   "cough": {
@@ -379,8 +379,8 @@ export const symptoms: Record<string, SymptomData> = {
       text: "Get your cough assessed",
       href: "/request?service=consult&symptom=cough"
     },
-    doctorPerspective: "A cough is the body's protective reflex — it clears the airways of mucus, irritants, and microbes. The clinical approach to cough depends entirely on duration. Acute cough (under 3 weeks) is almost always post-viral and requires no treatment beyond symptomatic relief — it resolves on its own. A cough that persists for 3-8 weeks after a respiratory infection is called a 'post-infectious cough' and is very common — the airways remain irritated and hyperreactive even though the infection has cleared. Chronic cough (over 8 weeks) warrants investigation: the three most common causes are asthma, postnasal drip (upper airway cough syndrome), and gastric reflux — often in combination. The most important red flag is coughing up blood (haemoptysis), which always needs investigation, as does a new persistent cough in a smoker or ex-smoker.",
-    certGuidance: "A cough that disrupts sleep, causes vomiting, or makes it difficult to speak for sustained periods can warrant a certificate. Post-viral cough commonly persists for 2-3 weeks — this duration is normal and does not indicate something serious, but may still affect work capacity.",
+    doctorPerspective: "A cough is the body's protective reflex - it clears the airways of mucus, irritants, and microbes. The clinical approach to cough depends entirely on duration. Acute cough (under 3 weeks) is almost always post-viral and requires no treatment beyond symptomatic relief - it resolves on its own. A cough that persists for 3-8 weeks after a respiratory infection is called a 'post-infectious cough' and is very common - the airways remain irritated and hyperreactive even though the infection has cleared. Chronic cough (over 8 weeks) warrants investigation: the three most common causes are asthma, postnasal drip (upper airway cough syndrome), and gastric reflux - often in combination. The most important red flag is coughing up blood (haemoptysis), which always needs investigation, as does a new persistent cough in a smoker or ex-smoker.",
+    certGuidance: "A cough that disrupts sleep, causes vomiting, or makes it difficult to speak for sustained periods can warrant a certificate. Post-viral cough commonly persists for 2-3 weeks - this duration is normal and does not indicate something serious, but may still affect work capacity.",
   },
   "fever": {
     name: "Fever",
@@ -460,8 +460,8 @@ export const symptoms: Record<string, SymptomData> = {
       text: "Get assessed now",
       href: "/request?service=consult&symptom=fever"
     },
-    doctorPerspective: "Fever is not a disease — it is the immune system's response to infection, and in most cases it is actually helpful. A temperature of 37.5-38.5°C in an otherwise well adult does not usually need treatment. Paracetamol and ibuprofen are for comfort, not to 'treat' the fever. What I assess when someone presents with fever is the clinical context: a fever with cold symptoms is almost certainly viral. A fever with a productive cough and breathlessness raises concern for pneumonia. A fever with urinary symptoms suggests UTI. Fever with rash, neck stiffness, or confusion requires urgent assessment. The height of the fever is less important than the overall clinical picture — a person with 38°C who looks unwell concerns me more than someone with 39°C who is drinking fluids and alert. In adults, fever rarely causes brain damage (that concern applies to very young children with febrile convulsions).",
-    certGuidance: "A fever above 38°C typically warrants staying home — both for your recovery and to avoid spreading infection to colleagues. Most febrile illnesses resolve in 2-5 days. You should be fever-free for 24 hours without medication before returning to work.",
+    doctorPerspective: "Fever is not a disease - it is the immune system's response to infection, and in most cases it is actually helpful. A temperature of 37.5-38.5°C in an otherwise well adult does not usually need treatment. Paracetamol and ibuprofen are for comfort, not to 'treat' the fever. What I assess when someone presents with fever is the clinical context: a fever with cold symptoms is almost certainly viral. A fever with a productive cough and breathlessness raises concern for pneumonia. A fever with urinary symptoms suggests UTI. Fever with rash, neck stiffness, or confusion requires urgent assessment. The height of the fever is less important than the overall clinical picture - a person with 38°C who looks unwell concerns me more than someone with 39°C who is drinking fluids and alert. In adults, fever rarely causes brain damage (that concern applies to very young children with febrile convulsions).",
+    certGuidance: "A fever above 38°C typically warrants staying home - both for your recovery and to avoid spreading infection to colleagues. Most febrile illnesses resolve in 2-5 days. You should be fever-free for 24 hours without medication before returning to work.",
   },
   "burning-when-urinating": {
     name: "Burning When Urinating",
@@ -523,7 +523,7 @@ export const symptoms: Record<string, SymptomData> = {
     ],
     relatedSymptoms: ["frequent-urination", "uti", "abdominal-pain"],
     faqs: [
-      { q: "Is burning when urinating always a UTI?", a: "No — while UTI is the most common cause in women, other causes include STIs, vaginal irritation, kidney stones, or prostatitis in men. If symptoms don't improve with treatment, further investigation is needed." },
+      { q: "Is burning when urinating always a UTI?", a: "No - while UTI is the most common cause in women, other causes include STIs, vaginal irritation, kidney stones, or prostatitis in men. If symptoms don't improve with treatment, further investigation is needed." },
       { q: "Can I treat a UTI without antibiotics?", a: "Simple UTIs typically need antibiotics to clear the infection. Drinking lots of water may help symptoms but won't eliminate the bacteria. Untreated UTIs can spread to kidneys." },
       { q: "When should I see a doctor in person?", a: "See a GP in person if you have fever/chills, blood in urine, severe back pain, vomiting, are pregnant, are male, or have recurrent UTIs." },
       { q: "How quickly should burning improve with treatment?", a: "With appropriate antibiotics for a UTI, most people feel relief within 24-48 hours. If symptoms worsen or don't improve after 2 days, contact your doctor." }
@@ -533,7 +533,7 @@ export const symptoms: Record<string, SymptomData> = {
       text: "Get UTI treatment online",
       href: "/request?service=consult&condition=uti"
     },
-    doctorPerspective: "Dysuria (burning on urination) in an otherwise healthy woman is UTI until proven otherwise — the positive predictive value of this symptom is over 90%. This is one of the most straightforward telehealth consultations: the symptom pattern (burning, frequency, urgency, sometimes blood in urine) is so characteristic that urine testing is not required before starting treatment in uncomplicated cases. In men, burning on urination is more complex — UTIs in men always warrant investigation as they suggest an underlying structural or functional issue. I also consider STI screening in sexually active patients with dysuria, particularly if there is urethral discharge. The key red flags I screen for are flank pain, fever, and rigors — these suggest the infection has reached the kidneys (pyelonephritis) and may need more aggressive treatment.",
+    doctorPerspective: "Dysuria (burning on urination) in an otherwise healthy woman is UTI until proven otherwise - the positive predictive value of this symptom is over 90%. This is one of the most straightforward telehealth consultations: the symptom pattern (burning, frequency, urgency, sometimes blood in urine) is so characteristic that urine testing is not required before starting treatment in uncomplicated cases. In men, burning on urination is more complex - UTIs in men always warrant investigation as they suggest an underlying structural or functional issue. I also consider STI screening in sexually active patients with dysuria, particularly if there is urethral discharge. The key red flags I screen for are flank pain, fever, and rigors - these suggest the infection has reached the kidneys (pyelonephritis) and may need more aggressive treatment.",
     certGuidance: "A UTI can make concentration difficult and require frequent bathroom trips. Most people can work with mild symptoms, but severe burning, urgency, or associated fever warrants 1-2 days off. With antibiotics, significant relief usually comes within 24-48 hours.",
   },
   "hair-thinning": {
@@ -573,11 +573,11 @@ export const symptoms: Record<string, SymptomData> = {
       }
     ],
     selfCareAdvice: [
-      "Gentle hair care — avoid tight hairstyles and excessive heat",
+      "Gentle hair care - avoid tight hairstyles and excessive heat",
       "Balanced diet with adequate protein and iron",
       "Manage stress through exercise, sleep, relaxation",
-      "Avoid smoking — worsens hair loss",
-      "Be patient — hair grows slowly (~1cm per month)"
+      "Avoid smoking - worsens hair loss",
+      "Be patient - hair grows slowly (~1cm per month)"
     ],
     whenToSeeDoctor: [
       "Sudden or patchy hair loss",
@@ -595,15 +595,15 @@ export const symptoms: Record<string, SymptomData> = {
     faqs: [
       { q: "At what age does hair loss start?", a: "Male pattern baldness can start in the early 20s but is more common from 30s onward. Women typically notice thinning after menopause." },
       { q: "Is hair loss reversible?", a: "It depends on the cause. Androgenetic alopecia can be slowed or partially reversed with treatment, especially if caught early. Stress-related loss usually regrows within 6-9 months." },
-      { q: "Do hair loss treatments work?", a: "Yes — clinically proven treatments can help slow hair loss and promote regrowth. Results take 6-12 months. Treatment must be continued to maintain benefits." },
-      { q: "Can stress cause hair loss?", a: "Yes — severe stress can cause telogen effluvium, where lots of hair enters the shedding phase at once. This usually happens 2-3 months after the stressful event and regrows within 6-9 months." }
+      { q: "Do hair loss treatments work?", a: "Yes - clinically proven treatments can help slow hair loss and promote regrowth. Results take 6-12 months. Treatment must be continued to maintain benefits." },
+      { q: "Can stress cause hair loss?", a: "Yes - severe stress can cause telogen effluvium, where lots of hair enters the shedding phase at once. This usually happens 2-3 months after the stressful event and regrows within 6-9 months." }
     ],
     serviceRecommendation: {
       type: "consult",
       text: "Get hair loss treatment",
       href: "/request?service=consult"
     },
-    doctorPerspective: "Hair thinning is a sensitive topic and patients often delay seeking help. The most common cause by far is androgenetic alopecia (male or female pattern hair loss) — a genetic condition that responds well to treatment when started early. The key is early intervention: finasteride and minoxidil are most effective at preventing further loss rather than regrowing what has already gone. Other causes I consider include thyroid dysfunction, iron deficiency, stress-related telogen effluvium (which typically occurs 2-3 months after a significant stressor), autoimmune alopecia, and medication side effects. A thorough history usually identifies the pattern, and blood tests may be needed to rule out medical causes. Telehealth is well-suited for hair loss assessment because the diagnosis is largely visual and history-based.",
+    doctorPerspective: "Hair thinning is a sensitive topic and patients often delay seeking help. The most common cause by far is androgenetic alopecia (male or female pattern hair loss) - a genetic condition that responds well to treatment when started early. The key is early intervention: finasteride and minoxidil are most effective at preventing further loss rather than regrowing what has already gone. Other causes I consider include thyroid dysfunction, iron deficiency, stress-related telogen effluvium (which typically occurs 2-3 months after a significant stressor), autoimmune alopecia, and medication side effects. A thorough history usually identifies the pattern, and blood tests may be needed to rule out medical causes. Telehealth is well-suited for hair loss assessment because the diagnosis is largely visual and history-based.",
     certGuidance: "Hair thinning itself is unlikely to require a medical certificate, though the psychological impact (anxiety, depression) may. If hair loss is causing significant distress affecting your work or daily function, that is a legitimate reason to seek support.",
   },
   "chest-pain": {
@@ -643,7 +643,7 @@ export const symptoms: Record<string, SymptomData> = {
       }
     ],
     selfCareAdvice: [
-      "DO NOT self-treat if you think it might be cardiac — call 000",
+      "DO NOT self-treat if you think it might be cardiac - call 000",
       "For anxiety: Deep breathing, relaxation techniques",
       "For reflux: Antacids, avoid lying down after eating",
       "For muscle strain: Rest, ice, anti-inflammatories"
@@ -666,7 +666,7 @@ export const symptoms: Record<string, SymptomData> = {
     relatedSymptoms: ["shortness-of-breath", "anxiety", "heartburn"],
     faqs: [
       { q: "How do I know if chest pain is serious?", a: "Serious chest pain is typically heavy/pressure-like, lasts >5 minutes, comes with sweating/nausea/breathlessness, or spreads to arm/jaw. When in doubt, call 000." },
-      { q: "Can anxiety cause chest pain?", a: "Yes — anxiety and panic attacks commonly cause chest pain. It's usually sharp, stabbing, comes and goes quickly. However, if you're not sure, get it checked." },
+      { q: "Can anxiety cause chest pain?", a: "Yes - anxiety and panic attacks commonly cause chest pain. It's usually sharp, stabbing, comes and goes quickly. However, if you're not sure, get it checked." },
       { q: "What about heartburn vs heart attack?", a: "Heartburn causes burning pain, gets worse lying down or after eating, and responds to antacids. Heart attack pain is more pressure-like. If unsure, seek emergency care." },
       { q: "When can I see a GP instead of emergency?", a: "See a GP for mild pain that comes and goes, pain that's clearly muscular (tender to touch), or recurring reflux symptoms. Always err on the side of caution." }
     ],
@@ -675,7 +675,7 @@ export const symptoms: Record<string, SymptomData> = {
       text: "Get follow-up care",
       href: "/request?service=consult"
     },
-    doctorPerspective: "Chest pain always warrants careful assessment, but it is important to know that the majority of chest pain in young, otherwise healthy adults is NOT cardiac. Musculoskeletal chest pain (from strained muscles, costochondritis, or poor posture), acid reflux, and anxiety-related chest tightness are far more common causes. However, I never dismiss chest pain without a proper assessment. The features that raise cardiac concern are: pain with exertion that resolves with rest, pain radiating to the jaw or left arm, pain with breathlessness and sweating, a family history of early heart disease, and age over 40 with risk factors. If you are experiencing any of these features, call 000 immediately — do not wait for a telehealth appointment. For non-urgent, recurrent chest discomfort without alarm features, telehealth can help identify the likely cause and guide next steps.",
+    doctorPerspective: "Chest pain always warrants careful assessment, but it is important to know that the majority of chest pain in young, otherwise healthy adults is NOT cardiac. Musculoskeletal chest pain (from strained muscles, costochondritis, or poor posture), acid reflux, and anxiety-related chest tightness are far more common causes. However, I never dismiss chest pain without a proper assessment. The features that raise cardiac concern are: pain with exertion that resolves with rest, pain radiating to the jaw or left arm, pain with breathlessness and sweating, a family history of early heart disease, and age over 40 with risk factors. If you are experiencing any of these features, call 000 immediately - do not wait for a telehealth appointment. For non-urgent, recurrent chest discomfort without alarm features, telehealth can help identify the likely cause and guide next steps.",
     certGuidance: "Any chest pain that required emergency assessment legitimately warrants time off for recovery and follow-up. For musculoskeletal or reflux-related chest pain, a certificate is appropriate if symptoms are affecting your ability to work comfortably.",
   },
   "frequent-urination": {
@@ -745,7 +745,7 @@ export const symptoms: Record<string, SymptomData> = {
     faqs: [
       { q: "Is frequent urination a sign of diabetes?", a: "It can be. If you're peeing frequently AND drinking a lot, feeling thirsty, losing weight, or feeling tired, get your blood sugar checked." },
       { q: "How often is too often to urinate?", a: "More than 8 times during the day or waking 2+ times at night is considered frequent. However, 'normal' varies." },
-      { q: "Can anxiety cause frequent urination?", a: "Yes — anxiety activates your fight-or-flight response, which can increase urination. Treating the anxiety often helps." },
+      { q: "Can anxiety cause frequent urination?", a: "Yes - anxiety activates your fight-or-flight response, which can increase urination. Treating the anxiety often helps." },
       { q: "When should I see a doctor?", a: "See a doctor if it's sudden and persistent, you have pain/burning, there's blood in urine, you're very thirsty, or it's disrupting your life." }
     ],
     serviceRecommendation: {
@@ -753,7 +753,7 @@ export const symptoms: Record<string, SymptomData> = {
       text: "Get assessed online",
       href: "/request?service=consult&condition=uti"
     },
-    doctorPerspective: "Frequent urination has a broad differential, and the clinical approach depends on whether it is accompanied by other symptoms. In women, the most common cause is UTI — frequency with burning and urgency. In men over 50, benign prostatic hyperplasia (BPH) is the leading cause. New-onset frequent urination with excessive thirst and weight loss raises immediate concern for diabetes and warrants a blood glucose test. Overactive bladder (urge incontinence) is another common cause that responds well to treatment. I also ask about fluid intake — many people drink excessive caffeine or water and mistake normal physiological output for a problem. Nocturia (waking at night to urinate) more than once is worth investigating, particularly in older adults.",
+    doctorPerspective: "Frequent urination has a broad differential, and the clinical approach depends on whether it is accompanied by other symptoms. In women, the most common cause is UTI - frequency with burning and urgency. In men over 50, benign prostatic hyperplasia (BPH) is the leading cause. New-onset frequent urination with excessive thirst and weight loss raises immediate concern for diabetes and warrants a blood glucose test. Overactive bladder (urge incontinence) is another common cause that responds well to treatment. I also ask about fluid intake - many people drink excessive caffeine or water and mistake normal physiological output for a problem. Nocturia (waking at night to urinate) more than once is worth investigating, particularly in older adults.",
     certGuidance: "Frequent urination itself rarely prevents work but can be highly disruptive. If caused by a UTI, 1-2 days with treatment usually resolves urgency. Ensure easy bathroom access at work during recovery.",
   },
   "nausea": {
@@ -775,10 +775,10 @@ export const symptoms: Record<string, SymptomData> = {
     faqs: [
       { q: "Can I get a medical certificate for nausea?", a: "Yes. If nausea is preventing you from working safely (e.g. driving, operating machinery), our doctors can provide a certificate." },
       { q: "When is nausea serious?", a: "Seek urgent care for severe abdominal pain, vomiting blood, confusion, or inability to keep any fluids down for 24 hours." },
-      { q: "What helps nausea?", a: "Small sips of water, bland foods, ginger, and avoiding triggers. Some medications can help — a doctor can advise." }
+      { q: "What helps nausea?", a: "Small sips of water, bland foods, ginger, and avoiding triggers. Some medications can help - a doctor can advise." }
     ],
     serviceRecommendation: { type: "both", text: "Get assessed", href: "/request?service=consult" },
-    doctorPerspective: "Nausea is a symptom, not a diagnosis, and it has dozens of possible causes. The clinical approach starts with context: sudden onset with vomiting and diarrhoea points to gastro or food poisoning. Nausea with a missed period — pregnancy test first. Nausea after starting a new medication — likely a side effect. Nausea worse after meals — consider reflux or gallbladder issues. Morning nausea with headache — check blood pressure and consider raised intracranial pressure if persistent. Isolated nausea with anxiety is also extremely common. The key red flags are nausea with severe abdominal pain, vomiting blood, black stools, or inability to keep any fluids down for 12 hours — these need urgent assessment.",
+    doctorPerspective: "Nausea is a symptom, not a diagnosis, and it has dozens of possible causes. The clinical approach starts with context: sudden onset with vomiting and diarrhoea points to gastro or food poisoning. Nausea with a missed period - pregnancy test first. Nausea after starting a new medication - likely a side effect. Nausea worse after meals - consider reflux or gallbladder issues. Morning nausea with headache - check blood pressure and consider raised intracranial pressure if persistent. Isolated nausea with anxiety is also extremely common. The key red flags are nausea with severe abdominal pain, vomiting blood, black stools, or inability to keep any fluids down for 12 hours - these need urgent assessment.",
     certGuidance: "Persistent nausea that prevents eating, concentrating, or travelling safely to work is a valid reason for a certificate. Most nausea from viral causes resolves in 1-2 days.",
   },
   "dizziness": {
@@ -801,7 +801,7 @@ export const symptoms: Record<string, SymptomData> = {
       { q: "What's the difference between dizziness and vertigo?", a: "Dizziness is a general term. Vertigo specifically means a spinning sensation. Both need assessment if persistent." }
     ],
     serviceRecommendation: { type: "both", text: "Get assessed", href: "/request?service=consult" },
-    doctorPerspective: "Dizziness is a vague term that can mean different things to different people, so the first thing I clarify is what they actually feel. True vertigo (the room is spinning) suggests an inner ear or vestibular problem. Lightheadedness (feeling faint) suggests blood pressure, dehydration, or cardiac causes. Unsteadiness (feeling off-balance) may be neurological or musculoskeletal. BPPV is the most common vestibular cause and is highly treatable with the Epley manoeuvre. The key safety question is whether dizziness makes driving unsafe — if so, a medical certificate is not just appropriate, it is a duty-of-care issue.",
+    doctorPerspective: "Dizziness is a vague term that can mean different things to different people, so the first thing I clarify is what they actually feel. True vertigo (the room is spinning) suggests an inner ear or vestibular problem. Lightheadedness (feeling faint) suggests blood pressure, dehydration, or cardiac causes. Unsteadiness (feeling off-balance) may be neurological or musculoskeletal. BPPV is the most common vestibular cause and is highly treatable with the Epley manoeuvre. The key safety question is whether dizziness makes driving unsafe - if so, a medical certificate is not just appropriate, it is a duty-of-care issue.",
     certGuidance: "If dizziness makes driving or operating machinery unsafe, you must not work in those roles until the symptom resolves. A medical certificate is appropriate and important for safety. Most vestibular dizziness resolves within 1-2 weeks.",
   },
   "runny-nose": {
@@ -823,7 +823,7 @@ export const symptoms: Record<string, SymptomData> = {
       { q: "When does a runny nose need antibiotics?", a: "Most runny noses are viral. Antibiotics are only for bacterial sinusitis, which a doctor can assess." }
     ],
     serviceRecommendation: { type: "both", text: "Get assessed", href: "/request?service=med-cert" },
-    doctorPerspective: "A runny nose on its own is rarely serious and usually indicates a viral cold or allergic rhinitis. The clinical question is whether it is infectious (clear initially, then thickening over days, with other cold symptoms) or allergic (clear, watery, with sneezing and itchy eyes, often seasonal). Green or yellow mucus does NOT automatically mean bacterial infection — it simply means the immune system is active. Bacterial sinusitis is considered if nasal symptoms persist beyond 10 days without improvement or if there is a 'double worsening' pattern.",
+    doctorPerspective: "A runny nose on its own is rarely serious and usually indicates a viral cold or allergic rhinitis. The clinical question is whether it is infectious (clear initially, then thickening over days, with other cold symptoms) or allergic (clear, watery, with sneezing and itchy eyes, often seasonal). Green or yellow mucus does NOT automatically mean bacterial infection - it simply means the immune system is active. Bacterial sinusitis is considered if nasal symptoms persist beyond 10 days without improvement or if there is a 'double worsening' pattern.",
     certGuidance: "A runny nose alone is unlikely to warrant a certificate unless combined with other symptoms (fever, body aches, fatigue) that prevent work. As part of a cold or flu, 2-3 days is typical.",
   },
   "body-aches": {
@@ -845,7 +845,7 @@ export const symptoms: Record<string, SymptomData> = {
       { q: "How long do flu body aches last?", a: "Usually 3-5 days. Rest and fluids help." }
     ],
     serviceRecommendation: { type: "both", text: "Get assessed", href: "/request?service=med-cert" },
-    doctorPerspective: "Generalised body aches most commonly accompany viral infections — influenza is the classic example, producing profound muscle pain alongside fever and fatigue. COVID-19 also frequently causes body aches. The mechanism is the immune system releasing cytokines that cause widespread inflammation. Body aches can also be caused by overexertion, dehydration, fibromyalgia, or autoimmune conditions. If body aches persist beyond 2 weeks without an obvious cause, blood tests may be warranted to check for underlying conditions.",
+    doctorPerspective: "Generalised body aches most commonly accompany viral infections - influenza is the classic example, producing profound muscle pain alongside fever and fatigue. COVID-19 also frequently causes body aches. The mechanism is the immune system releasing cytokines that cause widespread inflammation. Body aches can also be caused by overexertion, dehydration, fibromyalgia, or autoimmune conditions. If body aches persist beyond 2 weeks without an obvious cause, blood tests may be warranted to check for underlying conditions.",
     certGuidance: "Body aches as part of flu or viral illness warrant 3-5 days off. The aches usually resolve as the infection clears. If body aches are so severe that you cannot perform physical tasks or concentrate, a certificate is appropriate.",
   },
   "shortness-of-breath": {
@@ -868,7 +868,7 @@ export const symptoms: Record<string, SymptomData> = {
       { q: "Can anxiety cause shortness of breath?", a: "Yes. Panic attacks often cause breathlessness. But new or unexplained breathlessness should be checked." }
     ],
     serviceRecommendation: { type: "consult", text: "Get assessed", href: "/request?service=consult" },
-    doctorPerspective: "Shortness of breath is a symptom I take seriously because the range of causes spans from harmless (anxiety-related hyperventilation) to life-threatening (pulmonary embolism, heart failure). The key clinical question is: is this acute (sudden onset) or chronic (gradual)? Sudden breathlessness in an otherwise well person needs urgent assessment — especially with chest pain, leg swelling, or recent immobilisation. Gradual breathlessness that worsens over weeks often points to asthma, anaemia, deconditioning, or early heart failure. Anxiety is a very common cause but should only be attributed after other causes are excluded. If you are unsure, err on the side of seeking help — breathing difficulty is always taken seriously.",
+    doctorPerspective: "Shortness of breath is a symptom I take seriously because the range of causes spans from harmless (anxiety-related hyperventilation) to life-threatening (pulmonary embolism, heart failure). The key clinical question is: is this acute (sudden onset) or chronic (gradual)? Sudden breathlessness in an otherwise well person needs urgent assessment - especially with chest pain, leg swelling, or recent immobilisation. Gradual breathlessness that worsens over weeks often points to asthma, anaemia, deconditioning, or early heart failure. Anxiety is a very common cause but should only be attributed after other causes are excluded. If you are unsure, err on the side of seeking help - breathing difficulty is always taken seriously.",
     certGuidance: "Any significant breathlessness affecting your ability to walk, climb stairs, or perform normal tasks warrants time off. If breathlessness required emergency assessment, follow-up rest is appropriate. Always discuss return to work with your treating doctor.",
   },
   "stomach-pain": {
@@ -891,7 +891,7 @@ export const symptoms: Record<string, SymptomData> = {
       { q: "When is stomach pain serious?", a: "Seek urgent care for severe sudden pain, rigid abdomen, vomiting blood, or high fever." }
     ],
     serviceRecommendation: { type: "both", text: "Get assessed", href: "/request?service=consult" },
-    doctorPerspective: "Abdominal pain is one of the broadest symptom categories in medicine — the abdomen contains dozens of organs, and the location, character, and timing of pain all provide diagnostic clues. Epigastric pain (upper centre) after meals suggests gastritis or reflux. Right lower quadrant pain with fever raises concern for appendicitis. Left lower quadrant pain with bowel changes may indicate diverticulitis. Crampy, diffuse pain with diarrhoea points to gastro or IBS. The key emergency features are: sudden severe pain (especially if rigid abdomen), pain with fainting, vomiting blood, or pain in pregnancy. For mild-moderate abdominal discomfort without alarm features, telehealth can help determine the likely cause and appropriate next steps.",
+    doctorPerspective: "Abdominal pain is one of the broadest symptom categories in medicine - the abdomen contains dozens of organs, and the location, character, and timing of pain all provide diagnostic clues. Epigastric pain (upper centre) after meals suggests gastritis or reflux. Right lower quadrant pain with fever raises concern for appendicitis. Left lower quadrant pain with bowel changes may indicate diverticulitis. Crampy, diffuse pain with diarrhoea points to gastro or IBS. The key emergency features are: sudden severe pain (especially if rigid abdomen), pain with fainting, vomiting blood, or pain in pregnancy. For mild-moderate abdominal discomfort without alarm features, telehealth can help determine the likely cause and appropriate next steps.",
     certGuidance: "Abdominal pain that prevents sitting comfortably, concentrating, or commuting is a valid reason for a certificate. Gastro-related abdominal pain typically warrants 1-3 days off. More complex causes may require longer.",
   },
   "neck-pain": {
@@ -913,7 +913,7 @@ export const symptoms: Record<string, SymptomData> = {
       { q: "When does neck pain need imaging?", a: "Most neck pain doesn't need scans. Imaging is considered if there are red flags or pain persists." }
     ],
     serviceRecommendation: { type: "both", text: "Get assessed", href: "/request?service=med-cert" },
-    doctorPerspective: "Neck pain is extremely common and almost always musculoskeletal — caused by poor posture (particularly prolonged computer use), sleeping in an awkward position, or muscle strain. Like back pain, the evidence strongly supports staying gently active rather than immobilising the neck. The red flags I screen for are: neck pain with fever and headache (possible meningitis), pain after trauma (possible fracture), numbness or weakness in the arms or hands (possible nerve compression), and difficulty with balance or coordination (possible spinal cord involvement). In the absence of these, imaging is rarely needed — MRI findings of disc degeneration are so common in asymptomatic people that they often cause unnecessary alarm.",
+    doctorPerspective: "Neck pain is extremely common and almost always musculoskeletal - caused by poor posture (particularly prolonged computer use), sleeping in an awkward position, or muscle strain. Like back pain, the evidence strongly supports staying gently active rather than immobilising the neck. The red flags I screen for are: neck pain with fever and headache (possible meningitis), pain after trauma (possible fracture), numbness or weakness in the arms or hands (possible nerve compression), and difficulty with balance or coordination (possible spinal cord involvement). In the absence of these, imaging is rarely needed - MRI findings of disc degeneration are so common in asymptomatic people that they often cause unnecessary alarm.",
     certGuidance: "Neck pain that prevents driving (inability to check blind spots safely) or computer work (inability to maintain a comfortable head position) warrants a certificate. Most acute neck pain improves within a week with self-management.",
   },
   "bloating": {
@@ -935,7 +935,7 @@ export const symptoms: Record<string, SymptomData> = {
       { q: "Can I get a medical certificate for bloating?", a: "If bloating with other symptoms (e.g. IBS flare) severely affects work, yes." }
     ],
     serviceRecommendation: { type: "consult", text: "Get assessed", href: "/request?service=consult" },
-    doctorPerspective: "Bloating is one of the most common digestive complaints and is usually benign. The most frequent cause is simply eating too quickly or consuming gas-producing foods (beans, cruciferous vegetables, carbonated drinks). IBS is the most common medical cause of recurrent bloating. What I am alert to is persistent bloating that is progressive (getting worse over weeks) — particularly in women over 50, where persistent bloating is one of the key early symptoms of ovarian cancer. Other red flags include bloating with unintentional weight loss, bloating with blood in stool, or new bloating with a change in bowel habits after age 50. For most patients, a food diary and dietary adjustment resolve the issue without medical intervention.",
+    doctorPerspective: "Bloating is one of the most common digestive complaints and is usually benign. The most frequent cause is simply eating too quickly or consuming gas-producing foods (beans, cruciferous vegetables, carbonated drinks). IBS is the most common medical cause of recurrent bloating. What I am alert to is persistent bloating that is progressive (getting worse over weeks) - particularly in women over 50, where persistent bloating is one of the key early symptoms of ovarian cancer. Other red flags include bloating with unintentional weight loss, bloating with blood in stool, or new bloating with a change in bowel habits after age 50. For most patients, a food diary and dietary adjustment resolve the issue without medical intervention.",
     certGuidance: "Bloating alone rarely requires a certificate, but when part of an IBS flare with significant pain and urgency, 1-2 days may be warranted.",
   },
   "earache": {
@@ -953,11 +953,11 @@ export const symptoms: Record<string, SymptomData> = {
     emergencySigns: ["Severe pain", "Facial weakness", "High fever with earache", "Swelling behind ear"],
     relatedSymptoms: ["sore-throat", "cold-and-flu", "sinusitis"],
     faqs: [
-      { q: "Do I need antibiotics for an ear infection?", a: "Many ear infections are viral and resolve on their own. Antibiotics may be needed for bacterial infections — a doctor can assess." },
+      { q: "Do I need antibiotics for an ear infection?", a: "Many ear infections are viral and resolve on their own. Antibiotics may be needed for bacterial infections - a doctor can assess." },
       { q: "Can I get a medical certificate for earache?", a: "Yes. Ear infections can be painful and affect concentration. Our doctors can provide a certificate." }
     ],
     serviceRecommendation: { type: "both", text: "Get assessed", href: "/request?service=consult" },
-    doctorPerspective: "Earache in adults most commonly comes from otitis externa (outer ear infection) or referred pain from the throat or jaw — not from middle ear infections, which are far more common in children. The key clinical distinction is whether the pain worsens when you tug on the earlobe (otitis externa — treated with ear drops) or is deep in the ear with hearing changes (otitis media — may need oral antibiotics). Eustachian tube dysfunction during or after a cold is another very common cause of ear discomfort and fullness. I always ask about hearing changes, discharge, and recent swimming or water exposure. The red flag is swelling or tenderness behind the ear (mastoiditis), which requires urgent in-person assessment.",
+    doctorPerspective: "Earache in adults most commonly comes from otitis externa (outer ear infection) or referred pain from the throat or jaw - not from middle ear infections, which are far more common in children. The key clinical distinction is whether the pain worsens when you tug on the earlobe (otitis externa - treated with ear drops) or is deep in the ear with hearing changes (otitis media - may need oral antibiotics). Eustachian tube dysfunction during or after a cold is another very common cause of ear discomfort and fullness. I always ask about hearing changes, discharge, and recent swimming or water exposure. The red flag is swelling or tenderness behind the ear (mastoiditis), which requires urgent in-person assessment.",
     certGuidance: "Ear infections can cause significant pain and reduced hearing that affects work performance. A certificate for 1-3 days is appropriate for acute ear infections, particularly if pain disrupts sleep.",
   },
   "itching": {
@@ -980,13 +980,13 @@ export const symptoms: Record<string, SymptomData> = {
       { q: "Can I get a medical certificate for itching?", a: "If severe itching (e.g. from eczema flare) affects sleep or work, yes." }
     ],
     serviceRecommendation: { type: "consult", text: "Get assessed", href: "/request?service=consult" },
-    doctorPerspective: "Itching (pruritus) without a visible rash is a diagnostically interesting symptom. If there is a rash, the cause is usually dermatological — eczema, contact dermatitis, fungal infection, hives, or insect bites. But generalised itching without any rash can indicate systemic conditions: liver disease (bile salt deposition), kidney disease (uraemia), thyroid dysfunction, iron deficiency, or rarely, lymphoma. This is why persistent, unexplained itching warrants blood tests. For itching with a clear skin cause, treatment is usually straightforward — moisturisers for dry skin, topical steroids for eczema, antifungals for fungal infections, and antihistamines for allergic reactions. The most important self-care advice is to avoid scratching — it creates an itch-scratch cycle that worsens the condition.",
-    certGuidance: "Severe itching — particularly from eczema flares or allergic reactions — can be genuinely debilitating and affect sleep and concentration. A certificate is appropriate when itching significantly impairs your ability to work.",
+    doctorPerspective: "Itching (pruritus) without a visible rash is a diagnostically interesting symptom. If there is a rash, the cause is usually dermatological - eczema, contact dermatitis, fungal infection, hives, or insect bites. But generalised itching without any rash can indicate systemic conditions: liver disease (bile salt deposition), kidney disease (uraemia), thyroid dysfunction, iron deficiency, or rarely, lymphoma. This is why persistent, unexplained itching warrants blood tests. For itching with a clear skin cause, treatment is usually straightforward - moisturisers for dry skin, topical steroids for eczema, antifungals for fungal infections, and antihistamines for allergic reactions. The most important self-care advice is to avoid scratching - it creates an itch-scratch cycle that worsens the condition.",
+    certGuidance: "Severe itching - particularly from eczema flares or allergic reactions - can be genuinely debilitating and affect sleep and concentration. A certificate is appropriate when itching significantly impairs your ability to work.",
   },
   "heart-palpitations": {
     name: "Heart Palpitations",
     slug: "heart-palpitations",
-    description: "An awareness of your heartbeat — racing, pounding, fluttering, or skipping beats. Usually benign but can be frightening.",
+    description: "An awareness of your heartbeat - racing, pounding, fluttering, or skipping beats. Usually benign but can be frightening.",
     possibleCauses: [
       { name: "Anxiety or stress", likelihood: "common", description: "Adrenaline causes the heart to beat faster and harder.", whenToSuspect: ["During stress", "With other anxiety symptoms", "Resolves when calm"] },
       { name: "Caffeine or stimulants", likelihood: "common", description: "Coffee, energy drinks, and some medications.", whenToSuspect: ["After coffee/energy drinks", "Dose-dependent"] },
@@ -1000,12 +1000,12 @@ export const symptoms: Record<string, SymptomData> = {
     emergencySigns: ["Palpitations with chest pain or pressure", "Fainting or loss of consciousness", "Severe breathlessness", "Palpitations lasting more than 15 minutes at rest"],
     relatedSymptoms: ["chest-pain", "anxiety", "dizziness", "shortness-of-breath"],
     faqs: [
-      { q: "Are heart palpitations dangerous?", a: "Most palpitations are harmless — caused by caffeine, stress, or exercise. However, palpitations with chest pain, fainting, or severe breathlessness need urgent assessment to rule out arrhythmias." },
+      { q: "Are heart palpitations dangerous?", a: "Most palpitations are harmless - caused by caffeine, stress, or exercise. However, palpitations with chest pain, fainting, or severe breathlessness need urgent assessment to rule out arrhythmias." },
       { q: "Should I see a cardiologist?", a: "Not usually as a first step. Your GP can arrange an ECG and blood tests. Specialist referral is needed if an arrhythmia is detected or palpitations are frequent and unexplained." },
-      { q: "Can anxiety cause heart palpitations?", a: "Yes — anxiety is one of the most common causes. Adrenaline from the fight-or-flight response directly increases heart rate and force of contraction." }
+      { q: "Can anxiety cause heart palpitations?", a: "Yes - anxiety is one of the most common causes. Adrenaline from the fight-or-flight response directly increases heart rate and force of contraction." }
     ],
     serviceRecommendation: { type: "consult", text: "Get assessed", href: "/request?service=consult" },
-    doctorPerspective: "Heart palpitations are one of the most anxiety-provoking symptoms patients experience, but the vast majority are benign. When I assess palpitations, I first determine the pattern: are they regular or irregular? Brief or sustained? Associated with exertion or at rest? Palpitations during stress, after caffeine, or during exercise are almost always normal physiological responses. The features that raise concern are palpitations at rest that are irregular, sustained (more than 15 minutes), associated with dizziness or fainting, or occurring with chest pain. These may indicate an arrhythmia requiring investigation with an ECG or Holter monitor. Importantly, many patients with benign palpitations enter a cycle where anxiety about the palpitations causes more adrenaline, which causes more palpitations — breaking this cycle with reassurance and breathing techniques is often the most effective treatment.",
+    doctorPerspective: "Heart palpitations are one of the most anxiety-provoking symptoms patients experience, but the vast majority are benign. When I assess palpitations, I first determine the pattern: are they regular or irregular? Brief or sustained? Associated with exertion or at rest? Palpitations during stress, after caffeine, or during exercise are almost always normal physiological responses. The features that raise concern are palpitations at rest that are irregular, sustained (more than 15 minutes), associated with dizziness or fainting, or occurring with chest pain. These may indicate an arrhythmia requiring investigation with an ECG or Holter monitor. Importantly, many patients with benign palpitations enter a cycle where anxiety about the palpitations causes more adrenaline, which causes more palpitations - breaking this cycle with reassurance and breathing techniques is often the most effective treatment.",
     certGuidance: "Palpitations alone rarely prevent work unless they cause significant dizziness or anxiety. If palpitations required emergency assessment or investigation, time off for recovery and follow-up is appropriate.",
   },
   "joint-pain": {
@@ -1021,15 +1021,15 @@ export const symptoms: Record<string, SymptomData> = {
     ],
     selfCareAdvice: ["Rest the affected joint but maintain gentle movement", "Apply ice for acute pain or heat for chronic stiffness", "Over-the-counter anti-inflammatories (ibuprofen)", "Gentle stretching and strengthening", "Maintain healthy weight to reduce joint load"],
     whenToSeeDoctor: ["Joint pain lasting more than 2 weeks", "Significant swelling, redness, or warmth", "Joint pain with fever", "Inability to use the joint normally", "You need a medical certificate"],
-    emergencySigns: ["Hot, red, swollen joint with fever (possible septic arthritis — emergency)", "Joint pain after significant trauma with deformity", "Unable to bear weight on the affected joint"],
+    emergencySigns: ["Hot, red, swollen joint with fever (possible septic arthritis - emergency)", "Joint pain after significant trauma with deformity", "Unable to bear weight on the affected joint"],
     relatedSymptoms: ["back-pain", "neck-pain", "muscle-strain"],
     faqs: [
-      { q: "Can I get a medical certificate for joint pain?", a: "Yes. Joint pain — particularly in weight-bearing joints or hands — can significantly affect your ability to work. A certificate is appropriate, especially for physical roles." },
+      { q: "Can I get a medical certificate for joint pain?", a: "Yes. Joint pain - particularly in weight-bearing joints or hands - can significantly affect your ability to work. A certificate is appropriate, especially for physical roles." },
       { q: "When does joint pain need investigation?", a: "See a doctor if pain persists beyond 2 weeks, if the joint is swollen/hot/red, if multiple joints are affected, or if you have morning stiffness lasting more than 30 minutes (possible inflammatory arthritis)." },
       { q: "Should I use heat or ice?", a: "Ice for acute pain and swelling (first 48 hours of a new injury). Heat for chronic stiffness and muscle tension. Many people benefit from alternating both." }
     ],
     serviceRecommendation: { type: "both", text: "Get assessed", href: "/request?service=consult" },
-    doctorPerspective: "Joint pain is one of the broadest symptom categories in medicine, and the approach depends on whether it is one joint or many, acute or chronic, and inflammatory or mechanical. A single hot, red, swollen joint with fever is septic arthritis until proven otherwise — this is a medical emergency requiring urgent in-person assessment and joint aspiration. In contrast, gradual knee stiffness in a 55-year-old is almost certainly osteoarthritis and can be managed with exercise and weight management. The key features I assess remotely are: which joints, how many, morning stiffness duration (more than 30 minutes suggests inflammatory arthritis), and associated symptoms (fever, rash, eye inflammation). This allows me to triage effectively between conditions that need urgent attention and those that can be managed conservatively.",
+    doctorPerspective: "Joint pain is one of the broadest symptom categories in medicine, and the approach depends on whether it is one joint or many, acute or chronic, and inflammatory or mechanical. A single hot, red, swollen joint with fever is septic arthritis until proven otherwise - this is a medical emergency requiring urgent in-person assessment and joint aspiration. In contrast, gradual knee stiffness in a 55-year-old is almost certainly osteoarthritis and can be managed with exercise and weight management. The key features I assess remotely are: which joints, how many, morning stiffness duration (more than 30 minutes suggests inflammatory arthritis), and associated symptoms (fever, rash, eye inflammation). This allows me to triage effectively between conditions that need urgent attention and those that can be managed conservatively.",
     certGuidance: "Joint pain affecting weight-bearing joints (knees, hips, ankles) or hands can prevent physical work and desk work respectively. Gout attacks are among the most painful conditions and typically warrant 3-5 days off.",
   },
   "weight-gain": {
@@ -1043,7 +1043,7 @@ export const symptoms: Record<string, SymptomData> = {
       { name: "PCOS (polycystic ovary syndrome)", likelihood: "less-common", description: "Hormonal condition in women.", whenToSuspect: ["Irregular periods", "Acne", "Excess hair growth", "Difficulty losing weight"] },
       { name: "Cushing's syndrome", likelihood: "rare", description: "Excess cortisol production.", whenToSuspect: ["Central obesity", "Moon face", "Stretch marks", "Thin skin"] }
     ],
-    selfCareAdvice: ["Track food intake accurately — many people underestimate consumption by 40-50%", "Maintain regular physical activity", "Check medication side effects with your doctor", "Get adequate sleep — poor sleep disrupts hunger hormones", "Manage stress — cortisol promotes fat storage"],
+    selfCareAdvice: ["Track food intake accurately - many people underestimate consumption by 40-50%", "Maintain regular physical activity", "Check medication side effects with your doctor", "Get adequate sleep - poor sleep disrupts hunger hormones", "Manage stress - cortisol promotes fat storage"],
     whenToSeeDoctor: ["Unexplained weight gain of 5kg+ over a few months", "Weight gain with other symptoms (fatigue, hair loss, menstrual changes)", "Rapid weight gain over days (possible fluid retention)", "Difficulty losing weight despite genuine effort"],
     emergencySigns: ["Rapid weight gain with severe breathlessness (possible heart failure)", "Sudden leg swelling with chest pain (possible blood clot)", "Rapid weight gain with facial swelling (possible kidney problems)"],
     relatedSymptoms: ["fatigue", "bloating"],
@@ -1053,7 +1053,7 @@ export const symptoms: Record<string, SymptomData> = {
       { q: "Should I get blood tests?", a: "Yes, if weight gain is genuinely unexplained. A basic panel should include thyroid function (TSH), fasting glucose and HbA1c, cortisol, and a full blood count. PCOS testing may be appropriate for women." }
     ],
     serviceRecommendation: { type: "consult", text: "Get assessed", href: "/request?service=consult" },
-    doctorPerspective: "When a patient tells me they are gaining weight without eating more, I take it seriously — but I also investigate honestly. Research shows that most people significantly underestimate their caloric intake (by 40-50% on average). That said, genuine unexplained weight gain does occur and has identifiable medical causes. The most common is hypothyroidism, followed by medication side effects (which are vastly underappreciated — many commonly prescribed medications cause 5-10kg of weight gain). PCOS in women is another major cause. The investigation is straightforward: thyroid function, fasting glucose, and in some cases hormone panels. Via telehealth, I can order the appropriate blood tests, review medications for weight-gaining culprits, and provide evidence-based guidance.",
+    doctorPerspective: "When a patient tells me they are gaining weight without eating more, I take it seriously - but I also investigate honestly. Research shows that most people significantly underestimate their caloric intake (by 40-50% on average). That said, genuine unexplained weight gain does occur and has identifiable medical causes. The most common is hypothyroidism, followed by medication side effects (which are vastly underappreciated - many commonly prescribed medications cause 5-10kg of weight gain). PCOS in women is another major cause. The investigation is straightforward: thyroid function, fasting glucose, and in some cases hormone panels. Via telehealth, I can order the appropriate blood tests, review medications for weight-gaining culprits, and provide evidence-based guidance.",
     certGuidance: "Unexplained weight gain itself rarely requires a certificate, but the underlying cause (hypothyroidism, depression) or associated symptoms (severe fatigue, mobility limitation) may.",
   },
   "hair-loss": {
@@ -1061,15 +1061,15 @@ export const symptoms: Record<string, SymptomData> = {
     slug: "hair-loss",
     description: "Thinning, shedding, or bald patches on the scalp. Can be caused by genetics, hormones, stress, nutritional deficiencies, or autoimmune conditions.",
     possibleCauses: [
-      { name: "Androgenetic alopecia (male/female pattern)", likelihood: "common", description: "Genetic hair loss — the most common type.", whenToSuspect: ["Family history", "Gradual thinning", "Receding hairline (men)", "Widening part (women)"] },
+      { name: "Androgenetic alopecia (male/female pattern)", likelihood: "common", description: "Genetic hair loss - the most common type.", whenToSuspect: ["Family history", "Gradual thinning", "Receding hairline (men)", "Widening part (women)"] },
       { name: "Telogen effluvium (stress-related)", likelihood: "common", description: "Temporary shedding 2-3 months after a stressor.", whenToSuspect: ["Recent illness, surgery, or stress", "Diffuse thinning", "Started 2-3 months after event"] },
       { name: "Iron or nutritional deficiency", likelihood: "less-common", description: "Low iron, zinc, or vitamin D can cause hair loss.", whenToSuspect: ["Fatigue", "Vegetarian/vegan", "Heavy periods", "Diffuse thinning"] },
       { name: "Thyroid dysfunction", likelihood: "less-common", description: "Both hypo- and hyperthyroidism cause hair loss.", whenToSuspect: ["Fatigue or anxiety", "Weight changes", "Temperature sensitivity"] },
       { name: "Alopecia areata", likelihood: "less-common", description: "Autoimmune patches of hair loss.", whenToSuspect: ["Round bald patches", "Smooth skin in patches", "May regrow spontaneously"] }
     ],
-    selfCareAdvice: ["Don't panic — stress worsens hair loss. Most types are treatable", "Get blood tests for iron, thyroid, vitamin D, and zinc", "Use gentle hair care — avoid excessive heat, tight styles, and harsh chemicals", "Consider minoxidil (available OTC) for pattern hair loss", "Ensure adequate protein intake — hair is made of protein"],
+    selfCareAdvice: ["Don't panic - stress worsens hair loss. Most types are treatable", "Get blood tests for iron, thyroid, vitamin D, and zinc", "Use gentle hair care - avoid excessive heat, tight styles, and harsh chemicals", "Consider minoxidil (available OTC) for pattern hair loss", "Ensure adequate protein intake - hair is made of protein"],
     whenToSeeDoctor: ["Sudden or rapid hair loss", "Bald patches appearing", "Hair loss with scalp symptoms (pain, itching, redness)", "Hair loss after starting new medication", "You want to discuss treatment options"],
-    emergencySigns: ["Hair loss with severe scalp pain and scarring (possible scarring alopecia — needs dermatology)", "Complete hair loss over days (rare — needs urgent assessment)"],
+    emergencySigns: ["Hair loss with severe scalp pain and scarring (possible scarring alopecia - needs dermatology)", "Complete hair loss over days (rare - needs urgent assessment)"],
     relatedSymptoms: ["fatigue", "stress"],
     faqs: [
       { q: "Can a doctor help with hair loss?", a: "Yes. A doctor can identify the cause (blood tests for deficiencies, thyroid, hormones), prescribe treatments (finasteride, minoxidil, iron supplementation), and refer to a dermatologist if needed." },
@@ -1077,7 +1077,7 @@ export const symptoms: Record<string, SymptomData> = {
       { q: "What treatments are available?", a: "Minoxidil (topical, OTC), finasteride (prescription, for men), iron/vitamin supplements if deficient, and referral for PRP therapy or specialist treatments for resistant cases." }
     ],
     serviceRecommendation: { type: "consult", text: "Get assessed", href: "/request?service=consult" },
-    doctorPerspective: "Hair loss consultations have increased significantly in telehealth — likely because patients find it easier to discuss a sensitive topic from home. The diagnostic approach starts with the pattern: is it diffuse (all over) or patchy? Gradual or sudden? Diffuse gradual thinning in a typical pattern strongly suggests androgenetic alopecia (genetic). Diffuse shedding 2-3 months after a stressor (illness, surgery, childbirth, severe stress) is telogen effluvium — this is fully reversible. Patchy loss with smooth skin suggests alopecia areata. I always check for treatable causes: iron, ferritin, thyroid function, zinc, and vitamin D — these are all correctable and commonly overlooked. For androgenetic alopecia, the key message is that early treatment (minoxidil ± finasteride for men) is far more effective at preventing further loss than trying to regrow what's already gone.",
+    doctorPerspective: "Hair loss consultations have increased significantly in telehealth - likely because patients find it easier to discuss a sensitive topic from home. The diagnostic approach starts with the pattern: is it diffuse (all over) or patchy? Gradual or sudden? Diffuse gradual thinning in a typical pattern strongly suggests androgenetic alopecia (genetic). Diffuse shedding 2-3 months after a stressor (illness, surgery, childbirth, severe stress) is telogen effluvium - this is fully reversible. Patchy loss with smooth skin suggests alopecia areata. I always check for treatable causes: iron, ferritin, thyroid function, zinc, and vitamin D - these are all correctable and commonly overlooked. For androgenetic alopecia, the key message is that early treatment (minoxidil ± finasteride for men) is far more effective at preventing further loss than trying to regrow what's already gone.",
     certGuidance: "Hair loss itself is unlikely to require a medical certificate, but the psychological impact can be significant. If hair loss is causing anxiety or depression that affects work, that is a legitimate reason for support.",
   },
   "eye-strain": {
@@ -1090,7 +1090,7 @@ export const symptoms: Record<string, SymptomData> = {
       { name: "Uncorrected vision", likelihood: "common", description: "Needing glasses or updated prescription.", whenToSuspect: ["Squinting", "Headaches", "Holding phone closer"] },
       { name: "Dry eye syndrome", likelihood: "less-common", description: "Insufficient tear production.", whenToSuspect: ["Eyes feel gritty", "Worse in air conditioning", "Contact lens discomfort"] }
     ],
-    selfCareAdvice: ["Follow the 20-20-20 rule: every 20 minutes, look at something 20 feet away for 20 seconds", "Blink deliberately — screen use reduces blink rate by 50%", "Adjust screen brightness to match your environment", "Use lubricating eye drops (artificial tears)", "Position screen at arm's length, slightly below eye level"],
+    selfCareAdvice: ["Follow the 20-20-20 rule: every 20 minutes, look at something 20 feet away for 20 seconds", "Blink deliberately - screen use reduces blink rate by 50%", "Adjust screen brightness to match your environment", "Use lubricating eye drops (artificial tears)", "Position screen at arm's length, slightly below eye level"],
     whenToSeeDoctor: ["Eye strain with persistent headaches", "Vision changes or blurred vision", "Eye pain (not just tiredness)", "Symptoms not improving with self-care", "You need an eye test referral"],
     emergencySigns: ["Sudden vision loss or dark spots", "Severe eye pain", "Flashing lights or new floaters", "Double vision"],
     relatedSymptoms: ["headache", "neck-pain"],
@@ -1100,7 +1100,7 @@ export const symptoms: Record<string, SymptomData> = {
       { q: "Can I get a medical certificate for eye strain?", a: "Severe eye strain with headaches can affect your ability to do screen-based work. A certificate may be appropriate, along with recommendations for workplace ergonomic assessment." }
     ],
     serviceRecommendation: { type: "consult", text: "Get assessed", href: "/request?service=consult" },
-    doctorPerspective: "Digital eye strain is the occupational health epidemic of the modern workplace. Nearly everyone who works at a screen for more than 2 hours daily experiences it to some degree, yet very few seek help or make the simple adjustments that resolve it. The root cause is that our eyes evolved for distance vision and outdoor light — sustained near-focus on a backlit screen in an air-conditioned room is physiologically demanding. The most effective intervention is the 20-20-20 rule, combined with deliberate blinking and appropriate screen positioning. I also always recommend an eye test to rule out uncorrected refractive error — even a mild prescription that you 'don't really need' can eliminate eye strain entirely.",
+    doctorPerspective: "Digital eye strain is the occupational health epidemic of the modern workplace. Nearly everyone who works at a screen for more than 2 hours daily experiences it to some degree, yet very few seek help or make the simple adjustments that resolve it. The root cause is that our eyes evolved for distance vision and outdoor light - sustained near-focus on a backlit screen in an air-conditioned room is physiologically demanding. The most effective intervention is the 20-20-20 rule, combined with deliberate blinking and appropriate screen positioning. I also always recommend an eye test to rule out uncorrected refractive error - even a mild prescription that you 'don't really need' can eliminate eye strain entirely.",
     certGuidance: "Severe eye strain can make screen-based work impossible. If headaches and eye fatigue are debilitating despite ergonomic adjustments, a certificate and optometry referral are appropriate.",
   },
   "sleep-apnoea": {
@@ -1111,23 +1111,23 @@ export const symptoms: Record<string, SymptomData> = {
       { name: "Obstructive sleep apnoea (OSA)", likelihood: "common", description: "Throat muscles relax excessively during sleep, blocking the airway.", whenToSuspect: ["Loud snoring", "Witnessed apnoeas (partner sees you stop breathing)", "Overweight", "Neck circumference >40cm"] },
       { name: "Central sleep apnoea", likelihood: "rare", description: "Brain doesn't send proper signals to breathing muscles.", whenToSuspect: ["Heart failure", "Opioid use", "No snoring", "Cheyne-Stokes breathing pattern"] }
     ],
-    selfCareAdvice: ["Lose weight if overweight — even 5-10% weight loss can significantly reduce OSA severity", "Sleep on your side — back sleeping worsens obstruction", "Avoid alcohol within 3 hours of bedtime — it relaxes throat muscles", "Avoid sedating medications before bed", "Maintain regular sleep schedule"],
+    selfCareAdvice: ["Lose weight if overweight - even 5-10% weight loss can significantly reduce OSA severity", "Sleep on your side - back sleeping worsens obstruction", "Avoid alcohol within 3 hours of bedtime - it relaxes throat muscles", "Avoid sedating medications before bed", "Maintain regular sleep schedule"],
     whenToSeeDoctor: ["Loud snoring with witnessed breathing pauses", "Excessive daytime sleepiness despite adequate sleep hours", "Morning headaches", "Difficulty concentrating", "Falling asleep while driving (urgent)"],
     emergencySigns: ["Falling asleep at the wheel or during safety-critical tasks", "Severe breathlessness on waking", "Chest pain on waking"],
     relatedSymptoms: ["fatigue", "headache", "insomnia"],
     faqs: [
       { q: "How is sleep apnoea diagnosed?", a: "A sleep study (polysomnography) is the gold standard. Home-based sleep studies are now available and are more convenient. Your GP can arrange a referral." },
-      { q: "What is CPAP?", a: "Continuous Positive Airway Pressure — a machine that gently blows air through a mask to keep your airway open during sleep. It is the most effective treatment for moderate-severe OSA." },
+      { q: "What is CPAP?", a: "Continuous Positive Airway Pressure - a machine that gently blows air through a mask to keep your airway open during sleep. It is the most effective treatment for moderate-severe OSA." },
       { q: "Is sleep apnoea dangerous?", a: "Untreated OSA significantly increases risk of heart attack, stroke, type 2 diabetes, and car accidents (due to daytime sleepiness). Treatment with CPAP dramatically reduces these risks." }
     ],
     serviceRecommendation: { type: "consult", text: "Get assessed", href: "/request?service=consult" },
-    doctorPerspective: "Sleep apnoea is one of the most underdiagnosed conditions in Australia — up to 80% of moderate-to-severe cases remain undiagnosed. The classic presentation is a middle-aged, overweight male with loud snoring and daytime sleepiness, but it affects women too (particularly after menopause) and can occur at any weight. Via telehealth, I can screen using validated questionnaires (STOP-BANG, Epworth Sleepiness Scale), arrange home sleep study referrals, and discuss treatment options. The most important reason to diagnose and treat OSA is cardiovascular risk reduction — untreated severe OSA doubles the risk of heart attack and stroke. CPAP compliance is the main challenge, but modern machines are quieter, smaller, and more comfortable than older models.",
+    doctorPerspective: "Sleep apnoea is one of the most underdiagnosed conditions in Australia - up to 80% of moderate-to-severe cases remain undiagnosed. The classic presentation is a middle-aged, overweight male with loud snoring and daytime sleepiness, but it affects women too (particularly after menopause) and can occur at any weight. Via telehealth, I can screen using validated questionnaires (STOP-BANG, Epworth Sleepiness Scale), arrange home sleep study referrals, and discuss treatment options. The most important reason to diagnose and treat OSA is cardiovascular risk reduction - untreated severe OSA doubles the risk of heart attack and stroke. CPAP compliance is the main challenge, but modern machines are quieter, smaller, and more comfortable than older models.",
     certGuidance: "Untreated severe OSA with excessive daytime sleepiness is a safety risk for driving and operating machinery. A certificate may be appropriate while awaiting diagnosis and treatment initiation.",
   },
   "chronic-cough": {
     name: "Chronic Cough",
     slug: "chronic-cough",
-    description: "A cough lasting more than 8 weeks. The three most common causes in non-smokers are asthma, postnasal drip, and acid reflux — often in combination.",
+    description: "A cough lasting more than 8 weeks. The three most common causes in non-smokers are asthma, postnasal drip, and acid reflux - often in combination.",
     possibleCauses: [
       { name: "Asthma (cough-variant)", likelihood: "common", description: "Airway hyperreactivity causing cough without typical wheeze.", whenToSuspect: ["Worse at night", "Triggered by cold air or exercise", "No other cold symptoms", "Responds to inhaler trial"] },
       { name: "Postnasal drip (upper airway cough syndrome)", likelihood: "common", description: "Mucus from sinuses dripping down throat.", whenToSuspect: ["Throat clearing", "Runny/blocked nose", "Worse lying down", "Allergies"] },
@@ -1141,12 +1141,12 @@ export const symptoms: Record<string, SymptomData> = {
     emergencySigns: ["Coughing up significant blood", "Severe breathlessness with cough", "Chest pain with cough", "Cough with high fever and rigors"],
     relatedSymptoms: ["cough", "sore-throat", "chest-pain", "shortness-of-breath"],
     faqs: [
-      { q: "How long is too long for a cough?", a: "A cough lasting more than 8 weeks is considered chronic and warrants investigation. Post-infectious coughs can last 2-3 weeks after a cold — this duration is normal." },
+      { q: "How long is too long for a cough?", a: "A cough lasting more than 8 weeks is considered chronic and warrants investigation. Post-infectious coughs can last 2-3 weeks after a cold - this duration is normal." },
       { q: "What tests might I need?", a: "Depending on the likely cause: spirometry (for asthma), chest X-ray (for smokers or if lung pathology suspected), trial of PPI medication (for reflux), or nasal endoscopy (for postnasal drip)." },
       { q: "Can I get a medical certificate for chronic cough?", a: "Yes. A persistent cough can disrupt sleep, cause voice strain, and make certain work environments difficult (quiet offices, phone-based work)." }
     ],
     serviceRecommendation: { type: "consult", text: "Get assessed", href: "/request?service=consult" },
-    doctorPerspective: "Chronic cough is one of the most common reasons for GP referral, and the diagnosis often involves treating the three most common causes (asthma, postnasal drip, reflux) sequentially or simultaneously. The key in telehealth assessment is ruling out serious causes first: any smoker or ex-smoker with a new or changed cough needs a chest X-ray. Coughing blood (haemoptysis) always warrants investigation. Unexplained weight loss with cough raises concern for malignancy. Once these are excluded, the 'big three' account for over 90% of chronic cough cases. A structured trial of treatment — inhaler for possible asthma, nasal steroid for postnasal drip, PPI for reflux — often identifies the cause by which treatment works. ACE inhibitor cough is a commonly overlooked cause that resolves within 1-4 weeks of switching medication.",
-    certGuidance: "Chronic cough can be disruptive at work — particularly in quiet environments. If cough is severe enough to cause vomiting, urinary incontinence, or significant sleep disruption, a certificate is appropriate.",
+    doctorPerspective: "Chronic cough is one of the most common reasons for GP referral, and the diagnosis often involves treating the three most common causes (asthma, postnasal drip, reflux) sequentially or simultaneously. The key in telehealth assessment is ruling out serious causes first: any smoker or ex-smoker with a new or changed cough needs a chest X-ray. Coughing blood (haemoptysis) always warrants investigation. Unexplained weight loss with cough raises concern for malignancy. Once these are excluded, the 'big three' account for over 90% of chronic cough cases. A structured trial of treatment - inhaler for possible asthma, nasal steroid for postnasal drip, PPI for reflux - often identifies the cause by which treatment works. ACE inhibitor cough is a commonly overlooked cause that resolves within 1-4 weeks of switching medication.",
+    certGuidance: "Chronic cough can be disruptive at work - particularly in quiet environments. If cough is severe enough to cause vomiting, urinary incontinence, or significant sleep disruption, a certificate is appropriate.",
   }
 }

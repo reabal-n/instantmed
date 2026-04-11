@@ -33,7 +33,7 @@ const STEPS = [
 // COMPONENT
 // =============================================================================
 
-/** eScript explainer — visual 3-step walkthrough of the digital prescription process */
+/** eScript explainer - visual 3-step walkthrough of the digital prescription process */
 export function EScriptExplainerSection() {
   const prefersReducedMotion = useReducedMotion()
   const animate = !prefersReducedMotion
@@ -53,7 +53,7 @@ export function EScriptExplainerSection() {
             What is an eScript?
           </h2>
           <p className="text-sm text-muted-foreground max-w-xl mx-auto">
-            eScripts are digital prescriptions &mdash; the national standard in
+            eScripts are digital prescriptions - the national standard in
             Australia since 2020. No paper needed, works everywhere.
           </p>
         </motion.div>

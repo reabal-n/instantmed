@@ -23,7 +23,7 @@ const SAFETY_QUESTIONS = [
     id: 'nitrates',
     question: 'Do you take nitrates (e.g., GTN spray, Anginine, Imdur) or any medication for chest pain?',
     hardBlock: true,
-    absoluteBlock: true, // No follow-up — drug interaction is dangerous regardless
+    absoluteBlock: true, // No follow-up - drug interaction is dangerous regardless
     blockReason: 'ED medications can cause a dangerous drop in blood pressure when combined with nitrates. Please see your GP or cardiologist.',
   },
   {
@@ -89,12 +89,12 @@ export default function EdSafetyStep({ onNext, onBack }: EdSafetyStepProps) {
 
   const handleFollowUp = (managed: boolean) => {
     if (managed) {
-      // Condition is managed by a doctor — allow to proceed with warning flag
+      // Condition is managed by a doctor - allow to proceed with warning flag
       setAnswer('edSafety_managedCondition', true)
       setShowFollowUp(false)
       advanceToNext()
     } else {
-      // Condition is NOT managed — block
+      // Condition is NOT managed - block
       const question = SAFETY_QUESTIONS[currentQuestion]
       setIsBlocked(true)
       setBlockReason(question.blockReason || '')
@@ -176,7 +176,7 @@ export default function EdSafetyStep({ onNext, onBack }: EdSafetyStepProps) {
         </AlertDescription>
       </Alert>
 
-      {/* Current question — toggle switch */}
+      {/* Current question - toggle switch */}
       <div className="space-y-4">
         <div className="flex items-center justify-between p-4 rounded-xl border">
           <Label htmlFor={currentQ.id} className="text-sm font-medium leading-relaxed flex-1 pr-4">

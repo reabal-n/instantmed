@@ -16,7 +16,7 @@ import {
 import { SOCIAL_PROOF } from "@/lib/social-proof"
 import { GOOGLE_REVIEW_URL } from "@/lib/constants"
 
-// Get reviews from centralized data — limited to a curated selection
+// Get reviews from centralized data - limited to a curated selection
 const reviewsData = getReviewsPageTestimonials().slice(0, 10)
 const featuredReviews = getFeaturedTestimonials().slice(0, 3)
 
@@ -40,7 +40,7 @@ function getAvatarColor(name: string) {
   return colors[index]
 }
 
-// ── ReviewsGrid (interactive/stateful — kept as-is) ──
+// ── ReviewsGrid (interactive/stateful - kept as-is) ──
 
 function ReviewsGrid({ reviews }: { reviews: ReviewItem[] }) {
   const [filter, setFilter] = useState<string>("All")
@@ -151,7 +151,7 @@ export function ReviewsClientPageComponent() {
         <CenteredHero
           pill="Verified Reviews"
           title="Patient Reviews"
-          subtitle="Real feedback from real Australians. No cherry-picking — just honest experiences."
+          subtitle="Real feedback from real Australians. No cherry-picking - just honest experiences."
         >
           {/* Rating summary card */}
           <div className="inline-block rounded-2xl border border-border/50 dark:border-white/15 bg-white dark:bg-card shadow-lg shadow-primary/[0.06] dark:shadow-none px-6 py-4">
@@ -195,7 +195,7 @@ export function ReviewsClientPageComponent() {
           ]}
         />
 
-        {/* Featured Reviews — 3-col grid with PerspectiveTiltCard */}
+        {/* Featured Reviews - 3-col grid with PerspectiveTiltCard */}
         <section className="px-4 py-12 sm:px-6">
           <div className="mx-auto max-w-6xl">
             <h2 className="text-xl font-semibold text-center mb-8" style={{ fontFamily: "var(--font-display)" }}>

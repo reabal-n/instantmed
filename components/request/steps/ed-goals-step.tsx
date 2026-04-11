@@ -1,7 +1,7 @@
 "use client"
 
 /**
- * ED Goals Step — Step 1 of 4 in the ED intake flow
+ * ED Goals Step - Step 1 of 4 in the ED intake flow
  *
  * Emotional entry point: low-friction goal selection + duration picker.
  * Age gate (Switch), chip grid for goals, segmented duration selector.
@@ -89,7 +89,7 @@ export default function EdGoalsStep({ onNext }: EdGoalsStepProps) {
         </p>
       </div>
 
-      {/* Goal selection — chip grid */}
+      {/* Goal selection - chip grid */}
       <div className="space-y-3">
         <Label className="text-sm font-medium">
           What&apos;s your main goal?
@@ -135,7 +135,7 @@ export default function EdGoalsStep({ onNext }: EdGoalsStepProps) {
         </motion.div>
       </div>
 
-      {/* Duration — segmented selector */}
+      {/* Duration - segmented selector */}
       <div className="space-y-3">
         <Label className="text-sm font-medium">
           How long has this been a concern?

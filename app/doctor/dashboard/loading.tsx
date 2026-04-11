@@ -12,7 +12,7 @@ export default function DoctorLoading() {
       {/* Page header skeleton */}
       <Skeleton className="h-8 w-36" />
 
-      {/* IntakeMonitor skeleton — single Card with 4-cell stat grid inside */}
+      {/* IntakeMonitor skeleton - single Card with 4-cell stat grid inside */}
       <div className="rounded-xl border border-border/50 bg-card animate-pulse">
         {/* CardHeader */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-border/40">
@@ -39,7 +39,7 @@ export default function DoctorLoading() {
         </div>
       </div>
 
-      {/* QueueClient skeleton — no tabs, just header + card list */}
+      {/* QueueClient skeleton - no tabs, just header + card list */}
       <div className="space-y-3">
         {/* Queue header: count text + search input + refresh button */}
         <div className="flex items-center gap-3">

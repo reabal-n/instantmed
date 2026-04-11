@@ -22,7 +22,7 @@ const CERTIFICATE_FEATURES = [
 // COMPONENT
 // =============================================================================
 
-/** Section 3: Certificate Preview — split layout with animated mockup */
+/** Section 3: Certificate Preview - split layout with animated mockup */
 export function CertificatePreviewSection({ onCTAClick }: { onCTAClick?: () => void }) {
   const prefersReducedMotion = useReducedMotion()
   const animate = !prefersReducedMotion

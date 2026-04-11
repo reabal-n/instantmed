@@ -99,7 +99,7 @@ export const LOADING = {
 // ============================================
 // ERROR MESSAGES
 // ============================================
-// These should feel like a human noticed something — not a compiler.
+// These should feel like a human noticed something - not a compiler.
 export const ERRORS = {
   // Generic
   generic: "Something went wrong on our end. Give it another go?",

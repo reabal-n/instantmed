@@ -74,7 +74,7 @@ const FIELD_LABELS: Record<string, string> = {
   yellow_flags: "Caution Flags",
   // Consent
   telehealth_consent_given: "Telehealth Consent",
-  // ED subtype — camelCase keys written by ed-goals-step.tsx + ed-assessment-step.tsx
+  // ED subtype - camelCase keys written by ed-goals-step.tsx + ed-assessment-step.tsx
   edGoal: "Main goal",
   edDuration: "Duration of concern",
   iiefTotal: "IIEF-5 score",
@@ -91,7 +91,7 @@ const FIELD_LABELS: Record<string, string> = {
   edDiabetes: "Uncontrolled Diabetes",
   edPreference: "Treatment Preference",
   edAdditionalInfo: "Additional Context",
-  // ED safety — flat keys written by ed-health-step.tsx
+  // ED safety - flat keys written by ed-health-step.tsx
   edNitrates: "Nitrate Use",
   edRecentHeartEvent: "Recent Heart Event",
   edSevereHeart: "Severe Heart Condition",
@@ -100,31 +100,31 @@ const FIELD_LABELS: Record<string, string> = {
   edGpCleared: "GP Cleared Cardiac Condition",
   edPreviousTreatment: "Previous ED treatment",
   edPreviousEffectiveness: "Previous treatment effectiveness",
-  // ED health — medical history keys written by ed-health-step.tsx
+  // ED health - medical history keys written by ed-health-step.tsx
   has_allergies: "Has allergies",
   known_allergies: "Allergies",
   has_conditions: "Has conditions",
   existing_conditions: "Conditions",
   takes_medications: "Takes medications",
   current_medications: "Current medications",
-  // ED health — body metrics
+  // ED health - body metrics
   heightCm: "Height (cm)",
   weightKg: "Weight (kg)",
   bmi: "BMI",
-  // Hair loss — camelCase keys written by hair-loss-assessment-step.tsx
+  // Hair loss - camelCase keys written by hair-loss-assessment-step.tsx
   hairPattern: "Hair Loss Pattern",
   hairDuration: "Hair Loss Duration",
   hairFamilyHistory: "Family History",
   hairMedicationPreference: "Treatment Preference",
   hairAdditionalInfo: "Additional Context",
-  // Hair loss — previous-treatment boolean toggles
+  // Hair loss - previous-treatment boolean toggles
   triedMinoxidil: "Tried Minoxidil",
   triedFinasteride: "Tried Finasteride",
   triedBiotin: "Tried Biotin",
   triedShampoos: "Tried Medicated Shampoos",
   triedPRP: "Tried PRP",
   triedOther: "Tried Other Treatment",
-  // Hair loss — scalp condition boolean toggles
+  // Hair loss - scalp condition boolean toggles
   scalpDandruff: "Scalp Dandruff",
   scalpPsoriasis: "Scalp Psoriasis",
   scalpItching: "Scalp Itching",
@@ -134,7 +134,7 @@ const FIELD_LABELS: Record<string, string> = {
 
 // Fields to highlight as critical (red - requires immediate attention)
 // NOTE: emergency_symptoms is a safety-gate toggle ("I am NOT experiencing an emergency" → true),
-// not an actual symptom field — it's excluded here since blocking happens at intake time.
+// not an actual symptom field - it's excluded here since blocking happens at intake time.
 const RED_FLAG_FIELDS = ["red_flags_detected", "symptom_severity"]
 
 // Values that indicate NO actual red flag (benign/negative values)
@@ -159,14 +159,14 @@ const CONSULT_SUBTYPE_FIELDS: Record<string, { label: string; fields: string[]; 
   ed: {
     label: "Erectile Dysfunction Assessment",
     fields: [
-      // Goals step — ed-goals-step.tsx
+      // Goals step - ed-goals-step.tsx
       "edGoal", "edDuration",
-      // Assessment step — ed-assessment-step.tsx (IIEF-5)
+      // Assessment step - ed-assessment-step.tsx (IIEF-5)
       "iiefTotal", "iief1", "iief2", "iief3", "iief4", "iief5",
       "edOnset", "edFrequency", "edMorningErections",
       "edAgeConfirmed", "edHypertension", "edDiabetes",
       "edPreference", "edAdditionalInfo",
-      // Safety + medical history — ed-health-step.tsx
+      // Safety + medical history - ed-health-step.tsx
       "edNitrates", "edRecentHeartEvent",
       "edSevereHeart", "edBpMedication", "previousEdMeds",
       "edGpCleared",
@@ -188,7 +188,7 @@ const CONSULT_SUBTYPE_FIELDS: Record<string, { label: string; fields: string[]; 
   hair_loss: {
     label: "Hair Loss Assessment",
     fields: [
-      // Main assessment fields — hair-loss-assessment-step.tsx
+      // Main assessment fields - hair-loss-assessment-step.tsx
       "hairPattern", "hairDuration", "hairFamilyHistory",
       "hairMedicationPreference", "hairAdditionalInfo",
       // Previous-treatment boolean toggles
@@ -198,7 +198,7 @@ const CONSULT_SUBTYPE_FIELDS: Record<string, { label: string; fields: string[]; 
       "scalpDandruff", "scalpPsoriasis", "scalpItching",
       "scalpFolliculitis", "scalpNone",
       // Reserved for planned intake rewrite (Norwood scale, expanded
-      // history). Not written by today's intake — retained so the doctor
+      // history). Not written by today's intake - retained so the doctor
       // portal renders them correctly the moment the rewrite lands.
       "hair_loss_duration", "hair_loss_pattern", "hair_loss_family_history",
       "hair_loss_previous_treatment", "scalp_condition", "recent_stress",

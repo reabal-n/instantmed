@@ -678,7 +678,7 @@ export function needsEncryptionMigration(record: Record<string, unknown>): boole
 }
 
 // ============================================================================
-// HEALTH PROFILE — ALLERGIES (patient_health_profiles.allergies / allergies_enc)
+// HEALTH PROFILE - ALLERGIES (patient_health_profiles.allergies / allergies_enc)
 // ============================================================================
 
 export interface HealthAllergiesWriteResult {
@@ -724,7 +724,7 @@ export async function readHealthAllergies(record: {
 }
 
 // ============================================================================
-// HEALTH PROFILE — CONDITIONS (patient_health_profiles.conditions / conditions_enc)
+// HEALTH PROFILE - CONDITIONS (patient_health_profiles.conditions / conditions_enc)
 // ============================================================================
 
 export interface HealthConditionsWriteResult {
@@ -770,7 +770,7 @@ export async function readHealthConditions(record: {
 }
 
 // ============================================================================
-// HEALTH PROFILE — MEDICATIONS (patient_health_profiles.current_medications / current_medications_enc)
+// HEALTH PROFILE - MEDICATIONS (patient_health_profiles.current_medications / current_medications_enc)
 // ============================================================================
 
 export interface HealthMedicationsWriteResult {
@@ -816,7 +816,7 @@ export async function readHealthMedications(record: {
 }
 
 // ============================================================================
-// HEALTH PROFILE — NOTES (patient_health_profiles.notes / notes_enc)
+// HEALTH PROFILE - NOTES (patient_health_profiles.notes / notes_enc)
 // ============================================================================
 
 export interface HealthNotesWriteResult {

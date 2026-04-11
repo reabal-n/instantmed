@@ -2,7 +2,7 @@
  * Follow-Up Reminder Email Template
  *
  * Sent 72–96 hours after a medical certificate is approved.
- * One-time touchpoint — gentle check-in, surfaces the consult product.
+ * One-time touchpoint - gentle check-in, surfaces the consult product.
  */
 
 import * as React from "react"
@@ -13,6 +13,7 @@ import {
   Button,
   GoogleReviewCTA,
 } from "../base-email"
+import { PRICING_DISPLAY } from "@/lib/constants"
 
 export interface FollowUpReminderEmailProps {
   patientName: string
@@ -51,7 +52,7 @@ export function FollowUpReminderEmail({
       <Button href={consultUrl}>Start a consultation</Button>
 
       <Text muted small style={{ textAlign: "center" }}>
-        GP consultations from $49.95
+        GP consultations from {PRICING_DISPLAY.CONSULT}
       </Text>
 
       <GoogleReviewCTA appUrl={appUrl} />

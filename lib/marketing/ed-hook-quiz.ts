@@ -1,5 +1,5 @@
 /**
- * ED Hook Quiz — 3 lightweight questions designed for conversion.
+ * ED Hook Quiz - 3 lightweight questions designed for conversion.
  *
  * NOTE: this is NOT the IIEF-5. IIEF-5 is a 5-question clinical
  * assessment with a different scoring scale and lives inside the paid
@@ -82,10 +82,10 @@ export function scoreEdHookQuiz(answers: [number, number, number]): EdHookQuizRe
 export function getEdHookQuizReassurance(tier: EdHookQuizTier): string {
   switch (tier) {
     case "severe":
-      return "You're not alone — many patients in this range see meaningful improvement with treatment. A doctor can assess what's appropriate for you."
+      return "You're not alone - many patients in this range see meaningful improvement with treatment. A doctor can assess what's appropriate for you."
     case "moderate":
       return "This is a common place to be. Treatment is effective for most patients, and a doctor can recommend the right approach."
     case "mild":
-      return "Things are relatively good but not perfect — a doctor can assess whether treatment or other support is worth considering."
+      return "Things are relatively good but not perfect - a doctor can assess whether treatment or other support is worth considering."
   }
 }

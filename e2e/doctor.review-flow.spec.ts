@@ -21,7 +21,7 @@ import {
   cleanupTestIntake,
 } from "./helpers/db"
 
-test.describe("Doctor Review — Claim & Review", () => {
+test.describe("Doctor Review - Claim & Review", () => {
   test.beforeEach(async ({ page }) => {
     const result = await loginAsOperator(page)
     expect(result.success, `Login failed: ${result.error}`).toBe(true)
@@ -83,7 +83,7 @@ test.describe("Doctor Review — Claim & Review", () => {
   })
 })
 
-test.describe("Doctor Review — Decline Flow", () => {
+test.describe("Doctor Review - Decline Flow", () => {
   let testIntakeId: string | undefined
 
   test.beforeEach(async ({ page }) => {
@@ -172,7 +172,7 @@ test.describe("Doctor Review — Decline Flow", () => {
   })
 })
 
-test.describe("Doctor Review — Batch Operations", () => {
+test.describe("Doctor Review - Batch Operations", () => {
   test.beforeEach(async ({ page }) => {
     const result = await loginAsOperator(page)
     expect(result.success, `Login failed: ${result.error}`).toBe(true)

@@ -39,7 +39,7 @@ const services = [
     href: "/medical-certificate",
     icon: FileText,
     color: "#2563EB",
-    cta: `Get your certificate — $${PRICING.MED_CERT}`,
+    cta: `Get your certificate - $${PRICING.MED_CERT}`,
   },
   {
     name: "Prescription",
@@ -56,7 +56,7 @@ const services = [
     href: "/prescriptions",
     icon: Pill,
     color: "#4f46e5",
-    cta: `Renew medication — $${PRICING.REPEAT_SCRIPT}`,
+    cta: `Renew medication - $${PRICING.REPEAT_SCRIPT}`,
   },
   {
     name: "Consultation",
@@ -74,7 +74,7 @@ const services = [
     href: "/consult",
     icon: Stethoscope,
     color: "#059669",
-    cta: `Start assessment — from $${PRICING.HAIR_LOSS}`,
+    cta: `Start assessment - from $${PRICING.HAIR_LOSS}`,
   },
 ]
 
@@ -108,7 +108,7 @@ const pricingFaqs = [
       {
         question: "Can I get a receipt for my health insurance?",
         answer:
-          "Yes. You\u2019ll receive a tax invoice via email after payment. Whether your health insurer reimburses telehealth consultations depends on your policy and fund — check with your insurer directly. We provide the documentation either way.",
+          "Yes. You\u2019ll receive a tax invoice via email after payment. Whether your health insurer reimburses telehealth consultations depends on your policy and fund - check with your insurer directly. We provide the documentation either way.",
       },
       {
         question: "Why isn\u2019t this covered by Medicare?",
@@ -198,7 +198,7 @@ export function PricingClient() {
           pill="Simple pricing"
           title="Pay per consult. No hidden fees."
           highlightWords={["hidden fees"]}
-          subtitle="Transparent pricing with no hidden fees. Only pay when you need care — and only if we can help."
+          subtitle="Transparent pricing with no hidden fees. Only pay when you need care - and only if we can help."
           stats={[
             { value: SOCIAL_PROOF.refundPercent, suffix: "%", label: "Refund if declined" },
             { value: 0, prefix: "$", label: "Hidden fees" },
@@ -374,7 +374,7 @@ export function PricingClient() {
         />
       </main>
 
-      {/* Sticky mobile CTA — appears when pricing cards scroll out of view */}
+      {/* Sticky mobile CTA - appears when pricing cards scroll out of view */}
       <AnimatePresence>
         {showStickyCTA && (
           <motion.div

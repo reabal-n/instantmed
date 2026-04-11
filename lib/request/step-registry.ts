@@ -86,11 +86,11 @@ export interface StepDefinition {
 export interface StepContext {
   isAuthenticated: boolean
   hasProfile: boolean
-  /** True when profile has complete identity (incl. date_of_birth) — details step can be skipped */
+  /** True when profile has complete identity (incl. date_of_birth) - details step can be skipped */
   hasCompleteIdentity?: boolean
   hasMedicare: boolean
   hasAddress: boolean
-  /** True when profile has a phone number — required for prescriptions + consults */
+  /** True when profile has a phone number - required for prescriptions + consults */
   hasPhone?: boolean
   serviceType: UnifiedServiceType
   answers: Record<string, unknown>
@@ -172,7 +172,7 @@ export const STEP_REGISTRY: Record<UnifiedServiceType, StepDefinition[]> = {
       shortLabel: 'Details',
       componentPath: 'patient-details-step',
       validateFn: 'validateDetailsStep',
-      // Prescriptions require Medicare + address — only skip if all are present
+      // Prescriptions require Medicare + address - only skip if all are present
       canSkip: (ctx) => ctx.isAuthenticated && (ctx.hasCompleteIdentity ?? ctx.hasProfile) && ctx.hasMedicare && ctx.hasAddress && (ctx.hasPhone !== false),
       required: true,
     },
@@ -193,7 +193,7 @@ export const STEP_REGISTRY: Record<UnifiedServiceType, StepDefinition[]> = {
     },
   ],
 
-  // Alias — same flow as prescription
+  // Alias - same flow as prescription
   'repeat-script': [] as StepDefinition[], // populated below
 
   'consult': [

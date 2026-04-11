@@ -143,7 +143,7 @@ export function UserMenu({
         {/* Notifications */}
         <NotificationBell />
 
-        {/* Static avatar — settings & sign out live in the sidebar */}
+        {/* Static avatar - settings & sign out live in the sidebar */}
         <div className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center shrink-0 ml-1" aria-hidden="true">
           <span className="text-xs font-semibold text-primary leading-none">
             {firstName?.[0]?.toUpperCase() ?? "U"}
@@ -181,7 +181,7 @@ export function UserMenu({
           Intakes
         </AnimatedNavLink>
 
-        {/* Static avatar — settings & sign out live in the sidebar */}
+        {/* Static avatar - settings & sign out live in the sidebar */}
         <div className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center shrink-0 ml-2" aria-hidden="true">
           <span className="text-xs font-semibold text-primary leading-none">
             {firstName?.[0]?.toUpperCase() ?? "D"}

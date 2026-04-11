@@ -751,7 +751,7 @@ export async function getAllIntakesForAdmin(
 /**
  * Get dashboard stats for doctor
  * Uses SQL COUNT queries for efficiency at scale
- * Cached for 30s — router.refresh() won't cause repeated DB hits or Suspense skeleton flashes
+ * Cached for 30s - router.refresh() won't cause repeated DB hits or Suspense skeleton flashes
  */
 export const getDoctorDashboardStats = unstable_cache(
   async (): Promise<{
@@ -1755,7 +1755,7 @@ export const getPatientDashboardData = (patientId: string): Promise<{
 }
 
 // ============================================
-// DOCTOR DASHBOARD — RECENTLY COMPLETED & EARNINGS
+// DOCTOR DASHBOARD - RECENTLY COMPLETED & EARNINGS
 // ============================================
 
 /**

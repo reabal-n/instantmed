@@ -7,7 +7,7 @@ interface HairLossFamilyHistoryStripProps {
 }
 
 /**
- * Thin server component — family-history risk framing + single CTA.
+ * Thin server component - family-history risk framing + single CTA.
  *
  * Intentionally no client hooks and no framer-motion. The landing page
  * owns any section-level analytics capture; this component just renders.
@@ -33,7 +33,7 @@ export function HairLossFamilyHistoryStrip({
           <p className="mx-auto mt-3 max-w-[560px] text-sm leading-relaxed text-muted-foreground">
             If a parent had hair loss at your age or earlier, your risk
             roughly doubles. Starting treatment while follicles are still
-            alive preserves far more hair than waiting — the earlier you
+            alive preserves far more hair than waiting - the earlier you
             act, the more you have to work with.
           </p>
           <div className="mt-6 flex justify-center">

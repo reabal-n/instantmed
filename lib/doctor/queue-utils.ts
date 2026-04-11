@@ -1,5 +1,5 @@
 /**
- * Queue utility functions — wait time, SLA countdown, severity.
+ * Queue utility functions - wait time, SLA countdown, severity.
  * Extracted from queue-client.tsx for testability.
  */
 

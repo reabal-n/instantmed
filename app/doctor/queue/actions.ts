@@ -270,7 +270,7 @@ export async function markScriptSentAction(
       .maybeSingle()
 
     if (existingEmail) {
-      logger.info("Skipping script_sent email — already sent (likely via webhook)", { intakeId })
+      logger.info("Skipping script_sent email - already sent (likely via webhook)", { intakeId })
     } else {
       const intake = await getIntakeWithDetails(intakeId)
       if (intake?.patient?.email) {
@@ -397,7 +397,7 @@ export async function claimIntakeAction(
     Sentry.captureException(error, {
       tags: { action: "claim_intake", intake_id: intakeId, step_id: "claim_outer_catch" },
     })
-    // Return failure — do NOT silently succeed on unknown errors
+    // Return failure - do NOT silently succeed on unknown errors
     return { success: false, error: "Failed to claim intake for review. Please try again." }
   }
 }
@@ -473,7 +473,7 @@ export async function getDeclineReasonTemplatesAction(): Promise<{
 
 /**
  * Issue a standalone Stripe refund for any paid intake.
- * Separate from the decline flow — works on any paid request regardless of status.
+ * Separate from the decline flow - works on any paid request regardless of status.
  */
 export async function issueRefundAction(
   intakeId: string,
@@ -521,7 +521,7 @@ export async function issueRefundAction(
     }
 
     // Guard: only refund requests with payment_status "paid".
-    // Once refunded, payment_status becomes "refunded" — this naturally prevents re-runs.
+    // Once refunded, payment_status becomes "refunded" - this naturally prevents re-runs.
     // Stripe idempotency key is a secondary backstop.
     if (intake.payment_status !== "paid") {
       return { success: false, error: "Refund can only be issued for paid requests" }

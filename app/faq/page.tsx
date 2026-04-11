@@ -2,7 +2,7 @@ import FAQPage from "./faq-page-client"
 import { BreadcrumbSchema, SpeakableSchema } from "@/components/seo/healthcare-schema"
 
 // Note: metadata and revalidate are exported from layout.tsx → metadata.ts
-// force-dynamic removed — layout handles revalidation
+// force-dynamic removed - layout handles revalidation
 
 export default function Page() {
   return (

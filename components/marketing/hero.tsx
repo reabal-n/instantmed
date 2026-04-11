@@ -33,15 +33,15 @@ export function Hero({ children }: { children?: React.ReactNode }) {
               <DoctorAvailabilityPill />
             </motion.div>
 
-            {/* Headline — server-rendered static text for LCP */}
+            {/* Headline - server-rendered static text for LCP */}
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight mb-5 sm:mb-8 leading-[1.15] animate-hero-headline">
               Skip the GP queue. Certs, scripts, and treatment.
             </h1>
 
-            {/* LCP slot — server-rendered when passed as children, else fallback */}
+            {/* LCP slot - server-rendered when passed as children, else fallback */}
             {children ?? (
               <p className={LCP_CLASSES}>
-                Real Australian doctors review every request. No appointments, no video calls — just fill in a quick form and a GP takes care of the rest. Reviewed within 1–2 hours, most days.
+                Real Australian doctors review every request. No appointments, no video calls - just fill in a quick form and a GP takes care of the rest. Reviewed within 1–2 hours, most days.
               </p>
             )}
 
@@ -100,7 +100,7 @@ export function Hero({ children }: { children?: React.ReactNode }) {
             </motion.div>
           </div>
 
-          {/* Hero product mockup — full stack on desktop, compact card on mobile */}
+          {/* Hero product mockup - full stack on desktop, compact card on mobile */}
           <div className="hidden lg:block relative shrink-0 mt-0">
             <HeroMultiServiceMockup />
           </div>

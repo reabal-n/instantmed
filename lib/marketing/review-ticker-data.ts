@@ -6,7 +6,7 @@ export interface TickerEntry {
   minutesAgo: number
 }
 
-// Keep these generic so they can be used across services — no clinical
+// Keep these generic so they can be used across services - no clinical
 // content, no drug names, no identifying details beyond first name + city.
 const SAMPLE_ENTRIES: TickerEntry[] = [
   { name: "Sarah", city: "Melbourne", minutesAgo: 23 },
@@ -29,7 +29,7 @@ export function getTickerEntries(): TickerEntry[] {
  * named: "Sarah from Melbourne received her certificate 23 min ago."
  * anonymous: "A patient from Melbourne received their treatment 23 min ago."
  *
- * The `artifact` param is the noun shown to the user — "certificate",
+ * The `artifact` param is the noun shown to the user - "certificate",
  * "treatment", "prescription", etc. Keep it generic for ED to avoid
  * the drug-name cliff.
  */

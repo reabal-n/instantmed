@@ -116,7 +116,7 @@ export async function POST(request: NextRequest) {
       size: result.buffer.length,
     })
 
-    // Upload to Supabase Storage (documents bucket — matches canonical approve-cert pipeline)
+    // Upload to Supabase Storage (documents bucket - matches canonical approve-cert pipeline)
     const supabase = createServiceRoleClient()
     const fileName = `med-cert-${requestId}-${draftId}.pdf`
     const filePath = `certificates/${fileName}`
@@ -141,7 +141,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Store the storage path as reference (bucket is private — downloads use signed URLs)
+    // Store the storage path as reference (bucket is private - downloads use signed URLs)
     const pdfUrl = filePath
 
     log.info("PDF uploaded successfully", {
@@ -150,7 +150,7 @@ export async function POST(request: NextRequest) {
       path: uploadData.path,
     })
 
-    // Create document record in database — skip if one already exists for this intake + type
+    // Create document record in database - skip if one already exists for this intake + type
     // to prevent duplicate rows on double-submit or retry.
     const { data: existingDoc } = await supabase
       .from("documents")

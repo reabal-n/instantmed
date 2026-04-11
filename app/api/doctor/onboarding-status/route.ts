@@ -98,7 +98,7 @@ export async function GET(request: NextRequest) {
       {
         id: "signature",
         label: "Upload your signature",
-        description: "Optional — used on medical certificates. If not provided, 'Electronically signed' will be shown",
+        description: "Optional - used on medical certificates. If not provided, 'Electronically signed' will be shown",
         completed: !!profile.signature_storage_path,
         href: "/doctor/settings/identity",
         required: false,

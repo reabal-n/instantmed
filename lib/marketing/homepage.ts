@@ -113,7 +113,7 @@ export const serviceCategories = [
     popular: false,
     cta: "Start assessment",
     benefits: [
-      "No call needed — doctor reviews your form",
+      "No call needed - doctor reviews your form",
       "Discreet packaging, sent to any pharmacy",
       "Only pay if doctor approves",
     ],
@@ -143,7 +143,7 @@ export const serviceCategories = [
     title: "Women's Health",
     shortTitle: "Women's Health",
     benefitQuestion: "Need support with women's health?",
-    description: "Contraception, UTIs, and more — reviewed by an Australian doctor, no waiting room.",
+    description: "Contraception, UTIs, and more - reviewed by an Australian doctor, no waiting room.",
     icon: "Heart",
     color: "pink",
     priceFrom: 59.95,
@@ -254,7 +254,7 @@ export const featuredServices = [
   },
   {
     title: "Women's Health",
-    description: "Contraception, UTIs, and hormonal health — reviewed by an Australian doctor, no waiting room required.",
+    description: "Contraception, UTIs, and hormonal health - reviewed by an Australian doctor, no waiting room required.",
     priceFrom: 59.95,
     href: "/womens-health",
     comingSoon: true,
@@ -293,7 +293,7 @@ export const faqItems = [
   },
   {
     question: "What services does InstantMed offer?",
-    answer: "Medical certificates for sick leave, carer's leave, and uni extensions. Repeat prescriptions for your regular medication. Discreet doctor-reviewed treatment for ED and hair loss — no call required. All requests reviewed by an AHPRA-registered Australian doctor.",
+    answer: "Medical certificates for sick leave, carer's leave, and uni extensions. Repeat prescriptions for your regular medication. Discreet doctor-reviewed treatment for ED and hair loss - no call required. All requests reviewed by an AHPRA-registered Australian doctor.",
   },
   {
     question: "Is there a subscription or ongoing fees?",

@@ -93,7 +93,7 @@ export function EmergencyGate({
               className="flex items-center justify-center gap-2 w-full py-2.5 rounded-lg bg-red-600 hover:bg-red-700 text-white text-sm font-semibold transition-colors"
             >
               <Phone className="w-3.5 h-3.5" />
-              Call 000 — Emergency Services
+              Call 000 - Emergency Services
             </a>
             <div className="flex flex-wrap justify-center gap-2 pt-1">
               <a href="tel:131114" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
@@ -108,7 +108,7 @@ export function EmergencyGate({
         )}
       </div>
 
-      {/* Acknowledgment checkbox — single click to proceed */}
+      {/* Acknowledgment checkbox - single click to proceed */}
       <button
         type="button"
         onClick={handleAcknowledge}

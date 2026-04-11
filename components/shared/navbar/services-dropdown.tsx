@@ -139,7 +139,7 @@ export function ServicesDropdown({ isActivePath }: ServicesDropdownProps) {
         </AnimatePresence>
       </DropdownMenu>
 
-      {/* Tubelight active indicator — mirrors AnimatedNavLink pattern */}
+      {/* Tubelight active indicator - mirrors AnimatedNavLink pattern */}
       {isServiceActive && (
         <div className="absolute inset-0 rounded-lg bg-primary/10 -z-0 pointer-events-none">
           <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-6 h-0.5 bg-primary rounded-full">

@@ -160,7 +160,7 @@ describe('Consult Subtype Price Mapping - Missing Env Vars', () => {
     vi.stubEnv('NODE_ENV', 'production')
     const { getPriceIdForRequest } = await import('@/lib/stripe/price-mapping')
 
-    // Mischarging is worse than a 500 — prod must fail loud
+    // Mischarging is worse than a 500 - prod must fail loud
     expect(() =>
       getPriceIdForRequest({
         category: 'consult',

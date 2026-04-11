@@ -39,7 +39,7 @@ export async function POST(request: Request) {
 
     // Route through the canonical updateProfile() so PHI fields (phone, DOB)
     // are encrypted via encryptProfilePhi() before being written. Direct
-    // supabase.from("profiles").update(...) bypasses encryption — see
+    // supabase.from("profiles").update(...) bypasses encryption - see
     // launch blocker #3.
     const updated = await updateProfile(authResult.profile.id, {
       full_name: fullName,

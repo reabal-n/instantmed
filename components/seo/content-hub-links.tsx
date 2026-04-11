@@ -8,7 +8,7 @@ interface ContentLink {
 }
 
 interface ContentHubLinksProps {
-  /** Which service this page is for — determines relevant cross-links */
+  /** Which service this page is for - determines relevant cross-links */
   service: "med-cert" | "prescriptions" | "consult"
 }
 
@@ -106,7 +106,7 @@ const SERVICE_LINKS: Record<string, {
  * Contextual cross-links section for service landing pages.
  *
  * Links to relevant conditions, symptoms, guides, and blog posts
- * based on the service type — distributing PageRank from high-authority
+ * based on the service type - distributing PageRank from high-authority
  * service pages to content hub pages.
  *
  * Placed before the footer but after conversion elements.

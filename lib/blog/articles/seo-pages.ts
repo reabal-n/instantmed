@@ -24,22 +24,22 @@ export const seoArticles: Article[] = [
     heroImage: blogImages.genericDoctor,
     heroImageAlt: 'Doctor providing telehealth consultation for medical certificate',
     content: [
-      { type: 'paragraph', content: 'Getting a medical certificate online in Australia is straightforward, legitimate, and accepted by employers nationwide. If you\'re unwell and can\'t make it to a clinic, a telehealth consultation with an AHPRA-registered doctor can assess your condition and provide a valid certificate — typically in under 30 minutes, available 24/7.', links: [{ text: 'telehealth consultation', href: '/blog/what-is-telehealth', title: 'Learn about telehealth' }] },
+      { type: 'paragraph', content: 'Getting a medical certificate online in Australia is straightforward, legitimate, and accepted by employers nationwide. If you\'re unwell and can\'t make it to a clinic, a telehealth consultation with an AHPRA-registered doctor can assess your condition and provide a valid certificate - typically in under 30 minutes, available 24/7.', links: [{ text: 'telehealth consultation', href: '/blog/what-is-telehealth', title: 'Learn about telehealth' }] },
       { type: 'heading', content: 'Key Takeaways', level: 2 },
       { type: 'list', content: '', items: ['Online medical certificates are legally valid and accepted by Australian employers', 'You\'ll consult with an AHPRA-registered doctor who assesses your condition', 'Most certificates are issued in under 30 minutes and delivered digitally, 24/7'] },
       { type: 'heading', content: 'How Online Medical Certificates Work', level: 2 },
-      { type: 'paragraph', content: 'Online medical certificates follow the same process as in-person consultations — just without the waiting room. A registered doctor reviews your symptoms, asks relevant questions, and makes a clinical decision about whether you\'re fit for work. If appropriate, they issue a certificate that meets all the same legal requirements as one from your local GP.' },
-      { type: 'paragraph', content: 'The certificate states you\'re unfit for work due to a medical condition. It doesn\'t need to — and won\'t — disclose your specific diagnosis. Your health information remains private.' },
+      { type: 'paragraph', content: 'Online medical certificates follow the same process as in-person consultations - just without the waiting room. A registered doctor reviews your symptoms, asks relevant questions, and makes a clinical decision about whether you\'re fit for work. If appropriate, they issue a certificate that meets all the same legal requirements as one from your local GP.' },
+      { type: 'paragraph', content: 'The certificate states you\'re unfit for work due to a medical condition. It doesn\'t need to - and won\'t - disclose your specific diagnosis. Your health information remains private.' },
       { type: 'heading', content: 'The Process: Step by Step', level: 2 },
       { type: 'list', content: '', items: ['Complete a brief health questionnaire describing your symptoms', 'Provide basic details like your name, date of birth, and employer (if required)', 'An AHPRA-registered doctor reviews your information', 'The doctor assesses whether a certificate is clinically appropriate', 'If approved, your certificate is sent to you digitally (email or SMS)', 'Download, print, or forward to your employer as needed'] },
       { type: 'heading', content: 'What Conditions Qualify?', level: 2 },
       { type: 'paragraph', content: 'Online medical certificates are appropriate for many common conditions that don\'t require physical examination. These include cold and flu symptoms, gastroenteritis, migraines, back pain, mental health days, period pain, and recovery from minor illness. If your condition needs hands-on assessment, a good telehealth service will tell you.', links: [{ text: 'mental health days', href: '/blog/medical-certificate-mental-health-day', title: 'Medical certificates for mental health' }] },
       { type: 'callout', variant: 'info', content: 'Telehealth doctors won\'t issue certificates without proper assessment. If your situation isn\'t suitable for online consultation, they\'ll advise you to see a doctor in person.' },
       { type: 'heading', content: 'How InstantMed Helps', level: 2 },
-      { type: 'paragraph', content: 'InstantMed connects you with AHPRA-registered Australian doctors who can assess your condition and issue medical certificates when clinically appropriate. The process is simple: complete a brief questionnaire, and a doctor reviews your request — typically in under 30 minutes, available 24/7.' },
+      { type: 'paragraph', content: 'InstantMed connects you with AHPRA-registered Australian doctors who can assess your condition and issue medical certificates when clinically appropriate. The process is simple: complete a brief questionnaire, and a doctor reviews your request - typically in under 30 minutes, available 24/7.' },
       { type: 'heading', content: 'When to See a Doctor In Person', level: 2 },
       { type: 'list', content: '', items: ['You have severe or worsening symptoms', 'You need a physical examination (ear infections, chest sounds, lumps)', 'Your condition requires urgent attention', 'You\'ve been unwell for an extended period without improvement', 'The telehealth doctor recommends in-person care'] },
-      { type: 'callout', variant: 'warning', content: 'For emergencies — chest pain, difficulty breathing, severe allergic reactions — call 000 immediately. Telehealth is not for emergencies.' }
+      { type: 'callout', variant: 'warning', content: 'For emergencies - chest pain, difficulty breathing, severe allergic reactions - call 000 immediately. Telehealth is not for emergencies.' }
     ],
     faqs: [
       { question: 'Are online medical certificates valid for work in Australia?', answer: 'Yes. Medical certificates issued by AHPRA-registered doctors via telehealth are legally valid and accepted by employers throughout Australia.' },
@@ -73,11 +73,11 @@ export const seoArticles: Article[] = [
     heroImage: blogImages.eScripts,
     heroImageAlt: 'Electronic prescription on smartphone',
     content: [
-      { type: 'paragraph', content: 'Getting a prescription online in Australia is safe, legal, and convenient when done through a legitimate telehealth service. An AHPRA-registered doctor can assess your needs and send an electronic prescription (eScript) directly to your phone — ready to use at any pharmacy.', links: [{ text: 'eScript', href: '/blog/how-escripts-work', title: 'How eScripts work' }] },
+      { type: 'paragraph', content: 'Getting a prescription online in Australia is safe, legal, and convenient when done through a legitimate telehealth service. An AHPRA-registered doctor can assess your needs and send an electronic prescription (eScript) directly to your phone - ready to use at any pharmacy.', links: [{ text: 'eScript', href: '/blog/how-escripts-work', title: 'How eScripts work' }] },
       { type: 'heading', content: 'Key Takeaways', level: 2 },
       { type: 'list', content: '', items: ['Online prescriptions are issued by AHPRA-registered doctors after proper assessment', 'eScripts are sent via SMS and can be used at any pharmacy in Australia', 'Most common medications can be prescribed online, with some exceptions'] },
       { type: 'heading', content: 'How Online Prescriptions Work', level: 2 },
-      { type: 'paragraph', content: 'Online prescriptions follow the same clinical process as in-person consultations. A doctor reviews your medical history, current symptoms or needs, and any relevant information before making a prescribing decision. If a prescription is appropriate, the doctor sends it as an eScript — delivered via SMS to your phone.', links: [{ text: 'telehealth', href: '/blog/is-telehealth-legal-australia', title: 'Is telehealth legal?' }] },
+      { type: 'paragraph', content: 'Online prescriptions follow the same clinical process as in-person consultations. A doctor reviews your medical history, current symptoms or needs, and any relevant information before making a prescribing decision. If a prescription is appropriate, the doctor sends it as an eScript - delivered via SMS to your phone.', links: [{ text: 'telehealth', href: '/blog/is-telehealth-legal-australia', title: 'Is telehealth legal?' }] },
       { type: 'heading', content: 'What Can Be Prescribed Online?', level: 2 },
       { type: 'list', content: '', items: ['Blood pressure and cholesterol medications (ongoing treatment)', 'Diabetes medications (ongoing treatment)', 'Asthma and allergy medications', 'Contraceptives', 'Antibiotics for diagnosed infections', 'Skin treatments', 'Some mental health medications', 'Acid reflux and digestive medications'] },
       { type: 'heading', content: 'What Can\'t Be Prescribed Online?', level: 2 },
@@ -109,7 +109,7 @@ export const seoArticles: Article[] = [
     slug: 'repeat-prescription-online',
     title: 'How to Get Repeat Medication Online',
     subtitle: 'Running low on medication? Renew with a doctor review from home.',
-    excerpt: 'Out of repeats and can\'t get a GP appointment? Learn how to renew your medication online through telehealth — reviewed within hours, from home.',
+    excerpt: 'Out of repeats and can\'t get a GP appointment? Learn how to renew your medication online through telehealth - reviewed within hours, from home.',
     category: 'medications',
     tags: ['prescription', 'telehealth', 'online-doctor', 'escript', 'medication'],
     publishedAt: '2026-01-20',
@@ -120,26 +120,26 @@ export const seoArticles: Article[] = [
     heroImage: blogImages.repeatPrescriptions,
     heroImageAlt: 'Prescription medication renewal',
     content: [
-      { type: 'paragraph', content: 'When your prescription repeats run out and your GP is booked for weeks, telehealth offers a practical solution. For medications you\'re already taking, an online doctor can review your history and issue a new prescription — often the same day, without an appointment booking.' },
+      { type: 'paragraph', content: 'When your prescription repeats run out and your GP is booked for weeks, telehealth offers a practical solution. For medications you\'re already taking, an online doctor can review your history and issue a new prescription - often the same day, without an appointment booking.' },
       { type: 'heading', content: 'Key Takeaways', level: 2 },
-      { type: 'list', content: '', items: ['Telehealth doctors can issue repeat prescriptions for ongoing medications', 'Submit your request when it suits you — from home, on your schedule', 'eScripts are sent to your phone, ready to use at any pharmacy'] },
+      { type: 'list', content: '', items: ['Telehealth doctors can issue repeat prescriptions for ongoing medications', 'Submit your request when it suits you - from home, on your schedule', 'eScripts are sent to your phone, ready to use at any pharmacy'] },
       { type: 'heading', content: 'When Can You Get a Repeat Prescription Online?', level: 2 },
       { type: 'paragraph', content: 'Online repeat prescriptions work best for stable, ongoing medications that you\'ve been taking without issues. Common examples include blood pressure medication, cholesterol treatment, thyroid medication, contraceptives, asthma preventers, and some mental health medications.' },
       { type: 'heading', content: 'The Process', level: 2 },
       { type: 'list', content: '', items: ['Provide details of your current medication (name, strength, dose)', 'Share relevant medical history', 'A doctor reviews your request', 'If appropriate, an eScript is sent to your phone', 'Collect your medication from any pharmacy'] },
       { type: 'callout', variant: 'tip', content: 'Have your current medication packaging handy when making your request. It helps to provide exact details of what you\'re taking.' },
       { type: 'heading', content: 'How InstantMed Helps', level: 2 },
-      { type: 'paragraph', content: 'InstantMed\'s prescription service is designed for exactly this situation — when you need a repeat but can\'t access your usual GP. Submit your request online, a doctor reviews it, and if appropriate, your eScript arrives via SMS — all from home.' },
+      { type: 'paragraph', content: 'InstantMed\'s prescription service is designed for exactly this situation - when you need a repeat but can\'t access your usual GP. Submit your request online, a doctor reviews it, and if appropriate, your eScript arrives via SMS - all from home.' },
       { type: 'heading', content: 'When to See Your Regular GP', level: 2 },
       { type: 'list', content: '', items: ['See your GP periodically for medication reviews', 'If you\'re experiencing side effects or changes', 'When your condition needs reassessment', 'For controlled or restricted medications', 'If blood tests or monitoring are due'] },
       { type: 'callout', variant: 'info', content: 'Most medications benefit from periodic review with a doctor who knows your full history. Use telehealth repeats when you need them, but maintain your regular GP relationship.' }
     ],
     faqs: [
-      { question: 'Can I get a repeat prescription without seeing a doctor?', answer: 'You\'ll still consult with a doctor — just not in person. A telehealth doctor reviews your request and medical history before issuing a prescription.' },
+      { question: 'Can I get a repeat prescription without seeing a doctor?', answer: 'You\'ll still consult with a doctor - just not in person. A telehealth doctor reviews your request and medical history before issuing a prescription.' },
       { question: 'How long does it take to get a repeat prescription online?', answer: 'Most requests are reviewed within a few hours during business hours. Once approved, your eScript is sent immediately.' },
       { question: 'What if my medication isn\'t suitable for online prescribing?', answer: 'Some medications (like controlled drugs) require in-person consultation. If your medication can\'t be prescribed online, the doctor will explain and suggest alternatives.' },
       { question: 'Do I need my original prescription details?', answer: 'Having details of your current medication helps, but it\'s not always essential. The doctor will verify your medication history as part of their assessment.' },
-      { question: 'Is this covered by Medicare?', answer: 'Telehealth consultations may attract a fee. However, your medication itself will be PBS-subsidised if it\'s on the PBS — the same as any pharmacy.' }
+      { question: 'Is this covered by Medicare?', answer: 'Telehealth consultations may attract a fee. However, your medication itself will be PBS-subsidised if it\'s on the PBS - the same as any pharmacy.' }
     ],
     relatedServices: [
       { title: 'Prescription Request', description: 'Get your repeat prescription', href: '/repeat-prescription', icon: 'prescription' },
@@ -166,9 +166,9 @@ export const seoArticles: Article[] = [
     heroImage: blogImages.certificateDuration,
     heroImageAlt: 'Same-day medical certificate timing',
     content: [
-      { type: 'paragraph', content: 'When you wake up sick and your GP can\'t see you until next week, telehealth offers an immediate solution. An AHPRA-registered doctor can assess your condition and, if appropriate, issue a valid medical certificate — typically in under 30 minutes, available 24/7.' },
+      { type: 'paragraph', content: 'When you wake up sick and your GP can\'t see you until next week, telehealth offers an immediate solution. An AHPRA-registered doctor can assess your condition and, if appropriate, issue a valid medical certificate - typically in under 30 minutes, available 24/7.' },
       { type: 'heading', content: 'Key Takeaways', level: 2 },
-      { type: 'list', content: '', items: ['Certificates are available 24/7 through telehealth', 'Most are issued in under 30 minutes', 'Certificates are delivered digitally — no waiting for post'] },
+      { type: 'list', content: '', items: ['Certificates are available 24/7 through telehealth', 'Most are issued in under 30 minutes', 'Certificates are delivered digitally - no waiting for post'] },
       { type: 'heading', content: 'How Same-Day Certificates Work', level: 2 },
       { type: 'paragraph', content: 'Same-day telehealth certificates follow a simple process. You submit details about your symptoms and situation, a doctor reviews your information, and if a certificate is clinically appropriate, it\'s sent directly to your email or phone. No appointments to book, no waiting rooms to sit in.' },
       { type: 'heading', content: 'What to Include in Your Request', level: 2 },
@@ -177,10 +177,10 @@ export const seoArticles: Article[] = [
       { type: 'heading', content: 'Typical Turnaround Times', level: 2 },
       { type: 'paragraph', content: 'During business hours, most certificate requests are reviewed within 30-60 minutes. After hours and weekends may take longer depending on doctor availability. Once approved, your certificate is sent immediately.' },
       { type: 'heading', content: 'How InstantMed Helps', level: 2 },
-      { type: 'paragraph', content: 'InstantMed is designed for situations exactly like this. When you\'re unwell and need documentation quickly, our process gets you from request to certificate efficiently. Submit your details, a doctor reviews your case, and your certificate arrives digitally — usually within an hour.' },
+      { type: 'paragraph', content: 'InstantMed is designed for situations exactly like this. When you\'re unwell and need documentation quickly, our process gets you from request to certificate efficiently. Submit your details, a doctor reviews your case, and your certificate arrives digitally - usually within an hour.' },
       { type: 'heading', content: 'When Same-Day Isn\'t Appropriate', level: 2 },
       { type: 'list', content: '', items: ['Conditions requiring physical examination', 'Severe symptoms needing urgent care', 'Extended absences (longer than a few days)', 'Complex medical situations', 'When your regular GP\'s involvement is needed'] },
-      { type: 'callout', variant: 'warning', content: 'If you\'re experiencing severe symptoms — high fever, difficulty breathing, chest pain — seek in-person medical care or call 000. A certificate can wait until you\'re properly assessed.' }
+      { type: 'callout', variant: 'warning', content: 'If you\'re experiencing severe symptoms - high fever, difficulty breathing, chest pain - seek in-person medical care or call 000. A certificate can wait until you\'re properly assessed.' }
     ],
     faqs: [
       { question: 'How fast can I get a medical certificate?', answer: 'Most requests are reviewed within an hour during business hours. Once approved, your certificate is sent immediately via email or SMS.' },
@@ -216,7 +216,7 @@ export const seoArticles: Article[] = [
     content: [
       { type: 'paragraph', content: 'Online doctor consultations have become a standard part of Australian healthcare. Whether you need a prescription, medical certificate, health advice, or specialist referral, telehealth lets you access care without the waiting room. Here\'s everything you need to know.' },
       { type: 'heading', content: 'Key Takeaways', level: 2 },
-      { type: 'list', content: '', items: ['Online consultations are provided by AHPRA-registered Australian doctors', 'Telehealth is suitable for many common health needs — but not emergencies', 'You can receive prescriptions, certificates, referrals, and health advice online'] },
+      { type: 'list', content: '', items: ['Online consultations are provided by AHPRA-registered Australian doctors', 'Telehealth is suitable for many common health needs - but not emergencies', 'You can receive prescriptions, certificates, referrals, and health advice online'] },
       { type: 'heading', content: 'How Online Consultations Work', level: 2 },
       { type: 'paragraph', content: 'Online doctor consultations can happen via video call, phone call, or asynchronous messaging (where you submit information and a doctor reviews it). The format depends on the service and your specific needs. Regardless of format, you\'re consulting with a real, registered doctor who makes clinical decisions just as they would in person.' },
       { type: 'heading', content: 'What Can Online Doctors Help With?', level: 2 },
@@ -231,7 +231,7 @@ export const seoArticles: Article[] = [
       { type: 'callout', variant: 'emergency', content: 'For medical emergencies, call 000 immediately. Telehealth is not equipped for emergency care.' }
     ],
     faqs: [
-      { question: 'Are online doctors real doctors?', answer: 'Yes. Legitimate telehealth services use AHPRA-registered medical practitioners — the same registration required for in-person practice. You can verify a doctor\'s registration on the AHPRA website.' },
+      { question: 'Are online doctors real doctors?', answer: 'Yes. Legitimate telehealth services use AHPRA-registered medical practitioners - the same registration required for in-person practice. You can verify a doctor\'s registration on the AHPRA website.' },
       { question: 'How much does an online doctor consultation cost?', answer: 'Costs vary by service and consultation type. Some consultations may be bulk-billed through Medicare, while others have a fee. InstantMed\'s services start from $19.95.' },
       { question: 'Can online doctors prescribe any medication?', answer: 'Most common medications can be prescribed online. However, controlled drugs (Schedule 8), medications requiring physical examination, and some other categories have restrictions.' },
       { question: 'Is telehealth private and secure?', answer: 'Reputable services use encrypted platforms and comply with Australian privacy laws. Your health information is protected just as it would be with an in-person consultation.' },
@@ -269,7 +269,7 @@ export const seoArticles: Article[] = [
     content: [
       { type: 'paragraph', content: 'Yes, online medical certificates are valid for work in Australia. Certificates issued by AHPRA-registered doctors through telehealth meet the same legal requirements as those from in-person consultations. Employers cannot reject them simply because they were issued online.' },
       { type: 'heading', content: 'Key Takeaways', level: 2 },
-      { type: 'list', content: '', items: ['Online medical certificates from AHPRA-registered doctors are legally valid', 'Employers must accept valid certificates regardless of how they were issued', 'The certificate should confirm you\'re unfit for work — it doesn\'t need to disclose your diagnosis'] },
+      { type: 'list', content: '', items: ['Online medical certificates from AHPRA-registered doctors are legally valid', 'Employers must accept valid certificates regardless of how they were issued', 'The certificate should confirm you\'re unfit for work - it doesn\'t need to disclose your diagnosis'] },
       { type: 'heading', content: 'What Makes a Medical Certificate Valid?', level: 2 },
       { type: 'paragraph', content: 'A valid medical certificate in Australia must be issued by a registered health practitioner (typically a doctor registered with AHPRA). It should include your name, the date of consultation, the period you\'re unfit for work, and the practitioner\'s details. Whether the consultation happened in person or via telehealth doesn\'t affect the certificate\'s validity.' },
       { type: 'paragraph', content: 'The Fair Work Act doesn\'t specify that certificates must come from in-person consultations. What matters is that a registered practitioner has assessed that you\'re unfit for work.' },
@@ -278,7 +278,7 @@ export const seoArticles: Article[] = [
       { type: 'callout', variant: 'info', content: 'If an employer questions your certificate\'s validity, they can verify the doctor\'s AHPRA registration online. They cannot, however, contact the doctor for details about your condition without your consent.' },
       { type: 'heading', content: 'What Your Certificate Will Show', level: 2 },
       { type: 'list', content: '', items: ['That you consulted with a doctor (telehealth consultation noted)', 'That you\'re unfit for work due to a medical condition', 'The dates covered by the certificate', 'The doctor\'s name and AHPRA registration details'] },
-      { type: 'paragraph', content: 'It will not disclose your specific diagnosis unless you request it. "Medical condition" is sufficient — your employer doesn\'t have the right to know your exact illness.' },
+      { type: 'paragraph', content: 'It will not disclose your specific diagnosis unless you request it. "Medical condition" is sufficient - your employer doesn\'t have the right to know your exact illness.' },
       { type: 'heading', content: 'How InstantMed Helps', level: 2 },
       { type: 'paragraph', content: 'InstantMed certificates are issued by AHPRA-registered doctors and include all information required by employers. Each certificate clearly identifies the consulting doctor, their registration number, and the consultation date. They\'re accepted by employers across Australia.' },
       { type: 'heading', content: 'When Issues Might Arise', level: 2 },
@@ -287,7 +287,7 @@ export const seoArticles: Article[] = [
     ],
     faqs: [
       { question: 'Can my employer refuse an online medical certificate?', answer: 'No. Employers must accept valid certificates from AHPRA-registered doctors regardless of whether the consultation was in person or via telehealth.' },
-      { question: 'Will my certificate say it\'s from an online consultation?', answer: 'Certificates typically note that the consultation was via telehealth. This doesn\'t affect validity — it\'s simply accurate record-keeping.' },
+      { question: 'Will my certificate say it\'s from an online consultation?', answer: 'Certificates typically note that the consultation was via telehealth. This doesn\'t affect validity - it\'s simply accurate record-keeping.' },
       { question: 'Can my employer contact the doctor who issued my certificate?', answer: 'Not without your explicit consent. Your medical information is protected by privacy laws. Employers can verify the doctor\'s registration publicly, but not access your consultation details.' },
       { question: 'What if my workplace policy says certificates must be from my GP?', answer: 'Workplace policies cannot override the legal validity of certificates from registered practitioners. A policy requiring a specific doctor would need to be reasonable and related to a legitimate business need.' },
       { question: 'Are telehealth certificates valid for Centrelink?', answer: 'Yes, for standard situations. Centrelink accepts certificates from any AHPRA-registered doctor. More complex assessments may require your regular treating doctors.' }
@@ -334,7 +334,7 @@ export const seoArticles: Article[] = [
       { type: 'paragraph', content: 'InstantMed operates within Australia\'s healthcare regulatory framework. All our doctors hold current AHPRA registration as medical practitioners. We follow medical guidelines for telehealth consultations and maintain the same clinical standards as in-person practice.' },
       { type: 'heading', content: 'When Telehealth Has Limits', level: 2 },
       { type: 'list', content: '', items: ['Declining to prescribe when telehealth assessment isn\'t sufficient', 'Referring patients for in-person care when needed', 'Not prescribing medications that require physical examination first', 'Following restrictions on controlled substances'] },
-      { type: 'callout', variant: 'info', content: 'A doctor declining to help via telehealth isn\'t a failure — it\'s responsible practice. Good telehealth services know their limits.' }
+      { type: 'callout', variant: 'info', content: 'A doctor declining to help via telehealth isn\'t a failure - it\'s responsible practice. Good telehealth services know their limits.' }
     ],
     faqs: [
       { question: 'Is telehealth covered by Medicare?', answer: 'Some telehealth services are Medicare-eligible, particularly video consultations with your own GP. Private telehealth services may charge a fee but still operate legally within the healthcare system.' },
@@ -372,16 +372,16 @@ export const seoArticles: Article[] = [
       { type: 'heading', content: 'Key Takeaways', level: 2 },
       { type: 'list', content: '', items: ['Every request is reviewed by an AHPRA-registered doctor', 'Doctors make independent clinical decisions based on the information you provide', 'Requests can be approved, declined, or require follow-up questions'] },
       { type: 'heading', content: 'The Review Process', level: 2 },
-      { type: 'paragraph', content: 'When your request comes in, a doctor receives it in their queue. They review everything you\'ve submitted: your symptoms, medical history, what you\'re requesting, and any additional information. This is active clinical work — the doctor is assessing your situation just as they would in person.' },
+      { type: 'paragraph', content: 'When your request comes in, a doctor receives it in their queue. They review everything you\'ve submitted: your symptoms, medical history, what you\'re requesting, and any additional information. This is active clinical work - the doctor is assessing your situation just as they would in person.' },
       { type: 'paragraph', content: 'The doctor considers whether your request is clinically appropriate. For a medical certificate, they\'re assessing whether your described symptoms genuinely make you unfit for work. For a prescription, they\'re evaluating whether the medication is safe and appropriate for your situation.' },
       { type: 'heading', content: 'What Doctors Look For', level: 2 },
       { type: 'list', content: '', items: ['Whether your symptoms match what you\'re requesting', 'Your medical history and any relevant conditions', 'Whether telehealth is appropriate for your situation', 'Any red flags suggesting you need in-person care', 'Whether the request duration or dosage is reasonable'] },
       { type: 'heading', content: 'When Doctors Ask Follow-Up Questions', level: 2 },
-      { type: 'paragraph', content: 'If the doctor needs more information, they\'ll contact you. This isn\'t a rejection — it\'s good medicine. They might need to clarify symptoms, understand your medication history better, or ask about something you mentioned. Responding promptly and thoroughly helps them make an informed decision.' },
+      { type: 'paragraph', content: 'If the doctor needs more information, they\'ll contact you. This isn\'t a rejection - it\'s good medicine. They might need to clarify symptoms, understand your medication history better, or ask about something you mentioned. Responding promptly and thoroughly helps them make an informed decision.' },
       { type: 'callout', variant: 'tip', content: 'The more clearly you describe your situation upfront, the smoother the review process. Be specific about symptoms, timing, and any relevant history.' },
       { type: 'heading', content: 'Why Requests Get Declined', level: 2 },
       { type: 'list', content: '', items: ['The condition needs physical examination', 'The medication isn\'t appropriate for telehealth prescribing', 'The request doesn\'t match the described symptoms', 'Safety concerns require in-person assessment', 'The duration or quantity requested isn\'t clinically justified'] },
-      { type: 'paragraph', content: 'A declined request isn\'t personal — it means the doctor believes you\'d be better served by in-person care or that your specific request isn\'t appropriate. They\'ll explain why and suggest next steps.' },
+      { type: 'paragraph', content: 'A declined request isn\'t personal - it means the doctor believes you\'d be better served by in-person care or that your specific request isn\'t appropriate. They\'ll explain why and suggest next steps.' },
       { type: 'heading', content: 'How InstantMed Works', level: 2 },
       { type: 'paragraph', content: 'At InstantMed, every request goes to an AHPRA-registered doctor for review. We don\'t use automated approvals or AI decision-making for clinical matters. Doctors make independent judgments based on what you\'ve told them and their clinical expertise.' },
       { type: 'heading', content: 'Your Role in the Process', level: 2 },
@@ -436,13 +436,13 @@ export const seoArticles: Article[] = [
       { type: 'list', content: '', items: ['Schedule 8 controlled drugs (opioids, ADHD medications, etc.)', 'Medications requiring blood test monitoring', 'Drugs with significant interaction risks in complex cases', 'Medications requiring initial in-person assessment'] },
       { type: 'heading', content: 'How InstantMed Handles Limits', level: 2 },
       { type: 'paragraph', content: 'When your situation isn\'t right for telehealth, we\'ll tell you. Our doctors won\'t proceed with a consultation that should happen in person. We\'ll explain why and recommend you see your GP, visit an urgent care clinic, or in emergencies, call 000.' },
-      { type: 'paragraph', content: 'This isn\'t a failure of service — it\'s responsible medicine. The goal is your health, not just completing a transaction.' },
+      { type: 'paragraph', content: 'This isn\'t a failure of service - it\'s responsible medicine. The goal is your health, not just completing a transaction.' },
       { type: 'heading', content: 'Red Flags to Watch For', level: 2 },
       { type: 'list', content: '', items: ['Symptoms that are severe, worsening, or unusual', 'Conditions that haven\'t responded to initial treatment', 'New symptoms in addition to your original complaint', 'Any situation where you feel something is seriously wrong'] },
-      { type: 'callout', variant: 'tip', content: 'Trust your instincts. If you feel your situation needs in-person attention, seek it — even if telehealth might technically be an option.' }
+      { type: 'callout', variant: 'tip', content: 'Trust your instincts. If you feel your situation needs in-person attention, seek it - even if telehealth might technically be an option.' }
     ],
     faqs: [
-      { question: 'What if I\'m not sure whether to use telehealth or see a doctor in person?', answer: 'When in doubt, in-person care is the safer choice. You can also start with telehealth — a good service will tell you if you need to be seen in person instead.' },
+      { question: 'What if I\'m not sure whether to use telehealth or see a doctor in person?', answer: 'When in doubt, in-person care is the safer choice. You can also start with telehealth - a good service will tell you if you need to be seen in person instead.' },
       { question: 'Will I be charged if the telehealth doctor says I need in-person care?', answer: 'Policies vary by service. At InstantMed, if we can\'t help you and refer you elsewhere, we don\'t charge for that assessment.' },
       { question: 'Can telehealth doctors order tests or scans?', answer: 'They can order some pathology tests, but imaging usually requires in-person referral. If you need tests, the doctor will explain your options.' },
       { question: 'What about after-hours emergencies?', answer: 'For true emergencies, always call 000. For urgent but non-emergency issues after hours, consider a hospital emergency department or urgent care clinic.' },
@@ -454,7 +454,7 @@ export const seoArticles: Article[] = [
     ],
     seo: {
       title: 'When Telehealth Can\'t Help | Know the Limits | InstantMed',
-      description: 'Telehealth isn\'t right for everything. Learn when to see a doctor in person instead — emergencies, physical exams, and conditions that need hands-on care.',
+      description: 'Telehealth isn\'t right for everything. Learn when to see a doctor in person instead - emergencies, physical exams, and conditions that need hands-on care.',
       keywords: ['telehealth limitations', 'when to see doctor in person', 'telehealth vs in person', 'online doctor limitations', 'when telehealth is not appropriate']
     }
   },
@@ -473,7 +473,7 @@ export const seoArticles: Article[] = [
     heroImage: blogImages.telehealthPrivacy,
     heroImageAlt: 'Safety screening in telehealth',
     content: [
-      { type: 'paragraph', content: 'Good telehealth isn\'t just convenient — it\'s safe. Responsible services build safety screening into every consultation, checking for red flags, ensuring treatments are appropriate, and referring patients to in-person care when needed. Here\'s how it works.' },
+      { type: 'paragraph', content: 'Good telehealth isn\'t just convenient - it\'s safe. Responsible services build safety screening into every consultation, checking for red flags, ensuring treatments are appropriate, and referring patients to in-person care when needed. Here\'s how it works.' },
       { type: 'heading', content: 'Key Takeaways', level: 2 },
       { type: 'list', content: '', items: ['Telehealth consultations include safety screening at multiple stages', 'Doctors check for red flags that indicate in-person care is needed', 'Safety screenings protect both patients and ensure appropriate care'] },
       { type: 'heading', content: 'Why Safety Screening Matters', level: 2 },

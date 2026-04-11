@@ -75,7 +75,7 @@ export function CompleteAccountForm({
         </div>
         <h1 className="text-2xl font-semibold mb-2">Payment successful</h1>
         <p className="text-muted-foreground">
-          Create a free account to view and download your certificate, see the doctor&apos;s notes, and contact support — all in one place.
+          Create a free account to view and download your certificate, see the doctor&apos;s notes, and contact support - all in one place.
         </p>
       </div>
 

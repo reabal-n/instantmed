@@ -18,7 +18,7 @@ import { IntakeStatusTracker } from "./intake-status-tracker"
 import Link from "next/link"
 import type { IntakeStatus } from "@/lib/data/intake-lifecycle"
 
-// Stable options object — defined at module level to prevent new reference on each render
+// Stable options object - defined at module level to prevent new reference on each render
 const CONFETTI_OPTIONS = { particleCount: 40 }
 
 interface WhatHappensNextProps {
@@ -83,7 +83,7 @@ export function WhatHappensNext({
           setQueuePosition(Number(data.position))
         }
       } catch {
-        // Non-critical — just don't show position
+        // Non-critical - just don't show position
       }
     }
     fetchQueue()
@@ -174,7 +174,7 @@ export function WhatHappensNext({
           </motion.div>
         )}
 
-        {/* Referral prompt — highest-intent moment */}
+        {/* Referral prompt - highest-intent moment */}
         <motion.div
           initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

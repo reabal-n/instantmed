@@ -12,7 +12,7 @@
 import { test, expect } from "@playwright/test"
 import { waitForPageLoad } from "./helpers/test-utils"
 
-test.describe("Patient — Service Hub", () => {
+test.describe("Patient - Service Hub", () => {
   test("service hub loads with service cards", async ({ page }) => {
     await page.goto("/request")
     await waitForPageLoad(page)
@@ -68,7 +68,7 @@ test.describe("Patient — Service Hub", () => {
   })
 })
 
-test.describe("Patient — Medical Certificate Request Flow", () => {
+test.describe("Patient - Medical Certificate Request Flow", () => {
   test.setTimeout(60000)
 
   test.beforeEach(async ({ page }) => {
@@ -147,7 +147,7 @@ test.describe("Patient — Medical Certificate Request Flow", () => {
   })
 })
 
-test.describe("Patient — Pricing & Payment Page", () => {
+test.describe("Patient - Pricing & Payment Page", () => {
   test("pricing page loads", async ({ page }) => {
     await page.goto("/pricing")
     await waitForPageLoad(page)
@@ -171,7 +171,7 @@ test.describe("Patient — Pricing & Payment Page", () => {
   })
 })
 
-test.describe("Patient — Request Tracking", () => {
+test.describe("Patient - Request Tracking", () => {
   test("track page loads with reference input", async ({ page }) => {
     await page.goto("/verify")
     await waitForPageLoad(page)

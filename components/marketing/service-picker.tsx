@@ -22,7 +22,7 @@ const mockupMap: Record<string, React.ComponentType> = {
 }
 
 
-// Trust signals — unique per section, no duplicates with hero/trust-badge-slider
+// Trust signals - unique per section, no duplicates with hero/trust-badge-slider
 const trustSignals = [
   { icon: Stethoscope, text: 'AHPRA-registered doctors' },
   { icon: Clock, text: 'Most reviewed within 1–2 hours' },
@@ -214,7 +214,7 @@ export function ServicePicker() {
         
         {/* Simple note */}
         <p className="text-center text-xs text-muted-foreground mt-8">
-          Private service — no Medicare rebate, but PBS subsidies may still apply at the pharmacy
+          Private service - no Medicare rebate, but PBS subsidies may still apply at the pharmacy
         </p>
       </div>
     </section>

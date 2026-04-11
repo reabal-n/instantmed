@@ -331,7 +331,7 @@ describe("sanitizeObject", () => {
 })
 
 // ──────────────────────────────────────────────────────────────────────────────
-// sanitizedSchemas — Zod schemas with built-in sanitization
+// sanitizedSchemas - Zod schemas with built-in sanitization
 // ──────────────────────────────────────────────────────────────────────────────
 describe("sanitizedSchemas", () => {
   describe("medicare", () => {
@@ -447,7 +447,7 @@ describe("sanitizedSchemas", () => {
 })
 
 // ──────────────────────────────────────────────────────────────────────────────
-// validateAndSanitize — Request body validation
+// validateAndSanitize - Request body validation
 // ──────────────────────────────────────────────────────────────────────────────
 describe("validateAndSanitize", () => {
   const testSchema = z.object({

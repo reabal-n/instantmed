@@ -10,7 +10,7 @@
 import { test, expect } from "@playwright/test"
 import AxeBuilder from "@axe-core/playwright"
 
-// Pages to audit — covers marketing, intake, and patient portals
+// Pages to audit - covers marketing, intake, and patient portals
 const pages = [
   { name: "Homepage", path: "/" },
   { name: "Medical Certificate", path: "/medical-certificate" },

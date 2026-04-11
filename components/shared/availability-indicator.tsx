@@ -6,7 +6,7 @@ import { getAvailabilityMessage, isWithinBusinessHours } from "@/lib/time-of-day
 
 interface AvailabilityIndicatorProps {
   variant?: "inline" | "badge" | "detailed"
-  /** Service type — med certs are always shown as active (24/7) */
+  /** Service type - med certs are always shown as active (24/7) */
   service?: string
   className?: string
 }

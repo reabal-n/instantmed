@@ -32,7 +32,7 @@ export function scrubPHI(text: string): string {
 
 /**
  * Recursively scrub PHI from an object's string values.
- * Operates on plain objects and arrays only — ignores class instances.
+ * Operates on plain objects and arrays only - ignores class instances.
  * Returns a shallow-ish copy; mutates nothing.
  */
 export function scrubPHIFromObject(obj: unknown): unknown {

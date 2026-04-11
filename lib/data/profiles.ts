@@ -37,7 +37,7 @@ export function decryptProfilePhi<T extends Record<string, unknown>>(profile: T)
       throw new Error("Failed to decrypt sensitive data. Please contact support.")
     }
   } else if (profile.medicare_number) {
-    // Plaintext fallback — 1 pre-encryption record needs backfill
+    // Plaintext fallback - 1 pre-encryption record needs backfill
     // Remove this branch after running: pnpm encrypt:backfill
     decrypted.medicare_number = profile.medicare_number
   }
@@ -94,7 +94,7 @@ function encryptProfilePhi<T extends Record<string, unknown>>(
 
   const encrypted: Record<string, unknown> = { ...data }
 
-  // Encrypt medicare_number — dual-write: encrypted + plaintext
+  // Encrypt medicare_number - dual-write: encrypted + plaintext
   // Plaintext kept for doctor dashboard visibility and Parchment eScript integration
   if (data.medicare_number) {
     encrypted.medicare_number_encrypted = encryptField(data.medicare_number)

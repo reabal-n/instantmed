@@ -12,7 +12,7 @@ import { test, expect } from "@playwright/test"
 import { loginAsOperator, logoutTestUser } from "./helpers/auth"
 import { waitForPageLoad } from "./helpers/test-utils"
 
-test.describe("Admin — Analytics Dashboard", () => {
+test.describe("Admin - Analytics Dashboard", () => {
   test.beforeEach(async ({ page }) => {
     const result = await loginAsOperator(page)
     expect(result.success, `Login failed: ${result.error}`).toBe(true)
@@ -65,7 +65,7 @@ test.describe("Admin — Analytics Dashboard", () => {
   })
 })
 
-test.describe("Admin — Finance Dashboard", () => {
+test.describe("Admin - Finance Dashboard", () => {
   test.beforeEach(async ({ page }) => {
     const result = await loginAsOperator(page)
     expect(result.success, `Login failed: ${result.error}`).toBe(true)
@@ -98,7 +98,7 @@ test.describe("Admin — Finance Dashboard", () => {
   })
 })
 
-test.describe("Admin — Email Management", () => {
+test.describe("Admin - Email Management", () => {
   test.beforeEach(async ({ page }) => {
     const result = await loginAsOperator(page)
     expect(result.success, `Login failed: ${result.error}`).toBe(true)
@@ -162,7 +162,7 @@ test.describe("Admin — Email Management", () => {
   })
 })
 
-test.describe("Admin — Audit Logs", () => {
+test.describe("Admin - Audit Logs", () => {
   test.beforeEach(async ({ page }) => {
     const result = await loginAsOperator(page)
     expect(result.success, `Login failed: ${result.error}`).toBe(true)

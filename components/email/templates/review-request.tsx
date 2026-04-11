@@ -1,5 +1,5 @@
 /**
- * Review Request Email Template — Day 2 post-approval
+ * Review Request Email Template - Day 2 post-approval
  *
  * Uses ReviewHero as the prominent CTA.
  */

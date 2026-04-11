@@ -40,7 +40,7 @@ const symptomsFaqs = [
   },
   {
     question: "When should I go to emergency instead?",
-    answer: "If you're experiencing chest pain, difficulty breathing, severe bleeding, loss of consciousness, signs of stroke, or any life-threatening symptoms — call 000 or go to your nearest emergency department immediately. Telehealth is not appropriate for emergencies.",
+    answer: "If you're experiencing chest pain, difficulty breathing, severe bleeding, loss of consciousness, signs of stroke, or any life-threatening symptoms - call 000 or go to your nearest emergency department immediately. Telehealth is not appropriate for emergencies.",
   },
   {
     question: "Can you treat my symptoms via telehealth?",
@@ -48,7 +48,7 @@ const symptomsFaqs = [
   },
   {
     question: "What if I have multiple symptoms at the same time?",
-    answer: "That's completely normal — most illnesses come with a few symptoms at once. Describe everything you're experiencing in your consultation request, and our doctor will consider the full picture.",
+    answer: "That's completely normal - most illnesses come with a few symptoms at once. Describe everything you're experiencing in your consultation request, and our doctor will consider the full picture.",
   },
   {
     question: "Can I get a medical certificate based on my symptoms?",
@@ -60,11 +60,11 @@ const symptomsFaqs = [
   },
   {
     question: "Do I need to know my diagnosis before starting?",
-    answer: "Not at all. You don't need to know what's wrong — that's our job. Just describe your symptoms as clearly as you can, and our doctor will take it from there.",
+    answer: "Not at all. You don't need to know what's wrong - that's our job. Just describe your symptoms as clearly as you can, and our doctor will take it from there.",
   },
   {
     question: "What happens after I describe my symptoms?",
-    answer: "An AHPRA-registered doctor reviews your symptom details and medical history. They'll either provide advice, issue a certificate, suggest treatment, or recommend you see someone in person — whatever's clinically appropriate.",
+    answer: "An AHPRA-registered doctor reviews your symptom details and medical history. They'll either provide advice, issue a certificate, suggest treatment, or recommend you see someone in person - whatever's clinically appropriate.",
   },
 ]
 
@@ -90,10 +90,10 @@ export default function SymptomsIndexPage() {
             pill="Symptom Checker"
             title="What's Causing Your Symptoms?"
             highlightWords={["Symptoms"]}
-            subtitle="Learn about common symptoms, possible causes, and when you should see a doctor. This information is for guidance only — for medical advice, consult a doctor."
+            subtitle="Learn about common symptoms, possible causes, and when you should see a doctor. This information is for guidance only - for medical advice, consult a doctor."
           />
 
-          {/* Emergency Notice — critical safety, always visible */}
+          {/* Emergency Notice - critical safety, always visible */}
           <section className="px-4 py-5 bg-destructive-light border-y border-destructive-border">
             <div className="mx-auto max-w-4xl flex items-start gap-3">
               <AlertTriangle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />

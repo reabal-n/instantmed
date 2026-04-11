@@ -61,7 +61,7 @@ export function FollowupForm({ followupId, subtype: _subtype, milestone }: Props
         patientNotes: notes,
       })
       if (r.success) {
-        toast.success("Thanks — your doctor will review shortly")
+        toast.success("Thanks - your doctor will review shortly")
         router.push("/patient")
       } else {
         toast.error(r.error || "Failed to save")
@@ -150,7 +150,7 @@ export function FollowupForm({ followupId, subtype: _subtype, milestone }: Props
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               maxLength={2000}
-              placeholder="Optional — questions, observations, concerns..."
+              placeholder="Optional - questions, observations, concerns..."
             />
           </div>
 

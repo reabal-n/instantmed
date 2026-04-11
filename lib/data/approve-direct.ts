@@ -28,7 +28,7 @@ interface DirectApproveResult {
  * Approve a med cert directly without a browser session.
  * Used by the Telegram webhook for quick approvals.
  *
- * Delegates to the canonical executeCertApproval pipeline — same PDF
+ * Delegates to the canonical executeCertApproval pipeline - same PDF
  * generation, storage, email, and audit trail as the Document Builder.
  */
 export async function approveMedCertDirect({

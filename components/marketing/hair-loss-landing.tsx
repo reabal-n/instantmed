@@ -44,7 +44,7 @@ import { useServiceAvailability } from "@/components/providers/service-availabil
 import { useLandingAnalytics } from "@/hooks/use-landing-analytics"
 import { HAIR_LOSS_FAQ } from "@/lib/data/hair-loss-faq"
 
-// Below-fold lazy loads — keep initial bundle small
+// Below-fold lazy loads - keep initial bundle small
 const TestimonialsSection = dynamic(
   () => import("@/components/marketing/sections/testimonials-section").then((m) => m.TestimonialsSection),
   { loading: () => <div className="min-h-[500px]" /> },
@@ -105,7 +105,7 @@ const PRICING_FEATURES = [
   "AHPRA-registered Australian doctor reviews your form",
   "eScript sent to your phone via SMS",
   "Collect from any Australian pharmacy",
-  "Discreet packaging — nothing on the outside",
+  "Discreet packaging - nothing on the outside",
   "Full refund if we can't help",
 ]
 
@@ -188,7 +188,7 @@ const TREATMENT_OPTIONS = [
 // SMALL COMPONENTS
 // =============================================================================
 
-/** Live activity ticker — rotates through recent hair loss treatment deliveries */
+/** Live activity ticker - rotates through recent hair loss treatment deliveries */
 function RecentActivityTicker() {
   const [index, setIndex] = useState(0)
   const prefersReducedMotion = useReducedMotion()
@@ -228,7 +228,7 @@ function RecentActivityTicker() {
 
 /** Animated number counter using NumberFlow when available */
 function AnimatedStat({ value, suffix, decimals = 0 }: { value: number; suffix: string; decimals?: number }) {
-  const [displayed, setDisplayed] = useState(value) // init to real value — no flash on load
+  const [displayed, setDisplayed] = useState(value) // init to real value - no flash on load
   const [hasAnimated, setHasAnimated] = useState(false)
   const ref = useRef<HTMLSpanElement>(null)
   const prefersReducedMotion = useReducedMotion()
@@ -237,7 +237,7 @@ function AnimatedStat({ value, suffix, decimals = 0 }: { value: number; suffix: 
     const el = ref.current
     if (!el || hasAnimated) return
 
-    // If already in the viewport on mount, mark done — no animation needed
+    // If already in the viewport on mount, mark done - no animation needed
     const rect = el.getBoundingClientRect()
     if (rect.top < window.innerHeight && rect.bottom > 0) {
       setHasAnimated(true)
@@ -352,7 +352,7 @@ function HeroSection({
               <DoctorAvailabilityPill alwaysAvailable />
             </motion.div>
 
-            {/* Headline — plain h1 with CSS animation so LCP text is visible on first paint */}
+            {/* Headline - plain h1 with CSS animation so LCP text is visible on first paint */}
             <h1
               className="text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight mb-3 sm:mb-6 leading-[1.15] animate-hero-headline"
             >
@@ -403,7 +403,7 @@ function HeroSection({
                   onClick={onCTAClick}
                 >
                   <Link href="/request?service=consult&subtype=hair_loss">
-                    Start assessment — ${PRICING.HAIR_LOSS.toFixed(2)}
+                    Start assessment - ${PRICING.HAIR_LOSS.toFixed(2)}
                     <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
                   </Link>
                 </Button>
@@ -416,7 +416,7 @@ function HeroSection({
               </div>
             </motion.div>
 
-            {/* Trust signals — hidden on mobile to keep CTA above fold */}
+            {/* Trust signals - hidden on mobile to keep CTA above fold */}
             <motion.div
               className="hidden sm:flex flex-col gap-2"
               initial={{}}
@@ -439,7 +439,7 @@ function HeroSection({
               <TrustBadgeRow preset="trust_certifications" className="justify-center lg:justify-start" />
             </motion.div>
 
-            {/* Secondary anchor CTA — desktop only */}
+            {/* Secondary anchor CTA - desktop only */}
             <motion.div
               className="hidden sm:flex justify-center lg:justify-start mt-4"
               initial={{}}
@@ -456,12 +456,12 @@ function HeroSection({
             </motion.div>
           </div>
 
-          {/* Hero product mockup — desktop only, mobile gets version below */}
+          {/* Hero product mockup - desktop only, mobile gets version below */}
           <div className="hidden lg:block relative shrink-0 mt-0">
             <HairLossHeroMockup />
           </div>
 
-          {/* Mobile mockup — below text content */}
+          {/* Mobile mockup - below text content */}
           <div className="lg:hidden mt-8 w-full max-w-sm mx-auto">
             <HairLossHeroMockup />
           </div>
@@ -471,7 +471,7 @@ function HeroSection({
   )
 }
 
-/** Treatment options grid — oral / topical / combination cards */
+/** Treatment options grid - oral / topical / combination cards */
 function TreatmentOptions() {
   const ref = useRef<HTMLDivElement>(null)
   const isInView = useScrollReveal(ref)
@@ -552,7 +552,7 @@ function TreatmentOptions() {
   )
 }
 
-/** Related blog articles — internal links for SEO */
+/** Related blog articles - internal links for SEO */
 function RelatedArticles() {
   if (RELATED_ARTICLES.length === 0) return null
 
@@ -601,7 +601,7 @@ export function HairLossLanding() {
     return () => observer.disconnect()
   }, [])
 
-  // Testimonials data — service-specific with fallback
+  // Testimonials data - service-specific with fallback
   const serviceTestimonials = getTestimonialsByService("consultation")
   const columnsData = serviceTestimonials.slice(0, 9).map((t) => ({
     text: t.text,
@@ -664,13 +664,13 @@ export function HairLossLanding() {
           {/* 1. Hero */}
           <HeroSection ctaRef={heroCTARef} onCTAClick={handleHeroCTA} />
 
-          {/* Live wait time — hair loss routed via consult queue (HL-specific label) */}
+          {/* Live wait time - hair loss routed via consult queue (HL-specific label) */}
           <LiveWaitTime variant="strip" services={["consult-hair-loss"]} />
 
-          {/* 2. Hair loss hook quiz — Norwood self-rating + duration */}
+          {/* 2. Hair loss hook quiz - Norwood self-rating + duration */}
           <HairLossHookQuiz />
 
-          {/* 3. Social proof band — AnimatedStat + ContextualMessage + named ticker */}
+          {/* 3. Social proof band - AnimatedStat + ContextualMessage + named ticker */}
           <section aria-label="Social proof" className="py-8 lg:py-12 border-b border-border/30 dark:border-white/10">
             <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 flex flex-col items-center gap-4 text-center">
               <p className="text-base sm:text-lg text-foreground font-medium">
@@ -698,26 +698,26 @@ export function HairLossLanding() {
           <HowItWorksSection
             onCTAClick={handleHowItWorksCTA}
             steps={HAIR_LOSS_HOW_IT_WORKS_STEPS}
-            ctaText={`Start assessment — $${PRICING.HAIR_LOSS.toFixed(2)}`}
+            ctaText={`Start assessment - $${PRICING.HAIR_LOSS.toFixed(2)}`}
             ctaHref="/request?service=consult&subtype=hair_loss"
           />
 
-          {/* 2b. Treatment options — unique to hair loss, not on ED page */}
+          {/* 2b. Treatment options - unique to hair loss, not on ED page */}
           <TreatmentOptions />
 
-          {/* 3. Progress timeline — month-by-month regrowth expectations */}
+          {/* 3. Progress timeline - month-by-month regrowth expectations */}
           <HairLossProgressTimeline />
 
-          {/* 4. Long-form guide — E-E-A-T content for SEO depth */}
+          {/* 4. Long-form guide - E-E-A-T content for SEO depth */}
           <HairLossGuideSection />
 
-          {/* 5. Family history strip — reinforces genetic basis */}
+          {/* 5. Family history strip - reinforces genetic basis */}
           <HairLossFamilyHistoryStrip />
 
-          {/* Doctor profile — trust signal, this page only */}
+          {/* Doctor profile - trust signal, this page only */}
           <DoctorProfileSection />
 
-          {/* Pre-qualify before pricing — reduces bad-fit conversions */}
+          {/* Pre-qualify before pricing - reduces bad-fit conversions */}
           <HairLossLimitationsSection />
 
           {/* 4. Pricing */}
@@ -729,7 +729,7 @@ export function HairLossLanding() {
             ctaText={
               isDisabled
                 ? "Contact us"
-                : `Start assessment — $${PRICING.HAIR_LOSS.toFixed(2)}`
+                : `Start assessment - $${PRICING.HAIR_LOSS.toFixed(2)}`
             }
             ctaHref={isDisabled ? "/contact" : "/request?service=consult&subtype=hair_loss"}
             colors={pricingColors}
@@ -742,10 +742,10 @@ export function HairLossLanding() {
             subtitle="Real reviews from Australians who've used our consultation service"
           />
 
-          {/* Competitor comparisons — SEO internal links */}
+          {/* Competitor comparisons - SEO internal links */}
           <CompetitorLinksSection slugs={["instantmed-vs-hub-health", "instantmed-vs-doctors-on-demand", "instantmed-vs-instantscripts"]} />
 
-          {/* Regulatory Partners — Medicare included */}
+          {/* Regulatory Partners - Medicare included */}
           <RegulatoryPartners className="py-12" />
 
           {/* 6. FAQ */}
@@ -764,7 +764,7 @@ export function HairLossLanding() {
                 <Link href="/patient" className="text-primary hover:underline font-medium">
                   Refer a friend
                 </Link>
-                {" "}&mdash; you both get $5 off.
+                {" "}- you both get $5 off.
               </p>
             </div>
           </div>
@@ -773,8 +773,8 @@ export function HairLossLanding() {
           <FinalCtaSection
             onCTAClick={handleFinalCTA}
             title="Start treating hair loss today."
-            subtitle="Fill a short form. A doctor reviews it and — if appropriate — sends treatment straight to your phone. No call, no waiting room."
-            ctaText={`Start assessment — $${PRICING.HAIR_LOSS.toFixed(2)}`}
+            subtitle="Fill a short form. A doctor reviews it and - if appropriate - sends treatment straight to your phone. No call, no waiting room."
+            ctaText={`Start assessment - $${PRICING.HAIR_LOSS.toFixed(2)}`}
             ctaHref="/request?service=consult&subtype=hair_loss"
             price={PRICING.HAIR_LOSS}
           />
@@ -782,14 +782,14 @@ export function HairLossLanding() {
 
         <MarketingFooter />
 
-        {/* Content hub cross-links — distributes PageRank to condition/symptom/guide pages */}
+        {/* Content hub cross-links - distributes PageRank to condition/symptom/guide pages */}
         <ContentHubLinks service="consult" />
 
-        {/* Related articles — SEO internal linking (empty until hair loss blog slugs exist) */}
+        {/* Related articles - SEO internal linking (empty until hair loss blog slugs exist) */}
         <RelatedArticles />
 
 
-        {/* Sticky mobile CTA — bottom drawer, appears after hero scrolls out */}
+        {/* Sticky mobile CTA - bottom drawer, appears after hero scrolls out */}
         <motion.div
           className="fixed bottom-0 left-0 right-0 z-50 lg:hidden"
           initial={prefersReducedMotion ? {} : { y: 100 }}
@@ -814,14 +814,14 @@ export function HairLossLanding() {
               <Link href={isDisabled ? "/contact" : "/request?service=consult&subtype=hair_loss"}>
                 {isDisabled
                   ? "Contact us"
-                  : `Start assessment — $${PRICING.HAIR_LOSS.toFixed(2)}`}
+                  : `Start assessment - $${PRICING.HAIR_LOSS.toFixed(2)}`}
                 <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
               </Link>
             </Button>
           </div>
         </motion.div>
 
-        {/* Sticky desktop CTA — top bar, appears after hero scrolls out */}
+        {/* Sticky desktop CTA - top bar, appears after hero scrolls out */}
         <motion.div
           className="hidden lg:block fixed top-0 left-0 right-0 z-40"
           initial={prefersReducedMotion ? {} : { y: -60 }}

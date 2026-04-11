@@ -136,7 +136,7 @@ export function EdPrevalenceCalculator({
           </div>
 
           <p className="mx-auto mt-6 max-w-[560px] text-center text-sm leading-relaxed text-muted-foreground">
-            You&apos;re not alone — it&apos;s more common than most men
+            You&apos;re not alone - it&apos;s more common than most men
             think, and it&apos;s treatable.
           </p>
         </div>

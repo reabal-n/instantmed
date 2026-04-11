@@ -60,7 +60,7 @@ export async function fetchCertPreviewDataAction(
     }
 
     // Determine certificate type from service slug
-    // Supabase returns joins as arrays — unwrap
+    // Supabase returns joins as arrays - unwrap
     const serviceRaw = intake.service as unknown
     const service = (Array.isArray(serviceRaw) ? serviceRaw[0] : serviceRaw) as { slug: string } | null
     const slug = service?.slug || ""

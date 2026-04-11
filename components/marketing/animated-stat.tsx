@@ -13,7 +13,7 @@ export function AnimatedStat({
   suffix: string
   decimals?: number
 }) {
-  const [displayed, setDisplayed] = useState(value) // init to real value — no flash on load
+  const [displayed, setDisplayed] = useState(value) // init to real value - no flash on load
   const [hasAnimated, setHasAnimated] = useState(false)
   const ref = useRef<HTMLSpanElement>(null)
   const prefersReducedMotion = useReducedMotion()
@@ -22,7 +22,7 @@ export function AnimatedStat({
     const el = ref.current
     if (!el || hasAnimated) return
 
-    // If already in the viewport on mount, mark done — no animation needed
+    // If already in the viewport on mount, mark done - no animation needed
     const rect = el.getBoundingClientRect()
     if (rect.top < window.innerHeight && rect.bottom > 0) {
       setHasAnimated(true)

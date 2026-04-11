@@ -6,7 +6,7 @@ import { FileText, Clock, CheckCircle2, Mail, PhoneOff } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface MedCertHeroMockupProps {
-  /** Compact mode for mobile — shows form card only, no timeline overlay */
+  /** Compact mode for mobile - shows form card only, no timeline overlay */
   compact?: boolean
 }
 
@@ -69,7 +69,7 @@ export function MedCertHeroMockup({ compact = false }: MedCertHeroMockupProps) {
           <span className="text-sm font-semibold text-white">Submit request</span>
         </div>
 
-        {/* Time badge top-right — desktop only */}
+        {/* Time badge top-right - desktop only */}
         {!compact && (
           <motion.div
             className="absolute -top-3 -right-3 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white dark:bg-card border border-border/50 shadow-lg shadow-primary/[0.06] text-xs font-medium text-muted-foreground"
@@ -83,7 +83,7 @@ export function MedCertHeroMockup({ compact = false }: MedCertHeroMockupProps) {
           </motion.div>
         )}
 
-        {/* No appointment badge top-left — desktop only */}
+        {/* No appointment badge top-left - desktop only */}
         {!compact && (
           <motion.div
             className="absolute -top-3 -left-3 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white dark:bg-card border border-border/50 shadow-lg shadow-primary/[0.06] text-xs font-medium text-muted-foreground"
@@ -98,7 +98,7 @@ export function MedCertHeroMockup({ compact = false }: MedCertHeroMockupProps) {
         )}
       </motion.div>
 
-      {/* Progress timeline — overlapping bottom-right, desktop only */}
+      {/* Progress timeline - overlapping bottom-right, desktop only */}
       {!compact && (
         <motion.div
           className="absolute -bottom-8 -right-4 xl:-right-8 rounded-xl bg-white dark:bg-card border border-border/50 shadow-lg shadow-primary/[0.06] dark:shadow-none p-3 min-w-[210px]"

@@ -19,7 +19,7 @@ import { PRICING_DISPLAY, CONTACT_EMAIL_HELLO } from "@/lib/constants"
 // TITLE TEMPLATES
 // ============================================
 
-// NOTE: Root layout uses template "%s | InstantMed" — do NOT append "| InstantMed" here.
+// NOTE: Root layout uses template "%s | InstantMed" - do NOT append "| InstantMed" here.
 // Titles here become the %s part and get the brand suffix automatically.
 const TITLE_TEMPLATES: Record<PageType, (page: SEOPage) => string> = {
   medication: (page) => {
@@ -285,7 +285,7 @@ function optimizeDescriptionLength(description: string, maxLength: number = 160)
 function generateOGImageUrl(page: SEOPage): string {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://instantmed.com.au'
 
-  // Dynamic OG image via /api/og edge route — renders branded 1200x630 image
+  // Dynamic OG image via /api/og edge route - renders branded 1200x630 image
   // with page-type icon, title, and subtitle baked in.
   const params = new URLSearchParams({
     type: page.type,

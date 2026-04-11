@@ -11,7 +11,7 @@ const log = createLogger("doctor-cert-download")
  * GET /api/doctor/certificates/[intakeId]/download
  *
  * Doctor/admin endpoint to download the actual stored certificate PDF.
- * Returns the PDF that was sent to the patient — not a regenerated preview.
+ * Returns the PDF that was sent to the patient - not a regenerated preview.
  */
 export async function GET(
   request: NextRequest,

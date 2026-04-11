@@ -132,7 +132,7 @@ const faqs = [
   {
     question: "What happens if I'm not eligible for treatment?",
     answer:
-      "If our doctor determines that medical weight management treatment isn't appropriate for you — whether due to BMI criteria, contraindications, or other clinical reasons — you'll receive a full refund of your consultation fee. Your doctor may also provide alternative recommendations, such as lifestyle modifications or a referral to a specialist.",
+      "If our doctor determines that medical weight management treatment isn't appropriate for you - whether due to BMI criteria, contraindications, or other clinical reasons - you'll receive a full refund of your consultation fee. Your doctor may also provide alternative recommendations, such as lifestyle modifications or a referral to a specialist.",
   },
   {
     question: "Can I use this service if I've had weight loss surgery?",

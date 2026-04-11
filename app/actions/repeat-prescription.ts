@@ -154,7 +154,7 @@ export async function markRepeatScriptSentAction(
         })
       }
     } catch (emailErr) {
-      // Don't fail the action if email fails — script is already marked as sent
+      // Don't fail the action if email fails - script is already marked as sent
       log.warn("Failed to send prescription approval email", {
         intakeId,
         error: String(emailErr),

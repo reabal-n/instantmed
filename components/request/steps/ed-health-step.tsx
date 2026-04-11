@@ -1,11 +1,11 @@
 "use client"
 
 /**
- * ED Health Step — Step 3 of 4 in the ED intake flow
+ * ED Health Step - Step 3 of 4 in the ED intake flow
  *
  * Consolidated safety + medical history in 6 collapsible accordion sections.
  * Merges the old ed-safety-step (sequential questions) and medical-history-step
- * into one scrollable page. This is the biggest UX win — competitors spread
+ * into one scrollable page. This is the biggest UX win - competitors spread
  * this across 8-12 screens, we do it in one page.
  *
  * Sections:
@@ -233,7 +233,7 @@ export default function EdHealthStep({ onNext, onBack }: EdHealthStepProps) {
     // Soft block without GP clearance
     if (gpClearanceRequired) return false
     // All required sections must be complete
-    // NOTE: bpComplete is intentionally excluded — BP/diabetes fields are
+    // NOTE: bpComplete is intentionally excluded - BP/diabetes fields are
     // informational (optional). bpComplete only drives the section checkmark.
     return heartComplete &&
       medicationsComplete &&
@@ -315,7 +315,7 @@ export default function EdHealthStep({ onNext, onBack }: EdHealthStepProps) {
             }}
             className="w-full"
           >
-            I made a mistake — I do NOT take nitrates
+            I made a mistake - I do NOT take nitrates
           </Button>
         </div>
       </div>
@@ -377,7 +377,7 @@ export default function EdHealthStep({ onNext, onBack }: EdHealthStepProps) {
             <SwitchField
               id="ed-alpha-blockers"
               label="Do you take alpha-blockers?"
-              helpText="e.g., tamsulosin (Flomaxtra), prazosin, doxazosin — used for blood pressure or prostate"
+              helpText="e.g., tamsulosin (Flomaxtra), prazosin, doxazosin - used for blood pressure or prostate"
               checked={edAlphaBlockers === true}
               onChange={(checked) => setAnswer("edAlphaBlockers", checked)}
             />
@@ -410,7 +410,7 @@ export default function EdHealthStep({ onNext, onBack }: EdHealthStepProps) {
               </Alert>
             )}
 
-            {/* GP clearance checkbox — shown only when soft block active */}
+            {/* GP clearance checkbox - shown only when soft block active */}
             {softBlockActive && (
               <div className="p-3 rounded-xl border bg-muted/30">
                 <Checkbox
@@ -513,7 +513,7 @@ export default function EdHealthStep({ onNext, onBack }: EdHealthStepProps) {
                 id="ed-known-allergies"
                 value={knownAllergies}
                 onChange={(e) => setAnswer("known_allergies", e.target.value)}
-                placeholder="e.g., Penicillin — rash, Peanuts — anaphylaxis"
+                placeholder="e.g., Penicillin - rash, Peanuts - anaphylaxis"
                 className="min-h-[80px] text-sm"
               />
             )}

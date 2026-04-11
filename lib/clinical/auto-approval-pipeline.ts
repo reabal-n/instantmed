@@ -54,10 +54,10 @@ function buildReviewDataFromAnswers(
 ): CertReviewData | null {
   if (!answers) return null
 
-  // Use AEST date — UTC can be a day ahead/behind in Australia
+  // Use AEST date - UTC can be a day ahead/behind in Australia
   const today = new Date().toLocaleDateString("en-CA", { timeZone: "Australia/Sydney" })
 
-  // Determine start date — check both camelCase (new flow) and snake_case (legacy)
+  // Determine start date - check both camelCase (new flow) and snake_case (legacy)
   const rawStartDate = (answers.startDate as string) || (answers.start_date as string) || today
   const startDate = /^\d{4}-\d{2}-\d{2}$/.test(rawStartDate) ? rawStartDate : today
 
@@ -78,14 +78,14 @@ function buildReviewDataFromAnswers(
   }
 
   if (!medicalReason) {
-    // No substantive symptom text — don't auto-approve with a generic placeholder.
+    // No substantive symptom text - don't auto-approve with a generic placeholder.
     // The eligibility engine should catch this (empty_symptom_text), but defense-in-depth.
     return null
   }
 
   return {
     doctorName,
-    consultDate: today, // AEST date — set above
+    consultDate: today, // AEST date - set above
     startDate,
     endDate,
     medicalReason,
@@ -113,7 +113,7 @@ function formatClinicalNoteContent(content: Record<string, unknown>): string | n
 /**
  * Sync AI clinical note to intake.doctor_notes after auto-approval.
  * Uses PHI dual-write (plaintext + encrypted) matching the manual flow.
- * Non-fatal: if sync fails, the cert is already issued — log and continue.
+ * Non-fatal: if sync fails, the cert is already issued - log and continue.
  */
 async function syncClinicalNoteAfterAutoApproval(
   supabase: ReturnType<typeof createServiceRoleClient>,
@@ -237,7 +237,7 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
   const featureFlags = await getFeatureFlags()
   if (!featureFlags.ai_auto_approve_enabled) {
     log.warn(
-      "Auto-approval feature flag is OFF — intake will remain in doctor queue. " +
+      "Auto-approval feature flag is OFF - intake will remain in doctor queue. " +
       "Enable via admin dashboard (feature_flags.ai_auto_approve_enabled) or DB.",
       { intakeId },
     )
@@ -247,7 +247,7 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
 
   const isDryRun = featureFlags.auto_approve_dry_run
   if (isDryRun) {
-    log.info("Auto-approval running in DRY RUN mode — will evaluate but NOT issue certificates", { intakeId })
+    log.info("Auto-approval running in DRY RUN mode - will evaluate but NOT issue certificates", { intakeId })
   }
 
   // 1b. System-level rate limiting (configurable via admin dashboard)
@@ -331,7 +331,7 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
     // 3b. Claim via state machine (CAS: pending|failed_retrying → attempting)
     const claimed = await claimForProcessing(supabase, intakeId)
     if (!claimed) {
-      log.info("Auto-approval: could not claim intake (CAS miss — already processing or claimed)", { intakeId })
+      log.info("Auto-approval: could not claim intake (CAS miss - already processing or claimed)", { intakeId })
       trackOutcome("skipped", "already_claimed")
       return { success: true, autoApproved: false, reason: "Already claimed or processing" }
     }
@@ -395,7 +395,7 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
         .eq("patient_id", patientId)
         .eq("ai_approved", true)
         .eq("status", "approved"),
-      // 6b. Repeat request detection — certs approved for this patient in last 7 days
+      // 6b. Repeat request detection - certs approved for this patient in last 7 days
       supabase
         .from("intakes")
         .select("id", { count: "exact", head: true })
@@ -406,7 +406,7 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
         .neq("id", intakeId),
     ])
 
-    // 6c. Overlapping date detection — check if requested dates overlap an existing approved cert
+    // 6c. Overlapping date detection - check if requested dates overlap an existing approved cert
     let hasOverlappingCert = false
     const requestedStart = extractStartDate(answersData)
     const requestedDuration = extractDurationDays(answersData)
@@ -446,7 +446,7 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
       },
     )
 
-    // Log eligibility decision regardless of outcome — includes engine version for compliance
+    // Log eligibility decision regardless of outcome - includes engine version for compliance
     await logAutoApprovalAudit(supabase, intakeId, eligibility.eligible, eligibility.reason, {
       disqualifyingFlags: eligibility.disqualifyingFlags,
       softFlags: eligibility.softFlags,
@@ -474,7 +474,7 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
 
     // 8. Round-robin doctor selection: pick the doctor with fewest recent approvals
     // Only select doctors whose AHPRA verification has not expired (ahpra_next_review_at
-    // is null — no expiry set — or in the future). This prevents issuing certificates
+    // is null - no expiry set - or in the future). This prevents issuing certificates
     // under credentials that may have lapsed.
     const nowIso = new Date().toISOString()
     const { data: allDoctors, error: doctorError } = await supabase
@@ -487,7 +487,7 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
 
     // Filter out doctors whose ahpra_next_review_at has passed
     const doctors = (allDoctors || []).filter(d => {
-      if (!d.ahpra_next_review_at) return true // no expiry set — allow
+      if (!d.ahpra_next_review_at) return true // no expiry set - allow
       return d.ahpra_next_review_at > nowIso
     })
 
@@ -536,7 +536,7 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
       return { success: false, autoApproved: false, reason: "Could not build review data", error: "Missing answer data" }
     }
 
-    // 10. Dry-run check — evaluate but don't issue
+    // 10. Dry-run check - evaluate but don't issue
     if (isDryRun) {
       log.info("Auto-approval DRY RUN: would have approved", {
         intakeId,
@@ -550,7 +550,7 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
         .update({ auto_approval_state: "pending", auto_approval_state_updated_at: new Date().toISOString() })
         .eq("id", intakeId)
         .eq("auto_approval_state", "attempting")
-      return { success: true, autoApproved: false, reason: "Dry run — would have approved" }
+      return { success: true, autoApproved: false, reason: "Dry run - would have approved" }
     }
 
     // 11. Execute the approval pipeline
@@ -614,7 +614,7 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
       }
     }
 
-    // Pipeline failed — mark for retry
+    // Pipeline failed - mark for retry
     log.warn("Auto-approval: approval pipeline failed", {
       intakeId,
       error: approvalResult.error,
@@ -633,7 +633,7 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
       error: approvalResult.error,
     }
   } catch (error) {
-    // Unexpected error — mark for retry
+    // Unexpected error - mark for retry
     const durationMs = Date.now() - startTime
     const errorMessage = error instanceof Error ? error.message : String(error)
 

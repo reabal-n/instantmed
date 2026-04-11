@@ -238,7 +238,7 @@ export default function WeightLossAssessmentStep({ onNext }: WeightLossAssessmen
         )}
       </div>
 
-      {/* Preferred medication type — styled option cards */}
+      {/* Preferred medication type - styled option cards */}
       <div className="space-y-3">
         <Label className="text-sm font-medium">
           Which type of medication interests you?
@@ -307,7 +307,7 @@ export default function WeightLossAssessmentStep({ onNext }: WeightLossAssessmen
         )}
       </div>
 
-      {/* Relevant medical history — toggles */}
+      {/* Relevant medical history - toggles */}
       <div className="space-y-3">
         <Label className="text-sm font-medium">
           Relevant medical history

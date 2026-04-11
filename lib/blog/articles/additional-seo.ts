@@ -34,7 +34,7 @@ export const additionalSeoArticles: Article[] = [
         items: [
           'Submit your request online',
           'Doctor reviews your symptoms',
-          'Certificate sent digitally — often within 1-2 hours',
+          'Certificate sent digitally - often within 1-2 hours',
           'No travel required'
         ]
       },
@@ -348,7 +348,7 @@ export const additionalSeoArticles: Article[] = [
       },
       {
         question: 'What if the doctor says no?',
-        answer: 'They\'ll explain why and recommend appropriate next steps — usually seeing your regular GP for a review.'
+        answer: 'They\'ll explain why and recommend appropriate next steps - usually seeing your regular GP for a review.'
       }
     ],
     relatedServices: [
@@ -385,7 +385,7 @@ export const additionalSeoArticles: Article[] = [
       { type: 'heading', content: 'Step 1: Choose a Service', level: 3 },
       {
         type: 'paragraph',
-        content: 'Select a telehealth provider that offers what you need — whether that\'s medical certificates, prescriptions, or general consultations. Check:'
+        content: 'Select a telehealth provider that offers what you need - whether that\'s medical certificates, prescriptions, or general consultations. Check:'
       },
       {
         type: 'list',
@@ -443,10 +443,10 @@ export const additionalSeoArticles: Article[] = [
         type: 'list',
         content: '',
         items: [
-          'Video call — face-to-face via your phone or computer',
-          'Phone call — voice only',
-          'Asynchronous messaging — you submit information, doctor responds',
-          'Live chat — real-time text conversation'
+          'Video call - face-to-face via your phone or computer',
+          'Phone call - voice only',
+          'Asynchronous messaging - you submit information, doctor responds',
+          'Live chat - real-time text conversation'
         ]
       },
       { type: 'heading', content: 'What the Doctor Does', level: 3 },
@@ -488,10 +488,10 @@ export const additionalSeoArticles: Article[] = [
         type: 'list',
         content: '',
         items: [
-          'Medical certificates — emailed as PDF or accessible in the app',
-          'Prescriptions — sent as eScript via SMS to your phone',
-          'Referrals — emailed or sent electronically to the specialist',
-          'Consultation summary — for your records'
+          'Medical certificates - emailed as PDF or accessible in the app',
+          'Prescriptions - sent as eScript via SMS to your phone',
+          'Referrals - emailed or sent electronically to the specialist',
+          'Consultation summary - for your records'
         ]
       },
       { type: 'heading', content: 'What to Do Next', level: 3 },
@@ -580,7 +580,7 @@ export const additionalSeoArticles: Article[] = [
       { type: 'heading', content: 'Are Telehealth Doctors Real Doctors?', level: 2 },
       {
         type: 'paragraph',
-        content: 'Yes. Legitimate telehealth services use AHPRA-registered medical practitioners — the same registration required for any doctor practising in Australia.',
+        content: 'Yes. Legitimate telehealth services use AHPRA-registered medical practitioners - the same registration required for any doctor practising in Australia.',
         links: [{ text: 'AHPRA-registered', href: '/blog/ahpra-registered-doctor-meaning', title: 'What AHPRA registration means' }]
       },
       {
@@ -720,7 +720,7 @@ export const additionalSeoArticles: Article[] = [
       },
       {
         type: 'paragraph',
-        content: 'The key is using telehealth appropriately — for conditions where remote assessment is sufficient.'
+        content: 'The key is using telehealth appropriately - for conditions where remote assessment is sufficient.'
       }
     ],
     faqs: [

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
 
 // ============================================================================
-// MOCKS — must be declared before any imports that reference them
+// MOCKS - must be declared before any imports that reference them
 // ============================================================================
 
 vi.mock("server-only", () => ({}))
@@ -572,7 +572,7 @@ describe("attemptAutoApproval orchestrator", () => {
 })
 
 // ============================================================================
-// EXISTING TESTS — preserved from original file
+// EXISTING TESTS - preserved from original file
 // ============================================================================
 
 describe("Auto-Approval Pipeline Helpers", () => {

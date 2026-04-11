@@ -75,7 +75,7 @@ export function CTABanner({
         {/* Refund reassurance */}
         <p className="mt-4 text-xs text-muted-foreground flex items-center justify-center gap-1.5">
           <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
-          Full refund if we can&apos;t help — no questions asked
+          Full refund if we can&apos;t help - no questions asked
         </p>
       </motion.div>
     </section>

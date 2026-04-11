@@ -5,7 +5,7 @@ import { AppSignInButton } from "@/components/shared/app-sign-in-button"
 import Link from "next/link"
 
 /**
- * Auth controls for the footer — client component for auth state.
+ * Auth controls for the footer - client component for auth state.
  * Shows "Sign in" when signed out, "My account" when signed in.
  */
 export function FooterAuth() {

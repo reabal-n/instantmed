@@ -2,7 +2,7 @@
  * Doctor-Facing Summary Format
  * 
  * Transforms structured intake data into a concise, scannable format
- * for the doctor review queue. No narrative prose — fields and bullets only.
+ * for the doctor review queue. No narrative prose - fields and bullets only.
  * 
  * DESIGN PRINCIPLES:
  * - 10-second scan: Doctor should grasp case in 10 seconds

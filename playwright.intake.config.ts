@@ -2,7 +2,7 @@ import { defineConfig, devices } from "@playwright/test"
 
 /**
  * Playwright config for intake flow tests only.
- * No global setup/teardown needed — these tests run as guest users.
+ * No global setup/teardown needed - these tests run as guest users.
  */
 
 const E2E_PORT = 3001

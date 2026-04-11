@@ -1,5 +1,5 @@
 /**
- * Centralized Social Proof — Single Source of Truth
+ * Centralized Social Proof - Single Source of Truth
  *
  * Patient counter uses linear interpolation:
  *   Anchor: April 11, 2026 → 3,000 patients (launch)
@@ -18,12 +18,12 @@
  * Use `getPatientCount()` for server-side, `usePatientCount()` for client.
  * All social proof stats (rating, response time) live here.
  *
- * This file is SERVER-SAFE — no React hooks. Client hook is in ./use-patient-count.ts
+ * This file is SERVER-SAFE - no React hooks. Client hook is in ./use-patient-count.ts
  */
 
 // ─── Counter Anchors ───────────────────────────────────────────────
 
-/** AEST (UTC+10) anchor date — recalibrated April 11 2026 */
+/** AEST (UTC+10) anchor date - recalibrated April 11 2026 */
 const ANCHOR_DATE = new Date("2026-04-11T00:00:00+10:00")
 export const ANCHOR_COUNT = 3_000
 
@@ -37,7 +37,7 @@ const TOTAL_MS = TARGET_DATE.getTime() - ANCHOR_DATE.getTime()
 // ─── Platform Stats ────────────────────────────────────────────────
 
 /**
- * Canonical social proof metrics — SINGLE SOURCE OF TRUTH.
+ * Canonical social proof metrics - SINGLE SOURCE OF TRUTH.
  *
  * All marketing pages, SEO data objects, and structured data must
  * reference these constants (or SOCIAL_PROOF_DISPLAY) instead of
@@ -50,13 +50,13 @@ const TOTAL_MS = TARGET_DATE.getTime() - ANCHOR_DATE.getTime()
 export const SOCIAL_PROOF = {
   // ── Ratings & Reviews ──
   averageRating: 4.8,
-  /** Verified reviews count — must match GOOGLE_REVIEWS.count */
+  /** Verified reviews count - must match GOOGLE_REVIEWS.count */
   reviewCount: 3,
 
   // ── Response Times ──
   /** Average response in minutes (used for stat displays) */
   averageResponseMinutes: 44,
-  /** Typical turnaround for certificates specifically — must stay under 30 min */
+  /** Typical turnaround for certificates specifically - must stay under 30 min */
   certTurnaroundMinutes: 20,
 
   // ── Platform Credentials ──
@@ -83,7 +83,7 @@ export const SOCIAL_PROOF = {
 } as const
 
 /**
- * Pre-formatted display strings — use these in UI, like PRICING_DISPLAY.
+ * Pre-formatted display strings - use these in UI, like PRICING_DISPLAY.
  * Avoids scattering template literals and `.toFixed()` calls everywhere.
  */
 export const SOCIAL_PROOF_DISPLAY = {
@@ -116,7 +116,7 @@ export const SOCIAL_PROOF_DISPLAY = {
  * Google Business dashboard.
  *
  * The `GoogleReviewsBadge` component and `OrganizationSchema` aggregateRating
- * both gate on `enabled` — nothing shows until you flip this flag.
+ * both gate on `enabled` - nothing shows until you flip this flag.
  */
 export const GOOGLE_REVIEWS: {
   enabled: boolean
@@ -131,7 +131,7 @@ export const GOOGLE_REVIEWS: {
    */
   enabled: true,
   placeId: "7941901494114695128",
-  /** Short link for patients to leave a review — share this directly */
+  /** Short link for patients to leave a review - share this directly */
   reviewsUrl: "https://g.page/r/CWqy3A7IKcX6EAE/review",
   /** Real rating from Google dashboard */
   rating: 5.0,

@@ -29,11 +29,11 @@ export const transactionalSeoArticles: Article[] = [
       { type: 'heading', content: 'How Online Medical Certificates Work', level: 2 },
       {
         type: 'paragraph',
-        content: 'The process is straightforward, which is partly the point. You fill in a brief health questionnaire describing your symptoms, how long you\'ve been unwell, and the dates you need covered. This isn\'t a tick-box exercise — it\'s the same clinical information a GP would ask you in person, just collected in writing rather than across a desk.'
+        content: 'The process is straightforward, which is partly the point. You fill in a brief health questionnaire describing your symptoms, how long you\'ve been unwell, and the dates you need covered. This isn\'t a tick-box exercise - it\'s the same clinical information a GP would ask you in person, just collected in writing rather than across a desk.'
       },
       {
         type: 'paragraph',
-        content: 'An AHPRA-registered doctor reviews your request. They assess whether your symptoms are consistent with the time off you\'re requesting, whether anything in your history raises a flag, and whether a certificate is clinically appropriate. If everything checks out, your certificate is generated and delivered digitally — usually within a few hours. If the doctor has concerns or needs more information, they\'ll follow up.'
+        content: 'An AHPRA-registered doctor reviews your request. They assess whether your symptoms are consistent with the time off you\'re requesting, whether anything in your history raises a flag, and whether a certificate is clinically appropriate. If everything checks out, your certificate is generated and delivered digitally - usually within a few hours. If the doctor has concerns or needs more information, they\'ll follow up.'
       },
       {
         type: 'paragraph',
@@ -43,7 +43,7 @@ export const transactionalSeoArticles: Article[] = [
       { type: 'heading', content: 'What Conditions Qualify for an Online Medical Certificate?', level: 2 },
       {
         type: 'paragraph',
-        content: 'Most acute illnesses that would keep you home from work are appropriate for an online certificate. The standard is the same as any GP consultation — the doctor needs to form a reasonable clinical opinion that you\'re unfit for work based on the information provided.'
+        content: 'Most acute illnesses that would keep you home from work are appropriate for an online certificate. The standard is the same as any GP consultation - the doctor needs to form a reasonable clinical opinion that you\'re unfit for work based on the information provided.'
       },
       {
         type: 'list',
@@ -53,7 +53,7 @@ export const transactionalSeoArticles: Article[] = [
           'Gastroenteritis and food poisoning',
           'Migraine and severe headache',
           'Back pain and musculoskeletal issues',
-          'Mental health days — stress, anxiety, burnout',
+          'Mental health days - stress, anxiety, burnout',
           'Period pain and menstrual conditions',
           'Minor injuries that prevent work duties',
           'Carer\'s leave when looking after a family member'
@@ -67,17 +67,17 @@ export const transactionalSeoArticles: Article[] = [
       { type: 'heading', content: 'What Won\'t Get Approved', level: 2 },
       {
         type: 'paragraph',
-        content: 'An online medical certificate isn\'t a rubber stamp. Doctors assess every request on its merits, and there are situations where a certificate will be declined — or where you\'ll be advised to seek in-person care instead.'
+        content: 'An online medical certificate isn\'t a rubber stamp. Doctors assess every request on its merits, and there are situations where a certificate will be declined - or where you\'ll be advised to seek in-person care instead.'
       },
       {
         type: 'list',
         content: 'Requests that won\'t be approved:',
         items: [
-          'Backdated certificates — a doctor can only certify what they assess at the time. If you were sick last week but didn\'t seek medical attention, it\'s too late for a certificate covering those dates.',
-          'Suspicious patterns — requesting certificates for every Monday or the day after every public holiday is going to raise clinical red flags. Doctors notice patterns.',
-          'Emergency conditions — chest pain, difficulty breathing, sudden severe symptoms, or anything that sounds like it needs urgent care. You\'ll be directed to call 000 or attend an emergency department.',
-          'Extended periods without justification — requesting two weeks off for a cold will get questions. The time off needs to be proportionate to the condition.',
-          'Workplace injury claims — these typically require in-person examination and specific documentation for workers\' compensation.'
+          'Backdated certificates - a doctor can only certify what they assess at the time. If you were sick last week but didn\'t seek medical attention, it\'s too late for a certificate covering those dates.',
+          'Suspicious patterns - requesting certificates for every Monday or the day after every public holiday is going to raise clinical red flags. Doctors notice patterns.',
+          'Emergency conditions - chest pain, difficulty breathing, sudden severe symptoms, or anything that sounds like it needs urgent care. You\'ll be directed to call 000 or attend an emergency department.',
+          'Extended periods without justification - requesting two weeks off for a cold will get questions. The time off needs to be proportionate to the condition.',
+          'Workplace injury claims - these typically require in-person examination and specific documentation for workers\' compensation.'
         ]
       },
       {
@@ -92,13 +92,13 @@ export const transactionalSeoArticles: Article[] = [
       },
       {
         type: 'paragraph',
-        content: 'Your employer cannot legally reject a valid medical certificate simply because it was issued via telehealth. The certificate contains the same information — the practitioner\'s registration details, the dates of unfitness, and the clinical opinion that you\'re unable to work. That said, if your employer has questions, the best approach is usually a calm conversation pointing to the Fair Work Act rather than a dramatic standoff.',
+        content: 'Your employer cannot legally reject a valid medical certificate simply because it was issued via telehealth. The certificate contains the same information - the practitioner\'s registration details, the dates of unfitness, and the clinical opinion that you\'re unable to work. That said, if your employer has questions, the best approach is usually a calm conversation pointing to the Fair Work Act rather than a dramatic standoff.',
         links: [{ text: 'employer cannot legally reject', href: '/blog/employer-accept-online-medical-certificate', title: 'Do employers accept online medical certificates?' }]
       },
       { type: 'heading', content: 'How Much Does It Cost?', level: 2 },
       {
         type: 'paragraph',
-        content: 'At InstantMed, a one-day medical certificate costs $19.95, a two-day certificate is $29.95, and a three-day certificate is $39.95. There\'s no Medicare rebate for telehealth medical certificates — this is an out-of-pocket cost.',
+        content: 'At InstantMed, a one-day medical certificate costs $19.95, a two-day certificate is $29.95, and a three-day certificate is $39.95. There\'s no Medicare rebate for telehealth medical certificates - this is an out-of-pocket cost.',
         links: [
           { text: 'one-day medical certificate', href: '/medical-certificate', title: 'Online medical certificates' },
           { text: '$19.95', href: '/pricing', title: 'InstantMed pricing' }
@@ -106,7 +106,7 @@ export const transactionalSeoArticles: Article[] = [
       },
       {
         type: 'paragraph',
-        content: 'For context, a standard GP visit costs between $60 and $120 if you\'re not bulk-billed. And bulk-billed appointments are increasingly hard to come by — the average wait for a bulk-billing GP in Australian capital cities is now measured in weeks, not days. So while $19.95 isn\'t free, it compares favourably to the alternative of sitting in a waiting room for two hours while actively unwell. Your couch is more comfortable, and the magazines are better.'
+        content: 'For context, a standard GP visit costs between $60 and $120 if you\'re not bulk-billed. And bulk-billed appointments are increasingly hard to come by - the average wait for a bulk-billing GP in Australian capital cities is now measured in weeks, not days. So while $19.95 isn\'t free, it compares favourably to the alternative of sitting in a waiting room for two hours while actively unwell. Your couch is more comfortable, and the magazines are better.'
       },
       { type: 'heading', content: 'Privacy: What Your Employer Sees', level: 2 },
       {
@@ -130,8 +130,8 @@ export const transactionalSeoArticles: Article[] = [
         type: 'list',
         content: '',
         items: [
-          'Your symptoms are severe or getting worse — high fever, persistent vomiting, or symptoms lasting more than a week',
-          'You need a physical examination — rashes that need visual assessment, abdominal pain that needs palpation, ear infections',
+          'Your symptoms are severe or getting worse - high fever, persistent vomiting, or symptoms lasting more than a week',
+          'You need a physical examination - rashes that need visual assessment, abdominal pain that needs palpation, ear infections',
           'It\'s a workplace injury that may require workers\' compensation documentation',
           'You need a fitness-for-duty assessment to return to a safety-critical role',
           'You\'re experiencing mental health symptoms that need ongoing management, not just a day off',
@@ -163,7 +163,7 @@ export const transactionalSeoArticles: Article[] = [
       },
       {
         question: 'Do I need a Medicare card to get an online medical certificate?',
-        answer: 'No. Medical certificates through InstantMed don\'t require a Medicare card. The fee is a flat rate paid directly — there\'s no Medicare rebate involved regardless of your Medicare status.'
+        answer: 'No. Medical certificates through InstantMed don\'t require a Medicare card. The fee is a flat rate paid directly - there\'s no Medicare rebate involved regardless of your Medicare status.'
       },
       {
         question: 'Can my employer tell it was issued online?',
@@ -230,11 +230,11 @@ export const transactionalSeoArticles: Article[] = [
       { type: 'heading', content: 'The Legal Framework', level: 2 },
       {
         type: 'paragraph',
-        content: 'The Fair Work Act 2009 is the starting point. Section 107 sets out what constitutes valid evidence for personal leave, and it\'s broader than most people realise. An employee can provide either a medical certificate or a statutory declaration — not both, just one or the other.'
+        content: 'The Fair Work Act 2009 is the starting point. Section 107 sets out what constitutes valid evidence for personal leave, and it\'s broader than most people realise. An employee can provide either a medical certificate or a statutory declaration - not both, just one or the other.'
       },
       {
         type: 'paragraph',
-        content: 'The Act defines a medical certificate as a certificate from a "registered health practitioner." It doesn\'t specify that the consultation must be in person, face to face, or conducted in any particular setting. A registered health practitioner is anyone registered with AHPRA — the Australian Health Practitioner Regulation Agency. This includes doctors who practise via telehealth.'
+        content: 'The Act defines a medical certificate as a certificate from a "registered health practitioner." It doesn\'t specify that the consultation must be in person, face to face, or conducted in any particular setting. A registered health practitioner is anyone registered with AHPRA - the Australian Health Practitioner Regulation Agency. This includes doctors who practise via telehealth.'
       },
       {
         type: 'paragraph',
@@ -243,7 +243,7 @@ export const transactionalSeoArticles: Article[] = [
       {
         type: 'callout',
         variant: 'info',
-        content: 'Key legislation: Fair Work Act 2009 (Cth), s.107 — notice and evidence requirements for personal/carer\'s leave. A "medical certificate" from a "registered health practitioner" is explicitly listed as valid evidence.'
+        content: 'Key legislation: Fair Work Act 2009 (Cth), s.107 - notice and evidence requirements for personal/carer\'s leave. A "medical certificate" from a "registered health practitioner" is explicitly listed as valid evidence.'
       },
       { type: 'heading', content: 'What Makes a Medical Certificate Valid?', level: 2 },
       {
@@ -280,17 +280,17 @@ export const transactionalSeoArticles: Article[] = [
       { type: 'heading', content: '"How do we know the doctor actually examined you?"', level: 3 },
       {
         type: 'paragraph',
-        content: 'A telehealth assessment is a clinical consultation. The doctor reviews your symptoms, medical history, and the clinical picture to form a professional opinion. Not every condition requires a physical examination — a cold, gastro, or migraine doesn\'t need a stethoscope. The doctor\'s AHPRA registration is verifiable on the AHPRA website, which tends to settle the question.'
+        content: 'A telehealth assessment is a clinical consultation. The doctor reviews your symptoms, medical history, and the clinical picture to form a professional opinion. Not every condition requires a physical examination - a cold, gastro, or migraine doesn\'t need a stethoscope. The doctor\'s AHPRA registration is verifiable on the AHPRA website, which tends to settle the question.'
       },
       { type: 'heading', content: '"Anyone could fill out an online form and get a certificate"', level: 3 },
       {
         type: 'paragraph',
-        content: 'This misunderstands how telehealth works. You fill out a form; a doctor decides whether to issue a certificate. Requests are declined regularly — for inadequate clinical information, inconsistent symptoms, or patterns that suggest misuse. The doctor exercises the same clinical judgement as in any consultation. The form is the intake, not the assessment.'
+        content: 'This misunderstands how telehealth works. You fill out a form; a doctor decides whether to issue a certificate. Requests are declined regularly - for inadequate clinical information, inconsistent symptoms, or patterns that suggest misuse. The doctor exercises the same clinical judgement as in any consultation. The form is the intake, not the assessment.'
       },
       { type: 'heading', content: '"Our policy requires a certificate from your regular GP"', level: 3 },
       {
         type: 'paragraph',
-        content: 'No workplace policy can require you to see a specific doctor, and this would likely be challenged if tested. The Fair Work Act refers to "a registered health practitioner" — not "your regular GP" or "a doctor approved by your employer." Employees have the right to choose their healthcare provider.'
+        content: 'No workplace policy can require you to see a specific doctor, and this would likely be challenged if tested. The Fair Work Act refers to "a registered health practitioner" - not "your regular GP" or "a doctor approved by your employer." Employees have the right to choose their healthcare provider.'
       },
       { type: 'heading', content: 'What to Do If Your Employer Pushes Back', level: 2 },
       {
@@ -301,7 +301,7 @@ export const transactionalSeoArticles: Article[] = [
         type: 'list',
         content: '',
         items: [
-          'Provide the certificate promptly — don\'t give your employer a procedural reason to object',
+          'Provide the certificate promptly - don\'t give your employer a procedural reason to object',
           'If questioned, calmly point out that the certificate is from an AHPRA-registered doctor and meets the requirements of the Fair Work Act',
           'Offer to show the AHPRA registration check if they\'re unsure about the doctor\'s credentials',
           'Put your response in writing (email) so there\'s a record',
@@ -323,16 +323,16 @@ export const transactionalSeoArticles: Article[] = [
         type: 'list',
         content: '',
         items: [
-          'Pre-employment medical assessments — these often require specific physical tests and measurements',
-          'Workplace injury and workers\' compensation claims — these typically need physical examination and specific documentation',
-          'Fitness-for-duty assessments for safety-critical roles — mining, aviation, heavy vehicle operation',
+          'Pre-employment medical assessments - these often require specific physical tests and measurements',
+          'Workplace injury and workers\' compensation claims - these typically need physical examination and specific documentation',
+          'Fitness-for-duty assessments for safety-critical roles - mining, aviation, heavy vehicle operation',
           'Return-to-work assessments after extended illness or injury',
-          'Drug and alcohol testing — for obvious reasons, this can\'t be done remotely'
+          'Drug and alcohol testing - for obvious reasons, this can\'t be done remotely'
         ]
       },
       {
         type: 'paragraph',
-        content: 'For routine personal leave — you woke up sick, you need a day or two off — an online certificate is entirely appropriate. The situations requiring in-person assessment are specific and usually involve employer-initiated processes rather than employee-initiated sick leave.'
+        content: 'For routine personal leave - you woke up sick, you need a day or two off - an online certificate is entirely appropriate. The situations requiring in-person assessment are specific and usually involve employer-initiated processes rather than employee-initiated sick leave.'
       },
       { type: 'heading', content: 'The Bigger Picture', level: 2 },
       {
@@ -352,7 +352,7 @@ export const transactionalSeoArticles: Article[] = [
     faqs: [
       {
         question: 'Can my employer legally reject a telehealth medical certificate?',
-        answer: 'No. Under the Fair Work Act 2009 (s.107), a medical certificate from any registered health practitioner is valid evidence for personal leave. The method of consultation — in person or via telehealth — is not a basis for rejection.'
+        answer: 'No. Under the Fair Work Act 2009 (s.107), a medical certificate from any registered health practitioner is valid evidence for personal leave. The method of consultation - in person or via telehealth - is not a basis for rejection.'
       },
       {
         question: 'Does the certificate need to say it was a telehealth consultation?',
@@ -422,12 +422,12 @@ export const transactionalSeoArticles: Article[] = [
       },
       {
         type: 'paragraph',
-        content: 'There are limits, of course. Some medications can\'t be prescribed online, and new prescriptions generally require a more thorough consultation. But for the straightforward scenario — you\'ve been taking the same medication for months or years, nothing has changed, and you just need a refill — online prescriptions are a practical option.'
+        content: 'There are limits, of course. Some medications can\'t be prescribed online, and new prescriptions generally require a more thorough consultation. But for the straightforward scenario - you\'ve been taking the same medication for months or years, nothing has changed, and you just need a refill - online prescriptions are a practical option.'
       },
       { type: 'heading', content: 'What Medications Can Be Prescribed via Telehealth?', level: 2 },
       {
         type: 'paragraph',
-        content: 'Most routine medications that you\'re already stable on can be prescribed through a telehealth consultation. The key word is "stable" — the doctor needs to be satisfied that the medication is working, you\'re not experiencing side effects, and there\'s no reason to change the treatment plan.'
+        content: 'Most routine medications that you\'re already stable on can be prescribed through a telehealth consultation. The key word is "stable" - the doctor needs to be satisfied that the medication is working, you\'re not experiencing side effects, and there\'s no reason to change the treatment plan.'
       },
       {
         type: 'list',
@@ -458,7 +458,7 @@ export const transactionalSeoArticles: Article[] = [
         type: 'list',
         content: 'Medications that cannot be prescribed through telehealth:',
         items: [
-          'Schedule 8 controlled substances — this includes strong opioid painkillers, benzodiazepines (for anxiety and sleep), ADHD medications, and testosterone',
+          'Schedule 8 controlled substances - this includes strong opioid painkillers, benzodiazepines (for anxiety and sleep), ADHD medications, and testosterone',
           'Any medication requiring a physical examination for safe prescribing',
           'Medications where the dose is still being adjusted or titrated',
           'New psychiatric medications that haven\'t been stabilised',
@@ -482,7 +482,7 @@ export const transactionalSeoArticles: Article[] = [
       { type: 'heading', content: '1. Complete the intake form', level: 3 },
       {
         type: 'paragraph',
-        content: 'You provide details about the medication you need, how long you\'ve been taking it, your dosage, any side effects, and your relevant medical history. You\'ll also confirm that you have a Medicare card — this is required for prescription services to ensure PBS eligibility can be assessed.',
+        content: 'You provide details about the medication you need, how long you\'ve been taking it, your dosage, any side effects, and your relevant medical history. You\'ll also confirm that you have a Medicare card - this is required for prescription services to ensure PBS eligibility can be assessed.',
         links: [{ text: 'Complete the intake form', href: '/request?service=repeat-prescription', title: 'Start a repeat prescription request' }]
       },
       { type: 'heading', content: '2. Doctor review', level: 3 },
@@ -493,7 +493,7 @@ export const transactionalSeoArticles: Article[] = [
       { type: 'heading', content: '3. eScript delivery', level: 3 },
       {
         type: 'paragraph',
-        content: 'Your prescription is delivered as an electronic prescription (eScript) via SMS to your phone. You take this to any pharmacy in Australia — it\'s not tied to a specific chemist. The pharmacist scans the QR code, dispenses your medication, and that\'s it. No paper scripts, no collecting from a clinic.'
+        content: 'Your prescription is delivered as an electronic prescription (eScript) via SMS to your phone. You take this to any pharmacy in Australia - it\'s not tied to a specific chemist. The pharmacist scans the QR code, dispenses your medication, and that\'s it. No paper scripts, no collecting from a clinic.'
       },
       { type: 'heading', content: 'How eScripts Work', level: 2 },
       {
@@ -505,10 +505,10 @@ export const transactionalSeoArticles: Article[] = [
         type: 'list',
         content: 'Key things to know about eScripts:',
         items: [
-          'The SMS contains a QR code — show this at any pharmacy',
+          'The SMS contains a QR code - show this at any pharmacy',
           'You\'re not locked to a specific pharmacy. Any chemist in Australia can dispense from an eScript',
           'If your prescription includes repeats, the same token covers all of them',
-          'eScripts don\'t expire differently from paper scripts — the same validity periods apply',
+          'eScripts don\'t expire differently from paper scripts - the same validity periods apply',
           'You can save the SMS or take a screenshot as a backup',
           'If you lose the SMS, your prescribing doctor or pharmacist can help retrieve it'
         ]
@@ -533,7 +533,7 @@ export const transactionalSeoArticles: Article[] = [
       },
       {
         type: 'paragraph',
-        content: 'The prescription itself is a private consultation — the $29.95 fee is not covered by Medicare. However, once you have the eScript, your medication at the pharmacy is subsidised under the PBS exactly the same as any other prescription. You pay the standard PBS co-payment (currently $31.60 for general patients or $7.70 for concession card holders). The source of the prescription — GP or telehealth — makes no difference to the PBS subsidy.'
+        content: 'The prescription itself is a private consultation - the $29.95 fee is not covered by Medicare. However, once you have the eScript, your medication at the pharmacy is subsidised under the PBS exactly the same as any other prescription. You pay the standard PBS co-payment (currently $31.60 for general patients or $7.70 for concession card holders). The source of the prescription - GP or telehealth - makes no difference to the PBS subsidy.'
       },
       {
         type: 'callout',
@@ -549,12 +549,12 @@ export const transactionalSeoArticles: Article[] = [
         type: 'list',
         content: '',
         items: [
-          'Starting a new medication for the first time — the doctor needs to conduct a fuller assessment',
-          'Dose adjustments — particularly for medications where getting the dose wrong has consequences',
-          'Controlled substances (Schedule 8) — no telehealth service can legally prescribe these',
-          'Medications requiring recent blood tests — if your bloods are overdue, you\'ll need pathology first',
-          'Complex medication interactions — if you\'re on multiple medications and something has changed',
-          'If your condition has changed — new symptoms, worsening symptoms, or side effects'
+          'Starting a new medication for the first time - the doctor needs to conduct a fuller assessment',
+          'Dose adjustments - particularly for medications where getting the dose wrong has consequences',
+          'Controlled substances (Schedule 8) - no telehealth service can legally prescribe these',
+          'Medications requiring recent blood tests - if your bloods are overdue, you\'ll need pathology first',
+          'Complex medication interactions - if you\'re on multiple medications and something has changed',
+          'If your condition has changed - new symptoms, worsening symptoms, or side effects'
         ]
       },
       {
@@ -566,7 +566,7 @@ export const transactionalSeoArticles: Article[] = [
     faqs: [
       {
         question: 'Can I get a new prescription (not a repeat) via telehealth?',
-        answer: 'In some cases, yes — for straightforward conditions where the diagnosis is clear. However, many new prescriptions require a more thorough assessment than telehealth can provide. Your doctor will advise if an in-person visit is more appropriate.'
+        answer: 'In some cases, yes - for straightforward conditions where the diagnosis is clear. However, many new prescriptions require a more thorough assessment than telehealth can provide. Your doctor will advise if an in-person visit is more appropriate.'
       },
       {
         question: 'Do I need to provide proof of my previous prescription?',
@@ -623,7 +623,7 @@ export const transactionalSeoArticles: Article[] = [
     slug: 'telehealth-vs-gp-australia',
     title: 'Telehealth vs GP: What\'s Actually Different in Australia?',
     subtitle: 'An honest comparison of when telehealth makes sense, when it doesn\'t, and why the answer is usually "both."',
-    excerpt: 'Telehealth isn\'t better or worse than seeing a GP in person — it\'s different. Here\'s a balanced comparison of cost, wait times, quality of care, and when each option makes sense.',
+    excerpt: 'Telehealth isn\'t better or worse than seeing a GP in person - it\'s different. Here\'s a balanced comparison of cost, wait times, quality of care, and when each option makes sense.',
     category: 'telehealth',
     tags: ['telehealth', 'online-doctor', 'work'],
     publishedAt: '2026-04-01',
@@ -640,30 +640,30 @@ export const transactionalSeoArticles: Article[] = [
       },
       {
         type: 'paragraph',
-        content: 'Telehealth has carved out a clear role in the Australian healthcare system — not as a replacement for general practice, but as a complement to it. Understanding where each option works best saves you time, money, and the particular frustration of sitting in a waiting room reading a 2019 magazine while genuinely unwell.'
+        content: 'Telehealth has carved out a clear role in the Australian healthcare system - not as a replacement for general practice, but as a complement to it. Understanding where each option works best saves you time, money, and the particular frustration of sitting in a waiting room reading a 2019 magazine while genuinely unwell.'
       },
       { type: 'heading', content: 'What Telehealth Does Well', level: 2 },
       {
         type: 'paragraph',
-        content: 'Telehealth excels at tasks that are primarily informational — where the clinical decision depends on what you tell the doctor rather than what the doctor physically finds. This covers more of healthcare than most people assume.'
+        content: 'Telehealth excels at tasks that are primarily informational - where the clinical decision depends on what you tell the doctor rather than what the doctor physically finds. This covers more of healthcare than most people assume.'
       },
       {
         type: 'list',
         content: '',
         items: [
-          'Repeat prescriptions — you\'ve been on the medication, nothing has changed, you need a refill',
-          'Medical certificates — you woke up with gastro and need a sick note, not a stethoscope',
-          'Mental health follow-ups — check-ins on existing treatment plans, medication reviews',
-          'Straightforward acute illnesses — cold, flu, mild infections where the diagnosis is based on symptoms',
-          'Referral requests — when you know you need a specialist and just need the paperwork',
-          'Health advice — "is this worth seeing a doctor about?" is a perfectly valid telehealth question',
-          'Sexual health consultations — where privacy and convenience genuinely matter',
-          'Chronic condition management — stable conditions with established treatment plans'
+          'Repeat prescriptions - you\'ve been on the medication, nothing has changed, you need a refill',
+          'Medical certificates - you woke up with gastro and need a sick note, not a stethoscope',
+          'Mental health follow-ups - check-ins on existing treatment plans, medication reviews',
+          'Straightforward acute illnesses - cold, flu, mild infections where the diagnosis is based on symptoms',
+          'Referral requests - when you know you need a specialist and just need the paperwork',
+          'Health advice - "is this worth seeing a doctor about?" is a perfectly valid telehealth question',
+          'Sexual health consultations - where privacy and convenience genuinely matter',
+          'Chronic condition management - stable conditions with established treatment plans'
         ]
       },
       {
         type: 'paragraph',
-        content: 'The common thread is that these situations rely on history and reported symptoms. The doctor doesn\'t need to press on your abdomen, look in your ears, or listen to your chest. They need to hear what\'s happening, assess the clinical picture, and make a decision. That works perfectly well through a screen — or, for asynchronous services, through a well-designed health questionnaire.'
+        content: 'The common thread is that these situations rely on history and reported symptoms. The doctor doesn\'t need to press on your abdomen, look in your ears, or listen to your chest. They need to hear what\'s happening, assess the clinical picture, and make a decision. That works perfectly well through a screen - or, for asynchronous services, through a well-designed health questionnaire.'
       },
       { type: 'heading', content: 'What Requires In-Person Care', level: 2 },
       {
@@ -674,14 +674,14 @@ export const transactionalSeoArticles: Article[] = [
         type: 'list',
         content: '',
         items: [
-          'Physical examinations — anything requiring palpation, auscultation (listening with a stethoscope), or visual assessment that a photo can\'t capture',
-          'Procedures — wound closure, excisions, joint injections, IUD insertion',
-          'New complex conditions — first presentation of symptoms that could be many things',
-          'Children under 2 — paediatric assessment relies heavily on physical examination',
-          'Acute emergencies — chest pain, stroke symptoms, severe allergic reactions (call 000)',
-          'Musculoskeletal assessment — range of motion, strength testing, neurological examination',
-          'Skin conditions that need close visual inspection — not everything photographs well',
-          'Pre-employment and fitness-for-duty medicals — these require standardised physical assessments'
+          'Physical examinations - anything requiring palpation, auscultation (listening with a stethoscope), or visual assessment that a photo can\'t capture',
+          'Procedures - wound closure, excisions, joint injections, IUD insertion',
+          'New complex conditions - first presentation of symptoms that could be many things',
+          'Children under 2 - paediatric assessment relies heavily on physical examination',
+          'Acute emergencies - chest pain, stroke symptoms, severe allergic reactions (call 000)',
+          'Musculoskeletal assessment - range of motion, strength testing, neurological examination',
+          'Skin conditions that need close visual inspection - not everything photographs well',
+          'Pre-employment and fitness-for-duty medicals - these require standardised physical assessments'
         ]
       },
       {
@@ -692,7 +692,7 @@ export const transactionalSeoArticles: Article[] = [
       { type: 'heading', content: 'The Regulatory Framework', level: 2 },
       {
         type: 'paragraph',
-        content: 'One of the most persistent misconceptions about telehealth is that it operates in some kind of regulatory grey area — a less rigorous version of "real" medicine. This isn\'t the case in Australia.'
+        content: 'One of the most persistent misconceptions about telehealth is that it operates in some kind of regulatory grey area - a less rigorous version of "real" medicine. This isn\'t the case in Australia.'
       },
       {
         type: 'paragraph',
@@ -700,7 +700,7 @@ export const transactionalSeoArticles: Article[] = [
       },
       {
         type: 'paragraph',
-        content: 'Telehealth doesn\'t get a lighter regulatory touch. If anything, telehealth services face additional scrutiny because they\'re newer and more visible. A telehealth doctor who prescribes inappropriately faces the same consequences as a GP who does the same — AHPRA investigation, potential deregistration, and possible criminal charges for serious breaches.'
+        content: 'Telehealth doesn\'t get a lighter regulatory touch. If anything, telehealth services face additional scrutiny because they\'re newer and more visible. A telehealth doctor who prescribes inappropriately faces the same consequences as a GP who does the same - AHPRA investigation, potential deregistration, and possible criminal charges for serious breaches.'
       },
       { type: 'heading', content: 'Cost Comparison', level: 2 },
       {
@@ -712,7 +712,7 @@ export const transactionalSeoArticles: Article[] = [
         content: '',
         items: [
           'Bulk-billed GP: Free (if you can find one taking new patients and get an appointment within a reasonable timeframe)',
-          'Private GP consultation: $60-$120 out of pocket, with a Medicare rebate of approximately $41 — leaving a gap of $19-$79',
+          'Private GP consultation: $60-$120 out of pocket, with a Medicare rebate of approximately $41 - leaving a gap of $19-$79',
           'After-hours GP or house call: $150-$300+',
           'Telehealth medical certificate: $19.95-$39.95 (no Medicare rebate)',
           'Telehealth repeat prescription: $29.95 (no Medicare rebate)',
@@ -721,7 +721,7 @@ export const transactionalSeoArticles: Article[] = [
       },
       {
         type: 'paragraph',
-        content: 'The honest comparison isn\'t "telehealth vs free GP" — it\'s "telehealth vs the GP you can actually access." If you\'re in an area with readily available bulk-billing GPs and you\'re happy to wait for an appointment, the in-person route is cheaper. If bulk billing isn\'t available in your area, or the wait is weeks, or you need something today, the cost equation looks different.'
+        content: 'The honest comparison isn\'t "telehealth vs free GP" - it\'s "telehealth vs the GP you can actually access." If you\'re in an area with readily available bulk-billing GPs and you\'re happy to wait for an appointment, the in-person route is cheaper. If bulk billing isn\'t available in your area, or the wait is weeks, or you need something today, the cost equation looks different.'
       },
       { type: 'heading', content: 'Wait Time Comparison', level: 2 },
       {
@@ -734,14 +734,14 @@ export const transactionalSeoArticles: Article[] = [
         items: [
           'Bulk-billed GP in a capital city: 2-4 weeks for a routine appointment',
           'Private GP in a capital city: 1-5 days',
-          'Rural or regional GP: highly variable — some areas have month-long waits or no local GP at all',
+          'Rural or regional GP: highly variable - some areas have month-long waits or no local GP at all',
           'Walk-in clinic: same-day, but expect 1-3 hours in the waiting room',
           'Telehealth (InstantMed): same-day review, typically within a few hours'
         ]
       },
       {
         type: 'paragraph',
-        content: 'When you\'re unwell today and need a certificate or prescription today, waiting two weeks for a GP appointment isn\'t a realistic option. This is where telehealth fills a genuine gap — not by being superior, but by being available when the alternative isn\'t.'
+        content: 'When you\'re unwell today and need a certificate or prescription today, waiting two weeks for a GP appointment isn\'t a realistic option. This is where telehealth fills a genuine gap - not by being superior, but by being available when the alternative isn\'t.'
       },
       { type: 'heading', content: 'Quality of Care', level: 2 },
       {
@@ -750,24 +750,24 @@ export const transactionalSeoArticles: Article[] = [
       },
       {
         type: 'paragraph',
-        content: 'The quality question isn\'t "is telehealth as good as in-person?" — it\'s "is telehealth appropriate for this specific clinical scenario?" For a repeat prescription where nothing has changed, telehealth quality is effectively identical to in-person. For a complex diagnostic workup, in-person care is clearly superior. The quality depends on matching the right delivery method to the right clinical need.'
+        content: 'The quality question isn\'t "is telehealth as good as in-person?" - it\'s "is telehealth appropriate for this specific clinical scenario?" For a repeat prescription where nothing has changed, telehealth quality is effectively identical to in-person. For a complex diagnostic workup, in-person care is clearly superior. The quality depends on matching the right delivery method to the right clinical need.'
       },
       {
         type: 'paragraph',
-        content: 'Where telehealth can\'t match in-person care, it shouldn\'t try. Where it can — routine, informational, follow-up — the research supports its use.'
+        content: 'Where telehealth can\'t match in-person care, it shouldn\'t try. Where it can - routine, informational, follow-up - the research supports its use.'
       },
       { type: 'heading', content: 'The Hybrid Approach', level: 2 },
       {
         type: 'paragraph',
-        content: 'The most practical approach isn\'t choosing between telehealth and a GP — it\'s using both for what they\'re good at. Keep your regular GP for ongoing care, complex issues, and physical examinations. Use telehealth for the routine, time-sensitive, or convenience-driven needs that don\'t require hands-on assessment.'
+        content: 'The most practical approach isn\'t choosing between telehealth and a GP - it\'s using both for what they\'re good at. Keep your regular GP for ongoing care, complex issues, and physical examinations. Use telehealth for the routine, time-sensitive, or convenience-driven needs that don\'t require hands-on assessment.'
       },
       {
         type: 'paragraph',
-        content: 'This is how most healthcare systems are evolving globally. The GP relationship remains central for continuity of care and complex management. Telehealth handles the overflow — the prescription renewal that doesn\'t warrant a 30-minute appointment, the sick note when you can\'t get out of bed, the quick question that doesn\'t need a physical exam.'
+        content: 'This is how most healthcare systems are evolving globally. The GP relationship remains central for continuity of care and complex management. Telehealth handles the overflow - the prescription renewal that doesn\'t warrant a 30-minute appointment, the sick note when you can\'t get out of bed, the quick question that doesn\'t need a physical exam.'
       },
       {
         type: 'paragraph',
-        content: 'Your GP is your healthcare home base. Telehealth is the convenience store on the corner — it doesn\'t replace the supermarket, but it\'s genuinely useful when you need milk at 9pm and the supermarket closed at five.'
+        content: 'Your GP is your healthcare home base. Telehealth is the convenience store on the corner - it doesn\'t replace the supermarket, but it\'s genuinely useful when you need milk at 9pm and the supermarket closed at five.'
       },
       { type: 'heading', content: 'Frequently Asked Questions', level: 2 }
     ],
@@ -778,7 +778,7 @@ export const transactionalSeoArticles: Article[] = [
       },
       {
         question: 'Can telehealth replace my regular GP entirely?',
-        answer: 'No, and it shouldn\'t. Telehealth is best used as a complement to your regular GP for specific, appropriate needs. Continuity of care — having a doctor who knows your full medical history — remains valuable for ongoing health management.'
+        answer: 'No, and it shouldn\'t. Telehealth is best used as a complement to your regular GP for specific, appropriate needs. Continuity of care - having a doctor who knows your full medical history - remains valuable for ongoing health management.'
       },
       {
         question: 'Is telehealth covered by Medicare?',

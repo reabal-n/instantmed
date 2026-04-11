@@ -3,7 +3,7 @@ import { getAuthenticatedUserWithProfile } from "@/lib/auth"
 import { getFollowup } from "@/app/actions/followups"
 import { FollowupForm } from "./followup-form"
 
-export const metadata = { title: "Treatment check-in — InstantMed" }
+export const metadata = { title: "Treatment check-in - InstantMed" }
 export const dynamic = "force-dynamic"
 
 export default async function PatientFollowupPage({
@@ -21,7 +21,7 @@ export default async function PatientFollowupPage({
   if (followup.completed_at) {
     return (
       <div className="max-w-lg mx-auto py-12 px-4 text-center">
-        <h1 className="text-2xl font-semibold mb-2">Thanks — we've got it</h1>
+        <h1 className="text-2xl font-semibold mb-2">Thanks - we've got it</h1>
         <p className="text-muted-foreground">
           Your check-in was submitted. Your doctor will review it shortly.
         </p>

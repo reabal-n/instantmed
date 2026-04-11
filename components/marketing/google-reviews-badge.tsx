@@ -9,7 +9,7 @@ import { GOOGLE_REVIEWS } from '@/lib/social-proof'
  * Renders a "★ X.X on Google (N reviews)" badge linking to the
  * InstantMed Google Business reviews page.
  *
- * Gates on GOOGLE_REVIEWS.enabled — renders nothing until you flip that flag
+ * Gates on GOOGLE_REVIEWS.enabled - renders nothing until you flip that flag
  * and add a real Place ID + counts from the Google Business dashboard.
  *
  * Usage: drop anywhere social proof is needed. Homepage hero, service landing
@@ -27,7 +27,7 @@ export function GoogleReviewsBadge({ className }: { className?: string }) {
       rel="noopener noreferrer"
       className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white dark:bg-card border border-border/50 shadow-sm hover:shadow-md hover:border-border transition-all duration-200 text-sm no-underline ${className ?? ''}`}
     >
-      <span className="sr-only">Read our Google reviews — </span>
+      <span className="sr-only">Read our Google reviews - </span>
       {/* Google G mark */}
       <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" aria-hidden="true">
         <path

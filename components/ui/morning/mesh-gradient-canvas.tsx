@@ -6,14 +6,14 @@ import { usePathname } from "next/navigation";
 const DASHBOARD_PREFIXES = ["/patient", "/doctor", "/admin"];
 
 /**
- * Subtle ambient background — static radial gradients.
+ * Subtle ambient background - static radial gradients.
  * No JS animation, no blend modes, no scroll listeners.
  * Pure CSS: zero runtime cost, same visual effect.
  */
 export function MeshGradientCanvas() {
   const pathname = usePathname();
 
-  // Skip on mobile — decorative only
+  // Skip on mobile - decorative only
   const [isDesktop, setIsDesktop] = useState(false);
   useEffect(() => {
     setIsDesktop(window.innerWidth >= 768);

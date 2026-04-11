@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { AlertTriangle, Home, RefreshCw, MessageCircle } from "lucide-react"
 import { createLogger } from "@/lib/observability/logger"
 import { sanitizeError, sanitizeUrl } from "@/lib/observability/sanitize-phi"
-// framer-motion removed — module factory race condition (same fix as Sentry above).
+// framer-motion removed - module factory race condition (same fix as Sentry above).
 // Error boundaries must load reliably; chunk ordering with lazy framer-motion is non-deterministic.
 // Sentry auto-captures unhandled errors via instrumentation-client.ts anyway.
 
@@ -139,7 +139,7 @@ export default function Error({
         console.error("[E2E DIAGNOSTIC] Full error object:", JSON.stringify(error, Object.getOwnPropertyNames(error), 2))
       }
     }).catch(() => {
-      // Sentry unavailable — error still handled by UI
+      // Sentry unavailable - error still handled by UI
     })
   }, [error, retryCount])
 
@@ -170,7 +170,7 @@ export default function Error({
         </h1>
 
         <p className="text-muted-foreground mb-2">
-          We hit an unexpected bump. Don&apos;t worry — your data is safe.
+          We hit an unexpected bump. Don&apos;t worry - your data is safe.
         </p>
 
         {error.digest && (

@@ -5,7 +5,7 @@ export const locationArticles: Article[] = [
   {
     slug: 'online-doctor-sydney',
     title: 'Online Doctor Sydney',
-    subtitle: 'Access healthcare from anywhere in Sydney — no waiting rooms required.',
+    subtitle: 'Access healthcare from anywhere in Sydney - no waiting rooms required.',
     excerpt: 'Looking for an online doctor in Sydney? Get medical certificates, prescriptions, and consultations from home. Available across all Sydney suburbs.',
     category: 'telehealth',
     tags: ['sydney', 'online-doctor', 'telehealth', 'nsw'],
@@ -167,7 +167,7 @@ export const locationArticles: Article[] = [
   {
     slug: 'online-doctor-melbourne',
     title: 'Online Doctor Melbourne',
-    subtitle: 'Healthcare that fits your Melbourne lifestyle — consult from anywhere.',
+    subtitle: 'Healthcare that fits your Melbourne lifestyle - consult from anywhere.',
     excerpt: 'Looking for an online doctor in Melbourne? Access medical certificates, prescriptions, and consultations from any Melbourne suburb.',
     category: 'telehealth',
     tags: ['melbourne', 'online-doctor', 'telehealth', 'victoria'],
@@ -328,7 +328,7 @@ export const locationArticles: Article[] = [
   {
     slug: 'online-doctor-brisbane',
     title: 'Online Doctor Brisbane',
-    subtitle: 'Skip the clinic queues — access healthcare across Brisbane online.',
+    subtitle: 'Skip the clinic queues - access healthcare across Brisbane online.',
     excerpt: 'Looking for an online doctor in Brisbane? Get medical certificates, prescriptions, and consultations from anywhere in the Brisbane metro area.',
     category: 'telehealth',
     tags: ['brisbane', 'online-doctor', 'telehealth', 'queensland'],
@@ -449,7 +449,7 @@ export const locationArticles: Article[] = [
         type: 'list',
         content: '',
         items: [
-          'Avoid the heat — consult from air-conditioned comfort',
+          'Avoid the heat - consult from air-conditioned comfort',
           'No traffic or parking hassles',
           'Quick consultations fit busy schedules',
           'Evening and weekend availability',
@@ -634,7 +634,7 @@ export const locationArticles: Article[] = [
       },
       {
         question: 'Does the time difference affect service?',
-        answer: 'Most services operate on Australian Eastern Time. This often works well for Perth residents — you can access care during your morning hours.'
+        answer: 'Most services operate on Australian Eastern Time. This often works well for Perth residents - you can access care during your morning hours.'
       }
     ],
     relatedServices: [
@@ -769,7 +769,7 @@ export const locationArticles: Article[] = [
         type: 'list',
         content: '',
         items: [
-          'Save time — no travel or waiting rooms',
+          'Save time - no travel or waiting rooms',
           'Consult from home when unwell',
           'Evening and weekend availability',
           'Quick certificates and prescriptions',

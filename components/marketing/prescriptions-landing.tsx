@@ -48,7 +48,7 @@ import {
 import { useServiceAvailability } from "@/components/providers/service-availability-provider"
 import { useLandingAnalytics } from "@/hooks/use-landing-analytics"
 
-// Below-fold lazy loads — keep initial bundle small
+// Below-fold lazy loads - keep initial bundle small
 const TestimonialsSection = dynamic(
   () => import("@/components/marketing/sections/testimonials-section").then((m) => m.TestimonialsSection),
   { loading: () => <div className="min-h-[500px]" /> },
@@ -141,7 +141,7 @@ const HOW_IT_WORKS_STEPS = [
 // SMALL COMPONENTS
 // =============================================================================
 
-/** Closing time countdown — shows "Closes in Xh Ym" during operating hours */
+/** Closing time countdown - shows "Closes in Xh Ym" during operating hours */
 function ClosingCountdown() {
   const [label, setLabel] = useState<string | null>(null)
 
@@ -191,7 +191,7 @@ function ClosingCountdown() {
   )
 }
 
-/** Live activity ticker — rotates through recent eScript deliveries */
+/** Live activity ticker - rotates through recent eScript deliveries */
 function RecentActivityTicker() {
   const [index, setIndex] = useState(0)
   const prefersReducedMotion = useReducedMotion()
@@ -229,7 +229,7 @@ function RecentActivityTicker() {
   )
 }
 
-/** Day-of-week contextual hero message — time-aware copy near hero CTA */
+/** Day-of-week contextual hero message - time-aware copy near hero CTA */
 function ContextualMessage() {
   const [message, setMessage] = useState<string | null>(null)
 
@@ -389,7 +389,7 @@ function HeroSection({
               <DoctorAvailabilityPill />
             </motion.div>
 
-            {/* Headline — plain h1 with CSS animation so LCP text is visible on first paint */}
+            {/* Headline - plain h1 with CSS animation so LCP text is visible on first paint */}
             <h1
               className="text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight mb-3 sm:mb-6 leading-[1.15] animate-hero-headline"
             >
@@ -470,11 +470,11 @@ function HeroSection({
             >
               <span className="flex items-center gap-1">
                 <RefreshCw className="h-3 w-3 shrink-0 text-primary" />
-                Renewing an existing script — from ${PRICING.REPEAT_SCRIPT.toFixed(2)}
+                Renewing an existing script - from ${PRICING.REPEAT_SCRIPT.toFixed(2)}
               </span>
               <span className="flex items-center gap-1">
                 <FileText className="h-3 w-3 shrink-0 text-muted-foreground" />
-                Need something new — ${PRICING.NEW_SCRIPT.toFixed(2)}
+                Need something new - ${PRICING.NEW_SCRIPT.toFixed(2)}
               </span>
             </motion.div>
             <motion.div
@@ -519,7 +519,7 @@ function HeroSection({
               <TrustBadgeRow preset="trust_certifications" className="justify-center lg:justify-start" />
             </motion.div>
 
-            {/* Secondary anchor CTA — desktop only */}
+            {/* Secondary anchor CTA - desktop only */}
             <motion.div
               className="hidden sm:flex justify-center lg:justify-start mt-4"
               initial={{}}
@@ -536,12 +536,12 @@ function HeroSection({
             </motion.div>
           </div>
 
-          {/* Hero product mockup — desktop only */}
+          {/* Hero product mockup - desktop only */}
           <div className="hidden lg:block relative shrink-0 mt-0">
             <EScriptHeroMockup />
           </div>
 
-          {/* Mobile mockup — compact, below text content */}
+          {/* Mobile mockup - compact, below text content */}
           <div className="lg:hidden mt-8 w-full max-w-sm mx-auto">
             <EScriptHeroMockup compact />
           </div>
@@ -551,7 +551,7 @@ function HeroSection({
   )
 }
 
-/** How It Works — simplified 3-step inline section */
+/** How It Works - simplified 3-step inline section */
 function HowItWorksInline({ onCTAClick, isDisabled }: { onCTAClick?: () => void; isDisabled?: boolean }) {
   const prefersReducedMotion = useReducedMotion()
   const animate = !prefersReducedMotion
@@ -570,7 +570,7 @@ function HowItWorksInline({ onCTAClick, isDisabled }: { onCTAClick?: () => void;
             Three steps. No waiting room.
           </h2>
           <p className="text-muted-foreground max-w-xl mx-auto text-balance">
-            From your couch to your pharmacy &mdash; most scripts are sent same day.
+            From your couch to your pharmacy - most scripts are sent same day.
           </p>
         </motion.div>
 
@@ -629,7 +629,7 @@ function HowItWorksInline({ onCTAClick, isDisabled }: { onCTAClick?: () => void;
   )
 }
 
-/** Service differentiation — repeat ($29.95) vs new prescription ($49.95) */
+/** Service differentiation - repeat ($29.95) vs new prescription ($49.95) */
 function ServiceComparisonSection({ isDisabled }: { isDisabled?: boolean }) {
   const prefersReducedMotion = useReducedMotion()
   const animate = !prefersReducedMotion
@@ -687,7 +687,7 @@ function ServiceComparisonSection({ isDisabled }: { isDisabled?: boolean }) {
             Pricing
           </p>
           <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground mb-3">
-            Repeat or new — one flat fee.
+            Repeat or new - one flat fee.
           </h2>
           <p className="text-muted-foreground max-w-xl mx-auto text-balance">
             No hidden costs. Full refund if we can&apos;t help.
@@ -775,7 +775,7 @@ function ServiceComparisonSection({ isDisabled }: { isDisabled?: boolean }) {
             Need repeat scripts every month?
           </p>
           <p className="text-sm text-muted-foreground">
-            Subscribe &amp; Save for <span className="font-medium text-foreground">${PRICING.REPEAT_RX_MONTHLY}/mo</span> — your repeat script auto-renews each month with no forms to fill out.
+            Subscribe &amp; Save for <span className="font-medium text-foreground">${PRICING.REPEAT_RX_MONTHLY}/mo</span> - your repeat script auto-renews each month with no forms to fill out.
             The option appears at checkout.
           </p>
         </motion.div>
@@ -797,7 +797,7 @@ function ServiceComparisonSection({ isDisabled }: { isDisabled?: boolean }) {
   )
 }
 
-/** Inline Final CTA — prescription-specific */
+/** Inline Final CTA - prescription-specific */
 function FinalCTAInline({ onCTAClick, isDisabled }: { onCTAClick?: () => void; isDisabled?: boolean }) {
   const prefersReducedMotion = useReducedMotion()
 
@@ -839,7 +839,7 @@ function FinalCTAInline({ onCTAClick, isDisabled }: { onCTAClick?: () => void; i
   )
 }
 
-/** Related blog articles — internal links for SEO */
+/** Related blog articles - internal links for SEO */
 function RelatedArticles() {
   return (
     <section aria-label="Related articles" className="py-12 lg:py-16">
@@ -864,7 +864,7 @@ function RelatedArticles() {
   )
 }
 
-/** FAQ section — prescription-specific */
+/** FAQ section - prescription-specific */
 function PrescriptionFAQSection({ onFAQOpen }: { onFAQOpen?: (question: string, index: number) => void }) {
   const prefersReducedMotion = useReducedMotion()
   const animate = !prefersReducedMotion
@@ -923,7 +923,7 @@ export function PrescriptionsLanding() {
     return () => observer.disconnect()
   }, [])
 
-  // Testimonials data — service-specific with fallback
+  // Testimonials data - service-specific with fallback
   const serviceTestimonials = getTestimonialsByService("prescription")
   const columnsData = serviceTestimonials.slice(0, 9).map((t) => ({
     text: t.text,
@@ -979,7 +979,7 @@ export function PrescriptionsLanding() {
           {/* 1. Hero */}
           <HeroSection ctaRef={heroCTARef} onCTAClick={handleHeroCTA} isDisabled={isDisabled} />
 
-          {/* Live wait time — scripts */}
+          {/* Live wait time - scripts */}
           <LiveWaitTime variant="strip" services={["scripts"]} />
 
           {/* Recent activity ticker */}
@@ -991,7 +991,7 @@ export function PrescriptionsLanding() {
           {/* PBS callout strip */}
           <PBSCalloutStrip />
 
-          {/* 2. How It Works — simplified 3-step */}
+          {/* 2. How It Works - simplified 3-step */}
           <HowItWorksInline onCTAClick={handleHowItWorksCTA} isDisabled={isDisabled} />
 
           {/* 3. eScript explainer */}
@@ -1000,13 +1000,13 @@ export function PrescriptionsLanding() {
           {/* 4. Supported medications */}
           <SupportedMedicationsSection />
 
-          {/* Doctor profile — trust signal */}
+          {/* Doctor profile - trust signal */}
           <DoctorProfileSection />
 
-          {/* Pre-qualify before pricing — reduces bad-fit conversions */}
+          {/* Pre-qualify before pricing - reduces bad-fit conversions */}
           <PrescriptionLimitationsSection />
 
-          {/* 5. Service comparison — repeat vs new Rx */}
+          {/* 5. Service comparison - repeat vs new Rx */}
           <ServiceComparisonSection isDisabled={isDisabled} />
 
           {/* 6. Testimonials */}
@@ -1016,10 +1016,10 @@ export function PrescriptionsLanding() {
             subtitle="Real reviews from Australians who've used our service"
           />
 
-          {/* Competitor comparisons — SEO internal links */}
+          {/* Competitor comparisons - SEO internal links */}
           <CompetitorLinksSection slugs={["instantmed-vs-instantscripts", "instantmed-vs-hub-health", "instantmed-vs-doctors-on-demand"]} />
 
-          {/* Regulatory Partners — Medicare excluded */}
+          {/* Regulatory Partners - Medicare excluded */}
           <RegulatoryPartners className="py-12" exclude={["Medicare"]} />
 
           {/* Deep E-E-A-T guide content */}
@@ -1037,7 +1037,7 @@ export function PrescriptionsLanding() {
                 <Link href="/patient" className="text-primary underline underline-offset-2 hover:no-underline font-medium">
                   Refer a friend
                 </Link>
-                {" "}&mdash; you both get $5 off.
+                {" "}- you both get $5 off.
               </p>
             </div>
           </div>
@@ -1048,14 +1048,14 @@ export function PrescriptionsLanding() {
 
         <MarketingFooter />
 
-        {/* Content hub cross-links — distributes PageRank to condition/symptom/guide pages */}
+        {/* Content hub cross-links - distributes PageRank to condition/symptom/guide pages */}
         <ContentHubLinks service="prescriptions" />
 
-        {/* Related articles — SEO internal linking, after footer */}
+        {/* Related articles - SEO internal linking, after footer */}
         <RelatedArticles />
 
 
-        {/* Sticky mobile CTA — bottom drawer, appears after hero scrolls out */}
+        {/* Sticky mobile CTA - bottom drawer, appears after hero scrolls out */}
         <motion.div
           className="fixed bottom-0 left-0 right-0 z-50 lg:hidden"
           initial={prefersReducedMotion ? {} : { y: 100 }}
@@ -1087,7 +1087,7 @@ export function PrescriptionsLanding() {
           </div>
         </motion.div>
 
-        {/* Sticky desktop CTA — top bar, appears after hero scrolls out */}
+        {/* Sticky desktop CTA - top bar, appears after hero scrolls out */}
         <motion.div
           className="hidden lg:block fixed top-0 left-0 right-0 z-40"
           initial={prefersReducedMotion ? {} : { y: -60 }}

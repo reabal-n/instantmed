@@ -34,7 +34,7 @@ export async function joinWaitlist(
     return { success: false, error: "Something went wrong. Please try again." }
   }
 
-  // Track waitlist signup in PostHog (no PII — skip email)
+  // Track waitlist signup in PostHog (no PII - skip email)
   try {
     const posthog = getPostHogClient()
     posthog.capture({
@@ -45,7 +45,7 @@ export async function joinWaitlist(
       },
     })
   } catch {
-    // Non-blocking — don't fail the action if analytics fails
+    // Non-blocking - don't fail the action if analytics fails
   }
 
   return { success: true }

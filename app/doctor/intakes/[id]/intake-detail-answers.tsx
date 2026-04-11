@@ -52,7 +52,7 @@ export function IntakeDetailAnswers({
 
   return (
     <>
-      {/* Patient Info Card — hierarchical: name anchors the card, Medicare is
+      {/* Patient Info Card - hierarchical: name anchors the card, Medicare is
           the clinical identifier the doctor scans second, contact info is
           tertiary. Previously all six tiles had identical visual weight which
           forced the doctor's eye to parse each tile independently. */}
@@ -179,7 +179,7 @@ export function IntakeDetailAnswers({
         </Card>
       )}
 
-      {/* Safety Flags — informational only (auto-approve already validated eligibility) */}
+      {/* Safety Flags - informational only (auto-approve already validated eligibility) */}
       {hasRedFlags && (
         <Card className="border-amber-300 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10">
           <CardHeader className="py-3 px-4">

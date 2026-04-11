@@ -63,7 +63,7 @@ function strokeScale(month: number): number {
 }
 
 // ---------------------------------------------------------------------------
-// Scalp SVG — shared between interactive and reduced-motion branches
+// Scalp SVG - shared between interactive and reduced-motion branches
 // ---------------------------------------------------------------------------
 interface ScalpSvgProps {
   month: number
@@ -86,7 +86,7 @@ function ScalpSvg({ month, animated, className, title }: ScalpSvgProps) {
       {/* Ivory background disc so the head sits on a soft surface */}
       <ellipse cx="120" cy="90" rx="92" ry="58" fill="#FFFBF2" />
 
-      {/* Head silhouette — ivory fill, navy outline to match Norwood illustrations */}
+      {/* Head silhouette - ivory fill, navy outline to match Norwood illustrations */}
       <ellipse
         cx="120"
         cy="86"
@@ -97,7 +97,7 @@ function ScalpSvg({ month, animated, className, title }: ScalpSvgProps) {
         strokeWidth="2"
       />
 
-      {/* Hair density group — the single morph target */}
+      {/* Hair density group - the single morph target */}
       <motion.g
         initial={false}
         animate={
@@ -133,7 +133,7 @@ function ScalpSvg({ month, animated, className, title }: ScalpSvgProps) {
         ))}
       </motion.g>
 
-      {/* Subtle face hint — two eyes and a mouth line, low-opacity so they don't distract */}
+      {/* Subtle face hint - two eyes and a mouth line, low-opacity so they don't distract */}
       <g fill="#0B1F3A" opacity={0.55}>
         <circle cx="102" cy="92" r="2" />
         <circle cx="138" cy="92" r="2" />
@@ -151,7 +151,7 @@ function ScalpSvg({ month, animated, className, title }: ScalpSvgProps) {
 }
 
 // ---------------------------------------------------------------------------
-// Static reduced-motion branch — three snapshots side-by-side
+// Static reduced-motion branch - three snapshots side-by-side
 // ---------------------------------------------------------------------------
 function StaticSnapshots() {
   const snapshots: Array<{ month: number; label: string }> = [
@@ -229,7 +229,7 @@ export function HairLossProgressTimeline({
             </h2>
             <p className="mx-auto mt-3 max-w-[560px] text-sm leading-relaxed text-muted-foreground">
               Scrub through the first 12 months to see what most patients
-              experience on consistent treatment. Progress is gradual — and
+              experience on consistent treatment. Progress is gradual - and
               that&apos;s a feature, not a bug.
             </p>
           </div>
@@ -279,7 +279,7 @@ export function HairLossProgressTimeline({
                   step={1}
                   value={month}
                   onChange={(e) => handleMonthChange(Number(e.target.value))}
-                  aria-label="Treatment progress timeline — month"
+                  aria-label="Treatment progress timeline - month"
                   className="h-2 w-full cursor-pointer appearance-none rounded-full bg-muted accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 />
 

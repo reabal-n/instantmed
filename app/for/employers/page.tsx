@@ -116,7 +116,7 @@ export default function EmployersPage() {
     {
       question: "Can I ask the employee what they were sick with?",
       answer:
-        "Generally, no. Under Australian privacy law, employees are not required to disclose their specific diagnosis. The certificate confirms unfitness for work — that's the extent of what employers are entitled to know.",
+        "Generally, no. Under Australian privacy law, employees are not required to disclose their specific diagnosis. The certificate confirms unfitness for work - that's the extent of what employers are entitled to know.",
     },
     {
       question: "What if I suspect a certificate is fraudulent?",
@@ -158,7 +158,7 @@ export default function EmployersPage() {
     })),
   }
 
-  // #3 — Organization schema for rich results
+  // #3 - Organization schema for rich results
   const orgSchema = {
     "@context": "https://schema.org",
     "@type": "MedicalOrganization",
@@ -452,7 +452,7 @@ export default function EmployersPage() {
                     Since the expansion of telehealth during 2020, the Medical Board of Australia has formally recognised telehealth as a legitimate healthcare delivery method. Certificates issued via telehealth by AHPRA-registered practitioners carry identical legal weight to those from in-person consultations.
                   </p>
                   <p>
-                    The Fair Work Act requires &quot;a medical certificate or statutory declaration&quot; as evidence of illness — it does not specify the mode of consultation. Multiple Fair Work Commission decisions have upheld telehealth certificates as valid evidence, and no distinction is drawn between certificates issued following a face-to-face appointment versus a telehealth assessment.
+                    The Fair Work Act requires &quot;a medical certificate or statutory declaration&quot; as evidence of illness - it does not specify the mode of consultation. Multiple Fair Work Commission decisions have upheld telehealth certificates as valid evidence, and no distinction is drawn between certificates issued following a face-to-face appointment versus a telehealth assessment.
                   </p>
                   <p>
                     For employers, this means a medical certificate from InstantMed carries the same obligations and protections as one from any other registered medical practice in Australia.
@@ -495,10 +495,10 @@ export default function EmployersPage() {
                 </div>
                 <div className="space-y-3 text-sm text-muted-foreground">
                   <p>
-                    Employers can request a medical certificate for any period of personal/carer&apos;s leave. However, this must be applied consistently — you cannot require certificates from some employees and not others for the same absence duration. Policies that single out individuals or apply different thresholds may constitute adverse action.
+                    Employers can request a medical certificate for any period of personal/carer&apos;s leave. However, this must be applied consistently - you cannot require certificates from some employees and not others for the same absence duration. Policies that single out individuals or apply different thresholds may constitute adverse action.
                   </p>
                   <p>
-                    You must accept certificates from any registered medical practitioner, not just a specific clinic or your preferred provider. You cannot require the employee to disclose their diagnosis — the certificate confirms unfitness for work, and that is the extent of the information you are entitled to receive. Sick leave policies should be clearly communicated to all employees in advance, ideally in writing.
+                    You must accept certificates from any registered medical practitioner, not just a specific clinic or your preferred provider. You cannot require the employee to disclose their diagnosis - the certificate confirms unfitness for work, and that is the extent of the information you are entitled to receive. Sick leave policies should be clearly communicated to all employees in advance, ideally in writing.
                   </p>
                 </div>
               </div>
@@ -513,7 +513,7 @@ export default function EmployersPage() {
                 </div>
                 <div className="space-y-3 text-sm text-muted-foreground">
                   <p>
-                    If you are concerned about frequent absences, the appropriate response is a formal performance management process — not challenging individual certificates. Employers can request a medical assessment through an independent medical examiner for ongoing fitness-for-duty concerns, but this is a separate process from standard sick leave and should be handled with legal advice.
+                    If you are concerned about frequent absences, the appropriate response is a formal performance management process - not challenging individual certificates. Employers can request a medical assessment through an independent medical examiner for ongoing fitness-for-duty concerns, but this is a separate process from standard sick leave and should be handled with legal advice.
                   </p>
                   <p>
                     The Fair Work Ombudsman provides{" "}
@@ -613,7 +613,7 @@ export default function EmployersPage() {
           </div>
         </section>
 
-        {/* #19 — Employer onboarding kit teaser */}
+        {/* #19 - Employer onboarding kit teaser */}
         <section className="py-10 border-t border-border/30">
           <div className="max-w-3xl mx-auto px-4 text-center">
             <p className="text-sm text-muted-foreground">
@@ -624,12 +624,12 @@ export default function EmployersPage() {
               >
                 Request our free employer guide
               </a>
-              {" "}&mdash; includes verification instructions, FAQ, and InstantMed contact details for your shared drive.
+              {" "}- includes verification instructions, FAQ, and InstantMed contact details for your shared drive.
             </p>
           </div>
         </section>
 
-        {/* #20 — Corporate account interest */}
+        {/* #20 - Corporate account interest */}
         <section className="py-16 bg-primary/5 dark:bg-primary/10">
           <div className="max-w-xl mx-auto px-4 text-center">
             <Badge className="mb-4 bg-primary/10 text-primary border-0 px-4 py-1.5">

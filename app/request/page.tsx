@@ -7,7 +7,7 @@ import { mapServiceParam } from "@/lib/request/step-registry"
 import { isMaintenanceMode, isServiceDisabled } from "@/lib/feature-flags"
 import { isAtCapacity } from "@/lib/operational-config"
 import { trackOperationalBlock } from "@/lib/posthog-server"
-import { CONTACT_EMAIL_HELLO } from "@/lib/constants"
+import { CONTACT_EMAIL_HELLO, PRICING_DISPLAY } from "@/lib/constants"
 
 // Prevent static generation for dynamic auth
 export const dynamic = "force-dynamic"
@@ -15,7 +15,7 @@ export const dynamic = "force-dynamic"
 export const metadata: Metadata = {
   title: "Get Started",
   description:
-    "Medical certificates from $19 — issued in under 30 minutes, 24/7. Repeat medication from $29.95, doctor consultations from $49.95. Reviewed by Australian doctors.",
+    `Medical certificates from $19 - issued in under 30 minutes, 24/7. Repeat medication from ${PRICING_DISPLAY.REPEAT_SCRIPT}, doctor consultations from ${PRICING_DISPLAY.CONSULT}. Reviewed by Australian doctors.`,
   openGraph: {
     title: "Get Started | InstantMed",
     description: "Medical certificates, medication renewals, and consultations online. Reviewed by Australian doctors.",
@@ -35,7 +35,7 @@ export default async function RequestPage({
   const params = await searchParams
   const initialService = mapServiceParam(params.service)
 
-  // Check operational status — run in parallel, none depends on the others
+  // Check operational status - run in parallel, none depends on the others
   const [maintenance, atCapacity] = await Promise.all([
     isMaintenanceMode(),
     isAtCapacity(),
@@ -79,7 +79,7 @@ export default async function RequestPage({
 
   // Business hours: no longer block the request page.
   // Med certs are 24/7 (auto-approved). Prescriptions/consults accept
-  // submissions anytime — the navbar banner already sets expectations
+  // submissions anytime - the navbar banner already sets expectations
   // about next-business-day review for doctor-dependent services.
 
   // At capacity
@@ -120,7 +120,7 @@ export default async function RequestPage({
     )
   }
 
-  // Wrap auth in try-catch — if Supabase Auth is temporarily unavailable,
+  // Wrap auth in try-catch - if Supabase Auth is temporarily unavailable,
   // fall through to guest checkout rather than crashing the server component
   let user: Awaited<ReturnType<typeof getCurrentUser>> = null
   let profile: Awaited<ReturnType<typeof getUserProfile>> = null
@@ -128,7 +128,7 @@ export default async function RequestPage({
     user = await getCurrentUser()
     profile = user ? await getUserProfile(user.id) : null
   } catch {
-    // Auth service unavailable — proceed as guest
+    // Auth service unavailable - proceed as guest
     user = null
     profile = null
   }

@@ -60,7 +60,7 @@ function verifyAndParseWebhook(
       log.error("RESEND_WEBHOOK_SECRET not configured in production/preview")
       throw new Error("No webhook secret configured")
     }
-    // Local dev — skip verification, parse only
+    // Local dev - skip verification, parse only
     log.warn("No webhook secret configured, skipping verification (dev mode)")
     return JSON.parse(payload) as ResendWebhookPayload
   }
@@ -103,7 +103,7 @@ function mapEventToEmailStatus(eventType: ResendEventType): string | null {
     case "email.sent":
       return "sent"
     case "email.delivered":
-      // Keep as "sent" — the CHECK constraint only allows pending|sent|failed|skipped_e2e.
+      // Keep as "sent" - the CHECK constraint only allows pending|sent|failed|skipped_e2e.
       // Fine-grained tracking lives in delivery_status.
       return "sent"
     case "email.bounced":
@@ -440,7 +440,7 @@ export async function POST(request: NextRequest) {
         })
       }
     } catch {
-      // Non-blocking — PostHog failure shouldn't affect webhook processing
+      // Non-blocking - PostHog failure shouldn't affect webhook processing
     }
 
     // 8. Write updates to email_outbox

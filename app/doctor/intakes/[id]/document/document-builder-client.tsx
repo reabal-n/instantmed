@@ -168,7 +168,7 @@ export function DocumentBuilderClient({
     setActionMessage(null)
 
     try {
-      // Save current form data to draft before approving — the server action
+      // Save current form data to draft before approving - the server action
       // reads dates from the database, so unsaved form edits would be lost.
       const updatedData: MedCertDraftData = {
         patient_name: formData.patientName,
@@ -260,7 +260,7 @@ export function DocumentBuilderClient({
         </Card>
       )}
 
-      {/* AI Review Flags — requires doctor attention */}
+      {/* AI Review Flags - requires doctor attention */}
       {aiDrafts?.flags?.requiresReview && (
         <Card className="rounded-xl bg-warning-light border-warning-border">
           <CardContent className="pt-4 px-4 pb-4">
@@ -277,14 +277,14 @@ export function DocumentBuilderClient({
         </Card>
       )}
 
-      {/* AI Clinical Note — pre-consultation summary for doctor */}
+      {/* AI Clinical Note - pre-consultation summary for doctor */}
       {aiDrafts?.clinicalNote && (
         <Card className="rounded-xl border-info-border">
           <CardHeader className="py-3 px-4">
             <CardTitle className="flex items-center gap-2 text-sm font-medium text-info">
               <Brain className="h-4 w-4" />
               AI Clinical Summary
-              <span className="text-xs font-normal text-info ml-auto">Auto-generated — review before issuing</span>
+              <span className="text-xs font-normal text-info ml-auto">Auto-generated - review before issuing</span>
             </CardTitle>
           </CardHeader>
           <CardContent className="text-sm space-y-2 text-muted-foreground px-4 py-3">

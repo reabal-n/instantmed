@@ -68,7 +68,7 @@ export default function TermsPage() {
                   <p>
                     Our doctors make clinical decisions based on the information you provide. You are
                     responsible for providing accurate and complete health information. Not all requests can
-                    be approved — our doctors may decline requests if they determine that a face-to-face
+                    be approved - our doctors may decline requests if they determine that a face-to-face
                     consultation or further investigation is required.
                   </p>
                 </LegalSection>
@@ -98,7 +98,7 @@ export default function TermsPage() {
                     </li>
                   </ul>
                   <p className="mt-3">
-                    Some services may be eligible for Medicare rebates — this will be indicated during
+                    Some services may be eligible for Medicare rebates - this will be indicated during
                     checkout.
                   </p>
                 </LegalSection>

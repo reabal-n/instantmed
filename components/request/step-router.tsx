@@ -8,7 +8,7 @@
  * - Error boundaries for step failures
  *
  * Note: Transitions are owned by request-flow.tsx's AnimatePresence.
- * Do NOT add a second AnimatePresence here — it causes ghost renders.
+ * Do NOT add a second AnimatePresence here - it causes ghost renders.
  */
 
 import { Suspense, lazy, useMemo } from "react"
@@ -27,7 +27,7 @@ const stepComponents = {
   'patient-details-step': lazy(() => import('./steps/patient-details-step')),
   'review-step': lazy(() => import('./steps/review-step')),
   'checkout-step': lazy(() => import('./steps/checkout-step')),
-  // Consult subtype-specific steps — ED
+  // Consult subtype-specific steps - ED
   'ed-goals-step': lazy(() => import('./steps/ed-goals-step')),
   'ed-assessment-step': lazy(() => import('./steps/ed-assessment-step')),
   'ed-health-step': lazy(() => import('./steps/ed-health-step')),

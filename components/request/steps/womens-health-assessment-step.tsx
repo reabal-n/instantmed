@@ -579,10 +579,10 @@ function PeriodPainAssessment({ onNext, answers, setAnswer, errors, setErrors }:
         </Label>
         <RadioGroup value={periodPainImpact} onValueChange={(v) => setAnswer("periodPainImpact", v)} className="space-y-2" aria-label="Impact on daily activities">
           {[
-            { value: 'none', label: 'Minimal impact — I can carry on as normal' },
-            { value: 'reduced', label: 'Reduced capacity — I slow down but manage' },
-            { value: 'stops_activities', label: 'Stops some activities — rest or light duties only' },
-            { value: 'cannot_function', label: 'I can\'t function — miss work, school, or social plans' },
+            { value: 'none', label: 'Minimal impact - I can carry on as normal' },
+            { value: 'reduced', label: 'Reduced capacity - I slow down but manage' },
+            { value: 'stops_activities', label: 'Stops some activities - rest or light duties only' },
+            { value: 'cannot_function', label: 'I can\'t function - miss work, school, or social plans' },
           ].map((opt) => (
             <label key={opt.value} className={cn("flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all", periodPainImpact === opt.value ? "border-primary bg-primary/5" : "border-border hover:border-primary/50")}>
               <RadioGroupItem value={opt.value} />

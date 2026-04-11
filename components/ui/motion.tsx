@@ -4,12 +4,12 @@ import * as React from "react"
 import { useInView } from "framer-motion"
 
 /**
- * InstantMed Motion System — Hooks & Scroll Config
+ * InstantMed Motion System - Hooks & Scroll Config
  *
  * Canonical motion tokens (duration, easing, variants) live in `@/lib/motion`.
  * This file provides the reactive `useReducedMotion` hook and scroll config.
  *
- * All components should import `useReducedMotion` from here — NOT from framer-motion.
+ * All components should import `useReducedMotion` from here - NOT from framer-motion.
  * Import `motion` and `AnimatePresence` directly from framer-motion.
  *
  * Motion exists to confirm, not to impress.

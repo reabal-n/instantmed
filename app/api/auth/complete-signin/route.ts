@@ -5,7 +5,7 @@ import { NextRequest, NextResponse } from "next/server"
  * final destination. Used by /auth/post-signin because Server Components
  * cannot set cookies directly in Next.js 15.
  *
- * The middleware safety net checks for this cookie on protected routes — if
+ * The middleware safety net checks for this cookie on protected routes - if
  * it's missing, the user is bounced back through /auth/post-signin.
  */
 export async function GET(req: NextRequest) {

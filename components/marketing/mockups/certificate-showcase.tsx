@@ -38,7 +38,7 @@ export function CertificateShowcaseMockup() {
   return (
     <div className="relative">
       {/* Certificate document */}
-      {/* Always white — real PDFs are white paper regardless of system theme */}
+      {/* Always white - real PDFs are white paper regardless of system theme */}
       <motion.div
         className="relative rounded-xl bg-white border border-border/50 dark:border-white/20 shadow-2xl shadow-primary/[0.08] dark:shadow-black/20 overflow-hidden max-w-[340px] mx-auto"
         variants={stagger}
@@ -51,7 +51,7 @@ export function CertificateShowcaseMockup() {
 
         {/*
           Force light-mode colors inside the document.
-          Real PDFs are always white paper with dark text — the mockup
+          Real PDFs are always white paper with dark text - the mockup
           should look identical regardless of system theme.
           Floating badges outside this wrapper remain theme-aware.
         */}
@@ -164,7 +164,7 @@ export function CertificateShowcaseMockup() {
         <span className="text-[10px] font-medium text-foreground">Unique verification ID</span>
       </motion.div>
 
-      {/* Verified badge — pulsing dot signals live verification */}
+      {/* Verified badge - pulsing dot signals live verification */}
       <motion.div
         className="absolute -bottom-3 right-4 sm:right-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white dark:bg-card border border-success/30 shadow-lg shadow-success/[0.08] dark:shadow-none"
         initial={animate ? { scale: 0.8 } : {}}

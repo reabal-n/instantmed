@@ -52,21 +52,21 @@ export default function RefundPolicyPage() {
               <S n="2" title="When You Are Eligible for a Refund">
                 <ul>
                   <li>
-                    <strong>Request declined by a doctor</strong> — If a doctor determines your
+                    <strong>Request declined by a doctor</strong> - If a doctor determines your
                     request is not appropriate for telehealth or requires an in-person examination,
                     you will receive an automatic full refund. This applies to medical certificates
                     (from {PRICING_DISPLAY.MED_CERT}) and prescriptions ({PRICING_DISPLAY.REPEAT_SCRIPT}).
                   </li>
                   <li>
-                    <strong>Cancellation before review</strong> — If you cancel your request before a
+                    <strong>Cancellation before review</strong> - If you cancel your request before a
                     doctor begins reviewing it, you will receive a full refund.
                   </li>
                   <li>
-                    <strong>Review not completed within 24 hours</strong> — If a doctor is unable to
+                    <strong>Review not completed within 24 hours</strong> - If a doctor is unable to
                     review your request within 24 hours of submission, you may request a full refund.
                   </li>
                   <li>
-                    <strong>Technical issues</strong> — If a system error prevents delivery of your
+                    <strong>Technical issues</strong> - If a system error prevents delivery of your
                     medical certificate, prescription, or consultation outcome, you are entitled to a
                     full refund.
                   </li>
@@ -76,17 +76,17 @@ export default function RefundPolicyPage() {
               <S n="3" title="When Refunds Do Not Apply">
                 <ul>
                   <li>
-                    <strong>Approved requests</strong> — Once a doctor has approved your request and
+                    <strong>Approved requests</strong> - Once a doctor has approved your request and
                     delivered your medical certificate or prescription, a refund is not available. The
                     service has been provided.
                   </li>
                   <li>
-                    <strong>Consultations</strong> — Telehealth consultations are non-refundable once
+                    <strong>Consultations</strong> - Telehealth consultations are non-refundable once
                     a doctor has reviewed your information and provided clinical advice, regardless of
                     the clinical outcome.
                   </li>
                   <li>
-                    <strong>Inaccurate information</strong> — If a request is declined because you
+                    <strong>Inaccurate information</strong> - If a request is declined because you
                     provided inaccurate or incomplete health information, the standard refund policy
                     still applies (you will receive a refund), but repeated misuse may result in
                     account restrictions.
@@ -155,7 +155,7 @@ export default function RefundPolicyPage() {
                 <ul>
                   <li>
                     <Link href="/terms#fees" className="text-primary hover:underline">
-                      Terms of Service — Fees, Payment, and Refunds
+                      Terms of Service - Fees, Payment, and Refunds
                     </Link>
                   </li>
                   <li>

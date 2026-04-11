@@ -57,7 +57,7 @@ function useHasMounted() {
 const trustFAQs = [
   {
     question: "How do I know the doctors are real?",
-    answer: "Every doctor on InstantMed holds current AHPRA registration — the same regulatory body that governs all Australian medical practitioners. You can verify any doctor's credentials yourself on the AHPRA public register.",
+    answer: "Every doctor on InstantMed holds current AHPRA registration - the same regulatory body that governs all Australian medical practitioners. You can verify any doctor's credentials yourself on the AHPRA public register.",
   },
   {
     question: "Will my employer accept certificates from InstantMed?",
@@ -69,7 +69,7 @@ const trustFAQs = [
   },
   {
     question: "Is this actually reviewed by a doctor, or is it automated?",
-    answer: "Every single request is reviewed by a qualified, AHPRA-registered Australian doctor who makes an independent clinical decision. There are no automated approvals — ever.",
+    answer: "Every single request is reviewed by a qualified, AHPRA-registered Australian doctor who makes an independent clinical decision. There are no automated approvals - ever.",
   },
   {
     question: "What if I'm not happy with the service?",
@@ -81,7 +81,7 @@ const trustFAQs = [
   },
   {
     question: "How is my data stored and protected?",
-    answer: "All personal health information is encrypted with AES-256-GCM — the same standard used by banks and government agencies. We apply field-level encryption, meaning individual data fields are encrypted separately in our database. All data is stored on Australian-hosted servers and never leaves the country. Transport encryption (TLS) protects data in transit between your browser and our servers.",
+    answer: "All personal health information is encrypted with AES-256-GCM - the same standard used by banks and government agencies. We apply field-level encryption, meaning individual data fields are encrypted separately in our database. All data is stored on Australian-hosted servers and never leaves the country. Transport encryption (TLS) protects data in transit between your browser and our servers.",
   },
   {
     question: "Can I delete my account and data?",
@@ -89,7 +89,7 @@ const trustFAQs = [
   },
   {
     question: "Who has access to my health information?",
-    answer: "Only the AHPRA-registered doctor reviewing your specific request has access to your clinical information during the consultation. Our systems enforce strict access controls — administrative staff cannot view your health data. After your request is completed, your records are accessible only to you through your secure patient dashboard.",
+    answer: "Only the AHPRA-registered doctor reviewing your specific request has access to your clinical information during the consultation. Our systems enforce strict access controls - administrative staff cannot view your health data. After your request is completed, your records are accessible only to you through your secure patient dashboard.",
   },
   {
     question: "How do I verify a certificate is genuine?",
@@ -220,7 +220,7 @@ export default function TrustPage() {
         <ImageTextSplit
           title="Your data stays in Australia. Always encrypted."
           highlightWords={["encrypted"]}
-          description="Your health information is protected with AES-256 encryption — the same standard used by banks. All data stored on Australian servers, fully compliant with the Privacy Act 1988."
+          description="Your health information is protected with AES-256 encryption - the same standard used by banks. All data stored on Australian servers, fully compliant with the Privacy Act 1988."
           imageSrc="/images/trust-security.jpeg"
           imageAlt="Secure data center with blue lighting"
           imagePosition="left"

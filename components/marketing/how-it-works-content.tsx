@@ -217,7 +217,7 @@ export function HowItWorksContent() {
                 },
                 {
                   q: "How long does it take?",
-                  a: "Medical certificates are typically issued within 30 minutes, 24/7. Prescriptions and consultations are reviewed within 1–2 hours — all async, no phone call required. Prescriptions and consultations are available 8am–10pm AEST, 7 days.",
+                  a: "Medical certificates are typically issued within 30 minutes, 24/7. Prescriptions and consultations are reviewed within 1–2 hours - all async, no phone call required. Prescriptions and consultations are available 8am–10pm AEST, 7 days.",
                 },
                 {
                   q: "Will my employer accept an online medical certificate?",
@@ -225,7 +225,7 @@ export function HowItWorksContent() {
                 },
                 {
                   q: "Do I need to be available for a call?",
-                  a: "No. InstantMed is fully async — you submit your form, the doctor reviews it, and you get a written response. No need to be free at a specific time. If the doctor needs clarification, they'll message you through the platform.",
+                  a: "No. InstantMed is fully async - you submit your form, the doctor reviews it, and you get a written response. No need to be free at a specific time. If the doctor needs clarification, they'll message you through the platform.",
                 },
                 {
                   q: "Do I need a Medicare card?",

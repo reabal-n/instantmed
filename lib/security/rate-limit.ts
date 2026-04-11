@@ -106,10 +106,10 @@ export async function checkRateLimit(
 
     if (error) {
       logger.error("Rate limit check failed", { userId, action: config.action }, error)
-      // DB query failed — use in-memory fallback to prevent unlimited abuse
+      // DB query failed - use in-memory fallback to prevent unlimited abuse
       Sentry.addBreadcrumb({
         category: "rate-limit",
-        message: "Rate limit DB unavailable — using in-memory fallback",
+        message: "Rate limit DB unavailable - using in-memory fallback",
         level: "warning",
         data: { userId, action: config.action },
       })
@@ -156,10 +156,10 @@ export async function checkRateLimit(
     }
   } catch (err) {
     logger.error("Rate limit error", { userId, action: config.action }, toError(err))
-    // DB unavailable — use in-memory fallback to prevent unlimited abuse
+    // DB unavailable - use in-memory fallback to prevent unlimited abuse
     Sentry.addBreadcrumb({
       category: "rate-limit",
-      message: "Rate limit DB unavailable — using in-memory fallback",
+      message: "Rate limit DB unavailable - using in-memory fallback",
       level: "warning",
       data: { userId, action: config.action },
     })

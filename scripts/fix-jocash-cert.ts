@@ -14,7 +14,7 @@ import { executeCertApproval } from "@/lib/cert/execute-approval"
 const INTAKE_ID = "2662eb6a-3591-4d72-8ac9-cb4f5fc22894"
 const CERT_ID = "0e67640e-76ae-48a9-a21a-7b5bb93c370e"
 
-// Reabal Najjar — the doctor who approved this intake
+// Reabal Najjar - the doctor who approved this intake
 const DOCTOR = {
   id: "47535b1c-080a-438e-9ead-2b8491009032",
   full_name: "Reabal Najjar",
@@ -46,7 +46,7 @@ async function main() {
       consultDate: "2026-03-30",
       startDate: "2026-03-30",
       endDate: "2026-04-01",
-      medicalReason: "Upper respiratory tract infection — sore throat, swollen tonsils, headache, fatigue",
+      medicalReason: "Upper respiratory tract infection - sore throat, swollen tonsils, headache, fatigue",
     },
     doctorProfile: DOCTOR,
     skipClaim: true,
@@ -59,7 +59,7 @@ async function main() {
       .from("issued_certificates")
       .update({ status: "valid", updated_at: new Date().toISOString() })
       .eq("id", CERT_ID)
-    console.log("  ✗ Restored original certificate — no changes made")
+    console.log("  ✗ Restored original certificate - no changes made")
     process.exit(1)
   }
 

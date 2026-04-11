@@ -77,7 +77,7 @@ export function QueueClient({
       oscillator.start(audioCtx.currentTime)
       oscillator.stop(audioCtx.currentTime + 0.3)
     } catch {
-      // Audio not available — silent fallback
+      // Audio not available - silent fallback
     }
   }, [soundMuted])
 
@@ -120,7 +120,7 @@ export function QueueClient({
 
   const handleApprove = useCallback(async (intakeId: string, serviceType?: string | null) => {
     if (serviceType === SERVICE_TYPES.MED_CERTS) {
-      // Open review panel — doctor uses the certificate preview dialog there
+      // Open review panel - doctor uses the certificate preview dialog there
       openReviewPanel(intakeId)
       return
     }

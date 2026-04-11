@@ -16,7 +16,7 @@ import {
 // DATA
 // =============================================================================
 //
-// Long-form E-E-A-T guide — Fair Work Act, validity, telehealth vs in-person.
+// Long-form E-E-A-T guide - Fair Work Act, validity, telehealth vs in-person.
 // Previously a 1,500-word flat wall-of-text mid-funnel. Now a collapsible
 // accordion rendered BELOW the FAQ so users who want depth can expand, while
 // the scan-read-to-CTA path stays clean.
@@ -41,7 +41,7 @@ const GUIDE_ITEMS: readonly GuideItem[] = [
         <p>
           A medical certificate is an official document issued by a registered
           medical practitioner confirming that a patient has been assessed and
-          is — or was — unfit for their normal duties due to illness or injury.
+          is - or was - unfit for their normal duties due to illness or injury.
           In Australia, these are sometimes called &ldquo;sick notes&rdquo; or
           &ldquo;doctor&apos;s certificates,&rdquo; but the correct term is
           medical certificate.
@@ -49,7 +49,7 @@ const GUIDE_ITEMS: readonly GuideItem[] = [
         <p>
           The certificate doesn&apos;t need to disclose your specific diagnosis.
           Under Australian privacy law, your employer is entitled to know that
-          you were unfit for work and for how long — not what was wrong with
+          you were unfit for work and for how long - not what was wrong with
           you. A valid certificate states the doctor&apos;s name, AHPRA
           registration number, the date of assessment, and the recommended
           period of absence.
@@ -67,7 +67,7 @@ const GUIDE_ITEMS: readonly GuideItem[] = [
           <em>Fair Work Act 2009</em> (Cth), full-time employees are entitled
           to 10 days of paid personal/carer&apos;s leave per year. Part-time
           employees accrue leave proportionally. Employers may request evidence
-          under s.107 — a medical certificate or statutory declaration — for
+          under s.107 - a medical certificate or statutory declaration - for
           any period of leave, including a single day, though many employers
           only require one for absences of two or more days.
         </p>
@@ -84,7 +84,7 @@ const GUIDE_ITEMS: readonly GuideItem[] = [
           Casual employees don&apos;t accrue paid sick leave (unless
           they&apos;re long-term regular casuals), but a medical certificate
           still protects your working relationship and demonstrates good faith.
-          Some enterprise agreements and awards have specific requirements —
+          Some enterprise agreements and awards have specific requirements -
           check yours if you&apos;re unsure.
         </p>
       </div>
@@ -102,7 +102,7 @@ const GUIDE_ITEMS: readonly GuideItem[] = [
           migraine, minor back pain, period pain, mental health days, and
           general malaise. These are conditions where the doctor&apos;s
           assessment is based primarily on your reported symptoms and medical
-          history — the same information available via telehealth.
+          history - the same information available via telehealth.
         </p>
         <p>
           For a standard 1–3 day absence, a telehealth certificate is
@@ -110,7 +110,7 @@ const GUIDE_ITEMS: readonly GuideItem[] = [
           symptoms, asks follow-up questions if needed, and makes a clinical
           judgement about whether a certificate is appropriate. If they&apos;re
           not satisfied that a certificate is clinically justified, they
-          won&apos;t issue one — same as a GP clinic.
+          won&apos;t issue one - same as a GP clinic.
         </p>
       </div>
     ),
@@ -161,7 +161,7 @@ const GUIDE_ITEMS: readonly GuideItem[] = [
           <Link href="/verify" className="text-primary hover:underline">
             instantmed.com.au/verify
           </Link>{" "}
-          — entering the certificate ID confirms it was genuinely issued by our
+          - entering the certificate ID confirms it was genuinely issued by our
           practice. This provides an additional layer of trust that paper
           certificates from traditional clinics typically don&apos;t offer.
         </p>
@@ -175,7 +175,7 @@ const GUIDE_ITEMS: readonly GuideItem[] = [
 // =============================================================================
 
 /**
- * Long-form E-E-A-T content section — Fair Work Act, certificate validity,
+ * Long-form E-E-A-T content section - Fair Work Act, certificate validity,
  * when to use. Collapsible accordion, flat styling, no auto-opened item.
  * Rendered BELOW the FAQ.
  */
@@ -206,11 +206,11 @@ export function MedCertGuideSection() {
           </h2>
           <p className="text-muted-foreground text-sm max-w-xl mx-auto">
             Tap any topic to expand. Written and reviewed by AHPRA-registered
-            GPs — last updated April 2026.
+            GPs - last updated April 2026.
           </p>
         </motion.div>
 
-        {/* Accordion — flat style, all collapsed by default */}
+        {/* Accordion - flat style, all collapsed by default */}
         <motion.div
           initial={animate ? { y: 16 } : {}}
           whileInView={animate ? { opacity: 1, y: 0 } : undefined}

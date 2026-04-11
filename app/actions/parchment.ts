@@ -10,7 +10,7 @@ import * as Sentry from "@sentry/nextjs"
 const log = createLogger("parchment-actions")
 
 // ============================================================================
-// SSO — Get prescribing URL for embedded iframe
+// SSO - Get prescribing URL for embedded iframe
 // ============================================================================
 
 /**
@@ -57,7 +57,7 @@ export async function getParchmentPrescribeUrlAction(
     // Extract answers for sex field fallback
     const answers = (intake.answers as { answers?: Record<string, unknown> })?.answers
 
-    // Sync patient to Parchment (idempotent — returns existing ID if already synced)
+    // Sync patient to Parchment (idempotent - returns existing ID if already synced)
     const parchmentPatientId = await syncPatientToParchment(
       intake.patient_id,
       doctorProfile.parchment_user_id,
@@ -89,7 +89,7 @@ export async function getParchmentPrescribeUrlAction(
 }
 
 // ============================================================================
-// ACCOUNT LINKING — Link doctor to Parchment user
+// ACCOUNT LINKING - Link doctor to Parchment user
 // ============================================================================
 
 /**

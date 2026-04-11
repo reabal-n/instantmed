@@ -101,7 +101,7 @@ const doctorFaqs: FAQGroup[] = [
       {
         question: "Can I choose which doctor reviews my request?",
         answer:
-          "Requests are assigned to available doctors based on their current workload and availability. You can't select a specific doctor, but all of our doctors meet the same credentialing requirements and follow identical clinical protocols — so the standard of care is consistent regardless of who reviews your request.",
+          "Requests are assigned to available doctors based on their current workload and availability. You can't select a specific doctor, but all of our doctors meet the same credentialing requirements and follow identical clinical protocols - so the standard of care is consistent regardless of who reviews your request.",
       },
       {
         question: "What qualifications do your doctors have?",
@@ -111,7 +111,7 @@ const doctorFaqs: FAQGroup[] = [
       {
         question: "How do you verify doctor credentials?",
         answer:
-          "Doctor credentials are verified against the AHPRA public register before onboarding, and registration status is monitored on an ongoing basis — not just checked once. Professional indemnity insurance is verified annually. If a doctor's registration status changes for any reason, their access to the platform is suspended immediately.",
+          "Doctor credentials are verified against the AHPRA public register before onboarding, and registration status is monitored on an ongoing basis - not just checked once. Professional indemnity insurance is verified annually. If a doctor's registration status changes for any reason, their access to the platform is suspended immediately.",
       },
       {
         question: "Do your doctors have experience in telehealth?",
@@ -136,7 +136,7 @@ const doctorFaqs: FAQGroup[] = [
       {
         question: "Can your doctors prescribe any medication?",
         answer:
-          "Doctors prescribe within TGA (Therapeutic Goods Administration) guidelines and their scope of practice. Schedule 8 controlled substances — including opioids, benzodiazepines, and stimulants — are not available through telehealth on our platform. If your medication falls outside what can be safely prescribed remotely, your doctor will let you know and suggest an alternative pathway.",
+          "Doctors prescribe within TGA (Therapeutic Goods Administration) guidelines and their scope of practice. Schedule 8 controlled substances - including opioids, benzodiazepines, and stimulants - are not available through telehealth on our platform. If your medication falls outside what can be safely prescribed remotely, your doctor will let you know and suggest an alternative pathway.",
       },
       {
         question: "How many doctors does InstantMed have?",
@@ -196,7 +196,7 @@ export default function OurDoctorsClient({ verifiedDoctorCount }: OurDoctorsClie
           columns={4}
         />
 
-        {/* Consulting team summary — multi-doctor model, no individual names.
+        {/* Consulting team summary - multi-doctor model, no individual names.
             We surface only a count + the credentialing standards every doctor
             on the platform meets, per CLAUDE.md Platform Identity. */}
         {verifiedDoctorCount > 0 && (
@@ -225,8 +225,8 @@ export default function OurDoctorsClient({ verifiedDoctorCount }: OurDoctorsClie
                 </div>
               </div>
               <p className="text-xs text-muted-foreground mt-6 max-w-xl mx-auto">
-                Roster size varies based on demand. Every doctor — regardless
-                of when they joined — meets the same credentialing standards
+                Roster size varies based on demand. Every doctor - regardless
+                of when they joined - meets the same credentialing standards
                 listed above. Your treating doctor&apos;s name and AHPRA number
                 appear on every certificate or script we issue, so you can
                 independently verify them on the AHPRA register.
@@ -267,7 +267,7 @@ export default function OurDoctorsClient({ verifiedDoctorCount }: OurDoctorsClie
             <p className="text-muted-foreground mb-6">
               Every doctor&apos;s registration can be independently verified
               on the AHPRA public register. The doctor&apos;s name appears on
-              every certificate we issue — you&apos;re welcome to check.
+              every certificate we issue - you&apos;re welcome to check.
             </p>
             <Button asChild variant="outline" className="rounded-full bg-transparent">
               <Link
@@ -293,7 +293,7 @@ export default function OurDoctorsClient({ verifiedDoctorCount }: OurDoctorsClie
           groups={doctorFaqs}
         />
 
-        {/* Content Hub Cross-Links — E-E-A-T internal linking */}
+        {/* Content Hub Cross-Links - E-E-A-T internal linking */}
         <section className="px-4 py-8 border-t border-border/30 dark:border-white/10">
           <div className="mx-auto max-w-3xl">
             <h3 className="text-sm font-semibold text-foreground mb-4 text-center">

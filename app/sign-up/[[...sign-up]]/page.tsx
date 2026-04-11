@@ -292,7 +292,7 @@ export default function SignUpPage() {
   return (
     <div className="min-h-screen relative overflow-hidden bg-background">
       <div className="relative min-h-screen flex">
-        {/* Left side — Sign-up form */}
+        {/* Left side - Sign-up form */}
         <div className="flex-1 flex items-center justify-center p-6 lg:p-12">
           <Suspense fallback={
             <div className="w-full max-w-md">
@@ -310,7 +310,7 @@ export default function SignUpPage() {
           </Suspense>
         </div>
 
-        {/* Right side — Branding */}
+        {/* Right side - Branding */}
         <div className="hidden lg:flex lg:w-1/2 items-center justify-center p-12 bg-linear-to-br from-primary/5 to-transparent">
           <div className="max-w-md">
             <Link href="/" className="inline-flex items-center gap-2.5 mb-8 group">
@@ -343,7 +343,7 @@ export default function SignUpPage() {
               </div>
             </div>
 
-            {/* Social proof — real avatars + patient count */}
+            {/* Social proof - real avatars + patient count */}
             <div className="flex items-center gap-4 p-4 rounded-2xl bg-white dark:bg-card border border-border/50">
               <div className="flex -space-x-2 shrink-0">
                 {["SophiaChen", "MarcusWilliams", "AishaPatel", "TomBrennan"].map((seed) => (

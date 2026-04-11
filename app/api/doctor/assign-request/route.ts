@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (!doctorProfile || (doctorProfile.role !== "doctor" && doctorProfile.role !== "admin")) {
-      return NextResponse.json({ error: "Invalid doctor_id — must be a doctor or admin" }, { status: 400 })
+      return NextResponse.json({ error: "Invalid doctor_id - must be a doctor or admin" }, { status: 400 })
     }
 
     // Use claim RPC for consistent assignment (prevents race conditions)

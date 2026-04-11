@@ -1,14 +1,14 @@
 "use client"
 
 /**
- * Service Hub Screen — Premium entry point for /request
+ * Service Hub Screen - Premium entry point for /request
  *
  * 4 active hero cards (outcome-framed):
  *   Medical certificate · Repeat prescription · ED treatment · Hair loss
  * 2 coming-soon cards (muted, 2-col grid):
  *   Women's health · Weight management
  *
- * General consult phased out — specialty services are top-level.
+ * General consult phased out - specialty services are top-level.
  */
 
 import { PRICING_DISPLAY } from "@/lib/constants"
@@ -84,7 +84,7 @@ const SERVICES: ServiceDef[] = [
   {
     id: "ed",
     title: "Treat erectile dysfunction",
-    subtitle: "Discreet doctor assessment — no phone call",
+    subtitle: "Discreet doctor assessment - no phone call",
     price: PRICING_DISPLAY.MENS_HEALTH,
     badge: { text: "No call needed", variant: "success" },
     effort: "~4 min",
@@ -300,7 +300,7 @@ export function ServiceHubScreen({ onSelectService }: ServiceHubScreenProps) {
           ))}
         </AnimatePresence>
 
-        {/* Request Again — returning users */}
+        {/* Request Again - returning users */}
         <AnimatePresence>
           {lastServiceType && drafts.length === 0 && (
             <motion.div
@@ -441,7 +441,7 @@ function HeroServiceCard({
           className={cn(
             "relative rounded-2xl bg-white dark:bg-card p-5",
             "border border-border/50 dark:border-white/10",
-            // Solid depth — two-layer shadow + inner highlight
+            // Solid depth - two-layer shadow + inner highlight
             "[box-shadow:0_2px_8px_rgba(37,99,235,0.06),0_1px_3px_rgba(37,99,235,0.04),inset_0_1px_0_rgba(255,255,255,0.8)]",
             "dark:[box-shadow:none]",
             // Hover: lift + deepen shadow

@@ -75,7 +75,7 @@ interface PatientDashboardProps {
   followups?: FollowupRow[]
 }
 
-/** Resolve status config from lib/status.ts — single source of truth */
+/** Resolve status config from lib/status.ts - single source of truth */
 function resolveStatusConfig(status: string) {
   return INTAKE_STATUS[status as IntakeStatus] ?? INTAKE_STATUS.pending
 }
@@ -174,7 +174,7 @@ export function PanelDashboard({
         </p>
       </div>
 
-      {/* First-time banner — single pending request being reviewed */}
+      {/* First-time banner - single pending request being reviewed */}
       {pendingIntakes.length === 1 && intakes.length === 1 && (
         <div className="p-5 rounded-xl bg-primary/5 border border-primary/15 flex items-start gap-4">
           <Clock className="w-5 h-5 text-primary shrink-0 mt-0.5" />
@@ -187,7 +187,7 @@ export function PanelDashboard({
         </div>
       )}
 
-      {/* Profile Completion Todos — hide for med-cert-only users with required fields complete */}
+      {/* Profile Completion Todos - hide for med-cert-only users with required fields complete */}
       {profileData && (
         <ProfileTodoCard
           profileData={profileData}
@@ -259,7 +259,7 @@ export function PanelDashboard({
         </section>
       )}
 
-      {/* Documents ready — quick access for approved/completed */}
+      {/* Documents ready - quick access for approved/completed */}
       {(() => {
         const readyIntakes = intakes.filter((i) => ["approved", "completed"].includes(i.status))
         if (readyIntakes.length === 0) return null
@@ -408,14 +408,14 @@ export function PanelDashboard({
         </section>
       )}
 
-      {/* Google Review prompt — show after first completed request */}
+      {/* Google Review prompt - show after first completed request */}
       {intakes.some(i => i.status === "approved" || i.status === "completed") && (
         <section>
           <GoogleReviewCard />
         </section>
       )}
 
-      {/* Referral Section — only show after patient has completed at least one request */}
+      {/* Referral Section - only show after patient has completed at least one request */}
       {intakes.some(i => i.status === "approved" || i.status === "completed") && (
         <section>
           <ReferralCard patientId={patientId} />
@@ -489,7 +489,7 @@ function IntakeCard({
   )
 }
 
-/** What's Next guidance — moved from card to drawer for cleaner list view */
+/** What's Next guidance - moved from card to drawer for cleaner list view */
 const WHATS_NEXT: Record<string, { message: string; actionLabel?: string }> = {
   paid: { message: "A doctor will review your request shortly. We'll email you when it's done." },
   in_review: { message: "A doctor is reviewing your request now. Hang tight, shouldn't be long." },

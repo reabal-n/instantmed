@@ -21,7 +21,7 @@ export const CONSULT_FAQ = [
   {
     question: "How is this different from a GP visit?",
     answer:
-      "You get the same quality of care from an AHPRA-registered GP — just without the waiting room. The main limitation is the doctor can't physically examine you, so some conditions may still need an in-person visit.",
+      "You get the same quality of care from an AHPRA-registered GP - just without the waiting room. The main limitation is the doctor can't physically examine you, so some conditions may still need an in-person visit.",
   },
   {
     question: "What if my issue needs in-person care?",

@@ -30,7 +30,7 @@ function getServiceTags(serviceType: ConditionData["serviceType"]): string[] {
 
 // Render every condition from the canonical data file so the hub stays in
 // sync with /conditions/[slug] and conditions/sitemap.ts. Sorted alphabetically
-// for predictability — no manual curation drift.
+// for predictability - no manual curation drift.
 const conditions = Object.values(conditionsData)
   .map((c) => ({
     slug: c.slug,
@@ -51,7 +51,7 @@ const conditionsFaqs = [
   },
   {
     question: "Can I get a medical certificate for any condition?",
-    answer: "Medical certificates are available for conditions that genuinely prevent you from working or studying. Our doctors assess each request individually — if a certificate isn't clinically appropriate, they'll let you know.",
+    answer: "Medical certificates are available for conditions that genuinely prevent you from working or studying. Our doctors assess each request individually - if a certificate isn't clinically appropriate, they'll let you know.",
   },
   {
     question: "What if my condition is more serious than expected?",
@@ -59,11 +59,11 @@ const conditionsFaqs = [
   },
   {
     question: "Can I get a prescription for my condition?",
-    answer: "Where clinically appropriate, our doctors can issue eScripts for eligible medications. Some conditions and medications require an in-person consultation — our doctors will guide you if that's the case.",
+    answer: "Where clinically appropriate, our doctors can issue eScripts for eligible medications. Some conditions and medications require an in-person consultation - our doctors will guide you if that's the case.",
   },
   {
     question: "How do your doctors assess conditions online?",
-    answer: "You fill in a structured medical questionnaire about your symptoms, history, and current medications. A doctor reviews your responses (and any photos, if relevant) and makes a clinical decision — the same way they would in a clinic, minus the waiting room.",
+    answer: "You fill in a structured medical questionnaire about your symptoms, history, and current medications. A doctor reviews your responses (and any photos, if relevant) and makes a clinical decision - the same way they would in a clinic, minus the waiting room.",
   },
   {
     question: "Are your doctors qualified to treat these conditions?",

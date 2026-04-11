@@ -43,7 +43,7 @@ export const symptomPages: SymptomPage[] = [
     type: 'symptom',
     title: 'Burning When Urinating | Causes & Treatment | InstantMed',
     description: 'Experiencing burning or stinging when you pee? Learn about causes (UTI, STI, etc.), when to seek help, and how to get online treatment from Australian doctors.',
-    h1: 'Burning When Urinating — What It Means & What To Do',
+    h1: 'Burning When Urinating - What It Means & What To Do',
     content: {
       intro: 'Burning, stinging, or pain when you urinate (dysuria) is one of the most common urinary symptoms. While often caused by a straightforward urinary tract infection, it can have other causes that need different treatments.',
       uniqueBlocks: [
@@ -84,7 +84,7 @@ export const symptomPages: SymptomPage[] = [
       faqs: [
         {
           question: 'Is burning when urinating always a UTI?',
-          answer: 'No — while UTI is the most common cause in women, other causes include STIs, vaginal irritation, kidney stones, prostatitis in men, or certain products/medications. If symptoms don\'t improve with typical UTI treatment, further investigation is needed.',
+          answer: 'No - while UTI is the most common cause in women, other causes include STIs, vaginal irritation, kidney stones, prostatitis in men, or certain products/medications. If symptoms don\'t improve with typical UTI treatment, further investigation is needed.',
         },
         {
           question: 'Can I treat a UTI without antibiotics?',
@@ -114,7 +114,7 @@ export const symptomPages: SymptomPage[] = [
     },
     causes: {
       common: [
-        'Urinary tract infection (UTI) — most common in women',
+        'Urinary tract infection (UTI) - most common in women',
         'Bladder infection (cystitis)',
         'Vaginal infection or irritation',
         'Dehydration (concentrated urine)',
@@ -181,9 +181,9 @@ export const symptomPages: SymptomPage[] = [
     type: 'symptom',
     title: 'Hair Thinning | Causes, Treatment Options | InstantMed',
     description: 'Noticing hair thinning or loss? Learn about male and female pattern hair loss, treatment options, and when to see a specialist.',
-    h1: 'Hair Thinning — Causes & Treatment Options',
+    h1: 'Hair Thinning - Causes & Treatment Options',
     content: {
-      intro: 'Hair thinning is incredibly common — affecting about 50% of men by age 50 and many women, especially after menopause. While it can be distressing, several treatments can slow or reverse hair loss if started early.',
+      intro: 'Hair thinning is incredibly common - affecting about 50% of men by age 50 and many women, especially after menopause. While it can be distressing, several treatments can slow or reverse hair loss if started early.',
       uniqueBlocks: [
         {
           id: 'pattern-recognition',
@@ -193,7 +193,7 @@ export const symptomPages: SymptomPage[] = [
         {
           id: 'why-it-happens',
           type: 'text',
-          content: 'The most common cause is androgenetic alopecia — genetic sensitivity to dihydrotestosterone (DHT), a hormone that makes hair follicles shrink. Other causes include stress (telogen effluvium), thyroid problems, iron deficiency, medications, or autoimmune conditions like alopecia areata.',
+          content: 'The most common cause is androgenetic alopecia - genetic sensitivity to dihydrotestosterone (DHT), a hormone that makes hair follicles shrink. Other causes include stress (telogen effluvium), thyroid problems, iron deficiency, medications, or autoimmune conditions like alopecia areata.',
         },
         {
           id: 'treatment-options',
@@ -231,11 +231,11 @@ export const symptomPages: SymptomPage[] = [
         },
         {
           question: 'Do hair loss treatments work?',
-          answer: 'Yes — clinically proven treatments can help slow hair loss and promote regrowth. Results take 6-12 months. Treatment must be continued to maintain benefits.',
+          answer: 'Yes - clinically proven treatments can help slow hair loss and promote regrowth. Results take 6-12 months. Treatment must be continued to maintain benefits.',
         },
         {
           question: 'Can stress cause hair loss?',
-          answer: 'Yes — severe stress can cause telogen effluvium, where lots of hair enters the shedding phase at once. This usually happens 2-3 months after the stressful event and regrows within 6-9 months.',
+          answer: 'Yes - severe stress can cause telogen effluvium, where lots of hair enters the shedding phase at once. This usually happens 2-3 months after the stressful event and regrows within 6-9 months.',
         },
       ],
     },
@@ -254,8 +254,8 @@ export const symptomPages: SymptomPage[] = [
     causes: {
       common: [
         'Androgenetic alopecia (male/female pattern baldness)',
-        'Aging — natural part of getting older',
-        'Genetics — family history of hair loss',
+        'Aging - natural part of getting older',
+        'Genetics - family history of hair loss',
         'Hormonal changes (menopause, PCOS)',
       ],
       lessCommon: [
@@ -267,18 +267,18 @@ export const symptomPages: SymptomPage[] = [
         'Autoimmune conditions (alopecia areata)',
       ],
       emergency: [
-        'Sudden patchy hair loss (alopecia areata) — see specialist',
+        'Sudden patchy hair loss (alopecia areata) - see specialist',
         'Hair loss with scalp inflammation or scarring',
         'Rapid total hair loss',
       ],
     },
     selfCare: [
-      'Gentle hair care — avoid tight hairstyles and excessive heat',
+      'Gentle hair care - avoid tight hairstyles and excessive heat',
       'Balanced diet with adequate protein and iron',
       'Manage stress through exercise, sleep, relaxation',
-      'Avoid smoking — worsens hair loss',
+      'Avoid smoking - worsens hair loss',
       'Consider supplements (biotin, iron if deficient)',
-      'Be patient — hair grows slowly (~1cm per month)',
+      'Be patient - hair grows slowly (~1cm per month)',
     ],
     whenToSeekHelp: {
       seeGPIf: [
@@ -318,7 +318,7 @@ export const symptomPages: SymptomPage[] = [
     type: 'symptom',
     title: 'Chest Pain | When to Seek Emergency Care | InstantMed',
     description: 'Experiencing chest pain? Learn about causes (heart attack, anxiety, reflux), emergency warning signs, and when to call 000 vs see a GP.',
-    h1: 'Chest Pain — What It Means & When to Get Help',
+    h1: 'Chest Pain - What It Means & When to Get Help',
     content: {
       intro: 'Chest pain is one of the most concerning symptoms because it can indicate a heart attack or other serious conditions. However, many cases of chest pain are not life-threatening. Knowing the warning signs helps you decide when to seek emergency care versus when to see a GP.',
       uniqueBlocks: [
@@ -342,7 +342,7 @@ export const symptomPages: SymptomPage[] = [
         {
           id: 'important',
           type: 'callout',
-          content: 'If you think you might be having a heart attack, call 000 immediately. Do NOT drive yourself to hospital. Chew an aspirin (if not allergic) while waiting for ambulance. Time is critical — "time is heart muscle." Better to be checked and sent home than to delay and have permanent heart damage.',
+          content: 'If you think you might be having a heart attack, call 000 immediately. Do NOT drive yourself to hospital. Chew an aspirin (if not allergic) while waiting for ambulance. Time is critical - "time is heart muscle." Better to be checked and sent home than to delay and have permanent heart damage.',
         },
       ],
     },
@@ -360,11 +360,11 @@ export const symptomPages: SymptomPage[] = [
       faqs: [
         {
           question: 'How do I know if chest pain is serious?',
-          answer: 'Serious chest pain is typically: heavy/pressure-like, lasts >5 minutes, comes with sweating/nausea/breathlessness, or spreads to arm/jaw. When in doubt, call 000 — it\'s better to be safe.',
+          answer: 'Serious chest pain is typically: heavy/pressure-like, lasts >5 minutes, comes with sweating/nausea/breathlessness, or spreads to arm/jaw. When in doubt, call 000 - it\'s better to be safe.',
         },
         {
           question: 'Can anxiety cause chest pain?',
-          answer: 'Yes — anxiety and panic attacks commonly cause chest pain. It\'s usually sharp, stabbing, comes and goes quickly, and gets worse when you\'re stressed. However, if you\'re not sure, get it checked.',
+          answer: 'Yes - anxiety and panic attacks commonly cause chest pain. It\'s usually sharp, stabbing, comes and goes quickly, and gets worse when you\'re stressed. However, if you\'re not sure, get it checked.',
         },
         {
           question: 'What about heartburn vs heart attack?',
@@ -390,10 +390,10 @@ export const symptomPages: SymptomPage[] = [
     },
     causes: {
       common: [
-        'Anxiety or panic attack — sharp, stabbing pain',
-        'Acid reflux (GERD) — burning pain after eating',
-        'Muscle strain — tender to touch, worse with movement',
-        'Costochondritis — inflammation of rib cartilage',
+        'Anxiety or panic attack - sharp, stabbing pain',
+        'Acid reflux (GERD) - burning pain after eating',
+        'Muscle strain - tender to touch, worse with movement',
+        'Costochondritis - inflammation of rib cartilage',
       ],
       lessCommon: [
         'Lung infection (pneumonia, pleurisy)',
@@ -457,7 +457,7 @@ export const symptomPages: SymptomPage[] = [
     type: 'symptom',
     title: 'Frequent Urination | Causes & When to Seek Help | InstantMed',
     description: 'Peeing frequently? Learn about causes (UTI, diabetes, prostate, anxiety), when to see a doctor, and how to get online treatment.',
-    h1: 'Frequent Urination — Why It Happens & What To Do',
+    h1: 'Frequent Urination - Why It Happens & What To Do',
     content: {
       intro: 'Needing to urinate more often than usual (frequency) or feeling an urgent need to go even when you just went can be frustrating and disruptive. While often caused by simple issues like drinking too much fluid or a bladder infection, it can sometimes indicate underlying conditions that need treatment.',
       uniqueBlocks: [
@@ -501,11 +501,11 @@ export const symptomPages: SymptomPage[] = [
         },
         {
           question: 'How often is too often to urinate?',
-          answer: 'More than 8 times during the day or waking 2+ times at night is considered frequent. However, "normal" varies — some people naturally go more than others.',
+          answer: 'More than 8 times during the day or waking 2+ times at night is considered frequent. However, "normal" varies - some people naturally go more than others.',
         },
         {
           question: 'Can anxiety cause frequent urination?',
-          answer: 'Yes — anxiety activates your fight-or-flight response, which can increase urination. You may feel like you need to go even with an empty bladder. Treating the anxiety often helps.',
+          answer: 'Yes - anxiety activates your fight-or-flight response, which can increase urination. You may feel like you need to go even with an empty bladder. Treating the anxiety often helps.',
         },
         {
           question: 'When should I see a doctor about frequent urination?',
@@ -527,14 +527,14 @@ export const symptomPages: SymptomPage[] = [
     },
     causes: {
       common: [
-        'Urinary tract infection (UTI) — especially if pain/burning too',
+        'Urinary tract infection (UTI) - especially if pain/burning too',
         'Drinking too much fluid (especially coffee, tea, alcohol)',
-        'Pregnancy — uterus presses on bladder',
+        'Pregnancy - uterus presses on bladder',
         'Anxiety or stress',
         'Overactive bladder syndrome',
       ],
       lessCommon: [
-        'Type 2 diabetes — high blood sugar',
+        'Type 2 diabetes - high blood sugar',
         'Prostate enlargement (BPH) in men over 50',
         'Medications (diuretics, blood pressure meds)',
         'Interstitial cystitis (chronic bladder pain)',

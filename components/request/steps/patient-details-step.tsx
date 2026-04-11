@@ -221,7 +221,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
       })
       // Send hashed user data to Google for Enhanced Conversions
       setEnhancedConversionsData({ email, phone, firstName, lastName })
-      // Identify user in PostHog as soon as we have their email — stitches
+      // Identify user in PostHog as soon as we have their email - stitches
       // all prior anonymous events (page views, step completions) to this person.
       // Safe to call even if already identified (PostHog deduplicates).
       if (email) {
@@ -362,7 +362,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
         />
       </FormField>
 
-      {/* Sex — required for prescriptions (eScript generation) */}
+      {/* Sex - required for prescriptions (eScript generation) */}
       {needsPrescriptionDetails && (
         <FormField
           label="Sex"
@@ -463,7 +463,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
         </FormField>
       )}
 
-      {/* Height/Weight/BMI — ED subtype only */}
+      {/* Height/Weight/BMI - ED subtype only */}
       {consultSubtype === "ed" && (
         <div className="space-y-3">
           <Label className="text-sm font-medium">Height &amp; weight</Label>
@@ -531,7 +531,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
         </span>
       </div>
 
-      {/* Continue button — always clickable so validate() fires and surfaces errors */}
+      {/* Continue button - always clickable so validate() fires and surfaces errors */}
       <Button
         onClick={handleNext}
         variant={canContinue ? "default" : "secondary"}

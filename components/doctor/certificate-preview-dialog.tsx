@@ -122,7 +122,7 @@ export function CertificatePreviewDialog({
         consultDate: editedData.consultDate,
       })
       if (result.success && result.pdfDataUrl) {
-        // Convert data: URL to blob: URL — Chrome blocks data: URLs in iframes
+        // Convert data: URL to blob: URL - Chrome blocks data: URLs in iframes
         const base64 = result.pdfDataUrl.split(",")[1]
         const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0))
         const blob = new Blob([bytes], { type: "application/pdf" })
@@ -285,7 +285,7 @@ export function CertificatePreviewDialog({
             </div>
           </div>
 
-          {/* Certificate Dates — inline editable */}
+          {/* Certificate Dates - inline editable */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider">
@@ -332,7 +332,7 @@ export function CertificatePreviewDialog({
             )}
           </div>
 
-          {/* Medical Reason — inline editable */}
+          {/* Medical Reason - inline editable */}
           <div className="space-y-2">
             <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider">
               <Stethoscope className="h-3 w-3" />

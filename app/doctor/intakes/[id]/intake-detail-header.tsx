@@ -509,7 +509,7 @@ export function IntakeDetailHeader({
         />
       )}
 
-      {/* Certificate PDF Viewer — shared component */}
+      {/* Certificate PDF Viewer - shared component */}
       <PdfViewerDialog
         open={!!certPdfUrl}
         onOpenChange={(open) => { if (!open) onCloseCertPdf() }}

@@ -10,10 +10,10 @@ export default async function EmailAnalyticsPage() {
 
   // Fetch email metrics
   // NOTE: email_outbox only tracks processing status (pending/claimed/sent/failed).
-  // Open/click tracking is handled separately via Resend webhooks — those metrics
+  // Open/click tracking is handled separately via Resend webhooks - those metrics
   // are not available in this table.
   const [emailLogsResult, templateStatsResult] = await Promise.allSettled([
-    // Recent email logs (no delivery_status column — that's tracked via Resend webhooks)
+    // Recent email logs (no delivery_status column - that's tracked via Resend webhooks)
     supabase
       .from("email_outbox")
       .select("id, email_type, to_email, status, sent_at, error_message")
@@ -32,7 +32,7 @@ export default async function EmailAnalyticsPage() {
   const _templateData = templateStatsResult.status === "fulfilled" ? templateStatsResult.value.data || [] : []
 
   // Calculate template statistics
-  // Open/click data is NOT available in email_outbox — tracked via Resend webhooks
+  // Open/click data is NOT available in email_outbox - tracked via Resend webhooks
   const templateStats: Record<string, { sent: number; failed: number }> = {}
 
   for (const log of emailLogs) {

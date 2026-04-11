@@ -65,7 +65,7 @@ const serverEnvSchema = z.object({
   // Encryption (required for PHI protection)
   ENCRYPTION_KEY: z.string().min(32, "ENCRYPTION_KEY must be at least 32 bytes base64 encoded").optional(),
 
-  // Google Places API (server-only — NOT NEXT_PUBLIC_)
+  // Google Places API (server-only - NOT NEXT_PUBLIC_)
   GOOGLE_PLACES_API_KEY: z.string().optional(),
 
   // PHI encryption
@@ -152,7 +152,7 @@ function validateServerEnv() {
     throw new Error(`Environment validation failed: ${parsed.error.message}`)
   }
   
-  // Additional checks for production (skip in CI — NODE_ENV=production is set by Next.js build but CI isn't production)
+  // Additional checks for production (skip in CI - NODE_ENV=production is set by Next.js build but CI isn't production)
   if (parsed.data.NODE_ENV === "production" && !process.env.CI) {
     const prodParsed = productionRequirements.safeParse(process.env)
     if (!prodParsed.success) {
@@ -176,7 +176,7 @@ function validateServerEnv() {
   const hasAllParchment = parchmentVars.every((v) => !!process.env[v])
   if (hasSomeParchment && !hasAllParchment) {
     const missing = parchmentVars.filter((v) => !process.env[v])
-    log.warn(`Parchment partially configured — missing: ${missing.join(", ")}. Embedded prescribing will fail.`, {})
+    log.warn(`Parchment partially configured - missing: ${missing.join(", ")}. Embedded prescribing will fail.`, {})
   }
 
   return parsed.data
@@ -187,7 +187,7 @@ const validatedEnv = validateServerEnv()
 
 if (!validatedEnv.TELEGRAM_BOT_TOKEN || !validatedEnv.TELEGRAM_CHAT_ID) {
   // eslint-disable-next-line no-console
-  console.warn("[env] TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID not set — real-time alerts disabled")
+  console.warn("[env] TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID not set - real-time alerts disabled")
 }
 
 // ============================================
@@ -213,7 +213,7 @@ export function getResendApiKey(): string {
  */
 export function getResendFromEmail(): string {
   const raw = process.env.RESEND_FROM_EMAIL || `${COMPANY_NAME} <${CONTACT_EMAIL}>`
-  // Strip wrapping quotes — a common env var misconfiguration that causes Resend 422 errors
+  // Strip wrapping quotes - a common env var misconfiguration that causes Resend 422 errors
   return raw.replace(/^["']|["']$/g, "")
 }
 

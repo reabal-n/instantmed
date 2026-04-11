@@ -57,7 +57,7 @@ export const TESTIMONIALS: Testimonial[] = [
     location: "Paddington, QLD",
     age: 38,
     rating: 5,
-    text: "Half expected a rubber stamp tbh. It wasn't — the form asked proper questions and the doctor actually engaged with what I wrote.",
+    text: "Half expected a rubber stamp tbh. It wasn't - the form asked proper questions and the doctor actually engaged with what I wrote.",
     date: "3 days ago",
     service: "medical-certificate",
     verified: true,
@@ -168,7 +168,7 @@ export const TESTIMONIALS: Testimonial[] = [
     location: "Hobart, TAS",
     age: 58,
     rating: 4,
-    text: "Did this for my mum — she's 82. I filled in the form for her and the cert came through. Saved us both a trip to the clinic.",
+    text: "Did this for my mum - she's 82. I filled in the form for her and the cert came through. Saved us both a trip to the clinic.",
     date: "3 weeks ago",
     service: "medical-certificate",
     verified: true,
@@ -217,7 +217,7 @@ export const TESTIMONIALS: Testimonial[] = [
     location: "Surry Hills, NSW",
     age: 30,
     rating: 5,
-    text: "Called in sick Monday, had the cert in HR by 9am. My manager didn't bat an eye — it looks exactly like a normal GP certificate.",
+    text: "Called in sick Monday, had the cert in HR by 9am. My manager didn't bat an eye - it looks exactly like a normal GP certificate.",
     date: "3 days ago",
     service: "medical-certificate",
     verified: true,
@@ -258,14 +258,14 @@ export const TESTIMONIALS: Testimonial[] = [
     location: "Carindale, QLD",
     age: 36,
     rating: 5,
-    text: "Took a carer's day when my daughter was home sick. Submitted the form explaining the situation — cert came through in about 40 minutes. HR accepted it for carer's leave.",
+    text: "Took a carer's day when my daughter was home sick. Submitted the form explaining the situation - cert came through in about 40 minutes. HR accepted it for carer's leave.",
     date: "2 days ago",
     service: "medical-certificate",
     verified: true,
     image: "https://api.dicebear.com/7.x/notionists/svg?seed=NatalieH",
     featured: true,
   },
-  // work sick day — shift worker
+  // work sick day - shift worker
   {
     id: "t54",
     name: "Dylan F.",
@@ -285,7 +285,7 @@ export const TESTIMONIALS: Testimonial[] = [
     location: "Glebe, NSW",
     age: 33,
     rating: 5,
-    text: "Needed a day for my mental health. The questions were thorough but not invasive. No judgment, no awkward conversation — just a professional cert in my inbox.",
+    text: "Needed a day for my mental health. The questions were thorough but not invasive. No judgment, no awkward conversation - just a professional cert in my inbox.",
     date: "1 week ago",
     service: "medical-certificate",
     verified: true,
@@ -297,7 +297,7 @@ export const TESTIMONIALS: Testimonial[] = [
     location: "Perth, WA",
     age: 33,
     rating: 5,
-    text: "Ran out of my regular medication while travelling. Got a new script sent to a local pharmacy same day — really took the stress out of it.",
+    text: "Ran out of my regular medication while travelling. Got a new script sent to a local pharmacy same day - really took the stress out of it.",
     date: "5 days ago",
     service: "prescription",
     verified: true,
@@ -309,7 +309,7 @@ export const TESTIMONIALS: Testimonial[] = [
     location: "Manly, NSW",
     age: 36,
     rating: 4,
-    text: "Doctor asked a few follow-up questions which slowed things down a bit. Fair enough though — they were being thorough.",
+    text: "Doctor asked a few follow-up questions which slowed things down a bit. Fair enough though - they were being thorough.",
     date: "1 week ago",
     service: "prescription",
     verified: true,
@@ -360,7 +360,7 @@ export const TESTIMONIALS: Testimonial[] = [
     location: "Darwin, NT",
     age: 41,
     rating: 5,
-    text: "Living remote — nearest pharmacy is 2 hours away. The e-script made things so much easier.",
+    text: "Living remote - nearest pharmacy is 2 hours away. The e-script made things so much easier.",
     date: "1 month ago",
     service: "prescription",
     verified: true,
@@ -571,7 +571,7 @@ export const TESTIMONIALS: Testimonial[] = [
     location: "Paddington, QLD",
     age: 43,
     rating: 5,
-    text: "HR checked the cert and it was all fine. You could tell the doctor had read my answers properly — not just rubber-stamped it.",
+    text: "HR checked the cert and it was all fine. You could tell the doctor had read my answers properly - not just rubber-stamped it.",
     date: "5 days ago",
     service: "medical-certificate",
     verified: true,
@@ -693,7 +693,7 @@ export function getFeaturedTestimonialsByService(service: Testimonial["service"]
 
 /**
  * Get a balanced mix of testimonials for the homepage.
- * Returns 3 med-cert, 2 prescription, 1 consultation — avoids cert-mill perception.
+ * Returns 3 med-cert, 2 prescription, 1 consultation - avoids cert-mill perception.
  */
 export function getHomepageTestimonials() {
   const certs = TESTIMONIALS.filter((t) => t.service === "medical-certificate" && t.featured)

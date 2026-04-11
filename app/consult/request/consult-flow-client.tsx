@@ -23,6 +23,7 @@ import { SmartSymptomInput, isSymptomInputValid } from "@/components/intake/smar
 import { createOrGetProfile } from "@/app/actions/create-profile"
 import { SessionProgress } from "@/components/shell"
 import { CinematicSwitch } from "@/components/ui/cinematic-switch"
+import { PRICING_DISPLAY } from "@/lib/constants"
 import { createClient } from "@/lib/supabase/client"
 import type { User } from "@supabase/supabase-js"
 
@@ -754,7 +755,7 @@ export function ConsultFlowClient({
               <div className="p-4 rounded-2xl border border-border/50 bg-white dark:bg-card shadow-md shadow-primary/[0.06] space-y-4">
                 <div className="flex justify-between items-center">
                   <span className="font-medium">Total</span>
-                  <span className="text-2xl font-bold">$49.95</span>
+                  <span className="text-2xl font-bold">{PRICING_DISPLAY.CONSULT}</span>
                 </div>
                 <hr className="border-border/40" />
                 <ul className="space-y-2">
@@ -802,7 +803,7 @@ export function ConsultFlowClient({
                   Processing...
                 </>
               ) : (
-                "Pay $49.95 & Submit"
+                `Pay ${PRICING_DISPLAY.CONSULT} & Submit`
               )}
             </Button>
           ) : step !== "signup" || !showEmailConfirm ? (

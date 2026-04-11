@@ -6,13 +6,13 @@
  * Trust signals for checkout, payment, and onboarding flows.
  *
  * Exports:
- * - StripeBadge — Stripe branding badge
- * - PaymentMethodIcons — "Secured by Stripe" message
- * - AHPRAStatement — AHPRA registration badge (inline/card/minimal)
- * - CheckoutTrustStrip — Combined trust strip (delegates to TrustBadgeRow)
- * - CheckoutSecurityFooter — Full footer with payment + security + AHPRA
- * - DataSecurityStrip — For onboarding/data entry forms
- * - OnboardingTrustFooter — Bottom-of-step trust footer
+ * - StripeBadge - Stripe branding badge
+ * - PaymentMethodIcons - "Secured by Stripe" message
+ * - AHPRAStatement - AHPRA registration badge (inline/card/minimal)
+ * - CheckoutTrustStrip - Combined trust strip (delegates to TrustBadgeRow)
+ * - CheckoutSecurityFooter - Full footer with payment + security + AHPRA
+ * - DataSecurityStrip - For onboarding/data entry forms
+ * - OnboardingTrustFooter - Bottom-of-step trust footer
  */
 
 import {

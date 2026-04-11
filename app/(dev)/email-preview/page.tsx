@@ -42,7 +42,7 @@ const templates = [
   {
     slug: "request-received",
     name: "Request Received (Payment Confirmed)",
-    description: "Sent after payment — request is with the doctor",
+    description: "Sent after payment - request is with the doctor",
     category: "request",
   },
   {

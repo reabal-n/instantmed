@@ -16,6 +16,7 @@ import { GoogleAdsCert } from "@/components/marketing/google-ads-cert"
 import { useRequestStore } from "../store"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 import { getDisplayPrice, getServiceDisplayLabel, CONSULT_SUBTYPE_DISPLAY_LABELS } from "@/lib/request/display-helpers"
+import { PRICING_DISPLAY } from "@/lib/constants"
 
 interface ReviewStepProps {
   serviceType: UnifiedServiceType
@@ -173,7 +174,7 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
     })
   }
 
-  // Prescription specific sections — combined Medication + History into one card
+  // Prescription specific sections - combined Medication + History into one card
   if (serviceType === 'prescription' || serviceType === 'repeat-script') {
     const medications = answers.medications as Array<{ product: unknown; name: string; strength?: string; form?: string }> | undefined
     const medicationName = answers.medicationName as string
@@ -473,7 +474,7 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
     }
   }
 
-  // Medical history — only show items with notable values (positive flags)
+  // Medical history - only show items with notable values (positive flags)
   const hasAllergies = answers.hasAllergies as boolean
   const allergies = answers.allergies as string
   const hasConditions = answers.hasConditions as boolean
@@ -504,7 +505,7 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
     })
   }
 
-  // Patient details — compact
+  // Patient details - compact
   const dobDisplay = dob ? new Date(dob).toLocaleDateString('en-AU') : ''
   const detailItems = [
     { label: 'Name', value: `${firstName} ${lastName}`.trim() },
@@ -530,7 +531,7 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
     stepId: 'details',
   })
 
-  // Filter out the standalone "Request Type" section — redundant since the flow header already shows the service
+  // Filter out the standalone "Request Type" section - redundant since the flow header already shows the service
   const displaySections = sections.filter(s => s.title !== 'Request Type')
 
   return (
@@ -557,7 +558,7 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
 
       {/* Safety consent + Continue */}
       <div className="space-y-3 pt-1">
-        {/* Price summary — show before CTA so there's no payment surprise */}
+        {/* Price summary - show before CTA so there's no payment surprise */}
         {(() => {
           const price = getDisplayPrice(serviceType, answers)
           return (
@@ -588,7 +589,7 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
           )}
         </div>
 
-        {/* Wrapper captures click even when inner button is disabled — scrolls to consent */}
+        {/* Wrapper captures click even when inner button is disabled - scrolls to consent */}
         <div onClick={!safetyConfirmed ? handleDisabledClick : undefined} className="w-full">
           <Button onClick={handleContinue} className="w-full h-12" disabled={!safetyConfirmed}>
             Continue to payment
@@ -597,7 +598,7 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
 
         <p className="text-center text-[11px] text-muted-foreground/60 flex items-center justify-center gap-1">
           <Zap className="w-3 h-3 text-amber-400" />
-          Express review available at checkout (+$9.95)
+          Express review available at checkout (+{PRICING_DISPLAY.PRIORITY_FEE})
         </p>
 
         <div className="flex flex-col items-center gap-3">

@@ -55,7 +55,7 @@ function useHasMounted() {
 interface DoctorAvailabilityPillProps {
   /**
    * When true, always shows the online/available state regardless of business hours.
-   * Use on med cert pages — auto-approval means they're genuinely 24/7.
+   * Use on med cert pages - auto-approval means they're genuinely 24/7.
    */
   alwaysAvailable?: boolean
 }
@@ -92,7 +92,7 @@ export function DoctorAvailabilityPill({ alwaysAvailable = false }: DoctorAvaila
     )
   }
 
-  // Always-available state — med certs (auto-approved, genuinely 24/7)
+  // Always-available state - med certs (auto-approved, genuinely 24/7)
   if (alwaysAvailable) {
     return (
       <motion.div
@@ -157,7 +157,7 @@ export function DoctorAvailabilityPill({ alwaysAvailable = false }: DoctorAvaila
                   : 'Doctors back at 8am AEST'}
             </span>
             <span className="hidden sm:inline text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
-              Submit now — reviewed first thing
+              Submit now - reviewed first thing
             </span>
           </>
         )}

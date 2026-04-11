@@ -101,7 +101,7 @@ export async function declineIntake(input: DeclineInput): Promise<DeclineResult>
     const supabase = createServiceRoleClient()
     const timestamp = new Date().toISOString()
 
-    // 1. VALIDATE ACTOR — always require session auth
+    // 1. VALIDATE ACTOR - always require session auth
     const authUser = await requireRoleOrNull(["doctor", "admin"])
     if (!authUser) {
       return { success: false, error: "Only doctors and admins can decline requests" }
@@ -226,7 +226,7 @@ export async function declineIntake(input: DeclineInput): Promise<DeclineResult>
 
         logger.info("[Decline] Refund skipped (E2E mode)", { intakeId })
       } else {
-        // Process real refund — full for med cert/Rx, 50% for consults
+        // Process real refund - full for med cert/Rx, 50% for consults
         const refundAmountCents = isPartialRefund && intake.amount_cents
           ? Math.floor(intake.amount_cents * PARTIAL_REFUND_PERCENT)
           : undefined // undefined = full refund
@@ -386,7 +386,7 @@ async function processRefund(
       }
     }
 
-    // Process Stripe refund — partial refunds get a distinct idempotency key so
+    // Process Stripe refund - partial refunds get a distinct idempotency key so
     // a future full-refund retry isn't blocked by the partial-refund key.
     const isPartial = amountCents !== undefined
     const idempotencyKey = isPartial

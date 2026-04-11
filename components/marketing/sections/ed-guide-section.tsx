@@ -24,7 +24,7 @@ import {
 import { usePostHog } from "@/components/providers/posthog-provider"
 
 // =============================================================================
-// DATA — all content preserved for SEO (E-E-A-T)
+// DATA - all content preserved for SEO (E-E-A-T)
 // =============================================================================
 
 const GUIDE_SECTIONS = [
@@ -146,7 +146,7 @@ const PRIVACY_POINTS = [
 // COMPONENT
 // =============================================================================
 
-/** Long-form E-E-A-T content section — collapsed into accordion for UX, fully indexed for SEO */
+/** Long-form E-E-A-T content section - collapsed into accordion for UX, fully indexed for SEO */
 export function EDGuideSection() {
   const prefersReducedMotion = useReducedMotion()
   const animate = !prefersReducedMotion
@@ -188,7 +188,7 @@ export function EDGuideSection() {
           </p>
         </motion.div>
 
-        {/* Accordion content — all text rendered in DOM for SEO */}
+        {/* Accordion content - all text rendered in DOM for SEO */}
         <Accordion
           type="multiple"
           defaultValue={["understanding"]}
@@ -282,7 +282,7 @@ export function EDGuideSection() {
             <AccordionContent>
               <div className="pl-11 pb-1 space-y-4">
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  Here&apos;s the honest, uncompressed version — so nothing
+                  Here&apos;s the honest, uncompressed version - so nothing
                   catches you off guard.
                 </p>
                 <ol className="space-y-4 list-none">
@@ -320,7 +320,7 @@ export function EDGuideSection() {
                   <Lock className="w-4 h-4 text-primary" />
                 </div>
                 <span className="text-[15px] font-semibold text-foreground text-left">
-                  Privacy and discretion — end to end
+                  Privacy and discretion - end to end
                 </span>
               </div>
             </AccordionTrigger>

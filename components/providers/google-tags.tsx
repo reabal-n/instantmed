@@ -7,7 +7,7 @@ import { useEffect } from "react"
  *
  * Uses useEffect + DOM APIs instead of next/script to avoid the React 19
  * "Encountered a script tag while rendering React component" error. React never
- * creates a <script> DOM node — the script is injected directly into <head>.
+ * creates a <script> DOM node - the script is injected directly into <head>.
  *
  * Consent defaults are set BEFORE gtag.js loads (order within the effect).
  */

@@ -77,7 +77,7 @@ export function IntakeDetailFollowups({
                 key={f.id}
                 className="p-3 rounded-lg border border-dashed border-border/40 text-sm text-muted-foreground"
               >
-                {MILESTONE_LABEL[f.milestone]} — due{" "}
+                {MILESTONE_LABEL[f.milestone]} - due{" "}
                 {format(new Date(f.due_at), "d MMM yyyy")}
                 {f.skipped && " (skipped)"}
               </div>
@@ -139,7 +139,7 @@ export function IntakeDetailFollowups({
                       lowRating && "text-destructive font-medium",
                     )}
                   >
-                    {f.effectiveness_rating}/5 —{" "}
+                    {f.effectiveness_rating}/5 -{" "}
                     {RATING_LABEL[f.effectiveness_rating ?? 0] ?? "—"}
                   </dd>
                 </div>

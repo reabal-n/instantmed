@@ -23,7 +23,7 @@ export const SAFETY_COPY = {
   },
   // Compact one-liner
   compact: {
-    text: "Not for emergencies — call 000 for urgent help.",
+    text: "Not for emergencies - call 000 for urgent help.",
   },
   // Emergency resources
   resources: {
@@ -142,14 +142,14 @@ export function EmergencyDisclaimer({
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-destructive-light border border-destructive-border text-destructive text-xs font-medium hover:bg-destructive-light transition-colors"
             >
               <Phone className="h-3 w-3" />
-              000 — Emergency
+              000 - Emergency
             </a>
             <a
               href="tel:131114"
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-info-light border border-info-border text-info text-xs font-medium hover:bg-info-light transition-colors"
             >
               <Heart className="h-3 w-3" />
-              Lifeline — 13 11 14
+              Lifeline - 13 11 14
             </a>
           </div>
           

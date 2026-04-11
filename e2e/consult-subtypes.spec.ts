@@ -77,7 +77,7 @@ async function clearDrafts(page: Page) {
       localStorage.removeItem('instantmed-request-draft')
       localStorage.removeItem('instantmed-preferences')
     } catch {
-      // ignore — localStorage may not be available on about:blank
+      // ignore - localStorage may not be available on about:blank
     }
   })
 }
@@ -144,7 +144,7 @@ test.describe("Consult Sub-Services - First Step Rendering", () => {
       await expect(page.getByRole("heading", { name: /What do you need help with today/i })).not.toBeVisible()
 
       // Should show the step content (main region). Use getByRole for a unique,
-      // accessibility-tree-grounded match — the previous OR'd locator
+      // accessibility-tree-grounded match - the previous OR'd locator
       // `main, [role="main"], .space-y-6` resolved to multiple elements in strict mode.
       const stepContent = page.getByRole('main')
       await expect(stepContent).toBeVisible({ timeout: 10000 })
@@ -231,7 +231,7 @@ test.describe("Consult Sub-Services - Price Display on Hub", () => {
     // consult card has expanded and its subtype list is mounted.
     await expect(page.getByTestId("consult-subtype-ed")).toBeVisible({ timeout: 5000 })
 
-    // All four specialised subtypes must be present — validates the hub is
+    // All four specialised subtypes must be present - validates the hub is
     // rendering the complete set, which implicitly covers price display.
     await expect(page.getByTestId("consult-subtype-hair_loss")).toBeVisible()
     await expect(page.getByTestId("consult-subtype-womens_health")).toBeVisible()
@@ -374,7 +374,7 @@ async function waitForStep(page: Page, text: string | RegExp, timeout = 15000) {
 }
 
 /**
- * Complete the Medical History step (common tail — allergies, conditions, other meds).
+ * Complete the Medical History step (common tail - allergies, conditions, other meds).
  */
 async function completeMedicalHistoryStep(page: Page) {
   await waitForStep(page, /This information helps our doctors/i)
@@ -405,7 +405,7 @@ async function completeDetailsStep(page: Page) {
 }
 
 /**
- * Complete the Review step — click "Continue to payment".
+ * Complete the Review step - click "Continue to payment".
  */
 async function completeReviewStep(page: Page) {
   await waitForStep(page, /Review your request/i)
@@ -425,10 +425,10 @@ async function verifyCheckoutStep(page: Page) {
 }
 
 // ---------------------------------------------------------------------------
-// ED (Erectile Dysfunction) — Full 4-Step Flow
+// ED (Erectile Dysfunction) - Full 4-Step Flow
 // ---------------------------------------------------------------------------
 
-test.describe("Consult Subtype: ED — full step walkthrough", () => {
+test.describe("Consult Subtype: ED - full step walkthrough", () => {
   test.beforeEach(async ({ page }) => {
     await clearDrafts(page)
   })
@@ -446,10 +446,10 @@ test.describe("Consult Subtype: ED — full step walkthrough", () => {
     const ageSwitch = page.getByRole("switch", { name: /I confirm I am 18 years or older/i })
     await ageSwitch.click()
 
-    // Goal selection — pick "Improve erections"
+    // Goal selection - pick "Improve erections"
     await page.getByRole("button", { name: /Improve erections/i }).click()
 
-    // Duration — pick "< 3 months" (first segment button)
+    // Duration - pick "< 3 months" (first segment button)
     await page.getByRole("button", { name: /< 3 months/i }).click()
 
     await clickContinue(page)
@@ -470,29 +470,29 @@ test.describe("Consult Subtype: ED — full step walkthrough", () => {
 
     await clickContinue(page)
 
-    // ── Step 3: ED Health (accordion — 6 sections) ──
+    // ── Step 3: ED Health (accordion - 6 sections) ──
     await waitForStep(page, /A quick health check/i)
 
     // Section 1: Heart & blood pressure (default-open)
     // Nitrates = No (switch stays off), Alpha-blockers = No (off),
     // Recent heart event = No (off), Severe heart = No (off)
-    // All four toggles default to false — section is complete once
+    // All four toggles default to false - section is complete once
     // edNitrates is explicitly answered. Set all four to false explicitly.
     const nitrates = page.getByRole("switch", { name: /Do you take nitrates/i })
     await expect(nitrates).toBeVisible({ timeout: 8000 })
-    // Switches are already off — click to confirm "no" state is registered
+    // Switches are already off - click to confirm "no" state is registered
     // by toggling off-on-off in case they start uninitialized
     // Actually, switches start unchecked (false/undefined). The canContinue
     // logic requires edNitrates !== undefined. We need to toggle them once
     // to register them as false. Toggle on then off.
     await nitrates.click()  // now true
-    await nitrates.click()  // now false — but this triggers the hard block on true → must handle carefully
+    await nitrates.click()  // now false - but this triggers the hard block on true → must handle carefully
     // Safer: click once to set true, then use "I made a mistake" button IF block appears
     // Instead, use the alpha-blocker approach: toggle the safe ones first, then nitrates off
     // Re-read: handleNitrateChange fires setIsBlocked(true) when checked=true.
     // So we must NOT click nitrates to true. Instead, use page.evaluate to set the store answers directly.
     // But that defeats the UI test purpose. Use the label click pattern instead (label click = switch toggle).
-    // Actually the safest approach: toggle alpha-blockers, heart event, severe heart to false (they are already false — clicking registers them), then nitrates last as false.
+    // Actually the safest approach: toggle alpha-blockers, heart event, severe heart to false (they are already false - clicking registers them), then nitrates last as false.
     // The issue: switches start undefined not false. We just need to set edNitrates=false.
     // Only solution without hard block: click the nitrate switch label (not the switch itself) to check if toggle triggers block.
     // Per component: handleNitrateChange is called with checked=true when toggled on.
@@ -554,7 +554,7 @@ test.describe("Consult Subtype: ED — full step walkthrough", () => {
     await prevMedsSwitch.click()  // → false = complete (no = previousTreatmentComplete)
 
     // Also need to open the Heart section and confirm alpha-blockers, recent heart, severe heart
-    // are set (they default false/undefined — open the accordion and toggle+toggle to register false)
+    // are set (they default false/undefined - open the accordion and toggle+toggle to register false)
     await page.getByRole("button", { name: /Heart.*blood pressure|Heart & blood pressure/i }).click()
     await page.waitForTimeout(300)
     const alphaBlockers = page.getByRole("switch", { name: /Do you take alpha-blockers/i })
@@ -577,7 +577,7 @@ test.describe("Consult Subtype: ED — full step walkthrough", () => {
     // ── Step 4: ED Preferences ──
     await waitForStep(page, /How would you like treatment to fit your life/i)
 
-    // Select "Not sure — let the doctor decide"
+    // Select "Not sure - let the doctor decide"
     await page.getByRole("button", { name: /Not sure.*let the doctor decide/i }).click()
 
     await clickContinue(page)
@@ -597,10 +597,10 @@ test.describe("Consult Subtype: ED — full step walkthrough", () => {
 })
 
 // ---------------------------------------------------------------------------
-// Hair Loss — Full Step Walkthrough
+// Hair Loss - Full Step Walkthrough
 // ---------------------------------------------------------------------------
 
-test.describe("Consult Subtype: Hair Loss — full step walkthrough", () => {
+test.describe("Consult Subtype: Hair Loss - full step walkthrough", () => {
   test.beforeEach(async ({ page }) => {
     await clearDrafts(page)
   })
@@ -613,22 +613,22 @@ test.describe("Consult Subtype: Hair Loss — full step walkthrough", () => {
     // ── Step 1: Hair Loss Assessment ──
     await waitForStep(page, /What type of hair loss are you experiencing/i)
 
-    // Select hair pattern — "Male pattern baldness"
+    // Select hair pattern - "Male pattern baldness"
     await page.getByLabel("What type of hair loss are you experiencing").getByLabel(
       /Male pattern baldness/i
     ).click()
 
-    // Select duration — "More than 2 years"
+    // Select duration - "More than 2 years"
     await page.getByLabel("How long have you been experiencing hair loss").getByLabel(
       /More than 2 years/i
     ).click()
 
-    // Select family history — "Yes, on my father's side"
+    // Select family history - "Yes, on my father's side"
     await page.getByLabel("Do you have a family history of hair loss").getByLabel(
       /Yes, on my father/i
     ).click()
 
-    // Select medication preference — click "Finasteride (oral)" card button
+    // Select medication preference - click "Finasteride (oral)" card button
     await page.getByRole("button", { name: /Finasteride \(oral\)/i }).click()
 
     await clickContinue(page)
@@ -648,10 +648,10 @@ test.describe("Consult Subtype: Hair Loss — full step walkthrough", () => {
 })
 
 // ---------------------------------------------------------------------------
-// Women's Health — Full Step Walkthrough (UTI pathway — simplest non-blocking path)
+// Women's Health - Full Step Walkthrough (UTI pathway - simplest non-blocking path)
 // ---------------------------------------------------------------------------
 
-test.describe("Consult Subtype: Women's Health — full step walkthrough", () => {
+test.describe("Consult Subtype: Women's Health - full step walkthrough", () => {
   test.beforeEach(async ({ page }) => {
     await clearDrafts(page)
   })
@@ -664,7 +664,7 @@ test.describe("Consult Subtype: Women's Health — full step walkthrough", () =>
     // ── Step 1: Women's Health Type ──
     await waitForStep(page, /What do you need help with/i)
 
-    // Select "Oral contraceptive pill (repeat)" — non-blocking, no safety gate
+    // Select "Oral contraceptive pill (repeat)" - non-blocking, no safety gate
     await page.getByRole("button", { name: /Oral contraceptive pill \(repeat\)/i }).click()
 
     await clickContinue(page)
@@ -684,12 +684,12 @@ test.describe("Consult Subtype: Women's Health — full step walkthrough", () =>
       await contraceptionTypeGroup.getByLabel(/Continue.*repeat.*current contraception/i).click()
     }
 
-    // Current contraception — "Yes, the pill"
+    // Current contraception - "Yes, the pill"
     await page.getByLabel("Are you currently using any contraception").getByLabel(
       /Yes, the pill/i
     ).click()
 
-    // Pregnancy — "No"
+    // Pregnancy - "No"
     await page.getByLabel("Are you currently pregnant or think you might be").getByLabel(
       /^No$/i
     ).click()
@@ -722,13 +722,13 @@ test.describe("Consult Subtype: Women's Health — full step walkthrough", () =>
     // ── Step 2: Women's Health Assessment (PeriodPainAssessment path) ──
     await waitForStep(page, /How would you describe the pain severity/i)
 
-    // Severity — "Moderate"
+    // Severity - "Moderate"
     await page.getByLabel("Period pain severity").getByLabel(/^Moderate$/i).click()
 
-    // Timing — "On day 1 of my period"
+    // Timing - "On day 1 of my period"
     await page.getByLabel("When does period pain start").getByLabel(/On day 1 of my period/i).click()
 
-    // Impact — "Reduced capacity"
+    // Impact - "Reduced capacity"
     await page.getByLabel("Impact on daily activities").getByLabel(/Reduced capacity/i).click()
 
     await clickContinue(page)
@@ -748,10 +748,10 @@ test.describe("Consult Subtype: Women's Health — full step walkthrough", () =>
 })
 
 // ---------------------------------------------------------------------------
-// Weight Loss — Full Step Walkthrough
+// Weight Loss - Full Step Walkthrough
 // ---------------------------------------------------------------------------
 
-test.describe("Consult Subtype: Weight Loss — full step walkthrough", () => {
+test.describe("Consult Subtype: Weight Loss - full step walkthrough", () => {
   test.beforeEach(async ({ page }) => {
     await clearDrafts(page)
   })
@@ -773,18 +773,18 @@ test.describe("Consult Subtype: Weight Loss — full step walkthrough", () => {
     // Target weight
     await page.locator('input[placeholder="e.g., 75"]').fill("80")
 
-    // Previous attempts — "Diet and exercise only"
+    // Previous attempts - "Diet and exercise only"
     await page.getByLabel("What have you tried before").getByLabel(
       /Diet and exercise only/i
     ).click()
 
-    // Medication preference — click GLP-1 card button
+    // Medication preference - click GLP-1 card button
     await page.getByRole("button", { name: /GLP-1.*Ozempic.*Mounjaro/i }).click()
 
-    // Eating disorder history — "No"
+    // Eating disorder history - "No"
     await page.getByLabel("Eating disorder history").getByLabel(/^No$/i).click()
 
-    // Adverse reactions — "No"
+    // Adverse reactions - "No"
     await page.getByLabel("Previous adverse reactions to weight loss medications").getByLabel(
       /^No$/i
     ).click()

@@ -191,7 +191,7 @@ export function SuccessClient({
       email: patientEmail,
     })
 
-    // PostHog purchase event — completes the funnel: step_viewed → step_completed → purchase_completed
+    // PostHog purchase event - completes the funnel: step_viewed → step_completed → purchase_completed
     posthog?.capture('purchase_completed', {
       intake_id: intakeId,
       service: serviceName || "unknown",
@@ -239,7 +239,7 @@ export function SuccessClient({
           <div>
             <h2 className="text-xl font-semibold">Connection issue</h2>
             <p className="text-muted-foreground text-sm mt-1">
-              We couldn&apos;t verify your payment status. Don&apos;t worry — if you completed payment, 
+              We couldn&apos;t verify your payment status. Don&apos;t worry - if you completed payment, 
               your request is being processed.
             </p>
           </div>
@@ -271,7 +271,7 @@ export function SuccessClient({
         />
         {/* P0 FIX: Resend confirmation email button */}
         <div className="p-4 rounded-xl bg-muted/50 text-sm space-y-3">
-          <p><strong>Still confirming your payment</strong> — This can take a minute or two. Your request has been received.</p>
+          <p><strong>Still confirming your payment</strong> - This can take a minute or two. Your request has been received.</p>
           <p className="text-muted-foreground">Haven&apos;t received a confirmation email?</p>
           <Button
             variant="outline"

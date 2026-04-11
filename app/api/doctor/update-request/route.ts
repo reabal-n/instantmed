@@ -140,7 +140,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Log compliance audit event for the triage outcome.
-    // Required for AHPRA defensibility — every triage outcome must be
+    // Required for AHPRA defensibility - every triage outcome must be
     // reconstructable from the compliance_audit_log per SECURITY.md.
     // Failures are warned but never block the response: the underlying
     // intake update has already succeeded, and audit retry is downstream.

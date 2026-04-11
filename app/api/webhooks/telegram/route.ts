@@ -6,13 +6,13 @@ import { verifyIntakeAction, answerCallbackQuery, editTelegramMessage, escapeMar
 const log = createLogger("telegram-webhook")
 
 /**
- * Telegram Bot Webhook — handles inline button callbacks.
+ * Telegram Bot Webhook - handles inline button callbacks.
  * Only processes "approve" actions for med cert intakes.
  *
  * Security:
  * 1. X-Telegram-Bot-Api-Secret-Token header verified against TELEGRAM_WEBHOOK_SECRET
  * 2. chat_id verified against TELEGRAM_CHAT_ID (fail-closed if unset)
- * 3. HMAC signature on each callback action — only our server can generate valid signatures
+ * 3. HMAC signature on each callback action - only our server can generate valid signatures
  */
 export async function POST(req: Request) {
   const token = process.env.TELEGRAM_BOT_TOKEN
@@ -79,7 +79,7 @@ export async function POST(req: Request) {
   // Verify HMAC signature
   if (!verifyIntakeAction(intakeId, "approve", signature)) {
     log.warn("Invalid Telegram approval signature", { intakeId })
-    await answerCallbackQuery(callbackQuery.id, "Invalid signature — please use the dashboard")
+    await answerCallbackQuery(callbackQuery.id, "Invalid signature - please use the dashboard")
     return NextResponse.json({ ok: true })
   }
 
@@ -163,7 +163,7 @@ export async function POST(req: Request) {
       d.setDate(d.getDate() + duration - 1)
       return d.toLocaleDateString("en-CA", { timeZone: "Australia/Sydney" })
     })()
-    const medicalReason = (answers.symptoms as string) || (answers.reason as string) || (answers.medical_reason as string) || "Unwell — unfit for usual duties"
+    const medicalReason = (answers.symptoms as string) || (answers.reason as string) || (answers.medical_reason as string) || "Unwell - unfit for usual duties"
 
     // Temporarily set auth context for the server action
     // Since this is a webhook (no browser session), we call the underlying function directly
@@ -185,7 +185,7 @@ export async function POST(req: Request) {
       await editTelegramMessage(
         callbackQuery.message.chat.id,
         callbackQuery.message.message_id,
-        `✅ *Approved*\n\nRef: \`${refId}\` — certificate sent to patient\\.`,
+        `✅ *Approved*\n\nRef: \`${refId}\` - certificate sent to patient\\.`,
       )
       log.info("Med cert approved via Telegram", { intakeId, doctorId: doctorProfile.id })
     } else {

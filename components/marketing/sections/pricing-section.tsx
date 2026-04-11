@@ -25,7 +25,7 @@ export interface PricingSectionProps {
   title: string
   /** Section subheading */
   subtitle: string
-  /** Price amount (number — displayed as $XX.XX) */
+  /** Price amount (number - displayed as $XX.XX) */
   price: number
   /** Optional strikethrough original price (number renders as $XX.XX, string renders as-is) */
   originalPrice?: number | string
@@ -154,7 +154,7 @@ export function PricingSection({
           )}
         </motion.div>
 
-        {/* Comparison Table — optional */}
+        {/* Comparison Table - optional */}
         {showComparisonTable && <ComparisonTable />}
       </div>
     </section>
@@ -214,7 +214,7 @@ function renderCell(value: string | boolean) {
     return (
       <span className="text-muted-foreground/70">
         <span className="sr-only">Not included</span>
-        <span aria-hidden="true">—</span>
+        <span aria-hidden="true">-</span>
       </span>
     )
   return value

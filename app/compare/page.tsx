@@ -65,7 +65,7 @@ export default function CompareIndexPage() {
               </h1>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
                 We believe in transparency. These comparisons are honest assessments to help you 
-                choose the right care for your situation — even when that&apos;s not us.
+                choose the right care for your situation - even when that&apos;s not us.
               </p>
             </div>
           </section>

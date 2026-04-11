@@ -212,7 +212,7 @@ test.describe("Medical Certificate Approval Flow", () => {
 
     // 4. Wait for approval outcome message.
     // The component shows "success-message" when email sends, "warning-message"
-    // when email fails (expected in E2E — Resend isn't wired to test inboxes).
+    // when email fails (expected in E2E - Resend isn't wired to test inboxes).
     // Both indicate the certificate was approved successfully.
     const outcomeMessage = page.locator('[data-testid="success-message"], [data-testid="warning-message"]')
     await expect(outcomeMessage).toBeVisible({ timeout: 30000 })

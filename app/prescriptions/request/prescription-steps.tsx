@@ -25,6 +25,7 @@ import { AnimatedSelect } from "@/components/ui/animated-select"
 import { CinematicSwitch } from "@/components/ui/cinematic-switch"
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"
 import { InlineAuthStep } from "@/components/shared/inline-auth-step"
+import { PRICING_DISPLAY } from "@/lib/constants"
 import { StepHeader, OptionTile, PillButton } from "./prescription-flow-ui"
 
 // ── Constants (shared with main flow) ──────────────────────────────────
@@ -339,7 +340,7 @@ export function GatingStep({
           </div>
           <Button asChild className="w-full rounded-lg bg-linear-to-r from-blue-600 to-sky-600 hover:from-blue-700 hover:to-sky-700 text-white">
             <Link href="/consult">
-              Continue to General Consult ($49.95)
+              Continue to General Consult ({PRICING_DISPLAY.CONSULT})
             </Link>
           </Button>
         </div>

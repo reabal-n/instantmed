@@ -1,5 +1,5 @@
 /**
- * Review Follow-up Email — Day 7 post-approval
+ * Review Follow-up Email - Day 7 post-approval
  *
  * Lighter-touch follow-up using ReviewHero.
  */

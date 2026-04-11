@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
   const authError = verifyCronRequest(request)
   if (authError) return authError
 
-  // Acquire concurrency lock — prevents overlapping execution in serverless
+  // Acquire concurrency lock - prevents overlapping execution in serverless
   const lock = await acquireCronLock("follow-up-reminder")
   if (!lock.acquired) {
     return NextResponse.json({

@@ -27,7 +27,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }))
 
-  // State-level hub pages — canonical route /locations/state/<slug>
+  // State-level hub pages - canonical route /locations/state/<slug>
   // Higher priority than city pages because they rank for head terms
   // ("online doctor new south wales") that funnel down to city pages.
   const stateEntries = getAllStateSlugs().map((slug) => ({

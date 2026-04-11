@@ -191,10 +191,10 @@ const medCertRules: SafetyRule[] = [
   {
     id: 'medcert_severe_symptoms',
     name: 'Severe Symptoms',
-    description: 'Patient reports severe symptoms — not yet collected in intake UI',
+    description: 'Patient reports severe symptoms - not yet collected in intake UI',
     conditions: [
       // symptom_severity is not collected by any med cert intake step.
-      // Rule is aspirational — will fire once severity field is added to the flow.
+      // Rule is aspirational - will fire once severity field is added to the flow.
       { fieldId: 'symptom_severity', operator: 'equals', value: 'severe', derivedFrom: { type: 'duration_days', fields: ['symptoms'] } },
     ],
     outcome: 'REQUIRES_CALL',
@@ -207,10 +207,10 @@ const medCertRules: SafetyRule[] = [
   {
     id: 'medcert_mental_health',
     name: 'Mental Health Absence',
-    description: 'Absence reason is mental health — not yet collected in intake UI',
+    description: 'Absence reason is mental health - not yet collected in intake UI',
     conditions: [
       // absence_reason is not collected by any med cert intake step.
-      // Rule is aspirational — will fire once absence reason field is added to the flow.
+      // Rule is aspirational - will fire once absence reason field is added to the flow.
       { fieldId: 'absence_reason', operator: 'equals', value: 'mental_health', derivedFrom: { type: 'duration_days', fields: ['symptoms'] } },
     ],
     outcome: 'REQUEST_MORE_INFO',
@@ -246,7 +246,7 @@ const prescriptionRules: SafetyRule[] = [
   {
     id: 'rx_controlled_substance',
     name: 'Controlled Substance Request',
-    description: 'Request for S8 or controlled medication — defense-in-depth (also blocked by isControlledSubstance() in checkout action and medication step UI)',
+    description: 'Request for S8 or controlled medication - defense-in-depth (also blocked by isControlledSubstance() in checkout action and medication step UI)',
     conditions: [
       {
         fieldId: 'is_controlled',
@@ -323,7 +323,7 @@ const prescriptionRules: SafetyRule[] = [
         operator: 'equals',
         value: true,
         // Derived: would be calculated from medication + otherMedications interaction check.
-        // Currently not implemented — rule acts as a future hook for drug interaction screening.
+        // Currently not implemented - rule acts as a future hook for drug interaction screening.
         derivedFrom: { type: 'duration_days', fields: ['otherMedications', 'medicationName'] },
       },
     ],
@@ -444,7 +444,7 @@ const consultRules: SafetyRule[] = [
       { fieldId: 'consultSubtype', operator: 'equals', value: 'womens_health' },
       { fieldId: 'contraceptionType', operator: 'is_not_empty' },
       // womens_blood_clot_history: not yet collected by women's health assessment step.
-      // Rule is aspirational — will fire once blood clot screening is added.
+      // Rule is aspirational - will fire once blood clot screening is added.
       { fieldId: 'womens_blood_clot_history', operator: 'equals', value: true, derivedFrom: { type: 'duration_days', fields: ['contraceptionType'] } },
     ],
     conditionLogic: 'AND',
@@ -682,7 +682,7 @@ const consultRules: SafetyRule[] = [
     conditions: [
       { fieldId: 'consultSubtype', operator: 'equals', value: 'womens_health' },
       // womens_last_period: lastPeriod is free text in the UI, not a select with 'irregular' option.
-      // Rule is aspirational — will fire if lastPeriod is changed to structured input.
+      // Rule is aspirational - will fire if lastPeriod is changed to structured input.
       { fieldId: 'womens_last_period', operator: 'equals', value: 'irregular', derivedFrom: { type: 'duration_days', fields: ['lastPeriod'] } },
     ],
     outcome: 'REQUIRES_CALL',
@@ -749,7 +749,7 @@ const weightRules: SafetyRule[] = [
     description: 'Patient is pregnant or breastfeeding',
     conditions: [
       // weight_pregnancy_status: not yet collected in weight loss assessment step.
-      // Rule is aspirational — will fire once pregnancy screening is added.
+      // Rule is aspirational - will fire once pregnancy screening is added.
       { fieldId: 'weight_pregnancy_status', operator: 'not_equals', value: 'no', derivedFrom: { type: 'duration_days', fields: ['isPregnantOrBreastfeeding'] } },
     ],
     outcome: 'DECLINE',
@@ -802,7 +802,7 @@ const weightRules: SafetyRule[] = [
     description: 'Patient or family has history of MEN2 syndrome or medullary thyroid cancer - absolute contraindication for GLP-1 agonists',
     conditions: [
       // weight_men2_thyroid_cancer: not yet collected in weight loss assessment step.
-      // Rule is aspirational — will fire once MEN2/thyroid cancer screening is added.
+      // Rule is aspirational - will fire once MEN2/thyroid cancer screening is added.
       { fieldId: 'weight_men2_thyroid_cancer', operator: 'equals', value: true, derivedFrom: { type: 'duration_days', fields: ['weightLossMedPreference'] } },
     ],
     outcome: 'DECLINE',
@@ -818,7 +818,7 @@ const weightRules: SafetyRule[] = [
     description: 'Patient has history of pancreatitis - absolute contraindication for GLP-1 agonists',
     conditions: [
       // weight_pancreatitis: not yet collected in weight loss assessment step.
-      // Rule is aspirational — will fire once pancreatitis screening is added.
+      // Rule is aspirational - will fire once pancreatitis screening is added.
       { fieldId: 'weight_pancreatitis', operator: 'equals', value: true, derivedFrom: { type: 'duration_days', fields: ['weightLossMedPreference'] } },
     ],
     outcome: 'DECLINE',

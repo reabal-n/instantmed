@@ -46,7 +46,7 @@ export interface ExecuteCertApprovalInput {
     provider_number: string
     ahpra_number: string
   }
-  /** Skip the claim_intake_for_review RPC — used by auto-approval (no doctor "claiming") */
+  /** Skip the claim_intake_for_review RPC - used by auto-approval (no doctor "claiming") */
   skipClaim?: boolean
   /** Mark this intake as AI-approved in the database */
   aiApproved?: boolean
@@ -197,10 +197,10 @@ export async function executeCertApproval(
 
   // Duration-tier mismatch check
   if (!answersData) {
-    // Missing answers means we can't verify the paid tier — log but don't block
+    // Missing answers means we can't verify the paid tier - log but don't block
     // (auto-approval engine already hard-blocks duration_unknown before reaching here)
-    logger.warn("Certificate answers missing — cannot verify paid duration tier", { intakeId })
-    Sentry.captureMessage("Certificate approved with missing intake answers — paid tier unverifiable", {
+    logger.warn("Certificate answers missing - cannot verify paid duration tier", { intakeId })
+    Sentry.captureMessage("Certificate approved with missing intake answers - paid tier unverifiable", {
       level: "warning",
       tags: { subsystem: "cert-pipeline", intake_id: intakeId },
     })
@@ -210,7 +210,7 @@ export async function executeCertApproval(
 
   if (durationDays > paidDurationDays) {
     // Hard block: never issue more days than the patient paid for
-    logger.warn("Certificate duration exceeds paid tier — blocking approval", {
+    logger.warn("Certificate duration exceeds paid tier - blocking approval", {
       intakeId,
       paidDurationDays,
       approvedDurationDays: durationDays,
@@ -248,7 +248,7 @@ export async function executeCertApproval(
 
   const verificationCode = generateVerificationCode(certificateNumber)
 
-  // 3. Fetch doctor identity (outside the ref-retry loop — doesn't vary per attempt)
+  // 3. Fetch doctor identity (outside the ref-retry loop - doesn't vary per attempt)
   const doctorIdentityForPdf = await getDoctorIdentity(doctorProfile.id)
   if (!doctorIdentityForPdf) {
     if (!skipClaim) {
@@ -260,11 +260,11 @@ export async function executeCertApproval(
 
   // 3+4. Generate PDF + upload with certificateRef collision retry.
   //
-  // WHY upsert: false — certificateRef has 100M possibilities per type/day. A collision
+  // WHY upsert: false - certificateRef has 100M possibilities per type/day. A collision
   // (two intakes drawing the same ref) is astronomically unlikely but possible. With
   // upsert: true, Intake B would silently overwrite Intake A's PDF in storage, then the
   // DB unique constraint would reject Intake B, and its cleanup would delete the now-shared
-  // storage object — leaving Intake A's DB record pointing to a deleted file. With
+  // storage object - leaving Intake A's DB record pointing to a deleted file. With
   // upsert: false, a collision surfaces as a 409 and we regenerate the ref and re-render
   // on the next iteration. The DB UNIQUE constraint on certificate_ref is the hard guard.
   const MAX_CERT_REF_ATTEMPTS = 3
@@ -291,7 +291,7 @@ export async function executeCertApproval(
     })
 
     if (!pdfResult.success || !pdfResult.buffer) {
-      // PDF gen failure is not a ref issue — release claim and return immediately
+      // PDF gen failure is not a ref issue - release claim and return immediately
       logger.error("Failed to generate PDF", { intakeId, error: pdfResult.error })
       if (!skipClaim) {
         await supabase.rpc("release_intake_claim", { p_intake_id: intakeId, p_doctor_id: doctorProfile.id })
@@ -303,7 +303,7 @@ export async function executeCertApproval(
 
     const candidateBuffer = pdfResult.buffer
 
-    // 4. Upload — no upsert, so a collision surfaces as an error rather than silently
+    // 4. Upload - no upsert, so a collision surfaces as an error rather than silently
     //    overwriting another intake's file at the same storage path.
     Sentry.addBreadcrumb({ category: "cert.flow", message: "Uploading PDF to storage", level: "info", data: { intakeId, pdfSizeBytes: candidateBuffer.length, certAttempt } })
 
@@ -327,12 +327,12 @@ export async function executeCertApproval(
 
     if (isCollision && certAttempt < MAX_CERT_REF_ATTEMPTS - 1) {
       // Regenerate ref and re-render on next iteration
-      logger.warn("Certificate ref storage collision — regenerating ref", {
+      logger.warn("Certificate ref storage collision - regenerating ref", {
         intakeId,
         collidedRef: certificateRef,
         attempt: certAttempt,
       })
-      Sentry.captureMessage("Certificate ref storage collision — regenerating ref", {
+      Sentry.captureMessage("Certificate ref storage collision - regenerating ref", {
         level: "warning",
         tags: { subsystem: "cert-pipeline", intake_id: intakeId },
         extra: { collidedRef: certificateRef, attempt: certAttempt },
@@ -357,7 +357,7 @@ export async function executeCertApproval(
   }
 
   if (!pdfBuffer) {
-    // Defensive: loop always breaks with pdfBuffer set or returns early — this is unreachable
+    // Defensive: loop always breaks with pdfBuffer set or returns early - this is unreachable
     logger.error("Certificate ref collision exhausted all retries", { intakeId, maxAttempts: MAX_CERT_REF_ATTEMPTS })
     Sentry.captureMessage("Certificate ref collision exhausted all retries", {
       level: "error",
@@ -422,7 +422,7 @@ export async function executeCertApproval(
   const certificateId = atomicResult.certificateId
   if (!certificateId) {
     logger.error("Atomic approval succeeded but returned no certificateId", { intakeId })
-    return { success: false, error: "Certificate creation failed — missing certificate ID" }
+    return { success: false, error: "Certificate creation failed - missing certificate ID" }
   }
 
   // 5.5 Mark as AI-approved if applicable
@@ -438,9 +438,9 @@ export async function executeCertApproval(
       .eq("id", intakeId)
 
     if (aiUpdateError) {
-      // Cert is already issued — escalate so this doesn't slip through batch review
-      logger.error("Failed to set ai_approved flag — cert issued without AI tracking", { intakeId, error: aiUpdateError.message })
-      Sentry.captureMessage("ai_approved flag update failed — auto-approved cert may not appear in batch review", {
+      // Cert is already issued - escalate so this doesn't slip through batch review
+      logger.error("Failed to set ai_approved flag - cert issued without AI tracking", { intakeId, error: aiUpdateError.message })
+      Sentry.captureMessage("ai_approved flag update failed - auto-approved cert may not appear in batch review", {
         level: "error",
         tags: { subsystem: "auto-approval", intake_id: intakeId },
         extra: { certificateId, error: aiUpdateError.message },

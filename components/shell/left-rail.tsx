@@ -155,7 +155,7 @@ export function LeftRail({ userName, userAvatar, userRole }: LeftRailProps) {
       <nav className="flex-1 p-2 overflow-y-auto">
         {navItems.map((item) => {
           const Icon = item.icon
-          // Overview (/patient) uses exact match only — child routes like /patient/intakes, /patient/onboarding are distinct
+          // Overview (/patient) uses exact match only - child routes like /patient/intakes, /patient/onboarding are distinct
           const isActive = item.href === '/patient'
             ? pathname === '/patient' || pathname === '/patient/'
             : pathname === item.href || pathname?.startsWith(item.href + '/')

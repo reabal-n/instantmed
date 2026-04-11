@@ -41,20 +41,20 @@ export const guides: Record<string, GuideData> = {
     description: "A complete guide to getting a valid medical certificate for work in Australia. Learn your options, what employers accept, and the fastest ways to get one.",
     lastUpdated: "April 2026",
     readTime: "6 min read",
-    intro: "Need time off work due to illness? In Australia, employers can request a medical certificate for sick leave, especially for absences of more than 2 days. This guide explains all your options for getting one — from your regular GP to telehealth services that can have you sorted in under an hour.",
+    intro: "Need time off work due to illness? In Australia, employers can request a medical certificate for sick leave, especially for absences of more than 2 days. This guide explains all your options for getting one - from your regular GP to telehealth services that can have you sorted in under an hour.",
     steps: [
       {
         title: "Understand when you need a medical certificate",
-        content: "Under Australian workplace law, your employer can request a medical certificate for any period of sick leave. Most commonly, they'll ask for one if you're away for more than 2 consecutive days, or if there's a pattern of absences (like always being sick on Mondays). Some workplaces require certificates from day one — check your employment contract or company policy.",
+        content: "Under Australian workplace law, your employer can request a medical certificate for any period of sick leave. Most commonly, they'll ask for one if you're away for more than 2 consecutive days, or if there's a pattern of absences (like always being sick on Mondays). Some workplaces require certificates from day one - check your employment contract or company policy.",
         tips: [
-          "Check your workplace policy — some require certificates from day one",
+          "Check your workplace policy - some require certificates from day one",
           "Casual employees may still need certificates for consistent work patterns",
           "You don't need to disclose your specific diagnosis on most certificates"
         ]
       },
       {
         title: "Choose how to see a doctor",
-        content: "You have several options for getting a medical certificate in Australia. Your regular GP is always an option, but appointments can take days to get. After-hours clinics work for evenings and weekends but often have long waits. Telehealth services like InstantMed let you get assessed online — typically in under an hour, without leaving home.",
+        content: "You have several options for getting a medical certificate in Australia. Your regular GP is always an option, but appointments can take days to get. After-hours clinics work for evenings and weekends but often have long waits. Telehealth services like InstantMed let you get assessed online - typically in under an hour, without leaving home.",
         tips: [
           "GP clinics: Usually need an appointment, may have wait times of days",
           "Walk-in clinics: No appointment but often 1-2 hour waits",
@@ -63,7 +63,7 @@ export const guides: Record<string, GuideData> = {
       },
       {
         title: "Complete your consultation",
-        content: "Whether in-person or online, the doctor will ask about your symptoms, how long you've been unwell, and how it's affecting your ability to work. Be honest — doctors can tell when symptoms don't match up, and it's not worth the risk to your professional reputation. For telehealth, you'll typically fill out a questionnaire and may exchange messages with the doctor.",
+        content: "Whether in-person or online, the doctor will ask about your symptoms, how long you've been unwell, and how it's affecting your ability to work. Be honest - doctors can tell when symptoms don't match up, and it's not worth the risk to your professional reputation. For telehealth, you'll typically fill out a questionnaire and may exchange messages with the doctor.",
         tips: [
           "Describe your symptoms clearly and honestly",
           "Mention how your condition affects your ability to do your job",
@@ -81,14 +81,14 @@ export const guides: Record<string, GuideData> = {
       },
       {
         title: "Submit to your employer",
-        content: "Most employers accept certificates via email. Simply forward the PDF or attach it to your leave request in your HR system. Some employers may want the original for their files — you can print the PDF or ask if a digital copy is acceptable. The certificate is a legal medical document, so treat it accordingly."
+        content: "Most employers accept certificates via email. Simply forward the PDF or attach it to your leave request in your HR system. Some employers may want the original for their files - you can print the PDF or ask if a digital copy is acceptable. The certificate is a legal medical document, so treat it accordingly."
       }
     ],
     importantNotes: [
       "Medical certificates from telehealth services are legally valid and accepted by all Australian employers",
       "Doctors cannot backdate certificates for days they didn't assess you (though they may certify recent days if clinically appropriate)",
       "Faking illness or providing false information to obtain a certificate is fraud and grounds for dismissal",
-      "You have the right to privacy — your employer can request a certificate but cannot demand to know your diagnosis"
+      "You have the right to privacy - your employer can request a certificate but cannot demand to know your diagnosis"
     ],
     faqs: [
       {
@@ -131,35 +131,35 @@ export const guides: Record<string, GuideData> = {
         content: "Each university has its own policies for medical documentation. Most require certificates for missed exams (special consideration), assignment extensions beyond a few days, and prolonged absences. Check your university's special consideration or academic support pages for specific requirements.",
         tips: [
           "Most unis have online portals for special consideration applications",
-          "Deadlines for applications vary — some require submission within days",
+          "Deadlines for applications vary - some require submission within days",
           "Some universities have their own medical certificate forms"
         ]
       },
       {
         title: "Get your medical certificate",
-        content: "You can get a certificate from any registered Australian doctor — your GP, a clinic, or a telehealth service. For time-sensitive situations like missed exams, telehealth is often the fastest option. The certificate needs to cover the relevant dates and indicate that you were unfit for study or to attend the exam.",
+        content: "You can get a certificate from any registered Australian doctor - your GP, a clinic, or a telehealth service. For time-sensitive situations like missed exams, telehealth is often the fastest option. The certificate needs to cover the relevant dates and indicate that you were unfit for study or to attend the exam.",
         tips: [
           "Make sure the certificate covers the specific dates you need",
           "If you missed an exam, the certificate should cover that specific date",
-          "Get your certificate as soon as possible — don't wait until you've recovered"
+          "Get your certificate as soon as possible - don't wait until you've recovered"
         ]
       },
       {
         title: "Submit your application",
         content: "Most universities have online systems for submitting special consideration requests or extension applications. You'll typically need to upload your medical certificate, explain how your illness affected your studies, and submit within the specified timeframe. Keep copies of everything you submit.",
         tips: [
-          "Submit as early as possible — deadlines are often strict",
+          "Submit as early as possible - deadlines are often strict",
           "Include a brief explanation of how your illness impacted your work",
           "Check if you need to notify your lecturer/tutor separately"
         ]
       },
       {
         title: "Follow up if needed",
-        content: "After submitting, you should receive confirmation. If your application is approved, you'll be informed of the outcome — this might be a deferred exam, extension, or other arrangement. If there are any issues with your documentation, the university will usually contact you to request more information."
+        content: "After submitting, you should receive confirmation. If your application is approved, you'll be informed of the outcome - this might be a deferred exam, extension, or other arrangement. If there are any issues with your documentation, the university will usually contact you to request more information."
       }
     ],
     importantNotes: [
-      "Universities accept medical certificates from telehealth services — they're issued by registered doctors",
+      "Universities accept medical certificates from telehealth services - they're issued by registered doctors",
       "Apply for special consideration as soon as possible, even if you're still unwell",
       "Keep records of all your submissions and communications",
       "If you're experiencing ongoing health issues affecting your studies, talk to your university's student support services"
@@ -175,7 +175,7 @@ export const guides: Record<string, GuideData> = {
       },
       {
         q: "Can I get a certificate for mental health reasons?",
-        a: "Absolutely. Mental health conditions are legitimate medical reasons for special consideration. You don't need to disclose your specific diagnosis — the certificate just needs to confirm you were unfit for study."
+        a: "Absolutely. Mental health conditions are legitimate medical reasons for special consideration. You don't need to disclose your specific diagnosis - the certificate just needs to confirm you were unfit for study."
       },
       {
         q: "How specific does the certificate need to be?",
@@ -191,7 +191,7 @@ export const guides: Record<string, GuideData> = {
   "telehealth-guide-australia": {
     title: "Complete Guide to Telehealth in Australia",
     slug: "telehealth-guide-australia",
-    description: "Everything you need to know about telehealth in Australia — what it is, how it works, what can be treated, and how to choose a telehealth service.",
+    description: "Everything you need to know about telehealth in Australia - what it is, how it works, what can be treated, and how to choose a telehealth service.",
     lastUpdated: "April 2026",
     readTime: "8 min read",
     intro: "Telehealth has transformed healthcare access in Australia, especially since 2020. Whether you're in a remote area, have mobility issues, or simply prefer the convenience, telehealth offers a legitimate alternative to in-person GP visits for many health concerns. Here's everything you need to know.",
@@ -241,7 +241,7 @@ export const guides: Record<string, GuideData> = {
     ],
     importantNotes: [
       "Always use services staffed by AHPRA-registered Australian doctors",
-      "Telehealth is not appropriate for emergencies — call 000",
+      "Telehealth is not appropriate for emergencies - call 000",
       "E-prescriptions from telehealth work at any Australian pharmacy",
       "Your telehealth records are part of your medical history and subject to the same privacy protections",
       "If a telehealth doctor thinks you need in-person care, they'll tell you"
@@ -249,7 +249,7 @@ export const guides: Record<string, GuideData> = {
     faqs: [
       {
         q: "Is telehealth as good as seeing a doctor in person?",
-        a: "For appropriate conditions, telehealth can be just as effective. Many health issues don't require physical examination. However, telehealth isn't suitable for everything — a good telehealth service will refer you for in-person care when needed."
+        a: "For appropriate conditions, telehealth can be just as effective. Many health issues don't require physical examination. However, telehealth isn't suitable for everything - a good telehealth service will refer you for in-person care when needed."
       },
       {
         q: "Are telehealth prescriptions legitimate?",
@@ -280,14 +280,14 @@ export const guides: Record<string, GuideData> = {
     description: "Need a medical certificate for Centrelink or a government agency? Learn what's required for each payment type, how to get one, and avoid common mistakes.",
     lastUpdated: "April 2026",
     readTime: "7 min read",
-    intro: "Centrelink and Services Australia require medical certificates in a range of situations — from meeting mutual obligation requirements on JobSeeker to supporting Disability Support Pension claims. The requirements differ by payment type, and getting the wrong certificate can delay your payments. This guide covers what each situation needs and the fastest way to get compliant documentation.",
+    intro: "Centrelink and Services Australia require medical certificates in a range of situations - from meeting mutual obligation requirements on JobSeeker to supporting Disability Support Pension claims. The requirements differ by payment type, and getting the wrong certificate can delay your payments. This guide covers what each situation needs and the fastest way to get compliant documentation.",
     steps: [
       {
         title: "Identify which Centrelink situation applies to you",
         content: "Centrelink uses medical certificates differently depending on your payment type. For JobSeeker Payment, a certificate can temporarily exempt you from mutual obligation activities (looking for work, attending appointments). For Disability Support Pension (DSP), medical evidence supports your initial claim or review. For Carer Payment, certificates document the condition of the person you care for. For Parenting Payment, certificates can support exemptions from participation requirements. Check your Centrelink online account or latest correspondence to confirm exactly what's been requested.",
         tips: [
           "JobSeeker: Certificate exempts you from activities for a set period (usually 1–13 weeks)",
-          "DSP: Requires comprehensive medical evidence — often from a GP who knows your history",
+          "DSP: Requires comprehensive medical evidence - often from a GP who knows your history",
           "Carer Payment: Certificate is about the care recipient, not you",
           "If in doubt, call Centrelink (132 850) and ask what format they need before seeing a doctor"
         ]
@@ -296,37 +296,37 @@ export const guides: Record<string, GuideData> = {
         title: "Understand what the certificate needs to include",
         content: "Standard medical certificates (date, 'unfit for work', doctor details) are often insufficient for Centrelink purposes. Centrelink frequently needs certificates that specify your condition, how it affects your functional capacity, the expected duration, and whether it's temporary or permanent. For participation exemptions, the certificate should state that you're unable to meet your obligations due to your medical condition. Some payment types require a Centrelink-specific form (e.g. SU415 for DSP medical evidence) rather than a standard certificate.",
         tips: [
-          "Ask your doctor to include functional impact — not just a diagnosis",
+          "Ask your doctor to include functional impact - not just a diagnosis",
           "Specify the time period clearly (from date X to date Y)",
           "For DSP claims, Centrelink has specific forms your doctor needs to complete",
-          "A generic 'unfit for work' certificate may not be accepted — include detail"
+          "A generic 'unfit for work' certificate may not be accepted - include detail"
         ]
       },
       {
         title: "See a doctor who can assess your condition",
-        content: "For straightforward short-term exemptions (e.g. you have the flu and can't attend an appointment), a telehealth doctor can assess and issue an appropriate certificate. For ongoing or complex claims — DSP applications, long-term exemptions, functional assessments — Centrelink typically expects evidence from a doctor who knows your history. Your regular GP is usually the best option for these. If you don't have a regular GP, a telehealth service can provide initial documentation while you establish ongoing care.",
+        content: "For straightforward short-term exemptions (e.g. you have the flu and can't attend an appointment), a telehealth doctor can assess and issue an appropriate certificate. For ongoing or complex claims - DSP applications, long-term exemptions, functional assessments - Centrelink typically expects evidence from a doctor who knows your history. Your regular GP is usually the best option for these. If you don't have a regular GP, a telehealth service can provide initial documentation while you establish ongoing care.",
         tips: [
           "Telehealth works for: short-term exemptions, acute illness, straightforward certificates",
           "Your regular GP is better for: DSP applications, long-term conditions, functional assessments",
-          "The doctor must have assessed you — pre-dated or backdated certificates have limits",
+          "The doctor must have assessed you - pre-dated or backdated certificates have limits",
           "If you need a Centrelink-specific form completed, confirm the doctor can do this before your appointment"
         ]
       },
       {
         title: "Submit the certificate to Centrelink",
-        content: "Centrelink accepts medical certificates through several channels: the myGov app (upload a photo or scan), the Centrelink online portal, in person at a Centrelink office, or by post. The myGov app is fastest — you can photograph the certificate and submit immediately. Always submit before any deadlines stated in your correspondence. Late submissions can result in payment suspensions or participation failures being recorded.",
+        content: "Centrelink accepts medical certificates through several channels: the myGov app (upload a photo or scan), the Centrelink online portal, in person at a Centrelink office, or by post. The myGov app is fastest - you can photograph the certificate and submit immediately. Always submit before any deadlines stated in your correspondence. Late submissions can result in payment suspensions or participation failures being recorded.",
         tips: [
-          "MyGov app upload is the fastest method — usually processed within 1–2 business days",
+          "MyGov app upload is the fastest method - usually processed within 1–2 business days",
           "Keep the original certificate and a digital copy for your records",
           "Note any reference numbers or confirmation receipts from the submission",
-          "If your payment is suspended pending a certificate, submit ASAP — delays cost you money"
+          "If your payment is suspended pending a certificate, submit ASAP - delays cost you money"
         ]
       },
       {
         title: "Follow up if there are issues",
         content: "If Centrelink rejects your certificate or requests additional information, don't panic. Common rejection reasons include: certificate doesn't specify functional capacity, wrong date range, certificate doesn't match the requested format, or the condition needs more detailed documentation. Contact Centrelink to understand exactly what's missing, then see your doctor again with that specific feedback. Most issues can be resolved with a revised certificate.",
         tips: [
-          "Ask Centrelink specifically what was wrong — vague feedback wastes time",
+          "Ask Centrelink specifically what was wrong - vague feedback wastes time",
           "Take Centrelink's feedback letter to your doctor so they know what to include",
           "If you disagree with a decision, you have the right to request a review",
           "Free legal help is available through Legal Aid and community legal centres"
@@ -334,10 +334,10 @@ export const guides: Record<string, GuideData> = {
       }
     ],
     importantNotes: [
-      "Centrelink requirements differ by payment type — always check what's specifically required before seeing a doctor",
-      "Standard 'unfit for work' certificates are often insufficient — Centrelink frequently needs functional capacity details",
+      "Centrelink requirements differ by payment type - always check what's specifically required before seeing a doctor",
+      "Standard 'unfit for work' certificates are often insufficient - Centrelink frequently needs functional capacity details",
       "For DSP claims, Centrelink has specific medical forms (SU415) that your doctor needs to complete",
-      "Backdating has strict limits — doctors can only certify conditions they've actually assessed",
+      "Backdating has strict limits - doctors can only certify conditions they've actually assessed",
       "If you're having trouble getting the right documentation, community legal centres can help for free"
     ],
     faqs: [
@@ -374,15 +374,15 @@ export const guides: Record<string, GuideData> = {
       }
     ],
     importantNotes: [
-      "Never use telehealth for emergencies — call 000",
+      "Never use telehealth for emergencies - call 000",
       "Telehealth doctors will tell you if you need in-person care",
-      "You can use both — telehealth for convenience, GP for ongoing care",
-      "When unsure, start with telehealth — they'll guide you"
+      "You can use both - telehealth for convenience, GP for ongoing care",
+      "When unsure, start with telehealth - they'll guide you"
     ],
     faqs: [
-      { q: "Can a telehealth doctor refuse to help?", a: "Yes. If they think you need in-person care, they'll explain why and may decline to treat. This is good clinical practice — they're protecting your safety." },
+      { q: "Can a telehealth doctor refuse to help?", a: "Yes. If they think you need in-person care, they'll explain why and may decline to treat. This is good clinical practice - they're protecting your safety." },
       { q: "What if I start with telehealth and need more?", a: "The doctor will advise. You might need a referral, to see your GP, or to go to emergency. Telehealth is often a useful first step that can save you an unnecessary trip." },
-      { q: "Is telehealth good for children?", a: "Some conditions yes, some no. Children under 12 often need in-person assessment. Check with the telehealth service — many have age restrictions for safety." }
+      { q: "Is telehealth good for children?", a: "Some conditions yes, some no. Children under 12 often need in-person assessment. Check with the telehealth service - many have age restrictions for safety." }
     ],
     cta: { text: "Try telehealth", href: "/request", subtext: "Australian doctors · See if we can help" }
   },
@@ -392,7 +392,7 @@ export const guides: Record<string, GuideData> = {
     description: "Need a repeat prescription but can't get to your GP? Learn how to get prescriptions renewed online in Australia.",
     lastUpdated: "April 2026",
     readTime: "5 min read",
-    intro: "Repeat prescriptions for stable conditions can often be renewed via telehealth. If you're running low on medication and can't get a GP appointment, online services may be able to help — as long as your condition is suitable for remote assessment.",
+    intro: "Repeat prescriptions for stable conditions can often be renewed via telehealth. If you're running low on medication and can't get a GP appointment, online services may be able to help - as long as your condition is suitable for remote assessment.",
     steps: [
       {
         title: "Check if your medication can be prescribed online",
@@ -406,19 +406,19 @@ export const guides: Record<string, GuideData> = {
       },
       {
         title: "Request your prescription",
-        content: "Complete the online form or consultation. The doctor will review your history and, if appropriate, issue an eScript. You'll receive a QR code or token via SMS to take to any pharmacy. The pharmacy dispenses your medication — same as a paper script.",
+        content: "Complete the online form or consultation. The doctor will review your history and, if appropriate, issue an eScript. You'll receive a QR code or token via SMS to take to any pharmacy. The pharmacy dispenses your medication - same as a paper script.",
         tips: ["eScripts work at any Australian pharmacy", "No need to collect a paper script", "Keep the SMS until you've collected your medication"]
       }
     ],
     importantNotes: [
-      "Not all medications can be prescribed online — check first",
+      "Not all medications can be prescribed online - check first",
       "You may need to see your regular GP for some repeats",
       "eScripts are legally equivalent to paper prescriptions",
       "Schedule 8 drugs require in-person assessment"
     ],
     faqs: [
       { q: "Can I get any repeat prescription online?", a: "No. Schedule 8 drugs, some psychiatric medications, and medications requiring monitoring typically need in-person review. Common S4 medications are often available." },
-      { q: "How do eScripts work?", a: "You receive a QR code or token via SMS. Take it to any pharmacy — they scan it and dispense your medication. No paper needed." },
+      { q: "How do eScripts work?", a: "You receive a QR code or token via SMS. Take it to any pharmacy - they scan it and dispense your medication. No paper needed." },
       { q: "Will my regular GP know?", a: "Only if you or the telehealth service shares the information. For continuity, consider asking for a summary to be sent to your GP." }
     ],
     cta: { text: "Request a repeat prescription", href: "/prescriptions", subtext: `${PRICING_DISPLAY.FROM_SCRIPT} · eScript to your phone` }
@@ -429,34 +429,34 @@ export const guides: Record<string, GuideData> = {
     description: "Need time off to care for a sick family member? Learn your carer's leave entitlements, how to get a medical certificate, and what your employer can and can't ask.",
     lastUpdated: "April 2026",
     readTime: "6 min read",
-    intro: "When a family member or household member is ill and needs your care, you're entitled to take time off work under Australian law. If your employer requests evidence, you'll need a medical certificate — but it works differently from a personal sick leave certificate. Here's everything you need to know about carer's leave documentation.",
+    intro: "When a family member or household member is ill and needs your care, you're entitled to take time off work under Australian law. If your employer requests evidence, you'll need a medical certificate - but it works differently from a personal sick leave certificate. Here's everything you need to know about carer's leave documentation.",
     steps: [
       {
         title: "Understand your carer's leave entitlements",
         content: "Under the Fair Work Act 2009, all full-time and part-time employees are entitled to 10 days of paid personal/carer's leave per year, which accumulates and rolls over. Carer's leave comes from the same pool as your personal sick leave. You can take carer's leave when an immediate family member (spouse, child, parent, grandparent, sibling) or household member is ill, injured, or facing an unexpected emergency. Casual employees are entitled to 2 days of unpaid carer's leave per occasion.",
         tips: [
           "10 days per year for full-time employees, pro-rata for part-time",
-          "Same leave balance as personal sick leave — they share a pool",
+          "Same leave balance as personal sick leave - they share a pool",
           "Covers immediate family AND household members (including de facto partners)",
-          "Casual employees get 2 days unpaid per occasion — no accumulation",
+          "Casual employees get 2 days unpaid per occasion - no accumulation",
           "You don't need to exhaust your own sick leave before using carer's leave"
         ]
       },
       {
         title: "Know when a certificate is required",
-        content: "Your employer can request evidence that you needed to provide care. This is most common for absences of 2+ consecutive days, but some workplace policies require evidence from day one. The evidence needs to show that the person required care — not that you yourself were unwell. A medical certificate, statutory declaration, or pharmacy receipt can all serve as evidence, though most employers prefer a certificate.",
+        content: "Your employer can request evidence that you needed to provide care. This is most common for absences of 2+ consecutive days, but some workplace policies require evidence from day one. The evidence needs to show that the person required care - not that you yourself were unwell. A medical certificate, statutory declaration, or pharmacy receipt can all serve as evidence, though most employers prefer a certificate.",
         tips: [
           "Most employers require evidence for 2+ days, but check your workplace policy",
           "A statutory declaration is a legal alternative to a medical certificate",
-          "Evidence needs to document the care recipient's need — not your own health",
+          "Evidence needs to document the care recipient's need - not your own health",
           "Keep text messages and pharmacy receipts as backup evidence"
         ]
       },
       {
         title: "Get a medical certificate via telehealth",
-        content: "Telehealth is particularly suited to carer's leave certificates because you probably can't leave the person you're caring for. You describe who needs care, their symptoms or condition, and how they require your assistance. The doctor assesses the situation and issues a certificate stating that the person needed care. The certificate doesn't need to include the care recipient's specific diagnosis — only that they required care.",
+        content: "Telehealth is particularly suited to carer's leave certificates because you probably can't leave the person you're caring for. You describe who needs care, their symptoms or condition, and how they require your assistance. The doctor assesses the situation and issues a certificate stating that the person needed care. The certificate doesn't need to include the care recipient's specific diagnosis - only that they required care.",
         tips: [
-          "Complete the form from home — no need to leave the person you're caring for",
+          "Complete the form from home - no need to leave the person you're caring for",
           "You describe the situation on behalf of the care recipient",
           "The certificate states they needed care, not necessarily what was wrong",
           "If the care recipient is a child, you complete the form as the parent/guardian"
@@ -464,9 +464,9 @@ export const guides: Record<string, GuideData> = {
       },
       {
         title: "Submit to your employer",
-        content: "Forward the certificate to HR or your manager as soon as practical. Carer's leave is a protected entitlement under the Fair Work Act — your employer cannot unreasonably refuse it when you provide the required evidence. They can ask when you expect to return and whether the person's condition is ongoing, but they cannot demand the care recipient's diagnosis or medical details.",
+        content: "Forward the certificate to HR or your manager as soon as practical. Carer's leave is a protected entitlement under the Fair Work Act - your employer cannot unreasonably refuse it when you provide the required evidence. They can ask when you expect to return and whether the person's condition is ongoing, but they cannot demand the care recipient's diagnosis or medical details.",
         tips: [
-          "Submit promptly — ideally before or on the day of your absence",
+          "Submit promptly - ideally before or on the day of your absence",
           "Keep a copy for your records (digital and physical)",
           "Your employer can ask when you'll be back but not the diagnosis",
           "If your employer refuses legitimate carer's leave, contact Fair Work on 13 13 94"
@@ -474,16 +474,16 @@ export const guides: Record<string, GuideData> = {
       }
     ],
     importantNotes: [
-      "Carer's leave is a legally protected entitlement — employers cannot unreasonably refuse it with valid evidence",
+      "Carer's leave is a legally protected entitlement - employers cannot unreasonably refuse it with valid evidence",
       "The certificate documents the care recipient's need, not your own illness",
-      "You don't need to be a 'carer' in the Centrelink sense — any immediate family or household member qualifies",
+      "You don't need to be a 'carer' in the Centrelink sense - any immediate family or household member qualifies",
       "Telehealth is ideal because you can get the certificate without leaving the person you're caring for",
-      "If you're regularly taking carer's leave, talk to your employer about flexible work arrangements — you may have additional rights"
+      "If you're regularly taking carer's leave, talk to your employer about flexible work arrangements - you may have additional rights"
     ],
     faqs: [
       { q: "Can I get a carer's leave certificate online?", a: "Yes. You describe who needs care and their situation. The doctor assesses and issues a certificate confirming the person required care. This is especially practical when you can't leave the unwell person to visit a GP." },
       { q: "What if my child is the one who's sick?", a: "Same process. You complete the form on their behalf as the parent or guardian. The certificate documents that your child needed care. This covers common situations like childhood gastro, fever, or any illness requiring a parent at home." },
-      { q: "Do I need to say what was wrong with them?", a: "The certificate states that the person needed care. A specific diagnosis is not required — your employer only needs to know that a family or household member was unwell and required your care. Privacy protections apply to the care recipient just as they would to you." },
+      { q: "Do I need to say what was wrong with them?", a: "The certificate states that the person needed care. A specific diagnosis is not required - your employer only needs to know that a family or household member was unwell and required your care. Privacy protections apply to the care recipient just as they would to you." },
       { q: "Can I take carer's leave for a mental health crisis?", a: "Yes. If a family member is experiencing a mental health episode that requires your care and supervision, carer's leave applies. The certificate documents the need for care without disclosing the nature of the condition." },
       { q: "Can both parents take carer's leave for the same child?", a: "Both parents can take carer's leave simultaneously if the situation warrants it (e.g. a seriously ill child). Each parent uses their own leave balance and provides their own evidence." }
     ],
@@ -495,11 +495,11 @@ export const guides: Record<string, GuideData> = {
     description: "Never used telehealth before? This guide walks you through your first online doctor consultation step by step.",
     lastUpdated: "April 2026",
     readTime: "5 min read",
-    intro: "Telehealth — seeing a doctor online — has become common in Australia. If you haven't tried it yet, this guide explains what to expect, how to prepare, and what you can get from your first consultation.",
+    intro: "Telehealth - seeing a doctor online - has become common in Australia. If you haven't tried it yet, this guide explains what to expect, how to prepare, and what you can get from your first consultation.",
     steps: [
       {
         title: "Choose a telehealth service",
-        content: "Look for services with AHPRA-registered doctors, clear pricing, and good reviews. Check what they offer — medical certificates, prescriptions, or general consultations. Some specialise; others offer a range of services.",
+        content: "Look for services with AHPRA-registered doctors, clear pricing, and good reviews. Check what they offer - medical certificates, prescriptions, or general consultations. Some specialise; others offer a range of services.",
         tips: ["Verify doctors are AHPRA-registered", "Check operating hours", "Understand the fees before you start"]
       },
       {
@@ -514,7 +514,7 @@ export const guides: Record<string, GuideData> = {
       }
     ],
     importantNotes: [
-      "Not all conditions can be assessed online — the doctor will advise",
+      "Not all conditions can be assessed online - the doctor will advise",
       "Telehealth is legally equivalent to in-person for appropriate conditions",
       "Your privacy is protected by the same laws as in-person care"
     ],
@@ -535,12 +535,12 @@ export const guides: Record<string, GuideData> = {
     steps: [
       {
         title: "Understand bulk billing vs private",
-        content: "Bulk-billed telehealth means the provider claims Medicare directly — you pay nothing. Private telehealth services charge a fee; some allow you to claim a rebate (you pay upfront, then get a partial refund from Medicare).",
+        content: "Bulk-billed telehealth means the provider claims Medicare directly - you pay nothing. Private telehealth services charge a fee; some allow you to claim a rebate (you pay upfront, then get a partial refund from Medicare).",
         tips: ["Bulk billing = no out-of-pocket", "Private = pay then claim", "Rebate amount depends on the consultation type"]
       },
       {
         title: "Check if you can claim",
-        content: "To claim a Medicare rebate, you need a valid Medicare card and the consultation must meet Medicare's requirements. Some telehealth services don't offer rebates — they're private only. Check before you book.",
+        content: "To claim a Medicare rebate, you need a valid Medicare card and the consultation must meet Medicare's requirements. Some telehealth services don't offer rebates - they're private only. Check before you book.",
         tips: ["You need a Medicare card", "Not all services offer rebates", "The service will advise if you can claim"]
       },
       {
@@ -550,14 +550,14 @@ export const guides: Record<string, GuideData> = {
       }
     ],
     importantNotes: [
-      "Bulk billing availability has decreased — many services are private",
-      "Private doesn't mean you can't claim — check with the service",
+      "Bulk billing availability has decreased - many services are private",
+      "Private doesn't mean you can't claim - check with the service",
       "Rebate amounts are set by Medicare, not the provider"
     ],
     faqs: [
       { q: "How much can I claim back?", a: "It depends on the consultation type. Standard GP consultations have a set rebate (around $40-50). The service can advise the item number and expected rebate." },
       { q: "Can I claim for medical certificates?", a: "If the service bulk bills or allows claims, yes. The consultation is the same whether you get a certificate or not." },
-      { q: "What if I don't have Medicare?", a: "You'll pay the full private fee. Some visitors and new residents may not yet have Medicare — check your eligibility." }
+      { q: "What if I don't have Medicare?", a: "You'll pay the full private fee. Some visitors and new residents may not yet have Medicare - check your eligibility." }
     ],
     cta: { text: "See our pricing", href: "/pricing", subtext: "Transparent fees · No surprises" }
   },
@@ -571,7 +571,7 @@ export const guides: Record<string, GuideData> = {
     steps: [
       {
         title: "What employers can request",
-        content: "Under the Fair Work Act, employers can request evidence that you were unfit for work. A medical certificate from a registered practitioner is sufficient. It typically needs to state the dates you were unfit — it does NOT need to disclose your diagnosis.",
+        content: "Under the Fair Work Act, employers can request evidence that you were unfit for work. A medical certificate from a registered practitioner is sufficient. It typically needs to state the dates you were unfit - it does NOT need to disclose your diagnosis.",
         tips: ["Certificate confirms unfitness", "Dates are usually required", "Diagnosis is private"]
       },
       {
@@ -586,7 +586,7 @@ export const guides: Record<string, GuideData> = {
       }
     ],
     importantNotes: [
-      "A medical certificate confirms unfitness — it doesn't need diagnosis details",
+      "A medical certificate confirms unfitness - it doesn't need diagnosis details",
       "Employers must accept valid certificates from registered doctors",
       "You have a right to medical privacy"
     ],
@@ -600,26 +600,26 @@ export const guides: Record<string, GuideData> = {
   "escript-vs-paper-prescription": {
     title: "eScript vs Paper Prescription in Australia: Complete Guide",
     slug: "escript-vs-paper-prescription",
-    description: "Everything you need to know about electronic prescriptions (eScripts) in Australia — how they work, where they're accepted, repeats, and common questions.",
+    description: "Everything you need to know about electronic prescriptions (eScripts) in Australia - how they work, where they're accepted, repeats, and common questions.",
     lastUpdated: "April 2026",
     readTime: "6 min read",
     intro: "Australia has largely transitioned from paper prescriptions to electronic prescriptions (eScripts). Instead of a paper script you can lose or forget, you receive a QR code on your phone that any pharmacy can scan. Here's how the system works, what happens with repeats, and answers to common questions.",
     steps: [
       {
         title: "How eScripts work in practice",
-        content: "When a doctor prescribes medication — whether in person or via telehealth — they generate an electronic prescription. You receive an SMS or email containing a QR code (called a 'token'). Walk into any pharmacy in Australia, show the QR code on your phone, and the pharmacist scans it to dispense your medication. The entire system is managed through the Australian Digital Health Agency's Electronic Prescription Service, which all pharmacies are connected to.",
+        content: "When a doctor prescribes medication - whether in person or via telehealth - they generate an electronic prescription. You receive an SMS or email containing a QR code (called a 'token'). Walk into any pharmacy in Australia, show the QR code on your phone, and the pharmacist scans it to dispense your medication. The entire system is managed through the Australian Digital Health Agency's Electronic Prescription Service, which all pharmacies are connected to.",
         tips: [
-          "You receive the token instantly via SMS — no waiting for paper",
+          "You receive the token instantly via SMS - no waiting for paper",
           "The QR code contains encrypted prescription details the pharmacist can read",
-          "eScripts are stored on the prescription exchange — they don't 'live' on your phone",
+          "eScripts are stored on the prescription exchange - they don't 'live' on your phone",
           "If you delete the SMS, the prescription still exists and can be retrieved"
         ]
       },
       {
         title: "How repeats work with eScripts",
-        content: "If your doctor prescribes repeats, they're all encoded in the same token. When the pharmacist dispenses your first supply, the remaining repeats stay in the system. For your next repeat, you can return to any pharmacy — they look up the prescription by your details or a new token. Some pharmacy apps (like MedView or your pharmacy's app) can manage your repeat reminders automatically. You don't need to keep the original SMS for repeats, though it's handy for the first fill.",
+        content: "If your doctor prescribes repeats, they're all encoded in the same token. When the pharmacist dispenses your first supply, the remaining repeats stay in the system. For your next repeat, you can return to any pharmacy - they look up the prescription by your details or a new token. Some pharmacy apps (like MedView or your pharmacy's app) can manage your repeat reminders automatically. You don't need to keep the original SMS for repeats, though it's handy for the first fill.",
         tips: [
-          "Repeats are tracked digitally — no separate paper repeat forms",
+          "Repeats are tracked digitally - no separate paper repeat forms",
           "Any pharmacy can access your remaining repeats (with your consent)",
           "Pharmacy apps can send you reminders when repeats are due",
           "Your pharmacist can tell you how many repeats remain"
@@ -627,30 +627,30 @@ export const guides: Record<string, GuideData> = {
       },
       {
         title: "Advantages over paper prescriptions",
-        content: "eScripts solve several long-standing problems with paper prescriptions. You can't lose them (they're digital and retrievable). They work seamlessly with telehealth — no need to visit a clinic to collect paper. You're not locked into one pharmacy — any pharmacy nationwide can fill them. Doctors can issue them after-hours without you needing to pick up paper. And they're more secure — harder to forge or alter than paper scripts.",
+        content: "eScripts solve several long-standing problems with paper prescriptions. You can't lose them (they're digital and retrievable). They work seamlessly with telehealth - no need to visit a clinic to collect paper. You're not locked into one pharmacy - any pharmacy nationwide can fill them. Doctors can issue them after-hours without you needing to pick up paper. And they're more secure - harder to forge or alter than paper scripts.",
         tips: [
-          "No lost prescriptions — the token can be reissued if needed",
-          "Use any pharmacy in Australia — no geographic lock-in",
-          "Perfect for telehealth — prescription arrives on your phone within minutes",
-          "More secure than paper — encrypted and tamper-resistant",
-          "Environmentally better — no paper waste"
+          "No lost prescriptions - the token can be reissued if needed",
+          "Use any pharmacy in Australia - no geographic lock-in",
+          "Perfect for telehealth - prescription arrives on your phone within minutes",
+          "More secure than paper - encrypted and tamper-resistant",
+          "Environmentally better - no paper waste"
         ]
       },
       {
         title: "When you might still encounter paper",
-        content: "While eScripts are now the default, some situations may still involve paper prescriptions. A small number of very old prescribing systems haven't transitioned yet. Some patients prefer paper — you can ask your doctor for a printed version. Certain hospital discharge prescriptions may still be on paper. And some compounding pharmacies prefer paper for complex preparations. In all cases, paper scripts remain legally valid alongside eScripts.",
+        content: "While eScripts are now the default, some situations may still involve paper prescriptions. A small number of very old prescribing systems haven't transitioned yet. Some patients prefer paper - you can ask your doctor for a printed version. Certain hospital discharge prescriptions may still be on paper. And some compounding pharmacies prefer paper for complex preparations. In all cases, paper scripts remain legally valid alongside eScripts.",
         tips: [
-          "You can request a paper script if you prefer — just ask your doctor",
+          "You can request a paper script if you prefer - just ask your doctor",
           "Some hospital discharge scripts may still be paper",
           "Paper and electronic prescriptions have identical legal standing",
-          "Pharmacies accept both — they won't refuse a valid paper script"
+          "Pharmacies accept both - they won't refuse a valid paper script"
         ]
       }
     ],
     importantNotes: [
       "eScripts are legally equivalent to paper prescriptions under Australian law",
-      "All Australian pharmacies — chains and independents — can dispense from eScripts",
-      "You don't need a smartphone — the token code can be read out or printed",
+      "All Australian pharmacies - chains and independents - can dispense from eScripts",
+      "You don't need a smartphone - the token code can be read out or printed",
       "eScripts work for PBS (subsidised) and private prescriptions",
       "Schedule 8 (controlled substance) prescriptions have additional requirements that vary by state"
     ],
@@ -658,7 +658,7 @@ export const guides: Record<string, GuideData> = {
       { q: "Do all pharmacies accept eScripts?", a: "Yes. Every community pharmacy in Australia is connected to the Electronic Prescription Service. This includes all chains (Chemist Warehouse, Priceline, TerryWhite) and independent pharmacies." },
       { q: "What if I lose my eScript SMS?", a: "The prescription still exists on the prescription exchange. Contact your doctor or telehealth service to resend the token. Alternatively, your pharmacist can look up the prescription using your details." },
       { q: "Can I use an eScript at a different pharmacy than usual?", a: "Yes. eScripts work at any pharmacy in Australia. You're not locked into one pharmacy. This is especially useful when travelling or if your regular pharmacy is closed." },
-      { q: "How do I know how many repeats I have left?", a: "Ask your pharmacist — they can check the system. Many pharmacy apps also track your active prescriptions and remaining repeats." },
+      { q: "How do I know how many repeats I have left?", a: "Ask your pharmacist - they can check the system. Many pharmacy apps also track your active prescriptions and remaining repeats." },
       { q: "Can someone else collect my medication with my eScript?", a: "Yes. You can forward the SMS token to a family member or friend. They present it at the pharmacy with appropriate identification. The same process as having someone collect a paper script on your behalf." }
     ],
     cta: { text: "Get an eScript", href: "/prescriptions", subtext: "Prescriptions sent to your phone" }
@@ -669,17 +669,17 @@ export const guides: Record<string, GuideData> = {
     description: "Mental health days are legitimate sick leave in Australia. Learn how to get a medical certificate for mental health without an in-person visit.",
     lastUpdated: "April 2026",
     readTime: "5 min read",
-    intro: "Feeling burned out, overwhelmed, or unable to face work? In Australia, taking a mental health day is your right under the Fair Work Act. Personal/carer's leave covers both physical and mental health — no distinction. Here's how to get a medical certificate without having to explain yourself in a waiting room.",
+    intro: "Feeling burned out, overwhelmed, or unable to face work? In Australia, taking a mental health day is your right under the Fair Work Act. Personal/carer's leave covers both physical and mental health - no distinction. Here's how to get a medical certificate without having to explain yourself in a waiting room.",
     steps: [
       {
         title: "Understand your entitlements",
-        content: "Under the Fair Work Act 2009, full-time and part-time employees get 10 days of paid personal/carer's leave per year. Mental health is explicitly covered. You don't need to be 'clinically depressed' — stress, anxiety, burnout, or just needing a reset are all valid reasons.",
+        content: "Under the Fair Work Act 2009, full-time and part-time employees get 10 days of paid personal/carer's leave per year. Mental health is explicitly covered. You don't need to be 'clinically depressed' - stress, anxiety, burnout, or just needing a reset are all valid reasons.",
         tips: ["Mental health leave comes from your personal leave balance", "Casual employees aren't entitled to paid leave but can still take unpaid time off", "Your employer cannot discriminate based on the type of illness"]
       },
       {
         title: "Get a medical certificate",
         content: "If your employer requires a certificate (most do for absences over 1 day, some for any absence), you can get one through telehealth without leaving home. Complete a brief health questionnaire, a doctor reviews your situation, and a certificate is issued if appropriate. No diagnosis appears on the certificate.",
-        tips: ["Telehealth is ideal — no travel while you're struggling", "Certificates don't specify your diagnosis", "The doctor may ask about your symptoms to assess appropriately"]
+        tips: ["Telehealth is ideal - no travel while you're struggling", "Certificates don't specify your diagnosis", "The doctor may ask about your symptoms to assess appropriately"]
       },
       {
         title: "Submit to your employer",
@@ -689,7 +689,7 @@ export const guides: Record<string, GuideData> = {
     ],
     importantNotes: [
       "Mental health leave is legally the same as sick leave in Australia",
-      "Medical certificates never specify your diagnosis — your privacy is protected",
+      "Medical certificates never specify your diagnosis - your privacy is protected",
       "If you're experiencing ongoing mental health issues, consider seeing a GP for a Mental Health Treatment Plan",
       "In crisis? Call Lifeline 13 11 14 or Beyond Blue 1300 22 4636"
     ],
@@ -707,17 +707,17 @@ export const guides: Record<string, GuideData> = {
     description: "Need time off work after surgery? Learn how to get a medical certificate covering your recovery period in Australia.",
     lastUpdated: "April 2026",
     readTime: "4 min read",
-    intro: "If you've had surgery — whether minor day surgery or a major procedure — you'll likely need time off work to recover. Your surgeon should provide initial documentation, but if you need additional time or a separate certificate, here's how to get one.",
+    intro: "If you've had surgery - whether minor day surgery or a major procedure - you'll likely need time off work to recover. Your surgeon should provide initial documentation, but if you need additional time or a separate certificate, here's how to get one.",
     steps: [
       {
         title: "Get documentation from your surgeon",
-        content: "Your surgeon or hospital should provide a medical certificate covering the initial recovery period. This usually states the date of surgery, expected recovery time, and any work restrictions. Keep this — it's your primary documentation.",
+        content: "Your surgeon or hospital should provide a medical certificate covering the initial recovery period. This usually states the date of surgery, expected recovery time, and any work restrictions. Keep this - it's your primary documentation.",
         tips: ["Ask your surgeon before the procedure how long you'll need off", "Get the certificate before you leave the hospital", "Ask about any work restrictions (lifting, driving, etc.)"]
       },
       {
         title: "If you need additional recovery time",
         content: "If your recovery takes longer than expected, you may need an extended certificate. Your GP, or a telehealth doctor, can assess your current condition and issue a new certificate. They'll want to know what surgery you had, when, and what symptoms you're still experiencing.",
-        tips: ["Telehealth is convenient when mobility is limited post-surgery", "Be honest about your recovery — don't rush back", "Some surgeries have standard recovery timelines"]
+        tips: ["Telehealth is convenient when mobility is limited post-surgery", "Be honest about your recovery - don't rush back", "Some surgeries have standard recovery timelines"]
       },
       {
         title: "Submit to your employer",
@@ -728,13 +728,13 @@ export const guides: Record<string, GuideData> = {
     importantNotes: [
       "Your surgeon should provide initial recovery documentation",
       "If recovery takes longer than expected, telehealth can help with extended certificates",
-      "Don't rush back to work — returning too early can cause setbacks",
+      "Don't rush back to work - returning too early can cause setbacks",
       "Check your entitlements: personal leave, workers comp (if work-related), or income protection"
     ],
     faqs: [
       { q: "How long can I get a medical certificate for after surgery?", a: "This depends on the surgery. Minor procedures may need days. Major surgery can require weeks or months. Your surgeon and GP will advise." },
       { q: "Can a telehealth doctor extend my surgery recovery certificate?", a: "Yes. If your recovery is taking longer than the initial certificate covers, a telehealth doctor can assess and provide an extension." },
-      { q: "Do I need my surgeon's approval to return to work?", a: "For major surgery, yes — a surgical clearance is usually recommended. For minor procedures, a GP can assess your fitness to work." }
+      { q: "Do I need my surgeon's approval to return to work?", a: "For major surgery, yes - a surgical clearance is usually recommended. For minor procedures, a GP can assess your fitness to work." }
     ],
     cta: { text: "Get a certificate", href: "/request?service=med-cert", subtext: "Extended recovery certificates available via telehealth" }
   },
@@ -748,12 +748,12 @@ export const guides: Record<string, GuideData> = {
     steps: [
       {
         title: "Understand what can be prescribed online",
-        content: "Most common medications can be prescribed via telehealth — blood pressure medication, contraceptives, antibiotics, inhalers, skin treatments, and many more. However, some medications have restrictions. Schedule 8 controlled substances (strong painkillers, some ADHD medications) generally can't be prescribed through telehealth without an established doctor-patient relationship.",
+        content: "Most common medications can be prescribed via telehealth - blood pressure medication, contraceptives, antibiotics, inhalers, skin treatments, and many more. However, some medications have restrictions. Schedule 8 controlled substances (strong painkillers, some ADHD medications) generally can't be prescribed through telehealth without an established doctor-patient relationship.",
         tips: ["Common repeat medications are well-suited to telehealth", "Schedule 4 medications (most prescriptions) can be prescribed online", "Schedule 8 (controlled substances) have strict rules"]
       },
       {
         title: "Complete a telehealth consultation",
-        content: "You'll complete a health questionnaire or have a consultation with the doctor. They'll review your medical history, current medications, and the reason for your request. The doctor makes an independent clinical decision — they'll only prescribe if it's appropriate.",
+        content: "You'll complete a health questionnaire or have a consultation with the doctor. They'll review your medical history, current medications, and the reason for your request. The doctor makes an independent clinical decision - they'll only prescribe if it's appropriate.",
         tips: ["Have your current medication list ready", "Know the name and dosage of what you need", "The doctor may ask about side effects or changes"]
       },
       {
@@ -764,7 +764,7 @@ export const guides: Record<string, GuideData> = {
     ],
     importantNotes: [
       "Telehealth prescribing is regulated by AHPRA and state/territory legislation",
-      "Doctors must make independent clinical decisions — prescriptions aren't guaranteed",
+      "Doctors must make independent clinical decisions - prescriptions aren't guaranteed",
       "Schedule 8 controlled substances have additional restrictions for telehealth",
       "Always tell the doctor about all medications you're currently taking"
     ],
@@ -787,12 +787,12 @@ export const guides: Record<string, GuideData> = {
       {
         title: "What a medical certificate must include",
         content: "A valid Australian medical certificate only needs to include: the patient's name, the dates of unfitness, the doctor's name and registration details, and a statement that you were unfit for work. That's it. No diagnosis, no symptoms, no treatment details are required.",
-        tips: ["Certificates state 'unfit for work' — not why", "The doctor's AHPRA registration number should be on it", "Telehealth certificates are equally valid"]
+        tips: ["Certificates state 'unfit for work' - not why", "The doctor's AHPRA registration number should be on it", "Telehealth certificates are equally valid"]
       },
       {
         title: "What employers can ask",
         content: "Your employer can ask: for a medical certificate if your absence exceeds their policy threshold (often 2+ days), when you expect to return, and whether you have any work restrictions when returning. They can also ask if you're fit for modified duties.",
-        tips: ["Most companies require certificates after 2 consecutive days", "Some require them from day one — check your contract", "Employers can ask about fitness for specific duties"]
+        tips: ["Most companies require certificates after 2 consecutive days", "Some require them from day one - check your contract", "Employers can ask about fitness for specific duties"]
       },
       {
         title: "What employers cannot ask",
@@ -820,7 +820,7 @@ export const guides: Record<string, GuideData> = {
     description: "Guide for casual employees on when medical certificates are required and your entitlements under Australian workplace law.",
     lastUpdated: "April 2026",
     readTime: "4 min read",
-    intro: "Casual employment in Australia is different from full-time or part-time work. You don't get paid sick leave — but that doesn't mean medical certificates don't matter. Some employers still require them, and having documentation protects you. Here's what casual workers need to know.",
+    intro: "Casual employment in Australia is different from full-time or part-time work. You don't get paid sick leave - but that doesn't mean medical certificates don't matter. Some employers still require them, and having documentation protects you. Here's what casual workers need to know.",
     steps: [
       {
         title: "Understand your casual entitlements",
@@ -846,7 +846,7 @@ export const guides: Record<string, GuideData> = {
     ],
     faqs: [
       { q: "Can I be fired for calling in sick as a casual?", a: "You can't be fired for a genuine illness. However, casual employment can be ended without notice. Having medical certificates documents that your absences were legitimate." },
-      { q: "Do I need to pay for a medical certificate as a casual?", a: `Yes, there's typically a cost for the consultation. Telehealth services like InstantMed offer certificates from ${PRICING_DISPLAY.MED_CERT} — often cheaper than an in-person GP visit.` },
+      { q: "Do I need to pay for a medical certificate as a casual?", a: `Yes, there's typically a cost for the consultation. Telehealth services like InstantMed offer certificates from ${PRICING_DISPLAY.MED_CERT} - often cheaper than an in-person GP visit.` },
       { q: "Can a casual worker get unpaid sick leave?", a: "There's no 'unpaid sick leave' entitlement, but you can simply not work. Having documentation helps protect your position with your employer." },
       { q: "What if my employer pressures me to work while sick?", a: "You're never obligated to work while genuinely unwell. If pressured, document the conversation and contact Fair Work if necessary." }
     ],
@@ -884,7 +884,7 @@ export const GUIDE_INDEX: GuideIndexEntry[] = [
   {
     slug: "telehealth-guide-australia",
     title: "Complete Guide to Telehealth in Australia",
-    description: "Everything you need to know about telehealth — what it is, how it works, what can be treated, and how to choose a service.",
+    description: "Everything you need to know about telehealth - what it is, how it works, what can be treated, and how to choose a service.",
     readTime: "8 min read",
     category: "Telehealth",
   },
@@ -940,7 +940,7 @@ export const GUIDE_INDEX: GuideIndexEntry[] = [
   {
     slug: "escript-vs-paper-prescription",
     title: "eScript vs Paper Prescription in Australia",
-    description: "Everything about electronic prescriptions (eScripts) — how they work, where they're accepted, how repeats work, and common questions.",
+    description: "Everything about electronic prescriptions (eScripts) - how they work, where they're accepted, how repeats work, and common questions.",
     readTime: "6 min read",
     category: "Prescriptions",
   },

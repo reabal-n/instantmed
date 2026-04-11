@@ -30,7 +30,7 @@ import { HowWeDecideGuideSection } from "@/components/marketing/sections/how-we-
 const howWeDecideFaqs = [
   {
     question: "Does a real doctor review every request?",
-    answer: "Yes, every single one. No automated approvals, no AI making clinical decisions. An AHPRA-registered doctor reviews your information and makes a clinical judgement — the same way they would in a face-to-face consultation.",
+    answer: "Yes, every single one. No automated approvals, no AI making clinical decisions. An AHPRA-registered doctor reviews your information and makes a clinical judgement - the same way they would in a face-to-face consultation.",
   },
   {
     question: "How long does the review take?",
@@ -46,7 +46,7 @@ const howWeDecideFaqs = [
   },
   {
     question: "Do you use AI in the decision-making process?",
-    answer: "AI assists with intake and information gathering — helping you describe your symptoms and organising your medical history for the doctor. All clinical decisions are made by human doctors. AI never approves, declines, or influences a clinical outcome.",
+    answer: "AI assists with intake and information gathering - helping you describe your symptoms and organising your medical history for the doctor. All clinical decisions are made by human doctors. AI never approves, declines, or influences a clinical outcome.",
   },
   {
     question: "What happens to my data after the review?",
@@ -54,11 +54,11 @@ const howWeDecideFaqs = [
   },
   {
     question: "How do I know the process is fair?",
-    answer: "Clinical decisions are audited regularly by our Medical Director. Doctors aren't incentivised to approve or decline — they're paid the same either way. This removes the financial pressure that can compromise clinical judgement in other models.",
+    answer: "Clinical decisions are audited regularly by our Medical Director. Doctors aren't incentivised to approve or decline - they're paid the same either way. This removes the financial pressure that can compromise clinical judgement in other models.",
   },
   {
     question: "What if I disagree with the doctor's decision?",
-    answer: "Contact us at support@instantmed.com.au. Complaints are taken seriously and responded to within 48 hours. For formal clinical complaints, email complaints@instantmed.com.au — these are reviewed by our Medical Director within 14 days.",
+    answer: "Contact us at support@instantmed.com.au. Complaints are taken seriously and responded to within 48 hours. For formal clinical complaints, email complaints@instantmed.com.au - these are reviewed by our Medical Director within 14 days.",
   },
   {
     question: "Are your doctors insured?",
@@ -66,7 +66,7 @@ const howWeDecideFaqs = [
   },
   {
     question: "How does this compare to seeing a GP in person?",
-    answer: "The clinical standard is the same — our doctors follow the same guidelines and have the same obligations as any GP. The information available is different: we rely on your reported history rather than a physical examination. For straightforward presentations, history-based assessment is well-established and effective in medical practice.",
+    answer: "The clinical standard is the same - our doctors follow the same guidelines and have the same obligations as any GP. The information available is different: we rely on your reported history rather than a physical examination. For straightforward presentations, history-based assessment is well-established and effective in medical practice.",
   },
 ]
 
@@ -98,7 +98,7 @@ const reviewFactors: FeatureItem[] = [
     icon: <Eye className="h-5 w-5" />,
     title: "What you're asking for",
     description:
-      "Whether it's a certificate, a script renewal, or something else — and whether that makes sense given everything above.",
+      "Whether it's a certificate, a script renewal, or something else - and whether that makes sense given everything above.",
   },
   {
     icon: <ShieldCheck className="h-5 w-5" />,
@@ -196,7 +196,7 @@ export default function HowWeDecidePage() {
           pill="Our Process"
           title="Every request gets a real review"
           highlightWords={["real review"]}
-          subtitle="No algorithms deciding your health. No rubber stamps. Just a doctor looking at your request and making a call — the same way they would if you were sitting across from them."
+          subtitle="No algorithms deciding your health. No rubber stamps. Just a doctor looking at your request and making a call - the same way they would if you were sitting across from them."
         />
 
         <FeatureGrid
@@ -220,7 +220,7 @@ export default function HowWeDecidePage() {
 
         <FeatureGrid
           title="Your safety comes first"
-          subtitle="We'd rather lose a sale than cut corners on care. That's not marketing — it's just how we work."
+          subtitle="We'd rather lose a sale than cut corners on care. That's not marketing - it's just how we work."
           features={safetyFeatures}
           columns={2}
         />

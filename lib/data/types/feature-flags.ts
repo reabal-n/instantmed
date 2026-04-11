@@ -107,7 +107,7 @@ export const DEFAULT_SAFETY_SYMPTOMS = [
 
 export const DEFAULT_FLAGS: FeatureFlags = {
   maintenance_mode: false,
-  maintenance_message: "We're currently performing scheduled maintenance. Please check back shortly — we'll be back online soon.",
+  maintenance_message: "We're currently performing scheduled maintenance. Please check back shortly - we'll be back online soon.",
   disable_med_cert: false,
   business_hours_enabled: true,
   business_hours_open: 8,
@@ -154,7 +154,7 @@ export function getFlagInfo(key: FlagKey): { label: string; description: string 
   const info: Record<FlagKey, { label: string; description: string }> = {
     maintenance_mode: {
       label: "Maintenance Mode",
-      description: "Close the entire intake form — prevents all new submissions and payments",
+      description: "Close the entire intake form - prevents all new submissions and payments",
     },
     maintenance_message: {
       label: "Maintenance Message",
@@ -278,7 +278,7 @@ export function getFlagInfo(key: FlagKey): { label: string; description: string 
     },
     telegram_notifications_enabled: {
       label: "Telegram Notifications",
-      description: "Master toggle for all Telegram alerts — doctor stale-queue pings and new intake notifications.",
+      description: "Master toggle for all Telegram alerts - doctor stale-queue pings and new intake notifications.",
     },
     doctor_alert_threshold_hours: {
       label: "Doctor Alert Threshold (hours)",

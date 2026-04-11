@@ -15,7 +15,7 @@ import type { PostHog } from "posthog-js"
 import { trackAIReferral } from "@/lib/analytics/ai-referral"
 
 /**
- * Local PostHog React Context — replaces `posthog-js/react`'s provider.
+ * Local PostHog React Context - replaces `posthog-js/react`'s provider.
  *
  * Why a custom context instead of `posthog-js/react`'s `PostHogProvider`:
  * the upstream provider statically imports posthog-js core (~50KB) into
@@ -30,7 +30,7 @@ import { trackAIReferral } from "@/lib/analytics/ai-referral"
  * tree by transitioning a Context value from `null → posthog instance`.
  * Context value changes re-render consumers; they don't remount children.
  *
- * PostHog itself is initialized once in `instrumentation-client.ts` — this
+ * PostHog itself is initialized once in `instrumentation-client.ts` - this
  * provider only exposes the singleton through React context for components
  * that call `usePostHog()`.
  */
@@ -41,7 +41,7 @@ export function usePostHog(): PostHog | null {
 }
 
 /**
- * Page View Tracker — fires `$pageview` on every client-side navigation.
+ * Page View Tracker - fires `$pageview` on every client-side navigation.
  * `capture_pageview: false` is set in instrumentation-client.ts so we own
  * pageview tracking here for SPA route changes.
  */
@@ -107,7 +107,7 @@ export function PostHogProvider({ children }: { children: ReactNode }) {
         if (mounted && posthog.__loaded) setClient(posthog)
       })
       .catch(() => {
-        // PostHog unavailable (missing env vars, network) — render without it
+        // PostHog unavailable (missing env vars, network) - render without it
       })
     return () => {
       mounted = false

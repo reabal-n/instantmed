@@ -85,7 +85,7 @@ export async function revokeCertificateAction(
         updated_at: timestamp,
       })
       .eq("id", cert.id)
-      .eq("status", "valid") // Optimistic lock — only revoke if still valid
+      .eq("status", "valid") // Optimistic lock - only revoke if still valid
 
     if (updateError) {
       // Check for race condition (status changed between fetch and update)
@@ -106,7 +106,7 @@ export async function revokeCertificateAction(
       reason,
     })
 
-    // 5. AUDIT LOG — fire-and-forget, non-blocking
+    // 5. AUDIT LOG - fire-and-forget, non-blocking
     supabase
       .from("certificate_audit_log")
       .insert({

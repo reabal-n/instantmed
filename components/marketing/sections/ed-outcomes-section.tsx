@@ -6,12 +6,12 @@ import { CheckCircle2, Info, AlertCircle } from "lucide-react"
 
 const WHAT_IT_DOES = [
   "Restores erectile function in the majority of patients screened appropriately.",
-  "Works with sexual stimulation — not instead of it.",
+  "Works with sexual stimulation - not instead of it.",
   "Well-tolerated by most healthy adults once the safety questionnaire clears them.",
 ] as const
 
 const WHAT_IT_DOESNT = [
-  "Not an aphrodisiac — it doesn't create desire on its own.",
+  "Not an aphrodisiac - it doesn't create desire on its own.",
   "Doesn't address underlying cardiovascular risk factors. Those need a separate conversation with your doctor.",
   "Not a substitute for addressing mental health or relationship stress when those are the driver.",
 ] as const
@@ -37,7 +37,7 @@ export function EdOutcomesSection() {
         {/* Header */}
         <div className="text-center mb-10">
           <h2 className="text-2xl sm:text-3xl font-semibold text-foreground tracking-tight mb-3">
-            What treatment is — and isn&apos;t
+            What treatment is - and isn&apos;t
           </h2>
           <p className="text-sm sm:text-base text-muted-foreground max-w-xl mx-auto">
             Balanced framing so you know what you&apos;re signing up for.

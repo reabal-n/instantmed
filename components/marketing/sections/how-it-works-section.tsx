@@ -37,7 +37,7 @@ const MED_CERT_STEPS = [
   },
 ]
 
-/** Video walkthrough URL — set to a real URL to enable the embed link in HowItWorksSection */
+/** Video walkthrough URL - set to a real URL to enable the embed link in HowItWorksSection */
 const VIDEO_WALKTHROUGH_URL: string | null = null
 
 // =============================================================================

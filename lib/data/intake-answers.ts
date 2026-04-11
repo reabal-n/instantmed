@@ -76,7 +76,7 @@ export async function saveIntakeAnswers(
   const supabase = createServiceRoleClient()
 
   try {
-    // Encrypt extracted PHI fields (graceful fallback — logs but doesn't abort)
+    // Encrypt extracted PHI fields (graceful fallback - logs but doesn't abort)
     const allergyFields = await prepareAllergyDetailsWrite(input.allergy_details ?? null)
     const conditionsFields = await prepareMedicalConditionsWrite(input.medical_conditions ?? null)
 

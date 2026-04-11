@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { BADGE_REGISTRY, BADGE_PRESETS, resolveEntry, type BadgeId } from '@/lib/trust-badges'
 
-const HERO_BADGE_MAX = 4 // hero CTA area layout constraint — more than 4 pills looks cluttered
+const HERO_BADGE_MAX = 4 // hero CTA area layout constraint - more than 4 pills looks cluttered
 
 describe('BADGE_REGISTRY', () => {
   it('contains all expected badge IDs', () => {

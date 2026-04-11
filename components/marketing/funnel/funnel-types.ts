@@ -123,7 +123,7 @@ export interface ServiceFunnelConfig {
     }>
   }
 
-  // FAQ (optional — if provided, rendered as accordion)
+  // FAQ (optional - if provided, rendered as accordion)
   faq?: {
     title: string
     subtitle: string
@@ -154,7 +154,7 @@ export interface ServiceFunnelConfig {
     }>
   }
 
-  // Specialized services (optional — grid of service cards, e.g. consult sub-types)
+  // Specialized services (optional - grid of service cards, e.g. consult sub-types)
   specializedServices?: {
     title: string
     subtitle: string

@@ -9,7 +9,7 @@ import { AccordionSection } from "@/components/sections"
 
 export const metadata: Metadata = {
   title: "Find What You Need | Online Doctor Services",
-  description: "Looking for a specific telehealth service? Same-day medical certificates, UTI treatment, after-hours doctor, ongoing medication reviews, and more — all reviewed by Australian doctors.",
+  description: "Looking for a specific telehealth service? Same-day medical certificates, UTI treatment, after-hours doctor, ongoing medication reviews, and more - all reviewed by Australian doctors.",
   openGraph: {
     title: "Find What You Need | InstantMed",
     description: "Same-day medical certificates, prescriptions, and consultations reviewed by Australian doctors.",
@@ -33,7 +33,7 @@ const intents = [
 const intentFaqs = [
   {
     question: "How do I know which service I need?",
-    answer: "If you're unsure, start with a general consultation. Our doctors will assess your situation and point you toward the right service — whether that's a medical certificate, a prescription, or something else entirely.",
+    answer: "If you're unsure, start with a general consultation. Our doctors will assess your situation and point you toward the right service - whether that's a medical certificate, a prescription, or something else entirely.",
   },
   {
     question: "Can I switch services after starting?",
@@ -41,7 +41,7 @@ const intentFaqs = [
   },
   {
     question: "What if I'm not sure what's wrong?",
-    answer: "That's perfectly fine — you don't need a self-diagnosis. Describe your symptoms and concerns, and our doctor will work through it with you. That's literally what they're trained for.",
+    answer: "That's perfectly fine - you don't need a self-diagnosis. Describe your symptoms and concerns, and our doctor will work through it with you. That's literally what they're trained for.",
   },
   {
     question: "How long does it take to get a response?",
@@ -57,7 +57,7 @@ const intentFaqs = [
   },
   {
     question: "How does payment work?",
-    answer: "You pay when you submit your request. We accept Visa, Mastercard, Amex, Apple Pay, and Google Pay via Stripe. If the doctor can't help with your situation, you'll receive a full refund — no questions asked.",
+    answer: "You pay when you submit your request. We accept Visa, Mastercard, Amex, Apple Pay, and Google Pay via Stripe. If the doctor can't help with your situation, you'll receive a full refund - no questions asked.",
   },
   {
     question: "Can I use InstantMed from anywhere in Australia?",
@@ -89,7 +89,7 @@ export default function IntentPage() {
                   What Can We Help With?
                 </h1>
                 <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-                  Whether you need a certificate, a prescription, or just to speak with a doctor — find the right service below.
+                  Whether you need a certificate, a prescription, or just to speak with a doctor - find the right service below.
                   All reviewed by AHPRA-registered Australian doctors.
                 </p>
               </div>

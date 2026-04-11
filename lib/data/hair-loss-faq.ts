@@ -2,12 +2,12 @@ export const HAIR_LOSS_FAQ = [
   {
     question: "What treatment options are available?",
     answer:
-      "Our doctors can recommend different treatment approaches based on your assessment. One option is an oral treatment that addresses hormonal factors contributing to hair loss — it's most effective for hair loss at the crown and mid-scalp. Another is a topical treatment applied directly to the scalp that stimulates hair follicles. Many men use both approaches together for best results.",
+      "Our doctors can recommend different treatment approaches based on your assessment. One option is an oral treatment that addresses hormonal factors contributing to hair loss - it's most effective for hair loss at the crown and mid-scalp. Another is a topical treatment applied directly to the scalp that stimulates hair follicles. Many men use both approaches together for best results.",
   },
   {
     question: "How long until I see results?",
     answer:
-      "Hair growth takes time. With topical treatments, some improvement may be visible in 2–4 months. With oral treatments, most people see results in 3–6 months, with the full effect at around 12 months. Consistency is key — stopping treatment typically leads to reversal of gains within 6–12 months.",
+      "Hair growth takes time. With topical treatments, some improvement may be visible in 2–4 months. With oral treatments, most people see results in 3–6 months, with the full effect at around 12 months. Consistency is key - stopping treatment typically leads to reversal of gains within 6–12 months.",
   },
   {
     question: "Are there side effects?",
@@ -22,7 +22,7 @@ export const HAIR_LOSS_FAQ = [
   {
     question: "Is the service really discreet?",
     answer:
-      "Completely. No phone calls required. Your pharmacy receives only the prescription — not your consultation details. Medications come in standard pharmacy packaging with no indication of contents. Your bank statement shows 'InstantMed' only.",
+      "Completely. No phone calls required. Your pharmacy receives only the prescription - not your consultation details. Medications come in standard pharmacy packaging with no indication of contents. Your bank statement shows 'InstantMed' only.",
   },
   {
     question: "Can women use these treatments?",

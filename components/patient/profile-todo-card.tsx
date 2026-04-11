@@ -31,7 +31,7 @@ export type TodoDrawerType = "phone" | "address" | "medicare"
 interface ProfileTodoCardProps {
   profileData: ProfileData
   onOpenDrawer: (type: TodoDrawerType) => void
-  /** When true, hide entirely if all required fields (phone, address) are complete — for med-cert-only users who don't need Medicare */
+  /** When true, hide entirely if all required fields (phone, address) are complete - for med-cert-only users who don't need Medicare */
   hideWhenMedCertOnlyComplete?: boolean
 }
 

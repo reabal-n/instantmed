@@ -15,7 +15,7 @@ const CATEGORY_LABELS: Record<string, string> = {
 
 /**
  * Cron: Decline re-engagement emails
- * Runs hourly — finds intakes declined ~2h ago that haven't received this email yet.
+ * Runs hourly - finds intakes declined ~2h ago that haven't received this email yet.
  *
  * Schedule: every hour (vercel.json)
  */

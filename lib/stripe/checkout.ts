@@ -132,7 +132,7 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
       }
     }
 
-    // Business hours (med certs are 24/7 — auto-approved)
+    // Business hours (med certs are 24/7 - auto-approved)
     if (input.category !== "medical_certificate") {
       const outsideHours = await isOutsideBusinessHours()
       if (outsideHours.closed) {
@@ -351,7 +351,7 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
     }
 
     // CLINICAL AUDIT: Validate consent fields are present (CLINICAL.md §Consent Requirements)
-    // Consent must be explicit per-episode — never implied by signup
+    // Consent must be explicit per-episode - never implied by signup
     const hasTermsConsent = input.answers.terms_agreed === true || input.answers.agreedToTerms === true
     const hasAccuracyConsent = input.answers.accuracy_confirmed === true || input.answers.confirmedAccuracy === true
     if (!hasTermsConsent || !hasAccuracyConsent) {
@@ -511,7 +511,7 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
               checkoutUrl: `${baseUrl}/patient/intakes/${existingIntake.id}`
             }
           }
-          // Still pending payment — retry checkout for existing intake
+          // Still pending payment - retry checkout for existing intake
           logger.info("Retrying checkout for existing pending_payment intake", {
             intakeId: existingIntake.id,
           })
@@ -591,7 +591,7 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
     const subscriptionPriceId = process.env.STRIPE_PRICE_REPEAT_RX_MONTHLY
 
     // Build line items. CRITICAL: in subscription mode, line_items must be
-    // recurring-only — Stripe rejects mixing one-time prices into a
+    // recurring-only - Stripe rejects mixing one-time prices into a
     // subscription session with a 400. The Express Review one-time fee gets
     // attached via subscription_data.add_invoice_items below so it bills on
     // the first invoice. See launch blocker #4.

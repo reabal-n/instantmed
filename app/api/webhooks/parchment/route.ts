@@ -7,7 +7,7 @@ import { createLogger } from "@/lib/observability/logger"
 import * as Sentry from "@sentry/nextjs"
 import { Redis } from "@upstash/redis"
 
-// Short-lived Redis dedup key — 60s window catches rapid duplicate deliveries
+// Short-lived Redis dedup key - 60s window catches rapid duplicate deliveries
 // before the DB claim write completes. Fails open if Redis is unavailable.
 const redis = process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
   ? Redis.fromEnv()
@@ -16,7 +16,7 @@ const redis = process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_RE
 async function acquireWebhookLock(scid: string): Promise<boolean> {
   if (!redis) return true // fail open
   try {
-    // SET NX EX 60 — returns "OK" if set, null if key already exists
+    // SET NX EX 60 - returns "OK" if set, null if key already exists
     const result = await redis.set(`parchment:lock:${scid}`, "1", { nx: true, ex: 60 })
     return result === "OK"
   } catch {
@@ -141,7 +141,7 @@ export async function POST(request: Request) {
 
     if (!patientProfileId) {
       log.error("Patient not found for webhook", { patientId: patient_id, partnerPatientId: partner_patient_id })
-      // Return 200 to prevent retries — patient genuinely doesn't exist in our system
+      // Return 200 to prevent retries - patient genuinely doesn't exist in our system
       return NextResponse.json({ received: true, warning: "Patient not found" })
     }
 
@@ -189,7 +189,7 @@ export async function POST(request: Request) {
       }
 
       if (existing && !existing.script_sent) {
-        // Claimed (parchment_reference set) but updateScriptSent failed previously — resume
+        // Claimed (parchment_reference set) but updateScriptSent failed previously - resume
         log.info("Resuming partially-processed webhook", { intakeId: existing.id, scid })
         const resumeSuccess = await updateScriptSent(existing.id, true, scriptNotes, scid)
         if (!resumeSuccess) {
@@ -249,7 +249,7 @@ export async function POST(request: Request) {
         log.info("Patient notification email sent via webhook", { intakeId: intake.id })
       }
     } catch (emailError) {
-      // Non-fatal — script is already marked as sent
+      // Non-fatal - script is already marked as sent
       log.error("Failed to send notification email from webhook", { intakeId: intake.id }, emailError instanceof Error ? emailError : new Error(String(emailError)))
     }
 

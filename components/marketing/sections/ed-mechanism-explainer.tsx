@@ -14,10 +14,10 @@ interface EdMechanismExplainerProps {
 }
 
 // =============================================================================
-// FRAME SVGs (inline — never external files)
+// FRAME SVGs (inline - never external files)
 // =============================================================================
 
-/** Frame 1: Baseline vessel — narrow lumen, minimal flow lines */
+/** Frame 1: Baseline vessel - narrow lumen, minimal flow lines */
 function BaselineVesselSvg() {
   return (
     <svg
@@ -63,7 +63,7 @@ function BaselineVesselSvg() {
   )
 }
 
-/** Frame 2: Response vessel — wider lumen, thicker flow lines in primary */
+/** Frame 2: Response vessel - wider lumen, thicker flow lines in primary */
 function ResponseVesselSvg() {
   return (
     <svg
@@ -72,7 +72,7 @@ function ResponseVesselSvg() {
       role="img"
       aria-label="Treatment response vessel illustration showing enhanced blood flow"
     >
-      {/* Vessel walls — wider gap */}
+      {/* Vessel walls - wider gap */}
       <path
         d="M20 66 Q100 60 180 66"
         fill="none"
@@ -111,7 +111,7 @@ function ResponseVesselSvg() {
   )
 }
 
-/** Frame 3: Duration window — two timeline bars showing short-acting vs daily options */
+/** Frame 3: Duration window - two timeline bars showing short-acting vs daily options */
 function DurationTimelineSvg() {
   return (
     <svg
@@ -166,7 +166,7 @@ const FRAMES = [
     id: "response",
     svg: <ResponseVesselSvg />,
     label:
-      "Oral treatment enhances the natural signal pathway — more blood flow to the area when you're aroused.",
+      "Oral treatment enhances the natural signal pathway - more blood flow to the area when you're aroused.",
   },
   {
     id: "duration",

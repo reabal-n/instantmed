@@ -82,7 +82,7 @@ const IIEF_QUESTIONS: IIEFQuestion[] = [
 const SCALE_VALUES = [1, 2, 3, 4, 5] as const
 
 /**
- * IIEF-5 interpretation bands — aligned with Rosen et al., 1999 (validated cutoffs).
+ * IIEF-5 interpretation bands - aligned with Rosen et al., 1999 (validated cutoffs).
  *
  * Standard:  22-25 No ED · 17-21 Mild · 12-16 Mild-moderate · 8-11 Moderate · 5-7 Severe
  * We use patient-friendly labels rather than clinical terminology.
@@ -204,7 +204,7 @@ export default function EdAssessmentStep({ onNext, onBack }: EdAssessmentStepPro
   const prefersReducedMotion = useReducedMotion()
   const preSeeded = useRef(false)
 
-  // Pre-seed from hook quiz (landing page) — confidence → iief1, satisfaction → iief5
+  // Pre-seed from hook quiz (landing page) - confidence → iief1, satisfaction → iief5
   useEffect(() => {
     if (preSeeded.current) return
     preSeeded.current = true
@@ -222,7 +222,7 @@ export default function EdAssessmentStep({ onNext, onBack }: EdAssessmentStepPro
         setAnswer("iief5", quiz.answers[2]) // hook Q3 (satisfaction) → iief5
       }
     } catch {
-      // sessionStorage unavailable or corrupt — silently skip
+      // sessionStorage unavailable or corrupt - silently skip
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps -- one-time mount seed
 

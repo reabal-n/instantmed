@@ -48,19 +48,19 @@ describe("getWaitTimeSeverity", () => {
     expect(getWaitTimeSeverity("2026-04-09T10:30:00Z")).toBe("critical")
   })
 
-  it("uses SLA deadline when provided — normal", () => {
+  it("uses SLA deadline when provided - normal", () => {
     expect(
       getWaitTimeSeverity("2026-04-09T10:00:00Z", "2026-04-09T13:00:00Z"),
     ).toBe("normal")
   })
 
-  it("uses SLA deadline — warning when < 30min left", () => {
+  it("uses SLA deadline - warning when < 30min left", () => {
     expect(
       getWaitTimeSeverity("2026-04-09T10:00:00Z", "2026-04-09T12:20:00Z"),
     ).toBe("warning")
   })
 
-  it("uses SLA deadline — critical when past", () => {
+  it("uses SLA deadline - critical when past", () => {
     expect(
       getWaitTimeSeverity("2026-04-09T10:00:00Z", "2026-04-09T11:30:00Z"),
     ).toBe("critical")

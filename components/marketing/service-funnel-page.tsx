@@ -88,7 +88,7 @@ export function ServiceFunnelPage({ config, isDisabled, children }: ServiceFunne
       {/* Section 1: Hero */}
       <HeroSection config={config} colors={colors} isDisabled={isDisabled} />
 
-      {/* Live wait time strip — right below hero like homepage */}
+      {/* Live wait time strip - right below hero like homepage */}
       <LiveWaitTime variant="strip" services={[config.serviceId === 'repeat-script' ? 'scripts' : config.serviceId === 'consult' ? 'consult' : 'med-cert']} />
 
       {/* Trust badge slider */}
@@ -97,7 +97,7 @@ export function ServiceFunnelPage({ config, isDisabled, children }: ServiceFunne
       {/* Section 2: Who It's For */}
       <WhoItsForSection config={config} colors={colors} />
 
-      {/* Specialized Services (optional — e.g. consult sub-types) */}
+      {/* Specialized Services (optional - e.g. consult sub-types) */}
       {config.specializedServices && (
         <SpecializedServicesSection config={config} colors={colors} />
       )}
@@ -159,7 +159,7 @@ export function ServiceFunnelPage({ config, isDisabled, children }: ServiceFunne
         </div>
       </section>
 
-      {/* Section 7: Social Proof — scrolling columns like homepage */}
+      {/* Section 7: Social Proof - scrolling columns like homepage */}
       <TestimonialsSection
         testimonials={testimonialsForColumns}
         title={config.testimonials.title}

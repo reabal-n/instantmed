@@ -150,7 +150,7 @@ export default function WeightLossCallStep({ onNext }: WeightLossCallStepProps) 
         <ul className="space-y-1.5 text-xs text-muted-foreground">
           <li className="flex items-start gap-2">
             <span className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
-            <span>A doctor will call you shortly — usually within 30 minutes</span>
+            <span>A doctor will call you shortly - usually within 30 minutes</span>
           </li>
           <li className="flex items-start gap-2">
             <span className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 shrink-0" />

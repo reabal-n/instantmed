@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const intakeId = (parsed.data.intakeId || parsed.data.requestId)! // backward compat — refine guarantees one exists
+    const intakeId = (parsed.data.intakeId || parsed.data.requestId)! // backward compat - refine guarantees one exists
     const { status, doctorName, declineReason } = parsed.data
 
     // Map status to template type

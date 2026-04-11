@@ -163,7 +163,7 @@ export function validateEdConsult(answers: Answers): ConsultValidationResult {
   requireOneOf(answers, "edMorningErections", "Morning erection status", ED_MORNING_VALUES, errors)
   requireOneOf(answers, "edPreference", "Medication preference", ED_PREFERENCE_VALUES, errors)
 
-  // Safety checks — nitrates
+  // Safety checks - nitrates
   const nitrates = str(answers, "edNitrates")
   if (nitrates === "yes") {
     flags.push({
@@ -174,7 +174,7 @@ export function validateEdConsult(answers: Answers): ConsultValidationResult {
     errors.push("ED medications cannot be prescribed alongside nitrate medications. Please consult your GP in person.")
   }
 
-  // Safety checks — recent cardiac event
+  // Safety checks - recent cardiac event
   const recentHeart = str(answers, "edRecentHeartEvent")
   if (recentHeart === "yes") {
     const managed = bool(answers, "edGpCleared")
@@ -195,7 +195,7 @@ export function validateEdConsult(answers: Answers): ConsultValidationResult {
     }
   }
 
-  // Safety checks — severe heart condition
+  // Safety checks - severe heart condition
   const severeHeart = str(answers, "edSevereHeart")
   if (severeHeart === "yes") {
     const managed = bool(answers, "edGpCleared")
@@ -306,7 +306,7 @@ export function validateHairLossConsult(answers: Answers): ConsultValidationResu
 }
 
 // ============================================================================
-// WOMEN'S HEALTH — CONTRACEPTION VALIDATOR
+// WOMEN'S HEALTH - CONTRACEPTION VALIDATOR
 // ============================================================================
 
 const CONTRACEPTION_TYPE_VALUES = ["start", "continue", "switch"] as const
@@ -345,7 +345,7 @@ export function validateContraceptionConsult(answers: Answers): ConsultValidatio
 }
 
 // ============================================================================
-// WOMEN'S HEALTH — UTI VALIDATOR
+// WOMEN'S HEALTH - UTI VALIDATOR
 // ============================================================================
 
 const UTI_SYMPTOM_VALUES = ["burning", "frequency", "urgency", "incomplete", "blood", "cloudy"] as const
@@ -403,7 +403,7 @@ export function validateUtiConsult(answers: Answers): ConsultValidationResult {
 }
 
 // ============================================================================
-// WOMEN'S HEALTH — MORNING-AFTER PILL VALIDATOR
+// WOMEN'S HEALTH - MORNING-AFTER PILL VALIDATOR
 // ============================================================================
 
 const MAP_HOURS_VALUES = ["under_24", "24_to_72", "72_to_120", "over_120"] as const
@@ -420,9 +420,9 @@ export function validateMorningAfterConsult(answers: Answers): ConsultValidation
     flags.push({
       type: "safety_block",
       reason: "map_window_exceeded",
-      details: "Emergency contraception (oral) is not effective after 120 hours (5 days). A copper IUD may still be effective — refer to GP.",
+      details: "Emergency contraception (oral) is not effective after 120 hours (5 days). A copper IUD may still be effective - refer to GP.",
     })
-    errors.push("Emergency contraception pills are not effective after 5 days. Please see your GP — a copper IUD may still be an option.")
+    errors.push("Emergency contraception pills are not effective after 5 days. Please see your GP - a copper IUD may still be an option.")
   }
 
   if (hours === "72_to_120") {
@@ -586,7 +586,7 @@ export function validateWeightLossConsult(answers: Answers): ConsultValidationRe
 }
 
 // ============================================================================
-// WOMEN'S HEALTH — GENERAL (period pain, other)
+// WOMEN'S HEALTH - GENERAL (period pain, other)
 // ============================================================================
 
 export function validateWomensGeneralConsult(answers: Answers): ConsultValidationResult {
@@ -600,7 +600,7 @@ export function validateWomensGeneralConsult(answers: Answers): ConsultValidatio
 }
 
 // ============================================================================
-// DISPATCHER — validate by subtype
+// DISPATCHER - validate by subtype
 // ============================================================================
 
 export type ConsultSubtype =

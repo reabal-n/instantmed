@@ -44,7 +44,7 @@ export function FaqCtaSection({
           </p>
         </motion.div>
 
-        {/* Accordion — flat style, no double containers */}
+        {/* Accordion - flat style, no double containers */}
         <FAQList
           items={faqs}
           itemClassName="border-b border-border/40 last:border-b-0 first:border-t first:border-t-border/40 rounded-none bg-transparent shadow-none px-0 hover:border-border/40 hover:shadow-none"

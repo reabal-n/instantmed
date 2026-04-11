@@ -25,7 +25,7 @@ export const metadata: Metadata = {
         url: `${SITE_URL}/og/trust.png`,
         width: 1200,
         height: 630,
-        alt: "InstantMed Trust & Safety — AHPRA-registered doctors, AES-256 encryption, Privacy Act compliant",
+        alt: "InstantMed Trust & Safety - AHPRA-registered doctors, AES-256 encryption, Privacy Act compliant",
       },
     ],
   },

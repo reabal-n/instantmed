@@ -101,7 +101,7 @@ export async function GET(request: NextRequest) {
         const answers = answersArr?.[0]?.answers || {}
         const medicationName = String(answers.medicationName || answers.medication_name || "medication")
 
-        // Enqueue to outbox — the email-dispatcher cron will render and send
+        // Enqueue to outbox - the email-dispatcher cron will render and send
         const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au"
         const unsubscribeUrl = `${appUrl}/patient/settings?unsubscribe=marketing`
 

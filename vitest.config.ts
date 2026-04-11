@@ -11,7 +11,7 @@ export default defineConfig({
     include: ['lib/__tests__/**/*.test.{ts,tsx}'],
     setupFiles: ['./lib/__tests__/setup.ts'],
     // Zod 4's `export { z }` re-export pattern breaks under vitest's
-    // module transformation — force vitest to use the CJS entry instead.
+    // module transformation - force vitest to use the CJS entry instead.
     server: {
       deps: {
         inline: ['zod'],
@@ -29,7 +29,7 @@ export default defineConfig({
         'lib/__tests__/**',
         '**/*.d.ts',
         '**/types/**',
-        // Server-only modules requiring DB/Redis/request context — tested via E2E
+        // Server-only modules requiring DB/Redis/request context - tested via E2E
         'lib/security/audit-log.ts',
         'lib/security/rate-limit.ts',
         'lib/security/phi-field-wrappers.ts',

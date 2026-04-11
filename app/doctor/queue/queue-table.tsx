@@ -271,7 +271,7 @@ export function QueueTable({
                   </div>
                 </CardHeader>
 
-                {/* Expanded — just link + actions, detailed review on the detail page */}
+                {/* Expanded - just link + actions, detailed review on the detail page */}
                 {isExpanded && (
                   <CardContent className="pt-0 pb-5 px-5 space-y-3">
                     <button
@@ -339,7 +339,7 @@ export function QueueTable({
         )}
       </div>
 
-      {/* AI-Approved Review Section — above pagination so doctors always see it */}
+      {/* AI-Approved Review Section - above pagination so doctors always see it */}
       {aiApprovedIntakes.length > 0 && (
         <Card className="border-violet-200/50 dark:border-violet-500/20">
           <CardHeader className="pb-3">

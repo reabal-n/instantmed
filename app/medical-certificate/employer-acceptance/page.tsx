@@ -15,6 +15,7 @@ import {
   Scale,
   Star,
 } from 'lucide-react'
+import { PRICING_DISPLAY } from '@/lib/constants'
 import { BreadcrumbSchema, FAQSchema } from '@/components/seo/healthcare-schema'
 
 const baseUrl = 'https://instantmed.com.au'
@@ -207,7 +208,7 @@ export default function EmployerAcceptancePage() {
                       medical certificate from a registered health practitioner.
                     </p>
                     <p className="text-sm">
-                      A certificate from an AHPRA-registered doctor — whether issued in-person or via telehealth —
+                      A certificate from an AHPRA-registered doctor - whether issued in-person or via telehealth -
                       meets this standard. The <strong>Medical Board of Australia</strong> recognises telehealth as a
                       legitimate mode of healthcare delivery.
                     </p>
@@ -290,7 +291,7 @@ export default function EmployerAcceptancePage() {
                   <h3 className="font-semibold mb-2">Check workplace policy timing</h3>
                   <p className="text-sm text-muted-foreground">
                     If an employer has specific requirements about medical certificates, they must communicate
-                    these in advance — not after you&apos;ve submitted evidence.
+                    these in advance - not after you&apos;ve submitted evidence.
                   </p>
                 </div>
               </div>
@@ -325,7 +326,7 @@ export default function EmployerAcceptancePage() {
                   { name: "Sarah M.", location: "Bondi, NSW", text: "Woke up with gastro at 6am, had my cert by 8:30. HR didn't question it.", rating: 5 },
                   { name: "Tom H.", location: "Carlton, VIC", text: "The doctor asked follow-up questions which made it feel legit. Uni accepted it for special consideration straight away.", rating: 5 },
                   { name: "Nick B.", location: "Pyrmont, NSW", text: "Cert in my inbox by 7am, submitted to work by 7:15. No back and forth, no issues.", rating: 5 },
-                  { name: "Michelle T.", location: "Paddington, QLD", text: "Half expected a rubber stamp. It wasn't — the form asked proper questions and my employer accepted it immediately.", rating: 5 },
+                  { name: "Michelle T.", location: "Paddington, QLD", text: "Half expected a rubber stamp. It wasn't - the form asked proper questions and my employer accepted it immediately.", rating: 5 },
                 ].map((t) => (
                   <div key={t.name} className="p-5 rounded-xl bg-card/80 dark:bg-white/5 backdrop-blur-xl border border-border/50 dark:border-white/10 space-y-3">
                     <div className="flex gap-0.5">
@@ -361,7 +362,7 @@ export default function EmployerAcceptancePage() {
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
-              <p className="mt-4 text-sm text-muted-foreground">$19.95 • Refund if we can&apos;t help</p>
+              <p className="mt-4 text-sm text-muted-foreground">{PRICING_DISPLAY.MED_CERT} • Refund if we can&apos;t help</p>
             </div>
           </section>
 

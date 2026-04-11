@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
 
   await recordCronHeartbeat("daily-reconciliation")
 
-  // Acquire concurrency lock — prevents overlapping execution in serverless
+  // Acquire concurrency lock - prevents overlapping execution in serverless
   const lock = await acquireCronLock("daily-reconciliation")
   if (!lock.acquired) {
     return NextResponse.json({

@@ -4,13 +4,13 @@ import { cn } from "@/lib/utils"
 /**
  * LegitScript certification seal.
  *
- * InstantMed holds LegitScript Healthcare Merchant Certification —
+ * InstantMed holds LegitScript Healthcare Merchant Certification -
  * the verification standard used by Google, Bing, Meta and major payment
  * processors for telehealth merchants.
  *
  * Display rules (from LegitScript):
  * - Must link to the verification page (checker_keywords=instantmed.com.au)
- * - Native size is 73×79 — do not scale smaller aggressively via CSS
+ * - Native size is 73×79 - do not scale smaller aggressively via CSS
  * - Opens in a new tab
  */
 
@@ -46,7 +46,7 @@ export function LegitScriptSeal({ size = "sm", className }: LegitScriptSealProps
     >
       <Image
         src="/logos/legitscript.png"
-        alt="LegitScript certified — verify approval for instantmed.com.au"
+        alt="LegitScript certified - verify approval for instantmed.com.au"
         width={width}
         height={height}
         unoptimized

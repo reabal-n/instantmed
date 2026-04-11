@@ -255,7 +255,7 @@ export function setupGlobalErrorHandlers(): void {
     
     // Global errors
     window.addEventListener('error', (event) => {
-      // Skip generic cross-origin "Script error." — no useful info available
+      // Skip generic cross-origin "Script error." - no useful info available
       if (event.message === 'Script error.' && !event.filename) return
 
       captureException(event.error || new Error(event.message), {

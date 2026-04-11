@@ -6,7 +6,7 @@ export const revalidate = 30
 /**
  * GET /api/availability
  * Public endpoint returning service availability flags.
- * No auth required — used by marketing components (service picker, navbar).
+ * No auth required - used by marketing components (service picker, navbar).
  * Response is cached via getFeatureFlags (30s TTL).
  */
 const CACHE_HEADERS = {

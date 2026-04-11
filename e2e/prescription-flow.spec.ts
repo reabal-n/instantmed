@@ -36,7 +36,7 @@ async function dismissOverlays(page: Page) {
     await page.waitForTimeout(300)
   }
 
-  // Next.js Dev Tools issues overlay — collapse it
+  // Next.js Dev Tools issues overlay - collapse it
   const issuesBadge = page.getByRole("button", { name: /Open issues overlay/i })
   if (await issuesBadge.isVisible({ timeout: 500 }).catch(() => false)) {
     const collapseBadge = page.getByRole("button", { name: /Collapse issues badge/i })
@@ -113,7 +113,7 @@ async function completeMedicationSearchStep(page: Page) {
     await page.waitForTimeout(500)
   }
 
-  // Verify we have a selection — wait for state to propagate
+  // Verify we have a selection - wait for state to propagate
   await page.waitForTimeout(1000)
 
   // If Continue is still not enabled, try the "I don't know" fallback
@@ -175,12 +175,12 @@ async function completeDetailsStep(page: Page) {
   await page.locator('input[placeholder="Smith"]').fill("Patient")
   await page.locator('input[placeholder="jane@example.com"]').fill("test@instantmed.com.au")
 
-  // DOB — 25 years ago
+  // DOB - 25 years ago
   const dob = new Date()
   dob.setFullYear(dob.getFullYear() - 25)
   await page.locator('input[type="date"]').first().fill(dob.toISOString().split("T")[0])
 
-  // Phone — required for prescriptions
+  // Phone - required for prescriptions
   await page.locator('input[placeholder="0412 345 678"]').fill("0412345678")
 
   await clickContinue(page)
@@ -226,7 +226,7 @@ async function verifyCheckoutStep(page: Page) {
   // Verify correct Stripe price ($29.95 for repeat prescription)
   await expect(page.getByText("$29.95")).toBeVisible()
 
-  // Toggle consent — the single Switch controls both accuracy + terms
+  // Toggle consent - the single Switch controls both accuracy + terms
   const consentArea = page.getByText(/By paying, I confirm the information/i)
   await consentArea.scrollIntoViewIfNeeded()
   await consentArea.click()
@@ -237,10 +237,10 @@ async function verifyCheckoutStep(page: Page) {
 }
 
 // ---------------------------------------------------------------------------
-// 1 · REPEAT PRESCRIPTION — Full Flow
+// 1 · REPEAT PRESCRIPTION - Full Flow
 // ---------------------------------------------------------------------------
 
-test.describe("Prescription: full flow — start to checkout", () => {
+test.describe("Prescription: full flow - start to checkout", () => {
   test.setTimeout(90000) // generous timeout for CI
 
   test("completes repeat prescription from start to checkout", async ({ page }) => {
@@ -263,13 +263,13 @@ test.describe("Prescription: full flow — start to checkout", () => {
     // ── Step 5: Review (with embedded safety consent) ──
     await completeReviewStep(page)
 
-    // ── Step 6: Checkout — verify price and consent ──
+    // ── Step 6: Checkout - verify price and consent ──
     await verifyCheckoutStep(page)
   })
 })
 
 // ---------------------------------------------------------------------------
-// 2 · REPEAT-SCRIPT ALIAS — Same flow via alternate URL
+// 2 · REPEAT-SCRIPT ALIAS - Same flow via alternate URL
 // ---------------------------------------------------------------------------
 
 test.describe("Prescription: repeat-script alias loads same flow", () => {
@@ -285,7 +285,7 @@ test.describe("Prescription: repeat-script alias loads same flow", () => {
 })
 
 // ---------------------------------------------------------------------------
-// 3 · MEDICATION HISTORY — "Never prescribed" blocks flow
+// 3 · MEDICATION HISTORY - "Never prescribed" blocks flow
 // ---------------------------------------------------------------------------
 
 test.describe("Prescription: medication-history gating", () => {
@@ -299,7 +299,7 @@ test.describe("Prescription: medication-history gating", () => {
     // Complete medication step
     await completeMedicationSearchStep(page)
 
-    // On medication history step — select "Never prescribed"
+    // On medication history step - select "Never prescribed"
     await waitForStep(page, /When were you last prescribed/i)
     await clickChip(page, /Never prescribed this medication/i)
 
@@ -310,7 +310,7 @@ test.describe("Prescription: medication-history gating", () => {
 })
 
 // ---------------------------------------------------------------------------
-// 4 · VALIDATION — Fields required before advancing
+// 4 · VALIDATION - Fields required before advancing
 // ---------------------------------------------------------------------------
 
 test.describe("Prescription: step validation", () => {
@@ -321,7 +321,7 @@ test.describe("Prescription: step validation", () => {
     await waitForPageLoad(page)
     await dismissOverlays(page)
 
-    // On medication step — Continue should be disabled without a selection
+    // On medication step - Continue should be disabled without a selection
     await waitForStep(page, /Search using the PBS database/i)
     const btn = page.getByRole("button", { name: /^Continue$/i }).last()
     await expect(btn).toBeDisabled()
@@ -337,7 +337,7 @@ test.describe("Prescription: step validation", () => {
     await completeMedicationHistoryStep(page)
     await completeMedicalHistoryStep(page)
 
-    // On details step — enter invalid email
+    // On details step - enter invalid email
     await waitForStep(page, /This information is required/i)
     const noThanks = page.getByRole("button", { name: /No thanks/i })
     if (await noThanks.isVisible({ timeout: 1000 }).catch(() => false)) {
@@ -366,7 +366,7 @@ test.describe("Prescription: step validation", () => {
     await completeMedicalHistoryStep(page)
     await completeDetailsStep(page)
 
-    // On review step — "Continue to payment" should be disabled without safety consent
+    // On review step - "Continue to payment" should be disabled without safety consent
     await waitForStep(page, /Review your request/i)
     const btn = page.getByRole("button", { name: /Continue to payment/i })
     await expect(btn).toBeDisabled()
@@ -374,7 +374,7 @@ test.describe("Prescription: step validation", () => {
 })
 
 // ---------------------------------------------------------------------------
-// 5 · CHECKOUT — Price and consent verification
+// 5 · CHECKOUT - Price and consent verification
 // ---------------------------------------------------------------------------
 
 test.describe("Prescription: checkout price verification", () => {
@@ -419,7 +419,7 @@ test.describe("Prescription: checkout price verification", () => {
     await completeDetailsStep(page)
     await completeReviewStep(page)
 
-    // On checkout — button should be disabled before consent
+    // On checkout - button should be disabled before consent
     await waitForStep(page, /Request Summary/i)
     const checkoutBtn = page.getByRole("button", { name: /Continue to payment/i }).last()
     await expect(checkoutBtn).toBeDisabled()
@@ -435,7 +435,7 @@ test.describe("Prescription: checkout price verification", () => {
 })
 
 // ---------------------------------------------------------------------------
-// 6 · RESPONSIVE — Mobile viewport
+// 6 · RESPONSIVE - Mobile viewport
 // ---------------------------------------------------------------------------
 
 test.describe("Prescription: responsive design", () => {

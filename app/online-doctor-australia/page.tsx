@@ -23,15 +23,14 @@ import { getAllStateSlugs, statesData } from "@/lib/seo/data/states"
 import { PRICING_DISPLAY } from "@/lib/constants"
 
 // ============================================================================
-// METADATA — head-term pillar for "online doctor australia"
+// METADATA - head-term pillar for "online doctor australia"
 // ============================================================================
 
 const CANONICAL = "https://instantmed.com.au/online-doctor-australia"
 
 export const metadata: Metadata = {
   title: "Online Doctor Australia | AHPRA-Registered GPs, Reviewed Same Day",
-  description:
-    "See an online doctor in Australia without the waiting room. AHPRA-registered GPs review medical certificates, prescriptions, and consultations same-day. From $19.95, 24/7 for med certs, 8am–10pm AEST for Rx and consults.",
+  description: `See an online doctor in Australia without the waiting room. AHPRA-registered GPs review medical certificates, prescriptions, and consultations same-day. ${PRICING_DISPLAY.FROM_MED_CERT}, 24/7 for med certs, 8am\u201310pm AEST for Rx and consults.`,
   keywords: [
     "online doctor australia",
     "online doctor au",
@@ -45,9 +44,8 @@ export const metadata: Metadata = {
     "online doctor no appointment",
   ],
   openGraph: {
-    title: "Online Doctor Australia — AHPRA-Registered GPs | InstantMed",
-    description:
-      "See an Australian online doctor without leaving home. Med certs, repeat prescriptions, and consultations reviewed by AHPRA-registered GPs. Same-day turnaround from $19.95.",
+    title: "Online Doctor Australia - AHPRA-Registered GPs | InstantMed",
+    description: `See an Australian online doctor without leaving home. Med certs, repeat prescriptions, and consultations reviewed by AHPRA-registered GPs. Same-day turnaround from ${PRICING_DISPLAY.MED_CERT}.`,
     url: CANONICAL,
     siteName: "InstantMed",
     locale: "en_AU",
@@ -57,7 +55,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Online Doctor Australia | InstantMed",
     description:
-      "AHPRA-registered online GPs. Medical certificates, prescriptions, consultations — reviewed same-day.",
+      "AHPRA-registered online GPs. Medical certificates, prescriptions, consultations - reviewed same-day.",
   },
   alternates: { canonical: CANONICAL },
 }
@@ -93,7 +91,7 @@ const SERVICES = [
   {
     icon: Stethoscope,
     title: "Online GP consultations",
-    body: "Discuss a new symptom, ongoing concern, or get a treatment plan — async written review by an Australian GP.",
+    body: "Discuss a new symptom, ongoing concern, or get a treatment plan - async written review by an Australian GP.",
     href: "/consult",
     cta: "Book an online consultation",
     priceLabel: `From ${PRICING_DISPLAY.CONSULT}`,
@@ -104,7 +102,7 @@ const FAQS = [
   {
     question: "Is InstantMed a real doctor or an AI?",
     answer:
-      "Every request is clinically reviewed by an AHPRA-registered Australian doctor. We use software to handle intake, triage, and delivery, but the clinical decision — whether to issue a certificate, approve a prescription, or decline — is always made by a human GP. No AI prescribes medication or issues certificates.",
+      "Every request is clinically reviewed by an AHPRA-registered Australian doctor. We use software to handle intake, triage, and delivery, but the clinical decision - whether to issue a certificate, approve a prescription, or decline - is always made by a human GP. No AI prescribes medication or issues certificates.",
   },
   {
     question: "Are InstantMed's doctors registered with AHPRA?",
@@ -114,7 +112,7 @@ const FAQS = [
   {
     question: "Can I see an online doctor without a Medicare card?",
     answer:
-      "Yes for medical certificates — Medicare is not required. Prescriptions and consultations generally require a Medicare number or Individual Healthcare Identifier (IHI) for eScript compliance and to meet PBS and TGA prescribing requirements. If you're an Australian resident without a Medicare card, contact us and we'll walk you through the options.",
+      "Yes for medical certificates - Medicare is not required. Prescriptions and consultations generally require a Medicare number or Individual Healthcare Identifier (IHI) for eScript compliance and to meet PBS and TGA prescribing requirements. If you're an Australian resident without a Medicare card, contact us and we'll walk you through the options.",
   },
   {
     question: "Is InstantMed covered by Medicare or bulk-billed?",
@@ -124,7 +122,7 @@ const FAQS = [
   {
     question: "What can an online doctor actually prescribe in Australia?",
     answer:
-      "Under TGA telehealth prescribing rules, Australian online doctors can prescribe Schedule 2, 3, and 4 medications where clinically appropriate — think antibiotics, contraception, asthma preventers, antihypertensives, PPIs, and most ongoing medications. Schedule 8 controlled substances (strong opioids, benzodiazepines, stimulants) cannot be prescribed via telehealth on a first-contact basis and are blocked at our intake.",
+      "Under TGA telehealth prescribing rules, Australian online doctors can prescribe Schedule 2, 3, and 4 medications where clinically appropriate - think antibiotics, contraception, asthma preventers, antihypertensives, PPIs, and most ongoing medications. Schedule 8 controlled substances (strong opioids, benzodiazepines, stimulants) cannot be prescribed via telehealth on a first-contact basis and are blocked at our intake.",
   },
   {
     question: "How fast will I actually hear back from the doctor?",
@@ -139,16 +137,16 @@ const FAQS = [
   {
     question: "When should I avoid an online doctor and go in person instead?",
     answer:
-      "Online GPs are great for straightforward conditions where clinical decisions can be made from history alone — med certs, repeat scripts on stable medication, uncomplicated infections, mental health check-ins. They're not appropriate for chest pain, shortness of breath, severe abdominal pain, suspected stroke, pregnancy complications, trauma, or anything else needing a physical exam or urgent imaging. In those cases, call 000 or go to your nearest emergency department.",
+      "Online GPs are great for straightforward conditions where clinical decisions can be made from history alone - med certs, repeat scripts on stable medication, uncomplicated infections, mental health check-ins. They're not appropriate for chest pain, shortness of breath, severe abdominal pain, suspected stroke, pregnancy complications, trauma, or anything else needing a physical exam or urgent imaging. In those cases, call 000 or go to your nearest emergency department.",
   },
 ]
 
-// JSON-LD — MedicalBusiness, Breadcrumb, FAQPage
+// JSON-LD - MedicalBusiness, Breadcrumb, FAQPage
 const medicalBusinessSchema = {
   "@context": "https://schema.org",
   "@type": "MedicalBusiness",
   "@id": `${CANONICAL}#business`,
-  name: "InstantMed — Online Doctor Australia",
+  name: "InstantMed - Online Doctor Australia",
   description:
     "Australian telehealth platform connecting patients to AHPRA-registered doctors for medical certificates, prescriptions, and online consultations nationwide.",
   url: CANONICAL,
@@ -216,12 +214,12 @@ export default function OnlineDoctorAustraliaPage() {
                 <SectionPill>Australia-wide · AHPRA registered</SectionPill>
               </div>
               <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl mb-4">
-                Online doctor in Australia — reviewed by AHPRA-registered GPs
+                Online doctor in Australia - reviewed by AHPRA-registered GPs
               </h1>
               <p className="text-muted-foreground text-lg max-w-2xl mx-auto mb-8">
                 Medical certificates, repeat prescriptions, and consultations reviewed by
                 Australian-registered doctors. No appointments, no waiting rooms, no phone
-                tag. Every request goes to a real GP — not an algorithm.
+                tag. Every request goes to a real GP - not an algorithm.
               </p>
 
               <div className="flex flex-wrap justify-center gap-3 mb-8">
@@ -289,12 +287,12 @@ export default function OnlineDoctorAustraliaPage() {
               <div className="space-y-5 text-muted-foreground leading-relaxed">
                 <p>
                   An online doctor in Australia is, for every clinical purpose, the same
-                  practitioner you would see inside a bricks-and-mortar clinic — an AHPRA-registered
+                  practitioner you would see inside a bricks-and-mortar clinic - an AHPRA-registered
                   medical practitioner who has completed an Australian medical degree, internship,
                   and general registration pathway. The only thing that changes is how you reach them.
                   Instead of booking a 15-minute slot in a waiting room, you submit a structured
                   intake form with your history and symptoms, and a GP reviews it on the other side.
-                  The clinical decision — approve, decline, or ask for more information — is made by
+                  The clinical decision - approve, decline, or ask for more information - is made by
                   a human doctor every single time, and logged against their provider number.
                 </p>
                 <p>
@@ -303,7 +301,7 @@ export default function OnlineDoctorAustraliaPage() {
                   already been stable on, or a consultation about a new or ongoing symptom. Each one
                   is handled by a doctor who reads your history, applies RACGP-aligned clinical
                   reasoning, and either issues what you need or writes back explaining why they
-                  can&apos;t. If they decline, you get a full refund — we would rather lose a fee
+                  can&apos;t. If they decline, you get a full refund - we would rather lose a fee
                   than issue something that isn&apos;t clinically appropriate.
                 </p>
                 <p>
@@ -382,7 +380,7 @@ export default function OnlineDoctorAustraliaPage() {
                   <Link href="/request" className="text-primary hover:underline font-medium">
                     /request
                   </Link>{" "}
-                  by choosing what you need — certificate, prescription, or consultation — and walk
+                  by choosing what you need - certificate, prescription, or consultation - and walk
                   through a structured intake that mirrors the questions a GP would ask in the
                   consulting room. Because the intake is conditional on your answers, a repeat
                   prescription for a long-term medication will ask a different set of questions to a
@@ -392,17 +390,17 @@ export default function OnlineDoctorAustraliaPage() {
                 <p>
                   Once you submit, the request lands in a doctor&apos;s queue. They open it, read
                   your full history, and make a decision. For straightforward requests, they approve
-                  and the system generates the deliverable — a PDF medical certificate or an
-                  eScript — which you receive by email and SMS. For more complex cases, the doctor
+                  and the system generates the deliverable - a PDF medical certificate or an
+                  eScript - which you receive by email and SMS. For more complex cases, the doctor
                   may send you a message asking a clarifying question, or offer a brief phone call at
                   no extra charge. If they decline, the decision is always explained and you&apos;re
                   refunded automatically. There is no hidden AI step and no outsourcing of clinical
-                  decisions — it&apos;s a queue of real GPs working through real patients.
+                  decisions - it&apos;s a queue of real GPs working through real patients.
                 </p>
                 <p>
                   When a prescription is approved, your eScript token arrives on your phone as a QR
-                  code. You walk into any pharmacy in Australia — Chemist Warehouse, Priceline,
-                  TerryWhite, your local independent — hand over the token, and collect the
+                  code. You walk into any pharmacy in Australia - Chemist Warehouse, Priceline,
+                  TerryWhite, your local independent - hand over the token, and collect the
                   medication. eScripts are federally regulated under the Electronic Prescriptions
                   programme and work identically to a paper script at every participating pharmacy
                   in the country, which is essentially all of them.
@@ -416,7 +414,7 @@ export default function OnlineDoctorAustraliaPage() {
             <div className="mx-auto max-w-5xl">
               <div className="text-center mb-10">
                 <h2 className="text-2xl sm:text-3xl font-semibold text-foreground mb-3">
-                  When an online doctor is the right call — and when it isn&apos;t
+                  When an online doctor is the right call - and when it isn&apos;t
                 </h2>
                 <p className="text-muted-foreground max-w-2xl mx-auto">
                   Telehealth has real clinical limits. We would rather tell you upfront than take a
@@ -452,7 +450,7 @@ export default function OnlineDoctorAustraliaPage() {
                     <li>• Pregnancy complications</li>
                     <li>• Fevers in infants or complex paediatric presentations</li>
                     <li>• Mental health crises with risk of self-harm (Lifeline 13 11 14)</li>
-                    <li>• Schedule 8 drugs (opioids, benzos, stimulants) — first contact</li>
+                    <li>• Schedule 8 drugs (opioids, benzos, stimulants) - first contact</li>
                     <li>• WorkCover and fitness-to-work medicals needing physical exam</li>
                   </ul>
                 </div>
@@ -469,8 +467,8 @@ export default function OnlineDoctorAustraliaPage() {
               <div className="space-y-5 text-muted-foreground leading-relaxed">
                 <p>
                   Australian online doctors operate under the same legal and professional framework
-                  as any other Australian GP. AHPRA — the Australian Health Practitioner Regulation
-                  Agency — sets the registration standards for every medical practitioner in the
+                  as any other Australian GP. AHPRA - the Australian Health Practitioner Regulation
+                  Agency - sets the registration standards for every medical practitioner in the
                   country. Every doctor treating patients through InstantMed holds current general
                   registration and is publicly searchable at{" "}
                   <span className="text-foreground font-medium">ahpra.gov.au/Registration</span>.
@@ -487,7 +485,7 @@ export default function OnlineDoctorAustraliaPage() {
                   prescribing rules that generally require in-person assessment, and InstantMed
                   blocks first-contact requests for any Schedule 8 medication at intake. The
                   Pharmaceutical Benefits Scheme (PBS) then governs how those medications are
-                  subsidised — private telehealth prescriptions are valid under PBS, meaning you
+                  subsidised - private telehealth prescriptions are valid under PBS, meaning you
                   still pay the same co-payment at the pharmacy as you would with a paper script
                   from your local GP.
                 </p>
@@ -497,7 +495,7 @@ export default function OnlineDoctorAustraliaPage() {
                   support are all anchored to current RACGP standards. We maintain clinical
                   governance oversight, audit a sample of clinical decisions, and log every
                   consultation for the full period required by each state&apos;s health records
-                  legislation. This isn&apos;t unique to us — it&apos;s the baseline every telehealth
+                  legislation. This isn&apos;t unique to us - it&apos;s the baseline every telehealth
                   service in Australia has to meet, and it&apos;s the reason seeing an online doctor
                   is a clinically serious option, not a novelty.
                 </p>
@@ -578,7 +576,7 @@ export default function OnlineDoctorAustraliaPage() {
                   Online doctors in every Australian state
                 </h2>
                 <p className="text-muted-foreground max-w-2xl mx-auto">
-                  Dedicated guides for each state and territory. Same doctors, same turnaround —
+                  Dedicated guides for each state and territory. Same doctors, same turnaround -
                   different local context.
                 </p>
               </div>
@@ -614,7 +612,7 @@ export default function OnlineDoctorAustraliaPage() {
           <section className="px-4 py-16 bg-muted/30 dark:bg-white/[0.02] border-y border-border/40 dark:border-white/10">
             <div className="mx-auto max-w-3xl">
               <h2 className="text-2xl sm:text-3xl font-semibold text-foreground text-center mb-10">
-                Online doctor Australia — FAQs
+                Online doctor Australia - FAQs
               </h2>
               <div className="space-y-4">
                 {FAQS.map((faq, i) => (

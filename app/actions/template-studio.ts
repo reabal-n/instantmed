@@ -125,5 +125,5 @@ export async function uploadClinicLogoAction(
   }
 }
 
-// Template editing functions removed — templates are static PDFs in /public/templates/
+// Template editing functions removed - templates are static PDFs in /public/templates/
 // Only read functions (loadTemplateStudioData) and clinic identity actions are retained.

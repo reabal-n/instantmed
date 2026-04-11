@@ -147,7 +147,7 @@ export async function getOrCreateMedCertDraftForIntake(intakeId: string): Promis
     return null
   }
 
-  // Supabase returns join relations as arrays — unwrap to single object
+  // Supabase returns join relations as arrays - unwrap to single object
   const patient = Array.isArray(intake.patient) ? intake.patient[0] : intake.patient
   const answers = intake.answers?.[0]?.answers || {}
 

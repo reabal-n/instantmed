@@ -27,6 +27,7 @@ import { FAQSchema, BreadcrumbSchema } from "@/components/seo/healthcare-schema"
 import { PageBreadcrumbs } from "@/components/uix"
 import { Button } from "@/components/ui/button"
 import { conditionsData } from "@/lib/seo/data/conditions"
+import { PRICING_DISPLAY } from "@/lib/constants"
 import { SOCIAL_PROOF } from "@/lib/social-proof"
 import { getTestimonialsForColumns } from "@/lib/data/testimonials"
 import type { StatItem, ChecklistItem } from "@/components/sections"
@@ -98,7 +99,7 @@ export default async function ConditionPage({ params }: PageProps) {
     items: condition.commonQuestions.map(q => ({ question: q.q, answer: q.a })),
   }]
 
-  const fromPrice = condition.serviceType === "consult" ? "$49.95" : "$19.95"
+  const fromPrice = condition.serviceType === "consult" ? PRICING_DISPLAY.CONSULT : PRICING_DISPLAY.MED_CERT
   const serviceLabel = condition.serviceType === "med-cert" ? "certificates" : "consultations"
 
   return (
@@ -162,7 +163,7 @@ export default async function ConditionPage({ params }: PageProps) {
               <IconChecklist
                 pill="Symptoms"
                 title={`Common symptoms of ${condition.name}`}
-                subtitle="Our doctors assess these symptoms online — no in-person visit required."
+                subtitle="Our doctors assess these symptoms online - no in-person visit required."
                 items={symptomItems}
                 columns={2}
                 className="bg-muted/30 dark:bg-white/[0.04]"

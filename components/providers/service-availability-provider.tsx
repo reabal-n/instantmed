@@ -66,7 +66,7 @@ export function ServiceAvailabilityProvider({ children }: { children: ReactNode 
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    // Defer until after first paint — don't race with critical resources
+    // Defer until after first paint - don't race with critical resources
     const id =
       typeof requestIdleCallback !== "undefined"
         ? requestIdleCallback(() => doFetch(), { timeout: 2000 })
@@ -79,7 +79,7 @@ export function ServiceAvailabilityProvider({ children }: { children: ReactNode 
           setState(data)
         })
         .catch(() => {
-          // Fail open — assume all services available
+          // Fail open - assume all services available
           setState(defaultState)
         })
         .finally(() => {

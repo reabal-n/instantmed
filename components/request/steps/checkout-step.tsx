@@ -67,7 +67,7 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
   const [_estimatedWait, setEstimatedWait] = useState(serviceType === 'med-cert' ? "~30 min" : "1–2 hours")
   const [showCheckmark, setShowCheckmark] = useState(false)
   const [consentGiven, setConsentGiven] = useState(false)
-  // Express Review defaults OFF — patient opts in consciously
+  // Express Review defaults OFF - patient opts in consciously
   const [isPriority, setIsPriority] = useState(false)
   const isRepeatScript = serviceType === 'prescription' || serviceType === 'repeat-script'
   const [subscribeAndSave, setSubscribeAndSave] = useState(isRepeatScript) // Default ON for repeat scripts
@@ -189,11 +189,11 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
       initial="initial"
       animate="animate"
     >
-      {/* Guest badge — only for unauthenticated users */}
+      {/* Guest badge - only for unauthenticated users */}
       {!authContext.isAuthenticated && (
         <motion.div variants={stagger.item} className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
           <UserX className="w-4 h-4 text-primary" />
-          <span>No account required — pay as a guest</span>
+          <span>No account required - pay as a guest</span>
         </motion.div>
       )}
 
@@ -295,14 +295,14 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
             </li>
           </ul>
           <p className="text-xs text-muted-foreground pt-2 border-t border-border/50">
-            Take your phone to any pharmacy — they&apos;ll scan your eScript QR code.
+            Take your phone to any pharmacy - they&apos;ll scan your eScript QR code.
             If your medication requires a new prescription or has never been prescribed to you before,
             our doctor will contact you to arrange a consultation.
           </p>
         </div>
       )}
 
-      {/* Subscribe & Save toggle — repeat scripts only */}
+      {/* Subscribe & Save toggle - repeat scripts only */}
       {isRepeatScript && (
         <motion.div variants={stagger.item}>
           <div
@@ -335,7 +335,7 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
         </motion.div>
       )}
 
-      {/* Express review toggle — opt-in only */}
+      {/* Express review toggle - opt-in only */}
       <motion.div variants={stagger.item}>
         <div
           className={`w-full p-3.5 rounded-xl border text-left transition-all duration-200 flex items-start gap-3 cursor-pointer ${
@@ -367,7 +367,7 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
         </div>
       </motion.div>
 
-      {/* Single combined consent — Checkbox (not Switch) for legal acknowledgment semantics */}
+      {/* Single combined consent - Checkbox (not Switch) for legal acknowledgment semantics */}
       <motion.div variants={stagger.item}>
         <div
           className={`w-full p-3.5 rounded-xl border-2 text-left transition-all duration-200 flex items-start gap-3 cursor-pointer ${
@@ -423,7 +423,7 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
       {/* Spacer for sticky CTA on mobile */}
       <div className="h-36 sm:hidden" />
 
-      {/* Checkout button — sticky on mobile, inline on desktop */}
+      {/* Checkout button - sticky on mobile, inline on desktop */}
       <div className="fixed bottom-0 left-0 right-0 z-30 bg-background/95 backdrop-blur-md border-t px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:static sm:bg-transparent sm:backdrop-blur-none sm:border-0 sm:p-0 sm:z-auto">
         <div className="max-w-lg mx-auto space-y-2">
           <CheckoutButton
@@ -436,7 +436,7 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
             variant="prominent"
           />
 
-          {/* Refund guarantee — full for med cert/Rx, partial for consults */}
+          {/* Refund guarantee - full for med cert/Rx, partial for consults */}
           <div className="flex items-center justify-center gap-2 text-xs text-primary">
             <ShieldCheck className="w-3.5 h-3.5" />
             <span className="font-medium">
@@ -446,7 +446,7 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
             </span>
           </div>
 
-          {/* Stripe + payment methods — single trust line */}
+          {/* Stripe + payment methods - single trust line */}
           <div className="flex flex-wrap items-center justify-center gap-x-1.5 gap-y-1 text-xs text-muted-foreground/60">
             <span className="flex items-center gap-1">
               <Lock className="h-3 w-3" />

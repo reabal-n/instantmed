@@ -74,7 +74,7 @@ export const medicationArticles: Article[] = [
       { type: 'paragraph', content: 'You\'ll need to see a doctor in person, usually your regular GP or a specialist. Telehealth services will advise you when this is the case.' }
     ],
     faqs: [
-      { question: 'Why can\'t some medications be prescribed online?', answer: 'Restrictions exist for safety — some medications need physical examination, have high misuse potential, or require specialist oversight.' },
+      { question: 'Why can\'t some medications be prescribed online?', answer: 'Restrictions exist for safety - some medications need physical examination, have high misuse potential, or require specialist oversight.' },
       { question: 'Can I get my regular controlled medication via telehealth?', answer: 'It depends on your state and situation. Some states allow telehealth prescribing for established patients. Check with your usual prescriber.' },
       { question: 'What if I\'m travelling and need a controlled medication?', answer: 'Plan ahead with your regular doctor. They may provide extra supply or documentation. In emergencies, local GPs or hospitals may help.' }
     ],
@@ -139,12 +139,12 @@ export const medicationArticles: Article[] = [
     heroImage: blogImages.antibioticsGuide,
     heroImageAlt: 'Generic and brand name medication comparison',
     content: [
-      { type: 'paragraph', content: 'When a pharmaceutical company develops a new medication, they hold a patent allowing exclusive sales for a period. Once the patent expires, other companies can make the same medication — these are called generics.', links: [{ text: 'generics', href: '/blog/pbs-pharmaceutical-benefits-scheme', title: 'PBS and medication costs' }] },
+      { type: 'paragraph', content: 'When a pharmaceutical company develops a new medication, they hold a patent allowing exclusive sales for a period. Once the patent expires, other companies can make the same medication - these are called generics.', links: [{ text: 'generics', href: '/blog/pbs-pharmaceutical-benefits-scheme', title: 'PBS and medication costs' }] },
       { type: 'heading', content: 'What Makes Generics Different?', level: 2 },
       { type: 'paragraph', content: 'Generic medications contain the same active ingredient in the same dose as the brand name. Differences may include:' },
       { type: 'list', content: '', items: ['Different inactive ingredients (fillers, colours)', 'Different shape, size, or colour of tablet', 'Different packaging', 'Different name', 'Lower price'] },
       { type: 'heading', content: 'Are Generics as Effective?', level: 2 },
-      { type: 'paragraph', content: 'Yes. In Australia, the Therapeutic Goods Administration (TGA) requires generics to be "bioequivalent" — meaning they work the same way in your body as the brand name version.' },
+      { type: 'paragraph', content: 'Yes. In Australia, the Therapeutic Goods Administration (TGA) requires generics to be "bioequivalent" - meaning they work the same way in your body as the brand name version.' },
       { type: 'callout', variant: 'info', content: 'Generic medications must meet the same quality, safety, and efficacy standards as brand name medications to be approved in Australia.' },
       { type: 'heading', content: 'Why Are Generics Cheaper?', level: 2 },
       { type: 'list', content: '', items: ['No research and development costs to recover', 'Competition between manufacturers', 'PBS pricing policies encourage generic use', 'Lower marketing costs'] },
@@ -188,10 +188,10 @@ export const medicationArticles: Article[] = [
       { type: 'heading', content: 'Drug-Supplement Interactions', level: 3 },
       { type: 'paragraph', content: 'Vitamins, minerals, and herbal supplements can interact with medications. St John\'s Wort, for example, affects many medications.' },
       { type: 'heading', content: 'Common Interactions to Know', level: 2 },
-      { type: 'list', content: '', items: ['Blood thinners (warfarin) — many interactions with food and other medications', 'Grapefruit — affects cholesterol medications, some blood pressure drugs', 'Antacids — can reduce absorption of other medications', 'St John\'s Wort — affects antidepressants, contraceptives, many others', 'Alcohol — interacts with many medications'] },
-      { type: 'callout', variant: 'warning', content: 'Always tell your doctor and pharmacist about all medications, supplements, and herbal products you take — even if they seem unrelated to your current health concern.' },
+      { type: 'list', content: '', items: ['Blood thinners (warfarin) - many interactions with food and other medications', 'Grapefruit - affects cholesterol medications, some blood pressure drugs', 'Antacids - can reduce absorption of other medications', 'St John\'s Wort - affects antidepressants, contraceptives, many others', 'Alcohol - interacts with many medications'] },
+      { type: 'callout', variant: 'warning', content: 'Always tell your doctor and pharmacist about all medications, supplements, and herbal products you take - even if they seem unrelated to your current health concern.' },
       { type: 'heading', content: 'Protecting Yourself', level: 2 },
-      { type: 'list', content: '', items: ['Use one pharmacy when possible — they keep records', 'Keep an updated list of all your medications', 'Include over-the-counter medications and supplements', 'Ask about interactions when starting new medications', 'Read medication information leaflets', 'Don\'t stop medications without medical advice'] },
+      { type: 'list', content: '', items: ['Use one pharmacy when possible - they keep records', 'Keep an updated list of all your medications', 'Include over-the-counter medications and supplements', 'Ask about interactions when starting new medications', 'Read medication information leaflets', 'Don\'t stop medications without medical advice'] },
       { type: 'heading', content: 'Signs of an Interaction', level: 2 },
       { type: 'list', content: '', items: ['New or worsening side effects', 'Medication seems less effective', 'Unexpected symptoms after starting something new', 'Feeling unusually unwell'] }
     ],
@@ -232,14 +232,14 @@ export const medicationArticles: Article[] = [
       { type: 'heading', content: 'Expiry Dates', level: 2 },
       { type: 'list', content: '', items: ['Check expiry dates regularly', 'Expired medications may be less effective', 'Some expired medications can be harmful', 'Don\'t use eye drops or liquids past expiry', 'When in doubt, don\'t use it'] },
       { type: 'heading', content: 'Disposing of Medications', level: 2 },
-      { type: 'paragraph', content: 'Don\'t throw medications in the bin or flush them. Return unwanted or expired medications to your pharmacy for safe disposal through the Return Unwanted Medicines (RUM) program — it\'s free.' },
+      { type: 'paragraph', content: 'Don\'t throw medications in the bin or flush them. Return unwanted or expired medications to your pharmacy for safe disposal through the Return Unwanted Medicines (RUM) program - it\'s free.' },
       { type: 'heading', content: 'Travelling with Medications', level: 2 },
       { type: 'list', content: '', items: ['Keep medications in carry-on luggage', 'Bring original packaging with labels', 'Carry a letter from your doctor for controlled medications', 'Check destination country\'s rules for restricted medications', 'Consider time zone changes for timing-sensitive medications'] }
     ],
     faqs: [
       { question: 'Can I use medication after the expiry date?', answer: 'Generally no. Expired medications may be less effective or potentially harmful. Some exceptions exist for solid medications stored correctly, but it\'s safest not to use expired medications.' },
       { question: 'Where can I dispose of old medications?', answer: 'Return them to any pharmacy. The RUM (Return Unwanted Medicines) program provides safe disposal at no cost.' },
-      { question: 'My medication changed colour/texture — is it still okay?', answer: 'Changes in appearance may indicate degradation. Check with your pharmacist before using it.' }
+      { question: 'My medication changed colour/texture - is it still okay?', answer: 'Changes in appearance may indicate degradation. Check with your pharmacist before using it.' }
     ],
     relatedServices: [
       { title: 'Prescription Request', description: 'Get fresh medication supply', href: '/repeat-prescription', icon: 'prescription' },

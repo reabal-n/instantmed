@@ -25,6 +25,7 @@ import { createIntakeAndCheckoutAction } from "@/lib/stripe/checkout"
 import { InlineAuthStep } from "@/components/shared/inline-auth-step"
 import { InlineOnboardingStep } from "@/components/shared/inline-onboarding-step"
 import { MedicationSearch, type SelectedPBSProduct } from "@/components/shared/medication-search"
+import { PRICING_DISPLAY } from "@/lib/constants"
 
 interface PrescriptionFlowClientProps {
   category: string
@@ -863,7 +864,7 @@ export function PrescriptionFlowClient({
           ) : (
             <>
               <CreditCard className="mr-2 h-4 w-4" />
-              Pay & Submit - $29.95
+              Pay & Submit - {PRICING_DISPLAY.REPEAT_SCRIPT}
             </>
           )}
         </Button>

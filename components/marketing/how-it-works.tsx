@@ -134,7 +134,7 @@ export function HowItWorks() {
           </p>
         </motion.div>
 
-        {/* Timeline — horizontal on desktop, vertical on mobile */}
+        {/* Timeline - horizontal on desktop, vertical on mobile */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-6 relative">
           {/* Desktop timeline connector */}
           <div className="hidden lg:block absolute top-[2.5rem] left-[16%] right-[16%] border-t-2 border-dashed border-primary/20" />
@@ -153,7 +153,7 @@ export function HowItWorks() {
                   </span>
                 </div>
 
-                {/* Step text — above mockup on mobile, below on desktop */}
+                {/* Step text - above mockup on mobile, below on desktop */}
                 <div className="text-center mb-4 lg:mb-0 lg:mt-4 order-2 lg:order-3">
                   <h3 className="text-base font-semibold text-foreground mb-1">
                     {step.title}

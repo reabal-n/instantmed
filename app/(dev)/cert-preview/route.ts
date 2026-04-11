@@ -1,5 +1,5 @@
 /**
- * DEV ONLY — Certificate PDF preview route
+ * DEV ONLY - Certificate PDF preview route
  *
  * Generates a test certificate PDF and streams it directly to the browser
  * for layout calibration. Blocked in production/preview by middleware.

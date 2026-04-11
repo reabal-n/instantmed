@@ -101,7 +101,7 @@ function SignInForm() {
       setFormState('error')
       setGoogleLoading(false)
     }
-    // On success, browser redirects — no state update needed
+    // On success, browser redirects - no state update needed
   }, [redirectUrl, supabase.auth])
 
   return (
@@ -299,7 +299,7 @@ export default function SignInPage() {
   return (
     <div className="min-h-screen relative overflow-hidden bg-background">
       <div className="relative min-h-screen flex">
-        {/* Left side — Branding */}
+        {/* Left side - Branding */}
         <div className="hidden lg:flex lg:w-1/2 items-center justify-center p-12 bg-linear-to-br from-primary/5 to-transparent">
           <div className="max-w-md">
             <Link href="/" className="inline-flex items-center gap-2.5 mb-8 group">
@@ -313,7 +313,7 @@ export default function SignInPage() {
               Good to have you back<span className="text-primary">.</span>
             </h1>
             <p className="text-lg text-muted-foreground mb-8">
-              Medical certificates, prescriptions, and consultations reviewed by Australian doctors — no waiting rooms.
+              Medical certificates, prescriptions, and consultations reviewed by Australian doctors - no waiting rooms.
             </p>
 
             <div className="space-y-4 mb-8">
@@ -367,7 +367,7 @@ export default function SignInPage() {
           </div>
         </div>
 
-        {/* Right side — Sign-in form */}
+        {/* Right side - Sign-in form */}
         <div className="flex-1 flex items-center justify-center p-6 lg:p-12">
           <Suspense fallback={
             <div className="w-full max-w-md">

@@ -5,7 +5,7 @@
  * Uses the shared EmergencyGate component for consistency.
  *
  * UX: Compact inline card with single-click acknowledgment.
- * No more full-screen gate or animated reassurance — just a quick
+ * No more full-screen gate or animated reassurance - just a quick
  * confirmation that auto-advances to the next step.
  */
 
@@ -41,7 +41,7 @@ export default function SafetyStep({ serviceType, onNext }: SafetyStepProps) {
     onNext()
   }, [setSafetyConfirmed, onNext])
 
-  // Already confirmed (navigated back) — show compact confirmation with continue
+  // Already confirmed (navigated back) - show compact confirmation with continue
   if (safetyConfirmed) {
     return (
       <div className="space-y-4">

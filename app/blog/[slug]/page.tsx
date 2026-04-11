@@ -15,6 +15,7 @@ import { BreadcrumbSchema, FAQSchema, HowToSchema } from "@/components/seo/healt
 import { PageBreadcrumbs } from "@/components/uix"
 import { ReadingProgress } from "@/components/blog/reading-progress"
 import { legacyPosts } from "@/lib/blog/articles/legacy-posts"
+import { PRICING_DISPLAY } from "@/lib/constants"
 
 interface PageProps {
   params: Promise<{ slug: string }>
@@ -212,7 +213,7 @@ export default async function BlogPostPage({ params }: PageProps) {
             steps={[
               { name: 'Complete a brief questionnaire', text: 'Tell us about your situation and what you need. Takes about 2 minutes.' },
               { name: 'Verify your identity', text: 'Provide your details including name and date of birth. Medicare is optional for certificates.' },
-              { name: 'Make payment', text: 'Pay securely online. Certificates from $19.95, prescriptions $29.95.' },
+              { name: 'Make payment', text: `Pay securely online. Certificates from ${PRICING_DISPLAY.MED_CERT}, prescriptions ${PRICING_DISPLAY.REPEAT_SCRIPT}.` },
               { name: 'Doctor reviews your request', text: 'An AHPRA-registered doctor reviews your request. Most completed within an hour.' },
               { name: 'Receive your document', text: slug.includes('prescription') 
                 ? 'If approved, your eScript is sent via SMS to your phone. Take it to any pharmacy.'

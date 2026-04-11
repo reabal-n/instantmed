@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
   const supabase = createServiceRoleClient()
 
   // -----------------------------------------------------------------------
-  // Send "still reviewing" emails — runs regardless of auto-approval flag
+  // Send "still reviewing" emails - runs regardless of auto-approval flag
   // -----------------------------------------------------------------------
   try {
     const fortyFiveMinAgo = new Date(Date.now() - 45 * 60 * 1000).toISOString()
@@ -114,14 +114,14 @@ export async function GET(request: NextRequest) {
     }
   } catch (followUpError) {
     logger.error("Error in still-reviewing follow-up block", {}, followUpError as Error)
-    // Don't return early — auto-approval should still run
+    // Don't return early - auto-approval should still run
   }
 
   // Quick bail if feature flag is off
   const flags = await getFeatureFlags()
   if (!flags.ai_auto_approve_enabled) {
     logger.warn(
-      "Auto-approval feature flag is OFF — skipping all auto-approval processing. " +
+      "Auto-approval feature flag is OFF - skipping all auto-approval processing. " +
       "Enable via admin dashboard (feature_flags.ai_auto_approve_enabled) or DB.",
     )
     return NextResponse.json({ skipped: true, reason: "Auto-approval disabled via feature flag" })
@@ -210,7 +210,7 @@ export async function GET(request: NextRequest) {
 
     for (const intake of eligibleIntakes) {
       try {
-        // Check if AI drafts exist — if not, generate them first
+        // Check if AI drafts exist - if not, generate them first
         const { data: existingDrafts } = await supabase
           .from("document_drafts")
           .select("id")
@@ -254,7 +254,7 @@ export async function GET(request: NextRequest) {
           error: err instanceof Error ? err.message : String(err),
         })
       }
-      // No finally block needed — state machine handles failure states
+      // No finally block needed - state machine handles failure states
     }
 
     // Check for intakes that recently hit needs_doctor via max retries
@@ -273,7 +273,7 @@ export async function GET(request: NextRequest) {
         tags: { subsystem: "cert-pipeline" },
         extra: { intakeIds: maxedOut.map(i => i.id) },
       })
-      logger.warn("Intakes hit auto-approval retry cap — in doctor queue", {
+      logger.warn("Intakes hit auto-approval retry cap - in doctor queue", {
         count: maxedOut.length,
         intakeIds: ids,
       })

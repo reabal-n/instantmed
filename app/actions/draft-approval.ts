@@ -395,7 +395,7 @@ export async function regenerateDrafts(intakeId: string): Promise<DraftApprovalR
       return { success: false, error: result.error || "Failed to generate new drafts" }
     }
 
-    // Surface clinical note failure — doctor clicked "Generate AI draft" for notes
+    // Surface clinical note failure - doctor clicked "Generate AI draft" for notes
     if (result.clinicalNote?.status === "failed") {
       return {
         success: false,

@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
 
   const supabase = createServiceRoleClient()
 
-  // SECURITY: Enforce role-based access — patients cannot use doctor/admin search variants
+  // SECURITY: Enforce role-based access - patients cannot use doctor/admin search variants
   const effectiveVariant = variant
   if (variant === "doctor" || variant === "admin") {
     const { data: callerProfile } = await supabase

@@ -10,7 +10,7 @@ import NumberFlow from '@number-flow/react'
 import { SOCIAL_PROOF } from '@/lib/social-proof'
 import { usePatientCount } from '@/lib/use-patient-count'
 
-// ── Stat presets — centralized social proof stats per service ────────
+// ── Stat presets - centralized social proof stats per service ────────
 export interface StatEntry {
   icon: LucideIcon
   value: number

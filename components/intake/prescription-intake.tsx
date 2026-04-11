@@ -1,7 +1,7 @@
 "use client"
 
 /**
- * PrescriptionIntake — multi-step prescription request form.
+ * PrescriptionIntake - multi-step prescription request form.
  * Used by /prescriptions/new to collect patient details before checkout.
  *
  * TODO: Implement full multi-step UI (see prescription-flow-client.tsx for the

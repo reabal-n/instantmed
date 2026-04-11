@@ -64,7 +64,7 @@ export function HairLossHookQuiz({ className }: HairLossHookQuizProps) {
       try {
         sessionStorage.setItem(HAIR_LOSS_HOOK_QUIZ_KEY, JSON.stringify(built))
       } catch {
-        // Safari private mode — silently ignore
+        // Safari private mode - silently ignore
       }
     }
 
@@ -114,7 +114,7 @@ export function HairLossHookQuiz({ className }: HairLossHookQuizProps) {
                 Which pattern looks most like yours?
               </h3>
               <p className="mt-1 text-sm text-muted-foreground">
-                Top-down view. Pick the closest match — a doctor will confirm
+                Top-down view. Pick the closest match - a doctor will confirm
                 during your assessment.
               </p>
             </div>

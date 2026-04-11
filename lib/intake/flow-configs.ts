@@ -133,7 +133,7 @@ export const MEDCERT_FLOW: FlowConfig = {
           id: "notes",
           type: "text",
           label: "Anything else the doctor should know?",
-          sublabel: "Optional — helps the doctor understand your situation",
+          sublabel: "Optional - helps the doctor understand your situation",
           placeholder: "Add any extra details here...",
         },
       ],

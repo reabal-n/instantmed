@@ -4,7 +4,7 @@ import {
   type TickerEntry,
 } from "@/lib/marketing/review-ticker-data"
 
-describe("formatTickerEntry — named format (med cert, hair loss)", () => {
+describe("formatTickerEntry - named format (med cert, hair loss)", () => {
   const entry: TickerEntry = { name: "Sarah", city: "Melbourne", minutesAgo: 23 }
 
   it("includes the first name", () => {
@@ -20,7 +20,7 @@ describe("formatTickerEntry — named format (med cert, hair loss)", () => {
   })
 })
 
-describe("formatTickerEntry — anonymous format (ED)", () => {
+describe("formatTickerEntry - anonymous format (ED)", () => {
   const entry: TickerEntry = { name: "Sarah", city: "Melbourne", minutesAgo: 23 }
 
   it("does NOT include the first name", () => {

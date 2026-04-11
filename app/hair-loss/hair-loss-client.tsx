@@ -155,12 +155,12 @@ const faqGroups = [
       {
         question: "What treatment options are available?",
         answer:
-          "Our doctors can recommend different treatment approaches based on your assessment. One option is an oral treatment that addresses hormonal factors contributing to hair loss — it's most effective for hair loss at the crown and mid-scalp. Another option is a topical treatment applied directly to the scalp that stimulates hair follicles and increases blood flow. Many men use both approaches together for best results.",
+          "Our doctors can recommend different treatment approaches based on your assessment. One option is an oral treatment that addresses hormonal factors contributing to hair loss - it's most effective for hair loss at the crown and mid-scalp. Another option is a topical treatment applied directly to the scalp that stimulates hair follicles and increases blood flow. Many men use both approaches together for best results.",
       },
       {
         question: "How long until I see results?",
         answer:
-          "Hair growth takes time. With topical treatments, some improvement may be visible in 2-4 months. With oral treatments, most men see results in 3-6 months. It can take up to 12 months to see the full effect. Consistency is key — stopping treatment typically leads to reversal of gains.",
+          "Hair growth takes time. With topical treatments, some improvement may be visible in 2-4 months. With oral treatments, most men see results in 3-6 months. It can take up to 12 months to see the full effect. Consistency is key - stopping treatment typically leads to reversal of gains.",
       },
       {
         question: "Are there side effects?",
@@ -175,7 +175,7 @@ const faqGroups = [
       {
         question: "Is the service really discreet?",
         answer:
-          "Completely. No phone calls required. Your pharmacy receives only the prescription — not your consultation details. Medications come in standard pharmacy packaging with no indication of contents. Your bank statement shows 'InstantMed' only.",
+          "Completely. No phone calls required. Your pharmacy receives only the prescription - not your consultation details. Medications come in standard pharmacy packaging with no indication of contents. Your bank statement shows 'InstantMed' only.",
       },
       {
         question: "Can women use these treatments?",
@@ -376,7 +376,7 @@ export function HairLossClient({ faqSchema }: HairLossClientProps) {
           <Timeline
             pill="Results Timeline"
             title="What to Expect"
-            subtitle="Hair regrowth takes time — here's a typical timeline"
+            subtitle="Hair regrowth takes time - here's a typical timeline"
             highlightWords={["Expect"]}
             steps={resultsTimeline}
           />

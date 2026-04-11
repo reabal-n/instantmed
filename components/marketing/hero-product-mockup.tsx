@@ -64,7 +64,7 @@ export function HeroProductMockup() {
         </motion.div>
       </motion.div>
 
-      {/* Doctor notification card — overlapping bottom-right */}
+      {/* Doctor notification card - overlapping bottom-right */}
       <motion.div
         className="absolute -bottom-6 -right-6 xl:-right-8 rounded-xl bg-white dark:bg-card border border-border/50 shadow-lg shadow-primary/[0.06] dark:shadow-none p-3 flex items-center gap-3 min-w-[200px]"
         initial={animate ? { x: 20 } : {}}

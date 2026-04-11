@@ -18,7 +18,7 @@ export const COMPANY_ADDRESS_SHORT = "Level 1/457-459 Elizabeth St, Surry Hills 
 // Used as claimed_by and actor_id so FK constraints are satisfied.
 export const SYSTEM_AUTO_APPROVE_ID = "00000000-0000-0000-0000-000000000000"
 
-// Contact info — use these constants instead of hardcoded strings
+// Contact info - use these constants instead of hardcoded strings
 export const CONTACT_EMAIL = "support@instantmed.com.au"
 export const CONTACT_EMAIL_HELLO = "hello@instantmed.com.au"
 export const CONTACT_EMAIL_NOREPLY = "noreply@instantmed.com.au"
@@ -28,11 +28,11 @@ export const CONTACT_EMAIL_PRIVACY = "privacy@instantmed.com.au"
 export const CONTACT_EMAIL_LEGAL = "legal@instantmed.com.au"
 export const CONTACT_PHONE = "0450 722 549"
 
-// Google Business Profile review link — SINGLE SOURCE OF TRUTH
+// Google Business Profile review link - SINGLE SOURCE OF TRUTH
 // Used in all email templates, dashboard, and post-delivery flows
 export const GOOGLE_REVIEW_URL = "https://g.page/r/CWqy3A7IKcX6EAE/review"
 
-// Service pricing (in AUD) — SINGLE SOURCE OF TRUTH
+// Service pricing (in AUD) - SINGLE SOURCE OF TRUTH
 // All display prices MUST use PRICING_DISPLAY, never hardcoded strings
 export const PRICING = {
   MED_CERT: 19.95,        // 1-day medical certificate
@@ -51,7 +51,7 @@ export const PRICING = {
   REPEAT_RX_MONTHLY: 19.95, // Repeat Rx subscription (monthly)
 } as const
 
-// Formatted pricing strings for display — use these everywhere in UI/SEO/marketing
+// Formatted pricing strings for display - use these everywhere in UI/SEO/marketing
 export const PRICING_DISPLAY = {
   MED_CERT: `$${PRICING.MED_CERT.toFixed(2)}`,
   MED_CERT_2DAY: `$${PRICING.MED_CERT_2DAY.toFixed(2)}`,
@@ -66,6 +66,7 @@ export const PRICING_DISPLAY = {
   REFERRAL: `$${PRICING.REFERRAL.toFixed(2)}`,
   PATHOLOGY: `$${PRICING.PATHOLOGY.toFixed(2)}`,
   PRIORITY_FEE: `$${PRICING.PRIORITY_FEE.toFixed(2)}`,
+  REPEAT_RX_MONTHLY: `$${PRICING.REPEAT_RX_MONTHLY.toFixed(2)}`,
   // Common display patterns
   FROM_MED_CERT: `From $${PRICING.MED_CERT.toFixed(2)}`,
   FROM_SCRIPT: `From $${PRICING.REPEAT_SCRIPT.toFixed(2)}`,
@@ -73,7 +74,7 @@ export const PRICING_DISPLAY = {
   RANGE: `$${PRICING.MED_CERT.toFixed(2)} - $${PRICING.CONSULT.toFixed(2)}`,
 } as const
 
-// Review aggregate schema — used across service landing pages for structured data
+// Review aggregate schema - used across service landing pages for structured data
 // Update these when real review count changes. Must reflect genuine reviews only.
 export const REVIEW_AGGREGATE = {
   ratingValue: 4.8,

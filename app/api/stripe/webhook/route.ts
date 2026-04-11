@@ -11,7 +11,7 @@ import { tryClaimEvent } from "./handlers/utils"
 const log = createLogger("stripe-webhook")
 
 // Give after() (draft gen + auto-approval) the full function lifetime.
-// Without this, Vercel Pro defaults to 60s — enough for the webhook response
+// Without this, Vercel Pro defaults to 60s - enough for the webhook response
 // but tight for the AI calls inside after(). The retry-auto-approval cron
 // catches anything that slips through, but 300s eliminates the gap entirely.
 export const maxDuration = 300
@@ -28,7 +28,7 @@ function getServiceClient() {
  * 2. Routes to the appropriate handler via the handlers map
  * 3. Returns { received: true } for unhandled event types
  *
- * Individual handlers live in ./handlers/ — one file per event type.
+ * Individual handlers live in ./handlers/ - one file per event type.
  */
 export async function POST(request: Request) {
   const startTime = Date.now()

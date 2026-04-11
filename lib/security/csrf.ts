@@ -4,7 +4,7 @@ import crypto from "crypto"
 
 const CSRF_TOKEN_NAME = "csrf_token"
 const CSRF_HEADER_NAME = "x-csrf-token"
-const TOKEN_EXPIRY_MS = 24 * 60 * 60 * 1000 // 24 hours — audit fix: prevent expiry during long patient intake forms
+const TOKEN_EXPIRY_MS = 24 * 60 * 60 * 1000 // 24 hours - audit fix: prevent expiry during long patient intake forms
 
 interface CSRFToken {
   value: string

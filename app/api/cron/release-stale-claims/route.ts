@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
 
   await recordCronHeartbeat("release-stale-claims")
 
-  // Acquire concurrency lock — prevents overlapping execution in serverless
+  // Acquire concurrency lock - prevents overlapping execution in serverless
   const lock = await acquireCronLock("release-stale-claims")
   if (!lock.acquired) {
     return NextResponse.json({

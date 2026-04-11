@@ -42,7 +42,7 @@ const ERROR_MAP: Record<ErrorCode, Omit<AppError, "code">> = {
   },
   PAYMENT_CANCELLED: {
     message: "Payment was cancelled",
-    userMessage: "No worries — your answers are saved. Complete payment when you're ready.",
+    userMessage: "No worries - your answers are saved. Complete payment when you're ready.",
     recoverable: true,
   },
   INVALID_MEDICARE: {
@@ -160,21 +160,21 @@ export async function withRetry<T>(fn: () => Promise<T>, maxAttempts = 3, baseDe
 
 export const FRIENDLY_ERRORS = {
   // Medicare
-  medicareInvalid: "Medicare number doesn't look right — should be 10 digits, check your card",
+  medicareInvalid: "Medicare number doesn't look right - should be 10 digits, check your card",
   medicareIncomplete: (remaining: number) => `${remaining} more digit${remaining === 1 ? "" : "s"} to go`,
   medicareStartDigit: "Medicare numbers start with 2, 3, 4, 5 or 6",
-  irnInvalid: "IRN should be 1-9 — it's the number next to your name on the card",
+  irnInvalid: "IRN should be 1-9 - it's the number next to your name on the card",
 
   // Auth
-  emailExists: "That email's already got an account — want to sign in instead?",
+  emailExists: "That email's already got an account - want to sign in instead?",
   invalidCredentials: "Email or password doesn't match. Try again?",
   passwordTooShort: "Password needs at least 6 characters",
-  invalidEmail: "That email doesn't look right — mind checking it?",
+  invalidEmail: "That email doesn't look right - mind checking it?",
 
   // Payment
   cardDeclined: "Your card was declined. Got another one handy?",
   paymentFailed: "Payment didn't go through. Try a different card?",
-  paymentCancelled: "No worries — your answers are saved. Complete payment when you're ready.",
+  paymentCancelled: "No worries - your answers are saved. Complete payment when you're ready.",
 
   // Network
   offline: "Looks like you're offline. Check your connection?",
@@ -188,7 +188,7 @@ export const FRIENDLY_ERRORS = {
 }
 
 /**
- * Safe API error response — never leaks internal error details to clients.
+ * Safe API error response - never leaks internal error details to clients.
  * Logs the full error server-side for debugging.
  */
 export function safeApiErrorResponse(

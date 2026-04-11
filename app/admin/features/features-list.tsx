@@ -161,8 +161,8 @@ export function FeaturesList({
                 <p className="font-medium">Platform Status</p>
                 <p className="text-sm text-muted-foreground">
                   {flags.maintenance_mode
-                    ? "Platform is CLOSED — no new requests accepted"
-                    : "Platform is open — accepting requests normally"}
+                    ? "Platform is CLOSED - no new requests accepted"
+                    : "Platform is open - accepting requests normally"}
                 </p>
               </div>
             </div>
@@ -171,7 +171,7 @@ export function FeaturesList({
                 checked={!flags.maintenance_mode}
                 onCheckedChange={() => {
                   if (!flags.maintenance_mode) {
-                    // Enabling maintenance mode — requires confirmation
+                    // Enabling maintenance mode - requires confirmation
                     onSetPendingToggle({ key: FLAG_KEYS.MAINTENANCE_MODE, currentValue: flags.maintenance_mode })
                   } else {
                     onExecuteToggle(FLAG_KEYS.MAINTENANCE_MODE, flags.maintenance_mode)
@@ -598,7 +598,7 @@ export function FeaturesList({
           </CardTitle>
           <CardDescription>
             Automatically approve eligible medical certificates (no flags, no mental health/injury/chronic) after payment.
-            Doctor batch review still applies — all AI-approved certs appear in the review queue for oversight.
+            Doctor batch review still applies - all AI-approved certs appear in the review queue for oversight.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-5 px-6 pb-6">

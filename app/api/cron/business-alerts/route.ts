@@ -134,7 +134,7 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // 6. Critical email delivery SLA — med_cert_patient and script_sent must be delivered within 10 min
+    // 6. Critical email delivery SLA - med_cert_patient and script_sent must be delivered within 10 min
     const tenMinAgo = new Date(now.getTime() - 10 * 60 * 1000)
     const { count: slaBreaches } = await supabase
       .from("email_outbox")

@@ -30,7 +30,7 @@ export default async function PaymentCancelledPage({
               Payment not completed
             </h1>
             <p className="text-muted-foreground mb-6">
-              No worries — your answers are saved and nothing has been charged.
+              No worries - your answers are saved and nothing has been charged.
             </p>
 
             {/* Reassurance cards */}
@@ -38,7 +38,7 @@ export default async function PaymentCancelledPage({
               <div className="flex items-start gap-3 p-3 rounded-xl bg-muted/50">
                 <RefreshCw className="w-4 h-4 text-primary mt-0.5 shrink-0" />
                 <p className="text-sm text-muted-foreground">
-                  Your request is saved — you can complete payment anytime
+                  Your request is saved - you can complete payment anytime
                 </p>
               </div>
               <div className="flex items-start gap-3 p-3 rounded-xl bg-muted/50">

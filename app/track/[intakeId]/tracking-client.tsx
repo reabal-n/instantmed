@@ -92,7 +92,7 @@ function getTimelineSteps(intake: Intake): TimelineStep[] {
 
 /**
  * Time-based sub-message rotating during the paid→in_review wait.
- * Purpose: the 5-minute auto-approval delay is intentional — patients who
+ * Purpose: the 5-minute auto-approval delay is intentional - patients who
  * see "nothing happening" for 5 minutes suspect the service is broken.
  * Rotating clinical-sounding copy gives the perception that a doctor is
  * actually reviewing the case in real time.
@@ -119,7 +119,7 @@ export function TrackingClient({
   const [progressMessage, setProgressMessage] = useState(() => getProgressMessage(initialRequest.paid_at ?? null))
 
   // Rotate the "what's happening" message every 10s while the request is
-  // awaiting review. Purely perceptual — backend state doesn't change here.
+  // awaiting review. Purely perceptual - backend state doesn't change here.
   useEffect(() => {
     const isWaiting = intake.status === "paid" || intake.status === "in_review"
     if (!isWaiting) return
@@ -252,7 +252,7 @@ export function TrackingClient({
             </Badge>
           </div>
 
-          {/* Live progress — shows during the paid → in_review wait */}
+          {/* Live progress - shows during the paid → in_review wait */}
           {(intake.status === "paid" || intake.status === "in_review") && (
             <div className="mt-6 p-4 bg-muted/50 rounded-xl">
               <div className="flex items-center gap-2.5">
@@ -276,7 +276,7 @@ export function TrackingClient({
                 )}
               </div>
               {intake.is_priority && (
-                <p className="text-xs text-warning mt-2">Priority review — fast-tracked</p>
+                <p className="text-xs text-warning mt-2">Priority review - fast-tracked</p>
               )}
             </div>
           )}

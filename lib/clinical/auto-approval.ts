@@ -13,7 +13,7 @@
 import { checkEmergencySymptoms, checkRedFlagPatterns } from "./triage-rules-engine"
 
 /**
- * Eligibility engine version — increment on ANY change to:
+ * Eligibility engine version - increment on ANY change to:
  * - Check logic (adding/removing/modifying checks)
  * - Keyword lists (MENTAL_HEALTH_KEYWORDS, INJURY_KEYWORDS, etc.)
  * - Thresholds (backdating window, duration limits, cooldown periods)
@@ -278,19 +278,19 @@ export function evaluateAutoApprovalEligibility(
     })
   }
 
-  // 1b. Repeat request cooldown — block if patient got 3+ certs in the last 7 days
+  // 1b. Repeat request cooldown - block if patient got 3+ certs in the last 7 days
   // Prevents abuse patterns that would trigger AHPRA scrutiny
   if (options?.recentCertCount !== undefined && options.recentCertCount >= 3) {
     flags.push(`repeat_request_within_7d: ${options.recentCertCount} recent cert(s)`)
   }
 
-  // 1c. Overlapping date detection — block if dates overlap an existing approved cert
+  // 1c. Overlapping date detection - block if dates overlap an existing approved cert
   // Two valid certificates covering the same dates from the same doctor is a medicolegal red flag
   if (options?.hasOverlappingCert) {
     flags.push("overlapping_cert_dates")
   }
 
-  // 2. Age check — minors (under 18) always require doctor review
+  // 2. Age check - minors (under 18) always require doctor review
   if (patient?.date_of_birth) {
     const dob = new Date(patient.date_of_birth)
     if (!isNaN(dob.getTime())) {
@@ -331,7 +331,7 @@ export function evaluateAutoApprovalEligibility(
     flags.push(`red_flags: ${redFlags.map(f => f.code).join(", ")}`)
   }
 
-  // 5. Mental health keywords — hard-block list (always block)
+  // 5. Mental health keywords - hard-block list (always block)
   const mentalHealthMatches = containsKeywords(symptomText, MENTAL_HEALTH_KEYWORDS)
   if (mentalHealthMatches.length > 0) {
     flags.push(`mental_health: ${mentalHealthMatches.join(", ")}`)
@@ -349,7 +349,7 @@ export function evaluateAutoApprovalEligibility(
     }
   }
 
-  // 6. Injury keywords — hard-block list (always block)
+  // 6. Injury keywords - hard-block list (always block)
   const injuryMatches = containsKeywords(symptomText, INJURY_KEYWORDS)
   if (injuryMatches.length > 0) {
     flags.push(`injury: ${injuryMatches.join(", ")}`)
@@ -361,13 +361,13 @@ export function evaluateAutoApprovalEligibility(
     if (hasCoSymptoms) {
       softFlags.push(...softInjuryMatches.map(k => `${k}_co_symptom`))
     } else {
-      // Intentionally NOT added to softOriginFlags — injury soft-flags always
+      // Intentionally NOT added to softOriginFlags - injury soft-flags always
       // require doctor review even for 1-day certs (workers comp risk)
       flags.push(`injury: ${softInjuryMatches.join(", ")}`)
     }
   }
 
-  // 7. Chronic condition keywords — hard-block list (always block)
+  // 7. Chronic condition keywords - hard-block list (always block)
   const chronicMatches = containsKeywords(symptomText, CHRONIC_CONDITION_KEYWORDS)
   if (chronicMatches.length > 0) {
     flags.push(`chronic: ${chronicMatches.join(", ")}`)
@@ -413,7 +413,7 @@ export function evaluateAutoApprovalEligibility(
   } else if (drafts.clinicalNote.status !== "ready") {
     flags.push(`draft_not_ready: ${drafts.clinicalNote.status}`)
   } else {
-    // 12. AI draft review flag — soft flag only (doctor batch review still applies)
+    // 12. AI draft review flag - soft flag only (doctor batch review still applies)
     // Treating this as a hard block was too aggressive: the AI model flags "anxiety"
     // and other common mild symptoms as requiring review even when clinically appropriate
     // for a standard 1-3 day cert. Batch review catches any concerns post-approval.
@@ -432,7 +432,7 @@ export function evaluateAutoApprovalEligibility(
   if (hasOnlySoftFlags && durationDays === 1) {
     return result({
       eligible: true,
-      reason: "1-day certificate with mild symptoms — auto-approved",
+      reason: "1-day certificate with mild symptoms - auto-approved",
       disqualifyingFlags: [],
       softFlags: flags,
     })
@@ -461,7 +461,7 @@ export function evaluateAutoApprovalEligibility(
 
   return result({
     eligible: true,
-    reason: "All checks passed — standard med cert, no flags, clean draft",
+    reason: "All checks passed - standard med cert, no flags, clean draft",
     disqualifyingFlags: [],
     softFlags,
   })

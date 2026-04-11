@@ -159,7 +159,7 @@ export default function PrivacyPage() {
                   <ul>
                     <li>AES-256-GCM field-level encryption for all health (PHI) data</li>
                     <li>TLS encryption for all data in transit</li>
-                    <li>Role-based access controls — data is only accessible to authorised personnel</li>
+                    <li>Role-based access controls - data is only accessible to authorised personnel</li>
                     <li>Row-level security enforced at the database layer</li>
                     <li>Regular security assessments and internal audits</li>
                   </ul>

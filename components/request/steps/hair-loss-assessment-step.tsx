@@ -44,8 +44,8 @@ const FAMILY_HISTORY_OPTIONS = [
 ]
 
 const PREVIOUS_TREATMENTS = [
-  { key: 'triedMinoxidil', label: 'Minoxidil (Rogaine) — topical' },
-  { key: 'triedFinasteride', label: 'Finasteride (Propecia) — oral' },
+  { key: 'triedMinoxidil', label: 'Minoxidil (Rogaine) - topical' },
+  { key: 'triedFinasteride', label: 'Finasteride (Propecia) - oral' },
   { key: 'triedBiotin', label: 'Biotin / hair supplements' },
   { key: 'triedShampoos', label: 'Medicated shampoos (e.g., Nizoral)' },
   { key: 'triedPRP', label: 'PRP (Platelet-rich plasma) therapy' },
@@ -157,7 +157,7 @@ export default function HairLossAssessmentStep({ onNext }: HairLossAssessmentSte
         )}
       </div>
 
-      {/* Duration — visible after pattern selected */}
+      {/* Duration - visible after pattern selected */}
       {showDuration && (
       <div className="space-y-3">
         <Label className="text-sm font-medium">
@@ -194,7 +194,7 @@ export default function HairLossAssessmentStep({ onNext }: HairLossAssessmentSte
       </div>
       )}
 
-      {/* Family history — visible after duration selected */}
+      {/* Family history - visible after duration selected */}
       {showFamilyHistory && (
       <div className="space-y-3">
         <Label className="text-sm font-medium">
@@ -231,7 +231,7 @@ export default function HairLossAssessmentStep({ onNext }: HairLossAssessmentSte
       </div>
       )}
 
-      {/* Previous treatments — visible after family history */}
+      {/* Previous treatments - visible after family history */}
       {showTreatments && (
       <div className="space-y-3">
         <Label className="text-sm font-medium">
@@ -261,7 +261,7 @@ export default function HairLossAssessmentStep({ onNext }: HairLossAssessmentSte
 
       )}
 
-      {/* Preferred medication — visible after treatments section */}
+      {/* Preferred medication - visible after treatments section */}
       {showPreference && (
       <div className="space-y-3">
         <Label className="text-sm font-medium">
@@ -335,7 +335,7 @@ export default function HairLossAssessmentStep({ onNext }: HairLossAssessmentSte
 
       )}
 
-      {/* Scalp conditions — visible after preference selected */}
+      {/* Scalp conditions - visible after preference selected */}
       {showScalp && (
       <div className="space-y-3">
         <Label className="text-sm font-medium">
@@ -365,7 +365,7 @@ export default function HairLossAssessmentStep({ onNext }: HairLossAssessmentSte
 
       )}
 
-      {/* Additional info — visible after scalp */}
+      {/* Additional info - visible after scalp */}
       {showScalp && (
       <div className="space-y-2">
         <Label className="text-sm font-medium">

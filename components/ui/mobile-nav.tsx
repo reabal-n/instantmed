@@ -210,7 +210,7 @@ export function MobileNav({ items = defaultItems, moreMenuItems = moreItems, cla
           {items.map((item) => {
             const Icon = item.icon
             const isMore = item.href === "__more__"
-            // Home (/patient) uses exact match — child routes like /patient/intakes are distinct
+            // Home (/patient) uses exact match - child routes like /patient/intakes are distinct
             const isActive = isMore
               ? isMoreActive || moreOpen
               : item.href === "/patient"

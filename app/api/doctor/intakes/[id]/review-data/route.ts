@@ -22,7 +22,7 @@ export async function GET(
 
   const { id: intakeId } = await params
 
-  // Auth + role check (defense-in-depth — middleware also protects /api/doctor/*)
+  // Auth + role check (defense-in-depth - middleware also protects /api/doctor/*)
   const auth = await requireApiRole(["doctor", "admin"])
   if (!auth) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
@@ -34,7 +34,7 @@ export async function GET(
     return NextResponse.json({ error: "Intake not found" }, { status: 404 })
   }
 
-  // Compliance audit logging — fire-and-forget, don't block data fetch
+  // Compliance audit logging - fire-and-forget, don't block data fetch
   logClinicianOpenedRequest(intakeId, "intake", auth.profile.id).catch(() => {})
 
   // Determine service type for conditional fetches

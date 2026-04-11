@@ -102,7 +102,7 @@ export function sanitizeHtml(html: string): string {
   // Remove style tags and their content
   sanitized = sanitized.replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
 
-  // Remove event handlers (onclick, onerror, etc.) — covers quoted, unquoted, and backtick-quoted values
+  // Remove event handlers (onclick, onerror, etc.) - covers quoted, unquoted, and backtick-quoted values
   sanitized = sanitized.replace(/\s+on\w+\s*=\s*["'][^"']*["']/gi, '')
   sanitized = sanitized.replace(/\s+on\w+\s*=\s*`[^`]*`/gi, '')
   sanitized = sanitized.replace(/\s+on\w+\s*=\s*[^\s>]+/gi, '')

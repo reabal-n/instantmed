@@ -20,7 +20,7 @@ export function ReferralCapture() {
   useEffect(() => {
     if (!ref || typeof document === "undefined") return
 
-    // Store for 30 days — persists across pages until checkout
+    // Store for 30 days - persists across pages until checkout
     setCookie(REF_COOKIE, ref, REF_COOKIE_TTL_DAYS)
 
     // Fire PostHog event for attribution visibility

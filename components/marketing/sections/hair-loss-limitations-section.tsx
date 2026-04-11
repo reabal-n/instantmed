@@ -21,7 +21,7 @@ const SEE_GP_IN_PERSON = [
 // COMPONENT
 // =============================================================================
 
-/** Pre-qualifies hair loss patients before pricing — honest scope boundary */
+/** Pre-qualifies hair loss patients before pricing - honest scope boundary */
 export function HairLossLimitationsSection() {
   return (
     <section aria-label="Hair loss service scope" className="py-12 lg:py-16">
@@ -31,7 +31,7 @@ export function HairLossLimitationsSection() {
             Is online hair loss treatment right for you?
           </h2>
           <p className="text-sm text-muted-foreground">
-            Honest about what we can and can't do — before you pay.
+            Honest about what we can and can't do - before you pay.
           </p>
         </div>
 

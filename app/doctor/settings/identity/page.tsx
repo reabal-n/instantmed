@@ -40,7 +40,7 @@ async function IdentitySettingsLoader() {
       parchmentUserId = data?.parchment_user_id ?? null
     }
   } catch {
-    // Non-fatal — just won't show linked status
+    // Non-fatal - just won't show linked status
   }
 
   return <IdentitySettingsClient initialData={result.data} parchmentUserId={parchmentUserId} />

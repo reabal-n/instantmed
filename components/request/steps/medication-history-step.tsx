@@ -122,7 +122,7 @@ export default function MedicationHistoryStep({ serviceType, onNext, onBack }: M
         </div>
       </FormField>
 
-      {/* New medication detected — friendly upsell to consult flow */}
+      {/* New medication detected - friendly upsell to consult flow */}
       {isNeverPrescribed && (
         <div className="p-4 rounded-xl border border-primary/20 bg-primary/5 space-y-4">
           <div className="flex gap-3">

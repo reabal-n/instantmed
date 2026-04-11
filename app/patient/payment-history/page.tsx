@@ -13,7 +13,7 @@ export const metadata = {
 }
 
 export default async function PaymentHistoryPage() {
-  // Layout enforces patient role — use cached profile
+  // Layout enforces patient role - use cached profile
   const authUser = (await getAuthenticatedUserWithProfile())!
 
   return (

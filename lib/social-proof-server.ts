@@ -7,7 +7,7 @@ import { getPatientCount } from "./social-proof"
  * Returns the real patient count from the database, cached for 1 hour.
  *
  * Counts all intakes with payment_status = 'paid' and status in
- * ('approved', 'completed') — i.e. patients who paid and received a document.
+ * ('approved', 'completed') - i.e. patients who paid and received a document.
  * Falls back to the interpolated count if the DB query fails.
  *
  * SERVER-ONLY. Use /api/patient-count for client components.

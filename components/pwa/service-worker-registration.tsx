@@ -60,7 +60,7 @@ export function ServiceWorkerRegistration() {
         })
       } catch (error) {
         // Service worker registration can fail in restricted browsers, incognito mode,
-        // or when sw.js is unavailable. This is non-critical — log as warning.
+        // or when sw.js is unavailable. This is non-critical - log as warning.
         logger.warn("Service worker registration failed", {
           error: error instanceof Error ? error.message : String(error),
         })

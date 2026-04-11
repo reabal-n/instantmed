@@ -33,7 +33,7 @@ export default function AuthConfirmPage() {
           Check your inbox
         </h1>
         <p className="text-muted-foreground mb-6">
-          We sent you a sign-in link. Click it to continue — no password needed.
+          We sent you a sign-in link. Click it to continue - no password needed.
         </p>
         <p className="text-xs text-muted-foreground mb-6">
           If you don&apos;t see it, check your spam folder. The link expires in 1 hour.

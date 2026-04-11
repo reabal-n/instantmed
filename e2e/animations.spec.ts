@@ -15,11 +15,11 @@
 
 import { test, expect } from "@playwright/test"
 
-test.describe("whileInView — content always visible", () => {
+test.describe("whileInView - content always visible", () => {
   test("homepage service cards are readable before and after scroll", async ({ page }) => {
     await page.goto("/", { waitUntil: "domcontentloaded" })
 
-    // Service cards grid — stagger animation, but content must never be hidden
+    // Service cards grid - stagger animation, but content must never be hidden
     const grid = page.locator('[id="pricing"]').first()
     await grid.scrollIntoViewIfNeeded()
 
@@ -109,7 +109,7 @@ test.describe("whileInView — content always visible", () => {
       return Array.from(all)
         .filter((el) => {
           const rect = el.getBoundingClientRect()
-          // Element is above the fold (already scrolled past) — should have animated
+          // Element is above the fold (already scrolled past) - should have animated
           return rect.bottom < window.innerHeight * 2
         })
         .map((el) => el.tagName + (el.id ? `#${el.id}` : "") + ` class="${el.className.slice(0, 60)}"`)

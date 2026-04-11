@@ -203,7 +203,7 @@ export function RepeatRxReviewClient({ request, clinicianId: _clinicianId }: Rep
         toast.error(data.error || "Failed to mark script as sent")
       }
     } catch {
-      toast.error("Network error — please try again")
+      toast.error("Network error - please try again")
     } finally {
       setIsSubmitting(false)
     }
@@ -232,7 +232,7 @@ export function RepeatRxReviewClient({ request, clinicianId: _clinicianId }: Rep
         toast.error(data.error || "Failed to decline request")
       }
     } catch {
-      toast.error("Network error — please try again")
+      toast.error("Network error - please try again")
     } finally {
       setIsSubmitting(false)
     }
@@ -451,7 +451,7 @@ export function RepeatRxReviewClient({ request, clinicianId: _clinicianId }: Rep
                 <StatusBadge status={request.status} />
                 {request.decisions?.[0] && (
                   <span className="text-sm text-muted-foreground">
-                    &mdash; {request.decisions[0].decision_reason}
+                    - {request.decisions[0].decision_reason}
                   </span>
                 )}
               </div>

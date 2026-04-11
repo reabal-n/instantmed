@@ -90,7 +90,7 @@ export function EmployerLogoMarquee({ className, hideHeading }: EmployerLogoMarq
     return () => observer.disconnect()
   }, [posthog])
 
-  // #7 — Reduced motion: static wrapped grid instead of scrolling marquee
+  // #7 - Reduced motion: static wrapped grid instead of scrolling marquee
   if (prefersReducedMotion) {
     return (
       <div ref={sectionRef} className={cn('py-8', className)}>
@@ -123,7 +123,7 @@ export function EmployerLogoMarquee({ className, hideHeading }: EmployerLogoMarq
           Accepted by employees at
         </p>
       )}
-      {/* #1 — Two parallel tracks for seamless infinite loop */}
+      {/* #1 - Two parallel tracks for seamless infinite loop */}
       <div className="relative overflow-hidden group/marquee" role="marquee" aria-label="Logos of employers who accept InstantMed certificates">
         <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-background to-transparent z-10" />
         <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-background to-transparent z-10" />

@@ -3,7 +3,7 @@
  *
  * Safely converts unknown caught values into proper Error instances.
  *
- * Supabase `PostgrestError` is NOT an Error subclass — it's a plain object
+ * Supabase `PostgrestError` is NOT an Error subclass - it's a plain object
  * with { message, code, details, hint }. Calling `String()` on it produces
  * "[object Object]", which makes Sentry errors undiagnosable.
  *
@@ -16,9 +16,9 @@
  *
  * Handles:
  * - Error instances (returned as-is)
- * - Objects with `.message` (e.g. Supabase PostgrestError) — extracts message + code/details
- * - Strings — wrapped in Error
- * - Everything else — JSON.stringify fallback
+ * - Objects with `.message` (e.g. Supabase PostgrestError) - extracts message + code/details
+ * - Strings - wrapped in Error
+ * - Everything else - JSON.stringify fallback
  */
 export function toError(error: unknown): Error {
   if (error instanceof Error) return error

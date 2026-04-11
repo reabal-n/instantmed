@@ -128,7 +128,7 @@ test.describe("Smoke: Price display at checkout step", () => {
    * Navigate each service type to its checkout step and verify the
    * displayed price matches the expected amount.
    *
-   * These tests use the URL-level parameters only — no DB seeding required.
+   * These tests use the URL-level parameters only - no DB seeding required.
    */
 
   const cases: Array<{ service: string; label: string; expectedPrice: string }> = [
@@ -145,7 +145,7 @@ test.describe("Smoke: Price display at checkout step", () => {
 
   for (const { service, label, expectedPrice } of cases) {
     test(`${label} shows ${expectedPrice} on service hub`, async ({ page }) => {
-      // The service hub cards display pricing — verify the price is present on the page
+      // The service hub cards display pricing - verify the price is present on the page
       await gotoRequest(page, `/request?service=${service}`)
 
       // Price should appear somewhere on the request flow
@@ -300,11 +300,11 @@ test.describe("Smoke: Decline flow marks intake as declined", () => {
 
 test.describe("Smoke: Success page requires intake_id", () => {
   test("success page without intake_id renders without crashing", async ({ page }) => {
-    // Navigate to success page without intake_id — should render gracefully
+    // Navigate to success page without intake_id - should render gracefully
     await page.goto("/patient/intakes/success")
     await page.waitForLoadState("networkidle")
 
-    // Should not show a 500 error — either redirect to sign-in or show a fallback
+    // Should not show a 500 error - either redirect to sign-in or show a fallback
     const is500 = await page.getByText(/500|Internal Server Error/i).isVisible().catch(() => false)
     expect(is500, "Success page should not show 500 without intake_id").toBe(false)
   })

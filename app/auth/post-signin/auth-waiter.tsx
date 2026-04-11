@@ -35,7 +35,7 @@ export function PostSignInAuthWaiter({ paramsString = "" }: { paramsString?: str
 
     if (isSignedIn) {
       hasNavigated.current = true
-      // Session is established — reload so server component handles redirect
+      // Session is established - reload so server component handles redirect
       const destination = paramsString
         ? `/auth/post-signin?${paramsString}`
         : `/auth/post-signin`

@@ -3,7 +3,7 @@
  *
  * Single source of truth for default certificate config.
  * The PDF renderer uses certificateType ("work" | "study" | "carer") to generate
- * the correct title and body text dynamically — this file provides the admin
+ * the correct title and body text dynamically - this file provides the admin
  * studio display defaults only.
  */
 

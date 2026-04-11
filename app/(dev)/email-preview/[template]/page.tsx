@@ -2,7 +2,7 @@
  * Individual Email Template Preview
  *
  * Renders a specific email template with mock props.
- * Dev-only route — all 27 React Email templates registered.
+ * Dev-only route - all 27 React Email templates registered.
  */
 
 import { redirect, notFound } from "next/navigation"
@@ -442,7 +442,7 @@ const templates: Record<string, {
   },
   "decline-reengagement": {
     name: "Decline Re-Engagement",
-    subject: "We're still here to help — other options for you",
+    subject: "We're still here to help - other options for you",
     render: () => (
       <DeclineReengagementEmail
         patientName={mock.patientName}
@@ -525,7 +525,7 @@ export default async function EmailPreviewPage({ params }: PageProps) {
         <div className="max-w-4xl mx-auto">
           {/* Info bar */}
           <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-700 flex items-center justify-between">
-            <span>Preview with mock data — actual emails will use real patient information</span>
+            <span>Preview with mock data - actual emails will use real patient information</span>
             <span className="text-xs bg-blue-100 px-2 py-1 rounded">Dev Only</span>
           </div>
 

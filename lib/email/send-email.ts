@@ -69,7 +69,7 @@ export type EmailType =
   | "review_followup"
   | "payment_retry"
 
-// Email types that are marketing/engagement — get auto List-Unsubscribe headers
+// Email types that are marketing/engagement - get auto List-Unsubscribe headers
 const MARKETING_EMAIL_TYPES: ReadonlySet<EmailType> = new Set([
   "abandoned_checkout",
   "abandoned_checkout_followup",
@@ -1057,7 +1057,7 @@ async function reconstructEmailContent(row: OutboxRow): Promise<{
   }
 
   // ----------------------------------------------------------------
-  // welcome — React template, needs only patientName
+  // welcome - React template, needs only patientName
   // ----------------------------------------------------------------
   if (row.email_type === "welcome") {
     const patientName = row.to_name || "there"
@@ -1073,7 +1073,7 @@ async function reconstructEmailContent(row: OutboxRow): Promise<{
   }
 
   // ----------------------------------------------------------------
-  // script_sent — React template, needs intake data
+  // script_sent - React template, needs intake data
   // ----------------------------------------------------------------
   if (row.email_type === "script_sent") {
     if (!row.intake_id) {
@@ -1096,7 +1096,7 @@ async function reconstructEmailContent(row: OutboxRow): Promise<{
   }
 
   // ----------------------------------------------------------------
-  // request_declined — React template, needs intake data + reason
+  // request_declined - React template, needs intake data + reason
   // ----------------------------------------------------------------
   if (row.email_type === "request_declined") {
     if (!row.intake_id) {
@@ -1123,7 +1123,7 @@ async function reconstructEmailContent(row: OutboxRow): Promise<{
   }
 
   // ----------------------------------------------------------------
-  // prescription_approved — React template, needs intake + medication
+  // prescription_approved - React template, needs intake + medication
   // ----------------------------------------------------------------
   if (row.email_type === "prescription_approved") {
     if (!row.intake_id) {
@@ -1153,7 +1153,7 @@ async function reconstructEmailContent(row: OutboxRow): Promise<{
   }
 
   // ----------------------------------------------------------------
-  // payment_received — database template with merge tags
+  // payment_received - database template with merge tags
   // ----------------------------------------------------------------
   if (row.email_type === "payment_received") {
     if (!row.intake_id) {
@@ -1175,7 +1175,7 @@ async function reconstructEmailContent(row: OutboxRow): Promise<{
   }
 
   // ----------------------------------------------------------------
-  // refund_notification — database template (slug: refund_processed)
+  // refund_notification - database template (slug: refund_processed)
   // ----------------------------------------------------------------
   if (row.email_type === "refund_notification") {
     if (!row.intake_id) {
@@ -1197,7 +1197,7 @@ async function reconstructEmailContent(row: OutboxRow): Promise<{
   }
 
   // ----------------------------------------------------------------
-  // payment_failed — database template with merge tags
+  // payment_failed - database template with merge tags
   // ----------------------------------------------------------------
   if (row.email_type === "payment_failed") {
     if (!row.intake_id) {
@@ -1219,7 +1219,7 @@ async function reconstructEmailContent(row: OutboxRow): Promise<{
   }
 
   // ----------------------------------------------------------------
-  // guest_complete_account — database template with merge tags
+  // guest_complete_account - database template with merge tags
   // ----------------------------------------------------------------
   if (row.email_type === "guest_complete_account") {
     if (!row.intake_id) {
@@ -1241,7 +1241,7 @@ async function reconstructEmailContent(row: OutboxRow): Promise<{
   }
 
   // ----------------------------------------------------------------
-  // needs_more_info — lib React template, needs intake + doctor message
+  // needs_more_info - lib React template, needs intake + doctor message
   // ----------------------------------------------------------------
   if (row.email_type === "needs_more_info") {
     if (!row.intake_id) {
@@ -1267,7 +1267,7 @@ async function reconstructEmailContent(row: OutboxRow): Promise<{
   }
 
   // ----------------------------------------------------------------
-  // consult_approved — component React template
+  // consult_approved - component React template
   // ----------------------------------------------------------------
   if (row.email_type === "consult_approved") {
     if (!row.intake_id) {
@@ -1292,7 +1292,7 @@ async function reconstructEmailContent(row: OutboxRow): Promise<{
   }
 
   // ----------------------------------------------------------------
-  // ed_approved — component React template, needs medication name
+  // ed_approved - component React template, needs medication name
   // ----------------------------------------------------------------
   if (row.email_type === "ed_approved") {
     if (!row.intake_id) {
@@ -1321,7 +1321,7 @@ async function reconstructEmailContent(row: OutboxRow): Promise<{
   }
 
   // ----------------------------------------------------------------
-  // hair_loss_approved — component React template
+  // hair_loss_approved - component React template
   // ----------------------------------------------------------------
   if (row.email_type === "hair_loss_approved") {
     if (!row.intake_id) {
@@ -1350,7 +1350,7 @@ async function reconstructEmailContent(row: OutboxRow): Promise<{
   }
 
   // ----------------------------------------------------------------
-  // weight_loss_approved — component React template
+  // weight_loss_approved - component React template
   // ----------------------------------------------------------------
   if (row.email_type === "weight_loss_approved") {
     if (!row.intake_id) {
@@ -1379,7 +1379,7 @@ async function reconstructEmailContent(row: OutboxRow): Promise<{
   }
 
   // ----------------------------------------------------------------
-  // womens_health_approved — component React template
+  // womens_health_approved - component React template
   // ----------------------------------------------------------------
   if (row.email_type === "womens_health_approved") {
     if (!row.intake_id) {
@@ -1409,7 +1409,7 @@ async function reconstructEmailContent(row: OutboxRow): Promise<{
   }
 
   // ----------------------------------------------------------------
-  // med_cert_employer — component React template, needs cert + employer data
+  // med_cert_employer - component React template, needs cert + employer data
   // ----------------------------------------------------------------
   if (row.email_type === "med_cert_employer") {
     if (!row.certificate_id) {
@@ -1462,7 +1462,7 @@ async function reconstructEmailContent(row: OutboxRow): Promise<{
   }
 
   // ----------------------------------------------------------------
-  // payment_confirmed — lib React template, needs intake + amount
+  // payment_confirmed - lib React template, needs intake + amount
   // ----------------------------------------------------------------
   if (row.email_type === "payment_confirmed") {
     if (!row.intake_id) {
@@ -1493,7 +1493,7 @@ async function reconstructEmailContent(row: OutboxRow): Promise<{
   }
 
   // ----------------------------------------------------------------
-  // request_received — merged React template (payment + review status)
+  // request_received - merged React template (payment + review status)
   // ----------------------------------------------------------------
   if (row.email_type === "request_received") {
     if (!row.intake_id) {
@@ -1542,7 +1542,7 @@ async function reconstructEmailContent(row: OutboxRow): Promise<{
  * Generate PDF for a certificate and upload to storage.
  * Called by the email dispatcher when metadata.needs_pdf_generation is true.
  *
- * Uses the template renderer (pdf-lib) — the same pipeline used for initial
+ * Uses the template renderer (pdf-lib) - the same pipeline used for initial
  * certificate generation in approve-cert.ts.
  */
 async function generateAndUploadPdfForCertificate(

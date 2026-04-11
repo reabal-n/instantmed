@@ -5,7 +5,7 @@
  * Do NOT import from ./index.ts, ./upstash.ts, or ./limiter.ts
  *
  * Uses Upstash Redis for distributed rate limiting across serverless instances.
- * Falls back to fail-open (allow request) if Redis is unavailable — this is
+ * Falls back to fail-open (allow request) if Redis is unavailable - this is
  * intentional for serverless: in-memory Maps don't persist across invocations,
  * so the only safe fallback is to allow the request and log the failure.
  *
@@ -140,10 +140,10 @@ async function checkRateLimit(
 ): Promise<{ success: boolean; limit: number; remaining: number; resetAt: number }> {
   const rateLimitConfig = rateLimitConfigs[config]
 
-  // No Redis configured — skip rate limiting (dev/test only)
+  // No Redis configured - skip rate limiting (dev/test only)
   if (!rateLimitConfig.limiter) {
     if (process.env.NODE_ENV === "production") {
-      logger.warn("[RateLimit] Redis not configured in production — rate limiting disabled", {
+      logger.warn("[RateLimit] Redis not configured in production - rate limiting disabled", {
         config,
       })
     }
@@ -161,7 +161,7 @@ async function checkRateLimit(
   } catch (error) {
     // FAIL-OPEN: Redis error → allow the request, log the failure
     logger.error(
-      "[RateLimit] Redis error — failing open (request allowed)",
+      "[RateLimit] Redis error - failing open (request allowed)",
       { config, identifier: identifier.substring(0, 20) },
       error instanceof Error ? error : undefined
     )

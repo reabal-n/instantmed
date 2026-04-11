@@ -10,14 +10,14 @@ const log = createLogger("csp-report")
  * Receives reports from the Content-Security-Policy-Report-Only header.
  * Logs to Sentry so we can monitor what would break if we tightened the main CSP.
  *
- * This endpoint is intentionally unauthenticated — browsers send reports automatically
+ * This endpoint is intentionally unauthenticated - browsers send reports automatically
  * and cannot attach credentials. Rate limiting is handled by Vercel edge.
  */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
 
-    // Extract the report — browsers send either { "csp-report": {...} } or the report directly
+    // Extract the report - browsers send either { "csp-report": {...} } or the report directly
     const report = body["csp-report"] ?? body
 
     const violatedDirective = report["violated-directive"] ?? report["effectiveDirective"] ?? "unknown"
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
       },
     })
   } catch {
-    // Malformed report — ignore silently
+    // Malformed report - ignore silently
   }
 
   return new NextResponse(null, { status: 204 })

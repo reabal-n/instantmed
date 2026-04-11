@@ -7,7 +7,7 @@ import { Clock, FileText, Pill, Phone } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { SOCIAL_PROOF } from '@/lib/social-proof'
 
-// Static, honest wait time data — no randomisation, no fake fluctuation
+// Static, honest wait time data - no randomisation, no fake fluctuation
 const SERVICE_CONFIG = {
   'med-cert': {
     label: 'Medical Certificates',
@@ -63,7 +63,7 @@ const SERVICE_CONFIG = {
 
 type ServiceType = keyof typeof SERVICE_CONFIG
 
-// Operating hours (AEST) — 8am–10pm
+// Operating hours (AEST) - 8am–10pm
 const OPEN_HOUR = 8
 const CLOSE_HOUR = 22
 
@@ -108,7 +108,7 @@ export function LiveWaitTime({
   const prefersReducedMotion = useReducedMotion()
   const [isOnline, setIsOnline] = useState(true)
 
-  // Update online status — checked every minute so UI stays accurate
+  // Update online status - checked every minute so UI stays accurate
   useEffect(() => {
     const updateStatus = () => setIsOnline(isWithinHours())
     updateStatus()
@@ -118,7 +118,7 @@ export function LiveWaitTime({
 
   if (!mounted) return null
 
-  // Badge variant — single service, inline pill
+  // Badge variant - single service, inline pill
   if (service && variant === 'badge') {
     const config = SERVICE_CONFIG[service]
     const serviceOnline = config.alwaysOnline || isOnline
@@ -144,7 +144,7 @@ export function LiveWaitTime({
     )
   }
 
-  // Compact variant — single line, multiple services
+  // Compact variant - single line, multiple services
   if (variant === 'compact') {
     const displayServices = service ? [service] : services
 
@@ -184,7 +184,7 @@ export function LiveWaitTime({
     )
   }
 
-  // Strip variant — horizontal bar used on homepage
+  // Strip variant - horizontal bar used on homepage
   if (variant === 'strip') {
     return (
       <motion.div
@@ -256,7 +256,7 @@ export function LiveWaitTime({
     )
   }
 
-  // Card variant — more prominent, grid layout
+  // Card variant - more prominent, grid layout
   return (
     <motion.div
       initial={prefersReducedMotion ? {} : { opacity: 0, y: 8 }}
@@ -335,14 +335,14 @@ export function LiveWaitTime({
       </div>
 
       <p className="text-xs text-muted-foreground mt-4 text-center">
-        Based on typical review times — not a guarantee.
+        Based on typical review times - not a guarantee.
       </p>
     </motion.div>
   )
 }
 
 /**
- * Single service wait time indicator — convenience wrapper
+ * Single service wait time indicator - convenience wrapper
  */
 interface ServiceWaitBadgeProps {
   service: ServiceType

@@ -40,7 +40,7 @@ export function DoctorOnboardingBanner() {
           setData(json)
         }
       } catch {
-        // Silently fail — not critical
+        // Silently fail - not critical
       }
     }
     fetchStatus()

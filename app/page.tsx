@@ -15,12 +15,13 @@ import { getFeatureFlags } from '@/lib/feature-flags'
 import { CTABanner } from '@/components/sections'
 import { FAQSection } from '@/components/sections'
 import { MarketingPageShell } from '@/components/shared/marketing-page-shell'
-// After-hours banner removed — redundant with DoctorAvailabilityPill in hero
+// After-hours banner removed - redundant with DoctorAvailabilityPill in hero
 import { ServiceCards } from '@/components/marketing/service-cards'
 import { SocialProofSection } from '@/components/marketing/social-proof-section'
 import { RegulatoryPartners } from '@/components/marketing/media-mentions'
 import { ComplianceMarquee } from '@/components/shared/compliance-marquee'
 import { TrustBadgeRow } from '@/components/shared/trust-badge'
+import { PRICING_DISPLAY } from '@/lib/constants'
 
 export const revalidate = 3600
 
@@ -28,7 +29,7 @@ export const revalidate = 3600
 // Note: Avoid prescription drug terms (script, prescription) per Google Ads policy for Australia
 export const metadata: Metadata = {
   title: { absolute: 'Online Doctor Australia | Med Certs, ED & Hair Loss | InstantMed' },
-  description: 'Medical certificates from $19.95 in under 30 minutes. Repeat medication from $29.95. Discreet ED and hair loss treatment from $49.95. AHPRA-registered Australian doctors, 100% online.',
+  description: `Medical certificates from ${PRICING_DISPLAY.MED_CERT} in under 30 minutes. Repeat medication from ${PRICING_DISPLAY.REPEAT_SCRIPT}. Discreet ED and hair loss treatment from ${PRICING_DISPLAY.CONSULT}. AHPRA-registered Australian doctors, 100% online.`,
   keywords: [
     'online doctor australia',
     'telehealth australia',
@@ -66,7 +67,7 @@ function SectionSkeleton({ height = 'h-96' }: { height?: string }) {
   return <div className={cn(height, "animate-pulse bg-muted/20 rounded-xl")} />
 }
 
-// Streamed async component — fetches flags independently so the main page
+// Streamed async component - fetches flags independently so the main page
 // shell renders immediately without waiting for the DB call.
 async function MaintenanceBanner() {
   const flags = await getFeatureFlags()
@@ -98,7 +99,7 @@ export default async function HomePage() {
       <FAQSchema faqs={faqSchemaData} />
       <SpeakableSchema
         name="InstantMed - Online Doctor Australia"
-        description="Get medical certificates in under 30 minutes, 24/7. Repeat medication and discreet treatment for ED and hair loss from AHPRA-registered Australian doctors. From $19.95."
+        description={`Get medical certificates in under 30 minutes, 24/7. Repeat medication and discreet treatment for ED and hair loss from AHPRA-registered Australian doctors. ${PRICING_DISPLAY.FROM_MED_CERT}.`}
         url="/"
       />
 
@@ -110,7 +111,7 @@ export default async function HomePage() {
 
       <Navbar variant="marketing" />
 
-      {/* Maintenance banner — streamed independently, doesn't block hero */}
+      {/* Maintenance banner - streamed independently, doesn't block hero */}
       <Suspense fallback={null}>
         <MaintenanceBanner />
       </Suspense>
@@ -119,22 +120,22 @@ export default async function HomePage() {
         {/* 1. Hero with main value prop */}
         <Hero>
           <p className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-8 leading-relaxed text-balance">
-            Real Australian doctors review every request — medical certificates from $19.95, repeat scripts, and discreet treatment for ED and hair loss. No appointments, no waiting rooms.
+            Real Australian doctors review every request - medical certificates from {PRICING_DISPLAY.MED_CERT}, repeat scripts, and discreet treatment for ED and hair loss. No appointments, no waiting rooms.
           </p>
         </Hero>
 
-        {/* 2. Service cards — what we offer */}
+        {/* 2. Service cards - what we offer */}
         <ServiceCards />
 
-        {/* 2.5 Regulatory authority logos — scrolling B&W marquee */}
+        {/* 2.5 Regulatory authority logos - scrolling B&W marquee */}
         <RegulatoryPartners />
 
-        {/* 3. How it works — 3 steps */}
+        {/* 3. How it works - 3 steps */}
         <Suspense fallback={<SectionSkeleton />}>
           <HowItWorks />
         </Suspense>
 
-        {/* 4. Social proof — reviews, doctor credibility, stats */}
+        {/* 4. Social proof - reviews, doctor credibility, stats */}
         <SocialProofSection />
 
         {/* 5. FAQs */}
@@ -146,7 +147,7 @@ export default async function HomePage() {
           viewAllHref="/faq"
         />
 
-        {/* 5.5 Pre-CTA friction removal — prominent */}
+        {/* 5.5 Pre-CTA friction removal - prominent */}
         <div className="py-6 sm:py-8">
           <p className="text-[10px] font-semibold text-muted-foreground/40 text-center mb-3 uppercase tracking-[0.15em]">
             No barriers

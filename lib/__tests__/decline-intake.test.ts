@@ -26,7 +26,7 @@ import { stripe } from "@/lib/stripe/client"
 import { mockSupabaseSingle, mockSupabaseFrom, resetAllMocks } from "./setup"
 
 // ============================================================================
-// MOCKS — must be set up BEFORE importing decline-intake
+// MOCKS - must be set up BEFORE importing decline-intake
 // ============================================================================
 
 vi.mock("next/cache", () => ({
@@ -59,7 +59,7 @@ import { declineIntake } from "@/app/actions/decline-intake"
 
 /**
  * Loose typing for Stripe refund call inspection. The real Stripe type
- * has many optional/nullable fields — for tests we just want to read
+ * has many optional/nullable fields - for tests we just want to read
  * back what was passed, so a Record is simpler.
  */
 type RefundCallParams = {
@@ -85,7 +85,7 @@ function getRefundCall(index = 0): [RefundCallParams, RefundCallOpts] {
 /**
  * Build a minimal intake row that the declineIntake action will read.
  * The `patient` join is shaped as an array because Supabase returns joins
- * that way by default — the action normalizes with `Array.isArray` check.
+ * that way by default - the action normalizes with `Array.isArray` check.
  */
 function makeIntakeRow(overrides: Record<string, unknown> = {}) {
   return {
@@ -307,7 +307,7 @@ describe("declineIntake", () => {
       await declineIntake({ intakeId: "intake-weight" })
 
       const [refundParams] = getRefundCall()
-      expect(refundParams.amount).toBe(4497) // Math.floor(8995 / 2) — rounds down
+      expect(refundParams.amount).toBe(4497) // Math.floor(8995 / 2) - rounds down
     })
 
     it("consult with odd cent count → Math.floor rounds DOWN (never overpays)", async () => {

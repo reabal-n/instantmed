@@ -22,7 +22,7 @@ import { AboutGuideSection } from "@/components/marketing/sections/about-guide-s
 const ABOUT_FAQS = [
   {
     q: "What is InstantMed?",
-    a: "InstantMed is an Australian telehealth platform that connects patients with AHPRA-registered doctors for medical certificates, repeat prescriptions, and consultations. Everything is handled online through structured clinical forms — no phone calls or video chats required for most requests.",
+    a: "InstantMed is an Australian telehealth platform that connects patients with AHPRA-registered doctors for medical certificates, repeat prescriptions, and consultations. Everything is handled online through structured clinical forms - no phone calls or video chats required for most requests.",
   },
   {
     q: "Is InstantMed a real medical practice?",
@@ -78,18 +78,18 @@ export function AboutClient() {
           <div className="space-y-3 text-sm text-muted-foreground leading-relaxed">
             <p>
               We asked ourselves: why can&apos;t straightforward healthcare be more accessible? For
-              things like medical certificates and repeat prescriptions, there&apos;s a better way — one
+              things like medical certificates and repeat prescriptions, there&apos;s a better way - one
               that respects your time without compromising on care.
             </p>
             <p>
               So we built InstantMed. A platform that connects you with real, AHPRA-registered Australian doctors
-              who can review your requests quickly and professionally — all without the hassle of phone calls, video
+              who can review your requests quickly and professionally - all without the hassle of phone calls, video
               chats, or waiting rooms.
             </p>
           </div>
         </ImageTextSplit>
 
-        {/* Long-form narrative — who we are, how we work, clinical standards, privacy */}
+        {/* Long-form narrative - who we are, how we work, clinical standards, privacy */}
         <AboutGuideSection />
 
         {/* Doctor quote */}

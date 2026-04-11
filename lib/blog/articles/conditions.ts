@@ -16,7 +16,7 @@ export const conditionArticles: Article[] = [
     heroImage: blogImages.hayFever,
     heroImageAlt: 'Person outdoors during spring with seasonal allergies',
     content: [
-      { type: 'paragraph', content: 'Hay fever — medically known as allergic rhinitis — affects around 1 in 5 Australians. It\'s an allergic reaction to airborne particles where your immune system overreacts to normally harmless substances.', links: [{ text: 'allergic rhinitis', href: '/blog/telehealth-vs-in-person', title: 'When to see a doctor' }] },
+      { type: 'paragraph', content: 'Hay fever - medically known as allergic rhinitis - affects around 1 in 5 Australians. It\'s an allergic reaction to airborne particles where your immune system overreacts to normally harmless substances.', links: [{ text: 'allergic rhinitis', href: '/blog/telehealth-vs-in-person', title: 'When to see a doctor' }] },
       { type: 'heading', content: 'Common Triggers', level: 2 },
       { type: 'list', content: '', items: ['Grass pollen (most common in Australia)', 'Tree pollen (especially in spring)', 'Dust mites', 'Pet dander', 'Mould spores'] },
       { type: 'heading', content: 'Recognising Symptoms', level: 2 },
@@ -52,7 +52,7 @@ export const conditionArticles: Article[] = [
     heroImage: blogImages.conjunctivitis,
     heroImageAlt: 'Close-up of healthy eye representing eye care',
     content: [
-      { type: 'paragraph', content: 'Conjunctivitis — commonly called pink eye — is inflammation of the clear tissue covering the white of your eye. It\'s one of the most common eye conditions and is usually not serious.', links: [{ text: 'common eye conditions', href: '/blog/what-is-telehealth', title: 'Online consultations for common conditions' }] },
+      { type: 'paragraph', content: 'Conjunctivitis - commonly called pink eye - is inflammation of the clear tissue covering the white of your eye. It\'s one of the most common eye conditions and is usually not serious.', links: [{ text: 'common eye conditions', href: '/blog/what-is-telehealth', title: 'Online consultations for common conditions' }] },
       { type: 'heading', content: 'Types of Conjunctivitis', level: 2 },
       { type: 'heading', content: 'Viral', level: 3 },
       { type: 'paragraph', content: 'Most common type. Watery discharge, highly contagious, resolves in 1-2 weeks without antibiotics.' },
@@ -90,7 +90,7 @@ export const conditionArticles: Article[] = [
     heroImage: blogImages.coldVsFlu,
     heroImageAlt: 'Person experiencing sinus discomfort',
     content: [
-      { type: 'paragraph', content: 'Sinusitis is inflammation of the sinuses — air-filled spaces in your face. Most sinusitis starts with a viral infection that causes swelling, trapping mucus and creating pressure.' },
+      { type: 'paragraph', content: 'Sinusitis is inflammation of the sinuses - air-filled spaces in your face. Most sinusitis starts with a viral infection that causes swelling, trapping mucus and creating pressure.' },
       { type: 'heading', content: 'Symptoms', level: 2 },
       { type: 'list', content: '', items: ['Facial pain or pressure (cheeks, forehead, eyes)', 'Blocked or stuffy nose', 'Thick, discoloured nasal discharge', 'Reduced sense of smell', 'Post-nasal drip', 'Headache'] },
       { type: 'callout', variant: 'info', content: 'Facial pain that worsens when leaning forward is a classic sign of sinusitis.' },
@@ -98,7 +98,7 @@ export const conditionArticles: Article[] = [
       { type: 'list', content: '', items: ['Saline nasal rinse', 'Steam inhalation', 'Stay hydrated', 'Warm compresses on face', 'Rest', 'Sleep with head elevated'] },
       { type: 'heading', content: 'Do You Need Antibiotics?', level: 2 },
       { type: 'paragraph', content: 'Most sinusitis is viral and doesn\'t need antibiotics. Signs suggesting bacterial infection include symptoms lasting more than 10 days, severe symptoms, or symptoms that improve then worsen.' },
-      { type: 'callout', variant: 'warning', content: 'Don\'t use decongestant nasal sprays for more than 3 days — this can cause rebound congestion.' },
+      { type: 'callout', variant: 'warning', content: 'Don\'t use decongestant nasal sprays for more than 3 days - this can cause rebound congestion.' },
       { type: 'heading', content: 'When to See a Doctor', level: 2 },
       { type: 'list', content: '', items: ['Symptoms lasting more than 10 days', 'High fever', 'Severe headache or facial pain', 'Vision changes or swelling around eyes', 'Recurrent sinus infections'] }
     ],
@@ -128,9 +128,9 @@ export const conditionArticles: Article[] = [
     content: [
       { type: 'paragraph', content: 'Dizziness is a common complaint, but the word means different things. Understanding your type of dizziness helps identify the cause.' },
       { type: 'heading', content: 'Types of Dizziness', level: 2 },
-      { type: 'list', content: '', items: ['Vertigo — spinning sensation, usually inner ear related', 'Lightheadedness — feeling faint, often blood pressure or dehydration', 'Unsteadiness — off-balance without spinning or faintness'] },
+      { type: 'list', content: '', items: ['Vertigo - spinning sensation, usually inner ear related', 'Lightheadedness - feeling faint, often blood pressure or dehydration', 'Unsteadiness - off-balance without spinning or faintness'] },
       { type: 'heading', content: 'Common Causes of Vertigo', level: 2 },
-      { type: 'list', content: '', items: ['BPPV — crystals in inner ear cause brief spinning with head movement', 'Labyrinthitis — inner ear inflammation after infection', 'Meniere\'s disease — episodes with hearing loss and tinnitus'] },
+      { type: 'list', content: '', items: ['BPPV - crystals in inner ear cause brief spinning with head movement', 'Labyrinthitis - inner ear inflammation after infection', 'Meniere\'s disease - episodes with hearing loss and tinnitus'] },
       { type: 'heading', content: 'Managing at Home', level: 2 },
       { type: 'list', content: '', items: ['Sit or lie down immediately', 'Stay hydrated', 'Move slowly when changing positions', 'Avoid driving while dizzy'] },
       { type: 'callout', variant: 'tip', content: 'For BPPV, specific head exercises (Epley manoeuvre) can be very effective. A doctor or physio can teach you.' },
@@ -162,7 +162,7 @@ export const conditionArticles: Article[] = [
     heroImage: blogImages.genericMedical,
     heroImageAlt: 'Medical care and treatment concept',
     content: [
-      { type: 'paragraph', content: 'Shingles is a painful rash caused by the varicella-zoster virus — the same virus that causes chickenpox. After chickenpox, the virus stays dormant and can reactivate years later as shingles.' },
+      { type: 'paragraph', content: 'Shingles is a painful rash caused by the varicella-zoster virus - the same virus that causes chickenpox. After chickenpox, the virus stays dormant and can reactivate years later as shingles.' },
       { type: 'heading', content: 'Who Gets Shingles?', level: 2 },
       { type: 'paragraph', content: 'About 1 in 3 people will get shingles. Risk increases with age over 50, weakened immune system, or significant stress.' },
       { type: 'heading', content: 'Recognising Shingles', level: 2 },
@@ -189,7 +189,7 @@ export const conditionArticles: Article[] = [
     slug: 'gout',
     title: 'Gout',
     subtitle: 'Understanding this painful form of arthritis.',
-    excerpt: 'Gout causes sudden, severe joint pain — often in the big toe. Learn about treatment and prevention.',
+    excerpt: 'Gout causes sudden, severe joint pain - often in the big toe. Learn about treatment and prevention.',
     category: 'conditions',
     publishedAt: '2024-09-10',
     updatedAt: '2026-01-10',
@@ -206,7 +206,7 @@ export const conditionArticles: Article[] = [
       { type: 'list', content: '', items: ['Sudden intense pain, often at night', 'Joint red, hot, and swollen', 'Pain peaks within 12-24 hours', 'Most commonly affects big toe'] },
       { type: 'callout', variant: 'info', content: 'Gout pain is often so severe that even a bedsheet touching the joint is unbearable.' },
       { type: 'heading', content: 'Treatment', level: 2 },
-      { type: 'list', content: '', items: ['Anti-inflammatory medications (NSAIDs)', 'Colchicine — best if started early', 'Rest the affected joint', 'Ice packs', 'Stay hydrated'] },
+      { type: 'list', content: '', items: ['Anti-inflammatory medications (NSAIDs)', 'Colchicine - best if started early', 'Rest the affected joint', 'Ice packs', 'Stay hydrated'] },
       { type: 'heading', content: 'Prevention', level: 2 },
       { type: 'list', content: '', items: ['Limit high-purine foods', 'Reduce alcohol', 'Stay hydrated', 'Maintain healthy weight', 'Preventive medication for frequent attacks'] },
       { type: 'callout', variant: 'warning', content: 'A hot, swollen joint with fever could be joint infection. Seek urgent care if you feel very unwell.' }

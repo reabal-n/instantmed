@@ -38,7 +38,7 @@ export async function GET(
       return NextResponse.json({ error: "Profile not found" }, { status: 404 })
     }
 
-    // Rate limit: 30 downloads/hour per user — reuses "upload" bucket (same 30/hr limit,
+    // Rate limit: 30 downloads/hour per user - reuses "upload" bucket (same 30/hr limit,
     // no dedicated "download" bucket defined in rateLimitConfigs)
     const rateLimitResponse = await applyRateLimit(request, "upload", profile.id)
     if (rateLimitResponse) return rateLimitResponse
@@ -60,7 +60,7 @@ export async function GET(
       return NextResponse.json({ error: "Certificate file not available" }, { status: 404 })
     }
 
-    // Generate short-lived signed URL (5 min) — used server-side only, never exposed to client
+    // Generate short-lived signed URL (5 min) - used server-side only, never exposed to client
     const { data: signedUrlData, error: urlError } = await supabase.storage
       .from("documents")
       .createSignedUrl(certificate.storage_path, 300)
@@ -74,7 +74,7 @@ export async function GET(
       return NextResponse.json({ error: "Failed to generate download link" }, { status: 500 })
     }
 
-    // Stream PDF through the server — signed URL never leaves the backend
+    // Stream PDF through the server - signed URL never leaves the backend
     const pdfResponse = await fetch(signedUrlData.signedUrl)
     if (!pdfResponse.ok) {
       log.error("Failed to fetch PDF from storage", {

@@ -9,10 +9,11 @@ import { SectionPill } from "@/components/ui/section-pill"
 import { BreadcrumbSchema } from "@/components/seo/healthcare-schema"
 import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 import { getStateBySlug, getAllStateSlugs } from "@/lib/seo/data/states"
+import { PRICING_DISPLAY } from "@/lib/constants"
 
 // ============================================================================
 // CITY LOOKUP (for display names/slugs in the grid)
-// Kept minimal here — full city data lives in app/locations/[city]/page.tsx.
+// Kept minimal here - full city data lives in app/locations/[city]/page.tsx.
 // ============================================================================
 
 const CITY_DISPLAY_NAMES: Record<string, string> = {
@@ -95,7 +96,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     twitter: {
       card: "summary_large_image",
       title: `Online Doctor ${data.fullName} | InstantMed`,
-      description: `Telehealth for ${data.fullName} residents — same-day med certs, eScripts, consultations.`,
+      description: `Telehealth for ${data.fullName} residents - same-day med certs, eScripts, consultations.`,
     },
     alternates: { canonical },
   }
@@ -304,7 +305,7 @@ export default async function StatePage({ params }: PageProps) {
               </div>
 
               <p className="text-center text-sm text-muted-foreground mt-8">
-                Not in one of these cities? No problem — our service covers every {data.shortName} postcode
+                Not in one of these cities? No problem - our service covers every {data.shortName} postcode
                 at the same price and turnaround time.{" "}
                 <Link href="/request" className="text-primary hover:underline font-medium">
                   Start your request
@@ -370,7 +371,7 @@ export default async function StatePage({ params }: PageProps) {
                 Start your request from anywhere in {data.shortName}
               </h2>
               <p className="text-muted-foreground mb-8">
-                A short form, a doctor review, and your certificate or prescription — without leaving home.
+                A short form, a doctor review, and your certificate or prescription - without leaving home.
               </p>
               <Button asChild size="lg" className="rounded-full px-8">
                 <Link href="/request">
@@ -379,7 +380,7 @@ export default async function StatePage({ params }: PageProps) {
                 </Link>
               </Button>
               <p className="text-xs text-muted-foreground mt-4">
-                From $19.95 · AHPRA-registered doctors · Refund if we can&apos;t help
+                {PRICING_DISPLAY.FROM_MED_CERT} · AHPRA-registered doctors · Refund if we can&apos;t help
               </p>
             </div>
           </section>

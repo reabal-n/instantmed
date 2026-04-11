@@ -4,7 +4,7 @@ import { SectionPill } from "@/components/ui/section-pill"
 import { COMPETITOR_COMPARISONS } from "@/lib/seo/data/competitor-comparisons"
 
 interface CompetitorLinksSectionProps {
-  /** Slugs to display — omit to show all competitors */
+  /** Slugs to display - omit to show all competitors */
   slugs?: string[]
   className?: string
 }

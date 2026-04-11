@@ -1,5 +1,6 @@
 import { ImageResponse } from 'next/og'
 import { SOCIAL_PROOF } from '@/lib/social-proof'
+import { PRICING_DISPLAY } from '@/lib/constants'
 
 export const runtime = 'edge'
 
@@ -76,7 +77,7 @@ export default async function Image() {
             marginBottom: '40px',
           }}
         >
-          Valid for work, uni, or carer&apos;s leave — reviewed by an Australian GP
+          Valid for work, uni, or carer&apos;s leave - reviewed by an Australian GP
         </div>
 
         {/* Key points */}
@@ -112,7 +113,7 @@ export default async function Image() {
             color: '#64748B',
           }}
         >
-          From <span style={{ fontWeight: 'bold', color: '#1E293B', fontSize: '28px' }}>$19.95</span>
+          From <span style={{ fontWeight: 'bold', color: '#1E293B', fontSize: '28px' }}>{PRICING_DISPLAY.MED_CERT}</span>
           <span style={{ marginLeft: '12px', fontSize: '18px' }}>· Typically {SOCIAL_PROOF.gpPriceStandard} at a GP</span>
         </div>
       </div>

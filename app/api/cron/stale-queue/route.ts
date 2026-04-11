@@ -94,14 +94,14 @@ export async function GET(request: NextRequest) {
           const waitMins = Math.round((now.getTime() - new Date(intake.paid_at as string).getTime()) / 60000)
           const refId = intake.id.slice(0, 8).toUpperCase()
           const label = formatServiceType(intake.category as string | null)
-          return `• [${refId}](${appUrl}/doctor/intakes/${intake.id}) — ${firstName} — ${escapeMarkdown(label)} — ${waitMins}min`
+          return `• [${refId}](${appUrl}/doctor/intakes/${intake.id}) - ${firstName} - ${escapeMarkdown(label)} - ${waitMins}min`
         }).join("\n")
 
         const count = staleDoctorAlerts.length
         const msg = `⏰ *${count} request${count > 1 ? "s" : ""} waiting ${doctorAlertThresholdHours}h\\+*\n\n${lines}\n\n[Open queue →](${appUrl}/doctor/queue)`
         await sendTelegramAlert(msg)
 
-        // Mark alerted — prevents repeat notifications per intake
+        // Mark alerted - prevents repeat notifications per intake
         await supabase
           .from("intakes")
           .update({ doctor_telegram_alert_sent_at: now.toISOString() })

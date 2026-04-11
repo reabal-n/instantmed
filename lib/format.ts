@@ -42,7 +42,7 @@ export function formatDateLong(date: string | Date): string {
  * Add N days to a date string and return as ISO date string (YYYY-MM-DD).
  *
  * Uses UTC noon to avoid two timezone pitfalls:
- * 1. new Date("YYYY-MM-DD") parses as UTC midnight — mixing local getDate/setDate
+ * 1. new Date("YYYY-MM-DD") parses as UTC midnight - mixing local getDate/setDate
  *    with toISOString() loses a day on US DST spring-forward (Vercel iad1).
  * 2. UTC midnight can shift the calendar day when converted to AEST/AEDT.
  */
@@ -54,7 +54,7 @@ export function addDays(date: string | Date, days: number): string {
   return utcNoon.toISOString().split("T")[0]!
 }
 
-/** "12/03/2026" — DD/MM/YYYY for certificates, DOB, issue date */
+/** "12/03/2026" - DD/MM/YYYY for certificates, DOB, issue date */
 export function formatShortDate(date: string | Date): string {
   return new Date(date).toLocaleDateString("en-AU", {
     day: "2-digit",
@@ -65,7 +65,7 @@ export function formatShortDate(date: string | Date): string {
 }
 
 /**
- * Safe format for DOB — returns undefined if date is invalid.
+ * Safe format for DOB - returns undefined if date is invalid.
  * Use when the source may be malformed (avoids "Invalid Date" on PDFs).
  */
 export function formatShortDateSafe(date: string | Date | null | undefined): string | undefined {

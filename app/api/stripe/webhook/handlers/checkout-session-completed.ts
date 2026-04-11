@@ -66,7 +66,7 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
   // checkout.session.async_payment_succeeded. Skip processing here to avoid
   // marking the intake as paid before the money actually moves.
   if (session.payment_status !== "paid") {
-    log.info("Skipping checkout.session.completed — payment not yet confirmed (async payment method)", {
+    log.info("Skipping checkout.session.completed - payment not yet confirmed (async payment method)", {
       eventId: event.id,
       sessionId: session.id,
       paymentStatus: session.payment_status,
@@ -280,7 +280,7 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
           log.info("Force update succeeded", { intakeId, newStatus: forceRows![0].status })
           // Don't return early - fall through to continue webhook flow
         } else if (!forceError && rowsUpdated === 0) {
-          log.info("Force update matched 0 rows — concurrent webhook already processed", { intakeId })
+          log.info("Force update matched 0 rows - concurrent webhook already processed", { intakeId })
           return NextResponse.json({ received: true, concurrent_update: true })
         } else {
           log.error("Force update also failed", {
@@ -406,7 +406,7 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
           payment_method: session.payment_method_types?.[0],
           service_category: intakeAttribution?.category || session.metadata?.category,
           service_subtype: intakeAttribution?.subtype || session.metadata?.service_slug,
-          // Attribution — how this customer found us
+          // Attribution - how this customer found us
           utm_source: intakeAttribution?.utm_source || null,
           utm_medium: intakeAttribution?.utm_medium || null,
           utm_campaign: intakeAttribution?.utm_campaign || null,
@@ -477,7 +477,7 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
             .maybeSingle()
 
           if (referrer && referrer.id !== patientId) {
-            // Create or find the referral_event (upsert — idempotent if webhook retries)
+            // Create or find the referral_event (upsert - idempotent if webhook retries)
             const { data: existingEvent } = await supabase
               .from("referral_events")
               .select("id, status")
@@ -486,7 +486,7 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
               .maybeSingle()
 
             if (!existingEvent) {
-              // First time we've seen this pair — create event + award credits
+              // First time we've seen this pair - create event + award credits
               const { data: newEvent } = await supabase
                 .from("referral_events")
                 .insert({
@@ -522,7 +522,7 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
                 })
               }
             } else if (existingEvent.status === "pending") {
-              // Referral event exists but not yet credited — complete it
+              // Referral event exists but not yet credited - complete it
               await supabase
                 .from("referral_events")
                 .update({
@@ -553,7 +553,7 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
                 intakeId,
               })
             }
-            // If status is already 'credited', idempotent — do nothing
+            // If status is already 'credited', idempotent - do nothing
           }
         }
       }
@@ -585,7 +585,7 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
         }
       }
     } catch {
-      // Non-blocking — credit marking is best-effort, credits can be reconciled later
+      // Non-blocking - credit marking is best-effort, credits can be reconciled later
     }
 
     // STEP 4d: Create subscription record if this was a subscription checkout
@@ -614,7 +614,7 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
       } catch (subError) {
         log.error("Failed to create subscription record", { intakeId },
           subError instanceof Error ? subError : undefined)
-        // Non-blocking — subscription record can be reconciled later
+        // Non-blocking - subscription record can be reconciled later
       }
     }
 
@@ -731,7 +731,7 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
 
           // Attempt auto-approval for med certs immediately after drafts are generated,
           // but ONLY when auto_approve_delay_minutes is 0. When a delay is configured,
-          // the retry-auto-approval cron enforces it — calling here would bypass it.
+          // the retry-auto-approval cron enforces it - calling here would bypass it.
           // The cron (every 3 min) also catches any slipped-through cases regardless.
           try {
             const { getFeatureFlags } = await import("@/lib/feature-flags")
@@ -746,13 +746,13 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
                 certificateId: autoResult.certificateId,
               })
             } else {
-              log.info("Auto-approval deferred to cron — delay is configured", {
+              log.info("Auto-approval deferred to cron - delay is configured", {
                 intakeId,
                 delayMinutes: flags.auto_approve_delay_minutes,
               })
             }
           } catch (autoErr) {
-            // Never fail — auto-approval failure just means doctor reviews manually
+            // Never fail - auto-approval failure just means doctor reviews manually
             log.warn("Auto-approval error (non-fatal, falls back to doctor queue)", {
               intakeId,
               error: autoErr instanceof Error ? autoErr.message : String(autoErr),

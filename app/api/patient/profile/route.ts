@@ -62,7 +62,7 @@ export async function PATCH(request: Request) {
       consent_myhr,
     } = parsed.data
 
-    // Build typed update payload — only include fields the client actually sent.
+    // Build typed update payload - only include fields the client actually sent.
     // updateProfile() runs encryptProfilePhi() over phone/DOB before writing,
     // so this path stays compliant with PHI encryption requirements.
     const updates: Parameters<typeof updateProfile>[1] = {}

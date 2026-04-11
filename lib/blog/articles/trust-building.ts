@@ -94,10 +94,10 @@ export const trustBuildingArticles: Article[] = [
         type: 'list',
         content: '',
         items: [
-          'General registration — standard registration for practising doctors',
-          'Specialist registration — for doctors with specialist qualifications',
-          'Provisional registration — for doctors completing supervised training',
-          'Limited registration — for specific purposes with conditions'
+          'General registration - standard registration for practising doctors',
+          'Specialist registration - for doctors with specialist qualifications',
+          'Provisional registration - for doctors completing supervised training',
+          'Limited registration - for specific purposes with conditions'
         ]
       },
       { type: 'heading', content: 'What If There\'s a Problem?', level: 2 },
@@ -313,7 +313,7 @@ export const trustBuildingArticles: Article[] = [
       },
       {
         type: 'paragraph',
-        content: 'If you\'re genuinely unwell, getting a legitimate certificate is easy — there\'s no reason to risk using a fake one.'
+        content: 'If you\'re genuinely unwell, getting a legitimate certificate is easy - there\'s no reason to risk using a fake one.'
       }
     ],
     faqs: [
@@ -323,7 +323,7 @@ export const trustBuildingArticles: Article[] = [
       },
       {
         question: 'My employer says they don\'t accept telehealth certificates. Is that allowed?',
-        answer: 'They should accept them — certificates from AHPRA-registered doctors are valid regardless of how the consultation occurred. You may need to escalate to HR or seek external advice.'
+        answer: 'They should accept them - certificates from AHPRA-registered doctors are valid regardless of how the consultation occurred. You may need to escalate to HR or seek external advice.'
       },
       {
         question: 'Can they require me to see their doctor?',
@@ -395,7 +395,7 @@ export const trustBuildingArticles: Article[] = [
       { type: 'heading', content: 'Private GP Clinics', level: 3 },
       {
         type: 'paragraph',
-        content: 'You can visit any GP clinic — you\'ll just pay privately. Expect to pay around $70-$120 for a standard consultation.'
+        content: 'You can visit any GP clinic - you\'ll just pay privately. Expect to pay around $70-$120 for a standard consultation.'
       },
       { type: 'heading', content: 'University Health Services', level: 3 },
       {
@@ -421,7 +421,7 @@ export const trustBuildingArticles: Article[] = [
       {
         type: 'callout',
         variant: 'tip',
-        content: 'Check if your OSHC provider has preferred GPs or telehealth partners — you may pay less or get direct billing.'
+        content: 'Check if your OSHC provider has preferred GPs or telehealth partners - you may pay less or get direct billing.'
       },
       { type: 'heading', content: 'Travel Insurance', level: 3 },
       {
@@ -477,7 +477,7 @@ export const trustBuildingArticles: Article[] = [
           'Keep your health insurance details handy',
           'Ask about fees upfront',
           'Request itemised receipts for insurance claims',
-          'Use telehealth when appropriate — often simpler than finding clinics',
+          'Use telehealth when appropriate - often simpler than finding clinics',
           'For ongoing conditions, establish care with a regular GP'
         ]
       },
@@ -532,7 +532,7 @@ export const trustBuildingArticles: Article[] = [
     content: [
       {
         type: 'paragraph',
-        content: 'Telehealth can be especially valuable for elderly parents — no driving, no waiting rooms, no exposure to sick people. But getting them comfortable with the technology takes some planning.',
+        content: 'Telehealth can be especially valuable for elderly parents - no driving, no waiting rooms, no exposure to sick people. But getting them comfortable with the technology takes some planning.',
         links: [{ text: 'Telehealth', href: '/blog/what-is-telehealth', title: 'What is telehealth?' }]
       },
       { type: 'heading', content: 'Why Telehealth Works for Seniors', level: 2 },
@@ -557,16 +557,16 @@ export const trustBuildingArticles: Article[] = [
         type: 'list',
         content: '',
         items: [
-          'Tablet — larger screen, good for video calls',
-          'Smartphone — familiar if they already use one',
-          'Computer — if they\'re comfortable with it',
-          'Landline — some services offer phone-only consultations'
+          'Tablet - larger screen, good for video calls',
+          'Smartphone - familiar if they already use one',
+          'Computer - if they\'re comfortable with it',
+          'Landline - some services offer phone-only consultations'
         ]
       },
       {
         type: 'callout',
         variant: 'tip',
-        content: 'If buying a new device, tablets are often the best choice for seniors — larger screens and simpler interfaces than computers.'
+        content: 'If buying a new device, tablets are often the best choice for seniors - larger screens and simpler interfaces than computers.'
       },
       { type: 'heading', content: 'Setting Up: A Step-by-Step Guide', level: 2 },
       { type: 'heading', content: '1. Choose a Service', level: 3 },
@@ -587,7 +587,7 @@ export const trustBuildingArticles: Article[] = [
       { type: 'heading', content: '2. Create an Account', level: 3 },
       {
         type: 'paragraph',
-        content: 'Set this up in advance — not when they\'re sick:'
+        content: 'Set this up in advance - not when they\'re sick:'
       },
       {
         type: 'list',
@@ -660,7 +660,7 @@ export const trustBuildingArticles: Article[] = [
       { type: 'heading', content: '"What if something goes wrong?"', level: 3 },
       {
         type: 'paragraph',
-        content: 'Customer support can help with technical issues. For medical emergencies, they should call 000 — telehealth isn\'t for emergencies anyway.'
+        content: 'Customer support can help with technical issues. For medical emergencies, they should call 000 - telehealth isn\'t for emergencies anyway.'
       },
       { type: 'heading', content: 'When Telehealth Might Not Be Right', level: 2 },
       {
@@ -712,7 +712,7 @@ export const trustBuildingArticles: Article[] = [
     slug: 'when-to-go-to-emergency-vs-telehealth',
     title: 'Emergency vs Telehealth: Making the Right Choice',
     subtitle: 'Know when to call 000, go to ED, or use telehealth.',
-    excerpt: 'Should you go to emergency or try telehealth? Learn how to make the right call about your health — when time matters and when it doesn\'t.',
+    excerpt: 'Should you go to emergency or try telehealth? Learn how to make the right call about your health - when time matters and when it doesn\'t.',
     category: 'telehealth',
     tags: ['emergency', 'telehealth', 'decision-making', 'urgent-care'],
     publishedAt: '2026-01-20',
@@ -725,7 +725,7 @@ export const trustBuildingArticles: Article[] = [
     content: [
       {
         type: 'paragraph',
-        content: 'When you\'re unwell, deciding where to seek help can be stressful. Getting it right matters — for your health and to keep emergency services available for those who truly need them.'
+        content: 'When you\'re unwell, deciding where to seek help can be stressful. Getting it right matters - for your health and to keep emergency services available for those who truly need them.'
       },
       { type: 'heading', content: 'Call 000 Immediately For:', level: 2 },
       {
@@ -734,7 +734,7 @@ export const trustBuildingArticles: Article[] = [
         items: [
           'Chest pain or tightness',
           'Difficulty breathing or shortness of breath',
-          'Signs of stroke — facial drooping, arm weakness, speech problems (remember FAST)',
+          'Signs of stroke - facial drooping, arm weakness, speech problems (remember FAST)',
           'Severe allergic reaction (anaphylaxis)',
           'Heavy bleeding that won\'t stop',
           'Loss of consciousness',
@@ -789,7 +789,7 @@ export const trustBuildingArticles: Article[] = [
         type: 'list',
         content: '',
         items: [
-          'Healthdirect Helpline: 1800 022 222 — free health advice 24/7',
+          'Healthdirect Helpline: 1800 022 222 - free health advice 24/7',
           'Poisons Information Centre: 13 11 26',
           'Lifeline: 13 11 14 for mental health crisis',
           'Your GP\'s after-hours voicemail often has guidance'
@@ -810,7 +810,7 @@ export const trustBuildingArticles: Article[] = [
       { type: 'heading', content: 'The Cost of Emergency for Non-Emergencies', level: 2 },
       {
         type: 'paragraph',
-        content: 'Emergency departments prioritise by urgency (triage). If your condition isn\'t urgent, you\'ll wait — sometimes many hours. Meanwhile:'
+        content: 'Emergency departments prioritise by urgency (triage). If your condition isn\'t urgent, you\'ll wait - sometimes many hours. Meanwhile:'
       },
       {
         type: 'list',
@@ -825,7 +825,7 @@ export const trustBuildingArticles: Article[] = [
       {
         type: 'callout',
         variant: 'info',
-        content: 'This isn\'t about making you feel guilty — if you genuinely thought it was an emergency, that\'s the right call. It\'s about helping you make better decisions next time.'
+        content: 'This isn\'t about making you feel guilty - if you genuinely thought it was an emergency, that\'s the right call. It\'s about helping you make better decisions next time.'
       },
       { type: 'heading', content: 'What Telehealth Can\'t Do', level: 2 },
       {
@@ -849,9 +849,9 @@ export const trustBuildingArticles: Article[] = [
         type: 'list',
         content: '',
         items: [
-          'After-hours GP clinics — for conditions needing examination but not emergency',
-          'Home-visiting doctor services — doctor comes to you',
-          'Hospital urgent care centres — lower acuity than ED, where available'
+          'After-hours GP clinics - for conditions needing examination but not emergency',
+          'Home-visiting doctor services - doctor comes to you',
+          'Hospital urgent care centres - lower acuity than ED, where available'
         ]
       }
     ],
@@ -900,7 +900,7 @@ export const trustBuildingArticles: Article[] = [
     content: [
       {
         type: 'paragraph',
-        content: 'Illness during exam period or when assignments are due is stressful. Australian universities have processes for this — here\'s how to navigate them.',
+        content: 'Illness during exam period or when assignments are due is stressful. Australian universities have processes for this - here\'s how to navigate them.',
         links: [{ text: 'universities have processes', href: '/blog/university-medical-certificates', title: 'Medical certificates for university' }]
       },
       { type: 'heading', content: 'Types of Accommodation', level: 2 },
@@ -973,7 +973,7 @@ export const trustBuildingArticles: Article[] = [
       },
       {
         type: 'paragraph',
-        content: 'Most universities accept telehealth certificates — they\'re from registered doctors just like in-person consultations.'
+        content: 'Most universities accept telehealth certificates - they\'re from registered doctors just like in-person consultations.'
       },
       { type: 'heading', content: 'Timing Matters', level: 2 },
       {

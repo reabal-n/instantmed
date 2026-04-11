@@ -34,7 +34,7 @@ export async function POST(request: Request) {
       )
     }
 
-    // Require authentication — only the intake owner should resend
+    // Require authentication - only the intake owner should resend
     const { userId } = await auth()
     if (!userId) {
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 })

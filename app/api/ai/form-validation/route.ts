@@ -238,7 +238,7 @@ export async function POST(req: NextRequest) {
     let aiIssues: ValidationIssue[] = []
 
     try {
-      // Strip PII/PHI fields before sending to AI — only clinical context needed
+      // Strip PII/PHI fields before sending to AI - only clinical context needed
       const PHI_KEYS_TO_STRIP = [
         "medicareNumber", "medicare_number", "medicareIrn", "medicare_irn",
         "dateOfBirth", "date_of_birth", "dob",

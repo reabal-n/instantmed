@@ -187,7 +187,7 @@ test.describe("Stripe Webhook: Signature Verification", () => {
 
     const payload = buildCheckoutCompletedEvent({})
     const body = JSON.stringify(payload)
-    // Stripe's default tolerance is 300 seconds — use a timestamp 10 minutes in the past
+    // Stripe's default tolerance is 300 seconds - use a timestamp 10 minutes in the past
     const expiredTimestamp = Math.floor(Date.now() / 1000) - 600
     const signature = generateStripeSignature(body, STRIPE_WEBHOOK_SECRET, expiredTimestamp)
 
@@ -294,7 +294,7 @@ test.describe("Stripe Webhook: checkout.session.completed", () => {
     expect(body.error).toBe("Intake not found")
   })
 
-  test("is idempotent — duplicate events are skipped", async ({ request }) => {
+  test("is idempotent - duplicate events are skipped", async ({ request }) => {
     test.skip(!STRIPE_WEBHOOK_SECRET, "STRIPE_WEBHOOK_SECRET required")
     test.skip(!isDbAvailable(), "Supabase credentials required for DB assertions")
 
@@ -313,11 +313,11 @@ test.describe("Stripe Webhook: checkout.session.completed", () => {
       patientId: "e2e00000-0000-0000-0000-000000000001",
     })
 
-    // First request — should process
+    // First request - should process
     const response1 = await postWebhook(request, event)
     expect(response1.status()).toBe(200)
 
-    // Second request with same event ID — should be skipped
+    // Second request with same event ID - should be skipped
     const response2 = await postWebhook(request, event)
     expect(response2.status()).toBe(200)
 

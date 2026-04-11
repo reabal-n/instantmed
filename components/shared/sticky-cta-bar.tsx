@@ -70,7 +70,7 @@ export function StickyCTABar() {
 
   const shouldShow = isVisible && !isDismissed && !isNearFooter
 
-  // CSS transitions replace framer-motion — avoids Turbopack module factory race condition.
+  // CSS transitions replace framer-motion - avoids Turbopack module factory race condition.
   // motion/AnimatePresence are not pre-loaded when this lazy chunk initialises.
   return (
     <div

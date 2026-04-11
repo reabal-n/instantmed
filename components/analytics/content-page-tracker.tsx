@@ -16,7 +16,7 @@ interface ContentPageTrackerProps {
  * Fires a `content_page_viewed` PostHog event with page metadata,
  * enabling funnel analysis: content page → intake start → payment.
  *
- * Drop this into any content page — it fires once per mount.
+ * Drop this into any content page - it fires once per mount.
  */
 export function ContentPageTracker({ pageType, slug, serviceRecommendation }: ContentPageTrackerProps) {
   const pathname = usePathname()

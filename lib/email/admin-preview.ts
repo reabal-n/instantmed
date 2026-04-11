@@ -443,7 +443,7 @@ export function renderPreviewTemplate(
     const mergedData = { ...template.sampleData, ...data }
     const element = template.render(mergedData)
 
-    // renderEmailToHtml is async — but this function is sync for backward compat.
+    // renderEmailToHtml is async - but this function is sync for backward compat.
     // Use renderToStaticMarkup directly (same as renderEmailToHtml but sync).
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const ReactDOMServer = require("react-dom/server")
@@ -452,7 +452,7 @@ export function renderPreviewTemplate(
     const subject = options.isTest ? `[TEST] ${template.subject}` : template.subject
 
     if (options.isTest) {
-      const testBanner = `<div style="background-color:#f59e0b;color:white;padding:12px;text-align:center;font-weight:bold;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">THIS IS A TEST EMAIL — Template: ${template.name}</div>`
+      const testBanner = `<div style="background-color:#f59e0b;color:white;padding:12px;text-align:center;font-weight:bold;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">THIS IS A TEST EMAIL - Template: ${template.name}</div>`
       html = html.replace(/<body[^>]*>/i, (match) => `${match}${testBanner}`)
     }
 

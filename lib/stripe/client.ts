@@ -17,7 +17,7 @@ export {
 const log = createLogger("stripe-client")
 
 // Validate required environment variables - fail fast in production
-// Skip in CI — NODE_ENV=production is set by Next.js build but CI isn't real production
+// Skip in CI - NODE_ENV=production is set by Next.js build but CI isn't real production
 if (!process.env.STRIPE_SECRET_KEY) {
   if (process.env.NODE_ENV === 'production' && !process.env.CI) {
     throw new Error("STRIPE_SECRET_KEY is required in production")

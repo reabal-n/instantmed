@@ -15,7 +15,7 @@ interface PageProps {
 }
 
 export default async function PatientIntakesPage({ searchParams }: PageProps) {
-  // Layout enforces patient role — use cached profile
+  // Layout enforces patient role - use cached profile
   const authUser = (await getAuthenticatedUserWithProfile())!
   
   const params = await searchParams

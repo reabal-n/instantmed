@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (urls.length === 0) {
-      logger.warn("No URLs found in sitemap — IndexNow cron skipped", {})
+      logger.warn("No URLs found in sitemap - IndexNow cron skipped", {})
       return NextResponse.json({ success: false, reason: "No URLs in sitemap" })
     }
 

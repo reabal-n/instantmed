@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
 
     const overdueDoctors = overdueDoctos || []
 
-    // 2. Find doctors overdue by more than 30 days — auto-suspend approval capability
+    // 2. Find doctors overdue by more than 30 days - auto-suspend approval capability
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
     const severelyOverdue = overdueDoctors.filter(
       d => d.ahpra_next_review_at && new Date(d.ahpra_next_review_at) < thirtyDaysAgo

@@ -24,6 +24,7 @@ import { UrgentNoticeBanner } from "@/components/shared/urgent-notice-banner"
 import { PageTransitionProvider } from "@/components/shared/page-transition-provider"
 import { MotionProvider } from "@/components/providers/motion-provider"
 import { GoogleTags } from "@/components/providers/google-tags"
+import { PRICING_DISPLAY } from "@/lib/constants"
 import "./globals.css"
 
 const sourceSans = Source_Sans_3({
@@ -48,7 +49,7 @@ export const metadata: Metadata = {
     template: "%s | InstantMed",
   },
   description:
-    "Get medical certificates, repeat medication & doctor consults online from $19.95. AHPRA-registered Australian doctors. No video calls, results in under an hour.",
+    `Get medical certificates, repeat medication & doctor consults online from ${PRICING_DISPLAY.MED_CERT}. AHPRA-registered Australian doctors. No video calls, results in under an hour.`,
   keywords: [
     "online doctor Australia",
     "telehealth Australia",
@@ -86,13 +87,13 @@ export const metadata: Metadata = {
     siteName: "InstantMed",
     title: "InstantMed | Online Doctor Australia",
     description:
-      "Med certs, medication renewals & consults from $19.95. AHPRA-registered Australian GPs. No video calls, results in under an hour.",
+      `Med certs, medication renewals & consults from ${PRICING_DISPLAY.MED_CERT}. AHPRA-registered Australian GPs. No video calls, results in under an hour.`,
     // OG image handled by app/opengraph-image.tsx convention file
   },
   twitter: {
     card: "summary_large_image",
     title: "InstantMed | Online Doctor Australia",
-    description: "Med certs, medication renewals & consults from $19.95. AHPRA-registered Australian GPs. No video calls, results in under an hour.",
+    description: `Med certs, medication renewals & consults from ${PRICING_DISPLAY.MED_CERT}. AHPRA-registered Australian GPs. No video calls, results in under an hour.`,
     // Twitter image handled by app/opengraph-image.tsx convention file
   },
   robots: {
@@ -130,7 +131,7 @@ export const viewport: Viewport = {
   interactiveWidget: "resizes-visual",
 }
 
-// Inline JsonLd removed — OrganizationSchema from healthcare-schema.tsx is the single source of truth
+// Inline JsonLd removed - OrganizationSchema from healthcare-schema.tsx is the single source of truth
 
 export default function RootLayout({
   children,
@@ -146,7 +147,7 @@ export default function RootLayout({
         style={{ backgroundColor: '#f8f7f4' }}
       >
         <head>
-          {/* Preconnect to critical third-party origins — Sentry (LCP savings) */}
+          {/* Preconnect to critical third-party origins - Sentry (LCP savings) */}
           <link rel="preconnect" href="https://o4510623218860032.ingest.us.sentry.io" />
           <link rel="dns-prefetch" href="https://js.stripe.com" />
           <link rel="dns-prefetch" href="https://api.stripe.com" />

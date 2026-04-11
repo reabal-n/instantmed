@@ -1,6 +1,6 @@
 /**
  * Certificate Templates Data Layer
- * Read-only — templates are static PDFs in /public/templates/
+ * Read-only - templates are static PDFs in /public/templates/
  */
 
 import "server-only"
@@ -59,6 +59,6 @@ export async function getAllActiveTemplates(): Promise<CertificateTemplate[]> {
   return data as CertificateTemplate[]
 }
 
-// Template editing functions removed — templates are static PDFs in /public/templates/
+// Template editing functions removed - templates are static PDFs in /public/templates/
 // Only read functions (getActiveTemplate, getAllActiveTemplates) are retained.
 // Helper getTemplateTypeName is now exported from @/lib/data/types/certificate-templates

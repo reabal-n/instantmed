@@ -105,10 +105,10 @@ export function SocialProofSection() {
               {/* Left accent stripe */}
               <div className={cn('absolute left-0 top-3 bottom-3 w-0.5 rounded-full', stat.accentBorder)} />
 
-              {/* Icon — subtle accent in top-right */}
+              {/* Icon - subtle accent in top-right */}
               <stat.icon className={cn('w-5 h-5 mb-3', stat.iconColor)} />
 
-              {/* Stat number — hero element with color */}
+              {/* Stat number - hero element with color */}
               <p className={cn('text-2xl sm:text-3xl font-bold tracking-tight leading-none mb-1', stat.valueColor)}>
                 <AnimatedStat value={stat.value} suffix={stat.suffix} decimals={stat.decimals} />
               </p>

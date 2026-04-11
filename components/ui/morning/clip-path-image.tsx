@@ -6,7 +6,7 @@ import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { useScrollReveal, useReducedMotion } from "@/components/ui/motion";
 
-// Persists across React StrictMode's simulated remount — DOM nodes are preserved.
+// Persists across React StrictMode's simulated remount - DOM nodes are preserved.
 const _played = new WeakSet<Element>()
 
 interface ClipPathImageProps {

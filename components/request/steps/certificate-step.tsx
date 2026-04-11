@@ -1,7 +1,7 @@
 "use client"
 
 /**
- * Certificate Step — type + duration + start date
+ * Certificate Step - type + duration + start date
  *
  * Date model: two-question layout.
  * 1. How many days? (1/2/3 chips with prices)
@@ -281,7 +281,7 @@ export default function CertificateStep({ onNext }: CertificateStepProps) {
           helpContent={{
             title: "Which duration do I need?",
             content:
-              "Select the number of days you were unable to work or study. Certificates are capped at 3 days — for longer periods, please see your GP.",
+              "Select the number of days you were unable to work or study. Certificates are capped at 3 days - for longer periods, please see your GP.",
           }}
         >
           <div className="flex gap-2 mt-2">
@@ -328,7 +328,7 @@ export default function CertificateStep({ onNext }: CertificateStepProps) {
           helpContent={{
             title: "Can I include future dates?",
             content:
-              "Yes — if you're already unwell but need to cover tomorrow too, select today as the start date. A doctor reviews your dates based on your symptoms.",
+              "Yes - if you're already unwell but need to cover tomorrow too, select today as the start date. A doctor reviews your dates based on your symptoms.",
           }}
         >
           <div className="flex gap-1.5 mt-2">
@@ -372,7 +372,7 @@ export default function CertificateStep({ onNext }: CertificateStepProps) {
         </div>
       )}
 
-      {/* GP note — longer absences */}
+      {/* GP note - longer absences */}
       <p className="text-xs text-muted-foreground">
         Need more than 3 days off? Please visit your GP for an extended certificate.
       </p>

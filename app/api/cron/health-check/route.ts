@@ -95,7 +95,7 @@ export async function GET(request: NextRequest) {
       },
     }
 
-    // 6. Batch Review Enforcement — alert if auto-approved certs go un-reviewed for 24h+
+    // 6. Batch Review Enforcement - alert if auto-approved certs go un-reviewed for 24h+
     // AHPRA compliance: doctors must review auto-approved certificates within a reasonable window
     let unreviewedAutoApproved = 0
     try {
@@ -111,7 +111,7 @@ export async function GET(request: NextRequest) {
         .is("batch_reviewed_at", null)
       unreviewedAutoApproved = count ?? 0
     } catch {
-      // Non-critical — don't fail health check
+      // Non-critical - don't fail health check
     }
     results.checks = {
       ...results.checks as object,
@@ -121,7 +121,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Determine overall health
-    // Doctor inactivity is no longer a health signal — med certs are auto-approved 24/7,
+    // Doctor inactivity is no longer a health signal - med certs are auto-approved 24/7,
     // so doctor activity is only relevant for prescriptions/consults during business hours.
     const isHealthy =
       queueHealth.isHealthy &&

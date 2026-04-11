@@ -29,7 +29,7 @@ interface FAQListProps {
   items?: readonly FAQItem[]
   /** Grouped FAQ items with category headings */
   groups?: readonly FAQGroup[]
-  /** Accordion type — single (one open) or multiple */
+  /** Accordion type - single (one open) or multiple */
   type?: "single" | "multiple"
   /** Default open item value */
   defaultValue?: string

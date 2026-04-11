@@ -33,7 +33,7 @@ const WHEN_TO_SEE_GP = [
 // =============================================================================
 
 /**
- * Balanced outcomes section — "What we cover" vs "When to see a GP instead".
+ * Balanced outcomes section - "What we cover" vs "When to see a GP instead".
  * Replaces the old flat limitations list with a two-column grid that frames
  * scope positively before setting honest boundaries.
  */

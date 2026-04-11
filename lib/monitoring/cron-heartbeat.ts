@@ -46,7 +46,7 @@ export async function recordCronHeartbeat(
       { onConflict: "job_name" }
     )
   } catch (err) {
-    // Non-blocking — never fail a cron because heartbeat recording failed
+    // Non-blocking - never fail a cron because heartbeat recording failed
     log.warn("Failed to record cron heartbeat", {
       jobName,
       error: err instanceof Error ? err.message : String(err),
@@ -71,7 +71,7 @@ export async function checkCronHeartbeats(): Promise<{
       .select("job_name, last_run_at, last_status")
 
     if (error) {
-      // Table might not exist yet — not an error condition
+      // Table might not exist yet - not an error condition
       log.warn("Could not read cron heartbeats", { error: error.message })
       return { overdue: [], healthy: true }
     }
@@ -87,7 +87,7 @@ export async function checkCronHeartbeats(): Promise<{
       const heartbeat = heartbeatMap.get(jobName)
 
       if (!heartbeat?.last_run_at) {
-        // Never ran — only alert if we've been deployed long enough (give 30min grace)
+        // Never ran - only alert if we've been deployed long enough (give 30min grace)
         // Skip alerting for first-time deployments
         continue
       }

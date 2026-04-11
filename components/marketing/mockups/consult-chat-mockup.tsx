@@ -6,7 +6,7 @@ import { Stethoscope, Clock, BadgeCheck, CheckCircle2, FileText } from "lucide-r
 import { cn } from "@/lib/utils"
 
 interface ConsultChatMockupProps {
-  /** Compact mode for mobile — shows chat card only, no floating badges or timeline */
+  /** Compact mode for mobile - shows chat card only, no floating badges or timeline */
   compact?: boolean
 }
 
@@ -45,7 +45,7 @@ export function ConsultChatMockup({ compact = false }: ConsultChatMockupProps) {
 
         {/* Chat messages */}
         <div className="space-y-2.5">
-          {/* Patient message — right-aligned */}
+          {/* Patient message - right-aligned */}
           <div className="flex justify-end">
             <div className="max-w-[85%] rounded-xl rounded-br-sm bg-primary/10 px-3 py-2">
               <p className="text-[12px] leading-relaxed text-foreground/80">
@@ -54,7 +54,7 @@ export function ConsultChatMockup({ compact = false }: ConsultChatMockupProps) {
             </div>
           </div>
 
-          {/* Doctor message 1 — left-aligned */}
+          {/* Doctor message 1 - left-aligned */}
           <div className="flex justify-start">
             <div className="max-w-[85%] rounded-xl rounded-bl-sm bg-muted/50 dark:bg-muted/20 px-3 py-2">
               <p className="text-[12px] leading-relaxed text-foreground/80">
@@ -63,7 +63,7 @@ export function ConsultChatMockup({ compact = false }: ConsultChatMockupProps) {
             </div>
           </div>
 
-          {/* Doctor message 2 — left-aligned */}
+          {/* Doctor message 2 - left-aligned */}
           <div className="flex justify-start">
             <div className="max-w-[85%] rounded-xl rounded-bl-sm bg-muted/50 dark:bg-muted/20 px-3 py-2">
               <p className="text-[12px] leading-relaxed text-foreground/80">
@@ -88,7 +88,7 @@ export function ConsultChatMockup({ compact = false }: ConsultChatMockupProps) {
           <span className="text-[11px] text-muted-foreground">Doctor is typing…</span>
         </div>
 
-        {/* AHPRA badge top-right — desktop only */}
+        {/* AHPRA badge top-right - desktop only */}
         {!compact && (
           <motion.div
             className="absolute -top-3 -right-3 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white dark:bg-card border border-border/50 shadow-lg shadow-primary/[0.06] text-xs font-medium text-muted-foreground"
@@ -102,7 +102,7 @@ export function ConsultChatMockup({ compact = false }: ConsultChatMockupProps) {
           </motion.div>
         )}
 
-        {/* Time badge top-left — desktop only */}
+        {/* Time badge top-left - desktop only */}
         {!compact && (
           <motion.div
             className="absolute -top-3 -left-3 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white dark:bg-card border border-border/50 shadow-lg shadow-primary/[0.06] text-xs font-medium text-muted-foreground"
@@ -117,7 +117,7 @@ export function ConsultChatMockup({ compact = false }: ConsultChatMockupProps) {
         )}
       </motion.div>
 
-      {/* Progress timeline — overlapping bottom-right, desktop only */}
+      {/* Progress timeline - overlapping bottom-right, desktop only */}
       {!compact && (
         <motion.div
           className="absolute -bottom-8 -right-4 xl:-right-8 rounded-xl bg-white dark:bg-card border border-border/50 shadow-lg shadow-primary/[0.06] dark:shadow-none p-3 min-w-[210px]"

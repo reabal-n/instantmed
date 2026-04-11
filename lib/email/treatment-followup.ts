@@ -115,7 +115,7 @@ export async function processTreatmentFollowups(now: Date = new Date()): Promise
         .single()
 
       if (!patient?.email) {
-        log.warn("Skipping — no patient email", { followupId: row.id })
+        log.warn("Skipping - no patient email", { followupId: row.id })
         result.skipped += 1
         continue
       }
@@ -142,7 +142,7 @@ export async function processTreatmentFollowups(now: Date = new Date()): Promise
       })
 
       if (!sendResult?.success) {
-        log.warn("Email send failed — will retry tomorrow", { followupId: row.id })
+        log.warn("Email send failed - will retry tomorrow", { followupId: row.id })
         result.errors += 1
         continue
       }

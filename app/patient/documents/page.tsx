@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic"
 
 export default async function PatientDocumentsPage() {
-  // Layout enforces patient role — use cached profile
+  // Layout enforces patient role - use cached profile
   const authUser = (await getAuthenticatedUserWithProfile())!
 
   const supabase = createServiceRoleClient()

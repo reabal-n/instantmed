@@ -14,7 +14,7 @@ interface AuthContext {
   session: Session | null
   /** True once the initial auth state has been resolved */
   isLoaded: boolean
-  /** Convenience — true when user is non-null */
+  /** Convenience - true when user is non-null */
   isSignedIn: boolean
   /** Sign out and redirect to home */
   signOut: () => Promise<void>

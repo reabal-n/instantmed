@@ -163,7 +163,7 @@ export async function renderTestEmailAction(
     const html = await renderEmailToHtml(element)
 
     // Inject a test banner at the top of the body
-    const bannerHtml = `<div style="background:#dc2626;color:white;padding:8px 16px;text-align:center;font-size:13px;font-weight:600;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">TEST EMAIL — ${templateId.replace(/_/g, " ").toUpperCase()}</div>`
+    const bannerHtml = `<div style="background:#dc2626;color:white;padding:8px 16px;text-align:center;font-size:13px;font-weight:600;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">TEST EMAIL - ${templateId.replace(/_/g, " ").toUpperCase()}</div>`
     const htmlWithBanner = html.replace(/<body[^>]*>/, (match) => `${match}${bannerHtml}`)
 
     return { success: true, html: htmlWithBanner, subject: `[TEST] ${subject}` }

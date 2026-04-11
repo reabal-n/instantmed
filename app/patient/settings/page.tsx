@@ -12,7 +12,7 @@ export const metadata = {
 }
 
 export default async function PatientSettingsPage() {
-  // Layout enforces patient role — use cached profile
+  // Layout enforces patient role - use cached profile
   const authUser = (await getAuthenticatedUserWithProfile())!
 
   // Decrypt sensitive fields before passing to client
@@ -22,7 +22,7 @@ export default async function PatientSettingsPage() {
       ? decryptIfNeeded(authUser.profile.medicare_number)
       : null
   } catch {
-    // Decryption failure — pass null so UI doesn't crash.
+    // Decryption failure - pass null so UI doesn't crash.
     // Patient can re-enter their Medicare number in settings.
     decryptedMedicare = null
   }

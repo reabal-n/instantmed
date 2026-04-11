@@ -74,7 +74,7 @@ function SubmittedAnswers({
   answers: Record<string, unknown>
   serviceType: string
 }) {
-  // Field display order — curated list only (no "remaining fields" to avoid duplicates/irrelevant info)
+  // Field display order - curated list only (no "remaining fields" to avoid duplicates/irrelevant info)
   const medCertFields = [
     { keys: ["certificate_type", "cert_type"], label: "Certificate Type" },
     { keys: ["duration", "duration_days", "duration_requested"], label: "Duration (days)" },
@@ -105,7 +105,7 @@ function SubmittedAnswers({
   type DisplayField = { keys: string[]; label: string }
   const displayFields: DisplayField[] = isMedCert ? medCertFields : isScript ? scriptFields : isConsult ? consultFields : []
 
-  // Build entries from curated fields only (no "remaining" — avoids duplicates and irrelevant consent/terms)
+  // Build entries from curated fields only (no "remaining" - avoids duplicates and irrelevant consent/terms)
   const orderedEntries: Array<{ key: string; label: string; value: string }> = []
 
   for (const field of displayFields) {
@@ -171,7 +171,7 @@ function TimelineEntry({
   )
 }
 
-/** #18 — One-click copy verification link for sharing with employer */
+/** #18 - One-click copy verification link for sharing with employer */
 function CopyVerifyLinkButton({ verificationCode }: { verificationCode: string }) {
   const [copied, setCopied] = useState(false)
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://instantmed.com.au"
@@ -382,7 +382,7 @@ export function IntakeDetailClient({
                     <div>
                       <h3 className="text-base font-semibold text-red-900 dark:text-red-200">Payment didn&apos;t go through</h3>
                       <p className="text-sm text-muted-foreground">
-                        Your information has been saved. Try again with the same or a different card — no need to re-enter your details.
+                        Your information has been saved. Try again with the same or a different card - no need to re-enter your details.
                       </p>
                     </div>
                     <Button
@@ -506,7 +506,7 @@ export function IntakeDetailClient({
             <div className="p-3 rounded-xl bg-warning-light/30 border border-warning-border">
               <div className="flex items-center gap-2 text-sm text-warning">
                 <RefreshCw className="h-4 w-4" />
-                <span><strong>Refund processed</strong> — Your payment has been refunded.</span>
+                <span><strong>Refund processed</strong> - Your payment has been refunded.</span>
               </div>
             </div>
           )}
@@ -594,7 +594,7 @@ export function IntakeDetailClient({
                         )}
                         {correctionSubmitted && (
                           <p className="text-xs text-amber-600 w-full">
-                            Date correction submitted — your doctor will review and resend the updated certificate.
+                            Date correction submitted - your doctor will review and resend the updated certificate.
                           </p>
                         )}
 
@@ -610,7 +610,7 @@ export function IntakeDetailClient({
                                 </Button>
                               }
                             />
-                            {/* #18 — Copy shareable verification link */}
+                            {/* #18 - Copy shareable verification link */}
                             {document.verification_code && (
                               <CopyVerifyLinkButton verificationCode={document.verification_code} />
                             )}
@@ -624,7 +624,7 @@ export function IntakeDetailClient({
             </EmailVerificationGate>
           )}
 
-          {/* Cross-sell — shown after approval, service-aware */}
+          {/* Cross-sell - shown after approval, service-aware */}
           {(intake.status === "approved" || intake.status === "completed") && (
             <CrossSellCard serviceType={intake.service?.type} />
           )}

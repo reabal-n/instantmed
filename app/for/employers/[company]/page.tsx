@@ -99,7 +99,7 @@ export default async function EmployerCompanyPage({ params }: { params: Promise<
     })),
   }
 
-  // #2 — Breadcrumb schema for SERP breadcrumbs
+  // #2 - Breadcrumb schema for SERP breadcrumbs
   const breadcrumbSchema = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -110,7 +110,7 @@ export default async function EmployerCompanyPage({ params }: { params: Promise<
     ],
   }
 
-  // #4 — Cross-links to other employer pages
+  // #4 - Cross-links to other employer pages
   const otherEmployers = Object.entries(EMPLOYER_DATA)
     .filter(([slug]) => slug !== company)
     .slice(0, 6)
@@ -122,7 +122,7 @@ export default async function EmployerCompanyPage({ params }: { params: Promise<
       <script id="breadcrumb-schema" type="application/ld+json"
         suppressHydrationWarning dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbSchema) }} />
       <Navbar variant="marketing" />
-      {/* #11 — PostHog tracking for employer company pages */}
+      {/* #11 - PostHog tracking for employer company pages */}
       <ContentPageTracker pageType="employer" slug={company} />
 
       <main className="flex-1">
@@ -208,7 +208,7 @@ export default async function EmployerCompanyPage({ params }: { params: Promise<
           </div>
         </section>
 
-        {/* #6 — Company-specific FAQs */}
+        {/* #6 - Company-specific FAQs */}
         <section className="py-16 bg-muted/30">
           <div className="max-w-3xl mx-auto px-4">
             <h2 className="text-2xl font-semibold text-foreground mb-8 text-center">
@@ -226,11 +226,11 @@ export default async function EmployerCompanyPage({ params }: { params: Promise<
           </div>
         </section>
 
-        {/* #5 — Internal link back to med cert landing */}
+        {/* #5 - Internal link back to med cert landing */}
         <section className="py-12 border-t border-border/30">
           <div className="max-w-3xl mx-auto px-4 text-center">
             <p className="text-sm text-muted-foreground mb-4">
-              {employer.name} employees can get a medical certificate from ${PRICING.MED_CERT.toFixed(2)} — no appointment needed.
+              {employer.name} employees can get a medical certificate from ${PRICING.MED_CERT.toFixed(2)} - no appointment needed.
             </p>
             <Button asChild variant="outline" className="rounded-full bg-transparent">
               <Link href="/medical-certificate">
@@ -241,7 +241,7 @@ export default async function EmployerCompanyPage({ params }: { params: Promise<
           </div>
         </section>
 
-        {/* #4 — Cross-links to other employer pages */}
+        {/* #4 - Cross-links to other employer pages */}
         <section className="py-12 border-t border-border/30">
           <div className="max-w-3xl mx-auto px-4">
             <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground/50 text-center mb-6">

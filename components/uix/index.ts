@@ -11,7 +11,7 @@
  * Props and behavior remain identical to preserve existing business logic.
  */
 
-// Core Components — Button re-exported from shadcn/ui
+// Core Components - Button re-exported from shadcn/ui
 export { Button, type ButtonProps } from "@/components/ui/button"
 export {
   Card,
@@ -46,7 +46,7 @@ export {
   type CompactStepperProps,
 } from "./stepper"
 
-// Loading States — re-export from @/components/ui
+// Loading States - re-export from @/components/ui
 export { Skeleton, Spinner } from "@/components/ui/skeleton"
 export { Badge } from "@/components/ui/badge"
 

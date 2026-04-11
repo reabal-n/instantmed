@@ -31,6 +31,7 @@ import { ArticleSeriesNav, SeriesBadge } from "@/components/blog/article-series"
 import { HeroImage as _HeroImage } from "@/components/blog/hero-image"
 import { PopularArticlesCompact } from "@/components/blog/popular-articles"
 import type { Article, ArticleSection, RelatedService, ArticleFAQ, ArticleLink } from "@/lib/blog/types"
+import { PRICING_DISPLAY } from "@/lib/constants"
 
 interface ArticleTemplateProps {
   article: Article
@@ -396,7 +397,7 @@ export function ArticleTemplate({ article, relatedArticles, allArticles = [] }: 
           </Link>
         </Button>
         <p className="text-xs text-muted-foreground mt-3">
-          From $19.95 · AHPRA-registered doctors
+          {PRICING_DISPLAY.FROM_MED_CERT} · AHPRA-registered doctors
         </p>
       </div>
 

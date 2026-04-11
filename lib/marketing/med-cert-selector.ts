@@ -1,5 +1,5 @@
 /**
- * Med cert landing page selector — data contract
+ * Med cert landing page selector - data contract
  *
  * Extracted from CertificateTypeSelector so the category list, valid IDs,
  * and PostHog event name are unit-testable without jsdom.
@@ -35,7 +35,7 @@ export const VALID_CERT_CATEGORIES: readonly CertCategory[] = [
   "carer",
 ] as const
 
-/** Full category definitions — single source of truth for the selector UI. */
+/** Full category definitions - single source of truth for the selector UI. */
 export const CERT_CATEGORIES: readonly CertCategoryDef[] = [
   {
     id: "work",

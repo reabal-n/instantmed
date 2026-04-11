@@ -22,7 +22,7 @@ export interface BadgeConfig {
   icon: LucideIcon
   /** Plain tier icon color class */
   iconColor: string
-  /** Plain tier pill classes — null means icon+label only, no pill bg */
+  /** Plain tier pill classes - null means icon+label only, no pill bg */
   pillClass: string | null
   hasStyledTier: boolean
   tooltip: string
@@ -38,7 +38,7 @@ export const BADGE_REGISTRY: Record<BadgeId, BadgeConfig> = {
     iconColor: 'text-emerald-600',
     pillClass: 'bg-emerald-50 border-emerald-200 text-emerald-800 dark:bg-emerald-950/40 dark:border-emerald-800 dark:text-emerald-300',
     hasStyledTier: true,
-    tooltip: 'All doctors hold current AHPRA registration — independently verifiable',
+    tooltip: 'All doctors hold current AHPRA registration - independently verifiable',
     tooltipHref: 'https://www.ahpra.gov.au/Registration/Registers-of-Practitioners.aspx',
   },
   tga: {
@@ -75,7 +75,7 @@ export const BADGE_REGISTRY: Record<BadgeId, BadgeConfig> = {
     iconColor: 'text-[#635BFF]',
     pillClass: 'bg-white border-[#635BFF]/20 text-slate-700 dark:bg-card dark:border-[#635BFF]/30',
     hasStyledTier: true,
-    tooltip: "Payments processed by Stripe — world's leading payment infrastructure",
+    tooltip: "Payments processed by Stripe - world's leading payment infrastructure",
   },
   ssl: {
     id: 'ssl', label: '256-bit encrypted', icon: Lock,
@@ -101,21 +101,21 @@ export const BADGE_REGISTRY: Record<BadgeId, BadgeConfig> = {
     iconColor: 'text-green-600',
     pillClass: 'bg-green-50 border-green-200 text-green-800 dark:bg-green-950/40 dark:border-green-800 dark:text-green-300',
     hasStyledTier: true,
-    tooltip: 'No phone call or video call — 100% async review',
+    tooltip: 'No phone call or video call - 100% async review',
   },
   no_speaking: {
     id: 'no_speaking', label: 'No need to speak to anyone', icon: MessageSquareOff,
     iconColor: 'text-green-600',
     pillClass: 'bg-green-50 border-green-200 text-green-800 dark:bg-green-950/40 dark:border-green-800 dark:text-green-300',
     hasStyledTier: true,
-    tooltip: 'Fully asynchronous — the doctor reviews your form, no conversation needed',
+    tooltip: 'Fully asynchronous - the doctor reviews your form, no conversation needed',
   },
   form_only: {
     id: 'form_only', label: 'Just fill out a form', icon: FileText,
     iconColor: 'text-sky-600',
     pillClass: 'bg-sky-50 border-sky-200 text-sky-800 dark:bg-sky-950/40 dark:border-sky-800 dark:text-sky-300',
     hasStyledTier: true,
-    tooltip: "Answer a few questions about your situation — that's the entire process",
+    tooltip: "Answer a few questions about your situation - that's the entire process",
   },
   no_waiting_room: {
     id: 'no_waiting_room', label: 'No waiting room', icon: DoorOpen,
@@ -129,7 +129,7 @@ export const BADGE_REGISTRY: Record<BadgeId, BadgeConfig> = {
     iconColor: 'text-orange-600',
     pillClass: 'bg-orange-50 border-orange-200 text-orange-800 dark:bg-orange-950/40 dark:border-orange-800 dark:text-orange-300',
     hasStyledTier: true,
-    tooltip: 'Submit any time — no booking, no scheduling',
+    tooltip: 'Submit any time - no booking, no scheduling',
   },
   from_your_phone: {
     id: 'from_your_phone', label: 'Done from your phone', icon: Smartphone,
@@ -141,7 +141,7 @@ export const BADGE_REGISTRY: Record<BadgeId, BadgeConfig> = {
   no_face_to_face: {
     id: 'no_face_to_face', label: 'No face-to-face needed', icon: VideoOff,
     iconColor: 'text-slate-500', pillClass: null, hasStyledTier: false,
-    tooltip: 'No video consultation required — all assessments are text-based',
+    tooltip: 'No video consultation required - all assessments are text-based',
   },
   fast_form: {
     id: 'fast_form', label: '2-minute form', icon: Timer,
@@ -162,21 +162,21 @@ export const BADGE_REGISTRY: Record<BadgeId, BadgeConfig> = {
     iconColor: 'text-indigo-600',
     pillClass: 'bg-indigo-50 border-indigo-200 text-indigo-800 dark:bg-indigo-950/40 dark:border-indigo-800 dark:text-indigo-300',
     hasStyledTier: true,
-    tooltip: 'Valid under the Fair Work Act — accepted by all Australian employers',
+    tooltip: 'Valid under the Fair Work Act - accepted by all Australian employers',
   },
   no_medicare: {
     id: 'no_medicare', label: 'No Medicare required', icon: CreditCard,
     iconColor: 'text-amber-600',
     pillClass: 'bg-amber-50 border-amber-200 text-amber-800 dark:bg-amber-950/40 dark:border-amber-800 dark:text-amber-300',
     hasStyledTier: true,
-    tooltip: 'Medicare card optional for medical certificates — pay privately',
+    tooltip: 'Medicare card optional for medical certificates - pay privately',
   },
   real_gp: {
     id: 'real_gp', label: 'Reviewed by a real GP', icon: BadgeCheck,
     iconColor: 'text-teal-600',
     pillClass: 'bg-teal-50 border-teal-200 text-teal-800 dark:bg-teal-950/40 dark:border-teal-800 dark:text-teal-300',
     hasStyledTier: true,
-    tooltip: 'Every request is assessed by a human AHPRA-registered GP — no AI makes clinical decisions',
+    tooltip: 'Every request is assessed by a human AHPRA-registered GP - no AI makes clinical decisions',
   },
   instant_pdf: {
     id: 'instant_pdf', label: 'Instant PDF to your inbox', icon: Send,
@@ -194,7 +194,7 @@ export const BADGE_REGISTRY: Record<BadgeId, BadgeConfig> = {
     iconColor: 'text-primary',
     pillClass: 'bg-primary/5 border-primary/20 text-primary dark:bg-primary/10 dark:border-primary/30',
     hasStyledTier: true,
-    tooltip: 'Real patients across Australia — number grows daily',
+    tooltip: 'Real patients across Australia - number grows daily',
   },
 
   // ── Third-party certifications ────────────────────────────────────────
@@ -205,7 +205,7 @@ export const BADGE_REGISTRY: Record<BadgeId, BadgeConfig> = {
     iconColor: 'text-[#00A651]',
     pillClass: 'bg-emerald-50 border-emerald-200 text-emerald-800 dark:bg-emerald-950/40 dark:border-emerald-800 dark:text-emerald-300',
     hasStyledTier: true,
-    tooltip: 'LegitScript certified healthcare merchant — the global verification standard used by Google, Bing, Meta, and major payment processors for online pharmacies and telehealth providers',
+    tooltip: 'LegitScript certified healthcare merchant - the global verification standard used by Google, Bing, Meta, and major payment processors for online pharmacies and telehealth providers',
     tooltipHref: 'https://www.legitscript.com/websites/?checker_keywords=instantmed.com.au',
   },
   google_pharmacy: {
@@ -215,7 +215,7 @@ export const BADGE_REGISTRY: Record<BadgeId, BadgeConfig> = {
     iconColor: 'text-[#4285F4]',
     pillClass: 'bg-blue-50 border-blue-200 text-blue-800 dark:bg-blue-950/40 dark:border-blue-800 dark:text-blue-300',
     hasStyledTier: true,
-    tooltip: 'Google Ads Online Pharmacy Certification — approved to advertise healthcare services on Google Search (Account: 920-501-0513)',
+    tooltip: 'Google Ads Online Pharmacy Certification - approved to advertise healthcare services on Google Search (Account: 920-501-0513)',
   },
 }
 
@@ -223,7 +223,7 @@ export const BADGE_REGISTRY: Record<BadgeId, BadgeConfig> = {
 // Max 2 styled badges per row. Never put no_call + no_speaking together.
 
 export const BADGE_PRESETS: Record<string, PresetEntry[]> = {
-  // Hero rows — 2 styled, rest plain
+  // Hero rows - 2 styled, rest plain
   hero_medcert: [
     { id: 'social_proof', variant: 'styled' },
     { id: 'no_call', variant: 'styled' },
@@ -255,7 +255,7 @@ export const BADGE_PRESETS: Record<string, PresetEntry[]> = {
     { id: 'real_gp', variant: 'styled' },
   ],
 
-  // Pre-CTA — friction removal
+  // Pre-CTA - friction removal
   pre_cta: [
     { id: 'no_appointment', variant: 'styled' },
     'no_speaking',
@@ -284,10 +284,10 @@ export const BADGE_PRESETS: Record<string, PresetEntry[]> = {
     { id: 'google_pharmacy', variant: 'styled' },
   ],
 
-  // Footer strip — all plain
+  // Footer strip - all plain
   footer: ['ahpra', 'tga', 'medical_director', 'refund', 'privacy'],
 
-  // Third-party certification logos — styled logo cards
+  // Third-party certification logos - styled logo cards
   trust_certifications: [
     { id: 'legitscript', variant: 'styled' },
     { id: 'google_pharmacy', variant: 'styled' },

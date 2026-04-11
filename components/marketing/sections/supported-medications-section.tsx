@@ -64,7 +64,7 @@ const CATEGORIES = [
 // COMPONENT
 // =============================================================================
 
-/** Medication categories grid — shows common renewals we support */
+/** Medication categories grid - shows common renewals we support */
 export function SupportedMedicationsSection() {
   const prefersReducedMotion = useReducedMotion()
   const animate = !prefersReducedMotion

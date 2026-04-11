@@ -6,7 +6,7 @@ import { Pill, Smartphone, MapPin, CheckCircle2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface EScriptHeroMockupProps {
-  /** Compact mode for mobile — shows card only, no floating badges or timeline */
+  /** Compact mode for mobile - shows card only, no floating badges or timeline */
   compact?: boolean
 }
 
@@ -56,7 +56,7 @@ export function EScriptHeroMockup({ compact = false }: EScriptHeroMockupProps) {
           <span className="text-[11px] text-muted-foreground">Works at any pharmacy in Australia</span>
         </div>
 
-        {/* Sent via SMS badge — top-right, desktop only */}
+        {/* Sent via SMS badge - top-right, desktop only */}
         {!compact && (
           <motion.div
             className="absolute -top-3 -right-3 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white dark:bg-card border border-border/50 shadow-lg shadow-primary/[0.06] text-xs font-medium text-muted-foreground"
@@ -70,7 +70,7 @@ export function EScriptHeroMockup({ compact = false }: EScriptHeroMockupProps) {
           </motion.div>
         )}
 
-        {/* Any pharmacy badge — top-left, desktop only */}
+        {/* Any pharmacy badge - top-left, desktop only */}
         {!compact && (
           <motion.div
             className="absolute -top-3 -left-3 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white dark:bg-card border border-border/50 shadow-lg shadow-primary/[0.06] text-xs font-medium text-muted-foreground"
@@ -85,7 +85,7 @@ export function EScriptHeroMockup({ compact = false }: EScriptHeroMockupProps) {
         )}
       </motion.div>
 
-      {/* Progress timeline — overlapping bottom-right, desktop only */}
+      {/* Progress timeline - overlapping bottom-right, desktop only */}
       {!compact && (
         <motion.div
           className="absolute -bottom-8 -right-4 xl:-right-8 rounded-xl bg-white dark:bg-card border border-border/50 shadow-lg shadow-primary/[0.06] dark:shadow-none p-3 min-w-[210px]"

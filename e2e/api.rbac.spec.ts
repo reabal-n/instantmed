@@ -55,7 +55,7 @@ async function wasRejectedByMiddleware(response: APIResponse): Promise<boolean> 
 }
 
 // ============================================================================
-// UNAUTHENTICATED REQUESTS — every route must reject
+// UNAUTHENTICATED REQUESTS - every route must reject
 // ============================================================================
 
 test.describe("API RBAC - Unauthenticated Requests", () => {
@@ -87,7 +87,7 @@ test.describe("API RBAC - Unauthenticated Requests", () => {
 })
 
 // ============================================================================
-// PATIENT ROLE — must be denied on doctor/admin endpoints
+// PATIENT ROLE - must be denied on doctor/admin endpoints
 // ============================================================================
 
 test.describe("API RBAC - Patient Role Restrictions", () => {
@@ -131,7 +131,7 @@ test.describe("API RBAC - Patient Role Restrictions", () => {
 })
 
 // ============================================================================
-// OPERATOR ROLE — auth check should PASS (middleware lets through)
+// OPERATOR ROLE - auth check should PASS (middleware lets through)
 // ============================================================================
 
 test.describe("API RBAC - Operator Role Access", () => {
@@ -142,7 +142,7 @@ test.describe("API RBAC - Operator Role Access", () => {
 
   test("operator can GET /api/doctor/monitoring-stats", async ({ request }) => {
     const response = await request.get(`${BASE_URL}/api/doctor/monitoring-stats`)
-    // GET — no CSRF. Should reach handler. Expect 200, or at worst a server-
+    // GET - no CSRF. Should reach handler. Expect 200, or at worst a server-
     // side 500 (DB issue). Must NOT be an auth rejection.
     expect(await wasRejectedByMiddleware(response)).toBe(false)
     expect([401, 403]).not.toContain(response.status())
@@ -155,7 +155,7 @@ test.describe("API RBAC - Operator Role Access", () => {
     }
   })
 
-  test("operator POST /api/doctor/assign-request — auth passes (CSRF may fail)", async ({ request }) => {
+  test("operator POST /api/doctor/assign-request - auth passes (CSRF may fail)", async ({ request }) => {
     const response = await request.post(`${BASE_URL}/api/doctor/assign-request`, {
       data: {
         intake_id: INTAKE_ID,
@@ -168,14 +168,14 @@ test.describe("API RBAC - Operator Role Access", () => {
     expect(await wasRejectedByMiddleware(response)).toBe(false)
   })
 
-  test("operator POST /api/doctor/update-request — auth passes (CSRF may fail)", async ({ request }) => {
+  test("operator POST /api/doctor/update-request - auth passes (CSRF may fail)", async ({ request }) => {
     const response = await request.post(`${BASE_URL}/api/doctor/update-request`, {
       data: { intake_id: INTAKE_ID, action: "approve" },
     })
     expect(await wasRejectedByMiddleware(response)).toBe(false)
   })
 
-  test("operator POST /api/med-cert/preview — auth passes (CSRF may fail)", async ({ request }) => {
+  test("operator POST /api/med-cert/preview - auth passes (CSRF may fail)", async ({ request }) => {
     const response = await request.post(`${BASE_URL}/api/med-cert/preview`, {
       data: {
         draftData: {

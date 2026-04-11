@@ -34,7 +34,7 @@ const RATIONALES: Record<string, RationaleRule> = {
     severity: "destructive",
     matches: TRUTHY,
     text:
-      "This class of oral treatment is absolutely contraindicated with nitrates — combined use can cause life-threatening hypotension. Do not prescribe.",
+      "This class of oral treatment is absolutely contraindicated with nitrates - combined use can cause life-threatening hypotension. Do not prescribe.",
   },
   recentHeartEvent: {
     severity: "destructive",
@@ -60,7 +60,7 @@ const RATIONALES: Record<string, RationaleRule> = {
     severity: "warning",
     matches: TRUTHY,
     text:
-      "Uncontrolled diabetes warrants caution — poor glycaemic control is both a cause of ED and a risk factor. Consider requesting recent HbA1c.",
+      "Uncontrolled diabetes warrants caution - poor glycaemic control is both a cause of ED and a risk factor. Consider requesting recent HbA1c.",
   },
   previousEdMeds: {
     severity: "warning",
@@ -68,7 +68,7 @@ const RATIONALES: Record<string, RationaleRule> = {
       typeof v === "string" &&
       /serious (side )?effect|hospitalisation|emergency|reaction/i.test(v),
     text:
-      "Patient reports a prior serious reaction to ED medication. Review the specific history before prescribing — consider a different molecule or decline.",
+      "Patient reports a prior serious reaction to ED medication. Review the specific history before prescribing - consider a different molecule or decline.",
   },
 
   // Hair loss -- future use (most hair-loss safety gates land with the intake rewrite)

@@ -4,12 +4,12 @@ const BUILD_DATE = new Date()
 const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://instantmed.com.au"
 
 /**
- * Root sitemap — static pages, service pages, med cert locations.
+ * Root sitemap - static pages, service pages, med cert locations.
  * Content-type sitemaps live in their respective route directories
  * (conditions/, symptoms/, locations/, etc.) for GSC per-type index visibility.
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  // Top-of-funnel head-term pillar pages — priority 1.0
+  // Top-of-funnel head-term pillar pages - priority 1.0
   const pillarPages = [
     "/online-doctor-australia",
     "/telehealth-australia",
@@ -19,9 +19,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "",
     "/medical-certificate",
     "/prescriptions",
-    // /general-consult is 301 redirected to /consult in next.config.mjs —
+    // /general-consult is 301 redirected to /consult in next.config.mjs -
     // removed from sitemap so Google stops seeing it as a distinct URL
-    // (was cannibalizing /consult — flagged in SEO audit + GSC).
+    // (was cannibalizing /consult - flagged in SEO audit + GSC).
     "/pricing",
     "/how-it-works",
     "/faq",
@@ -64,7 +64,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/medical-certificate/jury-duty",
   ]
 
-  // Employer verification pages — high-intent long-tail SEO
+  // Employer verification pages - high-intent long-tail SEO
   const employerPages = [
     "/for/employers",
     "/for/universities",

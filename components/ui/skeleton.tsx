@@ -282,7 +282,7 @@ function SkeletonPillSelector({ count = 4 }: { count?: number }) {
   )
 }
 
-/** Alias for SkeletonForm — matches unified-skeleton API */
+/** Alias for SkeletonForm - matches unified-skeleton API */
 const FormSkeleton = SkeletonForm
 
 export {

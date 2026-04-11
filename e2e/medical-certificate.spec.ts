@@ -127,7 +127,7 @@ test.describe("Medical Certificate - certType URL Pre-seeding", () => {
     await expect(carerRadio).toHaveAttribute("aria-checked", "true")
   })
 
-  test("invalid certType is ignored — no pre-selection", async ({ page }) => {
+  test("invalid certType is ignored - no pre-selection", async ({ page }) => {
     await page.goto("/request?service=med-cert&certType=invalid")
     await waitForPageLoad(page)
 

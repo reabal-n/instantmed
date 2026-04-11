@@ -6,6 +6,7 @@ import { ArrowRight, Shield, Zap, Clock, Moon, Star, Smartphone, Sun, Coffee, Ho
 import { SectionPill } from "@/components/ui/section-pill"
 import Link from "next/link"
 import type { Metadata } from "next"
+import { PRICING_DISPLAY } from "@/lib/constants"
 
 export const metadata: Metadata = {
   title: "Medical Certificates for Shift Workers | 24/7 Available",
@@ -38,7 +39,7 @@ export default function ShiftWorkersPage() {
         name: "Can I get a medical certificate outside normal business hours?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Yes. Medical certificates are available 24/7 — submit at any time and receive your certificate within 15 minutes. Perfect for shift workers who need documentation at any hour.",
+          text: "Yes. Medical certificates are available 24/7 - submit at any time and receive your certificate within 15 minutes. Perfect for shift workers who need documentation at any hour.",
         },
       },
       {
@@ -175,7 +176,7 @@ export default function ShiftWorkersPage() {
                   {[
                     {
                       title: "GPs don&apos;t work your hours",
-                      desc: "Finish a night shift at 6am and need a certificate? Submit at 6am and get it before you go home — we&apos;re available 24/7.",
+                      desc: "Finish a night shift at 6am and need a certificate? Submit at 6am and get it before you go home - we&apos;re available 24/7.",
                     },
                     {
                       title: "No time to wait",
@@ -187,7 +188,7 @@ export default function ShiftWorkersPage() {
                     },
                     {
                       title: "Any employer accepts it",
-                      desc: "Hospitals, retail chains, agencies — they all accept our certificates. AHPRA-registered, legally valid.",
+                      desc: "Hospitals, retail chains, agencies - they all accept our certificates. AHPRA-registered, legally valid.",
                     },
                   ].map((item) => (
                     <div key={item.title} className="glass-card rounded-xl p-4">
@@ -236,7 +237,7 @@ export default function ShiftWorkersPage() {
                       </div>
                       <p className="text-xs mb-2">&quot;{item.quote}&quot;</p>
                       <p className="text-xs text-muted-foreground">
-                        — {item.name}, {item.role}
+                        - {item.name}, {item.role}
                       </p>
                     </div>
                   ))}
@@ -296,15 +297,15 @@ export default function ShiftWorkersPage() {
                   {[
                     {
                       q: "What are your hours?",
-                      a: "Medical certificates are available 24/7 — submit at any hour and receive your certificate within 15 minutes.",
+                      a: "Medical certificates are available 24/7 - submit at any hour and receive your certificate within 15 minutes.",
                     },
                     {
-                      q: "I work nights — can I get a cert at 3am?",
+                      q: "I work nights - can I get a cert at 3am?",
                       a: "Yes. Medical certificates are available 24/7. Submit at 3am and your certificate will be ready within 15 minutes.",
                     },
                     {
                       q: "Will my employer accept this?",
-                      a: "Yes. Our certificates are issued by AHPRA-registered doctors and are legally valid for all employers — hospitals, retail chains, agencies, everyone.",
+                      a: "Yes. Our certificates are issued by AHPRA-registered doctors and are legally valid for all employers - hospitals, retail chains, agencies, everyone.",
                     },
                     {
                       q: "Can I get a cert for a shift I already missed?",
@@ -312,7 +313,7 @@ export default function ShiftWorkersPage() {
                     },
                     {
                       q: "What does it cost?",
-                      a: "Medical certificates from $19.95 (1 day) or $29.95 (2 days). Scripts from $29.95.",
+                      a: `Medical certificates from ${PRICING_DISPLAY.MED_CERT} (1 day) or ${PRICING_DISPLAY.MED_CERT_2DAY} (2 days). Scripts from ${PRICING_DISPLAY.REPEAT_SCRIPT}.`,
                     },
                   ].map((faq, i) => (
                     <div key={i} className="p-4 rounded-xl bg-card/60 dark:bg-white/5 backdrop-blur-sm border border-border/50">
@@ -340,7 +341,7 @@ export default function ShiftWorkersPage() {
                       <ArrowRight className="h-4 w-4 ml-2" />
                     </Button>
                   </Link>
-                  <p className="mt-4 text-xs text-muted-foreground">From $19.95 • Available 24/7</p>
+                  <p className="mt-4 text-xs text-muted-foreground">{PRICING_DISPLAY.FROM_MED_CERT} • Available 24/7</p>
                 </div>
               </div>
             </div>

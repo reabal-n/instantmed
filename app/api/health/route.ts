@@ -124,7 +124,7 @@ export async function GET(request: NextRequest) {
   try {
     const authStart = Date.now()
     const supabaseAuth = createServiceRoleClient()
-    // Lightweight auth admin call — list 1 user to verify the auth service responds
+    // Lightweight auth admin call - list 1 user to verify the auth service responds
     const { error: authError } = await supabaseAuth.auth.admin.listUsers({ page: 1, perPage: 1 })
     if (authError) {
       checks.auth = { status: "error", error: "Supabase Auth error" }

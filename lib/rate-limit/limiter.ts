@@ -176,7 +176,7 @@ export async function checkRateLimit(
     .single()
 
   if (error && error.code !== "PGRST116") {
-    // PGRST116 = no rows found — non-critical, rate limiting fails open
+    // PGRST116 = no rows found - non-critical, rate limiting fails open
   }
 
   const currentCount = data?.request_count || 0

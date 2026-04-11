@@ -1,12 +1,12 @@
 /**
- * Hair Loss Hook Quiz — lightweight Norwood + duration picker for the
- * landing page. NOT a clinical assessment — the intake flow handles that.
+ * Hair Loss Hook Quiz - lightweight Norwood + duration picker for the
+ * landing page. NOT a clinical assessment - the intake flow handles that.
  *
  * This helper stores the selected Norwood stage and how long the patient
  * has been noticing progression. Downstream: the Phase 2D+ intake rewrite
  * will pre-fill from sessionStorage under HAIR_LOSS_HOOK_QUIZ_KEY.
  *
- * Strictly no drug names — TGA compliance.
+ * Strictly no drug names - TGA compliance.
  */
 
 export const HAIR_LOSS_HOOK_QUIZ_KEY = "instantmed.hookQuiz.hair_loss.v1"
@@ -70,7 +70,7 @@ export function getHairLossHookQuizReassurance(
     return "You're catching this early. Consistent treatment typically prevents further progression, and many patients see regrowth at this stage."
   }
   if (earlyStage && longDuration) {
-    return "Early stage, but it's been a while — consistent treatment can still prevent progression and often drives some regrowth."
+    return "Early stage, but it's been a while - consistent treatment can still prevent progression and often drives some regrowth."
   }
   if (!earlyStage && !longDuration) {
     return "You're at a stage where treatment focus shifts toward preserving what's alive and stabilising progression. A doctor can assess what's realistic for you."

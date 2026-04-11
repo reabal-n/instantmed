@@ -11,7 +11,7 @@ const TRACKING_URL = `${GOOGLE_REVIEW_URL}?utm_source=dashboard&utm_medium=revie
 const RE_PROMPT_DAYS = 90
 
 /**
- * Google Review prompt card — shown on patient dashboard after first approved request.
+ * Google Review prompt card - shown on patient dashboard after first approved request.
  * Google-branded pill design with multicolor G icon, star rating, and CTA.
  * Dismissible with localStorage persistence. Re-prompts after 90 days.
  * Shows with a 500ms entrance delay to avoid competing with primary content.

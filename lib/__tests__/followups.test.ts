@@ -7,7 +7,7 @@ describe("computeFollowupMilestones", () => {
     const milestones = computeFollowupMilestones(approvedAt)
     expect(milestones).toHaveLength(3)
     expect(milestones[0].milestone).toBe("month_3")
-    // date-fns addMonths operates in local time — just verify the date portion
+    // date-fns addMonths operates in local time - just verify the date portion
     expect(milestones[0].dueAt.toISOString()).toMatch(/^2026-07-09T/)
     expect(milestones[1].milestone).toBe("month_6")
     expect(milestones[1].dueAt.toISOString()).toMatch(/^2026-10-09T/)

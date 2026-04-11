@@ -32,7 +32,7 @@ export function HeroSection({ config, colors, isDisabled }: HeroSectionProps) {
       </div>
 
       <div className="relative mx-auto max-w-5xl px-6 sm:px-8 lg:px-10">
-        {/* Doctor availability pill — same as homepage */}
+        {/* Doctor availability pill - same as homepage */}
         <motion.div
           className="flex justify-center lg:justify-start mb-8"
           initial={prefersReducedMotion ? {} : { opacity: 0, y: -10 }}
@@ -137,7 +137,7 @@ export function HeroSection({ config, colors, isDisabled }: HeroSectionProps) {
               )}
             </motion.div>
 
-            {/* Trust signals — compact like homepage */}
+            {/* Trust signals - compact like homepage */}
             <motion.div
               className="flex flex-col gap-2"
               initial={prefersReducedMotion ? {} : { opacity: 0 }}
@@ -168,7 +168,7 @@ export function HeroSection({ config, colors, isDisabled }: HeroSectionProps) {
             </motion.div>
           </div>
 
-          {/* Hero Image — real photos, matching homepage treatment */}
+          {/* Hero Image - real photos, matching homepage treatment */}
           {hasImages && (
             <motion.div
               className="hidden lg:block relative shrink-0 mt-0"

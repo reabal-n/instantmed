@@ -1,7 +1,7 @@
 "use server"
 
 /**
- * Batch Review — Mark Auto-Reviewed Certificate as Doctor-Reviewed
+ * Batch Review - Mark Auto-Reviewed Certificate as Doctor-Reviewed
  *
  * Allows doctors to confirm they've reviewed an auto-approved certificate.
  * Part of AHPRA compliance: every auto-approved cert must be doctor-reviewed

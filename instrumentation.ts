@@ -47,7 +47,7 @@ export async function register() {
     console.warn("[WARNING] ENCRYPTION_KEY not set - PHI will be stored in plaintext")
   }
 
-  // Stripe live key validation — catch test keys shipped to production
+  // Stripe live key validation - catch test keys shipped to production
   if (process.env.NEXT_RUNTIME === "nodejs" && process.env.NODE_ENV === "production") {
     const stripeSecretKey = process.env.STRIPE_SECRET_KEY ?? ""
     const stripePriceVars = [
@@ -79,7 +79,7 @@ export async function register() {
       // eslint-disable-next-line no-console
       console.error("[CRITICAL] Stripe test keys detected in production:", testKeyVars)
       throw new Error(
-        `Stripe test keys in production — payments will fail. Fix: ${testKeyVars.join(", ")}`
+        `Stripe test keys in production - payments will fail. Fix: ${testKeyVars.join(", ")}`
       )
     } else {
       // eslint-disable-next-line no-console

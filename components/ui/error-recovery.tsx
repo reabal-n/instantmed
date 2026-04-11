@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils"
  * from app/layout.tsx.
  *
  * Note: this file used to also export ErrorBanner, FieldError,
- * RetryableAction, and detectErrorType — those were never imported by
+ * RetryableAction, and detectErrorType - those were never imported by
  * any live consumer and were removed in 2026-04-08 cleanup. If you need
  * an inline error UI, use the alert components in components/ui/alert.tsx
  * or compose your own with the design tokens.
@@ -67,7 +67,7 @@ export function NetworkStatus() {
       ) : (
         <span className="flex items-center justify-center gap-2">
           <WifiOff className="w-4 h-4" />
-          No internet connection — your changes will be saved when you reconnect
+          No internet connection - your changes will be saved when you reconnect
         </span>
       )}
     </div>

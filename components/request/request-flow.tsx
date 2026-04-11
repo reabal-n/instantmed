@@ -71,7 +71,7 @@ function getSafetySlug(serviceType: UnifiedServiceType, answers: Record<string, 
 }
 
 // Steps that trigger a safety pre-check when completed
-// These are the first clinical steps per service — catch blocks early
+// These are the first clinical steps per service - catch blocks early
 const SAFETY_PRE_CHECK_STEPS = new Set([
   'symptoms',          // med-cert: after symptom selection
   'medication',        // prescription/repeat-script: after medication selection
@@ -100,11 +100,11 @@ interface RequestFlowProps {
   initialCertType?: string
   isAuthenticated: boolean
   hasProfile: boolean
-  /** Profile has complete identity (incl. date_of_birth) — details step can be skipped */
+  /** Profile has complete identity (incl. date_of_birth) - details step can be skipped */
   hasCompleteIdentity?: boolean
   hasMedicare: boolean
   hasAddress: boolean
-  /** Profile has a phone number — required for prescriptions + consults */
+  /** Profile has a phone number - required for prescriptions + consults */
   hasPhone?: boolean
   /** User email for pre-filling */
   userEmail?: string
@@ -287,7 +287,7 @@ export function RequestFlow({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Block Coming Soon subtypes — redirect to landing page
+  // Block Coming Soon subtypes - redirect to landing page
   useEffect(() => {
     if (initialService === 'consult' && initialSubtype) {
       if (!isConsultSubtypeAvailable(initialSubtype as ConsultSubtype)) {
@@ -385,7 +385,7 @@ export function RequestFlow({
   }, [activeSteps, currentStepId, effectiveService, stepContext])
 
   // Sync store's currentStepId when it doesn't exist in the active steps list.
-  // Exception: when editModeStep exists, user explicitly navigated to edit a skipped step — don't redirect
+  // Exception: when editModeStep exists, user explicitly navigated to edit a skipped step - don't redirect
   useEffect(() => {
     if (editModeStep) return
     if (activeSteps.length > 0 && !activeSteps.some(s => s.id === currentStepId)) {
@@ -393,7 +393,7 @@ export function RequestFlow({
     }
   }, [activeSteps, currentStepId, goToStep, editModeStep])
 
-  // Get current step definition — use editModeStep when editing a skipped step
+  // Get current step definition - use editModeStep when editing a skipped step
   const currentStep = editModeStep ?? (activeSteps.length > 0 ? activeSteps[currentStepIndex] : null)
 
   // Track step views in PostHog
@@ -420,7 +420,7 @@ export function RequestFlow({
         subtype,
       })
     }
-  // answers.consultSubtype intentionally excluded — only track on step/service change
+  // answers.consultSubtype intentionally excluded - only track on step/service change
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentStep, serviceType, analyticsServiceType, currentStepIndex, posthog])
 
@@ -489,7 +489,7 @@ export function RequestFlow({
           triggered_rules: result.triggeredRules.map(r => r.ruleId),
         })
         setSafetyBlock(result)
-        return // Don't advance — show safety block dialog
+        return // Don't advance - show safety block dialog
       }
     }
 
@@ -891,7 +891,7 @@ export function RequestFlow({
         </AnimatePresence>
       </motion.main>
 
-      {/* Sticky bottom CTA bar for mobile — hidden on checkout/review which have their own CTAs */}
+      {/* Sticky bottom CTA bar for mobile - hidden on checkout/review which have their own CTAs */}
       {currentStepId !== 'checkout' && currentStepId !== 'review' && (
         <div className="fixed bottom-0 inset-x-0 z-40 bg-background/95 backdrop-blur border-t p-4 sm:hidden safe-area-bottom">
           <div className="container max-w-lg mx-auto flex items-center gap-3">

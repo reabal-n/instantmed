@@ -1,7 +1,7 @@
 "use client"
 
 /**
- * ED Preferences Step — Step 4 of 4 in the ED intake flow
+ * ED Preferences Step - Step 4 of 4 in the ED intake flow
  *
  * Lifestyle-framed treatment preference selection (daily vs as-needed vs doctor decides).
  * TGA-compliant: NO drug names anywhere in this component.

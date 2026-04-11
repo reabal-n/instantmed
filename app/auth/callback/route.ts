@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server"
 const log = createLogger("auth-callback")
 
 /**
- * AUTH CALLBACK — Supabase PKCE code exchange
+ * AUTH CALLBACK - Supabase PKCE code exchange
  *
  * Flow:
  *   1. User clicks magic link or completes Google OAuth
@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${origin}/sign-in`)
   }
 
-  log.info("Supabase auth callback — exchanging code for session")
+  log.info("Supabase auth callback - exchanging code for session")
   const supabase = await createClient()
   const { error } = await supabase.auth.exchangeCodeForSession(code)
 
@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${origin}/auth/error?message=${encodeURIComponent(error.message)}`)
   }
 
-  // Successful auth — redirect through post-signin for profile linking
+  // Successful auth - redirect through post-signin for profile linking
   const destination = next
     ? `/auth/post-signin?redirect=${encodeURIComponent(next)}`
     : "/auth/post-signin"

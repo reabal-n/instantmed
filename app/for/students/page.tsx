@@ -6,6 +6,7 @@ import { ArrowRight, Shield, Zap, GraduationCap, Clock, Smartphone, Star, BookOp
 import { SectionPill } from "@/components/ui/section-pill"
 import Link from "next/link"
 import type { Metadata } from "next"
+import { PRICING_DISPLAY } from "@/lib/constants"
 
 export const metadata: Metadata = {
   title: "Medical Certificates for Uni Students | Special Consideration",
@@ -275,7 +276,7 @@ export default function StudentsPage() {
                       </div>
                       <p className="text-xs mb-2">&quot;{item.quote}&quot;</p>
                       <p className="text-xs text-muted-foreground">
-                        — {item.name}, {item.uni}
+                        - {item.name}, {item.uni}
                       </p>
                     </div>
                   ))}
@@ -301,7 +302,7 @@ export default function StudentsPage() {
                     },
                     {
                       q: "Does it say what I was sick with?",
-                      a: "By default, certificates say 'medical condition' without specific details — protecting your privacy. If your uni requires more detail, let us know.",
+                      a: "By default, certificates say 'medical condition' without specific details - protecting your privacy. If your uni requires more detail, let us know.",
                     },
                     {
                       q: "How long can the certificate cover?",
@@ -309,7 +310,7 @@ export default function StudentsPage() {
                     },
                     {
                       q: "What does it cost?",
-                      a: "Medical certificates start at $19.95 for 1 day, $29.95 for 2 days. If your request isn&apos;t approved, you get a refund minus a small admin fee.",
+                      a: `Medical certificates start at ${PRICING_DISPLAY.MED_CERT} for 1 day, ${PRICING_DISPLAY.MED_CERT_2DAY} for 2 days. If your request isn't approved, you get a refund minus a small admin fee.`,
                     },
                   ].map((faq, i) => (
                     <div key={i} className="p-4 rounded-xl bg-card/60 dark:bg-white/5 backdrop-blur-sm border border-border/50">
@@ -337,7 +338,7 @@ export default function StudentsPage() {
                       <ArrowRight className="h-4 w-4 ml-2" />
                     </Button>
                   </Link>
-                  <p className="mt-4 text-xs text-muted-foreground">From $19.95 • Accepted by all unis</p>
+                  <p className="mt-4 text-xs text-muted-foreground">{PRICING_DISPLAY.FROM_MED_CERT} • Accepted by all unis</p>
                 </div>
               </div>
             </div>

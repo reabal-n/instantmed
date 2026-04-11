@@ -40,7 +40,7 @@ import { MED_CERT_FAQ } from "@/lib/data/med-cert-faq"
 import { CTABanner } from "@/components/sections"
 import { FAQSection } from "@/components/sections"
 
-// Below-fold lazy loads — keep initial bundle small
+// Below-fold lazy loads - keep initial bundle small
 const CertificateTypeSelector = dynamic(
   () => import("@/components/marketing/sections/certificate-type-selector").then((m) => m.CertificateTypeSelector),
   { loading: () => <div className="min-h-[400px]" />, ssr: false },
@@ -90,7 +90,7 @@ const ROTATING_BADGES = [
 // SECTION COMPONENTS
 // =============================================================================
 
-/** Employer acceptance — logo marquee + verify/employer links */
+/** Employer acceptance - logo marquee + verify/employer links */
 function EmployerCalloutStrip({ onEmployerClick, onVerifyClick }: { onEmployerClick?: () => void; onVerifyClick?: () => void }) {
   return (
     <section data-track-section="employer" className="py-8 sm:py-10">
@@ -156,7 +156,7 @@ function HeroSection({
               <DoctorAvailabilityPill alwaysAvailable />
             </motion.div>
 
-            {/* Headline — plain h1 with CSS animation so LCP text is visible on first paint */}
+            {/* Headline - plain h1 with CSS animation so LCP text is visible on first paint */}
             <h1
               className="text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight mb-3 sm:mb-6 leading-[1.15] animate-hero-headline"
             >
@@ -245,12 +245,12 @@ function HeroSection({
             </motion.div>
           </div>
 
-          {/* Hero product mockup — desktop only, mobile gets compact version below */}
+          {/* Hero product mockup - desktop only, mobile gets compact version below */}
           <div className="hidden lg:block relative shrink-0 mt-0">
             <MedCertHeroMockup />
           </div>
 
-          {/* Mobile mockup — compact, below text content */}
+          {/* Mobile mockup - compact, below text content */}
           <div className="lg:hidden mt-4 w-full max-w-xs mx-auto">
             <MedCertHeroMockup compact />
           </div>
@@ -260,7 +260,7 @@ function HeroSection({
   )
 }
 
-/** Outcome preview — what the approved certificate looks like */
+/** Outcome preview - what the approved certificate looks like */
 function OutcomePreviewSection() {
   return (
     <section data-track-section="outcome" className="py-12 lg:py-16">
@@ -378,12 +378,12 @@ export function MedCertLanding() {
           {/* 1. Hero */}
           <HeroSection ctaRef={heroCTARef} onCTAClick={handleHeroCTA} />
 
-          {/* 2. Certificate type selector — engagement hook + pricing + comparison */}
+          {/* 2. Certificate type selector - engagement hook + pricing + comparison */}
           <div data-track-section="selector">
             <CertificateTypeSelector />
           </div>
 
-          {/* 3. Regulatory authority logos — scrolling B&W marquee */}
+          {/* 3. Regulatory authority logos - scrolling B&W marquee */}
           <RegulatoryPartners />
 
           {/* 4. How It Works */}
@@ -391,7 +391,7 @@ export function MedCertLanding() {
             <HowItWorksSection onCTAClick={handleHowItWorksCTA} />
           </div>
 
-          {/* 5. Outcome preview — what approval looks like */}
+          {/* 5. Outcome preview - what approval looks like */}
           <OutcomePreviewSection />
 
           {/* Refund guarantee + trust counter */}
@@ -410,12 +410,12 @@ export function MedCertLanding() {
             </div>
           </section>
 
-          {/* 6. Social proof — reviews, doctor credibility, stats */}
+          {/* 6. Social proof - reviews, doctor credibility, stats */}
           <div data-track-section="social_proof">
             <SocialProofSection />
           </div>
 
-          {/* 7. Employer acceptance — logo marquee + links */}
+          {/* 7. Employer acceptance - logo marquee + links */}
           <EmployerCalloutStrip onEmployerClick={handleEmployerClick} onVerifyClick={handleVerifyClick} />
 
           {/* 8. What we cover / limitations */}
@@ -458,12 +458,12 @@ export function MedCertLanding() {
 
         <MarketingFooter />
 
-        {/* SEO content — below footer, doesn't disrupt conversion funnel */}
+        {/* SEO content - below footer, doesn't disrupt conversion funnel */}
         <MedCertGuideSection />
         <CompetitorLinksSection slugs={["instantmed-vs-cleanbill", "instantmed-vs-qoctor", "instantmed-vs-instantscripts"]} />
         <ContentHubLinks service="med-cert" />
 
-        {/* Sticky mobile CTA — bottom drawer, appears after hero scrolls out */}
+        {/* Sticky mobile CTA - bottom drawer, appears after hero scrolls out */}
         <motion.div
           role="region"
           aria-label="Quick purchase"
@@ -504,7 +504,7 @@ export function MedCertLanding() {
           </div>
         </motion.div>
 
-        {/* Sticky desktop CTA — top bar, appears after hero scrolls out */}
+        {/* Sticky desktop CTA - top bar, appears after hero scrolls out */}
         <motion.div
           role="region"
           aria-label="Quick purchase"

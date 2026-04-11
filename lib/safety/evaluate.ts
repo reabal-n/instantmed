@@ -106,13 +106,13 @@ function evaluateCondition(
     value = answers[condition.fieldId]
   }
 
-  // Handle null/undefined — fail-closed for safety
+  // Handle null/undefined - fail-closed for safety
   // If a required safety field is not answered, treat it as potentially dangerous
   if (value === null || value === undefined) {
     if (condition.operator === 'is_empty') return true
     if (condition.operator === 'is_not_empty') return false
     // AUDIT FIX: For boolean safety checks (e.g., "has_chest_pain equals true"),
-    // null means unanswered — we cannot safely assume "no".
+    // null means unanswered - we cannot safely assume "no".
     // However, for most operators, null means "no data" which should not trigger.
     // The key insight: if the rule is checking `equals true` and value is null,
     // that's genuinely "not true", so returning false is correct.
@@ -463,7 +463,7 @@ export function validateSafetyFieldsPresent(
 
   // Safety rules are designed to TRIGGER on dangerous conditions. When a field
   // is missing, the condition evaluates to false and the rule doesn't fire.
-  // This is safe behavior — it means the patient isn't blocked or flagged.
+  // This is safe behavior - it means the patient isn't blocked or flagged.
   //
   // Field presence is already enforced by step validation (each step has its own
   // validateFn that prevents progression without answering required questions).

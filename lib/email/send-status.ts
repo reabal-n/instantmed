@@ -71,7 +71,7 @@ async function buildTemplateElement(
 }
 
 /**
- * Send email triggered by state transition — fetches intake details and sends
+ * Send email triggered by state transition - fetches intake details and sends
  * via the centralized React email pipeline.
  */
 export async function sendStatusTransitionEmail(

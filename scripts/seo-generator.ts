@@ -187,7 +187,7 @@ export const conditionPageTemplate = {
   name: 'Template Condition',
   title: 'Template Condition | Description | InstantMed',
   description: 'Get template condition treatment online. Assessment by Australian doctors.',
-  h1: 'Template condition — description',
+  h1: 'Template condition - description',
   heroText: 'Suffering from template condition? Get assessment and certificate online.',
   symptoms: [
     'Symptom 1',

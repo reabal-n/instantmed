@@ -1,5 +1,5 @@
 /**
- * Repeat Prescription — Microcopy
+ * Repeat Prescription - Microcopy
  *
  * All patient-facing strings for the repeat-rx intake flow.
  * Edit here to update copy without touching components.

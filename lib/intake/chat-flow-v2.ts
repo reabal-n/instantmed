@@ -1,5 +1,5 @@
 /**
- * Chat Flow V2 — Optimized Conversational Intake
+ * Chat Flow V2 - Optimized Conversational Intake
  * 
  * Intent-first routing, one question per turn, button-heavy UX.
  * See ARCHITECTURE.md → AI Chat Intake for specification.
@@ -335,7 +335,7 @@ export const CHAT_FLOWS: Record<string, ChatStep[]> = {
     },
     {
       id: 'medcert_safety',
-      message: `Quick check — are any of these true?
+      message: `Quick check - are any of these true?
 
 • Symptoms started suddenly with severe pain
 • Chest tightness or shortness of breath
@@ -353,7 +353,7 @@ export const CHAT_FLOWS: Record<string, ChatStep[]> = {
 If your symptoms are different from the above, you can continue.`,
       inputType: 'buttons',
       buttons: [
-        { label: 'My symptoms are different — continue', value: 'continue' },
+        { label: 'My symptoms are different - continue', value: 'continue' },
       ],
       field: 'safetyAcknowledged',
       nextStep: 'medcert_confirm',

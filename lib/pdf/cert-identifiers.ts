@@ -2,7 +2,7 @@
  * Certificate identifier generators
  *
  * Pure utility functions for generating certificate numbers, verification codes,
- * and reference IDs. No rendering dependencies — safe to import anywhere.
+ * and reference IDs. No rendering dependencies - safe to import anywhere.
  *
  * Extracted from med-cert-render.ts to decouple ID generation from the React-PDF
  * rendering pipeline.

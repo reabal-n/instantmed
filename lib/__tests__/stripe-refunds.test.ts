@@ -1,7 +1,7 @@
 /**
  * Unit tests for lib/stripe/refunds.ts
  *
- * Covers every branch of `refundIfEligible` — the legacy refund helper used
+ * Covers every branch of `refundIfEligible` - the legacy refund helper used
  * by /api/doctor/{bulk-action,update-request} routes. Ensures:
  *   - eligibility gates (not paid, wrong category, missing PI)
  *   - E2E short-circuit (PLAYWRIGHT=1)

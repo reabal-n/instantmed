@@ -256,7 +256,7 @@ test.describe("PDF Attachment Integrity", () => {
 
     const reasonTextarea = page.locator('textarea').first()
     if (await reasonTextarea.isVisible()) {
-      await reasonTextarea.fill("PDF integrity check — automated E2E test")
+      await reasonTextarea.fill("PDF integrity check - automated E2E test")
     }
 
     const approveButton = page.locator('[data-testid="approve-button"]')
@@ -301,7 +301,7 @@ test.describe("PDF Attachment Integrity", () => {
     expect(pdfHeader, `File must start with %PDF magic bytes, got: ${pdfHeader}`).toBe("%PDF")
 
     // eslint-disable-next-line no-console
-    console.log(`[E2E] PDF verified: ${filename} — ${body.length} bytes, header: ${pdfHeader}`)
+    console.log(`[E2E] PDF verified: ${filename} - ${body.length} bytes, header: ${pdfHeader}`)
   })
 })
 

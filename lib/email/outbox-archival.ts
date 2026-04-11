@@ -35,7 +35,7 @@ export async function archiveOldOutboxRows(): Promise<ArchivalResult> {
     return { deliveredDeleted: 0, failedDeleted: 0, error: delError.message }
   }
 
-  // Delete old exhausted-failed emails (180 days) — keeps recent failures for debugging
+  // Delete old exhausted-failed emails (180 days) - keeps recent failures for debugging
   const { data: failedRows, error: failError } = await supabase
     .from("email_outbox")
     .delete()

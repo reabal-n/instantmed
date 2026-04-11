@@ -60,7 +60,7 @@ export function HeroTestimonialRotator({ className }: HeroTestimonialRotatorProp
           </p>
           {/* Attribution */}
           <p className="text-[10px] text-muted-foreground/50 mt-1">
-            — {current.name}, {current.location}
+            - {current.name}, {current.location}
           </p>
         </motion.div>
       </AnimatePresence>

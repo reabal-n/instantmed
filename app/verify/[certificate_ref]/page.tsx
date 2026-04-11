@@ -136,7 +136,7 @@ export default async function VerifyCertificateRefPage({ params }: Props) {
                         <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
                         <span className="text-muted-foreground">Valid period:</span>
                         <span className="font-medium text-foreground">
-                          {formatDateLong(cert.start_date)} — {formatDateLong(cert.end_date)}
+                          {formatDateLong(cert.start_date)} - {formatDateLong(cert.end_date)}
                         </span>
                       </div>
                     )}

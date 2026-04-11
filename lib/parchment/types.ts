@@ -1,5 +1,5 @@
 /**
- * Parchment Health API — Type Definitions & Zod Schemas
+ * Parchment Health API - Type Definitions & Zod Schemas
  *
  * Based on Parchment API v1 documentation:
  * https://docs.parchmenthealth.io/api-reference/introduction

@@ -156,7 +156,7 @@ export async function sendTemplateEmail(params: SendTemplateEmailParams): Promis
     return { success: false, error: `Template not found: ${templateSlug}` }
   }
 
-  // Validate merge tags — warn and capture in Sentry for visibility
+  // Validate merge tags - warn and capture in Sentry for visibility
   const missingTags = validateMergeTags(template, data)
   if (missingTags.length > 0) {
     log.warn("Missing merge tags for email", { templateSlug, missingTags })
@@ -167,7 +167,7 @@ export async function sendTemplateEmail(params: SendTemplateEmailParams): Promis
         extra: { templateSlug, missingTags },
       })
     } catch {
-      // Sentry not available — warning already logged
+      // Sentry not available - warning already logged
     }
   }
 

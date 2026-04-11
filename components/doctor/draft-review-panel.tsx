@@ -7,7 +7,7 @@
  * Allows doctors to edit content before approving.
  *
  * P1 AI-1: Collapsed by default per MEDICOLEGAL_AUDIT_REPORT to reduce
- * cognitive anchoring — doctors should review patient intake answers first.
+ * cognitive anchoring - doctors should review patient intake answers first.
  */
 
 import { useState, useTransition } from "react"

@@ -32,7 +32,7 @@ const DEFAULT_BADGES: BadgeType[] = ["ahpra", "encrypted", "private"]
 interface TrustStripProps {
   /** Which badges to show (default: ahpra, encrypted, private) */
   badges?: BadgeType[]
-  /** Show tooltips on hover (default: true — handled automatically by TrustBadgeRow) */
+  /** Show tooltips on hover (default: true - handled automatically by TrustBadgeRow) */
   tooltips?: boolean
   /** Show pipe separators between items (no-op in new impl) */
   separators?: boolean

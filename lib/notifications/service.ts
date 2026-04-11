@@ -48,10 +48,10 @@ export async function createNotification(params: CreateNotificationParams): Prom
     })
 
     if (error) {
-      // Table-not-found (42P01) or column errors (42703) indicate migration drift —
+      // Table-not-found (42P01) or column errors (42703) indicate migration drift -
       // downgrade to warn to avoid Sentry noise for a non-critical feature
       if (error.code === "42P01" || error.code === "42703") {
-        logger.warn("Notifications table unavailable — skipping", { userId, type, code: error.code })
+        logger.warn("Notifications table unavailable - skipping", { userId, type, code: error.code })
       } else {
         logger.error("Failed to create notification", { userId, type }, new Error(error.message))
       }
@@ -99,7 +99,7 @@ export async function notifyRequestStatusChange(params: NotifyRequestStatusParam
         // - Med certs: approveAndSendCert() in app/actions/approve-cert.ts
         // - Consults: approveConsult() in app/actions/approve-consult.ts
         // - Scripts: repeat-prescription action
-        // No duplicate email is sent here — only the in-app notification.
+        // No duplicate email is sent here - only the in-app notification.
 
         // Track approval in PostHog
         try {

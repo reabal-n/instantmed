@@ -40,10 +40,10 @@ FLAGGING POLICY (requiresReview):
   symptoms outside the scope of telehealth med certs).
 - Do NOT set requiresReview=true based on language quality, spelling, grammar,
   brevity, typos, or "atypical" phrasing of the free-text "Additional Symptoms"
-  field. Patients describe symptoms in their own words — that is normal.
+  field. Patients describe symptoms in their own words - that is normal.
 - When the patient has selected 2 or more structured symptoms, treat the
   structured selections as the primary clinical signal. The free-text
-  "Additional Symptoms" field is supplementary context only — ignore it for
+  "Additional Symptoms" field is supplementary context only - ignore it for
   flagging purposes if it is unclear or non-substantive.
 - If you cannot draft the Subjective section from the structured fields alone,
   use a neutral summary (e.g. "Patient reports [symptom list] for [duration].")

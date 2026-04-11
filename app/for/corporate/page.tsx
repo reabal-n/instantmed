@@ -6,6 +6,7 @@ import { ArrowRight, Shield, Zap, Clock, Star, Briefcase, Mail, Lock } from "luc
 import { SectionPill } from "@/components/ui/section-pill"
 import Link from "next/link"
 import type { Metadata } from "next"
+import { PRICING_DISPLAY } from "@/lib/constants"
 
 export const metadata: Metadata = {
   title: "Medical Certificates for Corporate Workers | 15 Min",
@@ -74,7 +75,7 @@ export default function CorporatePage() {
                     Medical Certificate Before HR Asks
                   </h1>
                   <p className="text-sm md:text-base text-muted-foreground max-w-xl mx-auto mb-4">
-                    Unwell and working from home? Get your medical certificate in <strong>15 minutes</strong>. Professional PDF delivered to your inbox — ready to forward to HR.
+                    Unwell and working from home? Get your medical certificate in <strong>15 minutes</strong>. Professional PDF delivered to your inbox - ready to forward to HR.
                   </p>
                   <p className="text-xs text-muted-foreground mb-6">
                     All employers accept • Discreet • No time off work needed
@@ -151,7 +152,7 @@ export default function CorporatePage() {
                     {
                       icon: Lock,
                       title: "Discreet and private",
-                      desc: "Certificate shows 'medical condition' — no specific diagnosis shared. Your privacy protected.",
+                      desc: "Certificate shows 'medical condition' - no specific diagnosis shared. Your privacy protected.",
                     },
                     {
                       icon: Briefcase,
@@ -232,7 +233,7 @@ export default function CorporatePage() {
                       </div>
                       <p className="text-xs mb-2">&quot;{item.quote}&quot;</p>
                       <p className="text-xs text-muted-foreground">
-                        — {item.name}, {item.role}
+                        - {item.name}, {item.role}
                       </p>
                     </div>
                   ))}
@@ -248,9 +249,9 @@ export default function CorporatePage() {
                 <h2 className="text-xl sm:text-2xl font-bold mb-6 text-center">Other services for busy professionals</h2>
                 <div className="grid gap-4 sm:grid-cols-3">
                   {[
-                    { title: "Repeat Scripts", desc: "Blood pressure, reflux, contraceptive", price: "From $29.95", href: "/prescriptions" },
-                    { title: "Hair Loss", desc: "Discreet treatment options", price: "From $49.95", href: "/hair-loss" },
-                    { title: "Weight Loss", desc: "Doctor-guided programs", price: "From $89.95", href: "/weight-loss" },
+                    { title: "Repeat Scripts", desc: "Blood pressure, reflux, contraceptive", price: PRICING_DISPLAY.FROM_SCRIPT, href: "/prescriptions" },
+                    { title: "Hair Loss", desc: "Discreet treatment options", price: `From ${PRICING_DISPLAY.HAIR_LOSS}`, href: "/hair-loss" },
+                    { title: "Weight Loss", desc: "Doctor-guided programs", price: `From ${PRICING_DISPLAY.WEIGHT_LOSS}`, href: "/weight-loss" },
                   ].map((item) => (
                     <Link key={item.title} href={item.href}>
                       <div className="glass-card rounded-xl p-4 h-full hover:border-border transition-all">
@@ -274,7 +275,7 @@ export default function CorporatePage() {
                   {[
                     {
                       q: "Is an online medical certificate valid?",
-                      a: "Yes. Our certificates are issued by AHPRA-registered Australian doctors and are legally valid. They include the doctor's name, provider number, and digital signature — everything HR needs.",
+                      a: "Yes. Our certificates are issued by AHPRA-registered Australian doctors and are legally valid. They include the doctor's name, provider number, and digital signature - everything HR needs.",
                     },
                     {
                       q: "Will it look different from a normal cert?",
@@ -282,7 +283,7 @@ export default function CorporatePage() {
                     },
                     {
                       q: "Does it say what I was sick with?",
-                      a: "By default, certificates say 'medical condition' — protecting your privacy. Specific diagnoses are only included if you request it or if legally required.",
+                      a: "By default, certificates say 'medical condition' - protecting your privacy. Specific diagnoses are only included if you request it or if legally required.",
                     },
                     {
                       q: "Can I get a certificate for mental health?",
@@ -318,7 +319,7 @@ export default function CorporatePage() {
                       <ArrowRight className="h-4 w-4 ml-2" />
                     </Button>
                   </Link>
-                  <p className="mt-4 text-xs text-muted-foreground">From $19.95 • Valid for all employers</p>
+                  <p className="mt-4 text-xs text-muted-foreground">{PRICING_DISPLAY.FROM_MED_CERT} • Valid for all employers</p>
                 </div>
               </div>
             </div>

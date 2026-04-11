@@ -70,11 +70,11 @@ export interface IdentityData {
 export interface AuthContext {
   isAuthenticated: boolean
   hasProfile: boolean
-  /** True when profile has complete identity (incl. date_of_birth) — mirrors RequestFlow prop */
+  /** True when profile has complete identity (incl. date_of_birth) - mirrors RequestFlow prop */
   hasCompleteIdentity?: boolean
   hasMedicare: boolean
   hasAddress: boolean
-  /** True when profile has a phone number — required for prescriptions + consults */
+  /** True when profile has a phone number - required for prescriptions + consults */
   hasPhone?: boolean
 }
 
@@ -205,7 +205,7 @@ export const useRequestStore = create<RequestState & RequestActions>()(
           const context = { ...authContext, serviceType: serviceType || 'med-cert', answers }
           activeSteps = _getStepsForService(serviceType || 'med-cert', context).map(s => s.id)
         } catch {
-          // Step registry threw — allow navigation to proceed without blocking
+          // Step registry threw - allow navigation to proceed without blocking
           activeSteps = []
         }
 
@@ -316,7 +316,7 @@ export const useRequestStore = create<RequestState & RequestActions>()(
             // Validate currentStepId against the actual step list BEFORE hydration.
             // Subtypes (e.g. ED, hair loss) change the step sequence, so a persisted
             // currentStepId (e.g. "consult-reason") may not exist in the subtype's
-            // step list — causing silent navigation failures when nextStep() is called.
+            // step list - causing silent navigation failures when nextStep() is called.
             const st = parsed.state
             if (st?.serviceType && st.currentStepId) {
               try {
@@ -333,7 +333,7 @@ export const useRequestStore = create<RequestState & RequestActions>()(
                   st.currentStepId = steps[0].id as UnifiedStepId
                 }
               } catch {
-                // Step registry threw — leave currentStepId as-is
+                // Step registry threw - leave currentStepId as-is
               }
             }
 
@@ -349,7 +349,7 @@ export const useRequestStore = create<RequestState & RequestActions>()(
             // Write to legacy key (for backward compatibility)
             localStorage.setItem(name, JSON.stringify(value))
           } catch {
-            // QuotaExceededError or SecurityError — silently ignore (private mode, full storage)
+            // QuotaExceededError or SecurityError - silently ignore (private mode, full storage)
             return
           }
 

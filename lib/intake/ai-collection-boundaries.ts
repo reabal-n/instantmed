@@ -74,7 +74,7 @@ export const AI_PROHIBITED_ACTIONS = {
 // =============================================================================
 
 export const BOUNDARY_ENFORCEMENT_PROMPT = `
-CRITICAL BOUNDARIES — YOU MUST FOLLOW THESE:
+CRITICAL BOUNDARIES - YOU MUST FOLLOW THESE:
 
 YOU ARE:
 - An administrative intake assistant
@@ -93,7 +93,7 @@ WHEN ASKED MEDICAL QUESTIONS, RESPOND:
 "I'm here to collect information for your request. A doctor will review everything and can answer medical questions. What information can I help gather for your [certificate/prescription/consult]?"
 
 WHEN ASKED TO RECOMMEND:
-"I can't recommend specific treatments — that's for the doctor to decide based on your full medical history. I can note any preferences you have for the doctor to consider."
+"I can't recommend specific treatments - that's for the doctor to decide based on your full medical history. I can note any preferences you have for the doctor to consider."
 
 WHEN SYMPTOMS SEEM SERIOUS:
 Flag the severity in the structured data but DO NOT interpret. The doctor will assess clinical significance.
@@ -116,7 +116,7 @@ export const HANDOFF_PROTOCOLS: HandoffProtocol[] = [
     trigger: 'emergency_keywords_detected',
     action: 'terminate',
     message: 'This sounds like a medical emergency. Please call 000 or go to your nearest emergency department immediately.',
-    doctorNote: 'EMERGENCY KEYWORDS DETECTED — Patient directed to 000/ED',
+    doctorNote: 'EMERGENCY KEYWORDS DETECTED - Patient directed to 000/ED',
   },
   
   // Crisis escalation
@@ -124,7 +124,7 @@ export const HANDOFF_PROTOCOLS: HandoffProtocol[] = [
     trigger: 'crisis_keywords_detected',
     action: 'terminate',
     message: 'I hear that you\'re going through a difficult time. Please reach out to Lifeline (13 11 14) or Beyond Blue (1300 22 4636) for immediate support.',
-    doctorNote: 'CRISIS INDICATORS — Patient directed to mental health crisis services',
+    doctorNote: 'CRISIS INDICATORS - Patient directed to mental health crisis services',
   },
   
   // Controlled substance block
@@ -132,7 +132,7 @@ export const HANDOFF_PROTOCOLS: HandoffProtocol[] = [
     trigger: 'controlled_substance_requested',
     action: 'terminate',
     message: 'This medication cannot be prescribed through our online service. Schedule 8 and controlled medications require an in-person consultation with your regular GP.',
-    doctorNote: 'BLOCKED — Controlled substance request',
+    doctorNote: 'BLOCKED - Controlled substance request',
   },
   
   // Form transition
@@ -140,7 +140,7 @@ export const HANDOFF_PROTOCOLS: HandoffProtocol[] = [
     trigger: 'complex_intake_detected',
     action: 'transition',
     message: 'This request needs a bit more detail. I\'ll take you to a form that captures everything the doctor needs.',
-    doctorNote: 'Complex case — transitioned to detailed form intake',
+    doctorNote: 'Complex case - transitioned to detailed form intake',
   },
   
   // Out of scope
@@ -148,7 +148,7 @@ export const HANDOFF_PROTOCOLS: HandoffProtocol[] = [
     trigger: 'out_of_scope_request',
     action: 'terminate',
     message: 'This type of request requires an in-person consultation. Our online service isn\'t able to help with this, but your regular GP or a local clinic can assist.',
-    doctorNote: 'OUT OF SCOPE — Patient advised to seek in-person care',
+    doctorNote: 'OUT OF SCOPE - Patient advised to seek in-person care',
   },
   
   // Specialist required

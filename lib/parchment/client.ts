@@ -52,7 +52,7 @@ function getConfig() {
 // TOKEN CACHE
 // ============================================================================
 
-/** Per-user token cache — avoids serving doctor A's token to doctor B in shared serverless instances */
+/** Per-user token cache - avoids serving doctor A's token to doctor B in shared serverless instances */
 const tokenCache = new Map<string, { accessToken: string; expiresAt: number }>()
 
 /**
@@ -109,7 +109,7 @@ async function getToken(userId: string, scopes: string[]): Promise<string> {
   return parsed.data.accessToken
 }
 
-/** Force-clear cached token(s) — called after 401 errors to force re-auth */
+/** Force-clear cached token(s) - called after 401 errors to force re-auth */
 export function clearTokenCache(userId?: string): void {
   if (userId) {
     tokenCache.delete(userId)

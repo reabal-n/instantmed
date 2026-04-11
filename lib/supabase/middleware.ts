@@ -39,7 +39,7 @@ export async function updateSupabaseSession(request: NextRequest) {
     }
   )
 
-  // IMPORTANT: Do not use getSession() here — it reads from cookies
+  // IMPORTANT: Do not use getSession() here - it reads from cookies
   // without verifying the JWT. getUser() hits the Supabase Auth server
   // and guarantees the session is valid.
   const {

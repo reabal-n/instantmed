@@ -18,10 +18,10 @@ import { createCipheriv, createDecipheriv, randomBytes } from "crypto"
  */
 
 const ALGORITHM = "aes-256-gcm"
-const IV_LENGTH = 12 // 96 bits — NIST recommended for AES-GCM
+const IV_LENGTH = 12 // 96 bits - NIST recommended for AES-GCM
 const AUTH_TAG_LENGTH = 16 // 128 bits
 const KEY_LENGTH = 32 // 256 bits
-// _SALT_LENGTH removed — not used; no key derivation is applied
+// _SALT_LENGTH removed - not used; no key derivation is applied
 
 // Encryption key from environment - validated at startup
 let encryptionKey: Buffer | null = null
@@ -29,7 +29,7 @@ let encryptionKey: Buffer | null = null
 /**
  * Get the encryption key from environment
  * Decodes a base64-encoded 256-bit key from the master secret.
- * Note: No key derivation (e.g. scrypt) is applied — the env var
+ * Note: No key derivation (e.g. scrypt) is applied - the env var
  * must already contain a cryptographically random 256-bit key.
  */
 function getEncryptionKey(): Buffer {
@@ -63,7 +63,7 @@ function getEncryptionKey(): Buffer {
  * @returns Base64-encoded ciphertext with IV and auth tag
  *
  * NOTE: Empty/falsy strings intentionally bypass encryption and return "".
- * This is correct behavior — an empty string means "no value to protect",
+ * This is correct behavior - an empty string means "no value to protect",
  * not "protect the absence of a value". Callers should validate required
  * fields before calling encrypt().
  */

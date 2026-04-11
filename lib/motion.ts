@@ -20,12 +20,12 @@ import type { Transition, Variants } from 'framer-motion'
 // =============================================================================
 
 export const duration = {
-  instant: 0.2,   // 200ms — brand minimum
-  fast: 0.2,      // 200ms — snappy, responsive
-  normal: 0.2,    // 200ms — standard smooth
-  slow: 0.22,     // 220ms — generous, reassuring
-  slower: 0.25,   // 250ms — final fallback for complex motions
-  page: 0.2,      // 200ms — page transitions
+  instant: 0.2,   // 200ms - brand minimum
+  fast: 0.2,      // 200ms - snappy, responsive
+  normal: 0.2,    // 200ms - standard smooth
+  slow: 0.22,     // 220ms - generous, reassuring
+  slower: 0.25,   // 250ms - final fallback for complex motions
+  page: 0.2,      // 200ms - page transitions
 } as const
 
 export const staggerDelay = {
@@ -84,7 +84,7 @@ export const fadeIn: Variants = {
   exit: { opacity: 0, transition: transition.fast },
 }
 
-/** Fade + slide up — most common entrance */
+/** Fade + slide up - most common entrance */
 export const fadeUp: Variants = {
   initial: { opacity: 0, y: 16 },
   animate: { opacity: 1, y: 0, transition: spring.smooth },

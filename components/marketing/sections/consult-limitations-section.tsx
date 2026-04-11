@@ -6,7 +6,7 @@ import { CONTACT_EMAIL } from "@/lib/constants"
 // COMPONENT
 // =============================================================================
 
-/** Limitations callout — honest scope boundary for consultations */
+/** Limitations callout - honest scope boundary for consultations */
 export function ConsultLimitationsSection() {
   return (
     <section aria-label="Consultation limitations" className="pb-4">
@@ -35,7 +35,7 @@ export function ConsultLimitationsSection() {
             <a href={`mailto:${CONTACT_EMAIL}`} className="text-primary hover:underline">
               Ask us first
             </a>{" "}
-            &mdash; we&apos;ll point you in the right direction.
+            - we&apos;ll point you in the right direction.
           </p>
         </div>
       </div>

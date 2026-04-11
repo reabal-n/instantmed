@@ -1,5 +1,5 @@
 /**
- * Price Mapping — Comprehensive Unit Tests
+ * Price Mapping - Comprehensive Unit Tests
  *
  * Tests the exported functions from lib/stripe/price-mapping.ts:
  *   getAbsenceDays, getConsultPriceId, getPriceIdForRequest,
@@ -37,9 +37,9 @@ afterEach(() => {
 })
 
 // ---------------------------------------------------------------------------
-// getAbsenceDays — unified "duration" flow (not covered by tiered-pricing.test.ts)
+// getAbsenceDays - unified "duration" flow (not covered by tiered-pricing.test.ts)
 // ---------------------------------------------------------------------------
-describe('getAbsenceDays — unified duration flow', () => {
+describe('getAbsenceDays - unified duration flow', () => {
   it('returns 1 for duration "1"', async () => {
     const { getAbsenceDays } = await import('@/lib/stripe/price-mapping')
     expect(getAbsenceDays({ duration: '1' })).toBe(1)
@@ -94,7 +94,7 @@ describe('getAbsenceDays — unified duration flow', () => {
 })
 
 // ---------------------------------------------------------------------------
-// getConsultPriceId — direct function tests
+// getConsultPriceId - direct function tests
 // ---------------------------------------------------------------------------
 describe('getConsultPriceId', () => {
   it('returns ed price ID for "ed" subtype', async () => {
@@ -140,10 +140,10 @@ describe('getConsultPriceId', () => {
 })
 
 // ---------------------------------------------------------------------------
-// getConsultPriceId — production hard-fail on missing subtype env var
+// getConsultPriceId - production hard-fail on missing subtype env var
 // ---------------------------------------------------------------------------
 // Uses vi.stubEnv to avoid TS 5.9 readonly NODE_ENV errors.
-describe('getConsultPriceId — production hard-fail on missing subtype env var', () => {
+describe('getConsultPriceId - production hard-fail on missing subtype env var', () => {
   afterEach(() => {
     vi.unstubAllEnvs()
   })
@@ -194,9 +194,9 @@ describe('getConsultPriceId — production hard-fail on missing subtype env var'
 })
 
 // ---------------------------------------------------------------------------
-// getPriceIdForRequest — missing env var throws & 3-day tier
+// getPriceIdForRequest - missing env var throws & 3-day tier
 // ---------------------------------------------------------------------------
-describe('getPriceIdForRequest — error paths', () => {
+describe('getPriceIdForRequest - error paths', () => {
   it('throws for unknown category', async () => {
     const { getPriceIdForRequest } = await import('@/lib/stripe/price-mapping')
     expect(() =>
@@ -237,7 +237,7 @@ describe('getPriceIdForRequest — error paths', () => {
   })
 })
 
-describe('getPriceIdForRequest — 3-day tier', () => {
+describe('getPriceIdForRequest - 3-day tier', () => {
   it('returns 3-day price for duration "3"', async () => {
     const { getPriceIdForRequest } = await import('@/lib/stripe/price-mapping')
     expect(getPriceIdForRequest({
@@ -262,7 +262,7 @@ describe('getPriceIdForRequest — 3-day tier', () => {
 })
 
 // ---------------------------------------------------------------------------
-// getConsultSubtypePrice — display prices and env overrides
+// getConsultSubtypePrice - display prices and env overrides
 // ---------------------------------------------------------------------------
 describe('getConsultSubtypePrice', () => {
   it('returns PRICING.CONSULT when no subtype provided', async () => {

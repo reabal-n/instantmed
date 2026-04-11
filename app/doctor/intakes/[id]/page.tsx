@@ -26,7 +26,7 @@ export default async function DoctorIntakeDetailPage({
   const { id } = await params
   const { action } = await searchParams
 
-  // Layout enforces doctor/admin role — use cached profile
+  // Layout enforces doctor/admin role - use cached profile
   const { profile } = (await getAuthenticatedUserWithProfile())!
 
   const intake = await getIntakeWithDetails(id)

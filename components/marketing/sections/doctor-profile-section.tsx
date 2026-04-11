@@ -8,7 +8,7 @@ import { BadgeCheck, Users } from "lucide-react"
 // COMPONENT
 // =============================================================================
 
-/** Doctor profile — trust signal, med-cert page only */
+/** Doctor profile - trust signal, med-cert page only */
 export function DoctorProfileSection() {
   const prefersReducedMotion = useReducedMotion()
   const animate = !prefersReducedMotion

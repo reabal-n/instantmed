@@ -23,7 +23,7 @@ import {
 } from "lucide-react"
 
 // =============================================================================
-// ICON REGISTRY — resolves string names to components inside "use client"
+// ICON REGISTRY - resolves string names to components inside "use client"
 // =============================================================================
 
 const ICON_MAP: Record<string, LucideIcon> = {
@@ -51,7 +51,7 @@ const DEFAULT_ICONS: LucideIcon[] = [Stethoscope, Scale, Shield, Monitor, Clock]
 
 export interface GuideSectionData {
   id: string
-  /** Icon name string (resolved internally) — e.g. "Stethoscope", "Shield" */
+  /** Icon name string (resolved internally) - e.g. "Stethoscope", "Shield" */
   icon?: string
   title: string
   paragraphs: string[]
@@ -77,7 +77,7 @@ export interface DataDrivenGuideSectionProps {
 // =============================================================================
 
 /**
- * Reusable E-E-A-T guide section — data-driven version of the Tier 2 guide sections.
+ * Reusable E-E-A-T guide section - data-driven version of the Tier 2 guide sections.
  * Takes content as props instead of hardcoding, for use in dynamic template pages.
  */
 export function DataDrivenGuideSection({

@@ -9,6 +9,7 @@ import type { Metadata } from "next"
 import { BreadcrumbSchema } from "@/components/seo/healthcare-schema"
 import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 import { MedicalDisclaimer } from "@/components/seo/medical-disclaimer"
+import { PRICING_DISPLAY } from "@/lib/constants"
 
 // Suburb/City data for "medical certificate online [location]" SEO
 const suburbs: Record<
@@ -238,7 +239,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!data) return {}
 
   const title = `Medical Certificate Online ${data.name}`
-  const description = `Get a medical certificate online in ${data.name}, ${data.stateShort}. Reviewed by AHPRA-registered Australian doctors. Valid for all employers. From $19.95.`
+  const description = `Get a medical certificate online in ${data.name}, ${data.stateShort}. Reviewed by AHPRA-registered Australian doctors. Valid for all employers. ${PRICING_DISPLAY.FROM_MED_CERT}.`
 
   return {
     title,
@@ -283,7 +284,7 @@ export default async function SuburbMedCertPage({ params }: PageProps) {
         name: `Can I get a medical certificate online in ${data.name}?`,
         acceptedAnswer: {
           "@type": "Answer",
-          text: `Yes! InstantMed provides online medical certificates to ${data.name} residents. Complete a quick questionnaire, get reviewed by an AHPRA-registered doctor, and receive your certificate — typically in under 30 minutes, available 24/7.`,
+          text: `Yes! InstantMed provides online medical certificates to ${data.name} residents. Complete a quick questionnaire, get reviewed by an AHPRA-registered doctor, and receive your certificate - typically in under 30 minutes, available 24/7.`,
         },
       },
       {
@@ -346,7 +347,7 @@ export default async function SuburbMedCertPage({ params }: PageProps) {
                 Get a Medical Certificate Online in {data.name}
               </h1>
               <p className="text-muted-foreground text-lg max-w-xl mx-auto mb-8">
-                Skip the waiting room. Get your medical certificate reviewed by an Australian doctor and delivered to your inbox — typically in <strong>under 30 minutes</strong>, 24/7.
+                Skip the waiting room. Get your medical certificate reviewed by an Australian doctor and delivered to your inbox - typically in <strong>under 30 minutes</strong>, 24/7.
               </p>
 
               <Link href="/medical-certificate/request">
@@ -426,7 +427,7 @@ export default async function SuburbMedCertPage({ params }: PageProps) {
                 </div>
                 <blockquote className="text-lg mb-4">&quot;{data.testimonial.quote}&quot;</blockquote>
                 <p className="text-sm text-muted-foreground">
-                  — {data.testimonial.name}, {data.testimonial.occupation} in {data.name}
+                  - {data.testimonial.name}, {data.testimonial.occupation} in {data.name}
                 </p>
               </div>
             </section>
@@ -476,13 +477,13 @@ export default async function SuburbMedCertPage({ params }: PageProps) {
           <section className="px-4 py-12 bg-muted/30">
             <div className="mx-auto max-w-2xl">
               <h2 className="text-xl font-semibold text-center mb-8">
-                Medical Certificates in {data.name} — FAQ
+                Medical Certificates in {data.name} - FAQ
               </h2>
               <div className="space-y-4">
                 {[
                   {
                     q: `Can I get a medical certificate online in ${data.name}?`,
-                    a: `Yes! InstantMed provides online medical certificates to ${data.name} residents and anyone in ${data.stateShort}. Complete a quick questionnaire, get reviewed by an AHPRA-registered doctor, and receive your certificate — typically in under 30 minutes, available 24/7.`,
+                    a: `Yes! InstantMed provides online medical certificates to ${data.name} residents and anyone in ${data.stateShort}. Complete a quick questionnaire, get reviewed by an AHPRA-registered doctor, and receive your certificate - typically in under 30 minutes, available 24/7.`,
                   },
                   {
                     q: "Will my employer accept this certificate?",
@@ -498,7 +499,7 @@ export default async function SuburbMedCertPage({ params }: PageProps) {
                   },
                   {
                     q: "What does it cost?",
-                    a: "Medical certificates start from $19.95. One flat fee, no hidden costs. If your request isn't approved, you'll receive a refund minus a small admin fee.",
+                    a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT}. One flat fee, no hidden costs. If your request isn't approved, you'll receive a refund minus a small admin fee.`,
                   },
                 ].map((faq, i) => (
                   <div key={i} className="p-5 rounded-xl bg-background">
@@ -523,7 +524,7 @@ export default async function SuburbMedCertPage({ params }: PageProps) {
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
               </Link>
-              <p className="mt-4 text-xs text-muted-foreground">From $19.95 • Valid for all employers</p>
+              <p className="mt-4 text-xs text-muted-foreground">{PRICING_DISPLAY.FROM_MED_CERT} • Valid for all employers</p>
             </div>
           </section>
 

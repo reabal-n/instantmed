@@ -5,7 +5,7 @@
  * Collects reason for consultation with common categories
  *
  * When consultSubtype is already set (user selected from service hub),
- * the category selector is hidden — only details + urgency are shown.
+ * the category selector is hidden - only details + urgency are shown.
  */
 
 import { useState, useEffect, useCallback } from "react"
@@ -28,7 +28,7 @@ interface ConsultReasonStepProps {
   onComplete: () => void
 }
 
-// General consult only — specialty subtypes (ED, hair loss, women's health, weight loss)
+// General consult only - specialty subtypes (ED, hair loss, women's health, weight loss)
 // have dedicated flows accessed from the service hub, not from here.
 const CONSULT_CATEGORIES = [
   { value: "skin", label: "Skin condition", description: "Rash, acne, eczema, or other skin concern" },
@@ -37,7 +37,7 @@ const CONSULT_CATEGORIES = [
   { value: "general", label: "Other / General concern", description: "Something else not listed above" },
 ] as const
 
-// Map hub subtypes to category values — only for the general subtype path
+// Map hub subtypes to category values - only for the general subtype path
 const SUBTYPE_TO_CATEGORY: Record<string, string> = {
   'general': 'general',
   'skin': 'skin',
@@ -52,22 +52,22 @@ const CATEGORY_GUIDANCE: Record<string, {
   suggestedTopics: string[]
 }> = {
   skin: {
-    placeholder: "Describe the skin condition — where it is, how long you've had it, any itching/pain, and what you've tried...",
+    placeholder: "Describe the skin condition - where it is, how long you've had it, any itching/pain, and what you've tried...",
     helperText: "Include location, appearance, duration, and any triggers or treatments tried.",
     suggestedTopics: ["Location on body", "Appearance", "Duration", "Triggers", "Treatments tried"],
   },
   infection: {
-    placeholder: "Describe your symptoms — e.g., sore throat, ear pain, wound infection — how long, and any fever...",
+    placeholder: "Describe your symptoms - e.g., sore throat, ear pain, wound infection - how long, and any fever...",
     helperText: "Include symptoms, duration, and whether you think antibiotics may be needed.",
     suggestedTopics: ["Main symptoms", "Duration", "Fever", "Previous antibiotics"],
   },
   mental_health: {
-    placeholder: "Describe what you're experiencing — e.g., anxiety, low mood, sleep issues — how long, and how it's affecting your daily life...",
+    placeholder: "Describe what you're experiencing - e.g., anxiety, low mood, sleep issues - how long, and how it's affecting your daily life...",
     helperText: "Include how long you've been experiencing this, what triggers it, and any previous treatment.",
     suggestedTopics: ["Main symptoms", "Duration", "Impact on daily life", "Previous treatment"],
   },
   general: {
-    placeholder: "Describe your health concern — this could be a referral, general health question, or anything else...",
+    placeholder: "Describe your health concern - this could be a referral, general health question, or anything else...",
     helperText: "Include symptoms, duration, and any relevant history. The more detail, the better we can help.",
     suggestedTopics: ["Main concern", "Duration", "Current medications", "What you've tried"],
   },
@@ -146,7 +146,7 @@ export default function ConsultReasonStep({ onNext }: ConsultReasonStepProps) {
         </AlertDescription>
       </Alert>
 
-      {/* Category selection — hidden when subtype was pre-selected from the service hub */}
+      {/* Category selection - hidden when subtype was pre-selected from the service hub */}
       {subtypePreSelected ? (
         <div className="space-y-1">
           <Label className="text-sm font-medium text-muted-foreground">

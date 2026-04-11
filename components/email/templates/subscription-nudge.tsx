@@ -1,5 +1,5 @@
 /**
- * Subscription Nudge Email Template — Day 30 post-approval
+ * Subscription Nudge Email Template - Day 30 post-approval
  *
  * Sent to repeat Rx patients who aren't on a subscription.
  * Shows savings comparison and links to start a new request.
@@ -14,6 +14,7 @@ import {
   Heading,
   colors,
 } from "../base-email"
+import { PRICING_DISPLAY } from "@/lib/constants"
 
 export interface SubscriptionNudgeEmailProps {
   patientName: string
@@ -48,11 +49,11 @@ export function SubscriptionNudgeEmail({
           <tbody>
             <tr>
               <td style={{ padding: "8px 0" }}>One-off repeat script</td>
-              <td style={{ padding: "8px 0", textAlign: "right" as const, fontWeight: 600 }}>$29.95</td>
+              <td style={{ padding: "8px 0", textAlign: "right" as const, fontWeight: 600 }}>{PRICING_DISPLAY.REPEAT_SCRIPT}</td>
             </tr>
             <tr style={{ borderTop: `1px solid ${colors.borderLight}` }}>
               <td style={{ padding: "8px 0", color: colors.accent, fontWeight: 600 }}>Monthly subscription</td>
-              <td style={{ padding: "8px 0", textAlign: "right" as const, color: colors.accent, fontWeight: 600 }}>$19.95/mo</td>
+              <td style={{ padding: "8px 0", textAlign: "right" as const, color: colors.accent, fontWeight: 600 }}>{PRICING_DISPLAY.REPEAT_RX_MONTHLY}/mo</td>
             </tr>
           </tbody>
         </table>

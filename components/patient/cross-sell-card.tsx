@@ -4,6 +4,7 @@ import Link from "next/link"
 import { ArrowRight } from "lucide-react"
 import { usePostHog } from "@/components/providers/posthog-provider"
 import type { ServiceType } from "@/types/db"
+import { PRICING_DISPLAY } from "@/lib/constants"
 
 interface CrossSellCardProps {
   serviceType: ServiceType | undefined
@@ -23,7 +24,7 @@ function getCrossSell(serviceType: ServiceType | undefined): CrossSellConfig | n
       return {
         headline: "Need a prescription renewal?",
         description: "A doctor reviews repeat medication requests the same way. No appointment needed.",
-        price: "from $29.95",
+        price: `from ${PRICING_DISPLAY.REPEAT_SCRIPT}`,
         href: "/request?service=prescription",
         cta: "Renew a prescription",
       }
@@ -31,7 +32,7 @@ function getCrossSell(serviceType: ServiceType | undefined): CrossSellConfig | n
       return {
         headline: "Need a GP consultation?",
         description: "For ongoing conditions, referrals, or anything that needs a more detailed review.",
-        price: "from $49.95",
+        price: `from ${PRICING_DISPLAY.CONSULT}`,
         href: "/request?service=consult",
         cta: "Start a consultation",
       }
@@ -41,7 +42,7 @@ function getCrossSell(serviceType: ServiceType | undefined): CrossSellConfig | n
       return {
         headline: "Need a medical certificate?",
         description: "For time off work, school, or caring for someone else. Reviewed the same way.",
-        price: "from $19.95",
+        price: `from ${PRICING_DISPLAY.MED_CERT}`,
         href: "/request?service=med-cert",
         cta: "Get a certificate",
       }

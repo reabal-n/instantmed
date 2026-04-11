@@ -1,11 +1,11 @@
 /**
- * BaseEmail — Premium email layout component
+ * BaseEmail - Premium email layout component
  *
  * Provides consistent header/footer/typography across all transactional emails.
  * Optimized for email client compatibility (inline styles, table-based layout).
  *
  * Design: Refined, warm, premium. Clean white canvas with generous whitespace.
- * Subtle Morning Spectrum palette — soft warmth with clinical trust.
+ * Subtle Morning Spectrum palette - soft warmth with clinical trust.
  */
 
 import * as React from "react"
@@ -14,26 +14,26 @@ import { getPatientCount, GOOGLE_REVIEWS } from "@/lib/social-proof"
 
 /* eslint-disable @next/next/no-head-element -- Email templates, not Next.js pages */
 
-// Brand colors — aligned with Morning Canvas design system
+// Brand colors - aligned with Morning Canvas design system
 const colors = {
   // Core
-  primary: "#1E293B",       // Slate-800 — headings, key text (matches --text)
-  accent: "#2563EB",        // Blue-600 — buttons, links, active (matches --blue)
+  primary: "#1E293B",       // Slate-800 - headings, key text (matches --text)
+  accent: "#2563EB",        // Blue-600 - buttons, links, active (matches --blue)
   accentHover: "#1D4ED8",   // Blue-700
-  accentLight: "#EFF6FF",   // Blue-50 — accent backgrounds
+  accentLight: "#EFF6FF",   // Blue-50 - accent backgrounds
   accentBorder: "#BFDBFE",  // Blue-200
 
   // Surfaces
-  background: "#F8F7F4",    // Warm ivory — outer background (matches --bg)
+  background: "#F8F7F4",    // Warm ivory - outer background (matches --bg)
   cardBg: "#ffffff",
-  surfaceSubtle: "#F5F7F9", // Mist-100 — info boxes (matches --elevated)
-  surfaceWarm: "#F8F7F4",   // Warm ivory — footer background
+  surfaceSubtle: "#F5F7F9", // Mist-100 - info boxes (matches --elevated)
+  surfaceWarm: "#F8F7F4",   // Warm ivory - footer background
 
   // Typography
-  text: "#1E293B",          // Slate-800 — headings (matches --text)
-  textBody: "#475569",      // Slate-600 — body text (matches --muted)
-  textSecondary: "#64748B", // Slate-500 — secondary
-  textMuted: "#94A3B8",     // Slate-400 — footer, fine print
+  text: "#1E293B",          // Slate-800 - headings (matches --text)
+  textBody: "#475569",      // Slate-600 - body text (matches --muted)
+  textSecondary: "#64748B", // Slate-500 - secondary
+  textMuted: "#94A3B8",     // Slate-400 - footer, fine print
 
   // Borders
   border: "#E2E8F0",        // Slate-200
@@ -62,7 +62,7 @@ const colors = {
   errorText: "#991B1B",     // Red-800
 }
 
-// System sans-serif stack — web fonts get stripped by most email clients, causing serif fallback
+// System sans-serif stack - web fonts get stripped by most email clients, causing serif fallback
 const fontFamily = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
 
 // Placeholder replaced by sendEmail() / sendFromOutboxRow() with a signed preference-center URL.
@@ -92,7 +92,7 @@ export function BaseEmail({ children, previewText, appUrl = "https://instantmed.
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="color-scheme" content="light dark" />
         <meta name="supported-color-schemes" content="light dark" />
-{/* No web fonts — email clients strip <link> tags, causing serif fallback */}
+{/* No web fonts - email clients strip <link> tags, causing serif fallback */}
         <title>InstantMed</title>
         {/* MSO conditional for Outlook desktop dark mode */}
         <div dangerouslySetInnerHTML={{ __html: `<!--[if mso]>
@@ -202,7 +202,7 @@ export function BaseEmail({ children, previewText, appUrl = "https://instantmed.
                   }}
                 >
                   <tbody>
-                    {/* Header — Logo + Wordmark */}
+                    {/* Header - Logo + Wordmark */}
                     <tr>
                       <td
                         style={{
@@ -652,7 +652,7 @@ export function DetailRow({ label, value, mono, bold }: DetailRowProps) {
   )
 }
 
-// Hero block — centered icon + headline + subtitle for email headers
+// Hero block - centered icon + headline + subtitle for email headers
 interface HeroBlockProps {
   icon: string
   headline: string

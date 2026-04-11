@@ -418,7 +418,7 @@ export default function UniversitiesPage() {
                 </div>
                 <div className="space-y-3 text-sm text-muted-foreground">
                   <p>
-                    Most Australian universities require students to submit a medical certificate within 3-5 business days of a missed assessment. InstantMed certificates are typically issued within 30 minutes, available 24/7 — meaning students can obtain documentation promptly, even on weekends, public holidays, or during after-hours exam periods when GP clinics are closed.
+                    Most Australian universities require students to submit a medical certificate within 3-5 business days of a missed assessment. InstantMed certificates are typically issued within 30 minutes, available 24/7 - meaning students can obtain documentation promptly, even on weekends, public holidays, or during after-hours exam periods when GP clinics are closed.
                   </p>
                   <p>
                     Our certificates contain all elements typically required by university special consideration policies: practitioner details, AHPRA registration, consultation date, period of unfitness, and the practitioner&apos;s signature. Faculties should assess the certificate on its merits, applying the same standards as any certificate from a registered medical practice.
@@ -436,7 +436,7 @@ export default function UniversitiesPage() {
                 </div>
                 <div className="space-y-3 text-sm text-muted-foreground">
                   <p>
-                    Under Australian privacy law, students are not required to disclose their specific diagnosis. The certificate confirms unfitness for study or assessment — that is the extent of what institutions are entitled to know. Requiring students to provide additional clinical details beyond what appears on the certificate may breach privacy obligations.
+                    Under Australian privacy law, students are not required to disclose their specific diagnosis. The certificate confirms unfitness for study or assessment - that is the extent of what institutions are entitled to know. Requiring students to provide additional clinical details beyond what appears on the certificate may breach privacy obligations.
                   </p>
                   <p>
                     InstantMed complies with the Australian Privacy Principles and stores patient health information in accordance with the Privacy Act 1988. We do not share patient clinical details with educational institutions beyond what is stated on the certificate itself.

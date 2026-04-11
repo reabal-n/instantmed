@@ -19,17 +19,17 @@ type MessageSet = {
 const CONTEXTUAL_MESSAGES: Record<ContextualMessageService, MessageSet> = {
   "med-cert": {
     mondayMorning: "Monday morning? Most patients get their certificate before their first meeting.",
-    sundayEvening: "Sunday night — sort tomorrow's sick day now and relax.",
+    sundayEvening: "Sunday night - sort tomorrow's sick day now and relax.",
     weeknightLate: "Too late for the GP? We run 24/7 for certificates.",
     weekendDay: "Weekend and your GP is closed? We're always open.",
     fallback: "Quick, discreet, and reviewed by an Australian-registered doctor.",
   },
   "ed": {
     mondayMorning: "Sorting this before the day starts? Most assessments are reviewed before lunch.",
-    sundayEvening: "Get it sorted tonight — reviewed before Monday.",
+    sundayEvening: "Get it sorted tonight - reviewed before Monday.",
     weeknightLate: "Too late for a GP? We're reviewing now.",
     weekendDay: "Weekend and your GP is closed? We're open right now.",
-    fallback: "No calls, no waiting rooms — just a structured form reviewed by an Australian doctor.",
+    fallback: "No calls, no waiting rooms - just a structured form reviewed by an Australian doctor.",
   },
   "hair-loss": {
     januaryAny: "Starting fresh this year? Month 3 is usually when patients notice the difference.",
@@ -40,7 +40,7 @@ const CONTEXTUAL_MESSAGES: Record<ContextualMessageService, MessageSet> = {
 }
 
 function getAESTDate(date: Date = new Date()): { dayOfWeek: number; hour: number; month: number } {
-  // Convert to AEST (UTC+10) — simple offset, does not handle DST
+  // Convert to AEST (UTC+10) - simple offset, does not handle DST
   const utc = date.getTime() + date.getTimezoneOffset() * 60000
   const aest = new Date(utc + 10 * 3600000)
   return {

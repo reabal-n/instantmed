@@ -30,7 +30,7 @@ import { SOCIAL_PROOF } from "@/lib/social-proof"
 // DATA
 // =============================================================================
 
-/** Icon map — keeps lucide imports in the component (not the lib module). */
+/** Icon map - keeps lucide imports in the component (not the lib module). */
 const CATEGORY_ICONS: Record<CertCategory, typeof Briefcase> = {
   work: Briefcase,
   study: GraduationCap,
@@ -48,7 +48,7 @@ const CATEGORY_GRADIENTS: Record<CertCategory, { gradient: string; selectedGradi
 // =============================================================================
 
 /**
- * Interactive certificate type selector — engagement hook for the med cert
+ * Interactive certificate type selector - engagement hook for the med cert
  * landing page. Replaces the trust-strip wall between hero and HowItWorks.
  *
  * Shows 3 category cards (work / study / carer) with common reasons.
@@ -102,7 +102,7 @@ export function CertificateTypeSelector({
             Which certificate do you need?
           </h2>
           <p className="text-sm text-muted-foreground max-w-lg mx-auto">
-            Select your situation — we&apos;ll tailor the form to match.
+            Select your situation - we&apos;ll tailor the form to match.
           </p>
         </motion.div>
 
@@ -164,7 +164,7 @@ export function CertificateTypeSelector({
           })}
         </div>
 
-        {/* Pricing ladder + CTA — visible once a category is selected */}
+        {/* Pricing ladder + CTA - visible once a category is selected */}
         <motion.div
           className="mt-6 text-center"
           initial={false}
@@ -239,7 +239,7 @@ export function CertificateTypeSelector({
 }
 
 // ---------------------------------------------------------------------------
-// Comparison Table — InstantMed vs GP vs Other Telehealth
+// Comparison Table - InstantMed vs GP vs Other Telehealth
 // ---------------------------------------------------------------------------
 
 const comparisonRows: Array<{

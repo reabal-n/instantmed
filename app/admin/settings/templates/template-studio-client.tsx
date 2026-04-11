@@ -137,7 +137,7 @@ export function TemplateStudioClient({ initialData }: TemplateStudioClientProps)
     setScenarios((prev) => ({ ...prev, [id]: !prev[id] }))
   }, [])
 
-  // Save clinic identity (template editing removed — templates are static PDFs)
+  // Save clinic identity (template editing removed - templates are static PDFs)
   const handleSave = useCallback(() => {
     startTransition(async () => {
       setMessage(null)
@@ -727,7 +727,7 @@ export function TemplateStudioClient({ initialData }: TemplateStudioClientProps)
               </CardContent>
             </Card>
 
-            {/* Version history removed — templates are static PDFs */}
+            {/* Version history removed - templates are static PDFs */}
           </div>
         </div>
       </div>

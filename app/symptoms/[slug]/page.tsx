@@ -23,7 +23,7 @@ import { symptoms } from "@/lib/seo/data/symptoms"
 const SHARED_SYMPTOM_FAQS: Array<{ q: string; a: string }> = [
   {
     q: "When should I get a medical certificate for my symptoms?",
-    a: "If your symptoms are keeping you from work or study, you can request a medical certificate through InstantMed. A doctor will review your symptoms and issue a certificate if clinically appropriate — typically for 1 to 3 days depending on severity. You don't need to be dramatically unwell; feeling genuinely too rough to function is reason enough.",
+    a: "If your symptoms are keeping you from work or study, you can request a medical certificate through InstantMed. A doctor will review your symptoms and issue a certificate if clinically appropriate - typically for 1 to 3 days depending on severity. You don't need to be dramatically unwell; feeling genuinely too rough to function is reason enough.",
   },
   {
     q: "Can I get a medical certificate without seeing a doctor in person?",
@@ -31,15 +31,15 @@ const SHARED_SYMPTOM_FAQS: Array<{ q: string; a: string }> = [
   },
   {
     q: "How does a doctor assess my symptoms through telehealth?",
-    a: "You complete a structured health questionnaire covering your symptoms, duration, severity, and relevant medical history. The reviewing doctor uses this information — the same clinical reasoning they'd apply in a face-to-face consult — to determine whether a certificate, advice, or referral is appropriate.",
+    a: "You complete a structured health questionnaire covering your symptoms, duration, severity, and relevant medical history. The reviewing doctor uses this information - the same clinical reasoning they'd apply in a face-to-face consult - to determine whether a certificate, advice, or referral is appropriate.",
   },
   {
     q: "What if my symptoms get worse after getting a certificate?",
-    a: "A medical certificate covers the period stated on the document. If your symptoms worsen or don't improve as expected, you should see a GP in person or visit your nearest emergency department if it's urgent. Your certificate doesn't replace ongoing care — it's a point-in-time clinical assessment.",
+    a: "A medical certificate covers the period stated on the document. If your symptoms worsen or don't improve as expected, you should see a GP in person or visit your nearest emergency department if it's urgent. Your certificate doesn't replace ongoing care - it's a point-in-time clinical assessment.",
   },
   {
     q: "Can I get a prescription through InstantMed for my symptoms?",
-    a: "In some cases, yes. If a doctor reviewing your request determines that a common, non-restricted treatment is appropriate, they may issue a prescription as part of a consultation. Not all symptoms require or qualify for a prescription — the doctor will advise you on next steps.",
+    a: "In some cases, yes. If a doctor reviewing your request determines that a common, non-restricted treatment is appropriate, they may issue a prescription as part of a consultation. Not all symptoms require or qualify for a prescription - the doctor will advise you on next steps.",
   },
   {
     q: "How long does the doctor's review take?",
@@ -47,7 +47,7 @@ const SHARED_SYMPTOM_FAQS: Array<{ q: string; a: string }> = [
   },
   {
     q: "What happens if the doctor thinks I need in-person care?",
-    a: "If your symptoms suggest something that requires a physical examination, diagnostic tests, or specialist referral, the doctor will let you know and recommend appropriate next steps. Your safety is the priority — telehealth is a great option for many things, but it's not a replacement for hands-on assessment when that's what's needed.",
+    a: "If your symptoms suggest something that requires a physical examination, diagnostic tests, or specialist referral, the doctor will let you know and recommend appropriate next steps. Your safety is the priority - telehealth is a great option for many things, but it's not a replacement for hands-on assessment when that's what's needed.",
   },
   {
     q: "Do I need a Medicare card to use InstantMed?",
@@ -305,7 +305,7 @@ export default async function SymptomPage({ params }: PageProps) {
             </div>
           </section>
 
-          {/* Doctor's Perspective — unique clinical triage insight */}
+          {/* Doctor's Perspective - unique clinical triage insight */}
           {symptom.doctorPerspective && (
             <section className="px-4 py-16">
               <div className="mx-auto max-w-3xl">
@@ -376,7 +376,7 @@ export default async function SymptomPage({ params }: PageProps) {
             </section>
           )}
 
-          {/* Related Reading — contextual per symptom's service type */}
+          {/* Related Reading - contextual per symptom's service type */}
           <section className="px-4 py-8">
             <div className="mx-auto max-w-3xl">
               <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 text-sm">

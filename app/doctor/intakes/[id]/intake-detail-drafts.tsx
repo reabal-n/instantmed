@@ -47,7 +47,7 @@ export function IntakeDetailDrafts({
 
   return (
     <>
-      {/* AI-Generated Drafts (excludes clinical_note — shown in Clinical Notes textarea) */}
+      {/* AI-Generated Drafts (excludes clinical_note - shown in Clinical Notes textarea) */}
       {(() => {
         const nonNoteDrafts = aiDrafts.filter((d) => d.type !== "clinical_note")
         return nonNoteDrafts.length > 0 ? (

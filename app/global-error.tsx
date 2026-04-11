@@ -3,10 +3,10 @@
 import { useEffect } from "react"
 
 /**
- * Global error boundary — last-resort fallback that replaces the entire root layout.
+ * Global error boundary - last-resort fallback that replaces the entire root layout.
  *
  * IMPORTANT: This file must stay MINIMAL. No heavy imports (Sentry, Framer Motion,
- * lucide-react, etc.) — any module that touches webpack hooks or has complex
+ * lucide-react, etc.) - any module that touches webpack hooks or has complex
  * initialization can crash the hydration bootstrap, causing a blank page.
  *
  * Sentry captures unhandled errors automatically via instrumentation-client.ts.
@@ -32,7 +32,7 @@ export default function GlobalError({
           return
         }
       } catch {
-        // sessionStorage may be unavailable — fall through to error UI
+        // sessionStorage may be unavailable - fall through to error UI
       }
     }
 
@@ -79,7 +79,7 @@ export default function GlobalError({
                 background: "rgba(251, 191, 36, 0.1)",
               }}
             >
-              {/* Inline SVG — no lucide-react import to avoid module init failures */}
+              {/* Inline SVG - no lucide-react import to avoid module init failures */}
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="48"
@@ -133,7 +133,7 @@ export default function GlobalError({
                 fontSize: "0.875rem",
               }}
             >
-              {/* Inline SVG — RefreshCw icon */}
+              {/* Inline SVG - RefreshCw icon */}
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="16"

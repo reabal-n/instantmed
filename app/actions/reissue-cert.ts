@@ -4,7 +4,7 @@
  * Reissue Certificate Action
  *
  * Allows a doctor to correct and reissue an existing medical certificate in-place.
- * Same certificate number and ref are preserved — the issued_certificates row is
+ * Same certificate number and ref are preserved - the issued_certificates row is
  * updated, new PDF is generated, old PDF is replaced in storage, and the change
  * is logged to certificate_audit_log.
  *
@@ -52,7 +52,7 @@ export async function reissueCertificateAction(
 ): Promise<ReissueCertResult> {
   const { intakeId } = input
 
-  // 1. AUTH CHECK — doctors only, not admin
+  // 1. AUTH CHECK - doctors only, not admin
   const user = await requireRoleOrNull(["doctor"])
   if (!user) {
     return { success: false, error: "Unauthorized" }
@@ -84,7 +84,7 @@ export async function reissueCertificateAction(
       return { success: false, error: "Certificate duration cannot exceed 30 days" }
     }
 
-    // 3. FETCH EXISTING CERT — must be valid
+    // 3. FETCH EXISTING CERT - must be valid
     const cert = await getCertificateForIntake(intakeId)
 
     if (!cert) {
@@ -94,11 +94,11 @@ export async function reissueCertificateAction(
     if (cert.status !== "valid") {
       return {
         success: false,
-        error: `Certificate cannot be reissued — current status is "${cert.status}"`,
+        error: `Certificate cannot be reissued - current status is "${cert.status}"`,
       }
     }
 
-    // 4. RATE LIMIT — max 3 reissues
+    // 4. RATE LIMIT - max 3 reissues
     if ((cert.resend_count ?? 0) >= 3) {
       return {
         success: false,
@@ -179,7 +179,7 @@ export async function reissueCertificateAction(
     // 9. COMPUTE NEW PDF HASH
     const newHash = crypto.createHash("sha256").update(pdfBuffer).digest("hex")
 
-    // 10. UPLOAD NEW PDF — upsert to the same storage path
+    // 10. UPLOAD NEW PDF - upsert to the same storage path
     const { error: uploadError } = await supabase.storage
       .from("documents")
       .upload(cert.storage_path, pdfBuffer, {
@@ -234,7 +234,7 @@ export async function reissueCertificateAction(
       certificateType: input.certificateType,
     })
 
-    // 12. LOG TO AUDIT TRAIL — fire-and-forget, non-blocking
+    // 12. LOG TO AUDIT TRAIL - fire-and-forget, non-blocking
     const newValues = {
       patient_name: patientName,
       start_date: input.startDate,
@@ -328,7 +328,7 @@ export async function reissueCertificateAction(
           })
         }
       } catch (emailError) {
-        // Notification failure is non-fatal — cert update already succeeded
+        // Notification failure is non-fatal - cert update already succeeded
         logger.warn("[ReissueCert] Patient notification failed (non-fatal)", {
           intakeId,
           certId: cert.id,

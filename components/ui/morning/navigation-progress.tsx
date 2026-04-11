@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
-// framer-motion removed — module factory race condition in root layout chunk.
+// framer-motion removed - module factory race condition in root layout chunk.
 // Progress bar uses CSS transition triggered via requestAnimationFrame.
 // useReducedMotion inlined here (not imported from motion.tsx) to avoid
 // co-bundling with the framer-motion chunk, which causes factory unavailability

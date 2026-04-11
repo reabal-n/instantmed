@@ -242,7 +242,7 @@ describe("checkInteractionPatterns", () => {
   })
 
   it("defaults missing interaction fields to 0", () => {
-    // All default to 0 — no conditions triggered because keystrokes=0
+    // All default to 0 - no conditions triggered because keystrokes=0
     const result = checkInteractionPatterns({})
     expect(result.triggered).toBe(false)
   })

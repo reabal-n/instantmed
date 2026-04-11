@@ -4,9 +4,9 @@
  * Defines the data model for AI-collected intake that feeds the doctor review queue.
  * 
  * CRITICAL BOUNDARIES:
- * - AI collects data only — no clinical interpretation
- * - AI flags patterns — doctor makes decisions
- * - AI summarizes — doctor diagnoses
+ * - AI collects data only - no clinical interpretation
+ * - AI flags patterns - doctor makes decisions
+ * - AI summarizes - doctor diagnoses
  */
 
 // =============================================================================

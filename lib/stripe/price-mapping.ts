@@ -94,7 +94,7 @@ export function getConsultPriceId(subtype: string, answers?: Record<string, unkn
     throw new Error("Missing STRIPE_PRICE_CONSULT environment variable")
   }
 
-  // Hard fail in production if a KNOWN subtype is missing its dedicated env var —
+  // Hard fail in production if a KNOWN subtype is missing its dedicated env var -
   // mischarging a customer is worse than a 500. env.ts already validates the four
   // subtype vars at boot in production; this is a belt-and-braces runtime check
   // per checkout in case of late env mutation or misconfigured subset deploys.
@@ -110,7 +110,7 @@ export function getConsultPriceId(subtype: string, answers?: Record<string, unkn
     }
     logger.warn("No specific price for consult subtype, using default (dev/test only)", { subtype })
   } else if (subtype && subtype !== 'general') {
-    // Unknown subtype (e.g. 'new_medication', future values) — silent fallback,
+    // Unknown subtype (e.g. 'new_medication', future values) - silent fallback,
     // these are intentionally routed through the generic consult price.
     logger.warn("No specific price for consult subtype, using default", { subtype })
   }
@@ -152,7 +152,7 @@ export function getPriceIdForRequest({ category, subtype, answers }: PriceIdInpu
     return priceId
   }
 
-  // Prescriptions — the intake flow is always for repeats ($29.95).
+  // Prescriptions - the intake flow is always for repeats ($29.95).
   // New prescriptions route through the consult flow and use STRIPE_PRICE_CONSULT ($49.95).
   if (category === "prescription") {
     const priceId = process.env.STRIPE_PRICE_REPEAT_SCRIPT
@@ -177,7 +177,7 @@ export function getPriceIdForRequest({ category, subtype, answers }: PriceIdInpu
 export function getConsultSubtypePrice(subtype?: string): number {
   if (!subtype) return PRICING.CONSULT
 
-  // Canonical prices from constants — env vars override for runtime flexibility
+  // Canonical prices from constants - env vars override for runtime flexibility
   const subtypeDefaults: Record<string, number> = {
     'ed': PRICING.MENS_HEALTH,
     'hair_loss': PRICING.HAIR_LOSS,

@@ -47,7 +47,7 @@ export default async function TrackingPage({ params }: PageProps) {
 
   const estimatedMinutes = queuePosition * 15
 
-  // Supabase returns join relations as arrays with .single() — unwrap for component
+  // Supabase returns join relations as arrays with .single() - unwrap for component
   const intakeForClient = {
     ...intake,
     patient: Array.isArray(intake.patient) ? intake.patient[0] : intake.patient,

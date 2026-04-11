@@ -76,7 +76,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
           initial="initial"
           whileHover={prefersReducedMotion ? undefined : "hover"}
         >
-          {/* Nav glow effect — AUDIT FIX: disabled when user prefers reduced motion */}
+          {/* Nav glow effect - AUDIT FIX: disabled when user prefers reduced motion */}
           {!prefersReducedMotion && (
             <motion.div
               className={cn(

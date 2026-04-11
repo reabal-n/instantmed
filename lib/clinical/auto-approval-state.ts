@@ -1,9 +1,9 @@
 /**
- * Auto-Approval State Machine — Atomic State Transitions
+ * Auto-Approval State Machine - Atomic State Transitions
  *
  * Every auto-approval state change in the system goes through this module.
  * Uses CAS (compare-and-swap) pattern: UPDATE ... WHERE state = expected.
- * If 0 rows updated, someone else transitioned first — return false.
+ * If 0 rows updated, someone else transitioned first - return false.
  *
  * Observability (Sentry, PostHog, Telegram) is centralized here.
  */
@@ -210,14 +210,14 @@ export async function markFailedRetrying(
   )
 
   if (result) {
-    // Increment attempts — separate query. Not atomic with the state transition,
+    // Increment attempts - separate query. Not atomic with the state transition,
     // but attempts is observability-only, not used for CAS decisions.
     try {
       await (supabase as unknown as {
         rpc: (fn: string, args: Record<string, unknown>) => Promise<unknown>
       }).rpc("increment_auto_approval_attempts", { intake_id: intakeId })
     } catch {
-      // Fallback: if RPC isn't available, the counter may lag — acceptable for observability
+      // Fallback: if RPC isn't available, the counter may lag - acceptable for observability
     }
   }
 

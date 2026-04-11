@@ -77,7 +77,7 @@ function expectContains(html: string, ...substrings: string[]) {
 }
 
 // ============================================================================
-// TESTS — RENDER + STRUCTURE
+// TESTS - RENDER + STRUCTURE
 // ============================================================================
 
 describe("Email Templates", () => {
@@ -1145,7 +1145,7 @@ describe("Email Template Cross-Checks", () => {
 describe("Link validation", () => {
   /**
    * Registry of all templates with mock data. Iterating over this ensures
-   * every template is covered automatically — adding a new template here
+   * every template is covered automatically - adding a new template here
    * is the only step needed to include it in link checks.
    */
   const templateRegistry: Record<string, React.ReactElement> = {
@@ -1478,7 +1478,7 @@ describe("Google Review UTM tracking", () => {
   }
 
   for (const [name, element] of Object.entries(reviewTemplates)) {
-    it(`${name} — review redirect links include utm_source=email`, () => {
+    it(`${name} - review redirect links include utm_source=email`, () => {
       const html = renderToStaticMarkup(element)
       // Review links now go through /api/review-redirect with UTM params
       const reviewUrls = html.match(/\/api\/review-redirect\?[^"]+/g)
@@ -1536,7 +1536,7 @@ describe("Referral CTA UTM tracking", () => {
   }
 
   for (const [name, element] of Object.entries(referralTemplates)) {
-    it(`${name} — referral links include utm_source=email`, () => {
+    it(`${name} - referral links include utm_source=email`, () => {
       const html = renderToStaticMarkup(element)
       // Find referral link
       const referralMatch = html.match(/href="[^"]*tab=referrals[^"]*"/)
@@ -1555,7 +1555,7 @@ describe("From-domain alignment", () => {
   it("RESEND_FROM_EMAIL domain matches NEXT_PUBLIC_APP_URL domain", () => {
     // In prod, emails must be sent from the same domain as the app
     // to pass SPF/DKIM alignment checks. This catches misconfigurations.
-    // Use production defaults — test env has localhost which is irrelevant.
+    // Use production defaults - test env has localhost which is irrelevant.
     const appUrl = "https://instantmed.com.au"
     const fromEmail = process.env.RESEND_FROM_EMAIL || "InstantMed <support@instantmed.com.au>"
 

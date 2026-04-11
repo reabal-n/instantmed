@@ -1,5 +1,5 @@
 /**
- * Phase 4 SEO expansion — new blog articles
+ * Phase 4 SEO expansion - new blog articles
  * Target: 80-100 total articles. Each 800+ words, unique content.
  */
 
@@ -25,7 +25,7 @@ export const phase4ExpansionArticles: Article[] = [
     content: [
       {
         type: 'paragraph',
-        content: 'A jury duty summons arrives in the post, and suddenly you have a date with the justice system. For most people, it is a civic obligation they can accommodate. But if you have a medical condition, a disability, or caring responsibilities that make attendance genuinely difficult, Australian courts provide a clear exemption process — and a medical certificate is the most common way to support your case.',
+        content: 'A jury duty summons arrives in the post, and suddenly you have a date with the justice system. For most people, it is a civic obligation they can accommodate. But if you have a medical condition, a disability, or caring responsibilities that make attendance genuinely difficult, Australian courts provide a clear exemption process - and a medical certificate is the most common way to support your case.',
       },
       {
         type: 'paragraph',
@@ -38,7 +38,7 @@ export const phase4ExpansionArticles: Article[] = [
       },
       {
         type: 'paragraph',
-        content: 'Trials can last anywhere from a single day to several months. Most are shorter — a few days to a couple of weeks — but the uncertainty alone can be a problem for people managing health conditions, medications, or dependant care.',
+        content: 'Trials can last anywhere from a single day to several months. Most are shorter - a few days to a couple of weeks - but the uncertainty alone can be a problem for people managing health conditions, medications, or dependant care.',
       },
       { type: 'heading', content: 'Grounds for Medical Exemption', level: 2 },
       {
@@ -51,7 +51,7 @@ export const phase4ExpansionArticles: Article[] = [
         items: [
           'An acute illness or injury that makes attending court impractical',
           'A chronic condition that would be worsened by the stress or demands of jury service',
-          'A mental health condition — including anxiety disorders, PTSD, or depression — that would be significantly exacerbated',
+          'A mental health condition - including anxiety disorders, PTSD, or depression - that would be significantly exacerbated',
           'A disability that creates barriers to participation (mobility, hearing, cognitive)',
           'Pregnancy or recent childbirth, particularly with complications',
           'A condition requiring frequent medical appointments or treatment schedules that conflict with service dates',
@@ -65,7 +65,7 @@ export const phase4ExpansionArticles: Article[] = [
       { type: 'heading', content: 'New South Wales', level: 3 },
       {
         type: 'paragraph',
-        content: 'In NSW, jury service is managed under the Jury Act 1977. You can apply for exemption or deferral online through the NSW Jury Duty website or by contacting the Sheriff\'s Office. Medical certificates should be attached to your online application or posted. NSW allows exemptions for "good cause," which includes medical conditions and caring responsibilities. You will receive a written response — typically within 1-2 weeks.',
+        content: 'In NSW, jury service is managed under the Jury Act 1977. You can apply for exemption or deferral online through the NSW Jury Duty website or by contacting the Sheriff\'s Office. Medical certificates should be attached to your online application or posted. NSW allows exemptions for "good cause," which includes medical conditions and caring responsibilities. You will receive a written response - typically within 1-2 weeks.',
       },
       { type: 'heading', content: 'Victoria', level: 3 },
       {
@@ -75,12 +75,12 @@ export const phase4ExpansionArticles: Article[] = [
       { type: 'heading', content: 'Queensland', level: 3 },
       {
         type: 'paragraph',
-        content: 'Queensland\'s Jury Act 1995 allows exemptions for "physical or mental disability" and for people with caring responsibilities for someone who cannot care for themselves. Applications go to the Sheriff\'s Office. Queensland is generally pragmatic about exemption requests supported by medical evidence. Respond promptly — they are less sympathetic to last-minute applications.',
+        content: 'Queensland\'s Jury Act 1995 allows exemptions for "physical or mental disability" and for people with caring responsibilities for someone who cannot care for themselves. Applications go to the Sheriff\'s Office. Queensland is generally pragmatic about exemption requests supported by medical evidence. Respond promptly - they are less sympathetic to last-minute applications.',
       },
       {
         type: 'callout',
         variant: 'info',
-        content: 'Other states and territories (SA, WA, TAS, NT, ACT) follow similar processes. Your summons will include specific instructions and contact details for your jurisdiction. When in doubt, call the number on your summons — court staff are used to fielding these questions.',
+        content: 'Other states and territories (SA, WA, TAS, NT, ACT) follow similar processes. Your summons will include specific instructions and contact details for your jurisdiction. When in doubt, call the number on your summons - court staff are used to fielding these questions.',
       },
       { type: 'heading', content: 'What Courts Actually Look For', level: 2 },
       {
@@ -94,7 +94,7 @@ export const phase4ExpansionArticles: Article[] = [
           'Your full legal name (matching the summons)',
           'The doctor\'s name, AHPRA registration, and practice details',
           'A statement that you are unfit for jury duty, or that jury service would cause undue hardship',
-          'The expected duration — whether the condition is temporary or ongoing',
+          'The expected duration - whether the condition is temporary or ongoing',
           'The date of the consultation',
         ],
       },
@@ -119,7 +119,7 @@ export const phase4ExpansionArticles: Article[] = [
       },
       {
         type: 'paragraph',
-        content: 'The good news is that applying for an exemption — even late — is always better than simply not showing up. Courts understand that people forget, that mail gets lost, and that life happens. What they do not appreciate is radio silence.',
+        content: 'The good news is that applying for an exemption - even late - is always better than simply not showing up. Courts understand that people forget, that mail gets lost, and that life happens. What they do not appreciate is radio silence.',
       },
       { type: 'heading', content: 'Timeline Expectations', level: 2 },
       {
@@ -139,7 +139,7 @@ export const phase4ExpansionArticles: Article[] = [
       },
       {
         type: 'paragraph',
-        content: 'A medical certificate or statutory declaration from a treating doctor can support a carer\'s exemption. If the person you care for has a condition requiring your presence — for example, you administer medication, assist with mobility, or provide supervision — detail this in your application. Courts are generally sympathetic to genuine caring situations.',
+        content: 'A medical certificate or statutory declaration from a treating doctor can support a carer\'s exemption. If the person you care for has a condition requiring your presence - for example, you administer medication, assist with mobility, or provide supervision - detail this in your application. Courts are generally sympathetic to genuine caring situations.',
       },
       {
         type: 'callout',
@@ -154,7 +154,7 @@ export const phase4ExpansionArticles: Article[] = [
       },
       {
         type: 'paragraph',
-        content: 'The key requirement is that a real, registered doctor has assessed your situation and issued the certificate. How that consultation occurred — in a clinic, over the phone, or via an online form — is not something courts scrutinise.',
+        content: 'The key requirement is that a real, registered doctor has assessed your situation and issued the certificate. How that consultation occurred - in a clinic, over the phone, or via an online form - is not something courts scrutinise.',
         links: [{ text: 'online form', href: '/how-it-works', title: 'How our process works' }],
       },
     ],
@@ -177,11 +177,11 @@ export const phase4ExpansionArticles: Article[] = [
       },
       {
         question: 'Can I be called for jury duty again after an exemption?',
-        answer: 'If your exemption was temporary, yes — you may be summoned again in the future. Permanent exemptions (for ongoing disabilities or conditions) are noted on the jury roll and you should not receive further summons.',
+        answer: 'If your exemption was temporary, yes - you may be summoned again in the future. Permanent exemptions (for ongoing disabilities or conditions) are noted on the jury roll and you should not receive further summons.',
       },
       {
         question: 'What if I receive the summons late or after the deadline?',
-        answer: 'Contact the court immediately. Explain the situation and submit your exemption application with whatever evidence you have. Courts understand postal delays and are generally reasonable about late responses — silence is the only unacceptable response.',
+        answer: 'Contact the court immediately. Explain the situation and submit your exemption application with whatever evidence you have. Courts understand postal delays and are generally reasonable about late responses - silence is the only unacceptable response.',
       },
     ],
     relatedServices: [
@@ -212,7 +212,7 @@ export const phase4ExpansionArticles: Article[] = [
     content: [
       {
         type: 'paragraph',
-        content: 'Telehealth has become a standard part of Australian healthcare. Over 100 million telehealth services were delivered in Australia between 2020 and 2024, and what started as a pandemic workaround has settled into a permanent feature of how people access medical care. If you have not tried it yet, you are not behind — you are just about to discover why so many Australians prefer it for routine healthcare needs.',
+        content: 'Telehealth has become a standard part of Australian healthcare. Over 100 million telehealth services were delivered in Australia between 2020 and 2024, and what started as a pandemic workaround has settled into a permanent feature of how people access medical care. If you have not tried it yet, you are not behind - you are just about to discover why so many Australians prefer it for routine healthcare needs.',
       },
       {
         type: 'paragraph',
@@ -221,12 +221,12 @@ export const phase4ExpansionArticles: Article[] = [
       { type: 'heading', content: 'Async vs Video: Two Kinds of Telehealth', level: 2 },
       {
         type: 'paragraph',
-        content: 'Most people picture telehealth as a video call with a doctor. That is one model, but it is not the only one — and for many routine needs, it is not even the most efficient one.',
+        content: 'Most people picture telehealth as a video call with a doctor. That is one model, but it is not the only one - and for many routine needs, it is not even the most efficient one.',
       },
       { type: 'heading', content: 'Asynchronous (Form-Based) Telehealth', level: 3 },
       {
         type: 'paragraph',
-        content: 'You complete a detailed health questionnaire at a time that suits you. A doctor reviews your information, asks follow-up questions if needed, and provides their assessment. There is no scheduled appointment — you submit when you are ready, and the doctor reviews during operating hours. This model works well for medical certificates, prescription renewals, and straightforward health concerns.',
+        content: 'You complete a detailed health questionnaire at a time that suits you. A doctor reviews your information, asks follow-up questions if needed, and provides their assessment. There is no scheduled appointment - you submit when you are ready, and the doctor reviews during operating hours. This model works well for medical certificates, prescription renewals, and straightforward health concerns.',
         links: [{ text: 'medical certificates', href: '/medical-certificate', title: 'Get a medical certificate' }],
       },
       {
@@ -236,7 +236,7 @@ export const phase4ExpansionArticles: Article[] = [
       { type: 'heading', content: 'Synchronous (Video or Phone) Telehealth', level: 3 },
       {
         type: 'paragraph',
-        content: 'Video or phone consultations happen in real time. You book a time slot and speak with a doctor directly. This model suits more complex or nuanced conversations — mental health support, detailed symptom discussion, or situations where the doctor needs to ask rapid follow-up questions. Some services offer both models, escalating from async to a call when the clinical situation warrants it.',
+        content: 'Video or phone consultations happen in real time. You book a time slot and speak with a doctor directly. This model suits more complex or nuanced conversations - mental health support, detailed symptom discussion, or situations where the doctor needs to ask rapid follow-up questions. Some services offer both models, escalating from async to a call when the clinical situation warrants it.',
       },
       { type: 'heading', content: 'What to Prepare Before Your Consultation', level: 2 },
       {
@@ -248,10 +248,10 @@ export const phase4ExpansionArticles: Article[] = [
         content: '',
         items: [
           'Medicare card number (required for prescriptions and consultations that attract a Medicare rebate; not always needed for medical certificates)',
-          'A list of current medications — including dosages, how long you have been taking them, and whether they are working',
+          'A list of current medications - including dosages, how long you have been taking them, and whether they are working',
           'Known allergies or adverse reactions to medications',
           'Your symptoms: when they started, what makes them better or worse, and any patterns you have noticed',
-          'Relevant medical history — previous diagnoses, surgeries, or ongoing conditions',
+          'Relevant medical history - previous diagnoses, surgeries, or ongoing conditions',
           'For video calls: a quiet, private space with reasonable internet. You do not need a studio setup, just a spot where you can speak freely',
         ],
       },
@@ -280,7 +280,7 @@ export const phase4ExpansionArticles: Article[] = [
       },
       {
         type: 'paragraph',
-        content: 'For skin conditions, a clear photo in natural light is enormously helpful. For throat issues, a photo with your mouth open and tongue depressed can sometimes give the doctor enough to work with — though they may still recommend an in-person look.',
+        content: 'For skin conditions, a clear photo in natural light is enormously helpful. For throat issues, a photo with your mouth open and tongue depressed can sometimes give the doctor enough to work with - though they may still recommend an in-person look.',
       },
       { type: 'heading', content: 'What Happens If the Doctor Needs More Information', level: 2 },
       {
@@ -289,17 +289,17 @@ export const phase4ExpansionArticles: Article[] = [
       },
       {
         type: 'paragraph',
-        content: 'This is not a sign that something is wrong — it means the doctor is being thorough. A good telehealth service tells you upfront that follow-up questions are part of the process. If a service promises to handle everything without ever needing to ask more, that should make you more nervous, not less.',
+        content: 'This is not a sign that something is wrong - it means the doctor is being thorough. A good telehealth service tells you upfront that follow-up questions are part of the process. If a service promises to handle everything without ever needing to ask more, that should make you more nervous, not less.',
         links: [{ text: 'good telehealth service', href: '/how-it-works', title: 'How our process works' }],
       },
       { type: 'heading', content: 'Medicare Rebates and Costs', level: 2 },
       {
         type: 'paragraph',
-        content: 'Medicare rebates for telehealth are available for video and phone consultations with registered providers. Asynchronous (form-based) services generally do not attract a Medicare rebate, which means you pay a flat fee. The trade-off is convenience and speed — no appointment booking, no waiting room, no time taken off work.',
+        content: 'Medicare rebates for telehealth are available for video and phone consultations with registered providers. Asynchronous (form-based) services generally do not attract a Medicare rebate, which means you pay a flat fee. The trade-off is convenience and speed - no appointment booking, no waiting room, no time taken off work.',
       },
       {
         type: 'paragraph',
-        content: 'Medical certificates, for example, are typically a flat-fee service outside Medicare. Prescription consultations may attract partial rebates depending on the service model. Check the pricing before you start — reputable services are transparent about costs upfront.',
+        content: 'Medical certificates, for example, are typically a flat-fee service outside Medicare. Prescription consultations may attract partial rebates depending on the service model. Check the pricing before you start - reputable services are transparent about costs upfront.',
         links: [{ text: 'pricing', href: '/how-it-works', title: 'See our pricing' }],
       },
       { type: 'heading', content: 'Privacy and Security', level: 2 },
@@ -310,7 +310,7 @@ export const phase4ExpansionArticles: Article[] = [
       },
       {
         type: 'paragraph',
-        content: 'Legitimate telehealth services use AHPRA-registered doctors, secure data storage, and encrypted communications. If a service does not mention any of this, that is a red flag. Your health information is sensitive — treat it accordingly.',
+        content: 'Legitimate telehealth services use AHPRA-registered doctors, secure data storage, and encrypted communications. If a service does not mention any of this, that is a red flag. Your health information is sensitive - treat it accordingly.',
       },
       { type: 'heading', content: 'What Happens After Your Consultation', level: 2 },
       {
@@ -321,7 +321,7 @@ export const phase4ExpansionArticles: Article[] = [
         type: 'list',
         content: '',
         items: [
-          'A prescription sent as an eScript — a QR code delivered to your phone that you take to any pharmacy',
+          'A prescription sent as an eScript - a QR code delivered to your phone that you take to any pharmacy',
           'A medical certificate delivered digitally, accessible through your patient dashboard',
           'Written advice or recommendations for self-care',
           'A recommendation to see a GP in person for further assessment or examination',
@@ -330,7 +330,7 @@ export const phase4ExpansionArticles: Article[] = [
       },
       {
         type: 'paragraph',
-        content: 'If you receive a prescription, complete the full course as directed. If you are advised to see a GP in person, do so — the telehealth doctor is not being lazy, they are being honest about the limits of remote assessment. That honesty is a feature, not a bug.',
+        content: 'If you receive a prescription, complete the full course as directed. If you are advised to see a GP in person, do so - the telehealth doctor is not being lazy, they are being honest about the limits of remote assessment. That honesty is a feature, not a bug.',
       },
       {
         type: 'callout',
@@ -349,7 +349,7 @@ export const phase4ExpansionArticles: Article[] = [
       },
       {
         question: 'Is telehealth safe for prescriptions?',
-        answer: 'Yes, when provided by AHPRA-registered doctors following prescribing guidelines. Doctors assess your suitability for medication the same way they would in person. Certain medications (controlled substances, for example) cannot be prescribed via telehealth — the doctor will tell you if that applies.',
+        answer: 'Yes, when provided by AHPRA-registered doctors following prescribing guidelines. Doctors assess your suitability for medication the same way they would in person. Certain medications (controlled substances, for example) cannot be prescribed via telehealth - the doctor will tell you if that applies.',
       },
       {
         question: 'Can I use telehealth if I do not have Medicare?',
@@ -357,7 +357,7 @@ export const phase4ExpansionArticles: Article[] = [
       },
       {
         question: 'What if I have a poor internet connection?',
-        answer: 'For asynchronous (form-based) telehealth, internet quality does not matter — you just need enough connection to submit a form. For video calls, a stable connection helps, but phone consultations are always an alternative if your internet is unreliable.',
+        answer: 'For asynchronous (form-based) telehealth, internet quality does not matter - you just need enough connection to submit a form. For video calls, a stable connection helps, but phone consultations are always an alternative if your internet is unreliable.',
       },
       {
         question: 'Will my regular GP know about my telehealth consultation?',
@@ -391,7 +391,7 @@ export const phase4ExpansionArticles: Article[] = [
     content: [
       {
         type: 'paragraph',
-        content: 'Telehealth is not a replacement for all in-person healthcare. Anyone who tells you otherwise is selling something — probably an app. But for a significant range of common health needs, online care is not just adequate, it is often the more practical choice. The question is not "is telehealth good?" but "is telehealth right for this specific situation?"',
+        content: 'Telehealth is not a replacement for all in-person healthcare. Anyone who tells you otherwise is selling something - probably an app. But for a significant range of common health needs, online care is not just adequate, it is often the more practical choice. The question is not "is telehealth good?" but "is telehealth right for this specific situation?"',
       },
       {
         type: 'paragraph',
@@ -400,18 +400,18 @@ export const phase4ExpansionArticles: Article[] = [
       { type: 'heading', content: 'When Telehealth Is the Right Choice', level: 2 },
       {
         type: 'paragraph',
-        content: 'Telehealth works best when the doctor can make a clinical decision based on your described symptoms, medical history, and — in some cases — photos. No stethoscope required.',
+        content: 'Telehealth works best when the doctor can make a clinical decision based on your described symptoms, medical history, and - in some cases - photos. No stethoscope required.',
       },
       {
         type: 'list',
         content: '',
         items: [
-          'Medical certificates for common illnesses — cold, flu, gastro, migraine, back pain, mental health days',
-          'Prescription renewals for stable, ongoing conditions — you have been on the same medication, it is working, and you need a new script',
-          'Urinary tract infections — straightforward symptoms with well-established diagnostic criteria',
-          'Common skin conditions — rashes, acne, eczema flare-ups (with photos)',
-          'Mental health support — anxiety, depression check-ins, stress-related concerns',
-          'Sexual health — STI testing referrals, contraception discussions',
+          'Medical certificates for common illnesses - cold, flu, gastro, migraine, back pain, mental health days',
+          'Prescription renewals for stable, ongoing conditions - you have been on the same medication, it is working, and you need a new script',
+          'Urinary tract infections - straightforward symptoms with well-established diagnostic criteria',
+          'Common skin conditions - rashes, acne, eczema flare-ups (with photos)',
+          'Mental health support - anxiety, depression check-ins, stress-related concerns',
+          'Sexual health - STI testing referrals, contraception discussions',
           'Hay fever, allergies, and seasonal conditions',
           'Travel health advice and preventive care planning',
           'Follow-up conversations after an in-person appointment',
@@ -432,10 +432,10 @@ export const phase4ExpansionArticles: Article[] = [
         content: '',
         items: [
           'Chest infections where the doctor needs to listen to your lungs',
-          'Ear infections — the eardrum needs to be visualised',
+          'Ear infections - the eardrum needs to be visualised',
           'Abdominal pain that requires palpation to locate and assess',
           'Musculoskeletal injuries that need range-of-motion testing',
-          'Procedures — blood tests, vaccinations, wound care, mole checks',
+          'Procedures - blood tests, vaccinations, wound care, mole checks',
           'New lumps, bumps, or growths that need physical assessment',
           'Complex or poorly controlled chronic conditions requiring comprehensive review',
           'Any situation where you feel something is seriously wrong',
@@ -449,17 +449,17 @@ export const phase4ExpansionArticles: Article[] = [
       { type: 'heading', content: 'The Grey Area: Start Online, Escalate If Needed', level: 2 },
       {
         type: 'paragraph',
-        content: 'Many health concerns sit in a grey area where telehealth might work, but the doctor needs to assess before deciding. This is not a flaw in the system — it is how good medicine works. A responsible telehealth doctor will tell you when they need you seen in person.',
+        content: 'Many health concerns sit in a grey area where telehealth might work, but the doctor needs to assess before deciding. This is not a flaw in the system - it is how good medicine works. A responsible telehealth doctor will tell you when they need you seen in person.',
       },
       { type: 'heading', content: 'Sore Throats', level: 3 },
       {
         type: 'paragraph',
-        content: 'Most sore throats are viral and self-limiting. A telehealth doctor can assess your symptoms and provide advice or a certificate. If bacterial infection (strep throat) is suspected — high fever, pus on tonsils, swollen lymph nodes — they may recommend a throat swab in person. But the initial assessment and triage can happen online.',
+        content: 'Most sore throats are viral and self-limiting. A telehealth doctor can assess your symptoms and provide advice or a certificate. If bacterial infection (strep throat) is suspected - high fever, pus on tonsils, swollen lymph nodes - they may recommend a throat swab in person. But the initial assessment and triage can happen online.',
       },
       { type: 'heading', content: 'Back Pain', level: 3 },
       {
         type: 'paragraph',
-        content: 'Acute lower back pain without nerve symptoms (numbness, tingling, weakness in legs) can often be managed with telehealth advice and a certificate for time off work. If the doctor suspects something more serious — disc herniation, nerve compression, or red flag symptoms — they will direct you to in-person care or imaging.',
+        content: 'Acute lower back pain without nerve symptoms (numbness, tingling, weakness in legs) can often be managed with telehealth advice and a certificate for time off work. If the doctor suspects something more serious - disc herniation, nerve compression, or red flag symptoms - they will direct you to in-person care or imaging.',
       },
       { type: 'heading', content: 'Skin Conditions', level: 3 },
       {
@@ -469,17 +469,17 @@ export const phase4ExpansionArticles: Article[] = [
       { type: 'heading', content: 'Mental Health', level: 3 },
       {
         type: 'paragraph',
-        content: 'Telehealth is well-suited for mental health support. Initial assessments, medication reviews, and certificate requests for mental health leave work well online. Crisis situations, complex medication changes, or situations requiring a Mental Health Treatment Plan with your regular GP may be better handled in person — though many GPs now do these via video as well.',
+        content: 'Telehealth is well-suited for mental health support. Initial assessments, medication reviews, and certificate requests for mental health leave work well online. Crisis situations, complex medication changes, or situations requiring a Mental Health Treatment Plan with your regular GP may be better handled in person - though many GPs now do these via video as well.',
         links: [{ text: 'mental health leave', href: '/medical-certificate/mental-health', title: 'Mental health certificates' }],
       },
       { type: 'heading', content: 'Cost Comparison', level: 2 },
       {
         type: 'paragraph',
-        content: 'The financial picture depends on what you are comparing. A bulk-billed GP visit costs nothing at the point of care (your tax dollars at work). A non-bulk-billed GP visit can run $60-$100+ with a partial Medicare rebate. Telehealth services typically charge a flat fee — often comparable to or less than the out-of-pocket gap at a private GP.',
+        content: 'The financial picture depends on what you are comparing. A bulk-billed GP visit costs nothing at the point of care (your tax dollars at work). A non-bulk-billed GP visit can run $60-$100+ with a partial Medicare rebate. Telehealth services typically charge a flat fee - often comparable to or less than the out-of-pocket gap at a private GP.',
       },
       {
         type: 'paragraph',
-        content: 'But cost is not just the consultation fee. Factor in travel time, time off work, waiting room time, and parking. For a working parent or shift worker, a 15-minute online process can be significantly cheaper than a two-hour round trip to a clinic — even if the consultation itself costs a little more.',
+        content: 'But cost is not just the consultation fee. Factor in travel time, time off work, waiting room time, and parking. For a working parent or shift worker, a 15-minute online process can be significantly cheaper than a two-hour round trip to a clinic - even if the consultation itself costs a little more.',
         links: [{ text: 'shift worker', href: '/for/shift-workers', title: 'Telehealth for shift workers' }],
       },
       { type: 'heading', content: 'What a Good Telehealth Service Tells You Upfront', level: 2 },
@@ -492,7 +492,7 @@ export const phase4ExpansionArticles: Article[] = [
         content: '',
         items: [
           'Exactly what it costs, before you start',
-          'What conditions it can and cannot handle — not everything is suitable for online care',
+          'What conditions it can and cannot handle - not everything is suitable for online care',
           'That a doctor may decline your request or recommend in-person care',
           'That doctors are AHPRA-registered and practicing within their scope',
           'How your data is stored and protected',
@@ -507,7 +507,7 @@ export const phase4ExpansionArticles: Article[] = [
       {
         type: 'callout',
         variant: 'tip',
-        content: 'When in doubt, start with telehealth for non-urgent issues. The worst outcome is that a doctor tells you to see someone in person — which is useful information in itself. You have lost nothing except a few minutes.',
+        content: 'When in doubt, start with telehealth for non-urgent issues. The worst outcome is that a doctor tells you to see someone in person - which is useful information in itself. You have lost nothing except a few minutes.',
       },
     ],
     faqs: [
@@ -517,7 +517,7 @@ export const phase4ExpansionArticles: Article[] = [
       },
       {
         question: 'What if I am not sure whether to choose telehealth or in-person care?',
-        answer: 'For non-urgent issues, start with telehealth. The doctor will assess your situation and tell you if in-person care is needed. There is no penalty for starting online — the doctor acts as a triage point.',
+        answer: 'For non-urgent issues, start with telehealth. The doctor will assess your situation and tell you if in-person care is needed. There is no penalty for starting online - the doctor acts as a triage point.',
       },
       {
         question: 'Can I get a blood test or pathology request via telehealth?',
@@ -529,11 +529,11 @@ export const phase4ExpansionArticles: Article[] = [
       },
       {
         question: 'Can telehealth handle chronic disease management?',
-        answer: 'For stable, well-managed chronic conditions (renewing scripts, routine check-ins), telehealth can be a convenient supplement. However, comprehensive chronic disease reviews — including physical examination and care planning — are better done in person with your regular GP.',
+        answer: 'For stable, well-managed chronic conditions (renewing scripts, routine check-ins), telehealth can be a convenient supplement. However, comprehensive chronic disease reviews - including physical examination and care planning - are better done in person with your regular GP.',
       },
       {
         question: 'What happens if my condition worsens after a telehealth consultation?',
-        answer: 'Seek in-person care. If your symptoms change or worsen, see your GP or visit an emergency department. Telehealth advice is based on the information available at the time — conditions can evolve, and a doctor will always recommend you seek further care if things are not improving.',
+        answer: 'Seek in-person care. If your symptoms change or worsen, see your GP or visit an emergency department. Telehealth advice is based on the information available at the time - conditions can evolve, and a doctor will always recommend you seek further care if things are not improving.',
       },
     ],
     relatedServices: [
@@ -564,20 +564,20 @@ export const phase4ExpansionArticles: Article[] = [
     content: [
       {
         type: 'paragraph',
-        content: 'Everyone uses the word "burnout" now. Your colleague is burned out. Your barista looks burned out. The entire internet is burned out. But burnout is not just a bad week or a general sense of tiredness. It is a specific, clinically recognised syndrome with a defined set of characteristics — and confusing it with ordinary stress can lead you to the wrong response.',
+        content: 'Everyone uses the word "burnout" now. Your colleague is burned out. Your barista looks burned out. The entire internet is burned out. But burnout is not just a bad week or a general sense of tiredness. It is a specific, clinically recognised syndrome with a defined set of characteristics - and confusing it with ordinary stress can lead you to the wrong response.',
       },
       {
         type: 'paragraph',
-        content: 'Understanding the difference matters because the solutions are different. Stress responds to rest. Burnout does not. If you are genuinely burned out, a long weekend will not fix it — and pretending otherwise just delays recovery.',
+        content: 'Understanding the difference matters because the solutions are different. Stress responds to rest. Burnout does not. If you are genuinely burned out, a long weekend will not fix it - and pretending otherwise just delays recovery.',
       },
       { type: 'heading', content: 'Stress: Your Body\'s Response to Pressure', level: 2 },
       {
         type: 'paragraph',
-        content: 'Stress is a normal physiological response to demands. Your body releases cortisol and adrenaline, your heart rate increases, and your focus sharpens. In short bursts, stress is actually useful — it is the reason you can meet a deadline at 11:58pm that you have known about for three weeks.',
+        content: 'Stress is a normal physiological response to demands. Your body releases cortisol and adrenaline, your heart rate increases, and your focus sharpens. In short bursts, stress is actually useful - it is the reason you can meet a deadline at 11:58pm that you have known about for three weeks.',
       },
       {
         type: 'paragraph',
-        content: 'Negative stress occurs when the demands exceed your capacity to cope, but the key feature is that it responds to relief. Remove the stressor — finish the project, resolve the conflict, get some sleep — and the stress eases. Your nervous system returns to baseline. You feel like yourself again.',
+        content: 'Negative stress occurs when the demands exceed your capacity to cope, but the key feature is that it responds to relief. Remove the stressor - finish the project, resolve the conflict, get some sleep - and the stress eases. Your nervous system returns to baseline. You feel like yourself again.',
       },
       {
         type: 'list',
@@ -586,7 +586,7 @@ export const phase4ExpansionArticles: Article[] = [
           'Caused by specific, identifiable pressures',
           'Resolves when the pressure is removed or managed',
           'Physical symptoms (tension headaches, poor sleep) improve with rest',
-          'Emotional engagement is still present — you care, sometimes too much',
+          'Emotional engagement is still present - you care, sometimes too much',
           'Motivation returns after recovery',
         ],
       },
@@ -603,29 +603,29 @@ export const phase4ExpansionArticles: Article[] = [
         type: 'list',
         content: '',
         items: [
-          'Emotional exhaustion — feeling completely drained, unable to give any more, even after rest',
-          'Depersonalisation (cynicism) — detachment from work, colleagues, or clients. The feeling that nothing matters, accompanied by a dry, dark inner monologue',
-          'Reduced personal accomplishment — the sense that your work is meaningless or that you are no longer effective, even when objective evidence says otherwise',
+          'Emotional exhaustion - feeling completely drained, unable to give any more, even after rest',
+          'Depersonalisation (cynicism) - detachment from work, colleagues, or clients. The feeling that nothing matters, accompanied by a dry, dark inner monologue',
+          'Reduced personal accomplishment - the sense that your work is meaningless or that you are no longer effective, even when objective evidence says otherwise',
         ],
       },
       {
         type: 'paragraph',
-        content: 'The critical difference from stress: rest does not resolve burnout. You can take a week off and return feeling exactly the same. That is not a failure of your holiday — it is a signal that the problem is structural, not just about fatigue.',
+        content: 'The critical difference from stress: rest does not resolve burnout. You can take a week off and return feeling exactly the same. That is not a failure of your holiday - it is a signal that the problem is structural, not just about fatigue.',
       },
       { type: 'heading', content: 'The Stages of Burnout', level: 2 },
       {
         type: 'paragraph',
-        content: 'Burnout rarely arrives overnight. It develops through recognisable stages, which makes early intervention possible — if you know what to look for.',
+        content: 'Burnout rarely arrives overnight. It develops through recognisable stages, which makes early intervention possible - if you know what to look for.',
       },
       {
         type: 'list',
         content: '',
         items: [
-          'Honeymoon phase — high energy, strong commitment, perhaps excessive dedication. You volunteer for everything. You are the first to arrive and the last to leave. This feels productive but is laying the foundation',
-          'Onset of stress — you begin noticing physical symptoms. Sleep quality drops. You are more irritable. Work feels less rewarding but you push through',
-          'Chronic stress — symptoms become persistent. Fatigue does not resolve with sleep. You start avoiding responsibilities, missing deadlines, or withdrawing from colleagues',
-          'Burnout — full emotional exhaustion, cynicism, and reduced performance. Physical symptoms may include frequent illness, chronic pain, or gastrointestinal issues. You feel empty, not just tired',
-          'Habitual burnout — if unaddressed, burnout becomes embedded. Depression, anxiety, or other mental health conditions may develop. Recovery requires more significant intervention',
+          'Honeymoon phase - high energy, strong commitment, perhaps excessive dedication. You volunteer for everything. You are the first to arrive and the last to leave. This feels productive but is laying the foundation',
+          'Onset of stress - you begin noticing physical symptoms. Sleep quality drops. You are more irritable. Work feels less rewarding but you push through',
+          'Chronic stress - symptoms become persistent. Fatigue does not resolve with sleep. You start avoiding responsibilities, missing deadlines, or withdrawing from colleagues',
+          'Burnout - full emotional exhaustion, cynicism, and reduced performance. Physical symptoms may include frequent illness, chronic pain, or gastrointestinal issues. You feel empty, not just tired',
+          'Habitual burnout - if unaddressed, burnout becomes embedded. Depression, anxiety, or other mental health conditions may develop. Recovery requires more significant intervention',
         ],
       },
       { type: 'heading', content: 'Australian Workplace Context', level: 2 },
@@ -635,23 +635,23 @@ export const phase4ExpansionArticles: Article[] = [
       },
       {
         type: 'paragraph',
-        content: 'Under the Fair Work Act 2009, employees are entitled to personal (sick) leave for physical and mental health conditions. Mental health is explicitly recognised as a valid reason for sick leave. Your employer cannot require you to disclose your diagnosis — only that you are unfit for work, as certified by a medical practitioner.',
+        content: 'Under the Fair Work Act 2009, employees are entitled to personal (sick) leave for physical and mental health conditions. Mental health is explicitly recognised as a valid reason for sick leave. Your employer cannot require you to disclose your diagnosis - only that you are unfit for work, as certified by a medical practitioner.',
         links: [{ text: 'medical certificate', href: '/medical-certificate', title: 'Get a medical certificate' }],
       },
       { type: 'heading', content: 'Recovery: More Than "Take Time Off"', level: 2 },
       {
         type: 'paragraph',
-        content: 'The advice most people give for burnout — "take a holiday," "practise self-care," "learn to say no" — is not wrong, but it is incomplete. These strategies help with stress. Burnout usually requires more deliberate intervention.',
+        content: 'The advice most people give for burnout - "take a holiday," "practise self-care," "learn to say no" - is not wrong, but it is incomplete. These strategies help with stress. Burnout usually requires more deliberate intervention.',
       },
       {
         type: 'list',
         content: '',
         items: [
-          'Identify the structural causes — workload, lack of autonomy, values mismatch, unfairness, insufficient reward, or community breakdown. Burnout research shows these are the primary drivers, not individual weakness',
-          'Set boundaries with teeth — not just aspirational intentions, but actual changes to how you work. This might mean leaving on time, declining meetings, or having a conversation with your manager about workload',
-          'Seek professional support — a GP can assess your overall health, screen for co-existing depression or anxiety, and provide a medical certificate for leave. A psychologist can help with cognitive patterns and coping strategies',
-          'Physical health basics — sleep, movement, nutrition. These are not the cure, but they are the foundation. You cannot think your way out of burnout while running on caffeine and four hours of sleep',
-          'Consider whether the job is the problem — sometimes burnout is a signal that your role, workplace, or career path needs to change. This is uncomfortable to consider, but sometimes the most important question',
+          'Identify the structural causes - workload, lack of autonomy, values mismatch, unfairness, insufficient reward, or community breakdown. Burnout research shows these are the primary drivers, not individual weakness',
+          'Set boundaries with teeth - not just aspirational intentions, but actual changes to how you work. This might mean leaving on time, declining meetings, or having a conversation with your manager about workload',
+          'Seek professional support - a GP can assess your overall health, screen for co-existing depression or anxiety, and provide a medical certificate for leave. A psychologist can help with cognitive patterns and coping strategies',
+          'Physical health basics - sleep, movement, nutrition. These are not the cure, but they are the foundation. You cannot think your way out of burnout while running on caffeine and four hours of sleep',
+          'Consider whether the job is the problem - sometimes burnout is a signal that your role, workplace, or career path needs to change. This is uncomfortable to consider, but sometimes the most important question',
         ],
       },
       { type: 'heading', content: 'GP vs Psychologist: Who Should You See?', level: 2 },
@@ -661,21 +661,21 @@ export const phase4ExpansionArticles: Article[] = [
       },
       {
         type: 'paragraph',
-        content: 'Your GP handles the medical picture — screening for depression and anxiety (which commonly co-exist with burnout), checking for physical health issues contributing to fatigue (thyroid, iron, vitamin D, sleep disorders), issuing medical certificates for leave, and creating a Mental Health Treatment Plan that gives you access to Medicare-rebated psychology sessions.',
+        content: 'Your GP handles the medical picture - screening for depression and anxiety (which commonly co-exist with burnout), checking for physical health issues contributing to fatigue (thyroid, iron, vitamin D, sleep disorders), issuing medical certificates for leave, and creating a Mental Health Treatment Plan that gives you access to Medicare-rebated psychology sessions.',
         links: [{ text: 'GP consultation', href: '/consult', title: 'Start a consultation' }],
       },
       {
         type: 'paragraph',
-        content: 'A psychologist helps with the cognitive and behavioural dimensions — identifying thought patterns that contribute to burnout, building coping strategies, and working through the emotional components. Under a Mental Health Treatment Plan, you can access up to 10 Medicare-rebated psychology sessions per calendar year.',
+        content: 'A psychologist helps with the cognitive and behavioural dimensions - identifying thought patterns that contribute to burnout, building coping strategies, and working through the emotional components. Under a Mental Health Treatment Plan, you can access up to 10 Medicare-rebated psychology sessions per calendar year.',
       },
       { type: 'heading', content: 'When to Consider Medication', level: 2 },
       {
         type: 'paragraph',
-        content: 'Burnout itself is not typically treated with medication. However, if burnout has progressed to clinical depression or an anxiety disorder, medication may be appropriate as part of a broader treatment plan. This is a clinical decision between you and your doctor — not something to feel shame about or resist on principle.',
+        content: 'Burnout itself is not typically treated with medication. However, if burnout has progressed to clinical depression or an anxiety disorder, medication may be appropriate as part of a broader treatment plan. This is a clinical decision between you and your doctor - not something to feel shame about or resist on principle.',
       },
       {
         type: 'paragraph',
-        content: 'A GP can discuss medication options and monitor your response. If you are already on medication for a mental health condition and experiencing burnout, a medication review may be worthwhile — dosage adjustments or changes might be needed.',
+        content: 'A GP can discuss medication options and monitor your response. If you are already on medication for a mental health condition and experiencing burnout, a medication review may be worthwhile - dosage adjustments or changes might be needed.',
       },
       { type: 'heading', content: 'Planning Your Return to Work', level: 2 },
       {
@@ -686,9 +686,9 @@ export const phase4ExpansionArticles: Article[] = [
         type: 'list',
         content: '',
         items: [
-          'Discuss a graduated return — starting with reduced hours or modified duties',
-          'Identify what needs to change — workload, reporting structure, role responsibilities',
-          'Set clear boundaries from day one — not "I\'ll try to leave on time" but "I leave at 5:30"',
+          'Discuss a graduated return - starting with reduced hours or modified duties',
+          'Identify what needs to change - workload, reporting structure, role responsibilities',
+          'Set clear boundaries from day one - not "I\'ll try to leave on time" but "I leave at 5:30"',
           'Continue professional support during the transition',
           'Monitor for early warning signs and have a plan if they recur',
         ],
@@ -702,7 +702,7 @@ export const phase4ExpansionArticles: Article[] = [
     faqs: [
       {
         question: 'Can I get a medical certificate for burnout?',
-        answer: 'Yes. If burnout is affecting your ability to work, a doctor can issue a medical certificate stating you are unfit for work. The certificate does not need to specify "burnout" — your employer only needs to know you are medically unfit, not the specific diagnosis.',
+        answer: 'Yes. If burnout is affecting your ability to work, a doctor can issue a medical certificate stating you are unfit for work. The certificate does not need to specify "burnout" - your employer only needs to know you are medically unfit, not the specific diagnosis.',
       },
       {
         question: 'How long does burnout recovery take?',
@@ -718,7 +718,7 @@ export const phase4ExpansionArticles: Article[] = [
       },
       {
         question: 'How do I know if it is stress or burnout?',
-        answer: 'The key differentiator is recovery. If rest and time off restore your energy and motivation, it is likely stress. If you return from leave feeling the same — drained, detached, and unmotivated — burnout is more likely. A GP or psychologist can help clarify the distinction.',
+        answer: 'The key differentiator is recovery. If rest and time off restore your energy and motivation, it is likely stress. If you return from leave feeling the same - drained, detached, and unmotivated - burnout is more likely. A GP or psychologist can help clarify the distinction.',
       },
       {
         question: 'Should I tell my employer I have burnout?',
@@ -752,16 +752,16 @@ export const phase4ExpansionArticles: Article[] = [
     content: [
       {
         type: 'paragraph',
-        content: 'Nearly everyone has experienced heartburn at some point — that uncomfortable burning sensation behind the breastbone after a large meal, a few too many coffees, or an ill-advised late-night kebab. Occasional acid reflux is normal. Your oesophagus has a sphincter at the bottom that is supposed to keep stomach acid where it belongs, and sometimes it does not do its job perfectly. That is life.',
+        content: 'Nearly everyone has experienced heartburn at some point - that uncomfortable burning sensation behind the breastbone after a large meal, a few too many coffees, or an ill-advised late-night kebab. Occasional acid reflux is normal. Your oesophagus has a sphincter at the bottom that is supposed to keep stomach acid where it belongs, and sometimes it does not do its job perfectly. That is life.',
       },
       {
         type: 'paragraph',
-        content: 'But when reflux becomes frequent — multiple times a week, disrupting sleep, or making you rearrange your eating habits around it — you may be dealing with gastro-oesophageal reflux disease (GERD). In Australia, GERD affects roughly 10-15% of the adult population, making it one of the most common gastrointestinal conditions managed in general practice.',
+        content: 'But when reflux becomes frequent - multiple times a week, disrupting sleep, or making you rearrange your eating habits around it - you may be dealing with gastro-oesophageal reflux disease (GERD). In Australia, GERD affects roughly 10-15% of the adult population, making it one of the most common gastrointestinal conditions managed in general practice.',
       },
       { type: 'heading', content: 'How Reflux Actually Works', level: 2 },
       {
         type: 'paragraph',
-        content: 'Your stomach produces hydrochloric acid to break down food. The lower oesophageal sphincter (LOS) — a ring of muscle at the junction of the oesophagus and stomach — normally prevents this acid from travelling upwards. In reflux, the LOS relaxes at inappropriate times or is weakened, allowing acid to wash back into the oesophagus.',
+        content: 'Your stomach produces hydrochloric acid to break down food. The lower oesophageal sphincter (LOS) - a ring of muscle at the junction of the oesophagus and stomach - normally prevents this acid from travelling upwards. In reflux, the LOS relaxes at inappropriate times or is weakened, allowing acid to wash back into the oesophagus.',
       },
       {
         type: 'paragraph',
@@ -776,57 +776,57 @@ export const phase4ExpansionArticles: Article[] = [
         type: 'list',
         content: '',
         items: [
-          'Heartburn — burning sensation behind the breastbone, often worse after eating or when lying down',
-          'Regurgitation — acid or food coming back up into the throat or mouth',
-          'Difficulty swallowing (dysphagia) — a sensation of food getting stuck',
-          'Chest pain — this one deserves extra attention because it can mimic cardiac pain. Always get chest pain assessed',
-          'Chronic cough — particularly a dry cough that worsens at night',
-          'Hoarseness or sore throat — acid irritating the vocal cords',
-          'Dental erosion — stomach acid gradually wearing down tooth enamel',
-          'Nausea — particularly after meals',
+          'Heartburn - burning sensation behind the breastbone, often worse after eating or when lying down',
+          'Regurgitation - acid or food coming back up into the throat or mouth',
+          'Difficulty swallowing (dysphagia) - a sensation of food getting stuck',
+          'Chest pain - this one deserves extra attention because it can mimic cardiac pain. Always get chest pain assessed',
+          'Chronic cough - particularly a dry cough that worsens at night',
+          'Hoarseness or sore throat - acid irritating the vocal cords',
+          'Dental erosion - stomach acid gradually wearing down tooth enamel',
+          'Nausea - particularly after meals',
           'Bloating and excessive belching',
         ],
       },
       {
         type: 'callout',
         variant: 'warning',
-        content: 'Chest pain should always be taken seriously. If you experience chest pain with shortness of breath, sweating, pain radiating to your arm or jaw, or lightheadedness, call 000 immediately. Reflux-related chest pain and cardiac chest pain can feel identical — let the doctors sort it out.',
+        content: 'Chest pain should always be taken seriously. If you experience chest pain with shortness of breath, sweating, pain radiating to your arm or jaw, or lightheadedness, call 000 immediately. Reflux-related chest pain and cardiac chest pain can feel identical - let the doctors sort it out.',
       },
       { type: 'heading', content: 'Lifestyle Changes: The Foundation', level: 2 },
       {
         type: 'paragraph',
-        content: 'Before reaching for medication, lifestyle modifications can make a meaningful difference. These are not just things doctors say to be polite — they genuinely work for many people with mild to moderate reflux.',
+        content: 'Before reaching for medication, lifestyle modifications can make a meaningful difference. These are not just things doctors say to be polite - they genuinely work for many people with mild to moderate reflux.',
       },
       { type: 'heading', content: 'Dietary Adjustments', level: 3 },
       {
         type: 'list',
         content: '',
         items: [
-          'Eat smaller, more frequent meals rather than large ones — a full stomach puts more pressure on the LOS',
-          'Identify your personal triggers. Common culprits include spicy food, fatty or fried food, citrus, tomato-based sauces, chocolate, peppermint, caffeine, and alcohol. Not everyone reacts to all of these — it is individual',
+          'Eat smaller, more frequent meals rather than large ones - a full stomach puts more pressure on the LOS',
+          'Identify your personal triggers. Common culprits include spicy food, fatty or fried food, citrus, tomato-based sauces, chocolate, peppermint, caffeine, and alcohol. Not everyone reacts to all of these - it is individual',
           'Avoid eating within 2-3 hours of lying down',
-          'Reduce carbonated drinks — the gas increases stomach pressure',
+          'Reduce carbonated drinks - the gas increases stomach pressure',
           'Consider keeping a food diary for two weeks to identify patterns',
         ],
       },
       { type: 'heading', content: 'Sleep Position Science', level: 3 },
       {
         type: 'paragraph',
-        content: 'This one is backed by good evidence. Elevating the head of your bed by 15-20 centimetres (using bed risers or a wedge pillow, not just extra pillows) reduces nocturnal reflux by using gravity to keep acid in the stomach. Sleeping on your left side also helps, because the oesophageal junction sits on the right side of the stomach — left-side sleeping keeps the junction above stomach acid level.',
+        content: 'This one is backed by good evidence. Elevating the head of your bed by 15-20 centimetres (using bed risers or a wedge pillow, not just extra pillows) reduces nocturnal reflux by using gravity to keep acid in the stomach. Sleeping on your left side also helps, because the oesophageal junction sits on the right side of the stomach - left-side sleeping keeps the junction above stomach acid level.',
       },
       {
         type: 'paragraph',
-        content: 'If you have ever wondered why reflux is worse at night, it is because lying flat removes gravity from the equation. Your stomach acid does not care what time it is — it just goes wherever physics allows.',
+        content: 'If you have ever wondered why reflux is worse at night, it is because lying flat removes gravity from the equation. Your stomach acid does not care what time it is - it just goes wherever physics allows.',
       },
       { type: 'heading', content: 'Other Lifestyle Factors', level: 3 },
       {
         type: 'list',
         content: '',
         items: [
-          'Weight loss — even modest weight loss (5-10%) can significantly reduce reflux symptoms by decreasing abdominal pressure',
-          'Quit smoking — nicotine relaxes the LOS and increases acid production',
-          'Wear loose-fitting clothing — tight waistbands increase abdominal pressure. This sounds trivial but it genuinely matters',
-          'Manage stress — stress increases acid production and oesophageal sensitivity, creating a feedback loop',
+          'Weight loss - even modest weight loss (5-10%) can significantly reduce reflux symptoms by decreasing abdominal pressure',
+          'Quit smoking - nicotine relaxes the LOS and increases acid production',
+          'Wear loose-fitting clothing - tight waistbands increase abdominal pressure. This sounds trivial but it genuinely matters',
+          'Manage stress - stress increases acid production and oesophageal sensitivity, creating a feedback loop',
         ],
       },
       { type: 'heading', content: 'Medication Options', level: 2 },
@@ -860,7 +860,7 @@ export const phase4ExpansionArticles: Article[] = [
         type: 'list',
         content: '',
         items: [
-          'Symptoms persist despite medication — something else may be going on',
+          'Symptoms persist despite medication - something else may be going on',
           'You have difficulty swallowing or pain when swallowing',
           'You have unintended weight loss alongside reflux symptoms',
           'You are over 50 with new-onset reflux symptoms',
@@ -875,16 +875,16 @@ export const phase4ExpansionArticles: Article[] = [
       { type: 'heading', content: 'Barrett\'s Oesophagus: What You Should Know', level: 2 },
       {
         type: 'paragraph',
-        content: 'Barrett\'s oesophagus is a condition where the cells lining the lower oesophagus change in response to chronic acid exposure. It occurs in a small percentage of people with long-standing GERD. Barrett\'s itself does not cause symptoms — it is detected on endoscopy.',
+        content: 'Barrett\'s oesophagus is a condition where the cells lining the lower oesophagus change in response to chronic acid exposure. It occurs in a small percentage of people with long-standing GERD. Barrett\'s itself does not cause symptoms - it is detected on endoscopy.',
       },
       {
         type: 'paragraph',
-        content: 'The reason it matters is that Barrett\'s carries a small but real increased risk of developing oesophageal adenocarcinoma. The absolute risk is low (around 0.5% per year), and regular surveillance endoscopies can detect any concerning changes early. This is not intended to alarm you — it is intended to explain why doctors take persistent reflux seriously and why long-term management matters.',
+        content: 'The reason it matters is that Barrett\'s carries a small but real increased risk of developing oesophageal adenocarcinoma. The absolute risk is low (around 0.5% per year), and regular surveillance endoscopies can detect any concerning changes early. This is not intended to alarm you - it is intended to explain why doctors take persistent reflux seriously and why long-term management matters.',
       },
       { type: 'heading', content: 'Reflux During Pregnancy', level: 2 },
       {
         type: 'paragraph',
-        content: 'Reflux is extremely common during pregnancy, affecting up to 80% of pregnant women — particularly in the second and third trimesters. The causes are twofold: progesterone relaxes the LOS, and the growing uterus increases abdominal pressure.',
+        content: 'Reflux is extremely common during pregnancy, affecting up to 80% of pregnant women - particularly in the second and third trimesters. The causes are twofold: progesterone relaxes the LOS, and the growing uterus increases abdominal pressure.',
       },
       {
         type: 'paragraph',
@@ -894,7 +894,7 @@ export const phase4ExpansionArticles: Article[] = [
       { type: 'heading', content: 'Long-Term Management', level: 2 },
       {
         type: 'paragraph',
-        content: 'GERD is often a chronic condition that requires ongoing management rather than a one-time fix. The good news is that most people manage it well with a combination of lifestyle changes and, when needed, medication. The goal is to find the minimum effective intervention — lifestyle changes alone if possible, the lowest medication dose if not.',
+        content: 'GERD is often a chronic condition that requires ongoing management rather than a one-time fix. The good news is that most people manage it well with a combination of lifestyle changes and, when needed, medication. The goal is to find the minimum effective intervention - lifestyle changes alone if possible, the lowest medication dose if not.',
         links: [{ text: 'consultation', href: '/consult', title: 'Discuss reflux management' }],
       },
       {
@@ -913,7 +913,7 @@ export const phase4ExpansionArticles: Article[] = [
       },
       {
         question: 'Can reflux cause a chronic cough?',
-        answer: 'Yes. Acid reflux is one of the most common causes of chronic cough in adults. The acid irritates the throat and airways, triggering a cough reflex — often without the typical heartburn symptoms. If you have a persistent cough with no obvious respiratory cause, reflux should be considered.',
+        answer: 'Yes. Acid reflux is one of the most common causes of chronic cough in adults. The acid irritates the throat and airways, triggering a cough reflex - often without the typical heartburn symptoms. If you have a persistent cough with no obvious respiratory cause, reflux should be considered.',
       },
       {
         question: 'How long should I take PPIs?',
@@ -921,11 +921,11 @@ export const phase4ExpansionArticles: Article[] = [
       },
       {
         question: 'Is it safe to take antacids every day?',
-        answer: 'Occasional antacid use is generally safe. However, daily antacid use for more than two weeks suggests your reflux needs proper assessment. Antacids treat symptoms but not the underlying cause. Some antacid formulations can cause issues with long-term use — talk to your doctor or pharmacist.',
+        answer: 'Occasional antacid use is generally safe. However, daily antacid use for more than two weeks suggests your reflux needs proper assessment. Antacids treat symptoms but not the underlying cause. Some antacid formulations can cause issues with long-term use - talk to your doctor or pharmacist.',
       },
       {
         question: 'Can stress cause acid reflux?',
-        answer: 'Stress does not directly cause GERD, but it can worsen symptoms. Stress increases stomach acid production and makes the oesophagus more sensitive to acid exposure. Managing stress can be a meaningful part of reflux management — another reason to take your mental health seriously.',
+        answer: 'Stress does not directly cause GERD, but it can worsen symptoms. Stress increases stomach acid production and makes the oesophagus more sensitive to acid exposure. Managing stress can be a meaningful part of reflux management - another reason to take your mental health seriously.',
       },
     ],
     relatedServices: [
@@ -956,20 +956,20 @@ export const phase4ExpansionArticles: Article[] = [
     content: [
       {
         type: 'paragraph',
-        content: 'Antibiotics are one of the most important medical discoveries in human history. Before penicillin, a scratched knee could kill you. That is not hyperbole — it is a historical fact that we have collectively decided to forget because antibiotics made infections seem trivial. The problem is that overuse is slowly undoing that progress, and antimicrobial resistance (AMR) is now considered one of the most serious public health threats globally.',
+        content: 'Antibiotics are one of the most important medical discoveries in human history. Before penicillin, a scratched knee could kill you. That is not hyperbole - it is a historical fact that we have collectively decided to forget because antibiotics made infections seem trivial. The problem is that overuse is slowly undoing that progress, and antimicrobial resistance (AMR) is now considered one of the most serious public health threats globally.',
       },
       {
         type: 'paragraph',
-        content: 'In Australia, we prescribe more antibiotics per capita than most comparable countries. The Australian Commission on Safety and Quality in Health Care estimates that up to 40% of antibiotic prescriptions in general practice are inappropriate — meaning they are prescribed for conditions that would resolve without them, or for viral infections where antibiotics have no effect at all. This is not about blaming doctors or patients. It is about understanding when antibiotics genuinely help and when other treatments are more appropriate.',
+        content: 'In Australia, we prescribe more antibiotics per capita than most comparable countries. The Australian Commission on Safety and Quality in Health Care estimates that up to 40% of antibiotic prescriptions in general practice are inappropriate - meaning they are prescribed for conditions that would resolve without them, or for viral infections where antibiotics have no effect at all. This is not about blaming doctors or patients. It is about understanding when antibiotics genuinely help and when other treatments are more appropriate.',
       },
       { type: 'heading', content: 'How Antibiotics Work', level: 2 },
       {
         type: 'paragraph',
-        content: 'Antibiotics target bacteria specifically. They work by either killing bacteria directly (bactericidal) or preventing them from reproducing (bacteriostatic), allowing your immune system to clear the infection. Different classes of antibiotics target different bacterial mechanisms — cell wall synthesis, protein production, DNA replication — which is why the choice of antibiotic matters. A doctor does not just prescribe "an antibiotic." They choose one that is effective against the most likely bacteria causing your specific infection.',
+        content: 'Antibiotics target bacteria specifically. They work by either killing bacteria directly (bactericidal) or preventing them from reproducing (bacteriostatic), allowing your immune system to clear the infection. Different classes of antibiotics target different bacterial mechanisms - cell wall synthesis, protein production, DNA replication - which is why the choice of antibiotic matters. A doctor does not just prescribe "an antibiotic." They choose one that is effective against the most likely bacteria causing your specific infection.',
       },
       {
         type: 'paragraph',
-        content: 'Critically, antibiotics have zero effect on viruses. Viruses are fundamentally different organisms — they hijack your own cells to reproduce, and antibiotics cannot target that process. Prescribing antibiotics for a viral infection does not help you recover faster. It just exposes your body\'s bacteria to unnecessary antibiotic pressure, which is how resistance develops.',
+        content: 'Critically, antibiotics have zero effect on viruses. Viruses are fundamentally different organisms - they hijack your own cells to reproduce, and antibiotics cannot target that process. Prescribing antibiotics for a viral infection does not help you recover faster. It just exposes your body\'s bacteria to unnecessary antibiotic pressure, which is how resistance develops.',
       },
       { type: 'heading', content: 'When Antibiotics Are Appropriate', level: 2 },
       {
@@ -980,37 +980,37 @@ export const phase4ExpansionArticles: Article[] = [
         type: 'list',
         content: '',
         items: [
-          'Urinary tract infections (UTIs) — one of the most common reasons for antibiotic prescriptions, particularly in women. Uncomplicated UTIs respond well to short courses of targeted antibiotics.',
-          'Bacterial throat infections (streptococcal pharyngitis) — confirmed with a clinical assessment or rapid antigen test. Most sore throats are viral, but strep throat requires treatment to prevent complications.',
-          'Skin and soft tissue infections — cellulitis, infected wounds, and abscesses often require antibiotics. Mild skin infections may resolve with wound care alone.',
-          'Bacterial pneumonia — a chest infection confirmed by clinical assessment and sometimes imaging. Most lower respiratory infections in otherwise healthy adults are viral.',
-          'Middle ear infections (otitis media) — in children, many ear infections resolve without antibiotics. Guidelines recommend a watch-and-wait approach for mild cases, with antibiotics reserved for severe or persistent infections.',
-          'Bacterial sinusitis — only when symptoms persist beyond 10-14 days or are severe. Most sinusitis is viral and resolves without treatment.',
-          'Sexually transmitted infections — chlamydia, gonorrhoea, and syphilis require specific antibiotic treatment.',
+          'Urinary tract infections (UTIs) - one of the most common reasons for antibiotic prescriptions, particularly in women. Uncomplicated UTIs respond well to short courses of targeted antibiotics.',
+          'Bacterial throat infections (streptococcal pharyngitis) - confirmed with a clinical assessment or rapid antigen test. Most sore throats are viral, but strep throat requires treatment to prevent complications.',
+          'Skin and soft tissue infections - cellulitis, infected wounds, and abscesses often require antibiotics. Mild skin infections may resolve with wound care alone.',
+          'Bacterial pneumonia - a chest infection confirmed by clinical assessment and sometimes imaging. Most lower respiratory infections in otherwise healthy adults are viral.',
+          'Middle ear infections (otitis media) - in children, many ear infections resolve without antibiotics. Guidelines recommend a watch-and-wait approach for mild cases, with antibiotics reserved for severe or persistent infections.',
+          'Bacterial sinusitis - only when symptoms persist beyond 10-14 days or are severe. Most sinusitis is viral and resolves without treatment.',
+          'Sexually transmitted infections - chlamydia, gonorrhoea, and syphilis require specific antibiotic treatment.',
         ],
         links: [{ text: 'general consultation', href: '/consult', title: 'Discuss your symptoms with a doctor' }],
       },
       { type: 'heading', content: 'When Antibiotics Are Not Appropriate', level: 2 },
       {
         type: 'paragraph',
-        content: 'The majority of infections that bring people to a doctor — or to a telehealth service — are viral. They are unpleasant, they make you feel terrible, and they resolve on their own. Antibiotics will not speed up recovery for:',
+        content: 'The majority of infections that bring people to a doctor - or to a telehealth service - are viral. They are unpleasant, they make you feel terrible, and they resolve on their own. Antibiotics will not speed up recovery for:',
       },
       {
         type: 'list',
         content: '',
         items: [
-          'Colds and upper respiratory infections — caused by rhinoviruses and other viral agents. Average duration is 7-10 days regardless of treatment.',
-          'Influenza — antiviral medications exist for flu but are only effective within 48 hours of symptom onset. Antibiotics are irrelevant.',
-          'Most sore throats — around 85% of sore throats in adults are viral. A doctor can assess whether yours is likely bacterial.',
-          'Acute bronchitis — usually viral, even when there is a productive cough with coloured sputum. Green mucus does not mean you need antibiotics — it means your immune system is working.',
-          'COVID-19 — a viral infection. Specific antiviral treatments exist for high-risk patients, but antibiotics are not part of standard COVID management.',
-          'Mild sinusitis — nasal congestion, facial pressure, and thick nasal discharge are common with viral upper respiratory infections and usually resolve within 7-10 days.',
+          'Colds and upper respiratory infections - caused by rhinoviruses and other viral agents. Average duration is 7-10 days regardless of treatment.',
+          'Influenza - antiviral medications exist for flu but are only effective within 48 hours of symptom onset. Antibiotics are irrelevant.',
+          'Most sore throats - around 85% of sore throats in adults are viral. A doctor can assess whether yours is likely bacterial.',
+          'Acute bronchitis - usually viral, even when there is a productive cough with coloured sputum. Green mucus does not mean you need antibiotics - it means your immune system is working.',
+          'COVID-19 - a viral infection. Specific antiviral treatments exist for high-risk patients, but antibiotics are not part of standard COVID management.',
+          'Mild sinusitis - nasal congestion, facial pressure, and thick nasal discharge are common with viral upper respiratory infections and usually resolve within 7-10 days.',
         ],
       },
       { type: 'heading', content: 'Antimicrobial Resistance in Australia', level: 2 },
       {
         type: 'paragraph',
-        content: 'Antimicrobial resistance (AMR) occurs when bacteria evolve to survive antibiotic exposure. Every time antibiotics are used, there is selective pressure on bacteria — those that survive pass on their resistance genes. The more antibiotics are used (and misused), the faster resistance develops.',
+        content: 'Antimicrobial resistance (AMR) occurs when bacteria evolve to survive antibiotic exposure. Every time antibiotics are used, there is selective pressure on bacteria - those that survive pass on their resistance genes. The more antibiotics are used (and misused), the faster resistance develops.',
       },
       {
         type: 'paragraph',
@@ -1018,21 +1018,21 @@ export const phase4ExpansionArticles: Article[] = [
       },
       {
         type: 'paragraph',
-        content: 'This is not a distant, theoretical problem. AMR already kills more people globally than HIV/AIDS. In Australia, resistant infections contribute to longer hospital stays, more complications, and higher healthcare costs. The antibiotics that work today may not work tomorrow — and we are not developing new ones fast enough to keep pace.',
+        content: 'This is not a distant, theoretical problem. AMR already kills more people globally than HIV/AIDS. In Australia, resistant infections contribute to longer hospital stays, more complications, and higher healthcare costs. The antibiotics that work today may not work tomorrow - and we are not developing new ones fast enough to keep pace.',
       },
       {
         type: 'callout',
         variant: 'warning',
-        content: 'Antimicrobial resistance is one of the biggest threats to global public health. Using antibiotics only when genuinely needed — and completing the full course when prescribed — is one of the most important things individuals can do to help.',
+        content: 'Antimicrobial resistance is one of the biggest threats to global public health. Using antibiotics only when genuinely needed - and completing the full course when prescribed - is one of the most important things individuals can do to help.',
       },
       { type: 'heading', content: 'Completing Your Course', level: 2 },
       {
         type: 'paragraph',
-        content: 'When your doctor prescribes antibiotics, they choose a specific drug, dose, and duration based on the infection being treated and current RACGP guidelines. Completing the course as prescribed is important because stopping early may not fully eliminate the bacteria — leaving surviving organisms that have been exposed to the antibiotic and may develop resistance.',
+        content: 'When your doctor prescribes antibiotics, they choose a specific drug, dose, and duration based on the infection being treated and current RACGP guidelines. Completing the course as prescribed is important because stopping early may not fully eliminate the bacteria - leaving surviving organisms that have been exposed to the antibiotic and may develop resistance.',
       },
       {
         type: 'paragraph',
-        content: 'There has been some recent debate in medical literature about whether shorter courses might be appropriate for certain infections. The reality is that guidelines are regularly updated as evidence emerges, and for most common infections, the recommended course lengths are already quite short — 3-5 days for uncomplicated UTIs, 5-7 days for many respiratory infections. Your doctor prescribes the shortest effective course for your situation.',
+        content: 'There has been some recent debate in medical literature about whether shorter courses might be appropriate for certain infections. The reality is that guidelines are regularly updated as evidence emerges, and for most common infections, the recommended course lengths are already quite short - 3-5 days for uncomplicated UTIs, 5-7 days for many respiratory infections. Your doctor prescribes the shortest effective course for your situation.',
       },
       { type: 'heading', content: 'Common Side Effects', level: 2 },
       {
@@ -1043,11 +1043,11 @@ export const phase4ExpansionArticles: Article[] = [
         type: 'list',
         content: '',
         items: [
-          'Digestive upset — nausea, diarrhoea, and stomach cramps are the most common side effects across most antibiotic classes',
-          'Thrush — disruption of normal bacterial flora can allow candida overgrowth, particularly vaginal thrush in women',
-          'Skin rash — allergic reactions ranging from mild rash to severe hypersensitivity. Always inform your doctor of previous antibiotic allergies',
-          'Photosensitivity — some antibiotics (particularly tetracyclines) increase sun sensitivity. Wear sunscreen if prescribed these in Australian summer',
-          'Drug interactions — some antibiotics interact with other medications, including the oral contraceptive pill. Ask your doctor or pharmacist about interactions',
+          'Digestive upset - nausea, diarrhoea, and stomach cramps are the most common side effects across most antibiotic classes',
+          'Thrush - disruption of normal bacterial flora can allow candida overgrowth, particularly vaginal thrush in women',
+          'Skin rash - allergic reactions ranging from mild rash to severe hypersensitivity. Always inform your doctor of previous antibiotic allergies',
+          'Photosensitivity - some antibiotics (particularly tetracyclines) increase sun sensitivity. Wear sunscreen if prescribed these in Australian summer',
+          'Drug interactions - some antibiotics interact with other medications, including the oral contraceptive pill. Ask your doctor or pharmacist about interactions',
         ],
       },
       {
@@ -1057,7 +1057,7 @@ export const phase4ExpansionArticles: Article[] = [
       { type: 'heading', content: 'Antibiotic Stewardship and Your Role', level: 2 },
       {
         type: 'paragraph',
-        content: 'Antibiotic stewardship is a coordinated effort to improve how antibiotics are prescribed and used. In Australia, the TGA, RACGP, and hospital antimicrobial stewardship programs all contribute to this effort. But stewardship is not just for healthcare professionals — patients have a role too.',
+        content: 'Antibiotic stewardship is a coordinated effort to improve how antibiotics are prescribed and used. In Australia, the TGA, RACGP, and hospital antimicrobial stewardship programs all contribute to this effort. But stewardship is not just for healthcare professionals - patients have a role too.',
       },
       {
         type: 'list',
@@ -1073,19 +1073,19 @@ export const phase4ExpansionArticles: Article[] = [
       { type: 'heading', content: 'Getting the Right Assessment', level: 2 },
       {
         type: 'paragraph',
-        content: 'A doctor assesses your symptoms, duration, and risk factors to determine whether antibiotics are appropriate. For some conditions — uncomplicated UTIs being the clearest example — telehealth assessment is well-suited because the diagnosis is based primarily on symptom history rather than physical examination. Other conditions may require a physical examination, lab tests, or imaging before antibiotics are prescribed.',
+        content: 'A doctor assesses your symptoms, duration, and risk factors to determine whether antibiotics are appropriate. For some conditions - uncomplicated UTIs being the clearest example - telehealth assessment is well-suited because the diagnosis is based primarily on symptom history rather than physical examination. Other conditions may require a physical examination, lab tests, or imaging before antibiotics are prescribed.',
         links: [{ text: 'how our doctors assess', href: '/our-doctors', title: 'Meet our AHPRA-registered doctors' }],
       },
       {
         type: 'paragraph',
-        content: 'The key principle is that a doctor should prescribe antibiotics based on clinical assessment, not patient request. A good doctor will explain why antibiotics are or are not appropriate for your situation — and that explanation is worth more than a prescription you do not need.',
+        content: 'The key principle is that a doctor should prescribe antibiotics based on clinical assessment, not patient request. A good doctor will explain why antibiotics are or are not appropriate for your situation - and that explanation is worth more than a prescription you do not need.',
         links: [{ text: 'request a prescription', href: '/prescriptions', title: 'Request a prescription online' }],
       },
     ],
     faqs: [
       {
         question: 'Can I get antibiotics online?',
-        answer: 'Yes, for appropriate conditions. Uncomplicated UTIs, some skin infections, and certain other bacterial infections can be assessed via telehealth. The doctor will prescribe only when clinically indicated — telehealth does not mean easier access to antibiotics, it means convenient access to the same clinical assessment you would receive in person.',
+        answer: 'Yes, for appropriate conditions. Uncomplicated UTIs, some skin infections, and certain other bacterial infections can be assessed via telehealth. The doctor will prescribe only when clinically indicated - telehealth does not mean easier access to antibiotics, it means convenient access to the same clinical assessment you would receive in person.',
       },
       {
         question: 'Why won\'t my doctor give me antibiotics for a cold?',
@@ -1093,7 +1093,7 @@ export const phase4ExpansionArticles: Article[] = [
       },
       {
         question: 'Does green mucus mean I need antibiotics?',
-        answer: 'No. Green or yellow mucus is a sign of your immune system fighting an infection — not an indication that the infection is bacterial. Viral infections commonly produce coloured mucus. The colour of your mucus alone does not determine whether antibiotics are needed. Duration, severity, and other symptoms are more important factors.',
+        answer: 'No. Green or yellow mucus is a sign of your immune system fighting an infection - not an indication that the infection is bacterial. Viral infections commonly produce coloured mucus. The colour of your mucus alone does not determine whether antibiotics are needed. Duration, severity, and other symptoms are more important factors.',
       },
       {
         question: 'What is antimicrobial resistance and why should I care?',
@@ -1127,12 +1127,12 @@ export const phase4ExpansionArticles: Article[] = [
     content: [
       {
         type: 'paragraph',
-        content: 'If you work nights, weekends, or rotating rosters, finding time to see a GP can feel like a logistical puzzle with no solution. Most clinics operate 9am to 5pm — the exact hours you\'re either working or asleep. Telehealth changes the equation entirely, letting you get a medical certificate without rearranging your life around someone else\'s business hours.',
+        content: 'If you work nights, weekends, or rotating rosters, finding time to see a GP can feel like a logistical puzzle with no solution. Most clinics operate 9am to 5pm - the exact hours you\'re either working or asleep. Telehealth changes the equation entirely, letting you get a medical certificate without rearranging your life around someone else\'s business hours.',
       },
       { type: 'heading', content: 'The Health Impact of Shift Work', level: 2 },
       {
         type: 'paragraph',
-        content: 'Shift work isn\'t just inconvenient — it has well-documented health consequences. The World Health Organization classifies night shift work as a probable carcinogen, and Safe Work Australia recognises it as a significant occupational health factor. Rotating and night shifts disrupt circadian rhythms, which affects sleep quality, immune function, digestion, and mental health.',
+        content: 'Shift work isn\'t just inconvenient - it has well-documented health consequences. The World Health Organization classifies night shift work as a probable carcinogen, and Safe Work Australia recognises it as a significant occupational health factor. Rotating and night shifts disrupt circadian rhythms, which affects sleep quality, immune function, digestion, and mental health.',
       },
       {
         type: 'list',
@@ -1147,7 +1147,7 @@ export const phase4ExpansionArticles: Article[] = [
       },
       {
         type: 'paragraph',
-        content: 'The irony is thick: the people most likely to get sick are the ones least able to see a doctor during clinic hours. Shift workers don\'t need a lecture about self-care — they need healthcare that fits around a roster that changes every fortnight.',
+        content: 'The irony is thick: the people most likely to get sick are the ones least able to see a doctor during clinic hours. Shift workers don\'t need a lecture about self-care - they need healthcare that fits around a roster that changes every fortnight.',
       },
       { type: 'heading', content: 'Industries That Rely on Shift Workers', level: 2 },
       {
@@ -1158,13 +1158,13 @@ export const phase4ExpansionArticles: Article[] = [
         type: 'list',
         content: '',
         items: [
-          'Nursing and healthcare — 24/7 hospital rosters, aged care facilities, ambulance services',
-          'Mining and resources — FIFO rosters, remote site work with strict fitness-for-duty requirements',
-          'Hospitality — evening and weekend shifts, casual employment with limited paid sick leave',
-          'Transport and logistics — truck drivers, warehouse workers, airline ground staff',
-          'Retail — weekend rosters, late-night trading hours, casual contracts',
-          'Emergency services — police, fire, SES with rotating shift patterns',
-          'Manufacturing — factory lines running two or three shifts around the clock',
+          'Nursing and healthcare - 24/7 hospital rosters, aged care facilities, ambulance services',
+          'Mining and resources - FIFO rosters, remote site work with strict fitness-for-duty requirements',
+          'Hospitality - evening and weekend shifts, casual employment with limited paid sick leave',
+          'Transport and logistics - truck drivers, warehouse workers, airline ground staff',
+          'Retail - weekend rosters, late-night trading hours, casual contracts',
+          'Emergency services - police, fire, SES with rotating shift patterns',
+          'Manufacturing - factory lines running two or three shifts around the clock',
         ],
       },
       {
@@ -1183,11 +1183,11 @@ export const phase4ExpansionArticles: Article[] = [
       {
         type: 'callout',
         variant: 'info',
-        content: 'Your employer can request evidence of illness (such as a medical certificate) for any absence, but this is most commonly required for absences longer than one day, or when a pattern exists. Check your award or enterprise agreement — some industries require a certificate from day one.',
+        content: 'Your employer can request evidence of illness (such as a medical certificate) for any absence, but this is most commonly required for absences longer than one day, or when a pattern exists. Check your award or enterprise agreement - some industries require a certificate from day one.',
       },
       {
         type: 'paragraph',
-        content: 'Enterprise agreements and modern awards may contain additional provisions. The Nursing Award has specific clauses around shift swaps and sick leave notification. The Mining Industry Award requires fitness-for-duty clearances. Transport workers under the Road Transport Award have fatigue management obligations that interact with sick leave. Know your specific instrument — the Fair Work Ombudsman website has a full list.',
+        content: 'Enterprise agreements and modern awards may contain additional provisions. The Nursing Award has specific clauses around shift swaps and sick leave notification. The Mining Industry Award requires fitness-for-duty clearances. Transport workers under the Road Transport Award have fatigue management obligations that interact with sick leave. Know your specific instrument - the Fair Work Ombudsman website has a full list.',
       },
       { type: 'heading', content: 'Communicating with Your Employer', level: 2 },
       {
@@ -1198,10 +1198,10 @@ export const phase4ExpansionArticles: Article[] = [
         type: 'list',
         content: '',
         items: [
-          'Notify your supervisor or shift coordinator as early as possible — ideally the night before if you know you\'re unwell',
+          'Notify your supervisor or shift coordinator as early as possible - ideally the night before if you know you\'re unwell',
           'Follow your workplace\'s specific notification procedure (phone, text, app, email)',
           'Provide an estimated return date if you can',
-          'Submit your medical certificate promptly — most employers expect it on your first day back or within 24 hours',
+          'Submit your medical certificate promptly - most employers expect it on your first day back or within 24 hours',
           'Keep a copy of your certificate for your own records',
         ],
       },
@@ -1221,7 +1221,7 @@ export const phase4ExpansionArticles: Article[] = [
         content: '',
         items: [
           'Complete a short health questionnaire describing your symptoms and how many days you need',
-          'A doctor reviews your request — typically within a couple of hours',
+          'A doctor reviews your request - typically within a couple of hours',
           'If clinically appropriate, a certificate is issued and emailed to you',
           'Forward it to your employer or upload it to your HR system',
           'The certificate is from an AHPRA-registered doctor and is valid for all Australian employers',
@@ -1231,7 +1231,7 @@ export const phase4ExpansionArticles: Article[] = [
       {
         type: 'callout',
         variant: 'tip',
-        content: 'If you\'re a FIFO worker on a remote site, telehealth can be particularly useful. You don\'t need to visit the site medic for a standard sick certificate — though fitness-for-duty clearances for returning to work may still need to go through your employer\'s medical provider.',
+        content: 'If you\'re a FIFO worker on a remote site, telehealth can be particularly useful. You don\'t need to visit the site medic for a standard sick certificate - though fitness-for-duty clearances for returning to work may still need to go through your employer\'s medical provider.',
       },
       { type: 'heading', content: 'Night Shift and After-Hours Access', level: 2 },
       {
@@ -1254,7 +1254,7 @@ export const phase4ExpansionArticles: Article[] = [
         answer: 'It depends on your employer\'s policy and your award or enterprise agreement. While casual employees don\'t receive paid sick leave, some employers still require a certificate if you miss a rostered shift. Check your employment contract or speak to your HR department.',
       },
       {
-        question: 'I work FIFO — can I use telehealth on site?',
+        question: 'I work FIFO - can I use telehealth on site?',
         answer: 'Yes, as long as you have an internet connection. Telehealth is available anywhere in Australia. Note that fitness-for-duty clearances to return to work may still need to go through your site\'s medical provider, depending on your employer\'s policy.',
       },
     ],
@@ -1286,7 +1286,7 @@ export const phase4ExpansionArticles: Article[] = [
     content: [
       {
         type: 'paragraph',
-        content: 'The Gold Coast is Australia\'s sixth-largest city, home to over 620,000 residents and host to roughly 13 million visitors each year. That combination of permanent population, tourism, and seasonal flux puts real pressure on local healthcare — and it shows. Finding a GP appointment at short notice on the Gold Coast can be genuinely difficult, especially during Schoolies, holiday periods, or major events.',
+        content: 'The Gold Coast is Australia\'s sixth-largest city, home to over 620,000 residents and host to roughly 13 million visitors each year. That combination of permanent population, tourism, and seasonal flux puts real pressure on local healthcare - and it shows. Finding a GP appointment at short notice on the Gold Coast can be genuinely difficult, especially during Schoolies, holiday periods, or major events.',
       },
       { type: 'heading', content: 'Healthcare on the Gold Coast: The Numbers', level: 2 },
       {
@@ -1295,28 +1295,28 @@ export const phase4ExpansionArticles: Article[] = [
       },
       {
         type: 'paragraph',
-        content: 'Gold Coast University Hospital is a major tertiary facility, but its emergency department isn\'t where you want to end up for a medical certificate or a repeat prescription. Robina Hospital serves the southern suburbs, and there are several after-hours GP clinics scattered along the coast — but "after hours" often means a long wait and a gap fee.',
+        content: 'Gold Coast University Hospital is a major tertiary facility, but its emergency department isn\'t where you want to end up for a medical certificate or a repeat prescription. Robina Hospital serves the southern suburbs, and there are several after-hours GP clinics scattered along the coast - but "after hours" often means a long wait and a gap fee.',
       },
       { type: 'heading', content: 'Suburb Coverage', level: 2 },
       {
         type: 'paragraph',
-        content: 'Telehealth doesn\'t care about postcodes. Whether you\'re in the high-rises of Surfers Paradise, the family suburbs of Robina and Varsity Lakes, the beach communities of Burleigh Heads and Coolangatta, or up in the hinterland around Mudgeeraba and Nerang — you get the same service. No driving, no parking at Pacific Fair, no sitting in a strip-mall waiting room.',
+        content: 'Telehealth doesn\'t care about postcodes. Whether you\'re in the high-rises of Surfers Paradise, the family suburbs of Robina and Varsity Lakes, the beach communities of Burleigh Heads and Coolangatta, or up in the hinterland around Mudgeeraba and Nerang - you get the same service. No driving, no parking at Pacific Fair, no sitting in a strip-mall waiting room.',
         links: [{ text: 'Gold Coast location page', href: '/locations/gold-coast', title: 'Telehealth services on the Gold Coast' }],
       },
       {
         type: 'list',
         content: '',
         items: [
-          'Northern Gold Coast — Southport, Labrador, Helensvale, Coomera, Ormeau',
-          'Central — Surfers Paradise, Broadbeach, Mermaid Beach, Bundall',
-          'Southern — Burleigh, Palm Beach, Currumbin, Coolangatta, Tweed Heads',
-          'Hinterland — Mudgeeraba, Nerang, Springbrook, Tamborine Mountain',
+          'Northern Gold Coast - Southport, Labrador, Helensvale, Coomera, Ormeau',
+          'Central - Surfers Paradise, Broadbeach, Mermaid Beach, Bundall',
+          'Southern - Burleigh, Palm Beach, Currumbin, Coolangatta, Tweed Heads',
+          'Hinterland - Mudgeeraba, Nerang, Springbrook, Tamborine Mountain',
         ],
       },
       { type: 'heading', content: 'University Students', level: 2 },
       {
         type: 'paragraph',
-        content: 'The Gold Coast has two major universities: Bond University in Robina and Griffith University\'s Gold Coast campus in Southport. Between them, they have tens of thousands of students — many from interstate or overseas — who may not have an established GP locally.',
+        content: 'The Gold Coast has two major universities: Bond University in Robina and Griffith University\'s Gold Coast campus in Southport. Between them, they have tens of thousands of students - many from interstate or overseas - who may not have an established GP locally.',
       },
       {
         type: 'paragraph',
@@ -1332,7 +1332,7 @@ export const phase4ExpansionArticles: Article[] = [
         type: 'list',
         content: '',
         items: [
-          'Medical certificates for work back home — valid for any Australian employer',
+          'Medical certificates for work back home - valid for any Australian employer',
           'Prescription renewals if you forgot your medication or ran out',
           'General health advice for minor illness or injury',
           'eScripts that can be filled at any local pharmacy',
@@ -1355,7 +1355,7 @@ export const phase4ExpansionArticles: Article[] = [
       { type: 'heading', content: 'Pharmacy Access and eScripts', level: 2 },
       {
         type: 'paragraph',
-        content: 'The Gold Coast has excellent pharmacy coverage. Major chains and independent pharmacies are found in every suburb and shopping centre. Your eScript works at any of them — just present the QR code on your phone. Pharmacies in tourist areas (Surfers, Broadbeach, Coolangatta) are typically open extended hours during peak season.',
+        content: 'The Gold Coast has excellent pharmacy coverage. Major chains and independent pharmacies are found in every suburb and shopping centre. Your eScript works at any of them - just present the QR code on your phone. Pharmacies in tourist areas (Surfers, Broadbeach, Coolangatta) are typically open extended hours during peak season.',
         links: [{ text: 'how eScripts work', href: '/prescriptions', title: 'Learn about eScript prescriptions' }],
       },
       { type: 'heading', content: 'Services Available via Telehealth', level: 2 },
@@ -1403,7 +1403,7 @@ export const phase4ExpansionArticles: Article[] = [
     slug: 'online-doctor-canberra',
     title: 'Online Doctor Canberra',
     subtitle: 'Healthcare for the capital.',
-    excerpt: 'Canberra residents can access medical certificates, prescriptions, and consultations online — without the wait for a bulk-billing appointment.',
+    excerpt: 'Canberra residents can access medical certificates, prescriptions, and consultations online - without the wait for a bulk-billing appointment.',
     category: 'telehealth',
     tags: ['canberra', 'act', 'online-doctor', 'telehealth'],
     publishedAt: '2026-03-05',
@@ -1416,7 +1416,7 @@ export const phase4ExpansionArticles: Article[] = [
     content: [
       {
         type: 'paragraph',
-        content: 'Canberra has a GP shortage problem, and it\'s not subtle. The ACT consistently records some of the lowest bulk-billing rates in the country, and wait times for new patient appointments can stretch into weeks. For a city of 470,000 people — many of whom work in structured government roles with clear leave documentation requirements — that\'s a real gap.',
+        content: 'Canberra has a GP shortage problem, and it\'s not subtle. The ACT consistently records some of the lowest bulk-billing rates in the country, and wait times for new patient appointments can stretch into weeks. For a city of 470,000 people - many of whom work in structured government roles with clear leave documentation requirements - that\'s a real gap.',
       },
       { type: 'heading', content: 'Canberra\'s GP Crisis by the Numbers', level: 2 },
       {
@@ -1430,7 +1430,7 @@ export const phase4ExpansionArticles: Article[] = [
       {
         type: 'callout',
         variant: 'info',
-        content: 'Telehealth doesn\'t replace your regular GP for ongoing care. But for straightforward needs — a medical certificate, a repeat prescription, a quick consultation — it fills the gap when your GP is booked out for a fortnight.',
+        content: 'Telehealth doesn\'t replace your regular GP for ongoing care. But for straightforward needs - a medical certificate, a repeat prescription, a quick consultation - it fills the gap when your GP is booked out for a fortnight.',
       },
       { type: 'heading', content: 'APS and Commonwealth Workplace Requirements', level: 2 },
       {
@@ -1454,7 +1454,7 @@ export const phase4ExpansionArticles: Article[] = [
       },
       {
         type: 'paragraph',
-        content: 'Certificates from AHPRA-registered doctors are accepted across all Commonwealth agencies. There\'s no requirement for the certificate to come from an in-person consultation — telehealth certificates meet the standard.',
+        content: 'Certificates from AHPRA-registered doctors are accepted across all Commonwealth agencies. There\'s no requirement for the certificate to come from an in-person consultation - telehealth certificates meet the standard.',
         links: [{ text: 'medical certificate', href: '/medical-certificate', title: 'Get a medical certificate online' }],
       },
       { type: 'heading', content: 'University Students in the ACT', level: 2 },
@@ -1464,36 +1464,36 @@ export const phase4ExpansionArticles: Article[] = [
       },
       {
         type: 'paragraph',
-        content: 'ANU\'s special consideration process accepts medical certificates from registered medical practitioners — it doesn\'t specify in-person consultations. UC has a similar policy. For students who are unwell during exam periods or assessment deadlines, telehealth provides a practical way to get documentation without dragging yourself to a campus health centre or bulk-billing clinic.',
+        content: 'ANU\'s special consideration process accepts medical certificates from registered medical practitioners - it doesn\'t specify in-person consultations. UC has a similar policy. For students who are unwell during exam periods or assessment deadlines, telehealth provides a practical way to get documentation without dragging yourself to a campus health centre or bulk-billing clinic.',
         links: [{ text: 'certificates for students', href: '/medical-certificate/university', title: 'Medical certificates for university' }],
       },
       { type: 'heading', content: 'Suburb-by-Suburb Access', level: 2 },
       {
         type: 'paragraph',
-        content: 'Canberra\'s town centre model means healthcare services cluster around district centres — Civic, Belconnen, Woden, Tuggeranong, and Gungahlin. If you live between centres, or in newer suburbs like Molonglo Valley, Whitlam, or Taylor, your nearest GP might be a 15-minute drive away.',
+        content: 'Canberra\'s town centre model means healthcare services cluster around district centres - Civic, Belconnen, Woden, Tuggeranong, and Gungahlin. If you live between centres, or in newer suburbs like Molonglo Valley, Whitlam, or Taylor, your nearest GP might be a 15-minute drive away.',
       },
       {
         type: 'list',
         content: '',
         items: [
-          'Inner North/Civic — best GP coverage, but highest demand and often the longest waits',
-          'Belconnen — reasonable coverage, but bulk-billing options are limited',
-          'Woden/Weston Creek — moderate GP access, Canberra Hospital nearby for emergencies',
-          'Tuggeranong — fewer GPs per capita, particularly for new patients',
-          'Gungahlin — fastest-growing region, GP supply has not kept pace with population',
-          'Molonglo Valley — very limited local services, most residents drive to Woden or Weston',
+          'Inner North/Civic - best GP coverage, but highest demand and often the longest waits',
+          'Belconnen - reasonable coverage, but bulk-billing options are limited',
+          'Woden/Weston Creek - moderate GP access, Canberra Hospital nearby for emergencies',
+          'Tuggeranong - fewer GPs per capita, particularly for new patients',
+          'Gungahlin - fastest-growing region, GP supply has not kept pace with population',
+          'Molonglo Valley - very limited local services, most residents drive to Woden or Weston',
         ],
         links: [{ text: 'Canberra location page', href: '/locations/canberra', title: 'Telehealth in Canberra' }],
       },
       { type: 'heading', content: 'Parliamentary and Political Staff', level: 2 },
       {
         type: 'paragraph',
-        content: 'During parliamentary sitting weeks, Canberra\'s population effectively swells with MPs, senators, advisers, and support staff. These are people with unpredictable schedules, long hours, and limited ability to duck out for a GP appointment between Question Time and a committee hearing. Telehealth suits this reality well — a certificate request can be submitted from a phone during a break.',
+        content: 'During parliamentary sitting weeks, Canberra\'s population effectively swells with MPs, senators, advisers, and support staff. These are people with unpredictable schedules, long hours, and limited ability to duck out for a GP appointment between Question Time and a committee hearing. Telehealth suits this reality well - a certificate request can be submitted from a phone during a break.',
       },
       { type: 'heading', content: 'Pharmacy Access', level: 2 },
       {
         type: 'paragraph',
-        content: 'Canberra has good pharmacy coverage across all town centres and major shopping precincts. eScripts from telehealth consultations can be filled at any pharmacy in the ACT — Chemist Warehouse, Capital Chemist, Priceline, or any independent. Just present the QR code on your phone.',
+        content: 'Canberra has good pharmacy coverage across all town centres and major shopping precincts. eScripts from telehealth consultations can be filled at any pharmacy in the ACT - Chemist Warehouse, Capital Chemist, Priceline, or any independent. Just present the QR code on your phone.',
         links: [{ text: 'eScript prescriptions', href: '/prescriptions', title: 'How eScripts work' }],
       },
       { type: 'heading', content: 'Services Available', level: 2 },
@@ -1512,7 +1512,7 @@ export const phase4ExpansionArticles: Article[] = [
     faqs: [
       {
         question: 'Are online certificates accepted by APS employers?',
-        answer: 'Yes. Certificates from AHPRA-registered doctors meet standard Commonwealth and APS requirements. The certificate includes the doctor\'s name, registration number, and provider details — the same information as an in-person certificate.',
+        answer: 'Yes. Certificates from AHPRA-registered doctors meet standard Commonwealth and APS requirements. The certificate includes the doctor\'s name, registration number, and provider details - the same information as an in-person certificate.',
       },
       {
         question: 'Can ANU or UC students use telehealth for special consideration?',
@@ -1555,7 +1555,7 @@ export const phase4ExpansionArticles: Article[] = [
     content: [
       {
         type: 'paragraph',
-        content: 'When you consult a doctor online, you\'re trusting someone you\'ve never met with your health information. That\'s a reasonable thing to do — telehealth is mainstream, regulated, and used by millions of Australians. But it\'s also reasonable to want to verify that the person reviewing your case is actually a qualified, registered doctor. Here\'s how to do that.',
+        content: 'When you consult a doctor online, you\'re trusting someone you\'ve never met with your health information. That\'s a reasonable thing to do - telehealth is mainstream, regulated, and used by millions of Australians. But it\'s also reasonable to want to verify that the person reviewing your case is actually a qualified, registered doctor. Here\'s how to do that.',
       },
       { type: 'heading', content: 'What Is AHPRA?', level: 2 },
       {
@@ -1564,7 +1564,7 @@ export const phase4ExpansionArticles: Article[] = [
       },
       {
         type: 'paragraph',
-        content: 'AHPRA works with the Medical Board of Australia to set standards for medical practice, including telehealth. Every registered doctor has a unique registration number, and their registration status — including any conditions or undertakings — is publicly searchable.',
+        content: 'AHPRA works with the Medical Board of Australia to set standards for medical practice, including telehealth. Every registered doctor has a unique registration number, and their registration status - including any conditions or undertakings - is publicly searchable.',
       },
       { type: 'heading', content: 'How to Search the AHPRA Register', level: 2 },
       {
@@ -1578,15 +1578,15 @@ export const phase4ExpansionArticles: Article[] = [
           'Go to ahpra.gov.au and click "Check a practitioner"',
           'Enter the doctor\'s name (as it appears on your certificate or the service website)',
           'Select "Medical Practitioner" as the profession',
-          'Review their registration status — it should say "Registered" with no conditions unless noted',
-          'Check their registration type — "General" or "Specialist" registration',
+          'Review their registration status - it should say "Registered" with no conditions unless noted',
+          'Check their registration type - "General" or "Specialist" registration',
           'Note their registration number for your records',
         ],
       },
       {
         type: 'callout',
         variant: 'tip',
-        content: 'If a doctor\'s registration shows conditions, notations, or undertakings, these are publicly visible on the register. Conditions don\'t necessarily mean the doctor is unsafe — they may relate to supervision requirements or practice restrictions. Read the details.',
+        content: 'If a doctor\'s registration shows conditions, notations, or undertakings, these are publicly visible on the register. Conditions don\'t necessarily mean the doctor is unsafe - they may relate to supervision requirements or practice restrictions. Read the details.',
       },
       { type: 'heading', content: 'What to Look for on a Telehealth Website', level: 2 },
       {
@@ -1597,13 +1597,13 @@ export const phase4ExpansionArticles: Article[] = [
         type: 'list',
         content: '',
         items: [
-          'Information about who provides medical care — doctor names or clear statements about AHPRA-registered practitioners',
+          'Information about who provides medical care - doctor names or clear statements about AHPRA-registered practitioners',
           'An Australian business address and ABN (searchable on the ABR website)',
           'Clear pricing displayed before you commit to anything',
           'A privacy policy that explains how your health information is handled',
-          'Contact details — phone, email, or both — not just a contact form',
+          'Contact details - phone, email, or both - not just a contact form',
           'Terms of service that explain the clinical process and your rights',
-          'Information about clinical governance — who oversees the medical decisions',
+          'Information about clinical governance - who oversees the medical decisions',
         ],
         links: [{ text: 'our trust page', href: '/trust', title: 'How InstantMed operates' }],
       },
@@ -1618,7 +1618,7 @@ export const phase4ExpansionArticles: Article[] = [
         items: [
           'The doctor must be registered and practising within their scope',
           'The consultation must be clinically appropriate for telehealth (not all conditions are)',
-          'The doctor must make an independent clinical judgement — not just rubber-stamp requests',
+          'The doctor must make an independent clinical judgement - not just rubber-stamp requests',
           'Patient identity must be verified',
           'Medical records must be kept to the same standard as in-person consultations',
           'The doctor must be available for follow-up if clinically necessary',
@@ -1627,7 +1627,7 @@ export const phase4ExpansionArticles: Article[] = [
       { type: 'heading', content: 'TGA Regulation and Prescribing', level: 2 },
       {
         type: 'paragraph',
-        content: 'The Therapeutic Goods Administration (TGA) regulates medicines in Australia. When a telehealth doctor prescribes medication, they must comply with the same prescribing rules as any other doctor — including state and territory drugs and poisons legislation, PBS rules, and controlled substance restrictions.',
+        content: 'The Therapeutic Goods Administration (TGA) regulates medicines in Australia. When a telehealth doctor prescribes medication, they must comply with the same prescribing rules as any other doctor - including state and territory drugs and poisons legislation, PBS rules, and controlled substance restrictions.',
       },
       {
         type: 'paragraph',
@@ -1642,12 +1642,12 @@ export const phase4ExpansionArticles: Article[] = [
         type: 'list',
         content: '',
         items: [
-          'Legitimate: discloses doctor credentials and AHPRA registration — Questionable: no information about who provides care',
-          'Legitimate: may decline requests that aren\'t clinically appropriate — Questionable: promises "guaranteed" approvals regardless of circumstances',
-          'Legitimate: clear pricing before you start — Questionable: hidden fees or pressure to pay before assessment',
-          'Legitimate: Australian-based practitioners and business — Questionable: vague about location or uses overseas practitioners',
-          'Legitimate: proper privacy policy and data handling — Questionable: no privacy information or unclear data practices',
-          'Legitimate: clinical governance and complaints process — Questionable: no clear accountability or escalation path',
+          'Legitimate: discloses doctor credentials and AHPRA registration - Questionable: no information about who provides care',
+          'Legitimate: may decline requests that aren\'t clinically appropriate - Questionable: promises "guaranteed" approvals regardless of circumstances',
+          'Legitimate: clear pricing before you start - Questionable: hidden fees or pressure to pay before assessment',
+          'Legitimate: Australian-based practitioners and business - Questionable: vague about location or uses overseas practitioners',
+          'Legitimate: proper privacy policy and data handling - Questionable: no privacy information or unclear data practices',
+          'Legitimate: clinical governance and complaints process - Questionable: no clear accountability or escalation path',
         ],
       },
       { type: 'heading', content: 'LegitScript Certification', level: 2 },
@@ -1659,7 +1659,7 @@ export const phase4ExpansionArticles: Article[] = [
       { type: 'heading', content: 'What Your Certificate Should Contain', level: 2 },
       {
         type: 'paragraph',
-        content: 'A legitimate medical certificate — whether from an in-person visit or telehealth — should include specific elements:',
+        content: 'A legitimate medical certificate - whether from an in-person visit or telehealth - should include specific elements:',
       },
       {
         type: 'list',
@@ -1687,7 +1687,7 @@ export const phase4ExpansionArticles: Article[] = [
       { type: 'heading', content: 'Filing a Complaint', level: 2 },
       {
         type: 'paragraph',
-        content: 'If you believe an online health service is operating illegitimately — prescribing without proper assessment, using unregistered practitioners, or mishandling your health information — you can report it. AHPRA handles complaints about individual practitioners. The TGA handles complaints about unregistered health products or services making therapeutic claims. The ACCC handles misleading or deceptive conduct. Your state health complaints body (such as HCCC in NSW or AHPPC in Victoria) can also investigate. You do not need to be certain that something is wrong to make a report — the regulators will assess whether the concern warrants investigation.',
+        content: 'If you believe an online health service is operating illegitimately - prescribing without proper assessment, using unregistered practitioners, or mishandling your health information - you can report it. AHPRA handles complaints about individual practitioners. The TGA handles complaints about unregistered health products or services making therapeutic claims. The ACCC handles misleading or deceptive conduct. Your state health complaints body (such as HCCC in NSW or AHPPC in Victoria) can also investigate. You do not need to be certain that something is wrong to make a report - the regulators will assess whether the concern warrants investigation.',
         links: [{ text: 'our trust approach', href: '/trust', title: 'How we approach trust and transparency' }],
       },
     ],
@@ -1737,7 +1737,7 @@ export const phase4ExpansionArticles: Article[] = [
     content: [
       {
         type: 'paragraph',
-        content: 'Hormonal contraceptives — the pill, patches, vaginal rings — require a prescription in Australia. For many women, that means a GP visit every 6-12 months just to continue the same medication they\'ve been taking for years. Telehealth streamlines this process considerably, particularly for repeat prescriptions.',
+        content: 'Hormonal contraceptives - the pill, patches, vaginal rings - require a prescription in Australia. For many women, that means a GP visit every 6-12 months just to continue the same medication they\'ve been taking for years. Telehealth streamlines this process considerably, particularly for repeat prescriptions.',
       },
       { type: 'heading', content: 'Types of Contraception Available via Telehealth', level: 2 },
       {
@@ -1748,16 +1748,16 @@ export const phase4ExpansionArticles: Article[] = [
         type: 'list',
         content: '',
         items: [
-          'Combined oral contraceptive pill (COCP) — the most commonly prescribed method in Australia',
-          'Progestogen-only pill (mini-pill) — suitable for women who can\'t take oestrogen',
-          'Contraceptive patch — applied weekly, changed every three weeks',
-          'Vaginal ring — inserted monthly, doesn\'t require a clinical fitting',
-          'Emergency contraception (morning-after pill) — available over the counter, but a doctor can prescribe if needed',
+          'Combined oral contraceptive pill (COCP) - the most commonly prescribed method in Australia',
+          'Progestogen-only pill (mini-pill) - suitable for women who can\'t take oestrogen',
+          'Contraceptive patch - applied weekly, changed every three weeks',
+          'Vaginal ring - inserted monthly, doesn\'t require a clinical fitting',
+          'Emergency contraception (morning-after pill) - available over the counter, but a doctor can prescribe if needed',
         ],
       },
       {
         type: 'paragraph',
-        content: 'Methods that require physical insertion — the IUD (hormonal or copper), the contraceptive implant (Implanon), and the contraceptive injection (Depo-Provera, though some women self-administer) — need an in-person appointment. Telehealth can\'t help with these.',
+        content: 'Methods that require physical insertion - the IUD (hormonal or copper), the contraceptive implant (Implanon), and the contraceptive injection (Depo-Provera, though some women self-administer) - need an in-person appointment. Telehealth can\'t help with these.',
       },
       { type: 'heading', content: 'What the Consultation Involves', level: 2 },
       {
@@ -1774,10 +1774,10 @@ export const phase4ExpansionArticles: Article[] = [
         items: [
           'Your current contraceptive use and how long you\'ve been using it',
           'Any side effects you\'ve experienced',
-          'Your medical history — particularly migraines with aura, blood clotting disorders, liver conditions, and cardiovascular risk',
+          'Your medical history - particularly migraines with aura, blood clotting disorders, liver conditions, and cardiovascular risk',
           'Family history of blood clots or stroke',
           'Current medications (some interact with hormonal contraceptives)',
-          'Smoking status — combined pill is contraindicated for smokers over 35',
+          'Smoking status - combined pill is contraindicated for smokers over 35',
           'Your most recent blood pressure reading',
           'Date of your last cervical screening (if relevant)',
         ],
@@ -1800,7 +1800,7 @@ export const phase4ExpansionArticles: Article[] = [
       { type: 'heading', content: 'PBS Coverage and Cost', level: 2 },
       {
         type: 'paragraph',
-        content: 'Most oral contraceptives are listed on the Pharmaceutical Benefits Scheme (PBS), which means you\'ll pay the concessional or general patient co-payment at the pharmacy — currently around $7.50 (concession) or $31.60 (general). Some newer or branded formulations may not be PBS-listed, in which case you\'ll pay the full private price.',
+        content: 'Most oral contraceptives are listed on the Pharmaceutical Benefits Scheme (PBS), which means you\'ll pay the concessional or general patient co-payment at the pharmacy - currently around $7.50 (concession) or $31.60 (general). Some newer or branded formulations may not be PBS-listed, in which case you\'ll pay the full private price.',
       },
       {
         type: 'paragraph',
@@ -1810,31 +1810,31 @@ export const phase4ExpansionArticles: Article[] = [
       { type: 'heading', content: 'The eScript Process', level: 2 },
       {
         type: 'paragraph',
-        content: 'Once the doctor approves your prescription, it\'s sent as an electronic prescription (eScript) to your phone via SMS or email. You present the QR code at any Australian pharmacy to have it dispensed. Repeats are stored electronically — you don\'t need to keep a paper script.',
+        content: 'Once the doctor approves your prescription, it\'s sent as an electronic prescription (eScript) to your phone via SMS or email. You present the QR code at any Australian pharmacy to have it dispensed. Repeats are stored electronically - you don\'t need to keep a paper script.',
       },
       { type: 'heading', content: 'Privacy Considerations', level: 2 },
       {
         type: 'paragraph',
-        content: 'Privacy matters with contraception — particularly for younger women, those in controlling relationships, or anyone who simply prefers discretion. Telehealth offers inherent privacy advantages: no waiting room, no reception desk, no bumping into someone you know at the local clinic.',
+        content: 'Privacy matters with contraception - particularly for younger women, those in controlling relationships, or anyone who simply prefers discretion. Telehealth offers inherent privacy advantages: no waiting room, no reception desk, no bumping into someone you know at the local clinic.',
       },
       {
         type: 'paragraph',
-        content: 'Your health information is protected under the Privacy Act 1988 and Australian Privacy Principles. A legitimate telehealth service will not share your health information with anyone — including family members — without your consent. Prescriptions don\'t appear on Medicare statements if you pay out of pocket for the consultation.',
+        content: 'Your health information is protected under the Privacy Act 1988 and Australian Privacy Principles. A legitimate telehealth service will not share your health information with anyone - including family members - without your consent. Prescriptions don\'t appear on Medicare statements if you pay out of pocket for the consultation.',
         links: [{ text: 'our privacy policy', href: '/privacy', title: 'InstantMed privacy policy' }],
       },
       { type: 'heading', content: 'Switching Between Methods', level: 2 },
       {
         type: 'paragraph',
-        content: 'If you want to switch from one pill to another — or from the pill to a patch or ring — a telehealth doctor can guide you through the transition. The timing of the switch matters to maintain contraceptive coverage. Generally:',
+        content: 'If you want to switch from one pill to another - or from the pill to a patch or ring - a telehealth doctor can guide you through the transition. The timing of the switch matters to maintain contraceptive coverage. Generally:',
       },
       {
         type: 'list',
         content: '',
         items: [
-          'Switching between combined pills — start the new pill the day after finishing the old pack',
-          'Combined pill to mini-pill — start the mini-pill the day after your last active combined pill',
-          'Mini-pill to combined pill — start the combined pill on the first day of your period, or use backup contraception for 7 days',
-          'Pill to patch or ring — start on the day you would have started a new pill pack',
+          'Switching between combined pills - start the new pill the day after finishing the old pack',
+          'Combined pill to mini-pill - start the mini-pill the day after your last active combined pill',
+          'Mini-pill to combined pill - start the combined pill on the first day of your period, or use backup contraception for 7 days',
+          'Pill to patch or ring - start on the day you would have started a new pill pack',
         ],
       },
       { type: 'heading', content: 'Missed Pill Guidance', level: 2 },
@@ -1845,24 +1845,24 @@ export const phase4ExpansionArticles: Article[] = [
       {
         type: 'callout',
         variant: 'warning',
-        content: 'The mini-pill has a much shorter window — if you\'re more than 3 hours late (or 12 hours for desogestrel-based mini-pills), you may need backup contraception. Check the patient information leaflet for your specific brand, or ask a doctor.',
+        content: 'The mini-pill has a much shorter window - if you\'re more than 3 hours late (or 12 hours for desogestrel-based mini-pills), you may need backup contraception. Check the patient information leaflet for your specific brand, or ask a doctor.',
       },
       { type: 'heading', content: 'Blood Pressure Monitoring', level: 2 },
       {
         type: 'paragraph',
-        content: 'Combined oral contraceptives (those containing both oestrogen and progestogen) carry a small increased risk of blood clots and can raise blood pressure. RACGP guidelines recommend that blood pressure be checked before starting or continuing combined contraceptives. If you have had a blood pressure reading within the last 12 months and it was normal, most telehealth doctors can prescribe based on that recorded reading. If you have not had a recent check, you may need to visit a pharmacy or GP for a blood pressure reading before your telehealth prescription can be issued. Many pharmacies offer free blood pressure checks — it takes about two minutes.',
+        content: 'Combined oral contraceptives (those containing both oestrogen and progestogen) carry a small increased risk of blood clots and can raise blood pressure. RACGP guidelines recommend that blood pressure be checked before starting or continuing combined contraceptives. If you have had a blood pressure reading within the last 12 months and it was normal, most telehealth doctors can prescribe based on that recorded reading. If you have not had a recent check, you may need to visit a pharmacy or GP for a blood pressure reading before your telehealth prescription can be issued. Many pharmacies offer free blood pressure checks - it takes about two minutes.',
       },
       { type: 'heading', content: 'Emergency Contraception', level: 2 },
       {
         type: 'paragraph',
-        content: 'Emergency contraception (the "morning-after pill") is available without a prescription from Australian pharmacies. You do not need a telehealth consultation or a GP visit to access it. The pharmacist will ask some screening questions and provide it directly. Time-sensitive effectiveness means going straight to a pharmacy is the fastest option. If you need ongoing contraception after using emergency contraception, that is where a telehealth consultation can help — setting you up with a regular prescription so you are covered going forward.',
+        content: 'Emergency contraception (the "morning-after pill") is available without a prescription from Australian pharmacies. You do not need a telehealth consultation or a GP visit to access it. The pharmacist will ask some screening questions and provide it directly. Time-sensitive effectiveness means going straight to a pharmacy is the fastest option. If you need ongoing contraception after using emergency contraception, that is where a telehealth consultation can help - setting you up with a regular prescription so you are covered going forward.',
         links: [{ text: 'women\'s health consultation', href: '/request?service=consult&subtype=womens-health', title: 'Start a women\'s health consultation' }],
       },
     ],
     faqs: [
       {
         question: 'Can I get the pill online without an in-person visit?',
-        answer: 'Yes, in many cases. You still see a doctor — via telehealth. They review your health questionnaire and prescribe if clinically appropriate. Repeat prescriptions for women already on the pill are particularly straightforward. First-time prescriptions may be possible depending on your medical history.',
+        answer: 'Yes, in many cases. You still see a doctor - via telehealth. They review your health questionnaire and prescribe if clinically appropriate. Repeat prescriptions for women already on the pill are particularly straightforward. First-time prescriptions may be possible depending on your medical history.',
       },
       {
         question: 'Will my pharmacy accept an eScript for contraception?',
@@ -1870,18 +1870,18 @@ export const phase4ExpansionArticles: Article[] = [
       },
       {
         question: 'Do I need a blood pressure check for the pill?',
-        answer: 'For the combined pill, yes — blood pressure should be checked regularly. You can get a free check at most pharmacies. The progestogen-only pill doesn\'t have the same blood pressure requirements, so it may be prescribed without a recent reading.',
+        answer: 'For the combined pill, yes - blood pressure should be checked regularly. You can get a free check at most pharmacies. The progestogen-only pill doesn\'t have the same blood pressure requirements, so it may be prescribed without a recent reading.',
       },
       {
         question: 'Will my parents or partner see the prescription on any statements?',
-        answer: 'Telehealth consultations paid out of pocket don\'t appear on Medicare statements. The pharmacy transaction will show on your bank statement, but only as the pharmacy name — not the specific medication. Your health information is protected by law and won\'t be shared without your consent.',
+        answer: 'Telehealth consultations paid out of pocket don\'t appear on Medicare statements. The pharmacy transaction will show on your bank statement, but only as the pharmacy name - not the specific medication. Your health information is protected by law and won\'t be shared without your consent.',
       },
     ],
     relatedServices: [
       { title: 'Women\'s Health', description: 'Contraception and more', href: '/request?service=consult&subtype=womens-health', icon: 'consult' },
       { title: 'Prescriptions', description: 'Request a prescription', href: '/prescriptions', icon: 'prescription' },
     ],
-    seo: { title: 'Contraceptive Prescription Online | Birth Control via Telehealth | InstantMed', description: 'Get a contraceptive prescription online in Australia. Birth control via telehealth — no clinic visit required.', keywords: ['contraceptive prescription online', 'birth control telehealth', 'pill prescription online australia'] },
+    seo: { title: 'Contraceptive Prescription Online | Birth Control via Telehealth | InstantMed', description: 'Get a contraceptive prescription online in Australia. Birth control via telehealth - no clinic visit required.', keywords: ['contraceptive prescription online', 'birth control telehealth', 'pill prescription online australia'] },
   },
   {
     slug: 'teachers-medical-certificate',
@@ -1905,11 +1905,11 @@ export const phase4ExpansionArticles: Article[] = [
       { type: 'heading', content: 'The Unique Pressure on Teachers', level: 2 },
       {
         type: 'paragraph',
-        content: 'Teaching is one of those professions where being absent creates a cascade effect. Your class needs coverage, the relief teacher needs plans, your colleagues may need to absorb extra duties, and you feel guilty about the disruption — even when you\'re legitimately unwell. This pressure often leads teachers to work through illness, which benefits nobody.',
+        content: 'Teaching is one of those professions where being absent creates a cascade effect. Your class needs coverage, the relief teacher needs plans, your colleagues may need to absorb extra duties, and you feel guilty about the disruption - even when you\'re legitimately unwell. This pressure often leads teachers to work through illness, which benefits nobody.',
       },
       {
         type: 'paragraph',
-        content: 'On top of that, GP clinics typically operate 9am-5pm — the same hours you\'re in a classroom. Taking a half-day off to see a doctor so you can get a certificate for the other day you took off feels like a particularly absurd Catch-22.',
+        content: 'On top of that, GP clinics typically operate 9am-5pm - the same hours you\'re in a classroom. Taking a half-day off to see a doctor so you can get a certificate for the other day you took off feels like a particularly absurd Catch-22.',
       },
       { type: 'heading', content: 'Education Department Policies by State', level: 2 },
       {
@@ -1920,57 +1920,57 @@ export const phase4ExpansionArticles: Article[] = [
         type: 'list',
         content: '',
         items: [
-          'NSW Department of Education — permanent teachers receive 15 days sick leave per year (cumulative). Certificate required for absences of 3+ consecutive days, or where a pattern is identified',
-          'Victoria Department of Education — permanent teachers receive personal leave under their enterprise agreement. Certificate may be required for absences of 2+ days',
-          'Queensland Department of Education — 10 days personal leave per year for permanent staff. Medical certificate required for absences of 3+ consecutive days',
-          'South Australia, WA, Tasmania, NT, ACT — similar frameworks with minor variations. Most require certificates for absences over 2-3 days',
+          'NSW Department of Education - permanent teachers receive 15 days sick leave per year (cumulative). Certificate required for absences of 3+ consecutive days, or where a pattern is identified',
+          'Victoria Department of Education - permanent teachers receive personal leave under their enterprise agreement. Certificate may be required for absences of 2+ days',
+          'Queensland Department of Education - 10 days personal leave per year for permanent staff. Medical certificate required for absences of 3+ consecutive days',
+          'South Australia, WA, Tasmania, NT, ACT - similar frameworks with minor variations. Most require certificates for absences over 2-3 days',
         ],
       },
       {
         type: 'callout',
         variant: 'info',
-        content: 'Catholic and independent schools typically follow their own enterprise agreements, but the medical certificate requirements are broadly similar. Certificates from AHPRA-registered doctors are accepted across all school systems — public, Catholic, and independent.',
+        content: 'Catholic and independent schools typically follow their own enterprise agreements, but the medical certificate requirements are broadly similar. Certificates from AHPRA-registered doctors are accepted across all school systems - public, Catholic, and independent.',
       },
       { type: 'heading', content: 'Casual vs Permanent Teacher Leave', level: 2 },
       {
         type: 'paragraph',
-        content: 'Permanent and fixed-term teachers accumulate paid personal leave under their enterprise agreements. Casual (relief) teachers are in a different position — they don\'t receive paid sick leave under the National Employment Standards, and most school systems don\'t provide it either.',
+        content: 'Permanent and fixed-term teachers accumulate paid personal leave under their enterprise agreements. Casual (relief) teachers are in a different position - they don\'t receive paid sick leave under the National Employment Standards, and most school systems don\'t provide it either.',
       },
       {
         type: 'paragraph',
-        content: 'For casual teachers, missing a day means losing a day\'s pay. There\'s no leave balance to draw on, and the threshold for a medical certificate may still apply if the school requires one for any absence from a booked assignment. It\'s frustrating — and one more reason why a low-cost, convenient telehealth certificate makes practical sense.',
+        content: 'For casual teachers, missing a day means losing a day\'s pay. There\'s no leave balance to draw on, and the threshold for a medical certificate may still apply if the school requires one for any absence from a booked assignment. It\'s frustrating - and one more reason why a low-cost, convenient telehealth certificate makes practical sense.',
         links: [{ text: 'medical certificate pricing', href: '/medical-certificate', title: 'See medical certificate pricing' }],
       },
       { type: 'heading', content: 'Teacher-Specific Health Issues', level: 2 },
       {
         type: 'paragraph',
-        content: 'Teaching takes a specific toll on the body. Beyond the common colds and flus that circulate through schools (you\'ll catch every virus going around in your first few years — consider it an occupational hazard), teachers are prone to:',
+        content: 'Teaching takes a specific toll on the body. Beyond the common colds and flus that circulate through schools (you\'ll catch every virus going around in your first few years - consider it an occupational hazard), teachers are prone to:',
       },
       {
         type: 'list',
         content: '',
         items: [
-          'Voice strain and laryngitis — projecting your voice all day, every day, takes its toll. Teachers have significantly higher rates of voice disorders than the general population',
-          'Respiratory infections — close contact with 25+ students in enclosed spaces, particularly during winter',
-          'Stress and burnout — teaching consistently ranks among the most stressful professions in Australia, with high rates of anxiety and depression',
-          'Musculoskeletal issues — standing for extended periods, carrying resources, bending to student desks',
-          'Headaches and migraines — often linked to noise exposure, screen time, and stress',
+          'Voice strain and laryngitis - projecting your voice all day, every day, takes its toll. Teachers have significantly higher rates of voice disorders than the general population',
+          'Respiratory infections - close contact with 25+ students in enclosed spaces, particularly during winter',
+          'Stress and burnout - teaching consistently ranks among the most stressful professions in Australia, with high rates of anxiety and depression',
+          'Musculoskeletal issues - standing for extended periods, carrying resources, bending to student desks',
+          'Headaches and migraines - often linked to noise exposure, screen time, and stress',
         ],
       },
       { type: 'heading', content: 'Term-Time Pressure vs School Holidays', level: 2 },
       {
         type: 'paragraph',
-        content: 'There\'s an unspoken rule in teaching: you don\'t get sick during term time. Obviously your immune system doesn\'t check the school calendar, but the pressure to avoid absence during crucial periods — report writing, exam supervision, parent-teacher interviews — is real.',
+        content: 'There\'s an unspoken rule in teaching: you don\'t get sick during term time. Obviously your immune system doesn\'t check the school calendar, but the pressure to avoid absence during crucial periods - report writing, exam supervision, parent-teacher interviews - is real.',
       },
       {
         type: 'paragraph',
-        content: 'School holidays present a different issue. Teachers often get sick in the first week of holidays (your body finally relaxes and every deferred illness hits at once). If you need a medical certificate during holidays — perhaps for a carers\' leave claim, or to document an illness that will extend into the new term — you still need to see a doctor.',
+        content: 'School holidays present a different issue. Teachers often get sick in the first week of holidays (your body finally relaxes and every deferred illness hits at once). If you need a medical certificate during holidays - perhaps for a carers\' leave claim, or to document an illness that will extend into the new term - you still need to see a doctor.',
         links: [{ text: 'how it works', href: '/how-it-works', title: 'See how InstantMed works' }],
       },
       { type: 'heading', content: 'Relief Teacher Booking Pressure', level: 2 },
       {
         type: 'paragraph',
-        content: 'One reason teachers hesitate to take sick leave is the relief teacher shortage. In many parts of Australia, finding a qualified casual teacher at short notice is genuinely difficult. Schools resort to splitting classes, pulling specialist teachers, or asking colleagues to cover — all of which create guilt for the absent teacher.',
+        content: 'One reason teachers hesitate to take sick leave is the relief teacher shortage. In many parts of Australia, finding a qualified casual teacher at short notice is genuinely difficult. Schools resort to splitting classes, pulling specialist teachers, or asking colleagues to cover - all of which create guilt for the absent teacher.',
       },
       {
         type: 'paragraph',
@@ -1979,11 +1979,11 @@ export const phase4ExpansionArticles: Article[] = [
       { type: 'heading', content: 'Early Childhood Educators', level: 2 },
       {
         type: 'paragraph',
-        content: 'Early childhood educators — childcare workers, kindergarten teachers, long day care staff — face many of the same challenges as school teachers, plus some additional ones. Ratios in early childhood settings are strict (regulated by ACECQA), so an absent educator may mean the centre can\'t legally operate at full capacity. The pressure to attend when unwell is intense.',
+        content: 'Early childhood educators - childcare workers, kindergarten teachers, long day care staff - face many of the same challenges as school teachers, plus some additional ones. Ratios in early childhood settings are strict (regulated by ACECQA), so an absent educator may mean the centre can\'t legally operate at full capacity. The pressure to attend when unwell is intense.',
       },
       {
         type: 'paragraph',
-        content: 'Early childhood settings also have high rates of infectious disease transmission. Gastro, hand-foot-and-mouth, conjunctivitis — if it\'s doing the rounds with the children, the educators will catch it too. Medical certificates for these absences are common and straightforward via telehealth.',
+        content: 'Early childhood settings also have high rates of infectious disease transmission. Gastro, hand-foot-and-mouth, conjunctivitis - if it\'s doing the rounds with the children, the educators will catch it too. Medical certificates for these absences are common and straightforward via telehealth.',
       },
       { type: 'heading', content: 'How Telehealth Works for Teachers', level: 2 },
       {
@@ -1992,7 +1992,7 @@ export const phase4ExpansionArticles: Article[] = [
         items: [
           'Complete the health questionnaire before school, during a free period, or after work',
           'A doctor reviews your request and issues a certificate if clinically appropriate',
-          'The certificate is emailed to you — forward it to your admin team or upload it to your school\'s HR system',
+          'The certificate is emailed to you - forward it to your admin team or upload it to your school\'s HR system',
           'No need to leave home, find a GP appointment, or take additional time off',
         ],
         links: [{ text: 'get a medical certificate', href: '/medical-certificate', title: 'Request a medical certificate' }],
@@ -2008,7 +2008,7 @@ export const phase4ExpansionArticles: Article[] = [
         answer: 'Yes. InstantMed operates 8am to 10pm AEST, 7 days a week, including during school holidays. If you need documentation for an illness during break periods, or to support a leave claim that extends into the new term, the process is the same.',
       },
       {
-        question: 'I\'m a casual teacher — do I still need a certificate?',
+        question: 'I\'m a casual teacher - do I still need a certificate?',
         answer: 'It depends on your school\'s policy. Some schools require a certificate if you cancel a booked assignment due to illness. Even without a formal requirement, having a certificate can protect you from being perceived as unreliable and losing future bookings.',
       },
       {
@@ -2037,35 +2037,35 @@ export const phase4ExpansionArticles: Article[] = [
     heroImage: blogImages.insomnia,
     heroImageAlt: 'Person managing migraine',
     content: [
-      { type: 'paragraph', content: 'Around 4.9 million Australians experience migraine, making it one of the most common neurological conditions in the country. Migraines are not just bad headaches. They are a complex neurological event involving changes in brain chemistry, blood flow, and nerve signalling. For the people who live with them, migraines can be genuinely disabling — costing workdays, social plans, and a fair amount of patience.', links: [{ text: 'medical certificate', href: '/medical-certificate', title: 'Get a medical certificate for migraine leave' }] },
+      { type: 'paragraph', content: 'Around 4.9 million Australians experience migraine, making it one of the most common neurological conditions in the country. Migraines are not just bad headaches. They are a complex neurological event involving changes in brain chemistry, blood flow, and nerve signalling. For the people who live with them, migraines can be genuinely disabling - costing workdays, social plans, and a fair amount of patience.', links: [{ text: 'medical certificate', href: '/medical-certificate', title: 'Get a medical certificate for migraine leave' }] },
       { type: 'paragraph', content: 'Understanding the different types of migraine, what triggers them, and how to manage them is the foundation of getting your life back from a condition that tends to run the show if you let it.' },
       { type: 'heading', content: 'Types of Migraine', level: 2 },
       { type: 'paragraph', content: 'Not all migraines present the same way, and recognising your type helps guide treatment.' },
-      { type: 'list', content: '', items: ['Migraine without aura — the most common type. Moderate to severe throbbing pain, usually one-sided, lasting 4-72 hours. Accompanied by nausea, light sensitivity, or sound sensitivity.', 'Migraine with aura — around 25-30% of migraine sufferers experience aura: visual disturbances (zigzag lines, blind spots), tingling in the face or hands, or difficulty speaking. Aura typically lasts 20-60 minutes and precedes the headache.', 'Vestibular migraine — primarily causes dizziness, vertigo, and balance problems, sometimes without a significant headache. Often misdiagnosed as an inner ear condition.', 'Menstrual migraine — occurs in a predictable pattern related to the menstrual cycle, typically in the two days before or three days after the start of a period. Driven by oestrogen withdrawal.', 'Chronic migraine — defined as 15 or more headache days per month, with at least 8 meeting migraine criteria. This is where migraines stop being episodic and start being a constant background presence.', 'Hemiplegic migraine — a rare subtype causing temporary weakness on one side of the body, mimicking stroke symptoms. Always requires medical assessment to rule out other causes.'] },
+      { type: 'list', content: '', items: ['Migraine without aura - the most common type. Moderate to severe throbbing pain, usually one-sided, lasting 4-72 hours. Accompanied by nausea, light sensitivity, or sound sensitivity.', 'Migraine with aura - around 25-30% of migraine sufferers experience aura: visual disturbances (zigzag lines, blind spots), tingling in the face or hands, or difficulty speaking. Aura typically lasts 20-60 minutes and precedes the headache.', 'Vestibular migraine - primarily causes dizziness, vertigo, and balance problems, sometimes without a significant headache. Often misdiagnosed as an inner ear condition.', 'Menstrual migraine - occurs in a predictable pattern related to the menstrual cycle, typically in the two days before or three days after the start of a period. Driven by oestrogen withdrawal.', 'Chronic migraine - defined as 15 or more headache days per month, with at least 8 meeting migraine criteria. This is where migraines stop being episodic and start being a constant background presence.', 'Hemiplegic migraine - a rare subtype causing temporary weakness on one side of the body, mimicking stroke symptoms. Always requires medical assessment to rule out other causes.'] },
       { type: 'heading', content: 'Trigger Categories', level: 2 },
-      { type: 'paragraph', content: 'Migraine triggers are individual, but they tend to cluster into recognisable categories. Most people have two or three primary triggers, and it is usually a combination — not a single factor — that tips the balance.' },
-      { type: 'list', content: '', items: ['Hormonal — menstrual cycle changes, oral contraceptive pill, HRT, perimenopause. Oestrogen fluctuation is one of the most potent triggers.', 'Sleep — both too much and too little. Irregular sleep schedules, shift work, and jet lag are common culprits. The weekend lie-in migraine is almost a cliche because it is so reliable.', 'Dietary — skipping meals (especially breakfast), dehydration, alcohol (particularly red wine), aged cheese, processed meats, chocolate, and caffeine withdrawal. The dose matters more than the food itself in most cases.', 'Environmental — bright or flickering lights, strong smells (perfume, cleaning products, petrol), weather changes (particularly barometric pressure drops), and altitude changes.', 'Stress — both during stress and in the let-down period afterward. The Friday afternoon migraine after a high-pressure work week is a well-documented pattern.', 'Physical — intense exercise without adequate warm-up, poor posture (especially prolonged screen use), neck tension, and sexual activity.', 'Medications — overuse of acute headache medications (including paracetamol, ibuprofen, and triptans) can paradoxically cause more headaches. This is called medication overuse headache.'] },
+      { type: 'paragraph', content: 'Migraine triggers are individual, but they tend to cluster into recognisable categories. Most people have two or three primary triggers, and it is usually a combination - not a single factor - that tips the balance.' },
+      { type: 'list', content: '', items: ['Hormonal - menstrual cycle changes, oral contraceptive pill, HRT, perimenopause. Oestrogen fluctuation is one of the most potent triggers.', 'Sleep - both too much and too little. Irregular sleep schedules, shift work, and jet lag are common culprits. The weekend lie-in migraine is almost a cliche because it is so reliable.', 'Dietary - skipping meals (especially breakfast), dehydration, alcohol (particularly red wine), aged cheese, processed meats, chocolate, and caffeine withdrawal. The dose matters more than the food itself in most cases.', 'Environmental - bright or flickering lights, strong smells (perfume, cleaning products, petrol), weather changes (particularly barometric pressure drops), and altitude changes.', 'Stress - both during stress and in the let-down period afterward. The Friday afternoon migraine after a high-pressure work week is a well-documented pattern.', 'Physical - intense exercise without adequate warm-up, poor posture (especially prolonged screen use), neck tension, and sexual activity.', 'Medications - overuse of acute headache medications (including paracetamol, ibuprofen, and triptans) can paradoxically cause more headaches. This is called medication overuse headache.'] },
       { type: 'heading', content: 'Keeping a Migraine Diary', level: 2 },
-      { type: 'paragraph', content: 'A migraine diary is the single most useful tool for identifying your triggers. Record the date, time of onset, duration, severity (1-10), associated symptoms, potential triggers (food, sleep, stress, weather, hormonal), and what you took for it. After 2-3 months, patterns typically emerge. Many people are surprised — the trigger they suspected is often not the main one.' },
+      { type: 'paragraph', content: 'A migraine diary is the single most useful tool for identifying your triggers. Record the date, time of onset, duration, severity (1-10), associated symptoms, potential triggers (food, sleep, stress, weather, hormonal), and what you took for it. After 2-3 months, patterns typically emerge. Many people are surprised - the trigger they suspected is often not the main one.' },
       { type: 'callout', variant: 'tip', content: 'Apps like Migraine Buddy or even a simple spreadsheet work well. The key is consistency. Record every episode, not just the severe ones.' },
       { type: 'heading', content: 'Evidence-Based Prevention', level: 2 },
-      { type: 'paragraph', content: 'If you are experiencing four or more migraine days per month, preventive treatment should be discussed with your doctor. Prevention does not eliminate migraines — a 50% reduction in frequency is considered a good response.' },
-      { type: 'list', content: '', items: ['Lifestyle modifications — regular sleep schedule, consistent meal times, staying hydrated, regular moderate exercise, stress management techniques. These sound basic because they are. They also work.', 'Prescription preventives — beta-blockers (propranolol), anticonvulsants (topiramate, sodium valproate), antidepressants (amitriptyline), and candesartan. Choice depends on your other health conditions and side effect profile.', 'CGRP monoclonal antibodies — newer targeted treatments (erenumab, fremanezumab, galcanezumab) available through neurologist prescription in Australia, with PBS listing for chronic migraine after failing other preventives.', 'Supplements — magnesium (400-600mg daily), riboflavin (vitamin B2, 400mg daily), and coenzyme Q10 (150-300mg daily) have reasonable evidence. Not miracle cures, but worth trying with few side effects.', 'Botox — TGA-approved for chronic migraine (15+ headache days per month). Injections every 12 weeks into specific head and neck muscles.'] },
+      { type: 'paragraph', content: 'If you are experiencing four or more migraine days per month, preventive treatment should be discussed with your doctor. Prevention does not eliminate migraines - a 50% reduction in frequency is considered a good response.' },
+      { type: 'list', content: '', items: ['Lifestyle modifications - regular sleep schedule, consistent meal times, staying hydrated, regular moderate exercise, stress management techniques. These sound basic because they are. They also work.', 'Prescription preventives - beta-blockers (propranolol), anticonvulsants (topiramate, sodium valproate), antidepressants (amitriptyline), and candesartan. Choice depends on your other health conditions and side effect profile.', 'CGRP monoclonal antibodies - newer targeted treatments (erenumab, fremanezumab, galcanezumab) available through neurologist prescription in Australia, with PBS listing for chronic migraine after failing other preventives.', 'Supplements - magnesium (400-600mg daily), riboflavin (vitamin B2, 400mg daily), and coenzyme Q10 (150-300mg daily) have reasonable evidence. Not miracle cures, but worth trying with few side effects.', 'Botox - TGA-approved for chronic migraine (15+ headache days per month). Injections every 12 weeks into specific head and neck muscles.'] },
       { type: 'heading', content: 'Acute Treatment Options', level: 2 },
       { type: 'paragraph', content: 'When a migraine hits, early treatment works best. The general principle: take something effective at the first sign, do not wait to see if it gets worse. It will.', links: [{ text: 'general consultation', href: '/consult', title: 'Discuss migraine management with a doctor' }] },
-      { type: 'list', content: '', items: ['Simple analgesics — paracetamol or ibuprofen, ideally with an anti-nausea medication (metoclopramide or prochlorperazine) to improve absorption. Most effective if taken within the first 30 minutes.', 'Triptans — sumatriptan is available over the counter in Australia for diagnosed migraine. Other triptans (rizatriptan, zolmitriptan, eletriptan) require a prescription. These target serotonin receptors and are the most specific acute migraine treatment.', 'Anti-nausea medications — useful both for the nausea itself and to improve absorption of other medications. Metoclopramide and prochlorperazine also have independent anti-migraine effects.', 'Combination approach — an anti-inflammatory plus a triptan plus an anti-emetic is often more effective than any single agent. Your doctor can advise on the right combination.'] },
+      { type: 'list', content: '', items: ['Simple analgesics - paracetamol or ibuprofen, ideally with an anti-nausea medication (metoclopramide or prochlorperazine) to improve absorption. Most effective if taken within the first 30 minutes.', 'Triptans - sumatriptan is available over the counter in Australia for diagnosed migraine. Other triptans (rizatriptan, zolmitriptan, eletriptan) require a prescription. These target serotonin receptors and are the most specific acute migraine treatment.', 'Anti-nausea medications - useful both for the nausea itself and to improve absorption of other medications. Metoclopramide and prochlorperazine also have independent anti-migraine effects.', 'Combination approach - an anti-inflammatory plus a triptan plus an anti-emetic is often more effective than any single agent. Your doctor can advise on the right combination.'] },
       { type: 'heading', content: 'Medication Overuse Headache', level: 2 },
-      { type: 'paragraph', content: 'This deserves its own section because it is common, under-recognised, and genuinely miserable. If you are taking acute headache medication on 10-15 or more days per month, the medication itself may be perpetuating your headaches. Triptans and opioid-containing analgesics are the worst offenders, but even simple paracetamol can cause it with daily use. The treatment is gradual withdrawal of the overused medication — which temporarily makes headaches worse before they improve. This is best done with medical supervision and a preventive medication in place.' },
+      { type: 'paragraph', content: 'This deserves its own section because it is common, under-recognised, and genuinely miserable. If you are taking acute headache medication on 10-15 or more days per month, the medication itself may be perpetuating your headaches. Triptans and opioid-containing analgesics are the worst offenders, but even simple paracetamol can cause it with daily use. The treatment is gradual withdrawal of the overused medication - which temporarily makes headaches worse before they improve. This is best done with medical supervision and a preventive medication in place.' },
       { type: 'heading', content: 'When Imaging Is Needed', level: 2 },
       { type: 'paragraph', content: 'Most people with migraine do not need a brain scan. Imaging (usually MRI) is recommended when there are atypical features that suggest something other than migraine.' },
-      { type: 'list', content: '', items: ['New onset after age 50', 'Sudden onset severe headache (thunderclap headache) — this is an emergency', 'Progressive worsening over weeks despite treatment', 'Neurological signs that persist between attacks', 'Change in established headache pattern', 'Headache that wakes you from sleep consistently', 'First migraine with aura, particularly with prolonged or atypical aura'] },
-      { type: 'callout', variant: 'emergency', content: 'Sudden severe headache ("worst of your life"), headache with fever and stiff neck, headache with confusion or weakness, or headache after head injury — call 000 or go to the nearest emergency department. These are not migraine until proven otherwise.' },
+      { type: 'list', content: '', items: ['New onset after age 50', 'Sudden onset severe headache (thunderclap headache) - this is an emergency', 'Progressive worsening over weeks despite treatment', 'Neurological signs that persist between attacks', 'Change in established headache pattern', 'Headache that wakes you from sleep consistently', 'First migraine with aura, particularly with prolonged or atypical aura'] },
+      { type: 'callout', variant: 'emergency', content: 'Sudden severe headache ("worst of your life"), headache with fever and stiff neck, headache with confusion or weakness, or headache after head injury - call 000 or go to the nearest emergency department. These are not migraine until proven otherwise.' },
       { type: 'heading', content: 'Specialist Referral and Workplace Accommodations', level: 2 },
       { type: 'paragraph', content: 'A neurologist referral is appropriate if you have tried two or more preventive medications without adequate response, your diagnosis is uncertain, you have hemiplegic or brainstem aura migraine, or you are experiencing chronic daily headache. Many Australian neurologists have long wait times (3-6 months), so a referral sooner rather than later is worthwhile.' },
       { type: 'paragraph', content: 'In the workplace, migraines are covered under disability discrimination protections. Reasonable accommodations might include flexible start times, the ability to work from home during prodrome, access to a quiet dim room during attacks, screen filter software, and understanding that migraines are unpredictable. A medical certificate from your doctor can support requests for workplace accommodations if needed.' },
     ],
     faqs: [
-      { question: 'Can I get a medical certificate for a migraine?', answer: 'Yes. A migraine that prevents you from working is a legitimate reason for a medical certificate. A doctor can assess your symptoms via telehealth and issue documentation if appropriate. Migraines are recognised as a disabling condition — you do not need to justify needing time off.' },
+      { question: 'Can I get a medical certificate for a migraine?', answer: 'Yes. A migraine that prevents you from working is a legitimate reason for a medical certificate. A doctor can assess your symptoms via telehealth and issue documentation if appropriate. Migraines are recognised as a disabling condition - you do not need to justify needing time off.' },
       { question: 'Can telehealth prescribe migraine medication?', answer: 'In many cases, yes. Triptans, anti-nausea medications, and some preventive medications can be prescribed via telehealth for patients with an established migraine diagnosis. Your doctor will assess whether the medication is appropriate for your situation and can send an eScript to your local pharmacy.' },
       { question: 'How do I know if my headaches are migraines or something else?', answer: 'Migraines are typically one-sided, throbbing, moderate to severe, last 4-72 hours, and are accompanied by nausea or sensitivity to light and sound. If your headaches are new, changing, or not responding to treatment, a doctor can help differentiate migraine from tension headache, cluster headache, or other causes.' },
       { question: 'Should I see a neurologist for my migraines?', answer: 'Not necessarily as a first step. Your GP can diagnose and manage most migraines effectively. A neurologist referral is appropriate if you have tried multiple preventive medications without success, your diagnosis is uncertain, or your migraines are chronic (15+ days per month). Ask your GP about a referral if standard treatments are not working.' },
@@ -2095,31 +2095,31 @@ export const phase4ExpansionArticles: Article[] = [
       { type: 'paragraph', content: 'The Hunter New England Primary Health Network reports that parts of the region are classified as Distribution Priority Areas for general practice, meaning there are not enough GPs to serve the population. Same-day appointments can require calling multiple clinics, and after-hours options outside John Hunter Hospital\'s emergency department are limited. Telehealth does not replace your regular GP, but it fills the gaps when access is the problem.' },
       { type: 'heading', content: 'Healthcare Challenges in the Hunter', level: 2 },
       { type: 'paragraph', content: 'Newcastle and the broader Hunter face a familiar Australian story: a growing population, an ageing GP workforce, and a geography that makes access uneven. In suburbs like Cessnock, Singleton, and Muswellbrook, the nearest bulk-billing GP might be a 30-minute drive. Even in central Newcastle, wait times of 3-5 days for a non-urgent appointment are common.' },
-      { type: 'list', content: '', items: ['GP shortages across the Hunter New England region, particularly in the Upper Hunter and mining communities', 'Long wait times for same-day appointments, even in Newcastle CBD', 'Limited after-hours GP options — most close by 6pm, leaving the John Hunter ED as the default', 'Mining and shift workers who cannot attend during standard clinic hours', 'University of Newcastle students (35,000+) competing for limited campus and surrounding GP appointments'] },
+      { type: 'list', content: '', items: ['GP shortages across the Hunter New England region, particularly in the Upper Hunter and mining communities', 'Long wait times for same-day appointments, even in Newcastle CBD', 'Limited after-hours GP options - most close by 6pm, leaving the John Hunter ED as the default', 'Mining and shift workers who cannot attend during standard clinic hours', 'University of Newcastle students (35,000+) competing for limited campus and surrounding GP appointments'] },
       { type: 'heading', content: 'University of Newcastle and Student Health', level: 2 },
-      { type: 'paragraph', content: 'The University of Newcastle has campuses at Callaghan, the city centre, and Ourimbah on the Central Coast. Student health services exist but have limited capacity and hours. International students in particular often struggle to find a regular GP who bulk-bills and is accepting new patients. For straightforward needs — a medical certificate for a missed exam, a repeat prescription, a consultation about a common condition — telehealth is a practical alternative to waiting a week for a campus appointment.', links: [{ text: 'student telehealth', href: '/for/students', title: 'Telehealth for university students' }] },
+      { type: 'paragraph', content: 'The University of Newcastle has campuses at Callaghan, the city centre, and Ourimbah on the Central Coast. Student health services exist but have limited capacity and hours. International students in particular often struggle to find a regular GP who bulk-bills and is accepting new patients. For straightforward needs - a medical certificate for a missed exam, a repeat prescription, a consultation about a common condition - telehealth is a practical alternative to waiting a week for a campus appointment.', links: [{ text: 'student telehealth', href: '/for/students', title: 'Telehealth for university students' }] },
       { type: 'heading', content: 'Mining and Industrial Workforce', level: 2 },
-      { type: 'paragraph', content: 'The Hunter Valley is one of Australia\'s most significant mining regions, with thousands of workers in coal, minerals, and associated services. Many work rotating rosters — 7 days on, 7 days off, or 12-hour shifts that make attending a GP during business hours impractical. Fly-in-fly-out and drive-in-drive-out workers face additional challenges: they may be rostered on when their regular GP is available, or based at a mine site with no nearby clinic.' },
-      { type: 'paragraph', content: 'For these workers, telehealth provides a way to get medical certificates, prescription renewals, and consultations without losing a day off to a clinic waiting room. An eScript can be sent to any pharmacy — whether that is in Singleton, Muswellbrook, or back home in Newcastle.' },
+      { type: 'paragraph', content: 'The Hunter Valley is one of Australia\'s most significant mining regions, with thousands of workers in coal, minerals, and associated services. Many work rotating rosters - 7 days on, 7 days off, or 12-hour shifts that make attending a GP during business hours impractical. Fly-in-fly-out and drive-in-drive-out workers face additional challenges: they may be rostered on when their regular GP is available, or based at a mine site with no nearby clinic.' },
+      { type: 'paragraph', content: 'For these workers, telehealth provides a way to get medical certificates, prescription renewals, and consultations without losing a day off to a clinic waiting room. An eScript can be sent to any pharmacy - whether that is in Singleton, Muswellbrook, or back home in Newcastle.' },
       { type: 'heading', content: 'Coverage Across the Hunter', level: 2 },
       { type: 'paragraph', content: 'Telehealth works anywhere with an internet connection. That means coverage from the beaches of Port Stephens to the vineyards of the Hunter Valley, and from suburban Maitland to regional Dungog. Specific areas served include:', links: [{ text: 'online consultations', href: '/consult', title: 'Book an online GP consultation' }] },
-      { type: 'list', content: '', items: ['Newcastle CBD, Hamilton, Merewether, Cooks Hill, The Junction, Adamstown', 'Lake Macquarie — Charlestown, Belmont, Warners Bay, Toronto, Morisset', 'Maitland, Rutherford, East Maitland, Thornton', 'Cessnock, Kurri Kurri, Weston', 'Port Stephens — Nelson Bay, Raymond Terrace, Medowie', 'Upper Hunter — Singleton, Muswellbrook, Scone, Denman', 'Hunter Valley wine country — Pokolbin, Lovedale, Rothbury'] },
+      { type: 'list', content: '', items: ['Newcastle CBD, Hamilton, Merewether, Cooks Hill, The Junction, Adamstown', 'Lake Macquarie - Charlestown, Belmont, Warners Bay, Toronto, Morisset', 'Maitland, Rutherford, East Maitland, Thornton', 'Cessnock, Kurri Kurri, Weston', 'Port Stephens - Nelson Bay, Raymond Terrace, Medowie', 'Upper Hunter - Singleton, Muswellbrook, Scone, Denman', 'Hunter Valley wine country - Pokolbin, Lovedale, Rothbury'] },
       { type: 'heading', content: 'Pharmacy Access and eScripts', level: 2 },
-      { type: 'paragraph', content: 'One of the practical advantages of telehealth in the Hunter is eScript delivery. Your prescription is sent directly to your phone as a token, and you can present it at any pharmacy in Australia. The Hunter has good pharmacy coverage in urban areas — Priceline, Chemist Warehouse, and independent pharmacies are well distributed across Newcastle, Maitland, and Cessnock. In more remote Upper Hunter towns, knowing you can have the script ready before you arrive at the pharmacy saves a second trip.' },
+      { type: 'paragraph', content: 'One of the practical advantages of telehealth in the Hunter is eScript delivery. Your prescription is sent directly to your phone as a token, and you can present it at any pharmacy in Australia. The Hunter has good pharmacy coverage in urban areas - Priceline, Chemist Warehouse, and independent pharmacies are well distributed across Newcastle, Maitland, and Cessnock. In more remote Upper Hunter towns, knowing you can have the script ready before you arrive at the pharmacy saves a second trip.' },
       { type: 'heading', content: 'After-Hours and Weekend Access', level: 2 },
-      { type: 'paragraph', content: 'After-hours GP access in the Hunter is limited. The Newcastle After Hours GP service covers some of the gap, but availability varies and waits can be long. For non-emergency needs — a medical certificate for tomorrow, a prescription renewal, or advice about a common condition — telehealth provides an alternative to sitting in the John Hunter Hospital emergency department for four hours with something that is not an emergency. Nobody enjoys that experience, least of all the ED staff.', links: [{ text: 'prescriptions', href: '/prescriptions', title: 'Renew your prescription online' }] },
+      { type: 'paragraph', content: 'After-hours GP access in the Hunter is limited. The Newcastle After Hours GP service covers some of the gap, but availability varies and waits can be long. For non-emergency needs - a medical certificate for tomorrow, a prescription renewal, or advice about a common condition - telehealth provides an alternative to sitting in the John Hunter Hospital emergency department for four hours with something that is not an emergency. Nobody enjoys that experience, least of all the ED staff.', links: [{ text: 'prescriptions', href: '/prescriptions', title: 'Renew your prescription online' }] },
       { type: 'heading', content: 'Services Available in the Hunter', level: 2 },
-      { type: 'paragraph', content: 'Telehealth covers the straightforward healthcare needs that make up the majority of GP visits — the ones where you know what you need but getting there is the hard part.', links: [{ text: 'how it works', href: '/how-it-works', title: 'See how our telehealth service works' }] },
-      { type: 'list', content: '', items: ['Medical certificates for work, study, or personal leave — accepted by all Hunter employers including mining companies, Hunter New England Health, and the University of Newcastle', 'Repeat prescriptions for existing medications — your eScript is sent directly to your phone, ready for any pharmacy', 'General health consultations for non-emergency concerns — skin conditions, cold and flu, digestive issues, mental health check-ins', 'Specialist pathway consultations — women\'s health, weight management, and other targeted services'] },
+      { type: 'paragraph', content: 'Telehealth covers the straightforward healthcare needs that make up the majority of GP visits - the ones where you know what you need but getting there is the hard part.', links: [{ text: 'how it works', href: '/how-it-works', title: 'See how our telehealth service works' }] },
+      { type: 'list', content: '', items: ['Medical certificates for work, study, or personal leave - accepted by all Hunter employers including mining companies, Hunter New England Health, and the University of Newcastle', 'Repeat prescriptions for existing medications - your eScript is sent directly to your phone, ready for any pharmacy', 'General health consultations for non-emergency concerns - skin conditions, cold and flu, digestive issues, mental health check-ins', 'Specialist pathway consultations - women\'s health, weight management, and other targeted services'] },
       { type: 'heading', content: 'Mental Health Access in the Hunter', level: 2 },
-      { type: 'paragraph', content: 'The Hunter region has higher rates of psychological distress compared to the Sydney metropolitan area, driven in part by the stresses of shift work, FIFO arrangements, and the boom-and-bust nature of the mining industry. Access to mental health services — psychologists, psychiatrists, and counsellors — can involve long waits, particularly in the Upper Hunter. While telehealth is not a substitute for ongoing mental health treatment, it provides a low-barrier entry point for people who need a medical certificate for a mental health day, want to discuss whether they should seek further support, or need a referral to a mental health professional. Sometimes the first step is the hardest one, and not having to drive 40 minutes to have it is meaningful.' },
+      { type: 'paragraph', content: 'The Hunter region has higher rates of psychological distress compared to the Sydney metropolitan area, driven in part by the stresses of shift work, FIFO arrangements, and the boom-and-bust nature of the mining industry. Access to mental health services - psychologists, psychiatrists, and counsellors - can involve long waits, particularly in the Upper Hunter. While telehealth is not a substitute for ongoing mental health treatment, it provides a low-barrier entry point for people who need a medical certificate for a mental health day, want to discuss whether they should seek further support, or need a referral to a mental health professional. Sometimes the first step is the hardest one, and not having to drive 40 minutes to have it is meaningful.' },
       { type: 'callout', variant: 'info', content: 'Telehealth is not a replacement for emergency care. If you need urgent medical attention, call 000 or present to John Hunter Hospital, Calvary Mater Newcastle, or your nearest emergency department.' },
     ],
     faqs: [
       { question: 'Are telehealth certificates accepted by Newcastle employers?', answer: 'Yes. Medical certificates issued by AHPRA-registered doctors are valid for all Australian employers, regardless of whether the consultation was in person or via telehealth. Newcastle employers, mining companies, the University of Newcastle, and Hunter New England Health all accept them.' },
       { question: 'Can I get an eScript sent to a Hunter Valley pharmacy?', answer: 'Yes. eScripts work at any pharmacy in Australia. You will receive a token on your phone that you can present at any pharmacy in Newcastle, Maitland, Cessnock, Singleton, or anywhere else in the Hunter. No paper script needed.' },
       { question: 'Is telehealth suitable for mining and shift workers?', answer: 'It is particularly well-suited. If you work rotating rosters or 12-hour shifts that make daytime GP appointments impractical, telehealth lets you request a certificate or prescription outside standard clinic hours. The service operates 8am-10pm AEST, 7 days a week.' },
-      { question: 'Can University of Newcastle students use telehealth?', answer: 'Yes. Telehealth is available to anyone in Australia aged 18 or over. UoN students can use it for medical certificates (including for missed assessments), prescription renewals, and general consultations — without competing for limited campus health service appointments.' },
+      { question: 'Can University of Newcastle students use telehealth?', answer: 'Yes. Telehealth is available to anyone in Australia aged 18 or over. UoN students can use it for medical certificates (including for missed assessments), prescription renewals, and general consultations - without competing for limited campus health service appointments.' },
     ],
     relatedServices: [
       { title: 'Medical Certificate', description: 'Get a certificate', href: '/medical-certificate', icon: 'certificate' },
@@ -2145,26 +2145,26 @@ export const phase4ExpansionArticles: Article[] = [
       { type: 'paragraph', content: 'Losing someone close to you is one of the most difficult experiences a person goes through. The last thing you should have to worry about at that time is workplace paperwork. But the reality is that many Australians do find themselves navigating leave entitlements, employer requests for documentation, and the question of what happens when two days of compassionate leave is not nearly enough.', links: [{ text: 'medical certificate', href: '/medical-certificate', title: 'Request a medical certificate' }] },
       { type: 'paragraph', content: 'This guide covers what you are entitled to under Australian law, when a medical certificate might be needed, and where to find support if grief is affecting your ability to function.' },
       { type: 'heading', content: 'Compassionate Leave Under the Fair Work Act', level: 2 },
-      { type: 'paragraph', content: 'Under the National Employment Standards (NES), all permanent and part-time employees are entitled to 2 days of paid compassionate leave per occasion. Casual employees are entitled to 2 days of unpaid compassionate leave. This leave is available each time a member of your immediate family or household dies — there is no annual cap. You can take it as a single 2-day block, two separate days, or any other arrangement agreed with your employer.' },
+      { type: 'paragraph', content: 'Under the National Employment Standards (NES), all permanent and part-time employees are entitled to 2 days of paid compassionate leave per occasion. Casual employees are entitled to 2 days of unpaid compassionate leave. This leave is available each time a member of your immediate family or household dies - there is no annual cap. You can take it as a single 2-day block, two separate days, or any other arrangement agreed with your employer.' },
       { type: 'paragraph', content: 'The key word is "per occasion." If you experience multiple bereavements in a year, you are entitled to compassionate leave for each one. Your employer cannot deduct it from your personal leave balance unless you agree to that arrangement.' },
       { type: 'heading', content: 'Who Qualifies as Immediate Family', level: 2 },
       { type: 'paragraph', content: 'The Fair Work Act defines "immediate family" broadly:' },
-      { type: 'list', content: '', items: ['Spouse or de facto partner (including same-sex partners)', 'Children, parents, grandparents, grandchildren, and siblings', 'Children, parents, grandparents, grandchildren, and siblings of your spouse or de facto partner', 'Any member of your household — this can include housemates, close friends living with you, or anyone who is part of your household unit'] },
-      { type: 'paragraph', content: 'Some modern awards and enterprise agreements extend the definition further. Check your specific award or agreement, as it may include aunts, uncles, cousins, or culturally significant relationships — particularly relevant for Aboriginal and Torres Strait Islander kinship structures.' },
+      { type: 'list', content: '', items: ['Spouse or de facto partner (including same-sex partners)', 'Children, parents, grandparents, grandchildren, and siblings', 'Children, parents, grandparents, grandchildren, and siblings of your spouse or de facto partner', 'Any member of your household - this can include housemates, close friends living with you, or anyone who is part of your household unit'] },
+      { type: 'paragraph', content: 'Some modern awards and enterprise agreements extend the definition further. Check your specific award or agreement, as it may include aunts, uncles, cousins, or culturally significant relationships - particularly relevant for Aboriginal and Torres Strait Islander kinship structures.' },
       { type: 'heading', content: 'When Two Days Is Not Enough', level: 2 },
       { type: 'paragraph', content: 'Two days of compassionate leave covers the immediate shock and, in many cases, the funeral. It does not cover the weeks or months that follow, when grief can make concentration, motivation, and basic functioning genuinely difficult. When you need more time, there are several options:', links: [{ text: 'general consultation', href: '/consult', title: 'Speak with a doctor about grief and leave' }] },
-      { type: 'list', content: '', items: ['Personal/carer\'s leave (sick leave) — if grief is affecting your health and ability to work, you can access your 10 days of paid personal leave. Your employer can request a medical certificate or statutory declaration as evidence.', 'Annual leave — you can request to use annual leave if you have it available. Your employer should consider the request reasonably.', 'Unpaid leave — if you have exhausted paid leave, you can request unpaid leave. Your employer must consider the request and can only refuse on reasonable business grounds.', 'Enterprise agreement or company policy — many employers offer more than the NES minimum. Some offer 5-10 days of paid bereavement leave, or allow additional leave at the manager\'s discretion.'] },
+      { type: 'list', content: '', items: ['Personal/carer\'s leave (sick leave) - if grief is affecting your health and ability to work, you can access your 10 days of paid personal leave. Your employer can request a medical certificate or statutory declaration as evidence.', 'Annual leave - you can request to use annual leave if you have it available. Your employer should consider the request reasonably.', 'Unpaid leave - if you have exhausted paid leave, you can request unpaid leave. Your employer must consider the request and can only refuse on reasonable business grounds.', 'Enterprise agreement or company policy - many employers offer more than the NES minimum. Some offer 5-10 days of paid bereavement leave, or allow additional leave at the manager\'s discretion.'] },
       { type: 'heading', content: 'What Employers Can and Cannot Ask', level: 2 },
-      { type: 'paragraph', content: 'Your employer can request evidence that you are entitled to compassionate leave. Under the Fair Work Act, this means evidence that would satisfy a reasonable person — such as a death notice, funeral notice, or a statutory declaration. They cannot require a medical certificate for the initial 2 days of compassionate leave.' },
-      { type: 'paragraph', content: 'However, if you are taking additional time off using personal/sick leave because grief is affecting your health, your employer can request a medical certificate — just as they would for any other use of personal leave. The certificate does not need to disclose specific details about your mental health. It simply confirms that you are unfit for work.' },
+      { type: 'paragraph', content: 'Your employer can request evidence that you are entitled to compassionate leave. Under the Fair Work Act, this means evidence that would satisfy a reasonable person - such as a death notice, funeral notice, or a statutory declaration. They cannot require a medical certificate for the initial 2 days of compassionate leave.' },
+      { type: 'paragraph', content: 'However, if you are taking additional time off using personal/sick leave because grief is affecting your health, your employer can request a medical certificate - just as they would for any other use of personal leave. The certificate does not need to disclose specific details about your mental health. It simply confirms that you are unfit for work.' },
       { type: 'callout', variant: 'info', content: 'Your employer has no right to ask for details about your grief, your relationship with the deceased, or to judge whether your grief is "sufficient." They can only verify that a bereavement has occurred and that you meet the NES criteria.' },
       { type: 'heading', content: 'Grief, Mental Health, and Complicated Grief', level: 2 },
-      { type: 'paragraph', content: 'Grief is not a mental illness, but it can become one. Most people experience acute grief that gradually softens over weeks and months. For some, grief becomes prolonged or complicated — characterised by intense yearning, difficulty accepting the loss, emotional numbness, or inability to engage in daily life lasting beyond 6-12 months. Prolonged grief disorder is now a recognised diagnosis.' },
-      { type: 'paragraph', content: 'If grief is significantly impairing your ability to work, a doctor can assess your situation and provide a medical certificate supporting time off. This is no different from taking sick leave for any other health condition. You do not need to push through or pretend you are fine. Taking time to grieve properly is not a weakness — it is a basic human need that workplaces are legally required to accommodate.' },
+      { type: 'paragraph', content: 'Grief is not a mental illness, but it can become one. Most people experience acute grief that gradually softens over weeks and months. For some, grief becomes prolonged or complicated - characterised by intense yearning, difficulty accepting the loss, emotional numbness, or inability to engage in daily life lasting beyond 6-12 months. Prolonged grief disorder is now a recognised diagnosis.' },
+      { type: 'paragraph', content: 'If grief is significantly impairing your ability to work, a doctor can assess your situation and provide a medical certificate supporting time off. This is no different from taking sick leave for any other health condition. You do not need to push through or pretend you are fine. Taking time to grieve properly is not a weakness - it is a basic human need that workplaces are legally required to accommodate.' },
       { type: 'heading', content: 'Award Variations and Specific Industries', level: 2 },
       { type: 'paragraph', content: 'Some modern awards provide additional bereavement provisions. For example, certain awards allow compassionate leave for miscarriage, stillbirth, or the death of someone outside the immediate family definition. Enterprise agreements in the public sector, universities, and large employers often provide 3-5 days or more. If you are unsure about your entitlements, check your award on the Fair Work website or call the Fair Work Infoline on 13 13 94.' },
       { type: 'heading', content: 'Support Resources', level: 2 },
-      { type: 'list', content: '', items: ['Lifeline — 13 11 14 (24/7 crisis support)', 'Beyond Blue — 1300 22 4636 (mental health support)', 'GriefLine — 1300 845 745 (bereavement-specific support)', 'Employee Assistance Program (EAP) — check with your employer, most provide free confidential counselling', 'Australian Centre for Grief and Bereavement — grief.org.au (information and referrals)'] },
+      { type: 'list', content: '', items: ['Lifeline - 13 11 14 (24/7 crisis support)', 'Beyond Blue - 1300 22 4636 (mental health support)', 'GriefLine - 1300 845 745 (bereavement-specific support)', 'Employee Assistance Program (EAP) - check with your employer, most provide free confidential counselling', 'Australian Centre for Grief and Bereavement - grief.org.au (information and referrals)'] },
       { type: 'callout', variant: 'warning', content: 'If you or someone you know is in crisis or having thoughts of self-harm, contact Lifeline on 13 11 14 or call 000. Grief can be overwhelming, and professional support is available.' },
     ],
     faqs: [
@@ -2194,36 +2194,36 @@ export const phase4ExpansionArticles: Article[] = [
     heroImage: blogImages.telehealthPrivacy,
     heroImageAlt: 'Medical records and privacy',
     content: [
-      { type: 'paragraph', content: 'Every time you use a telehealth service, a medical record is created. This is exactly the same as an in-person consultation — the doctor documents what you told them, what they assessed, and what they did about it. The difference is that your record now exists across multiple systems: your regular GP, the telehealth platform, potentially My Health Record, and wherever your prescriptions are dispensed.', links: [{ text: 'privacy policy', href: '/privacy', title: 'Read our privacy policy' }] },
-      { type: 'paragraph', content: 'Understanding how your health information is handled, stored, and shared is not just about privacy — it is about making sure your care is coordinated and that nothing falls through the cracks.' },
+      { type: 'paragraph', content: 'Every time you use a telehealth service, a medical record is created. This is exactly the same as an in-person consultation - the doctor documents what you told them, what they assessed, and what they did about it. The difference is that your record now exists across multiple systems: your regular GP, the telehealth platform, potentially My Health Record, and wherever your prescriptions are dispensed.', links: [{ text: 'privacy policy', href: '/privacy', title: 'Read our privacy policy' }] },
+      { type: 'paragraph', content: 'Understanding how your health information is handled, stored, and shared is not just about privacy - it is about making sure your care is coordinated and that nothing falls through the cracks.' },
       { type: 'heading', content: 'The Australian Privacy Act and Health Records', level: 2 },
-      { type: 'paragraph', content: 'Health information in Australia is regulated primarily by the Privacy Act 1988 (Cth) and the Australian Privacy Principles (APPs). Health information is classified as "sensitive information" under the Act, which means it receives a higher level of protection than general personal information. Any organisation that collects health information — including telehealth providers — must comply with these principles.' },
+      { type: 'paragraph', content: 'Health information in Australia is regulated primarily by the Privacy Act 1988 (Cth) and the Australian Privacy Principles (APPs). Health information is classified as "sensitive information" under the Act, which means it receives a higher level of protection than general personal information. Any organisation that collects health information - including telehealth providers - must comply with these principles.' },
       { type: 'paragraph', content: 'The key APPs relevant to telehealth records are:' },
-      { type: 'list', content: '', items: ['APP 3 (Collection) — health information can only be collected when it is reasonably necessary for the provider\'s function. A telehealth service can collect your symptoms, history, and contact details, but not information unrelated to your care.', 'APP 5 (Notification) — the provider must tell you what information they are collecting, why, and who they might share it with. This is usually covered in the privacy policy and consent process.', 'APP 6 (Use and Disclosure) — your health information can only be used for the purpose it was collected, or a directly related purpose you would reasonably expect. Sharing with your regular GP is a directly related purpose. Sharing with an insurer or employer without your consent is not.', 'APP 8 (Cross-border Disclosure) — if a telehealth provider stores data overseas (for example, using US-based cloud servers), they must ensure the overseas recipient complies with the APPs. This is relevant for services using international cloud infrastructure.', 'APP 11 (Security) — the provider must take reasonable steps to protect your health information from misuse, interference, loss, and unauthorised access. Encryption, access controls, and audit logging are standard measures.'] },
+      { type: 'list', content: '', items: ['APP 3 (Collection) - health information can only be collected when it is reasonably necessary for the provider\'s function. A telehealth service can collect your symptoms, history, and contact details, but not information unrelated to your care.', 'APP 5 (Notification) - the provider must tell you what information they are collecting, why, and who they might share it with. This is usually covered in the privacy policy and consent process.', 'APP 6 (Use and Disclosure) - your health information can only be used for the purpose it was collected, or a directly related purpose you would reasonably expect. Sharing with your regular GP is a directly related purpose. Sharing with an insurer or employer without your consent is not.', 'APP 8 (Cross-border Disclosure) - if a telehealth provider stores data overseas (for example, using US-based cloud servers), they must ensure the overseas recipient complies with the APPs. This is relevant for services using international cloud infrastructure.', 'APP 11 (Security) - the provider must take reasonable steps to protect your health information from misuse, interference, loss, and unauthorised access. Encryption, access controls, and audit logging are standard measures.'] },
       { type: 'heading', content: 'What Gets Recorded in a Telehealth Consultation', level: 2 },
-      { type: 'list', content: '', items: ['Your presenting complaint — what you told the doctor about your symptoms', 'Relevant medical history — conditions, medications, allergies', 'The doctor\'s clinical assessment and reasoning', 'Any prescriptions issued, including eScript details', 'Any certificates issued, including the reason for certification', 'Advice given and any follow-up recommendations', 'Consent records — what you agreed to and when'] },
+      { type: 'list', content: '', items: ['Your presenting complaint - what you told the doctor about your symptoms', 'Relevant medical history - conditions, medications, allergies', 'The doctor\'s clinical assessment and reasoning', 'Any prescriptions issued, including eScript details', 'Any certificates issued, including the reason for certification', 'Advice given and any follow-up recommendations', 'Consent records - what you agreed to and when'] },
       { type: 'paragraph', content: 'This documentation serves the same purpose as in-person records: continuity of care, medico-legal protection, and clinical quality. A doctor who does not document a telehealth consultation is not meeting their professional obligations.' },
       { type: 'heading', content: 'My Health Record Integration', level: 2 },
-      { type: 'paragraph', content: 'My Health Record is Australia\'s national digital health record system. Some telehealth providers upload consultation summaries and prescriptions to My Health Record, while others do not. If a provider does upload to your record, you will be able to see the information through the My Health Record portal or app. You have the right to control what appears on your My Health Record — you can set access controls, remove documents, and restrict which providers can see it.', links: [{ text: 'trust and transparency', href: '/trust', title: 'How we approach care and data' }] },
+      { type: 'paragraph', content: 'My Health Record is Australia\'s national digital health record system. Some telehealth providers upload consultation summaries and prescriptions to My Health Record, while others do not. If a provider does upload to your record, you will be able to see the information through the My Health Record portal or app. You have the right to control what appears on your My Health Record - you can set access controls, remove documents, and restrict which providers can see it.', links: [{ text: 'trust and transparency', href: '/trust', title: 'How we approach care and data' }] },
       { type: 'callout', variant: 'tip', content: 'Check whether your telehealth provider uploads to My Health Record. If they do, review the information for accuracy. If they do not, consider asking your regular GP to add a summary so your record stays complete.' },
       { type: 'heading', content: 'Record Retention Periods', level: 2 },
-      { type: 'paragraph', content: 'Australian law requires health records to be retained for minimum periods. These are not optional — they are legal requirements that apply to all healthcare providers, including telehealth services.' },
-      { type: 'list', content: '', items: ['Adult records — must be kept for at least 7 years from the date of last entry', 'Records for patients under 18 — must be kept until the patient turns 25, or for 7 years from the date of last entry, whichever is longer', 'Records relating to mental health treatment — some jurisdictions require longer retention', 'Records involved in known complaints or legal proceedings — must be kept until the matter is resolved, regardless of other retention periods'] },
+      { type: 'paragraph', content: 'Australian law requires health records to be retained for minimum periods. These are not optional - they are legal requirements that apply to all healthcare providers, including telehealth services.' },
+      { type: 'list', content: '', items: ['Adult records - must be kept for at least 7 years from the date of last entry', 'Records for patients under 18 - must be kept until the patient turns 25, or for 7 years from the date of last entry, whichever is longer', 'Records relating to mental health treatment - some jurisdictions require longer retention', 'Records involved in known complaints or legal proceedings - must be kept until the matter is resolved, regardless of other retention periods'] },
       { type: 'paragraph', content: 'After the retention period expires, the provider may destroy the records, but they are not required to. Many digital systems retain records indefinitely because the cost of storage is negligible.' },
       { type: 'heading', content: 'Your Rights as a Patient', level: 2 },
       { type: 'paragraph', content: 'Under the APPs, you have several important rights regarding your health records:' },
-      { type: 'list', content: '', items: ['Access — you can request a copy of your health records at any time. The provider must respond within 30 days and can charge a reasonable fee for retrieval.', 'Correction — if your records contain inaccurate, incomplete, or outdated information, you can request a correction. The provider must either make the correction or add a note explaining why they declined.', 'Complaint — if you believe your health information has been mishandled, you can complain to the provider directly, to the Office of the Australian Information Commissioner (OAIC), or to the relevant state health complaints body.', 'Consent withdrawal — you can withdraw consent for future collection or use of your information, though this may affect the provider\'s ability to deliver care.'] },
+      { type: 'list', content: '', items: ['Access - you can request a copy of your health records at any time. The provider must respond within 30 days and can charge a reasonable fee for retrieval.', 'Correction - if your records contain inaccurate, incomplete, or outdated information, you can request a correction. The provider must either make the correction or add a note explaining why they declined.', 'Complaint - if you believe your health information has been mishandled, you can complain to the provider directly, to the Office of the Australian Information Commissioner (OAIC), or to the relevant state health complaints body.', 'Consent withdrawal - you can withdraw consent for future collection or use of your information, though this may affect the provider\'s ability to deliver care.'] },
       { type: 'heading', content: 'Data Breach Obligations', level: 2 },
-      { type: 'paragraph', content: 'Under the Notifiable Data Breaches scheme, any organisation covered by the Privacy Act must notify affected individuals and the OAIC if a data breach is likely to result in serious harm. For health information, the threshold for "serious harm" is lower than for other types of data — because health information is inherently sensitive. If a telehealth provider experiences a data breach involving your health records, they are legally required to tell you what happened, what information was involved, and what steps they are taking.' },
+      { type: 'paragraph', content: 'Under the Notifiable Data Breaches scheme, any organisation covered by the Privacy Act must notify affected individuals and the OAIC if a data breach is likely to result in serious harm. For health information, the threshold for "serious harm" is lower than for other types of data - because health information is inherently sensitive. If a telehealth provider experiences a data breach involving your health records, they are legally required to tell you what happened, what information was involved, and what steps they are taking.' },
       { type: 'heading', content: 'Sharing Records with Your Regular GP', level: 2 },
-      { type: 'paragraph', content: 'One of the practical challenges of using multiple healthcare providers is fragmentation. Your regular GP may not know about a prescription issued via telehealth, or a condition you discussed with an online doctor. Most telehealth services offer to send a consultation summary to your nominated GP — and accepting this offer is generally a good idea. Continuity of care depends on your GP having a complete picture, and a telehealth consultation sitting in isolation helps nobody.', links: [{ text: 'how it works', href: '/how-it-works', title: 'See how our telehealth service works' }] },
+      { type: 'paragraph', content: 'One of the practical challenges of using multiple healthcare providers is fragmentation. Your regular GP may not know about a prescription issued via telehealth, or a condition you discussed with an online doctor. Most telehealth services offer to send a consultation summary to your nominated GP - and accepting this offer is generally a good idea. Continuity of care depends on your GP having a complete picture, and a telehealth consultation sitting in isolation helps nobody.', links: [{ text: 'how it works', href: '/how-it-works', title: 'See how our telehealth service works' }] },
       { type: 'callout', variant: 'info', content: 'When using any telehealth service, ask whether they will send a summary to your regular GP. If they do not offer this automatically, request it. Good healthcare depends on all your providers having the same information.' },
     ],
     faqs: [
-      { question: 'Can my employer see my telehealth records?', answer: 'No. Your medical records are confidential and protected by the Privacy Act. Your employer only sees what you choose to provide — such as a medical certificate. The certificate confirms you are unfit for work but does not include your diagnosis, symptoms, or consultation details. No telehealth provider can share your records with your employer without your explicit written consent.' },
+      { question: 'Can my employer see my telehealth records?', answer: 'No. Your medical records are confidential and protected by the Privacy Act. Your employer only sees what you choose to provide - such as a medical certificate. The certificate confirms you are unfit for work but does not include your diagnosis, symptoms, or consultation details. No telehealth provider can share your records with your employer without your explicit written consent.' },
       { question: 'How long are telehealth records kept?', answer: 'Australian law requires medical records to be kept for at least 7 years for adults, or until the patient turns 25 for records created during childhood (whichever is longer). Many digital health platforms retain records indefinitely. You can request access to your records at any time under the Australian Privacy Principles.' },
       { question: 'Can I request my telehealth records be deleted?', answer: 'You can request deletion, but the provider is unlikely to comply during the mandatory retention period (7 years for adults). After that period, they may delete records on request. You do have the right to request correction of inaccurate information at any time, and to control what appears on your My Health Record.' },
-      { question: 'Is my telehealth consultation recorded or filmed?', answer: 'Text-based and asynchronous telehealth consultations are documented in writing — the doctor records a clinical note based on the information you provided. Video consultations are typically not recorded unless you are informed and consent. The clinical notes from the consultation are recorded regardless of format, as this is a professional obligation for the doctor.' },
+      { question: 'Is my telehealth consultation recorded or filmed?', answer: 'Text-based and asynchronous telehealth consultations are documented in writing - the doctor records a clinical note based on the information you provided. Video consultations are typically not recorded unless you are informed and consent. The clinical notes from the consultation are recorded regardless of format, as this is a professional obligation for the doctor.' },
     ],
     relatedServices: [
       { title: 'Privacy Policy', description: 'How we handle your data', href: '/privacy', icon: 'consult' },
@@ -2246,33 +2246,33 @@ export const phase4ExpansionArticles: Article[] = [
     heroImage: blogImages.carersLeave,
     heroImageAlt: 'Parent caring for sick child',
     content: [
-      { type: 'paragraph', content: 'When a child wakes up sick, two problems land in your lap at once: caring for the child, and dealing with the paperwork. The school wants to know why they are absent. Your employer may want documentation for carer\'s leave. And the prospect of dragging a miserable, contagious child to a GP waiting room — where they will sit among other sick people and probably make everyone worse — is nobody\'s idea of a good morning.', links: [{ text: 'medical certificate', href: '/medical-certificate', title: 'Get a medical certificate for carer\'s leave' }] },
+      { type: 'paragraph', content: 'When a child wakes up sick, two problems land in your lap at once: caring for the child, and dealing with the paperwork. The school wants to know why they are absent. Your employer may want documentation for carer\'s leave. And the prospect of dragging a miserable, contagious child to a GP waiting room - where they will sit among other sick people and probably make everyone worse - is nobody\'s idea of a good morning.', links: [{ text: 'medical certificate', href: '/medical-certificate', title: 'Get a medical certificate for carer\'s leave' }] },
       { type: 'paragraph', content: 'This guide covers your workplace entitlements, school requirements, and when telehealth can help you get the documentation you need without leaving home.' },
       { type: 'heading', content: 'Carer\'s Leave Under the Fair Work Act', level: 2 },
-      { type: 'paragraph', content: 'Under the National Employment Standards, permanent and part-time employees are entitled to 10 days of paid personal/carer\'s leave per year. This is a combined entitlement — the same leave pool covers both your own sick days and days when you need to care for a family member. Carer\'s leave accumulates year to year and does not expire.' },
-      { type: 'paragraph', content: 'You can take carer\'s leave when an immediate family member or household member needs your care or support due to illness, injury, or an unexpected emergency. Children — including stepchildren, adopted children, and foster children — are covered. So are grandchildren if they are part of your household.' },
+      { type: 'paragraph', content: 'Under the National Employment Standards, permanent and part-time employees are entitled to 10 days of paid personal/carer\'s leave per year. This is a combined entitlement - the same leave pool covers both your own sick days and days when you need to care for a family member. Carer\'s leave accumulates year to year and does not expire.' },
+      { type: 'paragraph', content: 'You can take carer\'s leave when an immediate family member or household member needs your care or support due to illness, injury, or an unexpected emergency. Children - including stepchildren, adopted children, and foster children - are covered. So are grandchildren if they are part of your household.' },
       { type: 'callout', variant: 'info', content: 'Carer\'s leave comes from the same 10-day personal leave entitlement as your own sick leave. If you take 3 days caring for a sick child, you have 7 days remaining for the year (plus any accumulated balance from previous years).' },
       { type: 'heading', content: 'What Your Employer Can Ask For', level: 2 },
-      { type: 'paragraph', content: 'Your employer can request evidence that supports your carer\'s leave. Under the Fair Work Act, this means a medical certificate or a statutory declaration. They can ask for this for any period of absence, including a single day — though many employers have internal policies that only require evidence for absences of two or more days.' },
+      { type: 'paragraph', content: 'Your employer can request evidence that supports your carer\'s leave. Under the Fair Work Act, this means a medical certificate or a statutory declaration. They can ask for this for any period of absence, including a single day - though many employers have internal policies that only require evidence for absences of two or more days.' },
       { type: 'paragraph', content: 'The certificate for carer\'s leave is slightly different from a standard sick certificate. It documents that your child was unwell and required care, not that you were personally unfit for work. A parent or guardian completes the request on behalf of the child, providing information about the child\'s symptoms and the care required.' },
       { type: 'heading', content: 'School Absence Policies by State', level: 2 },
       { type: 'paragraph', content: 'School attendance is compulsory in Australia, and each state has slightly different rules about what documentation is needed for absences:', links: [{ text: 'how it works', href: '/how-it-works', title: 'See how our service works' }] },
-      { type: 'list', content: '', items: ['NSW — parents must explain all absences within 7 days. A medical certificate is expected for absences of 3 or more consecutive days, and may be requested for frequent short absences. Schools can refer unexplained absences to the Home School Liaison Officer.', 'Victoria — parents must notify the school of any absence on the day it occurs. Medical certificates are expected for extended absences and may be requested for frequent absences. Schools have an obligation to follow up unexplained absences.', 'Queensland — parents must provide a reasonable excuse for any absence. Medical certificates are expected for absences over 3 days and for any absence during exam periods. Schools can refer patterns of absence to the Department of Education.', 'South Australia — all absences must be explained. Medical certificates are requested for absences over 3 days. The state has specific provisions for chronic health conditions requiring ongoing documentation.', 'Western Australia — similar to other states, with medical certificates expected for extended absences. Schools have significant discretion in what evidence they require.'] },
+      { type: 'list', content: '', items: ['NSW - parents must explain all absences within 7 days. A medical certificate is expected for absences of 3 or more consecutive days, and may be requested for frequent short absences. Schools can refer unexplained absences to the Home School Liaison Officer.', 'Victoria - parents must notify the school of any absence on the day it occurs. Medical certificates are expected for extended absences and may be requested for frequent absences. Schools have an obligation to follow up unexplained absences.', 'Queensland - parents must provide a reasonable excuse for any absence. Medical certificates are expected for absences over 3 days and for any absence during exam periods. Schools can refer patterns of absence to the Department of Education.', 'South Australia - all absences must be explained. Medical certificates are requested for absences over 3 days. The state has specific provisions for chronic health conditions requiring ongoing documentation.', 'Western Australia - similar to other states, with medical certificates expected for extended absences. Schools have significant discretion in what evidence they require.'] },
       { type: 'heading', content: 'Age Considerations and Obtaining a Certificate', level: 2 },
       { type: 'paragraph', content: 'A parent or guardian can request a medical certificate on behalf of a child of any age. For telehealth services, the parent completes the form, providing the child\'s details (name, date of birth) and describing their symptoms. The doctor assesses the information and determines whether a certificate is appropriate.' },
-      { type: 'paragraph', content: 'For children under 2, most telehealth services will recommend an in-person assessment rather than issuing a certificate remotely. Young children can deteriorate quickly, and a physical examination is important. For school-aged children (5-17) with common, clearly described illnesses — gastro, cold, flu, hand-foot-and-mouth, conjunctivitis — telehealth documentation is generally straightforward.' },
+      { type: 'paragraph', content: 'For children under 2, most telehealth services will recommend an in-person assessment rather than issuing a certificate remotely. Young children can deteriorate quickly, and a physical examination is important. For school-aged children (5-17) with common, clearly described illnesses - gastro, cold, flu, hand-foot-and-mouth, conjunctivitis - telehealth documentation is generally straightforward.' },
       { type: 'heading', content: 'When to Take Your Child to a Doctor in Person', level: 2 },
       { type: 'paragraph', content: 'Telehealth is appropriate for documentation of common childhood illnesses where you, as the parent, can describe the symptoms clearly. It is not appropriate as a substitute for clinical assessment when something might be seriously wrong.' },
       { type: 'callout', variant: 'emergency', content: 'Take your child to a doctor in person or call 000 if they have: difficulty breathing or rapid breathing, a rash that does not fade when pressed (possible meningococcal), high fever in a child under 3 months, persistent vomiting or inability to keep fluids down for more than 6 hours, unusual drowsiness or difficulty waking, a seizure, or any symptoms that concern you as a parent.' },
       { type: 'list', content: '', items: ['Telehealth is suitable for: common cold and cough, mild gastroenteritis, conjunctivitis (pink eye), hand-foot-and-mouth disease, mild ear pain, general unwellness where the child is alert and drinking fluids', 'In-person assessment is better for: any child under 2 years, high or persistent fever, rashes you cannot identify, breathing difficulties, severe pain, dehydration signs, symptoms lasting more than a few days without improvement'] },
       { type: 'heading', content: 'Childcare Centre Requirements', level: 2 },
-      { type: 'paragraph', content: 'Childcare centres and preschools often have stricter requirements than schools. Many require a medical certificate before a child can return after certain infectious illnesses — particularly gastroenteritis (usually 48 hours symptom-free), conjunctivitis (until discharge has resolved), and hand-foot-and-mouth disease. Some centres require a "clearance certificate" confirming the child is well enough to return. Check your centre\'s specific policy, as requirements vary.' },
-      { type: 'paragraph', content: 'A telehealth consultation can provide both the initial certificate documenting the illness and, in many cases, a clearance certificate for return — saving you two separate GP visits during an already exhausting week.', links: [{ text: 'carer\'s leave certificate', href: '/medical-certificate/carer', title: 'Request a carer\'s leave certificate' }] },
+      { type: 'paragraph', content: 'Childcare centres and preschools often have stricter requirements than schools. Many require a medical certificate before a child can return after certain infectious illnesses - particularly gastroenteritis (usually 48 hours symptom-free), conjunctivitis (until discharge has resolved), and hand-foot-and-mouth disease. Some centres require a "clearance certificate" confirming the child is well enough to return. Check your centre\'s specific policy, as requirements vary.' },
+      { type: 'paragraph', content: 'A telehealth consultation can provide both the initial certificate documenting the illness and, in many cases, a clearance certificate for return - saving you two separate GP visits during an already exhausting week.', links: [{ text: 'carer\'s leave certificate', href: '/medical-certificate/carer', title: 'Request a carer\'s leave certificate' }] },
     ],
     faqs: [
       { question: 'Can I get a certificate for my child\'s school absence via telehealth?', answer: 'Yes. A parent or guardian completes the form on behalf of the child, providing the child\'s details and describing their symptoms. The doctor assesses the information and issues a certificate if appropriate. For school-aged children with common illnesses, this is straightforward. Some services may request a brief call for complex paediatric cases.' },
       { question: 'Does the certificate go to the school, my employer, or both?', answer: 'You receive the certificate and decide who to send it to. If you need documentation for both the school absence and your own carer\'s leave, you can forward the same certificate to both. The certificate documents the child\'s illness and need for care, which satisfies both purposes.' },
-      { question: 'Can I use my sick leave to care for a sick child?', answer: 'Yes. Under the Fair Work Act, your 10 days of paid personal/carer\'s leave per year covers both your own illness and caring for an immediate family or household member. You do not need separate "carer\'s leave" — it comes from the same entitlement. Unused leave accumulates from year to year.' },
+      { question: 'Can I use my sick leave to care for a sick child?', answer: 'Yes. Under the Fair Work Act, your 10 days of paid personal/carer\'s leave per year covers both your own illness and caring for an immediate family or household member. You do not need separate "carer\'s leave" - it comes from the same entitlement. Unused leave accumulates from year to year.' },
       { question: 'What if my child is too young for telehealth assessment?', answer: 'For children under 2 years, most telehealth services recommend an in-person assessment rather than remote documentation. Young children can deteriorate quickly, and clinical examination is important. For children aged 2 and over with clearly described common illnesses, telehealth documentation is generally appropriate. If you are unsure or concerned about your child\'s condition regardless of age, always seek in-person care.' },
     ],
     relatedServices: [
@@ -2296,34 +2296,34 @@ export const phase4ExpansionArticles: Article[] = [
     heroImage: blogImages.workFromHomeSick,
     heroImageAlt: 'Remote worker accessing healthcare',
     content: [
-      { type: 'paragraph', content: 'The shift to remote work has been one of the most significant changes to Australian working life in a generation. Around 37% of employed Australians now work from home at least some of the time, and for many, "the office" is a spare bedroom, a kitchen table, or a co-working space in a regional town three hours from the nearest capital city. What has not changed is the need for healthcare — and, specifically, the need for documentation when you are unwell.', links: [{ text: 'medical certificate', href: '/medical-certificate', title: 'Get a medical certificate from home' }] },
+      { type: 'paragraph', content: 'The shift to remote work has been one of the most significant changes to Australian working life in a generation. Around 37% of employed Australians now work from home at least some of the time, and for many, "the office" is a spare bedroom, a kitchen table, or a co-working space in a regional town three hours from the nearest capital city. What has not changed is the need for healthcare - and, specifically, the need for documentation when you are unwell.', links: [{ text: 'medical certificate', href: '/medical-certificate', title: 'Get a medical certificate from home' }] },
       { type: 'paragraph', content: 'There is a persistent misconception that working from home means you do not need sick leave, because you can just work through it. This is wrong legally, practically, and from a basic human dignity perspective. This guide covers your entitlements, the unique healthcare challenges remote workers face, and how telehealth fits into the picture.' },
       { type: 'heading', content: 'Sick Leave Entitlements for Remote Workers', level: 2 },
       { type: 'paragraph', content: 'Your sick leave entitlements are identical whether you work from an office, a construction site, or your living room. Under the Fair Work Act, permanent and part-time employees are entitled to 10 days of paid personal/carer\'s leave per year, and this applies regardless of your work location. Your employer cannot require you to work from home while sick instead of taking leave, and they cannot treat a WFH sick day differently from an office sick day.' },
-      { type: 'paragraph', content: 'If you are unwell and unable to perform your duties, you are entitled to take sick leave. Full stop. The fact that your desk is in the next room does not change the equation. And yes, your employer can request a medical certificate — just as they would for any other absence.', links: [{ text: 'how it works', href: '/how-it-works', title: 'See how our telehealth process works' }] },
+      { type: 'paragraph', content: 'If you are unwell and unable to perform your duties, you are entitled to take sick leave. Full stop. The fact that your desk is in the next room does not change the equation. And yes, your employer can request a medical certificate - just as they would for any other absence.', links: [{ text: 'how it works', href: '/how-it-works', title: 'See how our telehealth process works' }] },
       { type: 'heading', content: 'The Regional and Rural Access Challenge', level: 2 },
       { type: 'paragraph', content: 'Remote work has enabled many Australians to move to regional and rural areas where housing is more affordable and the lifestyle is appealing. The trade-off is often healthcare access. Around 7 million Australians live in regional, rural, or remote areas, and the further you are from a capital city, the harder it becomes to see a GP.' },
-      { type: 'list', content: '', items: ['Many regional towns have one or two GP practices, often not accepting new patients', 'Wait times of 1-2 weeks for non-urgent appointments are common outside major centres', 'Bulk-billing rates are significantly lower in regional areas — out-of-pocket costs are higher', 'Some communities rely on visiting doctors who attend one or two days per week', 'After-hours GP access is virtually non-existent in many regional areas', 'The nearest pharmacy may be a 30-60 minute drive from remote properties'] },
-      { type: 'paragraph', content: 'The Royal Flying Doctor Service (RFDS) provides essential primary and emergency care to remote Australia, but it is designed for emergencies and chronic disease management, not for the routine healthcare needs that telehealth can address — like a medical certificate for a stomach bug, a prescription renewal for blood pressure medication, or advice about a rash that has been bothering you for a week.' },
+      { type: 'list', content: '', items: ['Many regional towns have one or two GP practices, often not accepting new patients', 'Wait times of 1-2 weeks for non-urgent appointments are common outside major centres', 'Bulk-billing rates are significantly lower in regional areas - out-of-pocket costs are higher', 'Some communities rely on visiting doctors who attend one or two days per week', 'After-hours GP access is virtually non-existent in many regional areas', 'The nearest pharmacy may be a 30-60 minute drive from remote properties'] },
+      { type: 'paragraph', content: 'The Royal Flying Doctor Service (RFDS) provides essential primary and emergency care to remote Australia, but it is designed for emergencies and chronic disease management, not for the routine healthcare needs that telehealth can address - like a medical certificate for a stomach bug, a prescription renewal for blood pressure medication, or advice about a rash that has been bothering you for a week.' },
       { type: 'heading', content: 'Internet Requirements for Telehealth', level: 2 },
-      { type: 'paragraph', content: 'One of the practical concerns for regional telehealth is internet connectivity. The good news is that text-based and asynchronous telehealth services — where you complete a form and a doctor reviews it — require minimal bandwidth. You do not need a video call or high-speed connection. If you can load a web page and submit a form, you can use asynchronous telehealth. This works on satellite internet (Starlink, SkyMuster), mobile data (even 3G), and standard NBN connections.' },
+      { type: 'paragraph', content: 'One of the practical concerns for regional telehealth is internet connectivity. The good news is that text-based and asynchronous telehealth services - where you complete a form and a doctor reviews it - require minimal bandwidth. You do not need a video call or high-speed connection. If you can load a web page and submit a form, you can use asynchronous telehealth. This works on satellite internet (Starlink, SkyMuster), mobile data (even 3G), and standard NBN connections.' },
       { type: 'callout', variant: 'tip', content: 'Asynchronous telehealth (form-based, no video) works on almost any internet connection, including satellite and mobile data. You do not need high-speed broadband to access medical certificates or prescription renewals.' },
       { type: 'heading', content: 'Employer Obligations for Remote Worker Health', level: 2 },
-      { type: 'paragraph', content: 'Under work health and safety legislation, your employer has a duty of care for your health and safety — even when you work from home. This includes ensuring your home workspace is safe, that you are not working excessive hours, and that you have access to the same leave entitlements as office-based workers. Your employer cannot penalise you for taking sick leave because you work remotely, and they cannot require you to "make up" sick days by working extra hours later.' },
+      { type: 'paragraph', content: 'Under work health and safety legislation, your employer has a duty of care for your health and safety - even when you work from home. This includes ensuring your home workspace is safe, that you are not working excessive hours, and that you have access to the same leave entitlements as office-based workers. Your employer cannot penalise you for taking sick leave because you work remotely, and they cannot require you to "make up" sick days by working extra hours later.' },
       { type: 'heading', content: 'Home Office Injuries and WorkCover', level: 2 },
-      { type: 'paragraph', content: 'An often-overlooked issue for remote workers is that injuries sustained in your home office during work hours may be covered by workers\' compensation. If you trip over a cable while walking to your desk, strain your back from a poorly set up workstation, or develop a repetitive strain injury from inadequate ergonomics, you may have a valid WorkCover claim. The rules vary by state, but the general principle is that if the injury occurred in the course of your employment, it is potentially compensable — regardless of where you were physically located.', links: [{ text: 'general consultation', href: '/consult', title: 'Discuss a workplace injury with a doctor' }] },
+      { type: 'paragraph', content: 'An often-overlooked issue for remote workers is that injuries sustained in your home office during work hours may be covered by workers\' compensation. If you trip over a cable while walking to your desk, strain your back from a poorly set up workstation, or develop a repetitive strain injury from inadequate ergonomics, you may have a valid WorkCover claim. The rules vary by state, but the general principle is that if the injury occurred in the course of your employment, it is potentially compensable - regardless of where you were physically located.', links: [{ text: 'general consultation', href: '/consult', title: 'Discuss a workplace injury with a doctor' }] },
       { type: 'paragraph', content: 'Documenting any home office injury promptly is important. A medical certificate or consultation record establishes the date, nature, and circumstances of the injury, which is essential if you later need to make a claim.' },
       { type: 'heading', content: 'Digital Nomads and Healthcare Gaps', level: 2 },
-      { type: 'paragraph', content: 'A growing number of Australians work remotely while travelling — moving between towns, states, or countries. For those staying within Australia, telehealth provides consistent access to healthcare regardless of location. You do not need to find a new GP every time you move, and eScripts can be dispensed at any Australian pharmacy. For those working overseas, the situation is more complex — Australian telehealth services can only treat patients who are physically in Australia at the time of the consultation.' },
+      { type: 'paragraph', content: 'A growing number of Australians work remotely while travelling - moving between towns, states, or countries. For those staying within Australia, telehealth provides consistent access to healthcare regardless of location. You do not need to find a new GP every time you move, and eScripts can be dispensed at any Australian pharmacy. For those working overseas, the situation is more complex - Australian telehealth services can only treat patients who are physically in Australia at the time of the consultation.' },
       { type: 'heading', content: 'Fly-In-Fly-Out and Drive-In-Drive-Out Workers', level: 2 },
-      { type: 'paragraph', content: 'FIFO and DIDO workers face a specific version of the access problem. You might be based in Perth but working two weeks on, one week off at a mine site in the Pilbara. Your regular GP is at home, but you are rarely home during business hours. The mine site may have a medic or occupational health nurse, but they cannot issue medical certificates or prescriptions for non-work-related conditions. Telehealth bridges this gap — you can request a certificate or prescription during your time on site, and have an eScript ready for when you are back in town.', links: [{ text: 'prescriptions', href: '/prescriptions', title: 'Renew a prescription online' }] },
-      { type: 'callout', variant: 'info', content: 'Telehealth certificates and prescriptions are valid regardless of where in Australia you are when you request them. Whether you are at home in Sydney, on a mine site in Western Australia, or on a cattle station in the Northern Territory — the service works the same way.' },
+      { type: 'paragraph', content: 'FIFO and DIDO workers face a specific version of the access problem. You might be based in Perth but working two weeks on, one week off at a mine site in the Pilbara. Your regular GP is at home, but you are rarely home during business hours. The mine site may have a medic or occupational health nurse, but they cannot issue medical certificates or prescriptions for non-work-related conditions. Telehealth bridges this gap - you can request a certificate or prescription during your time on site, and have an eScript ready for when you are back in town.', links: [{ text: 'prescriptions', href: '/prescriptions', title: 'Renew a prescription online' }] },
+      { type: 'callout', variant: 'info', content: 'Telehealth certificates and prescriptions are valid regardless of where in Australia you are when you request them. Whether you are at home in Sydney, on a mine site in Western Australia, or on a cattle station in the Northern Territory - the service works the same way.' },
     ],
     faqs: [
       { question: 'Do I still need sick leave if I work from home?', answer: 'Yes. Your sick leave entitlements are identical regardless of where you work. If you are unwell and unable to perform your duties, you are entitled to take personal leave under the Fair Work Act. Your employer cannot require you to work through illness because your desk is at home, and they cannot treat WFH sick leave differently from office sick leave.' },
       { question: 'Can I use telehealth if I live regionally or remotely?', answer: 'Yes. Telehealth works anywhere in Australia with an internet connection. Asynchronous (form-based) services require minimal bandwidth and work on satellite internet, mobile data, and standard broadband. You do not need a high-speed connection or video capability.' },
       { question: 'Are home office injuries covered by WorkCover?', answer: 'Potentially, yes. Injuries sustained in your home office during work hours may be covered by workers\' compensation, depending on your state\'s legislation. The key factor is whether the injury occurred in the course of your employment. Document any injury promptly with a medical certificate or consultation record to support a potential claim.' },
-      { question: 'Can FIFO workers use telehealth while on site?', answer: 'Yes. As long as you are in Australia and have internet access, you can use telehealth from a mine site, remote camp, or any other location. eScripts can be sent to any Australian pharmacy — you can have a prescription ready for when you return to town, or use a pharmacy near the site if one is available.' },
+      { question: 'Can FIFO workers use telehealth while on site?', answer: 'Yes. As long as you are in Australia and have internet access, you can use telehealth from a mine site, remote camp, or any other location. eScripts can be sent to any Australian pharmacy - you can have a prescription ready for when you return to town, or use a pharmacy near the site if one is available.' },
     ],
     relatedServices: [
       { title: 'Medical Certificate', description: 'Get a certificate from home', href: '/medical-certificate', icon: 'certificate' },
@@ -2358,7 +2358,7 @@ export const phase4ExpansionArticles: Article[] = [
       { type: 'heading', content: 'The Legal Framework: TGA and AHPRA Rules', level: 2 },
       {
         type: 'paragraph',
-        content: 'In Australia, antibiotics are prescription-only medicines (Schedule 4 under the TGA\'s Poisons Standard). You cannot buy them over the counter, and no legitimate service will sell them to you without a doctor\'s prescription. This is not bureaucratic red tape — it is one of the reasons Australia has lower antibiotic resistance rates than many comparable countries.',
+        content: 'In Australia, antibiotics are prescription-only medicines (Schedule 4 under the TGA\'s Poisons Standard). You cannot buy them over the counter, and no legitimate service will sell them to you without a doctor\'s prescription. This is not bureaucratic red tape - it is one of the reasons Australia has lower antibiotic resistance rates than many comparable countries.',
       },
       {
         type: 'paragraph',
@@ -2367,7 +2367,7 @@ export const phase4ExpansionArticles: Article[] = [
       },
       {
         type: 'paragraph',
-        content: 'So yes, a doctor can prescribe antibiotics after an online assessment. But — and this is the important bit — they will only do so when it is clinically appropriate.',
+        content: 'So yes, a doctor can prescribe antibiotics after an online assessment. But - and this is the important bit - they will only do so when it is clinically appropriate.',
       },
       { type: 'heading', content: 'Which Conditions Are Suitable for Telehealth Antibiotic Prescribing?', level: 2 },
       {
@@ -2377,22 +2377,22 @@ export const phase4ExpansionArticles: Article[] = [
       { type: 'heading', content: 'Urinary Tract Infections (UTIs)', level: 3 },
       {
         type: 'paragraph',
-        content: 'Uncomplicated UTIs in adult women are one of the most common conditions treated via telehealth. The symptoms — burning on urination, frequency, urgency, lower abdominal discomfort — are well-recognised and distinctive. For straightforward cases with a clear history, a doctor can confidently prescribe first-line treatment without a physical exam. UTIs account for a significant portion of telehealth prescriptions in Australia, and the evidence supports this approach for uncomplicated cases.',
+        content: 'Uncomplicated UTIs in adult women are one of the most common conditions treated via telehealth. The symptoms - burning on urination, frequency, urgency, lower abdominal discomfort - are well-recognised and distinctive. For straightforward cases with a clear history, a doctor can confidently prescribe first-line treatment without a physical exam. UTIs account for a significant portion of telehealth prescriptions in Australia, and the evidence supports this approach for uncomplicated cases.',
       },
       { type: 'heading', content: 'Simple Skin Infections', level: 3 },
       {
         type: 'paragraph',
-        content: 'Minor skin infections — infected cuts, localised cellulitis, mild impetigo — can sometimes be assessed via photos and patient history. If you can photograph the affected area clearly, a doctor may be able to determine whether treatment is appropriate. This works best for early-stage infections where the area is visible and the patient can describe the progression clearly.',
+        content: 'Minor skin infections - infected cuts, localised cellulitis, mild impetigo - can sometimes be assessed via photos and patient history. If you can photograph the affected area clearly, a doctor may be able to determine whether treatment is appropriate. This works best for early-stage infections where the area is visible and the patient can describe the progression clearly.',
       },
       { type: 'heading', content: 'Sinusitis and Upper Respiratory Infections', level: 3 },
       {
         type: 'paragraph',
-        content: 'Here is where it gets more nuanced. Most upper respiratory infections are viral, and antibiotics will not help. A good doctor — whether online or in person — will not prescribe antibiotics for a standard cold or viral sore throat. However, bacterial sinusitis that has persisted for more than 10 days with specific symptom patterns may warrant antibiotic treatment, and this can be assessed via telehealth.',
+        content: 'Here is where it gets more nuanced. Most upper respiratory infections are viral, and antibiotics will not help. A good doctor - whether online or in person - will not prescribe antibiotics for a standard cold or viral sore throat. However, bacterial sinusitis that has persisted for more than 10 days with specific symptom patterns may warrant antibiotic treatment, and this can be assessed via telehealth.',
       },
       {
         type: 'callout',
         variant: 'info',
-        content: 'A doctor declining to prescribe antibiotics is not a failure of the service — it is good medicine. Overprescribing is one of the biggest threats to global health. If your doctor says you do not need antibiotics, that is them doing their job properly.',
+        content: 'A doctor declining to prescribe antibiotics is not a failure of the service - it is good medicine. Overprescribing is one of the biggest threats to global health. If your doctor says you do not need antibiotics, that is them doing their job properly.',
       },
       { type: 'heading', content: 'When You Need to Be Seen In Person', level: 2 },
       {
@@ -2405,10 +2405,10 @@ export const phase4ExpansionArticles: Article[] = [
         items: [
           'You have a high fever (above 38.5\u00b0C) with systemic symptoms like rigors or confusion',
           'The infection involves the eyes, ears (particularly in children), or deep tissue',
-          'Symptoms suggest a complicated infection — spreading redness, pus, swollen lymph nodes',
+          'Symptoms suggest a complicated infection - spreading redness, pus, swollen lymph nodes',
           'You are immunocompromised or have significant comorbidities',
           'The infection has not responded to a previous course of treatment',
-          'You are pregnant, breastfeeding, or under 18 — these groups require extra caution',
+          'You are pregnant, breastfeeding, or under 18 - these groups require extra caution',
           'There is any suspicion of a sexually transmitted infection requiring testing',
         ],
       },
@@ -2419,15 +2419,15 @@ export const phase4ExpansionArticles: Article[] = [
       { type: 'heading', content: 'Australia\'s Antibiotic Resistance Problem', level: 2 },
       {
         type: 'paragraph',
-        content: 'Antimicrobial resistance (AMR) is not a theoretical future concern — it is happening now. The Australian Commission on Safety and Quality in Health Care reports that antibiotic-resistant infections cause over 1,600 deaths in Australia each year. Globally, AMR is projected to cause more deaths than cancer by 2050 if current trends continue.',
+        content: 'Antimicrobial resistance (AMR) is not a theoretical future concern - it is happening now. The Australian Commission on Safety and Quality in Health Care reports that antibiotic-resistant infections cause over 1,600 deaths in Australia each year. Globally, AMR is projected to cause more deaths than cancer by 2050 if current trends continue.',
       },
       {
         type: 'paragraph',
-        content: 'Australia actually does reasonably well compared to many countries, partly because of our prescription-only model. But we are not immune to the problem. The most common driver of resistance is unnecessary prescribing — antibiotics given for viral infections, prescribed "just in case," or used for conditions that would resolve on their own.',
+        content: 'Australia actually does reasonably well compared to many countries, partly because of our prescription-only model. But we are not immune to the problem. The most common driver of resistance is unnecessary prescribing - antibiotics given for viral infections, prescribed "just in case," or used for conditions that would resolve on their own.',
       },
       {
         type: 'paragraph',
-        content: 'This is why legitimate telehealth services take antibiotic stewardship seriously. A platform that makes it too easy to get antibiotics is not doing you a favour — it is contributing to a public health crisis. The mild inconvenience of a doctor saying "this is probably viral, let\'s wait a few days" is significantly preferable to a future where common infections become untreatable.',
+        content: 'This is why legitimate telehealth services take antibiotic stewardship seriously. A platform that makes it too easy to get antibiotics is not doing you a favour - it is contributing to a public health crisis. The mild inconvenience of a doctor saying "this is probably viral, let\'s wait a few days" is significantly preferable to a future where common infections become untreatable.',
       },
       { type: 'heading', content: 'What a Telehealth Assessment Looks Like', level: 2 },
       {
@@ -2439,11 +2439,11 @@ export const phase4ExpansionArticles: Article[] = [
         type: 'list',
         content: '',
         items: [
-          'Detailed symptom history — when symptoms started, severity, progression, and any aggravating or relieving factors',
-          'Medical history review — allergies, current medications, previous antibiotic use, chronic conditions',
-          'Assessment of red flag symptoms — anything suggesting a complicated or systemic infection',
-          'Photo review (for skin conditions) — clear images of the affected area with something for scale',
-          'Clinical decision — prescribe, recommend over-the-counter treatment, or refer for in-person examination',
+          'Detailed symptom history - when symptoms started, severity, progression, and any aggravating or relieving factors',
+          'Medical history review - allergies, current medications, previous antibiotic use, chronic conditions',
+          'Assessment of red flag symptoms - anything suggesting a complicated or systemic infection',
+          'Photo review (for skin conditions) - clear images of the affected area with something for scale',
+          'Clinical decision - prescribe, recommend over-the-counter treatment, or refer for in-person examination',
         ],
       },
       {
@@ -2458,7 +2458,7 @@ export const phase4ExpansionArticles: Article[] = [
       },
       {
         type: 'paragraph',
-        content: 'With a Medicare card, most antibiotics cost between $6.80 (concession) and $31.60 (general). Without Medicare, you will pay the full price, which varies but is typically $15\u201340 for common antibiotics. The prescription itself is delivered as an eScript — a token sent to your phone that you present at any pharmacy in Australia.',
+        content: 'With a Medicare card, most antibiotics cost between $6.80 (concession) and $31.60 (general). Without Medicare, you will pay the full price, which varies but is typically $15\u201340 for common antibiotics. The prescription itself is delivered as an eScript - a token sent to your phone that you present at any pharmacy in Australia.',
         links: [{ text: 'eScript', href: '/prescriptions', title: 'Learn about prescriptions' }],
       },
       { type: 'heading', content: 'Completing the Full Course', level: 2 },
@@ -2473,11 +2473,11 @@ export const phase4ExpansionArticles: Article[] = [
       { type: 'heading', content: 'The Bottom Line', level: 2 },
       {
         type: 'paragraph',
-        content: 'Yes, you can get antibiotics prescribed online in Australia — but only when a doctor determines they are clinically necessary. Telehealth is not a shortcut around proper medical assessment, and the best services will decline to prescribe when antibiotics are not indicated. That is a feature, not a bug.',
+        content: 'Yes, you can get antibiotics prescribed online in Australia - but only when a doctor determines they are clinically necessary. Telehealth is not a shortcut around proper medical assessment, and the best services will decline to prescribe when antibiotics are not indicated. That is a feature, not a bug.',
       },
       {
         type: 'paragraph',
-        content: 'If you have symptoms that you think require antibiotics, a telehealth consultation is a legitimate and convenient starting point. Just be prepared for the possibility that the answer is "you do not need them" — and understand that is the doctor looking after your long-term health, not just your immediate discomfort.',
+        content: 'If you have symptoms that you think require antibiotics, a telehealth consultation is a legitimate and convenient starting point. Just be prepared for the possibility that the answer is "you do not need them" - and understand that is the doctor looking after your long-term health, not just your immediate discomfort.',
         links: [{ text: 'telehealth consultation', href: '/consult', title: 'Start a consultation' }],
       },
     ],
@@ -2488,7 +2488,7 @@ export const phase4ExpansionArticles: Article[] = [
       },
       {
         question: 'Are telehealth antibiotic prescriptions covered by the PBS?',
-        answer: 'Yes. PBS subsidies apply to prescriptions regardless of whether they were issued via telehealth or an in-person consultation. You will pay the standard PBS co-payment at the pharmacy — $31.60 for general patients or $6.80 for concession card holders.',
+        answer: 'Yes. PBS subsidies apply to prescriptions regardless of whether they were issued via telehealth or an in-person consultation. You will pay the standard PBS co-payment at the pharmacy - $31.60 for general patients or $6.80 for concession card holders.',
       },
       {
         question: 'Why might a doctor refuse to prescribe antibiotics online?',
@@ -2530,16 +2530,16 @@ export const phase4ExpansionArticles: Article[] = [
     content: [
       {
         type: 'paragraph',
-        content: 'You wake up and the thought of going to work makes you feel physically ill. Not "I would rather stay in bed" ill — genuinely unwell. Your chest is tight, your mind is racing, or you are so exhausted that getting dressed feels like a marathon. You know you need a day off. But then the second wave of anxiety hits: what will your boss think? Will they take a mental health day seriously? Do you even deserve one?',
+        content: 'You wake up and the thought of going to work makes you feel physically ill. Not "I would rather stay in bed" ill - genuinely unwell. Your chest is tight, your mind is racing, or you are so exhausted that getting dressed feels like a marathon. You know you need a day off. But then the second wave of anxiety hits: what will your boss think? Will they take a mental health day seriously? Do you even deserve one?',
       },
       {
         type: 'paragraph',
         content: 'Yes, you do. And Australian law agrees with you. Here is exactly how mental health certificates work, what your employer can and cannot ask, and how to get the documentation you need without making an already difficult day harder.',
       },
-      { type: 'heading', content: 'Mental Health Days Are Sick Leave — Full Stop', level: 2 },
+      { type: 'heading', content: 'Mental Health Days Are Sick Leave - Full Stop', level: 2 },
       {
         type: 'paragraph',
-        content: 'Under the Fair Work Act 2009, personal/carer\'s leave (commonly called sick leave) covers any illness or injury, including mental health conditions. The legislation does not distinguish between physical and psychological illness. If you are unwell, you are entitled to use your paid sick leave — whether the cause is a migraine, a stomach bug, or crippling anxiety.',
+        content: 'Under the Fair Work Act 2009, personal/carer\'s leave (commonly called sick leave) covers any illness or injury, including mental health conditions. The legislation does not distinguish between physical and psychological illness. If you are unwell, you are entitled to use your paid sick leave - whether the cause is a migraine, a stomach bug, or crippling anxiety.',
       },
       {
         type: 'paragraph',
@@ -2553,7 +2553,7 @@ export const phase4ExpansionArticles: Article[] = [
       { type: 'heading', content: 'What Employers Can and Cannot Ask', level: 2 },
       {
         type: 'paragraph',
-        content: 'This is where many employees get anxious — and where many employers overstep. The rules are actually quite clear:',
+        content: 'This is where many employees get anxious - and where many employers overstep. The rules are actually quite clear:',
       },
       { type: 'heading', content: 'What They Can Ask', level: 3 },
       {
@@ -2570,10 +2570,10 @@ export const phase4ExpansionArticles: Article[] = [
         type: 'list',
         content: '',
         items: [
-          'Your specific diagnosis — a certificate only needs to state you were unfit for work',
+          'Your specific diagnosis - a certificate only needs to state you were unfit for work',
           'Details of your treatment or medication',
           'Whether you are seeing a psychologist or psychiatrist',
-          'Whether you have a "real" illness (as opposed to mental health — both are real)',
+          'Whether you have a "real" illness (as opposed to mental health - both are real)',
           'That you prove your condition through any means beyond a medical certificate',
         ],
       },
@@ -2589,7 +2589,7 @@ export const phase4ExpansionArticles: Article[] = [
       },
       {
         type: 'paragraph',
-        content: 'Standard medical certificates use phrases like "medical condition," "illness," or "unfit for usual duties." They do not — and should not — specify that the condition is psychological. If you have received a certificate that names a mental health diagnosis and you did not consent to that disclosure, you have grounds to request a replacement.',
+        content: 'Standard medical certificates use phrases like "medical condition," "illness," or "unfit for usual duties." They do not - and should not - specify that the condition is psychological. If you have received a certificate that names a mental health diagnosis and you did not consent to that disclosure, you have grounds to request a replacement.',
       },
       { type: 'heading', content: 'Stigma vs Reality', level: 2 },
       {
@@ -2598,7 +2598,7 @@ export const phase4ExpansionArticles: Article[] = [
       },
       {
         type: 'paragraph',
-        content: 'This stigma is not a reason to push through when you are unwell. It is a reason the law exists in the first place. Your sick leave is an employment entitlement. You earned it. Using it when you are unwell — for any reason — is exactly what it is for. You do not owe anyone a justification beyond "I am not well enough to work today."',
+        content: 'This stigma is not a reason to push through when you are unwell. It is a reason the law exists in the first place. Your sick leave is an employment entitlement. You earned it. Using it when you are unwell - for any reason - is exactly what it is for. You do not owe anyone a justification beyond "I am not well enough to work today."',
       },
       { type: 'heading', content: 'What Doctors Assess', level: 2 },
       {
@@ -2609,11 +2609,11 @@ export const phase4ExpansionArticles: Article[] = [
         type: 'list',
         content: '',
         items: [
-          'Your reported symptoms — anxiety, low mood, exhaustion, difficulty concentrating, emotional distress',
-          'The impact on your functional capacity — can you safely and effectively perform your role?',
-          'Duration — is this a one-day recovery or does the doctor recommend a longer period?',
+          'Your reported symptoms - anxiety, low mood, exhaustion, difficulty concentrating, emotional distress',
+          'The impact on your functional capacity - can you safely and effectively perform your role?',
+          'Duration - is this a one-day recovery or does the doctor recommend a longer period?',
           'Whether further support or treatment is advisable',
-          'Safety considerations — particularly for roles involving driving, machinery, or high-stakes decision-making',
+          'Safety considerations - particularly for roles involving driving, machinery, or high-stakes decision-making',
         ],
       },
       {
@@ -2623,7 +2623,7 @@ export const phase4ExpansionArticles: Article[] = [
       { type: 'heading', content: 'Telehealth vs Face-to-Face for Mental Health Certificates', level: 2 },
       {
         type: 'paragraph',
-        content: 'For a straightforward mental health day — where you are experiencing acute symptoms and need documentation for your employer — telehealth is entirely appropriate. An online assessment can capture your symptoms, determine fitness for work, and issue a certificate without you having to leave the house. On a day when getting out of bed feels impossible, this matters.',
+        content: 'For a straightforward mental health day - where you are experiencing acute symptoms and need documentation for your employer - telehealth is entirely appropriate. An online assessment can capture your symptoms, determine fitness for work, and issue a certificate without you having to leave the house. On a day when getting out of bed feels impossible, this matters.',
         links: [{ text: 'online assessment', href: '/how-it-works', title: 'How our process works' }],
       },
       {
@@ -2648,11 +2648,11 @@ export const phase4ExpansionArticles: Article[] = [
       { type: 'heading', content: 'Burnout vs Clinical Conditions', level: 2 },
       {
         type: 'paragraph',
-        content: 'There is a difference between burnout and a diagnosed mental health condition, though the line can blur. Burnout — chronic workplace exhaustion, cynicism, and reduced professional efficacy — is increasingly recognised as a legitimate health concern. The World Health Organization classifies it as an "occupational phenomenon" in the ICD-11.',
+        content: 'There is a difference between burnout and a diagnosed mental health condition, though the line can blur. Burnout - chronic workplace exhaustion, cynicism, and reduced professional efficacy - is increasingly recognised as a legitimate health concern. The World Health Organization classifies it as an "occupational phenomenon" in the ICD-11.',
       },
       {
         type: 'paragraph',
-        content: 'Whether your experience is burnout, situational stress, clinical anxiety, or depression, a doctor can assess your fitness for work. You do not need a formal psychiatric diagnosis to take a sick day. If your mental state is preventing you from functioning at work, that is sufficient. The certificate exists to confirm that a medical professional agrees you needed time off — not to classify your suffering.',
+        content: 'Whether your experience is burnout, situational stress, clinical anxiety, or depression, a doctor can assess your fitness for work. You do not need a formal psychiatric diagnosis to take a sick day. If your mental state is preventing you from functioning at work, that is sufficient. The certificate exists to confirm that a medical professional agrees you needed time off - not to classify your suffering.',
       },
       { type: 'heading', content: 'Your Rights Under Discrimination Law', level: 2 },
       {
@@ -2671,7 +2671,7 @@ export const phase4ExpansionArticles: Article[] = [
       },
       {
         type: 'paragraph',
-        content: 'If you believe you have been treated unfairly because of mental health-related absences, the Fair Work Commission and the Australian Human Rights Commission both accept complaints. Document everything — dates, conversations, any changes to your treatment at work.',
+        content: 'If you believe you have been treated unfairly because of mental health-related absences, the Fair Work Commission and the Australian Human Rights Commission both accept complaints. Document everything - dates, conversations, any changes to your treatment at work.',
       },
       { type: 'heading', content: 'Ongoing Mental Health Support', level: 2 },
       {
@@ -2682,23 +2682,23 @@ export const phase4ExpansionArticles: Article[] = [
         type: 'list',
         content: '',
         items: [
-          'Beyond Blue (1300 22 4636) — information and support for anxiety, depression, and suicide prevention',
-          'Lifeline (13 11 14) — 24/7 crisis support and suicide prevention',
-          'headspace (1800 650 890) — mental health support for 12\u201325 year olds',
-          'Mental Health Treatment Plan — ask your GP for a referral to access up to 10 Medicare-subsidised psychology sessions per year',
-          'Employee Assistance Program (EAP) — most larger employers offer free confidential counselling through an EAP provider',
+          'Beyond Blue (1300 22 4636) - information and support for anxiety, depression, and suicide prevention',
+          'Lifeline (13 11 14) - 24/7 crisis support and suicide prevention',
+          'headspace (1800 650 890) - mental health support for 12\u201325 year olds',
+          'Mental Health Treatment Plan - ask your GP for a referral to access up to 10 Medicare-subsidised psychology sessions per year',
+          'Employee Assistance Program (EAP) - most larger employers offer free confidential counselling through an EAP provider',
         ],
       },
       {
         type: 'paragraph',
-        content: 'Taking a mental health day is not a sign of weakness. It is the same practical decision as staying home when you have the flu — you are unwell, you are recovering, and you will be more effective when you return. The only difference is that nobody questions the flu.',
+        content: 'Taking a mental health day is not a sign of weakness. It is the same practical decision as staying home when you have the flu - you are unwell, you are recovering, and you will be more effective when you return. The only difference is that nobody questions the flu.',
         links: [{ text: 'get a medical certificate', href: '/medical-certificate', title: 'Get a medical certificate online' }],
       },
     ],
     faqs: [
       {
         question: 'Do I have to tell my employer my mental health diagnosis?',
-        answer: 'No. A medical certificate only needs to confirm that you were assessed by a doctor and deemed unfit for work. Your diagnosis is protected health information under the Privacy Act 1988. The certificate will say something like "medical condition" or "unfit for usual duties" — it does not and should not name a specific mental health condition.',
+        answer: 'No. A medical certificate only needs to confirm that you were assessed by a doctor and deemed unfit for work. Your diagnosis is protected health information under the Privacy Act 1988. The certificate will say something like "medical condition" or "unfit for usual duties" - it does not and should not name a specific mental health condition.',
       },
       {
         question: 'Can my employer reject a medical certificate for a mental health day?',
@@ -2710,11 +2710,11 @@ export const phase4ExpansionArticles: Article[] = [
       },
       {
         question: 'How many mental health days can I take per year?',
-        answer: 'There is no separate category for mental health days. They come from your personal/carer\'s leave entitlement — 10 days per year for full-time employees under the National Employment Standards. Part-time employees accrue leave pro-rata. Casual employees do not accrue paid leave but cannot be penalised for absences due to illness.',
+        answer: 'There is no separate category for mental health days. They come from your personal/carer\'s leave entitlement - 10 days per year for full-time employees under the National Employment Standards. Part-time employees accrue leave pro-rata. Casual employees do not accrue paid leave but cannot be penalised for absences due to illness.',
       },
       {
         question: 'What is the difference between a mental health day and a Mental Health Treatment Plan?',
-        answer: 'A mental health day is sick leave — you are unwell and taking time off, supported by a medical certificate if needed. A Mental Health Treatment Plan is a structured care plan created by your GP that gives you access to Medicare-subsidised psychology sessions (up to 10 per year). They serve different purposes: one is for acute recovery, the other is for ongoing treatment.',
+        answer: 'A mental health day is sick leave - you are unwell and taking time off, supported by a medical certificate if needed. A Mental Health Treatment Plan is a structured care plan created by your GP that gives you access to Medicare-subsidised psychology sessions (up to 10 per year). They serve different purposes: one is for acute recovery, the other is for ongoing treatment.',
       },
     ],
     relatedServices: [
@@ -2744,7 +2744,7 @@ export const phase4ExpansionArticles: Article[] = [
     content: [
       {
         type: 'paragraph',
-        content: 'The question "is telehealth bulk billed?" is one of the most common healthcare searches in Australia — and the answer is more nuanced than most people expect. Some telehealth is bulk billed. Some is not. And the distinction matters, because understanding it helps you make better decisions about where, when, and how to access healthcare online.',
+        content: 'The question "is telehealth bulk billed?" is one of the most common healthcare searches in Australia - and the answer is more nuanced than most people expect. Some telehealth is bulk billed. Some is not. And the distinction matters, because understanding it helps you make better decisions about where, when, and how to access healthcare online.',
       },
       {
         type: 'paragraph',
@@ -2753,7 +2753,7 @@ export const phase4ExpansionArticles: Article[] = [
       { type: 'heading', content: 'How Medicare Telehealth Billing Works', level: 2 },
       {
         type: 'paragraph',
-        content: 'Medicare has covered telehealth consultations since 2020, when temporary pandemic items were introduced. Many of these became permanent in January 2022. Under the current Medicare Benefits Schedule (MBS), GPs can claim telehealth items for phone and video consultations — but there are conditions.',
+        content: 'Medicare has covered telehealth consultations since 2020, when temporary pandemic items were introduced. Many of these became permanent in January 2022. Under the current Medicare Benefits Schedule (MBS), GPs can claim telehealth items for phone and video consultations - but there are conditions.',
       },
       { type: 'heading', content: 'The Existing Patient Relationship Requirement', level: 3 },
       {
@@ -2788,16 +2788,16 @@ export const phase4ExpansionArticles: Article[] = [
       },
       {
         type: 'paragraph',
-        content: 'The bulk billing rate depends on the GP. Even when Medicare rebates apply, not all GPs choose to bulk bill. Some charge a gap fee on top of the rebate, particularly for longer consultations. This is the same dynamic as in-person appointments — bulk billing is the GP\'s choice, not a patient entitlement.',
+        content: 'The bulk billing rate depends on the GP. Even when Medicare rebates apply, not all GPs choose to bulk bill. Some charge a gap fee on top of the rebate, particularly for longer consultations. This is the same dynamic as in-person appointments - bulk billing is the GP\'s choice, not a patient entitlement.',
       },
       { type: 'heading', content: 'Why Private Telehealth Services Exist', level: 2 },
       {
         type: 'paragraph',
-        content: 'Here is where the landscape gets interesting. Private telehealth services — platforms that charge a flat fee without Medicare rebates — exist because of a gap in the public system. That gap is not clinical quality; it is access.',
+        content: 'Here is where the landscape gets interesting. Private telehealth services - platforms that charge a flat fee without Medicare rebates - exist because of a gap in the public system. That gap is not clinical quality; it is access.',
       },
       {
         type: 'paragraph',
-        content: 'Consider the typical bulk-billed telehealth experience: you need an existing relationship with a GP, you book during their available hours, you wait for an appointment (often days to weeks), and the consultation follows the standard GP model. For ongoing care, this is excellent. For a one-off need — a medical certificate when you are unwell today, a repeat prescription before your medication runs out — the access barriers can be significant.',
+        content: 'Consider the typical bulk-billed telehealth experience: you need an existing relationship with a GP, you book during their available hours, you wait for an appointment (often days to weeks), and the consultation follows the standard GP model. For ongoing care, this is excellent. For a one-off need - a medical certificate when you are unwell today, a repeat prescription before your medication runs out - the access barriers can be significant.',
         links: [{ text: 'medical certificate', href: '/medical-certificate', title: 'Get a medical certificate' }],
       },
       {
@@ -2829,10 +2829,10 @@ export const phase4ExpansionArticles: Article[] = [
         content: '',
         items: [
           'Consultation cost: typically $20\u2013$80 depending on service type',
-          'Access requirement: none — new patients welcome',
+          'Access requirement: none - new patients welcome',
           'Booking lead time: same-day, often within hours',
           'Availability: extended hours, including evenings and weekends',
-          'Time investment: minimal — fill in a form, get reviewed',
+          'Time investment: minimal - fill in a form, get reviewed',
           'Best for: one-off needs, patients without a regular GP, time-sensitive requests',
         ],
       },
@@ -2854,11 +2854,11 @@ export const phase4ExpansionArticles: Article[] = [
       { type: 'heading', content: 'Health Insurance and Telehealth', level: 2 },
       {
         type: 'paragraph',
-        content: 'Private health insurance in Australia generally does not cover GP consultations — whether in person or via telehealth. GP services fall under Medicare, not private health insurance. Your extras cover might include allied health (psychology, physiotherapy, etc.), but standard GP telehealth is not typically a claimable expense.',
+        content: 'Private health insurance in Australia generally does not cover GP consultations - whether in person or via telehealth. GP services fall under Medicare, not private health insurance. Your extras cover might include allied health (psychology, physiotherapy, etc.), but standard GP telehealth is not typically a claimable expense.',
       },
       {
         type: 'paragraph',
-        content: 'Some insurers are beginning to partner with telehealth platforms to offer members discounted or included consultations as a value-add. Check with your insurer, but do not assume your private health cover includes telehealth GP services — it probably does not.',
+        content: 'Some insurers are beginning to partner with telehealth platforms to offer members discounted or included consultations as a value-add. Check with your insurer, but do not assume your private health cover includes telehealth GP services - it probably does not.',
       },
       { type: 'heading', content: 'Gap Fees Explained', level: 2 },
       {
@@ -2867,7 +2867,7 @@ export const phase4ExpansionArticles: Article[] = [
       },
       {
         type: 'paragraph',
-        content: 'Gap fees are common even with Medicare-eligible telehealth. Bulk billing means the doctor accepts the Medicare rebate as full payment — there is no gap. But as bulk billing rates decline across Australia (particularly in major cities), gap fees are becoming the norm rather than the exception for GP consultations.',
+        content: 'Gap fees are common even with Medicare-eligible telehealth. Bulk billing means the doctor accepts the Medicare rebate as full payment - there is no gap. But as bulk billing rates decline across Australia (particularly in major cities), gap fees are becoming the norm rather than the exception for GP consultations.',
       },
       {
         type: 'paragraph',
@@ -2886,19 +2886,19 @@ export const phase4ExpansionArticles: Article[] = [
           'Same-day or next-day review of your request',
           'Legally valid medical documentation (certificates, prescriptions)',
           'No travel, no waiting room, no time off work for an appointment',
-          'Extended hours availability — evenings and weekends',
-          'Privacy — no running into your neighbour in the waiting room',
+          'Extended hours availability - evenings and weekends',
+          'Privacy - no running into your neighbour in the waiting room',
         ],
       },
       {
         type: 'paragraph',
-        content: 'For many people, the convenience alone justifies the cost. An hour spent travelling to and sitting in a GP waiting room has a real cost — in lost wages, in childcare, in stress. Private telehealth is not "paying for something that should be free." It is paying for access, convenience, and speed that the public system does not always provide.',
+        content: 'For many people, the convenience alone justifies the cost. An hour spent travelling to and sitting in a GP waiting room has a real cost - in lost wages, in childcare, in stress. Private telehealth is not "paying for something that should be free." It is paying for access, convenience, and speed that the public system does not always provide.',
         links: [{ text: 'AHPRA-registered Australian doctor', href: '/our-doctors', title: 'Our doctors' }],
       },
       { type: 'heading', content: 'The Bottom Line', level: 2 },
       {
         type: 'paragraph',
-        content: 'Some telehealth is bulk billed, some is not. Bulk billing generally requires an existing GP relationship and comes with the same access constraints as in-person bulk-billed care. Private telehealth costs money but solves real access problems — particularly for people without a regular GP, those who need something urgently, or anyone who values their time.',
+        content: 'Some telehealth is bulk billed, some is not. Bulk billing generally requires an existing GP relationship and comes with the same access constraints as in-person bulk-billed care. Private telehealth costs money but solves real access problems - particularly for people without a regular GP, those who need something urgently, or anyone who values their time.',
       },
       {
         type: 'paragraph',
@@ -2908,7 +2908,7 @@ export const phase4ExpansionArticles: Article[] = [
     faqs: [
       {
         question: 'Can I get a Medicare rebate for any telehealth consultation?',
-        answer: 'Not necessarily. Medicare telehealth rebates generally require an existing patient relationship — you need to have seen the GP (or another GP at the same practice) within the preceding 24 months. If you are seeing a new doctor via telehealth for the first time, the rebate usually does not apply. Exceptions exist for patients in rural areas and certain vulnerable groups.',
+        answer: 'Not necessarily. Medicare telehealth rebates generally require an existing patient relationship - you need to have seen the GP (or another GP at the same practice) within the preceding 24 months. If you are seeing a new doctor via telehealth for the first time, the rebate usually does not apply. Exceptions exist for patients in rural areas and certain vulnerable groups.',
       },
       {
         question: 'Do prescriptions from private telehealth services still get PBS subsidies?',
@@ -2916,15 +2916,15 @@ export const phase4ExpansionArticles: Article[] = [
       },
       {
         question: 'Why is bulk-billed telehealth hard to get?',
-        answer: 'Bulk billing rates have been declining across Australia, and the existing patient relationship requirement for telehealth Medicare items means new patients cannot easily access bulk-billed telehealth. Additionally, many GPs who do bulk bill have limited availability and long wait times for appointments — the same access issues that affect in-person bulk billing.',
+        answer: 'Bulk billing rates have been declining across Australia, and the existing patient relationship requirement for telehealth Medicare items means new patients cannot easily access bulk-billed telehealth. Additionally, many GPs who do bulk bill have limited availability and long wait times for appointments - the same access issues that affect in-person bulk billing.',
       },
       {
         question: 'Does private health insurance cover telehealth?',
-        answer: 'Generally, no. GP consultations — whether in person or via telehealth — fall under Medicare, not private health insurance. Your extras cover may include allied health services like psychology, but standard GP telehealth is not typically claimable. Some insurers are beginning to partner with telehealth platforms, so check with your specific provider.',
+        answer: 'Generally, no. GP consultations - whether in person or via telehealth - fall under Medicare, not private health insurance. Your extras cover may include allied health services like psychology, but standard GP telehealth is not typically claimable. Some insurers are beginning to partner with telehealth platforms, so check with your specific provider.',
       },
       {
         question: 'How much does private telehealth cost compared to a gap-fee GP?',
-        answer: 'Private telehealth typically costs $20\u2013$80 per consultation depending on the service type. This is often comparable to or less than the gap fee charged by many non-bulk-billing GPs (which can range from $30\u2013$80 on top of the Medicare rebate). The difference is transparency — private telehealth shows you the full price upfront with no gap surprise.',
+        answer: 'Private telehealth typically costs $20\u2013$80 per consultation depending on the service type. This is often comparable to or less than the gap fee charged by many non-bulk-billing GPs (which can range from $30\u2013$80 on top of the Medicare rebate). The difference is transparency - private telehealth shows you the full price upfront with no gap surprise.',
       },
     ],
     relatedServices: [

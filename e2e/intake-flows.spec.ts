@@ -14,7 +14,7 @@ import { waitForPageLoad } from "./helpers/test-utils"
  * step renders, validates, and advances correctly.
  *
  * We intercept the Stripe checkout redirect so the test never actually
- * leaves the domain — we just verify the server action was called.
+ * leaves the domain - we just verify the server action was called.
  */
 
 // ---------------------------------------------------------------------------
@@ -34,7 +34,7 @@ async function dismissOverlays(page: Page) {
     await page.waitForTimeout(300)
   }
 
-  // Next.js Dev Tools issues overlay — collapse it
+  // Next.js Dev Tools issues overlay - collapse it
   const issuesBadge = page.getByRole("button", { name: /Open issues overlay/i })
   if (await issuesBadge.isVisible({ timeout: 500 }).catch(() => false)) {
     const collapseBadge = page.getByRole("button", { name: /Collapse issues badge/i })
@@ -132,12 +132,12 @@ async function completeDetailsStep(page: Page, opts?: { needsPhone?: boolean }) 
   await page.locator('input[placeholder="Smith"]').fill("Patient")
   await page.locator('input[placeholder="jane@example.com"]').fill("test@instantmed.com.au")
 
-  // DOB — 25 years ago
+  // DOB - 25 years ago
   const dob = new Date()
   dob.setFullYear(dob.getFullYear() - 25)
   await page.locator('input[type="date"]').first().fill(dob.toISOString().split("T")[0])
 
-  // Phone — required for prescriptions
+  // Phone - required for prescriptions
   if (opts?.needsPhone) {
     await page.locator('input[placeholder="0412 345 678"]').fill("0412345678")
   }
@@ -157,7 +157,7 @@ async function completeMedicalHistoryStep(page: Page) {
 }
 
 /**
- * Complete the Review step — just click "Continue to payment".
+ * Complete the Review step - just click "Continue to payment".
  */
 async function completeReviewStep(page: Page) {
   await waitForStep(page, /Review your request/i)
@@ -213,7 +213,7 @@ async function completeMedicationSearchStep(page: Page) {
     await page.waitForTimeout(500)
   }
 
-  // Verify we have a selection — wait for state to propagate
+  // Verify we have a selection - wait for state to propagate
   await page.waitForTimeout(1000)
 
   // If Continue is still not enabled, try the "I don't know" fallback
@@ -256,11 +256,11 @@ async function completeConsultReasonStep(page: Page, opts?: { subtype?: string }
   const hasPreSelected = await page.getByText(/Consultation type/i).isVisible({ timeout: 1000 }).catch(() => false)
 
   if (hasPreSelected) {
-    // Subtype was pre-selected — just verify it shows correctly
+    // Subtype was pre-selected - just verify it shows correctly
     const subtypeLabel = opts?.subtype === "general" ? "General consultation" : opts?.subtype || "General consultation"
     await expect(page.getByText(subtypeLabel).first()).toBeVisible()
   } else if (hasGrid) {
-    // Category grid is shown — select from it
+    // Category grid is shown - select from it
     // Button names include emoji: "🩺General consultation", "🔵Erectile dysfunction", etc.
     const categoryLabel = opts?.subtype === "ed" ? /Erectile dysfunction/i
       : opts?.subtype === "hair_loss" ? /Hair loss/i
@@ -286,10 +286,10 @@ async function completeConsultReasonStep(page: Page, opts?: { subtype?: string }
 }
 
 // ---------------------------------------------------------------------------
-// 1 · MEDICAL CERTIFICATE — Full Flow
+// 1 · MEDICAL CERTIFICATE - Full Flow
 // ---------------------------------------------------------------------------
 
-test.describe("Intake: Medical Certificate — full flow", () => {
+test.describe("Intake: Medical Certificate - full flow", () => {
   test("completes med-cert from start to checkout", async ({ page }) => {
     // Navigate to med-cert flow
     await page.goto("/request?service=med-cert")
@@ -299,9 +299,9 @@ test.describe("Intake: Medical Certificate — full flow", () => {
     // ── Step 1: Certificate details ──
     await waitForStep(page, /Certificate details/i)
     await clickChip(page, /^Work$/i)      // cert type
-    // Duration buttons include price text: "1 day $19.95" — use partial match
+    // Duration buttons include price text: "1 day $19.95" - use partial match
     await page.getByRole("button", { name: /1 day/i }).click()
-    // Start date defaults to today — no action needed
+    // Start date defaults to today - no action needed
     await clickContinue(page)
 
     // ── Step 2: Symptoms ──
@@ -331,10 +331,10 @@ test.describe("Intake: Medical Certificate — full flow", () => {
 })
 
 // ---------------------------------------------------------------------------
-// 1b · MEDICAL CERTIFICATE — Certificate Step Defaults
+// 1b · MEDICAL CERTIFICATE - Certificate Step Defaults
 // ---------------------------------------------------------------------------
 
-test.describe("Intake: Certificate Step — defaults and date range", () => {
+test.describe("Intake: Certificate Step - defaults and date range", () => {
   test("2-day duration is pre-selected by default", async ({ page }) => {
     await page.goto("/request?service=med-cert")
     await waitForPageLoad(page)
@@ -357,7 +357,7 @@ test.describe("Intake: Certificate Step — defaults and date range", () => {
     // Select cert type (required to enable Continue)
     await clickChip(page, /^Work$/i)
 
-    // 2-day duration is pre-selected — no action needed
+    // 2-day duration is pre-selected - no action needed
     // Fill start date as exactly 2 days ago (boundary of allowed range)
     const twoDaysAgo = new Date()
     twoDaysAgo.setDate(twoDaysAgo.getDate() - 2)
@@ -377,13 +377,13 @@ test.describe("Intake: Certificate Step — defaults and date range", () => {
 
     await waitForStep(page, /Certificate details/i)
 
-    // Select 1-day — nudge should appear
+    // Select 1-day - nudge should appear
     await page.getByRole("radio", { name: /1 day/i }).click()
     await expect(
       page.getByText(/Most patients choose 2 days/i)
     ).toBeVisible({ timeout: 2000 })
 
-    // Click the Switch button — nudge should disappear
+    // Click the Switch button - nudge should disappear
     await page.getByRole("button", { name: /Switch to 2-day/i }).click()
     await expect(
       page.getByText(/Most patients choose 2 days/i)
@@ -396,10 +396,10 @@ test.describe("Intake: Certificate Step — defaults and date range", () => {
 })
 
 // ---------------------------------------------------------------------------
-// 2 · REPEAT PRESCRIPTION — Full Flow
+// 2 · REPEAT PRESCRIPTION - Full Flow
 // ---------------------------------------------------------------------------
 
-test.describe("Intake: Repeat Prescription — full flow", () => {
+test.describe("Intake: Repeat Prescription - full flow", () => {
   test("completes prescription from start to checkout", async ({ page }) => {
     // Navigate to prescription flow
     await page.goto("/request?service=prescription")
@@ -434,10 +434,10 @@ test.describe("Intake: Repeat Prescription — full flow", () => {
 })
 
 // ---------------------------------------------------------------------------
-// 3 · GENERAL CONSULTATION — Full Flow
+// 3 · GENERAL CONSULTATION - Full Flow
 // ---------------------------------------------------------------------------
 
-test.describe("Intake: General Consultation — full flow", () => {
+test.describe("Intake: General Consultation - full flow", () => {
   test("completes general consult from start to checkout", async ({ page }) => {
     // Navigate to general consultation flow (subtype pre-selected from hub)
     await page.goto("/request?service=consult&subtype=general")
@@ -468,12 +468,12 @@ test.describe("Intake: General Consultation — full flow", () => {
 })
 
 // ---------------------------------------------------------------------------
-// 4 · CONSULTATION (no subtype) — Category Selection Flow
+// 4 · CONSULTATION (no subtype) - Category Selection Flow
 // ---------------------------------------------------------------------------
 
-test.describe("Intake: Consultation without subtype — category selection", () => {
+test.describe("Intake: Consultation without subtype - category selection", () => {
   test("shows category grid when no subtype is pre-selected", async ({ page }) => {
-    // Navigate WITHOUT a subtype — should show the category selector
+    // Navigate WITHOUT a subtype - should show the category selector
     await page.goto("/request?service=consult")
     await waitForPageLoad(page)
     await dismissOverlays(page)
@@ -481,7 +481,7 @@ test.describe("Intake: Consultation without subtype — category selection", () 
     // ── Step 1: Consult reason (with category grid) ──
     await waitForStep(page, /What would you like help with/i)
 
-    // Select "General consultation" — button name includes emoji: "🩺General consultation"
+    // Select "General consultation" - button name includes emoji: "🩺General consultation"
     await page.getByRole("button", { name: /General consultation/i }).click()
 
     // Fill details
@@ -534,7 +534,7 @@ test.describe("Intake: Validation & edge cases", () => {
     // Complete certificate step first
     await waitForStep(page, /Certificate details/i)
     await clickChip(page, /^Work$/i)
-    // Duration button includes price text — use partial match
+    // Duration button includes price text - use partial match
     await page.getByRole("button", { name: /1 day/i }).click()
     await clickContinue(page)
 
@@ -543,14 +543,14 @@ test.describe("Intake: Validation & edge cases", () => {
     await clickChip(page, /Cold\/Flu/i)
     await clickChip(page, /1-2 days/i)
 
-    // Enter short text (< 20 chars) — Continue should remain disabled
+    // Enter short text (< 20 chars) - Continue should remain disabled
     await fillTextarea(page, "I feel sick")
     const btn = page.getByRole("button", { name: /^Continue$/i }).last()
     // Wait for React state to propagate after fill
     await page.waitForTimeout(500)
     await expect(btn).toBeDisabled({ timeout: 5000 })
 
-    // Extend text past 20 chars — Continue should become enabled
+    // Extend text past 20 chars - Continue should become enabled
     await fillTextarea(page, "I feel sick with a fever and body aches since yesterday.")
     // Wait for React state to propagate after fill
     await page.waitForTimeout(500)
@@ -565,7 +565,7 @@ test.describe("Intake: Validation & edge cases", () => {
     // Complete medication step using the robust helper
     await completeMedicationSearchStep(page)
 
-    // On medication history step — select "Never prescribed"
+    // On medication history step - select "Never prescribed"
     await waitForStep(page, /When were you last prescribed/i)
     await clickChip(page, /Never prescribed this medication/i)
 
@@ -582,7 +582,7 @@ test.describe("Intake: Validation & edge cases", () => {
     // Fast-forward to details step
     await waitForStep(page, /Certificate details/i)
     await clickChip(page, /^Work$/i)
-    // Duration button includes price text — use partial match
+    // Duration button includes price text - use partial match
     await page.getByRole("button", { name: /1 day/i }).click()
     await clickContinue(page)
 
@@ -593,7 +593,7 @@ test.describe("Intake: Validation & edge cases", () => {
     await fillTextarea(page, "I have a bad cold with fever and muscle aches for two days now.")
     await clickContinue(page)
 
-    // On details step — enter invalid email
+    // On details step - enter invalid email
     await waitForStep(page, /This information is required/i)
     const noThanks = page.getByRole("button", { name: /No thanks/i })
     if (await noThanks.isVisible({ timeout: 1000 }).catch(() => false)) {
@@ -603,7 +603,7 @@ test.describe("Intake: Validation & edge cases", () => {
     await page.locator('input[placeholder="Jane"]').fill("Test")
     await page.locator('input[placeholder="Smith"]').fill("User")
     await page.locator('input[placeholder="jane@example.com"]').fill("not-an-email")
-    // Blur to trigger validation — wait for React re-render
+    // Blur to trigger validation - wait for React re-render
     await page.locator('input[placeholder="jane@example.com"]').blur()
     await page.waitForTimeout(500)
 
@@ -613,7 +613,7 @@ test.describe("Intake: Validation & edge cases", () => {
 })
 
 // ---------------------------------------------------------------------------
-// 6 · REPEAT-SCRIPT alias — should work identically to prescription
+// 6 · REPEAT-SCRIPT alias - should work identically to prescription
 // ---------------------------------------------------------------------------
 
 test.describe("Intake: repeat-script alias", () => {

@@ -48,6 +48,6 @@ export default function manifest(): MetadataRoute.Manifest {
         purpose: "maskable",
       },
     ],
-    // screenshots omitted — files not yet created
+    // screenshots omitted - files not yet created
   }
 }

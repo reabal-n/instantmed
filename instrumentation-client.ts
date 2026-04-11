@@ -55,7 +55,7 @@ Sentry.init({
   // Enable logs to be sent to Sentry
   enableLogs: true,
 
-  // Session Replay — reduced for PageSpeed (lower TBT)
+  // Session Replay - reduced for PageSpeed (lower TBT)
   replaysSessionSampleRate: 0.01,
   replaysOnErrorSampleRate: 0.5,
 
@@ -115,7 +115,7 @@ Sentry.init({
 
 export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;
 
-// PostHog Analytics initialization (single source of truth — do not duplicate in provider)
+// PostHog Analytics initialization (single source of truth - do not duplicate in provider)
 // Dynamic import to avoid module-level crash when posthog-js can't initialize
 if (process.env.NEXT_PUBLIC_POSTHOG_KEY) {
   const posthogKey = process.env.NEXT_PUBLIC_POSTHOG_KEY;
@@ -128,9 +128,9 @@ if (process.env.NEXT_PUBLIC_POSTHOG_KEY) {
       capture_pageleave: true,
       capture_exceptions: true,
       autocapture: true,
-      disable_session_recording: true,  // Deferred — starts after idle to avoid blocking LCP
+      disable_session_recording: true,  // Deferred - starts after idle to avoid blocking LCP
       session_recording: {
-        maskAllInputs: true,          // PHI protection — mask all form inputs
+        maskAllInputs: true,          // PHI protection - mask all form inputs
         maskTextSelector: "[data-phi]", // Extra masking for PHI-tagged elements
       },
       debug: process.env.NODE_ENV === "development",
@@ -147,6 +147,6 @@ if (process.env.NEXT_PUBLIC_POSTHOG_KEY) {
       setTimeout(startRecording, 3000);
     }
   }).catch(() => {
-    // PostHog not available — skip silently
+    // PostHog not available - skip silently
   });
 }

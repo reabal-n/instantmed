@@ -22,7 +22,7 @@ function render(element: React.ReactElement): string {
   return renderToStaticMarkup(element)
 }
 
-describe("ClinicalSummary — ED subtype (camelCase keys)", () => {
+describe("ClinicalSummary - ED subtype (camelCase keys)", () => {
   // Mirrors the keys written by ed-assessment-step.tsx + ed-health-step.tsx
   const edAnswers = {
     // Assessment step
@@ -34,7 +34,7 @@ describe("ClinicalSummary — ED subtype (camelCase keys)", () => {
     edDiabetes: false,
     edPreference: "prn",
     edAdditionalInfo: "Recently started new job, lots of stress",
-    // Safety fields — flat keys from ed-health-step.tsx
+    // Safety fields - flat keys from ed-health-step.tsx
     edNitrates: "no",
     edRecentHeartEvent: "no",
     edSevereHeart: "no",
@@ -83,7 +83,7 @@ describe("ClinicalSummary — ED subtype (camelCase keys)", () => {
   })
 })
 
-describe("ClinicalSummary — hair loss subtype (camelCase keys)", () => {
+describe("ClinicalSummary - hair loss subtype (camelCase keys)", () => {
   // Mirrors the keys written by hair-loss-assessment-step.tsx
   const hairLossAnswers = {
     // Main assessment fields (always present for a completed intake)
@@ -122,14 +122,14 @@ describe("ClinicalSummary — hair loss subtype (camelCase keys)", () => {
 
   it("does NOT auto-format camelCase keys to 'Hair Pattern' or 'Tried Minoxidil'-style fallbacks", () => {
     const html = render(<ClinicalSummary answers={hairLossAnswers} consultSubtype="hair_loss" />)
-    // "Hair Pattern" would be the auto-format fallback — we override with "Hair Loss Pattern"
+    // "Hair Pattern" would be the auto-format fallback - we override with "Hair Loss Pattern"
     expect(html).not.toContain('">Hair Pattern<')
     expect(html).not.toContain('">Hair Duration<')
     expect(html).not.toContain('">Hair Family History<')
   })
 })
 
-describe("ClinicalSummary — legacy snake_case compat", () => {
+describe("ClinicalSummary - legacy snake_case compat", () => {
   it("still renders legacy snake_case ED keys in Additional Information", () => {
     const legacyEd = {
       ed_onset: "sudden",
@@ -142,7 +142,7 @@ describe("ClinicalSummary — legacy snake_case compat", () => {
     // Legacy snake_case keys from old intakes fall through to "Additional Information"
     // since the ED fields array now uses the new camelCase keys (edGoal, iiefTotal, etc.)
     expect(html).toContain("Additional Information")
-    // The actual values must still be visible — not hidden
+    // The actual values must still be visible - not hidden
     expect(html).toContain("sudden")
     expect(html).toContain("half_the_time")
   })

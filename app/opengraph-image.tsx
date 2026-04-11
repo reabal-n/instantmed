@@ -1,4 +1,5 @@
 import { ImageResponse } from 'next/og'
+import { PRICING_DISPLAY } from '@/lib/constants'
 
 export const runtime = 'edge'
 
@@ -38,7 +39,7 @@ export default async function Image() {
           }}
         >
           {logoData ? (
-            // @ts-expect-error — ArrayBuffer is valid in next/og img src
+            // @ts-expect-error - ArrayBuffer is valid in next/og img src
             <img src={logoData} width={80} height={80} style={{ borderRadius: '20px' }} />
           ) : (
             <div
@@ -120,11 +121,11 @@ export default async function Image() {
           }}
         >
           <div style={{ fontSize: '20px', color: '#64748B' }}>
-            Med Certs from <span style={{ fontWeight: 'bold', color: '#1E293B' }}>$19.95</span>
+            Med Certs from <span style={{ fontWeight: 'bold', color: '#1E293B' }}>{PRICING_DISPLAY.MED_CERT}</span>
           </div>
           <div style={{ fontSize: '20px', color: '#64748B' }}>•</div>
           <div style={{ fontSize: '20px', color: '#64748B' }}>
-            Scripts from <span style={{ fontWeight: 'bold', color: '#1E293B' }}>$29.95</span>
+            Scripts from <span style={{ fontWeight: 'bold', color: '#1E293B' }}>{PRICING_DISPLAY.REPEAT_SCRIPT}</span>
           </div>
         </div>
       </div>

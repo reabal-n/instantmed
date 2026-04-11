@@ -101,7 +101,7 @@ function ServiceCard({ service, disabled }: ServiceCardProps) {
             service.popular && 'ring-2 ring-primary/50 dark:ring-primary/30 shadow-xl shadow-primary/[0.1]',
           ],
         )}>
-          {/* Icon — larger presence with glow */}
+          {/* Icon - larger presence with glow */}
           <ServiceIconTile iconKey={service.icon} color={service.color} size="lg" className={cn('mb-4 shadow-lg', (colorThemeMap[service.color] || defaultTheme).iconGlow)} />
 
           {/* Title + Price */}
@@ -154,7 +154,7 @@ function ServiceCard({ service, disabled }: ServiceCardProps) {
                 &ldquo;{service.testimonial.quote}&rdquo;
               </p>
               <p className="text-[10px] text-muted-foreground/70 mt-1">
-                — {service.testimonial.author}
+                - {service.testimonial.author}
               </p>
             </div>
           )}
@@ -284,7 +284,7 @@ export function ServiceCards() {
 
         {/* Note */}
         <p className="text-center text-xs text-muted-foreground mt-8">
-          Private service — no Medicare rebate, but PBS subsidies may still apply at the pharmacy
+          Private service - no Medicare rebate, but PBS subsidies may still apply at the pharmacy
         </p>
       </div>
     </section>

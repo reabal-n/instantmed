@@ -33,7 +33,7 @@ export async function generateDraftsForIntake(
 
   try {
     // AUTH CHECK: Verify caller is doctor/admin when called as server action.
-    // When called from Stripe webhook (no user session), auth will return null — that's OK
+    // When called from Stripe webhook (no user session), auth will return null - that's OK
     // because the webhook handler already verified the Stripe signature.
     try {
       const { requireRoleOrNull } = await import("@/lib/auth")
@@ -42,7 +42,7 @@ export async function generateDraftsForIntake(
         log.info("Draft generation called without doctor session (likely webhook)", { intakeId })
       }
     } catch {
-      // Auth module may throw in non-request contexts (cron, webhook) — acceptable
+      // Auth module may throw in non-request contexts (cron, webhook) - acceptable
       log.info("Auth check skipped for non-request context", { intakeId })
     }
 

@@ -264,7 +264,7 @@ export function WebhookDlqClient() {
                           {entry.intake_id.slice(0, 8)}...
                         </code>
                       ) : (
-                        <span className="text-muted-foreground">—</span>
+                        <span className="text-muted-foreground">-</span>
                       )}
                     </TableCell>
                     <TableCell>

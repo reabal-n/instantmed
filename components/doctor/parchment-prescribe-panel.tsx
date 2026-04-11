@@ -49,11 +49,11 @@ export function ParchmentPrescribePanel({
       setSsoUrl(result.ssoUrl)
       setIframeLoaded(false)
 
-      // SSO tokens expire in 300s — warn at 240s, auto-refresh at 290s
+      // SSO tokens expire in 300s - warn at 240s, auto-refresh at 290s
       if (ssoExpiryTimer.current) clearTimeout(ssoExpiryTimer.current)
       ssoExpiryTimer.current = setTimeout(() => {
         setSsoExpired(true)
-        toast.warning("Parchment session expiring — refreshing...", { duration: 3000 })
+        toast.warning("Parchment session expiring - refreshing...", { duration: 3000 })
         loadPrescribingUrl()
       }, 240_000) // 4 minutes
     } else {
@@ -157,7 +157,7 @@ export function ParchmentPrescribePanel({
           </div>
         </div>
 
-        {/* Content — iframe fills remaining space */}
+        {/* Content - iframe fills remaining space */}
         <div className="flex-1 min-h-0 relative">
           {/* Loading state */}
           {loading && (
@@ -211,7 +211,7 @@ export function ParchmentPrescribePanel({
           )}
         </div>
 
-        {/* Footer — manual fallback */}
+        {/* Footer - manual fallback */}
         <div className="shrink-0 px-6 py-3 border-t border-border/50 bg-muted/30">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-xs text-muted-foreground">

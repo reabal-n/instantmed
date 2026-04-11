@@ -5,9 +5,10 @@ import { CTABanner } from "@/components/sections";
 import { allArticles } from "@/lib/blog/articles";
 import { BreadcrumbSchema } from "@/components/seo/healthcare-schema";
 import { ArticlesPage } from "@/components/blog/articles-page";
+import { PRICING_DISPLAY } from "@/lib/constants";
 import type { Metadata } from "next";
 
-// Revalidate every 12 hours — blog index updates occasionally
+// Revalidate every 12 hours - blog index updates occasionally
 export const revalidate = 43200;
 
 export const metadata: Metadata = {
@@ -65,7 +66,7 @@ export default function BlogPage() {
             subtitle="Get assessed by an AHPRA-registered doctor. Most requests reviewed within an hour."
             ctaText="Start a request"
             ctaHref="/request"
-            secondaryText="From $19.95 · No Medicare card required"
+            secondaryText={`${PRICING_DISPLAY.FROM_MED_CERT} · No Medicare card required`}
             secondaryHref="/pricing"
           />
         </main>

@@ -97,7 +97,7 @@ export function formatIntakeContext(
     parts.push(`Reason: ${sanitizeAnswerValue(answers.reason, intakeId)}`)
   }
 
-  // Symptom duration (med certs and consults — supports both camelCase and snake_case)
+  // Symptom duration (med certs and consults - supports both camelCase and snake_case)
   const symptomDuration = answers.symptomDuration || answers.symptom_duration
   if (symptomDuration) {
     const label = String(symptomDuration).replace(/_/g, "-")
@@ -174,7 +174,7 @@ export function formatIntakeContext(
     }
   }
 
-  // Clinical history fields (all service types — useful for Relevant Information section)
+  // Clinical history fields (all service types - useful for Relevant Information section)
   if (answers.hasAllergies === true || answers.has_allergies === true) {
     const allergyDetail = answers.allergyDetails || answers.allergy_details || answers.allergies
     parts.push(`Allergies: ${allergyDetail ? sanitizeAnswerValue(allergyDetail, intakeId) : "Yes (not specified)"}`)

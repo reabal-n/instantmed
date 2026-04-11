@@ -41,7 +41,7 @@ export const conditionPages: ConditionPage[] = [
       "Get a medical certificate for cold or flu without visiting a GP. Online doctor assessment in Australia. Advice on when to rest and recover.",
     h1: "Caught a cold or flu? We can help",
     heroText:
-      "Feeling rough with a cold or flu? Get a medical certificate for work or uni, and clear advice on recovery — all from home.",
+      "Feeling rough with a cold or flu? Get a medical certificate for work or uni, and clear advice on recovery - all from home.",
     symptoms: [
       "Sore throat and cough",
       "Runny or blocked nose",
@@ -69,7 +69,7 @@ export const conditionPages: ConditionPage[] = [
       "Certificate issued and emailed in under 30 minutes",
     ],
     disclaimers: [
-      "This is not a diagnosis. A medical certificate confirms you're unwell and unable to work — it's not treatment.",
+      "This is not a diagnosis. A medical certificate confirms you're unwell and unable to work - it's not treatment.",
       "If you have severe symptoms, go to an emergency department or call 000.",
       "If symptoms worsen, see a GP in person.",
     ],
@@ -84,7 +84,7 @@ export const conditionPages: ConditionPage[] = [
       },
       {
         q: "Do you prescribe medicine for a cold?",
-        a: "Most colds and flu don't need medication — rest is the best cure. If needed, our doctor may suggest over-the-counter options.",
+        a: "Most colds and flu don't need medication - rest is the best cure. If needed, our doctor may suggest over-the-counter options.",
       },
       {
         q: "What if I need a certificate for a day I was sick in the past?",
@@ -130,14 +130,14 @@ export const conditionPages: ConditionPage[] = [
       "Certificate issued immediately",
     ],
     disclaimers: [
-      "Most gastro resolves with rest and fluids — see a GP if symptoms are severe or persist.",
+      "Most gastro resolves with rest and fluids - see a GP if symptoms are severe or persist.",
       "A medical certificate is not treatment. It confirms you're unwell and can't work.",
       "Stay home to avoid spreading to others.",
     ],
     faqs: [
       {
         q: "When can I safely return to work after gastro?",
-        a: "Usually after 24 hours with no vomiting or diarrhoea. Some workplaces (food, healthcare) have stricter rules — check with your employer.",
+        a: "Usually after 24 hours with no vomiting or diarrhoea. Some workplaces (food, healthcare) have stricter rules - check with your employer.",
       },
       {
         q: "What should I eat or drink?",
@@ -164,9 +164,9 @@ export const conditionPages: ConditionPage[] = [
       "Severe throbbing headache (usually one side)",
       "Sensitivity to light and sound",
       "Nausea or vomiting",
-      "Aura (flashing lights, blind spots) — in some people",
+      "Aura (flashing lights, blind spots) - in some people",
       "Lasts 4-72 hours",
-      "Disabling — can't work or concentrate",
+      "Disabling - can't work or concentrate",
     ],
     whenToSeeGP: [
       "Worst headache of your life (sudden, severe)",
@@ -186,7 +186,7 @@ export const conditionPages: ConditionPage[] = [
       "Medical certificate issued if appropriate",
     ],
     disclaimers: [
-      "Severe, sudden headaches need urgent medical attention — call 000 or go to ED.",
+      "Severe, sudden headaches need urgent medical attention - call 000 or go to ED.",
       "This is not a diagnosis. Recurring migraines should be properly assessed by a GP in person.",
       "A medical certificate confirms you're unwell, not that you have migraine.",
     ],
@@ -215,7 +215,7 @@ export const conditionPages: ConditionPage[] = [
       "Get a medical certificate for back pain. Online assessment and advice on pain management. When to see a physio or GP.",
     h1: "Back pain keeping you from work?",
     heroText:
-      "Struggling with back pain? Get a medical certificate and clear guidance on what to do next — all without leaving home.",
+      "Struggling with back pain? Get a medical certificate and clear guidance on what to do next - all without leaving home.",
     symptoms: [
       "Lower back pain (most common)",
       "Pain radiating down the leg",
@@ -243,8 +243,8 @@ export const conditionPages: ConditionPage[] = [
       "Medical certificate issued if appropriate",
     ],
     disclaimers: [
-      "Severe back pain with leg numbness or weakness needs urgent assessment — go to ED or call 000.",
-      "A medical certificate confirms you can't work — it's not treatment.",
+      "Severe back pain with leg numbness or weakness needs urgent assessment - go to ED or call 000.",
+      "A medical certificate confirms you can't work - it's not treatment.",
       "Most back pain improves with movement and appropriate treatment. See a GP or physio for ongoing care.",
     ],
     faqs: [
@@ -298,7 +298,7 @@ export const conditionPages: ConditionPage[] = [
       "Prescription antihistamines can be issued if appropriate",
     ],
     disclaimers: [
-      "Hay fever is usually mild — most people manage with over-the-counter antihistamines.",
+      "Hay fever is usually mild - most people manage with over-the-counter antihistamines.",
       "If symptoms are severe or include wheezing, see a GP in person.",
       "A medical certificate is only issued if symptoms are genuinely disabling.",
     ],
@@ -336,7 +336,7 @@ export const conditionPages: ConditionPage[] = [
       "Burning when urinating",
     ],
     whenToSeeGP: [
-      "First time symptoms — need proper diagnosis",
+      "First time symptoms - need proper diagnosis",
       "Recurrent thrush (>4 times per year)",
       "Symptoms in a man",
       "Severe symptoms",
@@ -354,7 +354,7 @@ export const conditionPages: ConditionPage[] = [
     ],
     disclaimers: [
       "If this is your first episode or symptoms are unusual, see a GP in person to confirm diagnosis.",
-      "Recurring thrush may indicate other issues (diabetes, immune problems) — discuss with a GP.",
+      "Recurring thrush may indicate other issues (diabetes, immune problems) - discuss with a GP.",
     ],
     faqs: [
       {
@@ -381,7 +381,7 @@ export const conditionPages: ConditionPage[] = [
       "Anxiety affecting work? Get a medical certificate and advice on managing stress. Online doctor assessment.",
     h1: "Anxiety too much to cope with work today?",
     heroText:
-      "Overwhelmed by stress or anxiety? Get a medical certificate and clear next steps for support — all confidentially online.",
+      "Overwhelmed by stress or anxiety? Get a medical certificate and clear next steps for support - all confidentially online.",
     symptoms: [
       "Racing heartbeat",
       "Shortness of breath",
@@ -465,7 +465,7 @@ export const conditionPages: ConditionPage[] = [
       "Medical certificate issued if appropriate",
     ],
     disclaimers: [
-      "A medical certificate confirms you can't work — it's not sleep treatment.",
+      "A medical certificate confirms you can't work - it's not sleep treatment.",
       "Chronic insomnia needs ongoing care. See a GP for proper assessment and cognitive behavioural therapy for insomnia (CBTi).",
     ],
     faqs: [
@@ -514,7 +514,7 @@ export const conditionPages: ConditionPage[] = [
       "Medical certificate if appropriate",
     ],
     disclaimers: [
-      "Sudden severe headaches need urgent attention — go to ED or call 000.",
+      "Sudden severe headaches need urgent attention - go to ED or call 000.",
       "Frequent headaches should be assessed by a GP in person.",
     ],
     faqs: [
@@ -616,7 +616,7 @@ export const conditionPages: ConditionPage[] = [
       "eScript sent to your phone via SMS",
     ],
     disclaimers: [
-      "If you have fever with back pain, see a GP immediately — might be kidney infection.",
+      "If you have fever with back pain, see a GP immediately - might be kidney infection.",
       "Complete the full course of antibiotics even if you feel better.",
     ],
     faqs: [
@@ -669,7 +669,7 @@ export const conditionPages: ConditionPage[] = [
       "eScript sent to your phone via SMS if appropriate",
     ],
     disclaimers: [
-      "Isotretinoin (Roaccutane) requires specialist supervision — we can refer if appropriate.",
+      "Isotretinoin (Roaccutane) requires specialist supervision - we can refer if appropriate.",
       "Most acne treatments take 6-12 weeks to show results.",
     ],
     faqs: [
@@ -723,8 +723,8 @@ export const conditionPages: ConditionPage[] = [
       "eScript sent to your phone via SMS",
     ],
     disclaimers: [
-      "Steroid creams are effective but should be used correctly — follow instructions to avoid overuse.",
-      "Infected eczema needs prompt treatment — see a GP if signs of infection.",
+      "Steroid creams are effective but should be used correctly - follow instructions to avoid overuse.",
+      "Infected eczema needs prompt treatment - see a GP if signs of infection.",
     ],
     faqs: [
       {
@@ -779,7 +779,7 @@ export const conditionPages: ConditionPage[] = [
     ],
     disclaimers: [
       "If dizziness comes with chest pain or severe headache, go to ED or call 000.",
-      "Don't drive if dizzy — safety risk to yourself and others.",
+      "Don't drive if dizzy - safety risk to yourself and others.",
     ],
     faqs: [
       {
@@ -788,7 +788,7 @@ export const conditionPages: ConditionPage[] = [
       },
       {
         q: "When is dizziness an emergency?",
-        a: "If sudden with chest pain, severe headache, vision changes, or speech difficulty — go to ED or call 000.",
+        a: "If sudden with chest pain, severe headache, vision changes, or speech difficulty - go to ED or call 000.",
       },
     ],
     relatedConditions: ["headache"],
@@ -878,7 +878,7 @@ export const conditionPages: ConditionPage[] = [
       "Medical certificate if appropriate",
     ],
     disclaimers: [
-      "Most sore throats are viral — antibiotics don't help.",
+      "Most sore throats are viral - antibiotics don't help.",
       "If throat swelling affects breathing, seek urgent help.",
     ],
     faqs: [
@@ -920,7 +920,7 @@ export const certificatePages: CertificatePage[] = [
     title: "Work Medical Certificate Online | Australia | InstantMed",
     description:
       "Get a medical certificate for work in under an hour. Valid for all employers. No waiting rooms.",
-    h1: "Medical certificate for work — fast and valid",
+    h1: "Medical certificate for work - fast and valid",
     heroText:
       "Unwell and need to tell your boss? Get a legitimate medical certificate issued by an AHPRA-registered Australian doctor.",
     useCases: [
@@ -938,7 +938,7 @@ export const certificatePages: CertificatePage[] = [
     backdatingInfo:
       "We can backdate certificates if reasonable. Example: if you were sick yesterday but couldn't get to a doctor, we can issue it for that date. Explain the situation when you submit.",
     disclaimers: [
-      "Certificates must be for genuine illness — employers and doctors have a duty to detect fraud.",
+      "Certificates must be for genuine illness - employers and doctors have a duty to detect fraud.",
       "If you falsely claim illness, you could lose your job or face other consequences.",
       "A medical certificate is proof you're unwell, not a diagnosis or treatment.",
     ],
@@ -949,14 +949,14 @@ export const certificatePages: CertificatePage[] = [
       },
       {
         q: "What information is on the certificate?",
-        a: "Date(s), your name, doctor details, confirmation that you're unfit for work. No diagnosis is included — we keep it confidential.",
+        a: "Date(s), your name, doctor details, confirmation that you're unfit for work. No diagnosis is included - we keep it confidential.",
       },
       {
         q: "Can I get a backdated certificate?",
         a: "Yes, if reasonable. E.g., if you were sick yesterday and are too unwell to see a doctor today, we can issue for yesterday. Explain when you submit.",
       },
       {
-        q: "My employer only accepts 3-day certificates — can you issue those?",
+        q: "My employer only accepts 3-day certificates - can you issue those?",
         a: "Yes. If you're unwell for multiple days, we can issue a certificate covering that period. You don't need a new one each day.",
       },
       {
@@ -972,7 +972,7 @@ export const certificatePages: CertificatePage[] = [
     title: "Medical Certificate for Uni & School | InstantMed",
     description:
       "Get a medical certificate for university or school. Special consideration, exam absences, assignment extensions.",
-    h1: "Medical certificate for study — university and school",
+    h1: "Medical certificate for study - university and school",
     heroText:
       "Sick during exams or assessments? Get a medical certificate for special consideration or extension.",
     useCases: [
@@ -990,8 +990,8 @@ export const certificatePages: CertificatePage[] = [
     backdatingInfo:
       "We can backdate certificates for the day(s) you were unwell. Example: if you missed Tuesday's exam because you were sick, we can issue a certificate for Tuesday.",
     disclaimers: [
-      "Universities and schools have their own policies on medical certificates — check yours.",
-      "A certificate is proof of illness, not a guarantee of special consideration — your institution decides.",
+      "Universities and schools have their own policies on medical certificates - check yours.",
+      "A certificate is proof of illness, not a guarantee of special consideration - your institution decides.",
       "Provide your certificate as soon as possible after missing an assessment.",
     ],
     faqs: [
@@ -1008,8 +1008,8 @@ export const certificatePages: CertificatePage[] = [
         a: "Usually within an hour. Get it submitted quickly to your institution.",
       },
       {
-        q: "My exam was yesterday — can I still get a certificate?",
-        a: "Yes, we can backdate. But submit it quickly — most institutions have deadlines for claims.",
+        q: "My exam was yesterday - can I still get a certificate?",
+        a: "Yes, we can backdate. But submit it quickly - most institutions have deadlines for claims.",
       },
     ],
   },
@@ -1038,7 +1038,7 @@ export const certificatePages: CertificatePage[] = [
     backdatingInfo:
       "We can issue certificates for dates you were caring for someone. Example: your child was ill Monday–Wednesday; we can issue a certificate covering those dates.",
     disclaimers: [
-      "Carer's leave is an employment right in Australia — your employer must allow it.",
+      "Carer's leave is an employment right in Australia - your employer must allow it.",
       "A medical certificate documents that care was needed, not the carer's own illness.",
       "Keep the certificate for your records.",
     ],
@@ -1057,7 +1057,7 @@ export const certificatePages: CertificatePage[] = [
       },
       {
         q: "Can I use carer's leave to care for myself if I'm sick?",
-        a: "No — that's personal/sick leave. Carer's leave is for caring for others.",
+        a: "No - that's personal/sick leave. Carer's leave is for caring for others.",
       },
     ],
   },
@@ -1102,7 +1102,7 @@ export const benefitPages: BenefitPage[] = [
       {
         title: "Legitimacy",
         content:
-          "Our doctors are AHPRA-registered. Certificates are legally valid. Employers must accept them — same as a GP's.",
+          "Our doctors are AHPRA-registered. Certificates are legally valid. Employers must accept them - same as a GP's.",
       },
       {
         title: "Affordability",
@@ -1156,7 +1156,7 @@ export const resourcePages: ResourcePage[] = [
     title: "Who Can Get a Medical Certificate Online | Eligibility FAQ | InstantMed",
     description:
       "Understand who's eligible for a medical certificate. Medical conditions, age, location, situation.",
-    h1: "Medical certificate eligibility — common questions",
+    h1: "Medical certificate eligibility - common questions",
     sections: [
       {
         title: "Age & Residency",

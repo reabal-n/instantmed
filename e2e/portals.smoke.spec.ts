@@ -29,7 +29,7 @@ import { loginAsOperator, loginAsPatient, logoutTestUser } from "./helpers/auth"
 // console.error and floods the console error tracker below.
 //
 // We mock the envelope endpoint to a 200 NoOp so the smoke tests aren't dependent
-// on (or polluted by) Sentry's network behavior. This is scoped to this file —
+// on (or polluted by) Sentry's network behavior. This is scoped to this file -
 // sentry.integration.spec.ts has its own per-test interceptor and is unaffected.
 test.beforeEach(async ({ context }) => {
   await context.route("**/*.ingest.*sentry.io/**", (route) =>
@@ -60,14 +60,14 @@ const BENIGN_CONSOLE_PATTERNS = [
   /Ignoring unsupported entryTypes/i,
   // When a patient hits /doctor/*, the layout redirects them to /patient, but
   // Next.js parallel server component rendering still executes the page tree
-  // briefly — long enough for getDoctorIdentity(patientProfileId) to fire and
+  // briefly - long enough for getDoctorIdentity(patientProfileId) to fire and
   // emit an "expected" error log. The redirect itself is correct.
   /\[doctor-identity\] Failed to fetch doctor identity/i,
   // Audit-logs page renders an empty state when the e2e seed has no audit
-  // rows yet — the join error is swallowed and the UI shows "No audit logs".
+  // rows yet - the join error is swallowed and the UI shows "No audit logs".
   /\[audit-logs\] Failed to fetch audit logs/i,
   // Dev-only chunk fetch timeouts when clicking through pages too fast in
-  // Webpack mode — production never hits these because chunks are pre-built.
+  // Webpack mode - production never hits these because chunks are pre-built.
   /Failed to load resource.*_next\/static\/chunks/i,
   // Dev-only Supabase fetch flakes when navigating between dashboard pages
   // quickly. The dev server occasionally drops the in-flight node-fetch socket
@@ -121,7 +121,7 @@ function createConsoleErrorTracker(): ConsoleErrorTracker {
 
 // Dev-mode webpack occasionally drops the in-flight navigation when it has to
 // compile a new chunk on demand, surfacing as `net::ERR_ABORTED` from page.goto.
-// The page actually loads — Playwright just lost the goto promise. Retry once
+// The page actually loads - Playwright just lost the goto promise. Retry once
 // before giving up so the suite isn't flaky on these dev-server races.
 async function gotoWithRetry(page: Page, url: string): Promise<void> {
   try {
@@ -144,7 +144,7 @@ test.describe("Portal Access Control - Unauthenticated", () => {
   // The default `load` event waits for ALL subresources (chunks, images, posthog
   // config, /api/availability, etc.) which routinely exceeds 60s in dev mode
   // because the redirected-to page still has to compile its own chunks. We only
-  // need to verify that the redirect happened — the destination doesn't have to
+  // need to verify that the redirect happened - the destination doesn't have to
   // be fully painted.
 
   test("unauthenticated user is redirected from /doctor", async ({ page }) => {
@@ -211,7 +211,7 @@ test.describe("Portal Access Control - Unauthenticated", () => {
 test.describe("Operator Portal Access - Admin + Doctor", () => {
   // Webpack dev mode lazily compiles each /doctor/* and /admin/* route on first
   // hit, which can blow past the default 60s test budget when running sequentially.
-  // Triple the timeout for this describe block — production builds are pre-compiled
+  // Triple the timeout for this describe block - production builds are pre-compiled
   // and never need this headroom.
   test.slow()
 
@@ -234,7 +234,7 @@ test.describe("Operator Portal Access - Admin + Doctor", () => {
 
     await gotoWithRetry(page, "/doctor/dashboard")
 
-    // Wait for the page heading to stream in — domcontentloaded fires before
+    // Wait for the page heading to stream in - domcontentloaded fires before
     // Suspense boundaries resolve in the dev server.
     await page.getByRole("heading").first().waitFor({ state: "visible", timeout: 30000 }).catch(() => {})
 
@@ -261,11 +261,11 @@ test.describe("Operator Portal Access - Admin + Doctor", () => {
 
     await gotoWithRetry(page, "/admin")
 
-    // Wait for the page heading to stream in — domcontentloaded fires before
+    // Wait for the page heading to stream in - domcontentloaded fires before
     // Suspense boundaries resolve in the dev server.
     await page.getByRole("heading").first().waitFor({ state: "visible", timeout: 30000 }).catch(() => {})
 
-    // Should NOT show 404 — scope to <main> to avoid sidebar nav false positives
+    // Should NOT show 404 - scope to <main> to avoid sidebar nav false positives
     const main = page.locator("main")
     const has404 = await main.getByText(/404|page not found/i).isVisible().catch(() => false)
     expect(has404).toBe(false)
@@ -286,7 +286,7 @@ test.describe("Operator Portal Access - Admin + Doctor", () => {
 
     await gotoWithRetry(page, "/admin/studio")
 
-    // Scope error checks to <main> — the admin sidebar contains an "Errors"
+    // Scope error checks to <main> - the admin sidebar contains an "Errors"
     // nav link that produces a false positive against /error/i.
     const main = page.locator("main")
 
@@ -310,7 +310,7 @@ test.describe("Operator Portal Access - Admin + Doctor", () => {
     const tracker = createConsoleErrorTracker()
     tracker.attach(page)
 
-    // Navigate to admin pages — domcontentloaded is enough; we only need to
+    // Navigate to admin pages - domcontentloaded is enough; we only need to
     // verify the page didn't 404. Waiting for full `load` flakes in dev mode
     // because /admin/* sub-pages compile chunks lazily and chain redirects.
     const adminPages = ["/admin", "/admin/studio", "/admin/audit", "/admin/settings"]
@@ -319,7 +319,7 @@ test.describe("Operator Portal Access - Admin + Doctor", () => {
     for (const adminPage of adminPages) {
       await gotoWithRetry(page, adminPage)
 
-      // Should not 404 — scope to <main> to avoid sidebar nav false positives
+      // Should not 404 - scope to <main> to avoid sidebar nav false positives
       const has404 = await main.getByText(/404|page not found/i).isVisible().catch(() => false)
       expect(has404, `Page ${adminPage} should not 404`).toBe(false)
     }
@@ -333,14 +333,14 @@ test.describe("Operator Portal Access - Admin + Doctor", () => {
 
     // Same rationale as the admin nav test above.
     // /doctor/settings server-redirects to /doctor/settings/identity, which causes
-    // ERR_ABORTED on goto with domcontentloaded — hit the destination directly.
+    // ERR_ABORTED on goto with domcontentloaded - hit the destination directly.
     const doctorPages = ["/doctor/dashboard", "/doctor/queue", "/doctor/settings/identity"]
     const main = page.locator("main")
 
     for (const doctorPage of doctorPages) {
       await gotoWithRetry(page, doctorPage)
 
-      // Should not 404 — scope to <main> to avoid sidebar false positives
+      // Should not 404 - scope to <main> to avoid sidebar false positives
       const has404 = await main.getByText(/404|page not found/i).isVisible().catch(() => false)
       expect(has404, `Page ${doctorPage} should not 404`).toBe(false)
     }

@@ -13,7 +13,7 @@ const log = createLogger("emergency-flags-cron")
  * Detects intakes that were abandoned after emergency red flags were detected
  * (e.g. patient didn't see the emergency resources message before leaving).
  *
- * Logs to Sentry for clinical monitoring — does NOT send outbound SMS/email.
+ * Logs to Sentry for clinical monitoring - does NOT send outbound SMS/email.
  * The intake flow itself shows emergency resources (000, Lifeline 13 11 14)
  * inline when red flags are detected.
  */

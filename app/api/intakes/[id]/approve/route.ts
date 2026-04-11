@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic"
  * POST /api/intakes/[id]/approve
  *
  * Delegates to the canonical executeCertApproval pipeline.
- * Kept for backward compatibility — prefer using the server action
+ * Kept for backward compatibility - prefer using the server action
  * (approveAndSendCert) from the Document Builder UI.
  */
 export async function POST(

@@ -72,9 +72,9 @@ export interface TemplatePdfResult {
 // ---------------------------------------------------------------------------
 
 const LAYOUT = {
-  /** Title Y — centered, large, below top divider */
+  /** Title Y - centered, large, below top divider */
   titleY: 285,
-  /** Issue date Y — right-aligned, between top divider (~230) and title (~285) */
+  /** Issue date Y - right-aligned, between top divider (~230) and title (~285) */
   issueDateY: 248,
   /** Where "To whom it may concern," starts */
   anchorY: 380,
@@ -88,7 +88,7 @@ const LAYOUT = {
   bodyX: 72,
   /** Max text width for body paragraphs */
   bodyWidth: 450,
-  /** Certificate ID Y — below footer text, near bottom edge */
+  /** Certificate ID Y - below footer text, near bottom edge */
   certIdY: 820,
   /** Right margin */
   rightMargin: 50,
@@ -280,14 +280,14 @@ export async function renderTemplatePdf(input: TemplatePdfInput): Promise<Templa
     currentY += LAYOUT.paragraphGap
 
     if (currentY > LAYOUT.maxBodyY) {
-      return { success: false, error: "Certificate body text is too long — it would overlap the doctor information block." }
+      return { success: false, error: "Certificate body text is too long - it would overlap the doctor information block." }
     }
 
     const returnText = getReturnText(sanitisedInput)
     const endY = drawWrappedParagraph(returnText, LAYOUT.bodyX, currentY, fontRegular, LAYOUT.fontSize.body, LAYOUT.lineHeight, LAYOUT.bodyWidth)
 
     if (endY > LAYOUT.maxBodyY) {
-      return { success: false, error: "Certificate body text is too long — it would overlap the doctor information block." }
+      return { success: false, error: "Certificate body text is too long - it would overlap the doctor information block." }
     }
 
     // ---- Certificate ID (centered, dark navy, monospace, below footer) ----

@@ -20,7 +20,7 @@ const retryPaymentSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
-    // Rate limit: sensitive (20 req/hour) — prevents payment retry email spam
+    // Rate limit: sensitive (20 req/hour) - prevents payment retry email spam
     const rateLimitResponse = await applyRateLimit(request, "sensitive")
     if (rateLimitResponse) return rateLimitResponse
 

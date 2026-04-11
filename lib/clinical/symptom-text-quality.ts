@@ -4,11 +4,11 @@
  * Detects gibberish or filler in the free-text symptom description before the
  * intake reaches payment, AI draft generation, or the doctor queue.
  *
- * Catches the "my doonis is vibration" class of input — text that satisfies
+ * Catches the "my doonis is vibration" class of input - text that satisfies
  * the basic length minimum but contains no actual symptom information.
  *
  * Defense-in-depth: the AI clinical-note generator and the auto-approval
- * eligibility engine still run downstream — this is the first gate, not the
+ * eligibility engine still run downstream - this is the first gate, not the
  * last one. A user who appends a real symptom word to gibberish will pass
  * here and be caught (or not) by the AI in the next layer.
  */
@@ -22,7 +22,7 @@ const MIN_TEXT_LENGTH = 20
  * (e.g. "feel" matches "feeling"/"feels"/"felt"; "cough" matches "coughing").
  *
  * Coverage areas: body parts, sensations, time/severity context, functional
- * impact, common conditions. Keep total under ~200 — beyond that, vocabulary
+ * impact, common conditions. Keep total under ~200 - beyond that, vocabulary
  * noise outweighs precision and false positives creep in.
  *
  * Maintenance: add new stems when patient feedback or PostHog flags real
@@ -73,7 +73,7 @@ export interface SymptomTextQualityResult {
 }
 
 const GENERIC_REASON =
-  "Please describe your symptoms in plain English — e.g. \"fever and headache since yesterday\""
+  "Please describe your symptoms in plain English - e.g. \"fever and headache since yesterday\""
 
 /**
  * Validate that a free-text symptom description looks like a real description,

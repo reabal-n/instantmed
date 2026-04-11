@@ -141,7 +141,7 @@ export function useQueueDialogs({ intakes, setIntakes }: UseQueueDialogsOptions)
                     const undoResult = await updateStatusAction(declinedId, "paid")
                     if (undoResult.success) {
                       setIntakes((prev) => [declinedIntake, ...prev])
-                      toast.success("Decline reversed — case restored to queue")
+                      toast.success("Decline reversed - case restored to queue")
                       router.refresh()
                     } else {
                       toast.error(undoResult.error || "Failed to undo decline")

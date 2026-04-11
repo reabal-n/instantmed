@@ -1,6 +1,6 @@
 /**
  * Medical certificate intent landing page config
- * SEO/acquisition pages for specific search intents — all route to /request?service=med-cert
+ * SEO/acquisition pages for specific search intents - all route to /request?service=med-cert
  */
 
 export const MED_CERT_INTENT_SLUGS = [
@@ -33,7 +33,7 @@ export interface MedCertIntentConfig {
   explainerTitle: string
   explainerSubtitle: string
   explainerParagraphs: string[]
-  /** Recognition/validity section — who accepts this */
+  /** Recognition/validity section - who accepts this */
   recognitionTitle: string
   recognitionSubtitle: string
   recognitionBadges: Array<{ label: string; sub: string }>

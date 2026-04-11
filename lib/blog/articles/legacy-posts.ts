@@ -45,7 +45,7 @@ export const legacyPosts: Record<string, LegacyPost> = {
     excerpt:
       "Understanding telehealth prescriptions in Australia. When online scripts are appropriate, what medications can't be prescribed online, and how e-scripts work.",
     content: [
-      "The short answer is no — you always need a doctor to prescribe medication in Australia. But thanks to telehealth, you don't always need to see them face-to-face.",
+      "The short answer is no - you always need a doctor to prescribe medication in Australia. But thanks to telehealth, you don't always need to see them face-to-face.",
       "## How Telehealth Prescriptions Work",
       "Services like InstantMed connect you with AHPRA-registered doctors who review your medical history and current needs. If a prescription is appropriate, they can issue an electronic prescription (e-script) that's sent directly to your phone.",
       "## What Can Be Prescribed Online?",
@@ -72,7 +72,7 @@ export const legacyPosts: Record<string, LegacyPost> = {
     excerpt:
       "Telehealth is convenient, but it's not right for everything. Learn when online healthcare is perfect and when you should book an in-person appointment instead.",
     content: [
-      "Telehealth has transformed how Australians access healthcare. But knowing when to use it — and when to see a GP in person — can be confusing.",
+      "Telehealth has transformed how Australians access healthcare. But knowing when to use it - and when to see a GP in person - can be confusing.",
       "## When Telehealth Works Best",
       "Online consultations are ideal for:\n- Medical certificates for common illnesses\n- Repeat prescriptions for stable conditions\n- Referrals to specialists you've already discussed\n- Follow-up appointments\n- Mental health check-ins\n- Minor skin conditions (with photos)",
       "## When to See a GP In Person",

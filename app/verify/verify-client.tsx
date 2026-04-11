@@ -56,7 +56,7 @@ export function VerifyClient() {
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    // #17 — Bulk verification: split by commas, newlines, or spaces
+    // #17 - Bulk verification: split by commas, newlines, or spaces
     const codes = code
       .split(/[,\n]+/)
       .map((c) => normalizeVerificationCode(c.trim()))
@@ -67,7 +67,7 @@ export function VerifyClient() {
     setIsLoading(true)
     setHasSearched(true)
 
-    // Single code — use original flow
+    // Single code - use original flow
     if (codes.length === 1) {
       setIsBulkMode(false)
       setBulkResults([])
@@ -76,7 +76,7 @@ export function VerifyClient() {
         const data = await response.json()
         const verifyResult = response.ok ? data : { valid: false, error: data.error || "Verification failed" }
         setResult(verifyResult)
-        // #12 — Track verification attempts in PostHog
+        // #12 - Track verification attempts in PostHog
         capture("certificate_verified", { code: codes[0], valid: verifyResult.valid, mode: "single" })
       } catch {
         setResult({ valid: false, error: "Unable to verify. Please try again." })
@@ -87,7 +87,7 @@ export function VerifyClient() {
       return
     }
 
-    // #6 — Bulk mode: progressive results (render each as it resolves)
+    // #6 - Bulk mode: progressive results (render each as it resolves)
     setIsBulkMode(true)
     setResult(null)
     setBulkResults([])
@@ -101,7 +101,7 @@ export function VerifyClient() {
         setBulkResults((prev) => [...prev, { code: c, result: { valid: false, error: "Unable to verify" } }])
       }
     }
-    // #12 — Track bulk verification
+    // #12 - Track bulk verification
     capture("certificate_verified", { count: codes.length, mode: "bulk" })
     setIsLoading(false)
   }
@@ -226,7 +226,7 @@ export function VerifyClient() {
                           <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
                           <span className="text-muted-foreground">Valid period:</span>
                           <span className="font-medium text-foreground">
-                            {formatDate(result.certificate.validFrom)} — {formatDate(result.certificate.validTo)}
+                            {formatDate(result.certificate.validFrom)} - {formatDate(result.certificate.validTo)}
                           </span>
                         </div>
                       )}
@@ -319,7 +319,7 @@ export function VerifyClient() {
         </>
       )}
 
-      {/* #17 — Bulk Results */}
+      {/* #17 - Bulk Results */}
       {isBulkMode && bulkResults.length > 0 && (
         <div className="glass-card rounded-2xl p-6 md:p-8 space-y-4">
           <h3 className="text-lg font-semibold text-foreground">

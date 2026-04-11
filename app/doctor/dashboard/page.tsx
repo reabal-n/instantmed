@@ -16,7 +16,7 @@ export const metadata = {
   title: "Doctor Dashboard",
 }
 
-/** Stats section — fetches monitoring stats, SLA, AI metrics. Identity + earnings come from parent. */
+/** Stats section - fetches monitoring stats, SLA, AI metrics. Identity + earnings come from parent. */
 async function DoctorStatsSection({
   profileId,
   doctorIdentity,
@@ -78,7 +78,7 @@ async function DoctorStatsSection({
   )
 }
 
-/** Queue section — fetches the review queue and AI-approved intakes. Identity + earnings come from parent. */
+/** Queue section - fetches the review queue and AI-approved intakes. Identity + earnings come from parent. */
 async function DoctorQueueSection({
   profileId,
   page,
@@ -202,14 +202,14 @@ export default async function DoctorDashboardPage({
 }: {
   searchParams: Promise<{ page?: string; pageSize?: string }>
 }) {
-  // Layout enforces doctor/admin role — use cached profile
+  // Layout enforces doctor/admin role - use cached profile
   const { profile } = (await getAuthenticatedUserWithProfile())!
 
   const params = await searchParams
   const page = Math.max(1, parseInt(params.page || "1", 10))
   const pageSize = Math.min(100, Math.max(10, parseInt(params.pageSize || "50", 10)))
 
-  // Fetch shared data once — deduplicates the 2 redundant DB calls that were in both sections
+  // Fetch shared data once - deduplicates the 2 redundant DB calls that were in both sections
   const [identityResult, earningsResult, availabilityResult] = await Promise.allSettled([
     getDoctorIdentity(profile.id),
     getTodayEarnings(),
@@ -230,12 +230,12 @@ export default async function DoctorDashboardPage({
     <div className="space-y-4">
       <DashboardHeader initialAvailable={doctorAvailable} />
 
-      {/* Stats — streams in independently */}
+      {/* Stats - streams in independently */}
       <Suspense fallback={<StatsSkeleton />}>
         <DoctorStatsSection profileId={profile.id} doctorIdentity={doctorIdentity} todayEarnings={todayEarnings} />
       </Suspense>
 
-      {/* Queue — streams in independently */}
+      {/* Queue - streams in independently */}
       <Suspense fallback={<QueueSkeleton />}>
         <DoctorQueueSection profileId={profile.id} page={page} pageSize={pageSize} doctorIdentity={doctorIdentity} todayEarnings={todayEarnings} />
       </Suspense>

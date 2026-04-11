@@ -25,7 +25,7 @@ export default async function PatientIntakeDetailPage({
   const { id } = await params
   const { retry } = await searchParams
   
-  // Layout enforces patient role — use cached profile
+  // Layout enforces patient role - use cached profile
   const authUser = (await getAuthenticatedUserWithProfile())!
 
   // Fetch the intake with ownership check

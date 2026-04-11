@@ -164,7 +164,7 @@ export const consultReasonStepSchema = z.object({
 })
 
 // ---------------------------------------------------------------------------
-// ED Intake — 4-step validation
+// ED Intake - 4-step validation
 // ---------------------------------------------------------------------------
 
 export const edGoalsStepSchema = z.object({

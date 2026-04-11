@@ -77,7 +77,7 @@ function PlainBadge({
 
 // ── Styled badge sub-components ──────────────────────────────────────
 
-// no_call — pulsing green dot
+// no_call - pulsing green dot
 function NoCallBadge({ config, className }: { config: BadgeConfig; className?: string }) {
   const Icon = config.icon
   return (
@@ -95,7 +95,7 @@ function NoCallBadge({ config, className }: { config: BadgeConfig; className?: s
   )
 }
 
-// no_speaking — silence ripple (CSS ping rings)
+// no_speaking - silence ripple (CSS ping rings)
 function NoSpeakingBadge({ config, className }: { config: BadgeConfig; className?: string }) {
   const Icon = config.icon
   return (
@@ -115,7 +115,7 @@ function NoSpeakingBadge({ config, className }: { config: BadgeConfig; className
   )
 }
 
-// form_only — document lines fill in (Framer)
+// form_only - document lines fill in (Framer)
 function FormOnlyBadge({ config, className, reducedMotion }: { config: BadgeConfig; className?: string; reducedMotion: boolean }) {
   const Icon = config.icon
   return (
@@ -151,7 +151,7 @@ function FormOnlyBadge({ config, className, reducedMotion }: { config: BadgeConf
   )
 }
 
-// no_waiting_room — clock strikethrough overlay (Framer)
+// no_waiting_room - clock strikethrough overlay (Framer)
 function NoWaitingRoomBadge({ config, className, reducedMotion }: { config: BadgeConfig; className?: string; reducedMotion: boolean }) {
   const Icon = config.icon
   return (
@@ -192,7 +192,7 @@ function NoWaitingRoomBadge({ config, className, reducedMotion }: { config: Badg
   )
 }
 
-// no_appointment — CalendarX X strokes draw (Framer)
+// no_appointment - CalendarX X strokes draw (Framer)
 function NoAppointmentBadge({ config, className, reducedMotion }: { config: BadgeConfig; className?: string; reducedMotion: boolean }) {
   const Icon = config.icon
   return (
@@ -239,7 +239,7 @@ function NoAppointmentBadge({ config, className, reducedMotion }: { config: Badg
   )
 }
 
-// from_your_phone — screen glow (CSS hover)
+// from_your_phone - screen glow (CSS hover)
 function FromYourPhoneBadge({ config, className }: { config: BadgeConfig; className?: string }) {
   const Icon = config.icon
   return (
@@ -258,7 +258,7 @@ function FromYourPhoneBadge({ config, className }: { config: BadgeConfig; classN
   )
 }
 
-// same_day — send nudge (CSS hover translate)
+// same_day - send nudge (CSS hover translate)
 function SameDayBadge({ config, className }: { config: BadgeConfig; className?: string }) {
   const Icon = config.icon
   return (
@@ -278,7 +278,7 @@ function SameDayBadge({ config, className }: { config: BadgeConfig; className?: 
   )
 }
 
-// ahpra — shimmer sweep (CSS group hover)
+// ahpra - shimmer sweep (CSS group hover)
 function AhpraBadge({ config, className }: { config: BadgeConfig; className?: string }) {
   const Icon = config.icon
 
@@ -320,7 +320,7 @@ function AhpraBadge({ config, className }: { config: BadgeConfig; className?: st
   )
 }
 
-// refund / legally_valid — hexagonal stamp (Framer) — shared implementation
+// refund / legally_valid - hexagonal stamp (Framer) - shared implementation
 function HexStampBadge({ config, className, reducedMotion }: { config: BadgeConfig; className?: string; reducedMotion: boolean }) {
   const Icon = config.icon
   return (
@@ -344,7 +344,7 @@ function HexStampBadge({ config, className, reducedMotion }: { config: BadgeConf
   )
 }
 
-// au_data — trailing dot pulse (CSS staggered)
+// au_data - trailing dot pulse (CSS staggered)
 function AuDataBadge({ config, className }: { config: BadgeConfig; className?: string }) {
   const Icon = config.icon
   return (
@@ -368,7 +368,7 @@ function AuDataBadge({ config, className }: { config: BadgeConfig; className?: s
   )
 }
 
-// stripe — wordmark card
+// stripe - wordmark card
 function StripeBadge({ config, className }: { config: BadgeConfig; className?: string }) {
   const inner = (
     <div
@@ -399,7 +399,7 @@ function StripeBadge({ config, className }: { config: BadgeConfig; className?: s
   )
 }
 
-// real_gp — ECG line draws (Framer)
+// real_gp - ECG line draws (Framer)
 function RealGpBadge({ config, className, reducedMotion }: { config: BadgeConfig; className?: string; reducedMotion: boolean }) {
   const Icon = config.icon
   return (
@@ -430,7 +430,7 @@ function RealGpBadge({ config, className, reducedMotion }: { config: BadgeConfig
   )
 }
 
-// no_medicare — strikethrough overlay (Framer)
+// no_medicare - strikethrough overlay (Framer)
 function NoMedicareBadge({ config, className, reducedMotion }: { config: BadgeConfig; className?: string; reducedMotion: boolean }) {
   const Icon = config.icon
   return (
@@ -469,7 +469,7 @@ function NoMedicareBadge({ config, className, reducedMotion }: { config: BadgeCo
   )
 }
 
-// legitscript — actual seal image with verify link
+// legitscript - actual seal image with verify link
 function LegitScriptBadge({ config, className }: { config: BadgeConfig; className?: string }) {
   return (
     <Tooltip>
@@ -518,7 +518,7 @@ function LegitScriptBadge({ config, className }: { config: BadgeConfig; classNam
   )
 }
 
-// google_pharmacy — Google "G" logo + Online Pharmacy Certified
+// google_pharmacy - Google "G" logo + Online Pharmacy Certified
 function GooglePharmacyBadge({ config, className }: { config: BadgeConfig; className?: string }) {
   return (
     <Tooltip>
@@ -563,7 +563,7 @@ function GooglePharmacyBadge({ config, className }: { config: BadgeConfig; class
   )
 }
 
-// instant_pdf — envelope fly (CSS group hover)
+// instant_pdf - envelope fly (CSS group hover)
 function InstantPdfBadge({ config, className }: { config: BadgeConfig; className?: string }) {
   const Icon = config.icon
   return (
@@ -583,7 +583,7 @@ function InstantPdfBadge({ config, className }: { config: BadgeConfig; className
   )
 }
 
-// social_proof — counter animation (Framer)
+// social_proof - counter animation (Framer)
 function SocialProofBadge({ config, className, reducedMotion }: { config: BadgeConfig; className?: string; reducedMotion: boolean }) {
   const count = getPatientCount()
   const motionCount = useMotionValue(count - 30)
@@ -708,7 +708,7 @@ export function TrustBadgeRow({ preset, badges, className }: TrustBadgeRowProps)
 }
 
 // ── TrustBadgeGrid ───────────────────────────────────────────────────
-// 4-col card grid — replaces TrustBadgeSlider
+// 4-col card grid - replaces TrustBadgeSlider
 
 interface TrustBadgeGridProps {
   preset?: string

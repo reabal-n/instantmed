@@ -15,9 +15,9 @@ const GUIDE_SECTIONS = [
     icon: Banknote,
     title: "Understanding telehealth pricing in Australia",
     paragraphs: [
-      "Most telehealth platforms in Australia operate outside of Medicare. This isn't unusual — it's standard across the industry. Medicare rebates are designed around traditional GP consultations where a provider-patient relationship is established through ongoing care. Asynchronous telehealth services, where a doctor reviews your request without a real-time appointment, don't fit neatly into existing Medicare item numbers.",
-      "The result is that telehealth consultations are typically a private, out-of-pocket expense. Our pricing reflects the genuine clinical work involved: a doctor reviews your medical history, assesses your symptoms, makes a clinical decision, and generates your documentation. That's the same clinical process you'd get at a GP clinic — minus the waiting room, the commute, and the two hours you didn't budget for on a Tuesday morning.",
-      "For context, the average out-of-pocket cost for a standard GP visit in Australia is between $39 and $80 after Medicare rebates (AMA data, 2024). Bulk-billed GP visits are becoming harder to find — the AIHW reports that only around 35% of GP visits are fully bulk-billed in some metropolitan areas, and rural access is even tighter. Our pricing sits well below the average gap payment for a private GP visit, and you don't need to leave the house.",
+      "Most telehealth platforms in Australia operate outside of Medicare. This isn't unusual - it's standard across the industry. Medicare rebates are designed around traditional GP consultations where a provider-patient relationship is established through ongoing care. Asynchronous telehealth services, where a doctor reviews your request without a real-time appointment, don't fit neatly into existing Medicare item numbers.",
+      "The result is that telehealth consultations are typically a private, out-of-pocket expense. Our pricing reflects the genuine clinical work involved: a doctor reviews your medical history, assesses your symptoms, makes a clinical decision, and generates your documentation. That's the same clinical process you'd get at a GP clinic - minus the waiting room, the commute, and the two hours you didn't budget for on a Tuesday morning.",
+      "For context, the average out-of-pocket cost for a standard GP visit in Australia is between $39 and $80 after Medicare rebates (AMA data, 2024). Bulk-billed GP visits are becoming harder to find - the AIHW reports that only around 35% of GP visits are fully bulk-billed in some metropolitan areas, and rural access is even tighter. Our pricing sits well below the average gap payment for a private GP visit, and you don't need to leave the house.",
     ],
   },
   {
@@ -25,8 +25,8 @@ const GUIDE_SECTIONS = [
     icon: FileText,
     title: "What's included in your consultation fee",
     paragraphs: [
-      "When you pay for a consultation through InstantMed, you're paying for a genuine clinical service — not a rubber stamp. Every request is reviewed by an AHPRA-registered doctor who assesses your symptoms, medical history, and the clinical appropriateness of your request. If something doesn't add up, the doctor will ask follow-up questions or decline the request entirely (with a full refund).",
-      "Your fee covers the doctor's review time, clinical assessment, document generation (medical certificates with unique verification IDs, or eScript generation for prescriptions), secure digital delivery, and encrypted storage of your records. If the reviewing doctor needs additional information before making a decision, that follow-up is included — no extra charge for the doctor doing their job properly.",
+      "When you pay for a consultation through InstantMed, you're paying for a genuine clinical service - not a rubber stamp. Every request is reviewed by an AHPRA-registered doctor who assesses your symptoms, medical history, and the clinical appropriateness of your request. If something doesn't add up, the doctor will ask follow-up questions or decline the request entirely (with a full refund).",
+      "Your fee covers the doctor's review time, clinical assessment, document generation (medical certificates with unique verification IDs, or eScript generation for prescriptions), secure digital delivery, and encrypted storage of your records. If the reviewing doctor needs additional information before making a decision, that follow-up is included - no extra charge for the doctor doing their job properly.",
       "You also get access to our certificate verification system, which employers and institutions can use to confirm your certificate was genuinely issued by our practice. This is an additional layer of trust that most traditional paper certificates don't offer.",
     ],
   },
@@ -35,7 +35,7 @@ const GUIDE_SECTIONS = [
     icon: Pill,
     title: "PBS subsidies and medication costs",
     paragraphs: [
-      "Our consultation fee covers the doctor's assessment and eScript generation only. The actual cost of your medication is a separate expense, paid at the pharmacy when you collect your prescription. These are two distinct charges — our fee for the clinical service, and the pharmacy's charge for the medication itself.",
+      "Our consultation fee covers the doctor's assessment and eScript generation only. The actual cost of your medication is a separate expense, paid at the pharmacy when you collect your prescription. These are two distinct charges - our fee for the clinical service, and the pharmacy's charge for the medication itself.",
       "The good news is that Australia's Pharmaceutical Benefits Scheme (PBS) subsidises many common medications. If you hold a valid Medicare card, most common prescriptions cost $31.60 or less at the pharmacy (2024-25 PBS co-payment). Concession card holders pay $7.70 or less. Without Medicare, you'll pay the full retail price, which varies by medication.",
       "We can't tell you exactly what your medication will cost at the pharmacy because prices vary between pharmacies and depend on whether you have Medicare and concession entitlements. Your pharmacist can give you a precise cost before you commit to purchasing. The PBS website (pbs.gov.au) also lists subsidy information for specific medications.",
     ],
@@ -46,7 +46,7 @@ const GUIDE_SECTIONS = [
     title: "Our refund policy",
     paragraphs: [
       "If a doctor reviews your request and determines that a certificate or prescription isn't clinically appropriate, you get a full refund. No questions, no paperwork, no awkward phone call. The refund is processed automatically and typically lands back in your account within 3–5 business days, depending on your bank.",
-      "We don't offer refunds for change-of-mind after a certificate or prescription has been issued — the clinical work has been done and the document has been generated. That said, we're reasonable people. If something genuinely went wrong with your experience, contact us at support@instantmed.com.au and we'll sort it out.",
+      "We don't offer refunds for change-of-mind after a certificate or prescription has been issued - the clinical work has been done and the document has been generated. That said, we're reasonable people. If something genuinely went wrong with your experience, contact us at support@instantmed.com.au and we'll sort it out.",
       "If you have a complaint about the clinical care you received, email complaints@instantmed.com.au. We respond to all complaints within 48 hours and aim to resolve them within 14 days. If you're not satisfied with our resolution, you can escalate to the Health Care Complaints Commission (HCCC) or AHPRA directly.",
     ],
   },
@@ -55,9 +55,9 @@ const GUIDE_SECTIONS = [
     icon: CalendarOff,
     title: "Why we don't do subscriptions",
     paragraphs: [
-      "Some telehealth platforms charge monthly memberships — $15 to $30 a month for the privilege of being able to book a consultation that you then also pay for. We don't do that. We don't charge you a monthly fee to have the privilege of paying us for an appointment. That business model is for gyms, not healthcare.",
+      "Some telehealth platforms charge monthly memberships - $15 to $30 a month for the privilege of being able to book a consultation that you then also pay for. We don't do that. We don't charge you a monthly fee to have the privilege of paying us for an appointment. That business model is for gyms, not healthcare.",
       "You pay when you need care, and you don't pay when you don't. No lock-in contracts, no minimum commitment, no recurring charges quietly draining your account. If you need a medical certificate once a year, you pay once a year. If you never come back, we don't chase you with \"we miss you\" emails. Actually, we might send one. But we won't charge you for it.",
-      "This approach keeps things honest. We only earn revenue when we're actually providing a service — which means our incentive is to do a good job so you come back when you need us, not to make cancellation difficult so you forget to unsubscribe.",
+      "This approach keeps things honest. We only earn revenue when we're actually providing a service - which means our incentive is to do a good job so you come back when you need us, not to make cancellation difficult so you forget to unsubscribe.",
     ],
   },
 ] as const
@@ -66,7 +66,7 @@ const GUIDE_SECTIONS = [
 // COMPONENT
 // =============================================================================
 
-/** Long-form E-E-A-T content section — telehealth pricing, PBS, refunds, no subscriptions */
+/** Long-form E-E-A-T content section - telehealth pricing, PBS, refunds, no subscriptions */
 export function PricingGuideSection() {
   const prefersReducedMotion = useReducedMotion()
   const animate = !prefersReducedMotion

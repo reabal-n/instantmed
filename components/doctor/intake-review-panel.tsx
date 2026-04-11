@@ -163,7 +163,7 @@ export function IntakeReviewPanel({ intakeId, onActionComplete }: IntakeReviewPa
     }
   }, [data])
 
-  // Handle panel close — release lock + log view duration
+  // Handle panel close - release lock + log view duration
   const handlePanelClose = useCallback(() => {
     if (data) {
       const duration = Date.now() - viewStartTime.current
@@ -529,7 +529,7 @@ export function IntakeReviewPanel({ intakeId, onActionComplete }: IntakeReviewPa
             <ClinicalNotesEditor />
             <IntakeActionButtons />
 
-            {/* Certificate delivery status — only for approved/completed med certs */}
+            {/* Certificate delivery status - only for approved/completed med certs */}
             {data?.certificate && (intake.status === "approved" || intake.status === "completed") && (
               <div className="rounded-xl border bg-card p-4 space-y-2">
                 <div className="flex items-center justify-between gap-3">

@@ -14,7 +14,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Sitemap | InstantMed",
   description:
-    "Browse all pages on InstantMed — medical certificates, prescriptions, consultations, health conditions, symptoms, and more.",
+    "Browse all pages on InstantMed - medical certificates, prescriptions, consultations, health conditions, symptoms, and more.",
   alternates: { canonical: "https://instantmed.com.au/sitemap-html" },
   robots: { index: true, follow: true },
 };

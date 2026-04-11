@@ -152,7 +152,7 @@ export async function POST(req: Request) {
           log.error('Failed to link guest profile', { errorCode: error.code, errorMessage: error.message })
           return new Response('Database error', { status: 500 })
         }
-        // If .is('clerk_user_id', null) matched 0 rows, another process already linked it — that's fine
+        // If .is('clerk_user_id', null) matched 0 rows, another process already linked it - that's fine
         log.info('Guest profile link attempted', { clerkUserId: id, profileId: guestProfile.id })
       } else {
         // No existing profile - create new one
@@ -186,7 +186,7 @@ export async function POST(req: Request) {
     // Profile synced successfully
   }
 
-  // Handle email.created — when "Delivered by Clerk" is OFF, we send via Resend
+  // Handle email.created - when "Delivered by Clerk" is OFF, we send via Resend
   if (eventType === 'email.created') {
     const emailData = evt.data as unknown as Record<string, unknown>
     const toEmail = emailData.to_email_address as string

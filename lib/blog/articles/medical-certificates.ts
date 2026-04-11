@@ -20,7 +20,7 @@ export const medicalCertificateArticles: Article[] = [
     content: [
       {
         type: 'paragraph',
-        content: 'Mental health conditions are legitimate medical concerns. Taking time off to manage anxiety, stress, depression, or burnout is not only valid — it\'s often necessary for your overall wellbeing and long-term productivity.',
+        content: 'Mental health conditions are legitimate medical concerns. Taking time off to manage anxiety, stress, depression, or burnout is not only valid - it\'s often necessary for your overall wellbeing and long-term productivity.',
         links: [{ text: 'Taking time off', href: '/blog/how-long-medical-certificate', title: 'Medical certificate duration guide' }]
       },
       {
@@ -30,7 +30,7 @@ export const medicalCertificateArticles: Article[] = [
       },
       {
         type: 'paragraph',
-        content: 'Yes. In Australia, mental health conditions are treated the same as physical health conditions under workplace law. If you\'re unwell due to a mental health issue and can\'t work, you\'re entitled to take personal leave — and a medical certificate supports this.',
+        content: 'Yes. In Australia, mental health conditions are treated the same as physical health conditions under workplace law. If you\'re unwell due to a mental health issue and can\'t work, you\'re entitled to take personal leave - and a medical certificate supports this.',
         links: [{ text: 'personal leave', href: '/blog/sick-leave-rights-australia', title: 'Your sick leave rights' }]
       },
       {
@@ -44,7 +44,7 @@ export const medicalCertificateArticles: Article[] = [
       },
       {
         type: 'paragraph',
-        content: 'Medical certificates don\'t need to disclose your specific condition. A doctor will typically write something like "unfit for work due to a medical condition" — your employer doesn\'t have a right to know your diagnosis.'
+        content: 'Medical certificates don\'t need to disclose your specific condition. A doctor will typically write something like "unfit for work due to a medical condition" - your employer doesn\'t have a right to know your diagnosis.'
       },
       {
         type: 'callout',
@@ -118,7 +118,7 @@ export const medicalCertificateArticles: Article[] = [
         content: '',
         items: [
           'Use your personal/sick leave for mental health conditions',
-          'Keep your diagnosis private — certificates don\'t need to specify the condition',
+          'Keep your diagnosis private - certificates don\'t need to specify the condition',
           'Not face discrimination for taking mental health leave',
           'Request reasonable workplace adjustments for ongoing conditions'
         ]
@@ -283,7 +283,7 @@ export const medicalCertificateArticles: Article[] = [
         type: 'list',
         content: '',
         items: [
-          'Stay hydrated — small sips of water, clear broth, or oral rehydration solution',
+          'Stay hydrated - small sips of water, clear broth, or oral rehydration solution',
           'Rest as much as possible',
           'Avoid solid food until vomiting stops, then start with bland foods',
           'Avoid dairy, caffeine, alcohol, and fatty foods until fully recovered',
@@ -391,7 +391,7 @@ export const medicalCertificateArticles: Article[] = [
     content: [
       {
         type: 'paragraph',
-        content: 'Severe period pain — medically called dysmenorrhea — affects many women and can significantly impact daily activities, including work. If your period pain is preventing you from working, you have every right to take sick leave.',
+        content: 'Severe period pain - medically called dysmenorrhea - affects many women and can significantly impact daily activities, including work. If your period pain is preventing you from working, you have every right to take sick leave.',
         links: [{ text: 'sick leave', href: '/blog/sick-leave-rights-australia', title: 'Your sick leave rights' }]
       },
       {
@@ -410,7 +410,7 @@ export const medicalCertificateArticles: Article[] = [
       {
         type: 'callout',
         variant: 'info',
-        content: 'Your medical certificate will state you\'re unfit for work due to a medical condition. It won\'t specify "period pain" unless you request it — your reproductive health is private.'
+        content: 'Your medical certificate will state you\'re unfit for work due to a medical condition. It won\'t specify "period pain" unless you request it - your reproductive health is private.'
       },
       {
         type: 'heading',
@@ -466,10 +466,10 @@ export const medicalCertificateArticles: Article[] = [
         type: 'list',
         content: '',
         items: [
-          'Endometriosis — tissue similar to the uterine lining grows outside the uterus',
-          'Adenomyosis — uterine lining grows into the muscular wall of the uterus',
-          'Fibroids — non-cancerous growths in the uterus',
-          'Pelvic inflammatory disease — infection of the reproductive organs'
+          'Endometriosis - tissue similar to the uterine lining grows outside the uterus',
+          'Adenomyosis - uterine lining grows into the muscular wall of the uterus',
+          'Fibroids - non-cancerous growths in the uterus',
+          'Pelvic inflammatory disease - infection of the reproductive organs'
         ]
       },
       {
@@ -493,7 +493,7 @@ export const medicalCertificateArticles: Article[] = [
           'Heat packs on the lower abdomen',
           'Anti-inflammatory medication (like ibuprofen) taken at the first sign of pain',
           'Gentle movement or stretching when possible',
-          'Hormonal contraceptives — many reduce or eliminate period pain',
+          'Hormonal contraceptives - many reduce or eliminate period pain',
           'Prescription options for severe cases'
         ]
       },
@@ -504,7 +504,7 @@ export const medicalCertificateArticles: Article[] = [
       },
       {
         type: 'paragraph',
-        content: 'You\'re entitled to use your personal leave for period pain. Your employer cannot ask for details of your condition — "medical condition" on a certificate is sufficient.'
+        content: 'You\'re entitled to use your personal leave for period pain. Your employer cannot ask for details of your condition - "medical condition" on a certificate is sufficient.'
       },
       {
         type: 'paragraph',
@@ -818,7 +818,7 @@ export const medicalCertificateArticles: Article[] = [
       },
       {
         type: 'paragraph',
-        content: 'For carer\'s leave, you need a certificate for the person who is ill — not yourself. The certificate should:'
+        content: 'For carer\'s leave, you need a certificate for the person who is ill - not yourself. The certificate should:'
       },
       {
         type: 'list',
@@ -864,7 +864,7 @@ export const medicalCertificateArticles: Article[] = [
       },
       {
         type: 'paragraph',
-        content: 'When your partner is ill and needs care — whether from surgery recovery, acute illness, or a flare-up of a chronic condition — you can take carer\'s leave to support them.'
+        content: 'When your partner is ill and needs care - whether from surgery recovery, acute illness, or a flare-up of a chronic condition - you can take carer\'s leave to support them.'
       },
       {
         type: 'heading',
@@ -951,7 +951,7 @@ export const medicalCertificateArticles: Article[] = [
     content: [
       {
         type: 'paragraph',
-        content: 'Surgery — whether minor or major — requires recovery time. Your body needs time to heal, and returning to work too early can compromise your recovery or risk complications.'
+        content: 'Surgery - whether minor or major - requires recovery time. Your body needs time to heal, and returning to work too early can compromise your recovery or risk complications.'
       },
       {
         type: 'heading',
@@ -1089,7 +1089,7 @@ export const medicalCertificateArticles: Article[] = [
     faqs: [
       {
         question: 'Can I get a medical certificate for surgery recovery online?',
-        answer: 'For follow-up certificates when your initial certificate has expired, yes — provided you can share documentation of your surgery. For initial certificates, these typically come from your surgeon or hospital.'
+        answer: 'For follow-up certificates when your initial certificate has expired, yes - provided you can share documentation of your surgery. For initial certificates, these typically come from your surgeon or hospital.'
       },
       {
         question: 'How long can I take off work after surgery?',
@@ -1097,7 +1097,7 @@ export const medicalCertificateArticles: Article[] = [
       },
       {
         question: 'What if my recovery takes longer than expected?',
-        answer: 'Recovery times are estimates. If you need longer, your treating doctor can provide additional certificates. Don\'t rush back before you\'re ready — this can lead to complications or re-injury.'
+        answer: 'Recovery times are estimates. If you need longer, your treating doctor can provide additional certificates. Don\'t rush back before you\'re ready - this can lead to complications or re-injury.'
       },
       {
         question: 'Can I do light duties while recovering from surgery?',
@@ -1251,7 +1251,7 @@ export const medicalCertificateArticles: Article[] = [
         type: 'list',
         content: '',
         items: [
-          'Bleeding at any stage — contact your midwife or hospital',
+          'Bleeding at any stage - contact your midwife or hospital',
           'Severe abdominal pain',
           'Signs of preterm labour',
           'High blood pressure or pre-eclampsia symptoms',
@@ -1456,7 +1456,7 @@ export const medicalCertificateArticles: Article[] = [
         content: '',
         items: [
           'Many workplaces only require certificates for absences over 2 days',
-          'Some require certificates from day 1 — check your policy',
+          'Some require certificates from day 1 - check your policy',
           'Awards or enterprise agreements may have specific requirements',
           'Excessive absences may trigger a requirement for certificates'
         ]

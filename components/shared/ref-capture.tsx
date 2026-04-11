@@ -8,7 +8,7 @@ import { useSearchParams } from "next/navigation"
  * The cookie is read server-side in lib/stripe/checkout.ts when building
  * the Stripe session metadata, enabling referral attribution at payment time.
  *
- * Non-sensitive value — no need for HttpOnly.
+ * Non-sensitive value - no need for HttpOnly.
  */
 export function RefCapture() {
   const searchParams = useSearchParams()

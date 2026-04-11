@@ -6,7 +6,7 @@
  * Operational metrics per doctor. No leaderboards, no ranks, no points.
  * Just visibility into workload and performance.
  *
- * Shared component — use basePath to control URL prefix.
+ * Shared component - use basePath to control URL prefix.
  */
 
 import { useRouter, useSearchParams } from "next/navigation"

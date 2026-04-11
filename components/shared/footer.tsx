@@ -29,7 +29,7 @@ export function Footer({ variant = "marketing" }: FooterProps) {
     <footer className="mt-6 mb-4 px-4 max-w-5xl mx-auto" role="contentinfo">
       {/* Main card */}
       <div className="relative bg-white dark:bg-card rounded-3xl px-5 sm:px-8 py-8 sm:py-10 border border-border/50 shadow-sm shadow-primary/[0.04] dark:shadow-none">
-        {/* Tape decorations — desktop only */}
+        {/* Tape decorations - desktop only */}
         <div className="hidden md:block absolute -top-4 -left-8 scale-75 -rotate-12">
           <TapeDecoration />
         </div>
@@ -68,7 +68,7 @@ export function Footer({ variant = "marketing" }: FooterProps) {
             )}
           </div>
 
-          {/* Link columns — 2-col on mobile, 4-col on desktop */}
+          {/* Link columns - 2-col on mobile, 4-col on desktop */}
           <div className="flex-1 grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-5 md:gap-x-8">
             <nav aria-label="Services">
               <p aria-hidden="true" className="uppercase text-[10px] text-muted-foreground/70 font-semibold tracking-wider mb-2">Services</p>
@@ -120,7 +120,7 @@ export function Footer({ variant = "marketing" }: FooterProps) {
           </div>
         </div>
 
-        {/* Complaints — below grid, separated */}
+        {/* Complaints - below grid, separated */}
         {isMarketing && (
           <div className="mt-5 pt-4 border-t border-border/30 text-xs text-muted-foreground/70">
             Complaints: <a href={`mailto:${CONTACT_EMAIL_COMPLAINTS}`} className="hover:text-foreground transition-colors">{CONTACT_EMAIL_COMPLAINTS}</a>

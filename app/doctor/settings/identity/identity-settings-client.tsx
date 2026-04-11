@@ -198,7 +198,7 @@ export function IdentitySettingsClient({ initialData, parchmentUserId: initialPa
     const result = await setDoctorAvailabilityAction(checked)
     setAvailabilitySaving(false)
     if (result.success) {
-      setMessage({ type: "success", text: checked ? "Accepting new requests" : "Paused — no new requests" })
+      setMessage({ type: "success", text: checked ? "Accepting new requests" : "Paused - no new requests" })
       setTimeout(() => setMessage(null), 3000)
     } else {
       setMessage({ type: "error", text: result.error || "Failed to update" })
@@ -222,7 +222,7 @@ export function IdentitySettingsClient({ initialData, parchmentUserId: initialPa
         <CardContent>
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium">
-              {doctorAvailable ? "Accepting new requests" : "Paused — no new requests"}
+              {doctorAvailable ? "Accepting new requests" : "Paused - no new requests"}
             </span>
             <Switch
               checked={doctorAvailable}

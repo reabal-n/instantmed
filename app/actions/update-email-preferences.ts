@@ -13,7 +13,7 @@ interface UpdateResult {
 
 /**
  * Update email preferences using a signed unsubscribe token.
- * Works without authentication — used by the /email-preferences page.
+ * Works without authentication - used by the /email-preferences page.
  */
 export async function updateEmailPreferencesWithToken(
   token: string,

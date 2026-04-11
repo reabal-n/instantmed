@@ -8,7 +8,7 @@ import { GOOGLE_REVIEWS } from "@/lib/social-proof"
  * React 19 throws "Encountered a script tag while rendering React component"
  * when it creates a <script> DOM node during client rendering/hydration.
  * Using dangerouslySetInnerHTML on a <div> tells React to set innerHTML
- * directly — React never creates the inner <script> node itself.
+ * directly - React never creates the inner <script> node itself.
  *
  * Google parses JSON-LD from anywhere in the document, including inside divs.
  */
@@ -126,7 +126,7 @@ export function OrganizationSchema({ baseUrl = "https://instantmed.com.au" }: Or
       email: CONTACT_EMAIL_HELLO,
       availableLanguage: ["English"]
     }],
-    // sameAs omitted — no verified social profiles yet
+    // sameAs omitted - no verified social profiles yet
     // aggregateRating: only injected once Google reviews are live
     ...(GOOGLE_REVIEWS.enabled && GOOGLE_REVIEWS.count > 0 ? {
       aggregateRating: {
@@ -639,18 +639,18 @@ export function MedicalConditionSchema({
 }
 
 // ============================================================================
-// MEDICAL ORGANIZATION SCHEMA (named alias — same as OrganizationSchema)
+// MEDICAL ORGANIZATION SCHEMA (named alias - same as OrganizationSchema)
 // ============================================================================
 
 /**
- * MedicalOrganization schema — named alias for OrganizationSchema.
+ * MedicalOrganization schema - named alias for OrganizationSchema.
  * Use on pages where you want to explicitly emit the MedicalOrganization entity
  * (e.g. homepage, service landing pages) without relying solely on layout.tsx.
  */
 export const MedicalOrganizationSchema = OrganizationSchema
 
 // ============================================================================
-// SERVICE SCHEMA (schema.org/Service — for non-medical service contexts)
+// SERVICE SCHEMA (schema.org/Service - for non-medical service contexts)
 // ============================================================================
 
 interface ServiceSchemaProps {

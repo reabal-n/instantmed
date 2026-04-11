@@ -59,9 +59,9 @@ export default function CookiePolicyPage() {
                   out of these cookies.
                 </p>
                 <ul>
-                  <li><strong>Authentication cookies</strong> — Keep you logged in during your session (Supabase Auth)</li>
-                  <li><strong>Security cookies</strong> — Help protect against cross-site request forgery (CSRF)</li>
-                  <li><strong>Session cookies</strong> — Remember your preferences during a single visit</li>
+                  <li><strong>Authentication cookies</strong> - Keep you logged in during your session (Supabase Auth)</li>
+                  <li><strong>Security cookies</strong> - Help protect against cross-site request forgery (CSRF)</li>
+                  <li><strong>Session cookies</strong> - Remember your preferences during a single visit</li>
                 </ul>
 
                 <p className="font-medium text-foreground/80 !mt-5">Analytics Cookies</p>
@@ -71,7 +71,7 @@ export default function CookiePolicyPage() {
                 </p>
                 <ul>
                   <li>
-                    <strong>PostHog</strong> — Tracks page views and feature usage to help us improve
+                    <strong>PostHog</strong> - Tracks page views and feature usage to help us improve
                     the experience
                   </li>
                 </ul>
@@ -79,8 +79,8 @@ export default function CookiePolicyPage() {
                 <p className="font-medium text-foreground/80 !mt-5">Functional Cookies</p>
                 <p>These cookies enable enhanced functionality and personalisation.</p>
                 <ul>
-                  <li><strong>Theme preferences</strong> — Remember your dark/light mode preference</li>
-                  <li><strong>Cookie consent</strong> — Remember your cookie preferences</li>
+                  <li><strong>Theme preferences</strong> - Remember your dark/light mode preference</li>
+                  <li><strong>Cookie consent</strong> - Remember your cookie preferences</li>
                 </ul>
 
                 <p className="font-medium text-foreground/80 !mt-5">Payment Cookies</p>
@@ -149,9 +149,9 @@ export default function CookiePolicyPage() {
               <S n="5" title="Data Retention">
                 <p>Cookie data is retained for different periods depending on the type:</p>
                 <ul>
-                  <li><strong>Session cookies</strong> — Deleted when you close your browser</li>
-                  <li><strong>Persistent cookies</strong> — Up to 12 months</li>
-                  <li><strong>Analytics data</strong> — Anonymised after 26 months</li>
+                  <li><strong>Session cookies</strong> - Deleted when you close your browser</li>
+                  <li><strong>Persistent cookies</strong> - Up to 12 months</li>
+                  <li><strong>Analytics data</strong> - Anonymised after 26 months</li>
                 </ul>
               </S>
 

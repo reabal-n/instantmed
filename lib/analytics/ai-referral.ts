@@ -34,7 +34,7 @@ export function detectAIReferral(): AIReferralResult {
     return { isAIReferral: false, source: null }
   }
 
-  // Check utm_source first (most reliable — ChatGPT sets this)
+  // Check utm_source first (most reliable - ChatGPT sets this)
   const params = new URLSearchParams(window.location.search)
   const utmSource = params.get("utm_source")?.toLowerCase() ?? ""
 

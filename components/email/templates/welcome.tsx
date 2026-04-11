@@ -2,7 +2,7 @@
  * Welcome Email Template
  *
  * Sent to new patients after account creation.
- * Warm handshake — not a brochure.
+ * Warm handshake - not a brochure.
  */
 
 import * as React from "react"

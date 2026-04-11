@@ -3,7 +3,7 @@
  *
  * This module provides authentication utilities that work with Supabase Auth
  * for both authentication and data storage. All server-side auth flows go
- * through this module — it is the single chokepoint.
+ * through this module - it is the single chokepoint.
  *
  * All server-side auth flows go through Supabase Auth (supabase.auth.getUser()).
  */
@@ -126,7 +126,7 @@ export const getAuthenticatedUserWithProfile = cache(async (): Promise<Authentic
     }
   }
 
-  // Supabase Auth flow — verify session via cookies
+  // Supabase Auth flow - verify session via cookies
   const supabaseAuth = await createClient()
   const { data: { user } } = await supabaseAuth.auth.getUser()
 
@@ -236,7 +236,7 @@ export async function getOrCreateAuthenticatedUser(): Promise<AuthenticatedUser 
   }
 
   // Create new profile if none exists and no guest profile to link
-  // (safety net — handle_new_user() trigger should have created it)
+  // (safety net - handle_new_user() trigger should have created it)
   if (!profile && primaryEmail) {
     const fullName = user.user_metadata?.full_name
       || user.user_metadata?.name
@@ -260,7 +260,7 @@ export async function getOrCreateAuthenticatedUser(): Promise<AuthenticatedUser 
       .single()
 
     if (error) {
-      // Handle race condition — trigger or concurrent request may have created it
+      // Handle race condition - trigger or concurrent request may have created it
       if (error.code === '23505') {
         const { data: raceProfile } = await supabase
           .from("profiles")
@@ -312,7 +312,7 @@ export async function requireRole(
     const supabaseAuth = await createClient()
     const { data: { user } } = await supabaseAuth.auth.getUser()
     if (user) {
-      // Authenticated but no profile — send to post-signin for profile creation
+      // Authenticated but no profile - send to post-signin for profile creation
       redirect("/auth/post-signin")
     }
     redirect("/sign-in")

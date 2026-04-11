@@ -34,7 +34,7 @@ import { useServiceAvailability } from "@/components/providers/service-availabil
 import { useLandingAnalytics } from "@/hooks/use-landing-analytics"
 import { ED_FAQ } from "@/lib/data/ed-faq"
 
-// Below-fold lazy loads — keep initial bundle small
+// Below-fold lazy loads - keep initial bundle small
 const TestimonialsSection = dynamic(
   () => import("@/components/marketing/sections/testimonials-section").then((m) => m.TestimonialsSection),
   { loading: () => <div className="min-h-[500px]" /> },
@@ -107,7 +107,7 @@ const PRICING_FEATURES = [
   "AHPRA-registered Australian doctor reviews your form",
   "eScript sent to your phone via SMS",
   "Collect from any Australian pharmacy",
-  "Discreet packaging — nothing on the outside",
+  "Discreet packaging - nothing on the outside",
   "Full refund if we can't help",
 ]
 
@@ -163,7 +163,7 @@ function HeroSection({
               <DoctorAvailabilityPill alwaysAvailable />
             </motion.div>
 
-            {/* Headline — plain h1 with CSS animation so LCP text is visible on first paint */}
+            {/* Headline - plain h1 with CSS animation so LCP text is visible on first paint */}
             <h1
               className="text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight mb-3 sm:mb-6 leading-[1.15] animate-hero-headline"
             >
@@ -181,8 +181,8 @@ function HeroSection({
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.1 }}
             >
-              Fill a short health form. A doctor reviews it and — if
-              appropriate — sends treatment straight to your phone. No call,
+              Fill a short health form. A doctor reviews it and - if
+              appropriate - sends treatment straight to your phone. No call,
               no waiting room.
             </motion.p>
 
@@ -215,7 +215,7 @@ function HeroSection({
                   onClick={onCTAClick}
                 >
                   <Link href="/request?service=consult&subtype=ed">
-                    Start assessment — ${PRICING.MENS_HEALTH.toFixed(2)}
+                    Start assessment - ${PRICING.MENS_HEALTH.toFixed(2)}
                     <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
                   </Link>
                 </Button>
@@ -228,7 +228,7 @@ function HeroSection({
               </div>
             </motion.div>
 
-            {/* Quick quiz anchor — low-commitment engagement hook */}
+            {/* Quick quiz anchor - low-commitment engagement hook */}
             <motion.div
               className="flex justify-center lg:justify-start mb-4 sm:mb-6"
               initial={animate ? { opacity: 0 } : {}}
@@ -244,7 +244,7 @@ function HeroSection({
               </a>
             </motion.div>
 
-            {/* Trust signals — hidden on mobile to keep CTA above fold */}
+            {/* Trust signals - hidden on mobile to keep CTA above fold */}
             <motion.div
               className="hidden sm:flex flex-col gap-2"
               initial={animate ? { opacity: 0 } : {}}
@@ -267,7 +267,7 @@ function HeroSection({
               <TrustBadgeRow preset="trust_certifications" className="justify-center lg:justify-start" />
             </motion.div>
 
-            {/* Secondary anchor CTA — desktop only */}
+            {/* Secondary anchor CTA - desktop only */}
             <motion.div
               className="hidden sm:flex justify-center lg:justify-start mt-4"
               initial={animate ? { opacity: 0 } : {}}
@@ -284,12 +284,12 @@ function HeroSection({
             </motion.div>
           </div>
 
-          {/* Hero product mockup — desktop only, mobile gets version below */}
+          {/* Hero product mockup - desktop only, mobile gets version below */}
           <div className="hidden lg:block relative shrink-0 mt-0">
             <EDHeroMockup />
           </div>
 
-          {/* Mobile mockup — below text content */}
+          {/* Mobile mockup - below text content */}
           <div className="lg:hidden mt-4 w-full max-w-xs mx-auto">
             <EDHeroMockup />
           </div>
@@ -321,7 +321,7 @@ export function ErectileDysfunctionLanding() {
     return () => observer.disconnect()
   }, [])
 
-  // Testimonials data — service-specific with fallback
+  // Testimonials data - service-specific with fallback
   const serviceTestimonials = getTestimonialsByService("consultation")
   const columnsData = serviceTestimonials.slice(0, 9).map((t) => ({
     text: t.text,
@@ -384,13 +384,13 @@ export function ErectileDysfunctionLanding() {
           {/* 1. Hero */}
           <HeroSection ctaRef={heroCTARef} onCTAClick={handleHeroCTA} />
 
-          {/* 2. Single trust strip — wait time + doctors online indicator */}
+          {/* 2. Single trust strip - wait time + doctors online indicator */}
           <LiveWaitTime variant="strip" services={["consult-ed"]} />
 
-          {/* 3. Prevalence calculator — normalises shame before engagement */}
+          {/* 3. Prevalence calculator - normalises shame before engagement */}
           <EdPrevalenceCalculator />
 
-          {/* 4. Hook quiz — engagement after normalisation */}
+          {/* 4. Hook quiz - engagement after normalisation */}
           <section id="ed-quiz" className="py-12 lg:py-16 px-4 sm:px-6 lg:px-8 scroll-mt-20">
             <EdHookQuiz />
           </section>
@@ -399,20 +399,20 @@ export function ErectileDysfunctionLanding() {
           <HowItWorksSection
             onCTAClick={handleHowItWorksCTA}
             steps={ED_HOW_IT_WORKS_STEPS}
-            ctaText={`Start assessment — $${PRICING.MENS_HEALTH.toFixed(2)}`}
+            ctaText={`Start assessment - $${PRICING.MENS_HEALTH.toFixed(2)}`}
             ctaHref="/request?service=consult&subtype=ed"
           />
 
-          {/* 6. Mechanism explainer — completes the "how" narrative */}
+          {/* 6. Mechanism explainer - completes the "how" narrative */}
           <EdMechanismExplainer />
 
-          {/* 7. Guide — accordion-collapsed, all content rendered for SEO */}
+          {/* 7. Guide - accordion-collapsed, all content rendered for SEO */}
           <EDGuideSection />
 
-          {/* 8. Outcomes — what treatment is/isn't, contraindications visible */}
+          {/* 8. Outcomes - what treatment is/isn't, contraindications visible */}
           <EdOutcomesSection />
 
-          {/* 9. Doctor profile — trust signal */}
+          {/* 9. Doctor profile - trust signal */}
           <DoctorProfileSection />
 
           {/* 10. Pricing */}
@@ -424,7 +424,7 @@ export function ErectileDysfunctionLanding() {
             ctaText={
               isDisabled
                 ? "Contact us"
-                : `Start assessment — $${PRICING.MENS_HEALTH.toFixed(2)}`
+                : `Start assessment - $${PRICING.MENS_HEALTH.toFixed(2)}`
             }
             ctaHref={isDisabled ? "/contact" : "/request?service=consult&subtype=ed"}
             colors={pricingColors}
@@ -437,10 +437,10 @@ export function ErectileDysfunctionLanding() {
             subtitle="Real reviews from Australians who've used our consultation service"
           />
 
-          {/* Competitor comparisons — SEO internal links */}
+          {/* Competitor comparisons - SEO internal links */}
           <CompetitorLinksSection slugs={["instantmed-vs-hub-health", "instantmed-vs-doctors-on-demand", "instantmed-vs-qoctor"]} />
 
-          {/* Regulatory Partners — Medicare included */}
+          {/* Regulatory Partners - Medicare included */}
           <RegulatoryPartners className="py-12" />
 
           {/* 13. FAQ */}
@@ -459,7 +459,7 @@ export function ErectileDysfunctionLanding() {
                 <Link href="/patient" className="text-primary hover:underline font-medium">
                   Refer a friend
                 </Link>
-                {" "}&mdash; you both get $5 off.
+                {" "}- you both get $5 off.
               </p>
             </div>
           </div>
@@ -468,8 +468,8 @@ export function ErectileDysfunctionLanding() {
           <FinalCtaSection
             onCTAClick={handleFinalCTA}
             title="Discreet ED treatment, reviewed by a real doctor."
-            subtitle="Fill a short form. A doctor reviews it and — if appropriate — sends treatment straight to your phone. No call, no waiting room."
-            ctaText={`Start assessment — $${PRICING.MENS_HEALTH.toFixed(2)}`}
+            subtitle="Fill a short form. A doctor reviews it and - if appropriate - sends treatment straight to your phone. No call, no waiting room."
+            ctaText={`Start assessment - $${PRICING.MENS_HEALTH.toFixed(2)}`}
             ctaHref="/request?service=consult&subtype=ed"
             price={PRICING.MENS_HEALTH}
           />
@@ -477,11 +477,11 @@ export function ErectileDysfunctionLanding() {
 
         <MarketingFooter />
 
-        {/* Content hub cross-links — distributes PageRank to condition/symptom/guide pages */}
+        {/* Content hub cross-links - distributes PageRank to condition/symptom/guide pages */}
         <ContentHubLinks service="consult" />
 
 
-        {/* Sticky mobile CTA — bottom drawer, appears after hero scrolls out */}
+        {/* Sticky mobile CTA - bottom drawer, appears after hero scrolls out */}
         <motion.div
           className="fixed bottom-0 left-0 right-0 z-50 lg:hidden"
           initial={prefersReducedMotion ? {} : { y: 100 }}
@@ -506,14 +506,14 @@ export function ErectileDysfunctionLanding() {
               <Link href={isDisabled ? "/contact" : "/request?service=consult&subtype=ed"}>
                 {isDisabled
                   ? "Contact us"
-                  : `Start assessment — $${PRICING.MENS_HEALTH.toFixed(2)}`}
+                  : `Start assessment - $${PRICING.MENS_HEALTH.toFixed(2)}`}
                 <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
               </Link>
             </Button>
           </div>
         </motion.div>
 
-        {/* Sticky desktop CTA — top bar, appears after hero scrolls out */}
+        {/* Sticky desktop CTA - top bar, appears after hero scrolls out */}
         <motion.div
           className="hidden lg:block fixed top-0 left-0 right-0 z-40"
           initial={prefersReducedMotion ? {} : { y: -60, opacity: 0 }}

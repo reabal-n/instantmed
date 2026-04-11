@@ -6,6 +6,7 @@ import Link from "next/link"
 import type { Metadata } from "next"
 import { BreadcrumbSchema, FAQSchema } from "@/components/seo/healthcare-schema"
 import { AccordionSection } from "@/components/sections"
+import { PRICING_DISPLAY } from "@/lib/constants"
 
 export const metadata: Metadata = {
   title: "Telehealth for Your Industry",
@@ -28,7 +29,7 @@ const audiences = [
   { slug: "teachers", name: "Teachers", description: "Medical certificates for school and education staff" },
   { slug: "hospitality", name: "Hospitality", description: "Telehealth for restaurant, bar, and hotel workers" },
   { slug: "retail", name: "Retail Workers", description: "Medical certificates that meet retail award requirements" },
-  { slug: "office-workers", name: "Office Workers", description: "Telehealth from your desk — no need to leave the office" },
+  { slug: "office-workers", name: "Office Workers", description: "Telehealth from your desk - no need to leave the office" },
   { slug: "parents", name: "Parents & Carers", description: "Medical certificates for carer's leave and family responsibilities" },
   { slug: "remote-workers", name: "Remote Workers", description: "Healthcare access from anywhere in Australia" },
   { slug: "gig-workers", name: "Gig Workers", description: "Flexible telehealth for freelancers and contractors" },
@@ -38,7 +39,7 @@ const audiences = [
 const audienceFaqs = [
   {
     question: "Do you offer different services for different industries?",
-    answer: "The core service is the same for everyone — doctor-reviewed medical certificates, prescriptions, and consultations. What differs is how it fits into your work life. A shift worker and a university student have different schedules and requirements, so we explain what's relevant for each.",
+    answer: "The core service is the same for everyone - doctor-reviewed medical certificates, prescriptions, and consultations. What differs is how it fits into your work life. A shift worker and a university student have different schedules and requirements, so we explain what's relevant for each.",
   },
   {
     question: "Are certificates accepted by all employers?",
@@ -46,11 +47,11 @@ const audienceFaqs = [
   },
   {
     question: "Is there a discount for students?",
-    answer: "Our prices are the same for everyone, starting at $19.95 for a one-day medical certificate. We keep prices low across the board rather than adding surcharges for some groups and discounts for others.",
+    answer: `Our prices are the same for everyone, starting at ${PRICING_DISPLAY.MED_CERT} for a one-day medical certificate. We keep prices low across the board rather than adding surcharges for some groups and discounts for others.`,
   },
   {
     question: "Can my employer verify my certificate?",
-    answer: "Every certificate includes a unique verification ID and the issuing doctor's details. Employers can confirm its authenticity if needed. We take certificate integrity seriously — it protects both you and us.",
+    answer: "Every certificate includes a unique verification ID and the issuing doctor's details. Employers can confirm its authenticity if needed. We take certificate integrity seriously - it protects both you and us.",
   },
   {
     question: "Do you cover carer's leave certificates?",
@@ -58,7 +59,7 @@ const audienceFaqs = [
   },
   {
     question: "Is the service available outside business hours?",
-    answer: "Medical certificates are available 24/7 — submit at any hour and receive your certificate within 15 minutes. Prescriptions and consultations are available 8am–10pm AEST, 7 days including public holidays.",
+    answer: "Medical certificates are available 24/7 - submit at any hour and receive your certificate within 15 minutes. Prescriptions and consultations are available 8am–10pm AEST, 7 days including public holidays.",
   },
   {
     question: "Can my company set up a corporate account?",
@@ -66,7 +67,7 @@ const audienceFaqs = [
   },
   {
     question: "Do I need Medicare to use InstantMed?",
-    answer: "Medicare isn't required for medical certificates. For prescriptions and consultations, you'll need a valid Medicare card. We don't bulk bill — our service sits outside the Medicare system.",
+    answer: "Medicare isn't required for medical certificates. For prescriptions and consultations, you'll need a valid Medicare card. We don't bulk bill - our service sits outside the Medicare system.",
   },
 ]
 
@@ -94,7 +95,7 @@ export default function ForPage() {
                   Telehealth for Every Industry
                 </h1>
                 <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-                  Whether you work shifts, sit at a desk, or run your own business — InstantMed fits around your schedule.
+                  Whether you work shifts, sit at a desk, or run your own business - InstantMed fits around your schedule.
                   Same doctors, same service, tailored to how you work.
                 </p>
               </div>
@@ -134,7 +135,7 @@ export default function ForPage() {
                   </Link>
                 </Button>
                 <p className="mt-3 text-sm text-muted-foreground">
-                  Same service for everyone — from $19.95
+                  Same service for everyone - from {PRICING_DISPLAY.MED_CERT}
                 </p>
               </div>
             </div>

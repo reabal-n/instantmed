@@ -22,7 +22,7 @@ export default function DoctorIntakesLoading() {
           <Skeleton className="h-4 w-4 rounded" animated={false} />
           <Skeleton className="h-5 w-44" animated={false} />
         </div>
-        {/* CardContent: grid-cols-2 md:grid-cols-4 — 6 info cells */}
+        {/* CardContent: grid-cols-2 md:grid-cols-4 - 6 info cells */}
         <div className="px-4 py-3 grid grid-cols-2 md:grid-cols-4 gap-3">
           {[1, 2, 3, 4, 5, 6].map((i) => (
             <div key={i} className="space-y-1.5">

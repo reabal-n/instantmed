@@ -69,7 +69,7 @@ export async function sendFollowUpReminderEmail(intake: ApprovedMedCertIntake): 
     return false
   }
 
-  // Respect marketing opt-out — check only marketing_emails (not abandoned_checkout_emails)
+  // Respect marketing opt-out - check only marketing_emails (not abandoned_checkout_emails)
   if (intake.patient_id) {
     const supabase = createServiceRoleClient()
     const { data: prefs } = await supabase

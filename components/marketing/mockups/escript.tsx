@@ -25,7 +25,7 @@ const QRCode = React.memo(function QRCode() {
       <rect x="6" y="50" width="8" height="8" className="text-white dark:text-card" />
       <rect x="8" y="52" width="4" height="4" className="text-foreground/80 dark:text-foreground/70" />
 
-      {/* Data modules — scattered pixels */}
+      {/* Data modules - scattered pixels */}
       {[
         [24,0],[28,0],[32,4],[36,0],[40,4],
         [0,24],[4,28],[8,24],[12,28],[16,24],

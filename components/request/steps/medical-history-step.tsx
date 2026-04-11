@@ -5,9 +5,9 @@
  *
  * Layout:
  * 1. Three yes/no clinical questions (allergies, conditions, other meds)
- *    — compact card-based layout, each with conditional detail textarea
+ *    - compact card-based layout, each with conditional detail textarea
  * 2. Safety screening toggles (pregnancy, adverse reactions)
- *    — grouped in a single card with clear "informational only" label
+ *    - grouped in a single card with clear "informational only" label
  */
 
 import { useState, useCallback } from "react"
@@ -162,7 +162,7 @@ export default function MedicalHistoryStep({ serviceType, onNext }: MedicalHisto
 
   return (
     <div className="space-y-4">
-      {/* Clinical questions — required */}
+      {/* Clinical questions - required */}
       <div className="rounded-2xl border border-border/50 bg-white dark:bg-card shadow-md shadow-primary/[0.06] p-4 space-y-5">
         <YesNoQuestion
           label="Any allergies?"
@@ -176,7 +176,7 @@ export default function MedicalHistoryStep({ serviceType, onNext }: MedicalHisto
           }}
           detail={allergies}
           onDetailChange={(val) => setAnswer("allergies", val)}
-          detailPlaceholder="e.g., Penicillin — rash, Peanuts — anaphylaxis"
+          detailPlaceholder="e.g., Penicillin - rash, Peanuts - anaphylaxis"
           error={touched.allergies ? errors.allergies : undefined}
         />
 
@@ -217,7 +217,7 @@ export default function MedicalHistoryStep({ serviceType, onNext }: MedicalHisto
         />
       </div>
 
-      {/* Safety screening — informational toggles */}
+      {/* Safety screening - informational toggles */}
       <div className="rounded-2xl border border-border/60 bg-muted/30 dark:bg-white/5 p-4 space-y-3">
         <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
           Safety screening

@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
         )
       } catch (auditError) {
         log.warn("Failed to log external_prescribing_indicated event", { intakeId: id }, auditError instanceof Error ? auditError : undefined)
-        // Don't fail the request — script status already saved
+        // Don't fail the request - script status already saved
       }
     }
 

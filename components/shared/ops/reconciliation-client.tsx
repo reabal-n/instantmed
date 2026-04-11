@@ -6,7 +6,7 @@
  * Identifies mismatches between Stripe payment and delivery outcome.
  * This is an ops lens, not accounting software.
  *
- * Shared component — use basePath to control URL prefix.
+ * Shared component - use basePath to control URL prefix.
  */
 
 import { useState } from "react"
@@ -379,7 +379,7 @@ export function ReconciliationClient({
                             {record.last_error}
                           </span>
                         ) : (
-                          <span className="text-muted-foreground">—</span>
+                          <span className="text-muted-foreground">-</span>
                         )}
                       </TableCell>
                       <TableCell className="text-right">

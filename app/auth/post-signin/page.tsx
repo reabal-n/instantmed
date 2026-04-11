@@ -49,7 +49,7 @@ export default async function PostSignInPage({
   const supabaseAuth = await createClient()
   const { data: { user } } = await supabaseAuth.auth.getUser()
 
-  // Not authenticated — render a client-side auth waiter
+  // Not authenticated - render a client-side auth waiter
   if (!user) {
     log.info("No user, rendering auth waiter (avoids redirect loop)")
     return (
@@ -177,7 +177,7 @@ export default async function PostSignInPage({
       profile = newProfile
       log.info("Created new profile (trigger didn't fire)", { profileId: profile?.id })
     } else if (createError?.code === '23505') {
-      // Race condition — trigger created it
+      // Race condition - trigger created it
       const { data: raceProfile } = await supabase
         .from("profiles")
         .select("id, role, onboarding_completed")

@@ -38,7 +38,7 @@ export default function FAQPage() {
           </p>
         </CenteredHero>
 
-        {/* FAQ Sections — 7 categories with accordion */}
+        {/* FAQ Sections - 7 categories with accordion */}
         <AccordionSection
           groups={GENERAL_FAQ}
           hideHeader
@@ -47,7 +47,7 @@ export default function FAQPage() {
         {/* CTA */}
         <CTABanner
           title="Still have questions?"
-          subtitle="Our support team is here to help — reach out anytime."
+          subtitle="Our support team is here to help - reach out anytime."
           ctaText="Contact Support"
           ctaHref="/contact"
         />

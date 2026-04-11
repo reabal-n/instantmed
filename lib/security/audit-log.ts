@@ -112,7 +112,7 @@ export async function logAuditEvent(entry: AuditLogEntry): Promise<void> {
     })
 
     if (error) {
-      // AUDIT FIX: Never silently drop audit entries — compliance requires complete trails
+      // AUDIT FIX: Never silently drop audit entries - compliance requires complete trails
       if (failedAuditQueue.length >= MAX_FAILED_QUEUE_SIZE) {
         const errorMsg = `CRITICAL COMPLIANCE VIOLATION: Audit queue full (${MAX_FAILED_QUEUE_SIZE} entries). Cannot queue event: ${entry.action}. DB error: ${error.message}`
         logger.error(errorMsg, { action: entry.action, queueSize: failedAuditQueue.length })
@@ -130,7 +130,7 @@ export async function logAuditEvent(entry: AuditLogEntry): Promise<void> {
       })
     }
   } catch (error) {
-    // AUDIT FIX: Never silently drop audit entries — compliance requires complete trails
+    // AUDIT FIX: Never silently drop audit entries - compliance requires complete trails
     if (failedAuditQueue.length >= MAX_FAILED_QUEUE_SIZE) {
       const errorMsg = `CRITICAL COMPLIANCE VIOLATION: Audit queue full (${MAX_FAILED_QUEUE_SIZE} entries). Cannot queue event: ${entry.action}. Audit trail integrity compromised.`
       logger.error(errorMsg, { action: entry.action, queueSize: failedAuditQueue.length })

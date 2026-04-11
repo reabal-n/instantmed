@@ -127,7 +127,7 @@ export default function SymptomsStep({ serviceType, onNext }: SymptomsStepProps)
   const detailsQuality = validateSymptomTextQuality(symptomDetails)
   // Word count mirrors the validator's tokenizer (alpha tokens of length ≥2).
   // Target of 5 gives a comfortable buffer over the validator's 3-distinct-word
-  // floor — users who hit 5 visible words are already past the gate.
+  // floor - users who hit 5 visible words are already past the gate.
   const detailsWordCount = symptomDetails
     .toLowerCase()
     .split(/[^a-z]+/)
@@ -241,7 +241,7 @@ export default function SymptomsStep({ serviceType, onNext }: SymptomsStepProps)
         label={isCarer ? "Describe their symptoms in more detail" : "Describe your symptoms in more detail"}
         required
         error={touched.symptomDetails ? errors.symptomDetails : undefined}
-        hint="Plain English — e.g. &ldquo;fever and headache since yesterday&rdquo;"
+        hint="Plain English - e.g. &ldquo;fever and headache since yesterday&rdquo;"
         helpContent={{
           title: "What should I include?",
           content: "Describe how the symptoms affect you, when they started, and any relevant details. This helps the doctor write an accurate certificate."

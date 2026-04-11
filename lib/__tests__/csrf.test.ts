@@ -144,7 +144,7 @@ describe("CSRF protection module", () => {
       
       const token = await generateCSRFToken()
       
-      // Advance time past expiry (24 hours — AUDIT FIX: changed from 1hr)
+      // Advance time past expiry (24 hours - AUDIT FIX: changed from 1hr)
       vi.advanceTimersByTime(24 * 60 * 60 * 1000 + 1)
       
       const request = new Request("http://localhost/api/test", {

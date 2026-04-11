@@ -110,7 +110,7 @@ test.describe("Guest Checkout → Account Linking", () => {
     expect(guestProfile).toBeTruthy()
     expect(guestProfile!.auth_user_id).toBeNull()
 
-    // Link guest profile — with the .is('auth_user_id', null) guard
+    // Link guest profile - with the .is('auth_user_id', null) guard
     const { error: linkError } = await supabase
       .from("profiles")
       .update({
@@ -139,7 +139,7 @@ test.describe("Guest Checkout → Account Linking", () => {
     const supabase = getSupabaseClient()
     const SECOND_AUTH_USER_ID = "e2e00000-0000-0000-0000-auth00000002"
 
-    // First link — should succeed
+    // First link - should succeed
     const { error: firstLinkError } = await supabase
       .from("profiles")
       .update({
@@ -151,7 +151,7 @@ test.describe("Guest Checkout → Account Linking", () => {
 
     expect(firstLinkError).toBeNull()
 
-    // Second link attempt — should NOT overwrite (0 rows matched by .is guard)
+    // Second link attempt - should NOT overwrite (0 rows matched by .is guard)
     const { data: secondLink, error: secondLinkError } = await supabase
       .from("profiles")
       .update({

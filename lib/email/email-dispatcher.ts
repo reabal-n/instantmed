@@ -93,7 +93,7 @@ async function permanentlyFailOutboxRow(outboxId: string, errorMessage: string, 
     tags: { subsystem: "email-dispatcher", email_type: context?.emailType ?? "unknown" },
     extra: { outboxId, intakeId: context?.intakeId ?? null },
   })
-  logger.error("[Email Dispatcher] Email permanently failed — exhausted all retries", {
+  logger.error("[Email Dispatcher] Email permanently failed - exhausted all retries", {
     outboxId,
     emailType: context?.emailType,
     intakeId: context?.intakeId,
@@ -132,10 +132,10 @@ export interface DispatcherResult {
  * This is the core dispatcher logic used by both cron and ops routes.
  */
 export async function processEmailDispatch(): Promise<DispatcherResult> {
-  // Respect domain warmup — if daily limit is hit, skip entire batch
+  // Respect domain warmup - if daily limit is hit, skip entire batch
   const warmup = await checkDailySendLimit()
   if (!warmup.allowed) {
-    logger.info("[Email Dispatcher] Skipping batch — daily send limit reached", {
+    logger.info("[Email Dispatcher] Skipping batch - daily send limit reached", {
       current: warmup.current,
       limit: warmup.limit,
     })

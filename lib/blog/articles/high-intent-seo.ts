@@ -96,10 +96,10 @@ export const highIntentSeoArticles: Article[] = [
         type: 'list',
         content: '',
         items: [
-          'Your regular GP — ideal if they know your medical history',
-          'A walk-in clinic — useful if your GP is unavailable',
-          'Telehealth services — convenient when you\'re unwell at home',
-          'Hospital emergency department — only for genuine emergencies'
+          'Your regular GP - ideal if they know your medical history',
+          'A walk-in clinic - useful if your GP is unavailable',
+          'Telehealth services - convenient when you\'re unwell at home',
+          'Hospital emergency department - only for genuine emergencies'
         ]
       },
       {
@@ -311,11 +311,11 @@ export const highIntentSeoArticles: Article[] = [
         type: 'list',
         content: '',
         items: [
-          '"Sick note" — informal term for medical certificate',
-          '"Fit note" — UK term, not commonly used in Australia',
-          '"Med cert" — abbreviation for medical certificate',
-          '"Doctor\'s certificate" — same as medical certificate',
-          '"Statutory declaration" — sworn statement, alternative to certificate in some cases'
+          '"Sick note" - informal term for medical certificate',
+          '"Fit note" - UK term, not commonly used in Australia',
+          '"Med cert" - abbreviation for medical certificate',
+          '"Doctor\'s certificate" - same as medical certificate',
+          '"Statutory declaration" - sworn statement, alternative to certificate in some cases'
         ]
       },
       { type: 'heading', content: 'When a Letter Is Required Instead', level: 2 },
@@ -424,7 +424,7 @@ export const highIntentSeoArticles: Article[] = [
       {
         type: 'callout',
         variant: 'emergency',
-        content: 'For emergencies — chest pain, difficulty breathing, severe bleeding, or stroke symptoms — call 000 immediately. Telehealth is not for emergencies.'
+        content: 'For emergencies - chest pain, difficulty breathing, severe bleeding, or stroke symptoms - call 000 immediately. Telehealth is not for emergencies.'
       },
       { type: 'heading', content: 'After-Hours Service Hours', level: 2 },
       {
@@ -435,10 +435,10 @@ export const highIntentSeoArticles: Article[] = [
         type: 'list',
         content: '',
         items: [
-          '24/7 services — available anytime, including public holidays',
-          'Extended hours — typically 7am-10pm or similar',
-          'After-hours only — evenings and weekends when GPs are closed',
-          'On-demand services — you request when you need'
+          '24/7 services - available anytime, including public holidays',
+          'Extended hours - typically 7am-10pm or similar',
+          'After-hours only - evenings and weekends when GPs are closed',
+          'On-demand services - you request when you need'
         ]
       },
       { type: 'heading', content: 'How After-Hours Telehealth Works', level: 2 },
@@ -545,7 +545,7 @@ export const highIntentSeoArticles: Article[] = [
       },
       {
         question: 'Should I go to emergency or use telehealth?',
-        answer: 'Emergency is for life-threatening situations. If you\'re unsure, call Healthdirect on 1800 022 222 — they can advise the appropriate level of care.'
+        answer: 'Emergency is for life-threatening situations. If you\'re unsure, call Healthdirect on 1800 022 222 - they can advise the appropriate level of care.'
       }
     ],
     relatedServices: [
@@ -580,7 +580,7 @@ export const highIntentSeoArticles: Article[] = [
       { type: 'heading', content: 'Bulk-Billed Telehealth', level: 2 },
       {
         type: 'paragraph',
-        content: 'Bulk billing means Medicare pays the full cost — you pay nothing. For telehealth to be bulk-billed:'
+        content: 'Bulk billing means Medicare pays the full cost - you pay nothing. For telehealth to be bulk-billed:'
       },
       {
         type: 'list',
@@ -617,11 +617,11 @@ export const highIntentSeoArticles: Article[] = [
         type: 'list',
         content: '',
         items: [
-          'Type of service — certificates may cost less than full consultations',
-          'Time of day — after-hours may have premiums',
-          'Provider type — GP vs specialist',
-          'Consultation length — longer consults may cost more',
-          'Follow-up requirements — some include free follow-ups'
+          'Type of service - certificates may cost less than full consultations',
+          'Time of day - after-hours may have premiums',
+          'Provider type - GP vs specialist',
+          'Consultation length - longer consults may cost more',
+          'Follow-up requirements - some include free follow-ups'
         ]
       },
       { type: 'heading', content: 'Medicare Rebates for Telehealth', level: 2 },
@@ -670,11 +670,11 @@ export const highIntentSeoArticles: Article[] = [
         type: 'list',
         content: '',
         items: [
-          'Response time — faster may cost more',
-          'Doctor qualifications — ensure AHPRA registration',
-          'Follow-up care — is it included?',
-          'After-hours availability — premium services often include this',
-          'Customer support — helpful if something goes wrong'
+          'Response time - faster may cost more',
+          'Doctor qualifications - ensure AHPRA registration',
+          'Follow-up care - is it included?',
+          'After-hours availability - premium services often include this',
+          'Customer support - helpful if something goes wrong'
         ]
       },
       { type: 'heading', content: 'Finding Affordable Care', level: 2 },
@@ -812,7 +812,7 @@ export const highIntentSeoArticles: Article[] = [
         items: [
           'See a doctor as soon as you can and explain the situation',
           'Provide a statutory declaration if your employer accepts it',
-          'Ask about telehealth — you could have consulted from bed',
+          'Ask about telehealth - you could have consulted from bed',
           'Check your workplace policy for alternatives'
         ]
       },
@@ -860,7 +860,7 @@ export const highIntentSeoArticles: Article[] = [
         type: 'list',
         content: '',
         items: [
-          'Use telehealth when you\'re unwell — consult from home',
+          'Use telehealth when you\'re unwell - consult from home',
           'See a doctor on day one if you think you\'ll need a certificate',
           'Know your workplace policy before you need it',
           'Keep records of any evidence of illness (pharmacy receipts, etc.)'
@@ -873,7 +873,7 @@ export const highIntentSeoArticles: Article[] = [
         answer: 'Legitimate doctors won\'t backdate certificates as it\'s considered professional misconduct. Some may provide retrospective certificates with appropriate wording, but not actual backdating.'
       },
       {
-        question: 'I was sick last week — what can I do?',
+        question: 'I was sick last week - what can I do?',
         answer: 'See a doctor as soon as possible. They may be able to provide a retrospective certificate or supporting letter based on your current condition and reported history.'
       },
       {
@@ -993,9 +993,9 @@ export const highIntentSeoArticles: Article[] = [
         type: 'list',
         content: '',
         items: [
-          '"I\'m unwell and taking sick leave today" — clear, certificate may be required',
-          '"I have a cold but can work from home" — working, no certificate needed',
-          '"I\'m not feeling great, can I work from home?" — discuss expectations'
+          '"I\'m unwell and taking sick leave today" - clear, certificate may be required',
+          '"I have a cold but can work from home" - working, no certificate needed',
+          '"I\'m not feeling great, can I work from home?" - discuss expectations'
         ]
       },
       { type: 'heading', content: 'If Your Employer Pressures You to Work', level: 2 },

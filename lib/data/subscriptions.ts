@@ -147,7 +147,7 @@ export async function decrementCredit(
 
   // If no rows matched, credits were already 0
   if (!data || data.length === 0) {
-    log.info("No credit to decrement — already at 0", { subscriptionId })
+    log.info("No credit to decrement - already at 0", { subscriptionId })
     return false
   }
 

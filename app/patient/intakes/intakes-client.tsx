@@ -34,7 +34,7 @@ interface IntakesClientProps {
   }
 }
 
-// Use shared status config — single source of truth
+// Use shared status config - single source of truth
 
 export function IntakesClient({ intakes: initialIntakes, patientId, pagination }: IntakesClientProps) {
   const router = useRouter()
@@ -185,7 +185,7 @@ export function IntakesClient({ intakes: initialIntakes, patientId, pagination }
         </div>
       </div>
       
-      {/* Stats — show when patient has at least one request */}
+      {/* Stats - show when patient has at least one request */}
       {intakes.length >= 1 && (
         <StatGrid
           className="mb-6"

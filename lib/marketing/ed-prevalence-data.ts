@@ -2,9 +2,9 @@
  * ED prevalence rates by age decade.
  *
  * Rates are conservative estimates cross-referenced from:
- * - MATeS (Men in Australia Telephone Survey, Holden et al., 2005) — 5,990 AU men
+ * - MATeS (Men in Australia Telephone Survey, Holden et al., 2005) - 5,990 AU men
  * - BEACH (Bettering the Evaluation And Care of Health) study
- * - MMAS (Massachusetts Male Aging Study, Feldman et al., 1994) — international baseline
+ * - MMAS (Massachusetts Male Aging Study, Feldman et al., 1994) - international baseline
  *
  * These numbers are illustrative, not diagnostic. Footnoted on the page with source.
  */

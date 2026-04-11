@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
       .maybeSingle()
 
     if (!intake) {
-      // Don't reveal whether the intake exists — return null position
+      // Don't reveal whether the intake exists - return null position
       return NextResponse.json({ position: null })
     }
 

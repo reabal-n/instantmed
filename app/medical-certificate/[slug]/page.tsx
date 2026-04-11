@@ -15,11 +15,12 @@ import { MedCertIntentPage } from "@/components/marketing/med-cert-intent-page"
 import { BreadcrumbSchema, FAQSchema, MedicalServiceSchema } from "@/components/seo/healthcare-schema"
 import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 import { MedicalDisclaimer } from "@/components/seo/medical-disclaimer"
+import { PRICING_DISPLAY } from "@/lib/constants"
 
 export const revalidate = 3600 // ISR: revalidate every hour
 
 // ============================================
-// SUBURB DATA (SEO pages) — location-based
+// SUBURB DATA (SEO pages) - location-based
 // ============================================
 
 const suburbs: Record<
@@ -167,7 +168,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const data = suburbs[slug]
   if (data) {
     const title = `Medical Certificate Online ${data.name}`
-    const description = `Get a medical certificate online in ${data.name}, ${data.stateShort}. Reviewed by AHPRA-registered Australian doctors. Valid for all employers. From $19.95.`
+    const description = `Get a medical certificate online in ${data.name}, ${data.stateShort}. Reviewed by AHPRA-registered Australian doctors. Valid for all employers. ${PRICING_DISPLAY.FROM_MED_CERT}.`
     return {
       title,
       description,
@@ -251,7 +252,7 @@ export default async function MedCertSlugPage({ params }: PageProps) {
         name: `Can I get a medical certificate online in ${data.name}?`,
         acceptedAnswer: {
           "@type": "Answer",
-          text: `Yes! InstantMed provides online medical certificates to ${data.name} residents. Complete a quick questionnaire, get reviewed by an AHPRA-registered doctor, and receive your certificate — typically in under 30 minutes, available 24/7.`,
+          text: `Yes! InstantMed provides online medical certificates to ${data.name} residents. Complete a quick questionnaire, get reviewed by an AHPRA-registered doctor, and receive your certificate - typically in under 30 minutes, available 24/7.`,
         },
       },
       {
@@ -316,7 +317,7 @@ export default async function MedCertSlugPage({ params }: PageProps) {
                 </Button>
               </Link>
 
-              <p className="mt-4 text-sm text-background/60">From $19.95 • No phone call required</p>
+              <p className="mt-4 text-sm text-background/60">{PRICING_DISPLAY.FROM_MED_CERT} • No phone call required</p>
             </div>
           </section>
 
@@ -332,7 +333,7 @@ export default async function MedCertSlugPage({ params }: PageProps) {
                   &ldquo;{data.testimonial.quote}&rdquo;
                 </blockquote>
                 <p className="text-sm text-background/60">
-                  — {data.testimonial.name}, {data.testimonial.occupation}
+                  - {data.testimonial.name}, {data.testimonial.occupation}
                 </p>
               </div>
             </section>

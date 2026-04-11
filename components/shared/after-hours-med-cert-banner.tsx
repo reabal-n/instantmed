@@ -27,7 +27,7 @@ export function AfterHoursMedCertBanner() {
 
   useEffect(() => {
     if (!isAfterHours()) return
-    // Dismiss persists for the session only — resets on new tab/window
+    // Dismiss persists for the session only - resets on new tab/window
     if (sessionStorage.getItem(DISMISS_KEY) === '1') return
     setVisible(true)
   }, [])
@@ -56,7 +56,7 @@ export function AfterHoursMedCertBanner() {
             {/* Copy */}
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-foreground leading-snug">
-                It&apos;s late — but med certs are available 24/7.
+                It&apos;s late - but med certs are available 24/7.
               </p>
               <p className="text-xs text-muted-foreground mt-0.5">
                 Reviewed fast. In your inbox in minutes.

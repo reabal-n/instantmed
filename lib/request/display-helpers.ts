@@ -43,7 +43,7 @@ export function getServiceDisplayLabel(
 
 /**
  * Get the display price (in dollars) for a service + answers combination.
- * Single source of truth — used by both review-step and checkout-step.
+ * Single source of truth - used by both review-step and checkout-step.
  */
 export function getDisplayPrice(
   serviceType: UnifiedServiceType,

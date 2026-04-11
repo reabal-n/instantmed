@@ -1,5 +1,5 @@
 /**
- * Competitor comparison articles — telehealth landscape and GP comparison
+ * Competitor comparison articles - telehealth landscape and GP comparison
  * Target: Australians searching for telehealth service comparisons
  */
 
@@ -12,9 +12,9 @@ export const competitorComparisonArticles: Article[] = [
     slug: 'best-online-doctor-australia-comparison',
     title: 'Best Online Doctor Services in Australia (2026 Comparison)',
     subtitle:
-      'An honest look at telehealth providers — including our own. Take our opinion with a grain of salt. Or a whole shaker.',
+      'An honest look at telehealth providers - including our own. Take our opinion with a grain of salt. Or a whole shaker.',
     excerpt:
-      'We compared the major online doctor services in Australia across pricing, services, wait times, and patient experience. We built InstantMed, so we are obviously biased — here is our honest take on the landscape.',
+      'We compared the major online doctor services in Australia across pricing, services, wait times, and patient experience. We built InstantMed, so we are obviously biased - here is our honest take on the landscape.',
     category: 'telehealth',
     tags: ['telehealth', 'online-doctor'],
     publishedAt: '2026-04-01',
@@ -29,7 +29,7 @@ export const competitorComparisonArticles: Article[] = [
       {
         type: 'paragraph',
         content:
-          'We built InstantMed, so let us get the obvious out of the way: we are biased. Every founder thinks their product is the best, and we are no different. But we also know the telehealth landscape well enough to respect what competitors do right — and honest enough to acknowledge what we do not do well. Here is our take on the major online doctor services available to Australians in 2026.',
+          'We built InstantMed, so let us get the obvious out of the way: we are biased. Every founder thinks their product is the best, and we are no different. But we also know the telehealth landscape well enough to respect what competitors do right - and honest enough to acknowledge what we do not do well. Here is our take on the major online doctor services available to Australians in 2026.',
       },
       {
         type: 'callout',
@@ -51,13 +51,13 @@ export const competitorComparisonArticles: Article[] = [
         type: 'list',
         content: 'Key comparison metrics across major providers:',
         items: [
-          'InstantMed — Async (form-based), no appointment needed. Med certs from $19.95, repeat scripts from $29.95, consults from $49.95. AHPRA-registered doctors. 8am-10pm AEST, 7 days. No subscription.',
-          'InstantConsult — Video telehealth with appointments. Similar pricing (~$35-55 per consult). More traditional model with scheduled video calls. Established player in the market.',
-          'Rosemary Health — Prescription-focused (weight management, hair, skin, ED). Subscription model, ~$30-60 per consult. Strong in specialised treatment pathways.',
-          'Eucalyptus (Pilot, Kin, Software, Juniper) — Multi-brand, subscription-focused. Pilot for men, Kin for women, Software for skin, Juniper for weight. Well-funded startup with specialised pathways for each brand.',
-          'Youly — Women\'s health telehealth. Contraception, UTI treatment, and other women\'s health services. Focused offering for a specific audience.',
-          'HotDoc — Primarily a GP booking platform with telehealth features. Connects you to your existing GP\'s practice. Not a standalone telehealth provider.',
-          'Others (13SICK, MyHealth1st, Telehealth Dr) — Various models across the telehealth spectrum. Some offer after-hours GP access, others focus on booking infrastructure.',
+          'InstantMed - Async (form-based), no appointment needed. Med certs from $19.95, repeat scripts from $29.95, consults from $49.95. AHPRA-registered doctors. 8am-10pm AEST, 7 days. No subscription.',
+          'InstantConsult - Video telehealth with appointments. Similar pricing (~$35-55 per consult). More traditional model with scheduled video calls. Established player in the market.',
+          'Rosemary Health - Prescription-focused (weight management, hair, skin, ED). Subscription model, ~$30-60 per consult. Strong in specialised treatment pathways.',
+          'Eucalyptus (Pilot, Kin, Software, Juniper) - Multi-brand, subscription-focused. Pilot for men, Kin for women, Software for skin, Juniper for weight. Well-funded startup with specialised pathways for each brand.',
+          'Youly - Women\'s health telehealth. Contraception, UTI treatment, and other women\'s health services. Focused offering for a specific audience.',
+          'HotDoc - Primarily a GP booking platform with telehealth features. Connects you to your existing GP\'s practice. Not a standalone telehealth provider.',
+          'Others (13SICK, MyHealth1st, Telehealth Dr) - Various models across the telehealth spectrum. Some offer after-hours GP access, others focus on booking infrastructure.',
         ],
       },
       {
@@ -68,7 +68,7 @@ export const competitorComparisonArticles: Article[] = [
       {
         type: 'paragraph',
         content:
-          'InstantConsult is probably the closest to a traditional GP experience delivered online. They use video consultations, which means you actually speak with a doctor in real time. For people who value that face-to-face interaction — even through a screen — this is a genuine advantage. Their doctors can assess things visually, ask follow-up questions on the spot, and adjust their approach mid-consultation.',
+          'InstantConsult is probably the closest to a traditional GP experience delivered online. They use video consultations, which means you actually speak with a doctor in real time. For people who value that face-to-face interaction - even through a screen - this is a genuine advantage. Their doctors can assess things visually, ask follow-up questions on the spot, and adjust their approach mid-consultation.',
       },
       {
         type: 'paragraph',
@@ -88,12 +88,12 @@ export const competitorComparisonArticles: Article[] = [
       {
         type: 'paragraph',
         content:
-          'Rosemary has carved out a solid niche in specialised prescribing pathways — particularly weight management, hair loss, skin conditions, and ED. Their subscription model means ongoing treatment is relatively seamless: your doctor monitors your progress and adjusts treatment over time. If you need ongoing management of a specific condition, this continuity has real clinical value.',
+          'Rosemary has carved out a solid niche in specialised prescribing pathways - particularly weight management, hair loss, skin conditions, and ED. Their subscription model means ongoing treatment is relatively seamless: your doctor monitors your progress and adjusts treatment over time. If you need ongoing management of a specific condition, this continuity has real clinical value.',
       },
       {
         type: 'paragraph',
         content:
-          'The subscription model is not for everyone, though. If you just need a one-off repeat script or a medical certificate, paying for a subscription is like buying a gym membership to use the shower once. Their specialised pathways are genuinely good — they have clearly put thought into the clinical workflows — but the model assumes you want ongoing care.',
+          'The subscription model is not for everyone, though. If you just need a one-off repeat script or a medical certificate, paying for a subscription is like buying a gym membership to use the shower once. Their specialised pathways are genuinely good - they have clearly put thought into the clinical workflows - but the model assumes you want ongoing care.',
       },
       {
         type: 'paragraph',
@@ -113,7 +113,7 @@ export const competitorComparisonArticles: Article[] = [
       {
         type: 'paragraph',
         content:
-          'Like Rosemary, Eucalyptus is subscription-focused. This works brilliantly if you are on a long-term treatment plan, but less so for acute needs. They also do not offer general medical certificates or broad-scope consultations — each brand stays in its lane. If you need a med cert for work tomorrow and also want to start a treatment plan for something else, you are looking at two different services.',
+          'Like Rosemary, Eucalyptus is subscription-focused. This works brilliantly if you are on a long-term treatment plan, but less so for acute needs. They also do not offer general medical certificates or broad-scope consultations - each brand stays in its lane. If you need a med cert for work tomorrow and also want to start a treatment plan for something else, you are looking at two different services.',
       },
       {
         type: 'paragraph',
@@ -128,7 +128,7 @@ export const competitorComparisonArticles: Article[] = [
       {
         type: 'paragraph',
         content:
-          'Youly focuses exclusively on women\'s health — contraception, UTI treatment, and related services. There is real value in a service that understands its audience deeply rather than trying to serve everyone. Women dealing with recurrent UTIs or needing contraception refills know exactly what they need, and Youly makes that process efficient.',
+          'Youly focuses exclusively on women\'s health - contraception, UTI treatment, and related services. There is real value in a service that understands its audience deeply rather than trying to serve everyone. Women dealing with recurrent UTIs or needing contraception refills know exactly what they need, and Youly makes that process efficient.',
       },
       {
         type: 'paragraph',
@@ -143,12 +143,12 @@ export const competitorComparisonArticles: Article[] = [
       {
         type: 'paragraph',
         content:
-          'HotDoc is a different beast entirely. It is primarily a booking platform that connects patients with existing GP practices. Many GPs offer telehealth through HotDoc, which means you can see your own regular GP via video call. This continuity of care is genuinely valuable — your GP knows your history, your medications, and your context.',
+          'HotDoc is a different beast entirely. It is primarily a booking platform that connects patients with existing GP practices. Many GPs offer telehealth through HotDoc, which means you can see your own regular GP via video call. This continuity of care is genuinely valuable - your GP knows your history, your medications, and your context.',
       },
       {
         type: 'paragraph',
         content:
-          'The downside is availability. Your specific GP might not have telehealth slots when you need one, and you are still subject to whatever pricing and availability your practice offers. HotDoc is not a telehealth provider — it is a bridge to your existing GP.',
+          'The downside is availability. Your specific GP might not have telehealth slots when you need one, and you are still subject to whatever pricing and availability your practice offers. HotDoc is not a telehealth provider - it is a bridge to your existing GP.',
       },
       {
         type: 'paragraph',
@@ -157,13 +157,13 @@ export const competitorComparisonArticles: Article[] = [
       },
       {
         type: 'heading',
-        content: 'InstantMed — Our Own Honest Assessment',
+        content: 'InstantMed - Our Own Honest Assessment',
         level: 2,
       },
       {
         type: 'paragraph',
         content:
-          'Right, the bit where we talk about ourselves. InstantMed uses an asynchronous model: you fill in a detailed form, and an AHPRA-registered doctor reviews your request within hours. No appointment, no video call, no sitting in a virtual waiting room. For straightforward requests — medical certificates, repeat prescriptions, common conditions — this is genuinely faster and more convenient than booking a video consult.',
+          'Right, the bit where we talk about ourselves. InstantMed uses an asynchronous model: you fill in a detailed form, and an AHPRA-registered doctor reviews your request within hours. No appointment, no video call, no sitting in a virtual waiting room. For straightforward requests - medical certificates, repeat prescriptions, common conditions - this is genuinely faster and more convenient than booking a video consult.',
       },
       {
         type: 'paragraph',
@@ -173,7 +173,7 @@ export const competitorComparisonArticles: Article[] = [
       {
         type: 'paragraph',
         content:
-          'Now the limitations, because every service has them. We do not offer video consultations — if your situation needs real-time discussion, we are not the right choice. We cannot prescribe Schedule 8 (controlled) substances. We do not bulk bill. And for anything requiring a physical examination, you need to see a GP in person. We are not trying to replace your GP — we are trying to handle the straightforward stuff so your GP can focus on the complex stuff.',
+          'Now the limitations, because every service has them. We do not offer video consultations - if your situation needs real-time discussion, we are not the right choice. We cannot prescribe Schedule 8 (controlled) substances. We do not bulk bill. And for anything requiring a physical examination, you need to see a GP in person. We are not trying to replace your GP - we are trying to handle the straightforward stuff so your GP can focus on the complex stuff.',
       },
       {
         type: 'callout',
@@ -189,7 +189,7 @@ export const competitorComparisonArticles: Article[] = [
       {
         type: 'paragraph',
         content:
-          'The best telehealth service depends entirely on what you need. There is no single "best" — just the best fit for your situation right now.',
+          'The best telehealth service depends entirely on what you need. There is no single "best" - just the best fit for your situation right now.',
       },
       {
         type: 'list',
@@ -217,7 +217,7 @@ export const competitorComparisonArticles: Article[] = [
       {
         type: 'paragraph',
         content:
-          'That said, telehealth has inherent limitations. No online service can replace a physical examination when one is needed. Responsible telehealth providers — including us — will decline requests that require in-person assessment and refer you appropriately. If a service never declines or never suggests you see someone in person, that is a red flag worth noting.',
+          'That said, telehealth has inherent limitations. No online service can replace a physical examination when one is needed. Responsible telehealth providers - including us - will decline requests that require in-person assessment and refer you appropriately. If a service never declines or never suggests you see someone in person, that is a red flag worth noting.',
       },
       {
         type: 'heading',
@@ -305,7 +305,7 @@ export const competitorComparisonArticles: Article[] = [
       title:
         'Best Online Doctor Services in Australia (2026 Comparison) | InstantMed',
       description:
-        'Honest comparison of Australia\'s top online doctor services — InstantMed, InstantConsult, Rosemary Health, Eucalyptus, Youly, and HotDoc. Pricing, features, and who each is best for.',
+        'Honest comparison of Australia\'s top online doctor services - InstantMed, InstantConsult, Rosemary Health, Eucalyptus, Youly, and HotDoc. Pricing, features, and who each is best for.',
       keywords: [
         'best online doctor australia',
         'cheapest online doctor',
@@ -325,7 +325,7 @@ export const competitorComparisonArticles: Article[] = [
     slug: 'telehealth-vs-gp-honest-comparison',
     title: 'InstantMed vs Going to the GP: An Honest Comparison',
     subtitle:
-      'Different tools for different situations. We are not trying to replace your GP — and here is why.',
+      'Different tools for different situations. We are not trying to replace your GP - and here is why.',
     excerpt:
       'An honest look at when telehealth makes sense and when you should see your GP in person. Spoiler: the answer is usually "use both."',
     category: 'telehealth',
@@ -342,7 +342,7 @@ export const competitorComparisonArticles: Article[] = [
       {
         type: 'paragraph',
         content:
-          'Let us get this out of the way upfront: InstantMed is not trying to replace your GP. We do not want to, and frankly, we could not even if we tried. Your GP is a cornerstone of the Australian healthcare system — someone who knows your history, manages your ongoing care, and can physically examine you when needed. What we are trying to do is handle the straightforward stuff so you do not have to take a half-day off work to get a medical certificate for the cold you obviously have.',
+          'Let us get this out of the way upfront: InstantMed is not trying to replace your GP. We do not want to, and frankly, we could not even if we tried. Your GP is a cornerstone of the Australian healthcare system - someone who knows your history, manages your ongoing care, and can physically examine you when needed. What we are trying to do is handle the straightforward stuff so you do not have to take a half-day off work to get a medical certificate for the cold you obviously have.',
       },
       {
         type: 'paragraph',
@@ -363,12 +363,12 @@ export const competitorComparisonArticles: Article[] = [
         type: 'list',
         content: '',
         items: [
-          'Convenience — You are sick in bed and need a medical certificate. Getting dressed, driving to a clinic, sitting in a waiting room full of other sick people, then driving home does not make you better faster. It just makes you more miserable.',
-          'Cost predictability — You know exactly what you will pay before you start. No wondering whether your GP charges a gap, how much the gap is, or whether the receptionist will surprise you at checkout.',
-          'No waiting rooms — The average GP waiting time in Australia is 20-40 minutes, on top of whatever time it took to get there. With async telehealth, you fill in a form when it suits you and get on with your day.',
-          'After-hours access — InstantMed is available 8am to 10pm AEST, seven days a week. Many GP clinics close at 5pm on weekdays and are not open on weekends. After-hours clinics exist but often have long waits.',
-          'Rural and remote access — If the nearest GP is an hour\'s drive away, telehealth for a straightforward request is not just convenient — it is practical.',
-          'Repeat prescriptions — You have been on the same medication for years. Your doctor has reviewed it recently. You just need the script renewed. A 15-minute GP appointment for a 30-second clinical decision is not a good use of anyone\'s time.',
+          'Convenience - You are sick in bed and need a medical certificate. Getting dressed, driving to a clinic, sitting in a waiting room full of other sick people, then driving home does not make you better faster. It just makes you more miserable.',
+          'Cost predictability - You know exactly what you will pay before you start. No wondering whether your GP charges a gap, how much the gap is, or whether the receptionist will surprise you at checkout.',
+          'No waiting rooms - The average GP waiting time in Australia is 20-40 minutes, on top of whatever time it took to get there. With async telehealth, you fill in a form when it suits you and get on with your day.',
+          'After-hours access - InstantMed is available 8am to 10pm AEST, seven days a week. Many GP clinics close at 5pm on weekdays and are not open on weekends. After-hours clinics exist but often have long waits.',
+          'Rural and remote access - If the nearest GP is an hour\'s drive away, telehealth for a straightforward request is not just convenient - it is practical.',
+          'Repeat prescriptions - You have been on the same medication for years. Your doctor has reviewed it recently. You just need the script renewed. A 15-minute GP appointment for a 30-second clinical decision is not a good use of anyone\'s time.',
         ],
       },
       {
@@ -385,13 +385,13 @@ export const competitorComparisonArticles: Article[] = [
         type: 'list',
         content: '',
         items: [
-          'Physical examinations — Telehealth cannot listen to your lungs, feel a lump, check your blood pressure, or look at a rash properly. If your situation needs hands-on assessment, see a GP.',
-          'Complex or ongoing conditions — Diabetes management, heart disease, mental health that needs close monitoring. Your GP\'s longitudinal knowledge of your health is irreplaceable.',
-          'Children — Kids under 18 generally need in-person consultations, especially for prescriptions. Their symptoms can change quickly, and visual and physical assessment matters more.',
-          'Controlled substances — Schedule 8 medications (strong painkillers, certain ADHD medications, etc.) cannot be prescribed via telehealth. Full stop.',
-          'Procedures — Skin checks, wound care, injections, minor surgery. Obvious, but worth stating.',
-          'New or concerning symptoms — If something is new, unusual, or worrying you, a GP who can examine you is the right call. Telehealth is better for known, straightforward conditions.',
-          'Health assessments and screening — Medicare-funded health assessments, pap smears, vaccination programs. These are designed for in-person care.',
+          'Physical examinations - Telehealth cannot listen to your lungs, feel a lump, check your blood pressure, or look at a rash properly. If your situation needs hands-on assessment, see a GP.',
+          'Complex or ongoing conditions - Diabetes management, heart disease, mental health that needs close monitoring. Your GP\'s longitudinal knowledge of your health is irreplaceable.',
+          'Children - Kids under 18 generally need in-person consultations, especially for prescriptions. Their symptoms can change quickly, and visual and physical assessment matters more.',
+          'Controlled substances - Schedule 8 medications (strong painkillers, certain ADHD medications, etc.) cannot be prescribed via telehealth. Full stop.',
+          'Procedures - Skin checks, wound care, injections, minor surgery. Obvious, but worth stating.',
+          'New or concerning symptoms - If something is new, unusual, or worrying you, a GP who can examine you is the right call. Telehealth is better for known, straightforward conditions.',
+          'Health assessments and screening - Medicare-funded health assessments, pap smears, vaccination programs. These are designed for in-person care.',
         ],
       },
       {
@@ -408,20 +408,20 @@ export const competitorComparisonArticles: Article[] = [
         type: 'list',
         content: 'What you actually pay:',
         items: [
-          'Bulk-billed GP — Free to the patient. Medicare covers the full cost. The catch: finding a bulk-billing GP is increasingly difficult, especially in metro areas. Many practices have shifted to mixed or private billing.',
-          'Private GP (with Medicare rebate) — Total fee typically $60-120. Medicare rebates ~$41 for a standard consult, leaving you with a gap of $20-80 out of pocket. Some practices charge more.',
-          'After-hours GP clinic — Gap payments are often higher, typically $40-100+ out of pocket after Medicare rebate.',
-          'InstantMed medical certificate — $19.95 to $39.95 depending on duration (1-3 days). No Medicare rebate, but the total cost is often less than a private GP gap payment.',
-          'InstantMed repeat prescription — $29.95. Again, no Medicare rebate, but predictable and often comparable to or less than a private GP gap.',
-          'InstantMed general consultation — $49.95. This is where the comparison gets closer to GP pricing. For a complex issue, a bulk-billed GP is clearly cheaper (free). For a straightforward issue at a private GP, it is roughly comparable.',
-          'Specialised InstantMed consultations — $49.95 to $89.95 depending on the type. Competitive with private GP pricing for equivalent services.',
+          'Bulk-billed GP - Free to the patient. Medicare covers the full cost. The catch: finding a bulk-billing GP is increasingly difficult, especially in metro areas. Many practices have shifted to mixed or private billing.',
+          'Private GP (with Medicare rebate) - Total fee typically $60-120. Medicare rebates ~$41 for a standard consult, leaving you with a gap of $20-80 out of pocket. Some practices charge more.',
+          'After-hours GP clinic - Gap payments are often higher, typically $40-100+ out of pocket after Medicare rebate.',
+          'InstantMed medical certificate - $19.95 to $39.95 depending on duration (1-3 days). No Medicare rebate, but the total cost is often less than a private GP gap payment.',
+          'InstantMed repeat prescription - $29.95. Again, no Medicare rebate, but predictable and often comparable to or less than a private GP gap.',
+          'InstantMed general consultation - $49.95. This is where the comparison gets closer to GP pricing. For a complex issue, a bulk-billed GP is clearly cheaper (free). For a straightforward issue at a private GP, it is roughly comparable.',
+          'Specialised InstantMed consultations - $49.95 to $89.95 depending on the type. Competitive with private GP pricing for equivalent services.',
         ],
       },
       {
         type: 'callout',
         variant: 'info',
         content:
-          'The hidden cost most people forget: time. A GP visit including travel, waiting, and the appointment itself typically takes 1-2 hours. If you earn $30-50 per hour, that time has real value — especially for a 5-minute interaction.',
+          'The hidden cost most people forget: time. A GP visit including travel, waiting, and the appointment itself typically takes 1-2 hours. If you earn $30-50 per hour, that time has real value - especially for a 5-minute interaction.',
       },
       {
         type: 'heading',
@@ -441,7 +441,7 @@ export const competitorComparisonArticles: Article[] = [
       {
         type: 'paragraph',
         content:
-          'This is not a criticism of GPs. They are overworked, underfunded, and dealing with increasing demand. Telehealth can take some of the straightforward, low-complexity work off their plate — freeing them to spend more time on patients who genuinely need in-person care.',
+          'This is not a criticism of GPs. They are overworked, underfunded, and dealing with increasing demand. Telehealth can take some of the straightforward, low-complexity work off their plate - freeing them to spend more time on patients who genuinely need in-person care.',
       },
       {
         type: 'heading',
@@ -472,21 +472,21 @@ export const competitorComparisonArticles: Article[] = [
       {
         type: 'paragraph',
         content:
-          'The smartest approach is not choosing between telehealth and a GP — it is using both for what each does best. Keep your regular GP for ongoing care, annual check-ups, complex conditions, and anything that needs physical examination. Use telehealth for straightforward, acute needs that do not require hands-on assessment.',
+          'The smartest approach is not choosing between telehealth and a GP - it is using both for what each does best. Keep your regular GP for ongoing care, annual check-ups, complex conditions, and anything that needs physical examination. Use telehealth for straightforward, acute needs that do not require hands-on assessment.',
       },
       {
         type: 'list',
         content: 'A practical framework:',
         items: [
-          'Regular GP check-ups (annually or as recommended) — See your GP',
-          'Ongoing chronic condition management — See your GP',
-          'Sick with a cold and need a certificate for work — Telehealth',
-          'Need a repeat script for a stable medication — Telehealth',
-          'New symptom you are worried about — See your GP',
-          'Something that needs examination (rash, lump, pain) — See your GP',
-          'Cannot get a GP appointment for a straightforward issue — Telehealth',
-          'After-hours need that is not an emergency — Telehealth or after-hours clinic',
-          'Emergency — Call 000. Not telehealth, not a GP clinic.',
+          'Regular GP check-ups (annually or as recommended) - See your GP',
+          'Ongoing chronic condition management - See your GP',
+          'Sick with a cold and need a certificate for work - Telehealth',
+          'Need a repeat script for a stable medication - Telehealth',
+          'New symptom you are worried about - See your GP',
+          'Something that needs examination (rash, lump, pain) - See your GP',
+          'Cannot get a GP appointment for a straightforward issue - Telehealth',
+          'After-hours need that is not an emergency - Telehealth or after-hours clinic',
+          'Emergency - Call 000. Not telehealth, not a GP clinic.',
         ],
       },
       {
@@ -519,23 +519,23 @@ export const competitorComparisonArticles: Article[] = [
       {
         question: 'Can telehealth replace my regular GP?',
         answer:
-          'No, and it should not try to. Telehealth is best for straightforward, acute needs like medical certificates and repeat prescriptions. Your regular GP provides ongoing, longitudinal care that telehealth cannot replicate — they know your history and can examine you physically.',
+          'No, and it should not try to. Telehealth is best for straightforward, acute needs like medical certificates and repeat prescriptions. Your regular GP provides ongoing, longitudinal care that telehealth cannot replicate - they know your history and can examine you physically.',
       },
       {
         question: 'Is telehealth cheaper than seeing a GP?',
         answer:
-          'It depends. A bulk-billed GP is free, which is cheaper than any telehealth service. But if your GP charges a gap (common in many areas), the out-of-pocket cost is often $20-80+. InstantMed medical certificates start at $19.95 — often less than a private GP gap payment. Factor in the time saved, and the real cost comparison shifts further.',
+          'It depends. A bulk-billed GP is free, which is cheaper than any telehealth service. But if your GP charges a gap (common in many areas), the out-of-pocket cost is often $20-80+. InstantMed medical certificates start at $19.95 - often less than a private GP gap payment. Factor in the time saved, and the real cost comparison shifts further.',
       },
       {
         question:
           'What if the online doctor thinks I need to see someone in person?',
         answer:
-          'Responsible telehealth providers will decline your request and recommend you see a GP in person. This is not a bad outcome — it means the system is working as intended. You will receive a full refund if your request is declined.',
+          'Responsible telehealth providers will decline your request and recommend you see a GP in person. This is not a bad outcome - it means the system is working as intended. You will receive a full refund if your request is declined.',
       },
       {
         question: 'Can I use telehealth if I do not have a Medicare card?',
         answer:
-          'Yes. InstantMed does not require Medicare for medical certificates. For prescriptions and consultations, a Medicare card is required. Some other telehealth services have different policies — check with each provider.',
+          'Yes. InstantMed does not require Medicare for medical certificates. For prescriptions and consultations, a Medicare card is required. Some other telehealth services have different policies - check with each provider.',
       },
       {
         question: 'Should I tell my GP I used telehealth?',
@@ -576,7 +576,7 @@ export const competitorComparisonArticles: Article[] = [
       title:
         'InstantMed vs Going to the GP: An Honest Comparison | InstantMed',
       description:
-        'When should you use telehealth and when should you see your GP? An honest comparison of online doctors vs in-person GP visits — pricing, quality, convenience, and limitations.',
+        'When should you use telehealth and when should you see your GP? An honest comparison of online doctors vs in-person GP visits - pricing, quality, convenience, and limitations.',
       keywords: [
         'online doctor vs gp australia',
         'telehealth vs in person doctor',

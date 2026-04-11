@@ -86,7 +86,7 @@ export function EdHookQuiz({ className }: EdHookQuizProps) {
       return
     }
 
-    // Completed — score and persist
+    // Completed - score and persist
     const tuple: [number, number, number] = [
       nextAnswers[0],
       nextAnswers[1],
@@ -98,7 +98,7 @@ export function EdHookQuiz({ className }: EdHookQuizProps) {
       try {
         sessionStorage.setItem(ED_HOOK_QUIZ_KEY, JSON.stringify(scored))
       } catch {
-        // sessionStorage can throw in private/safari modes — swallow silently
+        // sessionStorage can throw in private/safari modes - swallow silently
       }
     }
 
@@ -216,7 +216,7 @@ export function EdHookQuiz({ className }: EdHookQuizProps) {
             </div>
 
             <h3 className="mb-3 text-xl font-semibold text-foreground sm:text-2xl">
-              Thanks — here&apos;s what you shared
+              Thanks - here&apos;s what you shared
             </h3>
 
             <p className="mx-auto mb-6 max-w-[480px] text-sm leading-relaxed text-muted-foreground sm:text-base">

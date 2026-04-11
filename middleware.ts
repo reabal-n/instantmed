@@ -22,7 +22,7 @@ function isProtectedRoute(pathname: string): boolean {
  * Only bypasses auth when PLAYWRIGHT=1 AND the E2E cookie is present.
  *
  * SECURITY: Explicitly blocked in Vercel production AND preview to match
- * the auth helper in lib/auth.ts — defense-in-depth.
+ * the auth helper in lib/auth.ts - defense-in-depth.
  */
 function hasE2EAuthBypass(req: NextRequest): boolean {
   const isE2ETest = process.env.PLAYWRIGHT === "1"
@@ -74,7 +74,7 @@ export default async function middleware(req: NextRequest) {
   // Protect authenticated routes
   if (isProtectedRoute(pathname)) {
     if (!user) {
-      // Not authenticated — redirect to sign-in (pages) or 401 (API)
+      // Not authenticated - redirect to sign-in (pages) or 401 (API)
       if (pathname.startsWith("/api/")) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
       }

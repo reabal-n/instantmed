@@ -144,7 +144,7 @@ export function useIntakeActions({
       setDoctorNotes(formatted)
       setIsAiPrefilled(true)
       autoAppliedDraft.current = true
-      toast.info("Clinical note auto-drafted — review and edit before saving", { duration: 4000 })
+      toast.info("Clinical note auto-drafted - review and edit before saving", { duration: 4000 })
     }
   }, [aiDrafts, intake.doctor_notes])
 
@@ -349,7 +349,7 @@ export function useIntakeActions({
     startTransition(async () => {
       const result = await approveDateCorrection(pendingCorrection.id, intake.id)
       if (result.success) {
-        toast.success("Date correction approved — use Edit & Resend to generate the updated certificate")
+        toast.success("Date correction approved - use Edit & Resend to generate the updated certificate")
         router.refresh()
       } else {
         toast.error(result.error || "Failed to approve correction")
@@ -418,7 +418,7 @@ export function useIntakeActions({
     try {
       const response = await fetch(`/api/doctor/certificates/${intake.id}/download`)
       if (!response.ok) {
-        toast.error("Certificate not available — it may not have been generated yet")
+        toast.error("Certificate not available - it may not have been generated yet")
         return
       }
       const blob = await response.blob()

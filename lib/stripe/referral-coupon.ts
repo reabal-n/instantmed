@@ -12,7 +12,7 @@ const log = createLogger("referral-coupon")
  *
  * The coupon is capped at the order's price so we never discount below $0.
  * Credits are marked as `applied_at` later in the webhook handler once
- * payment actually succeeds — this function only creates the coupon.
+ * payment actually succeeds - this function only creates the coupon.
  */
 export async function createReferralCouponIfEligible(
   patientId: string,
@@ -35,7 +35,7 @@ export async function createReferralCouponIfEligible(
   const totalCreditCents = credits.reduce((sum, c) => sum + c.credit_cents, 0)
   if (totalCreditCents <= 0) return null
 
-  // Cap discount at order price — never discount below $0
+  // Cap discount at order price - never discount below $0
   const discountCents = Math.min(totalCreditCents, priceCents)
 
   try {
@@ -61,7 +61,7 @@ export async function createReferralCouponIfEligible(
 
     return { couponId: coupon.id, discountCents }
   } catch (err) {
-    log.warn("Failed to create referral coupon — proceeding without discount", {
+    log.warn("Failed to create referral coupon - proceeding without discount", {
       patientId,
       error: err instanceof Error ? err.message : String(err),
     })

@@ -208,7 +208,7 @@ export async function approveDateCorrection(
     },
   })
 
-  logger.info("Date correction approved — certificate regenerated", {
+  logger.info("Date correction approved - certificate regenerated", {
     intakeId,
     correctionEventId,
     startDate,

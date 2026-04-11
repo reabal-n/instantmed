@@ -1,11 +1,12 @@
 import type { Metadata } from "next"
 import { PricingClient } from "./pricing-client"
 import { BreadcrumbSchema, MedicalServiceSchema } from "@/components/seo/healthcare-schema"
+import { PRICING_DISPLAY } from "@/lib/constants"
 
 export const metadata: Metadata = {
   title: "Pricing | Transparent Telehealth Costs",
   description:
-    "Simple, transparent pricing for all InstantMed telehealth services. Medical certificates from $19.95, prescriptions from $29.95. No hidden fees, full refund if we can't help.",
+    `Simple, transparent pricing for all InstantMed telehealth services. Medical certificates from ${PRICING_DISPLAY.MED_CERT}, prescriptions from ${PRICING_DISPLAY.REPEAT_SCRIPT}. No hidden fees, full refund if we can't help.`,
   keywords: [
     "telehealth pricing australia",
     "online doctor cost",
@@ -17,13 +18,13 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Pricing | Transparent Telehealth Costs | InstantMed",
     description:
-      "Simple, transparent pricing. Medical certificates from $19.95, prescriptions from $29.95. No hidden fees.",
+      `Simple, transparent pricing. Medical certificates from ${PRICING_DISPLAY.MED_CERT}, prescriptions from ${PRICING_DISPLAY.REPEAT_SCRIPT}. No hidden fees.`,
     url: "https://instantmed.com.au/pricing",
   },
   twitter: {
     card: "summary_large_image",
     title: "Pricing | InstantMed",
-    description: "Transparent telehealth pricing. Medical certificates from $19.95, prescriptions from $29.95.",
+    description: `Transparent telehealth pricing. Medical certificates from ${PRICING_DISPLAY.MED_CERT}, prescriptions from ${PRICING_DISPLAY.REPEAT_SCRIPT}.`,
   },
   alternates: {
     canonical: "https://instantmed.com.au/pricing",
