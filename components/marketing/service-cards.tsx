@@ -12,15 +12,16 @@ import { useServiceAvailability, type ServiceId } from '@/components/providers/s
 import { WaitlistForm } from '@/components/marketing/waitlist-form'
 import { SectionPill } from '@/components/ui/section-pill'
 
-// Service color → top accent border class
-const accentBorderMap: Record<string, string> = {
-  emerald: 'border-t-emerald-500',
-  cyan: 'border-t-cyan-500',
-  blue: 'border-t-indigo-500',
-  violet: 'border-t-violet-500',
-  pink: 'border-t-pink-500',
-  rose: 'border-t-rose-500',
+// Service color → gradient background + accent border
+const colorThemeMap: Record<string, { gradient: string; border: string; iconGlow: string }> = {
+  emerald: { gradient: 'from-emerald-50/80 to-white dark:from-emerald-950/15 dark:to-card', border: 'border-t-emerald-500', iconGlow: 'shadow-emerald-500/20' },
+  cyan:    { gradient: 'from-cyan-50/80 to-white dark:from-cyan-950/15 dark:to-card',    border: 'border-t-cyan-500',    iconGlow: 'shadow-cyan-500/20' },
+  blue:    { gradient: 'from-indigo-50/80 to-white dark:from-indigo-950/15 dark:to-card', border: 'border-t-indigo-500',  iconGlow: 'shadow-indigo-500/20' },
+  violet:  { gradient: 'from-violet-50/80 to-white dark:from-violet-950/15 dark:to-card', border: 'border-t-violet-500',  iconGlow: 'shadow-violet-500/20' },
+  pink:    { gradient: 'from-pink-50/80 to-white dark:from-pink-950/15 dark:to-card',    border: 'border-t-pink-500',    iconGlow: 'shadow-pink-500/20' },
+  rose:    { gradient: 'from-rose-50/80 to-white dark:from-rose-950/15 dark:to-card',    border: 'border-t-rose-500',    iconGlow: 'shadow-rose-500/20' },
 }
+const defaultTheme = { gradient: 'from-primary/5 to-white dark:from-primary/5 dark:to-card', border: 'border-t-primary', iconGlow: 'shadow-primary/20' }
 
 function useServiceCardVariants() {
   const prefersReducedMotion = useReducedMotion()
@@ -87,10 +88,11 @@ function ServiceCard({ service, disabled }: ServiceCardProps) {
 
         <div className={cn(
           'relative h-full rounded-xl overflow-hidden flex flex-col p-5',
-          'bg-white dark:bg-card',
-          'border border-border/50',
+          'bg-gradient-to-br',
+          (colorThemeMap[service.color] || defaultTheme).gradient,
+          'border border-border/40',
           'border-t-2',
-          accentBorderMap[service.color] || 'border-t-primary',
+          (colorThemeMap[service.color] || defaultTheme).border,
           'shadow-md shadow-primary/[0.06]',
           'transition-all duration-300',
           disabled && 'opacity-60',
@@ -99,8 +101,8 @@ function ServiceCard({ service, disabled }: ServiceCardProps) {
             service.popular && 'ring-2 ring-primary/50 dark:ring-primary/30 shadow-xl shadow-primary/[0.1]',
           ],
         )}>
-          {/* Icon */}
-          <ServiceIconTile iconKey={service.icon} color={service.color} size="lg" className="mb-4" />
+          {/* Icon — larger presence with glow */}
+          <ServiceIconTile iconKey={service.icon} color={service.color} size="lg" className={cn('mb-4 shadow-lg', (colorThemeMap[service.color] || defaultTheme).iconGlow)} />
 
           {/* Title + Price */}
           <h3 className="text-base font-semibold text-foreground group-hover:text-primary transition-colors duration-300 mb-0.5">
@@ -178,10 +180,11 @@ function ComingSoonCard({ service }: ComingSoonCardProps) {
 
       <div className={cn(
         'relative h-full rounded-xl overflow-hidden flex flex-col p-5',
-        'bg-white dark:bg-card',
-        'border border-border/50',
+        'bg-gradient-to-br',
+        (colorThemeMap[service.color] || defaultTheme).gradient,
+        'border border-border/40',
         'border-t-2',
-        accentBorderMap[service.color] || 'border-t-muted',
+        (colorThemeMap[service.color] || defaultTheme).border,
         'shadow-md shadow-primary/[0.06]',
         'opacity-75',
       )}>

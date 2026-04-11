@@ -1,141 +1,90 @@
 'use client'
 
 import Image from 'next/image'
-import { motion } from 'framer-motion'
-import { useReducedMotion } from '@/components/ui/motion'
 import { cn } from '@/lib/utils'
 
 const regulatoryPartners = [
-  {
-    name: 'AHPRA',
-    description: 'AHPRA-registered doctors',
-    logo: '/logos/AHPRA.png',
-    width: 90,
-    maxWidth: 90,
-    isSvg: false,
-  },
-  {
-    name: 'TGA',
-    description: 'TGA-compliant prescribing',
-    logo: '/logos/TGA.png',
-    width: 72,
-    maxWidth: 72,
-    isSvg: false,
-  },
-  {
-    name: 'Medicare',
-    description: 'Medicare Australia',
-    logo: '/logos/medicare.png',
-    width: 56,
-    maxWidth: 56,
-    isSvg: false,
-  },
-  {
-    name: 'RACGP',
-    description: 'RACGP-aligned protocols',
-    logo: '/logos/RACGP.png',
-    width: 80,
-    maxWidth: 80,
-    isSvg: false,
-  },
+  { name: 'AHPRA', logo: '/logos/AHPRA.png', width: 80 },
+  { name: 'TGA', logo: '/logos/TGA.png', width: 64 },
+  { name: 'Medicare', logo: '/logos/medicare.png', width: 52 },
+  { name: 'RACGP', logo: '/logos/RACGP.png', width: 72 },
+  // Text-only entries for partners without logo files
+  { name: 'Stripe', logo: null, width: 0 },
+  { name: 'ADHA', logo: null, width: 0 },
 ]
 
 interface RegulatoryPartnersProps {
+  /** @deprecated — always renders as marquee now */
   variant?: 'strip' | 'section'
   className?: string
-  /** Logo names to exclude (e.g. ["Medicare"] on pages where Medicare rebates don't apply) */
+  /** Logo names to exclude */
   exclude?: string[]
 }
 
-export function RegulatoryPartners({ variant = 'strip', className = '', exclude = [] }: RegulatoryPartnersProps) {
-  const prefersReducedMotion = useReducedMotion()
-  const visiblePartners = regulatoryPartners.filter((p) => !exclude.includes(p.name))
-
-  if (variant === 'strip') {
-    return (
-      <div className={cn('py-4 sm:py-6 lg:py-8 bg-muted/20 dark:bg-white/[0.02]', className)}>
-        <div className="container mx-auto px-4">
-          <p className="text-[10px] font-semibold text-muted-foreground/50 text-center mb-3 sm:mb-5 uppercase tracking-[0.15em]">
-            Regulated by
-          </p>
-          <div className="flex flex-wrap justify-center items-center gap-6 sm:gap-10 md:gap-14">
-            {visiblePartners.map((partner, index) => (
-              <motion.div
-                key={partner.name}
-                initial={prefersReducedMotion ? {} : { y: 6, opacity: 0 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: prefersReducedMotion ? 0 : index * 0.08, duration: 0.35 }}
-                className="flex flex-col items-center gap-2 group"
-                title={partner.description}
-              >
-                <div className="rounded-xl bg-white dark:bg-card border border-border/40 dark:border-white/10 shadow-sm px-3 py-2 sm:px-4 sm:py-3 flex items-center justify-center transition-shadow group-hover:shadow-md">
-                  <Image
-                    src={partner.logo}
-                    alt={partner.description}
-                    width={partner.width}
-                    height={40}
-                    unoptimized
-                    style={{ maxWidth: partner.maxWidth }}
-                    className={cn(
-                      "h-8 w-auto object-contain",
-                      partner.isSvg
-                        ? "dark:brightness-0 dark:invert"
-                        : "rounded dark:bg-white/90 dark:p-0.5"
-                    )}
-                  />
-                </div>
-                <span className="text-[10px] text-muted-foreground/70 font-medium tracking-wide uppercase">{partner.name}</span>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  // Section variant
+function StripeLogo({ className }: { className?: string }) {
   return (
-    <section className={cn('py-12', className)}>
-      <div className="container mx-auto px-4">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-lg font-semibold text-foreground mb-2">
-            Regulated by Australian health authorities
-          </h2>
-          <p className="text-sm text-muted-foreground mb-8">
-            All doctors are AHPRA-registered. Prescriptions are TGA-compliant.
-          </p>
-          <div className="flex flex-wrap justify-center items-center gap-10 md:gap-14">
-            {visiblePartners.map((partner, index) => (
-              <motion.div
-                key={partner.name}
-                initial={prefersReducedMotion ? {} : { y: 10, opacity: 0 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: prefersReducedMotion ? 0 : index * 0.1 }}
-                className="opacity-70 hover:opacity-100 transition-opacity"
-                title={partner.description}
-              >
-                <Image
-                  src={partner.logo}
-                  alt={partner.description}
-                  width={partner.width}
-                  height={40}
-                  unoptimized
-                  style={{ maxWidth: partner.maxWidth }}
-                  className={cn(
-                    "h-8 w-auto object-contain",
-                    partner.isSvg
-                      ? "dark:brightness-0 dark:invert"
-                      : "rounded dark:bg-white/90 dark:p-0.5"
-                  )}
-                />
-              </motion.div>
-            ))}
-          </div>
+    <svg viewBox="0 0 60 25" className={cn('h-5 w-auto', className)} aria-label="Stripe">
+      <text x="0" y="19" fontFamily="system-ui, -apple-system, sans-serif" fontSize="20" fontWeight="700" fill="currentColor">stripe</text>
+    </svg>
+  )
+}
+
+function ADHALogo({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 56 18" className={cn('h-4 w-auto', className)} aria-label="ADHA">
+      <text x="0" y="14" fontFamily="system-ui, -apple-system, sans-serif" fontSize="14" fontWeight="600" letterSpacing="1.5" fill="currentColor">ADHA</text>
+    </svg>
+  )
+}
+
+function LogoItem({ partner }: { partner: typeof regulatoryPartners[number] }) {
+  if (partner.name === 'Stripe') {
+    return <StripeLogo className="text-muted-foreground/50" />
+  }
+  if (partner.name === 'ADHA') {
+    return <ADHALogo className="text-muted-foreground/50" />
+  }
+  if (!partner.logo) return null
+
+  return (
+    <Image
+      src={partner.logo}
+      alt={partner.name}
+      width={partner.width}
+      height={32}
+      unoptimized
+      className="h-6 sm:h-7 w-auto object-contain grayscale opacity-40 dark:invert dark:opacity-30"
+    />
+  )
+}
+
+export function RegulatoryPartners({ className, exclude = [] }: RegulatoryPartnersProps) {
+  const visible = regulatoryPartners.filter((p) => !exclude.includes(p.name))
+  // Double for seamless loop
+  const items = [...visible, ...visible]
+
+  return (
+    <div className={cn('py-4 sm:py-6 overflow-hidden relative', className)}>
+      {/* Label */}
+      <p className="text-[10px] font-semibold text-muted-foreground/40 text-center mb-3 uppercase tracking-[0.15em]">
+        Trusted by
+      </p>
+
+      {/* Fade edges */}
+      <div className="absolute left-0 top-8 bottom-0 w-16 sm:w-24 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
+      <div className="absolute right-0 top-8 bottom-0 w-16 sm:w-24 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
+
+      {/* Marquee track */}
+      <div className="flex whitespace-nowrap motion-reduce:overflow-x-auto">
+        <div className="flex items-center gap-10 sm:gap-14 px-4 animate-marquee motion-reduce:animate-none">
+          {items.map((partner, i) => (
+            <div key={`${partner.name}-${i}`} className="flex items-center shrink-0" title={partner.name}>
+              <LogoItem partner={partner} />
+            </div>
+          ))}
         </div>
       </div>
-    </section>
+    </div>
   )
 }
 

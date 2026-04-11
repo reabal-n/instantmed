@@ -210,7 +210,7 @@ export const BADGE_REGISTRY: Record<BadgeId, BadgeConfig> = {
   },
   google_pharmacy: {
     id: 'google_pharmacy',
-    label: 'Google Ads certified',
+    label: 'Google certified',
     icon: ShieldCheck,
     iconColor: 'text-[#4285F4]',
     pillClass: 'bg-blue-50 border-blue-200 text-blue-800 dark:bg-blue-950/40 dark:border-blue-800 dark:text-blue-300',

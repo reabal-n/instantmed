@@ -126,8 +126,8 @@ export default async function HomePage() {
         {/* 2. Service cards — what we offer */}
         <ServiceCards />
 
-        {/* 2.5 Regulatory authority logos */}
-        <RegulatoryPartners variant="strip" exclude={['Medicare']} />
+        {/* 2.5 Regulatory authority logos — scrolling B&W marquee */}
+        <RegulatoryPartners />
 
         {/* 3. How it works — 3 steps */}
         <Suspense fallback={<SectionSkeleton />}>
@@ -136,11 +136,6 @@ export default async function HomePage() {
 
         {/* 4. Social proof — reviews, doctor credibility, stats */}
         <SocialProofSection />
-
-        {/* 4.5 Third-party certifications — LegitScript + Google Ads */}
-        <div className="flex justify-center py-4">
-          <TrustBadgeRow preset="trust_certifications" />
-        </div>
 
         {/* 5. FAQs */}
         <FAQSection
@@ -151,9 +146,12 @@ export default async function HomePage() {
           viewAllHref="/faq"
         />
 
-        {/* 5.5 Pre-CTA friction removal */}
-        <div className="flex justify-center pb-2">
-          <TrustBadgeRow preset="pre_cta" />
+        {/* 5.5 Pre-CTA friction removal — prominent */}
+        <div className="py-6 sm:py-8">
+          <p className="text-[10px] font-semibold text-muted-foreground/40 text-center mb-3 uppercase tracking-[0.15em]">
+            No barriers
+          </p>
+          <TrustBadgeRow preset="pre_cta" className="justify-center gap-3" />
         </div>
 
         {/* 6. Final CTA */}

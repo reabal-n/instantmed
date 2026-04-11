@@ -46,7 +46,7 @@ export function FAQSection({
 
   return (
     <section id={id} className={cn("py-10 sm:py-14 lg:py-24 scroll-mt-20", className)}>
-      <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-3xl px-4">
         {title && (
           <SectionHeader pill={pill} title={title} subtitle={subtitle} highlightWords={highlightWords} className="mb-6" />
         )}
@@ -70,12 +70,12 @@ export function FAQSection({
             >
               <AccordionItem
                 value={index.toString()}
-                className="border-b border-border/40 last:border-b-0"
+                className="border-b border-border/30 first:border-t first:border-t-border/30"
               >
-                <AccordionTrigger className="py-5 text-left text-sm font-medium text-foreground hover:no-underline">
+                <AccordionTrigger className="py-4 text-left text-[15px] font-medium text-foreground hover:no-underline gap-4">
                   {item.question}
                 </AccordionTrigger>
-                <AccordionContent className="text-sm text-muted-foreground leading-relaxed pb-5">
+                <AccordionContent className="text-sm text-muted-foreground leading-relaxed">
                   {item.answer}
                 </AccordionContent>
               </AccordionItem>
@@ -94,7 +94,7 @@ export function FAQSection({
             </Link>
           </div>
         )}
-      </div>{/* closes max-w-3xl container */}
+      </div>
     </section>
   )
 }

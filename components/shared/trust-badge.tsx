@@ -551,7 +551,7 @@ function GooglePharmacyBadge({ config, className }: { config: BadgeConfig; class
             />
           </svg>
           <div className="leading-tight">
-            <p className="text-xs font-semibold text-foreground">Google Ads</p>
+            <p className="text-xs font-semibold text-foreground">Google</p>
             <p className="text-[10px] text-muted-foreground">Pharmacy Certified</p>
           </div>
         </div>

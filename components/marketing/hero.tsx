@@ -10,6 +10,7 @@ import { useReducedMotion } from '@/components/ui/motion'
 import { HeroMultiServiceMockup } from '@/components/marketing/hero-multi-service-mockup'
 import { TrustBadgeRow } from '@/components/shared/trust-badge'
 import { LastReviewedSignal } from '@/components/marketing/last-reviewed-signal'
+import { HeroTestimonialRotator } from '@/components/marketing/hero-testimonial-rotator'
 
 const LCP_CLASSES = "text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-6 leading-relaxed text-balance"
 
@@ -88,12 +89,14 @@ export function Hero({ children }: { children?: React.ReactNode }) {
                 ]}
                 className="mt-4 justify-center lg:justify-start"
               />
+              {/* Certification badges */}
+              <TrustBadgeRow
+                preset="trust_certifications"
+                className="mt-2 justify-center lg:justify-start"
+              />
               <LastReviewedSignal className="mt-3 justify-center lg:justify-start" />
-              {/* Compact testimonial */}
-              <p className="mt-3 text-xs text-muted-foreground/70 italic max-w-sm mx-auto lg:mx-0 text-center lg:text-left">
-                &ldquo;Got my cert in 20 mins. Employer accepted it no questions asked.&rdquo;
-                <span className="not-italic text-muted-foreground/50 ml-1">— Sarah, Sydney</span>
-              </p>
+              {/* Rotating testimonials */}
+              <HeroTestimonialRotator className="mt-3 mx-auto lg:mx-0 text-center lg:text-left" />
             </motion.div>
           </div>
 
