@@ -4,6 +4,11 @@
  */
 export const MED_CERT_FAQ = [
   {
+    question: "How much does it cost?",
+    answer:
+      "$19.95 for a 1-day certificate, $29.95 for 2 days, and $39.95 for 3 days. One flat fee, no hidden costs, no Medicare card needed. If we can't help, you get a full refund.",
+  },
+  {
     question: "Will my employer accept this?",
     answer:
       "Yes. Our certificates are issued by AHPRA-registered doctors and are legally valid for all employers. Same as what you\u2019d get from a clinic.",
@@ -26,7 +31,7 @@ export const MED_CERT_FAQ = [
   {
     question: "What if the doctor can\u2019t help?",
     answer:
-      "If your request isn\u2019t suitable for online assessment \u2014 for example, a workplace injury claim or something requiring physical examination \u2014 we\u2019ll refund your payment and explain why.",
+      "If your request isn\u2019t suitable for online assessment - for example, a workplace injury claim or something requiring physical examination - we\u2019ll refund your payment and explain why.",
   },
   {
     question: "How do I receive my certificate?",
@@ -46,7 +51,7 @@ export const MED_CERT_FAQ = [
   {
     question: "Can I get a medical certificate for a mental health day?",
     answer:
-      "Yes. Mental health is a valid reason for a medical certificate under Australian employment law. The certificate will state you were unfit for duties \u2014 it won\u2019t disclose your specific condition to your employer.",
+      "Yes. Mental health is a valid reason for a medical certificate under Australian employment law. The certificate will state you were unfit for duties - it won\u2019t disclose your specific condition to your employer.",
   },
   {
     question: "Do I need a Medicare card?",
@@ -56,7 +61,7 @@ export const MED_CERT_FAQ = [
   {
     question: "Is a telehealth medical certificate legal?",
     answer:
-      "Yes. The Fair Work Act requires a certificate from a registered health practitioner \u2014 it does not require an in-person consultation. Certificates from AHPRA-registered doctors via telehealth are legally valid for all employers and universities in Australia.",
+      "Yes. The Fair Work Act requires a certificate from a registered health practitioner - it does not require an in-person consultation. Certificates from AHPRA-registered doctors via telehealth are legally valid for all employers and universities in Australia.",
   },
   {
     question: "What if I need more than 3 days off?",
@@ -66,7 +71,7 @@ export const MED_CERT_FAQ = [
   {
     question: "Can my employer reject this certificate?",
     answer:
-      "No. Under the Fair Work Act, employers must accept medical certificates from AHPRA-registered doctors. The method of consultation \u2014 in-person or telehealth \u2014 does not affect the certificate\u2019s legal validity.",
+      "No. Under the Fair Work Act, employers must accept medical certificates from AHPRA-registered doctors. The method of consultation - in-person or telehealth - does not affect the certificate\u2019s legal validity.",
   },
   {
     question: "How is my information protected?",

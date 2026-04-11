@@ -75,7 +75,7 @@ export function HeroOutcomeMockup() {
         className="absolute -bottom-5 -right-4 xl:-right-6 rounded-xl bg-gradient-to-br from-emerald-50/80 to-white dark:from-emerald-950/15 dark:to-card border border-emerald-200/30 dark:border-emerald-800/15 shadow-lg shadow-emerald-500/[0.08] dark:shadow-none p-2.5 flex items-center gap-2.5 min-w-[190px]"
         initial={animate ? { x: 20, opacity: 0 } : {}}
         animate={{ x: 0, opacity: 1 }}
-        transition={{ duration: 0.5, delay: 0.6, ease: "easeOut" }}
+        transition={{ duration: 0.5, delay: 1.2, ease: "easeOut" }}
       >
         <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
           <Mail className="w-4 h-4 text-primary" />

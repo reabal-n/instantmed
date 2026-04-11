@@ -90,12 +90,15 @@ const ROTATING_BADGES = [
 /** Employer acceptance — logo marquee + verify/employer links */
 function EmployerCalloutStrip({ onEmployerClick, onVerifyClick }: { onEmployerClick?: () => void; onVerifyClick?: () => void }) {
   return (
-    <section className="py-8 sm:py-10">
+    <section data-track-section="employer" className="py-8 sm:py-10">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <div className="rounded-2xl bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06] p-6 sm:p-8">
           <p className="text-center text-sm text-success/90 font-medium flex items-center justify-center gap-2 mb-4">
             <CheckCircle2 className="h-4 w-4 shrink-0" aria-hidden="true" />
             Accepted by {SOCIAL_PROOF.employerAcceptancePercent}% of Australian employers and universities
+          </p>
+          <p className="text-center text-xs text-muted-foreground mt-1">
+            Legally valid under the Fair Work Act - same as a GP certificate
           </p>
           <EmployerLogoMarquee className="py-4" />
           <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
@@ -135,7 +138,7 @@ function HeroSection({
   const animate = !prefersReducedMotion
 
   return (
-    <section aria-label="Medical certificate service overview" className="relative overflow-hidden pt-6 pb-6 sm:pt-16 sm:pb-20 lg:pt-20 lg:pb-24">
+    <section data-track-section="hero" aria-label="Medical certificate service overview" className="relative overflow-hidden pt-6 pb-6 sm:pt-16 sm:pb-20 lg:pt-20 lg:pb-24">
       <div className="mx-auto max-w-5xl px-6 sm:px-8 lg:px-10">
         <div className="flex flex-col lg:flex-row items-center lg:gap-12 xl:gap-14">
           {/* Text content */}
@@ -154,10 +157,10 @@ function HeroSection({
             <h1
               className="text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight mb-3 sm:mb-6 leading-[1.15] animate-hero-headline"
             >
-              Medical certificates,{" "}
+              Sick today? Certificate in{" "}
               <br className="hidden sm:block" />
               <span className="text-premium-gradient">
-                reviewed by a real Australian doctor.
+                your inbox in under an hour.
               </span>
             </h1>
 
@@ -201,7 +204,7 @@ function HeroSection({
                   onClick={onCTAClick}
                 >
                   <Link href="/request?service=med-cert">
-                    Get your certificate — ${PRICING.MED_CERT.toFixed(2)}
+                    Get your certificate - ${PRICING.MED_CERT.toFixed(2)}
                     <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
                   </Link>
                 </Button>
@@ -246,7 +249,7 @@ function HeroSection({
 /** Outcome preview — what the approved certificate looks like */
 function OutcomePreviewSection() {
   return (
-    <section className="py-12 lg:py-16">
+    <section data-track-section="outcome" className="py-12 lg:py-16">
       <div className="mx-auto max-w-5xl px-6 sm:px-8 lg:px-10">
         <div className="flex flex-col lg:flex-row items-center gap-10 lg:gap-16">
           <div className="flex-1 min-w-0">
@@ -305,6 +308,26 @@ export function MedCertLanding() {
     return () => observer.disconnect()
   }, [])
 
+  // Section visibility funnel tracking
+  useEffect(() => {
+    const sections = document.querySelectorAll<HTMLElement>("[data-track-section]")
+    const seen = new Set<string>()
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          const id = (entry.target as HTMLElement).dataset.trackSection
+          if (entry.isIntersecting && id && !seen.has(id)) {
+            seen.add(id)
+            analytics.trackSectionView(id)
+          }
+        })
+      },
+      { threshold: 0.3 }
+    )
+    sections.forEach((el) => observer.observe(el))
+    return () => observer.disconnect()
+  }, [analytics])
+
   // CTA click handlers with analytics
   const handleHeroCTA = useCallback(() => analytics.trackCTAClick("hero"), [analytics])
   const handleHowItWorksCTA = useCallback(() => analytics.trackCTAClick("how_it_works"), [analytics])
@@ -348,19 +371,25 @@ export function MedCertLanding() {
           <HeroSection ctaRef={heroCTARef} onCTAClick={handleHeroCTA} />
 
           {/* 2. Certificate type selector — engagement hook + pricing + comparison */}
-          <CertificateTypeSelector />
+          <div data-track-section="selector">
+            <CertificateTypeSelector />
+          </div>
 
           {/* 3. Regulatory authority logos — scrolling B&W marquee */}
           <RegulatoryPartners />
 
           {/* 4. How It Works */}
-          <HowItWorksSection onCTAClick={handleHowItWorksCTA} />
+          <div data-track-section="how_it_works">
+            <HowItWorksSection onCTAClick={handleHowItWorksCTA} />
+          </div>
 
           {/* 5. Outcome preview — what approval looks like */}
           <OutcomePreviewSection />
 
           {/* 6. Social proof — reviews, doctor credibility, stats */}
-          <SocialProofSection />
+          <div data-track-section="social_proof">
+            <SocialProofSection />
+          </div>
 
           {/* 7. Employer acceptance — logo marquee + links */}
           <EmployerCalloutStrip onEmployerClick={handleEmployerClick} onVerifyClick={handleVerifyClick} />
@@ -369,14 +398,16 @@ export function MedCertLanding() {
           <LimitationsSection />
 
           {/* 9. FAQ */}
-          <FAQSection
-            pill="FAQ"
-            title="Before you start"
-            subtitle="Everything you need to know about getting your certificate."
-            items={MED_CERT_FAQ}
-            onFAQOpen={handleFAQOpen}
-            viewAllHref="/faq"
-          />
+          <div data-track-section="faq">
+            <FAQSection
+              pill="FAQ"
+              title="Before you start"
+              subtitle="Everything you need to know about getting your certificate."
+              items={MED_CERT_FAQ}
+              onFAQOpen={handleFAQOpen}
+              viewAllHref="/faq"
+            />
+          </div>
 
           {/* 10. Pre-CTA friction removal */}
           <div className="py-6 sm:py-8">
@@ -387,12 +418,14 @@ export function MedCertLanding() {
           </div>
 
           {/* 11. Final CTA */}
-          <CTABanner
-            title="Let a doctor handle the paperwork"
-            subtitle="Two minutes on your phone. A real doctor reviews it. Certificate in your inbox."
-            ctaText={isDisabled ? "Contact us" : `Get your certificate — $${PRICING.MED_CERT.toFixed(2)}`}
-            ctaHref={isDisabled ? "/contact" : "/request?service=med-cert"}
-          />
+          <div data-track-section="final_cta">
+            <CTABanner
+              title="Let a doctor handle the paperwork"
+              subtitle="Two minutes on your phone. A real doctor reviews it. Certificate in your inbox."
+              ctaText={isDisabled ? "Contact us" : `Get your certificate - $${PRICING.MED_CERT.toFixed(2)}`}
+              ctaHref={isDisabled ? "/contact" : "/request?service=med-cert"}
+            />
+          </div>
         </main>
 
         {/* Compliance strip */}
@@ -418,7 +451,7 @@ export function MedCertLanding() {
         >
           <div className="bg-white/90 dark:bg-card/90 backdrop-blur-lg border-t border-border/50 px-4 pt-2.5 pb-3 safe-area-pb">
             <p className="text-xs text-muted-foreground text-center mb-2">
-              2-min form · GP-reviewed · <span className="line-through text-muted-foreground/50">~$72 GP</span> · Available 24/7
+              Doctor available now · <span className="line-through text-muted-foreground/50">~$72 GP</span> · Available 24/7
             </p>
             <Button
               asChild
@@ -430,10 +463,17 @@ export function MedCertLanding() {
               <Link href={isDisabled ? "/contact" : "/request?service=med-cert"}>
                 {isDisabled
                   ? "Contact us"
-                  : `Get your certificate — $${PRICING.MED_CERT.toFixed(2)}`}
+                  : `Get your certificate - $${PRICING.MED_CERT.toFixed(2)}`}
                 <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
               </Link>
             </Button>
+            <div className="flex items-center justify-center gap-2 mt-1.5">
+              <span className="text-[10px] text-muted-foreground/50">Secured by Stripe</span>
+              <span className="text-muted-foreground/30">·</span>
+              <span className="text-[10px] text-muted-foreground/50">Apple Pay</span>
+              <span className="text-muted-foreground/30">·</span>
+              <span className="text-[10px] text-muted-foreground/50">Google Pay</span>
+            </div>
           </div>
         </motion.div>
 
@@ -451,7 +491,7 @@ export function MedCertLanding() {
           <div className="bg-white/95 dark:bg-card/95 backdrop-blur-lg border-b border-border/50 shadow-sm">
             <div className="mx-auto max-w-5xl px-6 h-14 flex items-center justify-between gap-6">
               <p className="text-sm text-muted-foreground hidden xl:block">
-                Medical Certificate · Available 24/7
+                Doctor available now · Medical Certificate
               </p>
               <div className="flex items-center gap-3 ml-auto">
                 <span className="text-sm text-muted-foreground">
