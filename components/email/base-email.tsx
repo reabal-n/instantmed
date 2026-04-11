@@ -77,12 +77,16 @@ interface BaseEmailProps {
   showReviewCTA?: boolean
   /** Show the referral CTA after content. Default false. */
   showReferral?: boolean
+  /** Intake ID for PostHog tracking attribution. */
+  intakeId?: string
+  /** User ID for PostHog tracking attribution. */
+  userId?: string
 }
 
-export function BaseEmail({ children, previewText, appUrl = "https://instantmed.com.au", showReviewCTA = false, showReferral = false }: BaseEmailProps) {
+export function BaseEmail({ children, previewText, appUrl = "https://instantmed.com.au", showReviewCTA = false, showReferral = false, intakeId, userId }: BaseEmailProps) {
   const patientFloor = Math.max(500, Math.floor(getPatientCount() / 500) * 500)
   return (
-    <html lang="en-AU">
+    <html lang="en-AU" style={{ colorScheme: "light dark" }}>
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -90,6 +94,22 @@ export function BaseEmail({ children, previewText, appUrl = "https://instantmed.
         <meta name="supported-color-schemes" content="light dark" />
 {/* No web fonts — email clients strip <link> tags, causing serif fallback */}
         <title>InstantMed</title>
+        {/* MSO conditional for Outlook desktop dark mode */}
+        <div dangerouslySetInnerHTML={{ __html: `<!--[if mso]>
+<style>
+  body { background-color: #0f0f0f !important; }
+  .email-card { background-color: #1a1a1a !important; }
+</style>
+<![endif]-->` }} />
+        {/*
+         * Dark mode strategy:
+         * - Apple Mail / iOS Mail: Full dark mode via @media (prefers-color-scheme: dark)
+         * - Outlook.com: Same, plus color-scheme meta
+         * - Outlook desktop: MSO conditional comment above
+         * - Gmail: Strips <style> blocks entirely. Users get light mode.
+         *   Gmail's forced dark mode may invert colors, but we cannot control that.
+         * - Samsung Mail: Partial via !important inline overrides
+         */}
         <style>{`
           body, td, p, h1, h2, h3, a, span, div, li {
             font-family: ${fontFamily} !important;
@@ -136,6 +156,7 @@ export function BaseEmail({ children, previewText, appUrl = "https://instantmed.
           margin: 0,
           padding: 0,
           backgroundColor: colors.background,
+          colorScheme: "light dark",
           WebkitTextSizeAdjust: "100%",
         }}
         data-x-apple-data-detectors="false"
