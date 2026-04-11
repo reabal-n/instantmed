@@ -50,6 +50,20 @@ interface SupabaseAuthHookPayload {
 
 // --- Helpers ---
 
+/**
+ * Parse Supabase hook secret from "v1,whsec_<base64>" format.
+ * Returns the raw key bytes for JWT verification.
+ */
+function parseHookSecret(raw: string): Uint8Array {
+  const parts = raw.split(",")
+  if (parts.length === 2 && parts[0] === "v1") {
+    const keyStr = parts[1].replace("whsec_", "")
+    return Uint8Array.from(Buffer.from(keyStr, "base64"))
+  }
+  // Fallback: treat as raw UTF-8 string
+  return new TextEncoder().encode(raw)
+}
+
 function buildVerifyUrl(
   supabaseUrl: string,
   tokenHash: string,
@@ -117,7 +131,8 @@ export async function POST(req: Request) {
   let payload: SupabaseAuthHookPayload
 
   try {
-    const secret = new TextEncoder().encode(hookSecret)
+    // Supabase hook secrets use "v1,whsec_<base64>" format
+    const secret = parseHookSecret(hookSecret)
     const { payload: jwtPayload } = await jwtVerify(token, secret)
     payload = jwtPayload as unknown as SupabaseAuthHookPayload
   } catch (err) {
