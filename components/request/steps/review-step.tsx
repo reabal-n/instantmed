@@ -318,12 +318,13 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
         unknown: 'Not sure',
       }
       const HAIR_MED_LABELS: Record<string, string> = {
-        finasteride: 'Finasteride (oral)',
-        minoxidil: 'Minoxidil (topical)',
+        oral: 'Daily oral tablet',
+        topical: 'Topical scalp treatment',
+        doctor_decides: 'Doctor to recommend',
       }
       const triedTreatments = [
-        { key: 'triedMinoxidil', label: 'Minoxidil' },
-        { key: 'triedFinasteride', label: 'Finasteride' },
+        { key: 'triedMinoxidil', label: 'Topical solution' },
+        { key: 'triedFinasteride', label: 'Oral medication' },
         { key: 'triedBiotin', label: 'Biotin' },
         { key: 'triedShampoos', label: 'Medicated shampoos' },
         { key: 'triedPRP', label: 'PRP therapy' },

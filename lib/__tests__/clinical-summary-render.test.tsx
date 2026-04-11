@@ -90,7 +90,7 @@ describe("ClinicalSummary - hair loss subtype (camelCase keys)", () => {
     hairPattern: "male_pattern",
     hairDuration: "1_to_2_years",
     hairFamilyHistory: "yes_father",
-    hairMedicationPreference: "finasteride",
+    hairMedicationPreference: "oral",
     hairAdditionalInfo: "Noticed more hair in the shower",
     // Previous-treatment toggles (only true ones typically present)
     triedMinoxidil: true,

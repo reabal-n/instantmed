@@ -162,7 +162,7 @@ describe("validateHairLossConsult", () => {
     hairPattern: "male_pattern",
     hairDuration: "1_to_2_years",
     hairFamilyHistory: "yes_father",
-    hairMedicationPreference: "finasteride",
+    hairMedicationPreference: "oral",
   }
 
   it("passes with all required fields", () => {
@@ -603,7 +603,7 @@ describe("validateConsultBySubtype", () => {
       hairPattern: "male_pattern",
       hairDuration: "more_than_2_years",
       hairFamilyHistory: "yes_both",
-      hairMedicationPreference: "finasteride",
+      hairMedicationPreference: "oral",
     })
     expect(result.valid).toBe(true)
   })

@@ -15,8 +15,6 @@ import { usePostHog } from "@/components/providers/posthog-provider"
 import { ArrowRight } from "lucide-react"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
-import { Switch } from "@/components/ui/switch"
-import { Label } from "@/components/ui/label"
 import { EnhancedSelectionButton } from "@/components/shared/enhanced-selection-button"
 import { useRequestStore } from "../store"
 import { useKeyboardNavigation } from "@/hooks/use-keyboard-navigation"
@@ -217,35 +215,31 @@ export default function MedicalHistoryStep({ serviceType, onNext }: MedicalHisto
         />
       </div>
 
-      {/* Safety screening - informational toggles */}
-      <div className="rounded-2xl border border-border/60 bg-muted/30 dark:bg-white/5 p-4 space-y-3">
+      {/* Safety screening - same format as above */}
+      <div className="rounded-2xl border border-border/50 bg-white dark:bg-card shadow-md shadow-primary/[0.06] p-4 space-y-5">
         <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
           Safety screening
         </p>
 
-        <div className="flex items-center justify-between gap-3 py-2">
-          <Label htmlFor="pregnant-toggle" className="text-sm cursor-pointer leading-snug flex-1">
-            Currently pregnant or breastfeeding?
-          </Label>
-          <Switch
-            id="pregnant-toggle"
-            checked={isPregnantOrBreastfeeding === true}
-            onCheckedChange={(checked) => setAnswer('isPregnantOrBreastfeeding', checked)}
-          />
-        </div>
+        <YesNoQuestion
+          label="Currently pregnant or breastfeeding?"
+          helpText="Important for medication safety"
+          noLabel="No"
+          yesLabel="Yes"
+          value={isPregnantOrBreastfeeding}
+          onSelect={(val) => setAnswer('isPregnantOrBreastfeeding', val)}
+        />
 
-        <div className="border-t border-border/30" />
+        <div className="border-t border-border/40" />
 
-        <div className="flex items-center justify-between gap-3 py-2">
-          <Label htmlFor="adverse-reactions-toggle" className="text-sm cursor-pointer leading-snug flex-1">
-            Previous adverse reactions to medications?
-          </Label>
-          <Switch
-            id="adverse-reactions-toggle"
-            checked={hasAdverseMedicationReactions === true}
-            onCheckedChange={(checked) => setAnswer('hasAdverseMedicationReactions', checked)}
-          />
-        </div>
+        <YesNoQuestion
+          label="Previous adverse reactions to medications?"
+          helpText="Allergic reactions, side effects, intolerances"
+          noLabel="No reactions"
+          yesLabel="Yes"
+          value={hasAdverseMedicationReactions}
+          onSelect={(val) => setAnswer('hasAdverseMedicationReactions', val)}
+        />
       </div>
 
       {/* Continue button */}
@@ -263,6 +257,11 @@ export default function MedicalHistoryStep({ serviceType, onNext }: MedicalHisto
           "Continue"
         )}
       </Button>
+      {canContinue && (
+        <p className="text-[11px] text-muted-foreground/60 text-center hidden sm:block">
+          Press Enter to continue
+        </p>
+      )}
     </div>
   )
 }

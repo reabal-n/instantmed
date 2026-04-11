@@ -244,7 +244,7 @@ export function validateEdConsult(answers: Answers): ConsultValidationResult {
 const HAIR_PATTERN_VALUES = ["male_pattern", "overall_thinning", "patchy", "other"] as const
 const HAIR_DURATION_VALUES = ["less_than_6_months", "6_to_12_months", "1_to_2_years", "more_than_2_years"] as const
 const HAIR_FAMILY_VALUES = ["yes_father", "yes_mother", "yes_both", "no", "unknown"] as const
-const HAIR_MED_PREFERENCE_VALUES = ["finasteride", "minoxidil"] as const
+const HAIR_MED_PREFERENCE_VALUES = ["oral", "topical", "doctor_decides"] as const
 
 export function validateHairLossConsult(answers: Answers): ConsultValidationResult {
   const errors: string[] = []

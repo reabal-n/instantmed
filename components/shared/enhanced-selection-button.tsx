@@ -61,10 +61,18 @@ export function EnhancedSelectionButton({
     ),
   }
 
+  const handleClick = () => {
+    // Subtle haptic on mobile for tactile confirmation
+    if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+      navigator.vibrate(10)
+    }
+    onClick()
+  }
+
   return (
     <motion.button
       type="button"
-      onClick={onClick}
+      onClick={handleClick}
       whileTap={prefersReducedMotion ? undefined : { scale: 0.96 }}
       transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.1 }}
       className={cn(baseClasses, variantClasses[variant], className)}

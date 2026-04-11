@@ -19,11 +19,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { useReducedMotion } from "@/components/ui/motion"
 import { stagger } from "@/lib/motion"
 import { ChevronRight, RotateCcw, Trash2, Star } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { ServiceIconTile } from "@/components/icons/service-icons"
-import { WaitlistCapture } from "@/components/request/waitlist-capture"
 import { LegitScriptSeal } from "@/components/marketing/legitscript-seal"
 import { GoogleAdsCert } from "@/components/marketing/google-ads-cert"
 import { cn } from "@/lib/utils"
@@ -45,10 +41,8 @@ interface ServiceDef {
   subtitle: string
   price: string
   pricePrefix?: string
-  badge: { text: string; variant: "success" | "secondary" | "outline" }
   effort: string
-  iconKey: string
-  iconColor: string
+  emoji: string
   popular?: boolean
   service: UnifiedServiceType
   subtype?: string
@@ -57,51 +51,43 @@ interface ServiceDef {
 const SERVICES: ServiceDef[] = [
   {
     id: "med-cert",
-    title: "Get a medical certificate",
-    subtitle: "Doctor-reviewed and ready in ~30 minutes",
+    title: "Medical certificate",
+    subtitle: "Doctor-reviewed, ready in ~30 min",
     price: PRICING_DISPLAY.MED_CERT,
     pricePrefix: "From",
-    badge: { text: "No call needed", variant: "success" },
     effort: "~2 min",
-    iconKey: "FileText",
-    iconColor: "cyan",
+    emoji: "\uD83D\uDCCB",
     popular: true,
     service: "med-cert",
     subtype: undefined,
   },
   {
     id: "repeat-rx",
-    title: "Refill your medication",
-    subtitle: "Renew an existing prescription online",
+    title: "Refill a prescription",
+    subtitle: "Renew an existing medication online",
     price: PRICING_DISPLAY.REPEAT_SCRIPT,
-    badge: { text: "No call needed", variant: "success" },
     effort: "~3 min",
-    iconKey: "Pill",
-    iconColor: "emerald",
+    emoji: "\uD83D\uDC8A",
     service: "repeat-script",
     subtype: undefined,
   },
   {
     id: "ed",
-    title: "Treat erectile dysfunction",
-    subtitle: "Discreet doctor assessment - no phone call",
+    title: "Erectile dysfunction",
+    subtitle: "Discreet assessment, no phone call",
     price: PRICING_DISPLAY.MENS_HEALTH,
-    badge: { text: "No call needed", variant: "success" },
     effort: "~4 min",
-    iconKey: "Lightning",
-    iconColor: "blue",
+    emoji: "\u26A1",
     service: "consult",
     subtype: "ed",
   },
   {
     id: "hair-loss",
-    title: "Treat hair loss",
+    title: "Hair loss treatment",
     subtitle: "Doctor-assessed treatment plan",
     price: PRICING_DISPLAY.HAIR_LOSS,
-    badge: { text: "No call needed", variant: "success" },
     effort: "~2 min",
-    iconKey: "Sparkles",
-    iconColor: "violet",
+    emoji: "\u2728",
     service: "consult",
     subtype: "hair_loss",
   },
@@ -112,15 +98,13 @@ const COMING_SOON = [
     id: "womens-health",
     title: "Women's health",
     subtitle: "Contraception, UTI treatment & more",
-    iconKey: "Heart",
-    iconColor: "pink",
+    emoji: "\uD83E\uDDF1",
   },
   {
     id: "weight-loss",
     title: "Weight management",
     subtitle: "Doctor-guided treatment plan",
-    iconKey: "Flame",
-    iconColor: "rose",
+    emoji: "\uD83C\uDFAF",
   },
 ]
 
@@ -187,12 +171,6 @@ export function ServiceHubScreen({ onSelectService }: ServiceHubScreenProps) {
     [posthog],
   )
 
-  const handleClearAllDrafts = useCallback(() => {
-    posthog?.capture("all_drafts_cleared", { count: drafts.length })
-    drafts.forEach((d) => clearDraft(d.serviceType))
-    setDrafts([])
-  }, [drafts, posthog])
-
   const handleSelectService = useCallback(
     (service: UnifiedServiceType, consultSubtype?: string) => {
       posthog?.capture("service_selected", {
@@ -242,71 +220,50 @@ export function ServiceHubScreen({ onSelectService }: ServiceHubScreenProps) {
           </div>
         </div>
 
-        {/* Draft banners */}
+        {/* Draft banners - compact inline bars */}
         <AnimatePresence>
-          {drafts.length > 1 && (
-            <motion.div
-              key="clear-all"
-              initial={prefersReducedMotion ? {} : { opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="flex justify-end mb-1"
-            >
-              <button
-                type="button"
-                onClick={handleClearAllDrafts}
-                className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors"
-              >
-                Clear all drafts
-              </button>
-            </motion.div>
-          )}
           {drafts.map((draft) => (
             <motion.div
               key={draft.serviceType}
-              initial={prefersReducedMotion ? {} : { opacity: 0, y: -20 }}
+              initial={prefersReducedMotion ? {} : { opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
+              exit={{ opacity: 0, y: -8 }}
             >
-              <Alert className="border-primary/20 bg-primary/5 mb-3">
-                <RotateCcw className="w-4 h-4" />
-                <AlertDescription className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <span className="text-sm">
-                    You have an unfinished{" "}
-                    {SERVICE_NAMES[draft.serviceType as string] ?? "request"}.
-                  </span>
-                  <div className="flex gap-2 shrink-0">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleClearDraft(draft.serviceType)}
-                      className="gap-1.5"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                      Start fresh
-                    </Button>
-                    <Button
-                      size="sm"
-                      onClick={() => handleResumeDraft(draft)}
-                      className="gap-1.5"
-                    >
-                      <RotateCcw className="w-3.5 h-3.5" />
-                      Resume
-                    </Button>
-                  </div>
-                </AlertDescription>
-              </Alert>
+              <div className="flex items-center justify-between gap-2 px-3.5 py-2.5 rounded-xl bg-primary/5 border border-primary/20 mb-2">
+                <span className="text-sm text-foreground truncate">
+                  Continue your{" "}
+                  {SERVICE_NAMES[draft.serviceType as string] ?? "request"}?
+                </span>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => handleClearDraft(draft.serviceType)}
+                    className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+                    aria-label="Discard draft"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                  <Button
+                    size="sm"
+                    onClick={() => handleResumeDraft(draft)}
+                    className="h-7 px-3 text-xs gap-1"
+                  >
+                    <RotateCcw className="w-3 h-3" />
+                    Resume
+                  </Button>
+                </div>
+              </div>
             </motion.div>
           ))}
         </AnimatePresence>
 
-        {/* Request Again - returning users */}
+        {/* Request Again - compact row for returning users */}
         <AnimatePresence>
           {lastServiceType && drafts.length === 0 && (
             <motion.div
-              initial={prefersReducedMotion ? {} : { opacity: 0, y: -10 }}
+              initial={prefersReducedMotion ? {} : { opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
+              exit={{ opacity: 0, y: -8 }}
             >
               <button
                 type="button"
@@ -318,44 +275,37 @@ export function ServiceHubScreen({ onSelectService }: ServiceHubScreenProps) {
                 }
                 className="w-full text-left group mb-2"
               >
-                <div
-                  className={cn(
-                    "rounded-xl bg-primary/5 border border-primary/20 p-3.5",
-                    "group-hover:bg-primary/8 transition-colors duration-200",
-                  )}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
-                        <RotateCcw className="w-4 h-4 text-primary" />
-                      </div>
-                      <div>
-                        <p className="font-medium text-sm">Request again</p>
-                        <p className="text-xs text-muted-foreground">
-                          Start another{" "}
-                          {lastServiceType === 'consult' && lastConsultSubtype
-                            ? (CONSULT_SUBTYPE_NAMES[lastConsultSubtype] ?? SERVICE_NAMES[lastServiceType] ?? "request")
-                            : (SERVICE_NAMES[lastServiceType] ?? "request")}
-                        </p>
-                      </div>
-                    </div>
-                    <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                <div className="flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-primary/5 border border-primary/20 group-hover:bg-primary/8 transition-colors duration-150">
+                  <div className="flex items-center gap-2.5">
+                    <RotateCcw className="w-3.5 h-3.5 text-primary shrink-0" />
+                    <span className="text-sm font-medium text-foreground">
+                      Request another{" "}
+                      {lastServiceType === 'consult' && lastConsultSubtype
+                        ? (CONSULT_SUBTYPE_NAMES[lastConsultSubtype] ?? SERVICE_NAMES[lastServiceType] ?? "request")
+                        : (SERVICE_NAMES[lastServiceType] ?? "request")}
+                    </span>
                   </div>
+                  <ChevronRight className="w-3.5 h-3.5 text-muted-foreground group-hover:translate-x-0.5 transition-transform" />
                 </div>
               </button>
             </motion.div>
           )}
         </AnimatePresence>
 
+        {/* Trust signal */}
+        <p className="text-xs text-muted-foreground text-center">
+          All services are text-based. No phone call required.
+        </p>
+
         {/* ── Active service cards ────────────────────────────────────── */}
         <motion.div
-          className="space-y-3"
+          className="rounded-2xl border border-border/50 bg-white dark:bg-card shadow-md shadow-primary/[0.06] overflow-hidden divide-y divide-border/40"
           variants={prefersReducedMotion ? undefined : stagger.container}
           initial={prefersReducedMotion ? undefined : "initial"}
           animate={prefersReducedMotion ? undefined : "animate"}
         >
           {SERVICES.map((svc) => (
-            <HeroServiceCard
+            <CompactServiceRow
               key={svc.id}
               {...svc}
               onClick={() => handleSelectService(svc.service, svc.subtype)}
@@ -373,23 +323,19 @@ export function ServiceHubScreen({ onSelectService }: ServiceHubScreenProps) {
             {COMING_SOON.map((svc) => (
               <div
                 key={svc.id}
-                className="rounded-xl bg-muted/30 border border-border/30 p-4"
+                className="rounded-xl bg-muted/30 border border-border/30 px-4 py-3.5"
               >
-                <div className="flex items-center gap-3 mb-2.5">
-                  <ServiceIconTile
-                    iconKey={svc.iconKey}
-                    color={svc.iconColor}
-                    size="sm"
-                    className="opacity-50"
-                  />
-                  <h4 className="text-sm font-medium text-muted-foreground">
-                    {svc.title}
-                  </h4>
+                <div className="flex items-center gap-2.5">
+                  <span className="text-base opacity-50" role="img">{svc.emoji}</span>
+                  <div>
+                    <h4 className="text-sm font-medium text-muted-foreground">
+                      {svc.title}
+                    </h4>
+                    <p className="text-xs text-muted-foreground/60 mt-0.5">
+                      {svc.subtitle}
+                    </p>
+                  </div>
                 </div>
-                <p className="text-xs text-muted-foreground/70 leading-relaxed">
-                  {svc.subtitle}
-                </p>
-                <WaitlistCapture serviceId={svc.id} serviceName={svc.title} />
               </div>
             ))}
           </div>
@@ -410,95 +356,63 @@ export function ServiceHubScreen({ onSelectService }: ServiceHubScreenProps) {
   )
 }
 
-// ─── Hero Service Card ────────────────────────────────────────────────────
+// ─── Compact Service Row ─────────────────────────────────────────────────
 
-interface HeroCardProps extends ServiceDef {
+interface CompactRowProps extends ServiceDef {
   onClick: () => void
   prefersReducedMotion: boolean | null
 }
 
-function HeroServiceCard({
+function CompactServiceRow({
   title,
   subtitle,
   price,
   pricePrefix,
-  badge,
   effort,
-  iconKey,
-  iconColor,
+  emoji,
   popular,
   onClick,
   prefersReducedMotion,
-}: HeroCardProps) {
+}: CompactRowProps) {
   return (
     <motion.div variants={prefersReducedMotion ? undefined : stagger.item}>
       <button
         type="button"
         onClick={onClick}
-        className="w-full text-left group"
+        className={cn(
+          "w-full text-left group px-4 py-3.5",
+          "hover:bg-muted/50 dark:hover:bg-white/[0.08]",
+          "transition-colors duration-150",
+        )}
       >
-        <div
-          className={cn(
-            "relative rounded-2xl bg-white dark:bg-card p-5",
-            "border border-border/50 dark:border-white/10",
-            // Solid depth - two-layer shadow + inner highlight
-            "[box-shadow:0_2px_8px_rgba(37,99,235,0.06),0_1px_3px_rgba(37,99,235,0.04),inset_0_1px_0_rgba(255,255,255,0.8)]",
-            "dark:[box-shadow:none]",
-            // Hover: lift + deepen shadow
-            "group-hover:-translate-y-0.5",
-            "group-hover:[box-shadow:0_8px_24px_rgba(37,99,235,0.10),0_2px_6px_rgba(37,99,235,0.06),inset_0_1px_0_rgba(255,255,255,0.9)]",
-            "dark:group-hover:border-white/20",
-            "transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]",
-          )}
-        >
-          {/* Top section: icon + title/subtitle */}
-          <div className="flex items-start gap-4">
-            <ServiceIconTile
-              iconKey={iconKey}
-              color={iconColor}
-              size="lg"
-              className="transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-105"
-            />
+        <div className="flex items-center gap-3.5">
+          {/* Emoji */}
+          <span className="text-xl shrink-0 leading-none" role="img">{emoji}</span>
 
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap mb-1">
-                <h3 className="font-semibold text-[15px] leading-snug text-foreground">
-                  {title}
-                </h3>
-                {popular && (
-                  <span className="inline-flex items-center text-[10px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/30 border border-amber-200/60 dark:border-amber-700/40 rounded-full px-2 py-0.5 leading-none whitespace-nowrap">
-                    Popular
-                  </span>
-                )}
-              </div>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                {subtitle}
-              </p>
-            </div>
-
-            <ChevronRight
-              className={cn(
-                "w-5 h-5 text-muted-foreground/50 shrink-0 mt-1",
-                "transition-all duration-200",
-                "group-hover:text-muted-foreground group-hover:translate-x-0.5",
+          {/* Content */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <h3 className="font-semibold text-sm text-foreground truncate">
+                {title}
+              </h3>
+              {popular && (
+                <span className="inline-flex items-center text-[9px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/30 border border-amber-200/60 dark:border-amber-700/40 rounded-full px-1.5 py-0.5 leading-none whitespace-nowrap">
+                  Popular
+                </span>
               )}
-            />
+            </div>
+            <p className="text-xs text-muted-foreground mt-0.5 truncate">
+              {subtitle}
+              <span className="text-border-em mx-1.5">·</span>
+              {effort}
+            </p>
           </div>
 
-          {/* Divider */}
-          <div className="border-t border-border/40 dark:border-white/5 mt-4 mb-3" />
-
-          {/* Bottom section: metadata row */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <Badge variant={badge.variant} className="text-[11px] px-2 py-0">
-                {badge.text}
-              </Badge>
-              <span className="text-xs text-muted-foreground">{effort}</span>
-            </div>
+          {/* Price + chevron */}
+          <div className="flex items-center gap-2 shrink-0">
             <div className="text-right">
               {pricePrefix && (
-                <span className="text-[11px] text-muted-foreground">
+                <span className="text-[10px] text-muted-foreground">
                   {pricePrefix}{" "}
                 </span>
               )}
@@ -506,6 +420,13 @@ function HeroServiceCard({
                 {price}
               </span>
             </div>
+            <ChevronRight
+              className={cn(
+                "w-4 h-4 text-muted-foreground/40",
+                "transition-all duration-150",
+                "group-hover:text-muted-foreground group-hover:translate-x-0.5",
+              )}
+            />
           </div>
         </div>
       </button>

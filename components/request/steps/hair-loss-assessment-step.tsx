@@ -1,8 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import { usePostHog } from "@/components/providers/posthog-provider"
-import { Scissors, AlertCircle, Pill, Droplets, ArrowRight } from "lucide-react"
+import { Scissors, AlertCircle, Pill, Droplets, Stethoscope, ArrowRight } from "lucide-react"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
@@ -44,10 +44,10 @@ const FAMILY_HISTORY_OPTIONS = [
 ]
 
 const PREVIOUS_TREATMENTS = [
-  { key: 'triedMinoxidil', label: 'Minoxidil (Rogaine) - topical' },
-  { key: 'triedFinasteride', label: 'Finasteride (Propecia) - oral' },
-  { key: 'triedBiotin', label: 'Biotin / hair supplements' },
-  { key: 'triedShampoos', label: 'Medicated shampoos (e.g., Nizoral)' },
+  { key: 'triedMinoxidil', label: 'Topical scalp solution' },
+  { key: 'triedFinasteride', label: 'Oral hair loss medication' },
+  { key: 'triedBiotin', label: 'Hair supplements (biotin, etc.)' },
+  { key: 'triedShampoos', label: 'Medicated shampoos' },
   { key: 'triedPRP', label: 'PRP (Platelet-rich plasma) therapy' },
   { key: 'triedOther', label: 'Other treatment' },
 ]
@@ -105,12 +105,25 @@ export default function HairLossAssessmentStep({ onNext }: HairLossAssessmentSte
     enabled: Boolean(isComplete),
   })
 
+  // Refs for auto-scroll on progressive disclosure
+  const durationRef = useRef<HTMLDivElement>(null)
+  const familyRef = useRef<HTMLDivElement>(null)
+  const treatmentsRef = useRef<HTMLDivElement>(null)
+  const preferenceRef = useRef<HTMLDivElement>(null)
+  const scalpRef = useRef<HTMLDivElement>(null)
+
   // Progressive disclosure: reveal sections as earlier required fields are answered
   const showDuration = !!hairPattern
   const showFamilyHistory = showDuration && !!hairDuration
   const showTreatments = showFamilyHistory && !!hairFamilyHistory
   const showPreference = showTreatments
   const showScalp = showPreference && !!hairMedicationPreference
+
+  // Auto-scroll into view when sections reveal
+  useEffect(() => { if (showDuration) durationRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }) }, [showDuration])
+  useEffect(() => { if (showFamilyHistory) familyRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }) }, [showFamilyHistory])
+  useEffect(() => { if (showTreatments) treatmentsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }) }, [showTreatments])
+  useEffect(() => { if (showScalp) scalpRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }) }, [showScalp])
 
   return (
     <div className="space-y-6">
@@ -159,7 +172,7 @@ export default function HairLossAssessmentStep({ onNext }: HairLossAssessmentSte
 
       {/* Duration - visible after pattern selected */}
       {showDuration && (
-      <div className="space-y-3">
+      <div className="space-y-3" ref={durationRef}>
         <Label className="text-sm font-medium">
           How long have you been experiencing hair loss?
           <span className="text-destructive ml-0.5">*</span>
@@ -196,7 +209,7 @@ export default function HairLossAssessmentStep({ onNext }: HairLossAssessmentSte
 
       {/* Family history - visible after duration selected */}
       {showFamilyHistory && (
-      <div className="space-y-3">
+      <div className="space-y-3" ref={familyRef}>
         <Label className="text-sm font-medium">
           Do you have a family history of hair loss?
           <span className="text-destructive ml-0.5">*</span>
@@ -233,7 +246,7 @@ export default function HairLossAssessmentStep({ onNext }: HairLossAssessmentSte
 
       {/* Previous treatments - visible after family history */}
       {showTreatments && (
-      <div className="space-y-3">
+      <div className="space-y-3" ref={treatmentsRef}>
         <Label className="text-sm font-medium">
           Which treatments have you tried before?
         </Label>
@@ -261,69 +274,66 @@ export default function HairLossAssessmentStep({ onNext }: HairLossAssessmentSte
 
       )}
 
-      {/* Preferred medication - visible after treatments section */}
+      {/* Treatment preference - lifestyle-framed, no drug names (TGA) */}
       {showPreference && (
-      <div className="space-y-3">
+      <div className="space-y-3" ref={preferenceRef}>
         <Label className="text-sm font-medium">
-          Which treatment option interests you?
+          How would you prefer to treat your hair loss?
           <span className="text-destructive ml-0.5">*</span>
         </Label>
-        <div className="grid gap-3 sm:grid-cols-2">
-          {/* Finasteride card */}
-          <button
-            type="button"
-            onClick={() => setAnswer("hairMedicationPreference", "finasteride")}
-            className={cn(
-              "flex flex-col items-start gap-3 p-4 rounded-xl border text-left cursor-pointer transition-all",
-              "focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 outline-none",
-              hairMedicationPreference === "finasteride"
-                ? "border-primary bg-primary/5 ring-1 ring-primary/30"
-                : "border-border hover:border-primary/50"
-            )}
-          >
-            <div className={cn(
-              "flex items-center justify-center w-10 h-10 rounded-lg",
-              hairMedicationPreference === "finasteride"
-                ? "bg-primary/10 text-primary"
-                : "bg-muted text-muted-foreground"
-            )}>
-              <Pill className="w-5 h-5" />
-            </div>
-            <div className="space-y-1">
-              <p className="text-sm font-semibold">Finasteride (oral)</p>
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                Daily tablet. Blocks DHT to slow hair loss and promote regrowth.
-              </p>
-            </div>
-          </button>
-
-          {/* Minoxidil card */}
-          <button
-            type="button"
-            onClick={() => setAnswer("hairMedicationPreference", "minoxidil")}
-            className={cn(
-              "flex flex-col items-start gap-3 p-4 rounded-xl border text-left cursor-pointer transition-all",
-              "focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 outline-none",
-              hairMedicationPreference === "minoxidil"
-                ? "border-primary bg-primary/5 ring-1 ring-primary/30"
-                : "border-border hover:border-primary/50"
-            )}
-          >
-            <div className={cn(
-              "flex items-center justify-center w-10 h-10 rounded-lg",
-              hairMedicationPreference === "minoxidil"
-                ? "bg-primary/10 text-primary"
-                : "bg-muted text-muted-foreground"
-            )}>
-              <Droplets className="w-5 h-5" />
-            </div>
-            <div className="space-y-1">
-              <p className="text-sm font-semibold">Minoxidil (topical)</p>
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                Applied to scalp. Stimulates hair follicles and improves blood flow.
-              </p>
-            </div>
-          </button>
+        <div className="flex flex-col gap-2.5">
+          {[
+            {
+              value: "oral",
+              icon: Pill,
+              label: "Daily oral tablet",
+              description: "One tablet a day to slow hair loss and promote regrowth.",
+            },
+            {
+              value: "topical",
+              icon: Droplets,
+              label: "Topical scalp treatment",
+              description: "Applied directly to the scalp to stimulate follicles.",
+            },
+            {
+              value: "doctor_decides",
+              icon: Stethoscope,
+              label: "Not sure - let the doctor decide",
+              description: "Your doctor will recommend the best option for you.",
+            },
+          ].map((option) => {
+            const Icon = option.icon
+            const isSelected = hairMedicationPreference === option.value
+            return (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => setAnswer("hairMedicationPreference", option.value)}
+                className={cn(
+                  "flex items-start gap-3 p-3.5 rounded-xl border text-left cursor-pointer transition-all",
+                  "focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 outline-none",
+                  isSelected
+                    ? "border-primary bg-primary/5 ring-1 ring-primary/30"
+                    : "border-border hover:border-primary/50"
+                )}
+              >
+                <div className={cn(
+                  "flex items-center justify-center w-9 h-9 rounded-lg shrink-0",
+                  isSelected
+                    ? "bg-primary/10 text-primary"
+                    : "bg-muted text-muted-foreground"
+                )}>
+                  <Icon className="w-4 h-4" />
+                </div>
+                <div className="space-y-0.5">
+                  <p className="text-sm font-medium">{option.label}</p>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    {option.description}
+                  </p>
+                </div>
+              </button>
+            )
+          })}
         </div>
         {errors.hairMedicationPreference && (
           <p className="text-xs text-destructive flex items-center gap-1" role="alert" aria-live="polite">
@@ -337,7 +347,7 @@ export default function HairLossAssessmentStep({ onNext }: HairLossAssessmentSte
 
       {/* Scalp conditions - visible after preference selected */}
       {showScalp && (
-      <div className="space-y-3">
+      <div className="space-y-3" ref={scalpRef}>
         <Label className="text-sm font-medium">
           Do you have any scalp conditions?
         </Label>
@@ -396,6 +406,11 @@ export default function HairLossAssessmentStep({ onNext }: HairLossAssessmentSte
           "Continue"
         )}
       </Button>
+      {isComplete && (
+        <p className="text-[11px] text-muted-foreground/60 text-center hidden sm:block">
+          Press Enter to continue
+        </p>
+      )}
     </div>
   )
 }
