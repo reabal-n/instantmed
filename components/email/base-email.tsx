@@ -688,6 +688,94 @@ export function HeroBlock({ icon, headline, subtitle, variant = "info" }: HeroBl
   )
 }
 
+// ReviewHero — large, prominent review block for dedicated review emails
+interface ReviewHeroProps {
+  href: string
+  /** Customize the warm copy for the service they used */
+  serviceCopy?: string
+}
+
+export function ReviewHero({ href, serviceCopy }: ReviewHeroProps) {
+  const trackingHref = `${href}${href.includes("?") ? "&" : "?"}utm_source=email&utm_medium=review_hero&utm_campaign=review`
+
+  return (
+    <div style={{ textAlign: "center" as const, padding: "8px 0 16px" }}>
+      {/* Large stars */}
+      <p style={{
+        margin: "0 0 16px 0",
+        fontSize: "32px",
+        letterSpacing: "6px",
+        lineHeight: "1",
+        color: "#F59E0B",
+      }}>
+        {"\u2605\u2605\u2605\u2605\u2605"}
+      </p>
+
+      {/* Heading */}
+      <h2 style={{
+        margin: "0 0 12px 0",
+        fontSize: "20px",
+        fontWeight: "600",
+        color: colors.text,
+        letterSpacing: "-0.3px",
+        lineHeight: "1.4",
+        fontFamily,
+      }}>
+        Your feedback means the world
+      </h2>
+
+      {/* Body */}
+      <p style={{
+        margin: "0 0 20px 0",
+        fontSize: "14px",
+        color: colors.textBody,
+        lineHeight: "1.6",
+        fontFamily,
+      }}>
+        {serviceCopy || "If we saved you a trip to the GP, a quick Google review helps other Aussies find fast, easy healthcare. It takes about 30 seconds."}
+      </p>
+
+      {/* CTA Button */}
+      <table role="presentation" cellPadding="0" cellSpacing="0" style={{ margin: "0 auto" }}>
+        <tbody>
+          <tr>
+            <td>
+              <a
+                href={trackingHref}
+                style={{
+                  display: "inline-block",
+                  padding: "14px 32px",
+                  backgroundColor: colors.accent,
+                  color: "#ffffff",
+                  fontSize: "15px",
+                  fontWeight: "600",
+                  textDecoration: "none",
+                  borderRadius: "12px",
+                  boxShadow: "0 2px 8px rgba(37,99,235,0.25)",
+                  letterSpacing: "0.01em",
+                  fontFamily,
+                }}
+              >
+                {"\u2B50"} Leave a Google review
+              </a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      {/* Already reviewed */}
+      <p style={{
+        margin: "16px 0 0 0",
+        fontSize: "12px",
+        color: colors.textMuted,
+        fontFamily,
+      }}>
+        Already reviewed? Legend, thanks! {"\uD83D\uDE4F"}
+      </p>
+    </div>
+  )
+}
+
 interface GoogleReviewCTAProps {
   href: string
 }

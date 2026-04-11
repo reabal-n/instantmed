@@ -1,16 +1,11 @@
 /**
  * Review Request Email Template — Day 2 post-approval
  *
- * Warm, personal ask for a Google review.
- * Sent 2 days after approval via daily cron.
+ * Uses ReviewHero as the prominent CTA.
  */
 
 import * as React from "react"
-import {
-  BaseEmail,
-  Text,
-  Button,
-} from "../base-email"
+import { BaseEmail, Text, ReviewHero } from "../base-email"
 import { GOOGLE_REVIEW_URL } from "@/lib/constants"
 
 export interface ReviewRequestEmailProps {
@@ -30,21 +25,16 @@ export function ReviewRequestEmail({
 
   return (
     <BaseEmail previewText="If you've got 30 seconds, a review would mean the world" appUrl={appUrl}>
-      <Text>Hi {firstName},</Text>
+      <Text>Hey {firstName},</Text>
 
       <Text>
-        Glad we could help with your <strong>{serviceName}</strong>. If you had
-        a good experience, we&apos;d really appreciate a quick Google review. It
-        helps other Aussies find us and takes about 30 seconds.
+        Glad we could help with your <strong>{serviceName}</strong>. We have a small favour to ask.
       </Text>
 
-      <Button href={GOOGLE_REVIEW_URL}>Leave a Review ⭐</Button>
-
-      <Text muted small>
-        Already left one? Legend, thanks so much. You can ignore this email.
-      </Text>
-
+      <ReviewHero
+        href={GOOGLE_REVIEW_URL}
+        serviceCopy={`If we saved you a trip to the GP for your ${serviceName.toLowerCase()}, a quick Google review helps other Aussies find fast, easy healthcare. It takes about 30 seconds.`}
+      />
     </BaseEmail>
   )
 }
-

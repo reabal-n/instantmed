@@ -1,15 +1,11 @@
 /**
- * Review Follow-up Email Template — Day 7 post-approval
+ * Review Follow-up Email — Day 7 post-approval
  *
- * Lighter touch follow-up if no review was left after the day-2 email.
+ * Lighter-touch follow-up using ReviewHero.
  */
 
 import * as React from "react"
-import {
-  BaseEmail,
-  Text,
-  Button,
-} from "../base-email"
+import { BaseEmail, Text, ReviewHero } from "../base-email"
 import { GOOGLE_REVIEW_URL } from "@/lib/constants"
 
 export interface ReviewFollowupEmailProps {
@@ -26,23 +22,21 @@ export function ReviewFollowupEmail({
   const firstName = patientName.split(" ")[0]
 
   return (
-    <BaseEmail previewText="A quick review helps other Aussies find fast healthcare" appUrl={appUrl}>
-      <Text>Hi {firstName},</Text>
+    <BaseEmail previewText="A quick review helps other Aussies find quality telehealth" appUrl={appUrl}>
+      <Text>Hey {firstName},</Text>
 
       <Text>
-        Just a gentle nudge. If you had a good experience with InstantMed,
-        a quick Google review would really mean a lot to our team. It takes
-        less than 30 seconds and helps other Australians find quality
-        telehealth.
+        Just a gentle nudge. If you had a good experience with InstantMed, we&apos;d love to hear about it.
       </Text>
 
-      <Button href={GOOGLE_REVIEW_URL}>Leave a Review ⭐</Button>
+      <ReviewHero
+        href={GOOGLE_REVIEW_URL}
+        serviceCopy="Your review helps other Australians find quality telehealth when they need it most. It takes less than 30 seconds."
+      />
 
-      <Text muted small>
-        Not keen? No worries at all, this is the last time we&apos;ll ask.
+      <Text muted small style={{ textAlign: "center" as const }}>
+        Not keen? No worries at all. This is the last time we&apos;ll ask.
       </Text>
-
     </BaseEmail>
   )
 }
-
