@@ -14,7 +14,7 @@ export interface PaymentRetryEmailProps {
 }
 
 export function paymentRetrySubject() {
-  return "Just a heads up: your payment needs another go"
+  return "Just a heads up, your payment needs another go"
 }
 
 export function PaymentRetryEmail({
@@ -25,7 +25,7 @@ export function PaymentRetryEmail({
   appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au",
 }: PaymentRetryEmailProps) {
   return (
-    <BaseEmail previewText={`Complete your payment for ${requestType}`} appUrl={appUrl} showFooterReview={false}>
+    <BaseEmail previewText={`Complete your payment for ${requestType}`} appUrl={appUrl}>
       <HeroBlock
         icon="💳"
         headline="Complete your payment"

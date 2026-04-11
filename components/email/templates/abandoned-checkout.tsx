@@ -30,7 +30,7 @@ export function AbandonedCheckoutEmail({
   const firstName = patientName.split(" ")[0]
 
   return (
-    <BaseEmail previewText={`No rush, your ${serviceName} request is still here ⏱️`} appUrl={appUrl} showFooterReview={false}>
+    <BaseEmail previewText={`No rush, your ${serviceName} request is still here ⏱️`} appUrl={appUrl}>
       <HeroBlock
         icon="⏱️"
         headline="Your request is still here"

@@ -36,14 +36,13 @@ export function VerificationCodeEmail({
     <BaseEmail
       previewText={`Your InstantMed verification code is ${code}`}
       appUrl={appUrl}
-      showFooterReview={false}
     >
       <Text>Here&apos;s your verification code. Enter it where prompted to continue:</Text>
 
       <VerificationCodeBlock code={code} />
 
       <Text muted small>
-        This code expires in 10 minutes. Keep it to yourself — we won&apos;t
+        This code expires in 10 minutes. Keep it to yourself, we won&apos;t
         ask for it by email or phone.
       </Text>
 

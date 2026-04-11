@@ -38,7 +38,7 @@ export function ReferralCreditEmail({
 
   return (
     <BaseEmail
-      previewText={`Nice one — you've earned a ${creditAmount} credit 👍`}
+      previewText={`Nice one! You've earned a ${creditAmount} credit 👍`}
       appUrl={appUrl}
     >
       <HeroBlock
@@ -74,7 +74,7 @@ export function ReferralCreditEmail({
 
       <Text muted small>
         Credits are applied automatically at checkout. Share your referral link
-        to keep earning — find it on your{" "}
+        to keep earning. Find it on your{" "}
         <a href={`${appUrl}/patient?utm_source=email&utm_medium=link&utm_campaign=referral_credit`} style={{ color: colors.accent, fontWeight: 500 }}>
           dashboard
         </a>

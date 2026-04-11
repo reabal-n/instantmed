@@ -12,7 +12,6 @@ import {
   Button,
   Box,
   Heading,
-  ReferralCTA,
 } from "../base-email"
 
 export interface ConsultApprovedEmailProps {
@@ -32,9 +31,10 @@ export function ConsultApprovedEmail({
 
   return (
     <BaseEmail
-      previewText={`${firstName}, your consultation is complete — here's what's next ✅`}
+      previewText={`${firstName}, your consultation is complete. Here's what's next ✅`}
       appUrl={appUrl}
-      showFooterReview
+      showReviewCTA
+      showReferral
     >
       <HeroBlock
         icon="✓"
@@ -61,10 +61,9 @@ export function ConsultApprovedEmail({
         View details
       </Button>
 
-      <ReferralCTA appUrl={appUrl} />
     </BaseEmail>
   )
 }
 
 export const consultApprovedSubject = (firstName?: string) =>
-  firstName ? `${firstName}, your consultation is all done ✅` : "Good news — your consultation is all done ✅"
+  firstName ? `${firstName}, your consultation is all done ✅` : "Good news, your consultation is all done ✅"

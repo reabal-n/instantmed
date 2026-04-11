@@ -34,7 +34,7 @@ export function ExitIntentSocialProofEmail({
       <Heading>Here&apos;s what actually happens</Heading>
 
       <Text>
-        You were looking at our <strong>{service}</strong> yesterday — fair enough
+        You were looking at our <strong>{service}</strong> yesterday, fair enough
         if you wanted to think it over. Here&apos;s how it works for most people:
       </Text>
 
@@ -50,7 +50,7 @@ export function ExitIntentSocialProofEmail({
       </Box>
 
       <Text>
-        Every request is reviewed by an AHPRA-registered doctor — no bots, no
+        Every request is reviewed by an AHPRA-registered doctor. No bots, no
         shortcuts. You fill in a 2-minute form, a real doctor reviews it,
         and your document lands in your inbox. That&apos;s it.
       </Text>
@@ -60,7 +60,7 @@ export function ExitIntentSocialProofEmail({
         straightforward online process.
       </Text>
 
-      <Button href={ctaUrl}>Get your {service.toLowerCase()} — {price}</Button>
+      <Button href={ctaUrl}>Get your {service.toLowerCase()}, {price}</Button>
 
       <Text muted small>
         Questions? Reply to this email or visit{" "}

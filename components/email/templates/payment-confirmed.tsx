@@ -6,6 +6,7 @@ import {
   Box,
   DetailRow,
   colors,
+  fontFamily,
 } from "../base-email"
 
 export interface PaymentConfirmedEmailProps {
@@ -16,8 +17,8 @@ export interface PaymentConfirmedEmailProps {
   appUrl?: string
 }
 
-export function paymentConfirmedSubject(requestType: string, amount: string) {
-  return `Payment received, ${amount} for your ${requestType} ✅`
+export function paymentConfirmedSubject(requestType: string) {
+  return `Payment received for your ${requestType} ✅`
 }
 
 export function PaymentConfirmedEmail({
@@ -30,12 +31,12 @@ export function PaymentConfirmedEmail({
   const firstName = patientName.split(" ")[0]
 
   return (
-    <BaseEmail previewText={`Payment received, ${amount} for your ${requestType} ✅`} appUrl={appUrl} showFooterReview={false}>
+    <BaseEmail previewText={`Payment received for your ${requestType}. A doctor is on it now.`} appUrl={appUrl}>
       <StatusBanner title="Payment received ✅" variant="success" />
 
-      <Text>Hi {firstName},</Text>
-      <Text>
-        Got it. <strong>{amount}</strong> received for your {requestType}.
+      <Text style={{ fontFamily }}>Hey {firstName},</Text>
+      <Text style={{ fontFamily }}>
+        <strong>{amount}</strong> received for your {requestType}.
         A doctor will review it shortly and we&apos;ll email you when it&apos;s done.
       </Text>
 
@@ -46,7 +47,7 @@ export function PaymentConfirmedEmail({
 
       <Button href={`${appUrl}/track/${requestId}`}>Track your request</Button>
 
-      <Text muted small>
+      <Text muted small style={{ fontFamily }}>
         Need a tax invoice? Grab it from your{" "}
         <a href={`${appUrl}/patient`} style={{ color: colors.accent, fontWeight: 500 }}>
           dashboard

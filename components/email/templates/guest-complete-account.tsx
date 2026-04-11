@@ -30,7 +30,7 @@ export function GuestCompleteAccountEmail({
   const firstName = patientName.split(" ")[0]
 
   return (
-    <BaseEmail previewText={`Set up your account to track your ${requestType} ✅`} appUrl={appUrl} showFooterReview={false}>
+    <BaseEmail previewText={`Set up your account to track your ${requestType} ✅`} appUrl={appUrl}>
       <HeroBlock
         icon="👤"
         headline="Create your InstantMed account"

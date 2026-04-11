@@ -11,7 +11,6 @@ import {
   HeroBlock,
   Text,
   Button,
-  ReferralCTA,
 } from "../base-email"
 
 export interface PrescriptionApprovedEmailProps {
@@ -31,9 +30,10 @@ export function PrescriptionApprovedEmail({
 
   return (
     <BaseEmail
-      previewText={`Your ${medicationName} prescription is approved — eScript on its way 💊`}
+      previewText={`Your ${medicationName} prescription is approved, eScript on its way 💊`}
       appUrl={appUrl}
-      showFooterReview
+      showReviewCTA
+      showReferral
     >
       <HeroBlock
         icon="💊"
@@ -46,7 +46,7 @@ export function PrescriptionApprovedEmail({
 
       <Text>
         Your <strong>{medicationName}</strong> prescription has been approved.
-        Your eScript will arrive via <strong>SMS</strong> shortly — take your phone to any pharmacy and they&apos;ll scan the QR code.
+        Your eScript will arrive via <strong>SMS</strong> shortly. Take your phone to any pharmacy and they&apos;ll scan the QR code.
         Bring your Medicare card for PBS-subsidised medications.
       </Text>
 
@@ -54,7 +54,6 @@ export function PrescriptionApprovedEmail({
         View request
       </Button>
 
-      <ReferralCTA appUrl={appUrl} />
     </BaseEmail>
   )
 }

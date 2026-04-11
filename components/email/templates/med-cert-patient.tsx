@@ -12,7 +12,6 @@ import {
   Text,
   Button,
   VerificationCode,
-  ReferralCTA,
 } from "../base-email"
 
 export interface MedCertPatientEmailProps {
@@ -38,7 +37,8 @@ export function MedCertPatientEmail({
     <BaseEmail
       previewText="Your medical certificate is approved and ready to download 🎉"
       appUrl={appUrl}
-      showFooterReview
+      showReviewCTA
+      showReferral
     >
       <HeroBlock
         icon="🎉"
@@ -51,7 +51,7 @@ export function MedCertPatientEmail({
 
       <Text>
         Your <strong>Medical Certificate</strong> has been approved and is ready to download.
-        Forward it to your employer, uni, or wherever it&apos;s needed — they can verify it anytime at{" "}
+        Forward it to your employer, uni, or wherever it&apos;s needed. They can verify it anytime at{" "}
         <a href={`${appUrl}/verify`} style={{ color: "#2563EB", textDecoration: "none", fontWeight: 500 }}>
           instantmed.com.au/verify
         </a>
@@ -66,7 +66,6 @@ export function MedCertPatientEmail({
         <VerificationCode code={verificationCode} verifyUrl={`${appUrl}/verify`} />
       )}
 
-      <ReferralCTA appUrl={appUrl} />
     </BaseEmail>
   )
 }

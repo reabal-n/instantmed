@@ -6,7 +6,7 @@
  */
 
 import * as React from "react"
-import { BaseEmail, HeroBlock, Text, Button, ReferralCTA } from "../base-email"
+import { BaseEmail, HeroBlock, Text, Button } from "../base-email"
 
 export interface WelcomeEmailProps {
   patientName: string
@@ -21,9 +21,8 @@ export function WelcomeEmail({
 
   return (
     <BaseEmail
-      previewText={`Good to have you, ${firstName} — no waiting rooms, no phone tag.`}
+      previewText={`Good to have you, ${firstName}. No waiting rooms, no phone tag.`}
       appUrl={appUrl}
-      showFooterReview={false}
     >
       <HeroBlock
         icon="👋"
@@ -33,7 +32,7 @@ export function WelcomeEmail({
 
       <Text>
         No waiting rooms, no phone tag. Fill in a short form, a real Australian
-        doctor reviews it, and you&apos;re done — usually within the hour.
+        doctor reviews it, and you&apos;re done. Usually within the hour.
       </Text>
 
       <Text small muted>
@@ -42,7 +41,6 @@ export function WelcomeEmail({
 
       <Button href={`${appUrl}/start`}>Make your first request</Button>
 
-      <ReferralCTA appUrl={appUrl} />
     </BaseEmail>
   )
 }

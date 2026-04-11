@@ -134,3 +134,7 @@ export type { ReviewFollowupEmailProps } from "./review-followup"
 // --- Subscription Nudge (repeat Rx upsell) ---
 export { SubscriptionNudgeEmail, subscriptionNudgeSubject } from "./subscription-nudge"
 export type { SubscriptionNudgeEmailProps } from "./subscription-nudge"
+
+// --- Magic Link (Supabase auth hook) ---
+export { MagicLinkEmail, magicLinkEmailSubject } from "./magic-link"
+export type { MagicLinkEmailProps } from "./magic-link"

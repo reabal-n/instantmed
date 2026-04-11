@@ -9,7 +9,7 @@
  */
 
 import * as React from "react"
-import { COMPANY_NAME, ABN, COMPANY_ADDRESS_SHORT, GOOGLE_REVIEW_URL } from "@/lib/constants"
+import { COMPANY_NAME, ABN, COMPANY_ADDRESS_SHORT } from "@/lib/constants"
 import { getPatientCount, GOOGLE_REVIEWS } from "@/lib/social-proof"
 
 /* eslint-disable @next/next/no-head-element -- Email templates, not Next.js pages */
@@ -73,14 +73,20 @@ interface BaseEmailProps {
   children: React.ReactNode
   previewText?: string
   appUrl?: string
-  /** Show the Google Review CTA in the footer. Default true. Set false on templates that have in-body GoogleReviewCTA or where a review ask is inappropriate (declined, failed, etc). */
-  showFooterReview?: boolean
+  /** Show the Google Review CTA after content. Default false. */
+  showReviewCTA?: boolean
+  /** Show the referral CTA after content. Default false. */
+  showReferral?: boolean
+  /** Intake ID for PostHog tracking attribution. */
+  intakeId?: string
+  /** User ID for PostHog tracking attribution. */
+  userId?: string
 }
 
-export function BaseEmail({ children, previewText, appUrl = "https://instantmed.com.au", showFooterReview = true }: BaseEmailProps) {
+export function BaseEmail({ children, previewText, appUrl = "https://instantmed.com.au", showReviewCTA = false, showReferral = false, intakeId, userId }: BaseEmailProps) {
   const patientFloor = Math.max(500, Math.floor(getPatientCount() / 500) * 500)
   return (
-    <html lang="en-AU">
+    <html lang="en-AU" style={{ colorScheme: "light dark" }}>
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -88,6 +94,22 @@ export function BaseEmail({ children, previewText, appUrl = "https://instantmed.
         <meta name="supported-color-schemes" content="light dark" />
 {/* No web fonts — email clients strip <link> tags, causing serif fallback */}
         <title>InstantMed</title>
+        {/* MSO conditional for Outlook desktop dark mode */}
+        <div dangerouslySetInnerHTML={{ __html: `<!--[if mso]>
+<style>
+  body { background-color: #0f0f0f !important; }
+  .email-card { background-color: #1a1a1a !important; }
+</style>
+<![endif]-->` }} />
+        {/*
+         * Dark mode strategy:
+         * - Apple Mail / iOS Mail: Full dark mode via @media (prefers-color-scheme: dark)
+         * - Outlook.com: Same, plus color-scheme meta
+         * - Outlook desktop: MSO conditional comment above
+         * - Gmail: Strips <style> blocks entirely. Users get light mode.
+         *   Gmail's forced dark mode may invert colors, but we cannot control that.
+         * - Samsung Mail: Partial via !important inline overrides
+         */}
         <style>{`
           body, td, p, h1, h2, h3, a, span, div, li {
             font-family: ${fontFamily} !important;
@@ -134,6 +156,7 @@ export function BaseEmail({ children, previewText, appUrl = "https://instantmed.
           margin: 0,
           padding: 0,
           backgroundColor: colors.background,
+          colorScheme: "light dark",
           WebkitTextSizeAdjust: "100%",
         }}
         data-x-apple-data-detectors="false"
@@ -254,6 +277,8 @@ export function BaseEmail({ children, previewText, appUrl = "https://instantmed.
                         }}
                       >
                         {children}
+                        {showReviewCTA && <GoogleReviewCTA appUrl={appUrl} intakeId={intakeId} userId={userId} />}
+                        {showReferral && <ReferralCTA appUrl={appUrl} />}
                       </td>
                     </tr>
 
@@ -269,81 +294,15 @@ export function BaseEmail({ children, previewText, appUrl = "https://instantmed.
                       >
                         <table role="presentation" cellPadding="0" cellSpacing="0" style={{ width: "100%" }}>
                           <tbody>
-                            {showFooterReview && (
-                            <tr>
-                              <td style={{ padding: "20px 40px", textAlign: "center" as const, borderBottom: `1px solid ${colors.borderLight}` }}>
-                                <div
-                                  className="google-review-pill"
-                                  style={{
-                                    backgroundColor: colors.cardBg,
-                                    border: `1px solid ${colors.border}`,
-                                    borderRadius: "10px",
-                                    padding: "14px 16px",
-                                  }}
-                                >
-                                  <table role="presentation" cellPadding="0" cellSpacing="0" style={{ margin: "0 auto" }}>
-                                    <tbody>
-                                      <tr>
-                                        <td style={{ verticalAlign: "middle", paddingRight: "10px" }}>
-                                          <div
-                                            style={{
-                                              width: "30px",
-                                              height: "30px",
-                                              borderRadius: "50%",
-                                              backgroundColor: "#4285F4",
-                                              color: "#ffffff",
-                                              fontSize: "16px",
-                                              fontWeight: "700",
-                                              lineHeight: "30px",
-                                              textAlign: "center" as const,
-                                            }}
-                                          >
-                                            G
-                                          </div>
-                                        </td>
-                                        <td style={{ verticalAlign: "middle", textAlign: "left" as const }}>
-                                          <p style={{ margin: "0 0 1px 0", fontSize: "13px", fontWeight: "600", color: colors.text, lineHeight: "1.3" }}>
-                                            <span style={{ color: "#F59E0B", fontSize: "12px", letterSpacing: "1px" }}>★★★★★</span>
-                                            {" "}5.0 on Google
-                                          </p>
-                                          <p className="g-muted" style={{ margin: 0, fontSize: "11px", color: colors.textMuted, lineHeight: "1.4" }}>
-                                            Help others find fast, easy healthcare
-                                          </p>
-                                        </td>
-                                        <td style={{ verticalAlign: "middle", paddingLeft: "14px" }}>
-                                          <a
-                                            className="google-review-btn"
-                                            href={`${GOOGLE_REVIEW_URL}?utm_source=email&utm_medium=footer_cta&utm_campaign=review`}
-                                            style={{
-                                              display: "inline-block",
-                                              padding: "6px 16px",
-                                              backgroundColor: colors.accent,
-                                              color: "#ffffff",
-                                              fontSize: "12px",
-                                              fontWeight: "600",
-                                              textDecoration: "none",
-                                              borderRadius: "6px",
-                                              whiteSpace: "nowrap" as const,
-                                            }}
-                                          >
-                                            Leave a review
-                                          </a>
-                                        </td>
-                                      </tr>
-                                    </tbody>
-                                  </table>
-                                </div>
-                              </td>
-                            </tr>
-                            )}
                             <tr>
                               <td style={{ padding: "20px 40px", textAlign: "center" as const }}>
                                 <p
                                   style={{
-                                    margin: "0 0 12px 0",
+                                    margin: "0 0 6px 0",
                                     fontSize: "12px",
                                     color: colors.textSecondary,
                                     lineHeight: "1.8",
+                                    fontFamily,
                                   }}
                                 >
                                   <a href={`${appUrl}/privacy`} style={{ color: colors.textSecondary, textDecoration: "none" }}>
@@ -361,40 +320,22 @@ export function BaseEmail({ children, previewText, appUrl = "https://instantmed.
                                 <p
                                   style={{
                                     margin: "0 0 6px 0",
-                                    fontSize: "12px",
-                                    color: colors.textSecondary,
-                                  }}
-                                >
-                                  Made with care in Australia 🌤️
-                                </p>
-                                <p
-                                  style={{
-                                    margin: "0 0 6px 0",
                                     fontSize: "11px",
                                     color: colors.textMuted,
-                                    letterSpacing: "0.02em",
+                                    fontFamily,
                                   }}
                                 >
-                                  Trusted by {patientFloor.toLocaleString()}+ Australians · {GOOGLE_REVIEWS.rating} ★ on Google
-                                </p>
-                                <p
-                                  style={{
-                                    margin: "0 0 4px 0",
-                                    fontSize: "11px",
-                                    color: colors.textMuted,
-                                    letterSpacing: "0.02em",
-                                  }}
-                                >
-                                  {COMPANY_NAME} · ABN {ABN}
+                                  Made with care in Australia {"\u{1F324}\uFE0F"} · Trusted by {patientFloor.toLocaleString()}+ Australians · {GOOGLE_REVIEWS.rating} ★ on Google
                                 </p>
                                 <p
                                   style={{
                                     margin: 0,
-                                    fontSize: "10px",
+                                    fontSize: "11px",
                                     color: colors.textMuted,
+                                    fontFamily,
                                   }}
                                 >
-                                  {COMPANY_ADDRESS_SHORT}
+                                  {COMPANY_NAME} · ABN {ABN} · {COMPANY_ADDRESS_SHORT}
                                 </p>
                               </td>
                             </tr>
@@ -436,6 +377,7 @@ export function Heading({ children, as = "h1" }: HeadingProps) {
         color: colors.text,
         lineHeight: "1.5",
         letterSpacing: sizes[as].letterSpacing,
+        fontFamily,
       }}
     >
       {children}
@@ -616,19 +558,16 @@ export function VerificationCode({ code, verifyUrl }: VerificationCodeProps) {
         backgroundColor: colors.surfaceSubtle,
         border: `1px solid ${colors.border}`,
         borderRadius: "8px",
-        padding: "10px 16px",
-        margin: "14px 0",
+        padding: "8px 12px",
+        margin: "12px 0",
         textAlign: "center" as const,
       }}
     >
-      <p style={{ margin: "0 0 2px 0", fontSize: "10px", color: colors.textSecondary, fontWeight: "600", textTransform: "uppercase" as const, letterSpacing: "1px" }} aria-hidden="true">
-        Verification Code
-      </p>
       <p
         aria-label={`Verification code: ${code.split("").join(" ")}`}
         style={{
           margin: 0,
-          fontSize: "18px",
+          fontSize: "15px",
           fontFamily: "'SF Mono', 'Fira Code', Consolas, monospace",
           fontWeight: "700",
           color: colors.text,
@@ -638,7 +577,7 @@ export function VerificationCode({ code, verifyUrl }: VerificationCodeProps) {
         {code}
       </p>
       {verifyUrl && (
-        <p style={{ margin: "6px 0 0 0", fontSize: "11px", color: colors.textMuted }}>
+        <p style={{ margin: "6px 0 0 0", fontSize: "11px", color: colors.textMuted, fontFamily }}>
           Verify at{" "}
           <a href={verifyUrl} style={{ color: colors.accent, textDecoration: "none" }}>
             {verifyUrl.replace("https://", "")}
@@ -756,6 +695,7 @@ export function HeroBlock({ icon, headline, subtitle, variant = "info" }: HeroBl
           color: colors.text,
           letterSpacing: "-0.4px",
           lineHeight: "1.4",
+          fontFamily,
         }}
       >
         {headline}
@@ -769,68 +709,165 @@ export function HeroBlock({ icon, headline, subtitle, variant = "info" }: HeroBl
   )
 }
 
-interface GoogleReviewCTAProps {
-  href: string
+// ReviewHero -- large, prominent review block for dedicated review emails
+interface ReviewHeroProps {
+  appUrl: string
+  /** Customize the warm copy for the service they used */
+  serviceCopy?: string
+  /** Intake ID for PostHog tracking attribution. */
+  intakeId?: string
+  /** User ID for PostHog tracking attribution. */
+  userId?: string
 }
 
-export function GoogleReviewCTA({ href }: GoogleReviewCTAProps) {
-  const trackingHref = `${href}${href.includes("?") ? "&" : "?"}utm_source=email&utm_medium=inline_cta&utm_campaign=review`
+export function ReviewHero({ appUrl, serviceCopy, intakeId, userId }: ReviewHeroProps) {
+  const trackingParams = [
+    "utm_source=email",
+    "utm_medium=review_hero",
+    "utm_campaign=review",
+    ...(intakeId ? [`intake_id=${intakeId}`] : []),
+    ...(userId ? [`user_id=${userId}`] : []),
+  ].join("&")
+  const trackingHref = `${appUrl}/api/review-redirect?${trackingParams}`
+
+  return (
+    <div style={{ textAlign: "center" as const, padding: "8px 0 16px" }}>
+      {/* Large stars */}
+      <p style={{
+        margin: "0 0 16px 0",
+        fontSize: "32px",
+        letterSpacing: "6px",
+        lineHeight: "1",
+        color: "#F59E0B",
+      }}>
+        {"\u2605\u2605\u2605\u2605\u2605"}
+      </p>
+
+      {/* Heading */}
+      <h2 style={{
+        margin: "0 0 12px 0",
+        fontSize: "20px",
+        fontWeight: "600",
+        color: colors.text,
+        letterSpacing: "-0.3px",
+        lineHeight: "1.4",
+        fontFamily,
+      }}>
+        Your feedback means the world
+      </h2>
+
+      {/* Body */}
+      <p style={{
+        margin: "0 0 20px 0",
+        fontSize: "14px",
+        color: colors.textBody,
+        lineHeight: "1.6",
+        fontFamily,
+      }}>
+        {serviceCopy || "If we saved you a trip to the GP, a quick Google review helps other Aussies find fast, easy healthcare. It takes about 30 seconds."}
+      </p>
+
+      {/* CTA Button */}
+      <table role="presentation" cellPadding="0" cellSpacing="0" style={{ margin: "0 auto" }}>
+        <tbody>
+          <tr>
+            <td>
+              <a
+                href={trackingHref}
+                style={{
+                  display: "inline-block",
+                  padding: "14px 32px",
+                  backgroundColor: colors.accent,
+                  color: "#ffffff",
+                  fontSize: "15px",
+                  fontWeight: "600",
+                  textDecoration: "none",
+                  borderRadius: "12px",
+                  boxShadow: "0 2px 8px rgba(37,99,235,0.25)",
+                  letterSpacing: "0.01em",
+                  fontFamily,
+                }}
+              >
+                {"\u2B50"} Leave a Google review
+              </a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      {/* Already reviewed */}
+      <p style={{
+        margin: "16px 0 0 0",
+        fontSize: "12px",
+        color: colors.textMuted,
+        fontFamily,
+      }}>
+        Already reviewed? Legend, thanks! {"\uD83D\uDE4F"}
+      </p>
+    </div>
+  )
+}
+
+interface GoogleReviewCTAProps {
+  appUrl: string
+  /** Intake ID for PostHog tracking attribution. */
+  intakeId?: string
+  /** User ID for PostHog tracking attribution. */
+  userId?: string
+}
+
+export function GoogleReviewCTA({ appUrl, intakeId, userId }: GoogleReviewCTAProps) {
+  const trackingParams = [
+    "utm_source=email",
+    "utm_medium=inline_cta",
+    "utm_campaign=review",
+    ...(intakeId ? [`intake_id=${intakeId}`] : []),
+    ...(userId ? [`user_id=${userId}`] : []),
+  ].join("&")
+  const trackingHref = `${appUrl}/api/review-redirect?${trackingParams}`
   return (
     <div
+      className="google-review-pill"
       style={{
         borderTop: `1px solid ${colors.borderLight}`,
         margin: "4px 0 0 0",
         padding: "16px 0 4px",
       }}
     >
-      <table role="presentation" cellPadding="0" cellSpacing="0" className="google-review-pill" style={{ margin: "0 auto", borderRadius: "8px", border: `1px solid ${colors.borderLight}`, padding: "8px 14px" }}>
-        <tbody>
-          <tr>
-            <td style={{ verticalAlign: "middle", paddingRight: "10px" }}>
-              {/* Google G circle */}
-              <div
-                style={{
-                  width: "26px",
-                  height: "26px",
-                  borderRadius: "50%",
-                  backgroundColor: "#4285F4",
-                  color: "#ffffff",
-                  fontSize: "14px",
-                  fontWeight: "700",
-                  lineHeight: "26px",
-                  textAlign: "center" as const,
-                }}
-              >
-                G
-              </div>
-            </td>
-            <td style={{ verticalAlign: "middle" }}>
-              <p style={{ margin: 0, fontSize: "13px", color: colors.text, fontWeight: "600", lineHeight: "1.3" }}>
-                <span style={{ color: "#F59E0B", fontSize: "11px", letterSpacing: "1px" }}>★★★★★</span>
-                {" "}5.0 on Google
-              </p>
-            </td>
-            <td style={{ verticalAlign: "middle", paddingLeft: "14px" }}>
-              <a
-                href={trackingHref}
-                style={{
-                  display: "inline-block",
-                  padding: "5px 14px",
-                  fontSize: "12px",
-                  fontWeight: "600",
-                  color: colors.accent,
-                  textDecoration: "none",
-                  border: `1px solid ${colors.border}`,
-                  borderRadius: "6px",
-                  lineHeight: "1.4",
-                }}
-              >
-                Leave a review →
-              </a>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <div
+        style={{
+          backgroundColor: colors.cardBg,
+          border: `1px solid ${colors.border}`,
+          borderRadius: "12px",
+          padding: "20px 24px",
+          textAlign: "center" as const,
+        }}
+      >
+        <p style={{ margin: "0 0 8px 0", fontSize: "22px", letterSpacing: "2px", color: "#F59E0B", lineHeight: "1" }}>
+          ★★★★★
+        </p>
+        <p style={{ margin: "0 0 14px 0", fontSize: "13px", color: colors.textBody, lineHeight: "1.5", fontFamily }}>
+          If we saved you a trip to the GP, a quick Google review would mean the world to us.
+        </p>
+        <a
+          className="google-review-btn"
+          href={trackingHref}
+          style={{
+            display: "inline-block",
+            padding: "12px 28px",
+            backgroundColor: colors.accent,
+            color: "#ffffff",
+            fontSize: "14px",
+            fontWeight: "600",
+            textDecoration: "none",
+            borderRadius: "10px",
+            boxShadow: "0 2px 8px rgba(37,99,235,0.25)",
+            fontFamily,
+          }}
+        >
+          Leave a Google review
+        </a>
+      </div>
     </div>
   )
 }
@@ -844,15 +881,15 @@ export function ReferralCTA({ appUrl }: ReferralCTAProps) {
     <div
       style={{
         textAlign: "center" as const,
-        padding: "16px 0 4px",
+        padding: "12px 0 0",
         borderTop: `1px solid ${colors.borderLight}`,
-        margin: "4px 0 0 0",
+        margin: "16px 0 0 0",
       }}
     >
-      <p style={{ margin: 0, fontSize: "14px", color: colors.textBody, lineHeight: "1.6" }}>
-        Know someone who could use InstantMed?{" "}
+      <p style={{ margin: 0, fontSize: "13px", color: colors.textMuted, lineHeight: "1.6" }}>
+        Know someone who needs this?{" "}
         <a href={`${appUrl}/patient?tab=referrals&utm_source=email&utm_medium=referral_cta&utm_campaign=referral`} style={{ color: colors.accent, fontWeight: 600, textDecoration: "none" }}>
-          Refer a friend — you both get $5 off
+          Give them $5 off and get $5 yourself
         </a>
       </p>
     </div>

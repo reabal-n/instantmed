@@ -14,7 +14,6 @@ import {
   Heading,
   List,
   HeroBlock,
-  ReferralCTA,
 } from "../base-email"
 
 export interface HairLossApprovedEmailProps {
@@ -46,7 +45,8 @@ export function HairLossApprovedEmail({
     <BaseEmail
       previewText={`✅ ${firstName}, your ${medicationName} treatment is ready`}
       appUrl={appUrl}
-      showFooterReview
+      showReviewCTA
+      showReferral
     >
       <HeroBlock
         icon="✓"
@@ -58,7 +58,7 @@ export function HairLossApprovedEmail({
       <Text>Hi {firstName},</Text>
 
       <Text>
-        Good news — your prescription for{" "}
+        Good news! Your prescription for{" "}
         <strong>{medicationName}</strong> has been approved. Your eScript will arrive by SMS shortly.
       </Text>
 
@@ -78,8 +78,8 @@ export function HairLossApprovedEmail({
               "Take 1mg once daily, with or without food",
               "Take it at the same time each day for best results",
               "It typically takes 3–6 months before you notice visible improvement",
-              "Continued use is required to maintain results — hair loss may resume if you stop",
-              "Some men experience decreased libido or sexual side effects — discuss with your doctor if this occurs",
+              "Continued use is required to maintain results. Hair loss may resume if you stop",
+              "Some men experience decreased libido or sexual side effects. Discuss with your doctor if this occurs",
             ]}
           />
         </Box>
@@ -93,7 +93,7 @@ export function HairLossApprovedEmail({
               "Apply to the affected area of the scalp twice daily (morning and evening)",
               "Make sure the scalp is dry before applying",
               "Use the dropper or foam applicator to spread evenly",
-              "Initial shedding at 2–4 weeks is normal — this is a sign the treatment is working",
+              "Initial shedding at 2–4 weeks is normal. This is a sign the treatment is working",
               "Visible results typically appear at 4–6 months of consistent use",
               "Wash your hands thoroughly after applying",
             ]}
@@ -115,7 +115,7 @@ export function HairLossApprovedEmail({
         <Heading as="h3">Setting expectations</Heading>
         <List
           items={[
-            "Hair loss treatment requires patience — give it at least 3–6 months",
+            "Hair loss treatment requires patience. Give it at least 3–6 months",
             "Take photos monthly to track your progress",
             "A follow-up consultation is recommended after 6 months",
             "Contact your doctor if you experience any unexpected side effects",
@@ -127,7 +127,6 @@ export function HairLossApprovedEmail({
         View Request Details
       </Button>
 
-      <ReferralCTA appUrl={appUrl} />
     </BaseEmail>
   )
 }

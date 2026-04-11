@@ -14,7 +14,6 @@ import {
   Box,
   Heading,
   List,
-  ReferralCTA,
 } from "../base-email"
 
 export interface EdApprovedEmailProps {
@@ -46,7 +45,8 @@ export function EdApprovedEmail({
     <BaseEmail
       previewText={`✅ ${firstName}, your ${medicationName} prescription is ready`}
       appUrl={appUrl}
-      showFooterReview
+      showReviewCTA
+      showReferral
     >
       <HeroBlock
         icon="✓"
@@ -59,7 +59,7 @@ export function EdApprovedEmail({
 
       <Text>
         Your prescription for <strong>{medicationName}</strong> has been approved.
-        Your eScript will arrive by SMS shortly — take your phone to any pharmacy and they&apos;ll scan the QR code.
+        Your eScript will arrive by SMS shortly. Take your phone to any pharmacy and they&apos;ll scan the QR code.
         Bring your Medicare card for any PBS subsidy.
       </Text>
 
@@ -71,8 +71,8 @@ export function EdApprovedEmail({
               "Take 30–60 minutes before sexual activity",
               "Effects typically last 4–6 hours",
               "Do not take more than one dose (100mg max) in 24 hours",
-              "Works best on an empty stomach — a heavy meal may delay the effect",
-              "Do NOT take with nitrate medications (e.g. GTN spray) — this can cause a dangerous drop in blood pressure",
+              "Works best on an empty stomach. A heavy meal may delay the effect",
+              "Do NOT take with nitrate medications (e.g. GTN spray). This can cause a dangerous drop in blood pressure",
             ]}
           />
         </Box>
@@ -86,7 +86,7 @@ export function EdApprovedEmail({
               "Take at least 30 minutes before sexual activity",
               "Effects can last up to 36 hours, giving you more flexibility",
               "Can be taken with or without food",
-              "Do NOT take with nitrate medications (e.g. GTN spray) — this can cause a dangerous drop in blood pressure",
+              "Do NOT take with nitrate medications (e.g. GTN spray). This can cause a dangerous drop in blood pressure",
             ]}
           />
         </Box>
@@ -105,8 +105,8 @@ export function EdApprovedEmail({
         <Heading as="h3">Important safety information</Heading>
         <List
           items={[
-            "Common side effects: headache, flushing, nasal congestion, indigestion — these usually pass quickly",
-            "Avoid excessive alcohol — it can reduce effectiveness and increase side effects",
+            "Common side effects: headache, flushing, nasal congestion, indigestion. These usually pass quickly",
+            "Avoid excessive alcohol. It can reduce effectiveness and increase side effects",
             "Do NOT combine with nitrate medications or recreational drugs containing nitrates (e.g. poppers)",
             "Seek urgent medical attention for chest pain, an erection lasting more than 4 hours, or sudden vision/hearing changes",
           ]}
@@ -117,7 +117,6 @@ export function EdApprovedEmail({
         View request
       </Button>
 
-      <ReferralCTA appUrl={appUrl} />
     </BaseEmail>
   )
 }

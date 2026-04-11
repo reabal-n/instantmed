@@ -27,7 +27,7 @@ const MILESTONE_LABEL: Record<FollowupMilestone, string> = {
 const SUBTYPE_FRAMING: Record<FollowupSubtype, Record<FollowupMilestone, string>> = {
   ed: {
     month_3:
-      "You started your treatment about three months ago. By now most men are starting to see how it's working for them. We'd like to check in — just a few quick questions.",
+      "You started your treatment about three months ago. By now most men are starting to see how it's working for them. We'd like to check in, just a few quick questions.",
     month_6:
       "You're six months into your treatment. This is a good time to take stock: is it working well? Are there any side effects? Your doctor wants to know.",
     month_12:
@@ -35,11 +35,11 @@ const SUBTYPE_FRAMING: Record<FollowupSubtype, Record<FollowupMilestone, string>
   },
   hair_loss: {
     month_3:
-      "You've been using your hair-loss treatment for about three months now. Early changes are usually subtle — sometimes it's less shedding before any visible regrowth. We'd love a quick update.",
+      "You've been using your hair-loss treatment for about three months now. Early changes are usually subtle, sometimes it's less shedding before any visible regrowth. We'd love a quick update.",
     month_6:
       "You're six months into your hair-loss treatment. Most people see meaningful changes by now. Your doctor would like to check in on how it's going.",
     month_12:
-      "It's been twelve months — the point where the full effect of hair-loss treatment is usually visible. Your doctor would like to hear how you're doing.",
+      "It's been twelve months, the point where the full effect of hair-loss treatment is usually visible. Your doctor would like to hear how you're doing.",
   },
 }
 
@@ -49,7 +49,7 @@ export function treatmentFollowupSubject(
 ): string {
   const label = MILESTONE_LABEL[milestone]
   const service = subtype === "ed" ? "your treatment" : "your hair-loss treatment"
-  return `How's ${service} going? — InstantMed ${label} check-in`
+  return `How's ${service} going? InstantMed ${label} check-in`
 }
 
 export function TreatmentFollowupEmail({
@@ -68,7 +68,6 @@ export function TreatmentFollowupEmail({
     <BaseEmail
       previewText={`Your ${label} treatment check-in is ready`}
       appUrl={appUrl}
-      showFooterReview={false}
     >
       <HeroBlock
         icon="📋"

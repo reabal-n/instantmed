@@ -112,6 +112,19 @@ export const rateLimitConfigs = {
       : null,
     label: "webhook",
   },
+
+  /** Supabase auth webhook: 30 per minute (auth emails should never exceed this) */
+  webhookAuth: {
+    limiter: redis
+      ? new Ratelimit({
+          redis,
+          limiter: Ratelimit.slidingWindow(30, "1 m"),
+          analytics: true,
+          prefix: "ratelimit:webhook-auth",
+        })
+      : null,
+    label: "webhookAuth",
+  },
 } as const
 
 /**

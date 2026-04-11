@@ -14,7 +14,6 @@ import {
   Heading,
   List,
   HeroBlock,
-  ReferralCTA,
 } from "../base-email"
 
 export interface WomensHealthApprovedEmailProps {
@@ -40,7 +39,8 @@ export function WomensHealthApprovedEmail({
     <BaseEmail
       previewText={`✅ ${firstName}, your ${medicationName} prescription is ready`}
       appUrl={appUrl}
-      showFooterReview
+      showReviewCTA
+      showReferral
     >
       <HeroBlock
         icon="✓"
@@ -52,7 +52,7 @@ export function WomensHealthApprovedEmail({
       <Text>Hi {firstName},</Text>
 
       <Text>
-        Good news — your prescription for{" "}
+        Good news! Your prescription for{" "}
         <strong>{medicationName}</strong> has been approved. Your eScript will arrive by SMS shortly.
       </Text>
 
@@ -71,8 +71,8 @@ export function WomensHealthApprovedEmail({
             items={[
               "You can start on Day 1 of your period for immediate protection, or at any time (use backup contraception for the first 7 days)",
               "Take one pill at the same time each day",
-              "If you miss a pill, take it as soon as you remember — refer to the patient information leaflet for specific advice",
-              "Common side effects in the first 1–3 months: nausea, spotting, breast tenderness — these usually settle",
+              "If you miss a pill, take it as soon as you remember. Refer to the patient information leaflet for specific advice",
+              "Common side effects in the first 1–3 months: nausea, spotting, breast tenderness. These usually settle",
               "Contact your doctor if you experience persistent headaches, leg pain/swelling, or chest pain",
             ]}
           />
@@ -100,7 +100,7 @@ export function WomensHealthApprovedEmail({
           <List
             items={[
               "Follow the instructions provided by your doctor and pharmacist",
-              "Take your medication as prescribed — do not skip doses or stop early unless advised",
+              "Take your medication as prescribed. Do not skip doses or stop early unless advised",
               "Note any side effects and report them at your follow-up",
               "Your doctor may recommend a follow-up appointment to assess your response to treatment",
             ]}
@@ -123,7 +123,6 @@ export function WomensHealthApprovedEmail({
         View Request Details
       </Button>
 
-      <ReferralCTA appUrl={appUrl} />
     </BaseEmail>
   )
 }

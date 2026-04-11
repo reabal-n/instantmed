@@ -20,7 +20,7 @@ export interface SubscriptionNudgeEmailProps {
   appUrl?: string
 }
 
-export const subscriptionNudgeSubject = "Time for your next script? Save with a subscription"
+export const subscriptionNudgeSubject = "Time for your next script? Save on every refill"
 
 export function SubscriptionNudgeEmail({
   patientName,
@@ -29,7 +29,7 @@ export function SubscriptionNudgeEmail({
   const firstName = patientName.split(" ")[0]
 
   return (
-    <BaseEmail previewText="Save $10/month with a repeat prescription subscription" appUrl={appUrl} showFooterReview={false}>
+    <BaseEmail previewText="Save $10/month with a repeat prescription subscription" appUrl={appUrl}>
       <Text>Hi {firstName},</Text>
 
       <Text>

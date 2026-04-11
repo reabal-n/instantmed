@@ -15,7 +15,7 @@ export interface ExitIntentReminderEmailProps {
 }
 
 export function exitIntentReminderSubject(service: string) {
-  return `Your ${service} — ready when you are`
+  return `Your ${service} is ready when you are`
 }
 
 export function ExitIntentReminderEmail({
@@ -29,7 +29,7 @@ export function ExitIntentReminderEmail({
       <Heading>Still thinking it over?</Heading>
 
       <Text>
-        No rush. You were looking at our <strong>{service}</strong> — here&apos;s
+        No rush. You were looking at our <strong>{service}</strong>, here&apos;s
         a quick recap so you have everything in one place.
       </Text>
 
@@ -39,12 +39,12 @@ export function ExitIntentReminderEmail({
           items={[
             "Fill in a short form (about 2 minutes)",
             "An AHPRA-registered doctor reviews your request",
-            "Your certificate is emailed to you — usually within an hour",
+            "Your certificate is emailed to you, usually within an hour",
           ]}
         />
       </Box>
 
-      <Button href={ctaUrl}>Get your {service.toLowerCase()} — {price}</Button>
+      <Button href={ctaUrl}>Get your {service.toLowerCase()}, {price}</Button>
 
       <Text muted small>
         From {price}. Full refund if we can&apos;t help. No appointment or phone

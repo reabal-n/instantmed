@@ -120,7 +120,7 @@ export async function handleAsyncPaymentSucceeded(ctx: WebhookContext): Promise<
           await sendEmail({
             to: patientProfile.email,
             toName: patientProfile.full_name || "Patient",
-            subject: paymentConfirmedSubject(serviceName, amountFormatted),
+            subject: paymentConfirmedSubject(serviceName),
             template: React.createElement(PaymentConfirmedEmail, {
               patientName: patientProfile.full_name || "there",
               requestType: serviceName,

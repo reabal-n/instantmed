@@ -40,7 +40,6 @@ export function IntakeSubmittedEmail({
     <BaseEmail
       previewText={`Your ${requestType} request is with a doctor now 👍`}
       appUrl={appUrl}
-      showFooterReview={false}
     >
       <StatusBanner title="Request submitted" variant="info" />
 

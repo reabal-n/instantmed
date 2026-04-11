@@ -12,16 +12,14 @@ import {
   Text,
   Button,
   GoogleReviewCTA,
-  ReferralCTA,
 } from "../base-email"
-import { GOOGLE_REVIEW_URL } from "@/lib/constants"
 
 export interface FollowUpReminderEmailProps {
   patientName: string
   appUrl?: string
 }
 
-export const followUpReminderSubject = "Checking in: how are you feeling?"
+export const followUpReminderSubject = "Checking in, how are you feeling?"
 
 export function FollowUpReminderEmail({
   patientName,
@@ -32,9 +30,8 @@ export function FollowUpReminderEmail({
 
   return (
     <BaseEmail
-      previewText="Hope you're on the mend — just checking in"
+      previewText="Hope you're on the mend, just checking in"
       appUrl={appUrl}
-      showFooterReview={false}
     >
       <HeroBlock icon="👋" headline="Checking in" variant="info" />
 
@@ -42,12 +39,12 @@ export function FollowUpReminderEmail({
 
       <Text>
         Just checking in. It&apos;s been a few days since your medical
-        certificate was approved — hope you&apos;re on the mend.
+        certificate was approved. Hope you&apos;re on the mend.
       </Text>
 
       <Text>
         If symptoms are hanging around or you need ongoing care, a GP
-        consultation might be worth considering. Same process — fill in a form,
+        consultation might be worth considering. Same process, fill in a form,
         a doctor reviews it.
       </Text>
 
@@ -57,13 +54,12 @@ export function FollowUpReminderEmail({
         GP consultations from $49.95
       </Text>
 
-      <GoogleReviewCTA href={GOOGLE_REVIEW_URL} />
+      <GoogleReviewCTA appUrl={appUrl} />
 
       <Text muted style={{ marginTop: "16px" }}>
-        If you&apos;re all good — great. No action needed.
+        If you&apos;re all good, great. No action needed.
       </Text>
 
-      <ReferralCTA appUrl={appUrl} />
     </BaseEmail>
   )
 }

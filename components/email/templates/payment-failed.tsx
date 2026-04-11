@@ -17,7 +17,7 @@ export interface PaymentFailedEmailProps {
 }
 
 export function paymentFailedSubject(serviceName: string) {
-  return `Heads up: there was a hiccup with your ${serviceName} payment`
+  return `Heads up, there was a hiccup with your ${serviceName} payment`
 }
 
 export function PaymentFailedEmail({
@@ -30,7 +30,7 @@ export function PaymentFailedEmail({
   const firstName = patientName.split(" ")[0]
 
   return (
-    <BaseEmail previewText={`We couldn't process your payment. Here's how to fix it ⏱️`} appUrl={appUrl} showFooterReview={false}>
+    <BaseEmail previewText={`We couldn't process your payment. Here's how to fix it ⏱️`} appUrl={appUrl}>
       <StatusBanner title="Payment could not be processed" variant="warning" />
 
       <Text>Hi {firstName},</Text>

@@ -44,15 +44,14 @@ export function RequestDeclinedEmail({
 
   if (isPrescriptionOrConsult) {
     nextSteps.push(
-      "Try a different request \u2014 we can still help with medical certificates and other services"
+      "Try a different request. We can still help with medical certificates and other services"
     )
   }
 
   return (
     <BaseEmail
-      previewText={`We couldn\u2019t help with your ${requestType} this time \u2014 next steps inside`}
+      previewText={`We couldn\u2019t help with your ${requestType} this time. Next steps inside`}
       appUrl={appUrl}
-      showFooterReview={false}
     >
       <HeroBlock
         icon="\uD83D\uDCCB"

@@ -33,13 +33,13 @@ export function ExitIntentLastChanceEmail({
       <Heading>We&apos;re here when you&apos;re ready</Heading>
 
       <Text>
-        Just a quick note — your <strong>{service}</strong> request is still
+        Just a quick note, your <strong>{service}</strong> request is still
         available whenever suits you. No pressure, no expiry.
       </Text>
 
       <Box>
         <Text style={{ margin: 0 }}>
-          <strong>{service}</strong> — from {price}
+          <strong>{service}</strong>, from {price}
           <br />
           <span style={{ fontSize: "13px", color: colors.textSecondary }}>
             2-minute form · Doctor-reviewed · Full refund if we can&apos;t help
@@ -48,7 +48,7 @@ export function ExitIntentLastChanceEmail({
       </Box>
 
       <Text>
-        If your situation has changed or you found another option — no worries at
+        If your situation has changed or you found another option, no worries at
         all. We won&apos;t email you about this again.
       </Text>
 
