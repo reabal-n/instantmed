@@ -4,6 +4,11 @@
  */
 export const MED_CERT_FAQ = [
   {
+    question: "How much does it cost?",
+    answer:
+      "$19.95 for a 1-day certificate, $29.95 for 2 days, and $39.95 for 3 days. One flat fee, no hidden costs, no Medicare card needed. If we can't help, you get a full refund.",
+  },
+  {
     question: "Will my employer accept this?",
     answer:
       "Yes. Our certificates are issued by AHPRA-registered doctors and are legally valid for all employers. Same as what you\u2019d get from a clinic.",

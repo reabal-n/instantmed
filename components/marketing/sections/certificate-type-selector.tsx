@@ -1,7 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
+import { useSearchParams } from "next/navigation"
 import { motion } from "framer-motion"
 import { useReducedMotion } from "@/components/ui/motion"
 import {
@@ -36,6 +37,12 @@ const CATEGORY_ICONS: Record<CertCategory, typeof Briefcase> = {
   carer: Heart,
 }
 
+const CATEGORY_GRADIENTS: Record<CertCategory, { gradient: string; selectedGradient: string }> = {
+  work: { gradient: "from-emerald-50/50 to-white dark:from-emerald-950/10 dark:to-card", selectedGradient: "from-emerald-50 to-white dark:from-emerald-950/20 dark:to-card" },
+  study: { gradient: "from-sky-50/50 to-white dark:from-sky-950/10 dark:to-card", selectedGradient: "from-sky-50 to-white dark:from-sky-950/20 dark:to-card" },
+  carer: { gradient: "from-rose-50/50 to-white dark:from-rose-950/10 dark:to-card", selectedGradient: "from-rose-50 to-white dark:from-rose-950/20 dark:to-card" },
+}
+
 // =============================================================================
 // COMPONENT
 // =============================================================================
@@ -57,6 +64,16 @@ export function CertificateTypeSelector({
   const prefersReducedMotion = useReducedMotion()
   const animate = !prefersReducedMotion
   const [selected, setSelected] = useState<CertCategory | null>(null)
+
+  const searchParams = useSearchParams()
+
+  // Auto-select from URL params (utm_content or certType)
+  useEffect(() => {
+    const certType = searchParams.get("certType") || searchParams.get("utm_content")
+    if (certType && !selected && ["work", "study", "carer"].includes(certType)) {
+      setSelected(certType as CertCategory)
+    }
+  }, [searchParams, selected])
 
   const handleSelect = (category: CertCategory) => {
     setSelected(category)
@@ -94,6 +111,7 @@ export function CertificateTypeSelector({
           {CERT_CATEGORIES.map((cat, i) => {
             const Icon = CATEGORY_ICONS[cat.id]
             const isSelected = selected === cat.id
+            const colors = CATEGORY_GRADIENTS[cat.id]
             return (
               <motion.button
                 key={cat.id}
@@ -101,7 +119,8 @@ export function CertificateTypeSelector({
                 onClick={() => handleSelect(cat.id)}
                 className={cn(
                   "relative rounded-2xl border p-5 text-left transition-all cursor-pointer",
-                  "bg-white dark:bg-card shadow-md shadow-primary/[0.06]",
+                  "bg-gradient-to-br shadow-md shadow-primary/[0.06]",
+                  isSelected ? colors.selectedGradient : colors.gradient,
                   isSelected
                     ? "border-primary ring-2 ring-primary/20"
                     : "border-border/50 hover:border-primary/30 hover:shadow-lg",
@@ -233,6 +252,7 @@ const comparisonRows: Array<{
   { label: 'AHPRA doctor', instant: true, gp: true, telehealth: true },
   { label: 'Open 24/7', instant: true, gp: false, telehealth: 'Limited', instantHighlight: true },
   { label: 'No appointment', instant: true, gp: false, telehealth: false, instantHighlight: true },
+  { label: 'You save', instant: '-', gp: '~$50', telehealth: '~$40', instantHighlight: true },
 ]
 
 function renderCell(value: string | boolean) {
@@ -243,8 +263,36 @@ function renderCell(value: string | boolean) {
 }
 
 function ComparisonTable() {
+  const prefersReducedMotion = useReducedMotion()
+  const tableRef = useRef<HTMLDivElement>(null)
+  const posthog = usePostHog()
+  const tracked = useRef(false)
+
+  useEffect(() => {
+    const el = tableRef.current
+    if (!el) return
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !tracked.current) {
+          tracked.current = true
+          posthog?.capture("comparison_table_viewed", { page: "med-cert" })
+        }
+      },
+      { threshold: 0.5 }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [posthog])
+
   return (
-    <div className="mt-10">
+    <motion.div
+      ref={tableRef}
+      className="mt-10"
+      initial={prefersReducedMotion ? {} : { y: 16, opacity: 0 }}
+      whileInView={{ y: 0, opacity: 1 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.4, delay: 0.1 }}
+    >
       <h3 className="text-base font-semibold text-foreground text-center mb-4">
         How we compare
       </h3>
@@ -292,6 +340,6 @@ function ComparisonTable() {
       <p className="mt-3 text-[11px] text-muted-foreground/60 text-center leading-relaxed">
         GP cost estimated from MBS item 23 consultation fee. Telehealth prices based on comparable med-cert services.
       </p>
-    </div>
+    </motion.div>
   )
 }

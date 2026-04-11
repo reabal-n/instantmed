@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import { CheckCircle2, AlertCircle } from "lucide-react"
 import { CONTACT_EMAIL } from "@/lib/constants"
 
@@ -101,7 +102,7 @@ export function LimitationsSection() {
             </ul>
             <p className="mt-4 text-xs text-muted-foreground italic leading-relaxed">
               If your request isn&apos;t suitable, we&apos;ll refund your
-              payment and explain why — no questions asked.
+              payment and explain why - no questions asked.
             </p>
           </div>
         </div>
@@ -115,7 +116,11 @@ export function LimitationsSection() {
           >
             Ask us first
           </a>{" "}
-          — we&apos;ll be straight with you.
+          or{" "}
+          <Link href="/faq" className="text-primary hover:underline">
+            check our FAQ
+          </Link>
+          {" "}- we&apos;ll be straight with you.
         </p>
       </div>
     </section>
