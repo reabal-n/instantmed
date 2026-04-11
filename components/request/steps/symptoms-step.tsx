@@ -228,15 +228,8 @@ export default function SymptomsStep({ serviceType, onNext }: SymptomsStepProps)
             <div className="rounded-lg border border-primary/20 bg-primary/5 px-3 py-2.5 space-y-1">
               <p className="text-xs font-medium text-foreground">Ongoing for a week?</p>
               <p className="text-xs text-muted-foreground">
-                A{" "}
-                <a
-                  href="/request?service=consult"
-                  className="text-primary underline underline-offset-2 hover:text-primary/80"
-                >
-                  general consult ($49.95)
-                </a>{" "}
-                gives you a more thorough assessment — recommended for symptoms that aren&apos;t improving.
-                You can still continue with a certificate below.
+                For symptoms lasting more than a week, we recommend seeing your GP for a thorough
+                assessment. You can still continue with a certificate below.
               </p>
             </div>
           )}

@@ -18,7 +18,6 @@ import { MarketingPageShell } from '@/components/shared/marketing-page-shell'
 import { AfterHoursMedCertBanner } from '@/components/shared/after-hours-med-cert-banner'
 import { ServiceCards } from '@/components/marketing/service-cards'
 import { SocialProofSection } from '@/components/marketing/social-proof-section'
-import { EmployerLogoMarquee } from '@/components/shared/employer-logo-marquee'
 
 export const revalidate = 3600
 
@@ -130,15 +129,12 @@ export default async function HomePage() {
         {/* 1. Hero with main value prop */}
         <Hero>
           <p className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-8 leading-relaxed text-balance">
-            Medical certificates, repeat prescriptions, and discreet treatment for ED and hair loss — reviewed by AHPRA-registered Australian doctors. From $19.95.
+            Real Australian doctors review every request — medical certificates, repeat scripts, and discreet treatment for ED and hair loss. No appointments, no waiting rooms.
           </p>
         </Hero>
 
         {/* 2. Service cards — what we offer */}
         <ServiceCards />
-
-        {/* 2b. Employer logo marquee — trust signal */}
-        <EmployerLogoMarquee className="border-y border-border/30 dark:border-white/10 bg-muted/20 py-8" />
 
         {/* 3. How it works — 3 steps */}
         <Suspense fallback={<SectionSkeleton />}>
