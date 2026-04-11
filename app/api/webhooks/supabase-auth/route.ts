@@ -12,17 +12,16 @@
  * webhook-timestamp, webhook-signature) which we verify via the svix library.
  */
 
+/* eslint-disable no-console */
+
 import { NextResponse } from "next/server"
 import { Webhook } from "svix"
 import React from "react"
+import ReactDOMServer from "react-dom/server"
 
-import { createLogger } from "@/lib/observability/logger"
 import { toError } from "@/lib/errors"
-import { renderEmailToHtml } from "@/lib/email/react-renderer-server"
 import { MagicLinkEmail } from "@/components/email/templates/magic-link"
 import { applyRateLimit, getClientIdentifier } from "@/lib/rate-limit/redis"
-
-const log = createLogger("supabase-auth-webhook")
 
 // --- Types ---
 
@@ -85,28 +84,26 @@ function getSubject(actionType: string, firstName?: string): string {
 // --- Route Handler ---
 
 export async function POST(req: Request) {
-  // Rate limit: 30 requests/min. Fail-open if Redis is unavailable.
+  console.log("[auth-webhook] Step 0: handler entered")
+
+  // Rate limit
   const identifier = getClientIdentifier(req) || "supabase-auth-webhook"
   const rateLimitResponse = await applyRateLimit(req, "webhookAuth", identifier)
   if (rateLimitResponse) return rateLimitResponse
 
   const hookSecret = process.env.SUPABASE_AUTH_WEBHOOK_HOOK_SECRET
   if (!hookSecret) {
-    log.error("Missing SUPABASE_AUTH_WEBHOOK_HOOK_SECRET")
-    return NextResponse.json(
-      { error: "Webhook secret not configured" },
-      { status: 500 }
-    )
+    console.error("[auth-webhook] FAIL: Missing SUPABASE_AUTH_WEBHOOK_HOOK_SECRET")
+    return NextResponse.json({ error: "Webhook secret not configured" }, { status: 500 })
   }
 
   const resendApiKey = process.env.RESEND_API_KEY
   if (!resendApiKey) {
-    log.error("Missing RESEND_API_KEY")
-    return NextResponse.json(
-      { error: "Email service not configured" },
-      { status: 500 }
-    )
+    console.error("[auth-webhook] FAIL: Missing RESEND_API_KEY")
+    return NextResponse.json({ error: "Email service not configured" }, { status: 500 })
   }
+
+  console.log("[auth-webhook] Step 1: env vars present")
 
   // --- Verify Standard Webhooks signature ---
   const body = await req.text()
@@ -116,44 +113,38 @@ export async function POST(req: Request) {
     "webhook-signature": req.headers.get("webhook-signature") ?? req.headers.get("svix-signature") ?? "",
   }
 
+  console.log("[auth-webhook] Step 2: headers", JSON.stringify({
+    hasId: !!svixHeaders["webhook-id"],
+    hasTs: !!svixHeaders["webhook-timestamp"],
+    hasSig: !!svixHeaders["webhook-signature"],
+    bodyLen: body.length,
+  }))
+
   let payload: SupabaseAuthHookPayload
 
   try {
-    // Strip "v1," prefix — svix expects "whsec_<base64>" only
     const secret = hookSecret.startsWith("v1,") ? hookSecret.slice(3) : hookSecret
     const wh = new Webhook(secret)
     payload = wh.verify(body, svixHeaders) as SupabaseAuthHookPayload
+    console.log("[auth-webhook] Step 3: signature verified")
   } catch (err) {
-    log.error("Webhook signature verification failed", {
-      hasWebhookId: !!svixHeaders["webhook-id"],
-      hasWebhookTimestamp: !!svixHeaders["webhook-timestamp"],
-      hasWebhookSignature: !!svixHeaders["webhook-signature"],
-      bodyLength: body.length,
-      bodyPreview: body.slice(0, 100),
-    }, toError(err))
-    return NextResponse.json(
-      { error: "Invalid webhook signature" },
-      { status: 401 }
-    )
+    console.error("[auth-webhook] FAIL: Signature verification:", toError(err).message)
+    console.error("[auth-webhook] Body preview:", body.slice(0, 200))
+    return NextResponse.json({ error: "Invalid webhook signature" }, { status: 401 })
   }
 
   // --- Extract data ---
   const { user, email_data: emailData } = payload
   if (!user?.email || !emailData?.token_hash || !emailData?.email_action_type) {
-    log.error("Malformed payload", {
-      hasUser: !!user,
-      hasEmail: !!user?.email,
-      hasEmailData: !!emailData,
-    })
+    console.error("[auth-webhook] FAIL: Malformed payload. Keys:", Object.keys(payload))
     return NextResponse.json({ error: "Malformed payload" }, { status: 400 })
   }
 
-  const supabaseUrl =
-    process.env.NEXT_PUBLIC_SUPABASE_URL ?? emailData.site_url
-  const appUrl =
-    process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au"
-  const firstName =
-    user.user_metadata?.first_name ?? user.user_metadata?.full_name?.split(" ")[0]
+  console.log("[auth-webhook] Step 4: payload OK, action:", emailData.email_action_type)
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? emailData.site_url
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au"
+  const firstName = user.user_metadata?.first_name ?? user.user_metadata?.full_name?.split(" ")[0]
 
   const verifyUrl = buildVerifyUrl(
     supabaseUrl,
@@ -167,24 +158,16 @@ export async function POST(req: Request) {
   // --- Render email ---
   let html: string
   try {
-    html = await renderEmailToHtml(
-      React.createElement(MagicLinkEmail, { loginUrl: verifyUrl, appUrl })
-    )
+    const element = React.createElement(MagicLinkEmail, { loginUrl: verifyUrl, appUrl })
+    html = "<!DOCTYPE html>" + ReactDOMServer.renderToStaticMarkup(element)
+    console.log("[auth-webhook] Step 5: rendered", html.length, "chars")
   } catch (err) {
-    log.error(
-      "Email render failed",
-      { actionType: emailData.email_action_type },
-      toError(err)
-    )
-    return NextResponse.json(
-      { error: "Email render failed" },
-      { status: 500 }
-    )
+    console.error("[auth-webhook] FAIL: Render:", toError(err).message)
+    return NextResponse.json({ error: "Email render failed" }, { status: 500 })
   }
 
   // --- Send via Resend ---
-  const fromEmail =
-    process.env.RESEND_FROM_EMAIL ?? "InstantMed <hello@instantmed.com.au>"
+  const fromEmail = process.env.RESEND_FROM_EMAIL ?? "InstantMed <hello@instantmed.com.au>"
 
   try {
     const response = await fetch("https://api.resend.com/emails", {
@@ -203,32 +186,14 @@ export async function POST(req: Request) {
 
     if (!response.ok) {
       const resBody = await response.text().catch(() => "")
-      log.error("Resend API error", {
-        to: user.email,
-        status: response.status,
-        body: resBody,
-        actionType: emailData.email_action_type,
-      })
-      return NextResponse.json(
-        { error: "Email delivery failed" },
-        { status: 500 }
-      )
+      console.error("[auth-webhook] FAIL: Resend", response.status, resBody)
+      return NextResponse.json({ error: "Email delivery failed" }, { status: 500 })
     }
 
-    log.info("Auth email sent", {
-      to: user.email,
-      actionType: emailData.email_action_type,
-    })
+    console.log("[auth-webhook] Step 6: email sent to", user.email)
   } catch (err) {
-    log.error(
-      "Resend fetch failed",
-      { actionType: emailData.email_action_type },
-      toError(err)
-    )
-    return NextResponse.json(
-      { error: "Email delivery failed" },
-      { status: 500 }
-    )
+    console.error("[auth-webhook] FAIL: Resend fetch:", toError(err).message)
+    return NextResponse.json({ error: "Email delivery failed" }, { status: 500 })
   }
 
   return NextResponse.json({ success: true })
