@@ -1,6 +1,5 @@
 import {
   BaseEmail,
-  HeroBlock,
   Heading,
   Text,
   Button,
@@ -31,13 +30,8 @@ export function ExitIntentSocialProofEmail({
   openTrackingUrl,
 }: ExitIntentSocialProofEmailProps) {
   return (
-    <BaseEmail previewText="Here's what happens after you hit submit." appUrl={appUrl} showFooterReview={false}>
-      <HeroBlock
-        icon="📊"
-        headline="Here&apos;s what actually happens"
-        subtitle="97% of requests approved within an hour"
-        variant="info"
-      />
+    <BaseEmail previewText="Here's what happens after you hit submit." appUrl={appUrl}>
+      <Heading>Here&apos;s what actually happens</Heading>
 
       <Text>
         You were looking at our <strong>{service}</strong> yesterday — fair enough
@@ -76,11 +70,13 @@ export function ExitIntentSocialProofEmail({
         .
       </Text>
 
-      <Text muted small style={{ textAlign: "center" as const, marginTop: "24px" }}>
-        <a href={unsubscribeUrl || "#"} style={{ color: "#A8A29E", textDecoration: "underline", fontSize: "11px" }}>
-          Unsubscribe from these reminders
-        </a>
-      </Text>
+      {unsubscribeUrl && (
+        <Text muted small style={{ textAlign: "center" as const, marginTop: "24px" }}>
+          <a href={unsubscribeUrl} style={{ color: "#A8A29E", textDecoration: "underline", fontSize: "11px" }}>
+            Unsubscribe from these reminders
+          </a>
+        </Text>
+      )}
 
       {/* Open tracking pixel */}
       {openTrackingUrl && (

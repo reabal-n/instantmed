@@ -202,24 +202,6 @@ const templates = [
     category: "engagement",
   },
   {
-    slug: "exit-intent-reminder",
-    name: "Exit Intent — Reminder (Email 1)",
-    description: "First nurture email after exit intent capture",
-    category: "engagement",
-  },
-  {
-    slug: "exit-intent-social-proof",
-    name: "Exit Intent — Social Proof (Email 2)",
-    description: "Social proof follow-up showing approval stats",
-    category: "engagement",
-  },
-  {
-    slug: "exit-intent-last-chance",
-    name: "Exit Intent — Last Chance (Email 3)",
-    description: "Final gentle nudge in the exit intent sequence",
-    category: "engagement",
-  },
-  {
     slug: "follow-up-reminder",
     name: "Follow-Up Reminder (Day 3)",
     description: "Gentle check-in sent 3 days after med cert approval",

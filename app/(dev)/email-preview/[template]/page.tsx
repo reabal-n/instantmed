@@ -42,9 +42,6 @@ import { ReviewRequestEmail } from "@/components/email/templates/review-request"
 import { ReviewFollowupEmail } from "@/components/email/templates/review-followup"
 import { SubscriptionNudgeEmail } from "@/components/email/templates/subscription-nudge"
 import { DeclineReengagementEmail } from "@/components/email/templates/decline-reengagement"
-import { ExitIntentReminderEmail } from "@/components/email/templates/exit-intent-reminder"
-import { ExitIntentSocialProofEmail } from "@/components/email/templates/exit-intent-social-proof"
-import { ExitIntentLastChanceEmail } from "@/components/email/templates/exit-intent-last-chance"
 import { TreatmentFollowupEmail } from "@/components/email/templates/treatment-followup"
 import { FollowUpReminderEmail } from "@/components/email/templates/follow-up-reminder"
 
@@ -450,42 +447,6 @@ const templates: Record<string, {
       <DeclineReengagementEmail
         patientName={mock.patientName}
         declinedService="Repeat Prescription"
-        appUrl={mock.appUrl}
-      />
-    ),
-  },
-  "exit-intent-reminder": {
-    name: "Exit Intent — Reminder",
-    subject: "Your Medical Certificate — ready when you are",
-    render: () => (
-      <ExitIntentReminderEmail
-        service="Medical Certificate"
-        price="$19.95"
-        ctaUrl={`${mock.appUrl}/request?service=medical-certificate`}
-        appUrl={mock.appUrl}
-      />
-    ),
-  },
-  "exit-intent-social-proof": {
-    name: "Exit Intent — Social Proof",
-    subject: "97% of requests approved within an hour",
-    render: () => (
-      <ExitIntentSocialProofEmail
-        service="Medical Certificate"
-        price="$19.95"
-        ctaUrl={`${mock.appUrl}/request?service=medical-certificate`}
-        appUrl={mock.appUrl}
-      />
-    ),
-  },
-  "exit-intent-last-chance": {
-    name: "Exit Intent — Last Chance",
-    subject: "Still need that medical certificate?",
-    render: () => (
-      <ExitIntentLastChanceEmail
-        service="Medical Certificate"
-        price="$19.95"
-        ctaUrl={`${mock.appUrl}/request?service=medical-certificate`}
         appUrl={mock.appUrl}
       />
     ),

@@ -10,7 +10,7 @@
 import * as Sentry from "@sentry/nextjs"
 import { z } from "zod"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { getCurrentProfile } from "@/lib/data/profiles"
+import { requireRoleOrNull } from "@/lib/auth"
 import { sendEmail, checkEmployerEmailRateLimit } from "@/lib/email/send-email"
 import { MedCertEmployerEmail, medCertEmployerEmailSubject } from "@/components/email/templates"
 import { logger } from "@/lib/observability/logger"
@@ -87,10 +87,11 @@ export async function sendEmployerEmail(input: SendEmployerEmailInput): Promise<
     const { intakeId, employerEmail, employerName, companyName, note } = validatedInput.data
 
     // 2. Get current user (must be the patient who owns this intake)
-    const profile = await getCurrentProfile()
-    if (!profile) {
+    const authUser = await requireRoleOrNull(["patient"])
+    if (!authUser) {
       return { success: false, error: "You must be logged in to send emails" }
     }
+    const profile = authUser.profile
 
     Sentry.setTag("intake_id", intakeId)
 

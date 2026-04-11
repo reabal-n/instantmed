@@ -12,10 +12,11 @@ import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter } from "@/components/marketing"
 import { StatsHero } from "@/components/heroes"
 import { ComparisonTable, AccordionSection, CTABanner } from "@/components/sections"
-import { Check, Star, ArrowRight, Shield, Clock, Zap, FileText, Pill, Stethoscope } from "lucide-react"
+import { Check, Star, ArrowRight, Shield, Clock, Zap, Gift, FileText, Pill, Stethoscope } from "lucide-react"
 import { DoctorCredibility } from "@/components/marketing/doctor-credibility"
 import { RegulatoryPartners } from "@/components/marketing/media-mentions"
 import { PricingGuideSection } from "@/components/marketing/sections/pricing-guide-section"
+import { CompetitorLinksSection } from "@/components/marketing/sections/competitor-links-section"
 import { PRICING, PRICING_DISPLAY } from "@/lib/constants"
 import { SOCIAL_PROOF } from "@/lib/social-proof"
 
@@ -38,6 +39,7 @@ const services = [
     href: "/medical-certificate",
     icon: FileText,
     color: "#2563EB",
+    cta: `Get your certificate — $${PRICING.MED_CERT}`,
   },
   {
     name: "Prescription",
@@ -54,6 +56,7 @@ const services = [
     href: "/prescriptions",
     icon: Pill,
     color: "#4f46e5",
+    cta: `Renew medication — $${PRICING.REPEAT_SCRIPT}`,
   },
   {
     name: "Consultation",
@@ -71,6 +74,7 @@ const services = [
     href: "/consult",
     icon: Stethoscope,
     color: "#059669",
+    cta: `Start assessment — from $${PRICING.HAIR_LOSS}`,
   },
 ]
 
@@ -281,15 +285,18 @@ export function PricingClient() {
 
                   <Button
                     asChild
+                    variant={service.popular ? "default" : "outline"}
                     className={cn(
                       "w-full rounded-xl h-12 font-medium",
                       service.popular
                         ? "bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20"
-                        : "bg-foreground hover:bg-foreground/90 text-background"
+                        : service.color === "#059669"
+                          ? "border-emerald-600/30 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800 dark:border-emerald-500/30 dark:text-emerald-400 dark:hover:bg-emerald-950"
+                          : "border-border hover:bg-muted"
                     )}
                   >
                     <Link href={service.href}>
-                      Start a request
+                      {service.cta}
                       <ArrowRight className="ml-2 h-4 w-4" />
                     </Link>
                   </Button>
@@ -313,6 +320,19 @@ export function PricingClient() {
                   100% refund guarantee
                 </span>
               </div>
+            </div>
+
+            {/* Express Review callout */}
+            <div className="mt-6 text-center space-y-2">
+              <p className="text-sm text-muted-foreground">
+                <Zap className="inline w-3.5 h-3.5 text-amber-500 mr-1 -mt-0.5" />
+                Need it faster? Add <span className="font-medium text-foreground">Express Review</span> at checkout for{" "}
+                <span className="font-medium text-foreground">${PRICING.PRIORITY_FEE.toFixed(2)}</span>
+              </p>
+              <p className="text-sm text-muted-foreground">
+                <Gift className="inline w-3.5 h-3.5 text-primary mr-1 -mt-0.5" />
+                Refer a friend and you both get <span className="font-medium text-foreground">$5 credit</span>
+              </p>
             </div>
           </div>
         </section>
@@ -345,6 +365,9 @@ export function PricingClient() {
           highlightWords={["questions"]}
           groups={pricingFaqs}
         />
+
+        {/* Competitor comparisons */}
+        <CompetitorLinksSection />
 
         {/* Regulatory Partners */}
         <RegulatoryPartners className="py-12" />

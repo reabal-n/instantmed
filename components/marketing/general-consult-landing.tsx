@@ -50,10 +50,6 @@ const TestimonialsSection = dynamic(
   () => import("@/components/marketing/sections/testimonials-section").then((m) => m.TestimonialsSection),
   { loading: () => <div className="min-h-[500px]" /> },
 )
-const ExitIntentOverlay = dynamic(
-  () => import("@/components/marketing/exit-intent-overlay").then((m) => m.ExitIntentOverlay),
-  { ssr: false },
-)
 const ExpectCallStrip = dynamic(
   () => import("@/components/marketing/sections/expect-call-strip").then((m) => m.ExpectCallStrip),
   { loading: () => <div className="min-h-[60px]" /> },
@@ -834,16 +830,6 @@ export function GeneralConsultLanding() {
         {/* Related articles — SEO internal linking, after footer */}
         <RelatedArticles />
 
-        {/* Exit-intent overlay — desktop only, once per session */}
-        {!isDisabled && (
-          <ExitIntentOverlay
-            service="consult"
-            onShow={() => analytics.trackExitIntent("shown")}
-            onCTAClick={() => analytics.trackExitIntent("clicked")}
-            onDismiss={() => analytics.trackExitIntent("dismissed")}
-            onEmailCapture={() => analytics.trackExitIntent("email_captured")}
-          />
-        )}
 
         {/* Sticky mobile CTA — bottom drawer, appears after hero scrolls out */}
         <motion.div

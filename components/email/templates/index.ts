@@ -109,13 +109,6 @@ export type { FollowUpReminderEmailProps } from "./follow-up-reminder"
 export { StillReviewingEmail, stillReviewingSubject } from "./still-reviewing"
 export type { StillReviewingEmailProps } from "./still-reviewing"
 
-// --- Exit Intent Social Proof (email 2 of nurture sequence) ---
-export { ExitIntentSocialProofEmail, exitIntentSocialProofSubject } from "./exit-intent-social-proof"
-export type { ExitIntentSocialProofEmailProps } from "./exit-intent-social-proof"
-
-// --- Exit Intent Last Chance (email 3 of nurture sequence) ---
-export { ExitIntentLastChanceEmail, exitIntentLastChanceSubject } from "./exit-intent-last-chance"
-export type { ExitIntentLastChanceEmailProps } from "./exit-intent-last-chance"
 
 // --- Decline Re-Engagement (2h post-decline) ---
 export { DeclineReengagementEmail, declineReengagementSubject } from "./decline-reengagement"
@@ -129,9 +122,6 @@ export type { TreatmentFollowupEmailProps, FollowupSubtype, FollowupMilestone } 
 export { AbandonedCheckoutFollowupEmail, abandonedCheckoutFollowupSubject } from "./abandoned-checkout-followup"
 export type { AbandonedCheckoutFollowupProps } from "./abandoned-checkout-followup"
 
-// --- Exit Intent Reminder (email 1 of nurture sequence) ---
-export { ExitIntentReminderEmail, exitIntentReminderSubject } from "./exit-intent-reminder"
-export type { ExitIntentReminderEmailProps } from "./exit-intent-reminder"
 
 // --- Review Request (day-2 post-approval) ---
 export { ReviewRequestEmail, reviewRequestSubject } from "./review-request"

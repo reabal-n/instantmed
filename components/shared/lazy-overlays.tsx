@@ -13,17 +13,10 @@ const StickyCTABar = dynamic(
   { ssr: false }
 )
 
-const ExitIntentOverlay = dynamic(
-  () => import("@/components/marketing/exit-intent-overlay").then((mod) => ({ default: mod.ExitIntentOverlay })),
-  { ssr: false }
-)
-
 export function LazyOverlays() {
   return (
     <>
       <StickyCTABar />
-      {/* Desktop-only, armed after 10s, once per session via sessionStorage */}
-      <ExitIntentOverlay />
     </>
   )
 }

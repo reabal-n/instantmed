@@ -147,26 +147,6 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // 4. Clean old exit intent captures (non-PHI marketing data, 90 day retention)
-    // Delete captures that are fully processed (all 3 emails sent or converted/unsubscribed)
-    // and older than 90 days
-    const exitIntentCutoff = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000)
-    const { count: exitIntentCount, error: exitIntentError } = await supabase
-      .from("exit_intent_captures")
-      .delete({ count: "exact" })
-      .lt("created_at", exitIntentCutoff.toISOString())
-      .or("converted.eq.true,unsubscribed.eq.true,reminder_3_sent_at.not.is.null")
-
-    if (exitIntentError) {
-      // Table may not exist yet
-      if (exitIntentError.code !== "42P01") {
-        logger.warn("Failed to clean exit intent captures", {}, exitIntentError)
-        stats.errors++
-      }
-    } else {
-      (stats as Record<string, number>).exit_intent_cleaned = exitIntentCount || 0
-    }
-
     logger.info("Data retention policy executed", stats)
 
     await releaseCronLock("data-retention")
@@ -178,7 +158,6 @@ export async function GET(request: NextRequest) {
         phi_retention_years: RETENTION_YEARS,
         rate_limit_retention_days: RATE_LIMIT_RETENTION_DAYS,
         session_retention_days: SESSION_DATA_RETENTION_DAYS,
-        exit_intent_retention_days: 90,
       },
       checked_at: now.toISOString(),
     })

@@ -51,10 +51,6 @@ const TestimonialsSection = dynamic(
   () => import("@/components/marketing/sections/testimonials-section").then((m) => m.TestimonialsSection),
   { loading: () => <div className="min-h-[500px]" /> },
 )
-const ExitIntentOverlay = dynamic(
-  () => import("@/components/marketing/exit-intent-overlay").then((m) => m.ExitIntentOverlay),
-  { ssr: false },
-)
 const HowItWorksSection = dynamic(
   () => import("@/components/marketing/sections/how-it-works-section").then((m) => m.HowItWorksSection),
   { loading: () => <div className="min-h-[400px]" /> },
@@ -98,6 +94,10 @@ const ContentHubLinks = dynamic(
 const RecentReviewsTicker = dynamic(
   () => import("@/components/marketing/recent-reviews-ticker").then((m) => m.RecentReviewsTicker),
   { loading: () => <div className="min-h-[40px]" /> },
+)
+const CompetitorLinksSection = dynamic(
+  () => import("@/components/marketing/sections/competitor-links-section").then((m) => m.CompetitorLinksSection),
+  { loading: () => <div className="min-h-[200px]" /> },
 )
 
 // =============================================================================
@@ -493,7 +493,10 @@ export function MedCertLanding() {
           />
           <RecentReviewsTicker format="named" artifact="certificate" />
 
-          {/* 13. Regulatory Partners — Medicare excluded (no rebate applies here) */}
+          {/* 13. Competitor comparisons — SEO internal links */}
+          <CompetitorLinksSection slugs={["instantmed-vs-cleanbill", "instantmed-vs-qoctor", "instantmed-vs-instantscripts"]} />
+
+          {/* 14. Regulatory Partners — Medicare excluded (no rebate applies here) */}
           <RegulatoryPartners className="py-12" exclude={["Medicare"]} />
 
           {/* 14. FAQ */}
@@ -526,16 +529,6 @@ export function MedCertLanding() {
         {/* Content hub cross-links — distributes PageRank to condition/symptom/guide pages */}
         <ContentHubLinks service="med-cert" />
 
-        {/* Exit-intent overlay — desktop only, once per session */}
-        {!isDisabled && (
-          <ExitIntentOverlay
-            service="medical-certificate"
-            onShow={() => analytics.trackExitIntent("shown")}
-            onCTAClick={() => analytics.trackExitIntent("clicked")}
-            onDismiss={() => analytics.trackExitIntent("dismissed")}
-            onEmailCapture={() => analytics.trackExitIntent("email_captured")}
-          />
-        )}
 
         {/* Sticky mobile CTA — bottom drawer, appears after hero scrolls out */}
         <motion.div

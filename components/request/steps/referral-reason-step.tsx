@@ -44,13 +44,13 @@ export default function ReferralReasonStep({ onBack }: ReferralReasonStepProps) 
       <div className="space-y-3 pt-2">
         <p className="text-sm font-medium text-center">What you can do now:</p>
         <div className="grid gap-2">
-          <a
-            href="/request"
+          <a 
+            href="/request?service=consult"
             className="block p-4 rounded-lg border bg-card hover:bg-muted/50 transition-colors"
           >
-            <p className="font-medium text-sm">Browse our services</p>
+            <p className="font-medium text-sm">Request a consultation</p>
             <p className="text-xs text-muted-foreground mt-0.5">
-              View available medical certificates, prescriptions, and treatments
+              Ask a doctor for a referral letter during your consult
             </p>
           </a>
           <a 

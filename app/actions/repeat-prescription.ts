@@ -9,7 +9,7 @@
  */
 
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { getApiAuth } from "@/lib/auth"
+import { requireRoleOrNull } from "@/lib/auth"
 import { createLogger } from "@/lib/observability/logger"
 import { logAuditEvent } from "@/lib/security/audit-log"
 import { revalidatePath } from "next/cache"
@@ -35,13 +35,9 @@ export async function markRepeatScriptSentAction(
   sent: boolean,
   channel: string = "parchment"
 ): Promise<MarkScriptSentResult> {
-  const auth = await getApiAuth()
-  
-  if (!auth) {
-    return { success: false, error: "Unauthorized" }
-  }
+  const auth = await requireRoleOrNull(["doctor", "admin"])
 
-  if (!["doctor", "admin"].includes(auth.profile.role)) {
+  if (!auth) {
     return { success: false, error: "Only doctors and admins can mark scripts as sent" }
   }
 
@@ -248,9 +244,9 @@ export async function getRepeatPrescriptionStatus(intakeId: string): Promise<{
   sentBy: string | null
   sentChannel: string | null
 } | null> {
-  const auth = await getApiAuth()
-  
-  if (!auth || !["doctor", "admin"].includes(auth.profile.role)) {
+  const auth = await requireRoleOrNull(["doctor", "admin"])
+
+  if (!auth) {
     return null
   }
 

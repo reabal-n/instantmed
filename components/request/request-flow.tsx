@@ -39,9 +39,11 @@ import { ExitConfirmDialog } from "@/components/request/exit-confirm-dialog"
 import {
   getStepsForService,
   getStepDefinitionById,
+  isConsultSubtypeAvailable,
   type UnifiedServiceType,
   type UnifiedStepId,
   type StepContext,
+  type ConsultSubtype,
 } from "@/lib/request/step-registry"
 import { canonicalizeServiceType } from "@/lib/request/draft-storage"
 import { evaluateSafety, type SafetyEvaluationResult } from "@/lib/safety"
@@ -282,6 +284,20 @@ export function RequestFlow({
       }
     }
   // Only run on mount - URL params are the source of truth
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Block Coming Soon subtypes — redirect to landing page
+  useEffect(() => {
+    if (initialService === 'consult' && initialSubtype) {
+      if (!isConsultSubtypeAvailable(initialSubtype as ConsultSubtype)) {
+        const redirectMap: Record<string, string> = {
+          womens_health: '/womens-health',
+          weight_loss: '/weight-loss',
+        }
+        router.replace(redirectMap[initialSubtype] || '/')
+      }
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 

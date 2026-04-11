@@ -53,10 +53,6 @@ const TestimonialsSection = dynamic(
   () => import("@/components/marketing/sections/testimonials-section").then((m) => m.TestimonialsSection),
   { loading: () => <div className="min-h-[500px]" /> },
 )
-const ExitIntentOverlay = dynamic(
-  () => import("@/components/marketing/exit-intent-overlay").then((m) => m.ExitIntentOverlay),
-  { ssr: false },
-)
 const PBSCalloutStrip = dynamic(
   () => import("@/components/marketing/sections/pbs-callout-strip").then((m) => m.PBSCalloutStrip),
   { loading: () => <div className="min-h-[60px]" /> },
@@ -76,6 +72,10 @@ const DoctorProfileSection = dynamic(
 const PrescriptionLimitationsSection = dynamic(
   () => import("@/components/marketing/sections/prescription-limitations-section").then((m) => m.PrescriptionLimitationsSection),
   { loading: () => <div className="min-h-[150px]" /> },
+)
+const CompetitorLinksSection = dynamic(
+  () => import("@/components/marketing/sections/competitor-links-section").then((m) => m.CompetitorLinksSection),
+  { loading: () => <div className="min-h-[200px]" /> },
 )
 
 // =============================================================================
@@ -762,6 +762,24 @@ function ServiceComparisonSection({ isDisabled }: { isDisabled?: boolean }) {
           ))}
         </div>
 
+        {/* Subscription upsell for repeat patients */}
+        <motion.div
+          className="mt-8 rounded-xl border border-primary/20 bg-primary/5 dark:bg-primary/10 p-4 sm:p-5 text-center"
+          initial={animate ? { y: 12 } : {}}
+          whileInView={animate ? { opacity: 1, y: 0 } : undefined}
+          viewport={{ once: true }}
+          transition={{ duration: 0.4, delay: 0.2 }}
+        >
+          <p className="text-sm font-medium text-foreground mb-1">
+            <RefreshCw className="inline w-3.5 h-3.5 text-primary mr-1.5 -mt-0.5" />
+            Need repeat scripts every month?
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Subscribe &amp; Save for <span className="font-medium text-foreground">${PRICING.REPEAT_RX_MONTHLY}/mo</span> — your repeat script auto-renews each month with no forms to fill out.
+            The option appears at checkout.
+          </p>
+        </motion.div>
+
         <motion.p
           className="text-center text-xs text-muted-foreground mt-6"
           initial={{}}
@@ -998,6 +1016,9 @@ export function PrescriptionsLanding() {
             subtitle="Real reviews from Australians who've used our service"
           />
 
+          {/* Competitor comparisons — SEO internal links */}
+          <CompetitorLinksSection slugs={["instantmed-vs-instantscripts", "instantmed-vs-hub-health", "instantmed-vs-doctors-on-demand"]} />
+
           {/* Regulatory Partners — Medicare excluded */}
           <RegulatoryPartners className="py-12" exclude={["Medicare"]} />
 
@@ -1033,16 +1054,6 @@ export function PrescriptionsLanding() {
         {/* Related articles — SEO internal linking, after footer */}
         <RelatedArticles />
 
-        {/* Exit-intent overlay — desktop only, once per session */}
-        {!isDisabled && (
-          <ExitIntentOverlay
-            service="prescription"
-            onShow={() => analytics.trackExitIntent("shown")}
-            onCTAClick={() => analytics.trackExitIntent("clicked")}
-            onDismiss={() => analytics.trackExitIntent("dismissed")}
-            onEmailCapture={() => analytics.trackExitIntent("email_captured")}
-          />
-        )}
 
         {/* Sticky mobile CTA — bottom drawer, appears after hero scrolls out */}
         <motion.div

@@ -16,7 +16,7 @@
 import * as Sentry from "@sentry/nextjs"
 import { revalidatePath } from "next/cache"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { getCurrentProfile } from "@/lib/data/profiles"
+import { requireRoleOrNull } from "@/lib/auth"
 import { createLogger } from "@/lib/observability/logger"
 import { trackIntakeFunnelStep } from "@/lib/posthog-server"
 import { stripe } from "@/lib/stripe/client"
@@ -102,14 +102,11 @@ export async function declineIntake(input: DeclineInput): Promise<DeclineResult>
     const timestamp = new Date().toISOString()
 
     // 1. VALIDATE ACTOR — always require session auth
-    const profile = await getCurrentProfile()
-    if (!profile) {
-      return { success: false, error: "You must be logged in to decline requests" }
-    }
-    if (profile.role !== "doctor" && profile.role !== "admin") {
+    const authUser = await requireRoleOrNull(["doctor", "admin"])
+    if (!authUser) {
       return { success: false, error: "Only doctors and admins can decline requests" }
     }
-    actorId = profile.id
+    actorId = authUser.profile.id
 
     Sentry.setTag("actor_id", actorId)
 

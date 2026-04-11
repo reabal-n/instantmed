@@ -116,6 +116,7 @@ export function OrganizationSchema({ baseUrl = "https://instantmed.com.au" }: Or
         reviewCount: GOOGLE_REVIEWS.count,
         bestRating: "5",
         worstRating: "1",
+        url: GOOGLE_REVIEWS.reviewsUrl,
       }
     } : {}),
     hasOfferCatalog: {

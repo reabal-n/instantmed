@@ -588,24 +588,6 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
       // Non-blocking — credit marking is best-effort, credits can be reconciled later
     }
 
-    // STEP 4c: Mark exit-intent captures as converted (non-critical)
-    // If this customer previously triggered an exit-intent nurture, stop further emails
-    try {
-      const customerEmail = session.customer_details?.email || session.customer_email
-      if (customerEmail) {
-        await supabase
-          .from("exit_intent_captures")
-          .update({
-            converted: true,
-            converted_at: new Date().toISOString(),
-          })
-          .eq("email", customerEmail.toLowerCase())
-          .eq("converted", false)
-      }
-    } catch {
-      // Non-blocking — nurture suppression is best-effort
-    }
-
     // STEP 4d: Create subscription record if this was a subscription checkout
     if (session.metadata?.is_subscription === "true" && session.subscription) {
       try {

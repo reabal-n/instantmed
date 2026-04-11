@@ -8,7 +8,7 @@
  */
 
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { getApiAuth } from "@/lib/auth"
+import { requireRoleOrNull } from "@/lib/auth"
 import { createLogger } from "@/lib/observability/logger"
 import { prepareDocumentDraftEditedContentWrite, readDocumentDraftEditedContent } from "@/lib/security/phi-field-wrappers"
 import { revalidatePath } from "next/cache"
@@ -63,8 +63,8 @@ interface ClinicalNoteContent {
  * Get AI drafts for an intake
  */
 export async function getAIDraftsForIntake(intakeId: string): Promise<AIDraft[]> {
-  const auth = await getApiAuth()
-  if (!auth || !["doctor", "admin"].includes(auth.profile.role)) {
+  const auth = await requireRoleOrNull(["doctor", "admin"])
+  if (!auth) {
     return []
   }
 
@@ -102,12 +102,8 @@ export async function approveDraft(
   draftId: string,
   editedContent?: Record<string, unknown>
 ): Promise<DraftApprovalResult> {
-  const auth = await getApiAuth()
+  const auth = await requireRoleOrNull(["doctor", "admin"])
   if (!auth) {
-    return { success: false, error: "Unauthorized" }
-  }
-
-  if (!["doctor", "admin"].includes(auth.profile.role)) {
     return { success: false, error: "Only doctors can approve drafts" }
   }
 
@@ -235,12 +231,8 @@ export async function rejectDraft(
   draftId: string,
   reason: string
 ): Promise<DraftApprovalResult> {
-  const auth = await getApiAuth()
+  const auth = await requireRoleOrNull(["doctor", "admin"])
   if (!auth) {
-    return { success: false, error: "Unauthorized" }
-  }
-
-  if (!["doctor", "admin"].includes(auth.profile.role)) {
     return { success: false, error: "Only doctors can reject drafts" }
   }
 
@@ -331,12 +323,8 @@ export async function rejectDraft(
  * Creates new draft with incremented version
  */
 export async function regenerateDrafts(intakeId: string): Promise<DraftApprovalResult> {
-  const auth = await getApiAuth()
+  const auth = await requireRoleOrNull(["doctor", "admin"])
   if (!auth) {
-    return { success: false, error: "Unauthorized" }
-  }
-
-  if (!["doctor", "admin"].includes(auth.profile.role)) {
     return { success: false, error: "Only doctors can regenerate drafts" }
   }
 
@@ -437,7 +425,7 @@ export async function checkDraftStaleness(draftId: string): Promise<{
   isStale: boolean
   reason?: string
 }> {
-  const auth = await getApiAuth()
+  const auth = await requireRoleOrNull(["doctor", "admin"])
   if (!auth) {
     return { isStale: false }
   }

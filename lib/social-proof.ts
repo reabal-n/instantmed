@@ -2,15 +2,15 @@
  * Centralized Social Proof — Single Source of Truth
  *
  * Patient counter uses linear interpolation:
- *   Anchor: March 4, 2026 → 180 patients (beta)
- *   Target: December 31, 2026 → 5,500 patients
- *   Rate: ~18 patients/day (realistic for early AU telehealth growth)
+ *   Anchor: April 11, 2026 → 3,000 patients (launch)
+ *   Target: December 31, 2026 → 8,000 patients
+ *   Rate: ~19 patients/day (realistic for early AU telehealth growth)
  *
  *   Approx display values:
- *     April 1 launch:  ~670
- *     June:            ~1,300
- *     September:       ~2,800
- *     December 31:     ~5,500
+ *     April 11 launch: ~3,000
+ *     June:            ~3,700
+ *     September:       ~5,200
+ *     December 31:     ~8,000
  *
  * To recalibrate: update ANCHOR_COUNT to actual Supabase count,
  * set ANCHOR_DATE to today, and adjust TARGET_COUNT if needed.
@@ -23,13 +23,13 @@
 
 // ─── Counter Anchors ───────────────────────────────────────────────
 
-/** AEST (UTC+11) anchor date */
-const ANCHOR_DATE = new Date("2026-03-04T00:00:00+11:00")
-export const ANCHOR_COUNT = 180
+/** AEST (UTC+10) anchor date — recalibrated April 11 2026 */
+const ANCHOR_DATE = new Date("2026-04-11T00:00:00+10:00")
+export const ANCHOR_COUNT = 3_000
 
 /** AEST (UTC+11) target date */
 const TARGET_DATE = new Date("2026-12-31T23:59:59+11:00")
-const TARGET_COUNT = 5_500
+const TARGET_COUNT = 8_000
 
 const TOTAL_GROWTH = TARGET_COUNT - ANCHOR_COUNT
 const TOTAL_MS = TARGET_DATE.getTime() - ANCHOR_DATE.getTime()
@@ -50,8 +50,8 @@ const TOTAL_MS = TARGET_DATE.getTime() - ANCHOR_DATE.getTime()
 export const SOCIAL_PROOF = {
   // ── Ratings & Reviews ──
   averageRating: 4.8,
-  /** Verified reviews count — update when real Google reviews come in */
-  reviewCount: 32,
+  /** Verified reviews count — must match GOOGLE_REVIEWS.count */
+  reviewCount: 3,
 
   // ── Response Times ──
   /** Average response in minutes (used for stat displays) */

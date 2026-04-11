@@ -49,10 +49,6 @@ const TestimonialsSection = dynamic(
   () => import("@/components/marketing/sections/testimonials-section").then((m) => m.TestimonialsSection),
   { loading: () => <div className="min-h-[500px]" /> },
 )
-const ExitIntentOverlay = dynamic(
-  () => import("@/components/marketing/exit-intent-overlay").then((m) => m.ExitIntentOverlay),
-  { ssr: false },
-)
 const HowItWorksSection = dynamic(
   () => import("@/components/marketing/sections/how-it-works-section").then((m) => m.HowItWorksSection),
   { loading: () => <div className="min-h-[400px]" /> },
@@ -87,6 +83,10 @@ const HairLossProgressTimeline = dynamic(
 )
 const HairLossFamilyHistoryStrip = dynamic(
   () => import("@/components/marketing/sections/hair-loss-family-history-strip").then((m) => m.HairLossFamilyHistoryStrip),
+  { loading: () => <div className="min-h-[200px]" /> },
+)
+const CompetitorLinksSection = dynamic(
+  () => import("@/components/marketing/sections/competitor-links-section").then((m) => m.CompetitorLinksSection),
   { loading: () => <div className="min-h-[200px]" /> },
 )
 
@@ -742,6 +742,9 @@ export function HairLossLanding() {
             subtitle="Real reviews from Australians who've used our consultation service"
           />
 
+          {/* Competitor comparisons — SEO internal links */}
+          <CompetitorLinksSection slugs={["instantmed-vs-hub-health", "instantmed-vs-doctors-on-demand", "instantmed-vs-instantscripts"]} />
+
           {/* Regulatory Partners — Medicare included */}
           <RegulatoryPartners className="py-12" />
 
@@ -785,16 +788,6 @@ export function HairLossLanding() {
         {/* Related articles — SEO internal linking (empty until hair loss blog slugs exist) */}
         <RelatedArticles />
 
-        {/* Exit-intent overlay — desktop only, once per session */}
-        {!isDisabled && (
-          <ExitIntentOverlay
-            service="consult"
-            onShow={() => analytics.trackExitIntent("shown")}
-            onCTAClick={() => analytics.trackExitIntent("clicked")}
-            onDismiss={() => analytics.trackExitIntent("dismissed")}
-            onEmailCapture={() => analytics.trackExitIntent("email_captured")}
-          />
-        )}
 
         {/* Sticky mobile CTA — bottom drawer, appears after hero scrolls out */}
         <motion.div

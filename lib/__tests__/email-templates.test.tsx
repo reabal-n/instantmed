@@ -41,9 +41,6 @@ import {
   VerificationCodeEmail, verificationCodeSubject,
   StillReviewingEmail, stillReviewingSubject,
   FollowUpReminderEmail, followUpReminderSubject,
-  ExitIntentSocialProofEmail, exitIntentSocialProofSubject,
-  ExitIntentLastChanceEmail, exitIntentLastChanceSubject,
-  ExitIntentReminderEmail, exitIntentReminderSubject,
   DeclineReengagementEmail, declineReengagementSubject,
   TreatmentFollowupEmail, treatmentFollowupSubject,
   ReviewRequestEmail, reviewRequestSubject,
@@ -943,47 +940,6 @@ describe("Email Templates", () => {
     })
   })
 
-  describe("ExitIntentReminderEmail", () => {
-    it("renders content", () => {
-      const html = render(
-        <ExitIntentReminderEmail service="Medical Certificate" price="$19.95" ctaUrl="https://instantmed.com.au/request" appUrl={APP_URL} />
-      )
-      expectBaseEmailStructure(html)
-      expectContains(html, "Medical Certificate")
-    })
-
-    it("subject is non-empty", () => {
-      expect(exitIntentReminderSubject("Medical Certificate")).toBeTruthy()
-    })
-  })
-
-  describe("ExitIntentSocialProofEmail", () => {
-    it("renders content", () => {
-      const html = render(
-        <ExitIntentSocialProofEmail service="Medical Certificate" price="$19.95" ctaUrl="https://instantmed.com.au/request" appUrl={APP_URL} />
-      )
-      expectBaseEmailStructure(html)
-      expectContains(html, "97%")
-    })
-
-    it("subject is non-empty", () => {
-      expect(exitIntentSocialProofSubject()).toBeTruthy()
-    })
-  })
-
-  describe("ExitIntentLastChanceEmail", () => {
-    it("renders content", () => {
-      const html = render(
-        <ExitIntentLastChanceEmail service="Medical Certificate" price="$19.95" ctaUrl="https://instantmed.com.au/request" appUrl={APP_URL} />
-      )
-      expectBaseEmailStructure(html)
-    })
-
-    it("subject is non-empty", () => {
-      expect(exitIntentLastChanceSubject("Medical Certificate")).toBeTruthy()
-    })
-  })
-
   describe("DeclineReengagementEmail", () => {
     it("renders content", () => {
       const html = render(
@@ -1101,9 +1057,6 @@ describe("Email Template Cross-Checks", () => {
       <RefundIssuedEmail key="23" patientName="Test" requestType="Med Cert" requestId="R12" appUrl={APP_URL} />,
       <VerificationCodeEmail key="24" code="123456" appUrl={APP_URL} />,
       <StillReviewingEmail key="25" patientName="Test" requestType="Med Cert" requestId="R13" appUrl={APP_URL} />,
-      <ExitIntentReminderEmail key="26" service="Medical Certificate" price="$19.95" ctaUrl="https://instantmed.com.au/request" appUrl={APP_URL} />,
-      <ExitIntentSocialProofEmail key="27" service="Medical Certificate" price="$19.95" ctaUrl="https://instantmed.com.au/request" appUrl={APP_URL} />,
-      <ExitIntentLastChanceEmail key="28" service="Medical Certificate" price="$19.95" ctaUrl="https://instantmed.com.au/request" appUrl={APP_URL} />,
       <DeclineReengagementEmail key="29" patientName="Test" declinedService="Medical Certificate" appUrl={APP_URL} />,
       <TreatmentFollowupEmail key="30" patientName="Test" followupId="fu-001" subtype="ed" milestone="month_3" appUrl={APP_URL} />,
       <ReviewRequestEmail key="31" patientName="Test" serviceName="Medical Certificate" appUrl={APP_URL} />,
@@ -1372,15 +1325,6 @@ describe("Link validation", () => {
         requestId="REQ-013"
         appUrl={APP_URL}
       />
-    ),
-    ExitIntentReminderEmail: (
-      <ExitIntentReminderEmail service="Medical Certificate" price="$19.95" ctaUrl="https://instantmed.com.au/request" appUrl={APP_URL} />
-    ),
-    ExitIntentSocialProofEmail: (
-      <ExitIntentSocialProofEmail service="Medical Certificate" price="$19.95" ctaUrl="https://instantmed.com.au/request" appUrl={APP_URL} />
-    ),
-    ExitIntentLastChanceEmail: (
-      <ExitIntentLastChanceEmail service="Medical Certificate" price="$19.95" ctaUrl="https://instantmed.com.au/request" appUrl={APP_URL} />
     ),
     DeclineReengagementEmail: (
       <DeclineReengagementEmail patientName="Test Patient" declinedService="Medical Certificate" appUrl={APP_URL} />

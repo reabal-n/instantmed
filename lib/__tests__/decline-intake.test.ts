@@ -33,9 +33,9 @@ vi.mock("next/cache", () => ({
   revalidatePath: vi.fn(),
 }))
 
-const mockGetCurrentProfile = vi.fn()
-vi.mock("@/lib/data/profiles", () => ({
-  getCurrentProfile: () => mockGetCurrentProfile(),
+const mockRequireRoleOrNull = vi.fn()
+vi.mock("@/lib/auth", () => ({
+  requireRoleOrNull: (...args: unknown[]) => mockRequireRoleOrNull(...args),
 }))
 
 vi.mock("@/lib/posthog-server", () => ({
@@ -109,18 +109,16 @@ function makeIntakeRow(overrides: Record<string, unknown> = {}) {
 }
 
 function mockDoctorProfile() {
-  mockGetCurrentProfile.mockResolvedValue({
-    id: "doctor-1",
-    role: "doctor",
-    email: "doctor@example.com",
+  mockRequireRoleOrNull.mockResolvedValue({
+    user: { id: "auth-doctor-1" },
+    profile: { id: "doctor-1", role: "doctor", email: "doctor@example.com" },
   })
 }
 
 function mockAdminProfile() {
-  mockGetCurrentProfile.mockResolvedValue({
-    id: "admin-1",
-    role: "admin",
-    email: "admin@example.com",
+  mockRequireRoleOrNull.mockResolvedValue({
+    user: { id: "auth-admin-1" },
+    profile: { id: "admin-1", role: "admin", email: "admin@example.com" },
   })
 }
 
@@ -147,7 +145,7 @@ describe("declineIntake", () => {
     resetAllMocks()
     delete process.env.E2E_MODE
     delete process.env.PLAYWRIGHT
-    mockGetCurrentProfile.mockReset()
+    mockRequireRoleOrNull.mockReset()
     vi.mocked(stripe.refunds.create).mockReset()
   })
 
@@ -157,19 +155,19 @@ describe("declineIntake", () => {
 
   describe("actor gate", () => {
     it("rejects when no profile is present", async () => {
-      mockGetCurrentProfile.mockResolvedValue(null)
+      mockRequireRoleOrNull.mockResolvedValue(null)
 
       const result = await declineIntake({ intakeId: "intake-123" })
 
       expect(result).toEqual({
         success: false,
-        error: "You must be logged in to decline requests",
+        error: "Only doctors and admins can decline requests",
       })
       expect(mockSupabaseFrom).not.toHaveBeenCalled()
     })
 
     it("rejects patient role", async () => {
-      mockGetCurrentProfile.mockResolvedValue({ id: "p-1", role: "patient" })
+      mockRequireRoleOrNull.mockResolvedValue(null) // requireRoleOrNull(["doctor","admin"]) returns null for patients
 
       const result = await declineIntake({ intakeId: "intake-123" })
 

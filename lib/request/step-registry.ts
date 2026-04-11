@@ -45,6 +45,21 @@ export type ConsultSubtype =
   | 'womens_health'
   | 'weight_loss'
 
+/**
+ * Consult subtypes that are gated as "Coming Soon".
+ * These have step definitions (for future use) but the intake flow
+ * blocks entry. Service hub shows waitlist capture instead.
+ */
+export const BLOCKED_CONSULT_SUBTYPES: ReadonlySet<ConsultSubtype> = new Set([
+  'womens_health',
+  'weight_loss',
+])
+
+/** Returns true if this consult subtype is currently accepting patients */
+export function isConsultSubtypeAvailable(subtype: ConsultSubtype): boolean {
+  return !BLOCKED_CONSULT_SUBTYPES.has(subtype)
+}
+
 // Human-readable labels for consult subtypes
 export const CONSULT_SUBTYPE_LABELS: Record<ConsultSubtype, string> = {
   general: 'General consultation',
@@ -403,6 +418,12 @@ export function getStepsForService(
   if (serviceType === 'consult') {
     // Branch based on consult subtype
     const subtype = context.answers.consultSubtype as ConsultSubtype | undefined
+
+    // Block entry to Coming Soon subtypes
+    if (subtype && BLOCKED_CONSULT_SUBTYPES.has(subtype)) {
+      return []
+    }
+
     if (subtype && CONSULT_SUBTYPE_STEPS[subtype]) {
       steps = CONSULT_SUBTYPE_STEPS[subtype]
     } else {
