@@ -38,7 +38,7 @@ import {
   ImageTextSplit,
   FeatureGrid,
   Timeline,
-  AccordionSection,
+  FAQSection,
   CTABanner,
 } from "@/components/sections"
 
@@ -374,12 +374,12 @@ export default function TrustPage() {
         <TrustGuideSection />
 
         {/* ── Trust FAQ ─────────────────────────────────────── */}
-        <AccordionSection
+        <FAQSection
           pill="Questions"
           title="Common questions about trust"
           subtitle="We understand you want to be sure."
           highlightWords={["trust"]}
-          groups={[{ items: trustFAQs }]}
+          items={trustFAQs}
           className="bg-muted/30 dark:bg-muted/10"
         />
 

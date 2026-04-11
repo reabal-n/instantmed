@@ -21,6 +21,7 @@ interface FAQSectionProps {
   pill?: string
   title?: string
   subtitle?: string
+  highlightWords?: string[]
   items: readonly FAQItem[]
   className?: string
   onFAQOpen?: (question: string, index: number) => void
@@ -31,6 +32,7 @@ export function FAQSection({
   pill,
   title = "Common questions",
   subtitle,
+  highlightWords,
   items,
   className,
   onFAQOpen,
@@ -41,7 +43,7 @@ export function FAQSection({
   return (
     <section id={id} className={cn("py-16 lg:py-24 scroll-mt-20", className)}>
       {title && (
-        <SectionHeader pill={pill} title={title} subtitle={subtitle} />
+        <SectionHeader pill={pill} title={title} subtitle={subtitle} highlightWords={highlightWords} />
       )}
 
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">

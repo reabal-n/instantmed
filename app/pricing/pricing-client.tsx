@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge"
 import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter } from "@/components/marketing"
 import { StatsHero } from "@/components/heroes"
-import { ComparisonTable, AccordionSection, CTABanner } from "@/components/sections"
+import { ComparisonTable, FAQSection, CTABanner } from "@/components/sections"
 import { Check, Star, ArrowRight, Shield, Clock, Zap, Gift, FileText, Pill, Stethoscope } from "lucide-react"
 import { DoctorCredibility } from "@/components/marketing/doctor-credibility"
 import { RegulatoryPartners } from "@/components/marketing/media-mentions"
@@ -90,9 +90,6 @@ const comparisonItems = [
 ]
 
 const pricingFaqs = [
-  {
-    category: "Pricing & Payments",
-    items: [
       {
         question: "Are there any hidden fees?",
         answer:
@@ -153,8 +150,6 @@ const pricingFaqs = [
         answer:
           "Each request must be submitted by \u2014 or on behalf of \u2014 the individual patient. You can submit a request for a dependent (such as a child with parental consent), but each person needs their own profile. You can\u2019t use a single account to get certificates for multiple adults.",
       },
-    ],
-  },
 ]
 
 /* ────────────────────────────── Component ────────────────────────────── */
@@ -178,16 +173,14 @@ export function PricingClient() {
   const faqStructuredData = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
-    mainEntity: pricingFaqs.flatMap((group) =>
-      group.items.map((item) => ({
-        "@type": "Question",
-        name: item.question,
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: item.answer,
-        },
-      }))
-    ),
+    mainEntity: pricingFaqs.map((item) => ({
+      "@type": "Question",
+      name: item.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: item.answer,
+      },
+    })),
   }
 
   return (
@@ -359,11 +352,11 @@ export function PricingClient() {
         <PricingGuideSection />
 
         {/* FAQ */}
-        <AccordionSection
+        <FAQSection
           title="Common questions"
           subtitle="Everything you need to know about our pricing."
           highlightWords={["questions"]}
-          groups={pricingFaqs}
+          items={pricingFaqs}
         />
 
         {/* Competitor comparisons */}

@@ -9,7 +9,7 @@ import { ComplianceBar } from "@/components/shared/compliance-marquee"
 import { CenteredHero } from "@/components/heroes"
 import {
   ImageTextSplit,
-  AccordionSection,
+  FAQSection,
   CTABanner,
 } from "@/components/sections"
 import { FAQSchema } from "@/components/seo/healthcare-schema"
@@ -52,12 +52,7 @@ export function AboutClient() {
     answer: f.a,
   }))
 
-  const accordionGroups = [
-    {
-      category: "About InstantMed",
-      items: ABOUT_FAQS.map((f) => ({ question: f.q, answer: f.a })),
-    },
-  ] as const
+  const faqItems = ABOUT_FAQS.map((f) => ({ question: f.q, answer: f.a }))
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -140,11 +135,11 @@ export function AboutClient() {
         <MediaMentions variant="strip" className="bg-muted/30" />
 
         {/* FAQs */}
-        <AccordionSection
+        <FAQSection
           pill="FAQs"
           title="Frequently asked questions"
           subtitle="Common questions about InstantMed, our doctors, and how the service works."
-          groups={accordionGroups}
+          items={faqItems}
         />
 
         {/* CTA */}

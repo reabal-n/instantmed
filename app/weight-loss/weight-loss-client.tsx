@@ -12,7 +12,7 @@ import { RegulatoryPartners } from "@/components/marketing"
 import { AvailabilityIndicator } from "@/components/shared/availability-indicator"
 import { CenteredHero } from "@/components/heroes"
 import {
-  AccordionSection,
+  FAQSection,
   CTABanner,
   ProcessSteps,
   FeatureGrid,
@@ -397,16 +397,9 @@ export function WeightLossClient() {
           <WeightLossGuideSection />
 
           {/* FAQs */}
-          <AccordionSection
+          <FAQSection
             title="Frequently Asked Questions"
-            groups={[
-              {
-                items: faqs.map((faq) => ({
-                  question: faq.question,
-                  answer: faq.answer,
-                })),
-              },
-            ]}
+            items={faqs}
           />
 
           {/* Final CTA */}
