@@ -277,7 +277,7 @@ export function BaseEmail({ children, previewText, appUrl = "https://instantmed.
                         }}
                       >
                         {children}
-                        {showReviewCTA && <GoogleReviewCTA appUrl={appUrl} />}
+                        {showReviewCTA && <GoogleReviewCTA appUrl={appUrl} intakeId={intakeId} userId={userId} />}
                         {showReferral && <ReferralCTA appUrl={appUrl} />}
                       </td>
                     </tr>
@@ -709,15 +709,26 @@ export function HeroBlock({ icon, headline, subtitle, variant = "info" }: HeroBl
   )
 }
 
-// ReviewHero — large, prominent review block for dedicated review emails
+// ReviewHero -- large, prominent review block for dedicated review emails
 interface ReviewHeroProps {
   appUrl: string
   /** Customize the warm copy for the service they used */
   serviceCopy?: string
+  /** Intake ID for PostHog tracking attribution. */
+  intakeId?: string
+  /** User ID for PostHog tracking attribution. */
+  userId?: string
 }
 
-export function ReviewHero({ appUrl, serviceCopy }: ReviewHeroProps) {
-  const trackingHref = `${appUrl}/api/review-redirect?utm_source=email&utm_medium=review_hero&utm_campaign=review`
+export function ReviewHero({ appUrl, serviceCopy, intakeId, userId }: ReviewHeroProps) {
+  const trackingParams = [
+    "utm_source=email",
+    "utm_medium=review_hero",
+    "utm_campaign=review",
+    ...(intakeId ? [`intake_id=${intakeId}`] : []),
+    ...(userId ? [`user_id=${userId}`] : []),
+  ].join("&")
+  const trackingHref = `${appUrl}/api/review-redirect?${trackingParams}`
 
   return (
     <div style={{ textAlign: "center" as const, padding: "8px 0 16px" }}>
@@ -799,10 +810,21 @@ export function ReviewHero({ appUrl, serviceCopy }: ReviewHeroProps) {
 
 interface GoogleReviewCTAProps {
   appUrl: string
+  /** Intake ID for PostHog tracking attribution. */
+  intakeId?: string
+  /** User ID for PostHog tracking attribution. */
+  userId?: string
 }
 
-export function GoogleReviewCTA({ appUrl }: GoogleReviewCTAProps) {
-  const trackingHref = `${appUrl}/api/review-redirect?utm_source=email&utm_medium=inline_cta&utm_campaign=review`
+export function GoogleReviewCTA({ appUrl, intakeId, userId }: GoogleReviewCTAProps) {
+  const trackingParams = [
+    "utm_source=email",
+    "utm_medium=inline_cta",
+    "utm_campaign=review",
+    ...(intakeId ? [`intake_id=${intakeId}`] : []),
+    ...(userId ? [`user_id=${userId}`] : []),
+  ].join("&")
+  const trackingHref = `${appUrl}/api/review-redirect?${trackingParams}`
   return (
     <div
       className="google-review-pill"
