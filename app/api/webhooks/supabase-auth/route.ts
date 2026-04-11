@@ -12,8 +12,6 @@
  * webhook-timestamp, webhook-signature) which we verify via the svix library.
  */
 
-/* eslint-disable no-console */
-
 import { NextResponse } from "next/server"
 import { Webhook } from "svix"
 import React from "react"
@@ -22,6 +20,7 @@ import { toError } from "@/lib/errors"
 import { renderEmailToHtml } from "@/lib/email/react-renderer-server"
 import { MagicLinkEmail } from "@/components/email/templates/magic-link"
 import { applyRateLimit, getClientIdentifier } from "@/lib/rate-limit/redis"
+import { createLogger } from "@/lib/observability/logger"
 
 // --- Types ---
 
@@ -81,126 +80,112 @@ function getSubject(actionType: string, firstName?: string): string {
   return subjectMap[actionType] ?? "InstantMed notification"
 }
 
+const log = createLogger("supabase-auth-webhook")
+
 // --- Route Handler ---
 
 export async function POST(req: Request) {
   try {
-  console.log("[auth-webhook] Step 0: handler entered")
+    // Rate limit
+    const identifier = getClientIdentifier(req) || "supabase-auth-webhook"
+    const rateLimitResponse = await applyRateLimit(req, "webhookAuth", identifier)
+    if (rateLimitResponse) return rateLimitResponse
 
-  // Rate limit
-  const identifier = getClientIdentifier(req) || "supabase-auth-webhook"
-  const rateLimitResponse = await applyRateLimit(req, "webhookAuth", identifier)
-  if (rateLimitResponse) return rateLimitResponse
+    const hookSecret = process.env.SUPABASE_AUTH_WEBHOOK_HOOK_SECRET
+    if (!hookSecret) {
+      log.error("Missing SUPABASE_AUTH_WEBHOOK_HOOK_SECRET")
+      return NextResponse.json({ error: "Webhook secret not configured" }, { status: 500 })
+    }
 
-  const hookSecret = process.env.SUPABASE_AUTH_WEBHOOK_HOOK_SECRET
-  if (!hookSecret) {
-    console.error("[auth-webhook] FAIL: Missing SUPABASE_AUTH_WEBHOOK_HOOK_SECRET")
-    return NextResponse.json({ error: "Webhook secret not configured" }, { status: 500 })
-  }
+    const resendApiKey = process.env.RESEND_API_KEY
+    if (!resendApiKey) {
+      log.error("Missing RESEND_API_KEY")
+      return NextResponse.json({ error: "Email service not configured" }, { status: 500 })
+    }
 
-  const resendApiKey = process.env.RESEND_API_KEY
-  if (!resendApiKey) {
-    console.error("[auth-webhook] FAIL: Missing RESEND_API_KEY")
-    return NextResponse.json({ error: "Email service not configured" }, { status: 500 })
-  }
+    // --- Verify Standard Webhooks signature ---
+    const body = await req.text()
+    const svixHeaders = {
+      "webhook-id": req.headers.get("webhook-id") ?? req.headers.get("svix-id") ?? "",
+      "webhook-timestamp": req.headers.get("webhook-timestamp") ?? req.headers.get("svix-timestamp") ?? "",
+      "webhook-signature": req.headers.get("webhook-signature") ?? req.headers.get("svix-signature") ?? "",
+    }
 
-  console.log("[auth-webhook] Step 1: env vars present")
+    let payload: SupabaseAuthHookPayload
 
-  // --- Verify Standard Webhooks signature ---
-  const body = await req.text()
-  const svixHeaders = {
-    "webhook-id": req.headers.get("webhook-id") ?? req.headers.get("svix-id") ?? "",
-    "webhook-timestamp": req.headers.get("webhook-timestamp") ?? req.headers.get("svix-timestamp") ?? "",
-    "webhook-signature": req.headers.get("webhook-signature") ?? req.headers.get("svix-signature") ?? "",
-  }
+    try {
+      const secret = hookSecret.startsWith("v1,") ? hookSecret.slice(3) : hookSecret
+      const wh = new Webhook(secret)
+      payload = wh.verify(body, svixHeaders) as SupabaseAuthHookPayload
+    } catch (err) {
+      log.error("Signature verification failed", {}, toError(err))
+      return NextResponse.json({ error: "Invalid webhook signature" }, { status: 401 })
+    }
 
-  console.log("[auth-webhook] Step 2: headers", JSON.stringify({
-    hasId: !!svixHeaders["webhook-id"],
-    hasTs: !!svixHeaders["webhook-timestamp"],
-    hasSig: !!svixHeaders["webhook-signature"],
-    bodyLen: body.length,
-  }))
+    // --- Extract data ---
+    const { user, email_data: emailData } = payload
+    if (!user?.email || !emailData?.token_hash || !emailData?.email_action_type) {
+      log.error("Malformed payload", { keys: Object.keys(payload).join(",") })
+      return NextResponse.json({ error: "Malformed payload" }, { status: 400 })
+    }
 
-  let payload: SupabaseAuthHookPayload
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? emailData.site_url
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au"
+    const firstName = user.user_metadata?.first_name ?? user.user_metadata?.full_name?.split(" ")[0]
 
-  try {
-    const secret = hookSecret.startsWith("v1,") ? hookSecret.slice(3) : hookSecret
-    const wh = new Webhook(secret)
-    payload = wh.verify(body, svixHeaders) as SupabaseAuthHookPayload
-    console.log("[auth-webhook] Step 3: signature verified")
-  } catch (err) {
-    console.error("[auth-webhook] FAIL: Signature verification:", toError(err).message)
-    console.error("[auth-webhook] Body preview:", body.slice(0, 200))
-    return NextResponse.json({ error: "Invalid webhook signature" }, { status: 401 })
-  }
-
-  // --- Extract data ---
-  const { user, email_data: emailData } = payload
-  if (!user?.email || !emailData?.token_hash || !emailData?.email_action_type) {
-    console.error("[auth-webhook] FAIL: Malformed payload. Keys:", Object.keys(payload))
-    return NextResponse.json({ error: "Malformed payload" }, { status: 400 })
-  }
-
-  console.log("[auth-webhook] Step 4: payload OK, action:", emailData.email_action_type)
-
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? emailData.site_url
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au"
-  const firstName = user.user_metadata?.first_name ?? user.user_metadata?.full_name?.split(" ")[0]
-
-  const verifyUrl = buildVerifyUrl(
-    supabaseUrl,
-    emailData.token_hash,
-    emailData.email_action_type,
-    emailData.redirect_to || appUrl
-  )
-
-  const subject = getSubject(emailData.email_action_type, firstName)
-
-  // --- Render email (uses dynamic import of react-dom/server internally) ---
-  let html: string
-  try {
-    html = await renderEmailToHtml(
-      React.createElement(MagicLinkEmail, { loginUrl: verifyUrl, appUrl })
+    const verifyUrl = buildVerifyUrl(
+      supabaseUrl,
+      emailData.token_hash,
+      emailData.email_action_type,
+      emailData.redirect_to || appUrl
     )
-    console.log("[auth-webhook] Step 5: rendered", html.length, "chars")
-  } catch (err) {
-    console.error("[auth-webhook] FAIL: Render:", toError(err).message)
-    return NextResponse.json({ error: "Email render failed" }, { status: 500 })
-  }
 
-  // --- Send via Resend ---
-  const fromEmail = process.env.RESEND_FROM_EMAIL ?? "InstantMed <hello@instantmed.com.au>"
+    const subject = getSubject(emailData.email_action_type, firstName)
 
-  try {
-    const response = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${resendApiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        from: fromEmail,
-        to: user.email,
-        subject,
-        html,
-      }),
-    })
+    // --- Render email ---
+    let html: string
+    try {
+      html = await renderEmailToHtml(
+        React.createElement(MagicLinkEmail, { loginUrl: verifyUrl, appUrl })
+      )
+    } catch (err) {
+      log.error("Email render failed", {}, toError(err))
+      return NextResponse.json({ error: "Email render failed" }, { status: 500 })
+    }
 
-    if (!response.ok) {
-      const resBody = await response.text().catch(() => "")
-      console.error("[auth-webhook] FAIL: Resend", response.status, resBody)
+    // --- Send via Resend ---
+    const fromEmail = process.env.RESEND_FROM_EMAIL ?? "InstantMed <hello@instantmed.com.au>"
+
+    try {
+      const response = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${resendApiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          from: fromEmail,
+          to: user.email,
+          subject,
+          html,
+        }),
+      })
+
+      if (!response.ok) {
+        const resBody = await response.text().catch(() => "")
+        log.error("Resend API error", { status: response.status, body: resBody.slice(0, 200) })
+        return NextResponse.json({ error: "Email delivery failed" }, { status: 500 })
+      }
+
+      log.info("Auth email sent", { to: user.email, action: emailData.email_action_type })
+    } catch (err) {
+      log.error("Resend fetch failed", {}, toError(err))
       return NextResponse.json({ error: "Email delivery failed" }, { status: 500 })
     }
 
-    console.log("[auth-webhook] Step 6: email sent to", user.email)
-  } catch (err) {
-    console.error("[auth-webhook] FAIL: Resend fetch:", toError(err).message)
-    return NextResponse.json({ error: "Email delivery failed" }, { status: 500 })
-  }
-
-  return NextResponse.json({ success: true })
+    return NextResponse.json({ success: true })
   } catch (uncaught) {
-    console.error("[auth-webhook] UNCAUGHT ERROR:", uncaught instanceof Error ? uncaught.stack : String(uncaught))
+    log.error("Uncaught error in auth webhook", {}, toError(uncaught))
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }
