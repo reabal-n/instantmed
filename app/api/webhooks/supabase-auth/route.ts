@@ -5,11 +5,15 @@
  * and sends branded versions via Resend using our React email templates.
  *
  * Supabase config: Dashboard > Auth > Hooks > Send Email hook pointing here.
- * Secret: SUPABASE_AUTH_WEBHOOK_HOOK_SECRET (shared JWT secret, HS256).
+ * Secret: SUPABASE_AUTH_WEBHOOK_HOOK_SECRET ("v1,whsec_<base64>" format).
+ *
+ * Uses Standard Webhooks signature verification (not JWT).
+ * Supabase signs the payload and sends signature headers (webhook-id,
+ * webhook-timestamp, webhook-signature) which we verify via the svix library.
  */
 
 import { NextResponse } from "next/server"
-import { jwtVerify } from "jose"
+import { Webhook } from "svix"
 import React from "react"
 
 import { createLogger } from "@/lib/observability/logger"
@@ -49,20 +53,6 @@ interface SupabaseAuthHookPayload {
 }
 
 // --- Helpers ---
-
-/**
- * Parse Supabase hook secret from "v1,whsec_<base64>" format.
- * Returns the raw key bytes for JWT verification.
- */
-function parseHookSecret(raw: string): Uint8Array {
-  const parts = raw.split(",")
-  if (parts.length === 2 && parts[0] === "v1") {
-    const keyStr = parts[1].replace("whsec_", "")
-    return Uint8Array.from(Buffer.from(keyStr, "base64"))
-  }
-  // Fallback: treat as raw UTF-8 string
-  return new TextEncoder().encode(raw)
-}
 
 function buildVerifyUrl(
   supabaseUrl: string,
@@ -118,26 +108,25 @@ export async function POST(req: Request) {
     )
   }
 
-  // --- Verify JWT ---
-  const authHeader = req.headers.get("authorization")
-  if (!authHeader?.startsWith("Bearer ")) {
-    return NextResponse.json(
-      { error: "Missing or malformed authorization header" },
-      { status: 401 }
-    )
+  // --- Verify Standard Webhooks signature ---
+  const body = await req.text()
+  const headers = {
+    "webhook-id": req.headers.get("webhook-id") ?? "",
+    "webhook-timestamp": req.headers.get("webhook-timestamp") ?? "",
+    "webhook-signature": req.headers.get("webhook-signature") ?? "",
   }
 
-  const token = authHeader.slice(7)
   let payload: SupabaseAuthHookPayload
 
   try {
-    // Supabase hook secrets use "v1,whsec_<base64>" format
-    const secret = parseHookSecret(hookSecret)
-    const { payload: jwtPayload } = await jwtVerify(token, secret)
-    payload = jwtPayload as unknown as SupabaseAuthHookPayload
+    const wh = new Webhook(hookSecret)
+    payload = wh.verify(body, headers) as SupabaseAuthHookPayload
   } catch (err) {
-    log.error("JWT verification failed", {}, toError(err))
-    return NextResponse.json({ error: "Invalid token" }, { status: 401 })
+    log.error("Webhook signature verification failed", {}, toError(err))
+    return NextResponse.json(
+      { error: "Invalid webhook signature" },
+      { status: 401 }
+    )
   }
 
   // --- Extract data ---
@@ -168,8 +157,6 @@ export async function POST(req: Request) {
   const subject = getSubject(emailData.email_action_type, firstName)
 
   // --- Render email ---
-  // All auth email types use the MagicLinkEmail template with action-specific subjects.
-  // The template is generic enough (login link CTA) for all auth verification flows.
   let html: string
   try {
     html = await renderEmailToHtml(
@@ -207,11 +194,11 @@ export async function POST(req: Request) {
     })
 
     if (!response.ok) {
-      const body = await response.text().catch(() => "")
+      const resBody = await response.text().catch(() => "")
       log.error("Resend API error", {
         to: user.email,
         status: response.status,
-        body,
+        body: resBody,
         actionType: emailData.email_action_type,
       })
       return NextResponse.json(

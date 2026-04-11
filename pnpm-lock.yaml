@@ -108,9 +108,6 @@ importers:
       framer-motion:
         specifier: 11.18.2
         version: 11.18.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      jose:
-        specifier: ^6.2.2
-        version: 6.2.2
       lottie-web:
         specifier: ^5.13.0
         version: 5.13.0
@@ -3540,9 +3537,6 @@ packages:
   jiti@2.6.1:
     resolution: {integrity: sha512-ekilCSN1jwRvIbgeg/57YFh8qQDNbwDb9xT/qu2DAHbFFZUicIl4ygVaAvzveMhMVr3LnpSKTNnwt8PoOfmKhQ==}
     hasBin: true
-
-  jose@6.2.2:
-    resolution: {integrity: sha512-d7kPDd34KO/YnzaDOlikGpOurfF0ByC2sEV4cANCtdqLlTfBlw2p14O/5d/zv40gJPbIQxfES3nSx1/oYNyuZQ==}
 
   js-tokens@10.0.0:
     resolution: {integrity: sha512-lM/UBzQmfJRo9ABXbPWemivdCW8V2G8FHaHdypQaIy523snUjog0W71ayWXTjiR+ixeMyVHN2XcpnTd/liPg/Q==}
@@ -8227,8 +8221,6 @@ snapshots:
       supports-color: 8.1.1
 
   jiti@2.6.1: {}
-
-  jose@6.2.2: {}
 
   js-tokens@10.0.0: {}
 
