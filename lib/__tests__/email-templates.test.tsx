@@ -341,7 +341,7 @@ describe("Email Templates", () => {
     })
 
     it("subject factory works", () => {
-      const subject = paymentConfirmedSubject("Medical Certificate", "$19.95")
+      const subject = paymentConfirmedSubject("Medical Certificate")
       expect(subject).toBeTruthy()
     })
 

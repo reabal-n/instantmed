@@ -11,11 +11,11 @@ import {
   HeroBlock,
   Text,
   Button,
-  Box,
-  Heading,
-  DetailRow,
+  Divider,
   colors,
+  fontFamily,
 } from "../base-email"
+import { COMPANY_NAME, ABN } from "@/lib/constants"
 
 export interface PaymentReceiptEmailProps {
   patientName: string
@@ -37,59 +37,104 @@ export function PaymentReceiptEmail({
   appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au",
 }: PaymentReceiptEmailProps) {
   const firstName = patientName.split(" ")[0]
+  const gst = (parseFloat(amount.replace(/[^0-9.]/g, "")) / 11).toFixed(2)
 
   return (
     <BaseEmail
-      previewText={`Payment confirmed, ${amount} for ${serviceName} ✅`}
+      previewText={`Payment confirmed for your ${serviceName}. A doctor is on it now.`}
       appUrl={appUrl}
-      showFooterReview={false}
     >
       <HeroBlock
         icon="✓"
-        headline="Payment confirmed"
-        subtitle={`${amount} · ${serviceName}`}
+        headline="You&apos;re all set!"
+        subtitle={`${serviceName} · ${amount}`}
         variant="success"
       />
 
-      <Text>Hi {firstName},</Text>
+      <Text style={{ fontFamily }}>Hey {firstName},</Text>
 
-      <Text>
-        We&apos;ve received your payment of <strong>{amount}</strong> for{" "}
-        <strong>{serviceName}</strong>. A doctor will review your request shortly.
+      <Text style={{ fontFamily }}>
+        Your <strong>{serviceName}</strong> is with a doctor now. We&apos;ll send it over the moment it&apos;s done, usually within the hour.
       </Text>
 
-      <Box>
-        <Heading as="h3">Receipt Details</Heading>
-        <table
+      <Button href={dashboardUrl}>Track your request</Button>
+
+      <Divider />
+
+      {/* Tax receipt */}
+      <div
+        style={{
+          backgroundColor: "#F5F7F9",
+          border: `1px solid ${colors.border}`,
+          borderRadius: "10px",
+          padding: "16px 20px",
+        }}
+      >
+        <p
           style={{
-            width: "100%",
-            borderCollapse: "collapse",
-            fontSize: "14px",
+            margin: "0 0 12px 0",
+            fontSize: "10px",
+            fontWeight: "700",
+            color: colors.textSecondary,
+            textTransform: "uppercase" as const,
+            letterSpacing: "1px",
+            fontFamily,
           }}
         >
+          TAX RECEIPT · {COMPANY_NAME} · ABN {ABN}
+        </p>
+        <table role="presentation" cellPadding="0" cellSpacing="0" style={{ width: "100%" }}>
           <tbody>
-            <DetailRow label="Service" value={serviceName} bold />
-            <DetailRow label="Amount" value={amount} bold />
-            <DetailRow label="Reference" value={intakeRef} mono />
-            <DetailRow label="Date" value={paidAt} />
+            <tr>
+              <td style={{ padding: "12px 0", color: colors.textSecondary, fontSize: "14px", borderBottom: `1px solid ${colors.borderLight}`, fontFamily }}>
+                Service
+              </td>
+              <td style={{ padding: "12px 0", fontSize: "14px", fontWeight: 600, textAlign: "right" as const, color: colors.text, borderBottom: `1px solid ${colors.borderLight}`, fontFamily }}>
+                {serviceName}
+              </td>
+            </tr>
+            <tr>
+              <td style={{ padding: "12px 0", color: colors.textSecondary, fontSize: "14px", borderBottom: `1px solid ${colors.borderLight}`, fontFamily }}>
+                Amount paid
+              </td>
+              <td style={{ padding: "12px 0", fontSize: "14px", fontWeight: 600, textAlign: "right" as const, color: colors.text, borderBottom: `1px solid ${colors.borderLight}`, fontFamily }}>
+                {amount}
+              </td>
+            </tr>
+            <tr>
+              <td style={{ padding: "12px 0", color: colors.textSecondary, fontSize: "14px", borderBottom: `1px solid ${colors.borderLight}`, fontFamily }}>
+                GST included
+              </td>
+              <td style={{ padding: "12px 0", fontSize: "14px", fontWeight: 400, textAlign: "right" as const, color: colors.text, borderBottom: `1px solid ${colors.borderLight}`, fontFamily }}>
+                ${gst}
+              </td>
+            </tr>
+            <tr>
+              <td style={{ padding: "12px 0", color: colors.textSecondary, fontSize: "14px", borderBottom: `1px solid ${colors.borderLight}`, fontFamily }}>
+                Date
+              </td>
+              <td style={{ padding: "12px 0", fontSize: "14px", fontWeight: 400, textAlign: "right" as const, color: colors.text, borderBottom: `1px solid ${colors.borderLight}`, fontFamily }}>
+                {paidAt}
+              </td>
+            </tr>
+            <tr>
+              <td style={{ padding: "12px 0", color: colors.textSecondary, fontSize: "14px", borderBottom: `1px solid ${colors.borderLight}`, fontFamily }}>
+                Reference
+              </td>
+              <td style={{ padding: "12px 0", fontSize: "13px", fontWeight: 400, fontFamily: "'SF Mono', 'Fira Code', Consolas, monospace", textAlign: "right" as const, color: colors.text, borderBottom: `1px solid ${colors.borderLight}`, letterSpacing: "0.5px" }}>
+                {intakeRef}
+              </td>
+            </tr>
           </tbody>
         </table>
-      </Box>
-
-      <Button href={dashboardUrl}>Track Your Request</Button>
-
-      <Text muted small>
-        This receipt is for your records. You can view your request status on your{" "}
-        <a href={dashboardUrl} style={{ color: colors.accent, fontWeight: 500 }}>
-          dashboard
-        </a>
-        .
-      </Text>
-
+      </div>
     </BaseEmail>
   )
 }
 
-export function paymentReceiptEmailSubject(serviceName: string) {
-  return `Payment confirmed: ${serviceName}`
+export function paymentReceiptEmailSubject(serviceName: string, firstName?: string) {
+  if (firstName) {
+    return `${firstName}, payment received for your ${serviceName} ✅`
+  }
+  return `Payment received for your ${serviceName} ✅`
 }
