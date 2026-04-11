@@ -37,7 +37,7 @@ const PRESCRIPTION_HISTORY_OPTIONS = [
   { value: "never", label: "Never prescribed this medication" },
 ] as const
 
-export default function MedicationHistoryStep({ onNext, onBack }: MedicationHistoryStepProps) {
+export default function MedicationHistoryStep({ serviceType, onNext, onBack }: MedicationHistoryStepProps) {
   const posthog = usePostHog()
   const { answers, setAnswer } = useRequestStore()
   
@@ -71,7 +71,7 @@ export default function MedicationHistoryStep({ onNext, onBack }: MedicationHist
 
   const handleNext = useCallback(() => {
     if (validate()) {
-      posthog?.capture('step_completed', { step: 'medication-history', prescription_history: prescriptionHistory, has_side_effects: hasSideEffects })
+      posthog?.capture('step_completed', { step: 'medication-history', service_type: serviceType, prescription_history: prescriptionHistory, has_side_effects: hasSideEffects })
       onNext()
     }
   }, [validate, posthog, prescriptionHistory, hasSideEffects, onNext])

@@ -138,22 +138,44 @@ export async function POST(request: Request) {
 
     if (claimError) {
       log.error("Failed to claim intake for webhook", { patientProfileId, scid }, new Error(String(claimError)))
+      Sentry.captureException(new Error(`Parchment webhook claim error: ${String(claimError)}`), {
+        extra: { patientProfileId, scid, eventId: payload.event_id },
+      })
       return NextResponse.json({ error: "Failed to claim intake" }, { status: 500 })
     }
 
+    // Include event_id in script_notes for webhook idempotency audit trail
+    const scriptNotes = `Webhook event: ${payload.event_id}`
+
     // Check if already processed (idempotency) or no intake found
     if (!claimed) {
-      // Could be: (a) already processed by this SCID, (b) manually marked sent, (c) no awaiting_script intake
+      // Could be: (a) parchment_reference already set for this SCID, (b) manually marked sent, (c) no awaiting_script intake
       const { data: existing } = await supabase
         .from("intakes")
-        .select("id, parchment_reference")
+        .select("id, parchment_reference, script_sent")
         .eq("patient_id", patientProfileId)
         .eq("parchment_reference", scid)
         .maybeSingle()
 
-      if (existing) {
-        log.info("Webhook already processed (idempotent)", { intakeId: existing.id, scid })
+      if (existing?.script_sent) {
+        log.info("Webhook already fully processed (idempotent)", { intakeId: existing.id, scid })
         return NextResponse.json({ received: true })
+      }
+
+      if (existing && !existing.script_sent) {
+        // Claimed (parchment_reference set) but updateScriptSent failed previously — resume
+        log.info("Resuming partially-processed webhook", { intakeId: existing.id, scid })
+        const resumeSuccess = await updateScriptSent(existing.id, true, scriptNotes, scid)
+        if (!resumeSuccess) {
+          log.error("Failed to mark script sent (resumed)", { intakeId: existing.id, scid })
+          Sentry.captureMessage("Parchment webhook resume failed", {
+            level: "error",
+            extra: { intakeId: existing.id, scid, eventId: payload.event_id },
+          })
+          return NextResponse.json({ error: "Failed to update intake" }, { status: 500 })
+        }
+        log.info("Webhook resumed successfully", { intakeId: existing.id, scid })
+        return NextResponse.json({ received: true, intakeId: existing.id, resumed: true })
       }
 
       log.warn("No claimable awaiting_script intake found for patient", { patientProfileId, scid })
@@ -163,12 +185,14 @@ export async function POST(request: Request) {
     const intake = claimed
 
     // Mark script as sent and transition status
-    // Include event_id in script_notes for webhook idempotency audit trail
-    const scriptNotes = `Webhook event: ${payload.event_id}`
     const success = await updateScriptSent(intake.id, true, scriptNotes, scid)
 
     if (!success) {
       log.error("Failed to mark script sent via webhook", { intakeId: intake.id, scid })
+      Sentry.captureMessage("Parchment updateScriptSent failed", {
+        level: "error",
+        extra: { intakeId: intake.id, scid, eventId: payload.event_id },
+      })
       return NextResponse.json({ error: "Failed to update intake" }, { status: 500 })
     }
 

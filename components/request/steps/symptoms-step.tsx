@@ -51,7 +51,7 @@ const SYMPTOM_DURATION_OPTIONS = [
   { value: "week_plus", label: "A week+" },
 ] as const
 
-export default function SymptomsStep({ onNext }: SymptomsStepProps) {
+export default function SymptomsStep({ serviceType, onNext }: SymptomsStepProps) {
   const { answers, setAnswer } = useRequestStore()
   const posthog = usePostHog()
   
@@ -118,10 +118,10 @@ export default function SymptomsStep({ onNext }: SymptomsStepProps) {
   const handleNext = useCallback(() => {
     if (validate()) {
       recordStepCompletion('symptoms', { symptoms })
-      posthog?.capture('step_completed', { step: 'symptoms', symptom_count: symptoms.length, duration: symptomDuration })
+      posthog?.capture('step_completed', { step: 'symptoms', service_type: serviceType, symptom_count: symptoms.length, duration: symptomDuration })
       onNext()
     }
-  }, [validate, symptoms, symptomDuration, posthog, onNext])
+  }, [validate, symptoms, symptomDuration, serviceType, posthog, onNext])
 
   const isCarer = certType === "carer"
   const detailsQuality = validateSymptomTextQuality(symptomDetails)

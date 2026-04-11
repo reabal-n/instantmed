@@ -74,7 +74,7 @@ export function Hero({ children }: { children?: React.ReactNode }) {
 
             {/* Trust signals */}
             <motion.div
-              className="flex flex-wrap items-center justify-center lg:justify-start gap-2"
+              className="flex flex-col items-center lg:items-start gap-1"
               initial={prefersReducedMotion ? {} : { y: 8 }}
               animate={{ y: 0 }}
               transition={{ duration: 0.5, delay: 0.3 }}
@@ -85,7 +85,11 @@ export function Hero({ children }: { children?: React.ReactNode }) {
                   { id: 'no_call', variant: 'styled' },
                   'refund',
                 ]}
-                className="mt-4"
+                className="mt-4 justify-center lg:justify-start"
+              />
+              <TrustBadgeRow
+                preset="trust_certifications"
+                className="hidden sm:flex justify-center lg:justify-start mt-1"
               />
             </motion.div>
           </div>

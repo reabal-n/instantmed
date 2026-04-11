@@ -67,6 +67,25 @@ export function OrganizationSchema({ baseUrl = "https://instantmed.com.au" }: Or
           "@type": "Organization",
           name: "Royal Australian College of General Practitioners"
         }
+      },
+      {
+        "@type": "EducationalOccupationalCredential",
+        credentialCategory: "LegitScript Certified Healthcare Merchant",
+        recognizedBy: {
+          "@type": "Organization",
+          name: "LegitScript",
+          url: "https://www.legitscript.com"
+        },
+        url: "https://www.legitscript.com/websites/?checker_keywords=instantmed.com.au"
+      },
+      {
+        "@type": "EducationalOccupationalCredential",
+        credentialCategory: "Google Ads Online Pharmacy Certification",
+        recognizedBy: {
+          "@type": "Organization",
+          name: "Google",
+          url: "https://www.google.com"
+        }
       }
     ],
     address: {

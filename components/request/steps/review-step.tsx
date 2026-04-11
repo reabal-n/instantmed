@@ -7,7 +7,7 @@
 
 import { useState } from "react"
 import { usePostHog } from "posthog-js/react"
-import { Edit2, ChevronDown, ChevronUp, ShieldCheck, RefreshCw } from "lucide-react"
+import { Edit2, ChevronDown, ChevronUp, ShieldCheck, RefreshCw, Zap } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
@@ -584,6 +584,11 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
         <Button onClick={handleContinue} className="w-full h-12" disabled={!safetyConfirmed}>
           Continue to payment
         </Button>
+
+        <p className="text-center text-[11px] text-muted-foreground/60 flex items-center justify-center gap-1">
+          <Zap className="w-3 h-3 text-amber-400" />
+          Express review available at checkout (+$9.95)
+        </p>
 
         <div className="flex flex-col items-center gap-3">
           <div className="flex items-center gap-4 text-[11px] text-muted-foreground/70">

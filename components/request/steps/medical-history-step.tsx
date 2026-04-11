@@ -95,7 +95,7 @@ function YesNoQuestion({
   )
 }
 
-export default function MedicalHistoryStep({ onNext }: MedicalHistoryStepProps) {
+export default function MedicalHistoryStep({ serviceType, onNext }: MedicalHistoryStepProps) {
   const { answers, setAnswer } = useRequestStore()
   const posthog = usePostHog()
 
@@ -142,10 +142,10 @@ export default function MedicalHistoryStep({ onNext }: MedicalHistoryStepProps) 
 
   const handleNext = useCallback(() => {
     if (validate()) {
-      posthog?.capture('step_completed', { step: 'medical-history', has_allergies: hasAllergies, has_conditions: hasConditions, has_other_meds: hasOtherMedications })
+      posthog?.capture('step_completed', { step: 'medical-history', service_type: serviceType, has_allergies: hasAllergies, has_conditions: hasConditions, has_other_meds: hasOtherMedications })
       onNext()
     }
-  }, [validate, posthog, hasAllergies, hasConditions, hasOtherMedications, onNext])
+  }, [validate, serviceType, posthog, hasAllergies, hasConditions, hasOtherMedications, onNext])
 
   const isComplete =
     hasAllergies !== undefined && (!hasAllergies || allergies.trim()) &&
