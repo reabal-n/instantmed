@@ -9,11 +9,11 @@ export const ED_FAQ = [
   },
   {
     question: "Is this service discreet?",
-    answer: "Yes. Medications are dispensed in standard pharmacy packaging with no indication of contents. Your bank statement shows 'InstantMed' only. The pharmacy receives only the prescription - no consultation details.",
+    answer: "Yes. Medications are dispensed in standard pharmacy packaging with no indication of contents. Your bank statement shows 'InstantMed' only. The pharmacy receives only the prescription. No consultation details.",
   },
   {
     question: "What if the doctor declines my request?",
-    answer: "Full refund, no questions. If we decline, the doctor will explain why and recommend next steps - which sometimes means seeing your regular GP in person.",
+    answer: "Full refund, no questions. If we decline, the doctor will explain why and recommend next steps, which sometimes means seeing your regular GP in person.",
   },
   {
     question: "Which treatments can I be prescribed?",

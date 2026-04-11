@@ -57,7 +57,7 @@ export const TESTIMONIALS: Testimonial[] = [
     location: "Paddington, QLD",
     age: 38,
     rating: 5,
-    text: "Half expected a rubber stamp tbh. It wasn't - the form asked proper questions and the doctor actually engaged with what I wrote.",
+    text: "Half expected a rubber stamp tbh. It wasn't. The form asked proper questions and the doctor actually engaged with what I wrote.",
     date: "3 days ago",
     service: "medical-certificate",
     verified: true,

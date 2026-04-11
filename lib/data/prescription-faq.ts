@@ -6,12 +6,12 @@ export const PRESCRIPTION_FAQ = [
   {
     question: "What medications can you prescribe?",
     answer:
-      "We can prescribe most common repeat medications - blood pressure, cholesterol, contraceptives, asthma inhalers, reflux, thyroid, and more. We cannot prescribe Schedule 8 medications (opioids, stimulants) or benzodiazepines.",
+      "We can prescribe most common repeat medications including blood pressure, cholesterol, contraceptives, asthma inhalers, reflux, thyroid, and more. We cannot prescribe Schedule 8 medications (opioids, stimulants) or benzodiazepines.",
   },
   {
     question: "Is the eScript accepted at any pharmacy?",
     answer:
-      "Yes. eScripts are the national standard in Australia. Take your phone to any pharmacy and they'll scan it directly - no paper needed.",
+      "Yes. eScripts are the national standard in Australia. Take your phone to any pharmacy and they'll scan it directly. No paper needed.",
   },
   {
     question: "Do I need a previous prescription?",
@@ -36,6 +36,6 @@ export const PRESCRIPTION_FAQ = [
   {
     question: "Can I get repeats?",
     answer:
-      "Yes - where clinically appropriate, the doctor will include repeats on your prescription. The number of repeats depends on the medication and your situation.",
+      "Yes. Where clinically appropriate, the doctor will include repeats on your prescription. The number of repeats depends on the medication and your situation.",
   },
 ] as const
