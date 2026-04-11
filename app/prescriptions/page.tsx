@@ -10,6 +10,7 @@ import {
   SpeakableSchema,
   FAQSchema,
   ReviewAggregateSchema,
+  HealthArticleSchema,
 } from '@/components/seo/healthcare-schema'
 import { PRICING, REVIEW_AGGREGATE } from '@/lib/constants'
 
@@ -70,6 +71,11 @@ export default function PrescriptionsPage() {
       <ReviewAggregateSchema
         ratingValue={REVIEW_AGGREGATE.ratingValue}
         reviewCount={REVIEW_AGGREGATE.reviewCount}
+      />
+      <HealthArticleSchema
+        title="Online Prescription Australia"
+        description={`Renew your regular medications or get a new prescription online. AHPRA-registered Australian doctors send an eScript to your phone. From $${PRICING.REPEAT_SCRIPT.toFixed(2)}.`}
+        url="/prescriptions"
       />
       <PrescriptionsLanding />
     </>

@@ -249,7 +249,7 @@ const comparisonRows: Array<{
   telehealth: string | boolean
   instantHighlight?: boolean
 }> = [
-  { label: 'Cost', instant: '$19.95', gp: SOCIAL_PROOF.gpPriceStandard, telehealth: '~$60', instantHighlight: true },
+  { label: 'Cost', instant: `$${PRICING.MED_CERT.toFixed(2)}`, gp: SOCIAL_PROOF.gpPriceStandard, telehealth: '~$60', instantHighlight: true },
   { label: 'Turnaround', instant: `~${SOCIAL_PROOF.certTurnaroundMinutes} min avg`, gp: 'Requires booking', telehealth: '1–2 hours', instantHighlight: true },
   { label: 'No waiting room', instant: true, gp: false, telehealth: true },
   { label: 'Employer accepted', instant: true, gp: true, telehealth: true },

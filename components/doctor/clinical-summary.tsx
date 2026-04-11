@@ -419,7 +419,7 @@ export function ClinicalSummary({ answers, consultSubtype, className, inline }: 
           <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3 space-y-2">
             <div className="flex items-center gap-2 text-destructive font-medium text-sm">
               <AlertTriangle className="h-4 w-4" />
-              Red Flags — Requires Immediate Attention
+              Red Flags - Requires Immediate Attention
             </div>
             {redFlagFields.map(([key, value]) => (
               <div key={key} className="flex items-start gap-2 text-sm">
@@ -437,7 +437,7 @@ export function ClinicalSummary({ answers, consultSubtype, className, inline }: 
           <div className="bg-warning-light border border-warning-border rounded-lg p-3 space-y-2">
             <div className="flex items-center gap-2 text-warning font-semibold text-sm">
               <AlertCircle className="h-4 w-4" />
-              Caution Flags — Review Carefully
+              Caution Flags - Review Carefully
             </div>
             {yellowFlagFields.map(([key, value]) => (
               <div key={key} className="flex items-start gap-2 text-sm">

@@ -35,7 +35,7 @@ import { useServiceAvailability } from '@/components/providers/service-availabil
 import { getTestimonialsByService } from '@/lib/data/testimonials'
 import { getDailyStats } from '@/lib/marketing/daily-stats'
 import type { MedCertIntentConfig } from '@/lib/marketing/med-cert-intent-config'
-import { CONTACT_EMAIL } from '@/lib/constants'
+import { CONTACT_EMAIL, PRICING } from '@/lib/constants'
 
 const trustBadges = [
   { name: 'AHPRA Registered', description: 'Australian doctors only', icon: BadgeCheck, color: 'text-success' },
@@ -160,7 +160,7 @@ export function MedCertIntentPage({ config }: MedCertIntentPageProps) {
                       className={cn(isDisabled ? '' : 'px-8 h-12 font-semibold shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all')}
                     >
                       <Link href={ctaHref}>
-                        {isDisabled ? 'Contact us' : `${config.ctaButtonText} — $19.95`}
+                        {isDisabled ? 'Contact us' : `${config.ctaButtonText} - $${PRICING.MED_CERT.toFixed(2)}`}
                         <ArrowRight className="h-4 w-4" />
                       </Link>
                     </Button>
@@ -254,7 +254,7 @@ export function MedCertIntentPage({ config }: MedCertIntentPageProps) {
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.5, delay: 0.5 }}
               >
-                <span className="font-semibold text-foreground">From $19.95</span>
+                <span className="font-semibold text-foreground">From ${PRICING.MED_CERT.toFixed(2)}</span>
                 <span className="hidden sm:inline text-border">·</span>
                 <span>100% online</span>
                 <span className="hidden sm:inline text-border">·</span>
@@ -470,7 +470,7 @@ export function MedCertIntentPage({ config }: MedCertIntentPageProps) {
           <div className="bg-background/95 backdrop-blur-lg border-t border-border/50 px-4 py-3 safe-area-pb">
             <div className="flex items-center justify-between gap-3 max-w-lg mx-auto">
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-foreground">From $19.95</p>
+                <p className="text-sm font-semibold text-foreground">From ${PRICING.MED_CERT.toFixed(2)}</p>
                 <p className="text-xs text-muted-foreground truncate">Doctor-reviewed certificate</p>
               </div>
               <Button

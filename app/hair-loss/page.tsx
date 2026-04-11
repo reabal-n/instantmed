@@ -6,6 +6,7 @@ import {
   BreadcrumbSchema,
   MedicalServiceSchema,
   ReviewAggregateSchema,
+  HealthArticleSchema,
 } from "@/components/seo/healthcare-schema"
 import { HAIR_LOSS_FAQ } from "@/lib/data/hair-loss-faq"
 import { PRICING, REVIEW_AGGREGATE } from "@/lib/constants"
@@ -63,6 +64,11 @@ export default function HairLossPage() {
         price={PRICING.HAIR_LOSS.toFixed(2)}
       />
       <ReviewAggregateSchema ratingValue={REVIEW_AGGREGATE.ratingValue} reviewCount={REVIEW_AGGREGATE.reviewCount} />
+      <HealthArticleSchema
+        title="Hair Loss Treatment Online Australia"
+        description={`Doctor-led hair loss assessment from an AHPRA-registered Australian doctor. Discreet, no call needed. From $${PRICING.HAIR_LOSS.toFixed(2)}.`}
+        url="/hair-loss"
+      />
       <HairLossLanding />
     </>
   )

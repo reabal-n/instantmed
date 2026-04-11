@@ -541,7 +541,7 @@ export function IntakeReviewPanel({ intakeId, onActionComplete }: IntakeReviewPa
                       </Badge>
                     ) : data.certificate.email_sent_at ? (
                       <Badge variant="outline" className="text-xs text-muted-foreground">
-                        Sent — not yet opened
+                        Sent - not yet opened
                       </Badge>
                     ) : (
                       <Badge variant="outline" className="text-xs text-muted-foreground">

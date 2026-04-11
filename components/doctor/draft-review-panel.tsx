@@ -130,7 +130,7 @@ export function DraftReviewPanel({
           {isExpanded && (
             <div className="flex items-center gap-1.5 mt-1 mb-2">
               <Bot className="w-3.5 h-3.5 text-muted-foreground" />
-              <span className="text-xs text-muted-foreground font-medium">AI draft — review before approving</span>
+              <span className="text-xs text-muted-foreground font-medium">AI draft - review before approving</span>
             </div>
           )}
         </CardHeader>

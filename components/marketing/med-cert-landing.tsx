@@ -35,6 +35,7 @@ import { SOCIAL_PROOF, SOCIAL_PROOF_DISPLAY } from "@/lib/social-proof"
 import { usePatientCount } from "@/lib/use-patient-count"
 import { useServiceAvailability } from "@/components/providers/service-availability-provider"
 import { useLandingAnalytics } from "@/hooks/use-landing-analytics"
+import { useSectionVisibilityFunnel } from "@/hooks/use-section-visibility-funnel"
 import { MED_CERT_FAQ } from "@/lib/data/med-cert-faq"
 import { CTABanner } from "@/components/sections"
 import { FAQSection } from "@/components/sections"
@@ -333,24 +334,7 @@ export function MedCertLanding() {
   }, [])
 
   // Section visibility funnel tracking
-  useEffect(() => {
-    const sections = document.querySelectorAll<HTMLElement>("[data-track-section]")
-    const seen = new Set<string>()
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          const id = (entry.target as HTMLElement).dataset.trackSection
-          if (entry.isIntersecting && id && !seen.has(id)) {
-            seen.add(id)
-            analytics.trackSectionView(id)
-          }
-        })
-      },
-      { threshold: 0.3 }
-    )
-    sections.forEach((el) => observer.observe(el))
-    return () => observer.disconnect()
-  }, [analytics])
+  useSectionVisibilityFunnel(analytics.trackSectionView)
 
   // CTA click handlers with analytics
   const handleHeroCTA = useCallback(() => analytics.trackCTAClick("hero"), [analytics])
@@ -363,13 +347,6 @@ export function MedCertLanding() {
   return (
     <MarketingPageShell>
       <div className="min-h-screen overflow-x-hidden">
-        {/* Skip to content */}
-        <a
-          href="#main"
-          className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[60] focus:px-4 focus:py-2 focus:bg-primary focus:text-white focus:rounded-lg focus:text-sm focus:font-medium"
-        >
-          Skip to main content
-        </a>
         {/* Temporarily unavailable banner */}
         {isDisabled && (
           <div className="sticky top-0 z-40 mx-4 mt-2 mb-0 rounded-2xl border border-warning-border bg-warning-light px-4 py-3 flex items-center gap-3">
@@ -501,7 +478,7 @@ export function MedCertLanding() {
         >
           <div className="bg-white/90 dark:bg-card/90 backdrop-blur-lg border-t border-border/50 px-4 pt-2.5 pb-3 safe-area-pb">
             <p className="text-xs text-muted-foreground text-center mb-2">
-              Doctor available now · <span className="line-through text-muted-foreground/50">~$72 GP</span> · Available 24/7
+              Doctor available now · <span className="line-through text-muted-foreground/50">{SOCIAL_PROOF.gpPriceStandard} GP</span> · Available 24/7
             </p>
             <Button
               asChild
@@ -547,7 +524,7 @@ export function MedCertLanding() {
               </p>
               <div className="flex items-center gap-3 ml-auto">
                 <span className="text-sm text-muted-foreground">
-                  <span className="line-through text-muted-foreground/50 mr-1.5">~$72</span>
+                  <span className="line-through text-muted-foreground/50 mr-1.5">{SOCIAL_PROOF.gpPriceStandard}</span>
                   From <span className="font-semibold text-foreground">${PRICING.MED_CERT.toFixed(2)}</span>
                 </span>
                 <Button

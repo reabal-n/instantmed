@@ -8,6 +8,7 @@ import { useReducedMotion } from "@/components/ui/motion"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { usePostHog } from "@/components/providers/posthog-provider"
+import { PRICING } from "@/lib/constants"
 import {
   NORWOOD_STAGES,
   DURATION_BUCKETS,
@@ -243,7 +244,7 @@ export function HairLossHookQuiz({ className }: HairLossHookQuizProps) {
                 </Link>
               </Button>
               <p className="text-xs text-muted-foreground">
-                Completes in about 5 minutes. $49.95 flat fee.
+                Completes in about 5 minutes. ${PRICING.HAIR_LOSS.toFixed(2)} flat fee.
               </p>
             </div>
           </motion.div>

@@ -6,6 +6,7 @@ import {
   BreadcrumbSchema,
   MedicalServiceSchema,
   ReviewAggregateSchema,
+  HealthArticleSchema,
 } from "@/components/seo/healthcare-schema"
 import { ED_FAQ } from "@/lib/data/ed-faq"
 import { PRICING, REVIEW_AGGREGATE } from "@/lib/constants"
@@ -62,6 +63,11 @@ export default function Page() {
         price={PRICING.MENS_HEALTH.toFixed(2)}
       />
       <ReviewAggregateSchema ratingValue={REVIEW_AGGREGATE.ratingValue} reviewCount={REVIEW_AGGREGATE.reviewCount} />
+      <HealthArticleSchema
+        title="ED Treatment Online Australia"
+        description={`Discreet ED treatment from an AHPRA-registered Australian doctor. No call needed. Reviewed within 1-2 hours. From $${PRICING.MENS_HEALTH.toFixed(2)}.`}
+        url="/erectile-dysfunction"
+      />
       <ErectileDysfunctionLanding />
     </>
   )

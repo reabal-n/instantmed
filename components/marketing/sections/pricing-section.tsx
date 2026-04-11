@@ -7,6 +7,7 @@ import { ArrowRight, Check, RefreshCw, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { SOCIAL_PROOF } from '@/lib/social-proof'
+import { PRICING } from '@/lib/constants'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -226,8 +227,8 @@ const comparisonRows: Array<{
   walkin: string | boolean
   instantHighlight?: boolean
 }> = [
-  { label: 'Cost †', instant: '$19.95', gp: SOCIAL_PROOF.gpPriceStandard, walkin: SOCIAL_PROOF.gpPriceComplex, instantHighlight: true },
-  { label: 'Turnaround *', instant: '~38 min avg', gp: 'Requires booking', walkin: '2–4 hours', instantHighlight: true },
+  { label: 'Cost †', instant: `$${PRICING.MED_CERT.toFixed(2)}`, gp: SOCIAL_PROOF.gpPriceStandard, walkin: SOCIAL_PROOF.gpPriceComplex, instantHighlight: true },
+  { label: 'Turnaround *', instant: `~${SOCIAL_PROOF.certTurnaroundMinutes} min avg`, gp: 'Requires booking', walkin: '2–4 hours', instantHighlight: true },
   { label: 'No waiting room visit', instant: true, gp: false, walkin: false, instantHighlight: true },
   { label: 'Employer accepted', instant: true, gp: true, walkin: true },
   { label: 'AHPRA doctor', instant: true, gp: true, walkin: true },

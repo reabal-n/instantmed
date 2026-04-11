@@ -7,6 +7,7 @@ import { useReducedMotion } from "@/components/ui/motion"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { usePostHog } from "@/components/providers/posthog-provider"
+import { PRICING } from "@/lib/constants"
 import {
   ED_HOOK_QUIZ_KEY,
   ED_HOOK_QUIZ_QUESTIONS,
@@ -234,7 +235,7 @@ export function EdHookQuiz({ className }: EdHookQuizProps) {
                 </Link>
               </Button>
               <p className="text-xs text-muted-foreground">
-                Completes in about 5 minutes. $49.95 flat fee.
+                Completes in about 5 minutes. ${PRICING.MENS_HEALTH.toFixed(2)} flat fee.
               </p>
             </div>
           </motion.div>
