@@ -11,6 +11,7 @@ import {
   CheckCircle2,
   AlertCircle,
   Search,
+  ShieldCheck,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { MagneticButton } from "@/components/ui/magnetic-button"
@@ -31,6 +32,7 @@ import { SectionPill } from "@/components/ui/section-pill"
 import { HeroTestimonialRotator } from "@/components/marketing/hero-testimonial-rotator"
 import { PRICING, CONTACT_EMAIL } from "@/lib/constants"
 import { SOCIAL_PROOF, SOCIAL_PROOF_DISPLAY } from "@/lib/social-proof"
+import { usePatientCount } from "@/lib/use-patient-count"
 import { useServiceAvailability } from "@/components/providers/service-availability-provider"
 import { useLandingAnalytics } from "@/hooks/use-landing-analytics"
 import { MED_CERT_FAQ } from "@/lib/data/med-cert-faq"
@@ -175,6 +177,17 @@ function HeroSection({
               AHPRA-registered GP and delivered straight to your inbox.
             </motion.p>
 
+            {/* Price anchor */}
+            <motion.p
+              className="text-sm font-semibold text-foreground mb-2 flex items-center justify-center lg:justify-start gap-1.5"
+              initial={animate ? { y: 8 } : {}}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.11 }}
+            >
+              From ${PRICING.MED_CERT.toFixed(2)}
+              <span className="text-xs font-normal text-muted-foreground">- no hidden fees</span>
+            </motion.p>
+
             {/* Rotating secondary proof badge */}
             <motion.div
               className="flex justify-center lg:justify-start mb-6"
@@ -275,6 +288,16 @@ function OutcomePreviewSection() {
                 </li>
               ))}
             </ul>
+            <Button
+              asChild
+              size="lg"
+              className="mt-6 px-8 h-11 font-semibold shadow-md shadow-primary/20 hover:shadow-xl hover:shadow-primary/25 hover:-translate-y-0.5 transition-all"
+            >
+              <Link href="/request?service=med-cert">
+                Get your certificate
+                <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
+              </Link>
+            </Button>
           </div>
           <div className="shrink-0">
             <HeroOutcomeMockup />
@@ -296,6 +319,7 @@ export function MedCertLanding() {
   const [showStickyCTA, setShowStickyCTA] = useState(false)
   const prefersReducedMotion = useReducedMotion()
   const analytics = useLandingAnalytics("med-cert")
+  const patientCount = usePatientCount()
 
   useEffect(() => {
     const el = heroCTARef.current
@@ -339,6 +363,13 @@ export function MedCertLanding() {
   return (
     <MarketingPageShell>
       <div className="min-h-screen overflow-x-hidden">
+        {/* Skip to content */}
+        <a
+          href="#main"
+          className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[60] focus:px-4 focus:py-2 focus:bg-primary focus:text-white focus:rounded-lg focus:text-sm focus:font-medium"
+        >
+          Skip to main content
+        </a>
         {/* Temporarily unavailable banner */}
         {isDisabled && (
           <div className="sticky top-0 z-40 mx-4 mt-2 mb-0 rounded-2xl border border-warning-border bg-warning-light px-4 py-3 flex items-center gap-3">
@@ -366,7 +397,7 @@ export function MedCertLanding() {
 
         <Navbar variant="marketing" />
 
-        <main className="relative">
+        <main id="main" className="relative">
           {/* 1. Hero */}
           <HeroSection ctaRef={heroCTARef} onCTAClick={handleHeroCTA} />
 
@@ -386,6 +417,22 @@ export function MedCertLanding() {
           {/* 5. Outcome preview — what approval looks like */}
           <OutcomePreviewSection />
 
+          {/* Refund guarantee + trust counter */}
+          <section className="py-8 sm:py-12">
+            <div className="mx-auto max-w-xl px-4 text-center">
+              <div className="rounded-2xl bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06] p-6">
+                <ShieldCheck className="h-8 w-8 text-success mx-auto mb-3" aria-hidden="true" />
+                <h3 className="text-base font-semibold text-foreground mb-2">100% refund guarantee</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  If our doctor can&apos;t issue your certificate, you get a full refund. No questions asked.
+                </p>
+              </div>
+              <p className="mt-4 text-xs text-muted-foreground">
+                Trusted by {patientCount.toLocaleString()}+ Australians
+              </p>
+            </div>
+          </section>
+
           {/* 6. Social proof — reviews, doctor credibility, stats */}
           <div data-track-section="social_proof">
             <SocialProofSection />
@@ -404,6 +451,7 @@ export function MedCertLanding() {
               title="Before you start"
               subtitle="Everything you need to know about getting your certificate."
               items={MED_CERT_FAQ}
+              initialCount={6}
               onFAQOpen={handleFAQOpen}
               viewAllHref="/faq"
             />
@@ -440,6 +488,8 @@ export function MedCertLanding() {
 
         {/* Sticky mobile CTA — bottom drawer, appears after hero scrolls out */}
         <motion.div
+          role="region"
+          aria-label="Quick purchase"
           className="fixed bottom-0 left-0 right-0 z-50 lg:hidden"
           initial={prefersReducedMotion ? {} : { y: 100 }}
           animate={prefersReducedMotion
@@ -479,6 +529,8 @@ export function MedCertLanding() {
 
         {/* Sticky desktop CTA — top bar, appears after hero scrolls out */}
         <motion.div
+          role="region"
+          aria-label="Quick purchase"
           className="hidden lg:block fixed top-0 left-0 right-0 z-40"
           initial={prefersReducedMotion ? {} : { y: -60 }}
           animate={prefersReducedMotion
@@ -498,6 +550,14 @@ export function MedCertLanding() {
                   <span className="line-through text-muted-foreground/50 mr-1.5">~$72</span>
                   From <span className="font-semibold text-foreground">${PRICING.MED_CERT.toFixed(2)}</span>
                 </span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-9 text-sm text-muted-foreground hover:text-foreground"
+                  onClick={() => document.getElementById("certificate-type")?.scrollIntoView({ behavior: "smooth" })}
+                >
+                  See pricing
+                </Button>
                 <Button
                   asChild
                   size="sm"

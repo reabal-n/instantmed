@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { motion } from "framer-motion"
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
@@ -28,6 +29,7 @@ interface FAQSectionProps {
   className?: string
   onFAQOpen?: (question: string, index: number) => void
   viewAllHref?: string
+  initialCount?: number
 }
 
 export function FAQSection({
@@ -40,9 +42,12 @@ export function FAQSection({
   className,
   onFAQOpen,
   viewAllHref,
+  initialCount,
 }: FAQSectionProps) {
   const prefersReducedMotion = useReducedMotion()
   const animate = !prefersReducedMotion
+  const [expanded, setExpanded] = useState(false)
+  const visibleItems = initialCount && !expanded ? items.slice(0, initialCount) : items
 
   return (
     <section id={id} className={cn("py-10 sm:py-14 lg:py-24 scroll-mt-20", className)}>
@@ -60,7 +65,7 @@ export function FAQSection({
             }
           }}
         >
-          {items.map((item, index) => (
+          {visibleItems.map((item, index) => (
             <motion.div
               key={index}
               initial={animate ? { y: 6, opacity: 0 } : {}}
@@ -82,6 +87,17 @@ export function FAQSection({
             </motion.div>
           ))}
         </Accordion>
+
+        {initialCount && !expanded && items.length > initialCount && (
+          <button
+            type="button"
+            onClick={() => setExpanded(true)}
+            className="mt-4 mx-auto flex items-center gap-1.5 text-sm font-medium text-primary hover:text-primary/80 transition-colors"
+          >
+            Show all {items.length} questions
+            <ArrowRight className="h-3.5 w-3.5" />
+          </button>
+        )}
 
         {viewAllHref && (
           <div className="mt-6 text-center">

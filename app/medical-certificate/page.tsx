@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 import { MedCertLanding } from "@/components/marketing/med-cert-landing"
-import { SpeakableSchema, MedCertHowToSchema, FAQSchema, BreadcrumbSchema, MedicalServiceSchema, ReviewAggregateSchema } from "@/components/seo/healthcare-schema"
+import { SpeakableSchema, MedCertHowToSchema, FAQSchema, BreadcrumbSchema, MedicalServiceSchema, ReviewAggregateSchema, HealthArticleSchema } from "@/components/seo/healthcare-schema"
 import { MED_CERT_FAQ } from "@/lib/data/med-cert-faq"
 import { PRICING, REVIEW_AGGREGATE } from "@/lib/constants"
 
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Medical Certificate Online Australia | InstantMed",
     description:
-      "GP-reviewed medical certificates for work, uni, or carer's leave. From an AHPRA-registered Australian doctor.",
+      "GP-reviewed medical certificates for work, uni, or carer's leave. From an AHPRA-registered Australian doctor. Typically under an hour.",
     url: "https://instantmed.com.au/medical-certificate",
     type: "website",
     locale: "en_AU",
@@ -59,6 +59,11 @@ export default function Page() {
         price={PRICING.MED_CERT.toFixed(2)}
       />
       <ReviewAggregateSchema ratingValue={REVIEW_AGGREGATE.ratingValue} reviewCount={REVIEW_AGGREGATE.reviewCount} />
+      <HealthArticleSchema
+        title="Online Medical Certificate Australia"
+        description="Get a valid medical certificate for work or study reviewed by an AHPRA-registered Australian doctor."
+        url="/medical-certificate"
+      />
       <MedCertLanding />
     </>
   )

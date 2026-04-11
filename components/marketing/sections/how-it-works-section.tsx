@@ -116,6 +116,14 @@ export function HowItWorksSection({
                   <p className="text-xs text-muted-foreground leading-relaxed max-w-[200px] mx-auto">
                     {step.description}
                   </p>
+                  {index === 1 && (
+                    <Link
+                      href="/our-doctors"
+                      className="inline-flex items-center gap-1 text-[11px] text-primary/80 hover:text-primary mt-1 font-medium transition-colors"
+                    >
+                      Meet our doctors <ArrowRight className="h-3 w-3" />
+                    </Link>
+                  )}
                   <span className="inline-block mt-2 text-[10px] text-primary font-medium bg-primary/5 px-2 py-0.5 rounded-full">
                     {step.badge}
                   </span>

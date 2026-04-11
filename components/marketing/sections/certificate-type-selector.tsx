@@ -15,7 +15,7 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { MED_CERT_DURATIONS } from "@/lib/constants"
+import { MED_CERT_DURATIONS, PRICING } from "@/lib/constants"
 import { usePostHog } from "@/components/providers/posthog-provider"
 import {
   CERT_CATEGORIES,
@@ -102,7 +102,7 @@ export function CertificateTypeSelector({
             Which certificate do you need?
           </h2>
           <p className="text-sm text-muted-foreground max-w-lg mx-auto">
-            Select your situation - we&apos;ll tailor the form to match.
+            Select your situation — we&apos;ll tailor the form to match.
           </p>
         </motion.div>
 
@@ -196,6 +196,7 @@ export function CertificateTypeSelector({
             >
               <Link
                 href={`/request?service=med-cert${selected ? `&certType=${selected}` : ""}`}
+                onClick={() => posthog?.capture("cta_clicked", { location: "cert_selector", cert_type: selected })}
               >
                 Get your certificate
                 <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
@@ -209,7 +210,10 @@ export function CertificateTypeSelector({
 
         {/* Fallback CTA for users who don't want to pick */}
         {!selected && (
-          <div className="mt-4 text-center">
+          <div className="mt-6 text-center">
+            <p className="text-sm text-muted-foreground mb-3">
+              From <span className="font-semibold text-foreground">${PRICING.MED_CERT.toFixed(2)}</span>
+            </p>
             <Button
               asChild
               variant="ghost"
@@ -246,7 +250,7 @@ const comparisonRows: Array<{
   instantHighlight?: boolean
 }> = [
   { label: 'Cost', instant: '$19.95', gp: SOCIAL_PROOF.gpPriceStandard, telehealth: '~$60', instantHighlight: true },
-  { label: 'Turnaround', instant: '~38 min avg', gp: 'Requires booking', telehealth: '1–2 hours', instantHighlight: true },
+  { label: 'Turnaround', instant: `~${SOCIAL_PROOF.certTurnaroundMinutes} min avg`, gp: 'Requires booking', telehealth: '1–2 hours', instantHighlight: true },
   { label: 'No waiting room', instant: true, gp: false, telehealth: true },
   { label: 'Employer accepted', instant: true, gp: true, telehealth: true },
   { label: 'AHPRA doctor', instant: true, gp: true, telehealth: true },
@@ -258,7 +262,7 @@ const comparisonRows: Array<{
 function renderCell(value: string | boolean) {
   if (value === true) return <CheckCircle2 className="w-4 h-4 text-success mx-auto" />
   if (value === false)
-    return <span className="text-muted-foreground/50" aria-hidden="true">-</span>
+    return <span className="text-muted-foreground/50" aria-hidden="true">&mdash;</span>
   return <span>{value}</span>
 }
 
@@ -300,7 +304,7 @@ function ComparisonTable() {
         <table className="w-full text-sm border-collapse">
           <thead>
             <tr className="border-b border-border/50">
-              <th scope="col" className="text-left py-3 px-4 text-muted-foreground font-medium text-xs">
+              <th scope="col" className="text-left py-3 px-4 text-muted-foreground font-medium text-xs sticky left-0 z-10 bg-white dark:bg-card">
                 <span className="sr-only">Feature</span>
               </th>
               <th scope="col" className="text-center py-3 px-4 font-semibold text-primary bg-primary/5 dark:bg-primary/10 text-xs">
@@ -317,7 +321,7 @@ function ComparisonTable() {
           <tbody className="divide-y divide-border/30">
             {comparisonRows.map((row, i) => (
               <tr key={i} className="hover:bg-muted/20 transition-colors">
-                <th scope="row" className="py-2.5 px-4 text-left text-muted-foreground font-medium text-xs">
+                <th scope="row" className="py-2.5 px-4 text-left text-muted-foreground font-medium text-xs sticky left-0 z-10 bg-white dark:bg-card">
                   {row.label}
                 </th>
                 <td className={cn(

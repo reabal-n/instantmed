@@ -1,8 +1,9 @@
 'use client'
 
+import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { useReducedMotion } from '@/components/ui/motion'
-import { Users, Star, Clock, ShieldCheck } from 'lucide-react'
+import { Users, Star, Clock, ShieldCheck, ArrowRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { SOCIAL_PROOF } from '@/lib/social-proof'
 import { getPatientCount } from '@/lib/social-proof'
@@ -124,8 +125,15 @@ export function SocialProofSection() {
         </div>
 
         {/* Google Reviews badge */}
-        <div className="flex justify-center mb-6 sm:mb-8 lg:mb-10">
+        <div className="flex flex-col items-center gap-2 mb-6 sm:mb-8 lg:mb-10">
           <GoogleReviewsBadge />
+          <Link
+            href="/reviews"
+            className="inline-flex items-center gap-1 text-xs font-medium text-primary/80 hover:text-primary transition-colors"
+          >
+            See all reviews
+            <ArrowRight className="h-3 w-3" />
+          </Link>
         </div>
 
         {/* Testimonials */}
