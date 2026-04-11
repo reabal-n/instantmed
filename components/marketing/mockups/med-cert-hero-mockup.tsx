@@ -24,7 +24,7 @@ export function MedCertHeroMockup({ compact = false }: MedCertHeroMockupProps) {
       {/* Main form card */}
       <motion.div
         className={cn(
-          "rounded-2xl bg-white dark:bg-card border border-border/50 shadow-xl shadow-primary/[0.08] dark:shadow-none space-y-4",
+          "rounded-2xl bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-950/20 dark:to-card border border-emerald-200/40 dark:border-emerald-800/20 shadow-xl shadow-emerald-500/[0.1] dark:shadow-none space-y-4",
           compact ? "p-4" : "p-5"
         )}
         initial={animate ? { y: 20 } : {}}

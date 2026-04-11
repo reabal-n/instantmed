@@ -12,7 +12,7 @@ export function HeroOutcomeMockup() {
     <div className="relative w-72 xl:w-80">
       {/* Approved certificate card */}
       <motion.div
-        className="rounded-2xl bg-white dark:bg-card border border-border/50 shadow-xl shadow-primary/[0.08] dark:shadow-none p-5 space-y-4"
+        className="rounded-2xl bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-950/20 dark:to-card border border-emerald-200/40 dark:border-emerald-800/20 shadow-xl shadow-emerald-500/[0.1] dark:shadow-none p-5 space-y-4"
         initial={animate ? { y: 20, opacity: 0 } : {}}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.5, delay: 0.2, ease: "easeOut" }}
@@ -72,7 +72,7 @@ export function HeroOutcomeMockup() {
 
       {/* Floating notification */}
       <motion.div
-        className="absolute -bottom-5 -right-4 xl:-right-6 rounded-xl bg-white dark:bg-card border border-border/50 shadow-lg shadow-primary/[0.06] dark:shadow-none p-2.5 flex items-center gap-2.5 min-w-[190px]"
+        className="absolute -bottom-5 -right-4 xl:-right-6 rounded-xl bg-gradient-to-br from-emerald-50/80 to-white dark:from-emerald-950/15 dark:to-card border border-emerald-200/30 dark:border-emerald-800/15 shadow-lg shadow-emerald-500/[0.08] dark:shadow-none p-2.5 flex items-center gap-2.5 min-w-[190px]"
         initial={animate ? { x: 20, opacity: 0 } : {}}
         animate={{ x: 0, opacity: 1 }}
         transition={{ duration: 0.5, delay: 0.6, ease: "easeOut" }}

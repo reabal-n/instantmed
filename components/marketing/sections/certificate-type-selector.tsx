@@ -10,6 +10,7 @@ import {
   Heart,
   ArrowRight,
   Check,
+  CheckCircle2,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -21,6 +22,8 @@ import {
   CERT_TYPE_POSTHOG_PROPERTY,
   type CertCategory,
 } from "@/lib/marketing/med-cert-selector"
+import { SectionPill } from "@/components/ui/section-pill"
+import { SOCIAL_PROOF } from "@/lib/social-proof"
 
 // =============================================================================
 // DATA
@@ -75,6 +78,9 @@ export function CertificateTypeSelector({
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
         >
+          <div className="mb-4">
+            <SectionPill>Certificates</SectionPill>
+          </div>
           <h2 className="text-2xl sm:text-3xl font-semibold text-foreground tracking-tight mb-3">
             Which certificate do you need?
           </h2>
@@ -201,7 +207,91 @@ export function CertificateTypeSelector({
             </Button>
           </div>
         )}
+
+        {/* Compact comparison table */}
+        <ComparisonTable />
       </div>
     </section>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Comparison Table — InstantMed vs GP vs Other Telehealth
+// ---------------------------------------------------------------------------
+
+const comparisonRows: Array<{
+  label: string
+  instant: string | boolean
+  gp: string | boolean
+  telehealth: string | boolean
+  instantHighlight?: boolean
+}> = [
+  { label: 'Cost', instant: '$19.95', gp: SOCIAL_PROOF.gpPriceStandard, telehealth: '~$60', instantHighlight: true },
+  { label: 'Turnaround', instant: '~38 min avg', gp: 'Requires booking', telehealth: '1–2 hours', instantHighlight: true },
+  { label: 'No waiting room', instant: true, gp: false, telehealth: true },
+  { label: 'Employer accepted', instant: true, gp: true, telehealth: true },
+  { label: 'AHPRA doctor', instant: true, gp: true, telehealth: true },
+  { label: 'Open 24/7', instant: true, gp: false, telehealth: 'Limited', instantHighlight: true },
+  { label: 'No appointment', instant: true, gp: false, telehealth: false, instantHighlight: true },
+]
+
+function renderCell(value: string | boolean) {
+  if (value === true) return <CheckCircle2 className="w-4 h-4 text-success mx-auto" />
+  if (value === false)
+    return <span className="text-muted-foreground/50" aria-hidden="true">&mdash;</span>
+  return <span>{value}</span>
+}
+
+function ComparisonTable() {
+  return (
+    <div className="mt-10">
+      <h3 className="text-base font-semibold text-foreground text-center mb-4">
+        How we compare
+      </h3>
+      <div className="overflow-x-auto rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/10 shadow-md shadow-primary/[0.06] dark:shadow-none">
+        <table className="w-full text-sm border-collapse">
+          <thead>
+            <tr className="border-b border-border/50">
+              <th scope="col" className="text-left py-3 px-4 text-muted-foreground font-medium text-xs">
+                <span className="sr-only">Feature</span>
+              </th>
+              <th scope="col" className="text-center py-3 px-4 font-semibold text-primary bg-primary/5 dark:bg-primary/10 text-xs">
+                InstantMed
+              </th>
+              <th scope="col" className="text-center py-3 px-4 text-muted-foreground font-medium text-xs">
+                GP Clinic
+              </th>
+              <th scope="col" className="text-center py-3 px-4 text-muted-foreground font-medium text-xs">
+                Other Telehealth
+              </th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border/30">
+            {comparisonRows.map((row, i) => (
+              <tr key={i} className="hover:bg-muted/20 transition-colors">
+                <th scope="row" className="py-2.5 px-4 text-left text-muted-foreground font-medium text-xs">
+                  {row.label}
+                </th>
+                <td className={cn(
+                  'py-2.5 px-4 text-center text-xs bg-primary/5 dark:bg-primary/10',
+                  row.instantHighlight ? 'font-semibold text-foreground' : 'text-foreground',
+                )}>
+                  {renderCell(row.instant)}
+                </td>
+                <td className="py-2.5 px-4 text-center text-xs text-muted-foreground">
+                  {renderCell(row.gp)}
+                </td>
+                <td className="py-2.5 px-4 text-center text-xs text-muted-foreground">
+                  {renderCell(row.telehealth)}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p className="mt-3 text-[11px] text-muted-foreground/60 text-center leading-relaxed">
+        GP cost estimated from MBS item 23 consultation fee. Telehealth prices based on comparable med-cert services.
+      </p>
+    </div>
   )
 }
