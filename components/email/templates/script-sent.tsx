@@ -13,7 +13,6 @@ import {
   Box,
   Heading,
   colors,
-  ReferralCTA,
 } from "../base-email"
 
 export interface ScriptSentEmailProps {
@@ -33,9 +32,10 @@ export function ScriptSentEmail({
 
   return (
     <BaseEmail
-      previewText="Your eScript is ready — check your phone 💊"
+      previewText="Your eScript is ready! Check your phone 💊"
       appUrl={appUrl}
-      showFooterReview
+      showReviewCTA
+      showReferral
     >
       <HeroBlock
         icon="💊"
@@ -48,7 +48,7 @@ export function ScriptSentEmail({
 
       <Text>
         Your prescription has been approved and the eScript is heading to your phone via SMS.
-        Take your phone to any pharmacy — the pharmacist will scan the QR code to dispense your medication.
+        Take your phone to any pharmacy. The pharmacist will scan the QR code to dispense your medication.
         Bring your Medicare card for any PBS subsidy.
       </Text>
 
@@ -74,7 +74,6 @@ export function ScriptSentEmail({
         View request
       </Button>
 
-      <ReferralCTA appUrl={appUrl} />
     </BaseEmail>
   )
 }

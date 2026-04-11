@@ -23,7 +23,7 @@ export interface DeclineReengagementEmailProps {
 }
 
 export function declineReengagementSubject() {
-  return "We're still here to help — other options for you"
+  return "We're still here to help. Other options for you"
 }
 
 export function DeclineReengagementEmail({
@@ -37,7 +37,6 @@ export function DeclineReengagementEmail({
     <BaseEmail
       previewText="Your request was declined, but we may still be able to help."
       appUrl={appUrl}
-      showFooterReview={false}
     >
       <HeroBlock
         icon="💡"
@@ -48,7 +47,7 @@ export function DeclineReengagementEmail({
       <Text>Hi {firstName},</Text>
 
       <Text>
-        We know it&apos;s not the answer you were hoping for — your{" "}
+        We know it&apos;s not the answer you were hoping for. Your{" "}
         <strong>{declinedService}</strong> request couldn&apos;t be approved
         through our service this time.
       </Text>
@@ -62,7 +61,7 @@ export function DeclineReengagementEmail({
         <Heading as="h3">What you can do</Heading>
         <List
           items={[
-            "Try a different service — we offer medical certificates, prescriptions, and specialist consultations",
+            "Try a different service. We offer medical certificates, prescriptions, and specialist consultations",
             "Visit your regular GP for an in-person assessment",
             "Contact our support team if you have questions about the decision",
           ]}
@@ -79,7 +78,7 @@ export function DeclineReengagementEmail({
         >
           Get in touch
         </a>{" "}
-        — our team is here 7 days a week.
+        , our team is here 7 days a week.
       </Text>
     </BaseEmail>
   )

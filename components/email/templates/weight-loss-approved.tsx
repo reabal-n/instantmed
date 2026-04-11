@@ -14,7 +14,6 @@ import {
   Heading,
   List,
   HeroBlock,
-  ReferralCTA,
 } from "../base-email"
 
 export interface WeightLossApprovedEmailProps {
@@ -48,7 +47,8 @@ export function WeightLossApprovedEmail({
     <BaseEmail
       previewText={`✅ ${firstName}, your ${medicationName} prescription is ready`}
       appUrl={appUrl}
-      showFooterReview
+      showReviewCTA
+      showReferral
     >
       <HeroBlock
         icon="✓"
@@ -60,7 +60,7 @@ export function WeightLossApprovedEmail({
       <Text>Hi {firstName},</Text>
 
       <Text>
-        Good news — your prescription for{" "}
+        Good news! Your prescription for{" "}
         <strong>{medicationName}</strong> has been approved. Your eScript will arrive by SMS shortly.
       </Text>
 
@@ -80,7 +80,7 @@ export function WeightLossApprovedEmail({
             <List
               items={[
                 "Inject subcutaneously (under the skin) in your abdomen, thigh, or upper arm",
-                "Rotate injection sites each time — don't inject in the same spot twice in a row",
+                "Rotate injection sites each time. Don't inject in the same spot twice in a row",
                 "Inject once weekly on the same day each week (for semaglutide) or daily (for liraglutide)",
                 "Store your pen in the fridge (2–8°C) before first use. After first use, it can be kept at room temperature for up to 28 days",
                 "Your doctor will start you on a low dose and gradually increase it over several weeks",
@@ -92,10 +92,10 @@ export function WeightLossApprovedEmail({
             <Heading as="h3">What to expect</Heading>
             <List
               items={[
-                "Nausea is common in the first 2–4 weeks — this usually improves as your body adjusts",
+                "Nausea is common in the first 2–4 weeks. This usually improves as your body adjusts",
                 "Eat smaller, more frequent meals to help manage nausea",
-                "Stay well hydrated — aim for at least 2 litres of water per day",
-                "You may notice reduced appetite — this is the medication working as intended",
+                "Stay well hydrated. Aim for at least 2 litres of water per day",
+                "You may notice reduced appetite. This is the medication working as intended",
                 "Weight loss typically becomes noticeable after 4–8 weeks of treatment",
               ]}
             />
@@ -106,7 +106,7 @@ export function WeightLossApprovedEmail({
             <List
               items={[
                 "Severe or persistent nausea, vomiting, or diarrhoea",
-                "Severe abdominal pain (may indicate pancreatitis — seek urgent care)",
+                "Severe abdominal pain (may indicate pancreatitis, seek urgent care)",
                 "Signs of allergic reaction: rash, swelling, difficulty breathing",
                 "Injection site reactions that don't resolve (redness, swelling, pain)",
                 "Symptoms of low blood sugar if you also take diabetes medication",
@@ -146,7 +146,6 @@ export function WeightLossApprovedEmail({
         View Request Details
       </Button>
 
-      <ReferralCTA appUrl={appUrl} />
     </BaseEmail>
   )
 }

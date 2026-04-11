@@ -157,10 +157,10 @@ function HeroSection({
             <h1
               className="text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight mb-3 sm:mb-6 leading-[1.15] animate-hero-headline"
             >
-              Sick today?{" "}
+              Sick today? Certificate in{" "}
               <br className="hidden sm:block" />
               <span className="text-premium-gradient">
-                Certificate in your inbox in under an hour.
+                your inbox in under an hour.
               </span>
             </h1>
 

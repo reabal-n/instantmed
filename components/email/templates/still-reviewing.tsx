@@ -33,7 +33,6 @@ export function StillReviewingEmail({
     <BaseEmail
       previewText={`Still on it, your ${requestType} is nearly done ⏳`}
       appUrl={appUrl}
-      showFooterReview={false}
     >
       <HeroBlock
         icon="⏳"

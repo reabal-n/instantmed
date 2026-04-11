@@ -15,7 +15,7 @@ export interface AbandonedCheckoutFollowupProps {
 }
 
 export function abandonedCheckoutFollowupSubject(serviceName: string) {
-  return `Last call — your ${serviceName} request expires soon`
+  return `Last call! Your ${serviceName} expires soon`
 }
 
 export function AbandonedCheckoutFollowupEmail({
@@ -27,7 +27,7 @@ export function AbandonedCheckoutFollowupEmail({
   const firstName = patientName.split(" ")[0]
 
   return (
-    <BaseEmail previewText={`Your ${serviceName} request won't be saved much longer`} appUrl={appUrl} showFooterReview={false}>
+    <BaseEmail previewText={`Your ${serviceName} request won't be saved much longer`} appUrl={appUrl}>
       <HeroBlock
         icon="⚡"
         headline="Your request expires soon"
@@ -36,22 +36,22 @@ export function AbandonedCheckoutFollowupEmail({
 
       <Text>Hi {firstName},</Text>
       <Text>
-        Just a heads up — your <strong>{serviceName}</strong> request is still waiting,
+        Just a heads up, your <strong>{serviceName}</strong> request is still waiting,
         but we can&apos;t hold it forever. Most people finish in under 2 minutes.
       </Text>
 
       <Box>
         <Text style={{ margin: 0, fontSize: "14px", color: colors.textBody }}>
           <strong>1,200+ Australians</strong> used InstantMed this month for fast,
-          hassle-free medical documents — no phone call, no waiting room.
+          hassle-free medical documents. No phone call, no waiting room.
         </Text>
       </Box>
 
       <Button href={resumeUrl}>Complete your request</Button>
 
       <Text muted small>
-        If you&apos;ve already sorted this out or changed your mind, no worries —
-        just ignore this email.
+        If you&apos;ve already sorted this out or changed your mind, no worries.
+        Just ignore this email.
       </Text>
 
     </BaseEmail>

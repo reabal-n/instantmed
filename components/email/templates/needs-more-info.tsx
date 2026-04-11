@@ -34,7 +34,7 @@ export function NeedsMoreInfoEmail({
   const firstName = patientName.split(" ")[0]
 
   return (
-    <BaseEmail previewText="The doctor has a quick question for you 🩺" appUrl={appUrl} showFooterReview={false}>
+    <BaseEmail previewText="The doctor has a quick question for you 🩺" appUrl={appUrl}>
       <StatusBanner title="The doctor has a question" variant="warning" />
 
       <Text>Hi {firstName},</Text>

@@ -92,4 +92,4 @@ export function RepeatRxReminderEmail({
 }
 
 export const repeatRxReminderSubject = (medicationName: string) =>
-  `Reminder: Time to renew your ${medicationName} prescription`
+  `Time to renew your ${medicationName} prescription`

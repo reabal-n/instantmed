@@ -25,7 +25,7 @@ const WHEN_TO_SEE_GP = [
   "Extended absences beyond 3\u20135 days",
   "Complex or ongoing chronic conditions",
   "Certificates for legal proceedings",
-  "Medical emergencies \u2014 call 000",
+  "Medical emergencies - call 000",
 ] as const
 
 // =============================================================================

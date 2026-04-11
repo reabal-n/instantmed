@@ -29,7 +29,7 @@ export function ReviewRequestEmail({
   const firstName = patientName.split(" ")[0]
 
   return (
-    <BaseEmail previewText="If you've got 30 seconds, a review would mean the world" appUrl={appUrl} showFooterReview={false}>
+    <BaseEmail previewText="If you've got 30 seconds, a review would mean the world" appUrl={appUrl}>
       <Text>Hi {firstName},</Text>
 
       <Text>

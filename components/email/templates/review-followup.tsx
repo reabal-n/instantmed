@@ -26,11 +26,11 @@ export function ReviewFollowupEmail({
   const firstName = patientName.split(" ")[0]
 
   return (
-    <BaseEmail previewText="A quick review helps other Aussies find fast healthcare" appUrl={appUrl} showFooterReview={false}>
+    <BaseEmail previewText="A quick review helps other Aussies find fast healthcare" appUrl={appUrl}>
       <Text>Hi {firstName},</Text>
 
       <Text>
-        Just a gentle nudge — if you had a good experience with InstantMed,
+        Just a gentle nudge. If you had a good experience with InstantMed,
         a quick Google review would really mean a lot to our team. It takes
         less than 30 seconds and helps other Australians find quality
         telehealth.
@@ -39,7 +39,7 @@ export function ReviewFollowupEmail({
       <Button href={GOOGLE_REVIEW_URL}>Leave a Review ⭐</Button>
 
       <Text muted small>
-        Not keen? No worries at all — this is the last time we&apos;ll ask.
+        Not keen? No worries at all, this is the last time we&apos;ll ask.
       </Text>
 
     </BaseEmail>

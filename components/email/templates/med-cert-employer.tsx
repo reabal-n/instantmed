@@ -50,7 +50,6 @@ export function MedCertEmployerEmail({
     <BaseEmail
       previewText={`Medical certificate for ${patientName}`}
       appUrl={appUrl}
-      showFooterReview={false}
     >
       {/* Professional header banner */}
       <div
@@ -70,7 +69,7 @@ export function MedCertEmployerEmail({
         </p>
         {certStartDate && certEndDate && (
           <p style={{ margin: "4px 0 0 0", fontSize: "14px", color: colors.textMuted }}>
-            {certStartDate} — {certEndDate}
+            {certStartDate} to {certEndDate}
           </p>
         )}
       </div>

@@ -35,7 +35,6 @@ export function RefundIssuedEmail({
     <BaseEmail
       previewText={`Your ${requestType} refund has been processed ✅`}
       appUrl={appUrl}
-      showFooterReview={false}
     >
       <HeroBlock
         icon="✓"
