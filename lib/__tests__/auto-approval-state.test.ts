@@ -40,13 +40,18 @@ describe("auto-approval-state transitions", () => {
     vi.restoreAllMocks()
   })
 
-  it("claimForProcessing transitions pending → attempting", async () => {
+  it("claimForProcessing transitions pending → attempting and sets claimed_by to SYSTEM_AUTO_APPROVE_ID", async () => {
     const { from, chain } = mockSupabase({ data: [{ id: INTAKE_ID }], error: null })
     const { claimForProcessing } = await import("@/lib/clinical/auto-approval-state")
+    const { SYSTEM_AUTO_APPROVE_ID } = await import("@/lib/constants")
     const result = await claimForProcessing({ from } as never, INTAKE_ID)
 
     expect(result).toBe(true)
-    expect(chain.update).toHaveBeenCalled()
+    const updateArg = (chain.update as ReturnType<typeof vi.fn>).mock.calls[0][0]
+    // State machine must write claimed_by so atomicApproveCertificate's claim-ownership
+    // guard passes without a separate claim_intake_for_review RPC call.
+    expect(updateArg.auto_approval_state).toBe("attempting")
+    expect(updateArg.claimed_by).toBe(SYSTEM_AUTO_APPROVE_ID)
     expect(chain.in).toHaveBeenCalled() // in("auto_approval_state", ["pending", "failed_retrying"])
   })
 
