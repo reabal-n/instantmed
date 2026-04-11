@@ -1,12 +1,13 @@
 'use client'
 
-import { ArrowRight, Clock, CheckCircle2, Mail, FileText, Download } from 'lucide-react'
+import { ArrowRight, Clock, CheckCircle2, Mail, FileText } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { motion } from 'framer-motion'
 import { useReducedMotion } from '@/components/ui/motion'
 import Image from 'next/image'
 import Link from 'next/link'
 import { FloatingCard } from '@/components/marketing/floating-card'
+import { SectionPill } from '@/components/ui/section-pill'
 
 function StepOneMockup() {
   return (
@@ -79,22 +80,24 @@ function StepThreeMockup() {
           <Mail className="w-3.5 h-3.5 text-primary" />
         </div>
         <div>
-          <p className="text-[10px] font-semibold text-foreground leading-tight">Your medical certificate is ready</p>
+          <p className="text-[10px] font-semibold text-foreground leading-tight">You&apos;re all sorted</p>
           <p className="text-[8px] text-muted-foreground">InstantMed · Just now</p>
         </div>
       </div>
-      {/* Attachment */}
+      {/* Documents */}
       <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/30 dark:bg-muted/10 border border-border/30">
-        <FileText className="w-4 h-4 text-primary shrink-0" />
+        <FileText className="w-4 h-4 text-emerald-500 shrink-0" />
         <div className="flex-1 min-w-0">
-          <p className="text-[10px] font-medium text-foreground truncate">MedCert_2026.pdf</p>
-          <p className="text-[8px] text-muted-foreground">42 KB</p>
+          <p className="text-[10px] font-medium text-foreground truncate">Certificate</p>
+          <p className="text-[8px] text-muted-foreground">PDF · Ready</p>
         </div>
       </div>
-      {/* Download button */}
-      <div className="h-7 rounded-lg bg-primary flex items-center justify-center gap-1 shadow-sm shadow-primary/25">
-        <Download className="w-3 h-3 text-white" />
-        <span className="text-[10px] font-semibold text-white">Download</span>
+      <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/30 dark:bg-muted/10 border border-border/30">
+        <FileText className="w-4 h-4 text-cyan-500 shrink-0" />
+        <div className="flex-1 min-w-0">
+          <p className="text-[10px] font-medium text-foreground truncate">eScript</p>
+          <p className="text-[8px] text-muted-foreground">Sent to phone</p>
+        </div>
       </div>
     </div>
   )
@@ -110,26 +113,29 @@ export function HowItWorks() {
   const stepBadges = ["~2 min", "~30 min", "Same day"]
 
   return (
-    <section id="how-it-works" className="py-20 lg:py-24 scroll-mt-20">
+    <section id="how-it-works" className="py-10 sm:py-16 lg:py-24 scroll-mt-20">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 relative">
         {/* Section Header */}
         <motion.div
-          className="text-center mb-12"
-          initial={animate ? { y: 20 } : false}
+          className="text-center mb-8 sm:mb-10 lg:mb-12"
+          initial={animate ? { y: 20, opacity: 0 } : false}
           whileInView={animate ? { opacity: 1, y: 0 } : undefined}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
         >
+          <div className="mb-4">
+            <SectionPill>How it works</SectionPill>
+          </div>
           <h2 className="text-2xl sm:text-3xl font-semibold text-foreground mb-2 tracking-tight">
-            How it works
+            Three steps. That&apos;s it.
           </h2>
           <p className="text-sm text-muted-foreground">
-            No appointments. No phone calls. Just good medicine, from your couch.
+            No appointments. No phone calls. No admin.
           </p>
         </motion.div>
 
         {/* Timeline — horizontal on desktop, vertical on mobile */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-6 relative">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-6 relative">
           {/* Desktop timeline connector */}
           <div className="hidden lg:block absolute top-[2.5rem] left-[16%] right-[16%] border-t-2 border-dashed border-primary/20" />
 
@@ -176,8 +182,8 @@ export function HowItWorks() {
 
         {/* CTA */}
         <motion.div
-          className="mt-12 text-center"
-          initial={animate ? { y: 10 } : false}
+          className="mt-8 sm:mt-10 lg:mt-12 text-center"
+          initial={animate ? { y: 10, opacity: 0 } : false}
           whileInView={animate ? { opacity: 1, y: 0 } : undefined}
           viewport={{ once: true }}
           transition={{ delay: 0.3 }}
@@ -189,7 +195,7 @@ export function HowItWorks() {
             className="px-8 h-11 font-semibold shadow-lg shadow-primary/25 dark:shadow-primary/15 hover:shadow-xl hover:shadow-primary/35 dark:hover:shadow-primary/25 hover:-translate-y-0.5 transition-all"
           >
             <Link href="/request">
-              Start a request <ArrowRight className="h-4 w-4" />
+              Get started <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
           <p className="text-xs text-muted-foreground mt-2.5">

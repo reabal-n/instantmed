@@ -9,7 +9,7 @@ interface IconProps {
 
 // ─── Filled icon components ───────────────────────────────────────────────────
 
-// Document with page-fold — Medical Certificates
+// Certificate with ribbon seal — Medical Certificates
 export function DocumentFilledIcon({ className, style }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" fill="none" className={cn("w-6 h-6", className)} style={style}>
@@ -18,67 +18,97 @@ export function DocumentFilledIcon({ className, style }: IconProps) {
         fill="rgba(255,255,255,0.92)"
       />
       <path d="M14 2V8H20L14 2Z" fill="rgba(255,255,255,0.38)" />
+      {/* Text lines */}
       <path
-        d="M8 11.5H16M8 14.5H16M8 17.5H12"
-        stroke="rgba(0,0,0,0.16)"
-        strokeWidth="1.4"
+        d="M8 11H14M8 13.5H16"
+        stroke="rgba(0,0,0,0.10)"
+        strokeWidth="1.2"
         strokeLinecap="round"
+      />
+      {/* Seal / checkmark badge */}
+      <circle cx="15.5" cy="17.5" r="2.5" fill="rgba(255,255,255,0.5)" />
+      <path
+        d="M14.5 17.5L15.2 18.2L16.8 16.6"
+        stroke="rgba(0,0,0,0.18)"
+        strokeWidth="1.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
     </svg>
   )
 }
 
-// Pill capsule — Repeat Medication
+// Prescription Rx symbol — Repeat Medication
 export function PillFilledIcon({ className, style }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" fill="none" className={cn("w-6 h-6", className)} style={style}>
+      {/* Prescription pad background */}
+      <rect x="4" y="3" width="16" height="18" rx="2.5" fill="rgba(255,255,255,0.92)" />
+      {/* Rx symbol */}
       <path
-        d="M8.5 3.5C7.4 2.4 5.6 2.4 4.5 3.5C3.4 4.6 3.4 6.4 4.5 7.5L16.5 19.5C17.6 20.6 19.4 20.6 20.5 19.5C21.6 18.4 21.6 16.6 20.5 15.5L8.5 3.5Z"
-        fill="rgba(255,255,255,0.92)"
+        d="M8.5 9H11.5C12.6 9 13.5 9.9 13.5 11C13.5 12.1 12.6 13 11.5 13H8.5V9Z"
+        fill="rgba(255,255,255,0.5)"
+        stroke="rgba(0,0,0,0.16)"
+        strokeWidth="1.1"
       />
       <path
-        d="M16.5 19.5L20.5 15.5C21.6 16.6 21.6 18.4 20.5 19.5C19.4 20.6 17.6 20.6 16.5 19.5Z"
-        fill="rgba(255,255,255,0.42)"
-      />
-      <path
-        d="M6.5 11.5L12.5 5.5"
-        stroke="rgba(0,0,0,0.1)"
-        strokeWidth="1.25"
+        d="M8.5 9V17M11.5 13L14.5 17"
+        stroke="rgba(0,0,0,0.16)"
+        strokeWidth="1.2"
         strokeLinecap="round"
       />
+      {/* Refill dots */}
+      <circle cx="9" cy="19.5" r="0.6" fill="rgba(0,0,0,0.10)" />
+      <circle cx="11" cy="19.5" r="0.6" fill="rgba(0,0,0,0.10)" />
+      <circle cx="13" cy="19.5" r="0.6" fill="rgba(0,0,0,0.10)" />
     </svg>
   )
 }
 
-// Lightning bolt — ED Treatment
+// Shield with upward bolt — ED Treatment
 export function LightningFilledIcon({ className, style }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" fill="none" className={cn("w-6 h-6", className)} style={style}>
+      {/* Shield shape */}
       <path
-        d="M13 2L3 14H12L11 22L21 10H12L13 2Z"
+        d="M12 2L4 5.5V11C4 16.25 7.4 20.9 12 22C16.6 20.9 20 16.25 20 11V5.5L12 2Z"
         fill="rgba(255,255,255,0.92)"
       />
+      {/* Inner shield highlight */}
       <path
-        d="M13 5.5L6.5 14H11.5L11 19L17.5 10H12.5L13 5.5Z"
-        fill="rgba(255,255,255,0.3)"
+        d="M12 4L6 6.8V11.2C6 15.2 8.6 18.8 12 19.8C15.4 18.8 18 15.2 18 11.2V6.8L12 4Z"
+        fill="rgba(255,255,255,0.4)"
+      />
+      {/* Lightning bolt inside */}
+      <path
+        d="M13 7L9.5 13H12L11.5 17L15.5 11H12.5L13 7Z"
+        fill="rgba(0,0,0,0.14)"
       />
     </svg>
   )
 }
 
-// Four-point star + satellite — Hair Loss Treatment
+// Leaf with growth lines — Hair Loss Treatment
 export function SparkleFilledIcon({ className, style }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" fill="none" className={cn("w-6 h-6", className)} style={style}>
+      {/* Leaf / regrowth shape */}
       <path
-        d="M12 2L14.2 9.8L22 12L14.2 14.2L12 22L9.8 14.2L2 12L9.8 9.8L12 2Z"
+        d="M12 22C12 22 4 18 4 10C4 6 8 2 12 2C16 2 20 6 20 10C20 18 12 22 12 22Z"
         fill="rgba(255,255,255,0.92)"
       />
+      {/* Inner vein lines — growth motif */}
       <path
-        d="M19 3L20 5.5L22.5 6.5L20 7.5L19 10L18 7.5L15.5 6.5L18 5.5L19 3Z"
+        d="M12 6V18M9 9C9 9 10.5 11 12 11M15 9C15 9 13.5 11 12 11M9.5 13C9.5 13 11 14.5 12 14.5M14.5 13C14.5 13 13 14.5 12 14.5"
+        stroke="rgba(0,0,0,0.10)"
+        strokeWidth="1"
+        strokeLinecap="round"
+      />
+      {/* Small sparkle accent */}
+      <path
+        d="M18 4L18.8 6.2L21 7L18.8 7.8L18 10L17.2 7.8L15 7L17.2 6.2L18 4Z"
         fill="rgba(255,255,255,0.5)"
       />
-      <circle cx="5.5" cy="17.5" r="1.2" fill="rgba(255,255,255,0.38)" />
     </svg>
   )
 }
@@ -101,17 +131,35 @@ export function HeartFilledIcon({ className, style }: IconProps) {
   )
 }
 
-// Flame — Weight Loss
+// Scale with downward trend — Weight Loss
 export function FlameFilledIcon({ className, style }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" fill="none" className={cn("w-6 h-6", className)} style={style}>
+      {/* Circular scale base */}
+      <circle cx="12" cy="12" r="10" fill="rgba(255,255,255,0.92)" />
+      <circle cx="12" cy="12" r="7.5" fill="rgba(255,255,255,0.4)" />
+      {/* Downward trend line */}
       <path
-        d="M12.5 2C12.5 2 17 7.5 17 11.5C17 11.5 19 10 19 8C19 8 22 11.5 22 15C22 19.42 17.52 23 12 23C6.48 23 2 19.42 2 15C2 9 8 5.5 8 5.5C8 5.5 8.5 8.5 11 10.5C11 6.5 12.5 2 12.5 2Z"
-        fill="rgba(255,255,255,0.92)"
+        d="M7 10L10 12L13 9.5L17 14"
+        stroke="rgba(0,0,0,0.16)"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
+      {/* Arrow tip on trend */}
       <path
-        d="M12 13C12 13 14 11.5 14 14.5C14 16.43 13.1 18 12 18C10.9 18 10 16.43 10 14.5C10 11.5 12 13 12 13Z"
-        fill="rgba(255,255,255,0.38)"
+        d="M15 14H17V12"
+        stroke="rgba(0,0,0,0.16)"
+        strokeWidth="1.3"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      {/* Tick marks */}
+      <path
+        d="M12 3V4.5M12 19.5V21M3 12H4.5M19.5 12H21"
+        stroke="rgba(0,0,0,0.06)"
+        strokeWidth="1"
+        strokeLinecap="round"
       />
     </svg>
   )

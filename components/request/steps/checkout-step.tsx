@@ -16,13 +16,13 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { CheckoutButton } from "@/components/shared/checkout-button"
-import { getConsultSubtypePrice } from "@/lib/stripe/price-mapping"
+// getConsultSubtypePrice from @/lib/stripe/price-mapping available if needed
 import { useRequestStore } from "../store"
 import { createCheckoutFromUnifiedFlow } from "@/app/actions/unified-checkout"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 import { getQueueEstimate } from "@/lib/data/queue-availability"
-import { PRICING as APP_PRICING, MED_CERT_DURATIONS, PRICING_DISPLAY } from "@/lib/constants"
-import { getDisplayPrice, getServiceDisplayLabel, CONSULT_SUBTYPE_DISPLAY_LABELS } from "@/lib/request/display-helpers"
+import { PRICING as APP_PRICING, PRICING_DISPLAY } from "@/lib/constants"
+import { getDisplayPrice, getServiceDisplayLabel } from "@/lib/request/display-helpers"
 import { trackFunnelStep } from "@/lib/analytics/conversion-tracking"
 
 // Prices sourced from lib/constants.ts (single source of truth)
@@ -64,7 +64,7 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
   const prefersReducedMotion = useReducedMotion()
   const [isProcessing, setIsProcessing] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [estimatedWait, setEstimatedWait] = useState(serviceType === 'med-cert' ? "~30 min" : "1–2 hours")
+  const [_estimatedWait, setEstimatedWait] = useState(serviceType === 'med-cert' ? "~30 min" : "1–2 hours")
   const [showCheckmark, setShowCheckmark] = useState(false)
   const [consentGiven, setConsentGiven] = useState(false)
   // Express Review defaults OFF — patient opts in consciously
@@ -87,7 +87,7 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
     posthog?.capture('checkout_viewed', { service_type: serviceType, consult_subtype: consultSubtype })
   }, [posthog, serviceType, consultSubtype])
 
-  const pricing = PRICING[serviceType] || PRICING['med-cert']
+  const _pricing = PRICING[serviceType] || PRICING['med-cert']
 
   const price = getDisplayPrice(serviceType, answers)
   const displayLabel = getServiceDisplayLabel(serviceType, consultSubtype)

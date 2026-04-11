@@ -2,13 +2,14 @@
 
 import type React from "react"
 import Link from 'next/link'
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, FileText, CheckCircle2, Pill, Smartphone } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { DoctorAvailabilityPill } from '@/components/shared/doctor-availability-pill'
 import { motion } from 'framer-motion'
 import { useReducedMotion } from '@/components/ui/motion'
 import { HeroMultiServiceMockup } from '@/components/marketing/hero-multi-service-mockup'
 import { TrustBadgeRow } from '@/components/shared/trust-badge'
+import { LastReviewedSignal } from '@/components/marketing/last-reviewed-signal'
 
 const LCP_CLASSES = "text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-6 leading-relaxed text-balance"
 
@@ -16,14 +17,14 @@ export function Hero({ children }: { children?: React.ReactNode }) {
   const prefersReducedMotion = useReducedMotion()
 
   return (
-    <section className="relative overflow-hidden pt-8 pb-10 sm:pt-14 sm:pb-18 lg:pt-20 lg:pb-24">
+    <section className="relative overflow-hidden pt-6 pb-6 sm:pt-14 sm:pb-18 lg:pt-20 lg:pb-24">
       <div className="mx-auto max-w-5xl px-6 sm:px-8 lg:px-10">
         <div className="flex flex-col lg:flex-row items-center lg:gap-12 xl:gap-14">
           {/* Text content */}
           <div className="flex-1 min-w-0 text-center lg:text-left">
             {/* Doctor availability pill */}
             <motion.div
-              className="flex justify-center lg:justify-start mb-8"
+              className="flex justify-center lg:justify-start mb-5 sm:mb-8"
               initial={prefersReducedMotion ? {} : { y: -10 }}
               animate={{ y: 0 }}
               transition={{ duration: 0.4 }}
@@ -32,8 +33,8 @@ export function Hero({ children }: { children?: React.ReactNode }) {
             </motion.div>
 
             {/* Headline — server-rendered static text for LCP */}
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight mb-8 leading-[1.15] animate-hero-headline">
-              Online doctor. Certs, scripts, and treatment.
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight mb-5 sm:mb-8 leading-[1.15] animate-hero-headline">
+              Skip the GP queue. Certs, scripts, and treatment.
             </h1>
 
             {/* LCP slot — server-rendered when passed as children, else fallback */}
@@ -45,7 +46,7 @@ export function Hero({ children }: { children?: React.ReactNode }) {
 
             {/* CTAs */}
             <motion.div
-              className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start mb-8"
+              className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start mb-5 sm:mb-8"
               initial={prefersReducedMotion ? {} : { y: 12 }}
               animate={{ y: 0 }}
               transition={{ duration: 0.4, delay: 0.15 }}
@@ -66,8 +67,8 @@ export function Hero({ children }: { children?: React.ReactNode }) {
                 size="lg"
                 className="h-12 px-8 text-base font-semibold"
               >
-                <Link href="/pricing">
-                  See pricing
+                <Link href="#how-it-works">
+                  How it works
                 </Link>
               </Button>
             </motion.div>
@@ -87,13 +88,50 @@ export function Hero({ children }: { children?: React.ReactNode }) {
                 ]}
                 className="mt-4 justify-center lg:justify-start"
               />
+              <LastReviewedSignal className="mt-3 justify-center lg:justify-start" />
+              {/* Compact testimonial */}
+              <p className="mt-3 text-xs text-muted-foreground/70 italic max-w-sm mx-auto lg:mx-0 text-center lg:text-left">
+                &ldquo;Got my cert in 20 mins. Employer accepted it no questions asked.&rdquo;
+                <span className="not-italic text-muted-foreground/50 ml-1">— Sarah, Sydney</span>
+              </p>
             </motion.div>
           </div>
 
-          {/* Hero product mockup — desktop */}
+          {/* Hero product mockup — full stack on desktop, compact card on mobile */}
           <div className="hidden lg:block relative shrink-0 mt-0">
             <HeroMultiServiceMockup />
           </div>
+          <motion.div
+            className="lg:hidden flex justify-center mt-3"
+            initial={prefersReducedMotion ? {} : { y: 10, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.4, delay: 0.35 }}
+          >
+            <div className="flex flex-col gap-2">
+              {/* Med cert card */}
+              <div className="inline-flex items-center gap-3 px-4 py-2.5 rounded-xl bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06]">
+                <div className="w-7 h-7 rounded-lg bg-emerald-100 dark:bg-emerald-950/40 flex items-center justify-center">
+                  <FileText className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-xs font-semibold text-foreground leading-tight">Medical Certificate</p>
+                  <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">Reviewed &amp; issued</p>
+                </div>
+                <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+              </div>
+              {/* eScript card */}
+              <div className="inline-flex items-center gap-3 px-4 py-2.5 rounded-xl bg-white dark:bg-card border border-border/50 shadow-sm shadow-primary/[0.04]">
+                <div className="w-7 h-7 rounded-lg bg-cyan-100 dark:bg-cyan-950/40 flex items-center justify-center">
+                  <Pill className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-xs font-semibold text-foreground leading-tight">eScript</p>
+                  <p className="text-[10px] text-cyan-600 dark:text-cyan-400 font-medium">Sent to phone</p>
+                </div>
+                <Smartphone className="w-4 h-4 text-cyan-500" />
+              </div>
+            </div>
+          </motion.div>
         </div>
       </div>
     </section>

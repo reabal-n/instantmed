@@ -40,7 +40,7 @@ import {
   RefundIssuedEmail, refundIssuedEmailSubject,
   VerificationCodeEmail, verificationCodeSubject,
   StillReviewingEmail, stillReviewingSubject,
-  FollowUpReminderEmail, followUpReminderSubject,
+  FollowUpReminderEmail,
   DeclineReengagementEmail, declineReengagementSubject,
   TreatmentFollowupEmail, treatmentFollowupSubject,
   ReviewRequestEmail, reviewRequestSubject,

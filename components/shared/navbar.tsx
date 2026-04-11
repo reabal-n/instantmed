@@ -197,7 +197,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                   className="w-full rounded-xl bg-primary text-primary-foreground hover:opacity-90 transition-opacity"
                 >
                   <Link href="/request">
-                    Start a request
+                    Get started
                   </Link>
                 </Button>
               </>

@@ -35,7 +35,7 @@ export function ParchmentPrescribePanel({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [iframeLoaded, setIframeLoaded] = useState(false)
-  const [ssoExpired, setSsoExpired] = useState(false)
+  const [_ssoExpired, setSsoExpired] = useState(false)
   const ssoExpiryTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const loadPrescribingUrl = useCallback(async () => {

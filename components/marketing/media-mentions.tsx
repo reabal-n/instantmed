@@ -53,23 +53,23 @@ export function RegulatoryPartners({ variant = 'strip', className = '', exclude 
 
   if (variant === 'strip') {
     return (
-      <div className={cn('py-10', className)}>
+      <div className={cn('py-4 sm:py-6 lg:py-8 bg-muted/20 dark:bg-white/[0.02]', className)}>
         <div className="container mx-auto px-4">
-          <p className="text-xs font-medium text-muted-foreground/60 text-center mb-8 uppercase tracking-widest">
+          <p className="text-[10px] font-semibold text-muted-foreground/50 text-center mb-3 sm:mb-5 uppercase tracking-[0.15em]">
             Regulated by
           </p>
           <div className="flex flex-wrap justify-center items-center gap-6 sm:gap-10 md:gap-14">
             {visiblePartners.map((partner, index) => (
               <motion.div
                 key={partner.name}
-                initial={prefersReducedMotion ? {} : { y: 6 }}
+                initial={prefersReducedMotion ? {} : { y: 6, opacity: 0 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: prefersReducedMotion ? 0 : index * 0.08, duration: 0.35 }}
                 className="flex flex-col items-center gap-2 group"
                 title={partner.description}
               >
-                <div className="rounded-xl bg-white dark:bg-card border border-border/40 dark:border-white/10 shadow-sm px-4 py-3 flex items-center justify-center transition-shadow group-hover:shadow-md">
+                <div className="rounded-xl bg-white dark:bg-card border border-border/40 dark:border-white/10 shadow-sm px-3 py-2 sm:px-4 sm:py-3 flex items-center justify-center transition-shadow group-hover:shadow-md">
                   <Image
                     src={partner.logo}
                     alt={partner.description}
@@ -109,7 +109,7 @@ export function RegulatoryPartners({ variant = 'strip', className = '', exclude 
             {visiblePartners.map((partner, index) => (
               <motion.div
                 key={partner.name}
-                initial={prefersReducedMotion ? {} : { y: 10 }}
+                initial={prefersReducedMotion ? {} : { y: 10, opacity: 0 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: prefersReducedMotion ? 0 : index * 0.1 }}

@@ -10,7 +10,17 @@ import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { useServiceAvailability, type ServiceId } from '@/components/providers/service-availability-provider'
 import { WaitlistForm } from '@/components/marketing/waitlist-form'
+import { SectionPill } from '@/components/ui/section-pill'
 
+// Service color → top accent border class
+const accentBorderMap: Record<string, string> = {
+  emerald: 'border-t-emerald-500',
+  cyan: 'border-t-cyan-500',
+  blue: 'border-t-indigo-500',
+  violet: 'border-t-violet-500',
+  pink: 'border-t-pink-500',
+  rose: 'border-t-rose-500',
+}
 
 function useServiceCardVariants() {
   const prefersReducedMotion = useReducedMotion()
@@ -79,12 +89,14 @@ function ServiceCard({ service, disabled }: ServiceCardProps) {
           'relative h-full rounded-xl overflow-hidden flex flex-col p-5',
           'bg-white dark:bg-card',
           'border border-border/50',
+          'border-t-2',
+          accentBorderMap[service.color] || 'border-t-primary',
           'shadow-md shadow-primary/[0.06]',
           'transition-all duration-300',
           disabled && 'opacity-60',
           !disabled && [
             'hover:shadow-xl hover:shadow-primary/[0.1] hover:-translate-y-1 hover:border-primary/30',
-            service.popular && 'ring-2 ring-primary/30 dark:ring-accent-teal/20 shadow-xl shadow-primary/[0.08]',
+            service.popular && 'ring-2 ring-primary/50 dark:ring-primary/30 shadow-xl shadow-primary/[0.1]',
           ],
         )}>
           {/* Icon */}
@@ -107,7 +119,10 @@ function ServiceCard({ service, disabled }: ServiceCardProps) {
           {service.benefits && (
             <ul className="space-y-1.5 mb-4 flex-1">
               {service.benefits.map((benefit, idx) => (
-                <li key={idx} className="flex items-start gap-2 text-sm text-muted-foreground">
+                <li key={idx} className={cn(
+                  "flex items-start gap-2 text-sm text-muted-foreground",
+                  idx >= 2 && "hidden sm:flex",
+                )}>
                   <Check className="h-3.5 w-3.5 text-emerald-500 dark:text-emerald-400 mt-0.5 shrink-0" />
                   <span>{benefit}</span>
                 </li>
@@ -125,9 +140,21 @@ function ServiceCard({ service, disabled }: ServiceCardProps) {
             </Button>
           ) : (
             <Button size="sm" className="w-full gap-1">
-              {service.cta || 'Start request'}
+              {service.cta || 'Get started'}
               <ArrowRight className="h-3 w-3" />
             </Button>
+          )}
+
+          {/* Testimonial snippet on popular card */}
+          {service.popular && !disabled && service.testimonial && (
+            <div className="mt-3 pt-3 border-t border-border/30">
+              <p className="text-[11px] text-muted-foreground italic leading-relaxed">
+                &ldquo;{service.testimonial.quote}&rdquo;
+              </p>
+              <p className="text-[10px] text-muted-foreground/70 mt-1">
+                — {service.testimonial.author}
+              </p>
+            </div>
           )}
         </div>
       </div>
@@ -153,6 +180,8 @@ function ComingSoonCard({ service }: ComingSoonCardProps) {
         'relative h-full rounded-xl overflow-hidden flex flex-col p-5',
         'bg-white dark:bg-card',
         'border border-border/50',
+        'border-t-2',
+        accentBorderMap[service.color] || 'border-t-muted',
         'shadow-md shadow-primary/[0.06]',
         'opacity-75',
       )}>
@@ -176,7 +205,10 @@ function ComingSoonCard({ service }: ComingSoonCardProps) {
         {service.benefits && (
           <ul className="space-y-1.5 mb-4 flex-1">
             {service.benefits.map((benefit, idx) => (
-              <li key={idx} className="flex items-start gap-2 text-sm text-muted-foreground/70">
+              <li key={idx} className={cn(
+                "flex items-start gap-2 text-sm text-muted-foreground/70",
+                idx >= 2 && "hidden sm:flex",
+              )}>
                 <Check className="h-3.5 w-3.5 text-muted-foreground/40 mt-0.5 shrink-0" />
                 <span>{benefit}</span>
               </li>
@@ -199,23 +231,26 @@ export function ServiceCards() {
   const comingSoonServices = serviceCategories.filter((s) => 'comingSoon' in s && s.comingSoon)
 
   return (
-    <section id="pricing" className="py-20 lg:py-24 scroll-mt-20">
+    <section id="pricing" className="py-10 sm:py-16 lg:py-24 scroll-mt-20">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <motion.div
-          className="text-center mb-12"
-          initial={prefersReducedMotion ? {} : { y: 20 }}
-          whileInView={{ y: 0 }}
+          className="text-center mb-8 sm:mb-10 lg:mb-12"
+          initial={prefersReducedMotion ? {} : { y: 20, opacity: 0 }}
+          whileInView={{ y: 0, opacity: 1 }}
           viewport={{ once: true }}
           transition={{ duration: prefersReducedMotion ? 0 : 0.6 }}
         >
-          <h2 className="text-3xl sm:text-4xl font-semibold text-foreground tracking-tight mb-4">
+          <div className="mb-4">
+            <SectionPill>Services</SectionPill>
+          </div>
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-semibold text-foreground tracking-tight mb-3 sm:mb-4">
             What do you need?
           </h2>
           <p className="text-base text-muted-foreground max-w-2xl mx-auto mb-2">
-            Flat pricing. No hidden fees. No account needed to start.
+            Pick a service. Pay a flat fee. No sign-up needed.
           </p>
-          <p className="text-sm text-muted-foreground/70">
+          <p className="hidden sm:block text-sm text-muted-foreground/70">
             {serviceCategories.length} services &middot; {comingSoonServices.length} more coming
           </p>
         </motion.div>

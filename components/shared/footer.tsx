@@ -26,10 +26,10 @@ export function Footer({ variant = "marketing" }: FooterProps) {
   const isMarketing = variant === "marketing"
 
   return (
-    <footer className="my-8 px-4 max-w-5xl mx-auto" role="contentinfo">
-      {/* Main card with tape decorations */}
-      <div className="relative bg-white dark:bg-card rounded-3xl px-4 py-10 flex flex-col md:flex-row justify-between items-center gap-6 border border-border/50 shadow-sm shadow-primary/[0.04] dark:shadow-none">
-        {/* Tape decorations */}
+    <footer className="mt-6 mb-4 px-4 max-w-5xl mx-auto" role="contentinfo">
+      {/* Main card */}
+      <div className="relative bg-white dark:bg-card rounded-3xl px-5 sm:px-8 py-8 sm:py-10 border border-border/50 shadow-sm shadow-primary/[0.04] dark:shadow-none">
+        {/* Tape decorations — desktop only */}
         <div className="hidden md:block absolute -top-4 -left-8 scale-75 -rotate-12">
           <TapeDecoration />
         </div>
@@ -37,83 +37,67 @@ export function Footer({ variant = "marketing" }: FooterProps) {
           <TapeDecoration />
         </div>
 
-        <div className="flex flex-col md:flex-row items-start justify-between gap-4 md:gap-10 px-2 md:px-8 flex-1 w-full">
-          {/* Brand section */}
-          <div className="flex flex-col items-start gap-3">
+        <div className="flex flex-col md:flex-row gap-6 md:gap-10">
+          {/* Brand + Contact */}
+          <div className="md:w-[220px] shrink-0">
             <BrandLogo size="md" />
-            <p className="text-muted-foreground font-medium text-sm w-full md:w-4/5">
-              See a doctor from bed. Most requests reviewed within 1-2 hours.
+            <p className="text-muted-foreground text-sm mt-3 leading-snug">
+              See a doctor from bed. Most requests reviewed within 1–2 hours.
             </p>
-            <div className="flex flex-col gap-1.5 text-xs text-muted-foreground">
-              {isMarketing && (
-                <div className="flex items-start gap-2">
-                  <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+            {isMarketing && (
+              <div className="flex flex-col gap-1 mt-3 text-xs text-muted-foreground">
+                <div className="flex items-center gap-1.5">
+                  <MapPin className="w-3 h-3 shrink-0" />
                   <span>{COMPANY_ADDRESS_SHORT}</span>
                 </div>
-              )}
-              {isMarketing && (
-                <div className="flex items-center gap-2">
-                  <Mail className="w-3.5 h-3.5 shrink-0" />
+                <div className="flex items-center gap-1.5">
+                  <Mail className="w-3 h-3 shrink-0" />
                   <a href={`mailto:${CONTACT_EMAIL}`} className="hover:text-foreground transition-colors">{CONTACT_EMAIL}</a>
                 </div>
-              )}
-              <div className="flex items-center gap-2">
-                <Phone className="w-3.5 h-3.5 shrink-0" />
+                <div className="flex items-center gap-1.5">
+                  <Phone className="w-3 h-3 shrink-0" />
+                  <a href={`tel:${CONTACT_PHONE.replace(/\s/g, '')}`} className="hover:text-foreground transition-colors">{CONTACT_PHONE}</a>
+                </div>
+              </div>
+            )}
+            {!isMarketing && (
+              <div className="flex items-center gap-1.5 mt-3 text-xs text-muted-foreground">
+                <Phone className="w-3 h-3 shrink-0" />
                 <a href={`tel:${CONTACT_PHONE.replace(/\s/g, '')}`} className="hover:text-foreground transition-colors">{CONTACT_PHONE}</a>
               </div>
-              {isMarketing && (
-                <div className="flex items-center gap-2">
-                  <span className="text-muted-foreground/70">Complaints:</span>
-                  <a href={`mailto:${CONTACT_EMAIL_COMPLAINTS}`} className="hover:text-foreground transition-colors">{CONTACT_EMAIL_COMPLAINTS}</a>
-                </div>
-              )}
-            </div>
+            )}
           </div>
 
-          <div className="flex flex-col md:mx-4 md:flex-row gap-6 md:gap-16 items-start md:items-start">
-            {/* Services column */}
-            <nav className="flex flex-col gap-1 md:gap-4" aria-label="Services">
-              <p aria-hidden="true" className="uppercase text-xs text-muted-foreground font-semibold tracking-wide">Services</p>
-              <div className="flex flex-wrap md:flex-col gap-2 text-sm items-start">
+          {/* Link columns — 2-col on mobile, 4-col on desktop */}
+          <div className="flex-1 grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-5 md:gap-x-8">
+            <nav aria-label="Services">
+              <p aria-hidden="true" className="uppercase text-[10px] text-muted-foreground/70 font-semibold tracking-wider mb-2">Services</p>
+              <div className="flex flex-col gap-1.5">
                 {footerLinks.services.map((link) => (
-                  <Link
-                    key={link.href}
-                    className="text-muted-foreground hover:text-foreground whitespace-nowrap font-medium transition-colors"
-                    href={link.href}
-                  >
+                  <Link key={link.href} className="text-sm text-muted-foreground hover:text-foreground transition-colors" href={link.href}>
                     {link.label}
                   </Link>
                 ))}
               </div>
             </nav>
 
-            {/* Company column */}
-            <nav className="flex flex-col gap-1 md:gap-4" aria-label="Company">
-              <p aria-hidden="true" className="uppercase whitespace-nowrap text-xs text-muted-foreground font-semibold tracking-wide">Company</p>
-              <div className="flex gap-2 flex-wrap md:flex-col text-sm items-start">
+            <nav aria-label="Company">
+              <p aria-hidden="true" className="uppercase text-[10px] text-muted-foreground/70 font-semibold tracking-wider mb-2">Company</p>
+              <div className="flex flex-col gap-1.5">
                 {footerLinks.company.map((link) => (
-                  <Link
-                    key={link.href}
-                    className="text-muted-foreground hover:text-foreground whitespace-nowrap font-medium transition-colors"
-                    href={link.href}
-                  >
+                  <Link key={link.href} className="text-sm text-muted-foreground hover:text-foreground transition-colors" href={link.href}>
                     {link.label}
                   </Link>
                 ))}
               </div>
             </nav>
 
-            {/* Resources column — SEO hub pages for crawl discovery */}
             {isMarketing && (
-              <nav className="flex flex-col gap-1 md:gap-4" aria-label="Resources">
-                <p aria-hidden="true" className="uppercase whitespace-nowrap text-xs text-muted-foreground font-semibold tracking-wide">Resources</p>
-                <div className="flex flex-col gap-2 text-sm items-start">
+              <nav aria-label="Resources">
+                <p aria-hidden="true" className="uppercase text-[10px] text-muted-foreground/70 font-semibold tracking-wider mb-2">Resources</p>
+                <div className="flex flex-col gap-1.5">
                   {footerLinks.resources.map((link) => (
-                    <Link
-                      key={link.href}
-                      className="text-muted-foreground hover:text-foreground whitespace-nowrap font-medium transition-colors"
-                      href={link.href}
-                    >
+                    <Link key={link.href} className="text-sm text-muted-foreground hover:text-foreground transition-colors" href={link.href}>
                       {link.label}
                     </Link>
                   ))}
@@ -121,17 +105,12 @@ export function Footer({ variant = "marketing" }: FooterProps) {
               </nav>
             )}
 
-            {/* Legal column */}
             {isMarketing && (
-              <nav className="flex flex-col gap-1 md:gap-4" aria-label="Legal">
-                <p aria-hidden="true" className="uppercase whitespace-nowrap text-xs text-muted-foreground font-semibold tracking-wide">Legal</p>
-                <div className="flex flex-col gap-2 text-sm items-start">
+              <nav aria-label="Legal">
+                <p aria-hidden="true" className="uppercase text-[10px] text-muted-foreground/70 font-semibold tracking-wider mb-2">Legal</p>
+                <div className="flex flex-col gap-1.5">
                   {footerLinks.legal.map((link) => (
-                    <Link
-                      key={link.href}
-                      className="text-muted-foreground hover:text-foreground whitespace-nowrap font-medium transition-colors"
-                      href={link.href}
-                    >
+                    <Link key={link.href} className="text-sm text-muted-foreground hover:text-foreground transition-colors" href={link.href}>
                       {link.label}
                     </Link>
                   ))}
@@ -140,12 +119,19 @@ export function Footer({ variant = "marketing" }: FooterProps) {
             )}
           </div>
         </div>
+
+        {/* Complaints — below grid, separated */}
+        {isMarketing && (
+          <div className="mt-5 pt-4 border-t border-border/30 text-xs text-muted-foreground/70">
+            Complaints: <a href={`mailto:${CONTACT_EMAIL_COMPLAINTS}`} className="hover:text-foreground transition-colors">{CONTACT_EMAIL_COMPLAINTS}</a>
+          </div>
+        )}
       </div>
 
       {/* Trust badges (marketing only) */}
       {isMarketing && (
-        <div className="py-5 border-t border-border/30 dark:border-border/50">
-          <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 mb-4">
+        <div className="py-4 sm:py-5">
+          <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-6 mb-3">
             <StripeBadge variant="powered-by" />
             <div className="hidden sm:block h-6 w-px bg-border/50" aria-hidden="true" />
             <LegitScriptSeal size="sm" />
@@ -158,7 +144,7 @@ export function Footer({ variant = "marketing" }: FooterProps) {
 
       {/* Disclaimer (marketing only) */}
       {isMarketing && (
-        <div className="my-4 px-4 md:px-8 text-xs text-muted-foreground/70 space-y-2">
+        <div className="px-1 mb-3 text-xs text-muted-foreground/70">
           <p>
             <strong className="text-muted-foreground">Important:</strong> Online assessment is not suitable for medical emergencies.
             If you are experiencing a medical emergency, call <strong className="text-foreground">000</strong> immediately.
@@ -167,19 +153,19 @@ export function Footer({ variant = "marketing" }: FooterProps) {
       )}
 
       {/* Bottom bar */}
-      <div className="my-3 px-4 md:px-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 text-sm text-muted-foreground">
-        <div className="flex flex-col sm:flex-row gap-2 sm:gap-8 items-start sm:items-center">
-          <p className="whitespace-nowrap text-xs">
+      <div className="px-1 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 text-xs text-muted-foreground">
+        <div className="flex flex-col sm:flex-row gap-1 sm:gap-6 items-start sm:items-center">
+          <p className="whitespace-nowrap">
             &copy; {currentYear} {COMPANY_NAME}. All rights reserved.
           </p>
-          <div className="flex flex-row gap-4 text-xs">
+          <div className="flex flex-row gap-3">
             <Link href="/privacy" className="hover:text-foreground transition-colors">Privacy</Link>
             <Link href="/terms" className="hover:text-foreground transition-colors">Terms</Link>
             <Link href="/refund-policy" className="hover:text-foreground transition-colors">Refund Policy</Link>
             <FooterAuth />
           </div>
         </div>
-        <p className="text-xs text-muted-foreground/70">
+        <p className="text-muted-foreground/70">
           Operating since 2025 &middot; ABN: {ABN}
         </p>
       </div>

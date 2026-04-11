@@ -33,16 +33,16 @@ export function ComplianceMarquee({
 
   return (
     <div className={cn(
-      "relative overflow-hidden bg-white dark:bg-card border-y border-border/50 dark:border-white/10 py-3",
+      "relative overflow-hidden bg-white dark:bg-card border-y border-border/50 dark:border-white/10 py-2 sm:py-3",
       className
     )}>
       {/* Gradient fade edges */}
-      <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-muted dark:from-background to-transparent z-10" />
-      <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-muted dark:from-background to-transparent z-10" />
+      <div className="absolute left-0 top-0 bottom-0 w-12 sm:w-16 bg-gradient-to-r from-white dark:from-card to-transparent z-10" />
+      <div className="absolute right-0 top-0 bottom-0 w-12 sm:w-16 bg-gradient-to-l from-white dark:from-card to-transparent z-10" />
 
       {/* Marquee content - duplicated for seamless loop */}
-      <div className="flex whitespace-nowrap">
-        <div className={cn("flex items-center gap-8 px-4", speedClass)}>
+      <div className="flex whitespace-nowrap motion-reduce:overflow-x-auto">
+        <div className={cn("flex items-center gap-6 sm:gap-8 px-4", speedClass, "motion-reduce:animate-none")}>
           {[...complianceItems, ...complianceItems].map((item, i) => (
             <div 
               key={i}

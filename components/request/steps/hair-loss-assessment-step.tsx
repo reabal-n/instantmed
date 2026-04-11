@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState } from "react"
 import { usePostHog } from "@/components/providers/posthog-provider"
 import { Scissors, AlertCircle, Pill, Droplets, ArrowRight } from "lucide-react"
 import { Label } from "@/components/ui/label"

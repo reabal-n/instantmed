@@ -12,7 +12,7 @@ const SERVICE_CONFIG: Record<string, { name: string; price: string; href: string
   "/prescriptions": { name: "Prescription", price: PRICING_DISPLAY.REPEAT_SCRIPT, href: "/prescriptions/new" },
 }
 
-const DEFAULT_CONFIG = { name: "Medical Certificate", price: `from ${PRICING_DISPLAY.MED_CERT}`, href: "/medical-certificate/new" }
+const DEFAULT_CONFIG = { name: "See a doctor", price: `from ${PRICING_DISPLAY.MED_CERT}`, href: "/request" }
 
 // Session limiting
 const SESSION_KEY = "sticky_cta_shown"
@@ -33,8 +33,11 @@ export function StickyCTABar() {
   const handleScroll = useCallback(() => {
     if (isDismissed) return
 
-    // Show after scrolling past hero (400px)
-    const scrolled = window.scrollY > 400
+    // Show once the hero CTA buttons leave the viewport (fallback: 500px)
+    const heroCta = document.querySelector<HTMLElement>('[href="/request"]')
+    const threshold = heroCta
+      ? heroCta.getBoundingClientRect().bottom < 0
+      : window.scrollY > 500
 
     // Hide when near footer
     const footer = document.querySelector("footer")
@@ -44,7 +47,7 @@ export function StickyCTABar() {
       setIsNearFooter(footerTop < windowHeight + 100)
     }
 
-    setIsVisible(scrolled)
+    setIsVisible(threshold)
   }, [isDismissed])
 
   useEffect(() => {
@@ -93,7 +96,7 @@ export function StickyCTABar() {
             size="sm"
             className="rounded-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-5 shrink-0 shadow-lg shadow-primary/25"
           >
-            <Link href={config.href}>Start a request</Link>
+            <Link href={config.href}>Get started</Link>
           </Button>
           <button
             onClick={() => {

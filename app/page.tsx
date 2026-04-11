@@ -15,9 +15,12 @@ import { getFeatureFlags } from '@/lib/feature-flags'
 import { CTABanner } from '@/components/sections'
 import { FAQSection } from '@/components/sections'
 import { MarketingPageShell } from '@/components/shared/marketing-page-shell'
-import { AfterHoursMedCertBanner } from '@/components/shared/after-hours-med-cert-banner'
+// After-hours banner removed — redundant with DoctorAvailabilityPill in hero
 import { ServiceCards } from '@/components/marketing/service-cards'
 import { SocialProofSection } from '@/components/marketing/social-proof-section'
+import { RegulatoryPartners } from '@/components/marketing/media-mentions'
+import { ComplianceMarquee } from '@/components/shared/compliance-marquee'
+import { TrustBadgeRow } from '@/components/shared/trust-badge'
 
 export const revalidate = 3600
 
@@ -107,9 +110,6 @@ export default async function HomePage() {
 
       <Navbar variant="marketing" />
 
-      {/* After-hours banner — promotes 24/7 med certs when doctors are offline */}
-      <AfterHoursMedCertBanner />
-
       {/* Maintenance banner — streamed independently, doesn't block hero */}
       <Suspense fallback={null}>
         <MaintenanceBanner />
@@ -119,12 +119,15 @@ export default async function HomePage() {
         {/* 1. Hero with main value prop */}
         <Hero>
           <p className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-8 leading-relaxed text-balance">
-            Real Australian doctors review every request — medical certificates, repeat scripts, and discreet treatment for ED and hair loss. No appointments, no waiting rooms.
+            Real Australian doctors review every request — medical certificates from $19.95, repeat scripts, and discreet treatment for ED and hair loss. No appointments, no waiting rooms.
           </p>
         </Hero>
 
         {/* 2. Service cards — what we offer */}
         <ServiceCards />
+
+        {/* 2.5 Regulatory authority logos */}
+        <RegulatoryPartners variant="strip" exclude={['Medicare']} />
 
         {/* 3. How it works — 3 steps */}
         <Suspense fallback={<SectionSkeleton />}>
@@ -134,13 +137,24 @@ export default async function HomePage() {
         {/* 4. Social proof — reviews, doctor credibility, stats */}
         <SocialProofSection />
 
+        {/* 4.5 Third-party certifications — LegitScript + Google Ads */}
+        <div className="flex justify-center py-4">
+          <TrustBadgeRow preset="trust_certifications" />
+        </div>
+
         {/* 5. FAQs */}
         <FAQSection
           pill="FAQ"
-          title="Common questions"
-          subtitle="Everything you need to know about our service."
+          title="Before you start"
+          subtitle="The stuff people actually want to know."
           items={faqItems}
+          viewAllHref="/faq"
         />
+
+        {/* 5.5 Pre-CTA friction removal */}
+        <div className="flex justify-center pb-2">
+          <TrustBadgeRow preset="pre_cta" />
+        </div>
 
         {/* 6. Final CTA */}
         <CTABanner
@@ -150,6 +164,9 @@ export default async function HomePage() {
           ctaHref="/request"
         />
       </main>
+
+      {/* Compliance strip */}
+      <ComplianceMarquee />
 
       {/* 7. Footer */}
       <MarketingFooter />

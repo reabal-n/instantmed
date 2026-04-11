@@ -690,3 +690,26 @@ export function getRandomTestimonialByService(service: Testimonial["service"]) {
 export function getFeaturedTestimonialsByService(service: Testimonial["service"]) {
   return TESTIMONIALS.filter((t) => t.service === service && t.image)
 }
+
+/**
+ * Get a balanced mix of testimonials for the homepage.
+ * Returns 3 med-cert, 2 prescription, 1 consultation — avoids cert-mill perception.
+ */
+export function getHomepageTestimonials() {
+  const certs = TESTIMONIALS.filter((t) => t.service === "medical-certificate" && t.featured)
+  const rx = TESTIMONIALS.filter((t) => t.service === "prescription" && t.rating === 5)
+  const consults = TESTIMONIALS.filter((t) => t.service === "consultation" && t.rating === 5)
+
+  const picks = [
+    ...certs.slice(0, 3),
+    ...rx.slice(0, 2),
+    ...consults.slice(0, 1),
+  ]
+
+  return picks.map((t) => ({
+    text: t.text,
+    image: t.image || "",
+    name: t.name,
+    role: t.location,
+  }))
+}

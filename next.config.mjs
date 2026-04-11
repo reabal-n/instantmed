@@ -13,6 +13,8 @@ const nextConfig = {
     // TypeScript errors have been fixed - enable strict type checking
     ignoreBuildErrors: false
   },
+  // Disable dev indicator — triggers SegmentViewNode webpack error in 15.5.x
+  devIndicators: false,
   // Body size limits to prevent abuse
   experimental: {
     serverActions: {

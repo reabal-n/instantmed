@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useSyncExternalStore } from 'react'
-import { Moon, Users, Zap } from 'lucide-react'
+import { Moon, Zap } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useReducedMotion } from '@/components/ui/motion'
 
@@ -52,18 +52,6 @@ function useHasMounted() {
   )
 }
 
-function getRandomVisitors(): number {
-  const aest = getAESTTime()
-  const hour = aest.getHours()
-
-  // Weight visitor count by time of day
-  if (hour >= 8 && hour < 10) return Math.floor(Math.random() * 6) + 3    // 3-8 morning
-  if (hour >= 10 && hour < 14) return Math.floor(Math.random() * 8) + 5   // 5-12 midday peak
-  if (hour >= 14 && hour < 18) return Math.floor(Math.random() * 7) + 4   // 4-10 afternoon
-  if (hour >= 18 && hour < 22) return Math.floor(Math.random() * 9) + 6   // 6-14 evening peak
-  return Math.floor(Math.random() * 3) + 1                                 // 1-3 overnight
-}
-
 interface DoctorAvailabilityPillProps {
   /**
    * When true, always shows the online/available state regardless of business hours.
@@ -75,9 +63,6 @@ interface DoctorAvailabilityPillProps {
 export function DoctorAvailabilityPill({ alwaysAvailable = false }: DoctorAvailabilityPillProps) {
   const [isOnline, setIsOnline] = useState(true)
   const [countdown, setCountdown] = useState<{ hours: number; minutes: number }>({ hours: 0, minutes: 0 })
-  // Start at 1 (safe SSR value) — useEffect sets real random count client-side
-  // to avoid server/client Math.random() hydration mismatch
-  const [visitors, setVisitors] = useState(1)
   const mounted = useHasMounted()
   const prefersReducedMotion = useReducedMotion()
 
@@ -92,21 +77,6 @@ export function DoctorAvailabilityPill({ alwaysAvailable = false }: DoctorAvaila
     const interval = setInterval(updateStatus, 60000)
     return () => clearInterval(interval)
   }, [alwaysAvailable])
-
-  // Initialise visitor count client-side (avoids SSR Math.random() hydration mismatch)
-  // then fluctuate every ~35 seconds
-  useEffect(() => {
-    setVisitors(getRandomVisitors())
-    const fluctuate = () => {
-      setVisitors(prev => {
-        const change = Math.random() > 0.5 ? 1 : -1
-        const next = prev + change
-        return Math.max(1, Math.min(14, next))
-      })
-    }
-    const interval = setInterval(fluctuate, 35000)
-    return () => clearInterval(interval)
-  }, [])
 
   // Render a static placeholder matching the pill height to prevent hero layout shift on hydration
   if (!mounted) {
@@ -172,16 +142,8 @@ export function DoctorAvailabilityPill({ alwaysAvailable = false }: DoctorAvaila
             </span>
             <span className="h-3 w-px bg-emerald-300/50 dark:bg-emerald-700/50" />
             <span className="flex items-center gap-1.5 text-xs text-emerald-600/80 dark:text-emerald-400/80">
-              <Users className="w-3 h-3" />
-              <motion.span
-                key={visitors}
-                initial={prefersReducedMotion ? {} : { opacity: 0.5, y: -2 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: prefersReducedMotion ? 0 : 0.3 }}
-              >
-                {visitors}
-              </motion.span>
-              <span className="hidden sm:inline">browsing</span>
+              <Zap className="w-3 h-3" />
+              <span>Reviewed in 1–2 hrs</span>
             </span>
           </>
         ) : (
