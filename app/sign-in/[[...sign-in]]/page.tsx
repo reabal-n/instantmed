@@ -1,14 +1,14 @@
 "use client"
 
-import { useState, Suspense, useCallback } from 'react'
+import { useState, Suspense, useCallback } from "react"
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Shield, Clock, CheckCircle, Star, Mail, ArrowRight, Loader2, Lock } from 'lucide-react'
+import { Shield, Clock, CheckCircle, Star, Mail, ArrowRight, Loader2, Lock, Eye, EyeOff } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { getPatientCount } from '@/lib/social-proof'
 
 export const dynamic = "force-dynamic"
@@ -46,13 +46,15 @@ function SignInForm() {
   const redirectUrl = searchParams.get('redirect_url') || searchParams.get('redirect') || ''
 
   const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [formState, setFormState] = useState<FormState>('idle')
   const [errorMessage, setErrorMessage] = useState('')
   const [googleLoading, setGoogleLoading] = useState(false)
 
   const supabase = createClient()
 
-  const handleMagicLink = useCallback(async (e: React.FormEvent) => {
+  const handleSignIn = useCallback(async (e: React.FormEvent) => {
     e.preventDefault()
 
     const trimmed = email.trim().toLowerCase()
@@ -62,19 +64,25 @@ function SignInForm() {
       return
     }
 
+    if (!password) {
+      setErrorMessage('Please enter your password.')
+      setFormState('error')
+      return
+    }
+
     setFormState('loading')
     setErrorMessage('')
 
-    const redirectTo = `${window.location.origin}/auth/callback${redirectUrl ? `?next=${encodeURIComponent(redirectUrl)}` : ''}`
-
-    const { error } = await supabase.auth.signInWithOtp({
+    const { error } = await supabase.auth.signInWithPassword({
       email: trimmed,
-      options: { emailRedirectTo: redirectTo },
+      password,
     })
 
     if (error) {
       if (error.message?.includes('rate') || error.status === 429) {
         setErrorMessage('Too many attempts. Please wait a few minutes.')
+      } else if (error.message?.includes('Invalid login credentials')) {
+        setErrorMessage('Incorrect email or password.')
       } else {
         setErrorMessage(error.message || 'Something went wrong. Please try again.')
       }
@@ -82,8 +90,10 @@ function SignInForm() {
       return
     }
 
-    setFormState('success')
-  }, [email, redirectUrl, supabase.auth])
+    // Redirect on success
+    const next = redirectUrl || '/patient/dashboard'
+    window.location.href = next
+  }, [email, password, redirectUrl, supabase.auth])
 
   const handleGoogleSignIn = useCallback(async () => {
     setGoogleLoading(true)
@@ -114,54 +124,10 @@ function SignInForm() {
         </Link>
       </div>
 
-      <AnimatePresence mode="wait">
-        {formState === 'success' ? (
-          /* ── Success: Check your inbox ─────────────────────── */
-          <motion.div
-            key="success"
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
-            className="bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06] rounded-2xl p-8 text-center"
-          >
-            <motion.div
-              initial={{ scale: 0.8 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.1, type: 'spring', stiffness: 200, damping: 15 }}
-              className="w-16 h-16 rounded-2xl bg-success/10 flex items-center justify-center mx-auto mb-5"
-            >
-              <Mail className="w-8 h-8 text-success" />
-            </motion.div>
-
-            <h2 className="text-xl font-semibold text-foreground mb-2">
-              Check your inbox
-            </h2>
-            <p className="text-muted-foreground mb-4">
-              We sent a sign-in link to
-            </p>
-            <p className="text-sm font-medium text-foreground bg-muted/50 rounded-lg px-4 py-2 mb-6 break-all">
-              {email.trim().toLowerCase()}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              Click the link in the email to sign in. No password needed.
-            </p>
-
-            <button
-              type="button"
-              onClick={() => { setFormState('idle'); setEmail('') }}
-              className="mt-6 text-sm text-primary hover:text-primary/80 transition-colors"
-            >
-              Use a different email
-            </button>
-          </motion.div>
-        ) : (
-          /* ── Sign-in form ──────────────────────────────────── */
           <motion.div
             key="form"
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
             className="bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06] rounded-2xl p-8"
           >
@@ -196,8 +162,7 @@ function SignInForm() {
               </div>
             </div>
 
-            {/* Magic link form */}
-            <form onSubmit={handleMagicLink} className="space-y-3">
+            <form onSubmit={handleSignIn} className="space-y-3">
               <Input
                 type="email"
                 placeholder="your@email.com"
@@ -209,24 +174,59 @@ function SignInForm() {
                     setErrorMessage('')
                   }
                 }}
-                isInvalid={formState === 'error' && !!errorMessage}
-                errorMessage={errorMessage}
                 disabled={formState === 'loading'}
                 autoComplete="email"
                 autoFocus
                 startContent={<Mail className="w-4 h-4" />}
               />
+              <div className="relative">
+                <Input
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value)
+                    if (formState === 'error') {
+                      setFormState('idle')
+                      setErrorMessage('')
+                    }
+                  }}
+                  isInvalid={formState === 'error' && !!errorMessage}
+                  errorMessage={errorMessage}
+                  disabled={formState === 'loading'}
+                  autoComplete="current-password"
+                  startContent={<Lock className="w-4 h-4" />}
+                  endContent={
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="text-muted-foreground hover:text-foreground transition-colors"
+                      tabIndex={-1}
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  }
+                />
+              </div>
+              <div className="flex justify-end">
+                <Link
+                  href="/auth/forgot-password"
+                  className="text-xs text-muted-foreground hover:text-primary transition-colors"
+                >
+                  Forgot password?
+                </Link>
+              </div>
               <Button
                 type="submit"
                 size="lg"
                 className="w-full"
-                disabled={formState === 'loading' || !email.trim()}
+                disabled={formState === 'loading' || !email.trim() || !password}
               >
                 {formState === 'loading' ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
                 ) : (
                   <>
-                    Continue with email
+                    Sign in
                     <ArrowRight className="w-4 h-4" />
                   </>
                 )}
@@ -262,13 +262,7 @@ function SignInForm() {
               )}
             </Button>
 
-            {/* Helper text */}
-            <p className="text-xs text-muted-foreground text-center mt-5">
-              No password needed. We&apos;ll email you a sign-in link.
-            </p>
           </motion.div>
-        )}
-      </AnimatePresence>
 
       {/* Sign up link */}
       <p className="text-sm text-muted-foreground text-center mt-6">
