@@ -18,7 +18,6 @@ import { MarketingPageShell } from '@/components/shared/marketing-page-shell'
 import { AfterHoursMedCertBanner } from '@/components/shared/after-hours-med-cert-banner'
 import { ServiceCards } from '@/components/marketing/service-cards'
 import { SocialProofSection } from '@/components/marketing/social-proof-section'
-import { EmployerLogoMarquee } from '@/components/shared/employer-logo-marquee'
 
 export const revalidate = 3600
 
@@ -136,9 +135,6 @@ export default async function HomePage() {
 
         {/* 2. Service cards — what we offer */}
         <ServiceCards />
-
-        {/* 2b. Employer logo marquee — trust signal */}
-        <EmployerLogoMarquee className="border-y border-border/30 dark:border-white/10 bg-muted/20 py-8" />
 
         {/* 3. How it works — 3 steps */}
         <Suspense fallback={<SectionSkeleton />}>
