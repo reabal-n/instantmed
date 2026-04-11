@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { DoctorAvailabilityPill } from '@/components/shared/doctor-availability-pill'
 import { motion } from 'framer-motion'
 import { useReducedMotion } from '@/components/ui/motion'
-import { HeroOutcomeMockup } from '@/components/marketing/hero-outcome-mockup'
+import { HeroMultiServiceMockup } from '@/components/marketing/hero-multi-service-mockup'
 import { TrustBadgeRow } from '@/components/shared/trust-badge'
 
 const LCP_CLASSES = "text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-6 leading-relaxed text-balance"
@@ -16,7 +16,7 @@ export function Hero({ children }: { children?: React.ReactNode }) {
   const prefersReducedMotion = useReducedMotion()
 
   return (
-    <section className="relative overflow-hidden pt-12 pb-16 sm:pt-16 sm:pb-20 lg:pt-20 lg:pb-24">
+    <section className="relative overflow-hidden pt-8 pb-10 sm:pt-14 sm:pb-18 lg:pt-20 lg:pb-24">
       <div className="mx-auto max-w-5xl px-6 sm:px-8 lg:px-10">
         <div className="flex flex-col lg:flex-row items-center lg:gap-12 xl:gap-14">
           {/* Text content */}
@@ -33,7 +33,7 @@ export function Hero({ children }: { children?: React.ReactNode }) {
 
             {/* Headline — server-rendered static text for LCP */}
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight mb-8 leading-[1.15] animate-hero-headline">
-              A doctor, without the waiting room.
+              Online doctor. Certs, scripts, and treatment.
             </h1>
 
             {/* LCP slot — server-rendered when passed as children, else fallback */}
@@ -87,16 +87,12 @@ export function Hero({ children }: { children?: React.ReactNode }) {
                 ]}
                 className="mt-4 justify-center lg:justify-start"
               />
-              <TrustBadgeRow
-                preset="trust_certifications"
-                className="hidden sm:flex justify-center lg:justify-start mt-1"
-              />
             </motion.div>
           </div>
 
           {/* Hero product mockup — desktop */}
           <div className="hidden lg:block relative shrink-0 mt-0">
-            <HeroOutcomeMockup />
+            <HeroMultiServiceMockup />
           </div>
         </div>
       </div>

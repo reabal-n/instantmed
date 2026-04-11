@@ -21,6 +21,7 @@ import { MagneticButton } from "@/components/ui/magnetic-button"
 import { DoctorAvailabilityPill } from "@/components/shared/doctor-availability-pill"
 import { RotatingText } from "@/components/marketing/rotating-text"
 import { MedCertHeroMockup } from "@/components/marketing/mockups/med-cert-hero-mockup"
+import { HeroOutcomeMockup } from "@/components/marketing/hero-outcome-mockup"
 import { LiveWaitTime } from "@/components/marketing/live-wait-time"
 import { EmployerLogoMarquee } from "@/components/shared/employer-logo-marquee"
 import { ContextualMessage } from "@/components/marketing/contextual-message"
@@ -449,6 +450,38 @@ export function MedCertLanding() {
 
           {/* 4. How It Works */}
           <HowItWorksSection onCTAClick={handleHowItWorksCTA} />
+
+          {/* 4b. Outcome preview — what approval looks like */}
+          <section className="py-16 lg:py-20">
+            <div className="mx-auto max-w-5xl px-6 sm:px-8 lg:px-10">
+              <div className="flex flex-col lg:flex-row items-center gap-10 lg:gap-16">
+                <div className="flex-1 min-w-0">
+                  <h2 className="text-2xl sm:text-3xl font-semibold text-foreground tracking-tight mb-4">
+                    Here&apos;s what you&apos;ll get
+                  </h2>
+                  <p className="text-sm text-muted-foreground max-w-md mb-6 leading-relaxed">
+                    Your doctor reviews the request and issues a valid medical certificate. It&apos;s sent straight to your inbox as a secure PDF — accepted by all Australian employers and universities.
+                  </p>
+                  <ul className="space-y-2.5">
+                    {[
+                      "Employer-accepted PDF certificate",
+                      "AHPRA-registered doctor on every cert",
+                      "Delivered to your inbox same day",
+                      "Verifiable via our online portal",
+                    ].map((item) => (
+                      <li key={item} className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="shrink-0">
+                  <HeroOutcomeMockup />
+                </div>
+              </div>
+            </div>
+          </section>
 
           {/* 5. Social proof stats — backs up the process with numbers */}
           <SocialProofStrip />

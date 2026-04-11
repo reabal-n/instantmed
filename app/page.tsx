@@ -130,7 +130,7 @@ export default async function HomePage() {
         {/* 1. Hero with main value prop */}
         <Hero>
           <p className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-8 leading-relaxed text-balance">
-            Medical certificates, repeat prescriptions, and discreet treatment for ED and hair loss — reviewed by AHPRA-registered Australian doctors. From $19.95.
+            Real Australian doctors review every request — medical certificates, repeat scripts, and discreet treatment for ED and hair loss. No appointments, no waiting rooms.
           </p>
         </Hero>
 
