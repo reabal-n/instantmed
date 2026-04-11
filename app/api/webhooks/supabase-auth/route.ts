@@ -84,6 +84,7 @@ function getSubject(actionType: string, firstName?: string): string {
 // --- Route Handler ---
 
 export async function POST(req: Request) {
+  try {
   console.log("[auth-webhook] Step 0: handler entered")
 
   // Rate limit
@@ -198,4 +199,8 @@ export async function POST(req: Request) {
   }
 
   return NextResponse.json({ success: true })
+  } catch (uncaught) {
+    console.error("[auth-webhook] UNCAUGHT ERROR:", uncaught instanceof Error ? uncaught.stack : String(uncaught))
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+  }
 }
