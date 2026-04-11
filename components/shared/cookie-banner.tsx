@@ -26,8 +26,8 @@ export type CookiePreferences = {
 
 const DEFAULT_PREFERENCES: CookiePreferences = {
   essential: true,
-  analytics: false,
-  marketing: false,
+  analytics: true,
+  marketing: true,
   version: COOKIE_CONSENT_VERSION,
   acceptedAt: "",
 }

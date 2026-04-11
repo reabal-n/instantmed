@@ -150,14 +150,22 @@ export function updateConsent(granted: {
   adPersonalization?: boolean
   analyticsStorage?: boolean
 }) {
-  if (typeof window === 'undefined' || !window.gtag) return
+  if (typeof window === 'undefined') return
 
-  window.gtag('consent', 'update', {
+  const update = {
     ad_storage: granted.adStorage ? 'granted' : 'denied',
     ad_user_data: granted.adUserData ? 'granted' : 'denied',
     ad_personalization: granted.adPersonalization ? 'granted' : 'denied',
     analytics_storage: granted.analyticsStorage !== false ? 'granted' : 'denied',
-  })
+  }
+
+  if (window.gtag) {
+    window.gtag('consent', 'update', update)
+  } else {
+    // Queue via dataLayer if gtag hasn't loaded yet (mirrors setEnhancedConversionsData)
+    window.dataLayer = window.dataLayer || []
+    window.dataLayer.push(['consent', 'update', update])
+  }
 }
 
 /**
