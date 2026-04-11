@@ -12,6 +12,7 @@ import { createLogger } from "@/lib/observability/logger"
 import * as Sentry from "@sentry/nextjs"
 import { getPostHogClient } from "@/lib/posthog-server"
 import { sendTelegramAlert, escapeMarkdownValue } from "@/lib/notifications/telegram"
+import { SYSTEM_AUTO_APPROVE_ID } from "@/lib/constants"
 
 const log = createLogger("auto-approval-state")
 
@@ -114,7 +115,9 @@ async function transitionState(
 // CONVENIENCE WRAPPERS
 // ============================================================================
 
-/** Claim an intake for processing: pending|failed_retrying → attempting */
+/** Claim an intake for processing: pending|failed_retrying → attempting.
+ * Also sets claimed_by = SYSTEM_AUTO_APPROVE_ID so atomicApproveCertificate's
+ * claim-ownership guard passes without a separate claim_intake_for_review RPC. */
 export async function claimForProcessing(
   supabase: SupabaseClient,
   intakeId: string,
@@ -123,6 +126,7 @@ export async function claimForProcessing(
     supabase, intakeId,
     ["pending", "failed_retrying"],
     "attempting",
+    { claimed_by: SYSTEM_AUTO_APPROVE_ID },
   )
 }
 

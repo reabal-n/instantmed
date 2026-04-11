@@ -359,7 +359,7 @@ export async function atomicApproveCertificate(
 
   // Validate doctor holds the claim (unless already approved - idempotent case)
   // For paid/in_review states, verify claim ownership to prevent race conditions
-  // Auto-approval pipeline claims with 'system-auto-approve' then passes the real doctor ID
+  // Auto-approval pipeline sets claimed_by = SYSTEM_AUTO_APPROVE_ID via claimForProcessing()
   const validClaimHolder =
     intakeCheck.status === "approved" ||
     intakeCheck.claimed_by === input.doctor_id ||
