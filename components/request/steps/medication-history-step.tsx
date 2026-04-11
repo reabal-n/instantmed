@@ -124,7 +124,7 @@ export default function MedicationHistoryStep({ serviceType, onNext, onBack }: M
 
       {/* New medication detected - friendly upsell to consult flow */}
       {isNeverPrescribed && (
-        <div className="p-4 rounded-xl border border-primary/20 bg-primary/5 space-y-4">
+        <div className="p-4 rounded-2xl border border-border/50 bg-white dark:bg-card shadow-md shadow-primary/[0.06] space-y-4">
           <div className="flex gap-3">
             <Stethoscope className="w-5 h-5 text-primary shrink-0 mt-0.5" />
             <div className="space-y-1">
@@ -233,6 +233,11 @@ export default function MedicationHistoryStep({ serviceType, onNext, onBack }: M
           "Continue"
         )}
       </Button>
+      {canContinue && (
+        <p className="text-[11px] text-muted-foreground/60 text-center hidden sm:block">
+          Press Enter to continue
+        </p>
+      )}
     </div>
   )
 }

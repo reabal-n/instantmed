@@ -499,7 +499,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
             </div>
           </div>
           {bmi !== null && (
-            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/30 border text-sm">
+            <div className="flex items-center gap-2 px-3 py-2 rounded-2xl border border-border/50 bg-white dark:bg-card shadow-md shadow-primary/[0.06] text-sm">
               <span className="text-muted-foreground">BMI:</span>
               <span className="font-medium">{bmi}</span>
               <span className={cn(

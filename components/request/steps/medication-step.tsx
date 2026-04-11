@@ -270,7 +270,7 @@ export default function MedicationStep({ onNext }: MedicationStepProps) {
 
           {/* Selected medication display */}
           {med.product && (
-            <div className="p-3 rounded-lg border bg-muted/30">
+            <div className="p-3 rounded-2xl border border-border/50 bg-white dark:bg-card shadow-md shadow-primary/[0.06]">
               <p className="font-medium text-sm">{med.product.drug_name}</p>
               {med.product.strength && (
                 <p className="text-xs text-muted-foreground">{med.product.strength}</p>
@@ -312,6 +312,11 @@ export default function MedicationStep({ onNext }: MedicationStepProps) {
           "Continue"
         )}
       </Button>
+      {canContinue && (
+        <p className="text-[11px] text-muted-foreground/60 text-center hidden sm:block">
+          Press Enter to continue
+        </p>
+      )}
     </div>
   )
 }

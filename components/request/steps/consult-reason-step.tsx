@@ -281,6 +281,11 @@ export default function ConsultReasonStep({ onNext }: ConsultReasonStepProps) {
           "Continue"
         )}
       </Button>
+      {isComplete && (
+        <p className="text-[11px] text-muted-foreground/60 text-center hidden sm:block">
+          Press Enter to continue
+        </p>
+      )}
     </div>
   )
 }

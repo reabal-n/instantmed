@@ -357,7 +357,7 @@ export default function CertificateStep({ onNext }: CertificateStepProps) {
 
       {/* Live summary card */}
       {selectedDays !== null && startOffset !== null && endOffset !== null && price && (
-        <div className="flex items-center justify-between px-3 py-2.5 rounded-xl bg-primary/5 border border-primary/15">
+        <div className="flex items-center justify-between px-3 py-2.5 rounded-2xl border border-border/50 bg-white dark:bg-card shadow-md shadow-primary/[0.06]">
           <div>
             <p className="text-xs font-medium text-foreground">
               {selectedDays === 1
@@ -388,6 +388,11 @@ export default function CertificateStep({ onNext }: CertificateStepProps) {
           "Continue"
         )}
       </Button>
+      {canContinue && (
+        <p className="text-[11px] text-muted-foreground/60 text-center hidden sm:block">
+          Press Enter to continue
+        </p>
+      )}
     </div>
   )
 }

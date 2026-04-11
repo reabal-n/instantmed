@@ -563,7 +563,7 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
         {(() => {
           const price = getDisplayPrice(serviceType, answers)
           return (
-            <div className="flex items-center justify-between px-4 py-3 rounded-2xl bg-muted/40 dark:bg-white/5 border border-border/40">
+            <div className="flex items-center justify-between px-4 py-3 rounded-2xl border border-border/50 bg-white dark:bg-card shadow-md shadow-primary/[0.06]">
               <span className="text-sm text-muted-foreground">Total today</span>
               <span className="text-base font-semibold text-foreground">${price.toFixed(2)}</span>
             </div>
