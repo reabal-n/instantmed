@@ -9,7 +9,7 @@
  */
 
 import * as React from "react"
-import { COMPANY_NAME, ABN, COMPANY_ADDRESS_SHORT, GOOGLE_REVIEW_URL } from "@/lib/constants"
+import { COMPANY_NAME, ABN, COMPANY_ADDRESS_SHORT } from "@/lib/constants"
 import { getPatientCount, GOOGLE_REVIEWS } from "@/lib/social-proof"
 
 /* eslint-disable @next/next/no-head-element -- Email templates, not Next.js pages */
@@ -256,7 +256,7 @@ export function BaseEmail({ children, previewText, appUrl = "https://instantmed.
                         }}
                       >
                         {children}
-                        {showReviewCTA && <GoogleReviewCTA href={GOOGLE_REVIEW_URL} />}
+                        {showReviewCTA && <GoogleReviewCTA appUrl={appUrl} />}
                         {showReferral && <ReferralCTA appUrl={appUrl} />}
                       </td>
                     </tr>
@@ -690,13 +690,13 @@ export function HeroBlock({ icon, headline, subtitle, variant = "info" }: HeroBl
 
 // ReviewHero — large, prominent review block for dedicated review emails
 interface ReviewHeroProps {
-  href: string
+  appUrl: string
   /** Customize the warm copy for the service they used */
   serviceCopy?: string
 }
 
-export function ReviewHero({ href, serviceCopy }: ReviewHeroProps) {
-  const trackingHref = `${href}${href.includes("?") ? "&" : "?"}utm_source=email&utm_medium=review_hero&utm_campaign=review`
+export function ReviewHero({ appUrl, serviceCopy }: ReviewHeroProps) {
+  const trackingHref = `${appUrl}/api/review-redirect?utm_source=email&utm_medium=review_hero&utm_campaign=review`
 
   return (
     <div style={{ textAlign: "center" as const, padding: "8px 0 16px" }}>
@@ -777,11 +777,11 @@ export function ReviewHero({ href, serviceCopy }: ReviewHeroProps) {
 }
 
 interface GoogleReviewCTAProps {
-  href: string
+  appUrl: string
 }
 
-export function GoogleReviewCTA({ href }: GoogleReviewCTAProps) {
-  const trackingHref = `${href}${href.includes("?") ? "&" : "?"}utm_source=email&utm_medium=inline_cta&utm_campaign=review`
+export function GoogleReviewCTA({ appUrl }: GoogleReviewCTAProps) {
+  const trackingHref = `${appUrl}/api/review-redirect?utm_source=email&utm_medium=inline_cta&utm_campaign=review`
   return (
     <div
       className="google-review-pill"

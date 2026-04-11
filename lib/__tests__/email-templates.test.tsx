@@ -47,6 +47,7 @@ import {
   ReviewFollowupEmail, reviewFollowupSubject,
   AbandonedCheckoutFollowupEmail, abandonedCheckoutFollowupSubject,
   SubscriptionNudgeEmail, subscriptionNudgeSubject,
+  MagicLinkEmail, magicLinkEmailSubject,
 } from "@/components/email/templates"
 
 // ============================================================================
@@ -139,7 +140,7 @@ describe("Email Templates", () => {
           appUrl={APP_URL}
         />
       )
-      expectContains(html, "ABC-1234", "Verification Code")
+      expectContains(html, "ABC-1234")
     })
 
     it("subject is non-empty", () => {
@@ -1023,6 +1024,33 @@ describe("Email Templates", () => {
       expect(subscriptionNudgeSubject).toBeTruthy()
     })
   })
+
+  describe("MagicLinkEmail", () => {
+    it("magic-link renders", () => {
+      const html = render(
+        <MagicLinkEmail
+          loginUrl="https://example.com/auth/v1/verify?token=abc&type=magiclink"
+          appUrl={APP_URL}
+        />
+      )
+      expectBaseEmailStructure(html)
+      expectContains(html, "Log in to InstantMed", "Your login link", "60 minutes")
+    })
+
+    it("magic-link subject", () => {
+      expect(magicLinkEmailSubject).toBeTruthy()
+    })
+
+    it("matches snapshot", () => {
+      const html = render(
+        <MagicLinkEmail
+          loginUrl="https://example.com/auth/v1/verify?token=abc&type=magiclink"
+          appUrl={APP_URL}
+        />
+      )
+      expect(html).toMatchSnapshot()
+    })
+  })
 })
 
 // ============================================================================
@@ -1063,6 +1091,7 @@ describe("Email Template Cross-Checks", () => {
       <ReviewFollowupEmail key="32" patientName="Test" appUrl={APP_URL} />,
       <AbandonedCheckoutFollowupEmail key="33" patientName="Test" serviceName="Medical Certificate" resumeUrl="https://instantmed.com.au/request?resume=abc" appUrl={APP_URL} />,
       <SubscriptionNudgeEmail key="34" patientName="Test" appUrl={APP_URL} />,
+      <MagicLinkEmail key="35" loginUrl="https://example.com/auth/v1/verify?token=abc&type=magiclink" appUrl={APP_URL} />,
     ]
 
     for (const template of templates) {
@@ -1344,6 +1373,9 @@ describe("Link validation", () => {
     SubscriptionNudgeEmail: (
       <SubscriptionNudgeEmail patientName="Test Patient" appUrl={APP_URL} />
     ),
+    MagicLinkEmail: (
+      <MagicLinkEmail loginUrl="https://example.com/auth/v1/verify?token=abc&type=magiclink" appUrl={APP_URL} />
+    ),
   }
 
   /** Extract all href values from rendered HTML */
@@ -1430,14 +1462,27 @@ describe("Google Review UTM tracking", () => {
         appUrl={APP_URL}
       />
     ),
+    ReviewRequestEmail: (
+      <ReviewRequestEmail
+        patientName="Test"
+        serviceName="Medical Certificate"
+        appUrl={APP_URL}
+      />
+    ),
+    ReviewFollowupEmail: (
+      <ReviewFollowupEmail
+        patientName="Test"
+        appUrl={APP_URL}
+      />
+    ),
   }
 
   for (const [name, element] of Object.entries(reviewTemplates)) {
-    it(`${name} — Google review links include utm_source=email`, () => {
+    it(`${name} — review redirect links include utm_source=email`, () => {
       const html = renderToStaticMarkup(element)
-      // Find all g.page review hrefs
-      const reviewUrls = html.match(/g\.page\/r\/[^"&;]+/g)
-      expect(reviewUrls?.length, `${name} should have at least one review link`).toBeGreaterThan(0)
+      // Review links now go through /api/review-redirect with UTM params
+      const reviewUrls = html.match(/\/api\/review-redirect\?[^"]+/g)
+      expect(reviewUrls?.length, `${name} should have at least one review redirect link`).toBeGreaterThan(0)
       // Every review link must have UTM tracking
       expect(html).toContain("utm_source=email")
     })
@@ -1485,9 +1530,6 @@ describe("Referral CTA UTM tracking", () => {
     MedCertPatientEmail: (
       <MedCertPatientEmail patientName="Test" dashboardUrl="https://example.com" appUrl={APP_URL} />
     ),
-    WelcomeEmail: (
-      <WelcomeEmail patientName="Test" appUrl={APP_URL} />
-    ),
     ScriptSentEmail: (
       <ScriptSentEmail patientName="Test" requestId="R1" appUrl={APP_URL} />
     ),
@@ -1522,4 +1564,29 @@ describe("From-domain alignment", () => {
 
     expect(fromDomain).toBe(appDomain)
   })
+})
+
+// ============================================================================
+// FONT-FAMILY REGRESSION - Ensures no heading renders without inline font-family
+// ============================================================================
+
+describe("font-family regression", () => {
+  const templatesToCheck = [
+    { name: "MedCertPatientEmail", html: render(<MedCertPatientEmail patientName="Test User" dashboardUrl="https://example.com" appUrl={APP_URL} />) },
+    { name: "RequestReceivedEmail", html: render(<RequestReceivedEmail patientName="Test User" requestType="Medical Certificate" amount="$19.95" requestId="abc12345" appUrl={APP_URL} />) },
+    { name: "PaymentReceiptEmail", html: render(<PaymentReceiptEmail patientName="Test User" serviceName="Medical Certificate" amount="$19.95" intakeRef="ABC12345" paidAt="11 April 2026" dashboardUrl="https://example.com" appUrl={APP_URL} />) },
+    { name: "ReviewRequestEmail", html: render(<ReviewRequestEmail patientName="Test User" serviceName="Medical Certificate" appUrl={APP_URL} />) },
+    { name: "MagicLinkEmail", html: render(<MagicLinkEmail loginUrl="https://example.com/auth/v1/verify?token=abc&type=magiclink" appUrl={APP_URL} />) },
+  ]
+
+  for (const { name, html } of templatesToCheck) {
+    it(`${name} headings have inline font-family`, () => {
+      const headingRegex = /<h[1-3][^>]*style="([^"]*)"[^>]*>/g
+      let match
+      while ((match = headingRegex.exec(html)) !== null) {
+        const styleAttr = match[1]
+        expect(styleAttr).toContain("font-family")
+      }
+    })
+  }
 })

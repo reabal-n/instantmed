@@ -13,7 +13,6 @@ import {
   Button,
   GoogleReviewCTA,
 } from "../base-email"
-import { GOOGLE_REVIEW_URL } from "@/lib/constants"
 
 export interface FollowUpReminderEmailProps {
   patientName: string
@@ -55,7 +54,7 @@ export function FollowUpReminderEmail({
         GP consultations from $49.95
       </Text>
 
-      <GoogleReviewCTA href={GOOGLE_REVIEW_URL} />
+      <GoogleReviewCTA appUrl={appUrl} />
 
       <Text muted style={{ marginTop: "16px" }}>
         If you&apos;re all good, great. No action needed.

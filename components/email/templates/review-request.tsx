@@ -6,7 +6,6 @@
 
 import * as React from "react"
 import { BaseEmail, Text, ReviewHero } from "../base-email"
-import { GOOGLE_REVIEW_URL } from "@/lib/constants"
 
 export interface ReviewRequestEmailProps {
   patientName: string
@@ -32,7 +31,7 @@ export function ReviewRequestEmail({
       </Text>
 
       <ReviewHero
-        href={GOOGLE_REVIEW_URL}
+        appUrl={appUrl}
         serviceCopy={`If we saved you a trip to the GP for your ${serviceName.toLowerCase()}, a quick Google review helps other Aussies find fast, easy healthcare. It takes about 30 seconds.`}
       />
     </BaseEmail>
