@@ -13,7 +13,7 @@ import { faqItems } from '@/lib/marketing/homepage'
 import { ReturningPatientBanner } from '@/components/shared/returning-patient-banner'
 import { getFeatureFlags } from '@/lib/feature-flags'
 import { CTABanner } from '@/components/sections'
-import { AccordionSection } from '@/components/sections'
+import { FAQSection } from '@/components/sections'
 import { MarketingPageShell } from '@/components/shared/marketing-page-shell'
 import { AfterHoursMedCertBanner } from '@/components/shared/after-hours-med-cert-banner'
 import { ServiceCards } from '@/components/marketing/service-cards'
@@ -62,16 +62,6 @@ export const metadata: Metadata = {
 function SectionSkeleton({ height = 'h-96' }: { height?: string }) {
   return <div className={cn(height, "animate-pulse bg-muted/20 rounded-xl")} />
 }
-
-// Transform FAQ items into AccordionSection groups format
-const faqGroups = [
-  {
-    items: faqItems.map(item => ({
-      question: item.question,
-      answer: item.answer,
-    })),
-  },
-]
 
 // Streamed async component — fetches flags independently so the main page
 // shell renders immediately without waiting for the DB call.
@@ -145,12 +135,11 @@ export default async function HomePage() {
         <SocialProofSection />
 
         {/* 5. FAQs */}
-        <AccordionSection
-          id="faq"
+        <FAQSection
           pill="FAQ"
           title="Common questions"
           subtitle="Everything you need to know about our service."
-          groups={faqGroups}
+          items={faqItems}
         />
 
         {/* 6. Final CTA */}
