@@ -6,6 +6,7 @@ import { ChevronDown } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useReducedMotion } from "@/components/ui/motion"
 import { TrustBadge } from "@/components/shared/trust-badge"
+import { TooltipProvider } from "@/components/ui/tooltip"
 import {
   BADGE_PRESETS,
   resolveEntry,
@@ -47,49 +48,51 @@ export function TrustBadgeCollapsible({
   const hasMore = hidden.length > 0
 
   return (
-    <div className={cn("flex flex-wrap items-center justify-center gap-2", className)}>
-      {/* Always-visible badges */}
-      {visible.map((entry) => {
-        const { id, variant } = resolveEntry(entry)
-        return <TrustBadge key={id} id={id} variant={variant} />
-      })}
+    <TooltipProvider>
+      <div className={cn("flex flex-wrap items-center justify-center gap-2", className)}>
+        {/* Always-visible badges */}
+        {visible.map((entry) => {
+          const { id, variant } = resolveEntry(entry)
+          return <TrustBadge key={id} id={id} variant={variant} />
+        })}
 
-      {/* Collapsed badges */}
-      <AnimatePresence>
-        {expanded &&
-          hidden.map((entry) => {
-            const { id, variant } = resolveEntry(entry)
-            return (
-              <motion.div
-                key={id}
-                initial={prefersReducedMotion ? {} : { opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ duration: 0.2, ease: "easeOut" }}
-              >
-                <TrustBadge id={id} variant={variant} />
-              </motion.div>
-            )
-          })}
-      </AnimatePresence>
+        {/* Collapsed badges */}
+        <AnimatePresence>
+          {expanded &&
+            hidden.map((entry) => {
+              const { id, variant } = resolveEntry(entry)
+              return (
+                <motion.div
+                  key={id}
+                  initial={prefersReducedMotion ? {} : { opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  transition={{ duration: 0.2, ease: "easeOut" }}
+                >
+                  <TrustBadge id={id} variant={variant} />
+                </motion.div>
+              )
+            })}
+        </AnimatePresence>
 
-      {/* Expand/collapse toggle */}
-      {hasMore && (
-        <button
-          onClick={() => setExpanded(!expanded)}
-          className="inline-flex items-center gap-1 text-xs text-muted-foreground/60 hover:text-muted-foreground transition-colors px-2 py-1"
-          aria-expanded={expanded}
-          aria-label={expanded ? "Show fewer trust badges" : `Show ${hidden.length} more trust badges`}
-        >
-          <span>{expanded ? "Less" : `+${hidden.length} more`}</span>
-          <ChevronDown
-            className={cn(
-              "h-3 w-3 transition-transform duration-200",
-              expanded && "rotate-180"
-            )}
-          />
-        </button>
-      )}
-    </div>
+        {/* Expand/collapse toggle */}
+        {hasMore && (
+          <button
+            onClick={() => setExpanded(!expanded)}
+            className="inline-flex items-center gap-1 text-xs text-muted-foreground/60 hover:text-muted-foreground transition-colors px-2 py-1"
+            aria-expanded={expanded}
+            aria-label={expanded ? "Show fewer trust badges" : `Show ${hidden.length} more trust badges`}
+          >
+            <span>{expanded ? "Less" : `+${hidden.length} more`}</span>
+            <ChevronDown
+              className={cn(
+                "h-3 w-3 transition-transform duration-200",
+                expanded && "rotate-180"
+              )}
+            />
+          </button>
+        )}
+      </div>
+    </TooltipProvider>
   )
 }
