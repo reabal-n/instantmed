@@ -33,7 +33,6 @@ import {
   type SocialProofStat,
 } from "@/components/marketing/shared"
 import { LiveWaitTime } from "@/components/marketing/live-wait-time"
-import { PricingSection } from "@/components/marketing/sections/pricing-section"
 import { ComparisonBar } from "@/components/marketing/shared/data-viz"
 import { SectionPill } from "@/components/ui/section-pill"
 import { ContentHubLinks } from "@/components/seo/content-hub-links"
@@ -73,6 +72,10 @@ const FinalCtaSection = dynamic(
 const RegulatoryPartners = dynamic(
   () => import("@/components/marketing/media-mentions").then((m) => m.RegulatoryPartners),
   { loading: () => <div className="min-h-[120px]" /> },
+)
+const PricingSection = dynamic(
+  () => import("@/components/marketing/sections/pricing-section").then((m) => m.PricingSection),
+  { loading: () => <div className="min-h-[400px]" /> },
 )
 
 // =============================================================================

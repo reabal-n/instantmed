@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect } from "react"
+import { captureAttribution } from "@/lib/analytics/attribution"
 
 /**
  * Initializes Google Consent Mode v2 and loads Google Analytics/Ads (gtag.js).
@@ -38,6 +39,10 @@ export function GoogleTags() {
       gtag("config", "AW-17795889471", { allow_enhanced_conversions: true })
     }
     document.head.appendChild(script)
+
+    // Capture gclid/gbraid/wbraid + UTM params on first page load.
+    // Must run client-side after navigation so URL params are available.
+    captureAttribution()
 
     return () => {
       if (script.parentNode) document.head.removeChild(script)

@@ -12,6 +12,7 @@ import { MagneticButton } from "@/components/ui/magnetic-button"
 import { DoctorAvailabilityPill } from "@/components/shared/doctor-availability-pill"
 import { RotatingText } from "@/components/marketing/rotating-text"
 import { MedCertHeroMockup } from "@/components/marketing/mockups/med-cert-hero-mockup"
+import { TrustBadgeRow } from "@/components/shared/trust-badge"
 import { TrustBadgeCollapsible } from "@/components/marketing/shared/trust-badge-collapsible"
 import { ContextualMessage } from "@/components/marketing/contextual-message"
 import { HeroTestimonialRotator } from "@/components/marketing/hero-testimonial-rotator"
@@ -136,6 +137,15 @@ export function MedCertHeroSection({
                 <ContextualMessage service="med-cert" className="text-xs text-muted-foreground/80 italic mt-1" />
               </div>
             </motion.div>
+
+            {/* AHPRA + LegitScript trust row - directly below CTA */}
+            <TrustBadgeRow
+              badges={[
+                { id: "ahpra", variant: "styled" },
+                { id: "legitscript", variant: "styled" },
+              ]}
+              className="mt-4 justify-center lg:justify-start gap-3"
+            />
 
             {/* Trust signals - collapsible (show 3, expand for rest) */}
             <motion.div

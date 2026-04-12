@@ -255,14 +255,26 @@ export async function trackPurchase(params: {
 }
 
 /**
- * Track funnel step progression with conversion values
+ * Track funnel step progression with conversion values.
+ * Optionally accepts email to set Enhanced Conversions user data
+ * before firing the conversion event (improves cross-device attribution).
  */
-export function trackFunnelStep(step: 'landing' | 'start' | 'intake_complete' | 'checkout', service?: string) {
+export async function trackFunnelStep(
+  step: 'landing' | 'start' | 'intake_complete' | 'checkout',
+  service?: string,
+  email?: string,
+) {
   const eventMap: Record<string, ConversionEvent> = {
     landing: 'LANDING_VIEW',
     start: 'START_INTAKE',
     intake_complete: 'INTAKE_COMPLETE',
     checkout: 'CHECKOUT_START',
+  }
+
+  // Set Enhanced Conversions user data when email is available.
+  // This links the conversion event to the user across devices.
+  if (email) {
+    await setEnhancedConversionsData({ email })
   }
 
   const event = eventMap[step]
@@ -272,6 +284,35 @@ export function trackFunnelStep(step: 'landing' | 'start' | 'intake_complete' | 
 
   // Store funnel progression
   storeFunnelStep(step, service)
+}
+
+/**
+ * Track each intake step as a gtag event for remarketing audience building.
+ * Fires a generic `funnel_step` event (not a conversion action) so Google Ads
+ * can build audiences like "users who reached step 3 but didn't check out".
+ */
+export function trackStepEvent(params: {
+  stepName: string
+  stepIndex: number
+  serviceType: string
+  totalSteps: number
+  email?: string
+}) {
+  if (typeof window === 'undefined') return
+
+  const eventParams = {
+    step_name: params.stepName,
+    step_index: params.stepIndex,
+    service_type: params.serviceType,
+    total_steps: params.totalSteps,
+  }
+
+  if (window.gtag) {
+    window.gtag('event', 'funnel_step', eventParams)
+  } else {
+    window.dataLayer = window.dataLayer || []
+    window.dataLayer.push(['event', 'funnel_step', eventParams])
+  }
 }
 
 // Local storage helpers for attribution

@@ -27,7 +27,6 @@ import { SOCIAL_PROOF, SOCIAL_PROOF_DISPLAY } from "@/lib/social-proof"
 import { usePatientCount } from "@/lib/hooks/use-patient-count"
 import { useSectionVisibilityFunnel } from "@/lib/hooks/use-section-visibility-funnel"
 import { MED_CERT_FAQ } from "@/lib/data/med-cert-faq"
-import { CTABanner, FAQSection } from "@/components/sections"
 import {
   LandingPageShell,
   type LandingPageConfig,
@@ -65,6 +64,14 @@ const MedCertGuideSection = dynamic(
 const CompetitorLinksSection = dynamic(
   () => import("@/components/marketing/sections/competitor-links-section").then((m) => m.CompetitorLinksSection),
   { loading: () => <div className="min-h-[200px]" /> },
+)
+const FAQSection = dynamic(
+  () => import("@/components/sections").then((m) => ({ default: m.FAQSection })),
+  { loading: () => <div className="min-h-[400px]" /> },
+)
+const CTABanner = dynamic(
+  () => import("@/components/sections").then((m) => ({ default: m.CTABanner })),
+  { loading: () => <div className="min-h-[300px]" /> },
 )
 
 // =============================================================================

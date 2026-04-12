@@ -43,10 +43,17 @@ interface CreateCheckoutInput {
   serviceSlug?: string // Service slug to look up service_id
   idempotencyKey: string // P1 FIX: Required - client-generated key to prevent duplicate submissions
   attribution?: {
+    gclid?: string
+    gbraid?: string
+    wbraid?: string
     utm_source?: string
     utm_medium?: string
     utm_campaign?: string
+    utm_content?: string
+    utm_term?: string
     referrer?: string
+    landing_page?: string
+    captured_at?: string
   }
   posthogDistinctId?: string // Client-side PostHog distinct ID for identity stitching
   // Legacy fields - patient info is now fetched from auth
@@ -619,6 +626,10 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
       ...(input.posthogDistinctId ? { ph_distinct_id: input.posthogDistinctId } : {}),
       ...(isPriority ? { is_priority: "true" } : {}),
       ...(isSubscription ? { is_subscription: "true" } : {}),
+      // Google Ads click IDs for Enhanced Conversions attribution
+      ...(input.attribution?.gclid ? { gclid: input.attribution.gclid } : {}),
+      ...(input.attribution?.gbraid ? { gbraid: input.attribution.gbraid } : {}),
+      ...(input.attribution?.wbraid ? { wbraid: input.attribution.wbraid } : {}),
     }
 
     // allow_promotion_codes is mutually exclusive with `discounts` in Stripe.

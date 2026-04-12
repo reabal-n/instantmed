@@ -16,6 +16,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { CheckoutButton } from "@/components/shared/checkout-button"
+import { TrustBadgeRow } from "@/components/shared/trust-badge"
 // getConsultSubtypePrice from @/lib/stripe/price-mapping available if needed
 import { useRequestStore } from "../store"
 import { createCheckoutFromUnifiedFlow } from "@/app/actions/unified-checkout"
@@ -24,6 +25,7 @@ import { getQueueEstimate } from "@/lib/data/queue-availability"
 import { PRICING as APP_PRICING, PRICING_DISPLAY } from "@/lib/constants"
 import { getDisplayPrice, getServiceDisplayLabel } from "@/lib/request/display-helpers"
 import { trackFunnelStep } from "@/lib/analytics/conversion-tracking"
+import { getAttribution } from "@/lib/analytics/attribution"
 
 // Prices sourced from lib/constants.ts (single source of truth)
 const PRICING: Record<UnifiedServiceType, { base: number; label: string }> = {
@@ -113,10 +115,11 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
       consult_subtype: consultSubtype,
       is_priority: isPriority,
     })
-    trackFunnelStep('checkout', serviceType)
+    // Pass email for Enhanced Conversions cross-device attribution
+    const identity = getIdentity()
+    void trackFunnelStep('checkout', serviceType, identity.email)
 
     try {
-      const identity = getIdentity()
       const answersWithConsents = {
         ...answers,
         agreedToTerms: true,
@@ -125,14 +128,8 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
         isPriority,
         subscribeAndSave: subscribeAndSave && isRepeatScript,
       }
-      // Capture UTM params + referrer for payment attribution
-      const params = new URLSearchParams(window.location.search)
-      const attribution = {
-        utm_source: params.get('utm_source') || undefined,
-        utm_medium: params.get('utm_medium') || undefined,
-        utm_campaign: params.get('utm_campaign') || undefined,
-        referrer: document.referrer || undefined,
-      }
+      // Retrieve persisted attribution (captured on landing page load)
+      const attribution = getAttribution()
 
       const result = await createCheckoutFromUnifiedFlow({
         serviceType,
@@ -459,6 +456,15 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
               </span>
             ))}
           </div>
+
+          {/* AHPRA + LegitScript certification badges */}
+          <TrustBadgeRow
+            badges={[
+              { id: "ahpra", variant: "styled" },
+              { id: "legitscript", variant: "styled" },
+            ]}
+            className="mt-2 justify-center gap-3"
+          />
         </div>
       </div>
 

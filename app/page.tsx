@@ -8,7 +8,7 @@ import {
 } from '@/components/marketing'
 import { Navbar } from '@/components/shared/navbar'
 import { HashScrollHandler } from '@/components/shared/hash-scroll-handler'
-import { FAQSchema, SpeakableSchema } from '@/components/seo/healthcare-schema'
+import { FAQSchema, MedicalBusinessSchema, SpeakableSchema } from '@/components/seo/healthcare-schema'
 import { faqItems } from '@/lib/marketing/homepage'
 import { ReturningPatientBanner } from '@/components/shared/returning-patient-banner'
 import { getFeatureFlags } from '@/lib/feature-flags'
@@ -118,6 +118,7 @@ export default async function HomePage() {
     <MarketingPageShell>
     <div className="min-h-screen overflow-x-hidden">
       {/* SEO Structured Data */}
+      <MedicalBusinessSchema />
       <FAQSchema faqs={faqSchemaData} />
       <SpeakableSchema
         name="InstantMed - Online Doctor Australia"

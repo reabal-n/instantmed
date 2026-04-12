@@ -19,7 +19,7 @@ import { DoctorAvailabilityPill } from "@/components/shared/doctor-availability-
 import { RotatingText } from "@/components/marketing/rotating-text"
 import { EScriptHeroMockup } from "@/components/marketing/mockups/escript-hero-mockup"
 import { ClosingCountdown } from "@/components/marketing/shared/closing-countdown"
-import { PRICING } from "@/lib/constants"
+import { PRICING, PRICING_DISPLAY } from "@/lib/constants"
 import { SOCIAL_PROOF_DISPLAY } from "@/lib/social-proof"
 
 const ROTATING_BADGES = [
@@ -80,6 +80,17 @@ export function PrescriptionsHeroSection({
               same day.
             </motion.p>
 
+            {/* Price anchor */}
+            <motion.p
+              className="text-sm font-semibold text-foreground mb-2 flex items-center justify-center lg:justify-start gap-1.5"
+              initial={animate ? { y: 8 } : {}}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.11 }}
+            >
+              {PRICING_DISPLAY.FROM_SCRIPT}
+              <span className="text-xs font-normal text-muted-foreground">- no hidden fees</span>
+            </motion.p>
+
             {/* Rotating secondary proof badge */}
             <motion.div
               className="flex justify-center lg:justify-start mb-6"
@@ -129,6 +140,14 @@ export function PrescriptionsHeroSection({
                 </Link>
               </Button>
             </motion.div>
+            {/* AHPRA + LegitScript trust row - directly below CTA */}
+            <TrustBadgeRow
+              badges={[
+                { id: "ahpra", variant: "styled" },
+                { id: "legitscript", variant: "styled" },
+              ]}
+              className="mt-4 mb-2 justify-center lg:justify-start gap-3"
+            />
             {/* Sub-CTA labels */}
             <motion.div
               className="flex flex-col sm:flex-row items-center gap-x-6 gap-y-1 justify-center lg:justify-start mb-4 text-xs text-muted-foreground"

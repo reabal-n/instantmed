@@ -16,7 +16,7 @@ import { TrustBadgeRow } from "@/components/shared/trust-badge"
 import { DoctorAvailabilityPill } from "@/components/shared/doctor-availability-pill"
 import { RotatingText } from "@/components/marketing/rotating-text"
 import { HairLossHeroMockup } from "@/components/marketing/mockups/hair-loss-hero-mockup"
-import { PRICING } from "@/lib/constants"
+import { PRICING, PRICING_DISPLAY } from "@/lib/constants"
 
 const ROTATING_BADGES = [
   "No call needed",
@@ -73,6 +73,17 @@ export function HairLossHeroSection({
               evidence-based, and no call required.
             </motion.p>
 
+            {/* Price anchor */}
+            <motion.p
+              className="text-sm font-semibold text-foreground mb-2 flex items-center justify-center lg:justify-start gap-1.5"
+              initial={animate ? { y: 8 } : {}}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.11 }}
+            >
+              {PRICING_DISPLAY.HAIR_LOSS}
+              <span className="text-xs font-normal text-muted-foreground">- no hidden fees</span>
+            </motion.p>
+
             {/* Rotating secondary proof badge */}
             <motion.div
               className="flex justify-center lg:justify-start mb-6"
@@ -114,6 +125,15 @@ export function HairLossHeroSection({
                 </p>
               </div>
             </motion.div>
+
+            {/* AHPRA + LegitScript trust row - directly below CTA */}
+            <TrustBadgeRow
+              badges={[
+                { id: "ahpra", variant: "styled" },
+                { id: "legitscript", variant: "styled" },
+              ]}
+              className="mt-4 justify-center lg:justify-start gap-3"
+            />
 
             {/* Trust signals - hidden on mobile to keep CTA above fold */}
             <motion.div

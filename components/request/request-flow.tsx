@@ -47,7 +47,7 @@ import {
 } from "@/lib/request/step-registry"
 import { canonicalizeServiceType } from "@/lib/request/draft-storage"
 import { evaluateSafety, type SafetyEvaluationResult } from "@/lib/safety"
-import { trackFunnelStep } from "@/lib/analytics/conversion-tracking"
+import { trackFunnelStep, trackStepEvent } from "@/lib/analytics/conversion-tracking"
 import { isValidCertCategory } from "@/lib/marketing/med-cert-selector"
 
 // Map UnifiedServiceType → safety config slug for client-side pre-check
@@ -168,6 +168,7 @@ export function RequestFlow({
     goToStep,
     answers,
     phone,
+    email: storeEmail,
     setAnswer,
     setIdentity,
     setAuthContext,
@@ -396,7 +397,7 @@ export function RequestFlow({
   // Get current step definition - use editModeStep when editing a skipped step
   const currentStep = editModeStep ?? (activeSteps.length > 0 ? activeSteps[currentStepIndex] : null)
 
-  // Track step views in PostHog
+  // Track step views in PostHog + fire gtag funnel_step for remarketing audiences
   useEffect(() => {
     if (currentStep && serviceType) {
       // Reset timer whenever the visible step changes
@@ -419,32 +420,43 @@ export function RequestFlow({
         step_number: stepNumber,
         subtype,
       })
+
+      // Fire gtag funnel_step event for every step transition.
+      // Enables Google Ads remarketing audiences (e.g. "reached step 3 but didn't check out").
+      trackStepEvent({
+        stepName: currentStep.id,
+        stepIndex: currentStepIndex,
+        serviceType: analyticsServiceType,
+        totalSteps: activeSteps.length,
+      })
     }
   // answers.consultSubtype intentionally excluded - only track on step/service change
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentStep, serviceType, analyticsServiceType, currentStepIndex, posthog])
+  }, [currentStep, serviceType, analyticsServiceType, currentStepIndex, activeSteps.length, posthog])
 
   // Track Google Ads funnel milestones once per flow.
+  // Pass email (from store or auth pre-fill) for Enhanced Conversions cross-device attribution.
+  const patientEmail = storeEmail || userEmail || undefined
   useEffect(() => {
     if (!currentStep || !serviceType) return
 
     const tracked = trackedFunnelEventsRef.current
 
     if (!tracked.has('landing')) {
-      trackFunnelStep('landing', analyticsServiceType)
+      void trackFunnelStep('landing', analyticsServiceType, patientEmail)
       tracked.add('landing')
     }
 
     if (currentStepIndex === 0 && !tracked.has('start')) {
-      trackFunnelStep('start', analyticsServiceType)
+      void trackFunnelStep('start', analyticsServiceType, patientEmail)
       tracked.add('start')
     }
 
     if (currentStepId === 'checkout' && !tracked.has('intake_complete')) {
-      trackFunnelStep('intake_complete', analyticsServiceType)
+      void trackFunnelStep('intake_complete', analyticsServiceType, patientEmail)
       tracked.add('intake_complete')
     }
-  }, [currentStep, serviceType, currentStepIndex, currentStepId, analyticsServiceType])
+  }, [currentStep, serviceType, currentStepIndex, currentStepId, analyticsServiceType, patientEmail])
 
   // Handle back navigation with tracking
   const handleBack = useCallback(() => {
@@ -503,9 +515,9 @@ export function RequestFlow({
       total_steps: activeSteps.length,
       is_authenticated: isAuthenticated,
     })
-    trackFunnelStep('intake_complete', analyticsServiceType)
+    void trackFunnelStep('intake_complete', analyticsServiceType, patientEmail)
     router.push('/patient/intakes/success')
-  }, [analyticsServiceType, activeSteps.length, isAuthenticated, router, posthog])
+  }, [analyticsServiceType, activeSteps.length, isAuthenticated, router, posthog, patientEmail])
 
   // Handle exit with tracking
   const handleExit = useCallback(() => {

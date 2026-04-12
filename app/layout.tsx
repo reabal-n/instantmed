@@ -153,6 +153,7 @@ export default function RootLayout({
           <link rel="dns-prefetch" href="https://api.stripe.com" />
           <link rel="preconnect" href="https://us.posthog.com" />
           <link rel="preconnect" href="https://api.dicebear.com" />
+          <link rel="preconnect" href="https://www.googletagmanager.com" />
           <link rel="manifest" href="/manifest.webmanifest" />
 
         </head>

@@ -2,6 +2,7 @@
 
 import Image from "next/image"
 import { ShieldCheck, Lock, Accessibility, Eye } from "lucide-react"
+import { TrustBadgeRow } from "@/components/shared/trust-badge"
 import { FAQSchema } from "@/components/seo/healthcare-schema"
 import { FAQSection, CTABanner, FeatureGrid } from "@/components/sections"
 import { InformationalPageShell } from "@/components/marketing/shared/informational-page-shell"
@@ -227,6 +228,16 @@ export function AboutClient() {
               analyticsEvent="about_regulatory_marquee"
               className="py-10"
             />
+            <div className="pb-8">
+              <TrustBadgeRow
+                badges={[
+                  { id: "ahpra", variant: "styled" },
+                  { id: "legitscript", variant: "styled" },
+                  { id: "google_pharmacy", variant: "styled" },
+                ]}
+                className="justify-center gap-3"
+              />
+            </div>
           </div>
 
           {/* Deep E-E-A-T guide content - kept for SEO value */}
