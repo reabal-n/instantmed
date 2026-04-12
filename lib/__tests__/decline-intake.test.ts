@@ -34,11 +34,11 @@ vi.mock("next/cache", () => ({
 }))
 
 const mockRequireRoleOrNull = vi.fn()
-vi.mock("@/lib/auth", () => ({
+vi.mock("@/lib/auth/helpers", () => ({
   requireRoleOrNull: (...args: unknown[]) => mockRequireRoleOrNull(...args),
 }))
 
-vi.mock("@/lib/posthog-server", () => ({
+vi.mock("@/lib/analytics/posthog-server", () => ({
   trackIntakeFunnelStep: vi.fn(),
 }))
 
