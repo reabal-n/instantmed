@@ -179,6 +179,27 @@ function StaticSnapshots() {
 // ---------------------------------------------------------------------------
 // Main component
 // ---------------------------------------------------------------------------
+// Milestone definitions: month threshold, left % position, label
+const MILESTONES = [
+  { month: 3, left: "25%", label: "Shedding often stabilises." },
+  { month: 6, left: "50%", label: "Initial regrowth in the mirror." },
+  { month: 12, left: "100%", label: "Full treatment window." },
+] as const
+
+/** Return the milestone whose month is closest to the current slider value. */
+function closestMilestoneMonth(current: number): number {
+  let closest: number = MILESTONES[0].month
+  let minDist = Math.abs(current - closest)
+  for (const m of MILESTONES) {
+    const dist = Math.abs(current - m.month)
+    if (dist < minDist) {
+      minDist = dist
+      closest = m.month
+    }
+  }
+  return closest
+}
+
 export function HairLossProgressTimeline({
   className,
 }: HairLossProgressTimelineProps) {
@@ -187,6 +208,9 @@ export function HairLossProgressTimeline({
 
   const [month, setMonth] = useState<number>(MIN_MONTH)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const animate = !prefersReducedMotion
+  const activeMilestone = closestMilestoneMonth(month)
 
   useEffect(() => {
     return () => {
@@ -217,13 +241,24 @@ export function HairLossProgressTimeline({
       className={cn("py-12 lg:py-16", className)}
     >
       <div className="mx-auto w-full max-w-[720px] px-4 sm:px-6 lg:px-8">
-        <div
+        <motion.div
           className={cn(
             "rounded-2xl border border-border/50 bg-white shadow-md shadow-primary/[0.06] dark:bg-card",
             "p-5 sm:p-7 lg:p-8",
           )}
+          initial={animate ? { opacity: 0, y: 20 } : {}}
+          whileInView={animate ? { opacity: 1, y: 0 } : undefined}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
         >
-          <div className="mb-4 text-center">
+          {/* Header */}
+          <motion.div
+            className="mb-4 text-center"
+            initial={animate ? { opacity: 0, y: 12 } : {}}
+            whileInView={animate ? { opacity: 1, y: 0 } : undefined}
+            viewport={{ once: true }}
+            transition={{ duration: 0.4, delay: 0.1 }}
+          >
             <h2 className="text-2xl font-semibold text-foreground sm:text-3xl">
               What treatment progress looks like
             </h2>
@@ -232,7 +267,7 @@ export function HairLossProgressTimeline({
               experience on consistent treatment. Progress is gradual - and
               that&apos;s a feature, not a bug.
             </p>
-          </div>
+          </motion.div>
 
           {prefersReducedMotion ? (
             <div className="mt-6">
@@ -240,35 +275,48 @@ export function HairLossProgressTimeline({
             </div>
           ) : (
             <>
-              <div className="mt-6">
+              {/* Scalp SVG */}
+              <motion.div
+                className="mt-6"
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: 0.2 }}
+              >
                 <ScalpSvg
                   month={month}
                   animated
                   title={`Hair density at month ${month}`}
                 />
-              </div>
+              </motion.div>
 
-              <div className="relative mt-8">
+              {/* Slider + milestones */}
+              <motion.div
+                className="relative mt-8"
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: 0.3 }}
+              >
                 {/* Milestone pills sitting above the track */}
                 <div className="pointer-events-none absolute inset-x-0 -top-2 h-0">
-                  <div
-                    className="absolute -translate-x-1/2 -translate-y-full whitespace-nowrap rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground"
-                    style={{ left: "25%" }}
-                  >
-                    Shedding often stabilises.
-                  </div>
-                  <div
-                    className="absolute -translate-x-1/2 -translate-y-full whitespace-nowrap rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground"
-                    style={{ left: "50%" }}
-                  >
-                    Initial regrowth in the mirror.
-                  </div>
-                  <div
-                    className="absolute -translate-x-1/2 -translate-y-full whitespace-nowrap rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground"
-                    style={{ left: "100%" }}
-                  >
-                    Full treatment window.
-                  </div>
+                  {MILESTONES.map((m) => {
+                    const isActive = m.month === activeMilestone
+                    return (
+                      <div
+                        key={m.month}
+                        className={cn(
+                          "absolute -translate-x-1/2 -translate-y-full whitespace-nowrap rounded-full px-2 py-0.5 text-xs transition-all duration-300",
+                          isActive
+                            ? "bg-primary/15 text-foreground font-medium ring-1 ring-primary/30"
+                            : "bg-muted text-muted-foreground opacity-60",
+                        )}
+                        style={{ left: m.left }}
+                      >
+                        {m.label}
+                      </div>
+                    )
+                  })}
                 </div>
 
                 <input
@@ -287,7 +335,7 @@ export function HairLossProgressTimeline({
                   <span>Month {MIN_MONTH}</span>
                   <span>Month {MAX_MONTH}</span>
                 </div>
-              </div>
+              </motion.div>
 
               <p className="mt-4 text-center text-sm font-medium text-foreground">
                 Month {month}
@@ -295,14 +343,21 @@ export function HairLossProgressTimeline({
             </>
           )}
 
-          <div className="mt-7 flex justify-center">
+          {/* CTA */}
+          <motion.div
+            className="mt-7 flex justify-center"
+            initial={animate ? { opacity: 0, y: 12 } : {}}
+            whileInView={animate ? { opacity: 1, y: 0 } : undefined}
+            viewport={{ once: true }}
+            transition={{ duration: 0.4, delay: 0.35 }}
+          >
             <Button asChild size="lg" onClick={handleCtaClick}>
               <Link href="/request?service=consult&subtype=hair_loss">
                 Start assessing your progress
               </Link>
             </Button>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </div>
     </section>
   )

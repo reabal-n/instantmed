@@ -116,22 +116,22 @@ const HOW_IT_WORKS_STEPS = [
     icon: ClipboardList,
     step: 1,
     title: "Enter your medication",
-    description: "Tell us what you need renewed. Takes about two minutes.",
-    time: "~2 min",
+    description: "Tell us what you need renewed. Takes about five minutes.",
+    time: "~5 minutes",
   },
   {
     icon: Stethoscope,
     step: 2,
     title: "A real GP reviews it",
     description: "An AHPRA-registered doctor checks your request and medical history.",
-    time: "~30 min",
+    time: "~30 minutes",
   },
   {
     icon: Smartphone,
     step: 3,
     title: "eScript sent to your phone",
     description: "Your electronic prescription is sent via SMS. Take it to any pharmacy.",
-    time: "Same day",
+    time: "Instant",
   },
 ]
 
@@ -145,6 +145,7 @@ const LANDING_CONFIG: LandingPageConfig = {
     desktopLabel: `Repeat Medication \u00b7 Open ${SOCIAL_PROOF_DISPLAY.operatingHours} AEST \u00b7 7 days`,
     priceLabel: `From $${PRICING.REPEAT_SCRIPT.toFixed(2)}`,
     desktopCtaText: "Renew your medication",
+    responseTime: `Avg response: ${SOCIAL_PROOF_DISPLAY.responseTime}`,
   },
 }
 
@@ -449,7 +450,7 @@ function FinalCTAInline({ onCTAClick, isDisabled }: { onCTAClick?: () => void; i
             Your regular medication, renewed from home.
           </h2>
           <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto leading-relaxed">
-            Answer a few questions. A doctor reviews it. Sent to your phone, same day.
+            Join 3,000+ Australians who trust InstantMed. Answer a few questions, a doctor reviews it, and your script is sent same day.
           </p>
           <Button
             asChild

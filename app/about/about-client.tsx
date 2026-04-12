@@ -144,6 +144,16 @@ export function AboutClient() {
                   "We built InstantMed to address a specific, well-defined problem: common healthcare tasks that don't require a physical examination. Medical certificates for a cold. Repeat prescriptions for stable medications. Straightforward consultations where a structured online form captures the clinical information just as effectively as a rushed five-minute appointment.",
               },
               {
+                type: "stat-callout",
+                value: `${SOCIAL_PROOF.certApprovalPercent}%`,
+                label: "Request approval rate",
+              },
+              {
+                type: "stat-callout",
+                value: `~${SOCIAL_PROOF.averageResponseMinutes} min`,
+                label: "Average response time",
+              },
+              {
                 type: "pull-quote",
                 quote:
                   "We're not trying to reinvent healthcare. We're just pointing out that you shouldn't need to take a sick day to prove you need a sick day.",
@@ -235,7 +245,7 @@ export function AboutClient() {
           {/* CTA */}
           <CTABanner
             title="Ready to experience better healthcare?"
-            subtitle="Join the Australians who have made the switch to InstantMed."
+            subtitle={`Join ${patientCount.toLocaleString()}+ Australians who trust InstantMed for their healthcare.`}
             ctaText="Start a request"
             ctaHref="/request"
           />

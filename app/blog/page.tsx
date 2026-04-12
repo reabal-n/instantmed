@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Clock, Eye, ArrowRight } from "lucide-react";
+import { Clock, Eye, ArrowRight, Share2, Linkedin, Link2 } from "lucide-react";
 import { Navbar } from "@/components/shared/navbar";
 import { MarketingFooter } from "@/components/marketing";
 import { CenteredHero } from "@/components/heroes";
@@ -114,6 +114,36 @@ export default function BlogPage() {
                     </div>
                   </div>
                 </Link>
+                <div className="flex items-center gap-1 mt-3 md:justify-end">
+                  <span className="text-xs text-muted-foreground/50 mr-1">Share</span>
+                  <a
+                    href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(`https://instantmed.com.au/blog/${featured.slug}`)}&text=${encodeURIComponent(featured.title)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-1.5 rounded-md text-muted-foreground/60 hover:text-primary hover:bg-primary/5 transition-colors"
+                    aria-label="Share on X"
+                  >
+                    <Share2 className="w-3.5 h-3.5" />
+                  </a>
+                  <a
+                    href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(`https://instantmed.com.au/blog/${featured.slug}`)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-1.5 rounded-md text-muted-foreground/60 hover:text-primary hover:bg-primary/5 transition-colors"
+                    aria-label="Share on LinkedIn"
+                  >
+                    <Linkedin className="w-3.5 h-3.5" />
+                  </a>
+                  <a
+                    href={`https://instantmed.com.au/blog/${featured.slug}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-1.5 rounded-md text-muted-foreground/60 hover:text-primary hover:bg-primary/5 transition-colors"
+                    aria-label="Copy link"
+                  >
+                    <Link2 className="w-3.5 h-3.5" />
+                  </a>
+                </div>
               </div>
             </section>
           )}
@@ -134,9 +164,14 @@ export default function BlogPage() {
                       <Link key={article.slug} href={`/blog/${article.slug}`} className="group">
                         <div className="rounded-xl border border-border/50 dark:border-white/15 bg-white dark:bg-card shadow-sm shadow-primary/[0.04] dark:shadow-none p-4 hover:-translate-y-0.5 hover:shadow-md hover:shadow-primary/[0.06] transition-all duration-300 h-full">
                           <div className="flex items-start gap-3">
-                            <span className="text-2xl font-semibold text-primary/30 tabular-nums shrink-0 leading-none mt-0.5">
-                              {i + 2}
-                            </span>
+                            <div className="flex flex-col items-center shrink-0">
+                              <span className="text-2xl font-semibold text-primary/30 tabular-nums leading-none">
+                                {i + 2}
+                              </span>
+                              <span className="text-[10px] text-muted-foreground/60 mt-1 tabular-nums">
+                                {formatViewCount(article.viewCount)}
+                              </span>
+                            </div>
                             <div className="min-w-0">
                               <h3 className="text-sm font-medium group-hover:text-primary transition-colors line-clamp-2 mb-1">
                                 {article.title}
@@ -179,7 +214,7 @@ export default function BlogPage() {
                     Stay informed
                   </h2>
                   <p className="text-sm text-muted-foreground mb-4">
-                    New health guides and telehealth updates, delivered to your inbox. No spam, unsubscribe anytime.
+                    Weekly health tips for Australians. No spam, unsubscribe anytime.
                   </p>
                   <div className="flex gap-2 max-w-sm mx-auto">
                     <input

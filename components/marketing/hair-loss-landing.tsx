@@ -7,7 +7,7 @@ import { useReducedMotion, useScrollReveal } from "@/components/ui/motion"
 import { Pill } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { PRICING } from "@/lib/constants"
-import { SOCIAL_PROOF } from "@/lib/social-proof"
+import { SOCIAL_PROOF, SOCIAL_PROOF_DISPLAY } from "@/lib/social-proof"
 import { STAT_PRESETS } from "@/components/marketing/total-patients-counter"
 import {
   getTestimonialsByService,
@@ -181,6 +181,7 @@ const LANDING_CONFIG: LandingPageConfig = {
     desktopLabel: "Hair loss treatment \u00b7 Doctor-reviewed",
     priceLabel: `From $${PRICING.HAIR_LOSS.toFixed(2)}`,
     desktopCtaText: "Start assessment",
+    responseTime: `Avg response: ${SOCIAL_PROOF_DISPLAY.responseTime}`,
   },
 }
 
@@ -352,34 +353,34 @@ export function HairLossLanding() {
             ctaHref="/request?service=consult&subtype=hair_loss"
           />
 
-          {/* Treatment options - unique to hair loss */}
+          {/* Response time comparison */}
           <div className="bg-muted/30 dark:bg-white/[0.02]">
-            <TreatmentOptions />
+            <section className="py-12 lg:py-16 px-4 sm:px-6">
+              <div className="mx-auto max-w-xl">
+                <div className="text-center mb-6">
+                  <SectionPill>Why go online?</SectionPill>
+                </div>
+                <div className="rounded-2xl bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-md shadow-primary/[0.06] dark:shadow-none p-6">
+                  <ComparisonBar
+                    us={{
+                      label: "InstantMed",
+                      value: "~1 hour",
+                      subtext: "Online assessment, eScript to your phone",
+                    }}
+                    them={{
+                      label: "GP clinic visit",
+                      value: "2+ hours",
+                      subtext: "Book, travel, wait, face-to-face consult",
+                    }}
+                    ratio={0.3}
+                  />
+                </div>
+              </div>
+            </section>
           </div>
 
-          {/* Response time comparison */}
-          <section className="py-12 lg:py-16 px-4 sm:px-6">
-            <div className="mx-auto max-w-xl">
-              <div className="text-center mb-6">
-                <SectionPill>Why go online?</SectionPill>
-              </div>
-              <div className="rounded-2xl bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-md shadow-primary/[0.06] dark:shadow-none p-6">
-                <ComparisonBar
-                  us={{
-                    label: "InstantMed",
-                    value: "~1 hour",
-                    subtext: "Online assessment, eScript to your phone",
-                  }}
-                  them={{
-                    label: "GP clinic visit",
-                    value: "2+ hours",
-                    subtext: "Book, travel, wait, face-to-face consult",
-                  }}
-                  ratio={0.3}
-                />
-              </div>
-            </div>
-          </section>
+          {/* Treatment options - unique to hair loss */}
+          <TreatmentOptions />
 
           {/* Progress timeline */}
           <div className="bg-muted/30 dark:bg-white/[0.02]">
@@ -442,7 +443,7 @@ export function HairLossLanding() {
           <FinalCtaSection
             onCTAClick={handleFinalCTA}
             title="Start treating hair loss today."
-            subtitle="Fill a short form. A doctor reviews it and - if appropriate - sends treatment straight to your phone. No call, no waiting room."
+            subtitle="Trusted by 3,000+ Australians for online healthcare. Fill a short form, a doctor reviews it, and your treatment is sent straight to your phone."
             ctaText={`Start assessment - $${PRICING.HAIR_LOSS.toFixed(2)}`}
             ctaHref="/request?service=consult&subtype=hair_loss"
             price={PRICING.HAIR_LOSS}

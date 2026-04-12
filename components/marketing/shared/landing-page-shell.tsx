@@ -30,6 +30,7 @@ export interface LandingPageConfig {
     desktopCtaText?: string
     mobileFooter?: React.ReactNode
     pricingScrollTarget?: string
+    responseTime?: string
   }
 }
 
@@ -120,6 +121,7 @@ export function LandingPageShell({ config, children, afterFooter }: LandingPageS
           onCTAClick={handleStickyCTA}
           mobileFooter={config.sticky.mobileFooter}
           pricingScrollTarget={config.sticky.pricingScrollTarget}
+          responseTime={config.sticky.responseTime}
         />
       </div>
     </MarketingPageShell>

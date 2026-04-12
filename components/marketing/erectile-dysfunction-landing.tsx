@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic"
 import { PRICING } from "@/lib/constants"
+import { SOCIAL_PROOF_DISPLAY } from "@/lib/social-proof"
 import {
   getTestimonialsByService,
   getTestimonialsForColumns,
@@ -117,6 +118,7 @@ const LANDING_CONFIG: LandingPageConfig = {
     desktopLabel: "ED Treatment \u00b7 Discreet & doctor-reviewed",
     priceLabel: `From $${PRICING.MENS_HEALTH.toFixed(2)}`,
     desktopCtaText: "Start assessment",
+    responseTime: `Avg response: ${SOCIAL_PROOF_DISPLAY.responseTime}`,
   },
 }
 
@@ -176,12 +178,7 @@ export function ErectileDysfunctionLanding() {
             ctaHref="/request?service=consult&subtype=ed"
           />
 
-          {/* 6. Mechanism explainer - completes the "how" narrative */}
-          <div className="bg-muted/30 dark:bg-white/[0.02]">
-            <EdMechanismExplainer />
-          </div>
-
-          {/* 6.5 Response time comparison */}
+          {/* 5.5 Response time comparison - answers "why online?" right after seeing how it works */}
           <section className="py-12 lg:py-16 px-4 sm:px-6">
             <div className="mx-auto max-w-xl">
               <div className="text-center mb-6">
@@ -205,10 +202,13 @@ export function ErectileDysfunctionLanding() {
             </div>
           </section>
 
-          {/* 7. Guide - accordion-collapsed, all content rendered for SEO */}
+          {/* 6. Mechanism explainer - completes the "how" narrative */}
           <div className="bg-muted/30 dark:bg-white/[0.02]">
-            <EDGuideSection />
+            <EdMechanismExplainer />
           </div>
+
+          {/* 7. Guide - accordion-collapsed, all content rendered for SEO */}
+          <EDGuideSection />
 
           {/* 8. Outcomes - what treatment is/isn't, contraindications visible */}
           <EdOutcomesSection />
@@ -260,7 +260,7 @@ export function ErectileDysfunctionLanding() {
           <FinalCtaSection
             onCTAClick={handleFinalCTA}
             title="Discreet ED treatment, reviewed by a real doctor."
-            subtitle="Fill a short form. A doctor reviews it and - if appropriate - sends treatment straight to your phone. No call, no waiting room."
+            subtitle="Trusted by 3,000+ Australians for online healthcare. Fill a short form, a doctor reviews it, and your treatment is sent straight to your phone."
             ctaText={`Start assessment - $${PRICING.MENS_HEALTH.toFixed(2)}`}
             ctaHref="/request?service=consult&subtype=ed"
             price={PRICING.MENS_HEALTH}

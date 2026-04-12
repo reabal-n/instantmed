@@ -232,7 +232,7 @@ export function HowItWorksContent() {
         {/* CTA */}
         <CTABanner
           title="Ready when you are"
-          subtitle="Pick what you need, fill in a quick form, and a GP takes care of the rest. Reviewed within 1-2 hours, most days."
+          subtitle="Join 3,000+ Australians who trust InstantMed. Pick what you need, fill in a quick form, and a GP takes care of the rest."
           ctaText="Get Med Cert"
           ctaHref="/request?service=med-cert"
           secondaryText="Renew medication"

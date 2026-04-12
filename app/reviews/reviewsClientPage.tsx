@@ -249,7 +249,7 @@ export function ReviewsClientPageComponent() {
                     name: featuredReviews[0].name,
                     quote: featuredReviews[0].text,
                     rating: featuredReviews[0].rating,
-                    location: featuredReviews[0].location,
+                    location: `${featuredReviews[0].location} · April 2026`,
                   }}
                 />
               )}
@@ -275,7 +275,7 @@ export function ReviewsClientPageComponent() {
                         name: review.name,
                         quote: review.text,
                         rating: review.rating,
-                        location: review.location,
+                        location: `${review.location} · ${review.date}`,
                         service: review.service === "medical-certificate" ? "Medical Certificate" :
                                  review.service === "prescription" ? "Prescription" : "Consultation",
                       }}
@@ -330,7 +330,7 @@ export function ReviewsClientPageComponent() {
           {/* CTA */}
           <CTABanner
             title="Ready to experience it yourself?"
-            subtitle="Join the Australians who've already made the switch to smarter healthcare."
+            subtitle="Join 3,000+ Australians who've already made the switch to smarter healthcare."
             ctaText="Start a request"
             ctaHref="/request"
           />

@@ -9,6 +9,9 @@ import {
   Search,
   ShieldCheck,
   ArrowRight,
+  Briefcase,
+  Heart,
+  GraduationCap,
 } from "lucide-react"
 import { motion } from "framer-motion"
 import { useReducedMotion } from "@/components/ui/motion"
@@ -20,7 +23,7 @@ import { SectionPill } from "@/components/ui/section-pill"
 import { ScrollingLogoMarquee, type LogoItem } from "@/components/marketing/shared/scrolling-logo-marquee"
 import { ComparisonBar } from "@/components/marketing/shared/data-viz"
 import { PRICING } from "@/lib/constants"
-import { SOCIAL_PROOF } from "@/lib/social-proof"
+import { SOCIAL_PROOF, SOCIAL_PROOF_DISPLAY } from "@/lib/social-proof"
 import { usePatientCount } from "@/lib/hooks/use-patient-count"
 import { useSectionVisibilityFunnel } from "@/lib/hooks/use-section-visibility-funnel"
 import { MED_CERT_FAQ } from "@/lib/data/med-cert-faq"
@@ -79,6 +82,7 @@ const LANDING_CONFIG: LandingPageConfig = {
     priceLabel: `From $${PRICING.MED_CERT.toFixed(2)}`,
     desktopCtaText: "Get your certificate",
     pricingScrollTarget: "certificate-type",
+    responseTime: `Avg response: ${SOCIAL_PROOF_DISPLAY.responseTime}`,
     mobileFooter: (
       <div className="flex items-center justify-center gap-2 mt-1.5">
         <span className="text-[10px] text-muted-foreground/50">Secured by Stripe</span>
@@ -255,6 +259,84 @@ function OutcomePreviewSection() {
   )
 }
 
+/** Certificate type comparison cards */
+const CERT_TYPES = [
+  {
+    icon: Briefcase,
+    title: "Work / Sick Leave",
+    description: "For calling in sick to work. Covers 1-3 days. Most popular.",
+    popular: true,
+  },
+  {
+    icon: Heart,
+    title: "Carer's Certificate",
+    description: "For caring for a sick family member. Covers 1-3 days.",
+    popular: false,
+  },
+  {
+    icon: GraduationCap,
+    title: "University / Student",
+    description: "For missed classes, exams, or assignments. Covers 1-3 days.",
+    popular: false,
+  },
+] as const
+
+function CertTypeComparison() {
+  const prefersReducedMotion = useReducedMotion()
+  const animate = !prefersReducedMotion
+
+  return (
+    <section data-track-section="cert_types" className="py-12 lg:py-16">
+      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+        <motion.div
+          className="text-center mb-8"
+          initial={animate ? { y: 12 } : {}}
+          whileInView={animate ? { opacity: 1, y: 0 } : undefined}
+          viewport={{ once: true }}
+          transition={{ duration: 0.4 }}
+        >
+          <SectionPill>Certificate types</SectionPill>
+          <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground mt-4">
+            Which certificate do you need?
+          </h2>
+        </motion.div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+          {CERT_TYPES.map((cert, i) => (
+            <motion.div
+              key={cert.title}
+              className="relative bg-white dark:bg-card border border-border/50 rounded-2xl shadow-md shadow-primary/[0.06] p-6 flex flex-col"
+              initial={animate ? { y: 16, opacity: 0 } : {}}
+              whileInView={animate ? { opacity: 1, y: 0 } : undefined}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: i * 0.08 }}
+            >
+              {cert.popular && (
+                <span className="absolute -top-2.5 left-4 inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-[10px] font-semibold text-primary">
+                  Most popular
+                </span>
+              )}
+              <cert.icon className="h-6 w-6 text-primary mb-3" aria-hidden="true" />
+              <h3 className="text-base font-semibold text-foreground mb-1.5">{cert.title}</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed mb-4 flex-1">
+                {cert.description}
+              </p>
+              <p className="text-sm font-medium text-foreground mb-4">
+                From ${PRICING.MED_CERT.toFixed(2)}
+              </p>
+              <Button asChild size="sm" variant="outline" className="w-full">
+                <Link href="/request?service=med-cert">
+                  Get started
+                  <ArrowRight className="ml-1.5 h-3.5 w-3.5" aria-hidden="true" />
+                </Link>
+              </Button>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
 // =============================================================================
 // MAIN PAGE COMPONENT
 // =============================================================================
@@ -328,6 +410,11 @@ export function MedCertLanding() {
             {/* 7. Employer acceptance */}
             <EmployerCalloutStrip onEmployerClick={handleEmployerClick} onVerifyClick={handleVerifyClick} />
 
+            {/* 7b. Certificate type comparison */}
+            <div className="bg-muted/30 dark:bg-white/[0.02]">
+              <CertTypeComparison />
+            </div>
+
             {/* 8. What we cover / limitations */}
             <LimitationsSection />
 
@@ -356,7 +443,7 @@ export function MedCertLanding() {
             <div data-track-section="final_cta">
               <CTABanner
                 title="Let a doctor handle the paperwork"
-                subtitle="Two minutes on your phone. A real doctor reviews it. Certificate in your inbox."
+                subtitle="Trusted by 3,000+ Australians. Two minutes on your phone, a real doctor reviews it, and your certificate lands in your inbox."
                 ctaText={isDisabled ? "Contact us" : `Get your certificate - $${PRICING.MED_CERT.toFixed(2)}`}
                 ctaHref={isDisabled ? "/contact" : "/request?service=med-cert"}
               />

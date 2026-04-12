@@ -95,7 +95,18 @@ export function HowItWorksSection({
           {steps.map((step, index) => {
             const Mockup = stepMockups[index]
             return (
-              <div key={step.number} className="relative">
+              <motion.div
+                key={step.number}
+                className="relative"
+                initial={animate ? { opacity: 0, y: 20 } : {}}
+                whileInView={animate ? { opacity: 1, y: 0 } : undefined}
+                viewport={{ once: true, margin: "-50px" }}
+                transition={
+                  animate
+                    ? { duration: 0.4, delay: index * 0.1, ease: "easeOut" }
+                    : undefined
+                }
+              >
                 <div className="text-center mb-4">
                   <span
                     aria-hidden="true"
@@ -128,7 +139,7 @@ export function HowItWorksSection({
                     {step.badge}
                   </span>
                 </div>
-              </div>
+              </motion.div>
             )
           })}
         </div>

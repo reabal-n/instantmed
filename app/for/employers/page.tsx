@@ -360,7 +360,7 @@ export default function EmployersPage() {
               <h2 className="text-2xl md:text-3xl font-semibold text-foreground mb-8 text-center">
                 Why you can trust our certificates
               </h2>
-              <div className="grid md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
                 <div className="bg-card rounded-2xl border p-6 text-center">
                   <div className="w-14 h-14 rounded-full bg-success-light flex items-center justify-center mx-auto mb-4">
                     <Shield className="w-7 h-7 text-success" />
@@ -564,7 +564,7 @@ export default function EmployersPage() {
             <p className="text-center text-muted-foreground text-sm mb-10">
               Real reviews from employees whose certificates were accepted without issue.
             </p>
-            <div className="grid md:grid-cols-3 gap-5">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-5">
               {employeeTestimonials.map((t) => (
                 <TestimonialCard
                   key={t.name}

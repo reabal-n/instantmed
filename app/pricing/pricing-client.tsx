@@ -5,7 +5,7 @@ import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
 import { cn } from "@/lib/utils"
 import { useReducedMotion } from "@/components/ui/motion"
-import { safeJsonLd } from "@/lib/seo/safe-json-ld"
+import { FAQSchema } from "@/components/seo/healthcare-schema"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { InformationalPageShell } from "@/components/marketing/shared/informational-page-shell"
@@ -180,28 +180,11 @@ export function PricingClient() {
     return () => observer.disconnect()
   }, [])
 
-  const faqStructuredData = {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: pricingFaqs.map((item) => ({
-      "@type": "Question",
-      name: item.question,
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: item.answer,
-      },
-    })),
-  }
-
   return (
     <InformationalPageShell config={PRICING_CONFIG}>
       {() => (
         <>
-        <script
-          type="application/ld+json"
-          suppressHydrationWarning
-          dangerouslySetInnerHTML={{ __html: safeJsonLd(faqStructuredData) }}
-        />
+        <FAQSchema faqs={pricingFaqs} />
 
         {/* Hero */}
         <StatsHero
@@ -434,7 +417,7 @@ export function PricingClient() {
         {/* CTA */}
         <CTABanner
           title="Ready to get started?"
-          subtitle="Get started in under 2 minutes. Only pay if we can help."
+          subtitle="Trusted by 3,000+ Australians. Get started in under 2 minutes. Only pay if we can help."
           ctaText="Start a consult"
           ctaHref="/medical-certificate"
         />

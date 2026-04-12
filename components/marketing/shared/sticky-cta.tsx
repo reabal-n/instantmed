@@ -29,6 +29,8 @@ interface StickyCTAProps {
   mobileFooter?: React.ReactNode
   /** Optional "See pricing" scroll button */
   pricingScrollTarget?: string
+  /** Optional response time text (e.g. "Avg response: ~44 min") */
+  responseTime?: string
 }
 
 export function StickyCTA({
@@ -43,6 +45,7 @@ export function StickyCTA({
   onCTAClick,
   mobileFooter,
   pricingScrollTarget,
+  responseTime,
 }: StickyCTAProps) {
   const prefersReducedMotion = useReducedMotion()
 
@@ -68,6 +71,9 @@ export function StickyCTA({
         <div className="bg-white/90 dark:bg-card/90 backdrop-blur-lg border-t border-border/50 px-4 pt-2.5 pb-3 safe-area-pb">
           <p className="text-xs text-muted-foreground text-center mb-2">
             {mobileSummary}
+            {responseTime && (
+              <span className="text-muted-foreground/70"> &middot; {responseTime}</span>
+            )}
           </p>
           <Button
             asChild
@@ -109,6 +115,11 @@ export function StickyCTA({
               {priceLabel && (
                 <span className="text-sm text-muted-foreground">
                   {priceLabel}
+                </span>
+              )}
+              {responseTime && (
+                <span className="text-xs text-muted-foreground/70">
+                  {responseTime}
                 </span>
               )}
               {pricingScrollTarget && (

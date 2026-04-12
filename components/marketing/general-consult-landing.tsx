@@ -143,6 +143,7 @@ const LANDING_CONFIG: LandingPageConfig = {
     desktopLabel: `General Consult \u00b7 Open ${SOCIAL_PROOF_DISPLAY.operatingHours} AEST \u00b7 7 days`,
     priceLabel: `From $${PRICING.CONSULT.toFixed(2)}`,
     desktopCtaText: "Start your consult",
+    responseTime: `Avg response: ${SOCIAL_PROOF_DISPLAY.responseTime}`,
   },
 }
 
@@ -276,11 +277,6 @@ export function GeneralConsultLanding() {
           {/* 2. How It Works */}
           <HowItWorksInline onCTAClick={handleHowItWorksCTA} isDisabled={isDisabled} />
 
-          {/* Common concerns */}
-          <div className="bg-muted/30 dark:bg-white/[0.02]">
-            <CommonConcernsSection />
-          </div>
-
           {/* Response time comparison */}
           <section className="py-12 lg:py-16 px-4 sm:px-6">
             <div className="mx-auto max-w-xl">
@@ -304,6 +300,11 @@ export function GeneralConsultLanding() {
               </div>
             </div>
           </section>
+
+          {/* Common concerns */}
+          <div className="bg-muted/30 dark:bg-white/[0.02]">
+            <CommonConcernsSection />
+          </div>
 
           {/* Specialised consults */}
           <div className="bg-muted/30 dark:bg-white/[0.02]">
@@ -403,7 +404,14 @@ export function GeneralConsultLanding() {
           <ReferralStrip contextText="who could use a doctor" />
 
           {/* 6. Final CTA */}
-          <FinalCtaSection onCTAClick={handleFinalCTA} />
+          <FinalCtaSection
+            onCTAClick={handleFinalCTA}
+            title="Talk to a doctor today."
+            subtitle="Trusted by 3,000+ Australians for online healthcare. Describe your concern, and a GP reviews it the same day."
+            ctaText={isDisabled ? "Contact us" : "Start your consult"}
+            ctaHref={isDisabled ? "/contact" : "/request?service=consult"}
+            price={PRICING.CONSULT}
+          />
         </>
       )}
     </LandingPageShell>

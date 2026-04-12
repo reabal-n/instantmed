@@ -21,6 +21,7 @@ import { SectionPill } from "@/components/ui/section-pill"
 import { scrollRevealConfig, useReducedMotion } from "@/components/ui/motion"
 import {
   Mail,
+  Phone,
   MapPin,
   Clock,
   Send,
@@ -33,7 +34,7 @@ import {
 } from "lucide-react"
 import { capture } from "@/lib/analytics/capture"
 import { submitContactForm } from "@/app/actions/contact-form"
-import { CONTACT_EMAIL, CONTACT_EMAIL_COMPLAINTS } from "@/lib/constants"
+import { CONTACT_EMAIL, CONTACT_EMAIL_COMPLAINTS, CONTACT_PHONE } from "@/lib/constants"
 import { SOCIAL_PROOF } from "@/lib/social-proof"
 
 const CONTACT_CONFIG = {
@@ -164,30 +165,6 @@ export function ContactClient() {
           className="pt-32 pb-16"
         />
 
-        {/* Contact Section */}
-        <section className="py-12 pb-24" aria-labelledby="contact-section-title">
-          <h2 id="contact-section-title" className="sr-only">
-            Contact Information and Form
-          </h2>
-          <div className="max-w-6xl mx-auto px-4 grid gap-12 lg:grid-cols-5">
-              {/* Contact Info Sidebar */}
-              <div className="lg:col-span-2 space-y-6">
-                <ContactInfoCard prefersReducedMotion={prefersReducedMotion} />
-                <FAQLinkCard prefersReducedMotion={prefersReducedMotion} />
-              </div>
-
-              {/* Contact Form */}
-              <ContactFormCard
-                selectedReason={selectedReason}
-                setSelectedReason={setSelectedReason}
-                isSubmitting={isSubmitting}
-                submitError={submitError}
-                handleSubmit={handleSubmit}
-                prefersReducedMotion={prefersReducedMotion}
-              />
-          </div>
-        </section>
-
         {/* Response Stats */}
         <div className="bg-muted/30 dark:bg-white/[0.02]">
           <section className="py-12 px-4 sm:px-6">
@@ -218,6 +195,30 @@ export function ContactClient() {
             </div>
           </section>
         </div>
+
+        {/* Contact Section */}
+        <section className="py-12 pb-24" aria-labelledby="contact-section-title">
+          <h2 id="contact-section-title" className="sr-only">
+            Contact Information and Form
+          </h2>
+          <div className="max-w-6xl mx-auto px-4 grid gap-12 lg:grid-cols-5">
+              {/* Contact Info Sidebar */}
+              <div className="lg:col-span-2 space-y-6">
+                <ContactInfoCard prefersReducedMotion={prefersReducedMotion} />
+                <FAQLinkCard prefersReducedMotion={prefersReducedMotion} />
+              </div>
+
+              {/* Contact Form */}
+              <ContactFormCard
+                selectedReason={selectedReason}
+                setSelectedReason={setSelectedReason}
+                isSubmitting={isSubmitting}
+                submitError={submitError}
+                handleSubmit={handleSubmit}
+                prefersReducedMotion={prefersReducedMotion}
+              />
+          </div>
+        </section>
 
         {/* Support Testimonials */}
         <section className="py-12 px-4 sm:px-6">
@@ -255,7 +256,7 @@ export function ContactClient() {
         {/* CTA Banner */}
         <CTABanner
           title="Looking for a medical certificate or repeat medication?"
-          subtitle="Fill in a quick form and a real GP reviews your request - most are done within the hour."
+          subtitle="Join 3,000+ Australians who trust InstantMed. Fill in a quick form and a real GP reviews your request, most done within the hour."
           ctaText="Get started"
           ctaHref="/request"
           secondaryText="See how it works"
@@ -301,6 +302,20 @@ function ContactInfoCard({ prefersReducedMotion }: { prefersReducedMotion: boole
                 className="text-sm text-muted-foreground hover:text-primary transition-colors"
               >
                 {CONTACT_EMAIL}
+              </a>
+            </div>
+          </div>
+          <div className="flex items-start gap-4">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+              <Phone className="h-5 w-5 text-primary" aria-hidden="true" />
+            </div>
+            <div>
+              <p className="text-sm font-medium">Phone</p>
+              <a
+                href={`tel:${CONTACT_PHONE.replace(/\s/g, "")}`}
+                className="text-sm text-muted-foreground hover:text-primary transition-colors"
+              >
+                {CONTACT_PHONE}
               </a>
             </div>
           </div>

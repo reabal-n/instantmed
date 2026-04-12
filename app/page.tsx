@@ -141,7 +141,7 @@ export default async function HomePage() {
       <main className="relative">
         {/* 1. Hero with main value prop */}
         <Hero>
-          <p className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-8 leading-relaxed text-balance">
+          <p className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-8 leading-relaxed sm:leading-normal lg:leading-relaxed text-balance">
             Real Australian doctors review every request - medical certificates from {PRICING_DISPLAY.MED_CERT}, repeat scripts, and discreet treatment for ED and hair loss. No appointments, no waiting rooms.
           </p>
         </Hero>
@@ -169,7 +169,7 @@ export default async function HomePage() {
         </div>
 
         {/* 3.5 Time comparison data viz */}
-        <section className="py-12 lg:py-16">
+        <section className="py-16 lg:py-20">
           <div className="mx-auto max-w-xl px-4 sm:px-6">
             <p className="text-center text-xs font-semibold uppercase tracking-widest text-muted-foreground/50 mb-6">
               Why go online?

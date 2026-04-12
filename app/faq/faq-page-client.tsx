@@ -1,8 +1,8 @@
 "use client"
 
-import { useState, useMemo, useRef } from "react"
+import { useState, useMemo, useRef, useCallback } from "react"
 import Link from "next/link"
-import { Search, X } from "lucide-react"
+import { Search, X, ChevronDown } from "lucide-react"
 import { FAQSchema } from "@/components/seo/healthcare-schema"
 import { AccordionSection, CTABanner } from "@/components/sections"
 import { InformationalPageShell } from "@/components/marketing/shared/informational-page-shell"
@@ -17,6 +17,17 @@ import { GENERAL_FAQ } from "@/lib/data/general-faq"
 
 const CATEGORIES = GENERAL_FAQ.map((g) => g.category).filter((c): c is string => !!c)
 const TOTAL_QUESTIONS = GENERAL_FAQ.reduce((sum, g) => sum + g.items.length, 0)
+
+const POPULAR_QUESTION_STRINGS = [
+  "How long does it take?",
+  "Is this actually legitimate?",
+  "Will my employer actually accept this?",
+  "What\u2019s your refund policy?",
+]
+
+const POPULAR_QUESTIONS = GENERAL_FAQ.flatMap((g) => g.items).filter((item) =>
+  POPULAR_QUESTION_STRINGS.includes(item.question)
+)
 
 const RELATED_ARTICLES = [
   { title: "How InstantMed Works", href: "/how-it-works" },
@@ -36,7 +47,12 @@ const FAQ_CONFIG = {
 export default function FAQPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [activeCategory, setActiveCategory] = useState<string | null>(null)
+  const [expandedPopular, setExpandedPopular] = useState<number | null>(null)
   const searchRef = useRef<HTMLInputElement>(null)
+
+  const togglePopular = useCallback((index: number) => {
+    setExpandedPopular((prev) => (prev === index ? null : index))
+  }, [])
 
   // Filter FAQ groups by search query and active category
   const filteredGroups = useMemo(() => {
@@ -165,6 +181,47 @@ export default function FAQPage() {
             </div>
           </div>
 
+          {/* Most popular questions - default view only */}
+          {!searchQuery && !activeCategory && POPULAR_QUESTIONS.length > 0 && (
+            <section className="mx-auto max-w-2xl px-4 pb-8">
+              <p className="inline-flex items-center rounded-full border border-border/60 bg-background px-3 py-1 text-[11px] font-medium text-foreground/70 shadow-sm shadow-primary/[0.04] mb-4">
+                Most popular
+              </p>
+              <div className="space-y-2">
+                {POPULAR_QUESTIONS.map((item, index) => (
+                  <div
+                    key={item.question}
+                    className={cn(
+                      "bg-white dark:bg-card border border-border/50 rounded-xl",
+                      "shadow-sm shadow-primary/[0.04] dark:shadow-none",
+                      "transition-shadow hover:shadow-md hover:shadow-primary/[0.06]"
+                    )}
+                  >
+                    <button
+                      onClick={() => togglePopular(index)}
+                      className="flex w-full items-center justify-between gap-3 px-4 py-3.5 text-left"
+                    >
+                      <span className="text-sm font-medium text-foreground">
+                        {item.question}
+                      </span>
+                      <ChevronDown
+                        className={cn(
+                          "h-4 w-4 shrink-0 text-muted-foreground/50 transition-transform duration-200",
+                          expandedPopular === index && "rotate-180"
+                        )}
+                      />
+                    </button>
+                    {expandedPopular === index && (
+                      <div className="px-4 pb-4 text-sm text-muted-foreground leading-relaxed">
+                        {item.answer}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
           {/* Search results count */}
           {(searchQuery || activeCategory) && (
             <p className="text-center text-xs text-muted-foreground mb-4 px-4">
@@ -211,7 +268,7 @@ export default function FAQPage() {
           {/* CTA */}
           <CTABanner
             title="Still have questions?"
-            subtitle="Our support team is here to help. Reach out anytime."
+            subtitle="Trusted by 3,000+ Australians for online healthcare. Our support team is here to help."
             ctaText="Contact Support"
             ctaHref="/contact"
           />
