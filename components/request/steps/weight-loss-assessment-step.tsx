@@ -7,8 +7,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Switch } from "@/components/ui/switch"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { MedicalHistoryToggles } from "@/components/request/shared/medical-history-toggles"
 import { cn } from "@/lib/utils"
 import { useRequestStore } from "../store"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
@@ -315,23 +315,11 @@ export default function WeightLossAssessmentStep({ onNext }: WeightLossAssessmen
         <p className="text-xs text-muted-foreground -mt-1">
           Toggle on any conditions that apply to you.
         </p>
-        <div className="space-y-2">
-          {MEDICAL_HISTORY_TOGGLES.map((item) => (
-            <div
-              key={item.key}
-              className="flex items-center justify-between gap-3 p-3 rounded-xl border bg-muted/30"
-            >
-              <Label htmlFor={item.key} className="text-sm cursor-pointer leading-snug flex-1">
-                {item.label}
-              </Label>
-              <Switch
-                id={item.key}
-                checked={answers[item.key] === true}
-                onCheckedChange={(checked) => setAnswer(item.key, checked)}
-              />
-            </div>
-          ))}
-        </div>
+        <MedicalHistoryToggles
+          items={MEDICAL_HISTORY_TOGGLES}
+          values={answers}
+          onChange={(key, checked) => setAnswer(key, checked)}
+        />
       </div>
 
       {/* Eating disorder history */}

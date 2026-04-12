@@ -27,7 +27,7 @@ const SkyToggle = ({ size = 30 }: SkyToggleProps) => {
       <div className={`sky-toggle-${scopeId}`}>
         <style>{getStyles(size, scopeId)}</style>
         <div className="theme-switch">
-          <div className="theme-switch__container" style={{ opacity: 0.5 }} />
+          <div className="theme-switch__container opacity-50" />
         </div>
       </div>
     );

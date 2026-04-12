@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils"
 import { useReducedMotion } from "@/components/ui/motion"
 import { stagger, fadeUp } from "@/lib/motion"
 import { useRequestStore } from "../store"
-import { useKeyboardNavigation } from "@/hooks/use-keyboard-navigation"
+import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
 import { ED_HOOK_QUIZ_KEY, type EdHookQuizResult } from "@/lib/marketing/ed-hook-quiz"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 

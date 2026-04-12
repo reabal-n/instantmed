@@ -10,10 +10,13 @@ import {
   Heart,
   RotateCcw,
   Activity,
+  Pill,
+  BookOpen,
+  ShieldCheck,
 } from "lucide-react"
 import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter } from "@/components/marketing"
-import { MarketingPageShell } from "@/components/shared/marketing-page-shell"
+import { MarketingPageShell } from "@/components/marketing/marketing-page-shell"
 import { CenteredHero } from "@/components/heroes"
 import {
   SectionHeader,
@@ -286,6 +289,110 @@ export default async function ConditionPage({ params }: PageProps) {
                       </div>
                     </div>
                   </div>
+                </div>
+              </section>
+            )}
+
+            {/* Treatment Information (optional) */}
+            {condition.treatmentInfo && (
+              <section className="py-16 lg:py-24 px-4 bg-muted/30 dark:bg-white/[0.04]">
+                <SectionHeader
+                  pill="Treatment"
+                  title={`Treating ${condition.name}`}
+                  subtitle={condition.treatmentInfo.overview}
+                />
+                <div className="mx-auto max-w-4xl mt-10 grid sm:grid-cols-2 gap-5">
+                  {condition.treatmentInfo.medications.map((med, i) => (
+                    <div
+                      key={i}
+                      className="rounded-2xl bg-white dark:bg-card border border-border/50 dark:border-white/10 shadow-md shadow-primary/[0.06] dark:shadow-none p-6"
+                    >
+                      <div className="flex items-start justify-between gap-3 mb-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                            <Pill className="w-5 h-5 text-primary" />
+                          </div>
+                          <div>
+                            <h3 className="text-sm font-semibold text-foreground">
+                              {med.genericName}
+                            </h3>
+                            {med.brandNames.length > 0 && (
+                              <p className="text-xs text-muted-foreground">
+                                {med.brandNames.join(", ")}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        {med.pbsListed ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/30 text-xs font-medium text-emerald-700 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/60 shrink-0">
+                            <ShieldCheck className="w-3 h-3" />
+                            PBS
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-muted text-xs font-medium text-muted-foreground shrink-0">
+                            Non-PBS
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="space-y-2 mb-4">
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <span className="font-medium text-foreground/80">Class:</span>
+                          {med.drugClass}
+                        </div>
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <span className="font-medium text-foreground/80">Typical dose:</span>
+                          {med.typicalDose}
+                        </div>
+                        {med.pbsNote && (
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <span className="font-medium text-foreground/80">PBS:</span>
+                            {med.pbsNote}
+                          </div>
+                        )}
+                      </div>
+
+                      <ul className="space-y-1.5">
+                        {med.keyPoints.map((point, j) => (
+                          <li key={j} className="flex items-start gap-2 text-xs text-muted-foreground">
+                            <CheckCircle2 className="w-3.5 h-3.5 mt-0.5 text-primary shrink-0" />
+                            <span>{point}</span>
+                          </li>
+                        ))}
+                      </ul>
+
+                      {med.availableOnline && (
+                        <div className="mt-4 pt-3 border-t border-border/50 dark:border-white/10">
+                          <Link
+                            href={condition.ctaHref}
+                            className="text-xs font-medium text-primary hover:underline flex items-center gap-1"
+                          >
+                            Available via InstantMed
+                            <ArrowRight className="w-3 h-3" />
+                          </Link>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Guideline source + specialist guidance */}
+                <div className="mx-auto max-w-4xl mt-8 space-y-3">
+                  <div className="flex items-start gap-2.5 text-xs text-muted-foreground">
+                    <BookOpen className="w-3.5 h-3.5 mt-0.5 shrink-0 text-primary/60" />
+                    <span>
+                      <span className="font-medium">Source:</span> {condition.treatmentInfo.guidelineSource}.
+                      This information is educational only and does not replace clinical assessment.
+                    </span>
+                  </div>
+                  {condition.treatmentInfo.whenToSeeSpecialist && (
+                    <div className="flex items-start gap-2.5 text-xs text-muted-foreground">
+                      <Stethoscope className="w-3.5 h-3.5 mt-0.5 shrink-0 text-amber-500" />
+                      <span>
+                        <span className="font-medium">Specialist referral:</span> {condition.treatmentInfo.whenToSeeSpecialist}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </section>
             )}

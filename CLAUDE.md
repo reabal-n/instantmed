@@ -22,13 +22,12 @@
 
 | File | Scope | When to load |
 |------|-------|-------------|
-| `DESIGN_SYSTEM.md` | Color, typography, spacing, components, elevation, layout, voice, brand | **Every UI session.** Load before any UI/frontend/marketing work. The design system is law. |
-| `INTERACTIONS.md` | Motion, animation, easing curves, Framer Motion patterns, UI states, loading sequences | **Load alongside DESIGN_SYSTEM.md** for any UI/frontend work. |
-| `ARCHITECTURE.md` | System design, data flows, portals, DB schema, API routes, directory index, tech stack, key pages, AI config | Building features, understanding flows, navigating the codebase |
-| `CLINICAL.md` | Clinical boundaries, prescribing rules, AI limits, consent, privacy (APP 1-13) | Any clinical logic, AI prompts, compliance work |
-| `SECURITY.md` | PHI encryption, RLS, rate limiting, audit logging, incident classification | Security work, auth, data access patterns |
-| `OPERATIONS.md` | Incident response, key rotation, debugging, cron jobs, monitoring, env vars | Ops tasks, debugging, deployments |
-| `TESTING.md` | Unit test conventions, E2E patterns, auth bypass, coverage rules, CI pipeline | Writing tests, debugging test failures |
+| `docs/DESIGN_SYSTEM.md` | Color, typography, spacing, components, elevation, layout, motion, animation, voice, brand | **Every UI session.** Load before any UI/frontend/marketing work. The design system is law. |
+| `docs/ARCHITECTURE.md` | System design, data flows, portals, DB schema, API routes, directory index, tech stack, key pages, AI config | Building features, understanding flows, navigating the codebase |
+| `docs/CLINICAL.md` | Clinical boundaries, prescribing rules, AI limits, consent, privacy (APP 1-13) | Any clinical logic, AI prompts, compliance work |
+| `docs/SECURITY.md` | PHI encryption, RLS, rate limiting, audit logging, incident classification | Security work, auth, data access patterns |
+| `docs/OPERATIONS.md` | Incident response, key rotation, debugging, cron jobs, monitoring, env vars | Ops tasks, debugging, deployments |
+| `docs/TESTING.md` | Unit test conventions, E2E patterns, auth bypass, coverage rules, CI pipeline | Writing tests, debugging test failures |
 | `docs/PRIMITIVES.md` | Marketing primitives registry: social proof, trust badges, stats, pricing, FAQ data, wait times | Adding/changing marketing page content, stats, badges, or FAQ |
 
 ---
@@ -130,7 +129,7 @@ If you are an AI and the user asks you to upgrade something on this list, **stop
 - **Loading states**: `SkeletonCard`, `SkeletonForm`, `SkeletonList`, `SkeletonDashboard` from `@/components/ui/skeleton`
 - **Toasts**: `toast` from `sonner` (success, error, promise variants)
 - **Error handling**: `ErrorRecovery` from `@/components/ui/error-recovery`; flow-specific: `StepErrorBoundary` (`components/request/`), `DashboardErrorBoundary` (`components/doctor/`)
-- **Card surfaces**: Solid depth pattern — `bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06]`. See DESIGN_SYSTEM.md §5
+- **Card surfaces**: Solid depth pattern — `bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06]`. See docs/DESIGN_SYSTEM.md §5
 
 ## Pricing
 
@@ -155,9 +154,9 @@ All prices in `lib/constants.ts` (`PRICING`). Stripe IDs mapped in `lib/stripe/p
 
 ## Key Workflows
 
-**Intake flow:** Step-based wizard at `/request?service=<type>`. Managed by `lib/request/step-registry.ts`. Steps are React components in `components/request/steps/`. See ARCHITECTURE.md for full step sequences.
+**Intake flow:** Step-based wizard at `/request?service=<type>`. Managed by `lib/request/step-registry.ts`. Steps are React components in `components/request/steps/`. See docs/ARCHITECTURE.md for full step sequences.
 
-**Specialty services (ED, Hair Loss):** Dedicated landing pages at `/erectile-dysfunction` and `/hair-loss` are the top-level marketing surfaces for these pathways (alongside `/medical-certificate` and `/prescriptions`). Both CTAs route into `/request?service=consult&subtype=ed` and `/request?service=consult&subtype=hair_loss` respectively — they share the `consult` service type and common-tail step sequence but have their own subtype-specific steps defined in `CONSULT_SUBTYPE_STEPS` (see `lib/request/step-registry.ts`). **No call step** — patient completes the structured form, a doctor reviews, and the eScript is delivered. Homepage `ServicePicker` shows 4 cards (med-cert, scripts, ed, hair-loss); the services dropdown and footer match. `/general-consult` was retired in commit `542ae8119` as an SEO cannibalization fix and now 301s to `/consult`, which remains the canonical generic doctor-consult intake. **ED intake uses 4-step flow:** ed-goals (goal + duration) → ed-assessment (visual IIEF-5, validated 5-question instrument producing `iiefTotal` 5–25) → ed-health (6 collapsible accordion sections consolidating safety screening + medical history — nitrate hard block, cardiac soft blocks with GP clearance) → ed-preferences (lifestyle framing: daily/as-needed/doctor-decides, **no Schedule 4 drug names** per TGA). Common tail adds height/weight/BMI for ED subtype. IIEF-5 score persisted for followup delta tracking. **Follow-up tracker:** On approval, 3 milestone rows (month 3/6/12) are created in `intake_followups`. Daily cron at `/api/cron/treatment-followup` (09:00 AEST) emails reminders; patients submit via `/patient/followups/[id]`; doctors review via a new card on the intake detail page. Contraindication tooltips surface rationale strings on safety-critical clinical-summary rows.
+**Specialty services (ED, Hair Loss):** Dedicated landing pages at `/erectile-dysfunction` and `/hair-loss` are the top-level marketing surfaces for these pathways (alongside `/medical-certificate` and `/prescriptions`). Both CTAs route into `/request?service=consult&subtype=ed` and `/request?service=consult&subtype=hair_loss` respectively — they share the `consult` service type and common-tail step sequence but have their own subtype-specific steps defined in `CONSULT_SUBTYPE_STEPS` (see `lib/request/step-registry.ts`). **No call step** — patient completes the structured form, a doctor reviews, and the eScript is delivered. Service hub (`/request`) shows 5 active cards (med-cert, scripts, ed, hair-loss, general consult) + 2 coming-soon (women's health, weight management); the services dropdown and footer match. `/general-consult` was retired in commit `542ae8119` as an SEO cannibalization fix and now 301s to `/consult`, which remains the canonical generic doctor-consult intake. **ED intake uses 4-step flow:** ed-goals (goal + duration) → ed-assessment (visual IIEF-5, validated 5-question instrument producing `iiefTotal` 5–25) → ed-health (6 collapsible accordion sections consolidating safety screening + medical history — nitrate hard block, cardiac soft blocks with GP clearance) → ed-preferences (lifestyle framing: daily/as-needed/doctor-decides, **no Schedule 4 drug names** per TGA). Common tail adds height/weight/BMI for ED subtype. IIEF-5 score persisted for followup delta tracking. **Follow-up tracker:** On approval, 3 milestone rows (month 3/6/12) are created in `intake_followups`. Daily cron at `/api/cron/treatment-followup` (09:00 AEST) emails reminders; patients submit via `/patient/followups/[id]`; doctors review via a new card on the intake detail page. Contraindication tooltips surface rationale strings on safety-critical clinical-summary rows.
 
 **Prescription workflow:** Patient submits → Doctor reviews in portal → Doctor clicks "Prescribe" → Parchment iframe opens in slide-over panel → Doctor writes eScript inside InstantMed → Parchment webhook (`prescription.created`) auto-marks script sent with SCID → Patient notified via email. Feature flag: `parchment_embedded_prescribing` (DB toggle). Fallback: "Mark Sent Manually" button for external prescribing. Key files: `lib/parchment/client.ts`, `lib/parchment/sync-patient.ts`, `components/doctor/parchment-prescribe-panel.tsx`, `app/api/webhooks/parchment/route.ts`, `app/actions/parchment.ts`.
 
@@ -165,7 +164,7 @@ All prices in `lib/constants.ts` (`PRICING`). Stripe IDs mapped in `lib/stripe/p
 
 **Priority fee (Express Review):** $9.95 add-on toggle on checkout. Adds second line item to Stripe session. Sets `is_priority` on intake → doctor queue sorts priority-first.
 
-**Certificate pipeline:** Doctor approves → PDF generated → Uploaded to private Supabase Storage → Patient emailed dashboard link (not attachment). See ARCHITECTURE.md for 9-step generation flow.
+**Certificate pipeline:** Doctor approves → PDF generated → Uploaded to private Supabase Storage → Patient emailed dashboard link (not attachment). See docs/ARCHITECTURE.md for 9-step generation flow.
 
 **Phone number:** Required for prescriptions + consults + specialized pathways. NOT for med certs.
 
@@ -185,7 +184,7 @@ All prices in `lib/constants.ts` (`PRICING`). Stripe IDs mapped in `lib/stripe/p
 - **`revalidateTag` signature**: Next 15 takes a single tag arg — `revalidateTag("foo")`. Do NOT add a second `"max"` cache profile arg; that's a Next 16-only API
 - **`RefObject` typing**: With React 18 use `RefObject<HTMLDivElement>`, NOT `RefObject<HTMLDivElement | null>`. The `| null` is React 19 syntax — `useRef<T>(null)` returns `RefObject<T>` whose `.current` is already `T | null`
 - **Controlled substances**: `isControlledSubstance(name)` in `lib/clinical/intake-validation.ts` detects Schedule 8 via regex patterns; UI passes the flag to `validateIntake()` which blocks progression. Both form and chat paths enforce this — no override
-- **PHI encryption**: AES-256-GCM field-level. Controlled by `PHI_ENCRYPTION_*` env vars. See SECURITY.md
+- **PHI encryption**: AES-256-GCM field-level. Controlled by `PHI_ENCRYPTION_*` env vars. See docs/SECURITY.md
 - **Rate limiting fallback**: Two systems — Redis (general API): fails open when unavailable. Doctor actions (DB-backed): falls back to in-memory `Map` with half limits
 - **Certificate IDs**: `crypto.randomInt()` not `Math.random()` — security requirement
 - **Name validation**: Unicode-aware `/^[\p{L}\s'-]+$/u` for international names
@@ -201,6 +200,7 @@ All prices in `lib/constants.ts` (`PRICING`). Stripe IDs mapped in `lib/stripe/p
 - **Canonical intake flow**: `/request` is the **sole** canonical intake. The `/flow` parallel system was deleted in 2026-04-08 (commit `18e26f0b7`). `/flow` and `/flow/:path*` now 301 to `/request` via `next.config.mjs`. Do not add any new logic under a `/flow/*` path, and do not reference `lib/flow/*` — safety engine lives at `lib/safety/` and offline queue at `lib/offline-queue.ts`.
 - **Redirect-only pages**: `/prescriptions/request`, `/prescriptions/new`, `/consult/request`, `/medical-certificates/*`, `/medications/*` all redirect to canonical routes via `next.config.mjs`. The `page.tsx` files still exist as defense-in-depth but their sibling client/action files were deleted in 2026-04-08 (commit `f53d336ec`). Do not recreate those client files.
 - **Stack pin check regex**: `scripts/check-stack-pins.sh` uses glob `[[ == *"^"* ]]` substring tests, NOT bash regex bracket classes (`[[ =~ [\^~\>*x] ]]`). The regex form is bash-version-dependent and produces false positives on bash 5 (Ubuntu CI). Fixed in commit `1e54d69ee` — don't revert it.
+- **Orphaned file check**: `scripts/check-orphaned-files.sh` detects dead intake steps not in the step registry, stale `/flow/` routes, `@deprecated` modules with zero imports, and orphaned worktree directories. Run it before deploying.
 - **CI runs the full e2e suite** via the fixed `scripts/check-stack-pins.sh` + proper env vars in `.github/workflows/ci.yml`. Requires repo secret `STRIPE_WEBHOOK_SECRET` (test-mode `whsec_...`) and repo variable `E2E_ENABLED=true`. Without those, webhook specs silently `test.skip()` (see commit `ae1c80822`).
 
 ---
@@ -223,24 +223,24 @@ Technical co-founder, 15+ years in health/medtech startups (AU + international).
 
 | Change type | File to update | What to change |
 |-------------|---------------|---------------|
-| New API route | `ARCHITECTURE.md` | Add to API Routes table |
-| New DB table or column | `ARCHITECTURE.md` | Core Tables + PHI inventory if applicable |
-| New cron job | `OPERATIONS.md` | Cron Jobs Reference table |
-| New or changed env var | `OPERATIONS.md` + `SECURITY.md` | Env vars list + Secret Management |
-| New kill switch | `SECURITY.md` | Kill Switches table + Emergency Runbook |
-| New RLS policy | `SECURITY.md` | Table Policies section |
-| New auth pattern | `SECURITY.md` | Auth Patterns table |
-| New clinical rule | `CLINICAL.md` | Relevant section |
-| Consent or privacy change | `CLINICAL.md` | Consent Requirements or APP table |
+| New API route | `docs/ARCHITECTURE.md` | Add to API Routes table |
+| New DB table or column | `docs/ARCHITECTURE.md` | Core Tables + PHI inventory if applicable |
+| New cron job | `docs/OPERATIONS.md` | Cron Jobs Reference table |
+| New or changed env var | `docs/OPERATIONS.md` + `docs/SECURITY.md` | Env vars list + Secret Management |
+| New kill switch | `docs/SECURITY.md` | Kill Switches table + Emergency Runbook |
+| New RLS policy | `docs/SECURITY.md` | Table Policies section |
+| New auth pattern | `docs/SECURITY.md` | Auth Patterns table |
+| New clinical rule | `docs/CLINICAL.md` | Relevant section |
+| Consent or privacy change | `docs/CLINICAL.md` | Consent Requirements or APP table |
 | New service type or pricing | `CLAUDE.md` | Pricing table + Key Workflows |
-| New intake step | `ARCHITECTURE.md` | Intake System step table |
-| New E2E helper / test seam | `TESTING.md` | E2E Seams or relevant section |
-| New component pattern | `ARCHITECTURE.md` | Component Patterns section |
+| New intake step | `docs/ARCHITECTURE.md` | Intake System step table |
+| New E2E helper / test seam | `docs/TESTING.md` | E2E Seams or relevant section |
+| New component pattern | `docs/ARCHITECTURE.md` | Component Patterns section |
 | Supabase migration applied | `CLAUDE.md` | Increment migration count |
-| AI model or temperature change | `ARCHITECTURE.md` | AI Configuration table |
-| Refund or billing logic change | `ARCHITECTURE.md` | Decline & Refund Flow |
-| New third-party processor | `CLINICAL.md` | Third-Party Data Processors table |
-| Security incident or breach | `SECURITY.md` + `OPERATIONS.md` | Incident classification + response runbook |
+| AI model or temperature change | `docs/ARCHITECTURE.md` | AI Configuration table |
+| Refund or billing logic change | `docs/ARCHITECTURE.md` | Decline & Refund Flow |
+| New third-party processor | `docs/CLINICAL.md` | Third-Party Data Processors table |
+| Security incident or breach | `docs/SECURITY.md` + `docs/OPERATIONS.md` | Incident classification + response runbook |
 
 **Shortcut:** Not sure which file? Ask: "Which satellite doc covers this domain?" The answer is in the Satellite Documentation table at the top of this file.
 

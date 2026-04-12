@@ -4,19 +4,32 @@ import { motion } from "framer-motion"
 import { useReducedMotion } from "@/components/ui/motion"
 import { FileText, CheckCircle2, Mail, ShieldCheck, User } from "lucide-react"
 
+/** SVG grain noise overlay for paper-like texture */
+function GrainOverlay() {
+  return (
+    <div
+      className="absolute inset-0 pointer-events-none opacity-[0.03] dark:opacity-[0.015] mix-blend-multiply rounded-2xl"
+      style={{
+        backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+      }}
+    />
+  )
+}
+
 export function HeroOutcomeMockup() {
   const prefersReducedMotion = useReducedMotion()
   const animate = !prefersReducedMotion
 
   return (
     <div className="relative w-72 xl:w-80">
-      {/* Approved certificate card */}
+      {/* Approved certificate card - paper-cream treatment */}
       <motion.div
-        className="rounded-2xl bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-950/20 dark:to-card border border-emerald-200/40 dark:border-emerald-800/20 shadow-xl shadow-emerald-500/[0.1] dark:shadow-none p-5 space-y-4"
+        className="relative rounded-2xl bg-[#FAF8F5] dark:bg-card border border-border/50 dark:border-white/15 shadow-xl shadow-primary/[0.1] dark:shadow-none p-5 space-y-4 overflow-hidden"
         initial={animate ? { y: 20, opacity: 0 } : {}}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.5, delay: 0.2, ease: "easeOut" }}
       >
+        <GrainOverlay />
         {/* Header row */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
@@ -72,7 +85,7 @@ export function HeroOutcomeMockup() {
 
       {/* Floating notification */}
       <motion.div
-        className="absolute -bottom-5 -right-4 xl:-right-6 rounded-xl bg-gradient-to-br from-emerald-50/80 to-white dark:from-emerald-950/15 dark:to-card border border-emerald-200/30 dark:border-emerald-800/15 shadow-lg shadow-emerald-500/[0.08] dark:shadow-none p-2.5 flex items-center gap-2.5 min-w-[190px]"
+        className="absolute -bottom-5 -right-4 xl:-right-6 rounded-xl bg-[#FAF8F5] dark:bg-card border border-border/50 dark:border-white/15 shadow-lg shadow-primary/[0.08] dark:shadow-none p-2.5 flex items-center gap-2.5 min-w-[190px]"
         initial={animate ? { x: 20, opacity: 0 } : {}}
         animate={{ x: 0, opacity: 1 }}
         transition={{ duration: 0.5, delay: 1.2, ease: "easeOut" }}

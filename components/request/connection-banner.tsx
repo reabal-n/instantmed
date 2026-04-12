@@ -11,7 +11,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { useReducedMotion } from "@/components/ui/motion"
 import { WifiOff, CloudOff, RefreshCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { useConnectionStatus } from "@/hooks/use-connection-status"
+import { useConnectionStatus } from "@/lib/hooks/use-connection-status"
 
 interface ConnectionBannerProps {
   className?: string

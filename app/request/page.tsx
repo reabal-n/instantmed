@@ -5,8 +5,8 @@ import { decryptProfilePhi } from "@/lib/data/profiles"
 import { RequestFlow } from "@/components/request"
 import { mapServiceParam } from "@/lib/request/step-registry"
 import { isMaintenanceMode, isServiceDisabled } from "@/lib/feature-flags"
-import { isAtCapacity } from "@/lib/operational-config"
-import { trackOperationalBlock } from "@/lib/posthog-server"
+import { isAtCapacity } from "@/lib/config/operational-config"
+import { trackOperationalBlock } from "@/lib/analytics/posthog-server"
 import { CONTACT_EMAIL_HELLO, PRICING_DISPLAY } from "@/lib/constants"
 
 // Prevent static generation for dynamic auth

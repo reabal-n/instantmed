@@ -8,8 +8,7 @@ import { useReducedMotion } from "@/components/ui/motion"
 import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Navbar } from "@/components/shared/navbar"
-import { MarketingFooter } from "@/components/marketing"
+import { InformationalPageShell } from "@/components/marketing/shared/informational-page-shell"
 import { StatsHero } from "@/components/heroes"
 import { ComparisonTable, FAQSection, CTABanner } from "@/components/sections"
 import { Check, Star, ArrowRight, Shield, Clock, Zap, Gift, FileText, Pill, Stethoscope } from "lucide-react"
@@ -17,6 +16,10 @@ import { DoctorCredibility } from "@/components/marketing/doctor-credibility"
 import { RegulatoryPartners } from "@/components/marketing/media-mentions"
 import { PricingGuideSection } from "@/components/marketing/sections/pricing-guide-section"
 import { CompetitorLinksSection } from "@/components/marketing/sections/competitor-links-section"
+import { ComparisonBar } from "@/components/marketing/shared/data-viz"
+import { TestimonialCard } from "@/components/marketing/shared/testimonial-card"
+import { SectionPill } from "@/components/ui/section-pill"
+import { getFeaturedTestimonials } from "@/lib/data/testimonials"
 import { PRICING, PRICING_DISPLAY } from "@/lib/constants"
 import { SOCIAL_PROOF } from "@/lib/social-proof"
 
@@ -152,6 +155,13 @@ const pricingFaqs = [
       },
 ]
 
+const pricingTestimonials = getFeaturedTestimonials().slice(0, 3)
+
+const PRICING_CONFIG = {
+  analyticsId: "pricing" as const,
+  sticky: false as const,
+}
+
 /* ────────────────────────────── Component ────────────────────────────── */
 
 export function PricingClient() {
@@ -184,15 +194,15 @@ export function PricingClient() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <script
-        type="application/ld+json"
-        suppressHydrationWarning
-        dangerouslySetInnerHTML={{ __html: safeJsonLd(faqStructuredData) }}
-      />
-      <Navbar variant="marketing" />
+    <InformationalPageShell config={PRICING_CONFIG}>
+      {() => (
+        <>
+        <script
+          type="application/ld+json"
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{ __html: safeJsonLd(faqStructuredData) }}
+        />
 
-      <main className="flex-1">
         {/* Hero */}
         <StatsHero
           pill="Simple pricing"
@@ -337,7 +347,60 @@ export function PricingClient() {
           className="max-w-3xl mx-auto px-4 sm:px-6 pb-8"
         />
 
+        {/* Cost Comparison Viz */}
+        <div className="bg-muted/30 dark:bg-white/[0.02]">
+          <section className="py-12 lg:py-16 px-4 sm:px-6">
+            <div className="mx-auto max-w-xl">
+              <div className="text-center mb-6">
+                <SectionPill>Why go online?</SectionPill>
+              </div>
+              <div className="rounded-2xl bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-md shadow-primary/[0.06] dark:shadow-none p-6">
+                <ComparisonBar
+                  us={{
+                    label: "InstantMed",
+                    value: PRICING_DISPLAY.FROM_MED_CERT,
+                    subtext: "All-inclusive, no extra charges",
+                  }}
+                  them={{
+                    label: "GP clinic visit",
+                    value: SOCIAL_PROOF.gpPriceStandard,
+                    subtext: "Plus travel, wait time, and time off work",
+                  }}
+                  ratio={0.3}
+                />
+              </div>
+            </div>
+          </section>
+        </div>
+
+        {/* Testimonial Strip */}
+        <section className="py-12 px-4 sm:px-6">
+          <div className="mx-auto max-w-5xl">
+            <div className="text-center mb-8">
+              <SectionPill>Patient feedback</SectionPill>
+              <h2 className="text-xl sm:text-2xl font-semibold tracking-tight mt-3">
+                What patients say about our pricing
+              </h2>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-3">
+              {pricingTestimonials.map((t) => (
+                <TestimonialCard
+                  key={t.id}
+                  variant="compact"
+                  testimonial={{
+                    name: t.name,
+                    quote: t.text,
+                    rating: t.rating,
+                    location: t.location,
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+        </section>
+
         {/* Comparison Table */}
+        <div className="bg-muted/30 dark:bg-white/[0.02]">
         <ComparisonTable
           pill="Why InstantMed?"
           title="How we compare to a GP visit"
@@ -347,17 +410,20 @@ export function PricingClient() {
           themLabel="GP clinic"
           items={comparisonItems}
         />
+        </div>
 
         {/* Pricing Guide */}
         <PricingGuideSection />
 
         {/* FAQ */}
+        <div className="bg-muted/30 dark:bg-white/[0.02]">
         <FAQSection
           title="Common questions"
           subtitle="Everything you need to know about our pricing."
           highlightWords={["questions"]}
           items={pricingFaqs}
         />
+        </div>
 
         {/* Competitor comparisons */}
         <CompetitorLinksSection />
@@ -372,36 +438,35 @@ export function PricingClient() {
           ctaText="Start a consult"
           ctaHref="/medical-certificate"
         />
-      </main>
 
-      {/* Sticky mobile CTA - appears when pricing cards scroll out of view */}
-      <AnimatePresence>
-        {showStickyCTA && (
-          <motion.div
-            className="fixed bottom-0 left-0 right-0 z-40 lg:hidden"
-            initial={prefersReducedMotion ? {} : { y: 100 }}
-            animate={prefersReducedMotion ? { opacity: 1 } : { y: 0 }}
-            exit={prefersReducedMotion ? { opacity: 0 } : { y: 100 }}
-            transition={{ duration: 0.3, ease: "easeOut" }}
-          >
-            <div className="bg-white/95 dark:bg-card/95 backdrop-blur-xl border-t border-border/50 shadow-lg px-4 pt-2.5 pb-3 safe-area-pb">
-              <div className="flex items-center justify-between gap-3">
-                <p className="text-sm font-medium text-foreground">
-                  {PRICING_DISPLAY.FROM_MED_CERT}
-                </p>
-                <Button asChild size="sm" className="shrink-0 shadow-md shadow-primary/20">
-                  <Link href="/request">
-                    Get started
-                    <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
-                  </Link>
-                </Button>
+        {/* Sticky mobile CTA - appears when pricing cards scroll out of view */}
+        <AnimatePresence>
+          {showStickyCTA && (
+            <motion.div
+              className="fixed bottom-0 left-0 right-0 z-40 lg:hidden"
+              initial={prefersReducedMotion ? {} : { y: 100 }}
+              animate={prefersReducedMotion ? { opacity: 1 } : { y: 0 }}
+              exit={prefersReducedMotion ? { opacity: 0 } : { y: 100 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+            >
+              <div className="bg-white/95 dark:bg-card/95 backdrop-blur-xl border-t border-border/50 shadow-lg px-4 pt-2.5 pb-3 safe-area-pb">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-sm font-medium text-foreground">
+                    {PRICING_DISPLAY.FROM_MED_CERT}
+                  </p>
+                  <Button asChild size="sm" className="shrink-0 shadow-md shadow-primary/20">
+                    <Link href="/request">
+                      Get started
+                      <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+                    </Link>
+                  </Button>
+                </div>
               </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <MarketingFooter />
-    </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+        </>
+      )}
+    </InformationalPageShell>
   )
 }

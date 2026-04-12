@@ -23,7 +23,7 @@ import {
   Link2,
   Check,
 } from "lucide-react"
-import { formatIntakeStatus } from "@/lib/format-intake"
+import { formatIntakeStatus } from "@/lib/format/intake"
 import { INTAKE_STATUS, type IntakeStatus as StatusKey } from "@/lib/status"
 import { COPY } from "@/lib/microcopy/universal"
 import { capture } from "@/lib/analytics/capture"

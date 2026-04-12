@@ -4,7 +4,7 @@ import { notifyPaymentReceived } from "@/lib/notifications/service"
 import { createLogger } from "@/lib/observability/logger"
 import { generateDraftsForIntake } from "@/app/actions/generate-drafts"
 import * as Sentry from "@sentry/nextjs"
-import { getPostHogClient, trackIntakeFunnelStep } from "@/lib/posthog-server"
+import { getPostHogClient, trackIntakeFunnelStep } from "@/lib/analytics/posthog-server"
 import type { WebhookContext, HandlerResult } from "./types"
 import { tryClaimEvent, recordEventError, addToDeadLetterQueue } from "./utils"
 

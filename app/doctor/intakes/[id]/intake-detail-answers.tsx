@@ -14,7 +14,7 @@ import {
   Mail,
 } from "lucide-react"
 import { ClinicalSummary } from "@/components/doctor/clinical-summary"
-import { formatIntakeStatus, formatServiceType } from "@/lib/format-intake"
+import { formatIntakeStatus, formatServiceType } from "@/lib/format/intake"
 import { formatDateLong, formatDate } from "@/lib/format"
 import type { IntakeWithDetails, IntakeWithPatient } from "@/types/db"
 

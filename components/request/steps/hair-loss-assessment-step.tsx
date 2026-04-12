@@ -7,11 +7,11 @@ import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Switch } from "@/components/ui/switch"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { MedicalHistoryToggles } from "@/components/request/shared/medical-history-toggles"
 import { cn } from "@/lib/utils"
 import { useRequestStore } from "../store"
-import { useKeyboardNavigation } from "@/hooks/use-keyboard-navigation"
+import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 
 interface HairLossAssessmentStepProps {
@@ -253,23 +253,11 @@ export default function HairLossAssessmentStep({ onNext }: HairLossAssessmentSte
         <p className="text-xs text-muted-foreground -mt-1">
           Toggle on any treatments you have previously used.
         </p>
-        <div className="space-y-2">
-          {PREVIOUS_TREATMENTS.map((treatment) => (
-            <div
-              key={treatment.key}
-              className="flex items-center justify-between gap-3 p-3 rounded-xl border bg-muted/30"
-            >
-              <Label htmlFor={treatment.key} className="text-sm cursor-pointer leading-snug flex-1">
-                {treatment.label}
-              </Label>
-              <Switch
-                id={treatment.key}
-                checked={answers[treatment.key] === true}
-                onCheckedChange={(checked) => setAnswer(treatment.key, checked)}
-              />
-            </div>
-          ))}
-        </div>
+        <MedicalHistoryToggles
+          items={PREVIOUS_TREATMENTS}
+          values={answers}
+          onChange={(key, checked) => setAnswer(key, checked)}
+        />
       </div>
 
       )}
@@ -354,23 +342,11 @@ export default function HairLossAssessmentStep({ onNext }: HairLossAssessmentSte
         <p className="text-xs text-muted-foreground -mt-1">
           Toggle on any that apply.
         </p>
-        <div className="space-y-2">
-          {SCALP_CONDITIONS.map((condition) => (
-            <div
-              key={condition.key}
-              className="flex items-center justify-between gap-3 p-3 rounded-xl border bg-muted/30"
-            >
-              <Label htmlFor={condition.key} className="text-sm cursor-pointer leading-snug flex-1">
-                {condition.label}
-              </Label>
-              <Switch
-                id={condition.key}
-                checked={answers[condition.key] === true}
-                onCheckedChange={(checked) => setAnswer(condition.key, checked)}
-              />
-            </div>
-          ))}
-        </div>
+        <MedicalHistoryToggles
+          items={SCALP_CONDITIONS}
+          values={answers}
+          onChange={(key, checked) => setAnswer(key, checked)}
+        />
       </div>
 
       )}

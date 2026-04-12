@@ -30,7 +30,6 @@ import {
   ArrowRight,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -42,9 +41,10 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
+import { SwitchField } from "@/components/request/shared/medical-history-toggles"
 import { cn } from "@/lib/utils"
 import { useRequestStore } from "../store"
-import { useKeyboardNavigation } from "@/hooks/use-keyboard-navigation"
+import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 
 // ---------------------------------------------------------------------------
@@ -61,37 +61,6 @@ interface EdHealthStepProps {
 // ---------------------------------------------------------------------------
 // Helper components
 // ---------------------------------------------------------------------------
-
-/** Toggle switch in a styled container row */
-function SwitchField({
-  id,
-  label,
-  checked,
-  onChange,
-  helpText,
-}: {
-  id: string
-  label: string
-  checked: boolean
-  onChange: (checked: boolean) => void
-  helpText?: string
-}) {
-  return (
-    <div className="flex items-center justify-between gap-3 p-3 rounded-xl border bg-muted/30">
-      <Label htmlFor={id} className="text-sm cursor-pointer leading-snug flex-1">
-        {label}
-        {helpText && (
-          <span className="block text-xs text-muted-foreground mt-0.5">{helpText}</span>
-        )}
-      </Label>
-      <Switch
-        id={id}
-        checked={checked}
-        onCheckedChange={onChange}
-      />
-    </div>
-  )
-}
 
 /** Section completion indicator shown in accordion triggers */
 function SectionComplete({ complete }: { complete: boolean }) {

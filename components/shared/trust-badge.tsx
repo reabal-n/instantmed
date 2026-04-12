@@ -18,7 +18,7 @@ import { Lock } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/tooltip'
 import { useReducedMotion } from '@/components/ui/motion'
-import { BADGE_REGISTRY, BADGE_PRESETS, resolveEntry, type BadgeId, type BadgeVariant, type PresetEntry, type BadgeConfig } from '@/lib/trust-badges'
+import { BADGE_REGISTRY, BADGE_PRESETS, resolveEntry, type BadgeId, type BadgeVariant, type PresetEntry, type BadgeConfig } from '@/lib/marketing/trust-badges'
 import { getPatientCount } from '@/lib/social-proof'
 
 // ── Shared pill wrapper ──────────────────────────────────────────────

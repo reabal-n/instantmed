@@ -8,7 +8,7 @@ import { Users, TrendingUp, CheckCircle2, Clock, Star, ShieldCheck, Send } from 
 import { cn } from '@/lib/utils'
 import NumberFlow from '@number-flow/react'
 import { SOCIAL_PROOF } from '@/lib/social-proof'
-import { usePatientCount } from '@/lib/use-patient-count'
+import { usePatientCount } from '@/lib/hooks/use-patient-count'
 
 // ── Stat presets - centralized social proof stats per service ────────
 export interface StatEntry {

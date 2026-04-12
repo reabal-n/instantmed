@@ -2,38 +2,19 @@
 
 import Link from "next/link"
 import dynamic from "next/dynamic"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion } from "framer-motion"
 import { useReducedMotion } from "@/components/ui/motion"
-import { useCallback, useEffect, useRef, useState } from "react"
 import {
   ArrowRight,
-  CheckCircle2,
-  ChevronDown,
-  AlertCircle,
-  Phone,
-  Users,
   Clock,
+  Users,
   Star,
   ShieldCheck,
-  Gift,
   ClipboardList,
   Stethoscope,
   FileCheck,
 } from "lucide-react"
-import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { MagneticButton } from "@/components/ui/magnetic-button"
-import { DoctorAvailabilityPill } from "@/components/shared/doctor-availability-pill"
-import { RotatingText } from "@/components/marketing/rotating-text"
-import { ConsultChatMockup } from "@/components/marketing/mockups/consult-chat-mockup"
-import { PricingSection } from "@/components/marketing/sections/pricing-section"
-import { LiveWaitTime } from "@/components/marketing/live-wait-time"
-import { Navbar } from "@/components/shared/navbar"
-import { MarketingFooter } from "@/components/marketing/footer"
-import { ContentHubLinks } from "@/components/seo/content-hub-links"
-import { ReturningPatientBanner } from "@/components/shared/returning-patient-banner"
-import { MarketingPageShell } from "@/components/shared/marketing-page-shell"
-import { RegulatoryPartners } from "@/components/marketing/media-mentions"
 import { FAQList } from "@/components/ui/faq-list"
 import { PRICING, CONTACT_EMAIL } from "@/lib/constants"
 import { SOCIAL_PROOF, SOCIAL_PROOF_DISPLAY } from "@/lib/social-proof"
@@ -42,10 +23,25 @@ import {
   getTestimonialsByService,
   getTestimonialsForColumns,
 } from "@/lib/data/testimonials"
-import { useServiceAvailability } from "@/components/providers/service-availability-provider"
-import { useLandingAnalytics } from "@/hooks/use-landing-analytics"
+import {
+  LandingPageShell,
+  ReferralStrip,
+  SocialProofStrip,
+  RecentActivityTicker,
+  RelatedArticles,
+  type LandingPageConfig,
+  type SocialProofStat,
+} from "@/components/marketing/shared"
+import { LiveWaitTime } from "@/components/marketing/live-wait-time"
+import { PricingSection } from "@/components/marketing/sections/pricing-section"
+import { ComparisonBar } from "@/components/marketing/shared/data-viz"
+import { SectionPill } from "@/components/ui/section-pill"
+import { ContentHubLinks } from "@/components/seo/content-hub-links"
 
-// Below-fold lazy loads - keep initial bundle small
+// Hero is above-fold - not lazy loaded
+import { GeneralConsultHeroSection } from "@/components/marketing/heroes/general-consult-hero"
+
+// Below-fold lazy loads
 const TestimonialsSection = dynamic(
   () => import("@/components/marketing/sections/testimonials-section").then((m) => m.TestimonialsSection),
   { loading: () => <div className="min-h-[500px]" /> },
@@ -74,17 +70,14 @@ const FinalCtaSection = dynamic(
   () => import("@/components/marketing/sections/final-cta-section").then((m) => m.FinalCtaSection),
   { loading: () => <div className="min-h-[300px]" /> },
 )
+const RegulatoryPartners = dynamic(
+  () => import("@/components/marketing/media-mentions").then((m) => m.RegulatoryPartners),
+  { loading: () => <div className="min-h-[120px]" /> },
+)
 
 // =============================================================================
 // DATA
 // =============================================================================
-
-const ROTATING_BADGES = [
-  "AHPRA registered doctors",
-  "Medication if needed",
-  "Same-day response",
-  "Full refund if we can\u2019t help",
-]
 
 const PRICING_FEATURES = [
   "Full clinical assessment by an AHPRA-registered GP",
@@ -95,7 +88,7 @@ const PRICING_FEATURES = [
   "Written summary of your consultation",
 ]
 
-const SOCIAL_PROOF_STATS = [
+const SOCIAL_PROOF_STATS: SocialProofStat[] = [
   { icon: Clock, value: 2, suffix: " hrs", label: "avg response", color: "text-primary" },
   { icon: Star, value: SOCIAL_PROOF.averageRating, suffix: "/5", label: "patient rating", color: "text-amber-500", decimals: 1 },
   { icon: Users, value: 100, suffix: "%", label: "AHPRA verified", color: "text-success" },
@@ -134,387 +127,28 @@ const HOW_IT_WORKS_STEPS = [
   },
 ]
 
-const RELATED_ARTICLES = [
+const RELATED_ARTICLES_DATA = [
   { title: "When to See a Doctor Online vs In Person", href: "/blog/online-vs-in-person-doctor" },
   { title: "What to Expect from a Telehealth Consultation", href: "/blog/telehealth-consultation-guide" },
   { title: "Getting Referrals Through Telehealth", href: "/blog/telehealth-referrals" },
 ]
 
-// =============================================================================
-// SMALL COMPONENTS
-// =============================================================================
-
-/** Closing time countdown - shows "Closes in Xh Ym" during operating hours */
-function ClosingCountdown() {
-  const [label, setLabel] = useState<string | null>(null)
-
-  useEffect(() => {
-    function update() {
-      const now = new Date()
-      const aestOffset = 10 * 60
-      const utc = now.getTime() + now.getTimezoneOffset() * 60_000
-      const aest = new Date(utc + aestOffset * 60_000)
-      const hour = aest.getHours()
-      const minute = aest.getMinutes()
-
-      const openHour = SOCIAL_PROOF.operatingHoursStart
-      const closeHour = SOCIAL_PROOF.operatingHoursEnd
-
-      if (hour < openHour) {
-        const minsUntilOpen = (openHour - hour) * 60 - minute
-        const h = Math.floor(minsUntilOpen / 60)
-        const m = minsUntilOpen % 60
-        setLabel(`Opens in ${h}h ${m}m`)
-      } else if (hour >= closeHour) {
-        setLabel("Opens at 8am AEST")
-      } else {
-        const minsUntilClose = (closeHour - hour) * 60 - minute
-        if (minsUntilClose <= 120) {
-          const h = Math.floor(minsUntilClose / 60)
-          const m = minsUntilClose % 60
-          setLabel(h > 0 ? `Closes in ${h}h ${m}m` : `Closes in ${m}m`)
-        } else {
-          setLabel(null)
-        }
-      }
-    }
-
-    update()
-    const interval = setInterval(update, 60_000)
-    return () => clearInterval(interval)
-  }, [])
-
-  if (!label) return null
-
-  return (
-    <span className="inline-flex items-center gap-1 text-xs font-medium text-amber-600 dark:text-amber-400">
-      <Clock className="h-3 w-3 shrink-0" />
-      {label}
-    </span>
-  )
-}
-
-/** Live activity ticker - rotates through recent consult completions */
-function RecentActivityTicker() {
-  const [index, setIndex] = useState(0)
-  const prefersReducedMotion = useReducedMotion()
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setIndex((prev) => (prev + 1) % RECENT_ACTIVITY_ENTRIES.length)
-    }, 4000)
-    return () => clearInterval(interval)
-  }, [])
-
-  const entry = RECENT_ACTIVITY_ENTRIES[index]
-
-  return (
-    <div
-      aria-live="polite"
-      className="flex items-center justify-center gap-2 py-3 text-xs text-muted-foreground"
-    >
-      <CheckCircle2 className="h-3.5 w-3.5 text-success shrink-0" />
-      <div className="relative h-5 overflow-hidden">
-        <AnimatePresence mode="wait">
-          <motion.span
-            key={index}
-            className="block leading-5"
-            initial={prefersReducedMotion ? {} : { y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={prefersReducedMotion ? {} : { opacity: 0, y: -8 }}
-            transition={{ duration: 0.25 }}
-          >
-            {entry.name} from {entry.city} completed their consult {entry.minutesAgo} min ago
-          </motion.span>
-        </AnimatePresence>
-      </div>
-    </div>
-  )
-}
-
-/** Day-of-week contextual hero message - time-aware copy near hero CTA */
-function ContextualMessage() {
-  const [message, setMessage] = useState<string | null>(null)
-
-  useEffect(() => {
-    const now = new Date()
-    const aestOffset = 10 * 60
-    const utc = now.getTime() + now.getTimezoneOffset() * 60_000
-    const aest = new Date(utc + aestOffset * 60_000)
-    const hour = aest.getHours()
-    const day = aest.getDay()
-
-    if (day === 1 && hour < 12) {
-      setMessage("Waiting weeks for a GP? Most consults are completed same day.")
-    } else if (day === 0 && hour >= 17) {
-      setMessage("Start tonight \u2014 doctor typically responds by Monday morning.")
-    } else if (day >= 1 && day <= 5 && hour >= 18) {
-      setMessage("Too late for a GP? We\u2019re open until 10pm AEST, seven days.")
-    } else if ((day === 0 || day === 6) && hour >= 8 && hour < 17) {
-      setMessage("Weekend and your GP is closed? We\u2019re open right now.")
-    } else {
-      setMessage(null)
-    }
-  }, [])
-
-  if (!message) return null
-
-  return (
-    <p className="text-xs text-muted-foreground italic mt-1">
-      {message}
-    </p>
-  )
-}
-
-/** Animated number counter */
-function AnimatedStat({ value, suffix, decimals = 0 }: { value: number; suffix: string; decimals?: number }) {
-  const [displayed, setDisplayed] = useState(value)
-  const [hasAnimated, setHasAnimated] = useState(false)
-  const ref = useRef<HTMLSpanElement>(null)
-  const prefersReducedMotion = useReducedMotion()
-
-  useEffect(() => {
-    const el = ref.current
-    if (!el || hasAnimated) return
-
-    const rect = el.getBoundingClientRect()
-    if (rect.top < window.innerHeight && rect.bottom > 0) {
-      setHasAnimated(true)
-      return
-    }
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setHasAnimated(true)
-          observer.disconnect()
-
-          if (prefersReducedMotion) return
-
-          setDisplayed(0)
-          const duration = 1200
-          const start = performance.now()
-          const animate = (now: number) => {
-            const progress = Math.min((now - start) / duration, 1)
-            const eased = 1 - Math.pow(1 - progress, 3)
-            setDisplayed(eased * value)
-            if (progress < 1) requestAnimationFrame(animate)
-          }
-          requestAnimationFrame(animate)
-        }
-      },
-      { threshold: 0.5 }
-    )
-    observer.observe(el)
-    return () => observer.disconnect()
-  }, [value, hasAnimated, prefersReducedMotion])
-
-  const formatted = decimals > 0
-    ? displayed.toFixed(decimals)
-    : Math.round(displayed).toLocaleString()
-
-  return (
-    <span ref={ref}>
-      {formatted}{suffix}
-    </span>
-  )
+const LANDING_CONFIG: LandingPageConfig = {
+  serviceId: "consult",
+  analyticsId: "consult",
+  sticky: {
+    ctaText: `Start your consult \u2014 $${PRICING.CONSULT.toFixed(2)}`,
+    ctaHref: "/request?service=consult",
+    mobileSummary: `Need to see a doctor? Open ${SOCIAL_PROOF_DISPLAY.operatingHours} AEST.`,
+    desktopLabel: `General Consult \u00b7 Open ${SOCIAL_PROOF_DISPLAY.operatingHours} AEST \u00b7 7 days`,
+    priceLabel: `From $${PRICING.CONSULT.toFixed(2)}`,
+    desktopCtaText: "Start your consult",
+  },
 }
 
 // =============================================================================
-// SECTION COMPONENTS
+// UNIQUE SECTIONS
 // =============================================================================
-
-/** Social proof stats strip */
-function SocialProofStrip() {
-  const prefersReducedMotion = useReducedMotion()
-  const animate = !prefersReducedMotion
-
-  return (
-    <section aria-label="Social proof statistics" className="py-8 border-y border-border/30 dark:border-white/10 bg-muted/50">
-      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-        <motion.div
-          className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8"
-          initial={animate ? { y: 10 } : {}}
-          whileInView={animate ? { opacity: 1, y: 0 } : undefined}
-          viewport={{ once: true }}
-          transition={{ duration: 0.4 }}
-        >
-          {SOCIAL_PROOF_STATS.map((stat, i) => (
-            <motion.div
-              key={stat.label}
-              className="flex items-center gap-3"
-              initial={animate ? { y: 10 } : {}}
-              whileInView={animate ? { opacity: 1, y: 0 } : undefined}
-              viewport={{ once: true }}
-              transition={{ duration: 0.3, delay: i * 0.08 }}
-            >
-              <stat.icon className={cn("w-5 h-5 shrink-0", stat.color)} />
-              <div>
-                <p className="text-lg font-semibold text-foreground leading-tight">
-                  <AnimatedStat value={stat.value} suffix={stat.suffix} decimals={stat.decimals} />
-                </p>
-                <p className="text-xs text-muted-foreground">{stat.label}</p>
-              </div>
-            </motion.div>
-          ))}
-        </motion.div>
-      </div>
-    </section>
-  )
-}
-
-/** Section: Hero with consult mockup + embedded trust signals */
-function HeroSection({
-  ctaRef,
-  onCTAClick,
-  isDisabled,
-}: {
-  ctaRef?: React.RefObject<HTMLDivElement>
-  onCTAClick?: () => void
-  isDisabled?: boolean
-}) {
-  const prefersReducedMotion = useReducedMotion()
-  const animate = !prefersReducedMotion
-
-  return (
-    <section aria-label="General consultation service overview" className="relative overflow-hidden pt-8 pb-10 sm:pt-16 sm:pb-20 lg:pt-20 lg:pb-24">
-      <div className="mx-auto max-w-5xl px-6 sm:px-8 lg:px-10">
-        <div className="flex flex-col lg:flex-row items-center lg:gap-12 xl:gap-14">
-          {/* Text content */}
-          <div className="flex-1 min-w-0 text-center lg:text-left">
-            {/* Doctor availability pill */}
-            <motion.div
-              className="flex justify-center lg:justify-start mb-4 sm:mb-8"
-              initial={animate ? { y: -10 } : {}}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4 }}
-            >
-              <DoctorAvailabilityPill />
-            </motion.div>
-
-            {/* Headline - plain h1 with CSS animation so LCP text is visible on first paint */}
-            <h1
-              className="text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight mb-3 sm:mb-6 leading-[1.15] animate-hero-headline"
-            >
-              Talk to a doctor today.{" "}
-              <br className="hidden sm:block" />
-              <span className="text-premium-gradient">
-                From your phone.
-              </span>
-            </h1>
-
-            {/* Subheadline */}
-            <motion.p
-              className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-3 sm:mb-4 leading-relaxed text-balance"
-              initial={animate ? { y: 12 } : {}}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.1 }}
-            >
-              A full clinical assessment with an AHPRA-registered GP.
-              Medication, referrals, and medical advice - without the waiting room.
-            </motion.p>
-
-            {/* Rotating secondary proof badge */}
-            <motion.div
-              className="flex justify-center lg:justify-start mb-6"
-              initial={{}}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.4, delay: 0.15 }}
-            >
-              <div className="inline-flex items-center gap-1.5 text-xs font-medium text-primary/80 dark:text-primary/70">
-                <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-primary" />
-                <RotatingText texts={ROTATING_BADGES} interval={3000} />
-              </div>
-            </motion.div>
-
-            {/* CTA */}
-            <motion.div
-              ref={ctaRef}
-              className="flex flex-col sm:flex-row items-center gap-3 justify-center lg:justify-start mb-6"
-              initial={animate ? { y: 12 } : {}}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.12 }}
-            >
-              <MagneticButton>
-                <Button
-                  asChild
-                  size="lg"
-                  className="px-8 h-12 text-base font-semibold shadow-md shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 transition-all active:scale-[0.98]"
-                  onClick={onCTAClick}
-                  disabled={isDisabled}
-                >
-                  <Link href={isDisabled ? "/contact" : "/request?service=consult"}>
-                    {isDisabled ? "Contact us" : `Start your consult \u2014 $${PRICING.CONSULT.toFixed(2)}`}
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
-                </Button>
-              </MagneticButton>
-              <div className="flex flex-col items-center lg:items-start gap-0.5">
-                <p className="text-xs text-muted-foreground">
-                  {SOCIAL_PROOF_DISPLAY.gpComparisonComplex} visit
-                </p>
-                <p className="text-xs text-muted-foreground flex items-center gap-1">
-                  <Clock className="h-3 w-3 shrink-0" />
-                  Open today {SOCIAL_PROOF_DISPLAY.operatingHours} AEST &middot; 7 days
-                </p>
-                <ClosingCountdown />
-                <ContextualMessage />
-              </div>
-            </motion.div>
-
-            {/* Trust signals */}
-            <motion.div
-              className="hidden sm:flex flex-col gap-2"
-              initial={{}}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-            >
-              <p className="text-xs sm:text-sm text-muted-foreground flex items-center justify-center lg:justify-start gap-2">
-                <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-                <span>
-                  AHPRA-registered doctors &middot; Medication &amp; referrals if needed
-                  &middot; Full refund if we can&apos;t help
-                </span>
-              </p>
-              <div className="flex justify-center lg:justify-start">
-                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/5 border border-primary/20 text-xs font-medium text-primary/80 dark:bg-primary/10 dark:border-primary/30 dark:text-primary/70">
-                  <Phone className="h-3.5 w-3.5 shrink-0" />
-                  Doctor calls when needed
-                </div>
-              </div>
-            </motion.div>
-
-            {/* Secondary anchor CTA - desktop only */}
-            <motion.div
-              className="hidden sm:flex justify-center lg:justify-start mt-4"
-              initial={{}}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.45 }}
-            >
-              <a
-                href="#how-it-works"
-                className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
-              >
-                See how it works
-                <ChevronDown className="h-3.5 w-3.5" />
-              </a>
-            </motion.div>
-          </div>
-
-          {/* Hero product mockup - desktop only */}
-          <div className="hidden lg:block relative shrink-0 mt-0">
-            <ConsultChatMockup />
-          </div>
-
-          {/* Mobile mockup - compact, below text content */}
-          <div className="lg:hidden mt-8 w-full max-w-sm mx-auto">
-            <ConsultChatMockup compact />
-          </div>
-        </div>
-      </div>
-    </section>
-  )
-}
 
 /** How It Works - inline 3-step section */
 function HowItWorksInline({ onCTAClick, isDisabled }: { onCTAClick?: () => void; isDisabled?: boolean }) {
@@ -524,7 +158,6 @@ function HowItWorksInline({ onCTAClick, isDisabled }: { onCTAClick?: () => void;
   return (
     <section id="how-it-works" aria-label="How it works" className="py-20 lg:py-24 scroll-mt-20">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-        {/* Header */}
         <motion.div
           className="text-center mb-12"
           initial={animate ? { y: 20 } : {}}
@@ -540,7 +173,6 @@ function HowItWorksInline({ onCTAClick, isDisabled }: { onCTAClick?: () => void;
           </p>
         </motion.div>
 
-        {/* Steps */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-6 lg:gap-10 mb-12">
           {HOW_IT_WORKS_STEPS.map((step, i) => (
             <motion.div
@@ -551,7 +183,6 @@ function HowItWorksInline({ onCTAClick, isDisabled }: { onCTAClick?: () => void;
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: i * 0.1 }}
             >
-              {/* Step number + icon */}
               <div className="flex items-center gap-3 mb-3">
                 <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary/10 text-primary">
                   <step.icon className="w-5 h-5" />
@@ -567,7 +198,6 @@ function HowItWorksInline({ onCTAClick, isDisabled }: { onCTAClick?: () => void;
           ))}
         </div>
 
-        {/* CTA after steps */}
         <motion.div
           className="flex justify-center"
           initial={animate ? { y: 10 } : {}}
@@ -593,53 +223,11 @@ function HowItWorksInline({ onCTAClick, isDisabled }: { onCTAClick?: () => void;
   )
 }
 
-/** Related blog articles - internal links for SEO */
-function RelatedArticles() {
-  return (
-    <section aria-label="Related articles" className="py-12 lg:py-16">
-      <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-        <h2 className="text-sm font-medium text-muted-foreground mb-4 text-center">
-          Related reading
-        </h2>
-        <div className="flex flex-wrap justify-center gap-3">
-          {RELATED_ARTICLES.map((article) => (
-            <Link
-              key={article.href}
-              href={article.href}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white dark:bg-card border border-border/30 dark:border-white/15 text-sm text-foreground hover:border-primary/30 hover:shadow-sm transition-all"
-            >
-              {article.title}
-              <ArrowRight className="h-3 w-3 text-muted-foreground" />
-            </Link>
-          ))}
-        </div>
-      </div>
-    </section>
-  )
-}
-
 // =============================================================================
 // MAIN PAGE COMPONENT
 // =============================================================================
 
 export function GeneralConsultLanding() {
-  const isDisabled = useServiceAvailability().isServiceDisabled("consult")
-  const heroCTARef = useRef<HTMLDivElement>(null)
-  const [showStickyCTA, setShowStickyCTA] = useState(false)
-  const prefersReducedMotion = useReducedMotion()
-  const analytics = useLandingAnalytics("consult")
-
-  useEffect(() => {
-    const el = heroCTARef.current
-    if (!el) return
-    const observer = new IntersectionObserver(
-      ([entry]) => setShowStickyCTA(!entry.isIntersecting),
-      { threshold: 0 }
-    )
-    observer.observe(el)
-    return () => observer.disconnect()
-  }, [])
-
   // Testimonials data - service-specific with fallback
   const serviceTestimonials = getTestimonialsByService("consultation")
   const columnsData = serviceTestimonials.slice(0, 9).map((t) => ({
@@ -655,72 +243,77 @@ export function GeneralConsultLanding() {
       ? columnsData
       : getTestimonialsForColumns().slice(0, 9)
 
-  // CTA click handlers with analytics
-  const handleHeroCTA = useCallback(() => analytics.trackCTAClick("hero"), [analytics])
-  const handleHowItWorksCTA = useCallback(() => analytics.trackCTAClick("how_it_works"), [analytics])
-  const handleFinalCTA = useCallback(() => analytics.trackCTAClick("final_cta"), [analytics])
-  const handleStickyCTA = useCallback(() => analytics.trackCTAClick("sticky_mobile"), [analytics])
-  const handleFAQOpen = useCallback((question: string, index: number) => analytics.trackFAQOpen(question, index), [analytics])
-
   return (
-    <MarketingPageShell>
-      <div className="min-h-screen overflow-x-hidden">
-        {/* Temporarily unavailable banner */}
-        {isDisabled && (
-          <div className="sticky top-0 z-40 mx-4 mt-2 mb-0 rounded-2xl border border-warning-border bg-warning-light px-4 py-3 flex items-center gap-3">
-            <AlertCircle className="h-5 w-5 text-warning shrink-0" />
-            <div>
-              <p className="text-sm font-medium text-warning">
-                This service is temporarily unavailable.
-              </p>
-              <p className="text-xs text-amber-700 dark:text-amber-200">
-                We&apos;ll be back soon.{" "}
-                <a
-                  href={`mailto:${CONTACT_EMAIL}`}
-                  className="underline hover:no-underline"
-                >
-                  Contact us
-                </a>{" "}
-                if you have questions.
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Returning patient recognition */}
-        <ReturningPatientBanner className="mx-4 mt-2" />
-
-        <Navbar variant="marketing" />
-
-        <main className="relative">
+    <LandingPageShell
+      config={LANDING_CONFIG}
+      afterFooter={
+        <>
+          <ContentHubLinks service="consult" />
+          <RelatedArticles articles={RELATED_ARTICLES_DATA} />
+        </>
+      }
+    >
+      {({ isDisabled, heroCTARef, handleHeroCTA, handleHowItWorksCTA, handleFinalCTA, handleFAQOpen, prefersReducedMotion }) => (
+        <>
           {/* 1. Hero */}
-          <HeroSection ctaRef={heroCTARef} onCTAClick={handleHeroCTA} isDisabled={isDisabled} />
+          <GeneralConsultHeroSection ctaRef={heroCTARef} onCTAClick={handleHeroCTA} isDisabled={isDisabled} />
 
           {/* Live wait time */}
           <LiveWaitTime variant="strip" services={["consult"]} />
 
           {/* Recent activity ticker */}
-          <RecentActivityTicker />
+          <RecentActivityTicker
+            entries={RECENT_ACTIVITY_ENTRIES}
+            messageTemplate="{name} from {city} completed their consult {minutesAgo} min ago"
+          />
 
           {/* Social proof stats */}
-          <SocialProofStrip />
+          <SocialProofStrip stats={SOCIAL_PROOF_STATS} />
 
           {/* Expect a call reassurance */}
           <ExpectCallStrip />
 
-          {/* 2. How It Works - inline 3-step */}
+          {/* 2. How It Works */}
           <HowItWorksInline onCTAClick={handleHowItWorksCTA} isDisabled={isDisabled} />
 
-          {/* Common concerns - what you can consult about */}
-          <CommonConcernsSection />
+          {/* Common concerns */}
+          <div className="bg-muted/30 dark:bg-white/[0.02]">
+            <CommonConcernsSection />
+          </div>
 
-          {/* Specialised consults - hair loss, weight loss, etc. */}
-          <SpecialisedConsultsSection />
+          {/* Response time comparison */}
+          <section className="py-12 lg:py-16 px-4 sm:px-6">
+            <div className="mx-auto max-w-xl">
+              <div className="text-center mb-6">
+                <SectionPill>Why go online?</SectionPill>
+              </div>
+              <div className="rounded-2xl bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-md shadow-primary/[0.06] dark:shadow-none p-6">
+                <ComparisonBar
+                  us={{
+                    label: "InstantMed",
+                    value: "~2 hours",
+                    subtext: "Online assessment, no appointment needed",
+                  }}
+                  them={{
+                    label: "GP clinic visit",
+                    value: "3+ hours",
+                    subtext: "Book, travel, wait, face-to-face consult",
+                  }}
+                  ratio={0.35}
+                />
+              </div>
+            </div>
+          </section>
 
-          {/* Doctor profile - trust signal */}
+          {/* Specialised consults */}
+          <div className="bg-muted/30 dark:bg-white/[0.02]">
+            <SpecialisedConsultsSection />
+          </div>
+
+          {/* Doctor profile */}
           <DoctorProfileSection />
 
-          {/* Pre-qualify before pricing - reduces bad-fit conversions */}
+          {/* Pre-qualify before pricing */}
           <ConsultLimitationsSection />
 
           {/* 3. Pricing */}
@@ -746,11 +339,13 @@ export function GeneralConsultLanding() {
           />
 
           {/* 4. Testimonials */}
+          <div className="bg-muted/30 dark:bg-white/[0.02]">
           <TestimonialsSection
             testimonials={testimonialsForColumns}
             title="What patients say"
             subtitle="Real reviews from Australians who\u2019ve used our service"
           />
+          </div>
 
           {/* Regulatory Partners - Medicare excluded */}
           <RegulatoryPartners className="py-12" exclude={["Medicare"]} />
@@ -804,102 +399,13 @@ export function GeneralConsultLanding() {
             </div>
           </section>
 
-          {/* Referral awareness strip */}
-          <div className="py-6 border-t border-border/30 dark:border-white/10">
-            <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 text-center">
-              <p className="text-sm text-muted-foreground">
-                <Gift className="inline h-4 w-4 mr-1.5 text-primary align-text-bottom" />
-                Know someone who could use a doctor?{" "}
-                <Link href="/patient" className="text-primary underline underline-offset-2 hover:no-underline font-medium">
-                  Refer a friend
-                </Link>
-                {" "}- you both get $5 off.
-              </p>
-            </div>
-          </div>
+          {/* Referral strip */}
+          <ReferralStrip contextText="who could use a doctor" />
 
           {/* 6. Final CTA */}
           <FinalCtaSection onCTAClick={handleFinalCTA} />
-        </main>
-
-        <MarketingFooter />
-
-        {/* Content hub cross-links - distributes PageRank to condition/symptom/guide pages */}
-        <ContentHubLinks service="consult" />
-
-        {/* Related articles - SEO internal linking, after footer */}
-        <RelatedArticles />
-
-
-        {/* Sticky mobile CTA - bottom drawer, appears after hero scrolls out */}
-        <motion.div
-          className="fixed bottom-0 left-0 right-0 z-50 lg:hidden"
-          initial={prefersReducedMotion ? {} : { y: 100 }}
-          animate={prefersReducedMotion
-            ? { opacity: showStickyCTA ? 1 : 0 }
-            : { y: showStickyCTA ? 0 : 100 }
-          }
-          transition={{ duration: 0.3, ease: "easeOut" }}
-          aria-hidden={!showStickyCTA}
-        >
-          <div className="bg-white/90 dark:bg-card/90 backdrop-blur-lg border-t border-border/50 px-4 pt-2.5 pb-3 safe-area-pb">
-            <p className="text-xs text-muted-foreground text-center mb-2">
-              Need to see a doctor? Open {SOCIAL_PROOF_DISPLAY.operatingHours} AEST.
-            </p>
-            <Button
-              asChild
-              size="lg"
-              className="w-full h-12 text-base font-semibold shadow-md shadow-primary/20"
-              disabled={isDisabled}
-              onClick={handleStickyCTA}
-            >
-              <Link href={isDisabled ? "/contact" : "/request?service=consult"}>
-                {isDisabled
-                  ? "Contact us"
-                  : `Start your consult \u2014 $${PRICING.CONSULT.toFixed(2)}`}
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-          </div>
-        </motion.div>
-
-        {/* Sticky desktop CTA - top bar, appears after hero scrolls out */}
-        <motion.div
-          className="hidden lg:block fixed top-0 left-0 right-0 z-40"
-          initial={prefersReducedMotion ? {} : { y: -60 }}
-          animate={prefersReducedMotion
-            ? { opacity: showStickyCTA ? 1 : 0 }
-            : { y: showStickyCTA ? 0 : -60, opacity: showStickyCTA ? 1 : 0 }
-          }
-          transition={{ duration: 0.3, ease: "easeOut" }}
-          aria-hidden={!showStickyCTA}
-        >
-          <div className="bg-white/95 dark:bg-card/95 backdrop-blur-lg border-b border-border/50 shadow-sm">
-            <div className="mx-auto max-w-5xl px-6 h-14 flex items-center justify-between gap-6">
-              <p className="text-sm text-muted-foreground hidden xl:block">
-                General Consult &middot; Open {SOCIAL_PROOF_DISPLAY.operatingHours} AEST &middot; 7 days
-              </p>
-              <div className="flex items-center gap-3 ml-auto">
-                <span className="text-sm text-muted-foreground">
-                  From <span className="font-semibold text-foreground">${PRICING.CONSULT.toFixed(2)}</span>
-                </span>
-                <Button
-                  asChild
-                  size="sm"
-                  className="h-9 px-5 font-semibold shadow-sm shadow-primary/20"
-                  disabled={isDisabled}
-                  onClick={handleStickyCTA}
-                >
-                  <Link href={isDisabled ? "/contact" : "/request?service=consult"}>
-                    {isDisabled ? "Contact us" : "Start your consult"}
-                    <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
-                  </Link>
-                </Button>
-              </div>
-            </div>
-          </div>
-        </motion.div>
-      </div>
-    </MarketingPageShell>
+        </>
+      )}
+    </LandingPageShell>
   )
 }

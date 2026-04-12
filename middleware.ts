@@ -47,20 +47,22 @@ export default async function middleware(req: NextRequest) {
     return NextResponse.redirect(url, 301)
   }
 
-  // Block dev routes in production and preview
+  // Block dev routes in production and preview.
+  // Use 410 Gone (not 404) so Google permanently drops these from its crawl queue.
+  // A 404 means "might come back" — Google retries. A 410 means "stop wasting crawl budget."
   const isVercelProdOrPreview = process.env.VERCEL_ENV === "production" || process.env.VERCEL_ENV === "preview"
   const isE2ETest = process.env.PLAYWRIGHT === "1"
   if (pathname.startsWith("/api/test") && isVercelProdOrPreview && !isE2ETest) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 })
+    return NextResponse.json({ error: "Gone" }, { status: 410 })
   }
   if (pathname.startsWith("/email-preview") && isVercelProdOrPreview && !isE2ETest) {
-    return NextResponse.redirect(new URL("/", req.url), 302)
+    return NextResponse.json({ error: "Gone" }, { status: 410 })
   }
   if (pathname.startsWith("/sentry-test") && isVercelProdOrPreview && !isE2ETest) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 })
+    return NextResponse.json({ error: "Gone" }, { status: 410 })
   }
   if (pathname.startsWith("/cert-preview") && isVercelProdOrPreview && !isE2ETest) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 })
+    return NextResponse.json({ error: "Gone" }, { status: 410 })
   }
 
   // Skip auth for E2E tests with valid test cookie

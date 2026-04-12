@@ -1,59 +1,222 @@
 "use client"
 
+import { useState, useMemo, useRef } from "react"
 import Link from "next/link"
+import { Search, X } from "lucide-react"
 import { FAQSchema } from "@/components/seo/healthcare-schema"
-import { Navbar } from "@/components/shared/navbar"
-import { MarketingFooter } from "@/components/marketing"
-import { CenteredHero } from "@/components/heroes"
 import { AccordionSection, CTABanner } from "@/components/sections"
+import { InformationalPageShell } from "@/components/marketing/shared/informational-page-shell"
+import { LiveWaitTime } from "@/components/marketing/live-wait-time"
+import { RelatedArticles } from "@/components/marketing/shared/related-articles"
+import { cn } from "@/lib/utils"
 import { GENERAL_FAQ } from "@/lib/data/general-faq"
 
-/* ────────────────────────────── Component ────────────────────────────── */
+// ---------------------------------------------------------------------------
+// Data
+// ---------------------------------------------------------------------------
+
+const CATEGORIES = GENERAL_FAQ.map((g) => g.category).filter((c): c is string => !!c)
+const TOTAL_QUESTIONS = GENERAL_FAQ.reduce((sum, g) => sum + g.items.length, 0)
+
+const RELATED_ARTICLES = [
+  { title: "How InstantMed Works", href: "/how-it-works" },
+  { title: "Medical Certificates Guide", href: "/medical-certificate" },
+  { title: "Understanding eScripts", href: "/blog/understanding-escripts-australia" },
+]
+
+const FAQ_CONFIG = {
+  analyticsId: "faq" as const,
+  sticky: false as const,
+}
+
+// ---------------------------------------------------------------------------
+// Component
+// ---------------------------------------------------------------------------
 
 export default function FAQPage() {
-  // Flat list for schema.org structured data
+  const [searchQuery, setSearchQuery] = useState("")
+  const [activeCategory, setActiveCategory] = useState<string | null>(null)
+  const searchRef = useRef<HTMLInputElement>(null)
+
+  // Filter FAQ groups by search query and active category
+  const filteredGroups = useMemo(() => {
+    let groups = GENERAL_FAQ
+
+    // Filter by category
+    if (activeCategory) {
+      groups = groups.filter((g) => g.category === activeCategory)
+    }
+
+    // Filter by search
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase()
+      groups = groups
+        .map((g) => ({
+          ...g,
+          items: g.items.filter(
+            (item) =>
+              item.question.toLowerCase().includes(q) ||
+              item.answer.toLowerCase().includes(q)
+          ),
+        }))
+        .filter((g) => g.items.length > 0)
+    }
+
+    return groups
+  }, [searchQuery, activeCategory])
+
+  const totalFiltered = filteredGroups.reduce(
+    (sum, g) => sum + g.items.length,
+    0
+  )
+
+  // Flat list for schema
   const allFaqs = GENERAL_FAQ.flatMap((group) => group.items)
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <FAQSchema faqs={allFaqs} />
-      <Navbar variant="marketing" />
+    <InformationalPageShell
+      config={FAQ_CONFIG}
+      afterFooter={<RelatedArticles articles={RELATED_ARTICLES} />}
+    >
+      {({ handleFAQOpen: _handleFAQOpen }) => (
+        <>
+          <FAQSchema faqs={allFaqs} />
 
-      <main className="flex-1">
-        {/* Hero */}
-        <CenteredHero
-          pill="Help Centre"
-          title="Got questions? We've got answers."
-          highlightWords={["answers"]}
-          subtitle="Everything you need to know about InstantMed."
-        >
-          <p className="text-sm text-muted-foreground">
-            Can&apos;t find your answer?{" "}
-            <Link
-              href="/contact"
-              className="text-primary hover:underline font-medium"
-            >
-              Get in touch
-            </Link>
-          </p>
-        </CenteredHero>
+          {/* Hero with search */}
+          <section className="pt-16 sm:pt-24 pb-8 sm:pb-12 px-4">
+            <div className="mx-auto max-w-2xl text-center">
+              <p className="inline-flex items-center rounded-full border border-border/60 bg-background px-4 py-1.5 text-xs font-medium text-foreground/70 shadow-sm shadow-primary/[0.04] mb-6">
+                Help Centre
+              </p>
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight text-foreground mb-4">
+                Got questions? We&apos;ve got answers.
+              </h1>
+              <p className="text-muted-foreground mb-2">
+                Everything you need to know about InstantMed.
+              </p>
+              <p className="text-xs text-muted-foreground/70 mb-8">
+                {TOTAL_QUESTIONS} questions across {CATEGORIES.length} topics
+              </p>
 
-        {/* FAQ Sections - 7 categories with accordion */}
-        <AccordionSection
-          groups={GENERAL_FAQ}
-          hideHeader
-        />
+              {/* Search input */}
+              <div className="relative max-w-md mx-auto">
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/50" />
+                <input
+                  ref={searchRef}
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search questions..."
+                  className={cn(
+                    "w-full pl-10 pr-10 py-3 rounded-xl text-sm",
+                    "bg-white dark:bg-card border border-border/50 dark:border-white/15",
+                    "shadow-sm shadow-primary/[0.04] dark:shadow-none",
+                    "placeholder:text-muted-foreground/40",
+                    "focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30",
+                    "transition-shadow"
+                  )}
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => {
+                      setSearchQuery("")
+                      searchRef.current?.focus()
+                    }}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/50 hover:text-muted-foreground transition-colors"
+                    aria-label="Clear search"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+            </div>
+          </section>
 
-        {/* CTA */}
-        <CTABanner
-          title="Still have questions?"
-          subtitle="Our support team is here to help - reach out anytime."
-          ctaText="Contact Support"
-          ctaHref="/contact"
-        />
-      </main>
+          {/* Category pill navigation */}
+          <div className="overflow-x-auto px-4 pb-6 -mt-2">
+            <div className="flex items-center justify-center gap-2 min-w-max mx-auto">
+              <button
+                onClick={() => setActiveCategory(null)}
+                className={cn(
+                  "text-xs px-3 py-1.5 rounded-full border transition-colors whitespace-nowrap",
+                  !activeCategory
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-muted/50 text-muted-foreground border-border/50 hover:bg-muted"
+                )}
+              >
+                All topics
+              </button>
+              {CATEGORIES.map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() =>
+                    setActiveCategory(activeCategory === cat ? null : cat)
+                  }
+                  className={cn(
+                    "text-xs px-3 py-1.5 rounded-full border transition-colors whitespace-nowrap",
+                    activeCategory === cat
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-muted/50 text-muted-foreground border-border/50 hover:bg-muted"
+                  )}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+          </div>
 
-      <MarketingFooter />
-    </div>
+          {/* Search results count */}
+          {(searchQuery || activeCategory) && (
+            <p className="text-center text-xs text-muted-foreground mb-4 px-4">
+              {totalFiltered === 0
+                ? "No questions match your search."
+                : `Showing ${totalFiltered} question${totalFiltered === 1 ? "" : "s"}`}
+              {activeCategory && (
+                <>
+                  {" "}
+                  in <span className="font-medium">{activeCategory}</span>
+                </>
+              )}
+            </p>
+          )}
+
+          {/* FAQ Sections */}
+          {filteredGroups.length > 0 ? (
+            <AccordionSection
+              groups={filteredGroups}
+              hideHeader
+            />
+          ) : (
+            <div className="py-16 text-center px-4">
+              <p className="text-muted-foreground mb-4">
+                No results for &ldquo;{searchQuery}&rdquo;
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Try a different search, or{" "}
+                <Link
+                  href="/contact"
+                  className="text-primary hover:underline font-medium"
+                >
+                  contact us directly
+                </Link>
+              </p>
+            </div>
+          )}
+
+          {/* Need live help? */}
+          <div className="bg-muted/30 dark:bg-white/[0.02]">
+            <LiveWaitTime variant="strip" />
+          </div>
+
+          {/* CTA */}
+          <CTABanner
+            title="Still have questions?"
+            subtitle="Our support team is here to help. Reach out anytime."
+            ctaText="Contact Support"
+            ctaHref="/contact"
+          />
+        </>
+      )}
+    </InformationalPageShell>
   )
 }

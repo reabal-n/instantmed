@@ -13,7 +13,7 @@ import { PricingSection as StandalonePricingSection } from '@/components/marketi
 import { TestimonialsSection } from '@/components/marketing/sections/testimonials-section'
 import { getTestimonialsByService, getTestimonialsForColumns } from '@/lib/data/testimonials'
 import { ReturningPatientBanner } from '@/components/shared/returning-patient-banner'
-import { MarketingPageShell } from '@/components/shared/marketing-page-shell'
+import { MarketingPageShell } from '@/components/marketing/marketing-page-shell'
 import { ImageTextSplit } from '@/components/sections'
 import { CONTACT_EMAIL } from '@/lib/constants'
 
@@ -168,7 +168,7 @@ export function ServiceFunnelPage({ config, isDisabled, children }: ServiceFunne
 
       {/* Stats + Media Mentions */}
       <StatsStrip className="bg-muted/20 dark:bg-muted/10 border-y border-border/30" />
-      <MediaMentions variant="strip" className="bg-muted/10 dark:bg-muted/5" />
+      <MediaMentions className="bg-muted/10 dark:bg-muted/5" />
 
       {/* Optional deep content (guide sections, E-E-A-T) */}
       {children}

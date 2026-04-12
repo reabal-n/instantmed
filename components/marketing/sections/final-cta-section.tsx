@@ -11,6 +11,17 @@ import { PRICING } from "@/lib/constants"
 // COMPONENT
 // =============================================================================
 
+interface FinalCtaSectionProps {
+  onCTAClick?: () => void
+  title?: string
+  subtitle?: string
+  ctaText?: string
+  ctaHref?: string
+  price?: number
+  /** Optional testimonial mini-quote below the CTA */
+  testimonial?: { quote: string; name: string }
+}
+
 /** Section 7: Final CTA */
 export function FinalCtaSection({
   onCTAClick,
@@ -19,14 +30,8 @@ export function FinalCtaSection({
   ctaText = "Get your certificate",
   ctaHref = "/request?service=med-cert",
   price = PRICING.MED_CERT,
-}: {
-  onCTAClick?: () => void
-  title?: string
-  subtitle?: string
-  ctaText?: string
-  ctaHref?: string
-  price?: number
-}) {
+  testimonial,
+}: FinalCtaSectionProps) {
   const prefersReducedMotion = useReducedMotion()
 
   return (
@@ -60,6 +65,17 @@ export function FinalCtaSection({
           <p className="mt-1 text-muted-foreground text-xs">
             Takes about 2 minutes &middot; Full refund if we can&apos;t help
           </p>
+
+          {testimonial && (
+            <div className="mt-8 pt-6 border-t border-border/20 max-w-md mx-auto">
+              <p className="text-sm text-foreground/70 italic leading-relaxed">
+                &ldquo;{testimonial.quote}&rdquo;
+              </p>
+              <p className="mt-2 text-xs text-muted-foreground font-medium">
+                {testimonial.name}
+              </p>
+            </div>
+          )}
         </motion.div>
       </div>
     </section>

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { getPatientCountFromDB } from "@/lib/social-proof-server"
+import { getPatientCountFromDB } from "@/lib/social-proof/server"
 
 /**
  * GET /api/patient-count

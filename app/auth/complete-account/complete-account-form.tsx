@@ -15,8 +15,6 @@ export function CompleteAccountForm({
 }: {
   intakeId?: string
   email?: string
-  /** @deprecated sessionId is kept for backwards compatibility but no longer used */
-  sessionId?: string
 }) {
   const router = useRouter()
   const { isSignedIn, isLoaded } = useAuth()

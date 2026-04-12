@@ -2,7 +2,7 @@
 
 import type { IntakeWithDetails, IntakeWithPatient } from "@/types/db"
 import type { AIDraft } from "@/app/actions/draft-approval"
-import { useDoctorShortcuts } from "@/hooks/use-doctor-shortcuts"
+import { useDoctorShortcuts } from "@/lib/hooks/use-doctor-shortcuts"
 import { IntakeDetailHeader } from "./intake-detail-header"
 import { useIntakeDialogs } from "./use-intake-dialogs"
 import { IntakeDetailAnswers } from "./intake-detail-answers"

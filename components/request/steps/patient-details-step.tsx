@@ -26,7 +26,7 @@ import { FormField } from "../form-field"
 import { getSavedIdentity, saveIdentity } from "@/lib/request/preferences"
 import { validateEmail, validatePhone, validateDOB, validateName } from "@/lib/request/validation"
 import { validateMedicareNumber, formatMedicareNumber } from "@/lib/validation/medicare"
-import { useKeyboardNavigation } from "@/hooks/use-keyboard-navigation"
+import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
 import { setEnhancedConversionsData } from "@/lib/analytics/conversion-tracking"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 

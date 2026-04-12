@@ -20,7 +20,7 @@ import {
   Eye,
 } from "lucide-react"
 import { SOCIAL_PROOF } from "@/lib/social-proof"
-import { usePatientCount } from "@/lib/use-patient-count"
+import { usePatientCount } from "@/lib/hooks/use-patient-count"
 import { getFeaturedTestimonials } from "@/lib/data/testimonials"
 import NumberFlow from "@number-flow/react"
 import { useSyncExternalStore } from "react"

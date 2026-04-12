@@ -10,7 +10,7 @@ import {
   generateSessionToken,
   type PlaceSuggestion,
 } from "@/lib/google-places/client"
-import { useDebounce } from "@/hooks/use-debounce"
+import { useDebounce } from "@/lib/hooks/use-debounce"
 
 export interface AddressComponents {
   streetNumber: string

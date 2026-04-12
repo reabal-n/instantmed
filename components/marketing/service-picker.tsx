@@ -11,12 +11,14 @@ import { Button } from '@/components/ui/button'
 import { useServiceAvailability, type ServiceId } from '@/components/providers/service-availability-provider'
 import { CertificateMockup } from '@/components/marketing/mockups/certificate'
 import { EScriptMockup } from '@/components/marketing/mockups/escript'
+import { ConsultChatMockup } from '@/components/marketing/mockups/consult-chat-mockup'
 import { EDHeroMockup } from '@/components/marketing/mockups/ed-hero-mockup'
 import { HairLossHeroMockup } from '@/components/marketing/mockups/hair-loss-hero-mockup'
 
 const mockupMap: Record<string, React.ComponentType> = {
   'med-cert': CertificateMockup,
   'scripts': EScriptMockup,
+  'consult': ConsultChatMockup,
   'ed': EDHeroMockup,
   'hair-loss': HairLossHeroMockup,
 }
@@ -98,7 +100,7 @@ export function ServicePicker() {
 
         {/* Service Cards Grid */}
         <motion.div 
-          className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4"
+          className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4"
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"

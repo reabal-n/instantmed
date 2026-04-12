@@ -12,7 +12,7 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { getIntakeWithDetails } from "@/lib/data/intakes"
 import { getApiAuth } from "@/lib/auth"
 import { createLogger } from "@/lib/observability/logger"
-import { getPostHogClient } from "@/lib/posthog-server"
+import { getPostHogClient } from "@/lib/analytics/posthog-server"
 import { getCertificateForIntake, logCertificateEvent } from "@/lib/data/issued-certificates"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 const log = createLogger("route")

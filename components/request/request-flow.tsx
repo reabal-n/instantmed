@@ -27,7 +27,7 @@ import { Button } from "@/components/ui/button"
 import { StepRouter } from "./step-router"
 import { ServiceHubScreen } from "./service-hub-screen"
 import { useRequestStore } from "./store"
-import { useKeyboardNavigation } from "@/hooks/use-keyboard-navigation"
+import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
 import { ConnectionBanner } from "./connection-banner"
 import { ProgressBar } from "@/components/request/progress-bar"
 import { AutoSaveIndicator } from "@/components/request/auto-save-indicator"
@@ -882,7 +882,6 @@ export function RequestFlow({
               serviceType={effectiveService}
               currentStepId={currentStepId}
               componentPath={currentStep.componentPath}
-              direction={direction}
               onNext={handleNext}
               onBack={handleBack}
               onComplete={handleComplete}

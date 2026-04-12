@@ -295,7 +295,7 @@ export default async function AudiencePage({ params }: PageProps) {
 
           <LiveWaitTime variant="strip" services={["med-cert"]} />
           <StatsStrip className="bg-muted/20 border-y border-border/30" />
-          <MediaMentions variant="strip" className="bg-muted/30" />
+          <MediaMentions className="bg-muted/30" />
         </main>
 
         <MarketingFooter />

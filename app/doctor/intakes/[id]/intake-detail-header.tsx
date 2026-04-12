@@ -40,7 +40,7 @@ import {
 import { INTAKE_STATUS, type IntakeStatus as StatusType } from "@/lib/status"
 import { CertificatePreviewDialog, type CertificatePreviewData } from "@/components/doctor/certificate-preview-dialog"
 import { PdfViewerDialog } from "@/components/doctor/pdf-viewer-dialog"
-import { formatIntakeStatus } from "@/lib/format-intake"
+import { formatIntakeStatus } from "@/lib/format/intake"
 import type { IntakeWithDetails, IntakeStatus, DeclineReasonCode } from "@/types/db"
 import type { IntakeDialogState } from "./use-intake-dialogs"
 import { SERVICE_TYPES } from "@/lib/doctor/service-types"

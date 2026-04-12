@@ -76,7 +76,13 @@ export function ComparisonTable({
             <span className="flex justify-center">
               {typeof item.us === "boolean" ? (
                 item.us ? (
-                  <Check className="h-5 w-5 text-success" />
+                  <motion.span
+                    initial={prefersReducedMotion ? {} : { scale: 0 }}
+                    animate={prefersReducedMotion ? {} : isInView ? { scale: 1 } : undefined}
+                    transition={{ duration: 0.25, delay: i * 0.08 + 0.15, ease: "easeOut" }}
+                  >
+                    <Check className="h-5 w-5 text-success" />
+                  </motion.span>
                 ) : (
                   <X className="h-5 w-5 text-destructive" />
                 )

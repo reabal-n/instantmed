@@ -14,8 +14,6 @@ const regulatoryPartners = [
 ]
 
 interface RegulatoryPartnersProps {
-  /** @deprecated - always renders as marquee now */
-  variant?: 'strip' | 'section'
   className?: string
   /** Logo names to exclude */
   exclude?: string[]

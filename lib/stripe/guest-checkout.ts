@@ -12,7 +12,7 @@ import { isControlledSubstance } from "@/lib/clinical/intake-validation"
 import { CONTACT_EMAIL } from "@/lib/constants"
 import { getAppUrl } from "@/lib/env"
 import { checkSafetyForServer, validateSafetyFieldsPresent } from "@/lib/safety/evaluate"
-import { trackSafetyOutcome, trackSafetyBlock, trackIntakeFunnelStep } from "@/lib/posthog-server"
+import { trackSafetyOutcome, trackSafetyBlock, trackIntakeFunnelStep } from "@/lib/analytics/posthog-server"
 import {
   logRequestCreated,
   logTermsConsentGiven,

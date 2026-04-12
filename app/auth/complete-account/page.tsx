@@ -54,7 +54,7 @@ export default async function CompleteAccountPage({
               <Skeleton className="h-12 w-full rounded-full" />
             </div>
           }>
-            <CompleteAccountForm intakeId={intakeId} email={email} sessionId={params.session_id} />
+            <CompleteAccountForm intakeId={intakeId} email={email} />
           </Suspense>
         </div>
       </main>

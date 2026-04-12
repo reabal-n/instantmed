@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { FileText, Clock, CheckCircle } from "lucide-react"
 import { ClinicalSummary } from "@/components/doctor/clinical-summary"
-import { formatServiceType } from "@/lib/format-intake"
+import { formatServiceType } from "@/lib/format/intake"
 import { useIntakeReview } from "@/components/doctor/review/intake-review-context"
 
 export function RequestInfoCard() {

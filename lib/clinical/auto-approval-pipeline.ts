@@ -18,7 +18,7 @@ import { getAbsenceDays } from "@/lib/stripe/price-mapping"
 import { SYSTEM_AUTO_APPROVE_ID } from "@/lib/constants"
 import { prepareDoctorNotesWrite } from "@/lib/security/phi-field-wrappers"
 import * as Sentry from "@sentry/nextjs"
-import { getPostHogClient } from "@/lib/posthog-server"
+import { getPostHogClient } from "@/lib/analytics/posthog-server"
 import { sendTelegramAlert, escapeMarkdownValue } from "@/lib/notifications/telegram"
 import {
   claimForProcessing, markApproved,

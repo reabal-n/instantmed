@@ -14,14 +14,36 @@ import { ReturningPatientBanner } from '@/components/shared/returning-patient-ba
 import { getFeatureFlags } from '@/lib/feature-flags'
 import { CTABanner } from '@/components/sections'
 import { FAQSection } from '@/components/sections'
-import { MarketingPageShell } from '@/components/shared/marketing-page-shell'
+import { MarketingPageShell } from '@/components/marketing/marketing-page-shell'
 // After-hours banner removed - redundant with DoctorAvailabilityPill in hero
 import { ServiceCards } from '@/components/marketing/service-cards'
 import { SocialProofSection } from '@/components/marketing/social-proof-section'
 import { RegulatoryPartners } from '@/components/marketing/media-mentions'
-import { ComplianceMarquee } from '@/components/shared/compliance-marquee'
+import { ComplianceMarquee } from '@/components/marketing/compliance-marquee'
 import { TrustBadgeRow } from '@/components/shared/trust-badge'
+import { ScrollingLogoMarquee } from '@/components/marketing/shared/scrolling-logo-marquee'
+import { ComparisonBar } from '@/components/marketing/shared/data-viz'
 import { PRICING_DISPLAY } from '@/lib/constants'
+
+const EMPLOYER_LOGOS = [
+  { name: 'Woolworths', src: '/logos/woolworths.png' },
+  { name: 'Coles', src: '/logos/coles.png' },
+  { name: 'Commonwealth Bank', src: '/logos/commonwealthbank.png' },
+  { name: 'ANZ', src: '/logos/ANZ.png' },
+  { name: 'NAB', src: '/logos/nab.png' },
+  { name: 'Westpac', src: '/logos/westpac.png' },
+  { name: 'BHP', src: '/logos/BHP.png' },
+  { name: 'Telstra', src: '/logos/telstra.png' },
+  { name: 'JB Hi-Fi', src: '/logos/jbhifi.png' },
+  { name: "McDonald's", src: '/logos/mcdonalds.png' },
+  { name: 'Bunnings', src: '/logos/bunnings.png' },
+  { name: 'Amazon', src: '/logos/amazon.png' },
+  { name: 'Qantas', src: '/logos/qantas.svg' },
+  { name: 'Deloitte', src: '/logos/deloitte.svg' },
+  { name: 'PwC', src: '/logos/pwc.svg' },
+  { name: 'KPMG', src: '/logos/kpmg.svg' },
+  { name: 'Bupa', src: '/logos/bupa.svg' },
+]
 
 export const revalidate = 3600
 
@@ -127,16 +149,53 @@ export default async function HomePage() {
         {/* 2. Service cards - what we offer */}
         <ServiceCards />
 
-        {/* 2.5 Regulatory authority logos - scrolling B&W marquee */}
+        {/* Employer logo marquee - credibility signal */}
+        <ScrollingLogoMarquee
+          logos={EMPLOYER_LOGOS}
+          heading="Trusted by employees at"
+          speed="slow"
+          tooltipPrefix="Used by"
+          analyticsEvent="homepage_employer_marquee"
+        />
+
+        {/* 2.5 Regulatory authority logos */}
         <RegulatoryPartners />
 
-        {/* 3. How it works - 3 steps */}
-        <Suspense fallback={<SectionSkeleton />}>
-          <HowItWorks />
-        </Suspense>
+        {/* 3. How it works - muted bg for rhythm */}
+        <div className="bg-muted/30 dark:bg-white/[0.02]">
+          <Suspense fallback={<SectionSkeleton />}>
+            <HowItWorks />
+          </Suspense>
+        </div>
 
-        {/* 4. Social proof - reviews, doctor credibility, stats */}
-        <SocialProofSection />
+        {/* 3.5 Time comparison data viz */}
+        <section className="py-12 lg:py-16">
+          <div className="mx-auto max-w-xl px-4 sm:px-6">
+            <p className="text-center text-xs font-semibold uppercase tracking-widest text-muted-foreground/50 mb-6">
+              Why go online?
+            </p>
+            <div className="rounded-2xl bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-md shadow-primary/[0.06] dark:shadow-none p-6">
+              <ComparisonBar
+                us={{
+                  label: 'InstantMed',
+                  value: '~30 min',
+                  subtext: 'Average turnaround for medical certificates',
+                }}
+                them={{
+                  label: 'GP clinic visit',
+                  value: '2+ hours',
+                  subtext: 'Travel + wait + consult + admin',
+                }}
+                ratio={0.25}
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* 4. Social proof - muted bg for rhythm */}
+        <div className="bg-muted/30 dark:bg-white/[0.02]">
+          <SocialProofSection />
+        </div>
 
         {/* 5. FAQs */}
         <FAQSection
@@ -147,7 +206,7 @@ export default async function HomePage() {
           viewAllHref="/faq"
         />
 
-        {/* 5.5 Pre-CTA friction removal - prominent */}
+        {/* 5.5 Pre-CTA friction removal */}
         <div className="py-6 sm:py-8">
           <p className="text-[10px] font-semibold text-muted-foreground/40 text-center mb-3 uppercase tracking-[0.15em]">
             No barriers

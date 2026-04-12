@@ -10,7 +10,7 @@
 
 import { createLogger } from "@/lib/observability/logger"
 import * as Sentry from "@sentry/nextjs"
-import { getPostHogClient } from "@/lib/posthog-server"
+import { getPostHogClient } from "@/lib/analytics/posthog-server"
 import { sendTelegramAlert, escapeMarkdownValue } from "@/lib/notifications/telegram"
 import { SYSTEM_AUTO_APPROVE_ID } from "@/lib/constants"
 

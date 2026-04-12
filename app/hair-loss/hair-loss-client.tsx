@@ -30,7 +30,7 @@ import {
 } from "@/components/sections";
 import { scrollRevealConfig, useReducedMotion } from "@/components/ui/motion";
 import { RegulatoryPartners } from "@/components/marketing";
-import { MarketingPageShell } from "@/components/shared/marketing-page-shell";
+import { MarketingPageShell } from "@/components/marketing/marketing-page-shell";
 import { DoctorCredibility } from "@/components/marketing/doctor-credibility";
 import { getTestimonialsByService, getTestimonialsForColumns } from "@/lib/data/testimonials"
 import { TestimonialsSection } from "@/components/marketing/sections/testimonials-section";

@@ -12,7 +12,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { DOCTOR_SHORTCUTS } from "@/hooks/use-doctor-shortcuts"
+import { DOCTOR_SHORTCUTS } from "@/lib/hooks/use-doctor-shortcuts"
 import { cn } from "@/lib/utils"
 
 interface KeyboardShortcutsModalProps {

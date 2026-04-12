@@ -1,157 +1,246 @@
-'use client'
+"use client"
 
 import Image from "next/image"
-import { Navbar } from "@/components/shared/navbar"
-import { MarketingFooter, StatsStrip } from "@/components/marketing"
-import { MediaMentions } from "@/components/marketing/media-mentions"
-import { DoctorCredibility } from "@/components/marketing/doctor-credibility"
-import { ComplianceBar } from "@/components/shared/compliance-marquee"
-import { CenteredHero } from "@/components/heroes"
-import {
-  ImageTextSplit,
-  FAQSection,
-  CTABanner,
-} from "@/components/sections"
+import { ShieldCheck, Lock, Accessibility, Eye } from "lucide-react"
 import { FAQSchema } from "@/components/seo/healthcare-schema"
+import { FAQSection, CTABanner, FeatureGrid } from "@/components/sections"
+import { InformationalPageShell } from "@/components/marketing/shared/informational-page-shell"
+import { EditorialStoryBlock } from "@/components/marketing/shared/editorial-story-block"
+import { TestimonialCard } from "@/components/marketing/shared/testimonial-card"
+import { AnimatedDonutChart, ComparisonBar } from "@/components/marketing/shared/data-viz"
+import { ScrollingLogoMarquee } from "@/components/marketing/shared/scrolling-logo-marquee"
 import { AboutGuideSection } from "@/components/marketing/sections/about-guide-section"
+import { SOCIAL_PROOF } from "@/lib/social-proof"
+import { usePatientCount } from "@/lib/hooks/use-patient-count"
 
 // =============================================================================
-// FAQ DATA
+// DATA
 // =============================================================================
+
+const ABOUT_CONFIG = {
+  analyticsId: "about" as const,
+  sticky: false as const,
+}
 
 const ABOUT_FAQS = [
   {
-    q: "What is InstantMed?",
-    a: "InstantMed is an Australian telehealth platform that connects patients with AHPRA-registered doctors for medical certificates, repeat prescriptions, and consultations. Everything is handled online through structured clinical forms - no phone calls or video chats required for most requests.",
+    question: "What is InstantMed?",
+    answer:
+      "InstantMed is an Australian telehealth platform that connects patients with AHPRA-registered doctors for medical certificates, repeat prescriptions, and consultations. Everything is handled online through structured clinical forms.",
   },
   {
-    q: "Is InstantMed a real medical practice?",
-    a: "Yes. InstantMed is operated by registered medical practitioners with AHPRA oversight and Medical Director governance. Certificates and prescriptions issued through InstantMed carry the same legal standing as those from any other medical practice in Australia.",
+    question: "Is InstantMed a real medical practice?",
+    answer:
+      "Yes. InstantMed is operated by registered medical practitioners with AHPRA oversight and Medical Director governance. Certificates and prescriptions issued through InstantMed carry the same legal standing as those from any other medical practice in Australia.",
   },
   {
-    q: "Where is InstantMed based?",
-    a: "InstantMed is based at Level 1/457-459 Elizabeth Street, Surry Hills NSW 2010. All doctors on the platform are Australian-based and AHPRA-registered.",
+    question: "Where is InstantMed based?",
+    answer:
+      "InstantMed is based at Level 1/457-459 Elizabeth Street, Surry Hills NSW 2010. All doctors on the platform are Australian-based and AHPRA-registered.",
   },
   {
-    q: "Is InstantMed covered by Medicare?",
-    a: "InstantMed service fees are not Medicare rebateable as we are a private telehealth service. However, any medications prescribed through our platform may be eligible for PBS (Pharmaceutical Benefits Scheme) subsidies at your pharmacy.",
+    question: "Is InstantMed covered by Medicare?",
+    answer:
+      "InstantMed service fees are not Medicare rebateable as we are a private telehealth service. However, any medications prescribed through our platform may be eligible for PBS (Pharmaceutical Benefits Scheme) subsidies at your pharmacy.",
   },
   {
-    q: "What services does InstantMed offer?",
-    a: "We offer medical certificates (for work, university, and carer's leave), repeat prescriptions for stable medications, general consultations, and specialised pathways for hair loss, weight management, and men's and women's health.",
+    question: "What services does InstantMed offer?",
+    answer:
+      "We offer medical certificates (for work, university, and carer's leave), repeat prescriptions for stable medications, general consultations, and specialised pathways for hair loss, weight management, and men's and women's health.",
   },
   {
-    q: "How does InstantMed protect my privacy?",
-    a: "All personal health information is encrypted using AES-256-GCM encryption and stored on Australian servers. We comply with the Privacy Act 1988 and all 13 Australian Privacy Principles. We don't sell or share your data with third parties.",
+    question: "How does InstantMed protect my privacy?",
+    answer:
+      "All personal health information is encrypted using AES-256-GCM encryption and stored on Australian servers. We comply with the Privacy Act 1988 and all 13 Australian Privacy Principles. We don't sell or share your data with third parties.",
   },
-] as const
+]
+
+const VALUES = [
+  {
+    icon: <ShieldCheck className="h-5 w-5" />,
+    title: "Clinical rigour",
+    description:
+      "Every request is reviewed by an AHPRA-registered GP following evidence-based protocols. We never automate clinical decisions.",
+  },
+  {
+    icon: <Lock className="h-5 w-5" />,
+    title: "Privacy first",
+    description:
+      "AES-256-GCM encryption, Australian-hosted servers, full compliance with the Privacy Act and all 13 APPs.",
+  },
+  {
+    icon: <Accessibility className="h-5 w-5" />,
+    title: "Accessible care",
+    description:
+      "24/7 medical certificates. No phone calls or video chats for most requests. Healthcare that fits around your life.",
+  },
+  {
+    icon: <Eye className="h-5 w-5" />,
+    title: "Full transparency",
+    description:
+      "Flat fees, no hidden costs. Full refund if we can't help. You'll always know exactly what you're paying for.",
+  },
+]
+
+const REGULATORY_LOGOS = [
+  { name: "AHPRA", src: "/logos/ahpra.svg" },
+  { name: "RACGP", src: "/logos/racgp.svg" },
+  { name: "TGA", src: "/logos/tga.svg" },
+  { name: "LegitScript", src: "/logos/legitscript.svg" },
+]
+
+// =============================================================================
+// COMPONENT
+// =============================================================================
 
 export function AboutClient() {
+  const patientCount = usePatientCount()
   const faqSchemaItems = ABOUT_FAQS.map((f) => ({
-    question: f.q,
-    answer: f.a,
+    question: f.question,
+    answer: f.answer,
   }))
 
-  const faqItems = ABOUT_FAQS.map((f) => ({ question: f.q, answer: f.a }))
-
   return (
-    <div className="flex min-h-screen flex-col">
-      <FAQSchema faqs={faqSchemaItems} />
-      <Navbar variant="marketing" />
+    <InformationalPageShell config={ABOUT_CONFIG}>
+      {() => (
+        <>
+          <FAQSchema faqs={faqSchemaItems} />
 
-      <main className="flex-1 pt-20">
-        {/* Hero */}
-        <CenteredHero
-          pill="About InstantMed"
-          title="Healthcare shouldn't be hard"
-          subtitle="We connect Australians with AHPRA-registered doctors for medical certificates, prescriptions, and consultations. Fast, simple, legitimate."
-        />
-
-        {/* Our Story */}
-        <ImageTextSplit
-          title="Our Story"
-          description="InstantMed was built to make everyday healthcare simpler. We believe getting a medical certificate or renewing a prescription shouldn't require taking half a day off work or sitting in a waiting room when you're already unwell."
-          imageSrc="https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=800&q=80"
-          imageAlt="Modern telehealth consultation"
-          imagePosition="left"
-        >
-          <div className="space-y-3 text-sm text-muted-foreground leading-relaxed">
-            <p>
-              We asked ourselves: why can&apos;t straightforward healthcare be more accessible? For
-              things like medical certificates and repeat prescriptions, there&apos;s a better way - one
-              that respects your time without compromising on care.
-            </p>
-            <p>
-              So we built InstantMed. A platform that connects you with real, AHPRA-registered Australian doctors
-              who can review your requests quickly and professionally - all without the hassle of phone calls, video
-              chats, or waiting rooms.
-            </p>
-          </div>
-        </ImageTextSplit>
-
-        {/* Long-form narrative - who we are, how we work, clinical standards, privacy */}
-        <AboutGuideSection />
-
-        {/* Doctor quote */}
-        <section className="px-4 pb-12">
-          <div className="mx-auto max-w-2xl">
-            <blockquote className="rounded-2xl border border-border/50 dark:border-white/15 bg-white dark:bg-card shadow-md shadow-primary/[0.06] dark:shadow-none p-6">
-              <p className="text-muted-foreground italic mb-4">
-                &ldquo;I review every request as if the patient were sitting in front of me. Just because it&apos;s online doesn&apos;t mean the standard of care is any different. If I have concerns or questions, I follow up. Patient safety always comes first.&rdquo;
+          {/* Hero - clean mission statement */}
+          <section className="pt-16 sm:pt-24 pb-8 sm:pb-12 px-4">
+            <div className="mx-auto max-w-2xl text-center">
+              <p className="inline-flex items-center rounded-full border border-border/60 bg-background px-4 py-1.5 text-xs font-medium text-foreground/70 shadow-sm shadow-primary/[0.04] mb-6">
+                About InstantMed
               </p>
-              <div className="flex items-center gap-3">
-                <div className="relative w-12 h-12 rounded-full overflow-hidden ring-2 ring-success/20 bg-muted">
-                  <Image
-                    src="https://api.dicebear.com/7.x/notionists/svg?seed=MedDirector"
-                    alt="Our Medical Director"
-                    fill
-                    className="object-cover"
-                    unoptimized
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight text-foreground mb-4">
+                Healthcare shouldn&apos;t require rearranging your day.
+              </h1>
+              <p className="text-muted-foreground text-balance max-w-lg mx-auto">
+                We connect Australians with AHPRA-registered doctors for
+                medical certificates, prescriptions, and consultations.
+                Fast, simple, legitimate.
+              </p>
+            </div>
+          </section>
+
+          {/* Origin story with stat callouts */}
+          <EditorialStoryBlock
+            pill="Our story"
+            title="Why we built InstantMed"
+            blocks={[
+              {
+                type: "paragraph",
+                content:
+                  "Average wait times for a non-urgent GP appointment sit at two to three weeks in most Australian capital cities. For a straightforward medical certificate or repeat prescription, that means taking a sick day to prove you need a sick day.",
+              },
+              {
+                type: "stat-callout",
+                value: `${patientCount.toLocaleString()}+`,
+                label: "Australians have used InstantMed",
+              },
+              {
+                type: "paragraph",
+                content:
+                  "We built InstantMed to address a specific, well-defined problem: common healthcare tasks that don't require a physical examination. Medical certificates for a cold. Repeat prescriptions for stable medications. Straightforward consultations where a structured online form captures the clinical information just as effectively as a rushed five-minute appointment.",
+              },
+              {
+                type: "pull-quote",
+                quote:
+                  "We're not trying to reinvent healthcare. We're just pointing out that you shouldn't need to take a sick day to prove you need a sick day.",
+              },
+            ]}
+          />
+
+          {/* Data viz section */}
+          <div className="bg-muted/30 dark:bg-white/[0.02]">
+            <section className="py-12 lg:py-16">
+              <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+                <div className="grid sm:grid-cols-2 gap-8 items-center">
+                  <div className="flex justify-center">
+                    <AnimatedDonutChart
+                      value={SOCIAL_PROOF.certApprovalPercent}
+                      label="Request approval rate"
+                      size={140}
+                      strokeWidth={12}
+                    />
+                  </div>
+                  <ComparisonBar
+                    us={{
+                      label: "InstantMed",
+                      value: "~30 min",
+                      subtext: "Average certificate delivery",
+                    }}
+                    them={{
+                      label: "GP clinic visit",
+                      value: "2+ hours",
+                      subtext: "Travel + wait + consult + admin",
+                    }}
+                    ratio={0.25}
                   />
                 </div>
-                <div>
-                  <p className="font-medium text-foreground text-sm">Our Medical Director</p>
-                  <p className="text-xs text-muted-foreground">MBBS FRACGP, AHPRA Registered</p>
-                </div>
               </div>
-            </blockquote>
+            </section>
           </div>
-        </section>
 
-        {/* Doctor Stats */}
-        <DoctorCredibility
-          variant="inline"
-          stats={["experience", "approval", "sameDay", "reviews"]}
-          className="max-w-3xl mx-auto px-4 sm:px-6 pb-8"
-        />
+          {/* Values grid */}
+          <FeatureGrid
+            pill="Our values"
+            title="What we stand for"
+            subtitle="Four principles that guide every clinical decision we make."
+            features={VALUES}
+            columns={2}
+          />
 
-        {/* Compliance Bar */}
-        <ComplianceBar />
+          {/* Doctor quote - editorial testimonial card */}
+          <section className="px-4 py-8 sm:py-12">
+            <div className="mx-auto max-w-2xl">
+              <TestimonialCard
+                variant="editorial"
+                testimonial={{
+                  name: "Our Medical Director",
+                  quote:
+                    "I review every request as if the patient were sitting in front of me. Just because it's online doesn't mean the standard of care is any different. If I have concerns or questions, I follow up. Patient safety always comes first.",
+                  avatar:
+                    "https://api.dicebear.com/7.x/notionists/svg?seed=MedDirector",
+                  location: "MBBS FRACGP, AHPRA Registered",
+                }}
+              />
+            </div>
+          </section>
 
-        {/* Stats */}
-        <StatsStrip className="bg-muted/20 border-y border-border/30" />
+          {/* Regulatory logos */}
+          <div className="bg-muted/30 dark:bg-white/[0.02]">
+            <ScrollingLogoMarquee
+              logos={REGULATORY_LOGOS}
+              heading="Regulated and certified"
+              speed="slow"
+              analyticsEvent="about_regulatory_marquee"
+              className="py-10"
+            />
+          </div>
 
-        {/* Regulatory logos */}
-        <MediaMentions variant="strip" className="bg-muted/30" />
+          {/* Deep E-E-A-T guide content - kept for SEO value */}
+          <AboutGuideSection />
 
-        {/* FAQs */}
-        <FAQSection
-          pill="FAQs"
-          title="Frequently asked questions"
-          subtitle="Common questions about InstantMed, our doctors, and how the service works."
-          items={faqItems}
-        />
+          {/* FAQs */}
+          <div className="bg-muted/30 dark:bg-white/[0.02]">
+            <FAQSection
+              pill="FAQs"
+              title="Frequently asked questions"
+              subtitle="Common questions about InstantMed and how we work."
+              items={ABOUT_FAQS}
+            />
+          </div>
 
-        {/* CTA */}
-        <CTABanner
-          title="Ready to experience better healthcare?"
-          subtitle="Join the Australians who have made the switch to InstantMed."
-          ctaText="Start a request"
-          ctaHref="/request"
-        />
-      </main>
-
-      <MarketingFooter />
-    </div>
+          {/* CTA */}
+          <CTABanner
+            title="Ready to experience better healthcare?"
+            subtitle="Join the Australians who have made the switch to InstantMed."
+            ctaText="Start a request"
+            ctaHref="/request"
+          />
+        </>
+      )}
+    </InformationalPageShell>
   )
 }

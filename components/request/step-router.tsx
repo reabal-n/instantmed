@@ -45,8 +45,6 @@ export interface StepRouterProps {
   serviceType: UnifiedServiceType
   currentStepId: UnifiedStepId
   componentPath: string
-  /** @deprecated Transitions owned by request-flow.tsx AnimatePresence */
-  direction?: 1 | -1
   onNext: () => void
   onBack: () => void
   onComplete: () => void

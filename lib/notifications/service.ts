@@ -3,7 +3,7 @@
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { sendRequestDeclinedEmail } from "@/lib/email/senders"
 import { createLogger } from "@/lib/observability/logger"
-import { getPostHogClient } from "@/lib/posthog-server"
+import { getPostHogClient } from "@/lib/analytics/posthog-server"
 import { toError } from "@/lib/errors"
 const logger = createLogger("notifications-service")
 

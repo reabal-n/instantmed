@@ -5,7 +5,7 @@ import { recordCronHeartbeat } from "@/lib/monitoring/cron-heartbeat"
 import { captureCronError } from "@/lib/observability/sentry"
 import { getReconciliationRecords } from "@/lib/data/reconciliation"
 import * as Sentry from "@sentry/nextjs"
-import { trackBusinessMetric } from "@/lib/posthog-server"
+import { trackBusinessMetric } from "@/lib/analytics/posthog-server"
 import { toError } from "@/lib/errors"
 
 const logger = createLogger("cron-daily-reconciliation")

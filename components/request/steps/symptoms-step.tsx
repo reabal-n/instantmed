@@ -22,7 +22,7 @@ import { EnhancedSelectionButton } from "@/components/shared/enhanced-selection-
 import { useRequestStore } from "../store"
 import { FormField } from "../form-field"
 import { getSmartDefaults, recordStepCompletion } from "@/lib/request/preferences"
-import { useKeyboardNavigation } from "@/hooks/use-keyboard-navigation"
+import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
 import { checkEmergencySymptoms } from "@/lib/clinical/triage-rules-engine"
 import { validateSymptomTextQuality } from "@/lib/clinical/symptom-text-quality"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"

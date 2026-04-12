@@ -2,7 +2,7 @@ import type Stripe from "stripe"
 import { NextResponse, after } from "next/server"
 import { sendPaymentFailedEmail } from "@/lib/email/template-sender"
 import { createLogger } from "@/lib/observability/logger"
-import { trackBusinessMetric } from "@/lib/posthog-server"
+import { trackBusinessMetric } from "@/lib/analytics/posthog-server"
 import type { WebhookContext, HandlerResult } from "./types"
 import { tryClaimEvent } from "./utils"
 

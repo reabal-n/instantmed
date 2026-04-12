@@ -1,18 +1,23 @@
-"use server"
+import "server-only"
 
 /**
  * Centralized Email Sending Service
- * 
+ *
  * Routes all transactional emails through a single function that:
  * 1. Renders React email templates to HTML
  * 2. Sends via Resend (or skips in E2E mode)
  * 3. Logs all attempts to email_outbox table
  * 4. Includes Sentry instrumentation
+ *
+ * Split into sub-modules under ./send/ for maintainability:
+ * - types.ts: Type definitions (EmailType, SendEmailParams, etc.)
+ * - helpers.ts: Validation, retry, unsubscribe injection
+ * - outbox.ts: Outbox DB operations (create, claim, update, log)
+ * - reconstruct.ts: Email reconstruction for dispatcher retries
  */
 
 import * as Sentry from "@sentry/nextjs"
 import { renderEmailToHtml } from "./react-renderer-server"
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { env } from "@/lib/env"
 import { logger } from "@/lib/observability/logger"
 import { isEmailSuppressed, htmlToPlainText } from "./utils"
@@ -20,385 +25,33 @@ import { CONTACT_EMAIL } from "@/lib/constants"
 import { recordDeliverySent } from "@/lib/monitoring/delivery-tracking"
 import { signUnsubscribeToken } from "@/lib/crypto/unsubscribe-token"
 import { checkDailySendLimit, incrementDailySendCount } from "./warmup"
-import { UNSUBSCRIBE_PLACEHOLDER } from "@/components/email/base-email"
 
-// ============================================
-// TYPES
-// ============================================
+// Re-export types for backwards compatibility
+// Note: Only async functions can be exported from "use server" files.
+// Non-async re-exports must be imported directly from their source modules:
+//   MARKETING_EMAIL_TYPES → "@/lib/email/send/types"
+//   claimOutboxRow → "@/lib/email/send/outbox"
+//   reconstructEmailContent → "@/lib/email/send/reconstruct"
+export type { EmailType, SendEmailParams, SendEmailResult, OutboxRow } from "./send/types"
 
-export type EmailType =
-  | "welcome"
-  | "med_cert_patient"
-  | "med_cert_employer"
-  | "script_sent"
-  | "request_declined"
-  | "needs_more_info"
-  | "prescription_approved"
-  | "ed_approved"
-  | "hair_loss_approved"
-  | "womens_health_approved"
-  | "weight_loss_approved"
-  | "consult_approved"
-  | "generic"
-  // Database-template email types (sent via template-sender, retried via dispatcher)
-  | "payment_received"
-  | "refund_notification"
-  | "payment_failed"
-  | "guest_complete_account"
-  | "payment_confirmed"
-  // Cron-enqueued email types
-  | "repeat_rx_reminder"
-  | "abandoned_checkout"
-  // Status transition emails (migrated from send-status.ts)
-  | "request_approved"
-  // Lifecycle emails
-  | "intake_submitted"
-  // Merged email (replaces payment_confirmed + intake_submitted for new sends)
-  | "request_received"
-  | "referral_credit"
-  | "refund_issued"
-  | "still_reviewing"
-  | "decline_reengagement"
-  | "treatment_followup"
-  | "abandoned_checkout_followup"
-  | "subscription_nudge"
-  | "follow_up_reminder"
-  | "verification_code"
-  // Review lifecycle emails (cron-triggered)
-  | "review_request"
-  | "review_followup"
-  | "payment_retry"
-
-// Email types that are marketing/engagement - get auto List-Unsubscribe headers
-const MARKETING_EMAIL_TYPES: ReadonlySet<EmailType> = new Set([
-  "abandoned_checkout",
-  "abandoned_checkout_followup",
-  "subscription_nudge",
-  "follow_up_reminder",
-  "review_request",
-  "review_followup",
-  "repeat_rx_reminder",
-  "decline_reengagement",
-  "treatment_followup",
-  "referral_credit",
-])
-
-interface SendEmailParams {
-  to: string
-  toName?: string
-  subject: string
-  template: React.ReactElement
-  emailType: EmailType
-  // Context for logging/linking
-  intakeId?: string
-  patientId?: string
-  certificateId?: string
-  // Optional metadata (non-sensitive)
-  metadata?: Record<string, unknown>
-  // Optional overrides
-  from?: string
-  replyTo?: string
-  tags?: { name: string; value: string }[]
-  headers?: Record<string, string>
-  // Optional file attachments (base64-encoded)
-  attachments?: { filename: string; content: string; contentType?: string }[]
-}
-
-interface SendEmailResult {
-  success: boolean
-  messageId?: string
-  outboxId?: string
-  error?: string
-  skipped?: boolean  // True if skipped due to E2E mode
-}
-
-// ============================================
-// E2E DETECTION
-// ============================================
-
-function isE2EMode(): boolean {
-  return process.env.PLAYWRIGHT === "1" || process.env.E2E === "true"
-}
-
-// ============================================
-// RETRY CONFIGURATION
-// ============================================
-
-const RETRY_CONFIG = {
-  maxRetries: 3,
-  baseDelayMs: 1000,
-  maxDelayMs: 10000,
-}
-
-function getRetryDelay(attempt: number): number {
-  const delay = RETRY_CONFIG.baseDelayMs * Math.pow(2, attempt)
-  return Math.min(delay, RETRY_CONFIG.maxDelayMs)
-}
-
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms))
-}
-
-function isRetryableError(statusCode?: number, errorMessage?: string): boolean {
-  if (statusCode === 429) return true
-  if (statusCode && statusCode >= 500) return true
-  if (errorMessage?.includes("fetch failed")) return true
-  if (errorMessage?.includes("ECONNRESET")) return true
-  if (errorMessage?.includes("ETIMEDOUT")) return true
-  return false
-}
-
-// ============================================
-// UNSUBSCRIBE URL INJECTION
-// ============================================
-
-/**
- * Replace the __UNSUBSCRIBE_URL__ placeholder in rendered HTML with a real
- * signed preference-center URL. Falls back to auth-gated settings page
- * for system emails without a patientId.
- */
-function injectUnsubscribeUrl(html: string, patientId?: string): string {
-  if (!html.includes(UNSUBSCRIBE_PLACEHOLDER)) return html
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au"
-  let url: string
-  if (patientId) {
-    try {
-      const token = signUnsubscribeToken(patientId)
-      url = `${appUrl}/email-preferences?token=${token}`
-    } catch {
-      url = `${appUrl}/account?tab=notifications`
-    }
-  } else {
-    url = `${appUrl}/account?tab=notifications`
-  }
-  return html.replaceAll(UNSUBSCRIBE_PLACEHOLDER, url)
-}
-
-// ============================================
-// EMAIL VALIDATION
-// ============================================
-
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-
-function isValidEmail(email: string): boolean {
-  return EMAIL_REGEX.test(email) && email.length <= 254
-}
-
-function sanitizeEmailForLog(email: string): string {
-  if (env.isDev) return email
-  const [local, domain] = email.split("@")
-  if (!domain) return "[invalid-email]"
-  return `${local.slice(0, 2)}***@${domain.slice(0, 3)}***.${domain.split(".").pop()}`
-}
-
-// ============================================
-// OUTBOX LOGGING (Two-Phase Write)
-// ============================================
-
-interface OutboxEntry {
-  email_type: EmailType
-  to_email: string
-  to_name?: string
-  subject: string
-  status: "pending" | "sent" | "failed" | "skipped_e2e"
-  provider: string
-  provider_message_id?: string
-  error_message?: string
-  intake_id?: string
-  patient_id?: string
-  certificate_id?: string
-  metadata?: Record<string, unknown>
-  sent_at?: string
-  last_attempt_at?: string
-  retry_count?: number
-}
-
-/**
- * Create a pending outbox row BEFORE attempting to send.
- * This ensures we have a record even if the process crashes mid-send.
- * Does NOT store email body - dispatcher will reconstruct from intake/certificate data.
- */
-async function createPendingOutbox(entry: Omit<OutboxEntry, "status">): Promise<string | null> {
-  try {
-    const supabase = createServiceRoleClient()
-
-    // Idempotency guard: skip if an identical email was created in the last 5 minutes
-    // Prevents duplicate outbox rows from double-submissions or race conditions
-    const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString()
-    const { data: existing } = await supabase
-      .from("email_outbox")
-      .select("id")
-      .eq("email_type", entry.email_type)
-      .eq("to_email", entry.to_email)
-      .eq("intake_id", entry.intake_id || "")
-      .gte("created_at", fiveMinAgo)
-      .in("status", ["pending", "sent", "sending"])
-      .limit(1)
-      .maybeSingle()
-
-    if (existing) {
-      logger.info("[Email] Idempotency guard: duplicate outbox row skipped", {
-        existingId: existing.id,
-        emailType: entry.email_type,
-      })
-      return existing.id
-    }
-
-    const { data, error } = await supabase
-      .from("email_outbox")
-      .insert({
-        email_type: entry.email_type,
-        to_email: entry.to_email,
-        to_name: entry.to_name,
-        subject: entry.subject,
-        status: "pending",
-        provider: entry.provider,
-        intake_id: entry.intake_id,
-        patient_id: entry.patient_id,
-        certificate_id: entry.certificate_id,
-        metadata: entry.metadata || {},
-        last_attempt_at: new Date().toISOString(),
-        retry_count: 0,
-      })
-      .select("id")
-      .single()
-
-    if (error) {
-      logger.error("[Email] Failed to create pending outbox", { error: error.message })
-      return null
-    }
-    return data?.id || null
-  } catch (err) {
-    logger.error("[Email] Pending outbox error", { error: err })
-    return null
-  }
-}
-
-/**
- * Atomically claim an outbox row for processing.
- * Uses UPDATE with WHERE to prevent duplicate processing by concurrent dispatchers.
- * 
- * CONCURRENCY SAFETY:
- * - Only one process can successfully claim a row (atomic UPDATE)
- * - If another cron/admin already claimed it, this returns false
- * - Row is set to 'sending' status during processing
- * 
- * Returns: { claimed: true, row } if successfully claimed, { claimed: false } otherwise
- */
-export async function claimOutboxRow(outboxId: string): Promise<{
-  claimed: boolean
-  row?: OutboxRow
-  error?: string
-}> {
-  const supabase = createServiceRoleClient()
-  
-  // Atomic claim: UPDATE only if status is still pending/failed
-  // This prevents race conditions between concurrent dispatchers
-  const { data, error } = await supabase
-    .from("email_outbox")
-    .update({
-      status: "sending",
-      last_attempt_at: new Date().toISOString(),
-    })
-    .in("status", ["pending", "failed"])
-    .eq("id", outboxId)
-    .select("id, email_type, to_email, to_name, subject, status, provider, provider_message_id, error_message, retry_count, intake_id, patient_id, certificate_id, metadata, created_at, sent_at, last_attempt_at")
-    .single()
-
-  if (error) {
-    // Row was already claimed by another process or doesn't exist
-    if (error.code === "PGRST116") {
-      return { claimed: false, error: "Already claimed or not found" }
-    }
-    logger.warn("[Email] Failed to claim outbox row", { outboxId, error: error.message })
-    return { claimed: false, error: error.message }
-  }
-
-  return { claimed: true, row: data as OutboxRow }
-}
-
-/**
- * Update an existing outbox row after send attempt.
- */
-async function updateOutboxStatus(
-  outboxId: string,
-  status: "sent" | "failed" | "skipped_e2e",
-  details: {
-    provider_message_id?: string
-    error_message?: string
-    attempts?: number
-  }
-): Promise<void> {
-  try {
-    const supabase = createServiceRoleClient()
-    const updateData: Record<string, unknown> = {
-      status,
-      last_attempt_at: new Date().toISOString(),
-    }
-    
-    if (status === "sent") {
-      updateData.sent_at = new Date().toISOString()
-      updateData.provider_message_id = details.provider_message_id
-      updateData.error_message = null
-    } else if (status === "failed") {
-      updateData.error_message = details.error_message
-    }
-    
-    if (details.attempts !== undefined) {
-      updateData.retry_count = details.attempts
-    }
-
-    const { error } = await supabase
-      .from("email_outbox")
-      .update(updateData)
-      .eq("id", outboxId)
-
-    if (error) {
-      logger.error("[Email] Failed to update outbox status", { outboxId, error: error.message })
-    }
-  } catch (err) {
-    logger.error("[Email] Outbox update error", { outboxId, error: err })
-  }
-}
-
-/**
- * Legacy function for immediate status logging (validation failures, E2E mode, dev mode).
- */
-async function logToOutbox(entry: OutboxEntry): Promise<string | null> {
-  try {
-    const supabase = createServiceRoleClient()
-    const { data, error } = await supabase
-      .from("email_outbox")
-      .insert({
-        email_type: entry.email_type,
-        to_email: entry.to_email,
-        to_name: entry.to_name,
-        subject: entry.subject,
-        status: entry.status,
-        provider: entry.provider,
-        provider_message_id: entry.provider_message_id,
-        error_message: entry.error_message,
-        intake_id: entry.intake_id,
-        patient_id: entry.patient_id,
-        certificate_id: entry.certificate_id,
-        metadata: entry.metadata || {},
-        sent_at: entry.sent_at,
-        last_attempt_at: entry.last_attempt_at || new Date().toISOString(),
-        retry_count: entry.retry_count || 0,
-      })
-      .select("id")
-      .single()
-
-    if (error) {
-      logger.error("[Email] Failed to log to outbox", { error: error.message })
-      return null
-    }
-    return data?.id || null
-  } catch (err) {
-    logger.error("[Email] Outbox logging error", { error: err })
-    return null
-  }
-}
+// Import internals from split modules
+import type { SendEmailParams, SendEmailResult } from "./send/types"
+import { MARKETING_EMAIL_TYPES } from "./send/types"
+import {
+  isE2EMode,
+  RETRY_CONFIG,
+  getRetryDelay,
+  sleep,
+  isRetryableError,
+  injectUnsubscribeUrl,
+  isValidEmail,
+  sanitizeEmailForLog,
+} from "./send/helpers"
+import {
+  createPendingOutbox,
+  updateOutboxStatus,
+  logToOutbox,
+} from "./send/outbox"
 
 // ============================================
 // MAIN SEND FUNCTION
@@ -431,7 +84,7 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
   if (!isValidEmail(to)) {
     const error = "Invalid email address format"
     logger.warn("[Email] " + error, { to: sanitizeEmailForLog(to), emailType })
-    
+
     await logToOutbox({
       email_type: emailType,
       to_email: to,
@@ -457,7 +110,7 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
     const error = `Template render failed: ${err instanceof Error ? err.message : "Unknown"}`
     logger.error("[Email] " + error, { emailType })
     Sentry.captureException(err, { tags: { action: "render_email_template" } })
-    
+
     await logToOutbox({
       email_type: emailType,
       to_email: to,
@@ -510,7 +163,7 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
   const apiKey = env.resendApiKey
   if (!apiKey) {
     logger.debug(`[Email Dev Mode] Would send to: ${sanitizeEmailForLog(to)}`, { subject, emailType })
-    
+
     const outboxId = await logToOutbox({
       email_type: emailType,
       to_email: to,
@@ -648,7 +301,7 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
 
   // Send with retries
   let lastError: string | undefined
-  
+
   for (let attempt = 0; attempt <= RETRY_CONFIG.maxRetries; attempt++) {
     try {
       if (attempt > 0) {
@@ -703,9 +356,9 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
         attempts: attempt + 1,
       })
 
-      // Track in PostHog for email→conversion funnels
+      // Track in PostHog for email->conversion funnels
       try {
-        const { getPostHogClient } = await import("@/lib/posthog-server")
+        const { getPostHogClient } = await import("@/lib/analytics/posthog-server")
         getPostHogClient().capture({
           distinctId: patientId || "system",
           event: "email_sent",
@@ -746,12 +399,12 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
 
     } catch (err) {
       lastError = err instanceof Error ? err.message : "Unknown error"
-      
+
       if (isRetryableError(undefined, lastError) && attempt < RETRY_CONFIG.maxRetries) {
         logger.warn(`[Email] Network error, will retry: ${lastError}`, { to, attempt })
         continue
       }
-      
+
       logger.error("[Email] Network error", { error: lastError, emailType })
       Sentry.captureException(err, { tags: { action: "send_email", email_type: emailType } })
 
@@ -782,20 +435,8 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
 // DISPATCHER: SEND FROM OUTBOX ROW
 // ============================================
 
-export interface OutboxRow {
-  id: string
-  email_type: EmailType
-  to_email: string
-  to_name: string | null
-  subject: string
-  status: string
-  retry_count: number
-  last_attempt_at: string | null
-  intake_id: string | null
-  patient_id: string | null
-  certificate_id: string | null
-  metadata: Record<string, unknown> | null
-}
+import type { OutboxRow } from "./send/types"
+import { reconstructEmailContent } from "./send/reconstruct"
 
 /**
  * Reconstruct and send an email from an outbox row (used by dispatcher).
@@ -822,7 +463,7 @@ export async function sendFromOutboxRow(row: OutboxRow): Promise<{ success: bool
   // Reconstruct email content based on email_type
   let html: string
   let textBody: string
-  
+
   try {
     const reconstructed = await reconstructEmailContent(row)
     if (!reconstructed.success) {
@@ -846,7 +487,7 @@ export async function sendFromOutboxRow(row: OutboxRow): Promise<{ success: bool
 
   // Build request body
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au"
-  const body: Record<string, unknown> = {
+  const sendBody: Record<string, unknown> = {
     from: env.resendFromEmail,
     to: [row.to_email],
     subject: row.subject,
@@ -858,13 +499,13 @@ export async function sendFromOutboxRow(row: OutboxRow): Promise<{ success: bool
 
   // Inject List-Unsubscribe headers for marketing emails on retry (mirrors sendEmail)
   if (MARKETING_EMAIL_TYPES.has(row.email_type)) {
-    body.headers = { "Precedence": "bulk" }
+    sendBody.headers = { "Precedence": "bulk" }
     if (row.patient_id) {
       try {
         const unsubToken = signUnsubscribeToken(row.patient_id)
         const unsubUrl = `${appUrl}/api/unsubscribe?token=${unsubToken}&type=marketing`
-        ;(body.headers as Record<string, string>)["List-Unsubscribe"] = `<${unsubUrl}>`
-        ;(body.headers as Record<string, string>)["List-Unsubscribe-Post"] = "List-Unsubscribe=One-Click"
+        ;(sendBody.headers as Record<string, string>)["List-Unsubscribe"] = `<${unsubUrl}>`
+        ;(sendBody.headers as Record<string, string>)["List-Unsubscribe-Post"] = "List-Unsubscribe=One-Click"
       } catch {
         // Non-blocking
       }
@@ -878,7 +519,7 @@ export async function sendFromOutboxRow(row: OutboxRow): Promise<{ success: bool
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(body),
+      body: JSON.stringify(sendBody),
     })
 
     const data = await response.json()
@@ -887,12 +528,12 @@ export async function sendFromOutboxRow(row: OutboxRow): Promise<{ success: bool
       // Resend API returns { message, statusCode, name } at top level, not nested under .error
       const error = data.message || data.error?.message || `Resend API error (${response.status})`
       logger.error("[Email Dispatcher] Send failed", { outboxId: row.id, error, statusCode: response.status, resendErrorName: data.name })
-      
+
       await updateOutboxStatus(row.id, "failed", {
         error_message: error,
         attempts: row.retry_count + 1,
       })
-      
+
       return { success: false, error }
     }
 
@@ -910,736 +551,12 @@ export async function sendFromOutboxRow(row: OutboxRow): Promise<{ success: bool
   } catch (err) {
     const error = err instanceof Error ? err.message : "Unknown error"
     logger.error("[Email Dispatcher] Network error", { outboxId: row.id, error })
-    
+
     await updateOutboxStatus(row.id, "failed", {
       error_message: error,
       attempts: row.retry_count + 1,
     })
-    
-    return { success: false, error }
-  }
-}
 
-/**
- * Reconstruct email HTML from intake/certificate data based on email_type.
- * Also handles PDF generation for certificates that need it (needs_pdf_generation in metadata).
- */
-async function reconstructEmailContent(row: OutboxRow): Promise<{
-  success: boolean
-  html?: string
-  text?: string
-  error?: string
-}> {
-  const supabase = createServiceRoleClient()
-
-  // Handle med_cert_patient emails
-  if (row.email_type === "med_cert_patient" && row.certificate_id) {
-    // Check if PDF needs to be generated first
-    const metadata = row.metadata as { needs_pdf_generation?: boolean } | null
-    if (metadata?.needs_pdf_generation) {
-      const pdfResult = await generateAndUploadPdfForCertificate(row.certificate_id, row.metadata)
-      if (!pdfResult.success) {
-        return { success: false, error: pdfResult.error || "PDF generation failed" }
-      }
-    }
-
-    // Fetch certificate and patient data
-    const { data: cert, error: certError } = await supabase
-      .from("issued_certificates")
-      .select("intake_id, patient_name, verification_code, certificate_type, storage_path")
-      .eq("id", row.certificate_id)
-      .single()
-
-    if (certError || !cert) {
-      return { success: false, error: "Certificate not found for retry" }
-    }
-
-    // Generate signed download URL for guest-friendly download
-    let downloadUrl: string | undefined
-    if (cert.storage_path) {
-      try {
-        const { data: signedUrlData } = await supabase.storage
-          .from("documents")
-          .createSignedUrl(cert.storage_path, 3 * 24 * 60 * 60) // 72 hours
-        downloadUrl = signedUrlData?.signedUrl ?? undefined
-      } catch {
-        // Non-fatal: email will fall back to dashboard link
-      }
-    }
-
-    // Render the template
-    const { MedCertPatientEmail } = await import("@/components/email/templates")
-    const dashboardUrl = `${env.appUrl}/track/${cert.intake_id}`
-
-    const template = MedCertPatientEmail({
-      patientName: cert.patient_name,
-      downloadUrl,
-      dashboardUrl,
-      verificationCode: cert.verification_code,
-      certType: cert.certificate_type as "work" | "study" | "carer",
-      appUrl: env.appUrl,
-    })
-
-    const html = await renderEmailToHtml(template)
-    return { success: true, html }
-  }
-
-  // ----------------------------------------------------------------
-  // Helper: fetch intake + patient + service data for reconstruction
-  // ----------------------------------------------------------------
-  async function fetchIntakeContext(intakeId: string) {
-    const { data: intake, error: intakeError } = await supabase
-      .from("intakes")
-      .select("id, patient_id, service_id, reference_number, amount_cents, paid_at, decline_reason, decline_reason_note, refund_amount_cents, parchment_reference")
-      .eq("id", intakeId)
-      .single()
-
-    if (intakeError || !intake) {
-      return { error: `Intake not found: ${intakeId}` } as const
-    }
-
-    const { data: patient, error: patientError } = await supabase
-      .from("profiles")
-      .select("id, full_name, email")
-      .eq("id", intake.patient_id)
-      .single()
-
-    if (patientError || !patient) {
-      return { error: `Patient not found for intake: ${intakeId}` } as const
-    }
-
-    const { data: service, error: serviceError } = await supabase
-      .from("services")
-      .select("id, name, short_name, slug, type")
-      .eq("id", intake.service_id)
-      .single()
-
-    if (serviceError || !service) {
-      return { error: `Service not found for intake: ${intakeId}` } as const
-    }
-
-    // Fetch answers from intake_answers table (separate from intakes)
-    const { data: intakeAnswersRow } = await supabase
-      .from("intake_answers")
-      .select("answers")
-      .eq("intake_id", intakeId)
-      .single()
-    const answers = (intakeAnswersRow?.answers || {}) as Record<string, unknown>
-
-    return { intake: { ...intake, answers }, patient, service } as const
-  }
-
-  // ----------------------------------------------------------------
-  // Helper: fetch a database-stored email template and fill merge tags
-  // ----------------------------------------------------------------
-  async function renderDatabaseTemplate(
-    templateSlug: string,
-    mergeData: Record<string, string>,
-  ): Promise<{ success: boolean; html?: string; error?: string }> {
-    const { data: tpl, error: tplError } = await supabase
-      .from("email_templates")
-      .select("body_html, available_tags")
-      .eq("slug", templateSlug)
-      .eq("is_active", true)
-      .single()
-
-    if (tplError || !tpl) {
-      return { success: false, error: `Email template '${templateSlug}' not found or inactive` }
-    }
-
-    let html = tpl.body_html as string
-    for (const [key, value] of Object.entries(mergeData)) {
-      const tag = new RegExp(`\\{\\{${key}\\}\\}`, "g")
-      html = html.replace(tag, value || "")
-    }
-
-    return { success: true, html }
-  }
-
-  // ----------------------------------------------------------------
-  // welcome - React template, needs only patientName
-  // ----------------------------------------------------------------
-  if (row.email_type === "welcome") {
-    const patientName = row.to_name || "there"
-
-    const { WelcomeEmail } = await import("@/components/email/templates")
-    const template = WelcomeEmail({
-      patientName,
-      appUrl: env.appUrl,
-    })
-
-    const html = await renderEmailToHtml(template)
-    return { success: true, html }
-  }
-
-  // ----------------------------------------------------------------
-  // script_sent - React template, needs intake data
-  // ----------------------------------------------------------------
-  if (row.email_type === "script_sent") {
-    if (!row.intake_id) {
-      return { success: false, error: "script_sent requires intake_id for reconstruction" }
-    }
-
-    const ctx = await fetchIntakeContext(row.intake_id)
-    if ("error" in ctx) return { success: false, error: ctx.error }
-
-    const { ScriptSentEmail } = await import("@/components/email/templates")
-    const template = ScriptSentEmail({
-      patientName: ctx.patient.full_name || row.to_name || "there",
-      requestId: ctx.intake.id,
-      escriptReference: ctx.intake.parchment_reference || undefined,
-      appUrl: env.appUrl,
-    })
-
-    const html = await renderEmailToHtml(template)
-    return { success: true, html }
-  }
-
-  // ----------------------------------------------------------------
-  // request_declined - React template, needs intake data + reason
-  // ----------------------------------------------------------------
-  if (row.email_type === "request_declined") {
-    if (!row.intake_id) {
-      return { success: false, error: "request_declined requires intake_id for reconstruction" }
-    }
-
-    const ctx = await fetchIntakeContext(row.intake_id)
-    if ("error" in ctx) return { success: false, error: ctx.error }
-
-    const requestType = ctx.service.short_name || ctx.service.name
-    const reason = ctx.intake.decline_reason_note || ctx.intake.decline_reason || undefined
-
-    const { RequestDeclinedEmail } = await import("@/components/email/templates")
-    const template = RequestDeclinedEmail({
-      patientName: ctx.patient.full_name || row.to_name || "there",
-      requestType,
-      requestId: ctx.intake.id,
-      reason,
-      appUrl: env.appUrl,
-    })
-
-    const html = await renderEmailToHtml(template)
-    return { success: true, html }
-  }
-
-  // ----------------------------------------------------------------
-  // prescription_approved - React template, needs intake + medication
-  // ----------------------------------------------------------------
-  if (row.email_type === "prescription_approved") {
-    if (!row.intake_id) {
-      return { success: false, error: "prescription_approved requires intake_id for reconstruction" }
-    }
-
-    const ctx = await fetchIntakeContext(row.intake_id)
-    if ("error" in ctx) return { success: false, error: ctx.error }
-
-    const metadata = row.metadata as { medicationName?: string } | null
-    const answers = (ctx.intake.answers || {}) as Record<string, unknown>
-    const medicationName = metadata?.medicationName
-      || String(answers.medicationName || "")
-      || ctx.service.short_name
-      || "medication"
-
-    const { PrescriptionApprovedEmail } = await import("@/components/email/templates/prescription-approved")
-    const template = PrescriptionApprovedEmail({
-      patientName: ctx.patient.full_name || row.to_name || "there",
-      medicationName,
-      intakeId: ctx.intake.id,
-      appUrl: env.appUrl,
-    })
-
-    const html = await renderEmailToHtml(template)
-    return { success: true, html }
-  }
-
-  // ----------------------------------------------------------------
-  // payment_received - database template with merge tags
-  // ----------------------------------------------------------------
-  if (row.email_type === "payment_received") {
-    if (!row.intake_id) {
-      return { success: false, error: "payment_received requires intake_id for reconstruction" }
-    }
-
-    const ctx = await fetchIntakeContext(row.intake_id)
-    if ("error" in ctx) return { success: false, error: ctx.error }
-
-    const amountCents = ctx.intake.amount_cents || 0
-    const amount = `$${(amountCents / 100).toFixed(2)}`
-    const serviceName = ctx.service.short_name || ctx.service.name
-
-    return renderDatabaseTemplate("payment_received", {
-      patient_name: ctx.patient.full_name || row.to_name || "there",
-      amount,
-      service_name: serviceName,
-    })
-  }
-
-  // ----------------------------------------------------------------
-  // refund_notification - database template (slug: refund_processed)
-  // ----------------------------------------------------------------
-  if (row.email_type === "refund_notification") {
-    if (!row.intake_id) {
-      return { success: false, error: "refund_notification requires intake_id for reconstruction" }
-    }
-
-    const ctx = await fetchIntakeContext(row.intake_id)
-    if ("error" in ctx) return { success: false, error: ctx.error }
-
-    const refundCents = ctx.intake.refund_amount_cents || ctx.intake.amount_cents || 0
-    const amount = `$${(refundCents / 100).toFixed(2)}`
-    const reason = ctx.intake.decline_reason || "Refund processed"
-
-    return renderDatabaseTemplate("refund_processed", {
-      patient_name: ctx.patient.full_name || row.to_name || "there",
-      amount,
-      refund_reason: reason,
-    })
-  }
-
-  // ----------------------------------------------------------------
-  // payment_failed - database template with merge tags
-  // ----------------------------------------------------------------
-  if (row.email_type === "payment_failed") {
-    if (!row.intake_id) {
-      return { success: false, error: "payment_failed requires intake_id for reconstruction" }
-    }
-
-    const ctx = await fetchIntakeContext(row.intake_id)
-    if ("error" in ctx) return { success: false, error: ctx.error }
-
-    const serviceName = ctx.service.short_name || ctx.service.name
-    const retryUrl = `${env.appUrl}/patient/intakes/${ctx.intake.id}`
-
-    return renderDatabaseTemplate("payment_failed", {
-      patient_name: ctx.patient.full_name || row.to_name || "there",
-      service_name: serviceName,
-      failure_reason: "Your payment could not be processed. Please try again.",
-      retry_url: retryUrl,
-    })
-  }
-
-  // ----------------------------------------------------------------
-  // guest_complete_account - database template with merge tags
-  // ----------------------------------------------------------------
-  if (row.email_type === "guest_complete_account") {
-    if (!row.intake_id) {
-      return { success: false, error: "guest_complete_account requires intake_id for reconstruction" }
-    }
-
-    const ctx = await fetchIntakeContext(row.intake_id)
-    if ("error" in ctx) return { success: false, error: ctx.error }
-
-    const serviceName = ctx.service.short_name || ctx.service.name
-    const completeAccountUrl = `${env.appUrl}/auth/complete-account?intake_id=${ctx.intake.id}`
-
-    return renderDatabaseTemplate("guest_complete_account", {
-      patient_name: ctx.patient.full_name || row.to_name || "there",
-      service_name: serviceName,
-      intake_id: ctx.intake.id,
-      complete_account_url: completeAccountUrl,
-    })
-  }
-
-  // ----------------------------------------------------------------
-  // needs_more_info - lib React template, needs intake + doctor message
-  // ----------------------------------------------------------------
-  if (row.email_type === "needs_more_info") {
-    if (!row.intake_id) {
-      return { success: false, error: "needs_more_info requires intake_id for reconstruction" }
-    }
-
-    const ctx = await fetchIntakeContext(row.intake_id)
-    if ("error" in ctx) return { success: false, error: ctx.error }
-
-    const metadata = row.metadata as { doctorMessage?: string } | null
-    const doctorMessage = metadata?.doctorMessage || "Please provide additional information."
-
-    const { NeedsMoreInfoEmail } = await import("@/components/email/templates/needs-more-info")
-    const template = NeedsMoreInfoEmail({
-      patientName: ctx.patient.full_name || row.to_name || "there",
-      requestType: ctx.service.short_name || ctx.service.name,
-      requestId: ctx.intake.id,
-      doctorMessage,
-    })
-
-    const html = await renderEmailToHtml(template)
-    return { success: true, html }
-  }
-
-  // ----------------------------------------------------------------
-  // consult_approved - component React template
-  // ----------------------------------------------------------------
-  if (row.email_type === "consult_approved") {
-    if (!row.intake_id) {
-      return { success: false, error: "consult_approved requires intake_id for reconstruction" }
-    }
-
-    const ctx = await fetchIntakeContext(row.intake_id)
-    if ("error" in ctx) return { success: false, error: ctx.error }
-
-    const metadata = row.metadata as { doctorNotes?: string } | null
-
-    const { ConsultApprovedEmail } = await import("@/components/email/templates/consult-approved")
-    const template = ConsultApprovedEmail({
-      patientName: ctx.patient.full_name || row.to_name || "there",
-      requestId: ctx.intake.id,
-      doctorNotes: metadata?.doctorNotes || undefined,
-      appUrl: env.appUrl,
-    })
-
-    const html = await renderEmailToHtml(template)
-    return { success: true, html }
-  }
-
-  // ----------------------------------------------------------------
-  // ed_approved - component React template, needs medication name
-  // ----------------------------------------------------------------
-  if (row.email_type === "ed_approved") {
-    if (!row.intake_id) {
-      return { success: false, error: "ed_approved requires intake_id for reconstruction" }
-    }
-
-    const ctx = await fetchIntakeContext(row.intake_id)
-    if ("error" in ctx) return { success: false, error: ctx.error }
-
-    const metadata = row.metadata as { medicationName?: string } | null
-    const answers = (ctx.intake.answers || {}) as Record<string, unknown>
-    const medicationName = metadata?.medicationName
-      || String(answers.medicationName || answers.medication_name || "")
-      || "medication"
-
-    const { EdApprovedEmail } = await import("@/components/email/templates/ed-approved")
-    const template = EdApprovedEmail({
-      patientName: ctx.patient.full_name || row.to_name || "there",
-      medicationName,
-      requestId: ctx.intake.id,
-      appUrl: env.appUrl,
-    })
-
-    const html = await renderEmailToHtml(template)
-    return { success: true, html }
-  }
-
-  // ----------------------------------------------------------------
-  // hair_loss_approved - component React template
-  // ----------------------------------------------------------------
-  if (row.email_type === "hair_loss_approved") {
-    if (!row.intake_id) {
-      return { success: false, error: "hair_loss_approved requires intake_id for reconstruction" }
-    }
-
-    const ctx = await fetchIntakeContext(row.intake_id)
-    if ("error" in ctx) return { success: false, error: ctx.error }
-
-    const metadata = row.metadata as { medicationName?: string } | null
-    const answers = (ctx.intake.answers || {}) as Record<string, unknown>
-    const medicationName = metadata?.medicationName
-      || String(answers.medicationName || answers.medication_name || "")
-      || "medication"
-
-    const { HairLossApprovedEmail } = await import("@/components/email/templates/hair-loss-approved")
-    const template = HairLossApprovedEmail({
-      patientName: ctx.patient.full_name || row.to_name || "there",
-      medicationName,
-      requestId: ctx.intake.id,
-      appUrl: env.appUrl,
-    })
-
-    const html = await renderEmailToHtml(template)
-    return { success: true, html }
-  }
-
-  // ----------------------------------------------------------------
-  // weight_loss_approved - component React template
-  // ----------------------------------------------------------------
-  if (row.email_type === "weight_loss_approved") {
-    if (!row.intake_id) {
-      return { success: false, error: "weight_loss_approved requires intake_id for reconstruction" }
-    }
-
-    const ctx = await fetchIntakeContext(row.intake_id)
-    if ("error" in ctx) return { success: false, error: ctx.error }
-
-    const metadata = row.metadata as { medicationName?: string } | null
-    const answers = (ctx.intake.answers || {}) as Record<string, unknown>
-    const medicationName = metadata?.medicationName
-      || String(answers.medicationName || answers.medication_name || "")
-      || "medication"
-
-    const { WeightLossApprovedEmail } = await import("@/components/email/templates/weight-loss-approved")
-    const template = WeightLossApprovedEmail({
-      patientName: ctx.patient.full_name || row.to_name || "there",
-      medicationName,
-      requestId: ctx.intake.id,
-      appUrl: env.appUrl,
-    })
-
-    const html = await renderEmailToHtml(template)
-    return { success: true, html }
-  }
-
-  // ----------------------------------------------------------------
-  // womens_health_approved - component React template
-  // ----------------------------------------------------------------
-  if (row.email_type === "womens_health_approved") {
-    if (!row.intake_id) {
-      return { success: false, error: "womens_health_approved requires intake_id for reconstruction" }
-    }
-
-    const ctx = await fetchIntakeContext(row.intake_id)
-    if ("error" in ctx) return { success: false, error: ctx.error }
-
-    const metadata = row.metadata as { medicationName?: string; treatmentType?: string } | null
-    const answers = (ctx.intake.answers || {}) as Record<string, unknown>
-    const medicationName = metadata?.medicationName
-      || String(answers.medicationName || answers.medication_name || "")
-      || "medication"
-
-    const { WomensHealthApprovedEmail } = await import("@/components/email/templates/womens-health-approved")
-    const template = WomensHealthApprovedEmail({
-      patientName: ctx.patient.full_name || row.to_name || "there",
-      medicationName,
-      treatmentType: metadata?.treatmentType || undefined,
-      requestId: ctx.intake.id,
-      appUrl: env.appUrl,
-    })
-
-    const html = await renderEmailToHtml(template)
-    return { success: true, html }
-  }
-
-  // ----------------------------------------------------------------
-  // med_cert_employer - component React template, needs cert + employer data
-  // ----------------------------------------------------------------
-  if (row.email_type === "med_cert_employer") {
-    if (!row.certificate_id) {
-      return { success: false, error: "med_cert_employer requires certificate_id for reconstruction" }
-    }
-
-    const { data: cert, error: certError } = await supabase
-      .from("issued_certificates")
-      .select("intake_id, patient_name, verification_code, start_date, end_date, storage_path")
-      .eq("id", row.certificate_id)
-      .single()
-
-    if (certError || !cert) {
-      return { success: false, error: "Certificate not found for employer email reconstruction" }
-    }
-
-    // Generate a signed download URL (7-day expiry)
-    const { data: signedUrlData, error: signedUrlError } = await supabase.storage
-      .from("documents")
-      .createSignedUrl(cert.storage_path, 60 * 60 * 24 * 7)
-
-    if (signedUrlError) {
-      logger.warn("[Email Dispatcher] Failed to create signed URL for employer email, using fallback", {
-        certificateId: row.certificate_id,
-        storagePath: cert.storage_path,
-        error: signedUrlError.message,
-      })
-    }
-
-    const downloadUrl = signedUrlData?.signedUrl || `${env.appUrl}/api/certificates/${row.certificate_id}/download`
-
-    // Employer info from metadata or intake answers
-    const metadata = row.metadata as { employerName?: string; companyName?: string; patientNote?: string } | null
-
-    const { MedCertEmployerEmail } = await import("@/components/email/templates/med-cert-employer")
-    const template = MedCertEmployerEmail({
-      patientName: cert.patient_name,
-      downloadUrl,
-      verificationCode: cert.verification_code,
-      certStartDate: cert.start_date,
-      certEndDate: cert.end_date,
-      employerName: metadata?.employerName || undefined,
-      companyName: metadata?.companyName || undefined,
-      patientNote: metadata?.patientNote || undefined,
-      appUrl: env.appUrl,
-    })
-
-    const html = await renderEmailToHtml(template)
-    return { success: true, html }
-  }
-
-  // ----------------------------------------------------------------
-  // payment_confirmed - lib React template, needs intake + amount
-  // ----------------------------------------------------------------
-  if (row.email_type === "payment_confirmed") {
-    if (!row.intake_id) {
-      return { success: false, error: "payment_confirmed requires intake_id for reconstruction" }
-    }
-
-    const ctx = await fetchIntakeContext(row.intake_id)
-    if ("error" in ctx) return { success: false, error: ctx.error }
-
-    const metadata = row.metadata as { amount_cents?: number; service_slug?: string } | null
-    const amountCents = metadata?.amount_cents || 0
-    const amountFormatted = amountCents > 0 ? `$${(amountCents / 100).toFixed(2)}` : "N/A"
-    const serviceName = metadata?.service_slug
-      ?.replace(/-/g, " ")
-      ?.replace(/\b\w/g, (c: string) => c.toUpperCase())
-      || ctx.service.short_name || ctx.service.name || "medical request"
-
-    const { PaymentConfirmedEmail } = await import("@/components/email/templates/payment-confirmed")
-    const template = PaymentConfirmedEmail({
-      patientName: ctx.patient.full_name || row.to_name || "there",
-      requestType: serviceName,
-      amount: amountFormatted,
-      requestId: ctx.intake.id,
-    })
-
-    const html = await renderEmailToHtml(template)
-    return { success: true, html }
-  }
-
-  // ----------------------------------------------------------------
-  // request_received - merged React template (payment + review status)
-  // ----------------------------------------------------------------
-  if (row.email_type === "request_received") {
-    if (!row.intake_id) {
-      return { success: false, error: "request_received requires intake_id for reconstruction" }
-    }
-
-    const ctx = await fetchIntakeContext(row.intake_id)
-    if ("error" in ctx) return { success: false, error: ctx.error }
-
-    const metadata = row.metadata as { amount_cents?: number; service_slug?: string } | null
-    const amountCents = metadata?.amount_cents || ctx.intake.amount_cents || 0
-    const amountFormatted = amountCents > 0 ? `$${(amountCents / 100).toFixed(2)}` : "N/A"
-    const serviceName = metadata?.service_slug
-      ?.replace(/-/g, " ")
-      ?.replace(/\b\w/g, (c: string) => c.toUpperCase())
-      || ctx.service.short_name || ctx.service.name || "medical request"
-
-    const isGuest = !ctx.patient.email ? false : !(await supabase
-      .from("profiles")
-      .select("auth_user_id")
-      .eq("id", ctx.patient.id)
-      .single()
-      .then(r => r.data?.auth_user_id))
-
-    const { RequestReceivedEmail } = await import("@/components/email/templates/request-received")
-    const template = RequestReceivedEmail({
-      patientName: ctx.patient.full_name || row.to_name || "there",
-      requestType: serviceName,
-      amount: amountFormatted,
-      requestId: ctx.intake.id,
-      isGuest,
-    })
-
-    const html = await renderEmailToHtml(template)
-    return { success: true, html }
-  }
-
-  // Fallback: unrecognized email type
-  return {
-    success: false,
-    error: `Cannot reconstruct email type '${row.email_type}' - unsupported type`
-  }
-}
-
-/**
- * Generate PDF for a certificate and upload to storage.
- * Called by the email dispatcher when metadata.needs_pdf_generation is true.
- *
- * Uses the template renderer (pdf-lib) - the same pipeline used for initial
- * certificate generation in approve-cert.ts.
- */
-async function generateAndUploadPdfForCertificate(
-  certificateId: string,
-  _metadata: Record<string, unknown> | null // Data now fetched from certificate record
-): Promise<{ success: boolean; error?: string }> {
-  const supabase = createServiceRoleClient()
-
-  try {
-    // Fetch certificate with fields needed for template rendering
-    const { data: cert, error: certError } = await supabase
-      .from("issued_certificates")
-      .select("id, certificate_number, certificate_type, certificate_ref, issue_date, start_date, end_date, patient_id, patient_name, patient_dob, storage_path")
-      .eq("id", certificateId)
-      .single()
-
-    if (certError || !cert) {
-      return { success: false, error: "Certificate not found" }
-    }
-
-    // Skip if PDF already generated (storage_path doesn't start with 'pending:')
-    if (!cert.storage_path || !cert.storage_path.startsWith("pending:")) {
-      logger.info("[Email Dispatcher] PDF already exists, skipping generation", { certificateId })
-      return { success: true }
-    }
-
-    // Validate required date fields before rendering
-    if (!cert.issue_date || !cert.start_date || !cert.end_date) {
-      logger.error("[Email Dispatcher] Certificate missing required date fields", { certificateId, hasIssueDate: !!cert.issue_date, hasStartDate: !!cert.start_date, hasEndDate: !!cert.end_date })
-      return { success: false, error: "Certificate missing required date fields" }
-    }
-
-    const { formatDateLong, formatShortDate, formatShortDateSafe } = await import("@/lib/format")
-
-    const certificateType = cert.certificate_type as "work" | "study" | "carer"
-
-    // Use stored certificate_ref, or generate one as fallback
-    let certificateRef = cert.certificate_ref
-    if (!certificateRef) {
-      logger.warn("[Email Dispatcher] Certificate missing certificate_ref, generating fallback", { certificateId })
-      const { generateCertificateRef } = await import("@/lib/pdf/cert-identifiers")
-      certificateRef = generateCertificateRef(certificateType)
-    }
-
-    // Generate PDF using template renderer (same pipeline as approve-cert.ts)
-    const { renderTemplatePdf } = await import("@/lib/pdf/template-renderer")
-    const patientDob = formatShortDateSafe(cert.patient_dob)
-    const result = await renderTemplatePdf({
-      certificateType,
-      patientName: cert.patient_name,
-      patientDateOfBirth: patientDob,
-      consultationDate: formatDateLong(cert.issue_date),
-      startDate: formatDateLong(cert.start_date),
-      endDate: formatDateLong(cert.end_date),
-      certificateRef,
-      issueDate: formatShortDate(cert.issue_date),
-    })
-
-    if (!result.success || !result.buffer) {
-      logger.error("[Email Dispatcher] PDF render failed", { certificateId, error: result.error })
-      return { success: false, error: result.error || "PDF render failed" }
-    }
-
-    // Upload to storage
-    const storagePath = `med-certs/${cert.patient_id}/${cert.certificate_number}.pdf`
-    const { error: uploadError } = await supabase.storage
-      .from("documents")
-      .upload(storagePath, result.buffer, {
-        contentType: "application/pdf",
-        upsert: true,
-      })
-
-    if (uploadError) {
-      logger.error("[Email Dispatcher] PDF upload failed", { certificateId, error: uploadError.message })
-      return { success: false, error: `PDF upload failed: ${uploadError.message}` }
-    }
-
-    // Update certificate with real storage path
-    const { error: updateError } = await supabase
-      .from("issued_certificates")
-      .update({ storage_path: storagePath })
-      .eq("id", certificateId)
-
-    if (updateError) {
-      logger.error("[Email Dispatcher] Certificate update failed", { certificateId, error: updateError.message })
-      // Don't fail - PDF exists, can be fixed later
-    }
-
-    logger.info("[Email Dispatcher] PDF generated and uploaded", { certificateId, storagePath })
-    return { success: true }
-
-  } catch (err) {
-    const error = err instanceof Error ? err.message : String(err)
-    logger.error("[Email Dispatcher] PDF generation error", { certificateId, error })
-    Sentry.captureException(err, {
-      tags: { component: "email_dispatcher", action: "pdf_generation", certificate_id: certificateId },
-    })
     return { success: false, error }
   }
 }
@@ -1647,6 +564,8 @@ async function generateAndUploadPdfForCertificate(
 // ============================================
 // EMPLOYER EMAIL RATE LIMIT CHECK
 // ============================================
+
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 export async function checkEmployerEmailRateLimit(intakeId: string): Promise<{
   allowed: boolean

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { BADGE_REGISTRY, BADGE_PRESETS, resolveEntry, type BadgeId } from '@/lib/trust-badges'
+import { BADGE_REGISTRY, BADGE_PRESETS, resolveEntry, type BadgeId } from '@/lib/marketing/trust-badges'
 
 const HERO_BADGE_MAX = 4 // hero CTA area layout constraint - more than 4 pills looks cluttered
 

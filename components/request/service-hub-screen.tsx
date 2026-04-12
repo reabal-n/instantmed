@@ -3,12 +3,10 @@
 /**
  * Service Hub Screen - Premium entry point for /request
  *
- * 4 active hero cards (outcome-framed):
- *   Medical certificate · Repeat prescription · ED treatment · Hair loss
+ * 5 active service cards (outcome-framed):
+ *   Medical certificate · Repeat prescription · ED treatment · Hair loss · General consult
  * 2 coming-soon cards (muted, 2-col grid):
  *   Women's health · Weight management
- *
- * General consult phased out - specialty services are top-level.
  */
 
 import { PRICING_DISPLAY } from "@/lib/constants"
@@ -18,7 +16,7 @@ import { usePostHog } from "@/components/providers/posthog-provider"
 import { motion, AnimatePresence } from "framer-motion"
 import { useReducedMotion } from "@/components/ui/motion"
 import { stagger } from "@/lib/motion"
-import { ChevronRight, RotateCcw, Trash2, Star } from "lucide-react"
+import { ChevronRight, RotateCcw, Trash2, Star, MessageSquare } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { LegitScriptSeal } from "@/components/marketing/legitscript-seal"
 import { GoogleAdsCert } from "@/components/marketing/google-ads-cert"
@@ -90,6 +88,16 @@ const SERVICES: ServiceDef[] = [
     emoji: "\u2728",
     service: "consult",
     subtype: "hair_loss",
+  },
+  {
+    id: "general-consult",
+    title: "General consultation",
+    subtitle: "Speak with a doctor about anything",
+    price: PRICING_DISPLAY.CONSULT,
+    effort: "~5 min",
+    emoji: "\uD83E\uDE7A",
+    service: "consult",
+    subtype: undefined,
   },
 ]
 
@@ -292,10 +300,22 @@ export function ServiceHubScreen({ onSelectService }: ServiceHubScreenProps) {
           )}
         </AnimatePresence>
 
-        {/* Trust signal */}
-        <p className="text-xs text-muted-foreground text-center">
-          All services are text-based. No phone call required.
-        </p>
+        {/* Trust signal badges */}
+        <div className="flex items-center justify-center gap-3">
+          <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-emerald-700 dark:text-emerald-400">
+            <span className="relative flex h-1.5 w-1.5">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
+            </span>
+            No phone call
+          </span>
+          <span className="text-border-em">·</span>
+          <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
+            <MessageSquare className="w-3 h-3 text-muted-foreground/70" />
+            Simple intake form
+            <span className="inline-block w-[1px] h-3 bg-muted-foreground/40 animate-pulse" />
+          </span>
+        </div>
 
         {/* ── Active service cards ────────────────────────────────────── */}
         <motion.div

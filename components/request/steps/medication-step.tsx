@@ -19,7 +19,7 @@ import { MedicationSearch, type SelectedPBSProduct } from "@/components/shared/m
 import { useRequestStore } from "../store"
 import { FormField } from "../form-field"
 import { getSmartDefaults, addRecentMedication } from "@/lib/request/preferences"
-import { useKeyboardNavigation } from "@/hooks/use-keyboard-navigation"
+import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
 import { isControlledSubstance, CONTROLLED_SUBSTANCE_DISCLAIMER } from "@/lib/clinical/intake-validation"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 

@@ -12,8 +12,6 @@ export function AppSignInButton({
   children,
 }: {
   children?: React.ReactNode
-  /** @deprecated mode is unused - kept for API compat */
-  mode?: string
 }) {
   return (
     <Link href="/sign-in">

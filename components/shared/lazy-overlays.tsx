@@ -9,7 +9,7 @@ import dynamic from "next/dynamic"
  */
 
 const StickyCTABar = dynamic(
-  () => import("@/components/shared/sticky-cta-bar").then((mod) => ({ default: mod.StickyCTABar })),
+  () => import("@/components/marketing/sticky-cta-bar").then((mod) => ({ default: mod.StickyCTABar })),
   { ssr: false }
 )
 

@@ -417,7 +417,7 @@ export async function POST(request: NextRequest) {
 
     // 7b. PostHog email lifecycle events (fire-and-forget)
     try {
-      const { getPostHogClient } = await import("@/lib/posthog-server")
+      const { getPostHogClient } = await import("@/lib/analytics/posthog-server")
       const posthogEvent = eventType === "email.delivered" ? "email_delivered"
         : eventType === "email.bounced" ? "email_bounced"
         : eventType === "email.complained" ? "email_complained"

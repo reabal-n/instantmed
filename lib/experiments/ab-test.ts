@@ -1,4 +1,4 @@
-import { getPostHogClient } from "@/lib/posthog-server"
+import { getPostHogClient } from "@/lib/analytics/posthog-server"
 import { createLogger } from "@/lib/observability/logger"
 
 const log = createLogger("ab-testing")

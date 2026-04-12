@@ -12,7 +12,7 @@ import {
 import { requireRole } from "@/lib/auth"
 import { IntakeLifecycleError } from "@/lib/data/intake-lifecycle"
 import { createLogger } from "@/lib/observability/logger"
-import { trackIntakeFunnelStep } from "@/lib/posthog-server"
+import { trackIntakeFunnelStep } from "@/lib/analytics/posthog-server"
 import type { IntakeStatus } from "@/types/db"
 import { declineIntake as declineIntakeCanonical } from "@/app/actions/decline-intake"
 

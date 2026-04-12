@@ -2,7 +2,7 @@
 
 import { z } from "zod"
 import { createClient } from "@/lib/supabase/server"
-import { getPostHogClient } from "@/lib/posthog-server"
+import { getPostHogClient } from "@/lib/analytics/posthog-server"
 
 const WaitlistSchema = z.object({
   email: z.string().email("Please enter a valid email address"),

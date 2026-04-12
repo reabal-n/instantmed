@@ -17,7 +17,7 @@ import { cn } from "@/lib/utils"
 import { stagger } from "@/lib/motion"
 import { useReducedMotion } from "@/components/ui/motion"
 import { useRequestStore } from "../store"
-import { useKeyboardNavigation } from "@/hooks/use-keyboard-navigation"
+import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 
 interface EdGoalsStepProps {

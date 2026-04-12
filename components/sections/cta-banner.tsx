@@ -6,6 +6,8 @@ import Link from "next/link";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useScrollReveal, useReducedMotion } from "@/components/ui/motion";
+import { TrustBadgeRow } from "@/components/shared/trust-badge";
+import type { PresetEntry } from "@/lib/marketing/trust-badges";
 import type { SectionProps } from "./types";
 
 interface CTABannerProps extends SectionProps {
@@ -15,6 +17,9 @@ interface CTABannerProps extends SectionProps {
   ctaHref: string;
   secondaryText?: string;
   secondaryHref?: string;
+  /** Optional trust badge row below CTA (preset name or badge entries) */
+  trustBadgePreset?: string;
+  trustBadges?: PresetEntry[];
 }
 
 export function CTABanner({
@@ -24,6 +29,8 @@ export function CTABanner({
   ctaHref,
   secondaryText,
   secondaryHref,
+  trustBadgePreset,
+  trustBadges,
   className,
   id,
 }: CTABannerProps) {
@@ -77,6 +84,13 @@ export function CTABanner({
           <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
           Full refund if we can&apos;t help - no questions asked
         </p>
+
+        {/* Optional trust badge row */}
+        {(trustBadgePreset || trustBadges) && (
+          <div className="mt-6 pt-4 border-t border-border/30">
+            <TrustBadgeRow preset={trustBadgePreset} badges={trustBadges} className="gap-3" />
+          </div>
+        )}
       </motion.div>
     </section>
   );

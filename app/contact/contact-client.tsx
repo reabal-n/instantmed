@@ -10,11 +10,14 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { cn } from "@/lib/utils"
-import { Navbar } from "@/components/shared/navbar"
-import { MarketingFooter, LiveWaitTime, StatsStrip, MediaMentions } from "@/components/marketing"
+import { InformationalPageShell } from "@/components/marketing/shared/informational-page-shell"
+import { LiveWaitTime } from "@/components/marketing"
 import { CenteredHero } from "@/components/heroes"
 import { CTABanner } from "@/components/sections"
 import { DoctorCredibility } from "@/components/marketing/doctor-credibility"
+import { TestimonialCard } from "@/components/marketing/shared/testimonial-card"
+import { AnimatedDonutChart } from "@/components/marketing/shared/data-viz"
+import { SectionPill } from "@/components/ui/section-pill"
 import { scrollRevealConfig, useReducedMotion } from "@/components/ui/motion"
 import {
   Mail,
@@ -31,6 +34,33 @@ import {
 import { capture } from "@/lib/analytics/capture"
 import { submitContactForm } from "@/app/actions/contact-form"
 import { CONTACT_EMAIL, CONTACT_EMAIL_COMPLAINTS } from "@/lib/constants"
+import { SOCIAL_PROOF } from "@/lib/social-proof"
+
+const CONTACT_CONFIG = {
+  analyticsId: "contact" as const,
+  sticky: false as const,
+}
+
+const SUPPORT_TESTIMONIALS = [
+  {
+    name: "Sarah M.",
+    quote: "Got a reply within 20 minutes. Way better than any clinic phone queue.",
+    rating: 5 as const,
+    location: "Brisbane, QLD",
+  },
+  {
+    name: "James T.",
+    quote: "Had a question about my certificate and support sorted it out same day.",
+    rating: 5 as const,
+    location: "Melbourne, VIC",
+  },
+  {
+    name: "Priya K.",
+    quote: "Really impressed with how quickly the team responded. Felt like they actually read my message.",
+    rating: 5 as const,
+    location: "Perth, WA",
+  },
+]
 
 const contactReasons = [
   { id: "general", label: "General Inquiry", icon: MessageSquare },
@@ -83,49 +113,48 @@ export function ContactClient() {
 
   if (isSubmitted) {
     return (
-      <div className="flex min-h-screen flex-col">
-        <Navbar variant="marketing" />
-        <main className="flex-1 flex items-center justify-center px-4 py-20">
-          <div className="mx-auto max-w-lg text-center">
-            <div className="rounded-2xl border border-border/50 dark:border-white/15 bg-white dark:bg-card shadow-lg shadow-primary/[0.06] dark:shadow-none p-10">
-              <motion.div
-                initial={prefersReducedMotion ? {} : { scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
-              >
-                <div
-                  className="mx-auto w-20 h-20 rounded-full bg-gradient-to-br from-primary to-accent-teal flex items-center justify-center mb-6"
-                  role="img"
-                  aria-label="Success"
+      <InformationalPageShell config={CONTACT_CONFIG}>
+        {() => (
+          <div className="flex-1 flex items-center justify-center px-4 py-20">
+            <div className="mx-auto max-w-lg text-center">
+              <div className="rounded-2xl border border-border/50 dark:border-white/15 bg-white dark:bg-card shadow-lg shadow-primary/[0.06] dark:shadow-none p-10">
+                <motion.div
+                  initial={prefersReducedMotion ? {} : { scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
                 >
-                  <CheckCircle2 className="h-10 w-10 text-primary-foreground" aria-hidden="true" />
-                </div>
-                <h1 className="text-2xl font-semibold mb-3">
-                  Message sent!
-                </h1>
-                <p className="text-muted-foreground mb-8">
-                  We&apos;ve got it - a real person will read your message and get back to you, usually within a few hours. Keep an eye on your inbox.
-                </p>
-                <Button asChild className="rounded-full text-primary-foreground">
-                  <Link href="/">
-                    Back to Home
-                    <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
-                  </Link>
-                </Button>
-              </motion.div>
+                  <div
+                    className="mx-auto w-20 h-20 rounded-full bg-gradient-to-br from-primary to-accent-teal flex items-center justify-center mb-6"
+                    role="img"
+                    aria-label="Success"
+                  >
+                    <CheckCircle2 className="h-10 w-10 text-primary-foreground" aria-hidden="true" />
+                  </div>
+                  <h1 className="text-2xl font-semibold mb-3">
+                    Message sent!
+                  </h1>
+                  <p className="text-muted-foreground mb-8">
+                    We&apos;ve got it - a real person will read your message and get back to you, usually within a few hours. Keep an eye on your inbox.
+                  </p>
+                  <Button asChild className="rounded-full text-primary-foreground">
+                    <Link href="/">
+                      Back to Home
+                      <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
+                    </Link>
+                  </Button>
+                </motion.div>
+              </div>
             </div>
           </div>
-        </main>
-        <MarketingFooter />
-      </div>
+        )}
+      </InformationalPageShell>
     )
   }
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <Navbar variant="marketing" />
-
-      <main className="flex-1">
+    <InformationalPageShell config={CONTACT_CONFIG}>
+      {() => (
+        <>
         {/* Hero */}
         <CenteredHero
           pill="Contact Us"
@@ -159,6 +188,70 @@ export function ContactClient() {
           </div>
         </section>
 
+        {/* Response Stats */}
+        <div className="bg-muted/30 dark:bg-white/[0.02]">
+          <section className="py-12 px-4 sm:px-6">
+            <div className="mx-auto max-w-3xl">
+              <div className="text-center mb-8">
+                <SectionPill>Response times</SectionPill>
+              </div>
+              <div className="grid sm:grid-cols-2 gap-8 items-center">
+                <div className="flex justify-center">
+                  <AnimatedDonutChart
+                    value={SOCIAL_PROOF.certApprovalPercent}
+                    label="Request approval rate"
+                    size={130}
+                    strokeWidth={11}
+                  />
+                </div>
+                <div className="space-y-4">
+                  <div className="rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none p-4">
+                    <p className="text-2xl font-semibold text-primary tabular-nums">~{SOCIAL_PROOF.averageResponseMinutes} min</p>
+                    <p className="text-xs text-muted-foreground">Average support response time</p>
+                  </div>
+                  <div className="rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none p-4">
+                    <p className="text-2xl font-semibold text-foreground tabular-nums">24h max</p>
+                    <p className="text-xs text-muted-foreground">Every message gets a reply</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        {/* Support Testimonials */}
+        <section className="py-12 px-4 sm:px-6">
+          <div className="mx-auto max-w-5xl">
+            <div className="text-center mb-8">
+              <SectionPill>Support feedback</SectionPill>
+              <h2 className="text-xl sm:text-2xl font-semibold tracking-tight mt-3">
+                What patients say about our support
+              </h2>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-3">
+              {SUPPORT_TESTIMONIALS.map((t) => (
+                <TestimonialCard
+                  key={t.name}
+                  variant="compact"
+                  testimonial={t}
+                />
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Doctor Credibility */}
+        <DoctorCredibility
+          variant="inline"
+          stats={["experience", "approval", "reviews"]}
+          className="max-w-3xl mx-auto px-4 sm:px-6 py-8"
+        />
+
+        {/* Live Wait Time */}
+        <div className="bg-muted/30 dark:bg-white/[0.02]">
+          <LiveWaitTime variant="strip" />
+        </div>
+
         {/* CTA Banner */}
         <CTABanner
           title="Looking for a medical certificate or repeat medication?"
@@ -168,22 +261,9 @@ export function ContactClient() {
           secondaryText="See how it works"
           secondaryHref="/faq"
         />
-
-        {/* Doctor Credibility */}
-        <DoctorCredibility
-          variant="inline"
-          stats={["experience", "approval", "reviews"]}
-          className="max-w-3xl mx-auto px-4 sm:px-6 py-8"
-        />
-
-        {/* Social Proof */}
-        <LiveWaitTime variant="strip" />
-        <StatsStrip className="bg-muted/20 border-y border-border/30" />
-        <MediaMentions variant="strip" className="bg-muted/30" />
-      </main>
-
-      <MarketingFooter />
-    </div>
+        </>
+      )}
+    </InformationalPageShell>
   )
 }
 

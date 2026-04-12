@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import { Navbar } from "@/components/shared/navbar"
 import { MarketingFooter } from "@/components/marketing"
-import { MarketingPageShell } from "@/components/shared/marketing-page-shell"
+import { MarketingPageShell } from "@/components/marketing/marketing-page-shell"
 import { CenteredHero } from "@/components/heroes"
 import { CTABanner } from "@/components/sections"
 import { LegalSection } from "@/components/shared/legal-section"

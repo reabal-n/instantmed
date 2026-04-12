@@ -4,7 +4,7 @@ import { createLogger } from "@/lib/observability/logger"
 import { verifyCronRequest } from "@/lib/api/cron-auth"
 import { captureCronError } from "@/lib/observability/sentry"
 import * as Sentry from "@sentry/nextjs"
-import { trackBusinessMetric } from "@/lib/posthog-server"
+import { trackBusinessMetric } from "@/lib/analytics/posthog-server"
 import { toError } from "@/lib/errors"
 
 const logger = createLogger("cron-ahpra-reverification")

@@ -3,7 +3,7 @@
 import { generateText } from "ai"
 import { getModelWithConfig } from "@/lib/ai/provider"
 import { upsertDraft } from "@/lib/ai/drafts"
-import { getPostHogClient } from "@/lib/posthog-server"
+import { getPostHogClient } from "@/lib/analytics/posthog-server"
 import { safeParseMedCertDraftOutput } from "@/lib/ai/schemas"
 import { validateMedCertAgainstIntake } from "@/lib/ai/validation"
 import { CLINICAL_SAFETY_PREAMBLE } from "@/lib/ai/prompts"

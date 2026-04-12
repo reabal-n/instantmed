@@ -1,11 +1,10 @@
 "use client"
 
-import { Navbar } from "@/components/shared/navbar"
-import { MarketingFooter } from "@/components/marketing"
 import { CenteredHero } from "@/components/heroes"
-import { Timeline, FeatureGrid, CTABanner } from "@/components/sections"
+import { Timeline, FeatureGrid, FAQSection, CTABanner } from "@/components/sections"
 import { DoctorCredibility } from "@/components/marketing/doctor-credibility"
 import { RegulatoryPartners } from "@/components/marketing/media-mentions"
+import { InformationalPageShell } from "@/components/marketing/shared/informational-page-shell"
 import {
   Clock,
   Shield,
@@ -61,14 +60,33 @@ const features = [
   },
 ]
 
+const HOW_IT_WORKS_FAQ = [
+  { question: "Is this a real doctor?", answer: "Yes. Every request is reviewed by an AHPRA-registered Australian GP. They're real doctors with real medical degrees and current registration, the same doctors who work in clinics and hospitals." },
+  { question: "How long does it take?", answer: "Medical certificates are typically issued within 30 minutes, 24/7. Prescriptions and consultations are reviewed within 1-2 hours. Prescriptions and consultations are available 8am-10pm AEST, 7 days." },
+  { question: "Will my employer accept an online medical certificate?", answer: "Yes. Certificates from AHPRA-registered doctors are legally valid under the Fair Work Act. They carry the same weight as certificates from in-person GP visits." },
+  { question: "Do I need to be available for a call?", answer: "No. InstantMed is fully async. You submit your form, the doctor reviews it, and you get a written response. No need to be free at a specific time." },
+  { question: "Do I need a Medicare card?", answer: "For medical certificates, no. For prescriptions and consultations, Medicare details are requested for identity and prescribing history verification, but this is a private service." },
+  { question: "What if the doctor can't help me?", answer: "You get a full refund. If your situation requires in-person care or falls outside telehealth scope, the doctor will recommend appropriate next steps." },
+  { question: "Is my information private?", answer: "Completely. Your health data is encrypted with bank-level security and never shared with employers, insurers, or anyone else without your consent." },
+  { question: "Can I use this for my kids?", answer: "We primarily serve adults (18+). Minors may be assessed with parental consent for certain services, but complex paediatric cases should be seen by a GP in person." },
+  { question: "How do I receive my documents?", answer: "Medical certificates are emailed as PDFs and available in your patient dashboard. Prescriptions are sent as eScripts via SMS. Take your phone to any pharmacy." },
+  { question: "Is this available outside major cities?", answer: "Yes. InstantMed works anywhere in Australia with internet access. Regional, rural, and remote patients use our service regularly." },
+  { question: "What hours are you open?", answer: "Medical certificates are available 24/7. Prescriptions and consultations: 8am-10pm AEST, 7 days including public holidays." },
+  { question: "How is this different from calling a GP clinic?", answer: "No appointments, no waiting rooms, no phone queues. You submit when it suits you, and a doctor reviews it without you needing to be available at a specific time." },
+]
+
+const HIW_CONFIG = {
+  analyticsId: "how-it-works" as const,
+  sticky: false as const,
+}
+
 /* ────────────────────────────── Component ────────────────────────────── */
 
 export function HowItWorksContent() {
   return (
-    <div className="flex min-h-screen flex-col">
-      <Navbar variant="marketing" />
-
-      <main className="flex-1">
+    <InformationalPageShell config={HIW_CONFIG}>
+      {() => (
+        <>
         {/* Hero */}
         <CenteredHero
           pill="How It Works"
@@ -107,6 +125,7 @@ export function HowItWorksContent() {
         <RegulatoryPartners className="py-12" />
 
         {/* Long-form E-E-A-T Guide Section */}
+        <div className="bg-muted/30 dark:bg-white/[0.02]">
         <section className="px-4 py-20 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-3xl">
             {/* AHPRA Badge */}
@@ -198,89 +217,29 @@ export function HowItWorksContent() {
             </div>
           </div>
         </section>
+        </div>
 
         {/* FAQ Section */}
-        <section className="px-4 py-20 sm:px-6 lg:px-8 bg-muted/50 dark:bg-white/[0.03]">
-          <div className="mx-auto max-w-3xl">
-            <h2 className="text-2xl sm:text-3xl font-semibold text-center mb-3 tracking-tight">
-              Common questions
-            </h2>
-            <p className="text-center text-muted-foreground mb-10">
-              Everything you need to know about using InstantMed.
-            </p>
-
-            <div className="space-y-4">
-              {[
-                {
-                  q: "Is this a real doctor?",
-                  a: "Yes. Every request is reviewed by an AHPRA-registered Australian GP. They're real doctors with real medical degrees and current registration, the same doctors who work in clinics and hospitals.",
-                },
-                {
-                  q: "How long does it take?",
-                  a: "Medical certificates are typically issued within 30 minutes, 24/7. Prescriptions and consultations are reviewed within 1–2 hours - all async, no phone call required. Prescriptions and consultations are available 8am–10pm AEST, 7 days.",
-                },
-                {
-                  q: "Will my employer accept an online medical certificate?",
-                  a: "Yes. Certificates from AHPRA-registered doctors are legally valid under the Fair Work Act. They carry the same weight as certificates from in-person GP visits. Every certificate includes the doctor's AHPRA registration and a unique verification ID.",
-                },
-                {
-                  q: "Do I need to be available for a call?",
-                  a: "No. InstantMed is fully async - you submit your form, the doctor reviews it, and you get a written response. No need to be free at a specific time. If the doctor needs clarification, they'll message you through the platform.",
-                },
-                {
-                  q: "Do I need a Medicare card?",
-                  a: "For medical certificates, no. For prescriptions and consultations, Medicare details are requested so the doctor can verify your identity and prescribing history, but this is a private service and no Medicare rebate is claimed.",
-                },
-                {
-                  q: "What if the doctor can't help me?",
-                  a: "You get a full refund. If your situation requires in-person care, controlled substances, or falls outside what telehealth can safely manage, the doctor will let you know and recommend appropriate next steps.",
-                },
-                {
-                  q: "Is my information private?",
-                  a: "Completely. Your health data is encrypted with bank-level security and never shared with employers, insurers, or anyone else without your consent. Because we're a private service, nothing appears on your Medicare history.",
-                },
-                {
-                  q: "Can I use this for my kids?",
-                  a: "We primarily serve adults (18+). Minors may be assessed with parental consent for certain services, but complex paediatric cases should be seen by a GP in person.",
-                },
-                {
-                  q: "How do I receive my documents?",
-                  a: "Medical certificates are emailed as PDFs and available in your patient dashboard. Prescriptions are sent as eScripts via SMS. Take your phone to any pharmacy. Consultation notes are available in your dashboard.",
-                },
-                {
-                  q: "Is this available outside major cities?",
-                  a: "Yes. InstantMed works anywhere in Australia with internet access. Regional, rural, and remote patients use our service regularly. It was designed to bridge the gap where GP access is limited.",
-                },
-                {
-                  q: "What hours are you open?",
-                  a: "Medical certificates are available 24/7. Prescriptions and consultations: 8am–10pm AEST, 7 days a week including public holidays. You can submit anytime. Requests outside operating hours are reviewed first thing next session.",
-                },
-                {
-                  q: "How is this different from calling a GP clinic?",
-                  a: "No appointments, no waiting rooms, no phone queues. You submit your request when it suits you, and a doctor reviews it without you needing to be available at a specific time. Same quality of care, different delivery method.",
-                },
-              ].map((faq, i) => (
-                <div key={i} className="p-5 rounded-xl bg-white dark:bg-card border border-border/50 shadow-sm shadow-primary/[0.04] dark:shadow-none">
-                  <h3 className="font-semibold mb-2">{faq.q}</h3>
-                  <p className="text-sm text-muted-foreground">{faq.a}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
+        <div className="bg-muted/30 dark:bg-white/[0.02]">
+          <FAQSection
+            pill="FAQ"
+            title="Common questions"
+            subtitle="Everything you need to know about using InstantMed."
+            items={HOW_IT_WORKS_FAQ}
+          />
+        </div>
 
         {/* CTA */}
         <CTABanner
           title="Ready when you are"
-          subtitle="Pick what you need, fill in a quick form, and a GP takes care of the rest. Reviewed within 1–2 hours, most days."
+          subtitle="Pick what you need, fill in a quick form, and a GP takes care of the rest. Reviewed within 1-2 hours, most days."
           ctaText="Get Med Cert"
           ctaHref="/request?service=med-cert"
           secondaryText="Renew medication"
           secondaryHref="/request?service=prescription"
         />
-      </main>
-
-      <MarketingFooter />
-    </div>
+        </>
+      )}
+    </InformationalPageShell>
   )
 }

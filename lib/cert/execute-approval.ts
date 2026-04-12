@@ -5,7 +5,7 @@ import { MedCertPatientEmail, medCertPatientEmailSubject } from "@/components/em
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { env } from "@/lib/env"
 import { logger } from "@/lib/observability/logger"
-import { getPostHogClient, trackIntakeFunnelStep } from "@/lib/posthog-server"
+import { getPostHogClient, trackIntakeFunnelStep } from "@/lib/analytics/posthog-server"
 import { generateVerificationCode, generateCertificateNumber, generateCertificateRef } from "@/lib/pdf/cert-identifiers"
 import { renderTemplatePdf } from "@/lib/pdf/template-renderer"
 import {

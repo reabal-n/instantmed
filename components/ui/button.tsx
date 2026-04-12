@@ -55,8 +55,6 @@ export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
   asChild?: boolean
-  /** @deprecated Ripple removed in Radix migration */
-  ripple?: boolean
   /** Show loading spinner and disable interaction */
   isLoading?: boolean
 }
@@ -72,7 +70,6 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       disabled,
       isLoading,
       type = "button",
-      ripple: _ripple,
       ...props
     },
     ref

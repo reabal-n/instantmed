@@ -38,7 +38,7 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { formatMinutes } from "@/lib/format"
-import { formatServiceType } from "@/lib/format-service"
+import { formatServiceType } from "@/lib/format/service"
 
 export interface PaginationInfo {
   days: number
