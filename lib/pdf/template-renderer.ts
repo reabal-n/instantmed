@@ -92,8 +92,9 @@ const LAYOUT = {
   certIdY: 820,
   /** Right margin */
   rightMargin: 50,
-  /** Maximum Y before body text would collide with doctor block (~535pt) */
-  maxBodyY: 530,
+  /** Maximum Y before body text would collide with doctor block (~700pt).
+   *  530 was too conservative — pushed to 660 to prevent overflow on longer certs. */
+  maxBodyY: 660,
   /** QR code: top-origin Y, right-aligned. Bottom-right corner above footer. */
   qrY: 745,
   /** QR code rendered size in points */
@@ -163,7 +164,7 @@ function getReturnText(input: TemplatePdfInput): string {
     case "work":
       return `They are advised to rest and recover and may return to work once ${periodRef} has concluded, or earlier if symptoms resolve.`
     case "study":
-      return `They require rest and recovery and may resume academic activities once ${periodRef} has concluded, or earlier if symptoms resolve. I would support an application for special consideration, exam deferral, or alternative assessment arrangement as deemed appropriate by their institution.`
+      return `They require rest and recovery and may resume study once ${periodRef} has concluded, or earlier if symptoms resolve. I would support an application for special consideration or exam deferral if required by their institution.`
     case "carer":
       return `They may return to work once ${periodRef} has concluded, subject to the dependent's recovery.`
   }
