@@ -8,6 +8,7 @@ import { createLogger } from "@/lib/observability/logger"
 import { captureCronError } from "@/lib/observability/sentry"
 
 export const dynamic = "force-dynamic"
+export const maxDuration = 60
 
 const logger = createLogger("cron-treatment-followup")
 

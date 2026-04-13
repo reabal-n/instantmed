@@ -11,6 +11,8 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const logger = createLogger("stale-queue")
 
+export const maxDuration = 60
+
 function formatServiceType(category: string | null): string {
   if (category === "medical_certificate") return "medical certificate"
   if (category === "prescription") return "prescription"

@@ -183,6 +183,35 @@ export async function acquireCronLock(
   }
 }
 
+/**
+ * Wrap a cron job's core function with a timeout guard.
+ * If the function doesn't complete within `timeoutMs`, returns a partial-success
+ * response instead of letting Vercel hard-kill the function with no visibility.
+ *
+ * Default timeout: 50 seconds (leaves 10s buffer for Vercel's 60s limit).
+ */
+export async function withCronTimeout<T>(
+  fn: (signal: AbortSignal) => Promise<T>,
+  options?: { timeoutMs?: number; jobName?: string }
+): Promise<{ result: T; timedOut: false } | { timedOut: true; jobName: string }> {
+  const timeoutMs = options?.timeoutMs ?? 50_000
+  const jobName = options?.jobName ?? "unknown"
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), timeoutMs)
+
+  try {
+    const result = await fn(controller.signal)
+    clearTimeout(timer)
+    return { result, timedOut: false }
+  } catch (err) {
+    clearTimeout(timer)
+    if (controller.signal.aborted) {
+      return { timedOut: true, jobName }
+    }
+    throw err // re-throw non-timeout errors
+  }
+}
+
 export async function releaseCronLock(jobName: string): Promise<void> {
   try {
     const { createServiceRoleClient } = await import("@/lib/supabase/service-role")

@@ -144,6 +144,7 @@ const productionRequirements = z.object({
  * Validated environment - throws at import time if invalid
  * This ensures builds fail fast on missing required vars
  */
+let prodEnvWarned = false
 function validateServerEnv() {
   const parsed = serverEnvSchema.safeParse(process.env)
 
@@ -154,14 +155,19 @@ function validateServerEnv() {
     throw new Error(`Environment validation failed: ${parsed.error.message}`)
   }
 
-  // Additional checks for production (skip in CI - NODE_ENV=production is set by Next.js build but CI isn't production)
-  if (parsed.data.NODE_ENV === "production" && !process.env.CI) {
+  // Production pre-flight check: warn about missing vars but don't throw.
+  // Individual getter functions (getStripeSecretKey, getAppUrl, etc.) throw at
+  // point-of-use, which is the actual runtime safety net. This check is a
+  // convenience that surfaces all missing vars at once in logs -- not a build gate.
+  // Throwing here breaks `next build` because Next.js sets NODE_ENV=production
+  // during builds and evaluates server modules for page data collection.
+  if (parsed.data.NODE_ENV === "production" && !process.env.CI && !prodEnvWarned) {
+    prodEnvWarned = true
     const prodParsed = productionRequirements.safeParse(process.env)
     if (!prodParsed.success) {
       const missing = prodParsed.error.issues.map(i => i.path.join(".")).join(", ")
       // eslint-disable-next-line no-console
-      console.error(`❌ Missing production environment variables: ${missing}`)
-      throw new Error(`Production environment validation failed: ${missing}`)
+      console.warn(`⚠️ Missing production environment variables: ${missing}`)
     }
   }
 

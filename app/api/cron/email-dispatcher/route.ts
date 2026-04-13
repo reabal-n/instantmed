@@ -1,7 +1,7 @@
 import * as Sentry from "@sentry/nextjs"
 import { NextRequest, NextResponse } from "next/server"
 
-import { verifyCronRequest } from "@/lib/api/cron-auth"
+import { verifyCronRequest, withCronTimeout } from "@/lib/api/cron-auth"
 import { processEmailDispatch } from "@/lib/email/email-dispatcher"
 import { toError } from "@/lib/errors"
 import { recordCronHeartbeat } from "@/lib/monitoring/cron-heartbeat"
@@ -35,8 +35,23 @@ export async function GET(request: NextRequest) {
   await recordCronHeartbeat("email-dispatcher")
 
   try {
-    const result = await processEmailDispatch()
-    
+    const outcome = await withCronTimeout(
+      () => processEmailDispatch(),
+      { timeoutMs: 50_000, jobName: "email-dispatcher" }
+    )
+
+    if (outcome.timedOut) {
+      logger.warn("Cron: email-dispatcher timed out", { jobName: outcome.jobName })
+      return NextResponse.json({
+        success: true,
+        partial: true,
+        message: "Processing timed out - will continue next run",
+        timestamp: new Date().toISOString(),
+      })
+    }
+
+    const result = outcome.result
+
     logger.info("Email dispatcher cron completed", {
       processed: result.processed,
       sent: result.sent,

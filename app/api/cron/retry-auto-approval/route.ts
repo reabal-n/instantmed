@@ -10,6 +10,8 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const logger = createLogger("cron-retry-auto-approval")
 
+export const maxDuration = 60
+
 function formatRequestType(category: string | null, subtype: string | null): string {
   if (category === "medical_certificate") return "medical certificate"
   if (category === "prescription") return "prescription"

@@ -9,6 +9,8 @@ import { captureCronError } from "@/lib/observability/sentry"
 
 const logger = createLogger("cron-abandoned-checkouts")
 
+export const maxDuration = 60
+
 /**
  * Cron endpoint to process abandoned checkouts and send recovery emails
  * Runs every hour via Vercel Cron (configured in vercel.json)
