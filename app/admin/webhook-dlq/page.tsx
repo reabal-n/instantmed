@@ -1,4 +1,4 @@
-import { requireRole } from "@/lib/auth"
+import { requireRole } from "@/lib/auth/helpers"
 import { WebhookDlqClient } from "./webhook-dlq-client"
 
 export const dynamic = "force-dynamic"

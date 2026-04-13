@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { getAuthenticatedUserWithProfile } from "@/lib/auth"
+import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
 import { DocumentsClient } from "./documents-client"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 

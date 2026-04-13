@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 import Link from "next/link"
-import { getCurrentUser, getUserProfile } from "@/lib/auth"
+import { getCurrentUser, getUserProfile } from "@/lib/auth/helpers"
 import { decryptProfilePhi } from "@/lib/data/profiles"
 import { RequestFlow } from "@/components/request"
 import { mapServiceParam } from "@/lib/request/step-registry"

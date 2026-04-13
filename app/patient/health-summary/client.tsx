@@ -20,7 +20,7 @@ import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { cn } from "@/lib/utils"
 import { formatDate } from "@/lib/format"
-import { INTAKE_STATUS, type IntakeStatus } from "@/lib/status"
+import { INTAKE_STATUS, type IntakeStatus } from "@/lib/data/status"
 import type { HealthSummary, RecentRequest, MedicalDocument, PrescriptionRecord } from "@/lib/data/health-summary"
 
 interface HealthSummaryClientProps {

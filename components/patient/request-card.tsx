@@ -3,7 +3,7 @@ import { Calendar, ChevronRight, Download, type LucideIcon } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
-import { INTAKE_STATUS, type IntakeStatus } from "@/lib/status"
+import { INTAKE_STATUS, type IntakeStatus } from "@/lib/data/status"
 import { formatDate } from "@/lib/format"
 
 interface RequestCardProps {

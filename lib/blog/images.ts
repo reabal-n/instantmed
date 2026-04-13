@@ -84,6 +84,14 @@ export const blogImages = {
   mentalHealthCertOnline: 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=800&h=450&fit=crop&q=80',
   sameDayMedCert: 'https://images.unsplash.com/photo-1532938911079-1b06ac7ceec7?w=800&h=450&fit=crop&q=80',
 
+  // Medication Guide Articles (Apr 2026)
+  sildenafilVsTadalafil: 'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=800&h=450&fit=crop&q=80',
+  finasterideVsMinoxidil: 'https://images.unsplash.com/photo-1585435557343-3b092031a831?w=800&h=450&fit=crop&q=80',
+  metforminGuide: 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=800&h=450&fit=crop&q=80',
+  omeprazoleVsPantoprazole: 'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=800&h=450&fit=crop&q=80',
+  sertralineVsEscitalopram: 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=800&h=450&fit=crop&q=80',
+  amoxicillinGuide: 'https://images.unsplash.com/photo-1471864190281-a93a3070b6de?w=800&h=450&fit=crop&q=80',
+
   // Author Illustrations (DiceBear)
   authorSarahChen: 'https://api.dicebear.com/7.x/notionists/svg?seed=SarahChen',
   authorMarcusThompson: 'https://api.dicebear.com/7.x/notionists/svg?seed=MarcusThompson',

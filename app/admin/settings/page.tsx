@@ -1,4 +1,4 @@
-import { requireRole } from "@/lib/auth"
+import { requireRole } from "@/lib/auth/helpers"
 import { redirect } from "next/navigation"
 
 // Consolidated: feature flag management lives at /admin/features

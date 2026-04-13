@@ -24,7 +24,7 @@ import {
   Check,
 } from "lucide-react"
 import { formatIntakeStatus } from "@/lib/format/intake"
-import { INTAKE_STATUS, type IntakeStatus as StatusKey } from "@/lib/status"
+import { INTAKE_STATUS, type IntakeStatus as StatusKey } from "@/lib/data/status"
 import { COPY } from "@/lib/microcopy/universal"
 import { capture } from "@/lib/analytics/capture"
 import { cancelIntake } from "@/app/actions/cancel-intake"

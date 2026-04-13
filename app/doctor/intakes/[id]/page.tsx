@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation"
-import { getAuthenticatedUserWithProfile } from "@/lib/auth"
+import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
 import { getIntakeWithDetails, getPatientIntakes, getNextQueueIntakeId } from "@/lib/data/intakes"
 import { getCertDeliveryStatus } from "@/lib/data/issued-certificates"
 import { getOrCreateMedCertDraftForIntake } from "@/lib/data/documents"

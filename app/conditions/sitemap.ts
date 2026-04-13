@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next"
 import { getAllConditionSlugs } from "@/lib/seo/data/conditions"
 
-const CONTENT_ENRICHED = new Date("2026-03-31")
+const CONTENT_ENRICHED = new Date("2026-04-13")
 const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://instantmed.com.au"
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {

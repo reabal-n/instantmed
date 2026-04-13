@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { getAuthenticatedUserWithProfile } from "@/lib/auth"
+import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
 import { getHealthProfile } from "@/lib/data/health-profile"
 import { HealthProfileClient } from "./health-profile-client"
 

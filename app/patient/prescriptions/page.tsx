@@ -1,4 +1,4 @@
-import { getAuthenticatedUserWithProfile } from "@/lib/auth"
+import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { PrescriptionsClient } from "./client"
 import type { Metadata } from "next"

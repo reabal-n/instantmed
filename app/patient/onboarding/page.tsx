@@ -1,4 +1,4 @@
-import { getOrCreateAuthenticatedUser } from "@/lib/auth"
+import { getOrCreateAuthenticatedUser } from "@/lib/auth/helpers"
 import { redirect } from "next/navigation"
 import { OnboardingFlow } from "./onboarding-flow"
 

@@ -1,4 +1,4 @@
-import { requireRole } from "@/lib/auth"
+import { requireRole } from "@/lib/auth/helpers"
 import { FinanceDashboardClient } from "./finance-client"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 

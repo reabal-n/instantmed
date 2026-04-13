@@ -1,4 +1,4 @@
-import { requireRole } from "@/lib/auth"
+import { requireRole } from "@/lib/auth/helpers"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { Clock, AlertTriangle, CheckCircle2, Timer } from "lucide-react"
 

@@ -28,7 +28,7 @@ import { useState, useTransition } from "react"
 import { addPatientNoteAction } from "@/app/actions/patient-notes"
 import { formatIntakeStatus } from "@/lib/format/intake"
 import { formatDate, formatDateTime, formatDateLong, calculateAge } from "@/lib/format"
-import { INTAKE_STATUS, type IntakeStatus } from "@/lib/status"
+import { INTAKE_STATUS, type IntakeStatus } from "@/lib/data/status"
 import { PatientCommunicationHistory } from "@/components/doctor/patient-communication-history"
 import type { Profile } from "@/types/db"
 

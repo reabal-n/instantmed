@@ -1,7 +1,7 @@
 import { Suspense } from "react"
 import { IdentitySettingsClient } from "./identity-settings-client"
 import { loadDoctorIdentityAction } from "@/app/actions/doctor-identity"
-import { getAuthenticatedUserWithProfile } from "@/lib/auth"
+import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { Loader2 } from "lucide-react"
 

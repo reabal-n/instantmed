@@ -9,7 +9,7 @@ import {
   markAsReviewed,
   updateScriptSent,
 } from "@/lib/data/intakes"
-import { requireRole } from "@/lib/auth"
+import { requireRole } from "@/lib/auth/helpers"
 import { IntakeLifecycleError } from "@/lib/data/intake-lifecycle"
 import { createLogger } from "@/lib/observability/logger"
 import { trackIntakeFunnelStep } from "@/lib/analytics/posthog-server"

@@ -1,4 +1,4 @@
-import { requireRole } from "@/lib/auth"
+import { requireRole } from "@/lib/auth/helpers"
 import { FeatureFlagsClient } from "./features-client"
 import { getFeatureFlagsAction, getAutoApproveStatsAction } from "@/app/actions/admin-config"
 import { getFeatureFlagAuditLogsAction } from "@/app/actions/admin-config"

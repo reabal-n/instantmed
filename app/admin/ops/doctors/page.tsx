@@ -1,4 +1,4 @@
-import { requireRole } from "@/lib/auth"
+import { requireRole } from "@/lib/auth/helpers"
 import { getDoctorMetrics } from "@/lib/data/doctor-ops"
 import { DoctorOpsClient } from "./doctor-ops-client"
 import type { DateRange, SortField, SortDirection } from "@/lib/data/doctor-ops"

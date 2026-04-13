@@ -1,5 +1,5 @@
 import { Suspense } from "react"
-import { getAuthenticatedUserWithProfile } from "@/lib/auth"
+import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
 import { getDoctorQueue, getIntakeMonitoringStats, getSlaBreachIntakes, getAIApprovedIntakes, getAutoApprovalMetrics, getRecentlyCompletedIntakes, getTodayEarnings } from "@/lib/data/intakes"
 import { getDoctorIdentity, isDoctorIdentityComplete, type DoctorIdentity } from "@/lib/data/doctor-identity"
 import { QueueClient } from "../queue/queue-client"

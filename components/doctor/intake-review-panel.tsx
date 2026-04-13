@@ -1,7 +1,6 @@
 "use client"
 
-import { useState, useTransition, useRef, useEffect, useCallback } from "react"
-import { useRouter } from "next/navigation"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { useAuth } from "@/lib/supabase/auth-provider"
 import Link from "next/link"
 import { SheetPanel } from "@/components/panels/sheet-panel"
@@ -9,29 +8,22 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ExternalLink, RefreshCw, Loader2, FileText } from "lucide-react"
-import { updateStatusAction, saveDoctorNotesAction, declineIntakeAction } from "@/app/doctor/queue/actions"
-import { fetchCertPreviewDataAction, approveWithPreviewDataAction } from "@/app/doctor/intakes/[id]/document/actions"
-import { CertificatePreviewDialog, type CertificatePreviewData } from "@/components/doctor/certificate-preview-dialog"
-import { logViewedIntakeAnswersAction, logViewedSafetyFlagsAction } from "@/app/actions/clinician-audit"
-import { acquireIntakeLockAction, releaseIntakeLockAction, extendIntakeLockAction } from "@/app/actions/intake-lock"
-import { regenerateDrafts } from "@/app/actions/draft-approval"
-import { resendCertificateAdmin } from "@/app/actions/resend-certificate-admin"
+import { releaseIntakeLockAction } from "@/app/actions/intake-lock"
 import { formatIntakeStatus, formatServiceType } from "@/lib/format/intake"
 import { usePanel } from "@/components/panels/panel-provider"
-import { useDoctorShortcuts } from "@/lib/hooks/use-doctor-shortcuts"
-import type { IntakeStatus, DeclineReasonCode } from "@/types/db"
-import { DECLINE_REASONS } from "@/lib/doctor/constants"
-import { toast } from "sonner"
+import { CertificatePreviewDialog } from "@/components/doctor/certificate-preview-dialog"
+import { useIntakeLock } from "@/components/doctor/hooks/use-intake-lock"
+import { useAuditTrail } from "@/components/doctor/hooks/use-audit-trail"
+import { useReviewActions } from "@/components/doctor/review-actions"
 
 import {
   IntakeReviewProvider,
   type ReviewData,
 } from "@/components/doctor/review/intake-review-context"
 import {
-  formatClinicalNoteContent,
   findClinicalNoteDraft,
+  formatClinicalNoteContent,
   isConcerningValue,
-  MIN_CLINICAL_NOTES_LENGTH,
   formatDate,
   getStatusColor,
 } from "@/components/doctor/review/utils"
@@ -48,39 +40,16 @@ interface IntakeReviewPanelProps {
 }
 
 export function IntakeReviewPanel({ intakeId, onActionComplete }: IntakeReviewPanelProps) {
-  const router = useRouter()
   useAuth()
   const { closePanel } = usePanel()
-  const [isPending, startTransition] = useTransition()
   const [data, setData] = useState<ReviewData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // Form state
-  const [doctorNotes, setDoctorNotes] = useState("")
-  const [noteSaved, setNoteSaved] = useState(false)
-  const [isAiPrefilled, setIsAiPrefilled] = useState(false)
-  const [showDeclineDialog, setShowDeclineDialog] = useState(false)
-  const [declineReason, setDeclineReason] = useState(DECLINE_REASONS[0].template)
-  const [declineReasonCode, setDeclineReasonCode] = useState<DeclineReasonCode>("requires_examination")
-
   // Safety flags
   const [redFlagsAcknowledged, setRedFlagsAcknowledged] = useState(false)
 
-  // Certificate preview
-  const [showCertPreview, setShowCertPreview] = useState(false)
-  const [certPreviewData, setCertPreviewData] = useState<CertificatePreviewData | null>(null)
-  const [isLoadingPreview, setIsLoadingPreview] = useState(false)
-  const [isRegenerating, setIsRegenerating] = useState(false)
-  const [isResending, setIsResending] = useState(false)
-  const [isViewingCert, setIsViewingCert] = useState(false)
-
-  // Lock warning
-  const [lockWarning, setLockWarning] = useState<string | null>(null)
-
-  const notesRef = useRef<HTMLTextAreaElement>(null)
   const viewStartTime = useRef<number>(Date.now())
-  const hasInitialized = useRef(false)
 
   // Fetch data on mount
   useEffect(() => {
@@ -95,26 +64,6 @@ export function IntakeReviewPanel({ intakeId, onActionComplete }: IntakeReviewPa
         const reviewData: ReviewData = await res.json()
         if (!cancelled) {
           setData(reviewData)
-
-          // Pre-fill clinical notes from AI draft if doctor hasn't written notes yet
-          const existingNotes = reviewData.intake.doctor_notes || ""
-          if (!existingNotes && reviewData.aiDrafts) {
-            const clinicalDraft = findClinicalNoteDraft(reviewData.aiDrafts)
-            if (clinicalDraft) {
-              const formatted = formatClinicalNoteContent(clinicalDraft.content)
-              if (formatted) {
-                setDoctorNotes(formatted)
-                setIsAiPrefilled(true)
-              } else {
-                setDoctorNotes("")
-              }
-            } else {
-              setDoctorNotes("")
-            }
-          } else {
-            setDoctorNotes(existingNotes)
-          }
-
           setIsLoading(false)
         }
       } catch (err) {
@@ -128,60 +77,13 @@ export function IntakeReviewPanel({ intakeId, onActionComplete }: IntakeReviewPa
     return () => { cancelled = true }
   }, [intakeId])
 
-  // Audit logging + lock management (runs once after data loads)
-  useEffect(() => {
-    if (!data || hasInitialized.current) return
-    hasInitialized.current = true
-
-    const intake = data.intake
-    const service = intake.service as { type?: string } | undefined
-
-    // Log clinician viewed intake answers
-    logViewedIntakeAnswersAction(intake.id, service?.type)
-
-    // Log safety flags view if present
-    const flagAnswers = intake.answers?.answers as Record<string, unknown> | undefined
-    if (flagAnswers?.red_flags_detected || flagAnswers?.yellow_flags_detected || flagAnswers?.emergency_symptoms) {
-      logViewedSafetyFlagsAction(intake.id, service?.type)
-    }
-
-    // Acquire soft lock
-    acquireIntakeLockAction(intake.id).then((result) => {
-      if (result.warning) {
-        setLockWarning(result.warning)
-      }
-    })
-
-    // Extend lock periodically
-    const lockInterval = setInterval(() => {
-      extendIntakeLockAction(intake.id)
-    }, 5 * 60 * 1000)
-
-    return () => {
-      clearInterval(lockInterval)
-      releaseIntakeLockAction(intake.id)
-    }
-  }, [data])
-
-  // Handle panel close - release lock + log view duration
-  const handlePanelClose = useCallback(() => {
-    if (data) {
-      const duration = Date.now() - viewStartTime.current
-      navigator.sendBeacon?.(
-        "/api/doctor/log-view-duration",
-        JSON.stringify({ intakeId: data.intake.id, durationMs: duration })
-      )
-      releaseIntakeLockAction(data.intake.id)
-    }
-  }, [data])
-
   // Computed values from data
   const intake = data?.intake
   const service = intake?.service as { name?: string; type?: string; short_name?: string } | undefined
   const answers = (intake?.answers?.answers || {}) as Record<string, unknown>
   const intakeAnswers = intake?.answers?.answers as Record<string, unknown> | undefined
 
-  // NOTE: emergency_symptoms is a safety-gate toggle ("I am NOT experiencing an emergency" → true),
+  // NOTE: emergency_symptoms is a safety-gate toggle ("I am NOT experiencing an emergency" -> true),
   // not an actual symptom field. Blocking happens at intake time, so it's excluded here.
   const hasRedFlags = Boolean(
     isConcerningValue(intakeAnswers?.red_flags_detected) ||
@@ -196,231 +98,61 @@ export function IntakeReviewPanel({ intakeId, onActionComplete }: IntakeReviewPa
       ].filter(Boolean) as string[]
     : []
 
-  // Close panel + refresh queue
-  const closeAndRefresh = useCallback(() => {
-    closePanel()
-    onActionComplete?.()
-    router.refresh()
-  }, [closePanel, onActionComplete, router])
+  // ---- Extracted hooks ----
 
-  // Decline reason template auto-fill
-  const handleDeclineReasonCodeChange = (code: DeclineReasonCode) => {
-    setDeclineReasonCode(code)
-    const template = DECLINE_REASONS.find((r) => r.code === code)?.template || ""
-    setDeclineReason(template)
-  }
+  // Lock management: acquire on data load, extend on interval, release on unmount
+  const { lockWarning, releaseLock } = useIntakeLock(intakeId, !!data)
 
-  // --- Actions ---
+  // Audit trail: fire one-shot audit events after data loads
+  useAuditTrail(intakeId, !!data, {
+    serviceType: service?.type,
+    answers: intakeAnswers,
+  })
 
-  const handleMedCertApprove = async () => {
-    if (!intake || !data) return
+  // Review actions: all approve/decline/notes/cert handlers + keyboard shortcuts
+  const actions = useReviewActions({
+    data,
+    setData,
+    hasRedFlags,
+    redFlagsAcknowledged,
+    onActionComplete,
+  })
 
-    if (hasRedFlags && !redFlagsAcknowledged) {
-      toast.error("Review and acknowledge safety flags before approving.")
-      return
-    }
-    if (doctorNotes.trim().length < MIN_CLINICAL_NOTES_LENGTH) {
-      toast.error(`Clinical notes required (min ${MIN_CLINICAL_NOTES_LENGTH} chars).`)
-      notesRef.current?.focus()
-      return
-    }
-
-    setIsLoadingPreview(true)
-    try {
-      const result = await fetchCertPreviewDataAction(intake.id, data.draftId || "")
-      if (result.success && result.data) {
-        setCertPreviewData(result.data)
-        setShowCertPreview(true)
-      } else {
-        toast.error(result.error || "Failed to load certificate data")
-      }
-    } catch {
-      toast.error("Failed to load certificate preview")
-    } finally {
-      setIsLoadingPreview(false)
-    }
-  }
-
-  const handleCertPreviewConfirm = async (editedData: CertificatePreviewData) => {
-    if (!intake) return
-    startTransition(async () => {
-      await saveDoctorNotesAction(intake.id, doctorNotes)
-      const result = await approveWithPreviewDataAction(intake.id, {
-        startDate: editedData.startDate,
-        endDate: editedData.endDate,
-        medicalReason: editedData.medicalReason,
-        doctorName: editedData.doctorName,
-        consultDate: editedData.consultDate,
-      })
-      if (result.success) {
-        setShowCertPreview(false)
-        const emailNote =
-          result.emailStatus === "sent"
-            ? "Certificate approved and sent to patient."
-            : "Certificate approved. Email will be sent shortly."
-        toast.success(emailNote)
-        setTimeout(closeAndRefresh, 800)
-      } else {
-        toast.error(result.error || "Failed to approve certificate")
-      }
-    })
-  }
-
-  const handleStatusChange = async (status: IntakeStatus) => {
-    if (!intake) return
-
-    if ((status === "approved" || status === "awaiting_script") && hasRedFlags && !redFlagsAcknowledged) {
-      toast.error("Review and acknowledge safety flags before approving.")
-      return
-    }
-    if ((status === "approved" || status === "awaiting_script") && doctorNotes.trim().length < MIN_CLINICAL_NOTES_LENGTH) {
-      toast.error(`Clinical notes required (min ${MIN_CLINICAL_NOTES_LENGTH} chars).`)
-      notesRef.current?.focus()
-      return
-    }
-
-    startTransition(async () => {
-      if (status === "approved" || status === "awaiting_script") {
-        await saveDoctorNotesAction(intake.id, doctorNotes)
-      }
-      const result = await updateStatusAction(intake.id, status)
-      if (result.success) {
-        toast.success(status === "approved" ? "Case approved" : "Case updated")
-        setTimeout(closeAndRefresh, 800)
-      } else {
-        toast.error(result.error || "Failed to update status")
-      }
-    })
-  }
-
-  const handleDecline = async () => {
-    if (!intake || !declineReason.trim()) return
-    startTransition(async () => {
-      const result = await declineIntakeAction(intake.id, declineReasonCode, declineReason)
-      if (result.success) {
-        setShowDeclineDialog(false)
-        toast.success("Case declined and patient notified")
-        setTimeout(closeAndRefresh, 800)
-      } else {
-        toast.error(result.error || "Failed to decline")
-      }
-    })
-  }
-
-  const hasClinicalDraft = !!findClinicalNoteDraft(data?.aiDrafts || [])
-
-  const handleGenerateOrRegenerateNote = async () => {
-    if (!intake) return
-    setIsRegenerating(true)
-    try {
-      const result = await regenerateDrafts(intake.id)
-      if (result.success) {
-        const res = await fetch(`/api/doctor/intakes/${intake.id}/review-data`)
-        if (res.ok) {
-          const reviewData: ReviewData = await res.json()
-          setData(reviewData)
-          const clinicalDraft = findClinicalNoteDraft(reviewData.aiDrafts || [])
-          if (clinicalDraft) {
-            const formatted = formatClinicalNoteContent(clinicalDraft.content)
-            if (formatted) {
-              setDoctorNotes(formatted)
-              setIsAiPrefilled(true)
-              toast.success(hasClinicalDraft ? "AI note regenerated" : "AI draft generated")
-            } else {
-              toast.error("AI draft could not be formatted. Please try again.")
-            }
-          } else {
-            toast.error("AI draft could not be generated. Please try again or add your notes manually.")
-          }
+  // Pre-fill clinical notes from AI draft when data first loads
+  useEffect(() => {
+    if (!data) return
+    const existingNotes = data.intake.doctor_notes || ""
+    if (!existingNotes && data.aiDrafts) {
+      const clinicalDraft = findClinicalNoteDraft(data.aiDrafts)
+      if (clinicalDraft) {
+        const formatted = formatClinicalNoteContent(clinicalDraft.content)
+        if (formatted) {
+          actions.setDoctorNotes(formatted)
+          // Note: isAiPrefilled is managed inside useReviewActions
         } else {
-          toast.error("Failed to load draft. Please refresh and try again.")
+          actions.setDoctorNotes("")
         }
       } else {
-        toast.error(result.error || "Failed to generate draft")
+        actions.setDoctorNotes("")
       }
-    } catch {
-      toast.error("Failed to generate draft")
-    } finally {
-      setIsRegenerating(false)
-    }
-  }
-
-  const handleSaveNotes = async () => {
-    if (!intake) return
-    startTransition(async () => {
-      const result = await saveDoctorNotesAction(intake.id, doctorNotes)
-      if (result.success) {
-        setNoteSaved(true)
-        setIsAiPrefilled(false) // After saving, it's the doctor's note now
-        setTimeout(() => setNoteSaved(false), 3000)
-      } else {
-        toast.error(result.error || "Failed to save notes")
-      }
-    })
-  }
-
-  const handleResend = async () => {
-    if (!intake) return
-    setIsResending(true)
-    const result = await resendCertificateAdmin(intake.id)
-    setIsResending(false)
-    if (result.success) {
-      toast.success("Certificate email resent to patient")
-      const res = await fetch(`/api/doctor/intakes/${intake.id}/review-data`)
-      if (res.ok) setData(await res.json())
     } else {
-      toast.error(result.error || "Failed to resend certificate")
+      actions.setDoctorNotes(existingNotes)
     }
-  }
+    // Only run when data first arrives
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data])
 
-  const handleViewCertificate = async () => {
-    if (!intake) return
-    setIsViewingCert(true)
-    try {
-      const res = await fetch(`/api/doctor/certificates/${intake.id}/download`)
-      if (!res.ok) {
-        toast.error("Certificate not found")
-        return
-      }
-      const blob = await res.blob()
-      const url = URL.createObjectURL(blob)
-      window.open(url, "_blank")
-      // Revoke after a short delay to allow the tab to load
-      setTimeout(() => URL.revokeObjectURL(url), 10000)
-    } catch {
-      toast.error("Failed to load certificate")
-    } finally {
-      setIsViewingCert(false)
+  // Handle panel close - release lock + log view duration
+  const handlePanelClose = useCallback(() => {
+    if (data) {
+      const duration = Date.now() - viewStartTime.current
+      navigator.sendBeacon?.(
+        "/api/doctor/log-view-duration",
+        JSON.stringify({ intakeId: data.intake.id, durationMs: duration })
+      )
+      releaseLock()
     }
-  }
-
-  // Keyboard shortcuts
-  useDoctorShortcuts({
-    onApprove: () => {
-      if (!intake || intake.status !== "paid" || isPending) return
-      if (service?.type === "med_certs") {
-        handleMedCertApprove()
-      } else if (service?.type === "repeat_rx" || service?.type === "common_scripts") {
-        handleStatusChange("awaiting_script")
-      } else {
-        handleStatusChange("approved")
-      }
-    },
-    onDecline: () => {
-      if (intake && !["approved", "declined", "completed"].includes(intake.status)) {
-        setShowDeclineDialog(true)
-      }
-    },
-    onNote: () => notesRef.current?.focus(),
-    onEscape: () => {
-      if (showDeclineDialog) {
-        setShowDeclineDialog(false)
-      } else {
-        // Panel escape is handled by SheetPanel itself
-      }
-    },
-    disabled: isPending || isLoading,
-  })
+  }, [data, releaseLock])
 
   // --- Render ---
 
@@ -466,27 +198,27 @@ export function IntakeReviewPanel({ intakeId, onActionComplete }: IntakeReviewPa
     redFlagDetails,
     redFlagsAcknowledged,
     setRedFlagsAcknowledged,
-    doctorNotes,
-    setDoctorNotes,
-    noteSaved,
-    setNoteSaved,
-    isAiPrefilled,
-    hasClinicalDraft,
-    isRegenerating,
-    notesRef,
-    isPending,
-    handleMedCertApprove,
-    handleStatusChange,
-    handleDecline,
-    handleSaveNotes,
-    handleGenerateOrRegenerateNote,
-    showDeclineDialog,
-    setShowDeclineDialog,
-    declineReason,
-    setDeclineReason,
-    declineReasonCode,
-    handleDeclineReasonCodeChange,
-    isLoadingPreview,
+    doctorNotes: actions.doctorNotes,
+    setDoctorNotes: actions.setDoctorNotes,
+    noteSaved: actions.noteSaved,
+    setNoteSaved: actions.setNoteSaved,
+    isAiPrefilled: actions.isAiPrefilled,
+    hasClinicalDraft: actions.hasClinicalDraft,
+    isRegenerating: actions.isRegenerating,
+    notesRef: actions.notesRef,
+    isPending: actions.isPending,
+    handleMedCertApprove: actions.handleMedCertApprove,
+    handleStatusChange: actions.handleStatusChange,
+    handleDecline: actions.handleDecline,
+    handleSaveNotes: actions.handleSaveNotes,
+    handleGenerateOrRegenerateNote: actions.handleGenerateOrRegenerateNote,
+    showDeclineDialog: actions.showDeclineDialog,
+    setShowDeclineDialog: actions.setShowDeclineDialog,
+    declineReason: actions.declineReason,
+    setDeclineReason: actions.setDeclineReason,
+    declineReasonCode: actions.declineReasonCode,
+    handleDeclineReasonCodeChange: actions.handleDeclineReasonCodeChange,
+    isLoadingPreview: actions.isLoadingPreview,
     formatDate,
     getStatusColor,
   }
@@ -554,10 +286,10 @@ export function IntakeReviewPanel({ intakeId, onActionComplete }: IntakeReviewPa
                       variant="outline"
                       size="sm"
                       className="text-xs"
-                      disabled={isViewingCert}
-                      onClick={handleViewCertificate}
+                      disabled={actions.isViewingCert}
+                      onClick={actions.handleViewCertificate}
                     >
-                      {isViewingCert ? (
+                      {actions.isViewingCert ? (
                         <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" />
                       ) : (
                         <FileText className="h-3.5 w-3.5 mr-1" />
@@ -568,11 +300,11 @@ export function IntakeReviewPanel({ intakeId, onActionComplete }: IntakeReviewPa
                       variant="outline"
                       size="sm"
                       className="text-xs"
-                      disabled={isResending || (data.certificate.resend_count ?? 0) >= 3}
-                      onClick={handleResend}
+                      disabled={actions.isResending || (data.certificate.resend_count ?? 0) >= 3}
+                      onClick={actions.handleResend}
                       title={(data.certificate.resend_count ?? 0) >= 3 ? "Maximum resends reached" : undefined}
                     >
-                      {isResending ? (
+                      {actions.isResending ? (
                         <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" />
                       ) : (
                         <RefreshCw className="h-3.5 w-3.5 mr-1" />
@@ -601,13 +333,13 @@ export function IntakeReviewPanel({ intakeId, onActionComplete }: IntakeReviewPa
       </IntakeReviewProvider>
 
       {/* Certificate Preview Dialog */}
-      {certPreviewData && (
+      {actions.certPreviewData && (
         <CertificatePreviewDialog
-          open={showCertPreview}
-          onOpenChange={setShowCertPreview}
-          data={certPreviewData}
-          onConfirm={handleCertPreviewConfirm}
-          isPending={isPending}
+          open={actions.showCertPreview}
+          onOpenChange={actions.setShowCertPreview}
+          data={actions.certPreviewData}
+          onConfirm={actions.handleCertPreviewConfirm}
+          isPending={actions.isPending}
         />
       )}
     </>

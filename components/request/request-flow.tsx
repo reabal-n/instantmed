@@ -20,14 +20,17 @@
 import { useEffect, useCallback, useMemo, useState, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { ArrowLeft, X } from "lucide-react"
-import { usePostHog } from "@/components/providers/posthog-provider"
-import { motion, AnimatePresence, useMotionValue, type PanInfo } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 import { useReducedMotion } from "@/components/ui/motion"
 import { Button } from "@/components/ui/button"
 import { StepRouter } from "./step-router"
 import { ServiceHubScreen } from "./service-hub-screen"
+import { FlowErrorScreen } from "./flow-error-screen"
 import { useRequestStore } from "./store"
 import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
+import { useFlowAnalytics } from "./hooks/use-flow-analytics"
+import { useSwipeNavigation } from "./hooks/use-swipe-navigation"
+import { useUnsavedChanges } from "./hooks/use-unsaved-changes"
 import { ConnectionBanner } from "./connection-banner"
 import { ProgressBar } from "@/components/request/progress-bar"
 import { AutoSaveIndicator } from "@/components/request/auto-save-indicator"
@@ -45,9 +48,8 @@ import {
   type StepContext,
   type ConsultSubtype,
 } from "@/lib/request/step-registry"
-import { canonicalizeServiceType } from "@/lib/request/draft-storage"
 import { evaluateSafety, type SafetyEvaluationResult } from "@/lib/safety"
-import { trackFunnelStep, trackStepEvent } from "@/lib/analytics/conversion-tracking"
+import { trackFunnelStep } from "@/lib/analytics/conversion-tracking"
 import { isValidCertCategory } from "@/lib/marketing/med-cert-selector"
 
 // Map UnifiedServiceType → safety config slug for client-side pre-check
@@ -144,19 +146,12 @@ export function RequestFlow({
   healthProfile,
 }: RequestFlowProps) {
   const router = useRouter()
-  const posthog = usePostHog()
   const prefersReducedMotion = useReducedMotion()
   const [showDraftBanner, setShowDraftBanner] = useState(false)
   const [showSubtypeMismatch, setShowSubtypeMismatch] = useState(false)
   const [draftSubtype, setDraftSubtype] = useState<string | null>(null)
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
-  const [showExitConfirm, setShowExitConfirm] = useState(false)
   const [safetyBlock, setSafetyBlock] = useState<SafetyEvaluationResult | null>(null)
   const contentRef = useRef<HTMLDivElement>(null)
-  const dragX = useMotionValue(0)
-  const trackedFunnelEventsRef = useRef<Set<string>>(new Set())
-  // Track time spent on each step for step_completed time_on_step_ms
-  const stepEnteredAtRef = useRef<number>(Date.now())
   
   const {
     serviceType,
@@ -168,7 +163,6 @@ export function RequestFlow({
     goToStep,
     answers,
     phone,
-    email: storeEmail,
     setAnswer,
     setIdentity,
     setAuthContext,
@@ -181,19 +175,6 @@ export function RequestFlow({
   useEffect(() => {
     useRequestStore.persist.rehydrate()
   }, [])
-
-  // Track unsaved changes
-  const previousAnswersRef = useRef(JSON.stringify(answers))
-  useEffect(() => {
-    const currentAnswers = JSON.stringify(answers)
-    if (currentAnswers !== previousAnswersRef.current) {
-      setHasUnsavedChanges(true)
-      previousAnswersRef.current = currentAnswers
-      // Auto-save triggers after a short delay (handled by store persistence)
-      const timer = setTimeout(() => setHasUnsavedChanges(false), 1000)
-      return () => clearTimeout(timer)
-    }
-  }, [answers])
 
   // Initialize auth context in store for step navigation
   useEffect(() => {
@@ -361,17 +342,6 @@ export function RequestFlow({
     return getStepsForService(effectiveService, stepContext)
   }, [effectiveService, stepContext])
 
-  // Canonical service type for analytics (prescription/repeat-script -> 'prescription')
-  const analyticsServiceType = useMemo(() => 
-    canonicalizeServiceType(serviceType) || serviceType || 'unknown',
-    [serviceType]
-  )
-
-  // Reset funnel event de-duplication state when changing flows.
-  useEffect(() => {
-    trackedFunnelEventsRef.current = new Set()
-  }, [serviceType])
-
   // Find current step index - default to first step if current step not found
   const currentStepIndex = useMemo(() => {
     const index = activeSteps.findIndex(s => s.id === currentStepId)
@@ -397,66 +367,33 @@ export function RequestFlow({
   // Get current step definition - use editModeStep when editing a skipped step
   const currentStep = editModeStep ?? (activeSteps.length > 0 ? activeSteps[currentStepIndex] : null)
 
-  // Track step views in PostHog + fire gtag funnel_step for remarketing audiences
-  useEffect(() => {
-    if (currentStep && serviceType) {
-      // Reset timer whenever the visible step changes
-      stepEnteredAtRef.current = Date.now()
+  // --- Extracted hooks ---
 
-      const subtype = (answers.consultSubtype as string | undefined) ?? undefined
-      const stepNumber = currentStepIndex + 1
+  const { analyticsServiceType, patientEmail, posthog, trackStepCompleted } = useFlowAnalytics({
+    serviceType,
+    currentStep,
+    currentStepId,
+    currentStepIndex,
+    totalSteps: activeSteps.length,
+    answers,
+    userEmail,
+  })
 
-      // intake_started fires once per flow on the first step
-      if (stepNumber === 1) {
-        posthog?.capture('intake_started', {
-          service_type: analyticsServiceType,
-          subtype,
-        })
-      }
+  const { hasUnsavedChanges, showExitConfirm, setShowExitConfirm } = useUnsavedChanges({
+    answers,
+    currentStepIndex,
+    serviceType,
+    analyticsServiceType,
+    currentStepId,
+    posthog,
+  })
 
-      posthog?.capture('step_viewed', {
-        service_type: analyticsServiceType,
-        step_id: currentStep.id,
-        step_number: stepNumber,
-        subtype,
-      })
-
-      // Fire gtag funnel_step event for every step transition.
-      // Enables Google Ads remarketing audiences (e.g. "reached step 3 but didn't check out").
-      trackStepEvent({
-        stepName: currentStep.id,
-        stepIndex: currentStepIndex,
-        serviceType: analyticsServiceType,
-        totalSteps: activeSteps.length,
-      })
-    }
-  // answers.consultSubtype intentionally excluded - only track on step/service change
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentStep, serviceType, analyticsServiceType, currentStepIndex, activeSteps.length, posthog])
-
-  // Track Google Ads funnel milestones once per flow.
-  // Pass email (from store or auth pre-fill) for Enhanced Conversions cross-device attribution.
-  const patientEmail = storeEmail || userEmail || undefined
-  useEffect(() => {
-    if (!currentStep || !serviceType) return
-
-    const tracked = trackedFunnelEventsRef.current
-
-    if (!tracked.has('landing')) {
-      void trackFunnelStep('landing', analyticsServiceType, patientEmail)
-      tracked.add('landing')
-    }
-
-    if (currentStepIndex === 0 && !tracked.has('start')) {
-      void trackFunnelStep('start', analyticsServiceType, patientEmail)
-      tracked.add('start')
-    }
-
-    if (currentStepId === 'checkout' && !tracked.has('intake_complete')) {
-      void trackFunnelStep('intake_complete', analyticsServiceType, patientEmail)
-      tracked.add('intake_complete')
-    }
-  }, [currentStep, serviceType, currentStepIndex, currentStepId, analyticsServiceType, patientEmail])
+  const { dragX, handleDragEnd, dragConstraints } = useSwipeNavigation({
+    onSwipeBack: () => {
+      if (currentStepIndex > 0) prevStep()
+    },
+    canGoBack: currentStepIndex > 0,
+  })
 
   // Handle back navigation with tracking
   const handleBack = useCallback(() => {
@@ -475,14 +412,7 @@ export function RequestFlow({
 
   // Handle next navigation with tracking + safety pre-check
   const handleNext = useCallback(() => {
-    const subtype = (answers.consultSubtype as string | undefined) ?? undefined
-    posthog?.capture('step_completed', {
-      service_type: analyticsServiceType,
-      step_id: currentStepId,
-      step_number: currentStepIndex + 1,
-      subtype,
-      time_on_step_ms: Date.now() - stepEnteredAtRef.current,
-    })
+    trackStepCompleted()
 
     // Run safety pre-check when leaving key clinical steps
     // This catches emergencies and hard blocks EARLY, before the patient
@@ -506,7 +436,7 @@ export function RequestFlow({
     }
 
     nextStep()
-  }, [analyticsServiceType, currentStepId, currentStepIndex, nextStep, posthog, effectiveService, answers])
+  }, [trackStepCompleted, analyticsServiceType, currentStepId, nextStep, posthog, effectiveService, answers])
 
   // Handle flow completion with tracking
   const handleComplete = useCallback(() => {
@@ -600,58 +530,6 @@ export function RequestFlow({
     goToStep(stepId as Parameters<typeof goToStep>[0])
   }, [currentStepIndex, currentStepId, analyticsServiceType, goToStep, posthog])
 
-  // Handle swipe gestures for mobile navigation
-  const handleDragEnd = useCallback((_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
-    const threshold = 100
-    const velocity = 500
-    
-    if (info.offset.x > threshold || info.velocity.x > velocity) {
-      // Swiped right - go back
-      if (currentStepIndex > 0) {
-        handleBack()
-      }
-    } else if (info.offset.x < -threshold || info.velocity.x < -velocity) {
-      // Swiped left - cannot go forward via swipe (must complete step)
-      // This is intentional - users must explicitly complete steps
-    }
-    
-    // Reset drag position
-    dragX.set(0)
-  }, [currentStepIndex, handleBack, dragX])
-
-  // Browser back button / unsaved changes warning + passive abandonment tracking
-  useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      // Track passive abandonment via sendBeacon (fires even on tab close)
-      if (currentStepIndex > 0 && serviceType) {
-        const payload = JSON.stringify({
-          api_key: posthog?.config?.token,
-          event: 'intake_abandoned_passive',
-          properties: {
-            distinct_id: posthog?.get_distinct_id(),
-            service_type: analyticsServiceType,
-            step_id: currentStepId,
-            step_number: currentStepIndex + 1,
-          },
-          timestamp: new Date().toISOString(),
-        })
-        navigator.sendBeacon?.(
-          `${posthog?.config?.api_host ?? 'https://us.i.posthog.com'}/capture/`,
-          new Blob([payload], { type: 'application/json' }),
-        )
-      }
-
-      if (hasUnsavedChanges && currentStepIndex > 0) {
-        e.preventDefault()
-        e.returnValue = ''
-        return ''
-      }
-    }
-
-    window.addEventListener('beforeunload', handleBeforeUnload)
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
-  }, [hasUnsavedChanges, currentStepIndex, serviceType, analyticsServiceType, currentStepId, posthog])
-
   // Keyboard navigation: Escape to go back
   // Note: Enter to continue is handled by individual step components
   // to respect their validation state
@@ -715,27 +593,7 @@ export function RequestFlow({
 
   // Invalid service param provided - show error screen
   if (initialService === null && rawServiceParam) {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <div className="max-w-md w-full text-center space-y-4">
-          <div className="w-16 h-16 mx-auto rounded-full bg-destructive/10 flex items-center justify-center">
-            <X className="w-8 h-8 text-destructive" />
-          </div>
-          <h1 className="text-xl font-semibold">Unknown service</h1>
-          <p className="text-muted-foreground">
-            The requested service &ldquo;{rawServiceParam}&rdquo; is not available.
-          </p>
-          <div className="flex flex-col gap-2 pt-4">
-            <Button onClick={() => router.push('/request')}>
-              Choose a service
-            </Button>
-            <Button variant="outline" onClick={() => router.push('/')}>
-              Return home
-            </Button>
-          </div>
-        </div>
-      </div>
-    )
+    return <FlowErrorScreen invalidService={rawServiceParam} />
   }
 
   // Show loading only if we truly have no service type
@@ -852,7 +710,7 @@ export function RequestFlow({
           currentStepId === 'checkout' || currentStepId === 'review' ? 'pb-6' : 'pb-[calc(5rem+env(safe-area-inset-bottom))]'
         }`}
         drag="x"
-        dragConstraints={{ left: 0, right: 0 }}
+        dragConstraints={dragConstraints}
         dragElastic={0.2}
         onDragEnd={handleDragEnd}
         style={{ x: dragX }}

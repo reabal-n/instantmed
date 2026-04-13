@@ -1,4 +1,4 @@
-import { requireRole } from "@/lib/auth"
+import { requireRole } from "@/lib/auth/helpers"
 import { AuditLogClient } from "./audit-client"
 import { getAuditLogsAction, getAuditLogStatsAction } from "@/app/actions/admin-config"
 

@@ -1,4 +1,4 @@
-import { requireRole } from "@/lib/auth"
+import { requireRole } from "@/lib/auth/helpers"
 import { AnalyticsDashboardClient } from "./analytics-client"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { getDoctorDashboardStats, getIntakeMonitoringStats } from "@/lib/data/intakes"

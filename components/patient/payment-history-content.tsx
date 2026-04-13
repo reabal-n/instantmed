@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/dialog"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
-import { PAYMENT_STATUS } from "@/lib/status"
+import { PAYMENT_STATUS } from "@/lib/data/status"
 import { formatDate, formatDateLong, formatCurrency } from "@/lib/format"
 
 interface Invoice {

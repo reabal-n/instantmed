@@ -1,4 +1,4 @@
-import { getAuthenticatedUserWithProfile } from "@/lib/auth"
+import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
 import { PatientSettingsClient } from "./settings-client"
 import { decryptIfNeeded } from "@/lib/security/encryption"
 import { getEmailPreferences } from "@/app/actions/email-preferences"

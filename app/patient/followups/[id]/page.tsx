@@ -1,5 +1,5 @@
 import { notFound, redirect } from "next/navigation"
-import { getAuthenticatedUserWithProfile } from "@/lib/auth"
+import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
 import { getFollowup } from "@/app/actions/followups"
 import { FollowupForm } from "./followup-form"
 

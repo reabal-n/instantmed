@@ -1,4 +1,4 @@
-import { requireRole } from "@/lib/auth"
+import { requireRole } from "@/lib/auth/helpers"
 import { getStuckIntakes, getDistinctServiceTypes } from "@/lib/data/intake-ops"
 import { IntakesStuckClient } from "./intakes-stuck-client"
 

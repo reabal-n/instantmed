@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation"
-import { auth } from "@/lib/auth"
+import { auth } from "@/lib/auth/helpers"
 
 // Prevent static generation for dynamic auth
 export const dynamic = "force-dynamic"

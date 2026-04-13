@@ -1,4 +1,4 @@
-import { getAuthenticatedUserWithProfile } from "@/lib/auth"
+import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
 import { getPatientIntakes } from "@/lib/data/intakes"
 import { IntakesClient } from "./intakes-client"
 import type { Metadata } from "next"

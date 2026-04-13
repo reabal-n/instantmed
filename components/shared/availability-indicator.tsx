@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { cn } from "@/lib/utils"
-import { getAvailabilityMessage, isWithinBusinessHours } from "@/lib/time-of-day"
+import { getAvailabilityMessage, isWithinBusinessHours } from "@/lib/utils/time-of-day"
 
 interface AvailabilityIndicatorProps {
   variant?: "inline" | "badge" | "detailed"

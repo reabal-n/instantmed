@@ -1,4 +1,4 @@
-import { getAuthenticatedUserWithProfile } from "@/lib/auth"
+import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
 import { getSuppressedEmails } from "@/app/actions/email-suppression"
 import { EmailSuppressionClient } from "./email-suppression-client"
 

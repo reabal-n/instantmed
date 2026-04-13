@@ -37,7 +37,7 @@ import {
   Mail,
   Sparkles,
 } from "lucide-react"
-import { INTAKE_STATUS, type IntakeStatus as StatusType } from "@/lib/status"
+import { INTAKE_STATUS, type IntakeStatus as StatusType } from "@/lib/data/status"
 import { CertificatePreviewDialog, type CertificatePreviewData } from "@/components/doctor/certificate-preview-dialog"
 import { PdfViewerDialog } from "@/components/doctor/pdf-viewer-dialog"
 import { formatIntakeStatus } from "@/lib/format/intake"

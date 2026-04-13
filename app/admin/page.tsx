@@ -1,4 +1,4 @@
-import { getAuthenticatedUserWithProfile } from "@/lib/auth"
+import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
 import { getAllIntakesForAdmin, getDoctorDashboardStats } from "@/lib/data/intakes"
 import { AdminDashboardClient } from "@/app/admin/admin-dashboard-client"
 import type { IntakeWithPatient } from "@/types/db"

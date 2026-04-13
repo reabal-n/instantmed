@@ -1,7 +1,7 @@
 import type React from "react"
 import { Suspense } from "react"
 import type { Metadata } from "next"
-import { requireRole } from "@/lib/auth"
+import { requireRole } from "@/lib/auth/helpers"
 import { DashboardSidebar } from "@/components/shared/dashboard-sidebar"
 import { getDoctorDashboardStats } from "@/lib/data/intakes"
 import { createLogger } from "@/lib/observability/logger"

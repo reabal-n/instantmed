@@ -1,4 +1,4 @@
-import { requireRole } from "@/lib/auth"
+import { requireRole } from "@/lib/auth/helpers"
 import { RefundsClient } from "./refunds-client"
 import { getPaymentsWithRefundsAction, getRefundStatsAction } from "@/app/actions/admin-config"
 

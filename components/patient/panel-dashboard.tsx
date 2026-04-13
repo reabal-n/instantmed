@@ -9,15 +9,14 @@ import {
   Calendar,
   Clock,
   AlertCircle,
-  ChevronRight,
   AlertTriangle,
   CreditCard,
-  ExternalLink,
   Download,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { usePanel, DrawerPanel } from "@/components/panels"
-import { cn } from "@/lib/utils"
+import { IntakeCard } from "@/components/patient/intake-card"
+import { IntakeDetailDrawer } from "@/components/patient/intake-detail-drawer"
 import { EmptyState } from "@/components/ui/empty-state"
 import { ReferralCard } from "@/components/patient/referral-card"
 import { SubscriptionCard } from "@/components/patient/subscription-card"
@@ -25,8 +24,8 @@ import { GoogleReviewCard } from "@/components/patient/google-review-card"
 import { ProfileTodoCard, type ProfileData, type TodoDrawerType } from "@/components/patient/profile-todo-card"
 import { PhoneDrawerContent, AddressDrawerContent, MedicareDrawerContent } from "@/components/patient/profile-drawers"
 import { capture } from "@/lib/analytics/capture"
-import { INTAKE_STATUS, type IntakeStatus } from "@/lib/status"
-import { formatDate, formatRelative } from "@/lib/format"
+import { formatDate } from "@/lib/format"
+import { type Intake } from "@/components/patient/intake-types"
 import { needsRenewalSoon, getDaysUntilExpiry } from "@/lib/prescriptions"
 import { FollowupTrackerCard, type FollowupRow } from "@/components/patient/followup-tracker-card"
 
@@ -39,14 +38,6 @@ import { FollowupTrackerCard, type FollowupRow } from "@/components/patient/foll
  * - Calm, spacious layout
  * - Human language throughout
  */
-
-interface Intake {
-  id: string
-  status: string
-  created_at: string
-  updated_at: string
-  service?: { id: string; name?: string; short_name?: string; type?: string; slug?: string } | null
-}
 
 interface Prescription {
   id: string
@@ -73,11 +64,6 @@ interface PatientDashboardProps {
   profileData?: ProfileData
   subscription?: SubscriptionData | null
   followups?: FollowupRow[]
-}
-
-/** Resolve status config from lib/status.ts - single source of truth */
-function resolveStatusConfig(status: string) {
-  return INTAKE_STATUS[status as IntakeStatus] ?? INTAKE_STATUS.pending
 }
 
 export function PanelDashboard({
@@ -426,137 +412,3 @@ export function PanelDashboard({
   )
 }
 
-function IntakeCard({
-  intake,
-  onClick,
-}: {
-  intake: Intake
-  onClick: () => void
-}) {
-  const config = resolveStatusConfig(intake.status)
-  const Icon = config.icon
-  const isReady = ["approved", "completed"].includes(intake.status)
-
-  const getServiceName = () => {
-    if (intake.service?.name) return intake.service.name
-    if (intake.service?.short_name) return intake.service.short_name
-    if (intake.service?.type === "med_certs") return "Medical Certificate"
-    if (intake.service?.type === "common_scripts") return "Prescription"
-    return "Request"
-  }
-
-  const serviceName = getServiceName()
-
-  return (
-    <button
-      onClick={onClick}
-      aria-label={`View ${serviceName}, ${config.label}`}
-      className="w-full bg-card rounded-xl border border-border p-5 hover:border-primary/60 hover:shadow-lg transition-all text-left group hover-lift"
-    >
-      <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4 flex-1">
-            <div className={cn(
-              "w-11 h-11 rounded-xl flex items-center justify-center shrink-0",
-              intake.service?.type === "common_scripts" ? "bg-info-light" : "bg-primary/10"
-            )}>
-            {intake.service?.type === "common_scripts" ? (
-              <Pill className="w-5 h-5 text-info" aria-hidden="true" />
-            ) : (
-              <FileText className="w-5 h-5 text-primary" aria-hidden="true" />
-            )}
-          </div>
-          <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-foreground mb-1">
-              {serviceName}
-            </h3>
-            <p className="text-sm text-muted-foreground">
-              {formatDate(intake.created_at)}
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className={cn("flex items-center gap-1.5 text-xs font-medium", config.color)}>
-            <Icon className="w-3 h-3" />
-            {config.label}
-          </div>
-          <span className="text-sm text-muted-foreground group-hover:text-primary transition-colors">
-            {isReady ? "View & download" : "View"}
-          </span>
-          <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
-        </div>
-      </div>
-    </button>
-  )
-}
-
-/** What's Next guidance - moved from card to drawer for cleaner list view */
-const WHATS_NEXT: Record<string, { message: string; actionLabel?: string }> = {
-  paid: { message: "A doctor will review your request shortly. We'll email you when it's done." },
-  in_review: { message: "A doctor is reviewing your request now. Hang tight, shouldn't be long." },
-  pending_info: { message: "The doctor has a question for you. Please respond so we can keep things moving.", actionLabel: "Respond now" },
-  approved: { message: "All approved. Your document is ready to download.", actionLabel: "View & download" },
-  declined: { message: "This request wasn't approved. You can view the reason below.", actionLabel: "View details" },
-  awaiting_script: { message: "Your prescription is being prepared. We'll let you know when it's ready." },
-  completed: { message: "This request is complete. Your documents are available.", actionLabel: "View documents" },
-  cancelled: { message: "This request was cancelled. No charge was made." },
-}
-
-function IntakeDetailDrawer({ intake }: { intake: Intake }) {
-  const config = resolveStatusConfig(intake.status)
-  const Icon = config.icon
-
-  const serviceName = intake.service?.name || intake.service?.short_name || "Request"
-  const refId = intake.id.slice(0, 8).toUpperCase()
-  const whatsNext = WHATS_NEXT[intake.status]
-
-  return (
-    <div className="p-6 space-y-6">
-      {/* Service & Ref */}
-      <div>
-        <h3 className="text-lg font-semibold text-foreground">{serviceName}</h3>
-        <p className="text-sm text-muted-foreground mt-0.5">Ref: {refId}</p>
-      </div>
-
-      {/* Status */}
-      <div>
-        <p className="text-sm text-muted-foreground mb-2">Status</p>
-        <div className={cn("inline-flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium", config.color)}>
-          <Icon className="w-4 h-4" />
-          {config.label}
-        </div>
-      </div>
-
-      {/* What's Next */}
-      {whatsNext && (
-        <div className="p-4 rounded-xl bg-muted/50 border border-border">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5">What happens next</p>
-          <p className="text-sm text-foreground">{whatsNext.message}</p>
-        </div>
-      )}
-
-      {/* Timeline */}
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <p className="text-sm text-muted-foreground mb-1">Submitted</p>
-          <p className="font-medium text-foreground">{formatDate(intake.created_at)}</p>
-          <p className="text-xs text-muted-foreground">{formatRelative(intake.created_at)}</p>
-        </div>
-        <div>
-          <p className="text-sm text-muted-foreground mb-1">Last updated</p>
-          <p className="font-medium text-foreground">{formatDate(intake.updated_at)}</p>
-          <p className="text-xs text-muted-foreground">{formatRelative(intake.updated_at)}</p>
-        </div>
-      </div>
-
-      {/* Action */}
-      <div className="pt-4 border-t border-border">
-        <Button asChild className="w-full">
-          <Link href={`/patient/intakes/${intake.id}`}>
-            <ExternalLink className="w-4 h-4 mr-2" />
-            {whatsNext?.actionLabel || "View full details"}
-          </Link>
-        </Button>
-      </div>
-    </div>
-  )
-}

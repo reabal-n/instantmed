@@ -21,7 +21,7 @@ import {
   TrendingUp,
 } from "lucide-react"
 import { formatDate } from "@/lib/format"
-import { INTAKE_STATUS, type IntakeStatus } from "@/lib/status"
+import { INTAKE_STATUS, type IntakeStatus } from "@/lib/data/status"
 import type { IntakeWithPatient } from "@/types/db"
 
 // Format functions (inline to avoid server-only import)

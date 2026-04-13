@@ -1,6 +1,6 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { requireRole } from "@/lib/auth"
+import { requireRole } from "@/lib/auth/helpers"
 import { PatientShell } from "./patient-shell"
 
 export const metadata: Metadata = {

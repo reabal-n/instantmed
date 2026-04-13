@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { getAuthenticatedUserWithProfile } from '@/lib/auth'
+import { getAuthenticatedUserWithProfile } from '@/lib/auth/helpers'
 
 export default async function DashboardRedirect() {
   const authUser = await getAuthenticatedUserWithProfile()

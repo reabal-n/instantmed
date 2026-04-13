@@ -95,7 +95,7 @@ vi.mock("@/lib/posthog-server", () => ({
 }))
 
 const mockExecuteCertApproval = vi.fn()
-vi.mock("@/lib/cert/execute-approval", () => ({
+vi.mock("@/lib/clinical/execute-cert-approval", () => ({
   executeCertApproval: (...args: unknown[]) => mockExecuteCertApproval(...args),
 }))
 

@@ -1,4 +1,4 @@
-import { requireRole } from "@/lib/auth"
+import { requireRole } from "@/lib/auth/helpers"
 import { getReconciliationRecords, getDistinctCategories } from "@/lib/data/reconciliation"
 import { ReconciliationClient } from "./reconciliation-client"
 

@@ -26,7 +26,7 @@ import {
   CTABanner,
 } from "@/components/sections"
 import { TestimonialsSection } from "@/components/marketing/sections/testimonials-section"
-import { FAQSchema, BreadcrumbSchema } from "@/components/seo/healthcare-schema"
+import { FAQSchema, BreadcrumbSchema, MedicalConditionSchema } from "@/components/seo/healthcare-schema"
 import { PageBreadcrumbs } from "@/components/uix"
 import { Button } from "@/components/ui/button"
 import { conditionsData } from "@/lib/seo/data/conditions"
@@ -114,6 +114,21 @@ export default async function ConditionPage({ params }: PageProps) {
           { name: "Conditions", url: "https://instantmed.com.au/conditions" },
           { name: condition.name, url: `https://instantmed.com.au/conditions/${slug}` },
         ]}
+      />
+      <MedicalConditionSchema
+        name={condition.name}
+        description={condition.description}
+        url={`/conditions/${slug}`}
+        symptoms={condition.symptoms}
+        medications={condition.treatmentInfo?.medications.map(med => ({
+          genericName: med.genericName,
+          brandNames: med.brandNames,
+          drugClass: med.drugClass,
+          typicalDose: med.typicalDose,
+          prescriptionRequired: med.prescriptionRequired,
+        }))}
+        guidelineSource={condition.treatmentInfo?.guidelineSource}
+        reviewedDate={condition.reviewedDate}
       />
 
       <MarketingPageShell>

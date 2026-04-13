@@ -2005,4 +2005,396 @@ export const DEEP_CITY_CONTENT: Record<string, DeepCityContent> = {
       { q: "Is InstantMed cheaper than a Dubbo GP?", a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT}. With Dubbo bulk-billing around 60% and typical gap fees of $40–$70, InstantMed is often more affordable for straightforward certificates and scripts.` },
     ],
   },
+
+  "bondi-beach": {
+    healthStats: [
+      { label: "Population", value: "12K+", context: "One of Australia's most iconic beach suburbs" },
+      { label: "Avg GP wait", value: "3–7 days", context: "Very limited bulk-billing in the Eastern Suburbs" },
+      { label: "Bulk-billing rate", value: "~45%", context: "Among the lowest in Greater Sydney" },
+      { label: "Gap fees", value: "$60–$100", context: "Premium pricing in Eastern Suburbs clinics" },
+    ],
+    sections: [
+      {
+        title: "Healthcare in Sydney's Eastern Suburbs",
+        paragraphs: [
+          "Bondi Beach and the surrounding Eastern Suburbs - Bondi Junction, Bronte, Coogee, Randwick, Waverley - have some of the lowest bulk-billing rates in Greater Sydney. Inner-city and coastal GPs in the Eastern Suburbs frequently charge gap fees of $60–$100 per standard consultation, making even a straightforward sick certificate an expensive exercise. The combination of high rent, affluent demographics, and limited Medicare incentives means few practices offer bulk-billing at all.",
+          "The Eastern Suburbs' population is heavily weighted toward young professionals, backpackers, international students, and shift workers in hospitality and retail. These groups are the most likely to need a quick medical certificate and the least able to afford a $90 gap fee for a five-minute consultation. Telehealth removes the cost barrier for routine needs that don't require a physical examination.",
+          "Bondi's transient population adds another dimension. Backpackers on working holiday visas, international students at UNSW or the nearby English language schools, and short-term renters often don't have an established GP. Finding a new-patient appointment in Bondi can take a week or more. Telehealth provides immediate access to an AHPRA-registered doctor without the overhead of finding and enrolling with a local practice.",
+        ],
+      },
+      {
+        title: "Who Uses Telehealth in Bondi and the Eastern Suburbs",
+        paragraphs: [
+          "Bondi's hospitality and retail workforce is substantial. Cafes, restaurants, bars, and surf shops along Campbell Parade and Hall Street employ hundreds of casual and part-time workers. These workers often have irregular hours, limited sick leave, and can't easily visit a GP during standard business hours. When you wake up unwell before a 6am cafe shift, telehealth gets you a certificate before the morning rush.",
+          "The Eastern Suburbs also has a large fitness and wellness community - personal trainers, yoga instructors, surf coaches, and gym staff. These workers are often self-employed or casual, and a day off sick means lost income with no safety net. A medical certificate from InstantMed documents the absence affordably and quickly, protecting their professional reputation with clients and venues.",
+          "UNSW Kensington is a short bus ride from Bondi, and thousands of students live across the Eastern Suburbs. For special consideration applications and assignment extensions, a telehealth certificate from an AHPRA-registered doctor is accepted by UNSW and all other Australian universities. During exam periods, when campus health services are overwhelmed, telehealth is often the fastest path to documentation.",
+        ],
+      },
+      {
+        title: "Medical Certificates for Eastern Suburbs Workers",
+        paragraphs: [
+          "Under the Fair Work Act 2009, all Australian employers must accept medical certificates from AHPRA-registered doctors. There is no requirement that the certificate come from a face-to-face consultation. This applies equally to the Bondi RSL, a Campbell Parade cafe, Westfield Bondi Junction retailers, and any other Eastern Suburbs employer.",
+          "For casual workers - a large portion of Bondi's workforce - a medical certificate serves as professional documentation even when formal sick leave doesn't apply. It demonstrates good faith to your employer, protects your shift arrangements, and provides a record if any dispute arises about the absence.",
+          "Bondi's international workforce (working holiday makers, student visa holders) sometimes face confusion about Australian medical certificate requirements. The rules are straightforward: any certificate from an AHPRA-registered doctor is valid. Your visa status doesn't affect the certificate's validity. Telehealth certificates carry the same legal weight as those from a walk-in clinic.",
+        ],
+      },
+    ],
+    pharmacyInfo: {
+      title: "Pharmacies and eScripts in Bondi",
+      paragraphs: [
+        "Bondi Beach and the surrounding Eastern Suburbs have good pharmacy coverage. Bondi Junction's Westfield has multiple pharmacy options including Chemist Warehouse and Priceline, both open extended hours. Local pharmacies along Bondi Road and Campbell Parade serve the beach suburb directly. All accept eScripts - the QR code from an InstantMed prescription works at any of them.",
+        "For evening or weekend prescriptions, Westfield Bondi Junction pharmacies typically trade until 9pm on weeknights and through the weekend. Randwick and Coogee also have extended-hours pharmacy options. An eScript issued by InstantMed in the evening can usually be filled the same night without leaving the Eastern Suburbs.",
+      ],
+    },
+    telehealthRegulations: {
+      title: "Telehealth Regulation in NSW",
+      paragraphs: [
+        "NSW follows the national AHPRA and Medical Board of Australia framework for telehealth. All telehealth consultations must be provided by AHPRA-registered practitioners - the same registration standard required for in-person care. NSW Health supports telehealth as a legitimate component of the primary care system.",
+        "Prescribing follows national TGA rules. Most PBS-listed medications can be prescribed via telehealth and dispensed via eScript at any NSW pharmacy. Schedule 8 controlled substances require NSW Ministry of Health authority and in-person assessment, and are not prescribed through InstantMed.",
+        "The NSW Health Care Complaints Commission (HCCC) handles complaints about health services in NSW, including telehealth. InstantMed operates a formal complaints process aligned with AHPRA requirements at complaints@instantmed.com.au with a 14-day SLA.",
+      ],
+    },
+    additionalFaqs: [
+      { q: "Can backpackers use InstantMed in Bondi?", a: "Yes. You don't need to be an Australian citizen or permanent resident. Working holiday makers, international students, and visitors can all use InstantMed. You don't need a Medicare card for medical certificates." },
+      { q: "Are Bondi GP clinics really that expensive?", a: "The Eastern Suburbs have some of the lowest bulk-billing rates in Sydney. Gap fees of $60–$100 are common for a standard consultation. For a straightforward medical certificate, InstantMed is significantly more affordable." },
+      { q: "Can UNSW students use InstantMed for special consideration?", a: "Yes. UNSW accepts medical certificates from AHPRA-registered doctors for special consideration applications, assignment extensions, and exam deferrals. The consultation method doesn't affect validity." },
+      { q: "Is InstantMed available across the whole Eastern Suburbs?", a: "Yes. Bondi Beach, Bondi Junction, Bronte, Coogee, Randwick, Waverley, Tamarama, Double Bay - anywhere with internet access. It's an online service with no geographic restrictions within Australia." },
+    ],
+  },
+
+  fremantle: {
+    healthStats: [
+      { label: "Population", value: "32K+", context: "Perth's historic port city" },
+      { label: "Avg GP wait", value: "3–6 days", context: "Similar to wider Perth metro" },
+      { label: "Bulk-billing rate", value: "~55%", context: "Among the lowest in Perth's southern corridor" },
+      { label: "Port workforce", value: "Significant", context: "Shift-heavy maritime and logistics sector" },
+    ],
+    sections: [
+      {
+        title: "Healthcare in Fremantle and Perth's Southern Corridor",
+        paragraphs: [
+          "Fremantle and the surrounding suburbs - Cockburn, Melville, East Fremantle, Hamilton Hill, South Fremantle - sit in Perth's southern corridor, an area where GP access has been tightening for years. Bulk-billing rates in Fremantle are well below the Perth metro average, with many practices charging gap fees of $50–$90. Several clinics have closed or reduced hours in recent years, and those that remain often book a week out for non-urgent appointments.",
+          "Fremantle's economy is built around the port, maritime services, hospitality, and the arts. Fremantle Port is one of Australia's busiest, and the logistics, stevedoring, and transport workforce operates around the clock. Shift workers who finish at 2am or start at 5am can't easily visit a GP during business hours. Telehealth removes the scheduling barrier entirely - submit your request when it suits you, and the certificate arrives via email.",
+          "The suburb has also become a magnet for young professionals, creatives, and students from Murdoch University and Notre Dame University (Fremantle campus). Many are casual workers or self-employed. A doctor visit that costs $80 out of pocket and requires half a day off work is a genuine financial burden. Telehealth offers a faster, more affordable alternative for routine certificate and prescription needs.",
+        ],
+      },
+      {
+        title: "Port Workers, Hospitality, and Shift Work in Fremantle",
+        paragraphs: [
+          "Fremantle Port handles a significant share of Western Australia's container and general cargo trade. The logistics chain - from stevedores and truck drivers to customs brokers and warehouse staff - operates on rotating shifts with limited flexibility. When a port worker wakes up sick before a 4am shift, the priority is documentation, not a waiting room. Telehealth delivers the certificate to their inbox while they recover at home.",
+          "Fremantle's hospitality strip - the Cappuccino Strip along South Terrace, the Fishing Boat Harbour, and the growing restaurant scene on High Street and Market Street - employs a large casual workforce. These workers are often young, on limited incomes, and working irregular hours across multiple venues. A medical certificate from InstantMed costs less than the gap fee at most Fremantle GPs and doesn't require giving up a shift to sit in a waiting room.",
+          "The Fremantle arts community - performers, gallery staff, market stallholders at the iconic Fremantle Markets - often operates as sole traders or casual contractors. Medical documentation for these workers is about protecting relationships with venues and clients rather than formal employer requirements. Telehealth provides that documentation affordably and without disrupting already-tight schedules.",
+        ],
+      },
+      {
+        title: "Medical Certificates for WA Workers",
+        paragraphs: [
+          "Western Australian workers are covered by either the federal Fair Work Act or the WA Industrial Relations Act, depending on their employer. Under both systems, medical certificates from AHPRA-registered doctors are legally valid evidence for leave purposes. The consultation method - telehealth or face-to-face - is not a factor.",
+          "WA's time zone (AWST, UTC+8) means Fremantle is 2-3 hours behind the eastern states. InstantMed operates 8am-10pm AEST, which translates to approximately 6am-8pm AWST. For Fremantle residents, this covers the entire working day and evening. Requests submitted in the late WA evening may be reviewed the following morning.",
+          "Notre Dame University Fremantle and Murdoch University both accept telehealth-issued medical certificates from AHPRA-registered doctors for special consideration, assignment extensions, and exam deferrals. The same applies to South Metropolitan TAFE and all other educational institutions in the Fremantle area.",
+        ],
+      },
+    ],
+    pharmacyInfo: {
+      title: "Pharmacies and eScripts in Fremantle",
+      paragraphs: [
+        "Fremantle has good pharmacy coverage along Market Street, High Street, and in the surrounding suburbs. Chemist Warehouse Cockburn, Priceline at Fremantle, and independent pharmacies throughout the southern corridor all accept eScripts. The QR code from an InstantMed prescription works at any of them.",
+        "For evening prescriptions, Cockburn Gateway and Garden City shopping centres have pharmacies with extended hours. Fremantle's central pharmacies typically trade through the weekend. An eScript issued during a Saturday afternoon telehealth consultation can be filled the same day without leaving the Fremantle area.",
+      ],
+    },
+    telehealthRegulations: {
+      title: "Telehealth Regulation in Western Australia",
+      paragraphs: [
+        "Western Australia follows national AHPRA and Medical Board of Australia guidelines for telehealth. The WA Department of Health has supported telehealth expansion as part of its digital health strategy, recognising the state's unique geographic challenges. All telehealth consultations must be provided by AHPRA-registered practitioners.",
+        "Prescribing via telehealth in WA follows national TGA regulations. PBS-listed medications can be prescribed electronically, with the eScript system fully operational across all Western Australian pharmacies. Schedule 8 controlled substances require WA Department of Health authority and in-person assessment.",
+        "Medical certificates issued via telehealth carry the same legal weight in Western Australia as those from in-person consultations. WA employers are legally required to accept certificates from AHPRA-registered doctors under both the Fair Work Act and the WA Industrial Relations Act.",
+      ],
+    },
+    additionalFaqs: [
+      { q: "Can Fremantle port workers use InstantMed?", a: "Yes. Port workers, logistics staff, and maritime workers can get medical certificates via telehealth. Certificates are valid for all employers, including those under maritime enterprise agreements." },
+      { q: "Does InstantMed cover South Fremantle and Cockburn?", a: "Yes. InstantMed covers all of Fremantle, Cockburn, Melville, Hamilton Hill, East Fremantle, and the entire Perth metropolitan area. It works anywhere in WA with internet access." },
+      { q: "Can Notre Dame Fremantle students use InstantMed?", a: "Yes. Notre Dame University accepts medical certificates from AHPRA-registered doctors for special consideration, extensions, and exam deferrals. The consultation method doesn't affect validity." },
+      { q: "Is InstantMed cheaper than a Fremantle GP?", a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT}. With Fremantle bulk-billing rates around 55% and gap fees of $50–$90 at many practices, InstantMed is often the more affordable option for straightforward certificates.` },
+    ],
+  },
+
+  orange: {
+    healthStats: [
+      { label: "Population", value: "42K+", context: "Central West NSW's service hub" },
+      { label: "Avg GP wait", value: "5–10 days", context: "Among the longest in regional NSW" },
+      { label: "Bulk-billing rate", value: "~55%", context: "Well below the state average" },
+      { label: "Catchment", value: "80K+", context: "Serves Bathurst, Mudgee, and surrounding Central West" },
+    ],
+    sections: [
+      {
+        title: "Healthcare in the Central West",
+        paragraphs: [
+          "Orange is the healthcare and service hub for NSW's Central West - a region stretching from Bathurst in the east to Parkes and Forbes in the west, and from Mudgee in the north to Cowra in the south. Orange Health Service is the major referral hospital for the region, but the real pressure point is primary care. Same-day GP appointments for non-urgent needs are rarely available, with wait times of a week or more being the norm rather than the exception.",
+          "Bulk-billing in Orange has been declining steadily. Many practices now charge gap fees of $40–$70, and several have closed their books to new patients. For the Central West's smaller towns - Molong, Canowindra, Blayney, Millthorpe - the nearest GP is often Orange itself, adding a 30–60 minute drive each way on top of the appointment wait. For a medical certificate that takes a doctor five minutes to assess, the total time and cost investment is disproportionate.",
+          "The Central West has been identified as a Distribution Priority Area (DPA) under the Modified Monash Model, reflecting genuine, persistent GP workforce shortages. This is not a temporary dip - the region has been underserviced for years, and population growth in Orange itself is making it worse. Telehealth provides an immediate alternative for the routine needs that consume GP time without requiring physical examination.",
+        ],
+      },
+      {
+        title: "Agriculture, Mining, and Central West Workers",
+        paragraphs: [
+          "The Central West economy runs on agriculture (wine, stone fruit, cherries, grazing), mining (Cadia-Ridgeway gold/copper mine is one of Australia's largest), healthcare, education, and government services. Many of these industries involve shift work, seasonal employment, or remote locations where getting to a GP clinic during business hours is impractical.",
+          "Cadia mine alone employs over 1,800 workers, many of whom commute from Orange, Bathurst, and surrounding towns. Mining rosters mean days off rarely coincide with available GP appointments. For a straightforward medical certificate, telehealth eliminates the scheduling conflict entirely - submit the request between shifts and receive the certificate via email.",
+          "Agricultural workers across the Central West face similar access challenges, particularly during harvest and shearing seasons when taking time off to visit a GP is not practical. Telehealth provides documentation for legitimate illness without disrupting farm operations. Certificates from AHPRA-registered doctors are accepted by all agricultural employers and labour hire companies.",
+        ],
+      },
+      {
+        title: "Students and Medical Certificates in the Central West",
+        paragraphs: [
+          "Charles Sturt University's Orange campus is the main tertiary institution in the region, alongside TAFE NSW Western. Both accept medical certificates from AHPRA-registered doctors for special consideration applications, exam deferrals, and assignment extensions. During exam periods, when campus health services are stretched, telehealth is often the fastest path to documentation.",
+          "Orange's high schools and their boarding student populations also generate certificate demand. Parents in smaller Central West towns whose children board in Orange sometimes need certificates issued quickly when a child falls ill. Telehealth allows the parent to manage the process remotely, with the certificate emailed directly.",
+          "Under the Fair Work Act 2009, all Central West employers must accept certificates from AHPRA-registered doctors regardless of consultation method. Orange City Council, the Western NSW Local Health District, mining companies, agricultural businesses, and local retailers all accept telehealth-issued certificates. There is no legislative distinction between telehealth and face-to-face certificates.",
+        ],
+      },
+    ],
+    pharmacyInfo: {
+      title: "Pharmacies and eScripts in Orange",
+      paragraphs: [
+        "Orange has good pharmacy coverage across the CBD, Orange City Centre shopping precinct, and the Summer Street retail strip. Chemist Warehouse, Priceline, TerryWhite Chemmart, and independent pharmacies all accept eScripts. Pharmacies in surrounding towns - Bathurst, Mudgee, Parkes, Forbes, Cowra, Blayney - also accept the QR code from an InstantMed prescription.",
+        "Extended-hours options are more limited in regional NSW than in Sydney, but Orange City Centre pharmacies typically trade into the early evening. Standard PBS co-payments apply to telehealth-issued eScripts - there is no pricing difference at the counter compared to a prescription from a face-to-face consultation.",
+      ],
+    },
+    telehealthRegulations: {
+      title: "Telehealth Regulation in NSW",
+      paragraphs: [
+        "NSW follows the national AHPRA and Medical Board of Australia framework for telehealth. NSW Health has explicitly supported telehealth expansion, and the Western NSW Local Health District has integrated telehealth into its service planning to address the region's persistent GP workforce shortages.",
+        "Prescribing follows national TGA rules. Most PBS-listed medications can be prescribed via telehealth and dispensed via eScript at any NSW pharmacy. Schedule 8 controlled substances require NSW Ministry of Health authority and in-person assessment, and are not prescribed through InstantMed.",
+        "The NSW Health Care Complaints Commission (HCCC) handles complaints about health services in NSW. InstantMed operates a formal complaints process aligned with AHPRA requirements at complaints@instantmed.com.au with a 14-day SLA.",
+      ],
+    },
+    additionalFaqs: [
+      { q: "Does InstantMed cover Bathurst, Mudgee, and the wider Central West?", a: "Yes. Orange, Bathurst, Mudgee, Parkes, Forbes, Cowra, Blayney, Millthorpe, Molong, Canowindra - anywhere in the Central West with internet access is covered." },
+      { q: "Can Cadia mine workers use InstantMed?", a: "Yes. Mining workers can get medical certificates via telehealth. Certificates from AHPRA-registered doctors are accepted by all mining companies and labour hire firms operating in the Central West." },
+      { q: "Can Charles Sturt University Orange students use InstantMed?", a: "Yes. CSU accepts medical certificates from AHPRA-registered doctors for special consideration, exam deferrals, and assignment extensions at all campuses including Orange." },
+      { q: "Is InstantMed cheaper than a GP in Orange?", a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT}. With Orange bulk-billing around 55% and typical gap fees of $40–$70, InstantMed is often more affordable for straightforward certificates and scripts.` },
+    ],
+  },
+
+  gladstone: {
+    healthStats: [
+      { label: "Population", value: "35K+", context: "Industrial hub of Central Queensland" },
+      { label: "Avg GP wait", value: "4–8 days", context: "Longer during turnaround and shutdown periods" },
+      { label: "Bulk-billing rate", value: "~60%", context: "Below the QLD average" },
+      { label: "Industry", value: "LNG/Alumina", context: "Major industrial workforce with 24/7 operations" },
+    ],
+    sections: [
+      {
+        title: "Healthcare in Gladstone and the Port Curtis Region",
+        paragraphs: [
+          "Gladstone is one of Queensland's most significant industrial centres, home to the Curtis Island LNG plants (GLNG, QCLNG, APLNG), Queensland Alumina Limited (QAL), the Boyne Island aluminium smelter, and Gladstone Port - one of the world's largest multi-commodity ports. The city's economy generates billions in exports, but its healthcare infrastructure has not kept pace with the industrial workforce's needs.",
+          "With roughly 35,000 residents plus a significant transient workforce during construction and turnaround periods, Gladstone's GP capacity is chronically stretched. Same-day appointments for non-urgent needs are rarely available, and during major plant turnarounds - when thousands of additional workers arrive for maintenance shutdowns - wait times blow out further. Bulk-billing rates have dropped below 60%, and gap fees of $40–$60 are standard.",
+          "The industrial workforce operates around the clock - 12-hour rotating shifts are the norm across LNG, alumina, port operations, and supporting industries. Standard GP clinic hours (8am-5pm weekdays) are incompatible with these rosters. A worker on nightshift who wakes up sick at 3pm has limited options before their 6pm start. Telehealth removes the scheduling constraint entirely.",
+        ],
+      },
+      {
+        title: "Industrial Workers and Medical Certificates in Gladstone",
+        paragraphs: [
+          "Gladstone's industrial employers - Santos, Origin Energy, ConocoPhillips, Rio Tinto (QAL and Boyne Smelters), GPC - typically require medical certificates for any absence, often as part of fitness-for-duty protocols. These are large, safety-critical operations where unplanned absences affect shift coverage and production. Workers need certificates quickly to maintain their standing with supervisors and HR.",
+          "Many Gladstone workers are employed through labour hire companies (Programmed, Chandler Macleod, Hays) or on contractor arrangements. These workers often face stricter documentation requirements than permanent employees - a missing certificate can mean losing future shifts. Telehealth's same-day turnaround is particularly valuable for this workforce.",
+          "FIFO and DIDO (drive-in, drive-out) workers who commute to Gladstone from Rockhampton, Bundaberg, or further afield face additional challenges. If they fall ill during their swing, they may not have a local GP. Telehealth provides access to a doctor regardless of where the worker's home base is located. Certificates are nationally valid and accepted by all industrial employers.",
+        ],
+      },
+      {
+        title: "Beyond Industry: Gladstone's Broader Community",
+        paragraphs: [
+          "Gladstone is more than its industrial base. The city serves as a service hub for the surrounding Gladstone Regional Council area, including Calliope, Tannum Sands, Boyne Island, Agnes Water, and the Town of 1770. These coastal and semi-rural communities have limited local healthcare, and residents often travel to Gladstone for GP appointments.",
+          "CQUniversity's Gladstone campus and TAFE Queensland's Gladstone campus serve local and regional students. Both accept medical certificates from AHPRA-registered doctors for special consideration applications and assessment extensions. The consultation method is not a factor in acceptance.",
+          "Under the Fair Work Act 2009, all Gladstone employers must accept certificates from AHPRA-registered doctors. Queensland-specific industrial instruments, including resources sector enterprise agreements, do not distinguish between telehealth and face-to-face certificates. The certificate must include the doctor's AHPRA registration, consultation date, and recommended absence period - all of which InstantMed certificates provide.",
+        ],
+      },
+    ],
+    pharmacyInfo: {
+      title: "Pharmacies and eScripts in Gladstone",
+      paragraphs: [
+        "Gladstone has pharmacy coverage across the CBD, Gladstone Valley, Kin Kora, and the Stockland Gladstone shopping centre. Chemist Warehouse, Priceline, and independent pharmacies all accept eScripts. Pharmacies in Tannum Sands, Boyne Island, Calliope, and Agnes Water also accept the QR code from an InstantMed prescription.",
+        "For shift workers finishing late, Stockland Gladstone pharmacies typically trade into the evening. Standard PBS co-payments apply to telehealth-issued eScripts - there is no pricing difference at the counter compared to a face-to-face prescription. The eScript QR code works at any Australian pharmacy if workers happen to be interstate during their R&R period.",
+      ],
+    },
+    telehealthRegulations: {
+      title: "Telehealth Regulation in Queensland",
+      paragraphs: [
+        "Queensland follows national AHPRA and Medical Board of Australia guidelines for telehealth. Queensland Health has been a strong advocate for telehealth expansion, driven by the state's geographic spread and the healthcare access challenges faced by regional and industrial communities like Gladstone.",
+        "Prescribing via telehealth in Queensland follows national TGA regulations. PBS-listed medications can be prescribed electronically, with eScripts accepted at all Queensland pharmacies. Schedule 8 controlled substances require Queensland Health authority and typically an in-person assessment. InstantMed does not prescribe Schedule 8 medications.",
+        "Medical certificates from telehealth consultations carry the same legal weight as face-to-face certificates in Queensland. Resources sector enterprise agreements, state government employment conditions, and the Fair Work Act all accept certificates from AHPRA-registered doctors regardless of consultation method.",
+      ],
+    },
+    additionalFaqs: [
+      { q: "Can LNG and alumina workers use InstantMed?", a: "Yes. Industrial workers across Gladstone's LNG plants, QAL, Boyne Smelters, and the port can get medical certificates via telehealth. Certificates are valid for all employers including those under resources sector enterprise agreements." },
+      { q: "Does InstantMed cover Tannum Sands and Agnes Water?", a: "Yes. Tannum Sands, Boyne Island, Calliope, Agnes Water, Town of 1770, and all surrounding communities are covered. Anywhere with internet access in the Gladstone region." },
+      { q: "Can labour hire workers use InstantMed?", a: "Yes. Medical certificates from AHPRA-registered doctors are accepted by all labour hire companies operating in Australia. The certificate meets documentation requirements for Programmed, Chandler Macleod, Hays, and all other agencies." },
+      { q: "Is InstantMed cheaper than a Gladstone GP?", a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT}. With Gladstone bulk-billing around 60% and typical gap fees of $40–$60, InstantMed is often more affordable for straightforward certificates.` },
+    ],
+  },
+
+  "mount-gambier": {
+    healthStats: [
+      { label: "Population", value: "28K+", context: "Largest city in the Limestone Coast" },
+      { label: "Avg GP wait", value: "5–10 days", context: "Severe GP shortage in the region" },
+      { label: "Bulk-billing rate", value: "~50%", context: "Among the lowest in regional SA" },
+      { label: "Distance to Adelaide", value: "450km", context: "Over 4 hours by road" },
+    ],
+    sections: [
+      {
+        title: "Healthcare on the Limestone Coast",
+        paragraphs: [
+          "Mount Gambier is the service centre for SA's Limestone Coast region - an area stretching from the Victorian border to Kingston SE, and inland to Naracoorte and Bordertown. With a population of roughly 28,000 in the city and a broader regional catchment of 65,000+, the region's GP capacity is under significant strain. Same-day appointments are rarely available, wait times of one to two weeks are common, and several practices have restricted new patient intakes entirely.",
+          "The Limestone Coast has been classified as a Distribution Priority Area (DPA) with genuine, long-standing GP workforce shortages. Recruiting and retaining doctors in a regional city 450 kilometres from Adelaide has been a persistent challenge. The Mount Gambier and Districts Health Service provides hospital care, but the primary care gap is the real problem for everyday healthcare needs.",
+          "For residents of smaller Limestone Coast towns - Millicent, Penola, Naracoorte, Robe, Kingston SE, Bordertown - the nearest GP is often Mount Gambier, adding a round trip of 1-2 hours. For a medical certificate or repeat prescription, this journey is disproportionate. Telehealth eliminates the travel entirely, providing same-day access to an AHPRA-registered doctor from home.",
+        ],
+      },
+      {
+        title: "Forestry, Agriculture, and Regional Workers",
+        paragraphs: [
+          "The Limestone Coast economy is built on forestry and timber processing (the region contains one of the largest softwood plantation estates in Australia), agriculture (dairy, beef, sheep, viticulture in Coonawarra), fishing (rock lobster industry out of Kingston and Robe), and tourism. These industries involve physical labour, irregular hours, and often remote work locations.",
+          "Forestry and mill workers in the Green Triangle region operate on shift rosters that don't align with standard clinic hours. Agricultural workers during lambing, shearing, and vintage seasons face the same problem - taking half a day to get a medical certificate disrupts operations that can't easily pause. Telehealth provides the documentation without the disruption.",
+          "The Limestone Coast also has a significant seasonal workforce - grape pickers in Coonawarra, shearers moving through the district, truck drivers on the Melbourne-Adelaide route. These workers are often far from their home GP and need certificates that any employer will accept. InstantMed certificates are nationally valid and accepted by all Fair Work-covered employers.",
+        ],
+      },
+      {
+        title: "Cross-Border Healthcare",
+        paragraphs: [
+          "Mount Gambier sits just 17 kilometres from the Victorian border, and many Limestone Coast residents regularly cross between SA and VIC for work, shopping, and healthcare. Some Mount Gambier residents see GPs in Hamilton or Portland (VIC) when local appointments aren't available, adding cross-border complexity to routine healthcare.",
+          "Telehealth simplifies this entirely. AHPRA registration is national - there is no state-based restriction on where a registered doctor can consult. A certificate from an InstantMed doctor is valid in South Australia, Victoria, and every other Australian state and territory. For a cross-border community like the Limestone Coast, this national validity removes administrative friction.",
+          "University of South Australia's Mount Gambier campus and TAFE SA's Mount Gambier campus serve regional students. Both accept medical certificates from AHPRA-registered doctors for special consideration applications. For students who commute from surrounding towns, telehealth avoids adding another trip to Mount Gambier on top of their regular travel.",
+        ],
+      },
+    ],
+    pharmacyInfo: {
+      title: "Pharmacies and eScripts in Mount Gambier",
+      paragraphs: [
+        "Mount Gambier has pharmacy coverage along Commercial Street, at the Marketplace shopping centre, and through suburban pharmacies. Chemist Warehouse, TerryWhite Chemmart, and independent pharmacies all accept eScripts. Pharmacies in Millicent, Naracoorte, Penola, and Bordertown also accept the QR code from an InstantMed prescription.",
+        "Extended-hours options are limited in regional SA, but Mount Gambier's Marketplace pharmacies typically trade into the early evening. Standard PBS co-payments apply to telehealth-issued eScripts - there is no pricing difference at the counter. For Limestone Coast residents who regularly cross into Victoria, the eScript also works at any Victorian pharmacy.",
+      ],
+    },
+    telehealthRegulations: {
+      title: "Telehealth Regulation in South Australia",
+      paragraphs: [
+        "South Australia follows national AHPRA and Medical Board of Australia guidelines for telehealth. SA Health has supported telehealth expansion as part of its strategy to improve healthcare access for regional communities like the Limestone Coast, where GP shortages are persistent and severe.",
+        "Prescribing follows national TGA rules. Most PBS-listed medications can be prescribed via telehealth and dispensed via eScript at any SA or VIC pharmacy. Schedule 8 controlled substances require SA Health authority and in-person assessment. InstantMed does not prescribe Schedule 8 medications.",
+        "Medical certificates issued via telehealth carry the same legal weight in South Australia as those from in-person consultations. All employers - SA government, private sector, not-for-profit - must accept certificates from AHPRA-registered doctors under the Fair Work Act.",
+      ],
+    },
+    additionalFaqs: [
+      { q: "Does InstantMed cover the whole Limestone Coast?", a: "Yes. Mount Gambier, Millicent, Penola, Naracoorte, Bordertown, Robe, Kingston SE, and all surrounding communities. Anywhere on the Limestone Coast with internet access." },
+      { q: "Can forestry and mill workers use InstantMed?", a: "Yes. Green Triangle forestry and timber processing workers can get certificates via telehealth. Certificates are accepted by all employers including those under forestry enterprise agreements." },
+      { q: "Does the certificate work in both SA and VIC?", a: "Yes. AHPRA registration is national, and certificates from InstantMed are valid in every Australian state and territory. For the cross-border Limestone Coast community, this means one certificate works everywhere." },
+      { q: "Is InstantMed cheaper than a Mount Gambier GP?", a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT}. With Mount Gambier bulk-billing around 50% and typical gap fees of $40–$70, InstantMed is often more affordable for straightforward certificates and scripts.` },
+    ],
+  },
+
+  "port-augusta": {
+    healthStats: [
+      { label: "Population", value: "14K+", context: "Crossroads of the Australian outback" },
+      { label: "Avg GP wait", value: "7–14 days", context: "Severe GP shortage" },
+      { label: "Bulk-billing rate", value: "~55%", context: "Limited options in the Upper Spencer Gulf" },
+      { label: "Catchment", value: "30K+", context: "Serves Whyalla, the Flinders Ranges, and outback SA" },
+    ],
+    sections: [
+      {
+        title: "Healthcare at the Crossroads of Outback Australia",
+        paragraphs: [
+          "Port Augusta sits at the head of Spencer Gulf, at the junction of the Stuart, Barrier, and Augusta highways - literally the crossroads of outback Australia. It is the last major service centre before the long drive north to Alice Springs, west to Perth, or into the Flinders Ranges. With a population of roughly 14,000 and a broader catchment extending to Whyalla, Quorn, Hawker, and the remote pastoral stations beyond, the region's healthcare capacity is severely limited.",
+          "GP availability in Port Augusta has been in crisis for years. The region is classified as a Distribution Priority Area with one of the most acute GP shortages in South Australia. Wait times of one to two weeks for non-urgent appointments are standard, and the town has struggled to recruit and retain doctors. When a GP leaves, their patient list often has nowhere to go - other practices are already at capacity.",
+          "Port Augusta Hospital provides acute care for the upper Spencer Gulf region, but the primary care bottleneck is the fundamental problem. For routine needs - medical certificates, repeat prescriptions, simple prescription renewals - telehealth offers an immediate alternative that doesn't depend on local GP capacity. It works as long as the internet connection works, which it does across Port Augusta's built-up area and most of the broader region.",
+        ],
+      },
+      {
+        title: "Energy, Defence, and Outback Workers",
+        paragraphs: [
+          "Port Augusta has been reinventing itself as a renewable energy hub. The Augusta and Cultana solar farms, wind projects across the Spencer Gulf region, and the proposed hydrogen developments are bringing a new workforce to the area. These projects employ construction and operations workers on shift rosters, many of whom commute from Adelaide or interstate and don't have a local GP.",
+          "The Australian Defence Force has a significant presence in the region, with Woomera and the Cultana Training Area located nearby. Military and defence contractor personnel stationed in or rotating through the area need healthcare access that doesn't always align with local GP availability. While defence has its own medical services, civilian contractors and support staff often rely on the local healthcare system.",
+          "Pastoral stations, mining operations (Leigh Creek and surrounding areas), and road transport workers across outback SA use Port Augusta as their nearest service centre. For these workers, a trip to the doctor might mean a 200-kilometre drive each way. Telehealth is not a convenience for this community - it is often the only practical way to get routine medical documentation without losing an entire day.",
+        ],
+      },
+      {
+        title: "Aboriginal Health and Community Services",
+        paragraphs: [
+          "Port Augusta has a significant Aboriginal population, and the region is served by the Pika Wiya Health Service Aboriginal Corporation alongside mainstream primary care. Telehealth is recognised as a complementary pathway for routine healthcare needs in the region - it does not replace Aboriginal Community Controlled Health Services, which provide culturally safe, comprehensive primary care, but for the specific use cases of medical certificates and straightforward prescriptions, it can complement existing care relationships.",
+          "TAFE SA's Port Augusta campus and the University of South Australia's regional outreach programs serve local students and trainees. Both accept medical certificates from AHPRA-registered doctors for special consideration and assessment extensions. For students juggling study with work and family commitments in a region with limited GP access, telehealth removes one more barrier.",
+          "Under the Fair Work Act 2009, all Port Augusta employers - including the Port Augusta City Council, SA Water, energy companies, pastoral employers, and retail businesses - must accept certificates from AHPRA-registered doctors. South Australian industrial instruments do not distinguish between telehealth and face-to-face certificates.",
+        ],
+      },
+    ],
+    pharmacyInfo: {
+      title: "Pharmacies and eScripts in Port Augusta",
+      paragraphs: [
+        "Port Augusta has pharmacy coverage along Commercial Road and Flinders Terrace. Chemist Warehouse and independent pharmacies accept eScripts. The Whyalla pharmacies - roughly 75 kilometres south - also provide an option for residents of the upper Spencer Gulf. All accept the QR code from an InstantMed prescription.",
+        "Extended-hours options are very limited in Port Augusta compared to metropolitan areas. For urgent prescriptions, planning around pharmacy opening hours is important. Standard PBS co-payments apply to telehealth-issued eScripts - no pricing difference compared to a face-to-face prescription. For residents travelling to Adelaide for other purposes, eScripts can also be filled at any pharmacy along the route.",
+      ],
+    },
+    telehealthRegulations: {
+      title: "Telehealth Regulation in South Australia",
+      paragraphs: [
+        "South Australia follows national AHPRA and Medical Board of Australia guidelines for telehealth. SA Health has been particularly supportive of telehealth in regional and remote areas like the upper Spencer Gulf, where GP workforce shortages are among the most severe in the state.",
+        "Prescribing follows national TGA rules. Most PBS-listed medications can be prescribed via telehealth and dispensed via eScript at any SA pharmacy. Schedule 8 controlled substances require SA Health authority and in-person assessment. InstantMed does not prescribe Schedule 8 medications.",
+        "The SA Health and Community Services Complaints Commissioner handles complaints about health services in South Australia. InstantMed operates a formal complaints process aligned with AHPRA requirements at complaints@instantmed.com.au with a 14-day SLA.",
+      ],
+    },
+    additionalFaqs: [
+      { q: "Does InstantMed cover Whyalla and the Flinders Ranges?", a: "Yes. Port Augusta, Whyalla, Quorn, Hawker, and all surrounding communities. Anywhere in the upper Spencer Gulf and outback SA with internet access - including Starlink and NBN fixed wireless." },
+      { q: "Can renewable energy workers use InstantMed?", a: "Yes. Solar farm, wind farm, and energy project workers in the Port Augusta region can get medical certificates via telehealth. Certificates are valid for all employers and labour hire companies." },
+      { q: "Can pastoral station workers use InstantMed?", a: "Yes, as long as you have internet or mobile coverage. Many remote properties now have Starlink or NBN Sky Muster. The intake can be completed from the homestead without driving into town." },
+      { q: "Is InstantMed cheaper than a Port Augusta GP?", a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT}. With Port Augusta's limited GP availability and typical gap fees when bulk-billing isn't available, InstantMed offers a predictable, affordable alternative.` },
+    ],
+  },
+
+  "alice-springs": {
+    healthStats: [
+      { label: "Population", value: "28K+", context: "Heart of Central Australia" },
+      { label: "Avg GP wait", value: "7–14 days", context: "One of the longest waits in Australia" },
+      { label: "Bulk-billing rate", value: "~50%", context: "Very limited outside ACCHS services" },
+      { label: "Nearest capital", value: "1,500km", context: "Adelaide is the closest capital city" },
+    ],
+    sections: [
+      {
+        title: "Healthcare in Central Australia",
+        paragraphs: [
+          "Alice Springs is the service centre for Central Australia - a region larger than most European countries, stretching from Tennant Creek in the north to the SA border in the south, and from the WA border in the west to the QLD border in the east. With a population of roughly 28,000 in the town itself and a broader regional population scattered across remote communities, cattle stations, and mining sites, the region's healthcare infrastructure faces challenges unlike anywhere else in Australia.",
+          "GP access in Alice Springs has been a persistent challenge. The town's remoteness makes doctor recruitment and retention difficult, and the limited number of private practices are chronically booked out. Wait times of one to two weeks for non-urgent appointments are common. Outside Alice Springs - in communities like Yulara, Ti Tree, and the pastoral stations - there may be no GP within hundreds of kilometres.",
+          "Alice Springs Hospital is the only major hospital between Adelaide and Darwin, handling everything from routine presentations to complex trauma retrievals. The primary care system, while bolstered by Aboriginal Community Controlled Health Services like Congress (Central Australian Aboriginal Congress), still cannot meet the routine demand from the town's non-Indigenous population, tourists, and the region's dispersed workforce.",
+        ],
+      },
+      {
+        title: "Tourism, Mining, and Central Australian Workers",
+        paragraphs: [
+          "Tourism is a major employer in Central Australia. Alice Springs is the gateway to Uluru-Kata Tjuta National Park, Kings Canyon, the West MacDonnell Ranges, and the broader Red Centre. Tour operators, hospitality workers, resort staff at Yulara, and park rangers work irregular hours in remote locations where GP access is essentially nonexistent. A tour guide who falls ill at Kings Canyon is 300 kilometres from the nearest clinic.",
+          "Mining and pastoral operations across Central Australia employ workers on remote stations and sites scattered across vast distances. Many of these operations are FIFO from Alice Springs or further afield. When a worker on R&R in Alice Springs needs a medical certificate, telehealth provides it without competing for one of the limited GP appointments.",
+          "Defence personnel at Pine Gap and RAAF personnel based in or rotating through Alice Springs also need healthcare access. While defence has its own medical facilities, civilian support staff and contractors rely on the local system. Transport workers on the Stuart Highway - trucking between Adelaide and Darwin - pass through Alice Springs as their primary service point. Telehealth works for all of these groups regardless of their employer or reason for being in Central Australia.",
+        ],
+      },
+      {
+        title: "Extreme Climate and Practical Realities",
+        paragraphs: [
+          "Central Australia's climate adds a layer of healthcare challenge that doesn't exist in coastal cities. Summer temperatures regularly exceed 40 degrees, making any unnecessary travel genuinely unpleasant and potentially dangerous. Walking to a GP clinic in 42-degree heat when you're already unwell is not a reasonable expectation. Telehealth eliminates the need to leave air conditioning.",
+          "The region also experiences periodic flooding that can cut roads for days. The Stuart Highway, Todd River crossings, and unsealed roads to outlying communities are all vulnerable to weather disruption. During these events, getting to a GP may be physically impossible. Telehealth continues to work as long as mobile or internet coverage is available.",
+          "Charles Darwin University's Alice Springs campus and Batchelor Institute (specialising in Indigenous education) serve local and regional students. Both accept medical certificates from AHPRA-registered doctors for special consideration applications. For students who may have travelled hundreds of kilometres from remote communities to study in Alice Springs, telehealth provides healthcare access without the overhead of finding and enrolling with a local GP.",
+        ],
+      },
+    ],
+    pharmacyInfo: {
+      title: "Pharmacies and eScripts in Alice Springs",
+      paragraphs: [
+        "Alice Springs has pharmacy coverage along Todd Mall, at the Yeperenye Shopping Centre, and through suburban pharmacies in the Gap and East Side. Chemist Warehouse and independent pharmacies accept eScripts. The QR code from an InstantMed prescription works at all of them.",
+        "Pharmacy hours in Alice Springs are more limited than in metropolitan areas, with most closing by 6pm on weekdays and earlier on weekends. Planning around pharmacy hours is important for same-day prescription fills. For residents travelling to Adelaide or Darwin, the eScript also works at any pharmacy along the route or at the destination. Standard PBS co-payments apply with no pricing difference compared to a face-to-face prescription.",
+      ],
+    },
+    telehealthRegulations: {
+      title: "Telehealth Regulation in the Northern Territory",
+      paragraphs: [
+        "The Northern Territory follows national AHPRA and Medical Board of Australia guidelines for telehealth. The NT Government has been one of the strongest advocates for telehealth in Australia, recognising the Territory's vast distances and dispersed population make it essential for equitable healthcare access. NT Health's digital health strategy explicitly includes telehealth as a primary care modality for both urban and remote communities.",
+        "Prescribing follows national TGA rules. Most PBS-listed medications can be prescribed via telehealth and dispensed via eScript at any NT pharmacy. Schedule 8 controlled substances require NT Health authority and in-person assessment. InstantMed does not prescribe Schedule 8 medications.",
+        "Medical certificates from telehealth consultations carry the same legal weight in the Northern Territory as those from in-person consultations. NT Government employers, tourism operators, mining companies, pastoral employers, and all Fair Work-covered businesses accept certificates from AHPRA-registered doctors.",
+      ],
+    },
+    additionalFaqs: [
+      { q: "Does InstantMed work in remote Central Australia?", a: "Yes, as long as you have internet or mobile coverage. Alice Springs town has good coverage. Remote communities and stations increasingly have Starlink, NBN Sky Muster, or mobile coverage. The intake works on any device with a browser." },
+      { q: "Can Yulara resort workers use InstantMed?", a: "Yes. Resort staff, tour operators, and workers at Uluru-Kata Tjuta can use InstantMed for medical certificates and prescriptions. The certificate is nationally valid and accepted by all employers." },
+      { q: "Can tourists use InstantMed in Alice Springs?", a: "Yes. You don't need to be an Alice Springs resident. If you're visiting for tourism or work and need a medical certificate, our doctors can help. International visitors can use the service - no Medicare card is required for medical certificates." },
+      { q: "Is InstantMed cheaper than an Alice Springs GP?", a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT}. With Alice Springs' limited GP availability and typical gap fees when bulk-billing isn't available, InstantMed offers a predictable, affordable option for routine certificates and scripts.` },
+    ],
+  },
 }

@@ -1,5 +1,5 @@
 import { redirect, notFound } from "next/navigation"
-import { requireRole } from "@/lib/auth"
+import { requireRole } from "@/lib/auth/helpers"
 import { getIntakeWithDetails } from "@/lib/data/intakes"
 import { getOrCreateMedCertDraftForIntake, getLatestDocumentForIntake, getAIDraftsForIntake } from "@/lib/data/documents"
 import { getDoctorIdentity, isDoctorIdentityComplete } from "@/lib/data/doctor-identity"

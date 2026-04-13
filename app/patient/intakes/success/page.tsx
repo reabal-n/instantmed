@@ -1,5 +1,5 @@
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { getAuthenticatedUserWithProfile } from "@/lib/auth"
+import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
 import { redirect } from "next/navigation"
 import { notFound } from "next/navigation"
 import { SuccessClient } from "./success-client"

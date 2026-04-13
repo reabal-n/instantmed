@@ -1,6 +1,6 @@
 import { Suspense } from "react"
 import type { Metadata } from "next"
-import { getAuthenticatedUserWithProfile } from "@/lib/auth"
+import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
 import { PanelDashboard } from "@/components/patient/panel-dashboard"
 import { type ProfileData } from "@/components/patient/profile-todo-card"
 import { getPatientDashboardData } from "@/lib/data/intakes"

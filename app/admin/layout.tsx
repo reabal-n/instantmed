@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { requireRole } from "@/lib/auth"
+import { requireRole } from "@/lib/auth/helpers"
 import { AdminSidebar, MobileAdminNav } from "@/components/admin/admin-sidebar"
 
 export const metadata: Metadata = {
