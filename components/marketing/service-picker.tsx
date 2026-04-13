@@ -28,7 +28,7 @@ const mockupMap: Record<string, React.ComponentType> = {
 // Trust signals - unique per section, no duplicates with hero/trust-badge-slider
 const trustSignals = [
   { icon: Stethoscope, text: 'AHPRA-registered doctors' },
-  { icon: Clock, text: 'Most reviewed within 1–2 hours' },
+  { icon: Clock, text: 'Most reviewed within 1-2 hours' },
   { icon: ShieldCheck, text: 'Flat pricing, no hidden fees' },
 ]
 

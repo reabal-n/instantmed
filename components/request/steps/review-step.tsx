@@ -102,7 +102,7 @@ function ReviewSection({
             <div key={i} className="flex justify-between text-sm">
               <dt className="text-muted-foreground">{item.label}</dt>
               <dd className="font-medium text-right max-w-[60%]">
-                {item.value ? <ExpandableValue value={item.value} /> : '—'}
+                {item.value ? <ExpandableValue value={item.value} /> : '-'}
               </dd>
             </div>
           ))}
@@ -399,7 +399,7 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
       }
       const whOption = answers.womensHealthOption as string | undefined
       const whItems = [
-        { label: 'Concern', value: WH_TYPE_LABELS[whOption as string] || String(whOption || '—') },
+        { label: 'Concern', value: WH_TYPE_LABELS[whOption as string] || String(whOption || '-') },
       ]
 
       // Contraception details
@@ -462,12 +462,12 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
       ].filter(h => answers[h.key]).map(h => h.label)
 
       const wlItems = [
-        { label: 'Current weight', value: answers.currentWeight ? `${answers.currentWeight} kg` : '—' },
-        { label: 'Height', value: answers.currentHeight ? `${answers.currentHeight} cm` : '—' },
-        { label: 'Target weight', value: answers.targetWeight ? `${answers.targetWeight} kg` : '—' },
+        { label: 'Current weight', value: answers.currentWeight ? `${answers.currentWeight} kg` : '-' },
+        { label: 'Height', value: answers.currentHeight ? `${answers.currentHeight} cm` : '-' },
+        { label: 'Target weight', value: answers.targetWeight ? `${answers.targetWeight} kg` : '-' },
         ...(bmi ? [{ label: 'BMI', value: bmi }] : []),
-        { label: 'Previous attempts', value: PREV_ATTEMPTS_LABELS[answers.previousAttempts as string] || String(answers.previousAttempts || '—') },
-        { label: 'Medication preference', value: WL_MED_LABELS[answers.weightLossMedPreference as string] || String(answers.weightLossMedPreference || '—') },
+        { label: 'Previous attempts', value: PREV_ATTEMPTS_LABELS[answers.previousAttempts as string] || String(answers.previousAttempts || '-') },
+        { label: 'Medication preference', value: WL_MED_LABELS[answers.weightLossMedPreference as string] || String(answers.weightLossMedPreference || '-') },
         { label: 'Eating disorder history', value: answers.eatingDisorderHistory === 'yes' ? 'Yes' : 'No' },
       ]
       if (answers.wlAdverseReactions === 'yes') {
@@ -491,8 +491,8 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
         sections.push({
           title: 'Call Scheduling',
           items: [
-            { label: 'Preferred time', value: TIME_LABELS[answers.preferredTimeSlot as string] || String(answers.preferredTimeSlot || '—') },
-            { label: 'Phone', value: String(answers.callbackPhone || '—') },
+            { label: 'Preferred time', value: TIME_LABELS[answers.preferredTimeSlot as string] || String(answers.preferredTimeSlot || '-') },
+            { label: 'Phone', value: String(answers.callbackPhone || '-') },
           ],
           stepId: 'weight-loss-call',
         })
@@ -536,7 +536,7 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
   const detailItems = [
     { label: 'Name', value: `${firstName} ${lastName}`.trim() },
     { label: 'Email', value: email },
-    { label: 'Date of birth', value: dobDisplay || '—' },
+    { label: 'Date of birth', value: dobDisplay || '-' },
   ]
   // Only show phone if provided
   if (phone) detailItems.push({ label: 'Phone', value: phone })

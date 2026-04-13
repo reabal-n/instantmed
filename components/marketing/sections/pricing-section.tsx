@@ -229,7 +229,7 @@ const comparisonRows: Array<{
   instantHighlight?: boolean
 }> = [
   { label: 'Cost †', instant: `$${PRICING.MED_CERT.toFixed(2)}`, gp: SOCIAL_PROOF.gpPriceStandard, walkin: SOCIAL_PROOF.gpPriceComplex, instantHighlight: true },
-  { label: 'Turnaround *', instant: `~${SOCIAL_PROOF.certTurnaroundMinutes} min avg`, gp: 'Requires booking', walkin: '2–4 hours', instantHighlight: true },
+  { label: 'Turnaround *', instant: `~${SOCIAL_PROOF.certTurnaroundMinutes} min avg`, gp: 'Requires booking', walkin: '2-4 hours', instantHighlight: true },
   { label: 'No waiting room visit', instant: true, gp: false, walkin: false, instantHighlight: true },
   { label: 'Employer accepted', instant: true, gp: true, walkin: true },
   { label: 'AHPRA doctor', instant: true, gp: true, walkin: true },

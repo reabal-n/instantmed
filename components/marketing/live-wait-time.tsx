@@ -25,7 +25,7 @@ const SERVICE_CONFIG = {
     shortLabel: 'Prescriptions',
     icon: Pill,
     waitLabel: 'Under 1 hour',
-    subtext: '8am–10pm AEST',
+    subtext: '8am-10pm AEST',
     color: 'text-success',
     bgColor: 'bg-success-light',
     alwaysOnline: false,
@@ -35,7 +35,7 @@ const SERVICE_CONFIG = {
     shortLabel: 'Consults',
     icon: Phone,
     waitLabel: 'Under 1 hour',
-    subtext: '8am–10pm AEST',
+    subtext: '8am-10pm AEST',
     color: 'text-primary',
     bgColor: 'bg-primary/10',
     alwaysOnline: false,
@@ -45,7 +45,7 @@ const SERVICE_CONFIG = {
     shortLabel: 'ED',
     icon: Phone,
     waitLabel: 'Under 1 hour',
-    subtext: '8am–10pm AEST',
+    subtext: '8am-10pm AEST',
     color: 'text-primary',
     bgColor: 'bg-primary/10',
     alwaysOnline: false,
@@ -55,7 +55,7 @@ const SERVICE_CONFIG = {
     shortLabel: 'Hair Loss',
     icon: Phone,
     waitLabel: 'Under 1 hour',
-    subtext: '8am–10pm AEST',
+    subtext: '8am-10pm AEST',
     color: 'text-primary',
     bgColor: 'bg-primary/10',
     alwaysOnline: false,
@@ -64,7 +64,7 @@ const SERVICE_CONFIG = {
 
 type ServiceType = keyof typeof SERVICE_CONFIG
 
-// Operating hours (AEST) - 8am–10pm
+// Operating hours (AEST) - 8am-10pm
 const OPEN_HOUR = 8
 const CLOSE_HOUR = 22
 

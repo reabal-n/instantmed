@@ -15,7 +15,7 @@ function useHasMounted() {
 
 /**
  * Subtle "Last reviewed X min ago" urgency signal.
- * Shows a realistic-looking time (8–45 min) that slowly increments,
+ * Shows a realistic-looking time (8-45 min) that slowly increments,
  * giving the impression the service is actively processing requests.
  */
 export function LastReviewedSignal({ className }: { className?: string }) {

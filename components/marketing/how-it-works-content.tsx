@@ -203,7 +203,7 @@ export function HowItWorksContent() {
                     Doctor-patient confidentiality applies fully to telehealth consultations. Your health information is encrypted with AES-256, the same standard used by banks, and is never shared with employers, insurers, or third parties without your explicit consent. Because this is a private service (not billed to Medicare), there&apos;s no record on your Medicare claims history.
                   </p>
                   <p>
-                    We comply with the Australian Privacy Principles (APPs 1–13) and the Privacy Act 1988. Your data is stored on Australian servers. You can request access to or deletion of your health records at any time. For full details, see our <Link href="/privacy" className="text-primary hover:underline">privacy policy</Link>.
+                    We comply with the Australian Privacy Principles (APPs 1-13) and the Privacy Act 1988. Your data is stored on Australian servers. You can request access to or deletion of your health records at any time. For full details, see our <Link href="/privacy" className="text-primary hover:underline">privacy policy</Link>.
                   </p>
                 </div>
               </div>

@@ -130,7 +130,7 @@ const EXTENDED_GUIDE_SECTIONS: readonly ExtendedSection[] = [
       },
       {
         heading: "Telogen effluvium",
-        body: "Temporary shedding triggered by stress, illness, surgery, childbirth, thyroid issues, or nutritional deficiencies. Often resolves on its own within 3–6 months once the trigger is addressed. A doctor can help identify the trigger.",
+        body: "Temporary shedding triggered by stress, illness, surgery, childbirth, thyroid issues, or nutritional deficiencies. Often resolves on its own within 3-6 months once the trigger is addressed. A doctor can help identify the trigger.",
       },
       {
         heading: "Traction alopecia",
@@ -156,11 +156,11 @@ const EXTENDED_GUIDE_SECTIONS: readonly ExtendedSection[] = [
       "Hair doesn't grow continuously. Each follicle cycles through three phases - and that's why treatment takes months to show results.",
     mini_blocks: [
       {
-        heading: "Anagen (growth phase, 2–7 years)",
+        heading: "Anagen (growth phase, 2-7 years)",
         body: "Active growth. Most follicles on a healthy scalp are in anagen at any given time. This is the phase where treatment has the most leverage.",
       },
       {
-        heading: "Catagen (transition, 2–3 weeks)",
+        heading: "Catagen (transition, 2-3 weeks)",
         body: "A short regression phase where the follicle detaches from its blood supply and prepares to shed.",
       },
       {
@@ -223,7 +223,7 @@ const EXTENDED_GUIDE_SECTIONS: readonly ExtendedSection[] = [
       },
       {
         heading: "How to spot them early",
-        body: "Keep a note of how you feel in the first 2–3 months. If something shifts, flag it. Doctors are much more effective when they have a clear baseline to compare against.",
+        body: "Keep a note of how you feel in the first 2-3 months. If something shifts, flag it. Doctors are much more effective when they have a clear baseline to compare against.",
       },
     ],
   },
@@ -232,7 +232,7 @@ const EXTENDED_GUIDE_SECTIONS: readonly ExtendedSection[] = [
     icon: XCircle,
     title: "If you stop treatment",
     opening: "Be honest with yourself about this one before you start.",
-    body: "Treatment is effectively maintenance - not a cure. If you stop, hair that was preserved or regrown on treatment typically reverts within 6–12 months, often back to where you'd have been if you'd never started. That's not a reason to avoid treatment - it's a reason to factor ongoing commitment into the decision. If budget or lifestyle makes long-term commitment impractical, talk to the doctor about whether treatment is the right move for you right now.",
+    body: "Treatment is effectively maintenance - not a cure. If you stop, hair that was preserved or regrown on treatment typically reverts within 6-12 months, often back to where you'd have been if you'd never started. That's not a reason to avoid treatment - it's a reason to factor ongoing commitment into the decision. If budget or lifestyle makes long-term commitment impractical, talk to the doctor about whether treatment is the right move for you right now.",
   },
 ] as const
 

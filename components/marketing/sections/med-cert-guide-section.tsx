@@ -106,7 +106,7 @@ const GUIDE_ITEMS: readonly GuideItem[] = [
           history - the same information available via telehealth.
         </p>
         <p>
-          For a standard 1–3 day absence, a telehealth certificate is
+          For a standard 1-3 day absence, a telehealth certificate is
           clinically equivalent to an in-person one. The doctor reviews your
           symptoms, asks follow-up questions if needed, and makes a clinical
           judgement about whether a certificate is appropriate. If they&apos;re
@@ -126,7 +126,7 @@ const GUIDE_ITEMS: readonly GuideItem[] = [
           Workplace injuries requiring WorkCover documentation need a physical
           examination and specific forms. Conditions requiring blood tests,
           imaging, or physical assessment (suspicious moles, joint injuries,
-          chest pain) should be seen face-to-face. Extended absences beyond 3–5
+          chest pain) should be seen face-to-face. Extended absences beyond 3-5
           days may benefit from an in-person assessment, and we&apos;ll
           recommend this where appropriate.
         </p>

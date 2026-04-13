@@ -78,6 +78,38 @@ const RATIONALES: Record<string, RationaleRule> = {
     text:
       "Finasteride is Category X (TGA/FDA). Oral 5-alpha reductase inhibitors carry teratogenic risk. Only topical minoxidil (OTC) should be considered when reproductive exposure is possible. Service declined at intake.",
   },
+
+  // Women's health - UTI red flags
+  utiRedFlags: {
+    severity: "destructive",
+    matches: TRUTHY,
+    text:
+      "Patient reports systemic symptoms (fever, back pain, nausea/vomiting). May indicate pyelonephritis or complicated UTI requiring in-person assessment and urine culture. Do not prescribe empirical antibiotics.",
+  },
+
+  // Women's health - UTI in pregnancy
+  utiPregnant: {
+    severity: "destructive",
+    matches: (v: unknown) => v === "yes" || v === "not_sure",
+    text:
+      "UTI during pregnancy or possible pregnancy requires in-person assessment, urine culture, and culture-directed therapy. Many first-line antibiotics are contraindicated. Decline and refer to GP.",
+  },
+
+  // Women's health - MAP window exceeded
+  hoursSinceIntercourse: {
+    severity: "destructive",
+    matches: (v: unknown) => v === "over_120",
+    text:
+      "Oral emergency contraception is not effective beyond 120 hours (5 days) post-intercourse. A copper IUD may still be effective up to 5 days. Refer to GP or family planning clinic.",
+  },
+
+  // Weight loss - eating disorder history
+  eatingDisorderHistory: {
+    severity: "warning",
+    matches: TRUTHY,
+    text:
+      "Patient reports eating disorder history. Weight loss medication may exacerbate disordered eating patterns. Requires doctor phone consultation before prescribing.",
+  },
 }
 
 export function getContraindicationRationale(

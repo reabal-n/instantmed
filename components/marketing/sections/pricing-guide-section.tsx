@@ -46,7 +46,7 @@ const GUIDE_SECTIONS = [
     icon: RotateCcw,
     title: "Our refund policy",
     paragraphs: [
-      "If a doctor reviews your request and determines that a certificate or prescription isn't clinically appropriate, you get a full refund. No questions, no paperwork, no awkward phone call. The refund is processed automatically and typically lands back in your account within 3–5 business days, depending on your bank.",
+      "If a doctor reviews your request and determines that a certificate or prescription isn't clinically appropriate, you get a full refund. No questions, no paperwork, no awkward phone call. The refund is processed automatically and typically lands back in your account within 3-5 business days, depending on your bank.",
       "We don't offer refunds for change-of-mind after a certificate or prescription has been issued - the clinical work has been done and the document has been generated. That said, we're reasonable people. If something genuinely went wrong with your experience, contact us at support@instantmed.com.au and we'll sort it out.",
       "If you have a complaint about the clinical care you received, email complaints@instantmed.com.au. We respond to all complaints within 48 hours and aim to resolve them within 14 days. If you're not satisfied with our resolution, you can escalate to the Health Care Complaints Commission (HCCC) or AHPRA directly.",
     ],

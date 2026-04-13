@@ -200,7 +200,7 @@ export function HowItWorks() {
             </Link>
           </Button>
           <p className="text-xs text-muted-foreground mt-2.5">
-            Reviewed within 1–2 hours, most days.
+            Reviewed within 1-2 hours, most days.
           </p>
         </motion.div>
       </div>

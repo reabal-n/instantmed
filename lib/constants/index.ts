@@ -74,11 +74,12 @@ export const PRICING_DISPLAY = {
   RANGE: `$${PRICING.MED_CERT.toFixed(2)} - $${PRICING.CONSULT.toFixed(2)}`,
 } as const
 
-// Review aggregate schema - used across service landing pages for structured data
-// Update these when real review count changes. Must reflect genuine reviews only.
+// Review aggregate schema - used across service landing pages for structured data.
+// Must reflect genuine verified reviews only (schema.org compliance).
+// Sync with GOOGLE_REVIEWS.count in lib/social-proof/index.ts when reviews change.
 export const REVIEW_AGGREGATE = {
-  ratingValue: 4.8,
-  reviewCount: 49,
+  ratingValue: 5.0,
+  reviewCount: 3,
 } as const
 
 // Consent/terms version for compliance audit (align with Terms page "Last updated")

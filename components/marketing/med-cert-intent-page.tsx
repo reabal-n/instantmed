@@ -69,7 +69,7 @@ const recognitionIcons: Record<string, typeof Briefcase> = {
   'Private providers': Building2,
   'Private unis': Building2,
   'Family & dependants': Heart,
-  '1–3 days': Clock,
+  '1-3 days': Clock,
   'Backdating': Clock,
   'Primary & secondary': School,
   'AHPRA doctors': BadgeCheck,
