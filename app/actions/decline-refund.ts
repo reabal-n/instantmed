@@ -1,7 +1,8 @@
-"use server"
-
 /**
  * Refund Processing for Declined Intakes
+ *
+ * NOTE: No "use server" -- this is a sub-module imported by decline-intake.ts
+ * (which has "use server"). Constants can't be exported from "use server" files.
  *
  * Handles Stripe refund logic when an intake is declined:
  * - Full refund for med certs and prescriptions

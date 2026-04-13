@@ -1,7 +1,9 @@
-"use server"
-
 /**
  * withServerAction - Standardized wrapper for authenticated server actions.
+ *
+ * NOTE: No "use server" here. This is a factory function, not a server action.
+ * The consuming files (app/actions/*.ts) have "use server" at module level,
+ * which makes the async functions returned by withServerAction into server actions.
  *
  * Eliminates boilerplate:
  *   createServiceRoleClient() -> requireRoleOrNull() -> Sentry.setTag() -> try/catch -> error formatting
