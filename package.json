@@ -28,7 +28,11 @@
     "e2e:full": "pnpm e2e:teardown || true && PLAYWRIGHT=1 playwright test && pnpm e2e:teardown || true",
     "e2e:smoke": "PLAYWRIGHT=1 playwright test --project=chromium e2e/portals.smoke.spec.ts e2e/rbac.spec.ts e2e/admin.studio.spec.ts e2e/admin.clinic.spec.ts e2e/medcert.approval.spec.ts e2e/doctor.queue.spec.ts e2e/doctor.patients.spec.ts",
     "e2e:functional": "PLAYWRIGHT=1 playwright test --project=chromium e2e/operator.journey.spec.ts e2e/medcert.approval.spec.ts e2e/doctor.queue.spec.ts e2e/admin.studio.spec.ts e2e/admin.clinic.spec.ts",
-    "e2e:a11y": "PLAYWRIGHT=1 playwright test --project=chromium e2e/accessibility.spec.ts"
+    "e2e:a11y": "PLAYWRIGHT=1 playwright test --project=chromium e2e/accessibility.spec.ts",
+    "smoke:stripe": "npx tsx scripts/stripe-smoke-test.ts",
+    "keys:rotate": "npx tsx scripts/rotate-keys.ts",
+    "test:templates": "npx tsx scripts/test-all-templates.ts",
+    "seo:generate": "npx tsx scripts/seo-generator.ts"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.66",

@@ -39,12 +39,27 @@ jobs:
       - name: Check for route conflicts
         run: bash scripts/check-route-conflicts.sh
 
+      - name: Check for orphaned files
+        run: bash scripts/check-orphaned-files.sh
+
       - name: Type-check and build
         env:
           NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
           NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder-anon-key-for-build
           SUPABASE_SERVICE_ROLE_KEY: placeholder-service-role-key-for-build
           NEXT_PUBLIC_APP_URL: http://localhost:3000
+          STRIPE_SECRET_KEY: sk_test_placeholder
+          STRIPE_PRICE_MEDCERT: price_placeholder_medcert
+          STRIPE_PRICE_MEDCERT_2DAY: price_placeholder_medcert_2day
+          STRIPE_PRICE_MEDCERT_3DAY: price_placeholder_medcert_3day
+          STRIPE_PRICE_REPEAT_SCRIPT: price_placeholder_repeat_script
+          STRIPE_PRICE_CONSULT: price_placeholder_consult
+          STRIPE_PRICE_CONSULT_ED: price_placeholder_consult_ed
+          STRIPE_PRICE_CONSULT_HAIR_LOSS: price_placeholder_consult_hair_loss
+          STRIPE_PRICE_CONSULT_WOMENS_HEALTH: price_placeholder_consult_womens_health
+          STRIPE_PRICE_CONSULT_WEIGHT_LOSS: price_placeholder_consult_weight_loss
+          STRIPE_PRICE_PRIORITY_FEE: price_placeholder_priority_fee
+          STRIPE_PRICE_REPEAT_RX_MONTHLY: price_placeholder_repeat_rx_monthly
         run: pnpm build
 
   lighthouse:
