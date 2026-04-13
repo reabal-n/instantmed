@@ -260,7 +260,7 @@ export const medicationGuideArticles: Article[] = [
     heroImage: blogImages.metforminGuide,
     heroImageAlt: 'Type 2 diabetes medication metformin guide',
     content: [
-      { type: 'paragraph', content: 'Metformin is the most prescribed medication for type 2 diabetes worldwide and has been a cornerstone of treatment for over 60 years. In Australia, the Therapeutic Guidelines (eTG) recommend it as the first-line pharmacological therapy for type 2 diabetes, alongside lifestyle modifications. Over 2 million Australians have type 2 diabetes, and metformin is typically the first medication prescribed after diagnosis.' },
+      { type: 'paragraph', content: 'Metformin is the most prescribed medication for type 2 diabetes worldwide and has been a cornerstone of treatment for over 60 years. In Australia, the Therapeutic Guidelines (eTG) recommend it as the first-line pharmacological therapy for type 2 diabetes, alongside lifestyle modifications. Over 2 million Australians have type 2 diabetes, and metformin is typically the first medication prescribed after diagnosis.', links: [{ text: 'type 2 diabetes', href: '/conditions/type-2-diabetes', title: 'Type 2 diabetes information' }] },
 
       { type: 'heading', content: 'How Metformin Works', level: 2 },
       { type: 'paragraph', content: 'Metformin is a biguanide that works primarily by reducing glucose production in the liver and improving insulin sensitivity in muscle tissue. Unlike some diabetes medications, metformin does not stimulate insulin secretion, which means it rarely causes hypoglycaemia (dangerously low blood sugar) when used alone.' },
@@ -318,7 +318,7 @@ export const medicationGuideArticles: Article[] = [
       ] },
 
       { type: 'heading', content: 'Lifestyle Alongside Metformin', level: 2 },
-      { type: 'paragraph', content: 'Metformin is not a replacement for lifestyle management -- it is an addition. The Australian Therapeutic Guidelines emphasise that diet, exercise, and weight management remain the foundation of type 2 diabetes treatment. Metformin is most effective when combined with these lifestyle modifications.' },
+      { type: 'paragraph', content: 'Metformin is not a replacement for lifestyle management -- it is an addition. The Australian Therapeutic Guidelines emphasise that diet, exercise, and weight management remain the foundation of type 2 diabetes treatment. Metformin is most effective when combined with these lifestyle modifications.', links: [{ text: 'weight management', href: '/conditions/weight-management', title: 'Weight management strategies' }] },
       { type: 'list', content: '', items: [
         'Regular physical activity: 150 minutes per week of moderate-intensity exercise (eTG recommendation)',
         'Dietary management: reduced refined carbohydrates, increased fibre, portion control',
@@ -479,7 +479,7 @@ export const medicationGuideArticles: Article[] = [
     heroImage: blogImages.sertralineVsEscitalopram,
     heroImageAlt: 'Antidepressant medication comparison guide',
     content: [
-      { type: 'paragraph', content: 'Selective serotonin reuptake inhibitors (SSRIs) are the first-line pharmacological treatment for depression and most anxiety disorders in Australia. Sertraline and escitalopram are the two most prescribed SSRIs in the country, and both are recommended by the Australian Therapeutic Guidelines (eTG) as first-line options. This guide covers how they compare -- but it is important to note that medication choice for mental health is highly individual, and what works best varies significantly between people.' },
+      { type: 'paragraph', content: 'Selective serotonin reuptake inhibitors (SSRIs) are the first-line pharmacological treatment for depression and most anxiety disorders in Australia. Sertraline and escitalopram are the two most prescribed SSRIs in the country, and both are recommended by the Australian Therapeutic Guidelines (eTG) as first-line options. This guide covers how they compare -- but it is important to note that medication choice for mental health is highly individual, and what works best varies significantly between people.', links: [{ text: 'depression', href: '/conditions/depression', title: 'Understanding depression' }] },
       { type: 'callout', variant: 'emergency', content: 'If you or someone you know is in crisis, contact Lifeline (13 11 14), Beyond Blue (1300 22 4636), or call 000 in an emergency. This article is informational -- it is not a substitute for individualised medical advice.' },
 
       { type: 'heading', content: 'How SSRIs Work', level: 2 },

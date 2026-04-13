@@ -16,7 +16,7 @@ export const conditionArticles: Article[] = [
     heroImage: blogImages.hayFever,
     heroImageAlt: 'Person outdoors during spring with seasonal allergies',
     content: [
-      { type: 'paragraph', content: 'Hay fever - medically known as allergic rhinitis - affects around 1 in 5 Australians. It\'s an allergic reaction to airborne particles where your immune system overreacts to normally harmless substances.', links: [{ text: 'allergic rhinitis', href: '/blog/telehealth-vs-in-person', title: 'When to see a doctor' }] },
+      { type: 'paragraph', content: 'Hay fever - medically known as allergic rhinitis - affects around 1 in 5 Australians. It\'s an allergic reaction to airborne particles where your immune system overreacts to normally harmless substances.', links: [{ text: 'allergic rhinitis', href: '/conditions/allergic-rhinitis', title: 'Allergic rhinitis symptoms and treatment' }] },
       { type: 'heading', content: 'Common Triggers', level: 2 },
       { type: 'list', content: '', items: ['Grass pollen (most common in Australia)', 'Tree pollen (especially in spring)', 'Dust mites', 'Pet dander', 'Mould spores'] },
       { type: 'heading', content: 'Recognising Symptoms', level: 2 },
@@ -59,7 +59,7 @@ export const conditionArticles: Article[] = [
       { type: 'heading', content: 'Bacterial', level: 3 },
       { type: 'paragraph', content: 'Thick yellow-green discharge, eyelids may stick together. Often responds to antibiotic drops.' },
       { type: 'heading', content: 'Allergic', level: 3 },
-      { type: 'paragraph', content: 'Intense itching, affects both eyes, accompanies hay fever. Not contagious.' },
+      { type: 'paragraph', content: 'Intense itching, affects both eyes, accompanies hay fever. Not contagious.', links: [{ text: 'hay fever', href: '/conditions/hay-fever', title: 'Hay fever and seasonal allergies' }] },
       { type: 'heading', content: 'Self-Care', level: 2 },
       { type: 'list', content: '', items: ['Apply cool or warm compresses', 'Gently clean discharge', 'Avoid touching or rubbing eyes', 'Don\'t wear contact lenses until resolved', 'Replace eye makeup'] },
       { type: 'callout', variant: 'info', content: 'Pink eye rarely affects vision. If you notice vision changes or severe pain, see a doctor promptly.' },
