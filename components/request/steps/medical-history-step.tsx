@@ -54,15 +54,18 @@ function YesNoQuestion({
   detailPlaceholder,
   error,
 }: YesNoQuestionProps) {
+  const questionId = label.replace(/\s+/g, '-').toLowerCase()
+  const errorId = `${questionId}-error`
+
   return (
-    <div className="space-y-2.5">
+    <div className="space-y-2.5" role="group" aria-labelledby={`${questionId}-label`}>
       <div>
-        <p className="text-sm font-medium">
+        <p id={`${questionId}-label`} className="text-sm font-medium">
           {label} <span className="text-destructive">*</span>
         </p>
         <p className="text-xs text-muted-foreground mt-0.5">{helpText}</p>
       </div>
-      <div className="flex gap-2">
+      <div className="flex gap-2" role="radiogroup" aria-labelledby={`${questionId}-label`}>
         <EnhancedSelectionButton
           variant="chip"
           selected={value === false}
@@ -86,10 +89,11 @@ function YesNoQuestion({
           onChange={(e) => onDetailChange(e.target.value)}
           placeholder={detailPlaceholder}
           className="min-h-[60px] text-sm"
+          aria-describedby={error ? errorId : undefined}
         />
       )}
       {error && (
-        <p className="text-xs text-destructive">{error}</p>
+        <p id={errorId} className="text-xs text-destructive" role="alert" aria-live="polite">{error}</p>
       )}
     </div>
   )

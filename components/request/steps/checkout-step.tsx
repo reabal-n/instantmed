@@ -315,6 +315,7 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
               <Switch
                 checked={subscribeAndSave}
                 onCheckedChange={setSubscribeAndSave}
+                aria-label="Subscribe and save on repeat prescriptions"
               />
             </span>
             <div className="flex-1">
@@ -354,6 +355,7 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
                 setIsPriority(val)
                 if (val) posthog?.capture('express_review_opted_in', { service_type: serviceType })
               }}
+              aria-label="Enable express review"
             />
           </span>
           <div className="flex-1 flex items-center justify-between gap-2">
@@ -396,27 +398,29 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
       </motion.div>
 
       {/* Error message */}
-      {error && (
-        error.toLowerCase().includes("account already exists") ? (
-          <Alert variant="destructive">
-            <AlertDescription className="space-y-2">
-              <p>An account already exists with this email address.</p>
-              <p>
-                <a
-                  href={`/sign-in?redirect_url=${encodeURIComponent('/request' + window.location.search)}`}
-                  className="underline font-medium hover:opacity-80"
-                >
-                  Sign in to continue →
-                </a>
-              </p>
-            </AlertDescription>
-          </Alert>
-        ) : (
-          <Alert variant="destructive">
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )
-      )}
+      <div aria-live="polite">
+        {error && (
+          error.toLowerCase().includes("account already exists") ? (
+            <Alert variant="destructive" role="alert">
+              <AlertDescription className="space-y-2">
+                <p>An account already exists with this email address.</p>
+                <p>
+                  <a
+                    href={`/sign-in?redirect_url=${encodeURIComponent('/request' + window.location.search)}`}
+                    className="underline font-medium hover:opacity-80"
+                  >
+                    Sign in to continue →
+                  </a>
+                </p>
+              </AlertDescription>
+            </Alert>
+          ) : (
+            <Alert variant="destructive" role="alert">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )
+        )}
+      </div>
 
       {/* Spacer for sticky CTA on mobile */}
       <div className="h-36 sm:hidden" />

@@ -359,7 +359,7 @@ export function QueueTable({
               return (
                 <div
                   key={intake.id}
-                  className="flex items-center justify-between gap-3 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors cursor-pointer"
+                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors cursor-pointer"
                   onClick={() => openReviewPanel(intake.id)}
                 >
                   <div className="flex items-center gap-3 min-w-0">
@@ -381,7 +381,7 @@ export function QueueTable({
                         </Badge>
                       )}
                       {intake.ai_approved_at && (
-                        <span className="text-xs text-muted-foreground">
+                        <span className="text-xs text-muted-foreground hidden sm:inline">
                           {new Date(intake.ai_approved_at).toLocaleDateString("en-AU", {
                             day: "numeric",
                             month: "short",
@@ -392,7 +392,7 @@ export function QueueTable({
                       )}
                     </div>
                   </div>
-                  <div className="flex items-center gap-1 shrink-0">
+                  <div className="flex items-center gap-1 shrink-0 self-end sm:self-auto">
                     <Button
                       variant="ghost"
                       size="sm"
@@ -459,10 +459,10 @@ export function QueueTable({
               return (
                 <div
                   key={intake.id}
-                  className="flex items-center justify-between gap-3 p-2.5 rounded-lg border bg-card hover:bg-accent/50 transition-colors cursor-pointer"
+                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 p-2.5 rounded-lg border bg-card hover:bg-accent/50 transition-colors cursor-pointer"
                   onClick={() => router.push(`/doctor/intakes/${intake.id}`)}
                 >
-                  <div className="flex items-center gap-3 min-w-0">
+                  <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-wrap">
                     <UserCard name={intake.patient.full_name} size="sm" className="shrink-0" />
                     <Badge variant="outline" className="text-xs">
                       {svc?.short_name || "Request"}
@@ -495,7 +495,7 @@ export function QueueTable({
 
       {/* Pagination */}
       {pagination && totalPages > 1 && (
-        <div className="flex items-center justify-between py-5 px-2 border-t">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-2 py-5 px-2 border-t">
           <div className="text-sm text-muted-foreground">
             {(currentPage - 1) * pagination.pageSize + 1} –{" "}
             {Math.min(currentPage * pagination.pageSize, pagination.total)} of {pagination.total}

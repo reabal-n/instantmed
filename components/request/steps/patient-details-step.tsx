@@ -305,6 +305,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
             onChange={(e) => setIdentity({ firstName: e.target.value })}
             onBlur={() => handleBlur('firstName', firstName)}
             placeholder="Jane"
+            aria-invalid={touched.firstName && !!errors.firstName}
             data-error={touched.firstName && errors.firstName ? "true" : undefined}
             className={cn("h-11", touched.firstName && errors.firstName && "border-destructive")}
           />
@@ -320,6 +321,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
             onChange={(e) => setIdentity({ lastName: e.target.value })}
             onBlur={() => handleBlur('lastName', lastName)}
             placeholder="Smith"
+            aria-invalid={touched.lastName && !!errors.lastName}
             data-error={touched.lastName && errors.lastName ? "true" : undefined}
             className={cn("h-11", touched.lastName && errors.lastName && "border-destructive")}
           />
@@ -340,6 +342,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
           onChange={(e) => setIdentity({ email: e.target.value })}
           onBlur={() => handleBlur('email', email)}
           placeholder="jane@example.com"
+          aria-invalid={touched.email && !!errors.email}
           data-error={touched.email && errors.email ? "true" : undefined}
           className={cn("h-11", touched.email && errors.email && "border-destructive")}
         />
@@ -358,6 +361,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
           value={dob}
           onChange={(e) => setIdentity({ dob: e.target.value })}
           onBlur={() => handleBlur('dob', dob)}
+          aria-invalid={touched.dob && !!errors.dob}
           data-error={touched.dob && errors.dob ? "true" : undefined}
           className={cn("h-11", touched.dob && errors.dob && "border-destructive")}
           max={new Date(Date.now() - 18 * 365.25 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}
@@ -400,6 +404,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
           onChange={(e) => setIdentity({ phone: e.target.value })}
           onBlur={() => handleBlur('phone', phone)}
           placeholder="0412 345 678"
+          aria-invalid={touched.phone && !!errors.phone}
           data-error={touched.phone && errors.phone ? "true" : undefined}
           className={cn("h-11", touched.phone && errors.phone && "border-destructive")}
         />
@@ -430,6 +435,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
             }}
             onBlur={() => handleBlur('medicareNumber', medicareNumber)}
             placeholder="1234 56789 0"
+            aria-invalid={touched.medicareNumber && !!errors.medicareNumber}
             data-error={touched.medicareNumber && errors.medicareNumber ? "true" : undefined}
             className={cn("h-11", touched.medicareNumber && errors.medicareNumber && "border-destructive")}
           />
@@ -501,7 +507,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
             </div>
           </div>
           {bmi !== null && (
-            <div className="flex items-center gap-2 px-3 py-2 rounded-2xl border border-border/50 bg-white dark:bg-card shadow-md shadow-primary/[0.06] text-sm">
+            <div className="flex items-center gap-2 px-3 py-2 rounded-2xl border border-border/50 bg-white dark:bg-card shadow-md shadow-primary/[0.06] text-sm" aria-live="polite">
               <span className="text-muted-foreground">BMI:</span>
               <span className="font-medium">{bmi}</span>
               <span className={cn(

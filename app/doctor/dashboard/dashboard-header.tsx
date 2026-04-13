@@ -30,7 +30,7 @@ export function DashboardHeader({ initialAvailable }: DashboardHeaderProps) {
   return (
     <>
       {/* Page Header */}
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-foreground font-sans">Review Queue</h1>
           <p className="text-sm text-muted-foreground mt-0.5">Patient requests awaiting your review</p>

@@ -114,14 +114,14 @@ export function IntakeDetailAnswers({
           </CardTitle>
         </CardHeader>
         <CardContent className="px-4 py-3 space-y-3">
-          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
             <div className="flex items-center gap-1">
-              <Clock className="h-4 w-4" />
+              <Clock className="h-4 w-4 shrink-0" />
               Submitted: {formatDateLong(intake.created_at)}
             </div>
             {intake.paid_at && (
               <div className="flex items-center gap-1">
-                <CheckCircle className="h-4 w-4 text-success" />
+                <CheckCircle className="h-4 w-4 text-success shrink-0" />
                 Paid: {formatDateLong(intake.paid_at)}
               </div>
             )}
@@ -153,10 +153,10 @@ export function IntakeDetailAnswers({
                   <Link
                     key={prev.id}
                     href={`/doctor/intakes/${prev.id}`}
-                    className="flex items-center justify-between p-2 bg-muted/50 rounded hover:bg-muted transition-colors"
+                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-2 p-2 bg-muted/50 rounded hover:bg-muted transition-colors"
                   >
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm">{prevService?.short_name || "Request"}</span>
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="text-sm truncate">{prevService?.short_name || "Request"}</span>
                       {hasNotes && (
                         <Badge variant="outline" className="text-xs h-4 px-1 bg-info-light text-info border-info-border">
                           <FileText className="h-2.5 w-2.5 mr-0.5" />

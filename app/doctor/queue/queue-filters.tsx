@@ -81,7 +81,7 @@ export function QueueFilters({
       </div>
 
       {/* Status Filter Tabs */}
-      <div className="flex gap-1 p-1 bg-muted/50 rounded-lg w-fit">
+      <div className="flex flex-wrap gap-1 p-1 bg-muted/50 rounded-lg w-fit">
         {([
           { key: "all", label: "All" },
           { key: "review", label: "Needs Review" },

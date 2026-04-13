@@ -124,10 +124,10 @@ export function AnalyticsClient({ analytics, doctorName }: AnalyticsClientProps)
             Performance overview for Dr. {doctorName}
           </p>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
           {/* Date range selector */}
           <div className="flex items-center gap-2">
-            <Calendar className="h-4 w-4 text-muted-foreground" />
+            <Calendar className="h-4 w-4 text-muted-foreground shrink-0" />
             <Select value={currentDays} onValueChange={handleDateRangeChange}>
               <SelectTrigger className="w-[160px]">
                 <SelectValue placeholder="Select range" />
@@ -141,7 +141,7 @@ export function AnalyticsClient({ analytics, doctorName }: AnalyticsClientProps)
               </SelectContent>
             </Select>
           </div>
-          <div className="text-right">
+          <div className="sm:text-right">
             <p className="text-xs text-muted-foreground">
               {analytics.pagination.totalInRange.toLocaleString()} intakes in range
             </p>
@@ -154,9 +154,9 @@ export function AnalyticsClient({ analytics, doctorName }: AnalyticsClientProps)
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {/* Today's Intakes */}
         <Card className="rounded-xl border-border/50">
-          <CardContent className="p-5">
-            <div className="flex items-center gap-4">
-              <div className="p-3 rounded-xl bg-info-light shrink-0">
+          <CardContent className="p-3 sm:p-5">
+            <div className="flex items-center gap-3 sm:gap-4">
+              <div className="p-2 sm:p-3 rounded-xl bg-info-light shrink-0">
                 <FileText className="h-5 w-5 text-info" />
               </div>
               <div className="min-w-0">
@@ -170,9 +170,9 @@ export function AnalyticsClient({ analytics, doctorName }: AnalyticsClientProps)
 
         {/* Pending Queue */}
         <Card className="rounded-xl border-border/50">
-          <CardContent className="p-5">
-            <div className="flex items-center gap-4">
-              <div className="p-3 rounded-xl bg-warning-light shrink-0">
+          <CardContent className="p-3 sm:p-5">
+            <div className="flex items-center gap-3 sm:gap-4">
+              <div className="p-2 sm:p-3 rounded-xl bg-warning-light shrink-0">
                 <Clock className="h-5 w-5 text-warning" />
               </div>
               <div className="min-w-0">
@@ -186,9 +186,9 @@ export function AnalyticsClient({ analytics, doctorName }: AnalyticsClientProps)
 
         {/* Response Time */}
         <Card className="rounded-xl border-border/50">
-          <CardContent className="p-5">
-            <div className="flex items-center gap-4">
-              <div className="p-3 rounded-xl bg-warning-light shrink-0">
+          <CardContent className="p-3 sm:p-5">
+            <div className="flex items-center gap-3 sm:gap-4">
+              <div className="p-2 sm:p-3 rounded-xl bg-warning-light shrink-0">
                 <Activity className="h-5 w-5 text-warning" />
               </div>
               <div className="min-w-0">
@@ -202,9 +202,9 @@ export function AnalyticsClient({ analytics, doctorName }: AnalyticsClientProps)
 
         {/* Approval Rate */}
         <Card className="rounded-xl border-border/50">
-          <CardContent className="p-5">
-            <div className="flex items-center gap-4">
-              <div className="p-3 rounded-xl bg-success-light shrink-0">
+          <CardContent className="p-3 sm:p-5">
+            <div className="flex items-center gap-3 sm:gap-4">
+              <div className="p-2 sm:p-3 rounded-xl bg-success-light shrink-0">
                 <CheckCircle className="h-5 w-5 text-success" />
               </div>
               <div className="min-w-0">
@@ -218,9 +218,9 @@ export function AnalyticsClient({ analytics, doctorName }: AnalyticsClientProps)
       </div>
 
       {/* Revenue Section */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card className="rounded-xl bg-linear-to-br from-emerald-50 to-white border-success-border dark:from-emerald-950/30 dark:to-background">
-          <CardContent className="p-5">
+          <CardContent className="p-3 sm:p-5">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-medium text-success uppercase tracking-wider">Today&apos;s Revenue</p>
@@ -232,7 +232,7 @@ export function AnalyticsClient({ analytics, doctorName }: AnalyticsClientProps)
         </Card>
 
         <Card className="rounded-xl bg-linear-to-br from-blue-50 to-white border-info-border dark:from-blue-950/30 dark:to-background">
-          <CardContent className="p-5">
+          <CardContent className="p-3 sm:p-5">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-medium text-info uppercase tracking-wider">This Week</p>
@@ -245,7 +245,7 @@ export function AnalyticsClient({ analytics, doctorName }: AnalyticsClientProps)
         </Card>
 
         <Card className="rounded-xl bg-linear-to-br from-amber-50 to-white border-warning-border dark:from-amber-950/30 dark:to-background">
-          <CardContent className="p-5">
+          <CardContent className="p-3 sm:p-5">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-medium text-warning uppercase tracking-wider">All Time</p>
@@ -261,15 +261,15 @@ export function AnalyticsClient({ analytics, doctorName }: AnalyticsClientProps)
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Daily Activity Chart */}
-        <Card className="rounded-xl border-border/50">
+        <Card className="rounded-xl border-border/50 min-w-0 overflow-hidden">
           <CardHeader className="pb-2">
             <CardTitle className="text-base font-medium flex items-center gap-2">
-              <Activity className="h-4 w-4" />
+              <Activity className="h-4 w-4 shrink-0" />
               Daily Activity (Last 7 Days)
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-[260px]">
+            <div className="h-[260px] -ml-2 sm:ml-0">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={analytics.dailyData} barGap={4}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted/30" vertical={false} />
@@ -312,7 +312,7 @@ export function AnalyticsClient({ analytics, doctorName }: AnalyticsClientProps)
         </Card>
 
         {/* Service Breakdown */}
-        <Card className="rounded-xl border-border/50">
+        <Card className="rounded-xl border-border/50 min-w-0 overflow-hidden">
           <CardHeader className="pb-2">
             <CardTitle className="text-base font-medium flex items-center gap-2">
               <ClipboardList className="h-4 w-4" />
@@ -384,8 +384,8 @@ export function AnalyticsClient({ analytics, doctorName }: AnalyticsClientProps)
       {analytics.priorityCount > 0 && (
         <Card className="rounded-xl border-warning-border bg-linear-to-r from-amber-50 to-white dark:from-amber-950/30 dark:to-background">
           <CardContent className="p-3">
-            <div className="flex items-center gap-4">
-              <div className="p-3 rounded-xl bg-warning-light">
+            <div className="flex items-center gap-3 sm:gap-4">
+              <div className="p-2 sm:p-3 rounded-xl bg-warning-light">
                 <Zap className="h-6 w-6 text-warning" />
               </div>
               <div>

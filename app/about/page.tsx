@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 
-import { BreadcrumbSchema } from "@/components/seo"
+import { BreadcrumbSchema, OrganizationSchema } from "@/components/seo"
 
 import { AboutClient } from "./about-client"
 
@@ -34,6 +34,7 @@ export default function AboutPage() {
           { name: "About", url: "https://instantmed.com.au/about" },
         ]}
       />
+      <OrganizationSchema />
       <AboutClient />
     </>
   )

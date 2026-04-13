@@ -157,6 +157,7 @@ export default function SymptomsStep({ serviceType, onNext }: SymptomsStepProps)
               <button
                 key={s}
                 onClick={() => toggleSymptom(s)}
+                aria-label={`Add ${s} symptom`}
                 className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 outline-none"
               >
                 + {s}
@@ -283,7 +284,7 @@ export default function SymptomsStep({ serviceType, onNext }: SymptomsStepProps)
 
       {/* Emergency symptom warning */}
       {emergencyWarning.isEmergency && (
-        <Alert variant="destructive" className="border-destructive-border">
+        <Alert variant="destructive" className="border-destructive-border" role="alert">
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Emergency symptoms detected</AlertTitle>
           <AlertDescription className="space-y-3">

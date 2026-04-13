@@ -175,14 +175,14 @@ export function IntakeDetailHeader({
   return (
     <>
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <Button variant="ghost" asChild>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <Button variant="ghost" asChild className="self-start">
           <Link href="/doctor/dashboard">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Queue
           </Link>
         </Button>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap self-start sm:self-auto">
           <Badge className={getStatusColor(intake.status)}>
             {formatIntakeStatus(intake.status)}
           </Badge>
@@ -244,7 +244,7 @@ export function IntakeDetailHeader({
               <p>Patient requested dates: <strong>{pendingCorrection.requestedStartDate}</strong> to <strong>{pendingCorrection.requestedEndDate}</strong></p>
               <p>Reason: {pendingCorrection.reason}</p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <Button size="sm" onClick={onApproveDateCorrection} disabled={isPending}>
                 {isPending ? "Approving..." : "Approve & Update Dates"}
               </Button>
