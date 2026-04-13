@@ -16,7 +16,7 @@ set -euo pipefail
 
 # ─── EXPECTED PINNED VERSIONS ──────────────────────────────────────────────
 # Update these in lockstep with package.json + pnpm.overrides.
-EXPECTED_NEXT="15.5.14"
+EXPECTED_NEXT="15.5.15"
 EXPECTED_REACT="18.3.1"
 EXPECTED_REACT_DOM="18.3.1"
 EXPECTED_FRAMER_MOTION="11.18.2"

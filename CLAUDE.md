@@ -62,7 +62,7 @@ The following versions are **hard-pinned** in `package.json` (exact versions, no
 
 | Package | Pinned | Why this version |
 |---|---|---|
-| `next` | **15.5.14** | Next 16 forced Turbopack, renamed `middleware.ts` → `proxy.ts`, changed `revalidateTag` signature, and shipped CVE-2025-66478. Caused recurring dev-server crashes. |
+| `next` | **15.5.15** | Next 16 forced Turbopack, renamed `middleware.ts` → `proxy.ts`, changed `revalidateTag` signature, and shipped CVE-2025-66478. Caused recurring dev-server crashes. Patch bump from 15.5.14 for GHSA-q4gf-8mx6-v5v3 (Server Components DoS). |
 | `react` / `react-dom` | **18.3.1** | React 19 nullable `RefObject<T \| null>` typing breaks third-party libs (Framer Motion 12). Wait until Next 17 makes React 19 the default. |
 | `framer-motion` | **11.18.2** | v12 requires React 19. |
 | `tailwindcss` / `@tailwindcss/postcss` | **4.2.2** | CSS-first config is working; don't risk a re-migration. |
