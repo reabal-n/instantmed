@@ -1,10 +1,11 @@
 'use client'
 
-import * as React from 'react'
 import { motion } from 'framer-motion'
+import * as React from 'react'
+
 import { useReducedMotion } from '@/components/ui/motion'
-import { cn } from '@/lib/utils'
 import { spring } from '@/lib/motion'
+import { cn } from '@/lib/utils'
 
 // Context to pass aria-describedby from FormGroup to child inputs
 const FormGroupContext = React.createContext<string | undefined>(undefined)

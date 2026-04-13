@@ -8,10 +8,11 @@
  * - Can approve certificate and verify DB update
  */
 
-import { test, expect } from "@playwright/test"
+import { expect,test } from "@playwright/test"
 import { createClient } from "@supabase/supabase-js"
-import { waitForPageLoad } from "./helpers/test-utils"
+
 import { loginAsOperator, logoutTestUser } from "./helpers/auth"
+import { waitForPageLoad } from "./helpers/test-utils"
 
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || ""
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || ""

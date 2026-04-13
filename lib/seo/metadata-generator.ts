@@ -11,9 +11,11 @@
  */
 
 import type { Metadata } from 'next'
-import type { SEOPage, PageType, MedicationPageData as _MedicationPageData, IntentPageData as _IntentPageData } from './registry'
-import { getCanonicalUrl, getRobotsConfig, isMedicationPage, isIntentPage } from './registry'
-import { PRICING_DISPLAY, CONTACT_EMAIL_HELLO } from "@/lib/constants"
+
+import { CONTACT_EMAIL_HELLO,PRICING_DISPLAY } from "@/lib/constants"
+
+import type { IntentPageData as _IntentPageData,MedicationPageData as _MedicationPageData, PageType, SEOPage } from './registry'
+import { getCanonicalUrl, getRobotsConfig, isIntentPage,isMedicationPage } from './registry'
 
 // ============================================
 // TITLE TEMPLATES

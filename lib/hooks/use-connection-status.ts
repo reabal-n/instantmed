@@ -1,16 +1,17 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useCallback,useEffect, useState } from 'react'
+
+import { createLogger } from '@/lib/observability/logger'
 import {
-  isOnline,
   createConnectionListener,
-  getPendingActions,
   dequeueAction,
+  getPendingActions,
   incrementRetry,
+  isOnline,
   markSyncAttempt,
   type QueuedAction
 } from '@/lib/offline/queue'
-import { createLogger } from '@/lib/observability/logger'
 
 const logger = createLogger('use-connection-status')
 

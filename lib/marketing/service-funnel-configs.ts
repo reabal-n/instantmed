@@ -1,5 +1,5 @@
-import type { ServiceFunnelConfig } from '@/components/marketing/service-funnel-page'
 import { PRICING_DISPLAY } from "@/lib/constants"
+import type { ServiceFunnelConfig } from '@/types/marketing'
 
 // ===========================================
 // REPEAT PRESCRIPTIONS LANDING PAGE

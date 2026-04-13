@@ -1,11 +1,13 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useRef, type ReactNode } from "react";
-import { cn } from "@/lib/utils";
+import { type ReactNode,useRef } from "react";
+
 import { ClipPathImage } from "@/components/ui/morning/clip-path-image";
 import { WordReveal } from "@/components/ui/morning/word-reveal";
-import { useScrollReveal, useReducedMotion } from "@/components/ui/motion";
+import { useReducedMotion,useScrollReveal } from "@/components/ui/motion";
+import { cn } from "@/lib/utils";
+
 import type { SectionProps } from "./types";
 
 interface ImageTextSplitProps extends SectionProps {

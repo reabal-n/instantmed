@@ -1,9 +1,10 @@
-import { describe, it, expect } from 'vitest'
+import { describe, expect,it } from 'vitest'
+
 import {
   evaluateAutoApprovalEligibility,
-  extractSymptomText,
   extractDurationDays,
   extractStartDate,
+  extractSymptomText,
 } from '@/lib/clinical/auto-approval'
 
 // ============================================================================

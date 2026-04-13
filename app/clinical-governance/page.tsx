@@ -1,6 +1,8 @@
 import type { Metadata } from "next"
+
+import { BreadcrumbSchema } from "@/components/seo"
+
 import ClinicalGovernanceClient from "./clinical-governance-client"
-import { BreadcrumbSchema } from "@/components/seo/healthcare-schema"
 
 export const metadata: Metadata = {
   title: "Clinical Governance | Medical Standards",

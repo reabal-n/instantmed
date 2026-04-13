@@ -1,21 +1,22 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
+
 import { requireRole } from "@/lib/auth/helpers"
+import {
+  getActiveTemplate,
+} from "@/lib/data/certificate-templates"
 import {
   getActiveClinicIdentity,
   saveClinicIdentity,
   uploadClinicLogo,
 } from "@/lib/data/clinic-identity"
-import {
-  getActiveTemplate,
-} from "@/lib/data/certificate-templates"
+import { createLogger } from "@/lib/observability/logger"
 import type {
+  CertificateTemplate,
   ClinicIdentity,
   ClinicIdentityInput,
-  CertificateTemplate,
 } from "@/types/certificate-template"
-import { createLogger } from "@/lib/observability/logger"
 
 const log = createLogger("template-studio-actions")
 

@@ -1,7 +1,8 @@
 "use client"
-import { useEffect } from "react"
-import { Button } from "@/components/ui/button"
 import { AlertTriangle, RefreshCw } from "lucide-react"
+import { useEffect } from "react"
+
+import { Button } from "@/components/ui/button"
 
 export default function AdminSubError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   useEffect(() => {

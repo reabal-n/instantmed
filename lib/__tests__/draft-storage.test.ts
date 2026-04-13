@@ -2,15 +2,16 @@
  * Unit tests for service-scoped draft storage
  */
 
-import { describe, it, expect, beforeEach } from 'vitest'
+import { beforeEach,describe, expect, it } from 'vitest'
+
 import {
   canonicalizeServiceType,
-  getDraft,
-  saveDraft,
   clearDraft,
-  getAllDrafts,
-  migrateLegacyDraft,
   type DraftData,
+  getAllDrafts,
+  getDraft,
+  migrateLegacyDraft,
+  saveDraft,
 } from '../request/draft-storage'
 
 // Mock localStorage with proper store management

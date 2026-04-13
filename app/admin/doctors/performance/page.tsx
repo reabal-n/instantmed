@@ -1,5 +1,6 @@
-import { DoctorPerformanceClient } from "./performance-client"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
+
+import { DoctorPerformanceClient } from "./performance-client"
 
 export const dynamic = "force-dynamic"
 

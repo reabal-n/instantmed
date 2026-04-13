@@ -1,8 +1,9 @@
 "use client"
 
-import { motion, AnimatePresence } from "framer-motion"
-import { useReducedMotion } from "@/components/ui/motion"
+import { AnimatePresence,motion } from "framer-motion"
+
 import { Button } from "@/components/ui/button"
+import { useReducedMotion } from "@/components/ui/motion"
 
 interface ExitConfirmDialogProps {
   open: boolean

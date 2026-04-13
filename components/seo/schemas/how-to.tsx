@@ -1,4 +1,5 @@
 import { PRICING_DISPLAY } from "@/lib/constants"
+
 import { JsonLdScript } from "./json-ld-script"
 
 interface HowToStep {

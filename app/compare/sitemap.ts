@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next"
+
 import { getAllComparisonSlugs } from "@/lib/seo/data/comparisons"
 
 const CONTENT_ENRICHED = new Date("2026-04-13")

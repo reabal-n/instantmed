@@ -1,17 +1,16 @@
 "use client"
 
-import type React from "react"
-
-import { useState } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { Eye, EyeOff, Loader2,Lock } from "lucide-react"
 import Link from "next/link"
+import { useRouter, useSearchParams } from "next/navigation"
+import type React from "react"
+import { useState } from "react"
+import { toast } from "sonner"
+
+import { Footer,Navbar } from "@/components/shared"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Navbar } from "@/components/shared/navbar"
-import { Footer } from "@/components/shared/footer"
-import { Lock, Eye, EyeOff, Loader2 } from "lucide-react"
-import { toast } from "sonner"
 
 
 export function ResetPasswordClient() {

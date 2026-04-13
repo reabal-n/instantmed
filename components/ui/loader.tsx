@@ -1,10 +1,11 @@
 "use client"
 
-import React from 'react'
-import Image from "next/image"
 import { motion } from "framer-motion"
-import { cn } from "@/lib/utils"
+import Image from "next/image"
+import React from 'react'
+
 import { useReducedMotion } from "@/components/ui/motion"
+import { cn } from "@/lib/utils"
 
 interface LoaderProps {
   size?: "sm" | "md" | "lg"

@@ -1,12 +1,14 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useRef } from "react";
 import { Check } from "lucide-react";
+import { useRef } from "react";
+
+import { useReducedMotion,useScrollReveal } from "@/components/ui/motion";
 import { cn } from "@/lib/utils";
+
 import { SectionHeader } from "./section-header";
-import type { SectionProps, ChecklistItem } from "./types";
-import { useScrollReveal, useReducedMotion } from "@/components/ui/motion";
+import type { ChecklistItem,SectionProps } from "./types";
 
 interface IconChecklistProps extends SectionProps {
   pill?: string;

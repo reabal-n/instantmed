@@ -10,22 +10,24 @@
  * - Keyboard navigation
  */
 
-import { useState, useEffect, useCallback, useMemo } from "react"
-import { usePostHog } from "@/components/providers/posthog-provider"
 import { AlertTriangle, ArrowRight } from "lucide-react"
-import { Textarea } from "@/components/ui/textarea"
-import { Button } from "@/components/ui/button"
+import { useCallback, useEffect, useMemo,useState } from "react"
+
+import { usePostHog } from "@/components/providers/posthog-provider"
+import { EnhancedSelectionButton } from "@/components/shared"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Switch } from "@/components/ui/switch"
+import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
-import { EnhancedSelectionButton } from "@/components/shared/enhanced-selection-button"
-import { useRequestStore } from "../store"
-import { FormField } from "../form-field"
-import { getSmartDefaults, recordStepCompletion } from "@/lib/request/preferences"
-import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
-import { checkEmergencySymptoms } from "@/lib/clinical/triage-rules-engine"
+import { Switch } from "@/components/ui/switch"
+import { Textarea } from "@/components/ui/textarea"
 import { validateSymptomTextQuality } from "@/lib/clinical/symptom-text-quality"
+import { checkEmergencySymptoms } from "@/lib/clinical/triage-rules-engine"
+import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
+import { getSmartDefaults, recordStepCompletion } from "@/lib/request/preferences"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
+
+import { FormField } from "../form-field"
+import { useRequestStore } from "../store"
 
 interface SymptomsStepProps {
   serviceType: UnifiedServiceType

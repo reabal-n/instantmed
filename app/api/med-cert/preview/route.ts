@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server"
+
 import { getApiAuth } from "@/lib/auth/helpers"
-import { renderTemplatePdf } from "@/lib/pdf/template-renderer"
-import { generateCertificateRef } from "@/lib/pdf/cert-identifiers"
 import { formatDateLong, formatShortDate, formatShortDateSafe } from "@/lib/format"
 import { createLogger } from "@/lib/observability/logger"
-import { requireValidCsrf } from "@/lib/security/csrf"
+import { generateCertificateRef } from "@/lib/pdf/cert-identifiers"
+import { renderTemplatePdf } from "@/lib/pdf/template-renderer"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
+import { requireValidCsrf } from "@/lib/security/csrf"
 const log = createLogger("med-cert-preview-route")
 import type { MedCertDraft } from "@/types/db"
 
@@ -41,6 +42,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Cast to record for legacy field access (patient_name from older schema)
     const draft = draftData as unknown as Record<string, unknown>
     const patientNameRaw = draftData.patient_full_name ?? draft.patient_name
     const patientName = typeof patientNameRaw === "string" && patientNameRaw.trim()

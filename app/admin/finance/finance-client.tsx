@@ -1,35 +1,36 @@
 "use client"
 
-import { Button } from "@/components/ui/button"
-import { GlassStatCard, DashboardGrid, DashboardHeader } from "@/components/dashboard"
 import {
-  DollarSign,
-  TrendingUp,
-  TrendingDown,
-  CreditCard,
-  RotateCcw,
-  Clock,
-  Receipt,
-  ExternalLink,
   AlertTriangle,
+  Clock,
+  CreditCard,
+  DollarSign,
+  ExternalLink,
+  Receipt,
+  RotateCcw,
   Shield,
+  TrendingDown,
+  TrendingUp,
 } from "lucide-react"
+
 import {
-  LazyPieChart as PieChart,
-  LazyComposedChart as ComposedChart,
-  Pie,
+  Area,
+  CartesianGrid,
   Cell,
+  LazyComposedChart as ComposedChart,
+  LazyPieChart as PieChart,
+  Legend,
+  Line,
+  Pie,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  Area,
-  Line,
 } from "@/components/charts/lazy-charts"
-import { cn } from "@/lib/utils"
+import { DashboardGrid, DashboardHeader,GlassStatCard } from "@/components/dashboard"
+import { Button } from "@/components/ui/button"
 import { formatCurrency } from "@/lib/format"
+import { cn } from "@/lib/utils"
 
 interface FinanceData {
   summary: {

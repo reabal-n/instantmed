@@ -1,46 +1,44 @@
 'use client'
 
-import Link from "next/link"
-import { Navbar } from "@/components/shared/navbar"
-import { MarketingFooter } from "@/components/marketing"
-import { safeJsonLd } from "@/lib/seo/safe-json-ld"
+import NumberFlow from "@number-flow/react"
+import { motion } from "framer-motion"
 import {
-  UserCheck,
-  Lock,
-  CheckCircle2,
-  Star,
   ArrowRight,
+  CheckCircle2,
+  Eye,
   FileCheck,
-  Send,
+  Fingerprint,
+  Lock,
   Phone,
   Scale,
-  ShieldCheck,
-  Fingerprint,
+  Send,
   ServerCog,
-  Eye,
+  ShieldCheck,
+  Star,
+  UserCheck,
 } from "lucide-react"
-import { SOCIAL_PROOF } from "@/lib/social-proof"
-import { usePatientCount } from "@/lib/hooks/use-patient-count"
-import { getFeaturedTestimonials } from "@/lib/data/testimonials"
-import NumberFlow from "@number-flow/react"
+import Link from "next/link"
 import { useSyncExternalStore } from "react"
-import { motion } from "framer-motion"
-import { useReducedMotion } from "@/components/ui/motion"
-import { cn } from "@/lib/utils"
-import { TrustGuideSection } from "@/components/marketing/sections/trust-guide-section"
-import { LegitScriptSeal } from "@/components/marketing/legitscript-seal"
-import { GoogleAdsCert } from "@/components/marketing/google-ads-cert"
 
 // Morning Canvas components
 import { SplitHero } from "@/components/heroes"
+import { GoogleAdsCert,LegitScriptSeal, MarketingFooter } from "@/components/marketing"
+import { TrustGuideSection } from "@/components/marketing/sections"
 import {
-  StatStrip,
-  ImageTextSplit,
-  FeatureGrid,
-  Timeline,
-  FAQSection,
   CTABanner,
+  FAQSection,
+  FeatureGrid,
+  ImageTextSplit,
+  StatStrip,
+  Timeline,
 } from "@/components/sections"
+import { Navbar } from "@/components/shared"
+import { useReducedMotion } from "@/components/ui/motion"
+import { getFeaturedTestimonials } from "@/lib/data/testimonials"
+import { usePatientCount } from "@/lib/hooks/use-patient-count"
+import { safeJsonLd } from "@/lib/seo/safe-json-ld"
+import { SOCIAL_PROOF } from "@/lib/social-proof"
+import { cn } from "@/lib/utils"
 
 // ─── Hydration helper ──────────────────────────────────────────────
 

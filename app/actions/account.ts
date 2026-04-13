@@ -1,8 +1,9 @@
 "use server"
 
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { auth } from "@/lib/auth/helpers"
 import { revalidatePath } from "next/cache"
+
+import { auth } from "@/lib/auth/helpers"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 /**
  * Helper to get the current authenticated user ID

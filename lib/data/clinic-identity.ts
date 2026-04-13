@@ -3,9 +3,9 @@
  * CRUD operations for global clinic branding configuration
  */
 
+import { createLogger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import type { ClinicIdentity, ClinicIdentityInput } from "@/types/certificate-template"
-import { createLogger } from "@/lib/observability/logger"
 
 const log = createLogger("clinic-identity")
 

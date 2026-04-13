@@ -10,18 +10,20 @@
  * - Keyboard navigation
  */
 
-import { useState, useEffect, useCallback } from "react"
+import { ArrowRight,Info, Plus, ShieldAlert, X } from "lucide-react"
+import { useCallback,useEffect, useState } from "react"
+
 import { usePostHog } from "@/components/providers/posthog-provider"
-import { Info, Plus, X, ShieldAlert, ArrowRight } from "lucide-react"
+import { MedicationSearch, type SelectedPBSProduct } from "@/components/shared"
+import { Alert, AlertDescription,AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
-import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert"
-import { MedicationSearch, type SelectedPBSProduct } from "@/components/shared/medication-search"
-import { useRequestStore } from "../store"
-import { FormField } from "../form-field"
-import { getSmartDefaults, addRecentMedication } from "@/lib/request/preferences"
+import { CONTROLLED_SUBSTANCE_DISCLAIMER,isControlledSubstance } from "@/lib/clinical/intake-validation"
 import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
-import { isControlledSubstance, CONTROLLED_SUBSTANCE_DISCLAIMER } from "@/lib/clinical/intake-validation"
+import { addRecentMedication,getSmartDefaults } from "@/lib/request/preferences"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
+
+import { FormField } from "../form-field"
+import { useRequestStore } from "../store"
 
 interface MedicationStepProps {
   serviceType: UnifiedServiceType

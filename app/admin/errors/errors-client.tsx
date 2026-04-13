@@ -1,9 +1,10 @@
 "use client"
 
+import { ArrowLeft, Bug, ExternalLink } from "lucide-react"
 import Link from "next/link"
+
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ArrowLeft, Bug, ExternalLink } from "lucide-react"
 
 export function ErrorMonitoringClient() {
   return (

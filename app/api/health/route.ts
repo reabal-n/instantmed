@@ -1,9 +1,10 @@
-import { NextRequest, NextResponse } from "next/server"
+import * as Sentry from "@sentry/nextjs"
 import { timingSafeEqual } from "crypto"
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
+import { NextRequest, NextResponse } from "next/server"
+
 import { createLogger } from "@/lib/observability/logger"
 import { stripe } from "@/lib/stripe/client"
-import * as Sentry from "@sentry/nextjs"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const logger = createLogger("health-check")
 

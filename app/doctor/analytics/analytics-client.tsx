@@ -1,8 +1,35 @@
 "use client"
 
+import { 
+  Activity,
+  Calendar,
+  CheckCircle, 
+  ChevronRight,
+  ClipboardList,
+  Clock, 
+  DollarSign, 
+  FileText, 
+  Pill,
+  Stethoscope,
+  TrendingDown,
+  TrendingUp, 
+  Users,
+  Zap,
+} from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+
+import {
+  Bar,
+  CartesianGrid,
+  LazyBarChart as BarChart,
+  Legend,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "@/components/charts/lazy-charts"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Select,
   SelectContent,
@@ -10,43 +37,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import {
-  LazyBarChart as BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Legend,
-} from "@/components/charts/lazy-charts"
-import { 
-  TrendingUp, 
-  TrendingDown,
-  Clock, 
-  CheckCircle, 
-  DollarSign, 
-  FileText, 
-  Zap,
-  Activity,
-  Stethoscope,
-  Pill,
-  ClipboardList,
-  Users,
-  ChevronRight,
-  Calendar,
-} from "lucide-react"
-import { cn } from "@/lib/utils"
 import { formatMinutes } from "@/lib/format"
 import { formatServiceType } from "@/lib/format/service"
-
-export interface PaginationInfo {
-  days: number
-  hasMore: boolean
-  nextCursor: string | null
-  totalInRange: number
-  pageSize: number
-}
+import { cn } from "@/lib/utils"
+import type { CursorPaginationInfo } from "@/types/shared"
 
 export interface AnalyticsData {
   totalIntakes: number
@@ -65,7 +59,7 @@ export interface AnalyticsData {
   priorityCount: number
   priorityPercentage: number
   approvalRate: number
-  pagination: PaginationInfo
+  pagination: CursorPaginationInfo
 }
 
 interface AnalyticsClientProps {

@@ -1,16 +1,17 @@
 "use client"
 
-import Link from "next/link"
 import { motion } from "framer-motion"
-import { useReducedMotion } from "@/components/ui/motion"
 import {
+  AlertTriangle,
   BadgeCheck,
   ClipboardCheck,
+  Eye,
   Monitor,
   ShieldAlert,
-  AlertTriangle,
-  Eye,
 } from "lucide-react"
+import Link from "next/link"
+
+import { useReducedMotion } from "@/components/ui/motion"
 
 // =============================================================================
 // DATA

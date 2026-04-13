@@ -1,6 +1,7 @@
+import { ArrowRight,LayoutDashboard } from "lucide-react"
 import Link from "next/link"
+
 import { Button } from "@/components/ui/button"
-import { LayoutDashboard, ArrowRight } from "lucide-react"
 
 export default function DoctorNotFound() {
   return (

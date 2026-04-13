@@ -1,10 +1,12 @@
-import { Suspense } from "react"
 import { Metadata } from "next"
 import { notFound } from "next/navigation"
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { auth } from "@/lib/auth/helpers"
-import { RepeatRxReviewClient } from "./review-client"
+import { Suspense } from "react"
+
 import { logClinicianOpenedRequest } from "@/lib/audit/compliance-audit"
+import { auth } from "@/lib/auth/helpers"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
+
+import { RepeatRxReviewClient } from "./review-client"
 
 // Generate metadata for SEO
 // Prevent static generation for dynamic auth

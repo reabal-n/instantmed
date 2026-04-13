@@ -1,4 +1,4 @@
-import { CheckCircle2, Info, AlertCircle } from "lucide-react"
+import { AlertCircle,CheckCircle2, Info } from "lucide-react"
 
 // =============================================================================
 // DATA

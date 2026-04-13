@@ -11,6 +11,7 @@
  */
 
 import { NextResponse } from "next/server"
+
 import { renderTemplatePdf } from "@/lib/pdf/template-renderer"
 
 export async function GET(request: Request) {

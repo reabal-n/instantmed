@@ -6,13 +6,13 @@
  * Does NOT test requestDateChange or processDateChangeRequest (require Supabase).
  */
 
-import { describe, it, expect, vi } from "vitest"
+import { describe, expect, it, vi } from "vitest"
 
 vi.mock("server-only", () => ({}))
 
 import {
-  isDateChangeAllowed,
   IMMUTABLE_DATE_POLICY,
+  isDateChangeAllowed,
 } from "@/lib/security/immutable-dates"
 
 describe("immutable dates module", () => {

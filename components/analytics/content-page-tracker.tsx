@@ -1,7 +1,7 @@
 "use client"
 
-import { useEffect, useRef } from "react"
 import { usePathname } from "next/navigation"
+import { useEffect, useRef } from "react"
 
 interface ContentPageTrackerProps {
   pageType: "condition" | "symptom" | "guide" | "medication" | "compare" | "intent" | "location" | "audience" | "blog" | "employer"

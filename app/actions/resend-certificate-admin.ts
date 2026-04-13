@@ -1,17 +1,20 @@
 "use server"
 
 import { z } from "zod"
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
+
 import { requireRole } from "@/lib/auth/helpers"
-import { sendEmail } from "@/lib/email/send-email"
-import { MedCertPatientEmail, medCertPatientEmailSubject } from "@/components/email/templates"
 import { env } from "@/lib/config/env"
-import { logger } from "@/lib/observability/logger"
+import { MedCertPatientEmail, medCertPatientEmailSubject } from "@/lib/email/components/templates"
+import { sendEmail } from "@/lib/email/send-email"
+import { createLogger } from "@/lib/observability/logger"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
+
+const log = createLogger("resend-certificate-admin")
 import {
   getCertificateForIntake,
-  updateEmailStatus,
-  logCertificateEvent,
   incrementEmailRetry,
+  logCertificateEvent,
+  updateEmailStatus,
 } from "@/lib/data/issued-certificates"
 
 const patientDataSchema = z.object({
@@ -55,7 +58,7 @@ export async function resendCertificateAdmin(intakeId: string): Promise<ResendCe
       .single()
 
     if (fetchError || !intake) {
-      logger.warn("Resend certificate admin: intake not found", { intakeId })
+      log.warn("Resend certificate admin: intake not found", { intakeId })
       return { success: false, error: "Request not found" }
     }
 
@@ -69,7 +72,7 @@ export async function resendCertificateAdmin(intakeId: string): Promise<ResendCe
     const patientResult = patientDataSchema.safeParse(rawPatient)
 
     if (!patientResult.success) {
-      logger.warn("Resend certificate admin: invalid patient data", { intakeId, errors: patientResult.error.flatten() })
+      log.warn("Resend certificate admin: invalid patient data", { intakeId, errors: patientResult.error.flatten() })
       return { success: false, error: "Patient data is missing or invalid" }
     }
 
@@ -97,7 +100,7 @@ export async function resendCertificateAdmin(intakeId: string): Promise<ResendCe
             .createSignedUrl(certificate.storage_path, 3 * 24 * 60 * 60)
           downloadUrl = signedUrlData?.signedUrl ?? undefined
         } catch {
-          logger.warn("Resend cert admin: failed to generate signed URL", { intakeId })
+          log.warn("Resend cert admin: failed to generate signed URL", { intakeId })
         }
       }
 
@@ -154,7 +157,7 @@ export async function resendCertificateAdmin(intakeId: string): Promise<ResendCe
           resend_by_name: profile.full_name,
         })
         
-        logger.info("Certificate resent by admin", { 
+        log.info("Certificate resent by admin", { 
           intakeId, 
           certificateId: certificate.id,
           to: patient.email,
@@ -170,7 +173,7 @@ export async function resendCertificateAdmin(intakeId: string): Promise<ResendCe
           resend_attempt: true,
         })
         
-        logger.error("Certificate resend failed", { 
+        log.error("Certificate resend failed", { 
           intakeId, 
           certificateId: certificate.id,
           error: emailResult.error,
@@ -190,7 +193,7 @@ export async function resendCertificateAdmin(intakeId: string): Promise<ResendCe
       .maybeSingle()
 
     if (anyCert) {
-      logger.warn("Resend certificate admin: certificate exists but not valid", { 
+      log.warn("Resend certificate admin: certificate exists but not valid", { 
         intakeId, 
         certificateId: anyCert.id,
         status: anyCert.status 
@@ -202,13 +205,13 @@ export async function resendCertificateAdmin(intakeId: string): Promise<ResendCe
     }
 
     // No certificate at all - likely a legacy intake or approval that failed before certificate creation
-    logger.warn("Resend certificate admin: no certificate record found", { intakeId })
+    log.warn("Resend certificate admin: no certificate record found", { intakeId })
     return { 
       success: false, 
       error: "No certificate exists for this intake. Use \"Regenerate Certificate\" to create one." 
     }
   } catch (error) {
-    logger.error("Resend certificate admin: unexpected error", {
+    log.error("Resend certificate admin: unexpected error", {
       intakeId,
       error: error instanceof Error ? error.message : String(error),
     })

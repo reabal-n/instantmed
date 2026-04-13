@@ -1,5 +1,5 @@
-import * as path from "path"
 import * as dotenv from "dotenv"
+import * as path from "path"
 
 // Load .env.local so webServer and tests get Supabase, E2E_SECRET, etc.
 dotenv.config({ path: path.join(__dirname, ".env.local") })

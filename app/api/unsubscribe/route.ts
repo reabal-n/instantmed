@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
+
 import { verifyUnsubscribeToken } from "@/lib/crypto/unsubscribe-token"
 import { createLogger } from "@/lib/observability/logger"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const log = createLogger("unsubscribe")
 

@@ -1,7 +1,9 @@
+import type { Metadata } from "next"
+
 import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
+
 import { PrescriptionsClient } from "./client"
-import type { Metadata } from "next"
 
 export const metadata: Metadata = {
   title: "My Prescriptions",

@@ -10,7 +10,7 @@
  */
 
 import { intentPages } from './intents'
-import type { RelatedLink, PageType } from './registry'
+import type { PageType,RelatedLink } from './registry'
 
 // ============================================
 // TYPES

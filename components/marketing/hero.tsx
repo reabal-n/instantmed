@@ -1,16 +1,17 @@
 'use client'
 
-import type React from "react"
-import Link from 'next/link'
-import { ArrowRight, FileText, CheckCircle2, Pill, Smartphone } from 'lucide-react'
-import { Button } from "@/components/ui/button"
-import { DoctorAvailabilityPill } from '@/components/shared/doctor-availability-pill'
 import { motion } from 'framer-motion'
-import { useReducedMotion } from '@/components/ui/motion'
+import { ArrowRight, CheckCircle2, FileText, Pill, Smartphone } from 'lucide-react'
+import Link from 'next/link'
+import type React from "react"
+
 import { HeroMultiServiceMockup } from '@/components/marketing/hero-multi-service-mockup'
-import { TrustBadgeRow } from '@/components/shared/trust-badge'
-import { LastReviewedSignal } from '@/components/marketing/last-reviewed-signal'
 import { HeroTestimonialRotator } from '@/components/marketing/hero-testimonial-rotator'
+import { LastReviewedSignal } from '@/components/marketing/last-reviewed-signal'
+import { DoctorAvailabilityPill } from '@/components/shared/doctor-availability-pill'
+import { TrustBadgeRow } from '@/components/shared/trust-badge'
+import { Button } from "@/components/ui/button"
+import { useReducedMotion } from '@/components/ui/motion'
 
 const LCP_CLASSES = "text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-6 leading-relaxed text-balance"
 

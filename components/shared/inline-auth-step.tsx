@@ -1,14 +1,15 @@
 "use client"
 
-import type React from "react"
-import { useState, useEffect } from "react"
+import { CheckCircle,Loader2, Shield } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import type React from "react"
+import { useEffect,useState } from "react"
+
+import { Button } from "@/components/ui/button"
+import { logger } from "@/lib/observability/logger"
 import { useAuth } from "@/lib/supabase/auth-provider"
 import { createClient } from "@/lib/supabase/client"
-import { Button } from "@/components/ui/button"
-import { Loader2, Shield, CheckCircle } from "lucide-react"
-import { logger } from "@/lib/observability/logger"
 
 function GoogleIcon({ className }: { className?: string }) {
   return (

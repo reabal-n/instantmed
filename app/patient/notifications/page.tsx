@@ -1,5 +1,6 @@
 import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
+
 import { NotificationsClient } from "./notifications-client"
 
 // Prevent static generation for dynamic auth

@@ -1,5 +1,6 @@
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { NextResponse } from "next/server"
+
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 /**
  * GET /api/services/pricing

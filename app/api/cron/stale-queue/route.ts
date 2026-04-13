@@ -1,12 +1,13 @@
-import { NextRequest, NextResponse } from "next/server"
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { createLogger } from "@/lib/observability/logger"
-import { verifyCronRequest } from "@/lib/api/cron-auth"
-import { recordCronHeartbeat } from "@/lib/monitoring/cron-heartbeat"
-import { trackBusinessMetric } from "@/lib/analytics/posthog-server"
 import * as Sentry from "@sentry/nextjs"
+import { NextRequest, NextResponse } from "next/server"
+
+import { trackBusinessMetric } from "@/lib/analytics/posthog-server"
+import { verifyCronRequest } from "@/lib/api/cron-auth"
 import { getFeatureFlags } from "@/lib/feature-flags"
-import { sendTelegramAlert, escapeMarkdown } from "@/lib/notifications/telegram"
+import { recordCronHeartbeat } from "@/lib/monitoring/cron-heartbeat"
+import { escapeMarkdown,sendTelegramAlert } from "@/lib/notifications/telegram"
+import { createLogger } from "@/lib/observability/logger"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const logger = createLogger("stale-queue")
 
@@ -131,7 +132,7 @@ export async function GET(request: NextRequest) {
         const [{ sendEmail }, { StillReviewingEmail, stillReviewingSubject }, React] =
           await Promise.all([
             import("@/lib/email/send-email"),
-            import("@/components/email/templates/still-reviewing"),
+            import("@/lib/email/components/templates/still-reviewing"),
             import("react"),
           ])
 

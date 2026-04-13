@@ -8,7 +8,7 @@
  * - E2E_SECRET: Secret key for test auth endpoint
  */
 
-import { Page, APIRequestContext } from "@playwright/test"
+import { APIRequestContext,Page } from "@playwright/test"
 
 const E2E_SECRET = process.env.E2E_SECRET || "e2e-test-secret-local"
 const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3001"

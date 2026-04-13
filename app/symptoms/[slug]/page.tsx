@@ -1,22 +1,20 @@
-import { Navbar } from "@/components/shared/navbar"
-import { ContentPageTracker } from "@/components/analytics/content-page-tracker"
-import { Footer } from "@/components/shared/footer"
-import { Button } from "@/components/ui/button"
 import {
+  Activity,
+  AlertTriangle,
   ArrowRight,
+  CheckCircle2,
   Clock,
   Shield,
-  CheckCircle2,
-  AlertTriangle,
   Stethoscope,
-  ThermometerSun,
-  Activity
-} from "lucide-react"
+  ThermometerSun} from "lucide-react"
+import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import type { Metadata } from "next"
-import { FAQSchema, BreadcrumbSchema, MedicalConditionSchema } from "@/components/seo/healthcare-schema"
-import { MedicalDisclaimer } from "@/components/seo/medical-disclaimer"
+
+import { ContentPageTracker } from "@/components/analytics/content-page-tracker"
+import { BreadcrumbSchema, FAQSchema, MedicalConditionSchema, MedicalDisclaimer } from "@/components/seo"
+import { Footer,Navbar } from "@/components/shared"
+import { Button } from "@/components/ui/button"
 import { PageBreadcrumbs } from "@/components/uix"
 import { symptoms } from "@/lib/seo/data/symptoms"
 

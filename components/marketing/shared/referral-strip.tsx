@@ -1,7 +1,7 @@
 "use client"
 
-import Link from "next/link"
 import { Gift } from "lucide-react"
+import Link from "next/link"
 
 interface ReferralStripProps {
   /** Context text, e.g. "who needs their medication renewed" */

@@ -1,15 +1,17 @@
 "use server"
 
+import * as Sentry from "@sentry/nextjs"
 import { generateText } from "ai"
-import { getModelWithConfig } from "@/lib/ai/provider"
+
 import { upsertDraft } from "@/lib/ai/drafts"
-import { getPostHogClient } from "@/lib/analytics/posthog-server"
-import { safeParseClinicalNoteOutput } from "@/lib/ai/schemas"
-import { validateClinicalNoteAgainstIntake } from "@/lib/ai/validation"
 import { validateAIOutput } from "@/lib/ai/prompt-safety"
 import { CLINICAL_SAFETY_PREAMBLE } from "@/lib/ai/prompts"
-import * as Sentry from "@sentry/nextjs"
-import { log, getUsage } from "./shared"
+import { getModelWithConfig } from "@/lib/ai/provider"
+import { safeParseClinicalNoteOutput } from "@/lib/ai/schemas"
+import { validateClinicalNoteAgainstIntake } from "@/lib/ai/validation"
+import { getPostHogClient } from "@/lib/analytics/posthog-server"
+
+import { getUsage,log } from "./shared"
 
 // Prompt for clinical note generation (JSON output)
 // Produces SOAP-format clinical note for record-keeping

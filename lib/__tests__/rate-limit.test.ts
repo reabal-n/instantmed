@@ -1,4 +1,5 @@
-import { describe, it, expect } from "vitest"
+import { describe, expect,it } from "vitest"
+
 import { getClientIdentifier, rateLimitConfigs } from "@/lib/rate-limit/redis"
 
 const hasRedis = !!process.env.UPSTASH_REDIS_REST_URL && !!process.env.UPSTASH_REDIS_REST_TOKEN

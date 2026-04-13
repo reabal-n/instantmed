@@ -1,10 +1,11 @@
 "use client";
 
-import { TestimonialsColumn } from "@/components/ui/testimonials-columns-1";
 import { motion } from "framer-motion";
-import { cn } from "@/lib/utils";
+
 import { useReducedMotion } from "@/components/ui/motion";
 import { SectionPill } from "@/components/ui/section-pill";
+import { TestimonialsColumn } from "@/components/ui/testimonials-columns-1";
+import { cn } from "@/lib/utils";
 
 type Testimonial = {
   text: string;

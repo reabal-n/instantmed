@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect } from "react"
+
 import { capture } from "@/lib/analytics/capture"
 
 interface CancelledPageTrackerProps {

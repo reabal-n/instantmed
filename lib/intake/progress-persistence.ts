@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
+
 import { createLogger } from "@/lib/observability/logger"
 
 const logger = createLogger("intake-progress")

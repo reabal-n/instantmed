@@ -1,40 +1,42 @@
 "use client"
 
-import { useState, useEffect, useCallback, useRef } from "react"
-import { useRouter } from "next/navigation"
-import Link from "next/link"
-import { Button } from "@/components/uix"
 import {
   ArrowLeft,
-  Pill,
-  X,
-  RefreshCw,
   Phone,
+  Pill,
+  RefreshCw,
   Save,
+  X,
 } from "lucide-react"
-import { createIntakeAndCheckoutAction } from "@/lib/stripe/checkout"
-import { TooltipProvider } from "@/components/ui/tooltip"
-import { RX_MICROCOPY } from "@/lib/microcopy/prescription"
-import type { SelectedPBSProduct } from "@/components/shared/medication-search"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { useCallback, useEffect, useRef,useState } from "react"
+
+import type { SelectedPBSProduct } from "@/components/shared"
+import { TrustStrip } from "@/components/shared"
 import { ButtonSpinner } from "@/components/ui/skeleton"
+import { TooltipProvider } from "@/components/ui/tooltip"
+import { Button } from "@/components/uix"
+import { RX_MICROCOPY } from "@/lib/microcopy/prescription"
 import { createLogger } from "@/lib/observability/logger"
-import { TrustStrip } from "@/components/shared/trust-strip"
-import { Progress, SafetyKnockout, ControlledWarning } from "./prescription-flow-ui"
+import { createIntakeAndCheckoutAction } from "@/lib/stripe/checkout"
+
+import { ControlledWarning,Progress, SafetyKnockout } from "./prescription-flow-ui"
 import {
-  TypeSelectionStep,
-  MedicationStep,
-  GatingStep,
   ConditionStep,
-  DurationStep,
   ControlStep,
-  SideEffectsStep,
-  NotesStep,
-  SafetyStep,
+  DurationStep,
+  GatingStep,
   MedicareStep,
-  SignupStep,
-  ReviewStep,
+  MedicationStep,
+  NotesStep,
   PaymentStep,
+  ReviewStep,
   SAFETY_QUESTIONS,
+  SafetyStep,
+  SideEffectsStep,
+  SignupStep,
+  TypeSelectionStep,
 } from "./prescription-steps"
 
 const log = createLogger("prescription-flow-client")

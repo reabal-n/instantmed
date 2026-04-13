@@ -1,8 +1,9 @@
 'use client'
 
 import { motion } from 'framer-motion'
+import { CheckCircle,QrCode } from 'lucide-react'
+
 import { useReducedMotion } from '@/components/ui/motion'
-import { QrCode, CheckCircle } from 'lucide-react'
 
 interface SampleCertificateProps {
   className?: string

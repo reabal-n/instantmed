@@ -1,15 +1,34 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import {
+  AlertTriangle,
+  ArrowLeft,
+  CheckCircle,
+  Code,
+  Edit,
+  Eye,
+  FileText,
+  Loader2,
+  Mail,
+  Monitor,
+  Save,
+  Send,
+  Smartphone,
+} from "lucide-react"
+import Link from "next/link"
+import { useEffect,useState } from "react"
+import { toast } from "sonner"
+
+import { toggleEmailTemplateActiveAction,updateEmailTemplateAction } from "@/app/actions/admin-config"
+import {
+  getAdminEmailTemplatesAction,
+  getAdminTemplateSampleDataAction,
+  previewAdminEmailTemplateAction,
+  sendAdminTestEmailAction,
+} from "@/app/actions/admin-email-preview"
 import { Badge } from "@/components/ui/badge"
-import { Switch } from "@/components/ui/switch"
-import { SafeHtml } from "@/components/ui/safe-html"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Dialog,
   DialogContent,
@@ -17,30 +36,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import {
-  Mail,
-  Edit,
-  Save,
-  ArrowLeft,
-  Eye,
-  Loader2,
-  Code,
-  FileText,
-  Send,
-  Smartphone,
-  Monitor,
-  AlertTriangle,
-  CheckCircle,
-} from "lucide-react"
-import { toast } from "sonner"
-import Link from "next/link"
-import {
-  sendAdminTestEmailAction,
-  getAdminEmailTemplatesAction,
-  getAdminTemplateSampleDataAction,
-  previewAdminEmailTemplateAction,
-} from "@/app/actions/admin-email-preview"
-import { updateEmailTemplateAction, toggleEmailTemplateActiveAction } from "@/app/actions/admin-config"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { SafeHtml } from "@/components/ui/safe-html"
+import { Switch } from "@/components/ui/switch"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Textarea } from "@/components/ui/textarea"
 import type { EmailTemplate } from "@/lib/data/email-templates"
 
 interface EmailTemplateEditorClientProps {

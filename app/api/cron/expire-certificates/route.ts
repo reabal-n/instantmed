@@ -1,10 +1,11 @@
 import * as Sentry from "@sentry/nextjs"
 import { NextRequest, NextResponse } from "next/server"
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { createLogger } from "@/lib/observability/logger"
-import { verifyCronRequest, acquireCronLock, releaseCronLock } from "@/lib/api/cron-auth"
-import { captureCronError } from "@/lib/observability/sentry"
+
+import { acquireCronLock, releaseCronLock,verifyCronRequest } from "@/lib/api/cron-auth"
 import { toError } from "@/lib/errors"
+import { createLogger } from "@/lib/observability/logger"
+import { captureCronError } from "@/lib/observability/sentry"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const logger = createLogger("cron-expire-certificates")
 

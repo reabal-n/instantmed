@@ -1,12 +1,22 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import {
+  Activity,
+  ArrowLeft,
+  Bot,
+  Eye,
+  ScrollText,
+  Search,
+  User,
+  Webhook,
+} from "lucide-react"
 import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { useCallback,useState } from "react"
+
+import { getAuditLogsAction } from "@/app/actions/admin-config"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Dialog,
   DialogContent,
@@ -14,6 +24,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import {
   Select,
   SelectContent,
@@ -29,20 +41,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Skeleton, Tooltip, Pagination, ScrollShadow } from "@/components/uix"
-import {
-  ScrollText,
-  ArrowLeft,
-  Search,
-  Eye,
-  Activity,
-  User,
-  Bot,
-  Webhook,
-} from "lucide-react"
-import { getAuditLogsAction } from "@/app/actions/admin-config"
+import { Pagination, ScrollShadow,Skeleton, Tooltip } from "@/components/uix"
 import type { AuditLog, AuditLogFilters } from "@/lib/data/types/audit-logs"
-import { getAuditEventTypes, formatEventType, formatActorType } from "@/lib/data/types/audit-logs"
+import { formatActorType,formatEventType, getAuditEventTypes } from "@/lib/data/types/audit-logs"
 
 interface AuditLogClientProps {
   initialLogs: AuditLog[]

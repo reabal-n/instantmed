@@ -1,12 +1,14 @@
 'use client'
 
-import { type ReactNode, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { useReducedMotion } from '@/components/ui/motion'
 import { X } from 'lucide-react'
-import { usePanel } from './panel-provider'
-import { sessionPanelVariants, backdropVariants } from '@/lib/motion/panel-variants'
+import { type ReactNode, useEffect } from 'react'
+
+import { useReducedMotion } from '@/components/ui/motion'
+import { backdropVariants,sessionPanelVariants } from '@/lib/motion/panel-variants'
 import { cn } from '@/lib/utils'
+
+import { usePanel } from './panel-provider'
 
 /**
  * SessionPanel - Focused consultation room

@@ -1,6 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useEffect,useState } from "react"
+
 import { cn } from "@/lib/utils"
 import { getAvailabilityMessage, isWithinBusinessHours } from "@/lib/utils/time-of-day"
 

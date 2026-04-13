@@ -7,20 +7,21 @@
  * and validation warnings within the draft review panel.
  */
 
+import {
+  AlertTriangle,
+  ChevronDown,
+  Shield,
+} from "lucide-react"
 import { useMemo } from "react"
+
+import type { AIDraft } from "@/app/actions/draft-approval"
 import { Badge } from "@/components/ui/badge"
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible"
-import {
-  AlertTriangle,
-  ChevronDown,
-  Shield,
-} from "lucide-react"
-import { computeLineDiff, formatContentForDiff, isDiffTooLarge, type DiffLine } from "@/lib/utils/text-diff"
-import type { AIDraft } from "@/app/actions/draft-approval"
+import { computeLineDiff, type DiffLine,formatContentForDiff, isDiffTooLarge } from "@/lib/utils/text-diff"
 
 export function formatDraftType(type: string): string {
   switch (type) {

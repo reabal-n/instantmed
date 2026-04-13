@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest"
 import { createHash } from "crypto"
+import { describe, expect,it } from "vitest"
 
 function hashConsentContent(content: string): string {
   return createHash("sha256").update(content).digest("hex")

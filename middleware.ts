@@ -1,4 +1,5 @@
-import { NextResponse, type NextRequest } from 'next/server'
+import { type NextRequest,NextResponse } from 'next/server'
+
 import { updateSupabaseSession } from '@/lib/supabase/middleware'
 
 // Define protected routes that require authentication.

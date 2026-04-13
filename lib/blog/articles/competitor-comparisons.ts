@@ -3,8 +3,8 @@
  * Target: Australians searching for telehealth service comparisons
  */
 
-import { Article, contentAuthors, articleSeries } from '../types'
 import { blogImages } from '../images'
+import { Article, articleSeries,contentAuthors } from '../types'
 
 export const competitorComparisonArticles: Article[] = [
   // Article 1: Best Online Doctor Services in Australia

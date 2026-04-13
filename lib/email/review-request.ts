@@ -1,13 +1,15 @@
 import "server-only"
 
 import * as React from "react"
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { sendEmail } from "./send-email"
-import { reviewRequestSubject, ReviewRequestEmail } from "@/components/email/templates/review-request"
-import { reviewFollowupSubject, ReviewFollowupEmail } from "@/components/email/templates/review-followup"
+
 import { getAppUrl } from "@/lib/config/env"
+import { ReviewFollowupEmail,reviewFollowupSubject } from "@/lib/email/components/templates/review-followup"
+import { ReviewRequestEmail,reviewRequestSubject } from "@/lib/email/components/templates/review-request"
+import { canSendMarketingEmail } from "@/lib/email/preferences"
 import { createLogger } from "@/lib/observability/logger"
-import { canSendMarketingEmail } from "@/app/actions/email-preferences"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
+
+import { sendEmail } from "./send-email"
 
 const logger = createLogger("review-request")
 

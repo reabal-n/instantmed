@@ -7,9 +7,10 @@
  * - Search and filter work
  */
 
-import { test, expect } from "@playwright/test"
-import { waitForPageLoad } from "./helpers/test-utils"
+import { expect,test } from "@playwright/test"
+
 import { loginAsOperator, logoutTestUser } from "./helpers/auth"
+import { waitForPageLoad } from "./helpers/test-utils"
 
 // Seeded test data from scripts/e2e/seed.ts
 const SEEDED_PATIENT_NAME = "E2E Test Patient"

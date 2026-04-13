@@ -7,9 +7,10 @@
  * Used by the admin email outbox viewer.
  */
 
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { logger } from "@/lib/observability/logger"
 import * as Sentry from "@sentry/nextjs"
+
+import { logger } from "@/lib/observability/logger"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 /** Escape ILIKE special characters to prevent wildcard injection */
 function escapeIlike(input: string): string {

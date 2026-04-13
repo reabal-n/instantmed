@@ -1,24 +1,25 @@
 "use client"
 
-import { useState } from "react"
-import Link from "next/link"
+import { AnimatePresence,motion } from "framer-motion"
 import Image from "next/image"
-import { motion, AnimatePresence } from "framer-motion"
-import { useReducedMotion } from "@/components/ui/motion"
-import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
+import Link from "next/link"
+import { useState } from "react"
+
 import { usePostHog } from "@/components/providers/posthog-provider"
+import { Button } from "@/components/ui/button"
+import { useReducedMotion } from "@/components/ui/motion"
 import { PRICING } from "@/lib/constants"
 import {
-  NORWOOD_STAGES,
-  DURATION_BUCKETS,
-  HAIR_LOSS_HOOK_QUIZ_KEY,
   buildHairLossHookQuizResult,
-  getHairLossHookQuizReassurance,
-  type NorwoodStage,
+  DURATION_BUCKETS,
   type DurationBucket,
+  getHairLossHookQuizReassurance,
+  HAIR_LOSS_HOOK_QUIZ_KEY,
   type HairLossHookQuizResult,
+  NORWOOD_STAGES,
+  type NorwoodStage,
 } from "@/lib/marketing/hair-loss-hook-quiz"
+import { cn } from "@/lib/utils"
 
 interface HairLossHookQuizProps {
   className?: string

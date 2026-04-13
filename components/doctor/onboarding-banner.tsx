@@ -1,8 +1,9 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { AlertTriangle, ArrowRight, CheckCircle2, Circle, X } from "lucide-react"
 import Link from "next/link"
-import { CheckCircle2, Circle, AlertTriangle, ArrowRight, X } from "lucide-react"
+import { useEffect, useState } from "react"
+
 import { Button } from "@/components/ui/button"
 
 interface OnboardingStep {

@@ -1,8 +1,9 @@
 "use client"
 
 import { motion } from "framer-motion"
+import { Clock, FileText, User } from "lucide-react"
+
 import { useReducedMotion } from "@/components/ui/motion"
-import { FileText, Clock, User } from "lucide-react"
 
 export function HeroProductMockup() {
   const prefersReducedMotion = useReducedMotion()

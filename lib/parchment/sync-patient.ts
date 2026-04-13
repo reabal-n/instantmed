@@ -7,13 +7,15 @@
 
 import "server-only"
 
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { getProfileById } from "@/lib/data/profiles"
-import { createPatient } from "./client"
-import { createLogger } from "@/lib/observability/logger"
 import * as Sentry from "@sentry/nextjs"
-import type { CreatePatientRequest } from "./types"
+
+import { getProfileById } from "@/lib/data/profiles"
+import { createLogger } from "@/lib/observability/logger"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import type { AustralianState } from "@/types/db"
+
+import { createPatient } from "./client"
+import type { CreatePatientRequest } from "./types"
 
 const log = createLogger("parchment-sync")
 

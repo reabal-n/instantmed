@@ -1,9 +1,10 @@
 "use client"
 
+import { AnimatePresence,motion } from "framer-motion"
 import { AlertTriangle } from "lucide-react"
-import { motion, AnimatePresence } from "framer-motion"
-import { useReducedMotion } from "@/components/ui/motion"
+
 import { Button } from "@/components/ui/button"
+import { useReducedMotion } from "@/components/ui/motion"
 import type { SafetyEvaluationResult } from "@/lib/safety"
 
 interface SafetyBlockDialogProps {

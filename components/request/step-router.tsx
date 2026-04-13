@@ -11,10 +11,12 @@
  * Do NOT add a second AnimatePresence here - it causes ghost renders.
  */
 
-import { Suspense, lazy, useMemo } from "react"
-import { StepErrorBoundary } from "./step-error-boundary"
-import type { UnifiedServiceType, UnifiedStepId } from "@/lib/request/step-registry"
+import { lazy, Suspense, useMemo } from "react"
+
 import { SkeletonForm } from "@/components/ui/skeleton"
+import type { UnifiedServiceType, UnifiedStepId } from "@/lib/request/step-registry"
+
+import { StepErrorBoundary } from "./step-error-boundary"
 
 // Lazy load step components
 const stepComponents = {

@@ -8,22 +8,23 @@
  * Saves 30-45 minutes per 100 cases by eliminating JSON parsing.
  */
 
+import {
+  Activity,
+  AlertCircle,
+  AlertTriangle,
+  Calendar,
+  FileText,
+  Heart,
+  Pill,
+  ShieldAlert,
+  Thermometer,
+} from "lucide-react"
+
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import {
-  AlertTriangle,
-  AlertCircle,
-  Calendar,
-  Thermometer,
-  Activity,
-  FileText,
-  Pill,
-  Heart,
-  ShieldAlert,
-} from "lucide-react"
-import { cn } from "@/lib/utils"
 import { getContraindicationRationale } from "@/lib/clinical/contraindication-rationales"
+import { cn } from "@/lib/utils"
 
 /** Convert camelCase or snake_case keys into readable labels */
 function formatFieldLabel(key: string): string {

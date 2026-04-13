@@ -1,5 +1,6 @@
-import { NextRequest, NextResponse } from "next/server"
 import { timingSafeEqual } from "crypto"
+import { NextRequest, NextResponse } from "next/server"
+
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 interface HealthCheck {

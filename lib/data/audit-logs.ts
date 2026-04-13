@@ -4,12 +4,13 @@
  */
 
 import "server-only"
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
+
 import { createLogger } from "@/lib/observability/logger"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 // Re-export types and helpers from shared module (for backward compatibility)
 export type { AuditLog, AuditLogFilters, AuditLogStats } from "@/lib/data/types/audit-logs"
-export { getAuditEventTypes, formatEventType, formatActorType } from "@/lib/data/types/audit-logs"
+export { formatActorType,formatEventType, getAuditEventTypes } from "@/lib/data/types/audit-logs"
 
 import type { AuditLog, AuditLogFilters } from "@/lib/data/types/audit-logs"
 

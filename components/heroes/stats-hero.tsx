@@ -1,13 +1,14 @@
 "use client";
 
 import { motion } from "framer-motion"
-import { useReducedMotion } from "@/components/ui/motion";
 import { type ReactNode } from "react";
-import { cn } from "@/lib/utils";
-import { WordReveal } from "@/components/ui/morning/word-reveal";
+
 import { StatStrip } from "@/components/sections/stat-strip";
 import type { StatItem } from "@/components/sections/types";
+import { WordReveal } from "@/components/ui/morning/word-reveal";
+import { useReducedMotion } from "@/components/ui/motion";
 import { SectionPill } from "@/components/ui/section-pill";
+import { cn } from "@/lib/utils";
 
 interface StatsHeroProps {
   pill?: string;

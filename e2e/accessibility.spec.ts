@@ -7,8 +7,8 @@
  * Run: pnpm e2e:chromium e2e/accessibility.spec.ts
  */
 
-import { test, expect } from "@playwright/test"
 import AxeBuilder from "@axe-core/playwright"
+import { expect,test } from "@playwright/test"
 
 // Pages to audit - covers marketing, intake, and patient portals
 const pages = [

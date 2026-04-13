@@ -1,11 +1,13 @@
 "use server"
 
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { getApiAuth } from "@/lib/auth/helpers"
-import { sendEmail } from "@/lib/email/send-email"
-import { MedCertPatientEmail, medCertPatientEmailSubject } from "@/components/email/templates"
 import { env } from "@/lib/config/env"
-import { logger } from "@/lib/observability/logger"
+import { MedCertPatientEmail, medCertPatientEmailSubject } from "@/lib/email/components/templates"
+import { sendEmail } from "@/lib/email/send-email"
+import { createLogger } from "@/lib/observability/logger"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
+
+const log = createLogger("resend-certificate")
 import { getCertificateForIntake } from "@/lib/data/issued-certificates"
 import { checkResendRateLimit } from "@/lib/rate-limit/resend-cert"
 
@@ -53,13 +55,13 @@ export async function resendCertificate(intakeId: string): Promise<ResendCertifi
       .single()
 
     if (fetchError || !intake) {
-      logger.warn("Resend certificate: intake not found", { intakeId })
+      log.warn("Resend certificate: intake not found", { intakeId })
       return { success: false, error: "Request not found" }
     }
 
     // Verify ownership
     if (intake.patient_id !== authResult.profile.id) {
-      logger.warn("Resend certificate: unauthorized", { intakeId, userId: authResult.profile.id })
+      log.warn("Resend certificate: unauthorized", { intakeId, userId: authResult.profile.id })
       return { success: false, error: "You can only access your own requests" }
     }
 
@@ -90,7 +92,7 @@ export async function resendCertificate(intakeId: string): Promise<ResendCertifi
             .createSignedUrl(certificate.storage_path, 3 * 24 * 60 * 60) // 72 hours
           downloadUrl = signedUrlData?.signedUrl ?? undefined
         } catch {
-          logger.warn("Resend certificate: failed to generate signed URL", { intakeId })
+          log.warn("Resend certificate: failed to generate signed URL", { intakeId })
         }
       }
 
@@ -122,19 +124,19 @@ export async function resendCertificate(intakeId: string): Promise<ResendCertifi
       })
 
       if (!emailResult.success) {
-        logger.error("Resend certificate: email failed", { intakeId, error: emailResult.error })
+        log.error("Resend certificate: email failed", { intakeId, error: emailResult.error })
         return { success: false, error: "Failed to send email. Please try again." }
       }
 
-      logger.info("Certificate resent successfully", { intakeId, to: patient.email })
+      log.info("Certificate resent successfully", { intakeId, to: patient.email })
       return { success: true }
     }
 
     // Fallback: No certificate found in issued_certificates
-    logger.warn("Resend certificate: certificate not found in issued_certificates", { intakeId })
+    log.warn("Resend certificate: certificate not found in issued_certificates", { intakeId })
     return { success: false, error: "Certificate not found. Please contact support." }
   } catch (error) {
-    logger.error("Resend certificate: unexpected error", {
+    log.error("Resend certificate: unexpected error", {
       intakeId,
       error: error instanceof Error ? error.message : String(error),
     })

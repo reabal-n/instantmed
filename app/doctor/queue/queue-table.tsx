@@ -1,11 +1,29 @@
 "use client"
 
-import { useTransition } from "react"
+import {
+  AlertTriangle,
+  CheckCircle,
+  ChevronDown,
+  ChevronRight,
+  Clock,
+  Eye,
+  FileText,
+  Flag,
+  Loader2,
+  MoreVertical,
+  ShieldAlert,
+  Sparkles,
+  XCircle,
+  Zap,
+} from "lucide-react"
+import { MessageSquare } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
+import { useTransition } from "react"
+import { toast } from "sonner"
+
+import { revokeAIApproval } from "@/app/actions/revoke-ai-approval"
 import { Badge } from "@/components/ui/badge"
-import { Textarea } from "@/components/ui/textarea"
-import { UserCard, Pagination } from "@/components/uix"
+import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import {
   Dialog,
@@ -21,6 +39,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { EmptyState } from "@/components/ui/empty-state"
 import {
   Select,
   SelectContent,
@@ -28,34 +47,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import {
-  Clock,
-  ChevronDown,
-  ChevronRight,
-  AlertTriangle,
-  CheckCircle,
-  XCircle,
-  Flag,
-  FileText,
-  MoreVertical,
-  Zap,
-  ShieldAlert,
-  Sparkles,
-  Loader2,
-  Eye,
-} from "lucide-react"
-import { MessageSquare } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { toast } from "sonner"
-import { EmptyState } from "@/components/ui/empty-state"
+import { Textarea } from "@/components/ui/textarea"
+import { Pagination,UserCard } from "@/components/uix"
 import { capture } from "@/lib/analytics/capture"
-import { formatServiceType } from "@/lib/format/intake"
 import { SERVICE_TYPES } from "@/lib/doctor/service-types"
 import { calculateAge } from "@/lib/format"
+import { formatServiceType } from "@/lib/format/intake"
+import { cn } from "@/lib/utils"
 import type { IntakeWithPatient } from "@/types/db"
+
 import type { PaginationInfo } from "./types"
 import type { QueueDialogState } from "./use-queue-dialogs"
-import { revokeAIApproval } from "@/app/actions/revoke-ai-approval"
 
 /**
  * Map a consult subtype to a short scanning-aid label for the queue chip.
@@ -370,7 +372,7 @@ export function QueueTable({
                         <Sparkles className="w-3 h-3 mr-1" />
                         AI approved
                       </Badge>
-                      {Boolean((intake as unknown as Record<string, unknown>).soft_flags) && (
+                      {Boolean((intake as IntakeWithPatient & { soft_flags?: string[] }).soft_flags) && (
                         <Badge
                           variant="outline"
                           className="text-xs border-amber-300 dark:border-amber-500/30 text-amber-700 dark:text-amber-400"
@@ -555,7 +557,7 @@ export function QueueTable({
               onClick={() => {
                 if (!revokeDialog) return
                 startTransition(async () => {
-                  const result = await revokeAIApproval(revokeDialog, revokeReason.trim())
+                  const result = await revokeAIApproval({ intakeId: revokeDialog, reason: revokeReason.trim() })
                   if (result.success) {
                     toast.success("Certificate revoked. Request moved back to queue.")
                     setRevokeDialog(null)

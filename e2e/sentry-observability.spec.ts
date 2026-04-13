@@ -8,7 +8,7 @@
  * PLAYWRIGHT MODE ONLY - requires PLAYWRIGHT=1 environment variable
  */
 
-import { test, expect } from "@playwright/test"
+import { expect,test } from "@playwright/test"
 
 test.describe("Sentry Observability", () => {
   test.describe("Edge Runtime Error Capture", () => {

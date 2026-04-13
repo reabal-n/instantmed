@@ -1,12 +1,14 @@
 'use client'
 
-import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { useReducedMotion } from '@/components/ui/motion'
 import { ArrowRight } from 'lucide-react'
+import Link from 'next/link'
+
 import { Button } from '@/components/ui/button'
+import { useReducedMotion } from '@/components/ui/motion'
 import { cn } from '@/lib/utils'
-import type { ServiceFunnelConfig, ColorClasses } from './funnel-types'
+
+import type { ColorClasses,ServiceFunnelConfig } from './funnel-types'
 
 interface FinalCtaSectionProps {
   config: ServiceFunnelConfig

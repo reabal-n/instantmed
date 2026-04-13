@@ -1,25 +1,23 @@
-import { Navbar } from "@/components/shared/navbar"
-import { ContentPageTracker } from "@/components/analytics/content-page-tracker"
-import { Footer } from "@/components/shared/footer"
-import { Button } from "@/components/ui/button"
 import {
-  ArrowRight,
-  Clock,
-  Shield,
-  CheckCircle2,
-  FileText,
-  Zap,
   AlertCircle,
+  ArrowRight,
+  BookOpen,
+  CheckCircle2,
+  Clock,
+  FileText,
   Info,
-  BookOpen
-} from "lucide-react"
-import { guides, GUIDE_INDEX } from "@/lib/seo/data/guides"
+  Shield,
+  Zap} from "lucide-react"
+import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import type { Metadata } from "next"
-import { FAQSchema, BreadcrumbSchema, HealthArticleSchema, HowToSchema } from "@/components/seo/healthcare-schema"
-import { MedicalDisclaimer } from "@/components/seo/medical-disclaimer"
+
+import { ContentPageTracker } from "@/components/analytics/content-page-tracker"
+import { BreadcrumbSchema, FAQSchema, HealthArticleSchema, HowToSchema, MedicalDisclaimer } from "@/components/seo"
+import { Footer,Navbar } from "@/components/shared"
+import { Button } from "@/components/ui/button"
 import { PageBreadcrumbs } from "@/components/uix"
+import { GUIDE_INDEX,guides } from "@/lib/seo/data/guides"
 
 interface PageProps {
   params: Promise<{ slug: string }>

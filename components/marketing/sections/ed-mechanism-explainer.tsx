@@ -1,13 +1,14 @@
 "use client"
 
-import { useRef, useEffect } from "react"
-import Link from "next/link"
 import { motion, useInView } from "framer-motion"
 import { ArrowRight } from "lucide-react"
-import { useReducedMotion } from "@/components/ui/motion"
-import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
+import Link from "next/link"
+import { useEffect,useRef } from "react"
+
 import { usePostHog } from "@/components/providers/posthog-provider"
+import { Button } from "@/components/ui/button"
+import { useReducedMotion } from "@/components/ui/motion"
+import { cn } from "@/lib/utils"
 
 interface EdMechanismExplainerProps {
   className?: string

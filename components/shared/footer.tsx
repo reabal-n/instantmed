@@ -1,13 +1,14 @@
+import { Mail, MapPin, Phone } from "lucide-react"
 import Link from "next/link"
+
+import { StripeBadge } from "@/components/checkout/trust-badges"
+import { GoogleAdsCert } from "@/components/marketing/google-ads-cert"
+import { LegitScriptSeal } from "@/components/marketing/legitscript-seal"
 import { BrandLogo } from "@/components/shared/brand-logo"
 import { FooterAuth } from "@/components/shared/footer-auth"
-import { StripeBadge } from "@/components/checkout/trust-badges"
-import { LegitScriptSeal } from "@/components/marketing/legitscript-seal"
-import { GoogleAdsCert } from "@/components/marketing/google-ads-cert"
-import { MapPin, Mail, Phone } from "lucide-react"
 import { TrustBadgeRow } from '@/components/shared/trust-badge'
+import { ABN,COMPANY_ADDRESS_SHORT, COMPANY_NAME, CONTACT_EMAIL, CONTACT_EMAIL_COMPLAINTS, CONTACT_PHONE } from "@/lib/constants"
 import { footerLinks } from "@/lib/marketing/homepage"
-import { CONTACT_EMAIL, CONTACT_EMAIL_COMPLAINTS, CONTACT_PHONE, COMPANY_NAME, COMPANY_ADDRESS_SHORT, ABN } from "@/lib/constants"
 
 const TapeDecoration = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="95" height="80" viewBox="0 0 95 80" fill="none" className="w-20 h-auto">

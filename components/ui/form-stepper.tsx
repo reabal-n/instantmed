@@ -1,11 +1,12 @@
 'use client'
 
-import * as React from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { useReducedMotion } from '@/components/ui/motion'
+import { AnimatePresence,motion } from 'framer-motion'
 import { Check } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import * as React from 'react'
+
+import { useReducedMotion } from '@/components/ui/motion'
 import { spring } from '@/lib/motion'
+import { cn } from '@/lib/utils'
 
 // =============================================================================
 // TYPES

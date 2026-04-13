@@ -1,5 +1,5 @@
-import { Article, defaultAuthor, articleSeries } from '../types'
 import { blogImages } from '../images'
+import { Article, articleSeries,defaultAuthor } from '../types'
 
 export const telehealthArticles: Article[] = [
   {

@@ -12,19 +12,20 @@
  * - certificate_audit_log has exactly one 'issued' event
  */
 
-import { test, expect } from "@playwright/test"
-import { waitForPageLoad } from "./helpers/test-utils"
+import { expect,test } from "@playwright/test"
+
 import { loginAsOperator, logoutTestUser } from "./helpers/auth"
 import {
+  countCertificateAuditLogs,
+  countIntakeDocumentsForIntake,
+  countIssuedCertificatesForIntake,
+  INTAKE_ID,
   isDbAvailable,
   resetIntakeForRetest,
   waitForIntakeStatus,
   waitForIssuedCertificateCount,
-  countIssuedCertificatesForIntake,
-  countIntakeDocumentsForIntake,
-  countCertificateAuditLogs,
-  INTAKE_ID,
 } from "./helpers/db"
+import { waitForPageLoad } from "./helpers/test-utils"
 
 test.describe("Medical Certificate Idempotency", () => {
   test.beforeEach(async ({ page }) => {

@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server"
+import { z } from "zod"
+
 import { auth } from "@/lib/auth/helpers"
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { upsertHealthProfile } from "@/lib/data/health-profile"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { requireValidCsrf } from "@/lib/security/csrf"
-import { z } from "zod"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const log = createLogger("patient-health-profile")
 

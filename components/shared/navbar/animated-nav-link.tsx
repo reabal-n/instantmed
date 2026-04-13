@@ -1,7 +1,8 @@
 "use client"
 
-import Link from "next/link"
 import { motion, type Variants } from "framer-motion"
+import Link from "next/link"
+
 import { useReducedMotion } from "@/components/ui/motion"
 import { cn } from "@/lib/utils"
 

@@ -1,35 +1,36 @@
 "use client"
 
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
+  Activity,
   ArrowLeft,
-  User,
-  Mail,
-  Phone,
-  MapPin,
   Calendar,
+  CheckCircle,
+  ChevronRight,
+  Clock,
   CreditCard,
   FileText,
-  CheckCircle,
-  XCircle,
-  Clock,
-  ChevronRight,
-  Activity,
-  MessageSquare,
-  StickyNote,
-  Plus,
   Loader2,
+  Mail,
+  MapPin,
+  MessageSquare,
+  Phone,
+  Plus,
+  StickyNote,
+  User,
+  XCircle,
 } from "lucide-react"
-import { Textarea } from "@/components/ui/textarea"
+import Link from "next/link"
 import { useState, useTransition } from "react"
+
 import { addPatientNoteAction } from "@/app/actions/patient-notes"
-import { formatIntakeStatus } from "@/lib/format/intake"
-import { formatDate, formatDateTime, formatDateLong, calculateAge } from "@/lib/format"
+import { PatientCommunicationHistory } from "@/components/doctor"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Textarea } from "@/components/ui/textarea"
 import { INTAKE_STATUS, type IntakeStatus } from "@/lib/data/status"
-import { PatientCommunicationHistory } from "@/components/doctor/patient-communication-history"
+import { calculateAge,formatDate, formatDateLong, formatDateTime } from "@/lib/format"
+import { formatIntakeStatus } from "@/lib/format/intake"
 import type { Profile } from "@/types/db"
 
 interface IntakeWithService {

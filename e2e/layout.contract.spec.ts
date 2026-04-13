@@ -5,9 +5,10 @@
  * No screenshot comparisons - uses class and attribute assertions.
  */
 
-import { test, expect } from "@playwright/test"
-import { waitForPageLoad } from "./helpers/test-utils"
+import { expect,test } from "@playwright/test"
+
 import { loginAsOperator, logoutTestUser } from "./helpers/auth"
+import { waitForPageLoad } from "./helpers/test-utils"
 
 test.describe("Layout Contracts - Doctor Dashboard", () => {
   test.beforeEach(async ({ page }) => {

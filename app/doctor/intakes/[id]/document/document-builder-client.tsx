@@ -1,31 +1,33 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { DatePickerField } from "@/components/uix"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
+  AlertTriangle,
   ArrowLeft,
-  Save,
-  FileText,
-  User,
-  CheckCircle,
-  Loader2,
+  Brain,
   Briefcase,
+  CheckCircle,
+  Eye,
+  FileText,
   GraduationCap,
   Heart,
-  AlertTriangle,
-  Brain,
-  Eye,
+  Loader2,
+  Save,
+  User,
   X,
 } from "lucide-react"
-import type { IntakeWithDetails, DocumentDraft, GeneratedDocument, MedCertDraftData } from "@/types/db"
-import { saveMedCertDraftAction, generateMedCertPdfAndApproveAction, generatePreviewPdfAction } from "./actions"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { useEffect,useRef, useState } from "react"
+
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { DatePickerField } from "@/components/uix"
+import type { DocumentDraft, GeneratedDocument, IntakeWithDetails, MedCertDraftData } from "@/types/db"
+
+import { generateMedCertPdfAndApproveAction, generatePreviewPdfAction,saveMedCertDraftAction } from "./actions"
 
 interface AIDrafts {
   clinicalNote: Record<string, unknown> | null

@@ -1,10 +1,10 @@
-import { Navbar } from "@/components/shared/navbar"
-import { Footer } from "@/components/shared/footer"
-import { BreadcrumbSchema } from "@/components/seo/healthcare-schema"
-import { MapPin, ArrowRight } from "lucide-react"
-import Link from "next/link"
+import { ArrowRight,MapPin } from "lucide-react"
 import type { Metadata } from "next"
-import { statesData, getAllStateSlugs } from "@/lib/seo/data/states"
+import Link from "next/link"
+
+import { BreadcrumbSchema } from "@/components/seo"
+import { Footer,Navbar } from "@/components/shared"
+import { getAllStateSlugs,statesData } from "@/lib/seo/data/states"
 
 export const metadata: Metadata = {
   title: "Online Doctor | All Australian Locations",

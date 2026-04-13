@@ -1,11 +1,12 @@
-import { NextRequest, NextResponse } from "next/server"
 import { generateText } from "ai"
-import { getDefaultModel } from "@/lib/ai/provider"
-import { applyRateLimit, getClientIdentifier } from "@/lib/rate-limit/redis"
+import { NextRequest, NextResponse } from "next/server"
+import { z } from "zod"
+
 import { checkAndSanitize } from "@/lib/ai/prompt-safety"
 import { CLINICAL_SAFETY_PREAMBLE } from "@/lib/ai/prompts"
+import { getDefaultModel } from "@/lib/ai/provider"
 import { recordAIRequest } from "@/lib/monitoring/ai-health"
-import { z } from "zod"
+import { applyRateLimit, getClientIdentifier } from "@/lib/rate-limit/redis"
 
 export const runtime = "edge"
 

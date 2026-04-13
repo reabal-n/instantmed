@@ -1,22 +1,23 @@
+import {
+  AlertTriangle,
+  Building,
+  Calendar,
+  CheckCircle,
+  FileText,
+  Lock,
+  Shield,
+  User,
+  XCircle,
+} from "lucide-react"
 import { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { Navbar } from "@/components/shared/navbar"
+
 import { MarketingFooter } from "@/components/marketing"
+import { Navbar } from "@/components/shared"
 import { Badge } from "@/components/ui/badge"
-import {
-  CheckCircle,
-  XCircle,
-  Shield,
-  Calendar,
-  User,
-  Building,
-  FileText,
-  Lock,
-  AlertTriangle,
-} from "lucide-react"
-import { getCertificateByRef } from "@/lib/data/issued-certificates"
 import { CONTACT_EMAIL } from "@/lib/constants"
+import { getCertificateByRef } from "@/lib/data/issued-certificates"
 import { formatDateLong } from "@/lib/format"
 
 interface Props {

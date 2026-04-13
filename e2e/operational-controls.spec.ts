@@ -10,11 +10,12 @@
  * Run with: PLAYWRIGHT=1 pnpm e2e --grep "operational-controls"
  */
 
-import { test, expect } from "@playwright/test"
+import { expect,test } from "@playwright/test"
 import { createClient } from "@supabase/supabase-js"
+
+import { OPERATOR_PROFILE_ID } from "../scripts/e2e/seed"
 import { loginAsOperator, loginAsPatient, logoutTestUser } from "./helpers/auth"
 import { waitForPageLoad } from "./helpers/test-utils"
-import { OPERATOR_PROFILE_ID } from "../scripts/e2e/seed"
 
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || ""
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || ""

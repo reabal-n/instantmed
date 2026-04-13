@@ -1,8 +1,9 @@
 "use client"
 
 import { motion, type Variants } from "framer-motion"
-import { useReducedMotion } from "@/components/ui/motion"
 import { BadgeCheck, Shield } from "lucide-react"
+
+import { useReducedMotion } from "@/components/ui/motion"
 
 /**
  * Faithful mockup of the real InstantMed medical certificate.

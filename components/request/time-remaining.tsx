@@ -1,7 +1,7 @@
 "use client"
 
-import { useMemo } from "react"
 import { Clock } from "lucide-react"
+import { useMemo } from "react"
 
 // Estimated time per step type (in seconds)
 export const STEP_TIME_ESTIMATES: Record<string, number> = {

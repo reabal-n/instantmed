@@ -47,20 +47,14 @@ while IFS= read -r deprecated_file; do
   import_path="${deprecated_file%.ts}"
   import_path="${import_path%.tsx}"
   # Check if anything imports from this file (excluding the file itself)
-  import_count=$(grep -rl "$import_path" --include="*.ts" --include="*.tsx" . 2>/dev/null \
-    | grep -v node_modules \
-    | grep -v .next \
-    | grep -v .worktrees \
+  import_count=$(grep -rl --exclude-dir=node_modules --exclude-dir=.next --exclude-dir=.worktrees "$import_path" --include="*.ts" --include="*.tsx" . 2>/dev/null \
     | grep -v "$deprecated_file" \
     | wc -l | tr -d ' ')
   if [[ "$import_count" -eq 0 ]]; then
     echo "ORPHAN: $deprecated_file is @deprecated with 0 imports"
     orphans=$((orphans + 1))
   fi
-done < <(grep -rl "@deprecated" --include="*.ts" --include="*.tsx" . 2>/dev/null \
-  | grep -v node_modules \
-  | grep -v .next \
-  | grep -v .worktrees)
+done < <(grep -rl --exclude-dir=node_modules --exclude-dir=.next --exclude-dir=.worktrees "@deprecated" --include="*.ts" --include="*.tsx" . 2>/dev/null)
 
 # ── 4. Stale worktree directories ────────────────────────────────────────
 if [[ -d ".worktrees" ]]; then

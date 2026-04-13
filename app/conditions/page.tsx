@@ -1,12 +1,13 @@
-import { Navbar } from "@/components/shared/navbar"
-import { MarketingFooter } from "@/components/marketing"
-import { Button } from "@/components/ui/button"
-import { ArrowRight, Shield, Clock } from "lucide-react"
-import Link from "next/link"
+import { ArrowRight, Clock,Shield } from "lucide-react"
 import type { Metadata } from "next"
-import { BreadcrumbSchema, FAQSchema } from "@/components/seo/healthcare-schema"
+import Link from "next/link"
+
+import { MarketingFooter } from "@/components/marketing"
 import { AccordionSection } from "@/components/sections"
-import { conditionsData, type ConditionData } from "@/lib/seo/data/conditions"
+import { BreadcrumbSchema, FAQSchema } from "@/components/seo"
+import { Navbar } from "@/components/shared"
+import { Button } from "@/components/ui/button"
+import { type ConditionData,conditionsData } from "@/lib/seo/data/conditions"
 
 export const metadata: Metadata = {
   title: "Health Conditions We Treat Online",

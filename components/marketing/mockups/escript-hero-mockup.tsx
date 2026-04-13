@@ -1,8 +1,9 @@
 "use client"
 
 import { motion } from "framer-motion"
+import { CheckCircle2,MapPin, Pill, Smartphone } from "lucide-react"
+
 import { useReducedMotion } from "@/components/ui/motion"
-import { Pill, Smartphone, MapPin, CheckCircle2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface EScriptHeroMockupProps {

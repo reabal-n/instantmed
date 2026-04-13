@@ -1,24 +1,25 @@
 "use client"
 
-import { useEffect, useState, useCallback } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import {
   Activity,
-  Clock,
-  TrendingUp,
-  CheckCircle,
-  XCircle,
-  CreditCard,
   AlertCircle,
-  RefreshCw,
-  Users,
-  Sparkles,
+  CheckCircle,
+  Clock,
+  CreditCard,
   DollarSign,
+  RefreshCw,
+  Sparkles,
+  TrendingUp,
+  Users,
+  XCircle,
 } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { useCallback,useEffect, useState } from "react"
+
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { formatMinutes } from "@/lib/format"
+import { cn } from "@/lib/utils"
 
 export interface IntakeMonitorStats {
   todaySubmissions: number

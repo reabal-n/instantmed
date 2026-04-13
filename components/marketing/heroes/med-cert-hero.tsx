@@ -1,23 +1,24 @@
 "use client"
 
-import Link from "next/link"
 import { motion } from "framer-motion"
-import { useReducedMotion } from "@/components/ui/motion"
 import {
   ArrowRight,
   CheckCircle2,
 } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { MagneticButton } from "@/components/ui/magnetic-button"
-import { DoctorAvailabilityPill } from "@/components/shared/doctor-availability-pill"
-import { RotatingText } from "@/components/marketing/rotating-text"
-import { MedCertHeroMockup } from "@/components/marketing/mockups/med-cert-hero-mockup"
-import { TrustBadgeRow } from "@/components/shared/trust-badge"
-import { TrustBadgeCollapsible } from "@/components/marketing/shared/trust-badge-collapsible"
+import Link from "next/link"
+
 import { ContextualMessage } from "@/components/marketing/contextual-message"
 import { HeroTestimonialRotator } from "@/components/marketing/hero-testimonial-rotator"
-import { BADGE_REGISTRY, type PresetEntry } from "@/lib/marketing/trust-badges"
+import { MedCertHeroMockup } from "@/components/marketing/mockups/med-cert-hero-mockup"
+import { RotatingText } from "@/components/marketing/rotating-text"
+import { TrustBadgeCollapsible } from "@/components/marketing/shared/trust-badge-collapsible"
+import { DoctorAvailabilityPill } from "@/components/shared"
+import { TrustBadgeRow } from "@/components/shared"
+import { Button } from "@/components/ui/button"
+import { MagneticButton } from "@/components/ui/magnetic-button"
+import { useReducedMotion } from "@/components/ui/motion"
 import { PRICING } from "@/lib/constants"
+import { BADGE_REGISTRY, type PresetEntry } from "@/lib/marketing/trust-badges"
 import { SOCIAL_PROOF_DISPLAY } from "@/lib/social-proof"
 
 const ROTATING_BADGES = [

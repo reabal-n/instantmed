@@ -1,36 +1,37 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { cn } from "@/lib/utils"
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import {
-  LayoutDashboard,
-  Users,
-  BarChart3,
-  Building2,
-  Stethoscope,
-  Cog,
-  ToggleLeft,
-  Mail,
-  TrendingUp,
-  DollarSign,
   Activity,
-  CreditCard,
-  ScrollText,
-  ListOrdered,
-  Settings,
-  ShieldCheck,
-  ChevronRight,
-  ChevronDown,
+  BarChart3,
   Bug,
-  Webhook,
-  PenTool,
+  Building2,
+  ChevronDown,
+  ChevronRight,
+  Cog,
+  CreditCard,
+  DollarSign,
+  LayoutDashboard,
+  ListOrdered,
+  Mail,
   Mailbox,
   Menu,
+  PenTool,
+  ScrollText,
+  Settings,
+  ShieldCheck,
+  Stethoscope,
+  ToggleLeft,
+  TrendingUp,
+  Users,
+  Webhook,
   X,
 } from "lucide-react"
+import Link from "next/link"
+import { usePathname } from "next/navigation"
+import { useEffect, useState } from "react"
+
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
+import { cn } from "@/lib/utils"
 
 interface AdminSidebarProps {
   userName: string

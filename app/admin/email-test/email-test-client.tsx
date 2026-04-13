@@ -1,27 +1,28 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  AlertCircle,
+  CheckCircle2,
+  Code,
+  Copy,
+  Eye,
+  Layers,
+  Mail,
+  Monitor,
+  RefreshCw,
+  Send,
+  Settings,
+  Smartphone,
+} from "lucide-react"
+import { useCallback,useEffect, useState } from "react"
+import { toast } from "sonner"
+
+import { renderTestEmailAction } from "@/app/actions/render-test-email"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import {
-  Mail,
-  Send,
-  Eye,
-  Smartphone,
-  Monitor,
-  Code,
-  Settings,
-  RefreshCw,
-  Layers,
-  Copy,
-  CheckCircle2,
-  AlertCircle,
-} from "lucide-react"
-import { toast } from "sonner"
-import { renderTestEmailAction } from "@/app/actions/render-test-email"
 
 // Template definitions with sample data matching REAL React component props
 const emailTemplates = [

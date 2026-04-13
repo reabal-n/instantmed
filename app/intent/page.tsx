@@ -1,11 +1,12 @@
-import { Navbar } from "@/components/shared/navbar"
-import { MarketingFooter } from "@/components/marketing"
-import { Button } from "@/components/ui/button"
 import { ArrowRight, Search } from "lucide-react"
-import Link from "next/link"
 import type { Metadata } from "next"
-import { BreadcrumbSchema, FAQSchema } from "@/components/seo/healthcare-schema"
+import Link from "next/link"
+
+import { MarketingFooter } from "@/components/marketing"
 import { AccordionSection } from "@/components/sections"
+import { BreadcrumbSchema, FAQSchema } from "@/components/seo"
+import { Navbar } from "@/components/shared"
+import { Button } from "@/components/ui/button"
 
 export const metadata: Metadata = {
   title: "Find What You Need | Online Doctor Services",

@@ -1,10 +1,11 @@
 'use client'
 
 import { type ReactNode } from 'react'
-import { ShortcutDiscoveryHint } from '@/components/doctor/keyboard-shortcuts-modal'
+
 import { IntakeNotificationListener } from '@/components/doctor/intake-notification-listener'
-import { DoctorMobileNav } from '@/components/ui/mobile-nav'
+import { ShortcutDiscoveryHint } from '@/components/doctor/keyboard-shortcuts-modal'
 import { PanelProvider } from '@/components/panels/panel-provider'
+import { DoctorMobileNav } from '@/components/ui/mobile-nav'
 import { useAuth } from '@/lib/supabase/auth-provider'
 
 /**

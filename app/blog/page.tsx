@@ -1,17 +1,18 @@
+import { ArrowRight, Clock, Eye, Link2,Linkedin, Share2 } from "lucide-react";
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { Clock, Eye, ArrowRight, Share2, Linkedin, Link2 } from "lucide-react";
-import { Navbar } from "@/components/shared/navbar";
-import { MarketingFooter } from "@/components/marketing";
+
+import { ArticlesPage } from "@/components/blog/articles-page";
 import { CenteredHero } from "@/components/heroes";
+import { MarketingFooter } from "@/components/marketing";
 import { CTABanner } from "@/components/sections";
+import { BreadcrumbSchema } from "@/components/seo";
+import { Navbar } from "@/components/shared";
+import { SectionPill } from "@/components/ui/section-pill";
 import { allArticles } from "@/lib/blog/articles";
 import { categories } from "@/lib/blog/types";
-import { BreadcrumbSchema } from "@/components/seo/healthcare-schema";
-import { ArticlesPage } from "@/components/blog/articles-page";
-import { SectionPill } from "@/components/ui/section-pill";
 import { PRICING_DISPLAY } from "@/lib/constants";
-import type { Metadata } from "next";
 
 // Revalidate every 12 hours - blog index updates occasionally
 export const revalidate = 43200;

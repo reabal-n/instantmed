@@ -14,10 +14,11 @@
  *   Fix: Replace brittle UI assertion with DB persistence verification
  */
 
-import { test, expect } from "@playwright/test"
-import { waitForPageLoad } from "./helpers/test-utils"
+import { expect,test } from "@playwright/test"
+
 import { loginAsOperator, logoutTestUser } from "./helpers/auth"
 import { getActiveTemplate, isDbAvailable } from "./helpers/db"
+import { waitForPageLoad } from "./helpers/test-utils"
 
 test.describe("Admin Template Studio", () => {
   test.beforeEach(async ({ page }) => {

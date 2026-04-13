@@ -1,9 +1,9 @@
 "use server"
 
 import { auth } from "@/lib/auth/helpers"
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { createClient } from "@/lib/supabase/server"
 import { createLogger } from "@/lib/observability/logger"
+import { createClient } from "@/lib/supabase/server"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const log = createLogger("ensure-profile")
 

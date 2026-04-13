@@ -1,15 +1,16 @@
-import { NextRequest, NextResponse } from "next/server"
 import { streamText } from "ai"
-import { getModelWithConfig, isAIConfigured, AI_MODEL_CONFIG } from "@/lib/ai/provider"
-import { getApiAuth } from "@/lib/auth/helpers"
-import { createLogger } from "@/lib/observability/logger"
-import { applyRateLimit } from "@/lib/rate-limit/redis"
-import { auth } from "@/lib/auth/helpers"
-import { MED_CERT_DRAFT_PROMPT, FALLBACK_RESPONSES, PROMPT_VERSION } from "@/lib/ai/prompts"
+import { NextRequest, NextResponse } from "next/server"
+
 import { logAIAudit } from "@/lib/ai/audit"
 import { calculateConfidence } from "@/lib/ai/confidence"
 import { checkAndSanitize } from "@/lib/ai/prompt-safety"
-import { recordAIRequest, AI_ENDPOINTS } from "@/lib/monitoring/ai-health"
+import { FALLBACK_RESPONSES, MED_CERT_DRAFT_PROMPT, PROMPT_VERSION } from "@/lib/ai/prompts"
+import { AI_MODEL_CONFIG,getModelWithConfig, isAIConfigured } from "@/lib/ai/provider"
+import { getApiAuth } from "@/lib/auth/helpers"
+import { auth } from "@/lib/auth/helpers"
+import { AI_ENDPOINTS,recordAIRequest } from "@/lib/monitoring/ai-health"
+import { createLogger } from "@/lib/observability/logger"
+import { applyRateLimit } from "@/lib/rate-limit/redis"
 
 const log = createLogger("ai-med-cert-draft")
 

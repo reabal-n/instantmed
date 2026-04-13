@@ -3,15 +3,16 @@
  * Production-grade certificate management with idempotency and audit trail
  */
 
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { createLogger } from "@/lib/observability/logger"
-import { SYSTEM_AUTO_APPROVE_ID } from "@/lib/constants"
 import crypto from "crypto"
-import type { ClinicIdentity, TemplateConfig } from "@/types/certificate-template"
+
+import { SYSTEM_AUTO_APPROVE_ID } from "@/lib/constants"
+import { createLogger } from "@/lib/observability/logger"
 import {
   prepareCertificatePatientNameWrite,
   readCertificatePatientName,
 } from "@/lib/security/phi-field-wrappers"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
+import type { ClinicIdentity, TemplateConfig } from "@/types/certificate-template"
 
 const log = createLogger("issued-certificates")
 

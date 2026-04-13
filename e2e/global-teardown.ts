@@ -7,9 +7,9 @@
  */
 
 import { execSync } from "child_process"
+import * as dotenv from "dotenv"
 import * as fs from "fs"
 import * as path from "path"
-import * as dotenv from "dotenv"
 
 // Load .env.local for Supabase credentials
 dotenv.config({ path: path.join(__dirname, "..", ".env.local") })

@@ -4,12 +4,12 @@
  */
 
 import {
-  Heart,
   Brain,
   Droplet,
+  Heart,
   Pill,
-  User,
   Sparkles,
+  User,
 } from "lucide-react"
 
 export interface ConsultationType {

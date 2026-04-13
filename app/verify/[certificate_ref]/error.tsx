@@ -1,15 +1,16 @@
 "use client"
 
-import { useEffect, useState, useRef } from "react"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
 import {
   AlertTriangle,
-  RefreshCw,
   Home,
-  WifiOff,
   Mail,
+  RefreshCw,
+  WifiOff,
 } from "lucide-react"
+import Link from "next/link"
+import { useEffect, useRef,useState } from "react"
+
+import { Button } from "@/components/ui/button"
 import { CONTACT_EMAIL } from "@/lib/constants"
 
 function getErrorInfo(error: Error & { digest?: string }) {

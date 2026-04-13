@@ -11,7 +11,7 @@
  * - ResourcePage: FAQ, process guides, disclaimers, privacy
  */
 
-import type { ConditionPage, CertificatePage, BenefitPage, ResourcePage } from "./types"
+import type { BenefitPage, CertificatePage, ConditionPage, ResourcePage } from "./types"
 
 // ============================================
 // CONDITIONS PAGES

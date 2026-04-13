@@ -1,25 +1,25 @@
 "use client"
 
 import dynamic from "next/dynamic"
+
+// Hero is above-fold - not lazy loaded
+import { EDHeroSection } from "@/components/marketing/heroes/ed-hero"
+import { LiveWaitTime } from "@/components/marketing/live-wait-time"
+import {
+  type LandingPageConfig,
+  LandingPageShell,
+  ReferralStrip,
+} from "@/components/marketing/shared"
+import { ComparisonBar } from "@/components/marketing/shared/data-viz"
+import { ContentHubLinks } from "@/components/seo"
+import { SectionPill } from "@/components/ui/section-pill"
 import { PRICING } from "@/lib/constants"
-import { SOCIAL_PROOF_DISPLAY } from "@/lib/social-proof"
+import { ED_FAQ } from "@/lib/data/ed-faq"
 import {
   getTestimonialsByService,
   getTestimonialsForColumns,
 } from "@/lib/data/testimonials"
-import { ED_FAQ } from "@/lib/data/ed-faq"
-import {
-  LandingPageShell,
-  ReferralStrip,
-  type LandingPageConfig,
-} from "@/components/marketing/shared"
-import { LiveWaitTime } from "@/components/marketing/live-wait-time"
-import { ComparisonBar } from "@/components/marketing/shared/data-viz"
-import { SectionPill } from "@/components/ui/section-pill"
-import { ContentHubLinks } from "@/components/seo/content-hub-links"
-
-// Hero is above-fold - not lazy loaded
-import { EDHeroSection } from "@/components/marketing/heroes/ed-hero"
+import { SOCIAL_PROOF_DISPLAY } from "@/lib/social-proof"
 
 // Below-fold lazy loads - keep initial bundle small
 const TestimonialsSection = dynamic(

@@ -1,13 +1,14 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { ArrowLeft, CheckCircle, Clock, FileText, Loader2, MessageCircle, Phone, User,Zap } from "lucide-react"
 import Link from "next/link"
-import { createClient } from "@/lib/supabase/client"
-import { Button } from "@/components/ui/button"
+import { useEffect,useState } from "react"
+
 import { Badge } from "@/components/ui/badge"
-import { CheckCircle, Clock, FileText, Loader2, MessageCircle, Phone, ArrowLeft, Zap, User } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
 import { LottieAnimation } from "@/components/ui/lottie-animation"
+import { createClient } from "@/lib/supabase/client"
+import { cn } from "@/lib/utils"
 
 interface Intake {
   id: string

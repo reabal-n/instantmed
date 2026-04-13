@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
-import { applyRateLimit } from "@/lib/rate-limit/redis"
+
 import { requireApiRole } from "@/lib/auth/helpers"
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
+import { applyRateLimit } from "@/lib/rate-limit/redis"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const logger = createLogger("doctor-onboarding")
 

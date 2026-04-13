@@ -1,8 +1,9 @@
 "use client";
 
-import { motion, useMotionValue, useSpring, useMotionTemplate } from "framer-motion"
+import { motion, useMotionTemplate,useMotionValue, useSpring } from "framer-motion"
+import { type MouseEvent,type ReactNode, useRef } from "react";
+
 import { useReducedMotion } from "@/components/ui/motion";
-import { type ReactNode, useRef, type MouseEvent } from "react";
 import { cn } from "@/lib/utils";
 
 interface PerspectiveTiltCardProps {

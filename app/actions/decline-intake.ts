@@ -2,28 +2,47 @@
 
 /**
  * Canonical Decline Intake Action
- * 
+ *
  * Single source of truth for declining intakes.
- * Ensures consistent: status update → refund → email → audit
- * 
+ * Ensures consistent: status update -> refund -> email -> audit
+ *
  * Use this action everywhere decline happens:
  * - Doctor queue
  * - Admin panel
  * - Bulk actions
  * - API routes
+ *
+ * Refund processing: ./decline-refund.ts
+ * Bulk operations:   ./decline-bulk.ts
  */
 
 import * as Sentry from "@sentry/nextjs"
 import { revalidatePath } from "next/cache"
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { requireRoleOrNull } from "@/lib/auth/helpers"
-import { createLogger } from "@/lib/observability/logger"
+
 import { trackIntakeFunnelStep } from "@/lib/analytics/posthog-server"
-import { stripe } from "@/lib/stripe/client"
-import { logStatusChange } from "@/lib/data/intake-events"
-import { logTriageDeclined } from "@/lib/audit/compliance-audit"
-import { sendRequestDeclinedEmail } from "@/lib/email/senders"
 import type { RequestType } from "@/lib/audit/compliance-audit"
+import { logTriageDeclined } from "@/lib/audit/compliance-audit"
+import { requireRoleOrNull } from "@/lib/auth/helpers"
+import { logStatusChange } from "@/lib/data/intake-events"
+import { sendRequestDeclinedEmail } from "@/lib/email/senders"
+import { createLogger } from "@/lib/observability/logger"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
+
+import {
+  FULL_REFUND_CATEGORIES,
+  PARTIAL_REFUND_CATEGORIES,
+  PARTIAL_REFUND_PERCENT,
+  processRefund,
+} from "./decline-refund"
+
+// Re-export split modules so existing importers don't break
+export { declineIntakesBulk } from "./decline-bulk"
+export {
+  FULL_REFUND_CATEGORIES,
+  PARTIAL_REFUND_CATEGORIES,
+  PARTIAL_REFUND_PERCENT,
+  processRefund,
+} from "./decline-refund"
 
 const logger = createLogger("decline-intake")
 
@@ -31,7 +50,7 @@ const logger = createLogger("decline-intake")
 // TYPES
 // ============================================================================
 
-export type RefundStatus = 
+export type RefundStatus =
   | "not_applicable"
   | "not_eligible"
   | "pending"
@@ -62,22 +81,13 @@ export interface DeclineResult {
 // Valid statuses that can be declined
 const DECLINABLE_STATUSES = ["paid", "awaiting_review", "in_review", "pending_info", "pending_review", "awaiting_script"]
 
-// Categories eligible for FULL auto-refund on decline (cheaper, lower-cost-of-goods services)
-const FULL_REFUND_CATEGORIES = ["medical_certificate", "prescription"]
-
-// Categories eligible for PARTIAL auto-refund on decline.
-// Consults: 50% refund acknowledges doctor review time was spent while still honoring
-// the "money-back guarantee if we can't help" promise on checkout.
-const PARTIAL_REFUND_CATEGORIES = ["consult"]
-const PARTIAL_REFUND_PERCENT = 0.5
-
 // ============================================================================
 // MAIN ACTION
 // ============================================================================
 
 /**
  * Decline an intake with consistent refund, email, and audit handling.
- * 
+ *
  * Flow:
  * 1. Validate doctor/admin role
  * 2. Atomic status update to 'declined'
@@ -85,7 +95,7 @@ const PARTIAL_REFUND_PERCENT = 0.5
  * 4. Send decline email to patient
  * 5. Log intake event for audit
  * 6. Log compliance event
- * 
+ *
  * @param input - Decline parameters
  * @returns DeclineResult with status and refund info
  */
@@ -154,7 +164,7 @@ export async function declineIntake(input: DeclineInput): Promise<DeclineResult>
 
     // 3. ATOMIC STATUS UPDATE
     const declineNotes = reason ? `Declined: ${reason}` : "Declined"
-    
+
     const { data: updated, error: updateError } = await supabase
       .from("intakes")
       .update({
@@ -178,7 +188,7 @@ export async function declineIntake(input: DeclineInput): Promise<DeclineResult>
 
     if (updateError || !updated) {
       logger.error("[Decline] Failed to update intake status", { intakeId }, updateError)
-      
+
       // Check if status changed (race condition)
       if (updateError?.code === "PGRST116") {
         return {
@@ -310,7 +320,7 @@ export async function declineIntake(input: DeclineInput): Promise<DeclineResult>
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error"
     logger.error("[Decline] Unexpected error", { intakeId }, error instanceof Error ? error : undefined)
-    
+
     Sentry.captureException(error, {
       tags: { action: "decline_intake", intake_id: intakeId },
     })
@@ -323,142 +333,6 @@ export async function declineIntake(input: DeclineInput): Promise<DeclineResult>
 }
 
 // ============================================================================
-// REFUND PROCESSING
-// ============================================================================
-
-async function processRefund(
-  intakeId: string,
-  intake: {
-    payment_id: string | null
-    stripe_payment_intent_id: string | null
-    amount_cents: number | null
-    category: string | null
-  },
-  actorId: string,
-  timestamp: string,
-  /** Refund amount in cents. Omit/undefined for full refund (Stripe default). */
-  amountCents?: number
-): Promise<DeclineResult["refund"]> {
-  const supabase = createServiceRoleClient()
-
-  try {
-    // Mark as pending
-    await supabase
-      .from("intakes")
-      .update({
-        refund_status: "pending",
-        updated_at: timestamp,
-      })
-      .eq("id", intakeId)
-
-    // Get payment intent ID
-    let paymentIntentId = intake.stripe_payment_intent_id
-
-    if (!paymentIntentId && intake.payment_id) {
-      // Fetch from Stripe checkout session
-      try {
-        const session = await stripe.checkout.sessions.retrieve(intake.payment_id)
-        paymentIntentId = typeof session.payment_intent === "string"
-          ? session.payment_intent
-          : session.payment_intent?.id || null
-      } catch (_stripeError) {
-        logger.warn("[Decline] Failed to fetch checkout session", { intakeId, paymentId: intake.payment_id })
-      }
-    }
-
-    if (!paymentIntentId) {
-      const error = "No payment intent ID available for refund"
-      
-      await supabase
-        .from("intakes")
-        .update({
-          refund_status: "failed",
-          refund_error: error,
-          updated_at: timestamp,
-        })
-        .eq("id", intakeId)
-
-      captureRefundError(intakeId, intake.payment_id, error)
-
-      return {
-        status: "failed",
-        error,
-      }
-    }
-
-    // Process Stripe refund - partial refunds get a distinct idempotency key so
-    // a future full-refund retry isn't blocked by the partial-refund key.
-    const isPartial = amountCents !== undefined
-    const idempotencyKey = isPartial
-      ? `refund_decline_partial_${intakeId}`
-      : `refund_decline_${intakeId}`
-
-    const refund = await stripe.refunds.create(
-      {
-        payment_intent: paymentIntentId,
-        ...(amountCents !== undefined ? { amount: amountCents } : {}),
-        reason: "requested_by_customer",
-        metadata: {
-          intake_id: intakeId,
-          category: intake.category || "unknown",
-          declined_by: actorId,
-          refund_type: isPartial ? "decline_partial" : "decline",
-          ...(isPartial ? { partial_refund_percent: String(PARTIAL_REFUND_PERCENT) } : {}),
-        },
-      },
-      { idempotencyKey }
-    )
-
-    // Update intake with success
-    await supabase
-      .from("intakes")
-      .update({
-        payment_status: "refunded",
-        refund_status: "succeeded",
-        refund_stripe_id: refund.id,
-        refund_amount_cents: refund.amount,
-        refunded_at: timestamp,
-        refunded_by: actorId,
-        updated_at: timestamp,
-      })
-      .eq("id", intakeId)
-
-    logger.info("[Decline] Refund succeeded", {
-      intakeId,
-      refundId: refund.id,
-      amount: refund.amount,
-    })
-
-    return {
-      status: "succeeded",
-      stripeRefundId: refund.id,
-      amount: refund.amount,
-    }
-
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : "Unknown Stripe error"
-
-    await supabase
-      .from("intakes")
-      .update({
-        refund_status: "failed",
-        refund_error: errorMessage,
-        updated_at: timestamp,
-      })
-      .eq("id", intakeId)
-
-    captureRefundError(intakeId, intake.payment_id, errorMessage)
-
-    logger.error("[Decline] Refund failed", { intakeId }, error instanceof Error ? error : undefined)
-
-    return {
-      status: "failed",
-      error: errorMessage,
-    }
-  }
-}
-
-// ============================================================================
 // HELPERS
 // ============================================================================
 
@@ -466,54 +340,4 @@ function getRequestType(category: string | null): RequestType {
   if (category === "medical_certificate") return "med_cert"
   if (category === "prescription") return "repeat_rx"
   return "intake"
-}
-
-function captureRefundError(
-  intakeId: string,
-  paymentId: string | null,
-  error: string
-): void {
-  Sentry.captureMessage(`Refund failed for declined intake`, {
-    level: "error",
-    tags: {
-      action: "refund_on_decline",
-      intake_id: intakeId,
-      stripe_session_id: paymentId || "unknown",
-    },
-    extra: {
-      error,
-    },
-    fingerprint: ["refund-failed", intakeId],
-  })
-}
-
-// ============================================================================
-// BULK DECLINE
-// ============================================================================
-
-/**
- * Decline multiple intakes.
- * Processes sequentially to avoid race conditions.
- */
-export async function declineIntakesBulk(
-  intakeIds: string[],
-  reason?: string,
-): Promise<{
-  succeeded: string[]
-  failed: Array<{ intakeId: string; error: string }>
-}> {
-  const succeeded: string[] = []
-  const failed: Array<{ intakeId: string; error: string }> = []
-
-  for (const intakeId of intakeIds) {
-    const result = await declineIntake({ intakeId, reason })
-    
-    if (result.success) {
-      succeeded.push(intakeId)
-    } else {
-      failed.push({ intakeId, error: result.error || "Unknown error" })
-    }
-  }
-
-  return { succeeded, failed }
 }

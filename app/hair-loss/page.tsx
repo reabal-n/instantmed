@@ -1,15 +1,16 @@
 import type { Metadata } from "next"
-import { HairLossLanding } from "@/components/marketing/hair-loss-landing"
+
+import { HairLossLanding } from "@/components/marketing"
 import {
-  SpeakableSchema,
-  FAQSchema,
   BreadcrumbSchema,
+  FAQSchema,
+  HealthArticleSchema,
   MedicalServiceSchema,
   ReviewAggregateSchema,
-  HealthArticleSchema,
-} from "@/components/seo/healthcare-schema"
-import { HAIR_LOSS_FAQ } from "@/lib/data/hair-loss-faq"
+  SpeakableSchema,
+} from "@/components/seo"
 import { PRICING, REVIEW_AGGREGATE } from "@/lib/constants"
+import { HAIR_LOSS_FAQ } from "@/lib/data/hair-loss-faq"
 
 export const revalidate = 86400
 

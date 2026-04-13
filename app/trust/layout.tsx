@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
-import { BreadcrumbSchema } from "@/components/seo/healthcare-schema"
+
+import { BreadcrumbSchema } from "@/components/seo"
 
 // Revalidate every 24 hours - trust content is mostly static
 export const revalidate = 86400

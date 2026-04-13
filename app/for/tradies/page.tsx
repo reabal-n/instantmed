@@ -1,12 +1,12 @@
-import { safeJsonLd } from "@/lib/seo/safe-json-ld"
-import { Navbar } from "@/components/shared/navbar"
-import { Footer } from "@/components/shared/footer"
-import { Button } from "@/components/ui/button"
-import { ArrowRight, Shield, Zap, Clock, Smartphone, Star, Wrench, Building } from "lucide-react"
-import { SectionPill } from "@/components/ui/section-pill"
-import Link from "next/link"
+import { ArrowRight, Building,Clock, Shield, Smartphone, Star, Wrench, Zap } from "lucide-react"
 import type { Metadata } from "next"
+import Link from "next/link"
+
+import { Footer,Navbar } from "@/components/shared"
+import { Button } from "@/components/ui/button"
+import { SectionPill } from "@/components/ui/section-pill"
 import { PRICING_DISPLAY } from "@/lib/constants"
+import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 
 export const metadata: Metadata = {
   title: "Medical Certificates for Tradies | 15 Min Script",

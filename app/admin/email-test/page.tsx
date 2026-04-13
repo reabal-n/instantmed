@@ -1,6 +1,8 @@
 import { Suspense } from "react"
-import { EmailTestClient } from "./email-test-client"
+
 import { Skeleton } from "@/components/ui/skeleton"
+
+import { EmailTestClient } from "./email-test-client"
 
 export const dynamic = "force-dynamic"
 

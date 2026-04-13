@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server"
+
 import { auth } from "@/lib/auth/helpers"
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { sendPaymentReceivedEmail } from "@/lib/email/template-sender"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { requireValidCsrf } from "@/lib/security/csrf"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const log = createLogger("resend-confirmation")
 

@@ -1,49 +1,49 @@
 "use client"
 
-import Link from "next/link"
-import dynamic from "next/dynamic"
 import { motion } from "framer-motion"
-import { useReducedMotion } from "@/components/ui/motion"
 import {
   ArrowRight,
   CheckCircle2,
-  Clock,
-  Users,
-  Star,
-  ShieldCheck,
-  RefreshCw,
-  FileText,
   ClipboardList,
-  Stethoscope,
+  Clock,
+  FileText,
+  RefreshCw,
+  ShieldCheck,
   Smartphone,
+  Star,
+  Stethoscope,
+  Users,
 } from "lucide-react"
-import { cn } from "@/lib/utils"
+import dynamic from "next/dynamic"
+import Link from "next/link"
+
+// Hero is above-fold - not lazy loaded
+import { PrescriptionsHeroSection } from "@/components/marketing/heroes/prescriptions-hero"
+import { LiveWaitTime } from "@/components/marketing/live-wait-time"
+import {
+  type LandingPageConfig,
+  LandingPageShell,
+  RecentActivityTicker,
+  ReferralStrip,
+  type SocialProofStat,
+  SocialProofStrip,
+} from "@/components/marketing/shared"
+import { ComparisonBar } from "@/components/marketing/shared/data-viz"
+import { RelatedArticles } from "@/components/marketing/shared/related-articles"
+import { TestimonialCard } from "@/components/marketing/shared/testimonial-card"
+import { ContentHubLinks } from "@/components/seo"
 import { Button } from "@/components/ui/button"
 import { FAQList } from "@/components/ui/faq-list"
+import { useReducedMotion } from "@/components/ui/motion"
 import { SectionPill } from "@/components/ui/section-pill"
 import { PRICING } from "@/lib/constants"
-import { SOCIAL_PROOF, SOCIAL_PROOF_DISPLAY } from "@/lib/social-proof"
 import { PRESCRIPTION_FAQ } from "@/lib/data/prescription-faq"
 import {
   getTestimonialsByService,
   getTestimonialsForColumns,
 } from "@/lib/data/testimonials"
-import {
-  LandingPageShell,
-  ReferralStrip,
-  SocialProofStrip,
-  RecentActivityTicker,
-  type LandingPageConfig,
-  type SocialProofStat,
-} from "@/components/marketing/shared"
-import { ComparisonBar } from "@/components/marketing/shared/data-viz"
-import { TestimonialCard } from "@/components/marketing/shared/testimonial-card"
-import { LiveWaitTime } from "@/components/marketing/live-wait-time"
-import { ContentHubLinks } from "@/components/seo/content-hub-links"
-import { RelatedArticles } from "@/components/marketing/shared/related-articles"
-
-// Hero is above-fold - not lazy loaded
-import { PrescriptionsHeroSection } from "@/components/marketing/heroes/prescriptions-hero"
+import { SOCIAL_PROOF, SOCIAL_PROOF_DISPLAY } from "@/lib/social-proof"
+import { cn } from "@/lib/utils"
 
 // Below-fold lazy loads
 const TestimonialsSection = dynamic(

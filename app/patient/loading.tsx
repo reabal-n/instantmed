@@ -1,4 +1,4 @@
-import { Skeleton, CardSkeleton, RequestListSkeleton } from "@/components/ui/loader"
+import { CardSkeleton, RequestListSkeleton,Skeleton } from "@/components/ui/loader"
 
 export default function PatientLoading() {
   return (

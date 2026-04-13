@@ -5,9 +5,9 @@
  * Used by review-step, checkout-step, request-flow, and service hub.
  */
 
-import { PRICING, MED_CERT_DURATIONS } from "@/lib/constants"
+import { MED_CERT_DURATIONS,PRICING } from "@/lib/constants"
 import { getConsultSubtypePrice } from "@/lib/stripe/price-mapping"
-import type { UnifiedServiceType } from "@/lib/request/step-registry"
+import type { UnifiedServiceType } from "@/types/services"
 
 // ── Service labels ──────────────────────────────────────────────────────
 

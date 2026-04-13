@@ -1,8 +1,9 @@
 "use client"
 
 import { motion } from "framer-motion"
+import { CheckCircle2, FileText, Mail, ShieldCheck, User } from "lucide-react"
+
 import { useReducedMotion } from "@/components/ui/motion"
-import { FileText, CheckCircle2, Mail, ShieldCheck, User } from "lucide-react"
 
 /** SVG grain noise overlay for paper-like texture */
 function GrainOverlay() {

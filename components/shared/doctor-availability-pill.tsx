@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useEffect, useSyncExternalStore } from 'react'
-import { Moon, Zap } from 'lucide-react'
 import { motion } from 'framer-motion'
+import { Moon, Zap } from 'lucide-react'
+import { useEffect, useState, useSyncExternalStore } from 'react'
+
 import { useReducedMotion } from '@/components/ui/motion'
 
 const OPEN_HOUR = 8

@@ -1,16 +1,17 @@
 "use client"
 
-import { useState, useRef, useCallback, useEffect } from "react"
+import { AlertTriangle, CheckCircle,Loader2, MapPin } from "lucide-react"
+import { useCallback, useEffect,useRef, useState } from "react"
+
 import { Input } from "@/components/ui/input"
-import { cn } from "@/lib/utils"
-import { MapPin, Loader2, AlertTriangle, CheckCircle } from "lucide-react"
 import {
-  searchAddresses,
-  getPlaceDetails,
   generateSessionToken,
+  getPlaceDetails,
   type PlaceSuggestion,
+  searchAddresses,
 } from "@/lib/google-places/client"
 import { useDebounce } from "@/lib/hooks/use-debounce"
+import { cn } from "@/lib/utils"
 
 export interface AddressComponents {
   streetNumber: string

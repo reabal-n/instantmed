@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+
 import { getFeatureFlags } from "@/lib/feature-flags"
 
 export const revalidate = 30

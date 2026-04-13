@@ -1,22 +1,23 @@
-import type { Metadata } from 'next'
-import Link from 'next/link'
-import Image from 'next/image'
-import { Navbar } from '@/components/shared/navbar'
-import { MarketingFooter } from '@/components/marketing/footer'
-import { Button } from '@/components/ui/button'
-import { SectionPill } from '@/components/ui/section-pill'
 import {
   ArrowRight,
-  Check,
-  Shield,
   BadgeCheck,
-  FileCheck,
   Building2,
+  Check,
+  FileCheck,
   Scale,
+  Shield,
   Star,
 } from 'lucide-react'
-import { PRICING_DISPLAY } from '@/lib/constants'
+import type { Metadata } from 'next'
+import Image from 'next/image'
+import Link from 'next/link'
+
+import { MarketingFooter } from '@/components/marketing/footer'
 import { BreadcrumbSchema, FAQSchema } from '@/components/seo/healthcare-schema'
+import { Navbar } from '@/components/shared/navbar'
+import { Button } from '@/components/ui/button'
+import { SectionPill } from '@/components/ui/section-pill'
+import { PRICING_DISPLAY } from '@/lib/constants'
 
 const baseUrl = 'https://instantmed.com.au'
 

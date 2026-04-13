@@ -5,14 +5,14 @@
 
 import type { LucideIcon } from "lucide-react"
 import {
-  Stethoscope,
-  GraduationCap,
-  Coffee,
-  ShoppingBag,
   Briefcase,
-  Users,
-  Laptop,
   Car,
+  Coffee,
+  GraduationCap,
+  Laptop,
+  ShoppingBag,
+  Stethoscope,
+  Users,
 } from "lucide-react"
 
 export interface AudiencePageConfig {

@@ -1,8 +1,8 @@
 import "server-only"
 
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { createLogger } from "@/lib/observability/logger"
 import { executeCertApproval } from "@/lib/clinical/execute-cert-approval"
+import { createLogger } from "@/lib/observability/logger"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import type { CertReviewData } from "@/types/db"
 
 const log = createLogger("approve-direct")

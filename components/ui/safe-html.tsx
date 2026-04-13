@@ -1,8 +1,9 @@
 "use client"
 
 import { useMemo } from "react"
-import { sanitizeHtml } from "@/lib/utils/sanitize-html"
+
 import { cn } from "@/lib/utils"
+import { sanitizeHtml } from "@/lib/utils/sanitize-html"
 
 interface SafeHtmlProps {
   html: string

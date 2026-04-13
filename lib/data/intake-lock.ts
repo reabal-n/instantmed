@@ -1,7 +1,8 @@
 import "server-only"
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { logger } from "@/lib/observability/logger"
+
 import { toError } from "@/lib/errors"
+import { logger } from "@/lib/observability/logger"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 /**
  * Soft Session Lock for Intake Review

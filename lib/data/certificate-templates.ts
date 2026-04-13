@@ -4,12 +4,13 @@
  */
 
 import "server-only"
+
+import { createLogger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import type {
   CertificateTemplate,
   TemplateType,
 } from "@/types/certificate-template"
-import { createLogger } from "@/lib/observability/logger"
 
 // Re-export types and helpers from shared module (for backward compatibility)
 export { getTemplateTypeName } from "@/lib/data/types/certificate-templates"

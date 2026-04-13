@@ -1,7 +1,8 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { CheckCircle2, Sparkles, ShieldCheck } from "lucide-react"
+import { CheckCircle2, ShieldCheck,Sparkles } from "lucide-react"
+
 import { useReducedMotion } from "@/components/ui/motion"
 
 export function HairLossHeroMockup() {

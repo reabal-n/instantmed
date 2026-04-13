@@ -5,10 +5,10 @@
  */
 
 // Types
-export type { ConditionPage, CertificatePage, BenefitPage, ResourcePage } from "./types"
+export type { BenefitPage, CertificatePage, ConditionPage, ResourcePage } from "./types"
 
 // Page data arrays
-export { conditionPages, certificatePages, benefitPages, resourcePages } from "./definitions"
+export { benefitPages, certificatePages, conditionPages, resourcePages } from "./definitions"
 
 // Query/lookup helpers
-export { getAllPages, getPageCount, getAllSlugs, getPageBySlug } from "./helpers"
+export { getAllPages, getAllSlugs, getPageBySlug, getPageCount } from "./helpers"

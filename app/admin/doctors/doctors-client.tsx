@@ -1,21 +1,29 @@
 "use client"
 
-import { useState, useCallback } from "react"
-import { useRouter } from "next/navigation"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { UserCard, Snippet } from "@/components/uix"
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+  ArrowLeft,
+  CheckCircle,
+  Edit,
+  FileSignature,
+  Loader2,
+  Save,
+  Search,
+  Shield,
+  Stethoscope,
+  Upload,
+  Users,
+  XCircle,
+} from "lucide-react"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { useCallback,useState } from "react"
+import { toast } from "sonner"
+
+import {
+  getSignatureUrlAction,
+  updateDoctorIdentityAction,
+  uploadDoctorSignatureAction,
+} from "@/app/actions/admin-settings"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,6 +34,18 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import {
   Table,
   TableBody,
@@ -34,30 +54,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import {
-  Users,
-  Edit,
-  Upload,
-  Save,
-  ArrowLeft,
-  CheckCircle,
-  XCircle,
-  Loader2,
-  Search,
-  Stethoscope,
-  FileSignature,
-  Shield,
-} from "lucide-react"
-import { toast } from "sonner"
-import {
-  updateDoctorIdentityAction,
-  uploadDoctorSignatureAction,
-  getSignatureUrlAction,
-} from "@/app/actions/admin-settings"
+import { Snippet,UserCard } from "@/components/uix"
 import type { DoctorIdentityInput } from "@/lib/data/doctor-identity.shared"
 import {
-  validateProviderNumber,
   validateAhpraNumber,
+  validateProviderNumber,
 } from "@/lib/data/doctor-identity.shared"
 
 interface DoctorProfile {

@@ -1,9 +1,10 @@
 "use client"
 
-import { ReactNode } from "react"
-import { cn } from "@/lib/utils"
-import Link from "next/link"
 import { ChevronLeft } from "lucide-react"
+import Link from "next/link"
+import { ReactNode } from "react"
+
+import { cn } from "@/lib/utils"
 
 export interface DashboardHeaderProps {
   title: string

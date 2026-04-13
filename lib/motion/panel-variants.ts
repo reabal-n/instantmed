@@ -6,6 +6,7 @@
  */
 
 import type { Variants } from 'framer-motion'
+
 import { duration, easing } from '@/lib/motion'
 
 export const backdropVariants: Variants = {

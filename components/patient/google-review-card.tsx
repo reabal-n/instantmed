@@ -1,10 +1,11 @@
 "use client"
 
-import { useState, useEffect } from "react"
 import { Star, X } from "lucide-react"
+import { useEffect,useState } from "react"
+
 import { Button } from "@/components/ui/button"
-import { GOOGLE_REVIEW_URL } from "@/lib/constants"
 import { capture } from "@/lib/analytics/capture"
+import { GOOGLE_REVIEW_URL } from "@/lib/constants"
 
 const DISMISSED_KEY = "instantmed_review_dismissed"
 const TRACKING_URL = `${GOOGLE_REVIEW_URL}?utm_source=dashboard&utm_medium=review_card&utm_campaign=review`

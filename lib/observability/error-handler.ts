@@ -1,18 +1,14 @@
 import "server-only"
+
 import * as Sentry from "@sentry/nextjs"
+
 import { createLogger } from "./logger"
 
 const log = createLogger("error-handler")
 
-/**
- * Standard error response type for server actions
- */
-export interface ActionResult<T = unknown> {
-  success: boolean
-  data?: T
-  error?: string
-  code?: string
-}
+import type { ActionResult } from "@/types/shared"
+
+export type { ActionResult }
 
 /**
  * Create a successful action result

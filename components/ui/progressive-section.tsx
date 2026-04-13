@@ -1,11 +1,12 @@
 "use client"
 
-import { useState } from "react"
+import { AnimatePresence,motion } from "framer-motion"
 import { ChevronDown, ChevronUp } from "lucide-react"
-import { motion, AnimatePresence } from "framer-motion"
+import { useState } from "react"
+
+import { Button } from "@/components/ui/button"
 import { useReducedMotion } from "@/components/ui/motion"
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
 
 interface ProgressiveSectionProps {
   /** Section title */

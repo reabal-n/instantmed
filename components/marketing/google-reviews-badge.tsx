@@ -1,6 +1,7 @@
 'use client'
 
 import { Star } from 'lucide-react'
+
 import { GOOGLE_REVIEWS } from '@/lib/social-proof'
 
 /**

@@ -7,9 +7,12 @@
  * Collects employer details and optional note, then sends via server action.
  */
 
+import { AlertCircle, Building2, CheckCircle,Mail, MessageSquare, Send, User } from "lucide-react"
 import * as React from "react"
 import { useState, useTransition } from "react"
-import { Mail, Building2, User, MessageSquare, Send, AlertCircle, CheckCircle } from "lucide-react"
+
+import { sendEmployerEmail } from "@/app/actions/send-employer-email"
+import { Button } from "@/components/ui/button"
 import {
   Dialog,
   DialogContent,
@@ -18,11 +21,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { sendEmployerEmail } from "@/app/actions/send-employer-email"
 import { capture } from "@/lib/analytics/capture"
 
 interface SendToEmployerDialogProps {

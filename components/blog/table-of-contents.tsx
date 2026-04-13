@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { cn } from '@/lib/utils'
 import { List } from 'lucide-react'
+import { useEffect,useState } from 'react'
+
 import type { ArticleSection } from '@/lib/blog/types'
+import { cn } from '@/lib/utils'
 
 interface TableOfContentsProps {
   content: ArticleSection[]

@@ -5,6 +5,7 @@
  */
 
 import type { Metadata } from "next"
+
 import { PRICING_DISPLAY } from "@/lib/constants"
 
 const SITE_NAME = "InstantMed"

@@ -8,23 +8,25 @@
  * Safety: feature-flagged, rate-limited, logged to ai_audit_log, doctor batch review.
  */
 
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { createLogger } from "@/lib/observability/logger"
-import { getFeatureFlags } from "@/lib/feature-flags"
-import { evaluateAutoApprovalEligibility, extractDurationDays, extractStartDate } from "./auto-approval"
-import { executeCertApproval } from "@/lib/clinical/execute-cert-approval"
-import { checkRateLimit, recordRateLimitedAction } from "@/lib/rate-limit/doctor"
-import { getAbsenceDays } from "@/lib/stripe/price-mapping"
-import { SYSTEM_AUTO_APPROVE_ID } from "@/lib/constants"
-import { prepareDoctorNotesWrite } from "@/lib/security/phi-field-wrappers"
 import * as Sentry from "@sentry/nextjs"
+
 import { getPostHogClient } from "@/lib/analytics/posthog-server"
-import { sendTelegramAlert, escapeMarkdownValue } from "@/lib/notifications/telegram"
+import { executeCertApproval } from "@/lib/clinical/execute-cert-approval"
+import { SYSTEM_AUTO_APPROVE_ID } from "@/lib/constants"
+import { getFeatureFlags } from "@/lib/feature-flags"
+import { escapeMarkdownValue,sendTelegramAlert } from "@/lib/notifications/telegram"
+import { createLogger } from "@/lib/observability/logger"
+import { checkRateLimit, recordRateLimitedAction } from "@/lib/rate-limit/doctor"
+import { prepareDoctorNotesWrite } from "@/lib/security/phi-field-wrappers"
+import { getAbsenceDays } from "@/lib/stripe/price-mapping"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
+import type { CertReviewData } from "@/types/db"
+
+import { evaluateAutoApprovalEligibility, extractDurationDays, extractStartDate } from "./auto-approval"
 import {
   claimForProcessing, markApproved,
   markFailedRetrying, markIneligible,
 } from "./auto-approval-state"
-import type { CertReviewData } from "@/types/db"
 
 const log = createLogger("auto-approval-pipeline")
 
@@ -337,7 +339,9 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
     }
 
     // 4. Extract answers
-    const answersRaw = intake.answers as unknown as { answers: Record<string, unknown> }[] | { answers: Record<string, unknown> } | null
+    // Supabase FK join returns array or object depending on join cardinality
+    type AnswersJoin = { answers: Record<string, unknown> }
+    const answersRaw = intake.answers as AnswersJoin[] | AnswersJoin | null
     const answersObj = Array.isArray(answersRaw) ? answersRaw[0] : answersRaw
     const answersData = answersObj?.answers || null
 

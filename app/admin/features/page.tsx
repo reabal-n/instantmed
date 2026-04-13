@@ -1,8 +1,9 @@
-import { requireRole } from "@/lib/auth/helpers"
-import { FeatureFlagsClient } from "./features-client"
-import { getFeatureFlagsAction, getAutoApproveStatsAction } from "@/app/actions/admin-config"
+import { getAutoApproveStatsAction,getFeatureFlagsAction } from "@/app/actions/admin-config"
 import { getFeatureFlagAuditLogsAction } from "@/app/actions/admin-config"
+import { requireRole } from "@/lib/auth/helpers"
 import { DEFAULT_FLAGS } from "@/lib/data/types/feature-flags"
+
+import { FeatureFlagsClient } from "./features-client"
 
 export const dynamic = "force-dynamic"
 

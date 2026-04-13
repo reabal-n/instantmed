@@ -6,10 +6,20 @@
  * Provides user-friendly error UI with retry and reset options.
  */
 
+import { AlertTriangle, Home,RefreshCw } from "lucide-react"
 import { Component, type ReactNode } from "react"
-import { AlertTriangle, RefreshCw, Home } from "lucide-react"
-import { Button } from "@/components/ui/button"
+
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Button } from "@/components/ui/button"
+
+/** PostHog client shape injected by the SDK's script tag */
+interface PostHogClient {
+  capture: (event: string, props: Record<string, unknown>) => void
+}
+
+interface WindowWithPostHog {
+  posthog?: PostHogClient
+}
 
 interface StepErrorBoundaryProps {
   children: ReactNode
@@ -43,13 +53,16 @@ export class StepErrorBoundary extends Component<
       console.error(`Step error in ${this.props.stepId}:`, error)
     }
     
-    // Could send to PostHog or other error tracking here
-    if (typeof window !== 'undefined' && (window as unknown as { posthog?: { capture: (event: string, props: Record<string, unknown>) => void } }).posthog) {
-      (window as unknown as { posthog: { capture: (event: string, props: Record<string, unknown>) => void } }).posthog.capture('step_error', {
-        step_id: this.props.stepId,
-        error_message: error.message,
-        error_stack: error.stack,
-      })
+    // Send to PostHog if the client-side SDK is loaded
+    if (typeof window !== 'undefined') {
+      const ph = (window as unknown as WindowWithPostHog).posthog
+      if (ph) {
+        ph.capture('step_error', {
+          step_id: this.props.stepId,
+          error_message: error.message,
+          error_stack: error.stack,
+        })
+      }
     }
   }
 

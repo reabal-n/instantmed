@@ -1,11 +1,12 @@
 "use client"
 
+import { AnimatePresence,motion } from "framer-motion"
 import { useEffect, useState } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+
 import { useReducedMotion } from "@/components/ui/motion"
 import {
-  selectContextualMessage,
   type ContextualMessageService,
+  selectContextualMessage,
 } from "@/lib/marketing/contextual-messages"
 
 interface ContextualMessageProps {

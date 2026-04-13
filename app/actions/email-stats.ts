@@ -1,8 +1,10 @@
 "use server"
 
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { requireRole } from "@/lib/auth/helpers"
-import { logger } from "@/lib/observability/logger"
+import { createLogger } from "@/lib/observability/logger"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
+
+const log = createLogger("email-stats")
 
 export interface EmailStats {
   emailsSentToday: number
@@ -43,7 +45,7 @@ export async function getEmailStats(): Promise<{ stats: EmailStats; error?: stri
       .in("status", ["sent", "skipped_e2e"])
 
     if (todayError) {
-      logger.error("Failed to get today's email count", { error: todayError })
+      log.error("Failed to get today's email count", { error: todayError })
     }
 
     // Emails sent this week
@@ -54,7 +56,7 @@ export async function getEmailStats(): Promise<{ stats: EmailStats; error?: stri
       .in("status", ["sent", "skipped_e2e"])
 
     if (weekError) {
-      logger.error("Failed to get week's email count", { error: weekError })
+      log.error("Failed to get week's email count", { error: weekError })
     }
 
     // Pending emails (if any queue mechanism exists)
@@ -64,7 +66,7 @@ export async function getEmailStats(): Promise<{ stats: EmailStats; error?: stri
       .eq("status", "pending")
 
     if (pendingError) {
-      logger.error("Failed to get pending email count", { error: pendingError })
+      log.error("Failed to get pending email count", { error: pendingError })
     }
 
     // Failed emails (last 7 days)
@@ -75,7 +77,7 @@ export async function getEmailStats(): Promise<{ stats: EmailStats; error?: stri
       .eq("status", "failed")
 
     if (failedError) {
-      logger.error("Failed to get failed email count", { error: failedError })
+      log.error("Failed to get failed email count", { error: failedError })
     }
 
     // Calculate delivery rate (sent / (sent + failed) * 100) for last 7 days
@@ -96,7 +98,7 @@ export async function getEmailStats(): Promise<{ stats: EmailStats; error?: stri
       },
     }
   } catch (error) {
-    logger.error("Failed to fetch email stats", { error })
+    log.error("Failed to fetch email stats", { error })
     return {
       stats: {
         emailsSentToday: 0,
@@ -128,7 +130,7 @@ export async function getRecentEmailActivity(limit = 10): Promise<{
       .limit(limit)
 
     if (error) {
-      logger.error("Failed to fetch recent email activity", { error })
+      log.error("Failed to fetch recent email activity", { error })
       return { activity: [], error: error.message }
     }
 
@@ -144,7 +146,7 @@ export async function getRecentEmailActivity(limit = 10): Promise<{
 
     return { activity }
   } catch (error) {
-    logger.error("Failed to fetch recent email activity", { error })
+    log.error("Failed to fetch recent email activity", { error })
     return { activity: [], error: "Failed to fetch recent activity" }
   }
 }

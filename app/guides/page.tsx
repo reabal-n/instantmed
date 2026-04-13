@@ -1,11 +1,11 @@
-import { Navbar } from "@/components/shared/navbar"
-import { Footer } from "@/components/shared/footer"
+import { ArrowRight, Clock } from "lucide-react"
+import type { Metadata } from "next"
+import Link from "next/link"
+
+import { BreadcrumbSchema } from "@/components/seo"
+import { Footer,Navbar } from "@/components/shared"
 import { Button } from "@/components/ui/button"
 import { SectionPill } from "@/components/ui/section-pill"
-import { ArrowRight, Clock } from "lucide-react"
-import Link from "next/link"
-import type { Metadata } from "next"
-import { BreadcrumbSchema } from "@/components/seo/healthcare-schema"
 import { getGuideIndex } from "@/lib/seo/data/guides"
 
 export const metadata: Metadata = {

@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from "next/server"
+
 import {
-  processEmailDispatch,
   getEmailDispatcherStats,
   MAX_BATCH_SIZE,
   MAX_RETRIES,
+  processEmailDispatch,
 } from "@/lib/email/email-dispatcher"
-import { logger } from "@/lib/observability/logger"
+import { createLogger } from "@/lib/observability/logger"
+
+const log = createLogger("ops-email-dispatcher")
 import { timingSafeEqual } from "crypto"
 
 function verifyOpsSecret(providedSecret: string | null, cronSecret: string | null): boolean {
@@ -34,7 +37,7 @@ export async function POST(request: NextRequest) {
   const providedSecret = request.headers.get("x-ops-cron-secret")
 
   if (!verifyOpsSecret(providedSecret, cronSecret ?? null)) {
-    logger.warn("[Email Dispatcher OPS] Unauthorized request")
+    log.warn("[Email Dispatcher OPS] Unauthorized request")
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
@@ -43,7 +46,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(result)
   } catch (err) {
     const error = err instanceof Error ? err.message : "Unknown error"
-    logger.error("[Email Dispatcher OPS] Failed", { error })
+    log.error("[Email Dispatcher OPS] Failed", { error })
     return NextResponse.json({ error: "Email dispatch failed" }, { status: 500 })
   }
 }

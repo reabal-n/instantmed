@@ -1,30 +1,31 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
-import Link from "next/link"
-import { useSearchParams } from "next/navigation"
 import { motion } from "framer-motion"
-import { useReducedMotion } from "@/components/ui/motion"
 import {
-  Briefcase,
-  GraduationCap,
-  Heart,
   ArrowRight,
+  Briefcase,
   Check,
   CheckCircle2,
+  GraduationCap,
+  Heart,
 } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
-import { MED_CERT_DURATIONS, PRICING } from "@/lib/constants"
+import Link from "next/link"
+import { useSearchParams } from "next/navigation"
+import { useEffect, useRef,useState } from "react"
+
 import { usePostHog } from "@/components/providers/posthog-provider"
+import { Button } from "@/components/ui/button"
+import { useReducedMotion } from "@/components/ui/motion"
+import { SectionPill } from "@/components/ui/section-pill"
+import { MED_CERT_DURATIONS, PRICING } from "@/lib/constants"
 import {
   CERT_CATEGORIES,
   CERT_TYPE_POSTHOG_EVENT,
   CERT_TYPE_POSTHOG_PROPERTY,
   type CertCategory,
 } from "@/lib/marketing/med-cert-selector"
-import { SectionPill } from "@/components/ui/section-pill"
 import { SOCIAL_PROOF } from "@/lib/social-proof"
+import { cn } from "@/lib/utils"
 
 // =============================================================================
 // DATA

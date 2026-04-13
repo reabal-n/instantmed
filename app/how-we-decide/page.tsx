@@ -1,27 +1,28 @@
-import type { Metadata } from "next"
 import {
-  Eye,
-  ShieldCheck,
+  AlertCircle,
   ClipboardCheck,
-  Stethoscope,
+  Eye,
   Heart,
   MessageCircle,
-  AlertCircle,
+  ShieldCheck,
+  Stethoscope,
   UserCheck,
 } from "lucide-react"
-import { Navbar } from "@/components/shared/navbar"
-import { MarketingFooter } from "@/components/marketing"
+import type { Metadata } from "next"
+
 import { CenteredHero } from "@/components/heroes"
+import { MarketingFooter } from "@/components/marketing"
+import { HowWeDecideGuideSection } from "@/components/marketing/sections"
+import type { ChecklistItem, FeatureItem, ProcessStep } from "@/components/sections"
 import {
+  AccordionSection,
+  CTABanner,
   FeatureGrid,
   IconChecklist,
   ProcessSteps,
-  CTABanner,
-  AccordionSection,
 } from "@/components/sections"
-import type { FeatureItem, ChecklistItem, ProcessStep } from "@/components/sections"
-import { FAQSchema } from "@/components/seo/healthcare-schema"
-import { HowWeDecideGuideSection } from "@/components/marketing/sections/how-we-decide-guide-section"
+import { FAQSchema } from "@/components/seo"
+import { Navbar } from "@/components/shared"
 
 // =============================================================================
 // FAQ DATA

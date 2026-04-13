@@ -1,13 +1,14 @@
-import { describe, it, expect } from "vitest"
+import { describe, expect,it } from "vitest"
+
 import {
-  shuffleOptions,
+  DURATION_OPTIONS,
+  getProgressiveSymptomOptions,
   getRandomizedSymptomOptions,
   getSeverityOptions,
-  getProgressiveSymptomOptions,
   getTreatmentDurationOptions,
-  SYMPTOM_OPTIONS,
-  DURATION_OPTIONS,
   SEVERITY_OPTIONS,
+  shuffleOptions,
+  SYMPTOM_OPTIONS,
   TREATMENT_DURATION_OPTIONS,
 } from "@/lib/security/option-randomizer"
 

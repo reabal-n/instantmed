@@ -1,7 +1,9 @@
 import type { Metadata } from "next"
+
 import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
-import { MessagesClient } from "./messages-client"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
+
+import { MessagesClient } from "./messages-client"
 
 export const metadata: Metadata = {
   title: "Messages",

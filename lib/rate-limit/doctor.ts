@@ -1,8 +1,10 @@
 import "server-only"
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { logger } from "@/lib/observability/logger"
+
 import * as Sentry from "@sentry/nextjs"
+
 import { toError } from "@/lib/errors"
+import { logger } from "@/lib/observability/logger"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 /**
  * Rate Limiting for Doctor Actions

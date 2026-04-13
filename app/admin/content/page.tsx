@@ -1,5 +1,6 @@
-import { ContentBlocksClient } from "./content-client"
 import { getAllContentBlocksAction } from "@/app/actions/admin-config"
+
+import { ContentBlocksClient } from "./content-client"
 
 export const dynamic = "force-dynamic"
 

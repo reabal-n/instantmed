@@ -1,15 +1,16 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
+
 import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
 import {
+  type DoctorIdentity,
+  type DoctorIdentityInput,
   getDoctorIdentity,
   updateDoctorIdentity,
   uploadDoctorSignature,
-  validateProviderNumber,
   validateAhpraNumber,
-  type DoctorIdentity,
-  type DoctorIdentityInput,
+  validateProviderNumber,
 } from "@/lib/data/doctor-identity"
 import { createLogger } from "@/lib/observability/logger"
 

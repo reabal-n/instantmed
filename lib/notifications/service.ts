@@ -1,10 +1,10 @@
 "use server"
 
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { sendRequestDeclinedEmail } from "@/lib/email/senders"
-import { createLogger } from "@/lib/observability/logger"
 import { getPostHogClient } from "@/lib/analytics/posthog-server"
+import { sendRequestDeclinedEmail } from "@/lib/email/senders"
 import { toError } from "@/lib/errors"
+import { createLogger } from "@/lib/observability/logger"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 const logger = createLogger("notifications-service")
 
 type NotificationType = "request_update" | "payment" | "document_ready" | "refill_reminder" | "system" | "promotion"

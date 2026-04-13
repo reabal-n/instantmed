@@ -1,24 +1,25 @@
 "use client"
 
+import {
+  AlertTriangle,
+  Building,
+  Calendar,
+  CheckCircle,
+  FileText,
+  Loader2,
+  Search,
+  Shield,
+  User,
+  XCircle,
+} from "lucide-react"
 import { useState } from "react"
+
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
-import {
-  Shield,
-  CheckCircle,
-  XCircle,
-  Loader2,
-  FileText,
-  Calendar,
-  User,
-  Building,
-  AlertTriangle,
-  Search,
-} from "lucide-react"
+import { capture } from "@/lib/analytics/capture"
 import { CONTACT_EMAIL } from "@/lib/constants"
 import { normalizeVerificationCode } from "@/lib/utils/code-normalization"
-import { capture } from "@/lib/analytics/capture"
 
 interface VerificationResult {
   valid: boolean

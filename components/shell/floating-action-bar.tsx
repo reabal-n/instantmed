@@ -1,7 +1,8 @@
 'use client'
 
+import { AnimatePresence,motion } from 'framer-motion'
 import { type ReactNode } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+
 import { useReducedMotion } from '@/components/ui/motion'
 import { floatingBarVariants } from '@/lib/motion/panel-variants'
 import { cn } from '@/lib/utils'

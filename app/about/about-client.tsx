@@ -1,18 +1,14 @@
 "use client"
 
-import Image from "next/image"
-import { ShieldCheck, Lock, Accessibility, Eye } from "lucide-react"
-import { TrustBadgeRow } from "@/components/shared/trust-badge"
-import { FAQSchema } from "@/components/seo/healthcare-schema"
-import { FAQSection, CTABanner, FeatureGrid } from "@/components/sections"
-import { InformationalPageShell } from "@/components/marketing/shared/informational-page-shell"
-import { EditorialStoryBlock } from "@/components/marketing/shared/editorial-story-block"
-import { TestimonialCard } from "@/components/marketing/shared/testimonial-card"
-import { AnimatedDonutChart, ComparisonBar } from "@/components/marketing/shared/data-viz"
-import { ScrollingLogoMarquee } from "@/components/marketing/shared/scrolling-logo-marquee"
-import { AboutGuideSection } from "@/components/marketing/sections/about-guide-section"
-import { SOCIAL_PROOF } from "@/lib/social-proof"
+import { Accessibility, Eye,Lock, ShieldCheck } from "lucide-react"
+
+import { AboutGuideSection } from "@/components/marketing/sections"
+import { AnimatedDonutChart, ComparisonBar, EditorialStoryBlock, InformationalPageShell, ScrollingLogoMarquee, TestimonialCard } from "@/components/marketing/shared"
+import { CTABanner, FAQSection, FeatureGrid } from "@/components/sections"
+import { FAQSchema } from "@/components/seo"
+import { TrustBadgeRow } from "@/components/shared"
 import { usePatientCount } from "@/lib/hooks/use-patient-count"
+import { SOCIAL_PROOF } from "@/lib/social-proof"
 
 // =============================================================================
 // DATA

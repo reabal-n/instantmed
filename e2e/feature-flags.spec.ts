@@ -9,8 +9,9 @@
  * For CI, set these in the workflow or test config.
  */
 
-import { test, expect } from "@playwright/test"
-import { loginAsPatient, loginAsOperator, logoutTestUser } from "./helpers/auth"
+import { expect,test } from "@playwright/test"
+
+import { loginAsOperator, loginAsPatient, logoutTestUser } from "./helpers/auth"
 import { waitForPageLoad } from "./helpers/test-utils"
 
 test.describe("Feature Flags - Kill Switches", () => {

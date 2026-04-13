@@ -1,4 +1,5 @@
 import "server-only"
+
 import { createLogger } from "@/lib/observability/logger"
 const logger = createLogger("intake-lifecycle")
 
@@ -28,22 +29,9 @@ const logger = createLogger("intake-lifecycle")
 //
 // ============================================
 
-export type IntakeStatus =
-  | "draft"
-  | "pending_payment"
-  | "checkout_failed"
-  | "paid"
-  | "in_review"
-  | "pending_info"
-  | "approved"
-  | "declined"
-  | "escalated"
-  | "completed"
-  | "cancelled"
-  | "expired"
-  | "awaiting_script"
+import type { IntakeStatus, PaymentStatus } from "@/types/intake"
 
-export type PaymentStatus = "unpaid" | "pending" | "paid" | "refunded" | "failed"
+export type { IntakeStatus, PaymentStatus }
 
 // Valid status transitions
 const VALID_STATUS_TRANSITIONS: Record<IntakeStatus, IntakeStatus[]> = {

@@ -1,8 +1,8 @@
 "use client"
 
-import { cn } from "@/lib/utils"
 import { DottedGrid } from "@/components/marketing/dotted-grid"
-import { TrustBadgeGrid } from "@/components/shared/trust-badge"
+import { TrustBadgeGrid } from "@/components/shared"
+import { cn } from "@/lib/utils"
 
 interface TrustBadgeSliderProps {
   className?: string

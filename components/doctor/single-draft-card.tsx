@@ -7,11 +7,27 @@
  * staleness detection, and diff viewing for clinical notes.
  */
 
-import { useState, useTransition, useMemo, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import {
+  AlertTriangle,
+  Bot,
+  CheckCircle,
+  Clock,
+  Edit,
+  GitCompare,
+  Loader2,
+  XCircle,
+} from "lucide-react"
+import { useEffect,useMemo, useState, useTransition } from "react"
+
+import type { AIDraft } from "@/app/actions/draft-approval"
+import { approveDraft, checkDraftStaleness,rejectDraft } from "@/app/actions/draft-approval"
+import {
+  ClinicalNoteDiffView,
+  DraftContent,
+  formatDraftType,
+  getStatusBadge,
+  ValidationWarnings,
+} from "@/components/doctor/draft-review-content"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,26 +38,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import {
-  Bot,
-  CheckCircle,
-  XCircle,
-  Edit,
-  AlertTriangle,
-  Loader2,
-  Clock,
-  GitCompare,
-} from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription,CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
-import { approveDraft, rejectDraft, checkDraftStaleness } from "@/app/actions/draft-approval"
-import type { AIDraft } from "@/app/actions/draft-approval"
-import {
-  formatDraftType,
-  getStatusBadge,
-  ClinicalNoteDiffView,
-  ValidationWarnings,
-  DraftContent,
-} from "@/components/doctor/draft-review-content"
+import { Textarea } from "@/components/ui/textarea"
 
 interface SingleDraftCardProps {
   draft: AIDraft

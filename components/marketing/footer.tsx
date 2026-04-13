@@ -3,7 +3,7 @@
  * The unified Footer component lives in @/components/shared/footer.
  * MarketingFooter is equivalent to <Footer variant="marketing" /> (the default).
  */
-import { Footer } from "@/components/shared/footer"
+import { Footer } from "@/components/shared"
 
 export function MarketingFooter() {
   return <Footer variant="marketing" />

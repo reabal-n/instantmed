@@ -1,11 +1,13 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { useReducedMotion } from '@/components/ui/motion'
+
 import { FAQList } from '@/components/ui/faq-list'
-import { CONTACT_EMAIL } from '@/lib/constants'
-import type { ServiceFunnelConfig } from './funnel-types'
+import { useReducedMotion } from '@/components/ui/motion'
 import { SectionPill } from '@/components/ui/section-pill'
+import { CONTACT_EMAIL } from '@/lib/constants'
+
+import type { ServiceFunnelConfig } from './funnel-types'
 
 interface FaqSectionProps {
   config: ServiceFunnelConfig

@@ -1,22 +1,29 @@
 import "server-only"
+
 import { revalidateTag } from "next/cache"
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { createLogger } from "@/lib/observability/logger"
+
 import { toError } from "@/lib/errors"
+import { createLogger } from "@/lib/observability/logger"
+import { prepareDoctorNotesWrite, preparePatientNoteContentWrite, readPatientNoteContent } from "@/lib/security/phi-field-wrappers"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import type {
   Intake,
   IntakeStatus,
   PatientNote,
 } from "@/types/db"
 import {
-  validateIntakeStatusTransition,
-  logTransitionAttempt,
-  logTransitionSuccess,
-  logTransitionFailure,
-  IntakeLifecycleError,
-} from "../intake-lifecycle"
+  asIntake,
+  asPatientNote,
+} from "@/types/db"
+
 import { logStatusChange } from "../intake-events"
-import { prepareDoctorNotesWrite, preparePatientNoteContentWrite, readPatientNoteContent } from "@/lib/security/phi-field-wrappers"
+import {
+  IntakeLifecycleError,
+  logTransitionAttempt,
+  logTransitionFailure,
+  logTransitionSuccess,
+  validateIntakeStatusTransition,
+} from "../intake-lifecycle"
 import { triggerStatusEmail } from "./email-triggers"
 
 const logger = createLogger("data-intakes-mutations")
@@ -68,7 +75,7 @@ export async function createIntake(
     logger.error("Error creating intake answers", {}, answersError instanceof Error ? answersError : new Error(String(answersError)))
   }
 
-  return intake as unknown as Intake
+  return asIntake(intake as Record<string, unknown>)
 }
 
 /**
@@ -191,7 +198,7 @@ export async function updateIntakeStatus(
   revalidateTag("patient-intakes")
   revalidateTag("patient-dashboard")
 
-  return data as unknown as Intake
+  return asIntake(data as Record<string, unknown>)
 }
 
 /**
@@ -427,11 +434,11 @@ export async function createPatientNote(
     return null
   }
 
-  return {
+  return asPatientNote({
     ...data,
     content: await readPatientNoteContent(data),
     content_enc: undefined,
-  } as unknown as PatientNote
+  } as Record<string, unknown>)
 }
 
 /**

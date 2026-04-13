@@ -1,10 +1,11 @@
 import type { Metadata } from 'next'
-import { PRICING_DISPLAY } from '@/lib/constants'
+
+import { RepeatRxGuideSection } from '@/components/marketing/sections'
 import { ServiceFunnelPage } from '@/components/marketing/service-funnel-page'
-import { repeatScriptFunnelConfig } from '@/lib/marketing/service-funnel-configs'
+import { BreadcrumbSchema, FAQSchema,MedicalServiceSchema } from '@/components/seo/healthcare-schema'
+import { PRICING_DISPLAY } from '@/lib/constants'
 import { getFeatureFlags } from '@/lib/feature-flags'
-import { BreadcrumbSchema, MedicalServiceSchema, FAQSchema } from '@/components/seo/healthcare-schema'
-import { RepeatRxGuideSection } from '@/components/marketing/sections/repeat-rx-guide-section'
+import { repeatScriptFunnelConfig } from '@/lib/marketing/service-funnel-configs'
 
 // ISR - revalidate every 5 minutes (feature flags cached via unstable_cache)
 export const revalidate = 300

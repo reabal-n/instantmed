@@ -1,11 +1,13 @@
 "use client"
 
-import { useEffect, useRef, useMemo } from "react"
+import { useEffect, useMemo,useRef } from "react"
+
 import { usePostHog } from "@/components/providers/posthog-provider"
-import { useRequestStore } from "../store"
-import { canonicalizeServiceType } from "@/lib/request/draft-storage"
 import { trackFunnelStep, trackStepEvent } from "@/lib/analytics/conversion-tracking"
+import { canonicalizeServiceType } from "@/lib/request/draft-storage"
 import type { StepDefinition, UnifiedServiceType } from "@/lib/request/step-registry"
+
+import { useRequestStore } from "../store"
 
 interface UseFlowAnalyticsOptions {
   serviceType: UnifiedServiceType | null

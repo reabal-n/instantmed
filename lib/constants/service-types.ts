@@ -10,8 +10,8 @@
  * Import from here instead of defining service types inline.
  */
 
-import type { ServiceType } from "@/types/db"
 import { PRICING, PRICING_DISPLAY } from "@/lib/constants"
+import type { ServiceType } from "@/types/db"
 
 // ============================================================================
 // CANONICAL SERVICE TYPES (Database format - snake_case)

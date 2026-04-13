@@ -1,5 +1,6 @@
-import { describe, it, expect } from "vitest"
-import { shouldSendReminder, nextReminderNumber } from "@/lib/email/treatment-followup"
+import { describe, expect,it } from "vitest"
+
+import { nextReminderNumber,shouldSendReminder } from "@/lib/email/treatment-followup"
 
 describe("shouldSendReminder", () => {
   it("sends when due, not completed, no prior logs", () => {

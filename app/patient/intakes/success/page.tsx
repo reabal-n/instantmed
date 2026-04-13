@@ -1,7 +1,9 @@
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
 import { redirect } from "next/navigation"
 import { notFound } from "next/navigation"
+
+import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
+
 import { SuccessClient } from "./success-client"
 
 export const dynamic = "force-dynamic"

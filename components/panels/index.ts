@@ -5,7 +5,7 @@
  * import { PanelProvider, usePanel, SessionPanel, DrawerPanel } from '@/components/panels'
  */
 
-export { PanelProvider, usePanel, type Panel, type PanelType } from './panel-provider'
-export { SessionPanel } from './session-panel'
 export { DrawerPanel } from './drawer-panel'
+export { type Panel, PanelProvider, type PanelType,usePanel } from './panel-provider'
+export { SessionPanel } from './session-panel'
 export { SheetPanel } from './sheet-panel'

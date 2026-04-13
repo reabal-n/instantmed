@@ -1,13 +1,14 @@
-import Link from "next/link";
-import { ArrowRight, AlertTriangle } from "lucide-react";
-import { Navbar } from "@/components/shared/navbar";
-import { MarketingFooter } from "@/components/marketing";
-import { CenteredHero } from "@/components/heroes";
-import { AccordionSection, CTABanner, SectionHeader } from "@/components/sections";
-import { PerspectiveTiltCard } from "@/components/ui/morning/perspective-tilt-card";
-import { BreadcrumbSchema, FAQSchema } from "@/components/seo/healthcare-schema";
-import { symptoms as symptomsData } from "@/lib/seo/data/symptoms";
+import { AlertTriangle,ArrowRight } from "lucide-react";
 import type { Metadata } from "next";
+import Link from "next/link";
+
+import { CenteredHero } from "@/components/heroes";
+import { MarketingFooter } from "@/components/marketing";
+import { AccordionSection, CTABanner, SectionHeader } from "@/components/sections";
+import { BreadcrumbSchema, FAQSchema } from "@/components/seo";
+import { Navbar } from "@/components/shared";
+import { PerspectiveTiltCard } from "@/components/ui/morning/perspective-tilt-card";
+import { symptoms as symptomsData } from "@/lib/seo/data/symptoms";
 
 export const metadata: Metadata = {
   title: "Symptom Guide | Common Symptoms & Causes",

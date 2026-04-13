@@ -1,31 +1,32 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { motion, AnimatePresence } from "framer-motion"
-import { useReducedMotion } from "@/components/ui/motion"
+import { AnimatePresence,motion } from "framer-motion"
 import {
+  AlertCircle,
+  CheckCircle,
+  Clock,
   CreditCard,
   Download,
-  CheckCircle,
-  AlertCircle,
-  Clock,
-  Search,
-  RotateCcw,
   Eye,
+  RotateCcw,
+  Search,
 } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { useEffect, useState } from "react"
+import { toast } from "sonner"
+
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { cn } from "@/lib/utils"
-import { toast } from "sonner"
+import { Input } from "@/components/ui/input"
+import { useReducedMotion } from "@/components/ui/motion"
 import { PAYMENT_STATUS } from "@/lib/data/status"
-import { formatDate, formatDateLong, formatCurrency } from "@/lib/format"
+import { formatCurrency,formatDate, formatDateLong } from "@/lib/format"
+import { cn } from "@/lib/utils"
 
 interface Invoice {
   id: string

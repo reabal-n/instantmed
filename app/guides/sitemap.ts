@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next"
+
 import { getAllGuideSlugs } from "@/lib/seo/data/guides"
 
 const CONTENT_ENRICHED = new Date("2026-04-06")

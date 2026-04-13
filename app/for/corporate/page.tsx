@@ -1,12 +1,13 @@
-import { safeJsonLd } from "@/lib/seo/safe-json-ld"
-import { Navbar } from "@/components/shared/navbar"
-import { MarketingFooter, LiveWaitTime, StatsStrip, MediaMentions } from "@/components/marketing"
-import { Button } from "@/components/ui/button"
-import { ArrowRight, Shield, Zap, Clock, Star, Briefcase, Mail, Lock } from "lucide-react"
-import { SectionPill } from "@/components/ui/section-pill"
-import Link from "next/link"
+import { ArrowRight, Briefcase, Clock, Lock,Mail, Shield, Star, Zap } from "lucide-react"
 import type { Metadata } from "next"
+import Link from "next/link"
+
+import { LiveWaitTime, MarketingFooter, MediaMentions,StatsStrip } from "@/components/marketing"
+import { Navbar } from "@/components/shared"
+import { Button } from "@/components/ui/button"
+import { SectionPill } from "@/components/ui/section-pill"
 import { PRICING_DISPLAY } from "@/lib/constants"
+import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 
 export const metadata: Metadata = {
   title: "Medical Certificates for Corporate Workers | 15 Min",

@@ -1,14 +1,16 @@
 "use server"
 
 import * as React from "react"
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { sendEmail } from "./send-email"
-import { AbandonedCheckoutEmail } from "@/components/email/templates/abandoned-checkout"
-import { AbandonedCheckoutFollowupEmail, abandonedCheckoutFollowupSubject } from "@/components/email/templates/abandoned-checkout-followup"
+
 import { getAppUrl } from "@/lib/config/env"
+import { AbandonedCheckoutEmail } from "@/lib/email/components/templates/abandoned-checkout"
+import { AbandonedCheckoutFollowupEmail, abandonedCheckoutFollowupSubject } from "@/lib/email/components/templates/abandoned-checkout-followup"
+import { canSendMarketingEmail } from "@/lib/email/preferences"
 import { createLogger } from "@/lib/observability/logger"
 import { captureRedisWarning } from "@/lib/observability/redis-sentry"
-import { canSendMarketingEmail } from "@/app/actions/email-preferences"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
+
+import { sendEmail } from "./send-email"
 
 const logger = createLogger("abandoned-checkout")
 

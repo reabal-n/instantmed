@@ -13,9 +13,9 @@
  *   <TrustStrip tooltips={false} />          // Without tooltips (headers)
  */
 
-import { cn } from "@/lib/utils"
 import { TrustBadgeRow } from "@/components/shared/trust-badge"
 import type { BadgeId } from "@/lib/marketing/trust-badges"
+import { cn } from "@/lib/utils"
 
 type BadgeType = "ahpra" | "encrypted" | "private" | "refund" | "tga"
 

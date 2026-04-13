@@ -9,15 +9,16 @@
  * Run with: PLAYWRIGHT=1 pnpm e2e --grep "certificate-download"
  */
 
-import { test, expect } from "@playwright/test"
+import { expect,test } from "@playwright/test"
+
+import { loginAsPatient, logoutTestUser } from "./helpers/auth"
 import { 
-  isDbAvailable,
+  getIntakeDocumentForIntake,
+  getIssuedCertificateForIntake,
   getSupabaseClient,
   INTAKE_ID,
-  getIssuedCertificateForIntake,
-  getIntakeDocumentForIntake,
+  isDbAvailable,
 } from "./helpers/db"
-import { loginAsPatient, logoutTestUser } from "./helpers/auth"
 import { waitForPageLoad } from "./helpers/test-utils"
 
 // ============================================================================

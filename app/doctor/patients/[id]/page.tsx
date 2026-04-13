@@ -1,7 +1,10 @@
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { notFound } from "next/navigation"
-import { PatientDetailClient } from "./patient-detail-client"
+
 import { logger } from "@/lib/observability/logger"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
+import { asProfile } from "@/types/db"
+
+import { PatientDetailClient } from "./patient-detail-client"
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -100,7 +103,7 @@ async function getPatientWithHistory(patientId: string) {
   }))
 
   return {
-    patient: patient as unknown as import("@/types/db").Profile,
+    patient: asProfile(patient as Record<string, unknown>),
     intakes: transformedIntakes,
     emailLogs: emailLogs || [],
     patientNotes: patientNotes || [],

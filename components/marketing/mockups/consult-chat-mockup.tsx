@@ -1,8 +1,9 @@
 "use client"
 
 import { motion } from "framer-motion"
+import { BadgeCheck, CheckCircle2, Clock, FileText,Stethoscope } from "lucide-react"
+
 import { useReducedMotion } from "@/components/ui/motion"
-import { Stethoscope, Clock, BadgeCheck, CheckCircle2, FileText } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface ConsultChatMockupProps {

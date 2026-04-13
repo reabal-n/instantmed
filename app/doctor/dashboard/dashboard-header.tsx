@@ -1,11 +1,12 @@
 "use client"
 
-import { useState, useTransition } from "react"
-import { Switch } from "@/components/ui/switch"
-import { Label } from "@/components/ui/label"
 import { AlertTriangle } from "lucide-react"
-import { setDoctorAvailabilityAction } from "@/app/actions/doctor-availability"
+import { useState, useTransition } from "react"
 import { toast } from "sonner"
+
+import { setDoctorAvailabilityAction } from "@/app/actions/doctor-availability"
+import { Label } from "@/components/ui/label"
+import { Switch } from "@/components/ui/switch"
 
 interface DashboardHeaderProps {
   initialAvailable: boolean

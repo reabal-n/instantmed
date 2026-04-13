@@ -5,8 +5,9 @@
  * are only visible to admin users, not regular doctors.
  */
 
-import { test, expect } from "@playwright/test"
-import { loginAsOperator, loginAsDoctor, logoutTestUser } from "./helpers/auth"
+import { expect,test } from "@playwright/test"
+
+import { loginAsDoctor, loginAsOperator, logoutTestUser } from "./helpers/auth"
 
 test.describe("Ops Navigation Visibility", () => {
   test.afterEach(async ({ page }) => {

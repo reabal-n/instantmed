@@ -8,12 +8,14 @@
  * All server-side auth flows go through Supabase Auth (supabase.auth.getUser()).
  */
 
-import { cache } from "react"
-import { redirect } from "next/navigation"
 import { cookies } from "next/headers"
+import { redirect } from "next/navigation"
+import { cache } from "react"
+
 import { createClient } from "@/lib/supabase/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import type { Profile } from "@/types/db"
+import { asProfile } from "@/types/db"
 
 /** Escape ILIKE special characters to prevent wildcard injection */
 function escapeIlike(input: string): string {
@@ -112,16 +114,17 @@ export const getAuthenticatedUserWithProfile = cache(async (): Promise<Authentic
       .single()
 
     if (profile) {
+      const typedProfile = asProfile(profile as Record<string, unknown>)
       return {
         user: {
           id: e2eAuth.userId,
-          email: (profile as unknown as Profile).email ?? null,
+          email: typedProfile.email ?? null,
           user_metadata: {
-            full_name: (profile as unknown as Profile).full_name ?? undefined,
-            date_of_birth: (profile as unknown as Profile).date_of_birth ?? undefined,
+            full_name: typedProfile.full_name ?? undefined,
+            date_of_birth: typedProfile.date_of_birth ?? undefined,
           },
         },
-        profile: profile as unknown as Profile,
+        profile: typedProfile,
       }
     }
   }
@@ -147,16 +150,17 @@ export const getAuthenticatedUserWithProfile = cache(async (): Promise<Authentic
     return null
   }
 
+  const typedProfile = asProfile(profile as Record<string, unknown>)
   return {
     user: {
       id: user.id,
       email: user.email ?? null,
       user_metadata: {
-        full_name: (profile as unknown as Profile).full_name ?? undefined,
-        date_of_birth: (profile as unknown as Profile).date_of_birth ?? undefined,
+        full_name: typedProfile.full_name ?? undefined,
+        date_of_birth: typedProfile.date_of_birth ?? undefined,
       },
     },
-    profile: profile as unknown as Profile,
+    profile: typedProfile,
   }
 })
 
@@ -281,16 +285,17 @@ export async function getOrCreateAuthenticatedUser(): Promise<AuthenticatedUser 
     return null
   }
 
+  const typedProfile = asProfile(profile as Record<string, unknown>)
   return {
     user: {
       id: user.id,
       email: primaryEmail ?? null,
       user_metadata: {
-        full_name: (profile as unknown as Profile).full_name ?? undefined,
-        date_of_birth: (profile as unknown as Profile).date_of_birth ?? undefined,
+        full_name: typedProfile.full_name ?? undefined,
+        date_of_birth: typedProfile.date_of_birth ?? undefined,
       },
     },
-    profile: profile as unknown as Profile,
+    profile: typedProfile,
   }
 }
 
@@ -396,7 +401,7 @@ export async function getUserProfile(authUserId: string): Promise<Profile | null
     .single()
 
   if (error || !profile) return null
-  return profile as unknown as Profile
+  return asProfile(profile as Record<string, unknown>)
 }
 
 /**
@@ -481,7 +486,7 @@ export async function getApiAuth(): Promise<{ userId: string; profile: Profile }
     return null
   }
 
-  return { userId, profile: profile as unknown as Profile }
+  return { userId, profile: asProfile(profile as Record<string, unknown>) }
 }
 
 /**

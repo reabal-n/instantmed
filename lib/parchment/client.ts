@@ -9,20 +9,22 @@
 
 import "server-only"
 
-import crypto from "crypto"
-import { createLogger } from "@/lib/observability/logger"
 import * as Sentry from "@sentry/nextjs"
+import crypto from "crypto"
+
+import { createLogger } from "@/lib/observability/logger"
+
 import {
-  parchmentTokenResponseSchema,
-  parchmentSsoResponseSchema,
-  createPatientResponseSchema,
-  listUsersResponseSchema,
-  PARCHMENT_SCOPES,
   type CreatePatientRequest,
   type CreatePatientResponse,
-  type ParchmentSsoResponse,
-  type ParchmentUser,
+  createPatientResponseSchema,
   type ListUsersResponse,
+  listUsersResponseSchema,
+  PARCHMENT_SCOPES,
+  type ParchmentSsoResponse,
+  parchmentSsoResponseSchema,
+  parchmentTokenResponseSchema,
+  type ParchmentUser,
 } from "./types"
 
 const log = createLogger("parchment")

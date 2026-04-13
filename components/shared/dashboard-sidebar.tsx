@@ -1,35 +1,36 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
-import Link from "next/link"
-import { usePathname, useRouter } from "next/navigation"
-import { cn } from "@/lib/utils"
 import {
-  FileText,
-  FileCheck,
-  Users,
   BarChart3,
-  Download,
-  ListOrdered,
+  ChevronRight,
   ClipboardList,
+  Download,
+  FileCheck,
+  FileText,
+  FolderOpen,
+  Heart,
+  Keyboard,
+  LayoutDashboard,
+  ListOrdered,
+  LogOut,
+  Menu,
+  MessageSquare,
+  Pill,
+  Plus,
   Settings,
   Shield,
   ShieldAlert,
-  Keyboard,
-  ChevronRight,
-  LayoutDashboard,
-  Pill,
-  FolderOpen,
-  MessageSquare,
-  Heart,
-  Menu,
+  Users,
   X,
-  Plus,
-  LogOut,
 } from "lucide-react"
+import Link from "next/link"
+import { usePathname, useRouter } from "next/navigation"
+import { useCallback,useEffect, useState } from "react"
+
+import { KeyboardShortcutsModal } from "@/components/doctor"
 import { Button } from "@/components/ui/button"
-import { KeyboardShortcutsModal } from "@/components/doctor/keyboard-shortcuts-modal"
 import { useAuth } from "@/lib/supabase/auth-provider"
+import { cn } from "@/lib/utils"
 
 interface NavItem {
   href: string

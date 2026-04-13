@@ -1,5 +1,6 @@
 import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
+
 import { AnalyticsClient } from "./analytics-client"
 
 export const dynamic = "force-dynamic"

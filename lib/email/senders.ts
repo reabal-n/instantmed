@@ -7,16 +7,17 @@
  * while still using the centralized sendEmail system.
  */
 
-import { sendEmail } from "./send-email"
 import { env } from "@/lib/config/env"
 import {
-  RequestDeclinedEmail,
-  requestDeclinedEmailSubject,
-  RefundIssuedEmail,
-  refundIssuedEmailSubject,
   DeclineReengagementEmail,
   declineReengagementSubject,
-} from "@/components/email/templates"
+  RefundIssuedEmail,
+  refundIssuedEmailSubject,
+  RequestDeclinedEmail,
+  requestDeclinedEmailSubject,
+} from "@/lib/email/components/templates"
+
+import { sendEmail } from "./send-email"
 
 // ============================================
 // REQUEST DECLINED

@@ -5,8 +5,9 @@
  * Logs to ai_chat_audit_log for TGA compliance.
  */
 
-import { createServiceRoleClient } from '@/lib/supabase/service-role'
 import { createLogger } from '@/lib/observability/logger'
+import { createServiceRoleClient } from '@/lib/supabase/service-role'
+
 import { PROMPT_VERSION } from './prompts'
 
 const log = createLogger('ai-audit')

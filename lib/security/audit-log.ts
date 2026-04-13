@@ -1,8 +1,10 @@
 import "server-only"
-import { createClient } from "@supabase/supabase-js"
+
 import * as Sentry from "@sentry/nextjs"
+import { createClient } from "@supabase/supabase-js"
+
 import { createLogger } from "@/lib/observability/logger"
-import { sanitizeAuditMetadata, assertNoPHI } from "@/lib/security/sanitize-audit"
+import { assertNoPHI,sanitizeAuditMetadata } from "@/lib/security/sanitize-audit"
 const logger = createLogger("audit-log")
 
 export type AuditAction =

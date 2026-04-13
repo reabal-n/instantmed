@@ -1,8 +1,9 @@
 "use client"
 
 import { motion } from "framer-motion"
+import { CheckCircle2, Clock, FileText, Mail, PhoneOff } from "lucide-react"
+
 import { useReducedMotion } from "@/components/ui/motion"
-import { FileText, Clock, CheckCircle2, Mail, PhoneOff } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface MedCertHeroMockupProps {

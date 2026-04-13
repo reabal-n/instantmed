@@ -9,17 +9,16 @@ import type { TemplateType } from "@/types/certificate-template"
 
 // Re-export types from the main certificate-template types file
 export type {
+  AccentColorPreset,
   CertificateTemplate,
   CertificateTemplateWithCreator,
-  TemplateConfig,
-  TemplateType,
+  FontSizePreset,
   HeaderStyle,
   MarginPreset,
-  FontSizePreset,
-  AccentColorPreset,
   SignatureStyle,
+  TemplateConfig,
+  TemplateType,
 } from "@/types/certificate-template"
-
 export { DEFAULT_TEMPLATE_CONFIG } from "@/types/certificate-template"
 
 // ============================================================================

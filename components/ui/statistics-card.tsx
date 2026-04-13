@@ -3,8 +3,9 @@
 import NumberFlow from "@number-flow/react";
 import { motion } from "framer-motion";
 import React from "react";
-import { cn } from "@/lib/utils";
+
 import { useReducedMotion } from "@/components/ui/motion";
+import { cn } from "@/lib/utils";
 
 const css = `
 .candy-bg {

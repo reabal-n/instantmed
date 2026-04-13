@@ -1,4 +1,3 @@
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
 import {
   prepareHealthAllergiesWrite,
@@ -10,6 +9,7 @@ import {
   readHealthMedications,
   readHealthNotes,
 } from "@/lib/security/phi-field-wrappers"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const log = createLogger("health-profile")
 

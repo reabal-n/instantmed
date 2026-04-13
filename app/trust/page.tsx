@@ -1,7 +1,9 @@
 import type { Metadata } from "next"
-import TrustPage from "./trust-client"
-import { ReviewAggregateSchema } from "@/components/seo/healthcare-schema"
+
+import { ReviewAggregateSchema } from "@/components/seo"
 import { SOCIAL_PROOF } from "@/lib/social-proof"
+
+import TrustPage from "./trust-client"
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://instantmed.com.au"
 

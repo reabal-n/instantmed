@@ -1,6 +1,7 @@
-import type { SupabaseClient } from "@supabase/supabase-js"
-import { createLogger } from "@/lib/observability/logger"
 import * as Sentry from "@sentry/nextjs"
+import type { SupabaseClient } from "@supabase/supabase-js"
+
+import { createLogger } from "@/lib/observability/logger"
 
 const log = createLogger("stripe-webhook")
 

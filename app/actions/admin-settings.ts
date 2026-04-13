@@ -6,33 +6,35 @@
  */
 
 import { revalidatePath } from "next/cache"
+
 import { requireRole } from "@/lib/auth/helpers"
 import {
   getClinicIdentityHistory,
+  getClinicLogoUrl,
   saveClinicIdentity,
   uploadClinicLogo,
-  getClinicLogoUrl,
 } from "@/lib/data/clinic-identity"
 import {
   getDoctorIdentity,
+  getSignatureUrl,
   updateDoctorIdentity,
   uploadDoctorSignature,
-  getSignatureUrl,
 } from "@/lib/data/doctor-identity"
+import type { DoctorIdentityInput } from "@/lib/data/doctor-identity.shared"
 import {
+  createService,
+  deleteService,
   getAllServices,
   getServiceById,
-  createService,
-  updateService,
-  toggleServiceActive,
-  updateServiceOrder,
-  deleteService,
   type ServiceInput,
+  toggleServiceActive,
+  updateService,
+  updateServiceOrder,
 } from "@/lib/data/services"
-import type { ClinicIdentityInput } from "@/types/certificate-template"
-import type { DoctorIdentityInput } from "@/lib/data/doctor-identity.shared"
 import { createLogger } from "@/lib/observability/logger"
+import { checkServerActionRateLimit } from "@/lib/rate-limit/redis"
 import { logAuditEvent } from "@/lib/security/audit-log"
+import type { ClinicIdentityInput } from "@/types/certificate-template"
 
 const log = createLogger("admin-settings-actions")
 
@@ -45,6 +47,26 @@ async function requireAdmin() {
   return profile
 }
 
+/**
+ * Auth + rate limit guard for admin mutations.
+ * Returns admin profile or throws RateLimitError.
+ */
+async function requireAdminWithRateLimit() {
+  const profile = await requireAdmin()
+  const rateLimit = await checkServerActionRateLimit(`admin:${profile.id}`, "admin")
+  if (!rateLimit.success) {
+    throw new RateLimitError(rateLimit.error || "Too many requests. Please wait a moment before trying again.")
+  }
+  return profile
+}
+
+class RateLimitError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = "RateLimitError"
+  }
+}
+
 // ============================================================================
 // CLINIC IDENTITY ACTIONS
 // ============================================================================
@@ -55,7 +77,7 @@ export async function getClinicIdentityHistoryAction() {
 }
 
 export async function saveClinicIdentityAction(input: ClinicIdentityInput) {
-  const profile = await requireAdmin()
+  const profile = await requireAdminWithRateLimit()
 
   const result = await saveClinicIdentity(input, profile.id)
 
@@ -69,7 +91,7 @@ export async function saveClinicIdentityAction(input: ClinicIdentityInput) {
 }
 
 export async function uploadClinicLogoAction(formData: FormData) {
-  const profile = await requireAdmin()
+  const profile = await requireAdminWithRateLimit()
 
   const file = formData.get("file") as File
   if (!file) {
@@ -144,7 +166,7 @@ export async function updateDoctorIdentityAction(
   profileId: string,
   input: DoctorIdentityInput
 ) {
-  const admin = await requireAdmin()
+  const admin = await requireAdminWithRateLimit()
 
   const result = await updateDoctorIdentity(profileId, input)
 
@@ -173,7 +195,7 @@ export async function uploadDoctorSignatureAction(
   profileId: string,
   formData: FormData
 ) {
-  const admin = await requireAdmin()
+  const admin = await requireAdminWithRateLimit()
 
   const file = formData.get("file") as File
   if (!file) {
@@ -213,7 +235,7 @@ export async function getServiceByIdAction(id: string) {
 }
 
 export async function createServiceAction(input: ServiceInput) {
-  const admin = await requireAdmin()
+  const admin = await requireAdminWithRateLimit()
 
   const result = await createService(input)
 
@@ -238,7 +260,7 @@ export async function createServiceAction(input: ServiceInput) {
 }
 
 export async function updateServiceAction(id: string, input: Partial<ServiceInput>) {
-  const admin = await requireAdmin()
+  const admin = await requireAdminWithRateLimit()
 
   const result = await updateService(id, input)
 
@@ -263,7 +285,7 @@ export async function updateServiceAction(id: string, input: Partial<ServiceInpu
 }
 
 export async function toggleServiceActiveAction(id: string, isActive: boolean) {
-  const admin = await requireAdmin()
+  const admin = await requireAdminWithRateLimit()
 
   const result = await toggleServiceActive(id, isActive)
 
@@ -288,7 +310,7 @@ export async function toggleServiceActiveAction(id: string, isActive: boolean) {
 }
 
 export async function updateServiceOrderAction(orderedIds: string[]) {
-  const admin = await requireAdmin()
+  const admin = await requireAdminWithRateLimit()
 
   const result = await updateServiceOrder(orderedIds)
 
@@ -302,7 +324,7 @@ export async function updateServiceOrderAction(orderedIds: string[]) {
 }
 
 export async function deleteServiceAction(id: string) {
-  const admin = await requireAdmin()
+  const admin = await requireAdminWithRateLimit()
 
   const result = await deleteService(id)
 

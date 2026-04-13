@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
+
 import { useReducedMotion } from "@/components/ui/motion"
 
 /** Animated number counter using NumberFlow when available */

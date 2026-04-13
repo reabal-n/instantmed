@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next"
+
 import { getAllConditionSlugs } from "@/lib/seo/data/conditions"
 
 const CONTENT_ENRICHED = new Date("2026-04-13")

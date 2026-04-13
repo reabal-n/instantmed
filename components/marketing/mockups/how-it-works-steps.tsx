@@ -1,7 +1,7 @@
 "use client"
 
-import Image from "next/image"
 import { CheckCircle2, Clock, Download, FileText, Mail } from "lucide-react"
+import Image from "next/image"
 
 /** Step 1: Patient filling in the intake form */
 export function StepOneMockup() {

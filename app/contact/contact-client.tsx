@@ -1,41 +1,39 @@
 "use client"
 
-import type React from "react"
-import { useState } from "react"
-import Link from "next/link"
 import { motion, useInView } from "framer-motion"
-import { useRef } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Label } from "@/components/ui/label"
-import { cn } from "@/lib/utils"
-import { InformationalPageShell } from "@/components/marketing/shared/informational-page-shell"
-import { LiveWaitTime } from "@/components/marketing"
-import { CenteredHero } from "@/components/heroes"
-import { CTABanner } from "@/components/sections"
-import { DoctorCredibility } from "@/components/marketing/doctor-credibility"
-import { TestimonialCard } from "@/components/marketing/shared/testimonial-card"
-import { AnimatedDonutChart } from "@/components/marketing/shared/data-viz"
-import { SectionPill } from "@/components/ui/section-pill"
-import { scrollRevealConfig, useReducedMotion } from "@/components/ui/motion"
 import {
-  Mail,
-  Phone,
-  MapPin,
-  Clock,
-  Send,
-  MessageSquare,
+  AlertCircle,
   ArrowRight,
   CheckCircle2,
-  HelpCircle,
+  Clock,
   FileText,
-  AlertCircle,
+  HelpCircle,
+  Mail,
+  MapPin,
+  MessageSquare,
+  Phone,
+  Send,
 } from "lucide-react"
-import { capture } from "@/lib/analytics/capture"
+import Link from "next/link"
+import type React from "react"
+import { useState } from "react"
+import { useRef } from "react"
+
 import { submitContactForm } from "@/app/actions/contact-form"
+import { CenteredHero } from "@/components/heroes"
+import { DoctorCredibility,LiveWaitTime } from "@/components/marketing"
+import { AnimatedDonutChart, InformationalPageShell, TestimonialCard } from "@/components/marketing/shared"
+import { CTABanner } from "@/components/sections"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { scrollRevealConfig, useReducedMotion } from "@/components/ui/motion"
+import { SectionPill } from "@/components/ui/section-pill"
+import { Textarea } from "@/components/ui/textarea"
+import { capture } from "@/lib/analytics/capture"
 import { CONTACT_EMAIL, CONTACT_EMAIL_COMPLAINTS, CONTACT_PHONE } from "@/lib/constants"
 import { SOCIAL_PROOF } from "@/lib/social-proof"
+import { cn } from "@/lib/utils"
 
 const CONTACT_CONFIG = {
   analyticsId: "contact" as const,

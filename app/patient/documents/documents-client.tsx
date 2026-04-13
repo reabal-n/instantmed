@@ -1,22 +1,23 @@
 "use client"
 
-import { useState } from "react"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
-  FileText,
-  Download,
-  Receipt,
   Calendar,
   ChevronRight,
+  Download,
+  FileText,
   FolderOpen,
+  Receipt,
 } from "lucide-react"
-import { formatDate, formatCurrency } from "@/lib/format"
+import Link from "next/link"
+import { useState } from "react"
+
+import { PatientErrorAlert } from "@/components/patient"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
 import { EmptyState } from "@/components/ui/empty-state"
-import { PatientErrorAlert } from "@/components/patient/error-alert"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { formatCurrency,formatDate } from "@/lib/format"
 
 interface Certificate {
   id: string

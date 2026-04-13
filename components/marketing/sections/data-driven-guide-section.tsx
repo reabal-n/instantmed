@@ -1,26 +1,27 @@
 "use client"
 
-import Link from "next/link"
 import { motion } from "framer-motion"
-import { useReducedMotion } from "@/components/ui/motion"
 import {
   BadgeCheck,
-  Stethoscope,
-  Scale,
-  Shield,
-  Monitor,
-  Clock,
-  Brain,
-  FlaskConical,
-  ShieldAlert,
   BookOpen,
-  Heart,
-  FileText,
-  Users,
+  Brain,
   Building2,
+  Clock,
+  FileText,
+  FlaskConical,
+  Heart,
   Landmark,
   type LucideIcon,
+  Monitor,
+  Scale,
+  Shield,
+  ShieldAlert,
+  Stethoscope,
+  Users,
 } from "lucide-react"
+import Link from "next/link"
+
+import { useReducedMotion } from "@/components/ui/motion"
 
 // =============================================================================
 // ICON REGISTRY - resolves string names to components inside "use client"

@@ -1,7 +1,8 @@
 "use client"
 
-import { type ReactNode } from "react"
 import { motion } from "framer-motion"
+import { type ReactNode } from "react"
+
 import { useReducedMotion } from "@/components/ui/motion"
 import { cn } from "@/lib/utils"
 

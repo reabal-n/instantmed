@@ -1,10 +1,11 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react"
-import { Navbar } from "@/components/shared/navbar"
+
 import { MarketingFooter } from "@/components/marketing/footer"
 import { MarketingPageShell } from "@/components/marketing/marketing-page-shell"
 import { StickyCTA } from "@/components/marketing/shared/sticky-cta"
+import { Navbar } from "@/components/shared"
 import { useReducedMotion } from "@/components/ui/motion"
 import { useLandingAnalytics } from "@/lib/hooks/use-landing-analytics"
 

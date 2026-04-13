@@ -1,32 +1,34 @@
 "use client"
 
-import { useState } from "react"
 import { motion } from "framer-motion"
-import { useReducedMotion } from "@/components/ui/motion"
 import {
-  Phone,
-  MapPin,
-  ShieldCheck,
   AlertTriangle,
+  MapPin,
+  Phone,
+  ShieldCheck,
 } from "lucide-react"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/uix"
-import { Switch } from "@/components/ui/switch"
-import { AddressAutocomplete, type AddressComponents } from "@/components/ui/address-autocomplete"
-import { DataSecurityStrip } from "@/components/checkout/trust-badges"
-import { ButtonSpinner } from "@/components/ui/skeleton"
-import { usePanel } from "@/components/panels"
-import { cn } from "@/lib/utils"
-import { validateAustralianPhone } from "@/lib/validation/australian-phone"
-import { validateMedicareNumber, validateMedicareExpiry } from "@/lib/validation/medicare"
-import { validatePostcodeState } from "@/lib/validation/australian-address"
+import { useState } from "react"
+
 import {
-  updatePhoneAction,
   updateAddressAction,
   updateMedicareAction,
+  updatePhoneAction,
 } from "@/app/actions/profile-todo"
-import type { ProfileData } from "./profile-todo-card"
+import { DataSecurityStrip } from "@/components/checkout/trust-badges"
+import { usePanel } from "@/components/panels"
+import { AddressAutocomplete, type AddressComponents } from "@/components/ui/address-autocomplete"
+import { Input } from "@/components/ui/input"
+import { useReducedMotion } from "@/components/ui/motion"
+import { ButtonSpinner } from "@/components/ui/skeleton"
+import { Switch } from "@/components/ui/switch"
+import { Button } from "@/components/uix"
+import { cn } from "@/lib/utils"
+import { validatePostcodeState } from "@/lib/validation/australian-address"
+import { validateAustralianPhone } from "@/lib/validation/australian-phone"
+import { validateMedicareExpiry,validateMedicareNumber } from "@/lib/validation/medicare"
 import type { AustralianState } from "@/types/db"
+
+import type { ProfileData } from "./profile-todo-card"
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 

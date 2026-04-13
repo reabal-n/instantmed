@@ -11,15 +11,16 @@
  *   <TrustBadgeRow preset="trust_certifications" />  // LegitScript + Google cert logos
  */
 
-import { useEffect } from 'react'
-import Image from 'next/image'
-import { motion, useMotionValue, useTransform, animate } from 'framer-motion'
+import { animate,motion, useMotionValue, useTransform } from 'framer-motion'
 import { Lock } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/tooltip'
+import Image from 'next/image'
+import { useEffect } from 'react'
+
 import { useReducedMotion } from '@/components/ui/motion'
-import { BADGE_REGISTRY, BADGE_PRESETS, resolveEntry, type BadgeId, type BadgeVariant, type PresetEntry, type BadgeConfig } from '@/lib/marketing/trust-badges'
+import { Tooltip, TooltipContent, TooltipProvider,TooltipTrigger } from '@/components/ui/tooltip'
+import { BADGE_PRESETS, BADGE_REGISTRY, type BadgeConfig,type BadgeId, type BadgeVariant, type PresetEntry, resolveEntry } from '@/lib/marketing/trust-badges'
 import { getPatientCount } from '@/lib/social-proof'
+import { cn } from '@/lib/utils'
 
 // ── Shared pill wrapper ──────────────────────────────────────────────
 

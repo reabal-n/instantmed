@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
-import { BreadcrumbSchema } from "@/components/seo/healthcare-schema"
+
+import { BreadcrumbSchema } from "@/components/seo"
 import { PRICING_DISPLAY } from "@/lib/constants"
 
 // Revalidate every 24 hours - pricing rarely changes

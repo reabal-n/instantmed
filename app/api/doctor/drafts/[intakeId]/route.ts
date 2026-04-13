@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server"
+
+import { generateDraftsForIntake } from "@/app/actions/generate-drafts"
+import { getDraftsForIntake } from "@/lib/ai/drafts"
 import { requireApiRole } from "@/lib/auth/helpers"
 import { createLogger } from "@/lib/observability/logger"
-import { getDraftsForIntake } from "@/lib/ai/drafts"
-import { generateDraftsForIntake } from "@/app/actions/generate-drafts"
-import { requireValidCsrf } from "@/lib/security/csrf"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
+import { requireValidCsrf } from "@/lib/security/csrf"
 
 const log = createLogger("doctor-drafts-api")
 

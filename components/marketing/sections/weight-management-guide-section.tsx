@@ -1,9 +1,10 @@
 "use client"
 
-import Link from "next/link"
 import { motion } from "framer-motion"
+import { BadgeCheck, Brain, Calendar, HeartPulse,Stethoscope, Target } from "lucide-react"
+import Link from "next/link"
+
 import { useReducedMotion } from "@/components/ui/motion"
-import { BadgeCheck, Brain, Target, Stethoscope, Calendar, HeartPulse } from "lucide-react"
 
 // =============================================================================
 // DATA

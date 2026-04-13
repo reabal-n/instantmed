@@ -2,8 +2,8 @@
  * SEO page query/lookup helpers.
  */
 
-import type { ConditionPage, CertificatePage, BenefitPage, ResourcePage } from "./types"
-import { conditionPages, certificatePages, benefitPages, resourcePages } from "./definitions"
+import { benefitPages, certificatePages, conditionPages, resourcePages } from "./definitions"
+import type { BenefitPage, CertificatePage, ConditionPage, ResourcePage } from "./types"
 
 export function getAllPages() {
   return {

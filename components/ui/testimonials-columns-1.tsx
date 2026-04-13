@@ -1,8 +1,9 @@
 "use client";
-import React, { useState, useRef } from "react";
-import Image from "next/image";
-import { Avatar } from "@/components/ui/avatar";
 import { BadgeCheck } from "lucide-react";
+import Image from "next/image";
+import React, { useRef,useState } from "react";
+
+import { Avatar } from "@/components/ui/avatar";
 
 function getInitials(name: string) {
   const cleaned = name.replace(/\s+/g, " ").trim();

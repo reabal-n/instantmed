@@ -1,17 +1,18 @@
 "use client"
 
-import { useState } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { AnimatePresence,motion } from "framer-motion"
 import { ChevronDown } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { useState } from "react"
+
+import { TrustBadge } from "@/components/shared"
 import { useReducedMotion } from "@/components/ui/motion"
-import { TrustBadge } from "@/components/shared/trust-badge"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import {
   BADGE_PRESETS,
-  resolveEntry,
   type PresetEntry,
+  resolveEntry,
 } from "@/lib/marketing/trust-badges"
+import { cn } from "@/lib/utils"
 
 // ---------------------------------------------------------------------------
 // Types

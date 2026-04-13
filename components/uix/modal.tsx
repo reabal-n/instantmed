@@ -1,7 +1,8 @@
 "use client"
 
-import * as React from "react"
 import * as DialogPrimitive from "@radix-ui/react-dialog"
+import * as React from "react"
+
 import { cn } from "@/lib/utils"
 
 /**
@@ -133,4 +134,4 @@ function ModalFooter({
 }
 ModalFooter.displayName = "ModalFooter"
 
-export { Modal, ModalHeader, ModalBody, ModalFooter, useDisclosure }
+export { Modal, ModalBody, ModalFooter, ModalHeader, useDisclosure }

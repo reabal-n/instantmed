@@ -1,8 +1,10 @@
+import { after,NextResponse } from "next/server"
 import type Stripe from "stripe"
-import { NextResponse, after } from "next/server"
+
 import { sendGuestCompleteAccountEmail } from "@/lib/email/template-sender"
 import { createLogger } from "@/lib/observability/logger"
-import type { WebhookContext, HandlerResult } from "./types"
+
+import type { HandlerResult,WebhookContext } from "./types"
 import { tryClaimEvent } from "./utils"
 
 const log = createLogger("stripe-webhook:async-payment-succeeded")
@@ -109,7 +111,7 @@ export async function handleAsyncPaymentSucceeded(ctx: WebhookContext): Promise<
 
           const React = await import("react")
           const { sendEmail } = await import("@/lib/email/send-email")
-          const { PaymentConfirmedEmail, paymentConfirmedSubject } = await import("@/components/email/templates/payment-confirmed")
+          const { PaymentConfirmedEmail, paymentConfirmedSubject } = await import("@/lib/email/components/templates/payment-confirmed")
 
           const serviceName = asyncEmailSessionMetadata?.service_slug
             ?.replace(/-/g, " ")

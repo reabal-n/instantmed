@@ -1,8 +1,8 @@
 "use server"
 
 import { auth, getApiAuth } from "@/lib/auth/helpers"
-import { createLogger } from "@/lib/observability/logger"
 import { toError } from "@/lib/errors"
+import { createLogger } from "@/lib/observability/logger"
 
 const logger = createLogger("resend-verification")
 

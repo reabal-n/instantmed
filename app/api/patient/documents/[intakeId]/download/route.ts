@@ -8,13 +8,13 @@
  * Supports both intakes (new) and legacy requests.
  */
 
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { getIntakeWithDetails } from "@/lib/data/intakes"
-import { getApiAuth } from "@/lib/auth/helpers"
-import { createLogger } from "@/lib/observability/logger"
 import { getPostHogClient } from "@/lib/analytics/posthog-server"
+import { getApiAuth } from "@/lib/auth/helpers"
+import { getIntakeWithDetails } from "@/lib/data/intakes"
 import { getCertificateForIntake, logCertificateEvent } from "@/lib/data/issued-certificates"
+import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 const log = createLogger("route")
 import { NextResponse } from "next/server"
 

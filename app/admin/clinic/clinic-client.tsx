@@ -1,13 +1,28 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import {
+  ArrowLeft,
+  Building2,
+  CheckCircle,
+  Image as ImageIcon,
+  Loader2,
+  Save,
+  Upload,
+} from "lucide-react"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { useCallback,useState } from "react"
+import { toast } from "sonner"
+
+import {
+  saveClinicIdentityAction,
+  uploadClinicLogoAction,
+} from "@/app/actions/admin-settings"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import {
   Select,
   SelectContent,
@@ -15,23 +30,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import {
-  Building2,
-  Upload,
-  Save,
-  ArrowLeft,
-  Image as ImageIcon,
-  CheckCircle,
-  Loader2,
-} from "lucide-react"
-import { toast } from "sonner"
-import type { ClinicIdentity, ClinicIdentityInput } from "@/types/certificate-template"
-import {
-  saveClinicIdentityAction,
-  uploadClinicLogoAction,
-} from "@/app/actions/admin-settings"
-import Link from "next/link"
+import { Textarea } from "@/components/ui/textarea"
 import { CONTACT_EMAIL } from "@/lib/constants"
+import type { ClinicIdentity, ClinicIdentityInput } from "@/types/certificate-template"
 
 interface ClinicIdentityClientProps {
   initialData: ClinicIdentity | null

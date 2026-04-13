@@ -1,7 +1,7 @@
 import "server-only"
 
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const logger = createLogger("approval-invariants")
 

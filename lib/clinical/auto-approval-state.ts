@@ -8,11 +8,12 @@
  * Observability (Sentry, PostHog, Telegram) is centralized here.
  */
 
-import { createLogger } from "@/lib/observability/logger"
 import * as Sentry from "@sentry/nextjs"
+
 import { getPostHogClient } from "@/lib/analytics/posthog-server"
-import { sendTelegramAlert, escapeMarkdownValue } from "@/lib/notifications/telegram"
 import { SYSTEM_AUTO_APPROVE_ID } from "@/lib/constants"
+import { escapeMarkdownValue,sendTelegramAlert } from "@/lib/notifications/telegram"
+import { createLogger } from "@/lib/observability/logger"
 
 const log = createLogger("auto-approval-state")
 
@@ -52,6 +53,7 @@ type SupabaseClient = {
       in: (col: string, vals: unknown[]) => unknown
     }
   }
+  rpc: (fn: string, args: Record<string, unknown>) => PromiseLike<unknown>
 }
 
 /**
@@ -213,9 +215,7 @@ export async function markFailedRetrying(
     // Increment attempts - separate query. Not atomic with the state transition,
     // but attempts is observability-only, not used for CAS decisions.
     try {
-      await (supabase as unknown as {
-        rpc: (fn: string, args: Record<string, unknown>) => Promise<unknown>
-      }).rpc("increment_auto_approval_attempts", { intake_id: intakeId })
+      await supabase.rpc("increment_auto_approval_attempts", { intake_id: intakeId })
     } catch {
       // Fallback: if RPC isn't available, the counter may lag - acceptable for observability
     }

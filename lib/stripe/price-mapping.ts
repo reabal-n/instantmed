@@ -10,7 +10,10 @@ const logger = createLogger("stripe-price-mapping")
  * Extracted from client.ts for testability (no "server-only" restriction).
  */
 
-export type ServiceCategory = "medical_certificate" | "prescription" | "consult"
+import type { ServiceCategory } from "@/types/services"
+
+// Re-export from canonical location for backward compatibility
+export type { ServiceCategory }
 
 export interface PriceIdInput {
   category: ServiceCategory

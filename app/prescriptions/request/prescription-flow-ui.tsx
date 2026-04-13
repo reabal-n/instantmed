@@ -1,12 +1,12 @@
 "use client"
 
-import type React from "react"
-
 import {
   AlertTriangle,
   Check,
   ExternalLink,
 } from "lucide-react"
+import type React from "react"
+
 import { Button } from "@/components/uix"
 import { RX_MICROCOPY } from "@/lib/microcopy/prescription"
 

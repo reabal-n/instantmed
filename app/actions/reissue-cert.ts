@@ -12,21 +12,22 @@
  * Optional patient notification (defaults off).
  */
 
+import * as Sentry from "@sentry/nextjs"
+import crypto from "crypto"
+import { revalidatePath } from "next/cache"
+
 import { requireRoleOrNull } from "@/lib/auth/helpers"
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { createLogger } from "@/lib/observability/logger"
-import { getCertificateForIntake, logCertificateEvent } from "@/lib/data/issued-certificates"
+import { env } from "@/lib/config/env"
 import { getDoctorIdentity } from "@/lib/data/doctor-identity"
-import { getAbsenceDays } from "@/lib/stripe/price-mapping"
+import { getCertificateForIntake, logCertificateEvent } from "@/lib/data/issued-certificates"
+import { MedCertPatientEmail, medCertPatientEmailSubject } from "@/lib/email/components/templates"
+import { sendEmail } from "@/lib/email/send-email"
+import { formatDateLong, formatShortDate, formatShortDateSafe } from "@/lib/format"
+import { createLogger } from "@/lib/observability/logger"
 import { renderTemplatePdf } from "@/lib/pdf/template-renderer"
 import { prepareCertificatePatientNameWrite } from "@/lib/security/phi-field-wrappers"
-import { sendEmail } from "@/lib/email/send-email"
-import { MedCertPatientEmail, medCertPatientEmailSubject } from "@/components/email/templates"
-import { env } from "@/lib/config/env"
-import { formatDateLong, formatShortDate, formatShortDateSafe } from "@/lib/format"
-import { revalidatePath } from "next/cache"
-import crypto from "crypto"
-import * as Sentry from "@sentry/nextjs"
+import { getAbsenceDays } from "@/lib/stripe/price-mapping"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const logger = createLogger("reissue-cert")
 

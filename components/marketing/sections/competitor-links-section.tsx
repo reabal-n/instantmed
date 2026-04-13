@@ -1,5 +1,6 @@
-import Link from "next/link"
 import { ArrowRight, Scale } from "lucide-react"
+import Link from "next/link"
+
 import { SectionPill } from "@/components/ui/section-pill"
 import { COMPETITOR_COMPARISONS } from "@/lib/seo/data/competitor-comparisons"
 

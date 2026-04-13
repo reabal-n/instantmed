@@ -1,37 +1,23 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { getApiAuth } from "@/lib/auth/helpers"
-import { logger } from "@/lib/observability/logger"
-import { checkServerActionRateLimit } from "@/lib/rate-limit/redis"
 
-interface CancelIntakeResult {
-  success: boolean
-  error?: string
-}
+import { withServerAction } from "@/lib/actions/with-server-action"
+import { checkServerActionRateLimit } from "@/lib/rate-limit/redis"
+import type { ActionResult } from "@/types/shared"
 
 /**
  * Server action to cancel a pending_payment intake.
  * Only the patient who owns the intake can cancel it.
- * 
- * @param intakeId - The ID of the intake to cancel
  */
-export async function cancelIntake(intakeId: string): Promise<CancelIntakeResult> {
-  try {
-    const authResult = await getApiAuth()
-
-    if (!authResult) {
-      return { success: false, error: "Please sign in to continue" }
-    }
-
+export const cancelIntake = withServerAction<string>(
+  { auth: "apiAuth", name: "cancel-intake" },
+  async (intakeId, { supabase, profile, userId, log }): Promise<ActionResult> => {
     // Rate limiting - prevent abuse
-    const rateLimit = await checkServerActionRateLimit(authResult.userId, "standard")
+    const rateLimit = await checkServerActionRateLimit(userId, "standard")
     if (!rateLimit.success) {
       return { success: false, error: rateLimit.error || "Too many requests. Please wait." }
     }
-
-    const supabase = createServiceRoleClient()
 
     // Fetch the intake to verify ownership and status
     const { data: intake, error: fetchError } = await supabase
@@ -41,16 +27,16 @@ export async function cancelIntake(intakeId: string): Promise<CancelIntakeResult
       .single()
 
     if (fetchError || !intake) {
-      logger.warn("Cancel intake: not found", { intakeId, userId: authResult.profile.id })
+      log.warn("Cancel intake: not found", { intakeId, userId: profile.id })
       return { success: false, error: "Request not found" }
     }
 
     // Verify ownership
-    if (intake.patient_id !== authResult.profile.id) {
-      logger.warn("Cancel intake: unauthorized", { 
-        intakeId, 
-        ownerId: intake.patient_id, 
-        userId: authResult.profile.id 
+    if (intake.patient_id !== profile.id) {
+      log.warn("Cancel intake: unauthorized", {
+        intakeId,
+        ownerId: intake.patient_id,
+        userId: profile.id,
       })
       return { success: false, error: "You can only cancel your own requests" }
     }
@@ -59,19 +45,19 @@ export async function cancelIntake(intakeId: string): Promise<CancelIntakeResult
     // Note: pending_info removed - doctor is waiting for response, patient should respond instead
     const cancellableStatuses = ["draft", "pending_payment"]
     if (!cancellableStatuses.includes(intake.status)) {
-      logger.warn("Cancel intake: invalid status", { intakeId, status: intake.status })
-      
+      log.warn("Cancel intake: invalid status", { intakeId, status: intake.status })
+
       // Provide specific message for pending_info status
       if (intake.status === "pending_info") {
-        return { 
-          success: false, 
-          error: "This request cannot be cancelled while the doctor is waiting for information. Please respond to the doctor's question first." 
+        return {
+          success: false,
+          error: "This request cannot be cancelled while the doctor is waiting for information. Please respond to the doctor's question first.",
         }
       }
-      
-      return { 
-        success: false, 
-        error: "This request cannot be cancelled. Only unpaid requests can be cancelled." 
+
+      return {
+        success: false,
+        error: "This request cannot be cancelled. Only unpaid requests can be cancelled.",
       }
     }
 
@@ -86,22 +72,16 @@ export async function cancelIntake(intakeId: string): Promise<CancelIntakeResult
       .eq("id", intakeId)
 
     if (updateError) {
-      logger.error("Cancel intake: update failed", { intakeId, error: updateError })
+      log.error("Cancel intake: update failed", { intakeId, error: updateError })
       return { success: false, error: "Failed to cancel request. Please try again." }
     }
 
-    logger.info("Intake cancelled successfully", { intakeId, userId: authResult.profile.id })
+    log.info("Intake cancelled successfully", { intakeId, userId: profile.id })
 
     // Revalidate paths
     revalidatePath("/patient")
     revalidatePath(`/patient/intakes/${intakeId}`)
 
     return { success: true }
-  } catch (error) {
-    logger.error("Cancel intake: unexpected error", {
-      intakeId,
-      error: error instanceof Error ? error.message : String(error),
-    })
-    return { success: false, error: "We couldn't process that request. Please try again." }
   }
-}
+)

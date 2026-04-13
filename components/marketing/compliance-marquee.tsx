@@ -1,6 +1,7 @@
 'use client'
 
-import { Shield, CheckCircle2, Lock, FileCheck, Stethoscope, Building2 } from 'lucide-react'
+import { Building2,CheckCircle2, FileCheck, Lock, Shield, Stethoscope } from 'lucide-react'
+
 import { cn } from '@/lib/utils'
 
 interface ComplianceMarqueeProps {

@@ -1,12 +1,21 @@
 "use client"
 
+import {
+  ArrowLeft,
+  Calendar,
+  CheckCircle,
+  CreditCard,
+  FileText,
+  Loader2,
+  Mail,
+  Save,
+  Send,
+  Sparkles,
+  XCircle,
+} from "lucide-react"
 import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
+
+import { type CertificatePreviewData, CertificatePreviewDialog, PdfViewerDialog } from "@/components/doctor"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,6 +26,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import {
   Select,
   SelectContent,
@@ -24,27 +38,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import {
-  ArrowLeft,
-  CheckCircle,
-  XCircle,
-  Calendar,
-  CreditCard,
-  FileText,
-  Save,
-  Loader2,
-  Send,
-  Mail,
-  Sparkles,
-} from "lucide-react"
-import { INTAKE_STATUS, type IntakeStatus as StatusType } from "@/lib/data/status"
-import { CertificatePreviewDialog, type CertificatePreviewData } from "@/components/doctor/certificate-preview-dialog"
-import { PdfViewerDialog } from "@/components/doctor/pdf-viewer-dialog"
-import { formatIntakeStatus } from "@/lib/format/intake"
-import type { IntakeWithDetails, IntakeStatus, DeclineReasonCode } from "@/types/db"
-import type { IntakeDialogState } from "./use-intake-dialogs"
-import { SERVICE_TYPES } from "@/lib/doctor/service-types"
+import { Textarea } from "@/components/ui/textarea"
 import type { CertDeliveryStatus } from "@/lib/data/issued-certificates"
+import { INTAKE_STATUS, type IntakeStatus as StatusType } from "@/lib/data/status"
+import { SERVICE_TYPES } from "@/lib/doctor/service-types"
+import { formatIntakeStatus } from "@/lib/format/intake"
+import type { DeclineReasonCode,IntakeStatus, IntakeWithDetails } from "@/types/db"
+
+import type { IntakeDialogState } from "./use-intake-dialogs"
 
 // P0 DOCTOR_WORKLOAD_AUDIT: Pre-filled decline reason templates to equalize approve/decline effort
 export const DECLINE_REASONS: { code: DeclineReasonCode; label: string; template: string }[] = [
@@ -268,27 +269,19 @@ export function IntakeDetailHeader({
               <div className="space-y-1 min-w-0">
                 <p className="text-sm font-medium text-violet-700 dark:text-violet-300">
                   AI Auto-Approved
-                  {(() => {
-                    const approvedAt = (intake as unknown as Record<string, unknown>).ai_approved_at
-                    if (!approvedAt) return null
-                    return (
-                      <span className="font-normal text-violet-500 dark:text-violet-400 ml-2 text-xs">
-                        {new Date(String(approvedAt)).toLocaleString("en-AU", {
-                          day: "numeric", month: "short", hour: "2-digit", minute: "2-digit",
-                        })}
-                      </span>
-                    )
-                  })()}
+                  {intake.ai_approved_at && (
+                    <span className="font-normal text-violet-500 dark:text-violet-400 ml-2 text-xs">
+                      {new Date(intake.ai_approved_at).toLocaleString("en-AU", {
+                        day: "numeric", month: "short", hour: "2-digit", minute: "2-digit",
+                      })}
+                    </span>
+                  )}
                 </p>
-                {(() => {
-                  const reason = (intake as unknown as Record<string, unknown>).ai_approval_reason
-                  if (!reason) return null
-                  return (
-                    <p className="text-xs text-violet-600/80 dark:text-violet-400/80">
-                      {String(reason)}
-                    </p>
-                  )
-                })()}
+                {intake.ai_approval_reason && (
+                  <p className="text-xs text-violet-600/80 dark:text-violet-400/80">
+                    {intake.ai_approval_reason}
+                  </p>
+                )}
               </div>
             </div>
           </CardContent>

@@ -1,8 +1,9 @@
 "use client"
 
-import { useAuth } from "@/lib/supabase/auth-provider"
-import { AppSignInButton } from "@/components/shared/app-sign-in-button"
 import Link from "next/link"
+
+import { AppSignInButton } from "@/components/shared/app-sign-in-button"
+import { useAuth } from "@/lib/supabase/auth-provider"
 
 /**
  * Auth controls for the footer - client component for auth state.

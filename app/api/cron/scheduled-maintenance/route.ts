@@ -1,10 +1,11 @@
 import * as Sentry from "@sentry/nextjs"
-import { NextRequest, NextResponse } from "next/server"
 import { revalidateTag } from "next/cache"
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { createLogger } from "@/lib/observability/logger"
+import { NextRequest, NextResponse } from "next/server"
+
 import { verifyCronRequest } from "@/lib/api/cron-auth"
 import { FLAG_KEYS } from "@/lib/data/types/feature-flags"
+import { createLogger } from "@/lib/observability/logger"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const log = createLogger("scheduled-maintenance-cron")
 

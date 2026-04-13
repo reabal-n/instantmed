@@ -9,9 +9,11 @@
  */
 
 import "server-only"
-import { encryptPHI, decryptPHI, isEncryptedPHI, type EncryptedPHI } from "./phi-encryption"
-import { createLogger } from "@/lib/observability/logger"
+
 import { toError } from "@/lib/errors"
+import { createLogger } from "@/lib/observability/logger"
+
+import { decryptPHI, type EncryptedPHI,encryptPHI, isEncryptedPHI } from "./phi-encryption"
 
 const logger = createLogger("phi-field-wrappers")
 

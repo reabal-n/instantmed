@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server"
+
 import { getApiAuth } from "@/lib/auth/helpers"
-import { logger } from "@/lib/observability/logger"
-import { requireValidCsrf } from "@/lib/security/csrf"
+import { createLogger } from "@/lib/observability/logger"
+
+const log = createLogger("intakes-approve")
 import { executeCertApproval } from "@/lib/clinical/execute-cert-approval"
+import { requireValidCsrf } from "@/lib/security/csrf"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import type { CertReviewData } from "@/types/db"
 
@@ -78,7 +81,7 @@ export async function POST(
     })
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error)
-    logger.error("APPROVE_API_ERROR", { intakeId, error: msg })
+    log.error("APPROVE_API_ERROR", { intakeId, error: msg })
     return NextResponse.json({ ok: false, error: "Internal server error" }, { status: 500 })
   }
 }

@@ -1,8 +1,8 @@
 'use client'
 
-import { useTheme } from 'next-themes'
 import Image from 'next/image'
-import { useState, useEffect } from 'react'
+import { useTheme } from 'next-themes'
+import { useEffect,useState } from 'react'
 
 interface HeroImageProps {
   src: string

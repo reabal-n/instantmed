@@ -1,9 +1,10 @@
+import * as Sentry from "@sentry/nextjs"
 import { NextRequest, NextResponse } from "next/server"
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
+
+import { verifyCronRequest } from "@/lib/api/cron-auth"
 import { recordCronHeartbeat } from "@/lib/monitoring/cron-heartbeat"
 import { createLogger } from "@/lib/observability/logger"
-import { verifyCronRequest } from "@/lib/api/cron-auth"
-import * as Sentry from "@sentry/nextjs"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const log = createLogger("emergency-flags-cron")
 

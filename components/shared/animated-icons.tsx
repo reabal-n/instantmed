@@ -1,7 +1,7 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
 import type { AnimationItem } from "lottie-web"
+import { useEffect, useRef, useState } from "react"
 
 // Inline Lottie JSON data for our icons - these are lightweight custom animations
 const medCertAnimation = {

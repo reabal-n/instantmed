@@ -1,5 +1,7 @@
 import type { Metadata } from "next"
-import { BreadcrumbSchema } from "@/components/seo/healthcare-schema"
+
+import { BreadcrumbSchema } from "@/components/seo"
+
 import { ContactClient } from "./contact-client"
 
 export const metadata: Metadata = {

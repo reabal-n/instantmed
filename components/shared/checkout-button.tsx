@@ -7,10 +7,11 @@
  * Includes loading states, trust badges, and proper accessibility.
  */
 
-import { forwardRef } from "react"
 import { ArrowRight, Lock } from "lucide-react"
-import { DotsSpinner } from "@/components/ui/spinner"
+import { forwardRef } from "react"
+
 import { Button } from "@/components/ui/button"
+import { DotsSpinner } from "@/components/ui/spinner"
 import { cn } from "@/lib/utils"
 
 export interface CheckoutButtonProps {

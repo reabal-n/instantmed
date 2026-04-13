@@ -1,12 +1,13 @@
 "use client";
 
 import { motion } from "framer-motion"
-import { useReducedMotion } from "@/components/ui/motion";
-import { type ReactNode } from "react";
 import Image from "next/image";
-import { cn } from "@/lib/utils";
+import { type ReactNode } from "react";
+
 import { WordReveal } from "@/components/ui/morning/word-reveal";
+import { useReducedMotion } from "@/components/ui/motion";
 import { SectionPill } from "@/components/ui/section-pill";
+import { cn } from "@/lib/utils";
 
 interface FullBleedHeroProps {
   pill?: string;

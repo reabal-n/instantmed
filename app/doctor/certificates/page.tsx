@@ -1,7 +1,8 @@
 import {
-  getAllIssuedCertificates,
   type CertificateStatus,
+  getAllIssuedCertificates,
 } from "@/lib/data/issued-certificates"
+
 import { CertificatesListClient } from "./certificates-list-client"
 
 export const metadata = { title: "Certificates" }

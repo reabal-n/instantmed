@@ -1,18 +1,21 @@
 "use client"
 
-import { useState, useCallback } from "react"
-import { useRouter } from "next/navigation"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
 import { ArrowLeft, ToggleLeft } from "lucide-react"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { useCallback,useState } from "react"
 import { toast } from "sonner"
+
+import type { AutoApproveStats } from "@/app/actions/admin-config"
 import { updateFeatureFlagAction } from "@/app/actions/admin-config"
+import { Button } from "@/components/ui/button"
 import type { FeatureFlags, FlagKey } from "@/lib/data/types/feature-flags"
 import { FLAG_KEYS } from "@/lib/data/types/feature-flags"
-import type { AutoApproveStats } from "@/app/actions/admin-config"
-import { FeaturesList, KILL_SWITCH_FLAGS } from "./features-list"
-import type { AuditLogEntry } from "./features-list"
+
 import { KillSwitchConfirmDialog } from "./feature-flag-form"
+import { FeaturesList } from "./features-list"
+import type { AuditLogEntry } from "./use-feature-flags"
+import { KILL_SWITCH_FLAGS } from "./use-feature-flags"
 
 interface FeatureFlagsClientProps {
   initialFlags: FeatureFlags

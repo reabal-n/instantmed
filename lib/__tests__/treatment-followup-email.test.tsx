@@ -1,9 +1,10 @@
-import { describe, it, expect } from "vitest"
 import { renderToStaticMarkup } from "react-dom/server"
+import { describe, expect,it } from "vitest"
+
 import {
   TreatmentFollowupEmail,
   treatmentFollowupSubject,
-} from "@/components/email/templates/treatment-followup"
+} from "@/lib/email/components/templates/treatment-followup"
 
 describe("TreatmentFollowupEmail", () => {
   it("renders ED month_3 copy with correct CTA link", () => {

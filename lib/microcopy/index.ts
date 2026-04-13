@@ -5,4 +5,4 @@
  * import { FEEDBACK_MESSAGES } from '@/lib/microcopy'
  */
 
-export { FEEDBACK_MESSAGES, getFeedbackMessage, LOADING_MESSAGES, getRandomLoadingMessage } from './feedback'
+export { FEEDBACK_MESSAGES, getFeedbackMessage, getRandomLoadingMessage,LOADING_MESSAGES } from './feedback'

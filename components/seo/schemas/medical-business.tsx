@@ -1,4 +1,5 @@
-import { PRICING_DISPLAY, CONTACT_EMAIL_HELLO, CONTACT_PHONE } from "@/lib/constants"
+import { CONTACT_EMAIL_HELLO, CONTACT_PHONE,PRICING_DISPLAY } from "@/lib/constants"
+
 import { JsonLdScript } from "./json-ld-script"
 
 interface MedicalBusinessSchemaProps {

@@ -6,10 +6,12 @@
  */
 
 import * as Sentry from "@sentry/nextjs"
-import { renderEmailToHtml } from "../react-renderer-server"
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
+
 import { env } from "@/lib/config/env"
 import { logger } from "@/lib/observability/logger"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
+
+import { renderEmailToHtml } from "../react-renderer-server"
 import type { OutboxRow } from "./types"
 
 /**
@@ -60,7 +62,7 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
     }
 
     // Render the template
-    const { MedCertPatientEmail } = await import("@/components/email/templates")
+    const { MedCertPatientEmail } = await import("@/lib/email/components/templates")
     const dashboardUrl = `${env.appUrl}/track/${cert.intake_id}`
 
     const template = MedCertPatientEmail({
@@ -154,7 +156,7 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
   if (row.email_type === "welcome") {
     const patientName = row.to_name || "there"
 
-    const { WelcomeEmail } = await import("@/components/email/templates")
+    const { WelcomeEmail } = await import("@/lib/email/components/templates")
     const template = WelcomeEmail({
       patientName,
       appUrl: env.appUrl,
@@ -175,7 +177,7 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
     const ctx = await fetchIntakeContext(row.intake_id)
     if ("error" in ctx) return { success: false, error: ctx.error }
 
-    const { ScriptSentEmail } = await import("@/components/email/templates")
+    const { ScriptSentEmail } = await import("@/lib/email/components/templates")
     const template = ScriptSentEmail({
       patientName: ctx.patient.full_name || row.to_name || "there",
       requestId: ctx.intake.id,
@@ -201,7 +203,7 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
     const requestType = ctx.service.short_name || ctx.service.name
     const reason = ctx.intake.decline_reason_note || ctx.intake.decline_reason || undefined
 
-    const { RequestDeclinedEmail } = await import("@/components/email/templates")
+    const { RequestDeclinedEmail } = await import("@/lib/email/components/templates")
     const template = RequestDeclinedEmail({
       patientName: ctx.patient.full_name || row.to_name || "there",
       requestType,
@@ -232,7 +234,7 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
       || ctx.service.short_name
       || "medication"
 
-    const { PrescriptionApprovedEmail } = await import("@/components/email/templates/prescription-approved")
+    const { PrescriptionApprovedEmail } = await import("@/lib/email/components/templates/prescription-approved")
     const template = PrescriptionApprovedEmail({
       patientName: ctx.patient.full_name || row.to_name || "there",
       medicationName,
@@ -346,7 +348,7 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
     const metadata = row.metadata as { doctorMessage?: string } | null
     const doctorMessage = metadata?.doctorMessage || "Please provide additional information."
 
-    const { NeedsMoreInfoEmail } = await import("@/components/email/templates/needs-more-info")
+    const { NeedsMoreInfoEmail } = await import("@/lib/email/components/templates/needs-more-info")
     const template = NeedsMoreInfoEmail({
       patientName: ctx.patient.full_name || row.to_name || "there",
       requestType: ctx.service.short_name || ctx.service.name,
@@ -371,7 +373,7 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
 
     const metadata = row.metadata as { doctorNotes?: string } | null
 
-    const { ConsultApprovedEmail } = await import("@/components/email/templates/consult-approved")
+    const { ConsultApprovedEmail } = await import("@/lib/email/components/templates/consult-approved")
     const template = ConsultApprovedEmail({
       patientName: ctx.patient.full_name || row.to_name || "there",
       requestId: ctx.intake.id,
@@ -400,7 +402,7 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
       || String(answers.medicationName || answers.medication_name || "")
       || "medication"
 
-    const { EdApprovedEmail } = await import("@/components/email/templates/ed-approved")
+    const { EdApprovedEmail } = await import("@/lib/email/components/templates/ed-approved")
     const template = EdApprovedEmail({
       patientName: ctx.patient.full_name || row.to_name || "there",
       medicationName,
@@ -429,7 +431,7 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
       || String(answers.medicationName || answers.medication_name || "")
       || "medication"
 
-    const { HairLossApprovedEmail } = await import("@/components/email/templates/hair-loss-approved")
+    const { HairLossApprovedEmail } = await import("@/lib/email/components/templates/hair-loss-approved")
     const template = HairLossApprovedEmail({
       patientName: ctx.patient.full_name || row.to_name || "there",
       medicationName,
@@ -458,7 +460,7 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
       || String(answers.medicationName || answers.medication_name || "")
       || "medication"
 
-    const { WeightLossApprovedEmail } = await import("@/components/email/templates/weight-loss-approved")
+    const { WeightLossApprovedEmail } = await import("@/lib/email/components/templates/weight-loss-approved")
     const template = WeightLossApprovedEmail({
       patientName: ctx.patient.full_name || row.to_name || "there",
       medicationName,
@@ -487,7 +489,7 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
       || String(answers.medicationName || answers.medication_name || "")
       || "medication"
 
-    const { WomensHealthApprovedEmail } = await import("@/components/email/templates/womens-health-approved")
+    const { WomensHealthApprovedEmail } = await import("@/lib/email/components/templates/womens-health-approved")
     const template = WomensHealthApprovedEmail({
       patientName: ctx.patient.full_name || row.to_name || "there",
       medicationName,
@@ -536,7 +538,7 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
     // Employer info from metadata or intake answers
     const metadata = row.metadata as { employerName?: string; companyName?: string; patientNote?: string } | null
 
-    const { MedCertEmployerEmail } = await import("@/components/email/templates/med-cert-employer")
+    const { MedCertEmployerEmail } = await import("@/lib/email/components/templates/med-cert-employer")
     const template = MedCertEmployerEmail({
       patientName: cert.patient_name,
       downloadUrl,
@@ -572,7 +574,7 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
       ?.replace(/\b\w/g, (c: string) => c.toUpperCase())
       || ctx.service.short_name || ctx.service.name || "medical request"
 
-    const { PaymentConfirmedEmail } = await import("@/components/email/templates/payment-confirmed")
+    const { PaymentConfirmedEmail } = await import("@/lib/email/components/templates/payment-confirmed")
     const template = PaymentConfirmedEmail({
       patientName: ctx.patient.full_name || row.to_name || "there",
       requestType: serviceName,
@@ -610,7 +612,7 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
       .single()
       .then(r => r.data?.auth_user_id))
 
-    const { RequestReceivedEmail } = await import("@/components/email/templates/request-received")
+    const { RequestReceivedEmail } = await import("@/lib/email/components/templates/request-received")
     const template = RequestReceivedEmail({
       patientName: ctx.patient.full_name || row.to_name || "there",
       requestType: serviceName,

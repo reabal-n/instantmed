@@ -1,11 +1,9 @@
 "use client"
 
-import { useState } from "react"
 import { motion } from "framer-motion"
-import { useReducedMotion } from "@/components/ui/motion"
-import { AlertTriangle, Phone, Heart } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/uix"
+import { AlertTriangle, Heart,Phone } from "lucide-react"
+import { useState } from "react"
+
 import { Badge } from "@/components/ui/badge"
 import {
   Dialog,
@@ -14,6 +12,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { useReducedMotion } from "@/components/ui/motion"
+import { Button } from "@/components/uix"
+import { cn } from "@/lib/utils"
 
 /**
  * Red flag symptoms that require immediate medical attention

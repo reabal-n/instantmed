@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { AnimatePresence,motion } from 'framer-motion'
 import { Star } from 'lucide-react'
+import { useEffect,useState } from 'react'
+
 import { useReducedMotion } from '@/components/ui/motion'
 import { cn } from '@/lib/utils'
 

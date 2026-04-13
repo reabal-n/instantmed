@@ -9,7 +9,8 @@
  * - Payment page loads (cannot complete payment in E2E without Stripe test mode)
  */
 
-import { test, expect } from "@playwright/test"
+import { expect,test } from "@playwright/test"
+
 import { waitForPageLoad } from "./helpers/test-utils"
 
 test.describe("Patient - Service Hub", () => {

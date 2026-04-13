@@ -1,8 +1,9 @@
 "use client"
 
-import Link from "next/link"
 import { motion } from "framer-motion"
 import { ArrowRight, ClipboardList, Shield, Sparkles, Stethoscope } from "lucide-react"
+import Link from "next/link"
+
 import { useReducedMotion } from "@/components/ui/motion"
 import { PRICING_DISPLAY } from "@/lib/constants"
 

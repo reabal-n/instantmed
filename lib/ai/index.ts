@@ -6,49 +6,49 @@
 
 // Provider and model configuration
 export {
-  getDefaultModel,
-  getAdvancedModel,
-  getConversationalModel,
-  getCreativeModel,
-  getModelWithConfig,
-  getAIApiKey,
-  isAIConfigured,
   AI_MODEL_CONFIG,
   type AIModelType,
+  getAdvancedModel,
+  getAIApiKey,
+  getConversationalModel,
+  getCreativeModel,
+  getDefaultModel,
+  getModelWithConfig,
+  isAIConfigured,
 } from './provider'
 
 // Prompts
 export {
-  PROMPT_VERSION,
   CLINICAL_NOTE_PROMPT,
-  MED_CERT_DRAFT_PROMPT,
-  REVIEW_SUMMARY_PROMPT,
-  SYMPTOM_SUGGESTIONS_PROMPT,
+  CONTEXT_PROMPTS,
   DECLINE_REASON_PROMPT,
   FALLBACK_RESPONSES,
-  CONTEXT_PROMPTS,
+  MED_CERT_DRAFT_PROMPT,
+  PROMPT_VERSION,
+  REVIEW_SUMMARY_PROMPT,
+  SYMPTOM_SUGGESTIONS_PROMPT,
 } from './prompts'
 
 // Audit logging
 export {
-  logAIAudit,
-  trackTokenUsage,
-  logDoctorFeedback,
   type AIAuditParams,
+  logAIAudit,
+  logDoctorFeedback,
+  trackTokenUsage,
 } from './audit'
 
 // Caching
 export {
   getCachedResponse,
-  setCachedResponse,
-  invalidateCache,
   getCacheStats,
+  invalidateCache,
+  setCachedResponse,
 } from './cache'
 
 // Confidence scoring
 export {
   calculateConfidence,
-  getConfidenceBadge,
   type ConfidenceResult,
   type FlaggedSection,
+  getConfidenceBadge,
 } from './confidence'

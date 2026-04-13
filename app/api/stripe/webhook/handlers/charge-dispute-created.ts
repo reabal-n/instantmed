@@ -1,10 +1,12 @@
-import type Stripe from "stripe"
+import * as Sentry from "@sentry/nextjs"
 import { NextResponse } from "next/server"
-import { stripe } from "@/lib/stripe/client"
+import type Stripe from "stripe"
+
 import { sendDisputeAlertEmail } from "@/lib/email/template-sender"
 import { createLogger } from "@/lib/observability/logger"
-import * as Sentry from "@sentry/nextjs"
-import type { WebhookContext, HandlerResult } from "./types"
+import { stripe } from "@/lib/stripe/client"
+
+import type { HandlerResult,WebhookContext } from "./types"
 import { tryClaimEvent } from "./utils"
 
 const log = createLogger("stripe-webhook:dispute-created")

@@ -1,8 +1,9 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { useReducedMotion } from "@/components/ui/motion"
+
 import { FAQList } from "@/components/ui/faq-list"
+import { useReducedMotion } from "@/components/ui/motion"
 import { CONTACT_EMAIL } from "@/lib/constants"
 import { MED_CERT_FAQ } from "@/lib/data/med-cert-faq"
 

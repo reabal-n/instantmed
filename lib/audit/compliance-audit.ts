@@ -1,5 +1,7 @@
 import "server-only"
+
 import { createClient } from "@supabase/supabase-js"
+
 import { createLogger } from "@/lib/observability/logger"
 
 const logger = createLogger("compliance-audit")

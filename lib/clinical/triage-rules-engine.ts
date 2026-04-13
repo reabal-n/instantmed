@@ -14,17 +14,17 @@
  */
 
 import {
-  type TriageOutcome,
-  type TriageContext,
-  type TriageResult,
+  AUTO_REJECT_RULES,
+  type AutoRejectCategory,
   type ClinicalFlag,
   type FlagSeverity,
-  type AutoRejectCategory,
-  type NeverAsyncCategory,
-  type RequestType,
-  AUTO_REJECT_RULES,
   NEVER_ASYNC_CATEGORIES,
+  type NeverAsyncCategory,
   REQUEST_TYPE_CONFIGS,
+  type RequestType,
+  type TriageContext,
+  type TriageOutcome,
+  type TriageResult,
 } from "./triage-types"
 
 // ============================================================================

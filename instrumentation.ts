@@ -8,14 +8,15 @@
  */
 
 import * as Sentry from "@sentry/nextjs";
+
+import { scrubPHI, scrubPHIFromObject } from "@/lib/observability/scrub-phi";
 import {
+  getSentryDsn,
   getSentryEnvironment,
   getSentryRelease,
-  getSentryDsn,
-  isSentryEnabled,
   getSentryRuntime,
+  isSentryEnabled,
 } from "@/lib/observability/sentry-config";
-import { scrubPHI, scrubPHIFromObject } from "@/lib/observability/scrub-phi";
 
 export async function register() {
   // P0 FIX: Verify encryption is properly configured at startup

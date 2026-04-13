@@ -1,15 +1,15 @@
+import { ArrowRight, CheckCircle2,Clock, MapPin, Shield } from "lucide-react"
 import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { ArrowRight, Shield, Clock, MapPin, CheckCircle2 } from "lucide-react"
-import { Navbar } from "@/components/shared/navbar"
-import { Footer } from "@/components/shared/footer"
+
+import { BreadcrumbSchema } from "@/components/seo"
+import { Footer,Navbar } from "@/components/shared"
 import { Button } from "@/components/ui/button"
 import { SectionPill } from "@/components/ui/section-pill"
-import { BreadcrumbSchema } from "@/components/seo/healthcare-schema"
-import { safeJsonLd } from "@/lib/seo/safe-json-ld"
-import { getStateBySlug, getAllStateSlugs } from "@/lib/seo/data/states"
 import { PRICING_DISPLAY } from "@/lib/constants"
+import { getAllStateSlugs,getStateBySlug } from "@/lib/seo/data/states"
+import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 
 // ============================================================================
 // CITY LOOKUP (for display names/slugs in the grid)

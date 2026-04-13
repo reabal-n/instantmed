@@ -1,16 +1,16 @@
-import { Navbar } from "@/components/shared/navbar"
-import { Footer } from "@/components/shared/footer"
-import { Button } from "@/components/ui/button"
-import { SectionPill } from "@/components/ui/section-pill"
-import { ArrowRight, Clock, Shield, Star, CheckCircle2, HelpCircle, Activity } from "lucide-react"
+import { Activity,ArrowRight, CheckCircle2, Clock, HelpCircle, Shield, Star } from "lucide-react"
+import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import type { Metadata } from "next"
-import { BreadcrumbSchema } from "@/components/seo/healthcare-schema"
-import { safeJsonLd } from "@/lib/seo/safe-json-ld"
-import { DEEP_CITY_CONTENT } from "@/lib/seo/data/deep-city-content"
-import { autoLinkParagraph } from "@/lib/seo/auto-linker"
+
+import { BreadcrumbSchema } from "@/components/seo"
+import { Footer,Navbar } from "@/components/shared"
+import { Button } from "@/components/ui/button"
+import { SectionPill } from "@/components/ui/section-pill"
 import { PRICING_DISPLAY } from "@/lib/constants"
+import { autoLinkParagraph } from "@/lib/seo/auto-linker"
+import { DEEP_CITY_CONTENT } from "@/lib/seo/data/deep-city-content"
+import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 
 // Geo coordinates for each city (latitude, longitude)
 const GEO_COORDS: Record<string, { lat: string; lng: string }> = {

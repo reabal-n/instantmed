@@ -1,11 +1,13 @@
 "use client"
 
-import { useState } from "react"
+import { AnimatePresence,motion } from "framer-motion"
+import { Building2,ChevronDown } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { motion, AnimatePresence } from "framer-motion"
-import { useReducedMotion } from "@/components/ui/motion"
-import { ChevronDown, Building2 } from "lucide-react"
+import { useState } from "react"
+
+import { ServiceIconTile } from "@/components/icons/service-icons"
+import { type ServiceId,useServiceAvailability } from "@/components/providers/service-availability-provider"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,9 +15,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { useReducedMotion } from "@/components/ui/motion"
 import { cn } from "@/lib/utils"
-import { useServiceAvailability, type ServiceId } from "@/components/providers/service-availability-provider"
-import { ServiceIconTile } from "@/components/icons/service-icons"
 
 export const services: Array<{ serviceId: ServiceId; title: string; href: string; description: string; iconKey: string; color: string; badge?: string }> = [
   { serviceId: "med-cert", title: "Medical Certificates", href: "/medical-certificate", description: "Work, uni & carer's leave",       iconKey: "FileText",  color: "emerald" },

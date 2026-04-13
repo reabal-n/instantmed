@@ -8,23 +8,24 @@
  * 2. Script sent via Parchment (interactive checkbox)
  */
 
-import { useState, useTransition } from "react"
-import { useRouter } from "next/navigation"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Badge } from "@/components/ui/badge"
 import { 
-  ClipboardList, 
-  FileText, 
-  Send, 
-  Loader2,
   CheckCircle2,
+  ClipboardList, 
   Clock,
+  FileText, 
+  Loader2,
+  Send, 
   User
 } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { useState, useTransition } from "react"
 import { toast } from "sonner"
-import { markRepeatScriptSentAction } from "@/app/actions/repeat-prescription"
+
 import type { AIDraft } from "@/app/actions/draft-approval"
+import { markRepeatScriptSentAction } from "@/app/actions/repeat-prescription"
+import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Checkbox } from "@/components/ui/checkbox"
 
 interface RepeatPrescriptionChecklistProps {
   intakeId: string

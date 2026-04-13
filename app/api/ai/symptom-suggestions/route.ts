@@ -1,11 +1,12 @@
-import { NextRequest, NextResponse } from "next/server"
 import { generateText } from "ai"
-import { getModelWithConfig, isAIConfigured } from "@/lib/ai/provider"
-import { applyRateLimit, getClientIdentifier } from "@/lib/rate-limit/redis"
-import { SYMPTOM_SUGGESTIONS_PROMPT, CONTEXT_PROMPTS, FALLBACK_RESPONSES } from "@/lib/ai/prompts"
+import { NextRequest, NextResponse } from "next/server"
+
 import { getCachedResponse, setCachedResponse } from "@/lib/ai/cache"
 import { checkAndSanitize } from "@/lib/ai/prompt-safety"
+import { CONTEXT_PROMPTS, FALLBACK_RESPONSES,SYMPTOM_SUGGESTIONS_PROMPT } from "@/lib/ai/prompts"
+import { getModelWithConfig, isAIConfigured } from "@/lib/ai/provider"
 import { recordAIRequest } from "@/lib/monitoring/ai-health"
+import { applyRateLimit, getClientIdentifier } from "@/lib/rate-limit/redis"
 
 export const runtime = "edge"
 

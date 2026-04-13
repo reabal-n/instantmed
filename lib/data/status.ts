@@ -1,35 +1,25 @@
 import {
+  AlertCircle,
+  Ban,
   CheckCircle2,
   Clock,
-  XCircle,
-  AlertCircle,
   CreditCard,
   FileSearch,
-  Pill,
-  Ban,
-  TimerOff,
-  ShieldAlert,
-  RotateCcw,
   type LucideIcon,
+  Pill,
+  RotateCcw,
+  ShieldAlert,
+  TimerOff,
+  XCircle,
 } from "lucide-react"
 
-export type IntakeStatus =
-  | "approved"
-  | "completed"
-  | "paid"
-  | "in_review"
-  | "pending"
-  | "pending_payment"
-  | "declined"
-  | "pending_info"
-  | "cancelled"
-  | "awaiting_script"
-  | "expired"
-  | "disputed"
-  | "checkout_failed"
-  | "refunded"
+import type { DisplayIntakeStatus, DisplayPaymentStatus } from "@/types/intake"
 
-export type PaymentStatus = "paid" | "pending" | "failed"
+// Re-export display types with short names for backward compatibility.
+// Display-layer status types include UI-only statuses (pending, disputed, refunded)
+// that don't exist in the DB lifecycle but are used for badge rendering.
+export type IntakeStatus = DisplayIntakeStatus
+export type PaymentStatus = DisplayPaymentStatus
 
 interface StatusConfig {
   label: string

@@ -1,12 +1,14 @@
+import * as Sentry from "@sentry/nextjs"
+import { after,NextResponse } from "next/server"
 import type Stripe from "stripe"
-import { NextResponse, after } from "next/server"
+
+import { generateDraftsForIntake } from "@/app/actions/generate-drafts"
+import { getPostHogClient, trackIntakeFunnelStep } from "@/lib/analytics/posthog-server"
 import { notifyPaymentReceived } from "@/lib/notifications/service"
 import { createLogger } from "@/lib/observability/logger"
-import { generateDraftsForIntake } from "@/app/actions/generate-drafts"
-import * as Sentry from "@sentry/nextjs"
-import { getPostHogClient, trackIntakeFunnelStep } from "@/lib/analytics/posthog-server"
-import type { WebhookContext, HandlerResult } from "./types"
-import { tryClaimEvent, recordEventError, addToDeadLetterQueue } from "./utils"
+
+import type { HandlerResult,WebhookContext } from "./types"
+import { addToDeadLetterQueue,recordEventError, tryClaimEvent } from "./utils"
 
 const log = createLogger("stripe-webhook:checkout-completed")
 
@@ -642,7 +644,7 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
         try {
           const React = await import("react")
           const { sendEmail } = await import("@/lib/email/send-email")
-          const { RequestReceivedEmail, requestReceivedSubject } = await import("@/components/email/templates/request-received")
+          const { RequestReceivedEmail, requestReceivedSubject } = await import("@/lib/email/components/templates/request-received")
 
           const serviceName = getServiceDisplayName({
             serviceSlug: session.metadata?.service_slug,

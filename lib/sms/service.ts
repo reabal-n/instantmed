@@ -1,8 +1,9 @@
 "use server"
 
-import { createLogger } from "@/lib/observability/logger"
-import { SMS_TEMPLATES } from "./templates"
 import { toError } from "@/lib/errors"
+import { createLogger } from "@/lib/observability/logger"
+
+import { SMS_TEMPLATES } from "./templates"
 
 const logger = createLogger("sms-service")
 

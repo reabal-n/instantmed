@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
+
 import { getApiAuth } from "@/lib/auth/helpers"
 import { sendViaResend } from "@/lib/email/resend"
 import { createLogger } from "@/lib/observability/logger"
-import { requireValidCsrf } from "@/lib/security/csrf"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
+import { requireValidCsrf } from "@/lib/security/csrf"
 
 const logger = createLogger("test-email-api")
 

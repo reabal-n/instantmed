@@ -1,10 +1,7 @@
 import type { IntakeWithPatient } from "@/types/db"
+import type { PaginationInfo } from "@/types/shared"
 
-export interface PaginationInfo {
-  page: number
-  pageSize: number
-  total: number
-}
+export type { PaginationInfo }
 
 export interface QueueClientProps {
   intakes: IntakeWithPatient[]

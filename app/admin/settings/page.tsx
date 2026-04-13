@@ -1,5 +1,6 @@
-import { requireRole } from "@/lib/auth/helpers"
 import { redirect } from "next/navigation"
+
+import { requireRole } from "@/lib/auth/helpers"
 
 // Consolidated: feature flag management lives at /admin/features
 export default async function AdminSettingsRedirect() {

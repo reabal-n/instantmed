@@ -1,10 +1,11 @@
 "use client"
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Switch } from "@/components/ui/switch"
-import { Label } from "@/components/ui/label"
 import { XCircle } from "lucide-react"
+
 import { useIntakeReview } from "@/components/doctor/review/intake-review-context"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Label } from "@/components/ui/label"
+import { Switch } from "@/components/ui/switch"
 
 export function SafetyFlagsCard() {
   const { hasRedFlags, redFlagDetails, redFlagsAcknowledged, setRedFlagsAcknowledged } = useIntakeReview()

@@ -8,6 +8,6 @@
 export {
   applyRateLimit,
   getClientIdentifier,
-  withRateLimit,
   rateLimitConfigs,
+  withRateLimit,
 } from './redis'

@@ -1,21 +1,23 @@
 "use client"
 
 import {
-  TrendingUp,
   DollarSign,
+  TrendingUp,
   Users,
 } from "lucide-react"
+
 import {
-  LazyAreaChart as AreaChart,
   Area,
+  CartesianGrid,
+  LazyAreaChart as AreaChart,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
 } from "@/components/charts/lazy-charts"
-import { type AnalyticsData } from "./analytics-helpers"
 import { formatAUD } from "@/lib/format"
+
+import { type AnalyticsData } from "./analytics-helpers"
 
 export function AnalyticsRevenueTab({ analytics }: { analytics: AnalyticsData }) {
   const { funnel, dailyData, revenue } = analytics

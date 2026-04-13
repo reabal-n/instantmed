@@ -5,9 +5,9 @@
 
 export type {
   Intake,
-  IntakeWithPatient,
-  IntakeWithDetails,
   IntakeStatus,
+  IntakeWithDetails,
+  IntakeWithPatient,
   PatientNote,
 } from "@/types/db"
 

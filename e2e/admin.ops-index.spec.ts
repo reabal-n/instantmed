@@ -6,7 +6,8 @@
  * Run with: PLAYWRIGHT=1 pnpm e2e --grep "ops-index"
  */
 
-import { test, expect } from "@playwright/test"
+import { expect,test } from "@playwright/test"
+
 import { loginAsOperator, logoutTestUser } from "./helpers/auth"
 
 test.describe("Ops Index Page", () => {

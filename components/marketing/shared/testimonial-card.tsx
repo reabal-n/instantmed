@@ -1,6 +1,7 @@
 "use client"
 
 import { Star } from "lucide-react"
+
 import { cn } from "@/lib/utils"
 
 // ---------------------------------------------------------------------------
@@ -64,6 +65,7 @@ function StarRating({ rating }: { rating: number }) {
 
 function TestimonialAvatar({ name, className }: { name: string; className?: string }) {
   return (
+    // eslint-disable-next-line @next/next/no-img-element -- DiceBear SVG API, not a raster image
     <img
       src={`https://api.dicebear.com/7.x/notionists/svg?seed=${encodeURIComponent(name)}`}
       alt=""

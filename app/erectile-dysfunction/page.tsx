@@ -1,15 +1,16 @@
 import type { Metadata } from "next"
-import { ErectileDysfunctionLanding } from "@/components/marketing/erectile-dysfunction-landing"
+
+import { ErectileDysfunctionLanding } from "@/components/marketing"
 import {
-  SpeakableSchema,
-  FAQSchema,
   BreadcrumbSchema,
+  FAQSchema,
+  HealthArticleSchema,
   MedicalServiceSchema,
   ReviewAggregateSchema,
-  HealthArticleSchema,
-} from "@/components/seo/healthcare-schema"
-import { ED_FAQ } from "@/lib/data/ed-faq"
+  SpeakableSchema,
+} from "@/components/seo"
 import { PRICING, REVIEW_AGGREGATE } from "@/lib/constants"
+import { ED_FAQ } from "@/lib/data/ed-faq"
 
 export const revalidate = 86400
 

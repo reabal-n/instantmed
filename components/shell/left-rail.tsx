@@ -1,27 +1,28 @@
 'use client'
 
-import { useState } from 'react'
-import Link from 'next/link'
-import Image from 'next/image'
-import { usePathname, useRouter } from 'next/navigation'
-import { useAuth } from '@/lib/supabase/auth-provider'
 import {
-  Home,
-  FileText,
-  FolderOpen,
-  Settings,
-  Plus,
+  Activity,
+  Bell,
   ChevronLeft,
   ChevronRight,
   ClipboardList,
-  Activity,
-  Bell,
-  MessageSquare,
   ExternalLink,
+  FileText,
+  FolderOpen,
+  Home,
   LogOut,
+  MessageSquare,
+  Plus,
+  Settings,
 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import Image from 'next/image'
+import Link from 'next/link'
+import { usePathname, useRouter } from 'next/navigation'
+import { useState } from 'react'
+
 import { BrandLogo } from '@/components/shared/brand-logo'
+import { Button } from '@/components/ui/button'
+import { useAuth } from '@/lib/supabase/auth-provider'
 import { cn } from '@/lib/utils'
 
 /**

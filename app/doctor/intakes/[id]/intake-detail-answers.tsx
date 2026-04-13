@@ -1,21 +1,22 @@
 "use client"
 
-import Link from "next/link"
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
-  Phone,
-  MapPin,
+  CheckCircle,
+  Clock,
   CreditCard,
   FileText,
-  Clock,
-  CheckCircle,
-  XCircle,
   Mail,
+  MapPin,
+  Phone,
+  XCircle,
 } from "lucide-react"
-import { ClinicalSummary } from "@/components/doctor/clinical-summary"
+import Link from "next/link"
+
+import { ClinicalSummary } from "@/components/doctor"
+import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { formatDate,formatDateLong } from "@/lib/format"
 import { formatIntakeStatus, formatServiceType } from "@/lib/format/intake"
-import { formatDateLong, formatDate } from "@/lib/format"
 import type { IntakeWithDetails, IntakeWithPatient } from "@/types/db"
 
 function formatConsultSubtype(subtype: string): string {

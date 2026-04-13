@@ -1,16 +1,33 @@
 "use client"
 
-import { useState, useCallback } from "react"
-import { useRouter } from "next/navigation"
+import {
+  ArrowLeft,
+  Code,
+  Edit,
+  Eye,
+  FileText,
+  Loader2,
+  Mail,
+  Monitor,
+  Save,
+  Search,
+  Send,
+  SendHorizonal,
+  Smartphone,
+} from "lucide-react"
 import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Switch } from "@/components/ui/switch"
-import { SafeHtml } from "@/components/ui/safe-html"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { useRouter } from "next/navigation"
+import { useCallback,useState } from "react"
+import { toast } from "sonner"
+
+import {
+  toggleEmailTemplateActiveAction,
+  updateEmailTemplateAction,
+} from "@/app/actions/admin-config"
+import { sendTestEmailAction } from "@/app/actions/send-test-email"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Dialog,
   DialogContent,
@@ -18,28 +35,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { SafeHtml } from "@/components/ui/safe-html"
+import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import {
-  Mail,
-  Edit,
-  Save,
-  ArrowLeft,
-  Search,
-  Eye,
-  Loader2,
-  Code,
-  FileText,
-  Send,
-  Smartphone,
-  Monitor,
-  SendHorizonal,
-} from "lucide-react"
-import { toast } from "sonner"
-import {
-  updateEmailTemplateAction,
-  toggleEmailTemplateActiveAction,
-} from "@/app/actions/admin-config"
-import { sendTestEmailAction } from "@/app/actions/send-test-email"
+import { Textarea } from "@/components/ui/textarea"
 import type { EmailTemplate } from "@/lib/data/email-templates"
 
 interface EmailTemplatesClientProps {

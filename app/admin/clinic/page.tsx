@@ -1,4 +1,5 @@
 import { getActiveClinicIdentity, getClinicLogoUrl } from "@/lib/data/clinic-identity"
+
 import { ClinicIdentityClient } from "./clinic-client"
 
 export const dynamic = "force-dynamic"

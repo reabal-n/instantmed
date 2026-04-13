@@ -1,10 +1,11 @@
-import { describe, it, expect, vi, beforeEach } from "vitest"
+import { beforeEach,describe, expect, it, vi } from "vitest"
 
 // Must mock server-only before import
 vi.mock("server-only", () => ({}))
 
-import { verifyCronRequest } from "@/lib/api/cron-auth"
 import { NextRequest } from "next/server"
+
+import { verifyCronRequest } from "@/lib/api/cron-auth"
 
 describe("cron-auth", () => {
   beforeEach(() => {

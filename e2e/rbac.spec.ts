@@ -7,9 +7,10 @@
  * - API endpoints enforce role restrictions
  */
 
-import { test, expect } from "@playwright/test"
-import { waitForPageLoad } from "./helpers/test-utils"
+import { expect,test } from "@playwright/test"
+
 import { loginAsPatient, logoutTestUser } from "./helpers/auth"
+import { waitForPageLoad } from "./helpers/test-utils"
 
 // Seeded test data IDs from scripts/e2e/seed.ts
 const SEEDED_INTAKE_ID = "e2e00000-0000-0000-0000-000000000010"

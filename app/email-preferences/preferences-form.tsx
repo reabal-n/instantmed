@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useTransition } from "react"
+
 import { updateEmailPreferencesWithToken } from "@/app/actions/update-email-preferences"
 
 interface Preferences {

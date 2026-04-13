@@ -17,40 +17,42 @@
  * - Flow completion
  */
 
-import { useEffect, useCallback, useMemo, useState, useRef } from "react"
-import { useRouter } from "next/navigation"
+import { AnimatePresence,motion } from "framer-motion"
 import { ArrowLeft, X } from "lucide-react"
-import { motion, AnimatePresence } from "framer-motion"
-import { useReducedMotion } from "@/components/ui/motion"
+import { useRouter } from "next/navigation"
+import { useCallback, useEffect, useMemo, useRef,useState } from "react"
+
+import { AutoSaveIndicator } from "@/components/request/auto-save-indicator"
+import { DraftRestorationBanner } from "@/components/request/draft-restoration-banner"
+import { ExitConfirmDialog } from "@/components/request/exit-confirm-dialog"
+import { ProgressBar } from "@/components/request/progress-bar"
+import { SafetyBlockDialog } from "@/components/request/safety-block-dialog"
+import { SubtypeMismatchBanner } from "@/components/request/subtype-mismatch-banner"
+import { TimeRemaining } from "@/components/request/time-remaining"
 import { Button } from "@/components/ui/button"
-import { StepRouter } from "./step-router"
-import { ServiceHubScreen } from "./service-hub-screen"
-import { FlowErrorScreen } from "./flow-error-screen"
-import { useRequestStore } from "./store"
+import { useReducedMotion } from "@/components/ui/motion"
+import { trackFunnelStep } from "@/lib/analytics/conversion-tracking"
 import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
+import { isValidCertCategory } from "@/lib/marketing/med-cert-selector"
+import {
+  type ConsultSubtype,
+  getStepDefinitionById,
+  getStepsForService,
+  isConsultSubtypeAvailable,
+  type StepContext,
+  type UnifiedServiceType,
+  type UnifiedStepId,
+} from "@/lib/request/step-registry"
+import { evaluateSafety, type SafetyEvaluationResult } from "@/lib/safety"
+
+import { ConnectionBanner } from "./connection-banner"
+import { FlowErrorScreen } from "./flow-error-screen"
 import { useFlowAnalytics } from "./hooks/use-flow-analytics"
 import { useSwipeNavigation } from "./hooks/use-swipe-navigation"
 import { useUnsavedChanges } from "./hooks/use-unsaved-changes"
-import { ConnectionBanner } from "./connection-banner"
-import { ProgressBar } from "@/components/request/progress-bar"
-import { AutoSaveIndicator } from "@/components/request/auto-save-indicator"
-import { TimeRemaining } from "@/components/request/time-remaining"
-import { DraftRestorationBanner } from "@/components/request/draft-restoration-banner"
-import { SubtypeMismatchBanner } from "@/components/request/subtype-mismatch-banner"
-import { SafetyBlockDialog } from "@/components/request/safety-block-dialog"
-import { ExitConfirmDialog } from "@/components/request/exit-confirm-dialog"
-import {
-  getStepsForService,
-  getStepDefinitionById,
-  isConsultSubtypeAvailable,
-  type UnifiedServiceType,
-  type UnifiedStepId,
-  type StepContext,
-  type ConsultSubtype,
-} from "@/lib/request/step-registry"
-import { evaluateSafety, type SafetyEvaluationResult } from "@/lib/safety"
-import { trackFunnelStep } from "@/lib/analytics/conversion-tracking"
-import { isValidCertCategory } from "@/lib/marketing/med-cert-selector"
+import { ServiceHubScreen } from "./service-hub-screen"
+import { StepRouter } from "./step-router"
+import { useRequestStore } from "./store"
 
 // Map UnifiedServiceType → safety config slug for client-side pre-check
 // Must match server-side getServiceSlug() in lib/stripe/checkout.ts
@@ -545,13 +547,13 @@ export function RequestFlow({
     } else {
       handleExit()
     }
-  }, [hasUnsavedChanges, currentStepIndex, handleExit])
+  }, [hasUnsavedChanges, currentStepIndex, handleExit, setShowExitConfirm])
 
   // Confirm exit
   const confirmExit = useCallback(() => {
     setShowExitConfirm(false)
     handleExit()
-  }, [handleExit])
+  }, [handleExit, setShowExitConfirm])
 
   // Service name for display
   const serviceName = useMemo(() => {

@@ -1,4 +1,5 @@
 import { ImageResponse } from 'next/og'
+
 import { PRICING_DISPLAY } from '@/lib/constants'
 
 export const runtime = 'edge'

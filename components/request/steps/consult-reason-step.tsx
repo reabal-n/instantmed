@@ -8,18 +8,20 @@
  * the category selector is hidden - only details + urgency are shown.
  */
 
-import { useState, useEffect, useCallback } from "react"
+import { ArrowRight,Info, MessageSquare, Stethoscope } from "lucide-react"
+import { useCallback,useEffect, useState } from "react"
+
 import { usePostHog } from "@/components/providers/posthog-provider"
-import { Stethoscope, MessageSquare, Info, ArrowRight } from "lucide-react"
+import { EnhancedSelectionButton } from "@/components/shared"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Button } from "@/components/ui/button"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { EnhancedSelectionButton } from "@/components/shared/enhanced-selection-button"
-import { useRequestStore } from "../store"
 import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 import { CONSULT_SUBTYPE_LABELS, type ConsultSubtype } from "@/lib/request/step-registry"
+
+import { useRequestStore } from "../store"
 
 interface ConsultReasonStepProps {
   serviceType: UnifiedServiceType

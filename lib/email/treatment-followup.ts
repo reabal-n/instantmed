@@ -1,15 +1,16 @@
-import * as React from "react"
 import * as Sentry from "@sentry/nextjs"
 import { differenceInDays } from "date-fns"
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { sendEmail } from "@/lib/email/send-email"
+import * as React from "react"
+
 import {
-  TreatmentFollowupEmail,
-  treatmentFollowupSubject,
   type FollowupMilestone,
   type FollowupSubtype,
-} from "@/components/email/templates/treatment-followup"
+  TreatmentFollowupEmail,
+  treatmentFollowupSubject,
+} from "@/lib/email/components/templates/treatment-followup"
+import { sendEmail } from "@/lib/email/send-email"
 import { createLogger } from "@/lib/observability/logger"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const log = createLogger("treatment-followup-processor")
 

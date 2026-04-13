@@ -9,14 +9,14 @@
  */
 
 import {
+  checkAutoReject,
   checkEmergencySymptoms,
   checkRedFlagPatterns,
-  checkAutoReject,
 } from "./triage-rules-engine"
 import {
+  AUTO_REJECT_RULES,
   type AutoRejectCategory,
   type ClinicalFlag,
-  AUTO_REJECT_RULES,
 } from "./triage-types"
 
 // ============================================================================

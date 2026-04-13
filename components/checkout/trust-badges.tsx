@@ -16,13 +16,13 @@
  */
 
 import {
-  Lock,
-  Shield,
   Award,
-  EyeOff
-} from "lucide-react"
+  EyeOff,
+  Lock,
+  Shield} from "lucide-react"
+
+import { TrustBadgeRow } from "@/components/shared"
 import { cn } from "@/lib/utils"
-import { TrustBadgeRow } from "@/components/shared/trust-badge"
 
 // ── Stripe ──────────────────────────────────────────────────────────
 

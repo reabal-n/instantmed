@@ -1,6 +1,8 @@
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
+
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
+
 import { TrackingClient } from "./tracking-client"
 
 interface PageProps {

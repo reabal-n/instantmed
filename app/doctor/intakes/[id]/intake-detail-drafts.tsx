@@ -1,17 +1,17 @@
 "use client"
 
+import { FileText, Loader2,Save } from "lucide-react"
+import { useRouter } from "next/navigation"
+
+import type { AIDraft } from "@/app/actions/draft-approval"
+import { DraftReviewPanel, RepeatPrescriptionChecklist } from "@/components/doctor"
+import { MIN_CLINICAL_NOTES_LENGTH } from "@/components/doctor/review/utils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
-import { FileText, Save, Loader2 } from "lucide-react"
-import { useRouter } from "next/navigation"
-import { DraftReviewPanel } from "@/components/doctor/draft-review-panel"
-import { RepeatPrescriptionChecklist } from "@/components/doctor/repeat-prescription-checklist"
 import { formatDateTime } from "@/lib/format"
 import type { IntakeWithDetails } from "@/types/db"
-import type { AIDraft } from "@/app/actions/draft-approval"
-import { MIN_CLINICAL_NOTES_LENGTH } from "@/components/doctor/review/utils"
 
 interface IntakeDetailDraftsProps {
   intake: IntakeWithDetails

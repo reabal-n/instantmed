@@ -1,4 +1,5 @@
 import "server-only"
+
 import { createLogger } from "@/lib/observability/logger"
 
 const logger = createLogger("email-warmup")

@@ -1,8 +1,9 @@
 "use client"
 
 import { AlertTriangle } from "lucide-react"
-import { Button } from "@/components/ui/button"
+
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Button } from "@/components/ui/button"
 
 const SUBTYPE_LABELS: Record<string, string> = {
   general: 'General consultation',

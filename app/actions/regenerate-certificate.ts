@@ -1,9 +1,12 @@
 "use server"
 
 import { requireRole } from "@/lib/auth/helpers"
+import { createLogger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { logger } from "@/lib/observability/logger"
+
+const log = createLogger("regenerate-certificate")
 import { revalidatePath } from "next/cache"
+
 import { approveAndSendCert } from "@/app/actions/approve-cert"
 import { toError } from "@/lib/errors"
 import type { CertReviewData } from "@/types/db"
@@ -60,7 +63,7 @@ export async function regenerateCertificateAction(
       .single()
 
     if (intakeError || !intake) {
-      logger.error("Failed to fetch intake for certificate regeneration", { intakeId }, intakeError)
+      log.error("Failed to fetch intake for certificate regeneration", { intakeId }, intakeError)
       return { success: false, error: "Intake not found" }
     }
 
@@ -123,7 +126,7 @@ export async function regenerateCertificateAction(
       medicalReason: (answersData.medicalReason as string) || (answersData.symptomDetails as string) || '',
     }
 
-    logger.info("Regenerating certificate via approveAndSendCert", {
+    log.info("Regenerating certificate via approveAndSendCert", {
       intakeId,
       previousCertificateId: existingCert?.id,
       reason,
@@ -135,7 +138,7 @@ export async function regenerateCertificateAction(
     const result = await approveAndSendCert(intakeId, reviewData)
 
     if (!result.success) {
-      logger.error("Certificate regeneration failed", { intakeId, error: result.error })
+      log.error("Certificate regeneration failed", { intakeId, error: result.error })
       return { success: false, error: result.error || "Failed to regenerate certificate" }
     }
 
@@ -153,7 +156,7 @@ export async function regenerateCertificateAction(
       },
     }).then(() => {}, () => {})
 
-    logger.info("Certificate regenerated successfully", {
+    log.info("Certificate regenerated successfully", {
       intakeId,
       newCertificateId: result.certificateId,
       previousCertificateId: existingCert?.id,
@@ -165,7 +168,7 @@ export async function regenerateCertificateAction(
 
     return { success: true, certificateId: result.certificateId }
   } catch (error) {
-    logger.error("Certificate regeneration failed", { intakeId }, toError(error))
+    log.error("Certificate regeneration failed", { intakeId }, toError(error))
     return { success: false, error: "An unexpected error occurred" }
   }
 }

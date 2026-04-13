@@ -100,7 +100,7 @@ export const MEDCERT_CATEGORIES = {
 
 // Australian states
 export const AUSTRALIAN_STATES = ["ACT", "NSW", "NT", "QLD", "SA", "TAS", "VIC", "WA"] as const
-export type AustralianState = (typeof AUSTRALIAN_STATES)[number]
+export type { AustralianState } from "@/types/db"
 
 // Status values
 export const REQUEST_STATUSES = {

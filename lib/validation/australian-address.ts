@@ -5,7 +5,9 @@
  * Based on Australia Post postcode ranges.
  */
 
-export type AustralianState = "ACT" | "NSW" | "NT" | "QLD" | "SA" | "TAS" | "VIC" | "WA"
+import type { AustralianState } from "@/types/db"
+
+export type { AustralianState }
 
 /**
  * Postcode ranges for each Australian state/territory

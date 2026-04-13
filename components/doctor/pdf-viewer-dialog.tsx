@@ -1,14 +1,15 @@
 "use client"
 
+import { Download, FileText, Loader2 } from "lucide-react"
+
+import { Button } from "@/components/ui/button"
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { FileText, Download, Loader2 } from "lucide-react"
 
 interface PdfViewerDialogProps {
   open: boolean

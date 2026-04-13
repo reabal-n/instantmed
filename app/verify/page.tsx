@@ -1,10 +1,12 @@
+import { Building2, ExternalLink,Lock, Shield } from "lucide-react"
 import { Metadata } from "next"
 import Link from "next/link"
-import { Navbar } from "@/components/shared/navbar"
+
 import { MarketingFooter } from "@/components/marketing"
-import { VerifyClient } from "./verify-client"
-import { Shield, Lock, Building2, ExternalLink } from "lucide-react"
+import { Navbar } from "@/components/shared"
 import { Badge } from "@/components/ui/badge"
+
+import { VerifyClient } from "./verify-client"
 
 export const metadata: Metadata = {
   title: "Verify Medical Certificate",

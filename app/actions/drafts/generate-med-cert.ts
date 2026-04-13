@@ -1,14 +1,16 @@
 "use server"
 
+import * as Sentry from "@sentry/nextjs"
 import { generateText } from "ai"
-import { getModelWithConfig } from "@/lib/ai/provider"
+
 import { upsertDraft } from "@/lib/ai/drafts"
-import { getPostHogClient } from "@/lib/analytics/posthog-server"
+import { CLINICAL_SAFETY_PREAMBLE } from "@/lib/ai/prompts"
+import { getModelWithConfig } from "@/lib/ai/provider"
 import { safeParseMedCertDraftOutput } from "@/lib/ai/schemas"
 import { validateMedCertAgainstIntake } from "@/lib/ai/validation"
-import { CLINICAL_SAFETY_PREAMBLE } from "@/lib/ai/prompts"
-import * as Sentry from "@sentry/nextjs"
-import { log, getUsage } from "./shared"
+import { getPostHogClient } from "@/lib/analytics/posthog-server"
+
+import { getUsage,log } from "./shared"
 
 // Prompt for med cert draft generation (JSON output)
 const MED_CERT_JSON_PROMPT = `You are a medical documentation assistant helping Australian GPs draft medical certificates.

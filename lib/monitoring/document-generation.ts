@@ -6,8 +6,9 @@
  * Tracks success/failure rates for document generation.
  */
 
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import * as Sentry from "@sentry/nextjs"
+
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 export interface DocumentGenerationMetrics {
   requestId: string

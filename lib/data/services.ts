@@ -4,12 +4,13 @@
  */
 
 import "server-only"
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
+
 import { createLogger } from "@/lib/observability/logger"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 // Re-export types and helpers from shared module (for backward compatibility)
 export type { Service, ServiceInput } from "@/lib/data/types/services"
-export { getServiceTypes, formatServiceType, formatPrice, formatSLA, getAustralianStates } from "@/lib/data/types/services"
+export { formatPrice, formatServiceType, formatSLA, getAustralianStates,getServiceTypes } from "@/lib/data/types/services"
 
 import type { Service, ServiceInput } from "@/lib/data/types/services"
 

@@ -1,9 +1,31 @@
 "use client"
 
+import {
+  AlertTriangle,
+  ArrowLeft,
+  CheckCircle,
+  Clock,
+  Eye,
+  Mail,
+  MousePointer,
+  Send,
+  XCircle,
+} from "lucide-react"
 import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+
+import {
+  Bar,
+  CartesianGrid,
+  LazyBarChart as BarChart,
+  Legend,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "@/components/charts/lazy-charts"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription,CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Table,
   TableBody,
@@ -12,29 +34,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import {
-  ArrowLeft,
-  Mail,
-  Eye,
-  MousePointer,
-  AlertTriangle,
-  CheckCircle,
-  XCircle,
-  Clock,
-  Send,
-} from "lucide-react"
-import {
-  LazyBarChart as BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Legend,
-} from "@/components/charts/lazy-charts"
-import { cn } from "@/lib/utils"
 import { formatTimeAgo } from "@/lib/format"
+import { cn } from "@/lib/utils"
 
 interface EmailAnalytics {
   summary: {

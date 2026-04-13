@@ -1,18 +1,19 @@
 "use client"
 
 import {
-  FileText,
-  User,
-  LayoutDashboard,
   ClipboardList,
-  Settings,
-  ListChecks,
   DollarSign,
+  FileText,
+  LayoutDashboard,
+  ListChecks,
+  Settings,
+  User,
 } from "lucide-react"
-import { AnimatedMobileMenu } from "@/components/ui/animated-mobile-menu"
-import { services } from "@/components/shared/navbar/services-dropdown"
-import { useServiceAvailability } from "@/components/providers/service-availability-provider"
+
 import { ServiceIconTile } from "@/components/icons/service-icons"
+import { useServiceAvailability } from "@/components/providers/service-availability-provider"
+import { services } from "@/components/shared/navbar/services-dropdown"
+import { AnimatedMobileMenu } from "@/components/ui/animated-mobile-menu"
 
 interface MobileMenuContentProps {
   variant: "marketing" | "patient" | "doctor"

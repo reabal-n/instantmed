@@ -1,4 +1,4 @@
-import { PRICING_DISPLAY, CONTACT_EMAIL, CONTACT_PHONE, ABN, COMPANY_NAME, COMPANY_ADDRESS } from "@/lib/constants"
+import { ABN, COMPANY_ADDRESS,COMPANY_NAME, CONTACT_EMAIL, CONTACT_PHONE, PRICING_DISPLAY } from "@/lib/constants"
 
 // Homepage Marketing Data
 // All content centralized for easy updates

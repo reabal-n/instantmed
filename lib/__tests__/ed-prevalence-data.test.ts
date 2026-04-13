@@ -1,8 +1,9 @@
-import { describe, it, expect } from "vitest"
+import { describe, expect,it } from "vitest"
+
 import {
   ED_PREVALENCE_BY_DECADE,
-  getPrevalenceForAge,
   getDecadeLabel,
+  getPrevalenceForAge,
 } from "@/lib/marketing/ed-prevalence-data"
 
 describe("ED prevalence data", () => {

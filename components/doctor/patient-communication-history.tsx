@@ -1,19 +1,20 @@
 "use client"
 
-import { useState } from "react"
-import { formatDateTime } from "@/lib/format"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import {
-  Mail,
-  CheckCircle,
-  XCircle,
-  Clock,
   AlertTriangle,
+  CheckCircle,
   ChevronDown,
   ChevronUp,
+  Clock,
+  Mail,
+  XCircle,
 } from "lucide-react"
+import { useState } from "react"
+
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { formatDateTime } from "@/lib/format"
 
 interface EmailLog {
   id: string

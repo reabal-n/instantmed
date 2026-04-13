@@ -1,9 +1,10 @@
 import { Suspense } from "react"
-import { Navbar } from "@/components/shared/navbar"
-import { Footer } from "@/components/shared/footer"
-import { CompleteAccountForm } from "./complete-account-form"
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
+
+import { Footer,Navbar } from "@/components/shared"
 import { Skeleton } from "@/components/ui/skeleton"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
+
+import { CompleteAccountForm } from "./complete-account-form"
 
 // Prevent static generation for dynamic auth
 

@@ -8,7 +8,7 @@
  * that could allow unauthorized access in production.
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
+import { afterEach,beforeEach, describe, expect, it, vi } from "vitest"
 
 /**
  * Helper to check if E2E test mode would be enabled for given env values.

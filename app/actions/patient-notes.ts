@@ -1,9 +1,12 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
+
 import { requireRole } from "@/lib/auth/helpers"
-import { logger } from "@/lib/observability/logger"
+import { createLogger } from "@/lib/observability/logger"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
+
+const log = createLogger("patient-notes")
 
 interface PatientNote {
   id: string
@@ -47,15 +50,15 @@ export async function addPatientNoteAction(
       .single()
 
     if (error) {
-      logger.error("Failed to add patient note", { patientId, error })
+      log.error("Failed to add patient note", { patientId, error })
       return { success: false, error: "Failed to add note" }
     }
 
     revalidatePath("/doctor")
-    logger.info("Patient note added", { patientId, noteId: data.id, by: profile.id })
+    log.info("Patient note added", { patientId, noteId: data.id, by: profile.id })
     return { success: true, note: data as PatientNote }
   } catch (error) {
-    logger.error("Add patient note error", { 
+    log.error("Add patient note error", { 
       patientId, 
       error: error instanceof Error ? error.message : String(error) 
     })
@@ -79,7 +82,7 @@ export async function getPatientNotesAction(patientId: string): Promise<{ notes:
       .order("created_at", { ascending: false })
 
     if (error) {
-      logger.error("Failed to get patient notes", { patientId, error })
+      log.error("Failed to get patient notes", { patientId, error })
       return { notes: [] }
     }
 
@@ -104,12 +107,12 @@ export async function deletePatientNoteAction(noteId: string): Promise<{ success
       .eq("id", noteId)
 
     if (error) {
-      logger.error("Failed to delete patient note", { noteId, error })
+      log.error("Failed to delete patient note", { noteId, error })
       return { success: false }
     }
 
     revalidatePath("/doctor")
-    logger.info("Patient note deleted", { noteId, by: profile.id })
+    log.info("Patient note deleted", { noteId, by: profile.id })
     return { success: true }
   } catch {
     return { success: false }

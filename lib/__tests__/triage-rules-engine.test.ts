@@ -1,12 +1,13 @@
-import { describe, it, expect, beforeEach as _beforeEach } from 'vitest'
+import { beforeEach as _beforeEach,describe, expect, it } from 'vitest'
+
 import {
-  checkEmergencySymptoms,
-  checkRedFlagPatterns,
+  applyFinalSafetyRule,
   checkAsyncBlocked,
   checkAutoReject,
+  checkEmergencySymptoms,
+  checkRedFlagPatterns,
   evaluateTriage,
   validateClinicianDecision,
-  applyFinalSafetyRule,
 } from '../clinical/triage-rules-engine'
 import type { ClinicalFlag } from '../clinical/triage-types'
 

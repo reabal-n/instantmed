@@ -5,8 +5,8 @@
  * Only accessible when PLAYWRIGHT=1 for E2E testing.
  */
 
-import { NextResponse } from "next/server"
 import * as Sentry from "@sentry/nextjs"
+import { NextResponse } from "next/server"
 
 export const runtime = "edge"
 

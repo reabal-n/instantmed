@@ -1,13 +1,14 @@
 'use client'
 
-import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { useReducedMotion } from '@/components/ui/motion'
-import { ArrowRight, Check, RefreshCw, AlertCircle } from 'lucide-react'
+import { AlertCircle,ArrowRight, Check, RefreshCw } from 'lucide-react'
+import Link from 'next/link'
+
 import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
-import { SOCIAL_PROOF } from '@/lib/social-proof'
+import { useReducedMotion } from '@/components/ui/motion'
 import { PRICING } from '@/lib/constants'
+import { SOCIAL_PROOF } from '@/lib/social-proof'
+import { cn } from '@/lib/utils'
 
 // ---------------------------------------------------------------------------
 // Types

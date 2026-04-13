@@ -11,24 +11,26 @@
  * - Keyboard navigation (Enter to continue)
  */
 
-import { useState, useEffect, useCallback, useMemo } from "react"
+import { ArrowRight,Calendar, CreditCard, EyeOff, Lock, Mail, MapPin, Phone, Sparkles, User, Users } from "lucide-react"
+import { useCallback, useEffect, useMemo,useState } from "react"
+
 import { usePostHog } from "@/components/providers/posthog-provider"
-import { User, Mail, Phone, Calendar, MapPin, Sparkles, Lock, EyeOff, CreditCard, Users, ArrowRight } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { AddressAutocomplete, type AddressComponents } from "@/components/ui/address-autocomplete"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { AddressAutocomplete, type AddressComponents } from "@/components/ui/address-autocomplete"
-import { useRequestStore } from "../store"
-import { FormField } from "../form-field"
-import { getSavedIdentity, saveIdentity } from "@/lib/request/preferences"
-import { validateEmail, validatePhone, validateDOB, validateName } from "@/lib/request/validation"
-import { validateMedicareNumber, formatMedicareNumber } from "@/lib/validation/medicare"
-import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
 import { setEnhancedConversionsData } from "@/lib/analytics/conversion-tracking"
+import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
+import { getSavedIdentity, saveIdentity } from "@/lib/request/preferences"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
+import { validateDOB, validateEmail, validateName,validatePhone } from "@/lib/request/validation"
+import { cn } from "@/lib/utils"
+import { formatMedicareNumber,validateMedicareNumber } from "@/lib/validation/medicare"
+
+import { FormField } from "../form-field"
+import { useRequestStore } from "../store"
 
 interface PatientDetailsStepProps {
   serviceType: UnifiedServiceType

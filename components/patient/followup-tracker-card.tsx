@@ -1,8 +1,9 @@
-import Link from "next/link"
 import { differenceInDays, format } from "date-fns"
 import { CheckCircle2, Circle, Clock } from "lucide-react"
-import { Card, CardContent } from "@/components/ui/card"
+import Link from "next/link"
+
 import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 
 export interface FollowupRow {

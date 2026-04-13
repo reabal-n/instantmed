@@ -1,8 +1,9 @@
 import type { Metadata } from "next"
-import type React from "react"
 import Link from "next/link"
-import { Navbar } from "@/components/shared/navbar"
+import type React from "react"
+
 import { MarketingFooter } from "@/components/marketing"
+import { Navbar } from "@/components/shared"
 import { CONTACT_EMAIL_PRIVACY } from "@/lib/constants"
 
 export const metadata: Metadata = {

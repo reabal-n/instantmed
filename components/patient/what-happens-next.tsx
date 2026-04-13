@@ -1,22 +1,24 @@
 "use client"
 
-import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
-import { useReducedMotion } from "@/components/ui/motion"
 import {
+  CheckCircle2,
   ChevronDown,
   HelpCircle,
-  CheckCircle2,
-  Users,
   Share2,
+  Users,
 } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { Card } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Confetti } from "@/components/ui/confetti"
-import { IntakeStatusTracker } from "./intake-status-tracker"
 import Link from "next/link"
+import { useEffect,useState } from "react"
+
+import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
+import { Confetti } from "@/components/ui/confetti"
+import { useReducedMotion } from "@/components/ui/motion"
 import type { IntakeStatus } from "@/lib/data/intake-lifecycle"
+import { cn } from "@/lib/utils"
+
+import { IntakeStatusTracker } from "./intake-status-tracker"
 
 // Stable options object - defined at module level to prevent new reference on each render
 const CONFETTI_OPTIONS = { particleCount: 40 }

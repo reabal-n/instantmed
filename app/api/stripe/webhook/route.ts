@@ -1,10 +1,12 @@
+import { createClient } from "@supabase/supabase-js"
 import crypto from "crypto"
 import { NextResponse } from "next/server"
-import { stripe } from "@/lib/stripe/client"
-import { createClient } from "@supabase/supabase-js"
 import type Stripe from "stripe"
+
 import { env } from "@/lib/config/env"
 import { createLogger } from "@/lib/observability/logger"
+import { stripe } from "@/lib/stripe/client"
+
 import { handlers } from "./handlers"
 import { tryClaimEvent } from "./handlers/utils"
 

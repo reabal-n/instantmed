@@ -1,9 +1,10 @@
 "use client"
 
+import { usePathname,useRouter } from "next/navigation"
 import { useEffect, useRef } from "react"
-import { useRouter, usePathname } from "next/navigation"
-import { createClient } from "@/lib/supabase/client"
 import { toast } from "sonner"
+
+import { createClient } from "@/lib/supabase/client"
 
 interface GlobalIntakeNotificationsProps {
   patientId: string

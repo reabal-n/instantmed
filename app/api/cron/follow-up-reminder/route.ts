@@ -1,10 +1,11 @@
 import * as Sentry from "@sentry/nextjs"
 import { NextRequest, NextResponse } from "next/server"
+
+import { acquireCronLock, releaseCronLock,verifyCronRequest } from "@/lib/api/cron-auth"
 import { processFollowUpReminders } from "@/lib/email/follow-up-reminder"
-import { createLogger } from "@/lib/observability/logger"
-import { verifyCronRequest, acquireCronLock, releaseCronLock } from "@/lib/api/cron-auth"
-import { captureCronError } from "@/lib/observability/sentry"
 import { toError } from "@/lib/errors"
+import { createLogger } from "@/lib/observability/logger"
+import { captureCronError } from "@/lib/observability/sentry"
 
 export const dynamic = "force-dynamic"
 

@@ -2,6 +2,7 @@ import "server-only"
 
 import { Ratelimit } from "@upstash/ratelimit"
 import { Redis } from "@upstash/redis"
+
 import { createLogger } from "@/lib/observability/logger"
 
 const logger = createLogger("rate-limit:resend-cert")

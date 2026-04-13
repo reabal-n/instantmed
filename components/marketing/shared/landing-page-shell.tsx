@@ -1,14 +1,15 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react"
-import { Navbar } from "@/components/shared/navbar"
+
 import { MarketingFooter } from "@/components/marketing/footer"
-import { ReturningPatientBanner } from "@/components/shared/returning-patient-banner"
 import { MarketingPageShell } from "@/components/marketing/marketing-page-shell"
-import { UnavailableBanner } from "@/components/marketing/shared/unavailable-banner"
 import { StickyCTA } from "@/components/marketing/shared/sticky-cta"
+import { UnavailableBanner } from "@/components/marketing/shared/unavailable-banner"
+import { type ServiceId,useServiceAvailability } from "@/components/providers/service-availability-provider"
+import { Navbar } from "@/components/shared"
+import { ReturningPatientBanner } from "@/components/shared"
 import { useReducedMotion } from "@/components/ui/motion"
-import { useServiceAvailability, type ServiceId } from "@/components/providers/service-availability-provider"
 import { useLandingAnalytics } from "@/lib/hooks/use-landing-analytics"
 
 // ---------------------------------------------------------------------------

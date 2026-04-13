@@ -7,43 +7,10 @@
 
 import type { ComponentType as _ComponentType } from 'react'
 
-// Service types supported by the unified flow
-export type UnifiedServiceType = 
-  | 'med-cert'
-  | 'prescription'
-  | 'repeat-script'
-  | 'consult'
+import type { ConsultSubtype,UnifiedServiceType, UnifiedStepId } from '@/types/services'
 
-// Step IDs used across all flows
-export type UnifiedStepId =
-  | 'service'           // Service selection (optional - skip if pre-selected)
-  | 'safety'            // Safety consent (merged into review step)
-  | 'certificate'       // Med cert type + duration
-  | 'symptoms'          // Symptom selection + details
-  | 'medication'        // PBS medication search
-  | 'medication-history'// Previous prescriptions + side effects
-  | 'medical-history'   // Allergies, conditions, other meds
-  | 'consult-reason'    // General consult pathway
-  | 'ed-goals'          // ED goals and duration
-  | 'ed-assessment'     // ED-specific assessment (IIEF-5)
-  | 'ed-health'         // ED health screening (nitrates, cardiac, medical history)
-  | 'ed-preferences'    // ED treatment preferences
-  | 'hair-loss-assessment' // Hair loss pattern and history
-  | 'womens-health-type'   // Women's health sub-selection
-  | 'womens-health-assessment' // Women's health specific questions
-  | 'weight-loss-assessment'   // Weight loss goals and screening
-  | 'weight-loss-call-scheduling' // Weight loss call availability
-  | 'details'           // Patient identity + contact
-  | 'review'            // Summary before payment
-  | 'checkout'          // Payment + final consents
-
-// Consult subtype keys (used in URL and intake creation)
-export type ConsultSubtype =
-  | 'general'
-  | 'ed'
-  | 'hair_loss'
-  | 'womens_health'
-  | 'weight_loss'
+// Re-export from canonical location for backward compatibility
+export type { ConsultSubtype,UnifiedServiceType, UnifiedStepId }
 
 /**
  * Consult subtypes that are gated as "Coming Soon".

@@ -1,14 +1,15 @@
-import { Navbar } from "@/components/shared/navbar"
-import { MarketingFooter, LiveWaitTime, StatsStrip, MediaMentions } from "@/components/marketing"
-import { Button } from "@/components/ui/button"
-import { ArrowRight, Shield, Zap, Clock, Star } from "lucide-react"
-import { SectionPill } from "@/components/ui/section-pill"
+import { ArrowRight, Clock, Shield, Star,Zap } from "lucide-react"
+import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import type { Metadata } from "next"
-import { getAudiencePageConfig, getAllAudiencePageSlugs } from "@/lib/seo/data/audience-pages"
-import { FAQSchema, BreadcrumbSchema } from "@/components/seo/healthcare-schema"
+
+import { LiveWaitTime, MarketingFooter, MediaMentions,StatsStrip } from "@/components/marketing"
+import { BreadcrumbSchema,FAQSchema } from "@/components/seo"
+import { Navbar } from "@/components/shared"
+import { Button } from "@/components/ui/button"
+import { SectionPill } from "@/components/ui/section-pill"
 import { PRICING_DISPLAY } from "@/lib/constants"
+import { getAllAudiencePageSlugs,getAudiencePageConfig } from "@/lib/seo/data/audience-pages"
 
 interface PageProps {
   params: Promise<{ audience: string }>

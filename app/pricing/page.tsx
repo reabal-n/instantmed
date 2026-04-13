@@ -1,7 +1,9 @@
 import type { Metadata } from "next"
-import { PricingClient } from "./pricing-client"
-import { BreadcrumbSchema, MedicalServiceSchema } from "@/components/seo/healthcare-schema"
+
+import { BreadcrumbSchema, MedicalServiceSchema } from "@/components/seo"
 import { PRICING_DISPLAY } from "@/lib/constants"
+
+import { PricingClient } from "./pricing-client"
 
 export const metadata: Metadata = {
   title: "Pricing | Transparent Telehealth Costs",

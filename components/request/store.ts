@@ -8,13 +8,14 @@
 
 import { create } from 'zustand'
 import { persist, type StorageValue } from 'zustand/middleware'
-import type { UnifiedServiceType, UnifiedStepId } from '@/lib/request/step-registry'
-import { getStepsForService as _getStepsForService, getNextStepId, getPreviousStepId } from '@/lib/request/step-registry'
+
 import { 
   canonicalizeServiceType, 
-  saveDraft, 
   migrateLegacyDraft,
+  saveDraft, 
 } from '@/lib/request/draft-storage'
+import type { UnifiedServiceType, UnifiedStepId } from '@/lib/request/step-registry'
+import { getNextStepId, getPreviousStepId,getStepsForService as _getStepsForService } from '@/lib/request/step-registry'
 
 export interface RequestState {
   // Service

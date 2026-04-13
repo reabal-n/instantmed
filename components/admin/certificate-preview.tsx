@@ -1,14 +1,14 @@
 "use client"
 
 import { useMemo } from "react"
-import type {
-  ClinicIdentity,
-  TemplateConfig,
-  PreviewData,
-} from "@/types/certificate-template"
 
 import { CONTACT_EMAIL } from "@/lib/constants"
 import { formatDateLong } from "@/lib/format"
+import type {
+  ClinicIdentity,
+  PreviewData,
+  TemplateConfig,
+} from "@/types/certificate-template"
 
 // Import constants directly to avoid type issues
 const MARGIN_VALUES_MAP = {

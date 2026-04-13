@@ -5,8 +5,8 @@
  * Lists all available templates with links to individual previews.
  */
 
-import { redirect } from "next/navigation"
 import Link from "next/link"
+import { redirect } from "next/navigation"
 
 // Guard: Only available in development
 export const dynamic = "force-dynamic"

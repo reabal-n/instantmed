@@ -1,6 +1,21 @@
 "use client"
 
+import {
+  Calendar,
+  CheckCircle,
+  Eye,
+  FileText,
+  Loader2,
+  PencilLine,
+  Stethoscope,
+  User,
+} from "lucide-react"
 import { useState } from "react"
+import { toast } from "sonner"
+
+import { generatePreviewPdfAction } from "@/app/doctor/intakes/[id]/document/actions"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import {
   Dialog,
   DialogContent,
@@ -9,13 +24,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
-import { Switch } from "@/components/ui/switch"
 import {
   Select,
   SelectContent,
@@ -23,19 +33,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import {
-  CheckCircle,
-  Loader2,
-  FileText,
-  Calendar,
-  User,
-  Stethoscope,
-  PencilLine,
-  Eye,
-} from "lucide-react"
+import { Separator } from "@/components/ui/separator"
+import { Switch } from "@/components/ui/switch"
+import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
-import { generatePreviewPdfAction } from "@/app/doctor/intakes/[id]/document/actions"
-import { toast } from "sonner"
 
 export interface CertificatePreviewData {
   patientName: string

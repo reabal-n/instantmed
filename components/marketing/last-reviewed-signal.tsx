@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useEffect, useSyncExternalStore } from 'react'
 import { Clock } from 'lucide-react'
+import { useEffect, useState, useSyncExternalStore } from 'react'
+
 import { cn } from '@/lib/utils'
 
 function useHasMounted() {

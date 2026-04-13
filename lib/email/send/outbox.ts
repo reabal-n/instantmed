@@ -5,8 +5,9 @@
  * Two-phase write pattern: create pending row before send, update after.
  */
 
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { logger } from "@/lib/observability/logger"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
+
 import type { OutboxEntry, OutboxRow } from "./types"
 
 /**

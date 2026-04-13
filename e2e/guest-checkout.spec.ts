@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
-import { test, expect } from "@playwright/test"
-import { getSupabaseClient, isDbAvailable, cleanupTestIntake } from "./helpers/db"
+import { expect,test } from "@playwright/test"
+
+import { cleanupTestIntake,getSupabaseClient, isDbAvailable } from "./helpers/db"
 
 /**
  * Guest Checkout → Account Linking E2E Tests

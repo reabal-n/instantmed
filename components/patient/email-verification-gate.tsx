@@ -1,11 +1,12 @@
 "use client"
 
-import { useState, useTransition } from "react"
 import { motion } from "framer-motion"
-import { useReducedMotion } from "@/components/ui/motion"
-import { Mail, AlertCircle, CheckCircle2, Loader2, RefreshCw } from "lucide-react"
+import { AlertCircle, CheckCircle2, Loader2, Mail, RefreshCw } from "lucide-react"
+import { useState, useTransition } from "react"
+
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
+import { useReducedMotion } from "@/components/ui/motion"
 import { cn } from "@/lib/utils"
 
 interface EmailVerificationGateProps {

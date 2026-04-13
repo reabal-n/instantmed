@@ -1,18 +1,20 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { AlertCircle, ArrowRight,Droplets, Pill, Scissors, Stethoscope } from "lucide-react"
+import { useEffect,useRef, useState } from "react"
+
 import { usePostHog } from "@/components/providers/posthog-provider"
-import { Scissors, AlertCircle, Pill, Droplets, Stethoscope, ArrowRight } from "lucide-react"
-import { Label } from "@/components/ui/label"
-import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Alert, AlertDescription } from "@/components/ui/alert"
 import { MedicalHistoryToggles } from "@/components/request/shared/medical-history-toggles"
-import { cn } from "@/lib/utils"
-import { useRequestStore } from "../store"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Textarea } from "@/components/ui/textarea"
 import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
+import { cn } from "@/lib/utils"
+
+import { useRequestStore } from "../store"
 
 interface HairLossAssessmentStepProps {
   serviceType: UnifiedServiceType

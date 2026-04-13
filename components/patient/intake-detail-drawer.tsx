@@ -1,9 +1,10 @@
-import Link from "next/link"
 import { ExternalLink } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
-import { formatDate, formatRelative } from "@/lib/format"
+import Link from "next/link"
+
 import { type Intake, resolveStatusConfig } from "@/components/patient/intake-types"
+import { Button } from "@/components/ui/button"
+import { formatDate, formatRelative } from "@/lib/format"
+import { cn } from "@/lib/utils"
 
 /** What's Next guidance - moved from card to drawer for cleaner list view */
 const WHATS_NEXT: Record<string, { message: string; actionLabel?: string }> = {

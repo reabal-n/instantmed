@@ -8,14 +8,16 @@
  * Called after payment is confirmed via Stripe webhook.
  */
 
-import { draftsExist, deleteDrafts } from "@/lib/ai/drafts"
-import { normalizeServiceType, getDraftCategory } from "@/lib/constants/service-types"
 import * as Sentry from "@sentry/nextjs"
-import { log, getServiceClient, formatIntakeContext, type GenerateDraftsResult } from "./drafts/shared"
+
+import { deleteDrafts,draftsExist } from "@/lib/ai/drafts"
+import { getDraftCategory,normalizeServiceType } from "@/lib/constants/service-types"
+
 import { generateClinicalNoteDraft } from "./drafts/generate-clinical-note"
+import { generateConsultDraft } from "./drafts/generate-consult"
 import { generateMedCertDraft } from "./drafts/generate-med-cert"
 import { generateRepeatRxDraft } from "./drafts/generate-repeat-rx"
-import { generateConsultDraft } from "./drafts/generate-consult"
+import { formatIntakeContext, type GenerateDraftsResult,getServiceClient, log } from "./drafts/shared"
 
 /**
  * Generate AI drafts for an intake

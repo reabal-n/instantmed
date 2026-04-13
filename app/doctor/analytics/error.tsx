@@ -1,9 +1,10 @@
 "use client"
 
-import { useEffect } from "react"
-import { AlertTriangle, RefreshCw } from "lucide-react"
-import { Button } from "@/components/ui/button"
 import * as Sentry from "@sentry/nextjs"
+import { AlertTriangle, RefreshCw } from "lucide-react"
+import { useEffect } from "react"
+
+import { Button } from "@/components/ui/button"
 
 export default function AnalyticsError({
   error,

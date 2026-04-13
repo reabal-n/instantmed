@@ -1,16 +1,17 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
 import Image from 'next/image'
-import { cn } from '@/lib/utils'
-import { useReducedMotion } from '@/components/ui/motion'
+import { useEffect, useRef } from 'react'
+
 import { usePostHog } from '@/components/providers/posthog-provider'
+import { useReducedMotion } from '@/components/ui/motion'
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
+import { cn } from '@/lib/utils'
 
 const EMPLOYER_LOGOS = [
   { name: 'Woolworths', src: '/logos/woolworths.png' },

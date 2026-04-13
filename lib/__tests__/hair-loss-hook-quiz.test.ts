@@ -1,12 +1,13 @@
-import { describe, it, expect } from "vitest"
+import { describe, expect,it } from "vitest"
+
 import {
-  NORWOOD_STAGES,
-  DURATION_BUCKETS,
   buildHairLossHookQuizResult,
-  HAIR_LOSS_HOOK_QUIZ_KEY,
-  getHairLossHookQuizReassurance,
-  type NorwoodStage,
+  DURATION_BUCKETS,
   type DurationBucket,
+  getHairLossHookQuizReassurance,
+  HAIR_LOSS_HOOK_QUIZ_KEY,
+  NORWOOD_STAGES,
+  type NorwoodStage,
 } from "@/lib/marketing/hair-loss-hook-quiz"
 
 describe("NORWOOD_STAGES", () => {

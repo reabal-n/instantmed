@@ -1,17 +1,17 @@
 "use client"
 
-import { useEffect, useState, useCallback, useRef } from "react"
-import { usePostHog } from "@/components/providers/posthog-provider"
 import { motion } from "framer-motion"
-import { useReducedMotion } from "@/components/ui/motion"
-import { LottieAnimation } from "@/components/ui/lottie-animation"
-import { WhatHappensNext } from "@/components/patient/what-happens-next"
-import { ReferralCard } from "@/components/patient/referral-card"
-import { Mail, AlertTriangle, Check } from "lucide-react"
-import { PulseSpinner } from "@/components/ui/spinner"
-import type { IntakeStatus } from "@/lib/data/intake-lifecycle"
+import { AlertTriangle, Check,Mail } from "lucide-react"
+import { useCallback, useEffect, useRef,useState } from "react"
+
+import { ReferralCard,WhatHappensNext } from "@/components/patient"
+import { usePostHog } from "@/components/providers/posthog-provider"
 import { Button } from "@/components/ui/button"
+import { LottieAnimation } from "@/components/ui/lottie-animation"
+import { useReducedMotion } from "@/components/ui/motion"
+import { PulseSpinner } from "@/components/ui/spinner"
 import { trackPurchase } from "@/lib/analytics/conversion-tracking"
+import type { IntakeStatus } from "@/lib/data/intake-lifecycle"
 
 const RESEND_COOLDOWN_SECONDS = 60
 

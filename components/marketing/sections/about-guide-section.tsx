@@ -1,9 +1,10 @@
 "use client"
 
-import Link from "next/link"
 import { motion } from "framer-motion"
+import { BadgeCheck, Heart, Lock, MapPin,Monitor, ShieldCheck } from "lucide-react"
+import Link from "next/link"
+
 import { useReducedMotion } from "@/components/ui/motion"
-import { BadgeCheck, Heart, Monitor, ShieldCheck, Lock, MapPin } from "lucide-react"
 
 // =============================================================================
 // DATA

@@ -1,37 +1,35 @@
 'use client'
 
-import Script from "next/script"
-import Link from "next/link"
-import Image from "next/image"
-import { Navbar } from "@/components/shared/navbar"
-import { MarketingFooter } from "@/components/marketing"
-import { safeJsonLd } from "@/lib/seo/safe-json-ld"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { RegulatoryPartners } from "@/components/marketing"
-import { AvailabilityIndicator } from "@/components/shared/availability-indicator"
-import { CenteredHero } from "@/components/heroes"
 import {
-  FAQSection,
-  CTABanner,
-  ProcessSteps,
-  FeatureGrid,
-} from "@/components/sections"
-import {
+  Activity,
   ArrowRight,
+  CheckCircle2,
   Clock,
+  Lock,
+  Pill,
+  Scale,
   Shield,
   Zap,
-  Pill,
-  Lock,
-  Activity,
-  CheckCircle2,
-  Scale,
 } from "lucide-react"
-import { WeightLossGuideSection } from "@/components/marketing/sections/weight-loss-guide-section"
-import { DoctorCredibility } from "@/components/marketing/doctor-credibility"
+import Image from "next/image"
+import Link from "next/link"
+import Script from "next/script"
+
+import { CenteredHero } from "@/components/heroes"
+import { DoctorCredibility,MarketingFooter, RegulatoryPartners } from "@/components/marketing"
+import { TestimonialsSection, WeightLossGuideSection } from "@/components/marketing/sections"
+import {
+  CTABanner,
+  FAQSection,
+  FeatureGrid,
+  ProcessSteps,
+} from "@/components/sections"
+import { Navbar } from "@/components/shared"
+import { AvailabilityIndicator } from "@/components/shared"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { getTestimonialsByService, getTestimonialsForColumns } from "@/lib/data/testimonials"
-import { TestimonialsSection } from "@/components/marketing/sections/testimonials-section"
+import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 
 const treatments = [
   {

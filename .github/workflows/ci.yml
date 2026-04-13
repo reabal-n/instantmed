@@ -30,8 +30,15 @@ jobs:
       - name: Security audit
         run: pnpm audit --audit-level=high
 
-      - name: Run lint
-        run: pnpm lint
+      - name: Run lint (budget: 60s)
+        run: |
+          START=$(date +%s)
+          pnpm lint --max-warnings 0
+          ELAPSED=$(( $(date +%s) - START ))
+          echo "Lint completed in ${ELAPSED}s"
+          if [ "$ELAPSED" -gt 60 ]; then
+            echo "::warning::Lint exceeded 60s budget (${ELAPSED}s) — investigate slow rules"
+          fi
 
       - name: Run unit tests with coverage
         run: pnpm test --run --coverage
@@ -42,7 +49,7 @@ jobs:
       - name: Check for orphaned files
         run: bash scripts/check-orphaned-files.sh
 
-      - name: Type-check and build
+      - name: Type-check and build (budget: 180s)
         env:
           NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
           NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder-anon-key-for-build
@@ -60,7 +67,14 @@ jobs:
           STRIPE_PRICE_CONSULT_WEIGHT_LOSS: price_placeholder_consult_weight_loss
           STRIPE_PRICE_PRIORITY_FEE: price_placeholder_priority_fee
           STRIPE_PRICE_REPEAT_RX_MONTHLY: price_placeholder_repeat_rx_monthly
-        run: pnpm build
+        run: |
+          START=$(date +%s)
+          pnpm build
+          ELAPSED=$(( $(date +%s) - START ))
+          echo "Build completed in ${ELAPSED}s"
+          if [ "$ELAPSED" -gt 180 ]; then
+            echo "::warning::Build exceeded 180s budget (${ELAPSED}s) — check for bundle bloat"
+          fi
 
   lighthouse:
     needs: build

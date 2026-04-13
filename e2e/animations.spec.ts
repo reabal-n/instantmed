@@ -13,7 +13,7 @@
  * Run: pnpm e2e:chromium e2e/animations.spec.ts
  */
 
-import { test, expect } from "@playwright/test"
+import { expect,test } from "@playwright/test"
 
 test.describe("whileInView - content always visible", () => {
   test("homepage service cards are readable before and after scroll", async ({ page }) => {

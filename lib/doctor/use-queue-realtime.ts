@@ -1,9 +1,10 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
-import { createClient } from "@/lib/supabase/client"
+import { useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
+
+import { createClient } from "@/lib/supabase/client"
 import type { IntakeWithPatient } from "@/types/db"
 
 interface UseQueueRealtimeOptions {

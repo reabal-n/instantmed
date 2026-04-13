@@ -1,9 +1,9 @@
 import type { LucideIcon } from 'lucide-react'
 import {
-  BadgeCheck, FileCheck, BookOpen, UserCheck, ShieldCheck, Eye,
-  Lock, Server, PhoneOff, MessageSquareOff, FileText, DoorOpen,
-  CalendarX, Smartphone, VideoOff, Timer, Send, CreditCard, Users,
-} from 'lucide-react'
+  BadgeCheck, BookOpen,   CalendarX, CreditCard, DoorOpen,
+Eye,
+FileCheck, FileText,   Lock, MessageSquareOff, PhoneOff, Send, Server, ShieldCheck, Smartphone, Timer, UserCheck, Users,
+VideoOff, } from 'lucide-react'
 
 export type BadgeId =
   | 'ahpra' | 'tga' | 'racgp' | 'medical_director' | 'refund' | 'privacy'

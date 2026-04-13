@@ -8,14 +8,14 @@
 // Re-export Radix-based Accordion components
 export {
   Accordion,
+  AccordionContent,
   AccordionItem,
   AccordionTrigger,
-  AccordionContent,
 } from "@/components/ui/accordion"
 
 // Type exports for convenience
 export type {
-  AccordionSingleProps,
   AccordionMultipleProps,
+  AccordionSingleProps,
 } from "@radix-ui/react-accordion"
 

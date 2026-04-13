@@ -1,29 +1,29 @@
 "use client"
 
-import Link from "next/link"
-import { Navbar } from "@/components/shared/navbar"
-import { MarketingFooter } from "@/components/marketing"
-import { StatsHero } from "@/components/heroes"
 import {
-  IconChecklist,
-  FeatureGrid,
-  Timeline,
-  CTABanner,
-  AccordionSection,
-} from "@/components/sections"
-import type { StatItem, ChecklistItem, FeatureItem, TimelineStep } from "@/components/sections/types"
-import { DataDrivenGuideSection } from "@/components/marketing/sections/data-driven-guide-section"
-import type { GuideSectionData } from "@/components/marketing/sections/data-driven-guide-section"
-import { FAQSchema } from "@/components/seo/healthcare-schema"
-import {
-  UserCheck,
-  BookOpen,
-  Scale,
-  ClipboardCheck,
-  RefreshCw,
   AlertTriangle,
+  BookOpen,
+  ClipboardCheck,
   ExternalLink,
+  RefreshCw,
+  Scale,
+  UserCheck,
 } from "lucide-react"
+import Link from "next/link"
+
+import { StatsHero } from "@/components/heroes"
+import { MarketingFooter } from "@/components/marketing"
+import { DataDrivenGuideSection, type GuideSectionData } from "@/components/marketing/sections"
+import {
+  AccordionSection,
+  CTABanner,
+  FeatureGrid,
+  IconChecklist,
+  Timeline,
+} from "@/components/sections"
+import type { ChecklistItem, FeatureItem, StatItem, TimelineStep } from "@/components/sections/types"
+import { FAQSchema } from "@/components/seo"
+import { Navbar } from "@/components/shared"
 import { Button } from "@/components/ui/button"
 
 /* ────────────────────────────── Data ────────────────────────────── */

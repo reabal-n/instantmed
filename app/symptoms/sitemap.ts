@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next"
+
 import { getAllSymptomSlugs } from "@/lib/seo/symptoms"
 
 const CONTENT_ENRICHED = new Date("2026-03-31")

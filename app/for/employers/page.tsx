@@ -1,32 +1,31 @@
-import type { Metadata } from "next"
-import Link from "next/link"
-import { Navbar } from "@/components/shared/navbar"
-import { MarketingFooter, LiveWaitTime, StatsStrip, MediaMentions } from "@/components/marketing"
-import { safeJsonLd } from "@/lib/seo/safe-json-ld"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import {
-  Shield,
-  CheckCircle,
-  FileText,
-  Search,
-  ExternalLink,
+  AlertTriangle,
+  BadgeCheck,
+  BookOpen,
   Building2,
-  Lock,
+  CheckCircle,
+  ClipboardCheck,
+  ExternalLink,
+  Eye,
+  FileText,
   HelpCircle,
+  Lock,
   Mail,
   MapPin,
-  Eye,
-  BookOpen,
   Scale,
-  BadgeCheck,
-  ClipboardCheck,
-  AlertTriangle,
+  Search,
+  Shield,
 } from "lucide-react"
-import { SampleCertificate } from "@/components/marketing/sample-certificate"
-import { ScrollingLogoMarquee } from "@/components/marketing/shared/scrolling-logo-marquee"
-import { TestimonialCard } from "@/components/marketing/shared/testimonial-card"
+import type { Metadata } from "next"
+import Link from "next/link"
+
+import { LiveWaitTime, MarketingFooter, MediaMentions, SampleCertificate,StatsStrip } from "@/components/marketing"
+import { ScrollingLogoMarquee, TestimonialCard } from "@/components/marketing/shared"
+import { Navbar } from "@/components/shared"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { CONTACT_EMAIL } from "@/lib/constants"
+import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 
 export const metadata: Metadata = {
   title: "For Employers | Verify Medical Certificates",

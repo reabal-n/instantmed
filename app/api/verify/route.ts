@@ -8,13 +8,14 @@
  * - Input validation and sanitization
  */
 
-import { NextResponse } from "next/server"
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { Ratelimit } from "@upstash/ratelimit"
 import { Redis } from "@upstash/redis"
-import { getClientIdentifier } from "@/lib/rate-limit/redis"
+import { NextResponse } from "next/server"
+
 import { logCertificateEvent } from "@/lib/data/issued-certificates"
 import { createLogger } from "@/lib/observability/logger"
+import { getClientIdentifier } from "@/lib/rate-limit/redis"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { normalizeVerificationCode } from "@/lib/utils/code-normalization"
 
 // ---- Inline rate limit types & helpers (self-contained for this public endpoint) ----
@@ -316,11 +317,24 @@ export async function GET(request: Request) {
 /**
  * Check legacy certificate tables for older certificates
  */
+interface VerificationResult {
+  valid: boolean
+  certificate: {
+    certificateNumber: string | null
+    type: string
+    issueDate: string | undefined
+    validFrom?: string | null
+    validTo?: string | null
+    patientName: string
+    issuingDoctor: string
+    issuingClinic: string
+  }
+}
+
 async function checkLegacyTables(
   supabase: ReturnType<typeof createServiceRoleClient>,
   code: string
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-): Promise<any | null> {
+): Promise<VerificationResult | null> {
   // Check med_cert_certificates table
   const { data: legacyCert } = await supabase
     .from("med_cert_certificates")
@@ -370,12 +384,19 @@ async function checkLegacyTables(
     .maybeSingle()
 
   if (intakeDoc) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const intake = intakeDoc.intake as any
+    // Nested FK join: intake_documents -> intakes -> profiles. Supabase returns
+    // untyped nested objects for multi-level joins, so we define the expected shape.
+    interface IntakeJoin {
+      patient: { full_name: string }[] | { full_name: string } | null
+      reviewed_by: string | null
+      category: string | null
+      service?: { slug?: string } | null
+    }
+    const intake = (Array.isArray(intakeDoc.intake) ? intakeDoc.intake[0] : intakeDoc.intake) as IntakeJoin | null
 
     const patientRaw = intake?.patient
     const patientData = Array.isArray(patientRaw) ? patientRaw[0] : patientRaw
-    
+
     let doctorName = "InstantMed Doctor"
     if (intake?.reviewed_by) {
       const { data: doctor } = await supabase

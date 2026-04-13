@@ -1,11 +1,12 @@
+import * as Sentry from "@sentry/nextjs"
 import { NextRequest, NextResponse } from "next/server"
-import { stripe } from "@/lib/stripe/client"
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { createLogger } from "@/lib/observability/logger"
+
 import { generateDraftsForIntake } from "@/app/actions/generate-drafts"
 import { auth } from "@/lib/auth/helpers"
-import * as Sentry from "@sentry/nextjs"
+import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
+import { stripe } from "@/lib/stripe/client"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const log = createLogger("stripe-verify-payment")
 

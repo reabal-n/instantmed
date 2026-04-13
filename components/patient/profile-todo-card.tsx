@@ -1,15 +1,16 @@
 "use client"
 
-import { motion, AnimatePresence } from "framer-motion"
-import { useReducedMotion } from "@/components/ui/motion"
+import { AnimatePresence,motion } from "framer-motion"
 import {
-  Phone,
-  MapPin,
-  ShieldCheck,
   CheckCircle2,
-  Circle,
   ChevronRight,
+  Circle,
+  MapPin,
+  Phone,
+  ShieldCheck,
 } from "lucide-react"
+
+import { useReducedMotion } from "@/components/ui/motion"
 import { cn } from "@/lib/utils"
 import type { AustralianState } from "@/types/db"
 

@@ -1,17 +1,19 @@
 "use client"
 
+import { AlertCircle, AlertTriangle, Pill,Scale, Syringe } from "lucide-react"
 import { useState } from "react"
-import { Scale, AlertCircle, AlertTriangle, Syringe, Pill } from "lucide-react"
-import { Label } from "@/components/ui/label"
+
+import { MedicalHistoryToggles } from "@/components/request/shared/medical-history-toggles"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
+import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { MedicalHistoryToggles } from "@/components/request/shared/medical-history-toggles"
-import { cn } from "@/lib/utils"
-import { useRequestStore } from "../store"
+import { Textarea } from "@/components/ui/textarea"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
+import { cn } from "@/lib/utils"
+
+import { useRequestStore } from "../store"
 
 interface WeightLossAssessmentStepProps {
   serviceType: UnifiedServiceType

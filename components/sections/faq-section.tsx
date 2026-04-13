@@ -1,18 +1,20 @@
 "use client"
 
-import { useState } from "react"
 import { motion } from "framer-motion"
-import Link from "next/link"
 import { ArrowRight } from "lucide-react"
-import { cn } from "@/lib/utils"
+import Link from "next/link"
+import { useState } from "react"
+
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
-import { SectionHeader } from "./section-header"
 import { useReducedMotion } from "@/components/ui/motion"
+import { cn } from "@/lib/utils"
+
+import { SectionHeader } from "./section-header"
 
 interface FAQItem {
   question: string

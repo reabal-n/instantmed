@@ -1,17 +1,18 @@
 "use client"
 
+import {
+  Clock,
+  CreditCard,
+  Send,
+  Shield,
+} from "lucide-react"
+import Link from "next/link"
+
 import { CenteredHero } from "@/components/heroes"
-import { Timeline, FeatureGrid, FAQSection, CTABanner } from "@/components/sections"
 import { DoctorCredibility } from "@/components/marketing/doctor-credibility"
 import { RegulatoryPartners } from "@/components/marketing/media-mentions"
 import { InformationalPageShell } from "@/components/marketing/shared/informational-page-shell"
-import {
-  Clock,
-  Shield,
-  CreditCard,
-  Send,
-} from "lucide-react"
-import Link from "next/link"
+import { CTABanner,FAQSection, FeatureGrid, Timeline } from "@/components/sections"
 
 /* ────────────────────────────── Data ────────────────────────────── */
 

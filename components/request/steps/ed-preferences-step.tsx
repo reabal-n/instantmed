@@ -9,16 +9,18 @@
  */
 
 import { motion } from "framer-motion"
-import { usePostHog } from "@/components/providers/posthog-provider"
-import { CalendarDays, Clock, Stethoscope, ShieldCheck, ArrowRight } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
-import { stagger } from "@/lib/motion"
-import { useReducedMotion } from "@/components/ui/motion"
-import { useRequestStore } from "../store"
-import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
-import type { UnifiedServiceType } from "@/lib/request/step-registry"
 import type { LucideIcon } from "lucide-react"
+import { ArrowRight,CalendarDays, Clock, ShieldCheck, Stethoscope } from "lucide-react"
+
+import { usePostHog } from "@/components/providers/posthog-provider"
+import { Button } from "@/components/ui/button"
+import { useReducedMotion } from "@/components/ui/motion"
+import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
+import { stagger } from "@/lib/motion"
+import type { UnifiedServiceType } from "@/lib/request/step-registry"
+import { cn } from "@/lib/utils"
+
+import { useRequestStore } from "../store"
 
 interface EdPreferencesStepProps {
   serviceType: UnifiedServiceType

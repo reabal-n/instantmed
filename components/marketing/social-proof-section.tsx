@@ -1,17 +1,18 @@
 'use client'
 
-import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { useReducedMotion } from '@/components/ui/motion'
-import { Users, Star, Clock, ShieldCheck, ArrowRight } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import { SOCIAL_PROOF } from '@/lib/social-proof'
-import { getPatientCount } from '@/lib/social-proof'
+import { ArrowRight,Clock, ShieldCheck, Star, Users } from 'lucide-react'
+import Link from 'next/link'
+
 import { AnimatedStat } from '@/components/marketing/animated-stat'
+import { GoogleReviewsBadge } from '@/components/marketing/google-reviews-badge'
+import { useReducedMotion } from '@/components/ui/motion'
+import { SectionPill } from '@/components/ui/section-pill'
 import { TestimonialsColumnsWrapper } from '@/components/ui/testimonials-columns-wrapper'
 import { getHomepageTestimonials } from '@/lib/data/testimonials'
-import { GoogleReviewsBadge } from '@/components/marketing/google-reviews-badge'
-import { SectionPill } from '@/components/ui/section-pill'
+import { SOCIAL_PROOF } from '@/lib/social-proof'
+import { getPatientCount } from '@/lib/social-proof'
+import { cn } from '@/lib/utils'
 
 const bentoStats = [
   {

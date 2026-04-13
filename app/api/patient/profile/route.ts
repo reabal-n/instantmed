@@ -1,10 +1,11 @@
-import { NextResponse } from "next/server"
 import { revalidatePath } from "next/cache"
+import { NextResponse } from "next/server"
+import { z } from "zod"
+
+import { getCurrentProfile, updateProfile } from "@/lib/data/profiles"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { requireValidCsrf } from "@/lib/security/csrf"
-import { getCurrentProfile, updateProfile } from "@/lib/data/profiles"
 import type { AustralianState } from "@/types/db"
-import { z } from "zod"
 
 const profileUpdateSchema = z.object({
   full_name: z.string().min(1).max(200).optional().nullable(),

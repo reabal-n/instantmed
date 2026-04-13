@@ -1,8 +1,9 @@
-import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
-import { PaymentHistoryContent } from "@/components/patient/payment-history-content"
+import Link from "next/link"
+
+import { PaymentHistoryContent } from "@/components/patient"
+import { Button } from "@/components/ui/button"
+import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
 
 // Prevent static generation for dynamic auth
 

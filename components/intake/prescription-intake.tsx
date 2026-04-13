@@ -4,11 +4,12 @@
  * PrescriptionIntake — multi-step prescription request form.
  * Used by /prescriptions/new to collect patient details before checkout.
  *
- * TODO: Implement full multi-step UI (see prescription-flow-client.tsx for the
- * full wizard). This component is the entry point for the new prescriptions/new route.
+ * The full multi-step wizard lives in prescription-flow-client.tsx;
+ * canonical intake now routes through /request.
  */
 
 import { useState } from "react"
+
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"

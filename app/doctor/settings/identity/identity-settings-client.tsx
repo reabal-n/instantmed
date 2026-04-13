@@ -1,28 +1,34 @@
 "use client"
 
-import { useState, useCallback, useTransition } from "react"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import {
-  ArrowLeft,
-  Save,
-  Upload,
-  Loader2,
-  CheckCircle,
   AlertCircle,
   AlertTriangle,
-  User,
+  ArrowLeft,
+  CheckCircle,
   FileSignature,
-  Pause,
-  Play,
-  Pill,
   Link2,
+  Loader2,
+  Pause,
+  Pill,
+  Play,
+  Save,
+  Upload,
+  User,
 } from "lucide-react"
-import { Switch } from "@/components/ui/switch"
+import Link from "next/link"
+import { useCallback, useState, useTransition } from "react"
+
+import { setDoctorAvailabilityAction } from "@/app/actions/doctor-availability"
+import {
+  saveDoctorIdentityAction,
+  uploadSignatureAction,
+} from "@/app/actions/doctor-identity"
+import { linkParchmentUserAction,listParchmentUsersAction } from "@/app/actions/parchment"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import {
   Select,
   SelectContent,
@@ -30,16 +36,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Switch } from "@/components/ui/switch"
 import {
-  saveDoctorIdentityAction,
-  uploadSignatureAction,
-} from "@/app/actions/doctor-identity"
-import { setDoctorAvailabilityAction } from "@/app/actions/doctor-availability"
-import { listParchmentUsersAction, linkParchmentUserAction } from "@/app/actions/parchment"
-import {
-  validateProviderNumber,
-  validateAhpraNumber,
   type DoctorIdentity,
+  validateAhpraNumber,
+  validateProviderNumber,
 } from "@/lib/data/doctor-identity.shared"
 
 interface IdentitySettingsClientProps {

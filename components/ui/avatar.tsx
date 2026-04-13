@@ -1,9 +1,10 @@
 "use client"
 
-import * as React from "react"
-import Image from "next/image"
 import * as AvatarPrimitive from "@radix-ui/react-avatar"
 import { User } from "lucide-react"
+import Image from "next/image"
+import * as React from "react"
+
 import { cn } from "@/lib/utils"
 
 export interface AvatarProps extends React.ComponentProps<typeof AvatarPrimitive.Root> {
@@ -93,4 +94,4 @@ function AvatarFallback({
   )
 }
 
-export { Avatar, AvatarImage, AvatarFallback }
+export { Avatar, AvatarFallback,AvatarImage }

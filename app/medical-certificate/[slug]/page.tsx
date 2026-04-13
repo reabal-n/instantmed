@@ -1,21 +1,21 @@
+import { ArrowRight, CheckCircle2, Shield, Star, Zap } from "lucide-react"
+import type { Metadata } from "next"
+import Link from "next/link"
 import { notFound, redirect } from "next/navigation"
-import { Navbar } from "@/components/shared/navbar"
-import { Footer } from "@/components/shared/footer"
+
+import { MedCertIntentPage } from "@/components/marketing"
+import { BreadcrumbSchema, FAQSchema, MedicalServiceSchema } from "@/components/seo"
+import { MedicalDisclaimer } from "@/components/seo"
+import { Footer,Navbar } from "@/components/shared"
 import { Button } from "@/components/ui/button"
 import { SectionPill } from "@/components/ui/section-pill"
-import { ArrowRight, Shield, Star, CheckCircle2, Zap } from "lucide-react"
-import Link from "next/link"
-import type { Metadata } from "next"
+import { PRICING_DISPLAY } from "@/lib/constants"
 import {
-  medCertIntentConfigs,
   isMedCertIntentSlug,
   MED_CERT_INTENT_SLUGS,
+  medCertIntentConfigs,
 } from "@/lib/marketing/med-cert-intent-config"
-import { MedCertIntentPage } from "@/components/marketing/med-cert-intent-page"
-import { BreadcrumbSchema, FAQSchema, MedicalServiceSchema } from "@/components/seo/healthcare-schema"
 import { safeJsonLd } from "@/lib/seo/safe-json-ld"
-import { MedicalDisclaimer } from "@/components/seo/medical-disclaimer"
-import { PRICING_DISPLAY } from "@/lib/constants"
 
 export const revalidate = 3600 // ISR: revalidate every hour
 

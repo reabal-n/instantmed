@@ -3,7 +3,7 @@
  * Tests the getAbsenceDays calculation and getPriceIdForRequest function
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { beforeEach,describe, expect, it, vi } from 'vitest'
 
 // Mock the stripe client module to test the internal getAbsenceDays logic
 // We'll test the exported getPriceIdForRequest function behavior

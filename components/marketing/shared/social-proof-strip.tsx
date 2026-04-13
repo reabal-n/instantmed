@@ -1,10 +1,11 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
 import { motion } from "framer-motion"
+import type { LucideIcon } from "lucide-react"
+import { useEffect, useRef, useState } from "react"
+
 import { useReducedMotion } from "@/components/ui/motion"
 import { cn } from "@/lib/utils"
-import type { LucideIcon } from "lucide-react"
 
 // ---------------------------------------------------------------------------
 // Types

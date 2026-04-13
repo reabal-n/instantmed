@@ -1,11 +1,12 @@
 "use client"
 
-import Link from "next/link"
 import { motion } from "framer-motion"
-import { useReducedMotion } from "@/components/ui/motion"
 import { ArrowRight, Check, FileText, ShieldCheck } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import Link from "next/link"
+
 import { CertificateShowcaseMockup } from "@/components/marketing/mockups/certificate-showcase"
+import { Button } from "@/components/ui/button"
+import { useReducedMotion } from "@/components/ui/motion"
 
 // =============================================================================
 // DATA

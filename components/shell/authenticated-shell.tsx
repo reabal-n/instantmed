@@ -1,9 +1,11 @@
 'use client'
 
 import { type ReactNode } from 'react'
+
 import { PanelProvider } from '@/components/panels'
-import { LeftRail } from './left-rail'
 import { cn } from '@/lib/utils'
+
+import { LeftRail } from './left-rail'
 
 /**
  * AuthenticatedShell - Main wrapper for authenticated areas

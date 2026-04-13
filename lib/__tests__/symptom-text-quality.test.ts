@@ -1,4 +1,5 @@
-import { describe, it, expect } from "vitest"
+import { describe, expect,it } from "vitest"
+
 import { validateSymptomTextQuality } from "@/lib/clinical/symptom-text-quality"
 
 describe("validateSymptomTextQuality", () => {

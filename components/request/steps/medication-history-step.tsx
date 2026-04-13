@@ -9,18 +9,20 @@
  * - Keyboard navigation
  */
 
-import { useState, useCallback } from "react"
+import { ArrowLeft, ArrowRight,History, Stethoscope } from "lucide-react"
+import { useCallback,useState } from "react"
+
 import { usePostHog } from "@/components/providers/posthog-provider"
-import { History, Stethoscope, ArrowLeft, ArrowRight } from "lucide-react"
+import { EnhancedSelectionButton } from "@/components/shared"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { Button } from "@/components/ui/button"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { EnhancedSelectionButton } from "@/components/shared/enhanced-selection-button"
-import { useRequestStore } from "../store"
-import { FormField } from "../form-field"
 import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
+
+import { FormField } from "../form-field"
+import { useRequestStore } from "../store"
 
 interface MedicationHistoryStepProps {
   serviceType: UnifiedServiceType

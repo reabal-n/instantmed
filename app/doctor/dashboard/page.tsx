@@ -1,14 +1,15 @@
 import { Suspense } from "react"
-import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
-import { getDoctorQueue, getIntakeMonitoringStats, getSlaBreachIntakes, getAIApprovedIntakes, getAutoApprovalMetrics, getRecentlyCompletedIntakes, getTodayEarnings } from "@/lib/data/intakes"
-import { getDoctorIdentity, isDoctorIdentityComplete, type DoctorIdentity } from "@/lib/data/doctor-identity"
-import { QueueClient } from "../queue/queue-client"
-import { IntakeMonitor } from "@/components/doctor/intake-monitor"
-import { IdentityIncompleteBanner } from "@/components/doctor/identity-incomplete-banner"
+
+import { IdentityIncompleteBanner,IntakeMonitor } from "@/components/doctor"
 import { DashboardErrorBoundary } from "@/components/doctor/dashboard-error-boundary"
-import { DashboardHeader } from "./dashboard-header"
 import { Skeleton } from "@/components/ui/skeleton"
+import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
+import { type DoctorIdentity,getDoctorIdentity, isDoctorIdentityComplete } from "@/lib/data/doctor-identity"
+import { getAIApprovedIntakes, getAutoApprovalMetrics, getDoctorQueue, getIntakeMonitoringStats, getRecentlyCompletedIntakes, getSlaBreachIntakes, getTodayEarnings } from "@/lib/data/intakes"
 import { createLogger } from "@/lib/observability/logger"
+
+import { QueueClient } from "../queue/queue-client"
+import { DashboardHeader } from "./dashboard-header"
 
 const log = createLogger("doctor-dashboard")
 

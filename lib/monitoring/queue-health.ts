@@ -6,8 +6,9 @@
  * Monitors pending request queue and alerts on SLA breaches.
  */
 
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import * as Sentry from "@sentry/nextjs"
+
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 export interface QueueHealthMetrics {
   queueSize: number

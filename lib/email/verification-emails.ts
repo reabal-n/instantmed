@@ -1,10 +1,12 @@
 "use server"
 
 import { createElement } from "react"
-import { sendEmail } from "./send-email"
-import { VerificationCodeEmail, verificationCodeSubject } from "@/components/email/templates/verification-code"
-import { createLogger } from "@/lib/observability/logger"
+
 import { CONTACT_EMAIL } from "@/lib/constants"
+import { VerificationCodeEmail, verificationCodeSubject } from "@/lib/email/components/templates/verification-code"
+import { createLogger } from "@/lib/observability/logger"
+
+import { sendEmail } from "./send-email"
 
 const log = createLogger("verification-emails")
 

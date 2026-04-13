@@ -1,11 +1,12 @@
 "use client"
 
+import { ArrowRight,Check, Clock, Mail } from "lucide-react"
+import Link from "next/link"
 import { useEffect } from "react"
-import { Check, Mail, Clock, ArrowRight } from "lucide-react"
+
+import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { LottieAnimation } from "@/components/ui/lottie-animation"
-import { Button } from "@/components/ui/button"
-import Link from "next/link"
 import { capture } from "@/lib/analytics/capture"
 import { CONTACT_EMAIL } from "@/lib/constants"
 

@@ -8,18 +8,19 @@
  * - Batch claim multiple intakes
  */
 
-import { test, expect } from "@playwright/test"
+import { expect,test } from "@playwright/test"
+
 import { loginAsOperator, logoutTestUser } from "./helpers/auth"
-import { waitForPageLoad } from "./helpers/test-utils"
 import {
-  isDbAvailable,
-  INTAKE_ID,
-  resetIntakeForRetest,
-  getIntakeStatus,
-  getIntakeById,
-  seedTestIntake,
   cleanupTestIntake,
+  getIntakeById,
+  getIntakeStatus,
+  INTAKE_ID,
+  isDbAvailable,
+  resetIntakeForRetest,
+  seedTestIntake,
 } from "./helpers/db"
+import { waitForPageLoad } from "./helpers/test-utils"
 
 test.describe("Doctor Review - Claim & Review", () => {
   test.beforeEach(async ({ page }) => {

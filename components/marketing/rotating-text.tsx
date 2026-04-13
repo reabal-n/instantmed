@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { AnimatePresence,motion } from 'framer-motion'
+import { useCallback,useEffect, useState } from 'react'
+
 import { useReducedMotion } from '@/components/ui/motion'
 import { cn } from '@/lib/utils'
 

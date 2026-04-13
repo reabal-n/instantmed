@@ -1,5 +1,7 @@
 import type { Metadata } from "next"
+
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
+
 import OurDoctorsClient from "./our-doctors-client"
 
 export const metadata: Metadata = {

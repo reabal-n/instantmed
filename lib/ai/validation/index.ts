@@ -5,10 +5,10 @@
  */
 
 export {
-  validateMedCertAgainstIntake,
-  validateClinicalNoteAgainstIntake,
   FORBIDDEN_DIAGNOSIS_TERMS,
   FORBIDDEN_MEDICATION_TERMS,
-  type GroundTruthValidationResult,
   type GroundTruthError,
+  type GroundTruthValidationResult,
+  validateClinicalNoteAgainstIntake,
+  validateMedCertAgainstIntake,
 } from "./ground-truth"

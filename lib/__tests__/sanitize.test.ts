@@ -5,15 +5,16 @@
  * Covers: sanitizeString, sanitizeHtml, sanitizeEmail, sanitizePhone, sanitizeObject.
  */
 
-import { describe, it, expect } from "vitest"
+import { describe, expect,it } from "vitest"
 import { z } from "zod"
+
 import {
-  sanitizeString,
-  sanitizeHtml,
-  sanitizeEmail,
-  sanitizePhone,
-  sanitizeObject,
   sanitizedSchemas,
+  sanitizeEmail,
+  sanitizeHtml,
+  sanitizeObject,
+  sanitizePhone,
+  sanitizeString,
   validateAndSanitize,
 } from "@/lib/security/sanitize"
 

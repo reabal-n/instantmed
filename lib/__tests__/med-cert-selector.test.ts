@@ -1,11 +1,12 @@
-import { describe, it, expect } from "vitest"
+import { describe, expect,it } from "vitest"
+
 import {
   CERT_CATEGORIES,
   CERT_TYPE_POSTHOG_EVENT,
   CERT_TYPE_POSTHOG_PROPERTY,
-  VALID_CERT_CATEGORIES,
-  isValidCertCategory,
   type CertCategory,
+  isValidCertCategory,
+  VALID_CERT_CATEGORIES,
 } from "@/lib/marketing/med-cert-selector"
 
 describe("CERT_CATEGORIES", () => {

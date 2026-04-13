@@ -11,7 +11,8 @@
  * and assert the correct price ID would be used.
  */
 
-import { test, expect, type Page, type Route } from "@playwright/test"
+import { expect, type Page, type Route,test } from "@playwright/test"
+
 import { waitForPageLoad } from "./helpers/test-utils"
 
 // Consult subtype configuration

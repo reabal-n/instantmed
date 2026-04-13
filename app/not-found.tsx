@@ -1,6 +1,7 @@
+import { ArrowRight, FileText, HelpCircle, Home, Pill, Zap } from "lucide-react"
 import Link from "next/link"
+
 import { Button } from "@/components/ui/button"
-import { Home, ArrowRight, FileText, Pill, HelpCircle, Zap } from "lucide-react"
 
 // Prevent static generation for dynamic auth
 export const dynamic = "force-dynamic"

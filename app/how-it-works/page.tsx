@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
+
 import { HowItWorksContent } from '@/components/marketing/how-it-works-content'
-import { BreadcrumbSchema, HowToSchema, FAQSchema } from '@/components/seo/healthcare-schema'
+import { BreadcrumbSchema, FAQSchema,HowToSchema } from '@/components/seo/healthcare-schema'
 
 export const revalidate = 86400 // 24h ISR for marketing page
 

@@ -1,8 +1,9 @@
 "use client"
 
 import { ReactNode } from "react"
-import { cn } from "@/lib/utils"
+
 import { LottieAnimation } from "@/components/ui/lottie-animation"
+import { cn } from "@/lib/utils"
 
 export interface DashboardEmptyProps {
   icon?: ReactNode

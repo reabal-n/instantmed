@@ -1,11 +1,12 @@
 import "server-only"
 
 import * as Sentry from "@sentry/nextjs"
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { sendFromOutboxRow } from "@/lib/email/send-email"
+
 import { claimOutboxRow } from "@/lib/email/send/outbox"
+import { sendFromOutboxRow } from "@/lib/email/send-email"
 import { checkDailySendLimit, incrementDailySendCount } from "@/lib/email/warmup"
 import { createLogger } from "@/lib/observability/logger"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const logger = createLogger("email-dispatcher")
 

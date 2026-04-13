@@ -1,29 +1,29 @@
-import type { Metadata } from "next"
-import Link from "next/link"
 import {
   ArrowRight,
-  Shield,
-  Clock,
-  Video,
-  MonitorSmartphone,
-  FileText,
-  Pill,
-  Stethoscope,
-  CheckCircle2,
-  XCircle,
-  MapPin,
   BookOpen,
-  Scale,
+  CheckCircle2,
+  Clock,
+  FileText,
   Landmark,
+  MapPin,
+  MonitorSmartphone,
+  Pill,
+  Scale,
+  Shield,
+  Stethoscope,
+  Video,
+  XCircle,
 } from "lucide-react"
-import { Navbar } from "@/components/shared/navbar"
-import { Footer } from "@/components/shared/footer"
+import type { Metadata } from "next"
+import Link from "next/link"
+
+import { BreadcrumbSchema, FAQSchema } from "@/components/seo"
+import { Footer,Navbar } from "@/components/shared"
 import { Button } from "@/components/ui/button"
 import { SectionPill } from "@/components/ui/section-pill"
-import { BreadcrumbSchema, FAQSchema } from "@/components/seo/healthcare-schema"
-import { safeJsonLd } from "@/lib/seo/safe-json-ld"
-import { getAllStateSlugs, statesData } from "@/lib/seo/data/states"
 import { PRICING_DISPLAY } from "@/lib/constants"
+import { getAllStateSlugs, statesData } from "@/lib/seo/data/states"
+import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 
 // ============================================================================
 // METADATA - head-term pillar for "telehealth australia" and related

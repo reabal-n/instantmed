@@ -224,7 +224,7 @@ Entry points (doctor queue | admin panel | API)
 
 | System | Location | Owner |
 |--------|----------|-------|
-| React Email templates | `components/email/templates/` | Developer (production sends) |
+| React Email templates | `lib/email/components/templates/` | Developer (production sends) |
 | Database templates | `email_templates` table | Admin (editable content) |
 | Admin preview | `lib/email/admin-preview.ts` | Server-only (preview/test) |
 

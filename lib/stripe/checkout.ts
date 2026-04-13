@@ -1,30 +1,33 @@
 "use server"
 
-import { stripe, getPriceIdForRequest, type ServiceCategory } from "./client"
-import { checkServerActionRateLimit } from "@/lib/rate-limit/redis"
-import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
-import { validateRepeatScriptPayload } from "@/lib/validation/repeat-script-schema"
-import { validateMedCertPayload } from "@/lib/validation/med-cert-schema"
-import { isServiceDisabled, isMedicationBlocked, SERVICE_DISABLED_ERRORS } from "@/lib/feature-flags"
-import { isOutsideBusinessHours, isAtCapacity } from "@/lib/config/operational-config"
-import { checkCheckoutBlocked } from "@/lib/config/feature-flags"
-import { createLogger } from "@/lib/observability/logger"
-import { isControlledSubstance } from "@/lib/clinical/intake-validation"
-import { CONTACT_EMAIL } from "@/lib/constants"
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { getAppUrl } from "@/lib/config/env"
-import { checkSafetyForServer, validateSafetyFieldsPresent } from "@/lib/safety/evaluate"
-import { trackSafetyOutcome, trackSafetyBlock, trackOperationalBlock, trackIntakeFunnelStep } from "@/lib/analytics/posthog-server"
-import { runFraudChecks, saveFraudFlags } from "@/lib/security/fraud-detector"
+import { cookies } from "next/headers"
+
+import { trackIntakeFunnelStep,trackOperationalBlock, trackSafetyBlock, trackSafetyOutcome } from "@/lib/analytics/posthog-server"
 import {
-  logRequestCreated,
-  logTermsConsentGiven,
-  logTelehealthConsentGiven,
   logAccuracyAttestationGiven,
+  logRequestCreated,
+  logTelehealthConsentGiven,
+  logTermsConsentGiven,
   type RequestType,
 } from "@/lib/audit/compliance-audit"
-import { TERMS_VERSION, TELEHEALTH_CONSENT_VERSION } from "@/lib/constants"
-import { cookies } from "next/headers"
+import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
+import { isControlledSubstance } from "@/lib/clinical/intake-validation"
+import { getAppUrl } from "@/lib/config/env"
+import { checkCheckoutBlocked } from "@/lib/config/kill-switches"
+import { isAtCapacity,isOutsideBusinessHours } from "@/lib/config/operational-config"
+import { CONTACT_EMAIL } from "@/lib/constants"
+import { TELEHEALTH_CONSENT_VERSION,TERMS_VERSION } from "@/lib/constants"
+import { isMedicationBlocked, isServiceDisabled, SERVICE_DISABLED_ERRORS } from "@/lib/feature-flags"
+import { createLogger } from "@/lib/observability/logger"
+import { checkServerActionRateLimit } from "@/lib/rate-limit/redis"
+import { checkSafetyForServer, validateSafetyFieldsPresent } from "@/lib/safety/evaluate"
+import { runFraudChecks, saveFraudFlags } from "@/lib/security/fraud-detector"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
+import { validateMedCertPayload } from "@/lib/validation/med-cert-schema"
+import { validateRepeatScriptPayload } from "@/lib/validation/repeat-script-schema"
+import type { ServiceCategory } from "@/types/services"
+
+import { getPriceIdForRequest,stripe } from "./client"
 import { createReferralCouponIfEligible } from "./referral-coupon"
 
 const logger = createLogger("stripe-checkout")

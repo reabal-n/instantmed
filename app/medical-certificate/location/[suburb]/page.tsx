@@ -1,15 +1,15 @@
-import { Navbar } from "@/components/shared/navbar"
-import { Footer } from "@/components/shared/footer"
-import { Button } from "@/components/ui/button"
-import { SectionPill } from "@/components/ui/section-pill"
-import { ArrowRight, Clock, Shield, Star, CheckCircle2, Zap, Building2, GraduationCap, HardHat } from "lucide-react"
+import { ArrowRight, Building2, CheckCircle2, Clock, GraduationCap, HardHat,Shield, Star, Zap } from "lucide-react"
+import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import type { Metadata } from "next"
-import { BreadcrumbSchema } from "@/components/seo/healthcare-schema"
-import { safeJsonLd } from "@/lib/seo/safe-json-ld"
-import { MedicalDisclaimer } from "@/components/seo/medical-disclaimer"
+
+import { BreadcrumbSchema } from "@/components/seo"
+import { MedicalDisclaimer } from "@/components/seo"
+import { Footer,Navbar } from "@/components/shared"
+import { Button } from "@/components/ui/button"
+import { SectionPill } from "@/components/ui/section-pill"
 import { PRICING_DISPLAY } from "@/lib/constants"
+import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 
 // Suburb/City data for "medical certificate online [location]" SEO
 const suburbs: Record<

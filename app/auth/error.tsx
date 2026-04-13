@@ -1,10 +1,11 @@
 "use client"
 
-import { useEffect } from "react"
-import Link from "next/link"
 import * as Sentry from "@sentry/nextjs"
+import { AlertTriangle, Home,LogIn, RefreshCw } from "lucide-react"
+import Link from "next/link"
+import { useEffect } from "react"
+
 import { Button } from "@/components/ui/button"
-import { AlertTriangle, RefreshCw, LogIn, Home } from "lucide-react"
 
 export default function AuthError({
   error,

@@ -1,8 +1,10 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useCallback,useState } from "react"
+
+import type { CertificatePreviewData } from "@/components/doctor"
 import type { DeclineReasonCode } from "@/types/db"
-import type { CertificatePreviewData } from "@/components/doctor/certificate-preview-dialog"
+
 import { DECLINE_REASONS } from "./intake-detail-header"
 
 export interface IntakeDialogState {

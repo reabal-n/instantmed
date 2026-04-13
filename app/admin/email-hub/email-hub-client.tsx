@@ -1,31 +1,32 @@
 "use client"
 
-import { useState, useTransition } from "react"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
-  Mail,
-  Edit,
-  Eye,
-  Send,
-  BarChart3,
-  Settings,
+  Activity,
   AlertTriangle,
+  BarChart3,
   CheckCircle,
   Clock,
-  TrendingUp,
-  RefreshCw,
-  MailOpen,
-  MailCheck,
   Database,
-  Activity,
+  Edit,
+  Eye,
   Loader2,
+  Mail,
+  MailCheck,
+  MailOpen,
+  RefreshCw,
+  Send,
+  Settings,
+  TrendingUp,
 } from "lucide-react"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { useState, useTransition } from "react"
+
 import type { EmailStats, RecentEmailActivity } from "@/app/actions/email-stats"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { formatTimeAgo } from "@/lib/format"
 
 // Email type display names

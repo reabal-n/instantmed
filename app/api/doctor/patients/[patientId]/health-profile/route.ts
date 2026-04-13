@@ -1,6 +1,7 @@
+import { type NextRequest,NextResponse } from "next/server"
+
 import { requireApiRole } from "@/lib/auth/helpers"
 import { getHealthProfile } from "@/lib/data/health-profile"
-import { NextResponse, type NextRequest } from "next/server"
 
 /**
  * GET /api/doctor/patients/[patientId]/health-profile

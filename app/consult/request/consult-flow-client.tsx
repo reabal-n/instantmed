@@ -1,30 +1,31 @@
 "use client"
 
-import type React from "react"
-import { useState, useEffect, useCallback, useRef, useMemo } from "react"
-import { useRouter } from "next/navigation"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { DatePickerField } from "@/components/uix"
-import { useConfetti as _useConfetti } from "@/components/effects/confetti"
-import { ShakeAnimation } from "@/components/effects/shake-animation"
+import type { User } from "@supabase/supabase-js"
 import {
+  AlertTriangle,
   ArrowLeft,
   CheckCircle,
-  AlertTriangle,
   Pencil,
   Stethoscope,
 } from "lucide-react"
-import { ButtonSpinner } from "@/components/ui/skeleton"
-import { createIntakeAndCheckoutAction } from "@/lib/stripe/checkout"
-import { SmartSymptomInput, isSymptomInputValid } from "@/components/intake/smart-symptom-input"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import type React from "react"
+import { useCallback, useEffect, useMemo,useRef, useState } from "react"
+
 import { createOrGetProfile } from "@/app/actions/create-profile"
+import { useConfetti as _useConfetti } from "@/components/effects/confetti"
+import { ShakeAnimation } from "@/components/effects/shake-animation"
+import { isSymptomInputValid,SmartSymptomInput } from "@/components/intake/smart-symptom-input"
 import { SessionProgress } from "@/components/shell"
+import { Button } from "@/components/ui/button"
 import { CinematicSwitch } from "@/components/ui/cinematic-switch"
+import { Input } from "@/components/ui/input"
+import { ButtonSpinner } from "@/components/ui/skeleton"
+import { Textarea } from "@/components/ui/textarea"
+import { DatePickerField } from "@/components/uix"
+import { createIntakeAndCheckoutAction } from "@/lib/stripe/checkout"
 import { createClient } from "@/lib/supabase/client"
-import type { User } from "@supabase/supabase-js"
 
 // Flow steps for general consult
 type FlowStep =

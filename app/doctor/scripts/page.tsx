@@ -1,4 +1,5 @@
-import { getScriptTasks, getScriptTaskCounts } from "@/lib/data/script-tasks"
+import { getScriptTaskCounts,getScriptTasks } from "@/lib/data/script-tasks"
+
 import { ScriptsClient } from "./scripts-client"
 
 export const metadata = { title: "Scripts" }

@@ -1,14 +1,15 @@
 'use client'
 
-import { useSyncExternalStore } from 'react'
-import { motion } from 'framer-motion'
-import { useReducedMotion } from '@/components/ui/motion'
-import type { LucideIcon } from 'lucide-react'
-import { Users, TrendingUp, CheckCircle2, Clock, Star, ShieldCheck, Send } from 'lucide-react'
-import { cn } from '@/lib/utils'
 import NumberFlow from '@number-flow/react'
-import { SOCIAL_PROOF } from '@/lib/social-proof'
+import { motion } from 'framer-motion'
+import type { LucideIcon } from 'lucide-react'
+import { CheckCircle2, Clock, Send,ShieldCheck, Star, TrendingUp, Users } from 'lucide-react'
+import { useSyncExternalStore } from 'react'
+
+import { useReducedMotion } from '@/components/ui/motion'
 import { usePatientCount } from '@/lib/hooks/use-patient-count'
+import { SOCIAL_PROOF } from '@/lib/social-proof'
+import { cn } from '@/lib/utils'
 
 // ── Stat presets - centralized social proof stats per service ────────
 export interface StatEntry {

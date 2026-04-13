@@ -1,31 +1,18 @@
 "use client"
 
-import { useState, useCallback, useTransition } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Switch } from "@/components/ui/switch"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import {
-  Save,
-  RotateCcw,
-  Building2,
-  FileText,
-  Eye,
-  Upload,
-  Loader2,
-  CheckCircle,
   AlertCircle,
+  Building2,
+  CheckCircle,
+  Eye,
+  FileText,
+  Loader2,
+  RotateCcw,
+  Save,
+  Upload,
 } from "lucide-react"
+import { useCallback, useState, useTransition } from "react"
+
 import type {
   TemplateStudioData,
 } from "@/app/actions/template-studio"
@@ -33,21 +20,35 @@ import {
   saveClinicIdentityAction,
   uploadClinicLogoAction,
 } from "@/app/actions/template-studio"
-import type {
-  ClinicIdentity,
-  ClinicIdentityInput,
-  TemplateConfig,
-  HeaderStyle,
-  MarginPreset,
-  FontSizePreset,
-  AccentColorPreset,
-  SignatureStyle,
-} from "@/types/certificate-template"
-import { DEFAULT_TEMPLATE_CONFIG } from "@/types/certificate-template"
 import {
   CertificatePreview,
   generatePreviewData,
 } from "@/components/admin/certificate-preview"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { Switch } from "@/components/ui/switch"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Textarea } from "@/components/ui/textarea"
+import type {
+  AccentColorPreset,
+  ClinicIdentity,
+  ClinicIdentityInput,
+  FontSizePreset,
+  HeaderStyle,
+  MarginPreset,
+  SignatureStyle,
+  TemplateConfig,
+} from "@/types/certificate-template"
+import { DEFAULT_TEMPLATE_CONFIG } from "@/types/certificate-template"
 
 interface TemplateStudioClientProps {
   initialData: TemplateStudioData

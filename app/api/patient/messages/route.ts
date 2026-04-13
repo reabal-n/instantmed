@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
+import { z } from "zod"
+
 import { getApiAuth } from "@/lib/auth/helpers"
+import { toError } from "@/lib/errors"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { requireValidCsrf } from "@/lib/security/csrf"
-import { z } from "zod"
-import { toError } from "@/lib/errors"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const log = createLogger("patient-messages")
 

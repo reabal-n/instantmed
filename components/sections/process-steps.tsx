@@ -2,11 +2,13 @@
 
 import { motion } from "framer-motion";
 import { useRef } from "react";
-import { cn } from "@/lib/utils";
-import { SectionHeader } from "./section-header";
+
 import { DottedGrid } from "@/components/marketing/dotted-grid";
-import type { SectionProps, ProcessStep } from "./types";
-import { useScrollReveal, useReducedMotion } from "@/components/ui/motion";
+import { useReducedMotion,useScrollReveal } from "@/components/ui/motion";
+import { cn } from "@/lib/utils";
+
+import { SectionHeader } from "./section-header";
+import type { ProcessStep,SectionProps } from "./types";
 
 interface ProcessStepsProps extends SectionProps {
   pill?: string;

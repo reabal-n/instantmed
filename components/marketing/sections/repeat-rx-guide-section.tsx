@@ -1,9 +1,10 @@
 "use client"
 
-import Link from "next/link"
 import { motion } from "framer-motion"
+import { BadgeCheck, DollarSign, Pill, Smartphone, Stethoscope, UserCheck } from "lucide-react"
+import Link from "next/link"
+
 import { useReducedMotion } from "@/components/ui/motion"
-import { BadgeCheck, Smartphone, Stethoscope, DollarSign, Pill, UserCheck } from "lucide-react"
 import { PRICING_DISPLAY } from "@/lib/constants"
 
 // =============================================================================

@@ -1,9 +1,9 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { motion, AnimatePresence } from "framer-motion"
-import { useReducedMotion } from "@/components/ui/motion"
+import { AnimatePresence,motion } from "framer-motion"
 import { Keyboard, X } from "lucide-react"
+import { useEffect,useState } from "react"
+
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -12,6 +12,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import { useReducedMotion } from "@/components/ui/motion"
 import { DOCTOR_SHORTCUTS } from "@/lib/hooks/use-doctor-shortcuts"
 import { cn } from "@/lib/utils"
 

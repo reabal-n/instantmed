@@ -1,17 +1,18 @@
 "use client"
 
-import { Button } from "@/components/ui/button"
 import {
   Bold,
+  Heading2,
   Italic,
   List,
   ListOrdered,
-  Heading2,
   Minus,
   Undo2,
 } from "lucide-react"
+
 import { useIntakeReview } from "@/components/doctor/review/intake-review-context"
-import { insertFormatting, type FormattingType } from "@/components/doctor/review/utils"
+import { type FormattingType,insertFormatting } from "@/components/doctor/review/utils"
+import { Button } from "@/components/ui/button"
 
 export function FormattingToolbar() {
   const { notesRef, setDoctorNotes, setNoteSaved, isPending, isRegenerating, doctorNotes } = useIntakeReview()

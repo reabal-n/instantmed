@@ -1,10 +1,10 @@
 import type { Metadata } from "next"
-import { Navbar } from "@/components/shared/navbar"
-import { MarketingFooter } from "@/components/marketing"
-import { MarketingPageShell } from "@/components/marketing/marketing-page-shell"
+
 import { CenteredHero } from "@/components/heroes"
+import { MarketingFooter, MarketingPageShell } from "@/components/marketing"
 import { CTABanner } from "@/components/sections"
-import { LegalSection } from "@/components/shared/legal-section"
+import { Navbar } from "@/components/shared"
+import { LegalSection } from "@/components/shared"
 import { CONTACT_EMAIL_COMPLAINTS, CONTACT_EMAIL_LEGAL } from "@/lib/constants"
 
 export const metadata: Metadata = {

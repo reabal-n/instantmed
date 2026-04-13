@@ -5,8 +5,8 @@
  * Each request gets a unique ID that propagates through all downstream operations.
  */
 
-import { headers } from "next/headers"
 import { randomUUID } from "crypto"
+import { headers } from "next/headers"
 
 // Header name for correlation ID
 export const CORRELATION_ID_HEADER = "x-correlation-id"

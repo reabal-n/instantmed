@@ -7,9 +7,9 @@
  * Uses existing intake_events and intakes tables.
  */
 
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { createLogger } from "@/lib/observability/logger"
 import { SLA_THRESHOLDS } from "@/lib/data/types/intake-ops"
+import { createLogger } from "@/lib/observability/logger"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const logger = createLogger("doctor-ops")
 

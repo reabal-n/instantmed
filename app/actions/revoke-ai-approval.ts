@@ -8,39 +8,27 @@
  * intake is moved back to in_review for manual doctor assessment.
  */
 
-import { requireRoleOrNull } from "@/lib/auth/helpers"
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { createLogger } from "@/lib/observability/logger"
-import { revokeCertificateAction } from "@/app/actions/revoke-cert"
-import { createNotification } from "@/lib/notifications/service"
-import { revalidatePath } from "next/cache"
 import * as Sentry from "@sentry/nextjs"
+import { revalidatePath } from "next/cache"
 
-const log = createLogger("revoke-ai-approval")
+import { revokeCertificateAction } from "@/app/actions/revoke-cert"
+import { withServerAction } from "@/lib/actions/with-server-action"
+import { createNotification } from "@/lib/notifications/service"
+import type { ActionResult } from "@/types/shared"
 
-export interface RevokeAIApprovalResult {
-  success: boolean
-  error?: string
+interface RevokeAIApprovalInput {
+  intakeId: string
+  reason: string
 }
 
-export async function revokeAIApproval(
-  intakeId: string,
-  reason: string
-): Promise<RevokeAIApprovalResult> {
-  // 1. Auth check
-  const user = await requireRoleOrNull(["doctor", "admin"])
-  if (!user) {
-    return { success: false, error: "Unauthorized" }
-  }
+export const revokeAIApproval = withServerAction<RevokeAIApprovalInput>(
+  { roles: ["doctor", "admin"], name: "revoke-ai-approval" },
+  async ({ intakeId, reason }, { supabase, profile, log }): Promise<ActionResult> => {
+    if (!reason || reason.trim().length < 5) {
+      return { success: false, error: "Please provide a reason for revocation (min 5 characters)" }
+    }
 
-  if (!reason || reason.trim().length < 5) {
-    return { success: false, error: "Please provide a reason for revocation (min 5 characters)" }
-  }
-
-  const supabase = createServiceRoleClient()
-
-  try {
-    // 2. Verify intake has ai_approved = true
+    // Verify intake has ai_approved = true
     const { data: intake, error: fetchError } = await supabase
       .from("intakes")
       .select("id, status, ai_approved, patient_id")
@@ -55,7 +43,7 @@ export async function revokeAIApproval(
       return { success: false, error: "This intake was not AI-approved" }
     }
 
-    // 3. Revoke the certificate using existing action
+    // Revoke the certificate using existing action
     const revokeResult = await revokeCertificateAction({
       intakeId,
       reason: `[AI Review Revocation] ${reason.trim()}`,
@@ -66,7 +54,7 @@ export async function revokeAIApproval(
       return { success: false, error: revokeResult.error || "Failed to revoke certificate" }
     }
 
-    // 4. Move intake back to in_review (keep ai_approved=true for audit trail)
+    // Move intake back to in_review (keep ai_approved=true for audit trail)
     const { error: updateError } = await supabase
       .from("intakes")
       .update({
@@ -80,22 +68,22 @@ export async function revokeAIApproval(
       // Certificate is already revoked, so this is a partial failure
     }
 
-    // 5. Log to ai_audit_log
+    // Log to ai_audit_log
     await supabase.from("ai_audit_log").insert({
       intake_id: intakeId,
       action: "reject",
       draft_type: "med_cert",
       draft_id: null,
-      actor_id: user.profile.id,
+      actor_id: profile.id,
       actor_type: "doctor",
       reason: reason.trim(),
       metadata: {
-        revoked_by: user.profile.full_name,
+        revoked_by: profile.full_name,
         original_status: intake.status,
       },
     })
 
-    // 6. Notify patient that their certificate is under review
+    // Notify patient that their certificate is under review
     if (intake.patient_id) {
       await createNotification({
         userId: intake.patient_id,
@@ -107,20 +95,20 @@ export async function revokeAIApproval(
       })
     }
 
-    // 7. Sentry alert for monitoring
+    // Sentry alert for monitoring
     Sentry.captureMessage("Auto-reviewed certificate revoked by doctor", {
       level: "warning",
       tags: {
         subsystem: "cert-pipeline",
         intake_id: intakeId,
-        doctor_id: user.profile.id,
+        doctor_id: profile.id,
       },
       extra: { reason: reason.trim() },
     })
 
     log.info("AI-approved certificate revoked", {
       intakeId,
-      doctorId: user.profile.id,
+      doctorId: profile.id,
       reason: reason.trim(),
     })
 
@@ -129,14 +117,5 @@ export async function revokeAIApproval(
     revalidatePath(`/patient/intakes/${intakeId}`)
 
     return { success: true }
-  } catch (error) {
-    log.error("Error revoking AI approval", { intakeId, error })
-    Sentry.captureException(error, {
-      tags: { action: "revoke_ai_approval", intake_id: intakeId },
-    })
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "Unexpected error",
-    }
   }
-}
+)

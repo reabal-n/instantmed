@@ -1,7 +1,7 @@
 "use client"
 
-import * as React from "react"
 import { useInView } from "framer-motion"
+import * as React from "react"
 
 /**
  * InstantMed Motion System - Hooks & Scroll Config

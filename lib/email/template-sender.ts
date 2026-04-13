@@ -4,11 +4,13 @@
  */
 
 import "server-only"
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { sendViaResend, sendCriticalEmail } from "./resend"
-import { createLogger } from "../observability/logger"
+
 import { env } from "@/lib/config/env"
 import { CONTACT_EMAIL } from "@/lib/constants"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
+
+import { createLogger } from "../observability/logger"
+import { sendCriticalEmail,sendViaResend } from "./resend"
 
 const log = createLogger("template-sender")
 

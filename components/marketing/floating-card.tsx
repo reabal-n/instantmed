@@ -1,8 +1,9 @@
 "use client"
 
-import { cn } from "@/lib/utils"
 import { motion } from "framer-motion"
+
 import { useReducedMotion } from "@/components/ui/motion"
+import { cn } from "@/lib/utils"
 
 interface FloatingCardProps {
   children: React.ReactNode

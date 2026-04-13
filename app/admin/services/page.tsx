@@ -1,5 +1,6 @@
-import { ServicesConfigClient } from "./services-client"
 import { getAllServicesAction } from "@/app/actions/admin-settings"
+
+import { ServicesConfigClient } from "./services-client"
 
 export const dynamic = "force-dynamic"
 

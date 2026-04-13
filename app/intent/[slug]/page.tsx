@@ -1,21 +1,21 @@
-import { Navbar } from "@/components/shared/navbar"
-import { Footer } from "@/components/shared/footer"
-import { Button } from "@/components/ui/button"
-import { SectionPill } from "@/components/ui/section-pill"
 import {
   ArrowRight,
   Clock,
-  Shield,
   FileText,
+  Shield,
 } from "lucide-react"
+import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import type { Metadata } from "next"
-import { FAQSchema, BreadcrumbSchema } from "@/components/seo/healthcare-schema"
+
+import { BreadcrumbSchema,FAQSchema } from "@/components/seo"
+import { Footer,Navbar } from "@/components/shared"
+import { Button } from "@/components/ui/button"
+import { SectionPill } from "@/components/ui/section-pill"
 import { PageBreadcrumbs } from "@/components/uix"
 import {
-  getIntentPageBySlug,
   getAllIntentSlugs,
+  getIntentPageBySlug,
 } from "@/lib/seo/intents"
 import type { ContentBlock } from "@/lib/seo/registry"
 

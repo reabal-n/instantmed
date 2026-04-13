@@ -1,14 +1,27 @@
 "use client"
 
-import { useState } from "react"
+import {
+  Bell,
+  CreditCard,
+  Download,
+  Eye,
+  EyeOff,
+  Loader2,
+  Mail,
+  MapPin,
+  Save,
+  Shield,
+  User,
+} from "lucide-react"
 import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { AUSTRALIAN_STATES } from "@/lib/constants"
-import { Switch } from "@/components/ui/switch"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useState } from "react"
+import { toast } from "sonner"
+
+import { changePassword, deleteAccount } from "@/app/actions/account"
+import { type EmailPreferences,updateEmailPreferences } from "@/app/actions/email-preferences"
+import { exportPatientData } from "@/app/actions/export-data"
+import { updateMedicareAction } from "@/app/actions/profile-todo"
+import { MedicareCapture } from "@/components/intake/medicare-capture"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,28 +33,16 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import {
-  User,
-  MapPin,
-  CreditCard,
-  Shield,
-  Save,
-  Bell,
-  Loader2,
-  Eye,
-  EyeOff,
-  Download,
-  Mail,
-} from "lucide-react"
-import type { Profile } from "@/types/db"
-import { toast } from "sonner"
-import { changePassword, deleteAccount } from "@/app/actions/account"
-import { exportPatientData } from "@/app/actions/export-data"
-import { updateMedicareAction } from "@/app/actions/profile-todo"
 import { AvatarPicker } from "@/components/ui/avatar-picker"
-import { updateEmailPreferences, type EmailPreferences } from "@/app/actions/email-preferences"
-import { MedicareCapture } from "@/components/intake/medicare-capture"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Switch } from "@/components/ui/switch"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { AUSTRALIAN_STATES } from "@/lib/constants"
 import { formatMedicareNumber } from "@/lib/validation/medicare"
+import type { Profile } from "@/types/db"
 
 interface PatientSettingsClientProps {
   profile: Profile

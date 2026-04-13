@@ -5,7 +5,7 @@
  * This is a critical business invariant - wrong price = billing issues.
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { afterEach,beforeEach, describe, expect, it, vi } from 'vitest'
 
 // Mock process.env before importing the module
 const originalEnv = process.env

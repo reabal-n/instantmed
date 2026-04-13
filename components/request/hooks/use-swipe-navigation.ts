@@ -1,7 +1,7 @@
 "use client"
 
+import { type PanInfo,useMotionValue } from "framer-motion"
 import { useCallback } from "react"
-import { useMotionValue, type PanInfo } from "framer-motion"
 
 const SWIPE_DISTANCE_THRESHOLD = 100
 const SWIPE_VELOCITY_THRESHOLD = 500

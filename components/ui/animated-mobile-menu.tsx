@@ -1,12 +1,13 @@
 "use client"
 
+import { AnimatePresence, motion, type Variants } from "framer-motion"
+import Link from "next/link"
+import { useTheme } from "next-themes"
 import * as React from "react"
 import { useEffect, useRef } from "react"
-import Link from "next/link"
-import { motion, AnimatePresence, type Variants } from "framer-motion"
-import { useTheme } from "next-themes"
-import { cn } from "@/lib/utils"
+
 import { useReducedMotion } from "@/components/ui/motion"
+import { cn } from "@/lib/utils"
 
 // Hook to get container dimensions
 const useDimensions = (ref: React.RefObject<HTMLDivElement | null>) => {

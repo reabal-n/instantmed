@@ -1,15 +1,15 @@
 "use client"
 
-import { useState, useMemo, useRef, useCallback } from "react"
+import { ChevronDown,Search, X } from "lucide-react"
 import Link from "next/link"
-import { Search, X, ChevronDown } from "lucide-react"
-import { FAQSchema } from "@/components/seo/healthcare-schema"
+import { useCallback,useMemo, useRef, useState } from "react"
+
+import { LiveWaitTime } from "@/components/marketing"
+import { InformationalPageShell, RelatedArticles } from "@/components/marketing/shared"
 import { AccordionSection, CTABanner } from "@/components/sections"
-import { InformationalPageShell } from "@/components/marketing/shared/informational-page-shell"
-import { LiveWaitTime } from "@/components/marketing/live-wait-time"
-import { RelatedArticles } from "@/components/marketing/shared/related-articles"
-import { cn } from "@/lib/utils"
+import { FAQSchema } from "@/components/seo"
 import { GENERAL_FAQ } from "@/lib/data/general-faq"
+import { cn } from "@/lib/utils"
 
 // ---------------------------------------------------------------------------
 // Data

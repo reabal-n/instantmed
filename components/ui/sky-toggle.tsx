@@ -1,7 +1,7 @@
 'use client'
 
-import React, { useSyncExternalStore, useId } from 'react';
 import { useTheme } from 'next-themes';
+import React, { useId,useSyncExternalStore } from 'react';
 
 interface SkyToggleProps {
   size?: number;

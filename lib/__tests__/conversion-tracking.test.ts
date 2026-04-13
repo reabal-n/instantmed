@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
+
 import { trackConversion, trackFunnelStep, updateConsent } from "../analytics/conversion-tracking"
 
 type GtagCall = [string, string, Record<string, unknown>]

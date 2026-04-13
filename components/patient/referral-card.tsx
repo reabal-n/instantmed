@@ -1,10 +1,11 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { Check, Copy, DollarSign,Gift, Users } from "lucide-react"
+import { useEffect,useState } from "react"
+import { toast } from "sonner"
+
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Gift, Copy, Check, Users, DollarSign } from "lucide-react"
-import { toast } from "sonner"
 
 interface ReferralStats {
   referralCode: string

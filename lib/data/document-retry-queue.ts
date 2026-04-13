@@ -5,9 +5,10 @@
  * Uses the database as a persistent queue to survive server restarts.
  */
 
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { createLogger } from "@/lib/observability/logger"
 import * as Sentry from "@sentry/nextjs"
+
+import { createLogger } from "@/lib/observability/logger"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const logger = createLogger("document-retry-queue")
 

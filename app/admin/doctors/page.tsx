@@ -1,5 +1,6 @@
-import { DoctorProfilesClient } from "./doctors-client"
 import { getAllDoctorsAction } from "@/app/actions/admin-settings"
+
+import { DoctorProfilesClient } from "./doctors-client"
 
 export const dynamic = "force-dynamic"
 

@@ -1,13 +1,14 @@
 "use client"
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { FileText, Loader2,Save } from "lucide-react"
+
+import { FormattingToolbar } from "@/components/doctor/review/formatting-toolbar"
+import { useIntakeReview } from "@/components/doctor/review/intake-review-context"
+import { MIN_CLINICAL_NOTES_LENGTH } from "@/components/doctor/review/utils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
-import { FileText, Save, Loader2 } from "lucide-react"
-import { useIntakeReview } from "@/components/doctor/review/intake-review-context"
-import { FormattingToolbar } from "@/components/doctor/review/formatting-toolbar"
-import { MIN_CLINICAL_NOTES_LENGTH } from "@/components/doctor/review/utils"
 
 export function ClinicalNotesEditor() {
   const {

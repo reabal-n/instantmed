@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+
 import { PRICING_DISPLAY } from "@/lib/constants"
 
 export const metadata: Metadata = {

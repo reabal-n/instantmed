@@ -1,28 +1,30 @@
 "use client"
 
-import { GlassStatCard, DashboardGrid } from "@/components/dashboard"
 import {
+  Activity,
+  AlertTriangle,
   CheckCircle,
   Clock,
-  Activity,
   FileText,
   XCircle,
-  AlertTriangle,
   Zap,
 } from "lucide-react"
+
 import {
-  LazyBarChart as BarChart,
   Bar,
-  XAxis,
-  YAxis,
   CartesianGrid,
-  Tooltip,
+  LazyBarChart as BarChart,
   Legend,
   ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
 } from "@/components/charts/lazy-charts"
-import { cn } from "@/lib/utils"
-import { type AnalyticsData } from "./analytics-helpers"
+import { DashboardGrid,GlassStatCard } from "@/components/dashboard"
 import { formatMinutes } from "@/lib/format"
+import { cn } from "@/lib/utils"
+
+import { type AnalyticsData } from "./analytics-helpers"
 
 export function AnalyticsQueueTab({ analytics }: { analytics: AnalyticsData }) {
   const { dailyData, queueHealth, overview } = analytics

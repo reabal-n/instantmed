@@ -7,19 +7,19 @@
  * Handles both authenticated and guest checkout flows.
  */
 
-import { createIntakeAndCheckoutAction } from "@/lib/stripe/checkout"
-import { createGuestCheckoutAction } from "@/lib/stripe/guest-checkout"
+import crypto from "crypto"
+
 import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
 import {
   validateCertificateStep,
-  validateSymptomsStep,
-  validateMedicationStep,
   validateConsultReasonStep,
   validateDetailsStep,
+  validateMedicationStep,
+  validateSymptomsStep,
 } from "@/lib/request/validation"
-import type { UnifiedServiceType } from "@/lib/request/step-registry"
-import type { ServiceCategory } from "@/lib/stripe/client"
-import crypto from "crypto"
+import { createIntakeAndCheckoutAction } from "@/lib/stripe/checkout"
+import { createGuestCheckoutAction } from "@/lib/stripe/guest-checkout"
+import type { ServiceCategory,UnifiedServiceType } from "@/types/services"
 
 interface UnifiedCheckoutInput {
   serviceType: UnifiedServiceType

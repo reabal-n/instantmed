@@ -1,5 +1,5 @@
-import { Article, defaultAuthor } from '../types'
 import { blogImages } from '../images'
+import { Article, defaultAuthor } from '../types'
 
 /**
  * High-intent SEO landing pages for organic Google search traffic

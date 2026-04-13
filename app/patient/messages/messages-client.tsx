@@ -1,25 +1,26 @@
 "use client"
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Textarea } from "@/components/ui/textarea"
 import {
+  CheckCheck,
+  Clock,
+  Inbox,
   MessageSquare,
   Send,
-  User,
   Stethoscope,
-  Clock,
-  CheckCheck,
-  Inbox,
+  User,
 } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { useState } from "react"
 import { toast } from "sonner"
-import { cn } from "@/lib/utils"
-import { formatDate } from "@/lib/format"
+
+import { PatientErrorAlert } from "@/components/patient"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
 import { EmptyState } from "@/components/ui/empty-state"
-import { PatientErrorAlert } from "@/components/patient/error-alert"
+import { Textarea } from "@/components/ui/textarea"
+import { formatDate } from "@/lib/format"
+import { cn } from "@/lib/utils"
 
 interface Message {
   id: string

@@ -1,9 +1,10 @@
 "use client"
 
-import { useState } from "react"
+import { Activity, BarChart3, ClipboardList, FileCheck,FileText, FolderOpen, Home, LogOut, MessageSquare, MoreHorizontal, Settings, Shield, ShieldAlert, User, X } from "lucide-react"
 import { usePathname, useRouter } from "next/navigation"
+import { useState } from "react"
+
 import { useAuth } from "@/lib/supabase/auth-provider"
-import { Home, FileText, User, FolderOpen, MoreHorizontal, ClipboardList, Activity, MessageSquare, X, Settings, BarChart3, Shield, ShieldAlert, LogOut, FileCheck } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface NavItem {

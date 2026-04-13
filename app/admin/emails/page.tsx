@@ -1,5 +1,6 @@
-import { EmailTemplateEditorClient } from "./edit/email-template-editor-client"
 import { getAllEmailTemplatesAction } from "@/app/actions/admin-config"
+
+import { EmailTemplateEditorClient } from "./edit/email-template-editor-client"
 
 export const dynamic = "force-dynamic"
 

@@ -1,12 +1,13 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { FileText, Search, Tag, X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { Search, FileText, Tag, X } from 'lucide-react'
+import { useCallback,useEffect, useRef, useState } from 'react'
+
 import { Input } from '@/components/ui/input'
-import { cn } from '@/lib/utils'
 import type { Article } from '@/lib/blog/types'
 import { getSearchSuggestions } from '@/lib/blog/utils'
+import { cn } from '@/lib/utils'
 
 interface SearchAutocompleteProps {
   articles: Article[]

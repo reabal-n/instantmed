@@ -1,7 +1,8 @@
 "use client"
 
-import { useState, useEffect, useSyncExternalStore } from "react"
-import { getPatientCount, ANCHOR_COUNT } from "@/lib/social-proof"
+import { useEffect, useState, useSyncExternalStore } from "react"
+
+import { ANCHOR_COUNT,getPatientCount } from "@/lib/social-proof"
 
 /**
  * SSR-safe hook that returns the real patient count from the DB.

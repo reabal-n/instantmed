@@ -1,31 +1,33 @@
 "use client"
 
-import Link from "next/link"
-import { Button, Input, DatePickerField } from "@/components/uix"
-import { Textarea } from "@/components/ui/textarea"
 import {
   AlertTriangle,
-  CheckCircle,
-  Check,
-  Pencil,
-  HelpCircle,
-  RefreshCw,
   Brain,
-  Heart,
-  Droplets,
-  Wind,
-  Shield,
   Bug,
-  Sparkles,
+  Check,
+  CheckCircle,
+  Droplets,
+  Heart,
+  HelpCircle,
   MoreHorizontal,
+  Pencil,
+  RefreshCw,
+  Shield,
+  Sparkles,
+  Wind,
 } from "lucide-react"
-import { RX_MICROCOPY } from "@/lib/microcopy/prescription"
-import { MedicationSearch, type SelectedPBSProduct } from "@/components/shared/medication-search"
+import Link from "next/link"
+
+import { MedicationSearch, type SelectedPBSProduct } from "@/components/shared"
+import { InlineAuthStep } from "@/components/shared"
 import { AnimatedSelect } from "@/components/ui/animated-select"
 import { CinematicSwitch } from "@/components/ui/cinematic-switch"
-import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"
-import { InlineAuthStep } from "@/components/shared/inline-auth-step"
-import { StepHeader, OptionTile, PillButton } from "./prescription-flow-ui"
+import { Textarea } from "@/components/ui/textarea"
+import { Tooltip, TooltipContent,TooltipTrigger } from "@/components/ui/tooltip"
+import { Button, DatePickerField,Input } from "@/components/uix"
+import { RX_MICROCOPY } from "@/lib/microcopy/prescription"
+
+import { OptionTile, PillButton,StepHeader } from "./prescription-flow-ui"
 
 // ── Constants (shared with main flow) ──────────────────────────────────
 

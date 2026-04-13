@@ -1,8 +1,10 @@
 import { Suspense } from "react"
-import { EmailHubClient } from "./email-hub-client"
-import { Skeleton } from "@/components/ui/skeleton"
+
 import { getEmailStats, getRecentEmailActivity } from "@/app/actions/email-stats"
+import { Skeleton } from "@/components/ui/skeleton"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
+
+import { EmailHubClient } from "./email-hub-client"
 
 export const dynamic = "force-dynamic"
 

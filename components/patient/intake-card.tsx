@@ -1,9 +1,10 @@
 "use client"
 
-import { FileText, Pill, ChevronRight } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { formatDate } from "@/lib/format"
+import { ChevronRight,FileText, Pill } from "lucide-react"
+
 import { type Intake, resolveStatusConfig } from "@/components/patient/intake-types"
+import { formatDate } from "@/lib/format"
+import { cn } from "@/lib/utils"
 
 export function IntakeCard({
   intake,

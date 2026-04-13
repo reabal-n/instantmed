@@ -21,9 +21,11 @@
  * event logging) so we can isolate the refund logic.
  */
 
-import { describe, it, expect, beforeEach, vi } from "vitest"
+import { beforeEach, describe, expect, it, vi } from "vitest"
+
 import { stripe } from "@/lib/stripe/client"
-import { mockSupabaseSingle, mockSupabaseFrom, resetAllMocks } from "./setup"
+
+import { mockSupabaseFrom, mockSupabaseSingle, resetAllMocks } from "./setup"
 
 // ============================================================================
 // MOCKS - must be set up BEFORE importing decline-intake

@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
+
+import { logExternalPrescribingIndicated } from "@/lib/audit/compliance-audit"
 import { requireApiRole } from "@/lib/auth/helpers"
 import { updateScriptTaskStatus } from "@/lib/data/script-tasks"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { requireValidCsrf } from "@/lib/security/csrf"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { logExternalPrescribingIndicated } from "@/lib/audit/compliance-audit"
 
 const updateScriptTaskSchema = z.object({
   status: z.enum(["pending_send", "sent", "confirmed"]),

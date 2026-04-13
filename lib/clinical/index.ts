@@ -10,24 +10,24 @@ export * from "./triage-types"
 
 // Triage rules engine
 export {
-  EMERGENCY_KEYWORDS,
-  checkEmergencySymptoms,
-  checkRedFlagPatterns,
+  applyFinalSafetyRule,
   checkAsyncBlocked,
   checkAutoReject,
+  checkEmergencySymptoms,
+  checkRedFlagPatterns,
+  EMERGENCY_KEYWORDS,
   evaluateTriage,
-  validateClinicianDecision,
-  applyFinalSafetyRule,
   type TriageInput,
+  validateClinicianDecision,
 } from "./triage-rules-engine"
 
 // Intake validation
 export {
-  quickEmergencyCheck,
-  validateIntake,
+  EMERGENCY_SYMPTOM_PATTERNS,
+  type IntakeValidationResult,
   isControlledSubstance,
   isHighRiskFirstTime,
   isOutsideGPScope,
-  EMERGENCY_SYMPTOM_PATTERNS,
-  type IntakeValidationResult,
+  quickEmergencyCheck,
+  validateIntake,
 } from "./intake-validation"

@@ -1,7 +1,8 @@
 "use client"
 
 import { useCallback, useEffect, useRef } from "react"
-import { usePostHog } from "@/components/providers/posthog-provider"
+
+import { usePostHog } from "@/lib/analytics/posthog-context"
 
 type CTALocation =
   | "hero"

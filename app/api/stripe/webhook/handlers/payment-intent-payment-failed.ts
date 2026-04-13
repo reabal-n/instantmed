@@ -1,9 +1,11 @@
+import { after,NextResponse } from "next/server"
 import type Stripe from "stripe"
-import { NextResponse, after } from "next/server"
+
+import { trackBusinessMetric } from "@/lib/analytics/posthog-server"
 import { sendPaymentFailedEmail } from "@/lib/email/template-sender"
 import { createLogger } from "@/lib/observability/logger"
-import { trackBusinessMetric } from "@/lib/analytics/posthog-server"
-import type { WebhookContext, HandlerResult } from "./types"
+
+import type { HandlerResult,WebhookContext } from "./types"
 import { tryClaimEvent } from "./utils"
 
 const log = createLogger("stripe-webhook:payment-failed")

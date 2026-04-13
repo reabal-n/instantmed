@@ -1,11 +1,13 @@
 'use client'
 
-import * as React from 'react'
 import { motion } from 'framer-motion'
+import * as React from 'react'
+
 import { useReducedMotion } from '@/components/ui/motion'
-import { cn } from '@/lib/utils'
-import { GradientBg } from './gradient-bg'
 import { fadeUp, stagger } from '@/lib/motion'
+import { cn } from '@/lib/utils'
+
+import { GradientBg } from './gradient-bg'
 
 // =============================================================================
 // PAGE SHELL - Main wrapper for onboarding/questionnaire pages

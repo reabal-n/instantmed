@@ -8,7 +8,8 @@
  * - Email template management works
  */
 
-import { test, expect } from "@playwright/test"
+import { expect,test } from "@playwright/test"
+
 import { loginAsOperator, logoutTestUser } from "./helpers/auth"
 import { waitForPageLoad } from "./helpers/test-utils"
 

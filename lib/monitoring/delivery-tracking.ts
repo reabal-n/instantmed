@@ -6,8 +6,9 @@
  * Tracks delivery status from providers (Resend webhooks, Twilio callbacks).
  */
 
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import * as Sentry from "@sentry/nextjs"
+
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 export interface DeliveryEvent {
   messageId: string

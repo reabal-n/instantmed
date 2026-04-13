@@ -8,6 +8,7 @@
  */
 
 import { useEffect } from "react"
+
 import { createLogger } from "@/lib/observability/logger"
 
 const logger = createLogger("service-worker")

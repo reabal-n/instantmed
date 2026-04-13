@@ -1,6 +1,7 @@
+import { NextResponse } from "next/server"
+
 import { getApiAuth } from "@/lib/auth/helpers"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { NextResponse } from "next/server"
 
 export async function GET(request: Request) {
   try {

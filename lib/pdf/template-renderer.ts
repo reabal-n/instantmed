@@ -12,11 +12,12 @@
  *   - QR code (right of footer, links to /verify?id=...)
  */
 
-import { PDFDocument, rgb, StandardFonts, degrees, type PDFFont } from "pdf-lib"
-import QRCode from "qrcode"
+import * as Sentry from "@sentry/nextjs"
 import * as fs from "fs/promises"
 import * as path from "path"
-import * as Sentry from "@sentry/nextjs"
+import { degrees, PDFDocument, type PDFFont,rgb, StandardFonts } from "pdf-lib"
+import QRCode from "qrcode"
+
 import { createLogger } from "@/lib/observability/logger"
 
 const log = createLogger("template-renderer")

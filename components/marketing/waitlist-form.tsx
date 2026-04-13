@@ -1,10 +1,11 @@
 'use client'
 
+import { ArrowRight,Bell, CheckCircle2, Loader2 } from 'lucide-react'
 import { useActionState, useState } from 'react'
+
+import { joinWaitlist } from '@/app/actions/waitlist'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Bell, CheckCircle2, Loader2, ArrowRight } from 'lucide-react'
-import { joinWaitlist } from '@/app/actions/waitlist'
 
 interface WaitlistFormProps {
   serviceId: string

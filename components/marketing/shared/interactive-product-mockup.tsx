@@ -1,10 +1,11 @@
 "use client"
 
+import { motion, useMotionValue, useSpring,useTransform } from "framer-motion"
 import { useRef } from "react"
-import { motion, useMotionValue, useTransform, useSpring } from "framer-motion"
-import { cn } from "@/lib/utils"
+
 import { useReducedMotion } from "@/components/ui/motion"
 import { fadeUp } from "@/lib/motion"
+import { cn } from "@/lib/utils"
 
 // ---------------------------------------------------------------------------
 // Types

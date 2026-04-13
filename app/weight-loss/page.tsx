@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+
 import { WeightLossClient } from "./weight-loss-client"
 
 export const metadata: Metadata = {

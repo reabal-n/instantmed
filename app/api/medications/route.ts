@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { applyRateLimit } from "@/lib/rate-limit/redis"
+
 import { createLogger } from "@/lib/observability/logger"
+import { applyRateLimit } from "@/lib/rate-limit/redis"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 const log = createLogger("route")
 
 /** Escape ILIKE special characters to prevent wildcard injection */

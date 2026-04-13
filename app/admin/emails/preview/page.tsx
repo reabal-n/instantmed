@@ -1,6 +1,8 @@
 import { Suspense } from "react"
-import { EmailPreviewReactClient } from "./email-preview-react-client"
+
 import { Skeleton } from "@/components/ui/skeleton"
+
+import { EmailPreviewReactClient } from "./email-preview-react-client"
 
 export const metadata = {
   title: "Email Template Preview | Admin",

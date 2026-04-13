@@ -1,15 +1,17 @@
 import { notFound } from "next/navigation"
-import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
-import { getIntakeWithDetails, getPatientIntakes, getNextQueueIntakeId } from "@/lib/data/intakes"
-import { getCertDeliveryStatus } from "@/lib/data/issued-certificates"
-import { getOrCreateMedCertDraftForIntake } from "@/lib/data/documents"
-import { IntakeDetailClient } from "./intake-detail-client"
-import { logClinicianOpenedRequest } from "@/lib/audit/compliance-audit"
+
 import { getAIDraftsForIntake } from "@/app/actions/draft-approval"
 import { getPendingDateCorrection } from "@/app/actions/request-date-correction"
+import { logClinicianOpenedRequest } from "@/lib/audit/compliance-audit"
+import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
+import { getOrCreateMedCertDraftForIntake } from "@/lib/data/documents"
+import { getIntakeWithDetails, getNextQueueIntakeId,getPatientIntakes } from "@/lib/data/intakes"
+import { getCertDeliveryStatus } from "@/lib/data/issued-certificates"
 import { getFeatureFlags } from "@/lib/feature-flags"
 import { calculateAge } from "@/lib/format"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
+
+import { IntakeDetailClient } from "./intake-detail-client"
 import type { DoctorFollowupRow } from "./intake-detail-followups"
 
 export const metadata = { title: "Review Intake" }

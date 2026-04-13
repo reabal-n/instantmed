@@ -1,14 +1,14 @@
+import { getSafetyConfig } from './rules'
 import type {
-  SafetyRulesConfig as _SafetyRulesConfig,
-  SafetyRule,
+  AdditionalInfoItem,
+  RiskTier,
   RuleCondition,
   SafetyEvaluationResult,
-  TriggeredRule,
   SafetyOutcome,
-  RiskTier,
-  AdditionalInfoItem,
+  SafetyRule,
+  SafetyRulesConfig as _SafetyRulesConfig,
+  TriggeredRule,
 } from './types'
-import { getSafetyConfig } from './rules'
 
 // ============================================
 // DERIVED VALUE CALCULATORS

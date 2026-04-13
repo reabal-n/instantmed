@@ -1,8 +1,9 @@
 import type { Metadata } from "next"
-import { MedCertLanding } from "@/components/marketing/med-cert-landing"
-import { SpeakableSchema, MedCertHowToSchema, FAQSchema, BreadcrumbSchema, MedicalServiceSchema, ReviewAggregateSchema, HealthArticleSchema } from "@/components/seo/healthcare-schema"
-import { MED_CERT_FAQ } from "@/lib/data/med-cert-faq"
+
+import { MedCertLanding } from "@/components/marketing"
+import { BreadcrumbSchema, FAQSchema, HealthArticleSchema,MedCertHowToSchema, MedicalServiceSchema, ReviewAggregateSchema, SpeakableSchema } from "@/components/seo"
 import { PRICING, REVIEW_AGGREGATE } from "@/lib/constants"
+import { MED_CERT_FAQ } from "@/lib/data/med-cert-faq"
 
 export const revalidate = 86400
 

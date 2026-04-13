@@ -6,12 +6,13 @@
  * DISCLOSURE_CONSENT_AUDIT P1: Cookie consent for GDPR/privacy compliance
  */
 
-import { useState, useEffect, useCallback } from "react"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
 import { X } from "lucide-react"
-import { cn } from "@/lib/utils"
+import Link from "next/link"
+import { useCallback,useEffect, useState } from "react"
+
+import { Button } from "@/components/ui/button"
 import { updateConsent } from "@/lib/analytics/conversion-tracking"
+import { cn } from "@/lib/utils"
 
 const COOKIE_CONSENT_KEY = "instantmed_cookie_consent"
 const COOKIE_CONSENT_VERSION = "1.0"

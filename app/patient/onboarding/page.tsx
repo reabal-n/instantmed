@@ -1,5 +1,7 @@
-import { getOrCreateAuthenticatedUser } from "@/lib/auth/helpers"
 import { redirect } from "next/navigation"
+
+import { getOrCreateAuthenticatedUser } from "@/lib/auth/helpers"
+
 import { OnboardingFlow } from "./onboarding-flow"
 
 // Prevent static generation for dynamic auth

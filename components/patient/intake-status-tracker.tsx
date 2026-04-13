@@ -1,21 +1,22 @@
 "use client"
 
-import { useEffect, useState, useMemo } from "react"
-import { motion, AnimatePresence } from "framer-motion"
-import { useReducedMotion } from "@/components/ui/motion"
+import { AnimatePresence,motion } from "framer-motion"
 import {
-  Clock,
-  CheckCircle2,
-  FileText,
-  Send,
   AlertCircle,
-  XCircle,
+  CheckCircle2,
+  Clock,
+  FileText,
   Loader2,
   MessageSquare,
+  Send,
+  XCircle,
 } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { createClient } from "@/lib/supabase/client"
+import { useEffect, useMemo,useState } from "react"
+
+import { useReducedMotion } from "@/components/ui/motion"
 import type { IntakeStatus } from "@/lib/data/intake-lifecycle"
+import { createClient } from "@/lib/supabase/client"
+import { cn } from "@/lib/utils"
 
 interface IntakeStatusTrackerProps {
   intakeId: string

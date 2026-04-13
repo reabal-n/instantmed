@@ -1,11 +1,13 @@
-import { Suspense } from "react"
-import { redirect } from "next/navigation"
+import { Loader2 } from "lucide-react"
 import Link from "next/link"
+import { redirect } from "next/navigation"
+import { Suspense } from "react"
+
+import { createLogger } from "@/lib/observability/logger"
 import { createClient } from "@/lib/supabase/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { createLogger } from "@/lib/observability/logger"
+
 import { PostSignInAuthWaiter } from "./auth-waiter"
-import { Loader2 } from "lucide-react"
 
 function AuthWaiterFallback() {
   return (

@@ -2,10 +2,12 @@
 
 import { motion } from "framer-motion";
 import { useRef } from "react";
+
+import { useReducedMotion,useScrollReveal } from "@/components/ui/motion";
 import { cn } from "@/lib/utils";
+
 import { SectionHeader } from "./section-header";
 import type { SectionProps, TimelineStep } from "./types";
-import { useScrollReveal, useReducedMotion } from "@/components/ui/motion";
 
 interface TimelineProps extends SectionProps {
   pill?: string;

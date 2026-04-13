@@ -1,15 +1,16 @@
 "use client"
 
-import type { IntakeWithDetails, IntakeWithPatient } from "@/types/db"
 import type { AIDraft } from "@/app/actions/draft-approval"
+import type { CertDeliveryStatus } from "@/lib/data/issued-certificates"
 import { useDoctorShortcuts } from "@/lib/hooks/use-doctor-shortcuts"
-import { IntakeDetailHeader } from "./intake-detail-header"
-import { useIntakeDialogs } from "./use-intake-dialogs"
+import type { IntakeWithDetails, IntakeWithPatient } from "@/types/db"
+
 import { IntakeDetailAnswers } from "./intake-detail-answers"
 import { IntakeDetailDrafts } from "./intake-detail-drafts"
-import { IntakeDetailFollowups, type DoctorFollowupRow } from "./intake-detail-followups"
+import { type DoctorFollowupRow,IntakeDetailFollowups } from "./intake-detail-followups"
+import { IntakeDetailHeader } from "./intake-detail-header"
 import { useIntakeActions } from "./use-intake-actions"
-import type { CertDeliveryStatus } from "@/lib/data/issued-certificates"
+import { useIntakeDialogs } from "./use-intake-dialogs"
 
 interface PendingCorrection {
   id: string

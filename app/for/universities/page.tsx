@@ -1,32 +1,32 @@
+import { Star } from "lucide-react"
+import {
+  BadgeCheck,
+  BookOpen,
+  Building2,
+  CheckCircle,
+  ClipboardCheck,
+  ExternalLink,
+  Eye,
+  FileText,
+  GraduationCap,
+  HelpCircle,
+  Lock,
+  Mail,
+  MapPin,
+  Scale,
+  Search,
+  Shield,
+} from "lucide-react"
 import type { Metadata } from "next"
 import Link from "next/link"
-import { Navbar } from "@/components/shared/navbar"
-import { MarketingFooter, LiveWaitTime, StatsStrip, MediaMentions } from "@/components/marketing"
-import { EmployerLogoMarquee } from "@/components/shared/employer-logo-marquee"
-import { SampleCertificate } from "@/components/marketing/sample-certificate"
-import { safeJsonLd } from "@/lib/seo/safe-json-ld"
+
+import { LiveWaitTime, MarketingFooter, MediaMentions, SampleCertificate,StatsStrip } from "@/components/marketing"
+import { Navbar } from "@/components/shared"
+import { EmployerLogoMarquee } from "@/components/shared"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { CONTACT_EMAIL } from "@/lib/constants"
-import { Star } from "lucide-react"
-import {
-  Shield,
-  CheckCircle,
-  FileText,
-  Search,
-  ExternalLink,
-  GraduationCap,
-  Lock,
-  HelpCircle,
-  Mail,
-  MapPin,
-  Eye,
-  BookOpen,
-  Scale,
-  BadgeCheck,
-  ClipboardCheck,
-  Building2,
-} from "lucide-react"
+import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 
 export const metadata: Metadata = {
   title: "For Universities | Verify Medical Certificates",

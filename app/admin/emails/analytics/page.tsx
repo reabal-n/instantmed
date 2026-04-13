@@ -1,5 +1,6 @@
-import { EmailAnalyticsClient } from "./email-analytics-client"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
+
+import { EmailAnalyticsClient } from "./email-analytics-client"
 
 export const dynamic = "force-dynamic"
 

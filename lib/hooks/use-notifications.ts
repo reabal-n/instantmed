@@ -1,9 +1,10 @@
 "use client"
 
-import { useEffect, useState, useCallback } from "react"
+import type { RealtimeChannel } from "@supabase/supabase-js"
+import { useCallback,useEffect, useState } from "react"
+
 import { useAuth } from "@/lib/supabase/auth-provider"
 import { createClient } from "@/lib/supabase/client"
-import type { RealtimeChannel } from "@supabase/supabase-js"
 
 export interface Notification {
   id: string

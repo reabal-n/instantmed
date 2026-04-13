@@ -1,5 +1,6 @@
-import { addMonths } from "date-fns"
 import type { SupabaseClient } from "@supabase/supabase-js"
+import { addMonths } from "date-fns"
+
 import { createLogger } from "@/lib/observability/logger"
 
 const log = createLogger("followups")

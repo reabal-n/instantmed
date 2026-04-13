@@ -1,25 +1,14 @@
 // Database table types mirroring Supabase schema
 
+import type { IntakeStatus } from "@/types/intake"
+
+export type { IntakeStatus }
+
 export type UserRole = "patient" | "doctor" | "admin"
 
 // ============================================
 // INTAKE TYPES (Canonical case object)
 // ============================================
-
-export type IntakeStatus =
-  | "draft"
-  | "pending_payment"
-  | "checkout_failed"
-  | "paid"
-  | "in_review"
-  | "pending_info"
-  | "approved"
-  | "declined"
-  | "escalated"
-  | "completed"
-  | "cancelled"
-  | "expired"
-  | "awaiting_script"
 
 export type RiskTier = "low" | "moderate" | "high" | "critical"
 
@@ -630,3 +619,47 @@ export interface AIDocumentDraft {
 
 export type AIDocumentDraftInsert = Omit<AIDocumentDraft, "id" | "created_at" | "updated_at">
 export type AIDocumentDraftUpdate = Partial<Omit<AIDocumentDraft, "id" | "created_at" | "updated_at">>
+
+// ============================================
+// SUPABASE QUERY HELPERS
+// Typed wrappers for common Supabase query patterns
+// where .select() returns untyped rows.
+// ============================================
+
+/**
+ * Cast Supabase profile query result to Profile.
+ * Supabase .select(COLUMNS) returns a generic row; this bridges to our manually
+ * maintained Profile type without scattering `as unknown as Profile` everywhere.
+ */
+export function asProfile(row: Record<string, unknown>): Profile {
+  return row as unknown as Profile
+}
+
+/**
+ * Cast Supabase intake query result to Intake.
+ * Same rationale as asProfile -- Supabase returns untyped rows for partial selects.
+ */
+export function asIntake(row: Record<string, unknown>): Intake {
+  return row as unknown as Intake
+}
+
+/**
+ * Cast Supabase intake+patient join result to IntakeWithPatient.
+ */
+export function asIntakeWithPatient(row: Record<string, unknown>): IntakeWithPatient {
+  return row as unknown as IntakeWithPatient
+}
+
+/**
+ * Cast Supabase intake+details join result to IntakeWithDetails.
+ */
+export function asIntakeWithDetails(row: Record<string, unknown>): IntakeWithDetails {
+  return row as unknown as IntakeWithDetails
+}
+
+/**
+ * Cast Supabase patient note query result to PatientNote.
+ */
+export function asPatientNote(row: Record<string, unknown>): PatientNote {
+  return row as unknown as PatientNote
+}

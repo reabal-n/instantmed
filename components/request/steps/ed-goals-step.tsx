@@ -8,17 +8,19 @@
  */
 
 import { motion } from "framer-motion"
+import { ArrowRight,Heart, Shield, Sparkles, Stethoscope, Target } from "lucide-react"
+
 import { usePostHog } from "@/components/providers/posthog-provider"
-import { Target, Sparkles, Shield, Heart, Stethoscope, ArrowRight } from "lucide-react"
-import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
-import { Switch } from "@/components/ui/switch"
-import { cn } from "@/lib/utils"
-import { stagger } from "@/lib/motion"
+import { Label } from "@/components/ui/label"
 import { useReducedMotion } from "@/components/ui/motion"
-import { useRequestStore } from "../store"
+import { Switch } from "@/components/ui/switch"
 import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
+import { stagger } from "@/lib/motion"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
+import { cn } from "@/lib/utils"
+
+import { useRequestStore } from "../store"
 
 interface EdGoalsStepProps {
   serviceType: UnifiedServiceType

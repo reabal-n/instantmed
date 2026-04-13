@@ -7,25 +7,26 @@
  * Used by the admin stuck intakes viewer.
  */
 
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { createLogger } from "@/lib/observability/logger"
 import * as Sentry from "@sentry/nextjs"
+
+import { createLogger } from "@/lib/observability/logger"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 // Re-export types from the types file for convenience
 export type {
-  StuckReason,
-  StuckIntake,
   StuckCounts,
-  StuckIntakesResult,
+  StuckIntake,
   StuckIntakesFilters,
+  StuckIntakesResult,
+  StuckReason,
 } from "@/lib/data/types/intake-ops"
 
 import type {
-  StuckReason,
-  StuckIntake,
   StuckCounts,
-  StuckIntakesResult,
+  StuckIntake,
   StuckIntakesFilters,
+  StuckIntakesResult,
+  StuckReason,
 } from "@/lib/data/types/intake-ops"
 import { SLA_THRESHOLDS } from "@/lib/data/types/intake-ops"
 

@@ -3,8 +3,8 @@
  * Target: 80-100 total articles. Each 800+ words, unique content.
  */
 
-import { Article, defaultAuthor, contentAuthors } from '../types'
 import { blogImages } from '../images'
+import { Article, contentAuthors,defaultAuthor } from '../types'
 
 export const phase4ExpansionArticles: Article[] = [
   // Medical Certificates

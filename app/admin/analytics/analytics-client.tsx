@@ -1,15 +1,17 @@
 "use client"
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { DashboardHeader } from "@/components/dashboard"
 import { ExternalLink } from "lucide-react"
+import { useState } from "react"
+
+import { DashboardHeader } from "@/components/dashboard"
+import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+
+import { AnalyticsFunnelTab } from "./analytics-funnel-tab"
 import { type AnalyticsData, type TabKey } from "./analytics-helpers"
 import { AnalyticsOverviewTab } from "./analytics-overview-tab"
-import { AnalyticsFunnelTab } from "./analytics-funnel-tab"
-import { AnalyticsRevenueTab } from "./analytics-revenue-tab"
 import { AnalyticsQueueTab } from "./analytics-queue-tab"
+import { AnalyticsRevenueTab } from "./analytics-revenue-tab"
 
 interface AnalyticsDashboardClientProps {
   analytics: AnalyticsData

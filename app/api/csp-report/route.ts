@@ -1,5 +1,6 @@
-import { NextRequest, NextResponse } from "next/server"
 import * as Sentry from "@sentry/nextjs"
+import { NextRequest, NextResponse } from "next/server"
+
 import { createLogger } from "@/lib/observability/logger"
 
 const log = createLogger("csp-report")

@@ -1,9 +1,12 @@
 "use server"
 
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
+import { revalidatePath } from "next/cache"
+
+import { withServerAction } from "@/lib/actions/with-server-action"
 import { getApiAuth } from "@/lib/auth/helpers"
 import { createLogger } from "@/lib/observability/logger"
-import { revalidatePath } from "next/cache"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
+import type { ActionResult } from "@/types/shared"
 
 const logger = createLogger("email-preferences")
 
@@ -19,6 +22,10 @@ export interface EmailPreferences {
   updated_at: string
 }
 
+/**
+ * Get email preferences for the current user.
+ * Not wrapped -- getter with non-ActionResult return type.
+ */
 export async function getEmailPreferences(): Promise<EmailPreferences | null> {
   const authResult = await getApiAuth()
   if (!authResult) return null
@@ -38,44 +45,38 @@ export async function getEmailPreferences(): Promise<EmailPreferences | null> {
   return data as EmailPreferences
 }
 
-export async function updateEmailPreferences(
-  preferences: Partial<Pick<EmailPreferences, "marketing_emails" | "abandoned_checkout_emails">>
-): Promise<{ success: boolean; error?: string }> {
-  const authResult = await getApiAuth()
-  if (!authResult) {
-    return { success: false, error: "Not authenticated" }
+type UpdateEmailPrefsInput = Partial<Pick<EmailPreferences, "marketing_emails" | "abandoned_checkout_emails">>
+
+export const updateEmailPreferences = withServerAction<UpdateEmailPrefsInput>(
+  { auth: "apiAuth", name: "update-email-preferences" },
+  async (preferences, { supabase, profile, log }): Promise<ActionResult> => {
+    // First ensure preferences exist
+    await supabase.rpc("get_or_create_email_preferences", { p_profile_id: profile.id })
+
+    // Update preferences
+    const { error } = await supabase
+      .from("email_preferences")
+      .update({
+        ...preferences,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("profile_id", profile.id)
+
+    if (error) {
+      log.error("Failed to update email preferences", { error: error.message })
+      return { success: false, error: "Failed to update preferences" }
+    }
+
+    log.info("Updated email preferences", { profileId: profile.id, preferences })
+    revalidatePath("/patient/settings")
+
+    return { success: true }
   }
-
-  const { profile } = authResult
-
-  const serviceClient = createServiceRoleClient()
-
-  // First ensure preferences exist
-  await serviceClient.rpc("get_or_create_email_preferences", { p_profile_id: profile.id })
-
-  // Update preferences
-  const { error } = await serviceClient
-    .from("email_preferences")
-    .update({
-      ...preferences,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("profile_id", profile.id)
-
-  if (error) {
-    logger.error("Failed to update email preferences", { error: error.message })
-    return { success: false, error: "Failed to update preferences" }
-  }
-
-  logger.info("Updated email preferences", { profileId: profile.id, preferences })
-  revalidatePath("/patient/settings")
-
-  return { success: true }
-}
+)
 
 export async function unsubscribeFromMarketing(
   reason?: string
-): Promise<{ success: boolean; error?: string }> {
+): Promise<ActionResult> {
   const result = await updateEmailPreferences({
     marketing_emails: false,
     abandoned_checkout_emails: false,
@@ -100,20 +101,7 @@ export async function unsubscribeFromMarketing(
 }
 
 /**
- * Check if a patient has opted out of marketing emails
- * Used before sending marketing emails like abandoned checkout
+ * Check if a patient has opted out of marketing emails.
+ * Re-exported from lib/email/preferences.ts (canonical location).
  */
-export async function canSendMarketingEmail(profileId: string): Promise<boolean> {
-  const serviceClient = createServiceRoleClient()
-
-  const { data } = await serviceClient
-    .from("email_preferences")
-    .select("marketing_emails, abandoned_checkout_emails")
-    .eq("profile_id", profileId)
-    .maybeSingle()
-
-  // If no preferences exist, default to allowing marketing emails
-  if (!data) return true
-
-  return data.marketing_emails && data.abandoned_checkout_emails
-}
+export { canSendMarketingEmail } from "@/lib/email/preferences"

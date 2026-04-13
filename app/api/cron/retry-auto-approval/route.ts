@@ -1,11 +1,12 @@
 import * as Sentry from "@sentry/nextjs"
 import { NextRequest, NextResponse } from "next/server"
+
 import { verifyCronRequest } from "@/lib/api/cron-auth"
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
+import { getFeatureFlags } from "@/lib/feature-flags"
 import { recordCronHeartbeat } from "@/lib/monitoring/cron-heartbeat"
 import { createLogger } from "@/lib/observability/logger"
 import { captureCronError } from "@/lib/observability/sentry"
-import { getFeatureFlags } from "@/lib/feature-flags"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const logger = createLogger("cron-retry-auto-approval")
 
@@ -65,7 +66,7 @@ export async function GET(request: NextRequest) {
       const [{ sendEmail }, { StillReviewingEmail, stillReviewingSubject }, React] =
         await Promise.all([
           import("@/lib/email/send-email"),
-          import("@/components/email/templates/still-reviewing"),
+          import("@/lib/email/components/templates/still-reviewing"),
           import("react"),
         ])
 

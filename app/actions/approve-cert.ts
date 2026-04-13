@@ -1,11 +1,14 @@
 "use server"
 
 import { requireRoleOrNull } from "@/lib/auth/helpers"
-import { logger } from "@/lib/observability/logger"
-import { checkCertificateRateLimit } from "@/lib/rate-limit/doctor"
+import { createLogger } from "@/lib/observability/logger"
+
+const log = createLogger("approve-cert")
 import * as Sentry from "@sentry/nextjs"
+
+import { type ApproveCertResult,executeCertApproval } from "@/lib/clinical/execute-cert-approval"
+import { checkCertificateRateLimit } from "@/lib/rate-limit/doctor"
 import type { CertReviewData } from "@/types/db"
-import { executeCertApproval, type ApproveCertResult } from "@/lib/clinical/execute-cert-approval"
 
 /**
  * Server action to approve a medical certificate intake, generate PDF, and email it to the patient.
@@ -22,7 +25,7 @@ export async function approveAndSendCert(
     // 1. Authenticate doctor or admin (non-redirecting for server actions)
     const authResult = await requireRoleOrNull(["doctor", "admin"])
     if (!authResult) {
-      logger.warn("APPROVE_CORE_UNAUTHORIZED", { intakeId })
+      log.warn("APPROVE_CORE_UNAUTHORIZED", { intakeId })
       return { success: false, error: "Unauthorized or session expired" }
     }
     const doctorProfile = authResult.profile
@@ -30,7 +33,7 @@ export async function approveAndSendCert(
     // P0 SECURITY: Rate limiting to prevent mass-approval attacks
     const rateLimitResult = await checkCertificateRateLimit(doctorProfile.id)
     if (!rateLimitResult.allowed) {
-      logger.warn("Certificate rate limit exceeded", {
+      log.warn("Certificate rate limit exceeded", {
         doctorId: doctorProfile.id,
         remaining: rateLimitResult.remaining,
         resetAt: rateLimitResult.resetAt,
@@ -43,7 +46,7 @@ export async function approveAndSendCert(
 
     // P2 FIX: Early verification that doctor has required credentials configured
     if (!doctorProfile.provider_number || !doctorProfile.ahpra_number) {
-      logger.warn("Doctor attempted approval without credentials", {
+      log.warn("Doctor attempted approval without credentials", {
         doctorId: doctorProfile.id,
         hasProvider: !!doctorProfile.provider_number,
         hasAhpra: !!doctorProfile.ahpra_number,
@@ -56,7 +59,7 @@ export async function approveAndSendCert(
 
     // P2 FIX: Validate AHPRA number format (3 uppercase letters + 10 digits)
     if (!/^[A-Z]{3}\d{10}$/.test(doctorProfile.ahpra_number)) {
-      logger.warn("Doctor AHPRA number failed format validation", {
+      log.warn("Doctor AHPRA number failed format validation", {
         doctorId: doctorProfile.id,
       })
       return {
@@ -78,7 +81,7 @@ export async function approveAndSendCert(
       .single()
 
     if (intakeCheck && intakeCheck.patient_id === doctorProfile.id) {
-      logger.warn("Doctor attempted self-approval", { doctorId: doctorProfile.id, intakeId })
+      log.warn("Doctor attempted self-approval", { doctorId: doctorProfile.id, intakeId })
       return {
         success: false,
         error: "You cannot approve your own medical certificate request. Please have another doctor review this case."
@@ -98,7 +101,7 @@ export async function approveAndSendCert(
       skipClaim: false,
     })
   } catch (error) {
-    logger.error("[ApproveCert] Error approving certificate", {
+    log.error("[ApproveCert] Error approving certificate", {
       intakeId,
       error: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined

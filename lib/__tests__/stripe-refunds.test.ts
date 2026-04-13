@@ -15,11 +15,13 @@
  * Those tests live in decline-intake.test.ts.
  */
 
-import { describe, it, expect, beforeEach, vi } from "vitest"
-import { refundIfEligible } from "@/lib/stripe/refunds"
-import { stripe } from "@/lib/stripe/client"
 import * as Sentry from "@sentry/nextjs"
-import { mockSupabaseSingle, mockSupabaseFrom, mockDbSuccess, resetAllMocks } from "./setup"
+import { beforeEach, describe, expect, it, vi } from "vitest"
+
+import { stripe } from "@/lib/stripe/client"
+import { refundIfEligible } from "@/lib/stripe/refunds"
+
+import { mockDbSuccess, mockSupabaseFrom, mockSupabaseSingle, resetAllMocks } from "./setup"
 
 // ============================================================================
 // HELPERS

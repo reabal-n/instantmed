@@ -1,13 +1,14 @@
 "use client"
 
-import { useTransition } from "react"
 import { format } from "date-fns"
+import { AlertTriangle, CheckCircle2, MessageSquare } from "lucide-react"
+import { useTransition } from "react"
 import { toast } from "sonner"
-import { CheckCircle2, AlertTriangle, MessageSquare } from "lucide-react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+
 import { markFollowupReviewed } from "@/app/actions/followups-doctor"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 
 export interface DoctorFollowupRow {

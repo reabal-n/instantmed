@@ -1,9 +1,10 @@
 "use client"
 
-import { useState } from "react"
 import { motion, type Variants } from "framer-motion"
-import { cn } from "@/lib/utils"
+import { useState } from "react"
+
 import { useReducedMotion } from "@/components/ui/motion"
+import { cn } from "@/lib/utils"
 
 interface Avatar {
   id: number

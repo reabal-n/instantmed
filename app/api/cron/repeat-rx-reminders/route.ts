@@ -1,11 +1,12 @@
 import * as Sentry from "@sentry/nextjs"
 import { NextRequest, NextResponse } from "next/server"
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { createLogger } from "@/lib/observability/logger"
-import { verifyCronRequest, acquireCronLock, releaseCronLock } from "@/lib/api/cron-auth"
-import { captureCronError } from "@/lib/observability/sentry"
-import { toError } from "@/lib/errors"
+
 import { canSendMarketingEmail } from "@/app/actions/email-preferences"
+import { acquireCronLock, releaseCronLock,verifyCronRequest } from "@/lib/api/cron-auth"
+import { toError } from "@/lib/errors"
+import { createLogger } from "@/lib/observability/logger"
+import { captureCronError } from "@/lib/observability/sentry"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const logger = createLogger("cron-repeat-rx-reminders")
 
@@ -81,7 +82,8 @@ export async function GET(request: NextRequest) {
         }
 
         // Get patient email from profile join
-        const patientRaw = intake.patient as unknown as { id: string; email: string | null; full_name: string | null }[] | { id: string; email: string | null; full_name: string | null } | null
+        type PatientJoin = { id: string; email: string | null; full_name: string | null }
+        const patientRaw = intake.patient as PatientJoin[] | PatientJoin | null
         const patient = Array.isArray(patientRaw) ? patientRaw[0] : patientRaw
         if (!patient?.email) continue
 

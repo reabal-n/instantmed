@@ -1,13 +1,15 @@
+import type { Metadata } from "next"
 import type React from "react"
 import { Suspense } from "react"
-import type { Metadata } from "next"
+
+import { DoctorOnboardingBanner } from "@/components/doctor"
+import { DashboardSidebar } from "@/components/shared"
 import { requireRole } from "@/lib/auth/helpers"
-import { DashboardSidebar } from "@/components/shared/dashboard-sidebar"
 import { getDoctorDashboardStats } from "@/lib/data/intakes"
-import { createLogger } from "@/lib/observability/logger"
-import { DoctorShell } from "./doctor-shell"
-import { DoctorOnboardingBanner } from "@/components/doctor/onboarding-banner"
 import { toError } from "@/lib/errors"
+import { createLogger } from "@/lib/observability/logger"
+
+import { DoctorShell } from "./doctor-shell"
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },

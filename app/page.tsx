@@ -1,29 +1,29 @@
-import { Suspense } from 'react'
 import type { Metadata } from 'next'
-import { cn } from '@/lib/utils'
+import { Suspense } from 'react'
+
 import {
   Hero,
   HowItWorks,
   MarketingFooter,
 } from '@/components/marketing'
-import { Navbar } from '@/components/shared/navbar'
-import { HashScrollHandler } from '@/components/shared/hash-scroll-handler'
-import { FAQSchema, MedicalBusinessSchema, SpeakableSchema } from '@/components/seo/healthcare-schema'
-import { faqItems } from '@/lib/marketing/homepage'
-import { ReturningPatientBanner } from '@/components/shared/returning-patient-banner'
-import { getFeatureFlags } from '@/lib/feature-flags'
-import { CTABanner } from '@/components/sections'
-import { FAQSection } from '@/components/sections'
+import { ComplianceMarquee } from '@/components/marketing/compliance-marquee'
 import { MarketingPageShell } from '@/components/marketing/marketing-page-shell'
+import { RegulatoryPartners } from '@/components/marketing/media-mentions'
 // After-hours banner removed - redundant with DoctorAvailabilityPill in hero
 import { ServiceCards } from '@/components/marketing/service-cards'
+import { ComparisonBar, ScrollingLogoMarquee } from '@/components/marketing/shared'
 import { SocialProofSection } from '@/components/marketing/social-proof-section'
-import { RegulatoryPartners } from '@/components/marketing/media-mentions'
-import { ComplianceMarquee } from '@/components/marketing/compliance-marquee'
+import { CTABanner } from '@/components/sections'
+import { FAQSection } from '@/components/sections'
+import { FAQSchema, MedicalBusinessSchema, SpeakableSchema } from '@/components/seo/healthcare-schema'
+import { HashScrollHandler } from '@/components/shared/hash-scroll-handler'
+import { Navbar } from '@/components/shared/navbar'
+import { ReturningPatientBanner } from '@/components/shared/returning-patient-banner'
 import { TrustBadgeRow } from '@/components/shared/trust-badge'
-import { ScrollingLogoMarquee } from '@/components/marketing/shared/scrolling-logo-marquee'
-import { ComparisonBar } from '@/components/marketing/shared/data-viz'
 import { PRICING_DISPLAY } from '@/lib/constants'
+import { getFeatureFlags } from '@/lib/feature-flags'
+import { faqItems } from '@/lib/marketing/homepage'
+import { cn } from '@/lib/utils'
 
 const EMPLOYER_LOGOS = [
   { name: 'Woolworths', src: '/logos/woolworths.png' },

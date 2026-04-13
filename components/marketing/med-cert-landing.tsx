@@ -1,40 +1,40 @@
 "use client"
 
-import Link from "next/link"
-import dynamic from "next/dynamic"
-import { useCallback } from "react"
+import { motion } from "framer-motion"
 import {
-  CheckCircle2,
-  Building2,
-  Search,
-  ShieldCheck,
   ArrowRight,
   Briefcase,
-  Heart,
+  Building2,
+  CheckCircle2,
   GraduationCap,
+  Heart,
+  Search,
+  ShieldCheck,
 } from "lucide-react"
-import { motion } from "framer-motion"
-import { useReducedMotion } from "@/components/ui/motion"
-import { Button } from "@/components/ui/button"
-import { TrustBadgeRow } from "@/components/shared/trust-badge"
-import { HeroOutcomeMockup } from "@/components/marketing/hero-outcome-mockup"
-import { ComplianceMarquee } from "@/components/marketing/compliance-marquee"
-import { SectionPill } from "@/components/ui/section-pill"
-import { ScrollingLogoMarquee, type LogoItem } from "@/components/marketing/shared/scrolling-logo-marquee"
-import { ComparisonBar } from "@/components/marketing/shared/data-viz"
-import { PRICING } from "@/lib/constants"
-import { SOCIAL_PROOF, SOCIAL_PROOF_DISPLAY } from "@/lib/social-proof"
-import { usePatientCount } from "@/lib/hooks/use-patient-count"
-import { useSectionVisibilityFunnel } from "@/lib/hooks/use-section-visibility-funnel"
-import { MED_CERT_FAQ } from "@/lib/data/med-cert-faq"
-import {
-  LandingPageShell,
-  type LandingPageConfig,
-} from "@/components/marketing/shared"
-import { ContentHubLinks } from "@/components/seo/content-hub-links"
+import dynamic from "next/dynamic"
+import Link from "next/link"
+import { useCallback } from "react"
 
+import { ComplianceMarquee } from "@/components/marketing/compliance-marquee"
+import { HeroOutcomeMockup } from "@/components/marketing/hero-outcome-mockup"
 // Hero is above-fold - not lazy loaded
 import { MedCertHeroSection } from "@/components/marketing/heroes/med-cert-hero"
+import {
+  type LandingPageConfig,
+  LandingPageShell,
+} from "@/components/marketing/shared"
+import { ComparisonBar } from "@/components/marketing/shared/data-viz"
+import { type LogoItem,ScrollingLogoMarquee } from "@/components/marketing/shared/scrolling-logo-marquee"
+import { ContentHubLinks } from "@/components/seo"
+import { TrustBadgeRow } from "@/components/shared"
+import { Button } from "@/components/ui/button"
+import { useReducedMotion } from "@/components/ui/motion"
+import { SectionPill } from "@/components/ui/section-pill"
+import { PRICING } from "@/lib/constants"
+import { MED_CERT_FAQ } from "@/lib/data/med-cert-faq"
+import { usePatientCount } from "@/lib/hooks/use-patient-count"
+import { useSectionVisibilityFunnel } from "@/lib/hooks/use-section-visibility-funnel"
+import { SOCIAL_PROOF, SOCIAL_PROOF_DISPLAY } from "@/lib/social-proof"
 
 // Below-fold lazy loads
 const CertificateTypeSelector = dynamic(

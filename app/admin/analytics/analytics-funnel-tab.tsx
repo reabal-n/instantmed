@@ -1,23 +1,25 @@
 "use client"
 
-import { GlassStatCard, DashboardGrid } from "@/components/dashboard"
 import {
-  Eye,
-  MousePointer,
-  CreditCard,
   CheckCircle,
+  CreditCard,
+  Eye,
   Globe,
+  MousePointer,
 } from "lucide-react"
+
 import {
-  LazyBarChart as BarChart,
   Bar,
+  CartesianGrid,
   Cell,
+  LazyBarChart as BarChart,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
 } from "@/components/charts/lazy-charts"
+import { DashboardGrid,GlassStatCard } from "@/components/dashboard"
+
 import { type AnalyticsData, COLORS } from "./analytics-helpers"
 
 export function AnalyticsFunnelTab({ analytics }: { analytics: AnalyticsData }) {

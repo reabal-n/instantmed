@@ -1,8 +1,9 @@
-import { describe, it, expect } from "vitest"
+import { describe, expect,it } from "vitest"
+
 import {
+  ED_HOOK_QUIZ_KEY,
   ED_HOOK_QUIZ_QUESTIONS,
   scoreEdHookQuiz,
-  ED_HOOK_QUIZ_KEY,
 } from "@/lib/marketing/ed-hook-quiz"
 
 describe("ED_HOOK_QUIZ_QUESTIONS", () => {

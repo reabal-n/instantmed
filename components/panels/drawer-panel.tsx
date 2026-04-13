@@ -1,12 +1,14 @@
 'use client'
 
-import { type ReactNode, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { useReducedMotion } from '@/components/ui/motion'
 import { X } from 'lucide-react'
-import { usePanel } from './panel-provider'
-import { drawerVariants, backdropVariants } from '@/lib/motion/panel-variants'
+import { type ReactNode, useEffect } from 'react'
+
+import { useReducedMotion } from '@/components/ui/motion'
+import { backdropVariants,drawerVariants } from '@/lib/motion/panel-variants'
 import { cn } from '@/lib/utils'
+
+import { usePanel } from './panel-provider'
 
 /**
  * DrawerPanel - Side panel for details and quick actions

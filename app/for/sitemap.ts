@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next"
+
 import { getAllAudiencePageSlugs } from "@/lib/seo/data/audience-pages"
 
 const CONTENT_ENRICHED = new Date("2026-03-31")

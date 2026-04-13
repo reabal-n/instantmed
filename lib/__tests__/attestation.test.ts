@@ -6,15 +6,15 @@
  * Does NOT test saveAttestation (requires Supabase).
  */
 
-import { describe, it, expect, vi } from "vitest"
+import { describe, expect, it, vi } from "vitest"
 
 vi.mock("server-only", () => ({}))
 
 import {
-  validateAttestation,
-  createAttestationData,
   ATTESTATION_TEXTS,
   type AttestationData,
+  createAttestationData,
+  validateAttestation,
 } from "@/lib/security/attestation"
 
 describe("attestation module", () => {

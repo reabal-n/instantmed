@@ -1,21 +1,22 @@
 "use client"
 
-import { useMemo, useRef, useState } from "react"
+import { AnimatePresence,motion } from "framer-motion"
 import Link from "next/link"
-import { motion, AnimatePresence } from "framer-motion"
-import { useReducedMotion } from "@/components/ui/motion"
-import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
+import { useMemo, useRef, useState } from "react"
+
 import { usePostHog } from "@/components/providers/posthog-provider"
+import { Button } from "@/components/ui/button"
+import { useReducedMotion } from "@/components/ui/motion"
 import { PRICING } from "@/lib/constants"
 import {
   ED_HOOK_QUIZ_KEY,
   ED_HOOK_QUIZ_QUESTIONS,
-  getEdHookQuizReassurance,
-  scoreEdHookQuiz,
   type EdHookQuizResult,
   type EdHookQuizTier,
+  getEdHookQuizReassurance,
+  scoreEdHookQuiz,
 } from "@/lib/marketing/ed-hook-quiz"
+import { cn } from "@/lib/utils"
 
 interface EdHookQuizProps {
   className?: string

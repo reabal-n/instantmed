@@ -1,22 +1,20 @@
 "use client"
 
+import { CheckCircle2, Clock, Filter, MapPin, Shield, Star, Zap } from "lucide-react"
 import Image from "next/image"
-import { cn } from "@/lib/utils"
-import { Star, MapPin, CheckCircle2, Filter, Shield, Clock, Zap } from "lucide-react"
-import { CenteredHero } from "@/components/heroes"
-import { LogoBadgeStrip, CTABanner } from "@/components/sections"
-import { InformationalPageShell } from "@/components/marketing/shared/informational-page-shell"
-import { TestimonialCard } from "@/components/marketing/shared/testimonial-card"
-import { AnimatedProgressBar, AnimatedDonutChart } from "@/components/marketing/shared/data-viz"
-import { SectionPill } from "@/components/ui/section-pill"
-
 import { useState } from "react"
+
+import { CenteredHero } from "@/components/heroes"
+import { AnimatedDonutChart, AnimatedProgressBar, InformationalPageShell, TestimonialCard } from "@/components/marketing/shared"
+import { CTABanner,LogoBadgeStrip } from "@/components/sections"
+import { SectionPill } from "@/components/ui/section-pill"
+import { GOOGLE_REVIEW_URL } from "@/lib/constants"
 import {
   getFeaturedTestimonials,
   getReviewsPageTestimonials
 } from "@/lib/data/testimonials"
 import { SOCIAL_PROOF } from "@/lib/social-proof"
-import { GOOGLE_REVIEW_URL } from "@/lib/constants"
+import { cn } from "@/lib/utils"
 
 // Get reviews from centralized data - limited to a curated selection
 const reviewsData = getReviewsPageTestimonials().slice(0, 10)

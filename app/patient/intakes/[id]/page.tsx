@@ -1,12 +1,14 @@
+import type { Metadata } from "next"
 import { notFound } from "next/navigation"
+
+import { checkEmailVerified } from "@/app/actions/resend-verification"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
-import { getIntakeForPatient } from "@/lib/data/intakes"
 import { getLatestDocumentForIntake, getMedCertCertificateForIntake } from "@/lib/data/documents"
 import { getIntakeDocument } from "@/lib/data/intake-documents"
+import { getIntakeForPatient } from "@/lib/data/intakes"
 import { getCertificateWithPdfUrl } from "@/lib/data/issued-certificates"
-import { checkEmailVerified } from "@/app/actions/resend-verification"
+
 import { IntakeDetailClient } from "./client"
-import type { Metadata } from "next"
 
 export const dynamic = "force-dynamic"
 

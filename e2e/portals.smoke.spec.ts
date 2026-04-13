@@ -1,6 +1,7 @@
-import { test, expect, Page, ConsoleMessage } from "@playwright/test"
-import { waitForPageLoad } from "./helpers/test-utils"
+import { ConsoleMessage,expect, Page, test } from "@playwright/test"
+
 import { loginAsOperator, loginAsPatient, logoutTestUser } from "./helpers/auth"
+import { waitForPageLoad } from "./helpers/test-utils"
 
 /**
  * Portal Smoke Tests

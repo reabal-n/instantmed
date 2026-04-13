@@ -1,15 +1,16 @@
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
-import { requireApiRole } from "@/lib/auth/helpers"
-import { updateScriptSent } from "@/lib/data/intakes"
-import { applyRateLimit } from "@/lib/rate-limit/redis"
-import { requireValidCsrf } from "@/lib/security/csrf"
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { createLogger } from "@/lib/observability/logger"
+
 import {
   logExternalPrescribingIndicated,
   type RequestType,
 } from "@/lib/audit/compliance-audit"
+import { requireApiRole } from "@/lib/auth/helpers"
+import { updateScriptSent } from "@/lib/data/intakes"
+import { createLogger } from "@/lib/observability/logger"
+import { applyRateLimit } from "@/lib/rate-limit/redis"
+import { requireValidCsrf } from "@/lib/security/csrf"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const log = createLogger("doctor-script-sent")
 

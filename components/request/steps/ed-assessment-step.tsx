@@ -1,17 +1,19 @@
 "use client"
 
-import { useMemo, useEffect, useCallback, useRef } from "react"
+import { AnimatePresence,motion } from "framer-motion"
+import { ArrowRight,Info, TrendingUp } from "lucide-react"
+import { useCallback, useEffect, useMemo, useRef } from "react"
+
 import { usePostHog } from "@/components/providers/posthog-provider"
-import { motion, AnimatePresence } from "framer-motion"
-import { TrendingUp, Info, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
 import { useReducedMotion } from "@/components/ui/motion"
-import { stagger, fadeUp } from "@/lib/motion"
-import { useRequestStore } from "../store"
 import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
 import { ED_HOOK_QUIZ_KEY, type EdHookQuizResult } from "@/lib/marketing/ed-hook-quiz"
+import { fadeUp,stagger } from "@/lib/motion"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
+import { cn } from "@/lib/utils"
+
+import { useRequestStore } from "../store"
 
 // ---------------------------------------------------------------------------
 // Types

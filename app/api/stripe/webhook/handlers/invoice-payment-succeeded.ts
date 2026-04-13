@@ -1,6 +1,8 @@
 import type Stripe from "stripe"
+
 import { createLogger } from "@/lib/observability/logger"
-import type { WebhookContext, HandlerResult } from "./types"
+
+import type { HandlerResult,WebhookContext } from "./types"
 
 const log = createLogger("stripe-webhook:invoice-payment-succeeded")
 
@@ -18,12 +20,17 @@ export async function handleInvoicePaymentSucceeded(ctx: WebhookContext): Promis
   const { event, supabase } = ctx
   const invoice = event.data.object as Stripe.Invoice
 
-  const subscriptionId = (invoice as unknown as { subscription: string | { id: string } | null }).subscription
-  const resolvedSubId = typeof subscriptionId === "string"
-    ? subscriptionId
-    : subscriptionId?.id
+  // Stripe Invoice.subscription can be a string ID or expanded Subscription object.
+  // Stripe v22 types may omit the property depending on API version; access via
+  // record index to avoid TS2339 without reintroducing `as any`.
+  // Stripe v22 Invoice type may not expose .subscription directly
+  const invoiceRecord = invoice as unknown as Record<string, unknown>
+  const subscriptionField = invoiceRecord.subscription as string | { id: string } | null
+  const subscriptionId = typeof subscriptionField === "string"
+    ? subscriptionField
+    : subscriptionField?.id ?? null
 
-  if (!resolvedSubId) {
+  if (!subscriptionId) {
     log.info("Skipping invoice without subscription", { invoiceId: invoice.id })
     return
   }

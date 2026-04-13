@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
+
 import { auth } from "@/lib/auth/helpers"
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
+import { logCertificateEvent } from "@/lib/data/issued-certificates"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
-import { logCertificateEvent } from "@/lib/data/issued-certificates"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const log = createLogger("certificate-download")
 

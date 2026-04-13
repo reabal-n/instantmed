@@ -1,11 +1,12 @@
-import { NextResponse } from "next/server"
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { verifyWebhookSignature } from "@/lib/parchment/client"
-import { webhookPayloadSchema } from "@/lib/parchment/types"
-import { updateScriptSent } from "@/lib/data/intakes"
-import { createLogger } from "@/lib/observability/logger"
 import * as Sentry from "@sentry/nextjs"
 import { Redis } from "@upstash/redis"
+import { NextResponse } from "next/server"
+
+import { updateScriptSent } from "@/lib/data/intakes"
+import { createLogger } from "@/lib/observability/logger"
+import { verifyWebhookSignature } from "@/lib/parchment/client"
+import { webhookPayloadSchema } from "@/lib/parchment/types"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 // Short-lived Redis dedup key - 60s window catches rapid duplicate deliveries
 // before the DB claim write completes. Fails open if Redis is unavailable.
@@ -226,7 +227,7 @@ export async function POST(request: Request) {
     try {
       const React = await import("react")
       const { sendEmail } = await import("@/lib/email/send-email")
-      const { ScriptSentEmail, scriptSentEmailSubject } = await import("@/components/email/templates/script-sent")
+      const { ScriptSentEmail, scriptSentEmailSubject } = await import("@/lib/email/components/templates/script-sent")
       const { getIntakeWithDetails } = await import("@/lib/data/intakes")
 
       const fullIntake = await getIntakeWithDetails(intake.id)

@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next"
+
 import { getAllStateSlugs } from "@/lib/seo/data/states"
 
 const CONTENT_ENRICHED = new Date("2026-04-08")

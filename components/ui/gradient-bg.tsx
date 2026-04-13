@@ -1,8 +1,9 @@
 'use client'
 
-import * as React from 'react'
 import { cva, type VariantProps } from 'class-variance-authority'
-import { motion, type HTMLMotionProps } from 'framer-motion'
+import { type HTMLMotionProps,motion } from 'framer-motion'
+import * as React from 'react'
+
 import { useReducedMotion } from '@/components/ui/motion'
 import { cn } from '@/lib/utils'
 
@@ -191,4 +192,4 @@ GradientContainer.displayName = 'GradientContainer'
 // EXPORTS
 // =============================================================================
 
-export { GradientBg, GradientBgMotion, GradientContainer, gradientBgVariants }
+export { GradientBg, GradientBgMotion, gradientBgVariants,GradientContainer }

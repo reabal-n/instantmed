@@ -1,6 +1,8 @@
 import type { Metadata } from "next"
+
+import { BreadcrumbSchema } from "@/components/seo"
+
 import { AboutClient } from "./about-client"
-import { BreadcrumbSchema } from "@/components/seo/healthcare-schema"
 
 // ISR: Revalidate about page every 24 hours (static content)
 export const revalidate = 86400

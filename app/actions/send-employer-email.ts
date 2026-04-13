@@ -9,13 +9,16 @@
 
 import * as Sentry from "@sentry/nextjs"
 import { z } from "zod"
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
+
 import { requireRoleOrNull } from "@/lib/auth/helpers"
-import { sendEmail, checkEmployerEmailRateLimit } from "@/lib/email/send-email"
-import { MedCertEmployerEmail, medCertEmployerEmailSubject } from "@/components/email/templates"
-import { logger } from "@/lib/observability/logger"
+import { MedCertEmployerEmail, medCertEmployerEmailSubject } from "@/lib/email/components/templates"
+import { checkEmployerEmailRateLimit,sendEmail } from "@/lib/email/send-email"
+import { createLogger } from "@/lib/observability/logger"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
+
+const log = createLogger("send-employer-email")
 import { env } from "@/lib/config/env"
-import { checkEmployerEmailBlocked } from "@/lib/config/feature-flags"
+import { checkEmployerEmailBlocked } from "@/lib/config/kill-switches"
 
 // Input validation schema
 const sendEmployerEmailSchema = z.object({
@@ -50,13 +53,13 @@ async function generateSecureDownloadUrl(
       .createSignedUrl(storagePath, expiresInSeconds)
 
     if (error) {
-      logger.error("[EmployerEmail] Failed to create signed URL", { error: error.message, storagePath })
+      log.error("[EmployerEmail] Failed to create signed URL", { error: error.message, storagePath })
       return null
     }
 
     return data.signedUrl
   } catch (err) {
-    logger.error("[EmployerEmail] Signed URL error", { error: err, storagePath })
+    log.error("[EmployerEmail] Signed URL error", { error: err, storagePath })
     return null
   }
 }
@@ -72,7 +75,7 @@ export async function sendEmployerEmail(input: SendEmployerEmailInput): Promise<
   // KILL SWITCH: Check if employer email is disabled
   const killSwitch = checkEmployerEmailBlocked()
   if (killSwitch.blocked) {
-    logger.warn("[EmployerEmail] Blocked by kill switch", { reason: killSwitch.reason })
+    log.warn("[EmployerEmail] Blocked by kill switch", { reason: killSwitch.reason })
     return { success: false, error: killSwitch.userMessage }
   }
 
@@ -117,13 +120,13 @@ export async function sendEmployerEmail(input: SendEmployerEmailInput): Promise<
       .single()
 
     if (intakeError || !intake) {
-      logger.warn("[EmployerEmail] Intake not found", { intakeId, error: intakeError })
+      log.warn("[EmployerEmail] Intake not found", { intakeId, error: intakeError })
       return { success: false, error: "Request not found" }
     }
 
     // 4. Verify ownership - patient must own this intake
     if (intake.patient_id !== profile.id) {
-      logger.warn("[EmployerEmail] Unauthorized access attempt", {
+      log.warn("[EmployerEmail] Unauthorized access attempt", {
         intakeId,
         patientId: intake.patient_id,
         requestingUserId: profile.id,
@@ -213,14 +216,14 @@ export async function sendEmployerEmail(input: SendEmployerEmailInput): Promise<
     })
 
     if (!emailResult.success) {
-      logger.error("[EmployerEmail] Send failed", {
+      log.error("[EmployerEmail] Send failed", {
         intakeId,
         error: emailResult.error,
       })
       return { success: false, error: emailResult.error || "Failed to send email" }
     }
 
-    logger.info("[EmployerEmail] Sent successfully", {
+    log.info("[EmployerEmail] Sent successfully", {
       intakeId,
       certificateId: certificate.id,
       messageId: emailResult.messageId,
@@ -234,7 +237,7 @@ export async function sendEmployerEmail(input: SendEmployerEmailInput): Promise<
       remainingSends,
     }
   } catch (error) {
-    logger.error("[EmployerEmail] Unexpected error", { error })
+    log.error("[EmployerEmail] Unexpected error", { error })
     Sentry.captureException(error)
     return {
       success: false,

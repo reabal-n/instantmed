@@ -12,10 +12,11 @@
  * - Set E2E_SECRET and SUPABASE_SERVICE_ROLE_KEY env vars
  */
 
-import { test, expect } from "@playwright/test"
+import { expect,test } from "@playwright/test"
 import { createClient } from "@supabase/supabase-js"
-import { waitForPageLoad } from "./helpers/test-utils"
+
 import { loginAsOperator, logoutTestUser } from "./helpers/auth"
+import { waitForPageLoad } from "./helpers/test-utils"
 
 // ============================================================================
 // CONFIGURATION

@@ -2,10 +2,11 @@
 
 import { motion } from "framer-motion";
 import { useRef } from "react";
-import { cn } from "@/lib/utils";
+
 import { WordReveal } from "@/components/ui/morning/word-reveal";
-import { useScrollReveal, useReducedMotion } from "@/components/ui/motion";
+import { useReducedMotion,useScrollReveal } from "@/components/ui/motion";
 import { SectionPill } from "@/components/ui/section-pill";
+import { cn } from "@/lib/utils";
 
 interface SectionHeaderProps {
   pill?: string;

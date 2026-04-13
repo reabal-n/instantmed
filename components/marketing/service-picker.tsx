@@ -1,19 +1,20 @@
 'use client'
 
-import Link from 'next/link'
-import { ArrowRight, Check, ShieldCheck, Stethoscope, Clock, AlertCircle } from 'lucide-react'
-import { serviceCategories } from '@/lib/marketing/homepage'
 import { motion, type Variants } from 'framer-motion'
-import { useReducedMotion } from '@/components/ui/motion'
+import { AlertCircle,ArrowRight, Check, Clock, ShieldCheck, Stethoscope } from 'lucide-react'
+import Link from 'next/link'
+
 import { ServiceIconTile } from '@/components/icons/service-icons'
-import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
-import { useServiceAvailability, type ServiceId } from '@/components/providers/service-availability-provider'
 import { CertificateMockup } from '@/components/marketing/mockups/certificate'
-import { EScriptMockup } from '@/components/marketing/mockups/escript'
 import { ConsultChatMockup } from '@/components/marketing/mockups/consult-chat-mockup'
 import { EDHeroMockup } from '@/components/marketing/mockups/ed-hero-mockup'
+import { EScriptMockup } from '@/components/marketing/mockups/escript'
 import { HairLossHeroMockup } from '@/components/marketing/mockups/hair-loss-hero-mockup'
+import { type ServiceId,useServiceAvailability } from '@/components/providers/service-availability-provider'
+import { Button } from '@/components/ui/button'
+import { useReducedMotion } from '@/components/ui/motion'
+import { serviceCategories } from '@/lib/marketing/homepage'
+import { cn } from '@/lib/utils'
 
 const mockupMap: Record<string, React.ComponentType> = {
   'med-cert': CertificateMockup,

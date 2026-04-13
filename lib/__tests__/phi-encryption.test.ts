@@ -4,7 +4,7 @@
  * Tests the envelope encryption implementation for PHI data.
  */
 
-import { describe, it, expect, beforeAll, afterAll, vi } from "vitest"
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest"
 
 // Mock environment before importing the module
 const TEST_MASTER_KEY = Buffer.from("0".repeat(64), "hex").toString("base64") // 32 bytes

@@ -1,10 +1,11 @@
 import "server-only"
 
 import { createClient } from "@supabase/supabase-js"
-import { env } from "@/lib/config/env"
-import { createLogger } from "@/lib/observability/logger"
+
 import { checkAndSanitize } from "@/lib/ai/prompt-safety"
-import { normalizeServiceType, getDraftCategory, type DraftCategory } from "@/lib/constants/service-types"
+import { env } from "@/lib/config/env"
+import { type DraftCategory,getDraftCategory, normalizeServiceType } from "@/lib/constants/service-types"
+import { createLogger } from "@/lib/observability/logger"
 import type { ServiceType } from "@/types/db"
 
 export const log = createLogger("generate-drafts")
@@ -211,4 +212,4 @@ export function formatIntakeContext(
 }
 
 // Re-export for convenience
-export { normalizeServiceType, getDraftCategory, type DraftCategory }
+export { type DraftCategory,getDraftCategory, normalizeServiceType }

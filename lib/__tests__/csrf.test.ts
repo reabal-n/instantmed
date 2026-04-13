@@ -5,8 +5,8 @@
  * Covers: token generation, timing-safe comparison, expiry, middleware wrapper.
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest"
 import { NextResponse } from "next/server"
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
 // Mock next/headers cookies
 const mockCookieStore = new Map<string, string>()

@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
+
 import { requireApiRole } from "@/lib/auth/helpers"
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { getCertificateForIntake } from "@/lib/data/issued-certificates"
-import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { createLogger } from "@/lib/observability/logger"
+import { applyRateLimit } from "@/lib/rate-limit/redis"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const log = createLogger("doctor-cert-download")
 

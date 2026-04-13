@@ -5,18 +5,20 @@
  * Shows all collected information for patient to verify
  */
 
-import { useState, useRef } from "react"
+import { ChevronDown, ChevronUp, Edit2, RefreshCw,ShieldCheck } from "lucide-react"
 import { usePostHog } from "posthog-js/react"
-import { Edit2, ChevronDown, ChevronUp, ShieldCheck, RefreshCw } from "lucide-react"
+import { useRef,useState } from "react"
+
+import { GoogleAdsCert } from "@/components/marketing/google-ads-cert"
+import { LegitScriptSeal } from "@/components/marketing/legitscript-seal"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
-import { LegitScriptSeal } from "@/components/marketing/legitscript-seal"
-import { GoogleAdsCert } from "@/components/marketing/google-ads-cert"
-import { useRequestStore } from "../store"
-import type { UnifiedServiceType } from "@/lib/request/step-registry"
-import { getDisplayPrice, getServiceDisplayLabel, CONSULT_SUBTYPE_DISPLAY_LABELS } from "@/lib/request/display-helpers"
 import { PRICING_DISPLAY } from "@/lib/constants"
+import { CONSULT_SUBTYPE_DISPLAY_LABELS,getDisplayPrice, getServiceDisplayLabel } from "@/lib/request/display-helpers"
+import type { UnifiedServiceType } from "@/lib/request/step-registry"
+
+import { useRequestStore } from "../store"
 
 interface ReviewStepProps {
   serviceType: UnifiedServiceType

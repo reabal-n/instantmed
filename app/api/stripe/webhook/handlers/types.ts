@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js"
-import type Stripe from "stripe"
 import type { NextResponse } from "next/server"
+import type Stripe from "stripe"
 
 /**
  * Context passed to every webhook event handler.

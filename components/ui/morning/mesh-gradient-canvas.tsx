@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
+import { useEffect,useState } from "react";
 
 const DASHBOARD_PREFIXES = ["/patient", "/doctor", "/admin"];
 

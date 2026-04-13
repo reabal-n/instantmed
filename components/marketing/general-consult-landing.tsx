@@ -1,44 +1,44 @@
 "use client"
 
-import Link from "next/link"
-import dynamic from "next/dynamic"
 import { motion } from "framer-motion"
-import { useReducedMotion } from "@/components/ui/motion"
 import {
   ArrowRight,
-  Clock,
-  Users,
-  Star,
-  ShieldCheck,
   ClipboardList,
-  Stethoscope,
+  Clock,
   FileCheck,
+  ShieldCheck,
+  Star,
+  Stethoscope,
+  Users,
 } from "lucide-react"
+import dynamic from "next/dynamic"
+import Link from "next/link"
+
+// Hero is above-fold - not lazy loaded
+import { GeneralConsultHeroSection } from "@/components/marketing/heroes/general-consult-hero"
+import { LiveWaitTime } from "@/components/marketing/live-wait-time"
+import {
+  type LandingPageConfig,
+  LandingPageShell,
+  RecentActivityTicker,
+  ReferralStrip,
+  RelatedArticles,
+  type SocialProofStat,
+  SocialProofStrip,
+} from "@/components/marketing/shared"
+import { ComparisonBar } from "@/components/marketing/shared/data-viz"
+import { ContentHubLinks } from "@/components/seo"
 import { Button } from "@/components/ui/button"
 import { FAQList } from "@/components/ui/faq-list"
-import { PRICING, CONTACT_EMAIL } from "@/lib/constants"
-import { SOCIAL_PROOF, SOCIAL_PROOF_DISPLAY } from "@/lib/social-proof"
+import { useReducedMotion } from "@/components/ui/motion"
+import { SectionPill } from "@/components/ui/section-pill"
+import { CONTACT_EMAIL,PRICING } from "@/lib/constants"
 import { CONSULT_FAQ } from "@/lib/data/consult-faq"
 import {
   getTestimonialsByService,
   getTestimonialsForColumns,
 } from "@/lib/data/testimonials"
-import {
-  LandingPageShell,
-  ReferralStrip,
-  SocialProofStrip,
-  RecentActivityTicker,
-  RelatedArticles,
-  type LandingPageConfig,
-  type SocialProofStat,
-} from "@/components/marketing/shared"
-import { LiveWaitTime } from "@/components/marketing/live-wait-time"
-import { ComparisonBar } from "@/components/marketing/shared/data-viz"
-import { SectionPill } from "@/components/ui/section-pill"
-import { ContentHubLinks } from "@/components/seo/content-hub-links"
-
-// Hero is above-fold - not lazy loaded
-import { GeneralConsultHeroSection } from "@/components/marketing/heroes/general-consult-hero"
+import { SOCIAL_PROOF, SOCIAL_PROOF_DISPLAY } from "@/lib/social-proof"
 
 // Below-fold lazy loads
 const TestimonialsSection = dynamic(
@@ -373,7 +373,7 @@ export function GeneralConsultLanding() {
               </motion.div>
 
               <FAQList
-                items={CONSULT_FAQ as unknown as { question: string; answer: string }[]}
+                items={CONSULT_FAQ}
                 itemClassName="border-b border-border/40 last:border-b-0 first:border-t first:border-t-border/40 rounded-none bg-transparent shadow-none px-0 hover:border-border/40 hover:shadow-none"
                 onValueChange={(value) => {
                   if (value && handleFAQOpen) {

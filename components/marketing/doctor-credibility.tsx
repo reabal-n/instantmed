@@ -1,11 +1,12 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { useReducedMotion } from '@/components/ui/motion'
-import { Stethoscope, Clock, CheckCircle2, ShieldCheck, Users, TrendingUp } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import { SOCIAL_PROOF, SOCIAL_PROOF_DISPLAY } from '@/lib/social-proof'
+import { CheckCircle2, Clock, ShieldCheck, Stethoscope, TrendingUp,Users } from 'lucide-react'
+
 import { TrustBadgeRow } from '@/components/shared/trust-badge'
+import { useReducedMotion } from '@/components/ui/motion'
+import { SOCIAL_PROOF, SOCIAL_PROOF_DISPLAY } from '@/lib/social-proof'
+import { cn } from '@/lib/utils'
 
 interface DoctorCredibilityProps {
   variant?: 'inline' | 'card' | 'section'

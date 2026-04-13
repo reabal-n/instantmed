@@ -1,5 +1,6 @@
-import { PRICING_DISPLAY, CONTACT_EMAIL_HELLO } from "@/lib/constants"
+import { CONTACT_EMAIL_HELLO,PRICING_DISPLAY } from "@/lib/constants"
 import { GOOGLE_REVIEWS } from "@/lib/social-proof"
+
 import { JsonLdScript } from "./json-ld-script"
 
 interface OrganizationSchemaProps {

@@ -1,13 +1,15 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useRef } from "react";
-import Link from "next/link";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { useScrollReveal, useReducedMotion } from "@/components/ui/motion";
-import { TrustBadgeRow } from "@/components/shared/trust-badge";
+import Link from "next/link";
+import { useRef } from "react";
+
+import { TrustBadgeRow } from "@/components/shared";
+import { useReducedMotion,useScrollReveal } from "@/components/ui/motion";
 import type { PresetEntry } from "@/lib/marketing/trust-badges";
+import { cn } from "@/lib/utils";
+
 import type { SectionProps } from "./types";
 
 interface CTABannerProps extends SectionProps {

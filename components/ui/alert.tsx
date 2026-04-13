@@ -1,7 +1,8 @@
 "use client"
 
+import { AlertTriangle,CheckCircle2, Info, XCircle } from "lucide-react"
 import * as React from "react"
-import { CheckCircle2, Info, XCircle, AlertTriangle } from "lucide-react"
+
 import { cn } from "@/lib/utils"
 
 export interface AlertProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -87,4 +88,4 @@ const alertVariants = {
   destructive: "destructive",
 }
 
-export { Alert, AlertTitle, AlertDescription, alertVariants }
+export { Alert, AlertDescription, AlertTitle, alertVariants }

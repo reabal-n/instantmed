@@ -1,9 +1,10 @@
+import { NextResponse } from "next/server"
+import { z } from "zod"
+
 import { getApiAuth } from "@/lib/auth/helpers"
 import { updateProfile } from "@/lib/data/profiles"
-import { NextResponse } from "next/server"
-import { requireValidCsrf } from "@/lib/security/csrf"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
-import { z } from "zod"
+import { requireValidCsrf } from "@/lib/security/csrf"
 
 const updateProfileSchema = z.object({
   fullName: z.string().min(2, "Name must be at least 2 characters").max(100).trim(),

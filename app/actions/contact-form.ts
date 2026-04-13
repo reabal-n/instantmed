@@ -1,12 +1,15 @@
 "use server"
 
 import { sendViaResend } from "@/lib/email/resend"
+import { createLogger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { logger } from "@/lib/observability/logger"
-import { checkServerActionRateLimit } from "@/lib/rate-limit/redis"
+
+const log = createLogger("contact-form")
 import { z } from "zod"
+
 import { CONTACT_EMAIL } from "@/lib/constants"
-import { sanitizeString, sanitizeEmail } from "@/lib/security/sanitize"
+import { checkServerActionRateLimit } from "@/lib/rate-limit/redis"
+import { sanitizeEmail,sanitizeString } from "@/lib/security/sanitize"
 
 // ============================================
 // CONTACT FORM SCHEMA (with input sanitization)
@@ -50,7 +53,7 @@ export async function submitContactForm(formData: FormData): Promise<ContactForm
     
     if (!validationResult.success) {
       const errorMessage = validationResult.error.issues[0]?.message || "Invalid form data"
-      logger.warn("[Contact Form] Validation failed", { errors: validationResult.error.issues })
+      log.warn("[Contact Form] Validation failed", { errors: validationResult.error.issues })
       return { success: false, error: errorMessage }
     }
 
@@ -59,7 +62,7 @@ export async function submitContactForm(formData: FormData): Promise<ContactForm
     // Rate limit by email to prevent spam (5 submissions per hour via "sensitive" tier)
     const rateLimit = await checkServerActionRateLimit(`contact:${email}`, "sensitive")
     if (!rateLimit.success) {
-      logger.warn("[Contact Form] Rate limit exceeded", { email })
+      log.warn("[Contact Form] Rate limit exceeded", { email })
       return { success: false, error: rateLimit.error || "Too many submissions. Please try again later." }
     }
 
@@ -118,7 +121,7 @@ export async function submitContactForm(formData: FormData): Promise<ContactForm
     })
 
     if (!result.success) {
-      logger.error("[Contact Form] Failed to send email", { error: result.error })
+      log.error("[Contact Form] Failed to send email", { error: result.error })
       return { success: false, error: "Failed to send message. Please try again." }
     }
 
@@ -136,7 +139,7 @@ export async function submitContactForm(formData: FormData): Promise<ContactForm
       })
     } catch { /* non-blocking */ }
 
-    logger.info("[Contact Form] Successfully submitted", {
+    log.info("[Contact Form] Successfully submitted", {
       emailId: result.id,
       reason,
       subject,
@@ -144,7 +147,7 @@ export async function submitContactForm(formData: FormData): Promise<ContactForm
 
     return { success: true }
   } catch (error) {
-    logger.error("[Contact Form] Unexpected error", { error })
+    log.error("[Contact Form] Unexpected error", { error })
     return { success: false, error: "We couldn't send your message. Please try again or email us directly." }
   }
 }

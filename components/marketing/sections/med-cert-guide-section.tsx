@@ -1,16 +1,17 @@
 "use client"
 
-import type { ReactNode } from "react"
-import Link from "next/link"
 import { motion } from "framer-motion"
-import { useReducedMotion } from "@/components/ui/motion"
 import { BadgeCheck } from "lucide-react"
+import Link from "next/link"
+import type { ReactNode } from "react"
+
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
+import { useReducedMotion } from "@/components/ui/motion"
 
 // =============================================================================
 // DATA

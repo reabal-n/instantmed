@@ -1,15 +1,16 @@
 "use client"
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Calendar,
-  Phone,
-  MapPin,
   CreditCard,
   Mail,
+  MapPin,
+  Phone,
   User,
 } from "lucide-react"
+
 import { useIntakeReview } from "@/components/doctor/review/intake-review-context"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 export function PatientInfoCard() {
   const { intake, data } = useIntakeReview()

@@ -1,16 +1,16 @@
 "use server"
 
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { requireRoleOrNull } from "@/lib/auth/helpers"
-import type { MedCertDraftData } from "@/types/db"
 import { approveAndSendCert } from "@/app/actions/approve-cert"
-import type { CertReviewData } from "@/types/db"
-import { getCurrentProfile } from "@/lib/data/profiles"
+import { requireRoleOrNull } from "@/lib/auth/helpers"
 import { getOrCreateMedCertDraftForIntake } from "@/lib/data/documents"
-import { logger } from "@/lib/observability/logger"
-import { renderTemplatePdf } from "@/lib/pdf/template-renderer"
-import { generateCertificateRef } from "@/lib/pdf/cert-identifiers"
+import { getCurrentProfile } from "@/lib/data/profiles"
 import { formatDateLong, formatShortDate, formatShortDateSafe } from "@/lib/format"
+import { logger } from "@/lib/observability/logger"
+import { generateCertificateRef } from "@/lib/pdf/cert-identifiers"
+import { renderTemplatePdf } from "@/lib/pdf/template-renderer"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
+import type { MedCertDraftData } from "@/types/db"
+import type { CertReviewData } from "@/types/db"
 
 /**
  * Fetch the draft data for certificate preview before approval.

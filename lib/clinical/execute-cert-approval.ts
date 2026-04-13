@@ -1,29 +1,30 @@
+import * as Sentry from "@sentry/nextjs"
 import crypto from "crypto"
 import { revalidatePath } from "next/cache"
-import { sendEmail } from "@/lib/email/send-email"
-import { MedCertPatientEmail, medCertPatientEmailSubject } from "@/components/email/templates"
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { env } from "@/lib/config/env"
-import { logger } from "@/lib/observability/logger"
+
 import { getPostHogClient, trackIntakeFunnelStep } from "@/lib/analytics/posthog-server"
-import { generateVerificationCode, generateCertificateNumber, generateCertificateRef } from "@/lib/pdf/cert-identifiers"
-import { renderTemplatePdf } from "@/lib/pdf/template-renderer"
-import {
-  findExistingCertificate,
-  atomicApproveCertificate,
-  updateEmailStatus,
-  logCertificateEvent,
-  logCertificateEdits,
-  compareForEdits,
-} from "@/lib/data/issued-certificates"
+import { env } from "@/lib/config/env"
+import { ABN, COMPANY_ADDRESS, COMPANY_NAME, CONTACT_EMAIL,CONTACT_PHONE } from "@/lib/constants"
 import { getDoctorIdentity } from "@/lib/data/doctor-identity"
-import { createNotification } from "@/lib/notifications/service"
-import { getAbsenceDays } from "@/lib/stripe/price-mapping"
-import * as Sentry from "@sentry/nextjs"
-import type { CertReviewData } from "@/types/db"
-import { DEFAULT_TEMPLATE_CONFIG } from "@/types/certificate-template"
-import { COMPANY_NAME, ABN, COMPANY_ADDRESS, CONTACT_PHONE, CONTACT_EMAIL } from "@/lib/constants"
+import {
+  atomicApproveCertificate,
+  compareForEdits,
+  findExistingCertificate,
+  logCertificateEdits,
+  logCertificateEvent,
+  updateEmailStatus,
+} from "@/lib/data/issued-certificates"
+import { MedCertPatientEmail, medCertPatientEmailSubject } from "@/lib/email/components/templates"
+import { sendEmail } from "@/lib/email/send-email"
 import { formatDateLong, formatShortDate, formatShortDateSafe } from "@/lib/format"
+import { createNotification } from "@/lib/notifications/service"
+import { logger } from "@/lib/observability/logger"
+import { generateCertificateNumber, generateCertificateRef,generateVerificationCode } from "@/lib/pdf/cert-identifiers"
+import { renderTemplatePdf } from "@/lib/pdf/template-renderer"
+import { getAbsenceDays } from "@/lib/stripe/price-mapping"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
+import { DEFAULT_TEMPLATE_CONFIG } from "@/types/certificate-template"
+import type { CertReviewData } from "@/types/db"
 
 // ============================================================================
 // TYPES
@@ -190,8 +191,9 @@ export async function executeCertApproval(
 
   const durationDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1
 
-  // Get intake answers
-  const answersRaw = intake.answers as unknown as { answers: Record<string, unknown> }[] | { answers: Record<string, unknown> } | null
+  // Get intake answers (Supabase FK join returns array or object depending on join cardinality)
+  type AnswersJoin = { answers: Record<string, unknown> }
+  const answersRaw = intake.answers as AnswersJoin[] | AnswersJoin | null
   const answersObj = Array.isArray(answersRaw) ? answersRaw[0] : answersRaw
   const answersData = answersObj?.answers || null
 
@@ -321,7 +323,8 @@ export async function executeCertApproval(
 
     // Detect storage collision (file already exists at this path)
     const isCollision =
-      (uploadErr as unknown as { statusCode?: number }).statusCode === 409 ||
+      // Supabase Storage error may include statusCode not on the TS type
+      (uploadErr as { statusCode?: number }).statusCode === 409 ||
       uploadErr.message?.toLowerCase().includes("already exists") ||
       uploadErr.message?.toLowerCase().includes("duplicate")
 

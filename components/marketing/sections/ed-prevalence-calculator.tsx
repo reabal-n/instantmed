@@ -1,16 +1,17 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
-import Link from "next/link"
 import { motion } from "framer-motion"
-import { useReducedMotion } from "@/components/ui/motion"
-import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
+import Link from "next/link"
+import { useEffect, useRef, useState } from "react"
+
 import { usePostHog } from "@/components/providers/posthog-provider"
+import { Button } from "@/components/ui/button"
+import { useReducedMotion } from "@/components/ui/motion"
 import {
   getDecadeLabel,
   getPrevalenceForAge,
 } from "@/lib/marketing/ed-prevalence-data"
+import { cn } from "@/lib/utils"
 
 interface EdPrevalenceCalculatorProps {
   className?: string

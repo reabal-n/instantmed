@@ -1,37 +1,43 @@
-import { medicalCertificateArticles } from './medical-certificates'
-import { conditionArticles } from './conditions'
-import { telehealthArticles } from './telehealth'
-import { medicationArticles } from './medications'
-import { workplaceArticles } from './workplace'
-import { seoArticles } from './seo-pages'
-import { highIntentSeoArticles } from './high-intent-seo'
-import { trustBuildingArticles } from './trust-building'
-import { locationArticles } from './locations'
-import { additionalSeoArticles } from './additional-seo'
-import { highIntentKeywordArticles } from './high-intent-keywords'
-import { phase4ExpansionArticles } from './phase4-expansion'
-import { competitorComparisonArticles } from './competitor-comparisons'
-import { transactionalSeoArticles } from './transactional-seo'
-import { medicationGuideArticles } from './medication-guides'
+import { loadAllMDXArticles } from '../mdx'
 import type { Article, ArticleCategory } from '../types'
+import { additionalSeoArticles } from './additional-seo'
+import { competitorComparisonArticles } from './competitor-comparisons'
+import { conditionArticles } from './conditions'
+import { locationArticles } from './locations'
+import { medicationGuideArticles } from './medication-guides'
+import { medicationArticles } from './medications'
+import { seoArticles } from './seo-pages'
+import { telehealthArticles } from './telehealth'
+import { transactionalSeoArticles } from './transactional-seo'
+import { workplaceArticles } from './workplace'
 
-// Combine all article collections
-export const allArticles: Article[] = [
-  ...medicalCertificateArticles,
+// MDX articles (loaded from content/blog/*.mdx)
+// These replace the former TS files: phase4-expansion, medical-certificates,
+// high-intent-keywords, trust-building, high-intent-seo
+const mdxArticles = loadAllMDXArticles()
+
+// TS-only article collections (not yet converted to MDX)
+const tsArticles: Article[] = [
   ...conditionArticles,
   ...telehealthArticles,
   ...medicationArticles,
   ...workplaceArticles,
   ...seoArticles,
-  ...highIntentSeoArticles,
-  ...trustBuildingArticles,
   ...locationArticles,
   ...additionalSeoArticles,
-  ...highIntentKeywordArticles,
-  ...phase4ExpansionArticles,
   ...competitorComparisonArticles,
   ...transactionalSeoArticles,
   ...medicationGuideArticles,
+]
+
+// Combine all article collections. MDX articles take precedence over TS
+// if both define the same slug (allows incremental migration).
+const slugSet = new Set(mdxArticles.map(a => a.slug))
+const deduped = tsArticles.filter(a => !slugSet.has(a.slug))
+
+export const allArticles: Article[] = [
+  ...mdxArticles,
+  ...deduped,
 ]
 
 // Get article by slug

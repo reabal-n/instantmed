@@ -1,12 +1,14 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useRef } from "react";
 import { Check, X } from "lucide-react";
+import { useRef } from "react";
+
+import { useReducedMotion,useScrollReveal } from "@/components/ui/motion";
 import { cn } from "@/lib/utils";
+
 import { SectionHeader } from "./section-header";
-import type { SectionProps, ComparisonItem } from "./types";
-import { useScrollReveal, useReducedMotion } from "@/components/ui/motion";
+import type { ComparisonItem,SectionProps } from "./types";
 
 interface ComparisonTableProps extends SectionProps {
   pill?: string;

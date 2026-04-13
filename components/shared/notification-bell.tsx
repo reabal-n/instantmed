@@ -1,12 +1,13 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
-import { Bell, X, CheckCheck, FileText, CreditCard, Pill, AlertCircle } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { useNotifications, type Notification } from "@/lib/hooks/use-notifications"
-import { cn } from "@/lib/utils"
-import Link from "next/link"
 import { formatDistanceToNow } from "date-fns"
+import { AlertCircle,Bell, CheckCheck, CreditCard, FileText, Pill, X } from "lucide-react"
+import Link from "next/link"
+import { useEffect, useRef,useState } from "react"
+
+import { Button } from "@/components/ui/button"
+import { type Notification,useNotifications } from "@/lib/hooks/use-notifications"
+import { cn } from "@/lib/utils"
 
 function getNotificationIcon(type: Notification["type"]) {
   switch (type) {

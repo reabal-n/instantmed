@@ -1,24 +1,24 @@
 "use client"
 
-import Link from "next/link"
 import { motion } from "framer-motion"
-import { useReducedMotion } from "@/components/ui/motion"
 import {
   ArrowRight,
   CheckCircle2,
   ChevronDown,
-  PhoneOff,
   Clock,
-  RefreshCw,
   FileText,
+  PhoneOff,
+  RefreshCw,
 } from "lucide-react"
+import Link from "next/link"
+
+import { EScriptHeroMockup } from "@/components/marketing/mockups/escript-hero-mockup"
+import { RotatingText } from "@/components/marketing/rotating-text"
+import { ClosingCountdown } from "@/components/marketing/shared/closing-countdown"
+import { DoctorAvailabilityPill,TrustBadgeRow } from "@/components/shared"
 import { Button } from "@/components/ui/button"
 import { MagneticButton } from "@/components/ui/magnetic-button"
-import { TrustBadgeRow } from "@/components/shared/trust-badge"
-import { DoctorAvailabilityPill } from "@/components/shared/doctor-availability-pill"
-import { RotatingText } from "@/components/marketing/rotating-text"
-import { EScriptHeroMockup } from "@/components/marketing/mockups/escript-hero-mockup"
-import { ClosingCountdown } from "@/components/marketing/shared/closing-countdown"
+import { useReducedMotion } from "@/components/ui/motion"
 import { PRICING, PRICING_DISPLAY } from "@/lib/constants"
 import { SOCIAL_PROOF_DISPLAY } from "@/lib/social-proof"
 

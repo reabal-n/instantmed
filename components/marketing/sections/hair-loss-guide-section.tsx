@@ -1,26 +1,27 @@
 "use client"
 
-import { useState } from "react"
-import Link from "next/link"
 import { motion } from "framer-motion"
-import { useReducedMotion } from "@/components/ui/motion"
 import {
+  AlertCircle,
   BadgeCheck,
   Brain,
-  FlaskConical,
-  Stethoscope,
-  ShieldAlert,
-  Monitor,
-  Repeat,
-  Layers,
-  RefreshCw,
   CalendarClock,
-  AlertCircle,
-  XCircle,
+  FlaskConical,
+  Layers,
   LineChart,
+  Monitor,
+  RefreshCw,
+  Repeat,
+  ShieldAlert,
+  Stethoscope,
+  XCircle,
 } from "lucide-react"
-import { cn } from "@/lib/utils"
+import Link from "next/link"
+import { useState } from "react"
+
+import { useReducedMotion } from "@/components/ui/motion"
 import { NORWOOD_STAGES } from "@/lib/marketing/hair-loss-hook-quiz"
+import { cn } from "@/lib/utils"
 
 // =============================================================================
 // DATA

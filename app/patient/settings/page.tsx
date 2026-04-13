@@ -1,7 +1,8 @@
-import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
-import { PatientSettingsClient } from "./settings-client"
-import { decryptIfNeeded } from "@/lib/security/encryption"
 import { getEmailPreferences } from "@/app/actions/email-preferences"
+import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
+import { decryptIfNeeded } from "@/lib/security/encryption"
+
+import { PatientSettingsClient } from "./settings-client"
 
 // Prevent static generation for dynamic auth
 

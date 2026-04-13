@@ -6,15 +6,16 @@
  * Covers: happy paths, edge cases, and bot-like behaviour.
  */
 
-import { describe, it, expect } from "vitest"
+import { describe, expect,it } from "vitest"
+
 import {
-  checkHoneypotFields,
   checkFormTiming,
+  checkHoneypotFields,
   checkInteractionPatterns,
   checkSubmissionPatterns,
-  runBotDetection,
-  HONEYPOT_FIELDS,
   HONEYPOT_CSS,
+  HONEYPOT_FIELDS,
+  runBotDetection,
 } from "@/lib/security/bot-detection"
 
 // ---------------------------------------------------------------------------

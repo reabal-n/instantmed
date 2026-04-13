@@ -6,44 +6,46 @@
  */
 
 import { revalidatePath } from "next/cache"
+
 import { requireRole } from "@/lib/auth/helpers"
 import {
-  getAllEmailTemplates,
-  getEmailTemplateById,
-  createEmailTemplate,
-  updateEmailTemplate,
-  toggleEmailTemplateActive,
-  type EmailTemplateInput,
-} from "@/lib/data/email-templates"
-import {
-  getAllContentBlocks,
-  getContentBlockByKey,
-  createContentBlock,
-  updateContentBlock,
-  deleteContentBlock,
-  type ContentBlockInput,
-} from "@/lib/data/content-blocks"
-import {
+  type AuditLogFilters,
   getAuditLogs,
   getAuditLogStats,
-  type AuditLogFilters,
 } from "@/lib/data/audit-logs"
 import {
-  getPaymentsWithRefunds,
+  type ContentBlockInput,
+  createContentBlock,
+  deleteContentBlock,
+  getAllContentBlocks,
+  getContentBlockByKey,
+  updateContentBlock,
+} from "@/lib/data/content-blocks"
+import {
+  createEmailTemplate,
+  type EmailTemplateInput,
+  getAllEmailTemplates,
+  getEmailTemplateById,
+  toggleEmailTemplateActive,
+  updateEmailTemplate,
+} from "@/lib/data/email-templates"
+import {
   getEligibleRefunds,
+  getPaymentsWithRefunds,
   getRefundStats,
   markRefundEligible,
-  updateRefundStatus,
   markRefundNotEligible,
   type RefundFilters,
+  updateRefundStatus,
 } from "@/lib/data/refunds"
 import {
-  getFeatureFlags,
-  updateFeatureFlag,
-  refreshFeatureFlags,
   type FlagKey,
+  getFeatureFlags,
+  refreshFeatureFlags,
+  updateFeatureFlag,
 } from "@/lib/feature-flags"
 import { createLogger } from "@/lib/observability/logger"
+import { checkServerActionRateLimit } from "@/lib/rate-limit/redis"
 import { logAuditEvent } from "@/lib/security/audit-log"
 import { stripe } from "@/lib/stripe/client"
 
@@ -56,6 +58,26 @@ const log = createLogger("admin-config-actions")
 async function requireAdmin() {
   const { profile } = await requireRole(["admin"])
   return profile
+}
+
+/**
+ * Auth + rate limit guard for admin mutations.
+ * Returns admin profile or throws/returns error shape.
+ */
+async function requireAdminWithRateLimit() {
+  const profile = await requireAdmin()
+  const rateLimit = await checkServerActionRateLimit(`admin:${profile.id}`, "admin")
+  if (!rateLimit.success) {
+    throw new RateLimitError(rateLimit.error || "Too many requests. Please wait a moment before trying again.")
+  }
+  return profile
+}
+
+class RateLimitError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = "RateLimitError"
+  }
 }
 
 // ============================================================================
@@ -73,7 +95,7 @@ export async function getEmailTemplateByIdAction(id: string) {
 }
 
 export async function createEmailTemplateAction(input: EmailTemplateInput) {
-  const admin = await requireAdmin()
+  const admin = await requireAdminWithRateLimit()
   const result = await createEmailTemplate(input, admin.id)
   if (result.success) {
     revalidatePath("/admin/emails")
@@ -83,7 +105,7 @@ export async function createEmailTemplateAction(input: EmailTemplateInput) {
 }
 
 export async function updateEmailTemplateAction(id: string, input: Partial<EmailTemplateInput>) {
-  const admin = await requireAdmin()
+  const admin = await requireAdminWithRateLimit()
   const result = await updateEmailTemplate(id, input, admin.id)
   if (result.success) {
     revalidatePath("/admin/emails")
@@ -93,7 +115,7 @@ export async function updateEmailTemplateAction(id: string, input: Partial<Email
 }
 
 export async function toggleEmailTemplateActiveAction(id: string, isActive: boolean) {
-  const admin = await requireAdmin()
+  const admin = await requireAdminWithRateLimit()
   const result = await toggleEmailTemplateActive(id, isActive)
   if (result.success) {
     revalidatePath("/admin/emails")
@@ -117,7 +139,7 @@ export async function getContentBlockByKeyAction(key: string) {
 }
 
 export async function createContentBlockAction(input: ContentBlockInput) {
-  const admin = await requireAdmin()
+  const admin = await requireAdminWithRateLimit()
   const result = await createContentBlock(input, admin.id)
   if (result.success) {
     revalidatePath("/admin/content")
@@ -127,7 +149,7 @@ export async function createContentBlockAction(input: ContentBlockInput) {
 }
 
 export async function updateContentBlockAction(id: string, input: Partial<ContentBlockInput>) {
-  const admin = await requireAdmin()
+  const admin = await requireAdminWithRateLimit()
   const result = await updateContentBlock(id, input, admin.id)
   if (result.success) {
     revalidatePath("/admin/content")
@@ -137,7 +159,7 @@ export async function updateContentBlockAction(id: string, input: Partial<Conten
 }
 
 export async function deleteContentBlockAction(id: string) {
-  const admin = await requireAdmin()
+  const admin = await requireAdminWithRateLimit()
   const result = await deleteContentBlock(id)
   if (result.success) {
     revalidatePath("/admin/content")
@@ -189,7 +211,7 @@ export async function getFeatureFlagsAction() {
 }
 
 export async function updateFeatureFlagAction(key: FlagKey, value: boolean | string | string[] | number | null) {
-  const admin = await requireAdmin()
+  const admin = await requireAdminWithRateLimit()
   const result = await updateFeatureFlag(key, value, admin.id)
   if (result.success) {
     revalidatePath("/admin/features")
@@ -323,7 +345,7 @@ export async function getRefundStatsAction() {
 }
 
 export async function markRefundEligibleAction(paymentId: string, reason: string) {
-  const admin = await requireAdmin()
+  const admin = await requireAdminWithRateLimit()
   const result = await markRefundEligible(paymentId, reason)
   if (result.success) {
     revalidatePath("/admin/refunds")
@@ -337,7 +359,7 @@ export async function processRefundAction(
   refundAmount: number,
   intakeId?: string
 ) {
-  const admin = await requireAdmin()
+  const admin = await requireAdminWithRateLimit()
 
   // Look up the payment to get the Stripe payment intent ID
   const supabase = (await import("@/lib/supabase/service-role")).createServiceRoleClient()
@@ -450,7 +472,7 @@ export async function processRefundAction(
 }
 
 export async function markRefundNotEligibleAction(paymentId: string, reason: string) {
-  const admin = await requireAdmin()
+  const admin = await requireAdminWithRateLimit()
   const result = await markRefundNotEligible(paymentId, reason)
   if (result.success) {
     revalidatePath("/admin/refunds")

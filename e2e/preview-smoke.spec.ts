@@ -9,7 +9,7 @@
  * If these fail, skip the rest - environment is broken.
  */
 
-import { test, expect } from "@playwright/test"
+import { expect,test } from "@playwright/test"
 
 test.describe("Preview Smoke Tests", () => {
   test.describe.configure({ mode: "serial" })

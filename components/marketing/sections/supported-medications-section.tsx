@@ -1,19 +1,20 @@
 "use client"
 
 import { motion } from "framer-motion"
+import type { LucideIcon } from "lucide-react"
+import {
+  Brain,
+  Droplets,
+  Heart,
+  Pill,
+  Shield,
+  Sun,
+  Thermometer,
+  Wind,
+} from "lucide-react"
+
 import { useReducedMotion } from "@/components/ui/motion"
 import { SectionPill } from "@/components/ui/section-pill"
-import {
-  Heart,
-  Droplets,
-  Shield,
-  Wind,
-  Thermometer,
-  Sun,
-  Brain,
-  Pill,
-} from "lucide-react"
-import type { LucideIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 // =============================================================================

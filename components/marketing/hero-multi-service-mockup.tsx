@@ -1,15 +1,16 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { useReducedMotion } from "@/components/ui/motion"
 import {
-  FileText,
   CheckCircle2,
+  FileText,
   Pill,
-  Smartphone,
   ShieldCheck,
+  Smartphone,
   Stethoscope,
 } from "lucide-react"
+
+import { useReducedMotion } from "@/components/ui/motion"
 
 export function HeroMultiServiceMockup() {
   const prefersReducedMotion = useReducedMotion()

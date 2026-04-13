@@ -1,7 +1,9 @@
 import { Suspense } from "react"
-import { createClient } from "@/lib/supabase/server"
-import { WebhookMonitoringClient } from "./webhook-monitoring-client"
+
 import { Skeleton } from "@/components/ui/skeleton"
+import { createClient } from "@/lib/supabase/server"
+
+import { WebhookMonitoringClient } from "./webhook-monitoring-client"
 
 export const dynamic = "force-dynamic"
 

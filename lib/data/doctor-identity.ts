@@ -6,24 +6,24 @@
  * @/lib/data/doctor-identity.shared instead.
  */
 
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 // Re-export shared types and validation for server-side consumers
 export {
   type DoctorIdentity,
   type DoctorIdentityInput,
-  validateProviderNumber,
-  validateAhpraNumber,
   isDoctorIdentityComplete,
+  validateAhpraNumber,
+  validateProviderNumber,
 } from "./doctor-identity.shared"
 
 import {
   type DoctorIdentity,
   type DoctorIdentityInput,
-  validateProviderNumber,
-  validateAhpraNumber,
   isDoctorIdentityComplete,
+  validateAhpraNumber,
+  validateProviderNumber,
 } from "./doctor-identity.shared"
 
 const log = createLogger("doctor-identity")

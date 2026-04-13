@@ -5,17 +5,18 @@
  * Requires authentication and verifies ownership.
  */
 
-import { NextRequest, NextResponse } from "next/server"
-import { auth } from "@/lib/auth/helpers"
 import * as Sentry from "@sentry/nextjs"
-import { getCurrentProfile } from "@/lib/data/profiles"
-import { applyRateLimit } from "@/lib/rate-limit/redis"
+import { NextRequest, NextResponse } from "next/server"
+
+import { auth } from "@/lib/auth/helpers"
 import {
   getCertificateById,
   getSecureDownloadUrl,
   logCertificateEvent,
 } from "@/lib/data/issued-certificates"
+import { getCurrentProfile } from "@/lib/data/profiles"
 import { createLogger } from "@/lib/observability/logger"
+import { applyRateLimit } from "@/lib/rate-limit/redis"
 
 const log = createLogger("certificate-download-api")
 

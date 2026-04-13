@@ -12,12 +12,13 @@
  * 3. Error boundaries work correctly
  */
 
-import { useState } from "react"
 import * as Sentry from "@sentry/nextjs"
+import { AlertTriangle, Bug, CheckCircle,Monitor, Server } from "lucide-react"
+import { useState } from "react"
+
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { AlertTriangle, Bug, Server, Monitor, CheckCircle } from "lucide-react"
 
 // Only allow in development
 const isDev = process.env.NODE_ENV === "development"

@@ -6,6 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server"
+
 import { GOOGLE_REVIEW_URL } from "@/lib/constants"
 
 export async function GET(req: NextRequest) {

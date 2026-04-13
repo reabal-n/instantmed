@@ -1,8 +1,11 @@
 import "server-only"
+
 import * as React from "react"
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { sendEmail } from "./send-email"
+
 import { logger } from "@/lib/observability/logger"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
+
+import { sendEmail } from "./send-email"
 
 export type EmailTemplateType = "request_approved" | "request_declined" | "needs_more_info"
 
@@ -20,7 +23,7 @@ async function buildTemplateElement(
       // (consult-approved, prescription-approved, etc.) so this path is
       // only hit for generic approvals via the internal API.
       const { ConsultApprovedEmail, consultApprovedSubject } = await import(
-        "@/components/email/templates/consult-approved"
+        "@/lib/email/components/templates/consult-approved"
       )
       return {
         element: React.createElement(ConsultApprovedEmail, {
@@ -36,7 +39,7 @@ async function buildTemplateElement(
 
     case "request_declined": {
       const { RequestDeclinedEmail, requestDeclinedEmailSubject } = await import(
-        "@/components/email/templates/request-declined"
+        "@/lib/email/components/templates/request-declined"
       )
       const requestType = String(data.requestType || "request")
       return {
@@ -52,7 +55,7 @@ async function buildTemplateElement(
 
     case "needs_more_info": {
       const { NeedsMoreInfoEmail, needsMoreInfoSubject } = await import(
-        "@/components/email/templates/needs-more-info"
+        "@/lib/email/components/templates/needs-more-info"
       )
       const requestType = String(data.requestType || "request")
       return {
@@ -96,11 +99,9 @@ export async function sendStatusTransitionEmail(
     return
   }
 
-  // Unwrap patient join (Supabase may return array or object)
-  const patientRaw = intake.patient as unknown as
-    | { id: string; full_name: string; email: string }[]
-    | { id: string; full_name: string; email: string }
-    | null
+  // Unwrap patient FK join (Supabase returns array for !inner joins, object for 1:1)
+  type PatientJoin = { id: string; full_name: string; email: string }
+  const patientRaw = intake.patient as PatientJoin[] | PatientJoin | null
   const patient = Array.isArray(patientRaw) ? patientRaw[0] : patientRaw
 
   const email = patient?.email

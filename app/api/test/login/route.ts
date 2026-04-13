@@ -23,8 +23,8 @@
  */
 
 import { timingSafeEqual } from "crypto"
-import { NextRequest, NextResponse } from "next/server"
 import { cookies } from "next/headers"
+import { NextRequest, NextResponse } from "next/server"
 
 // Test user auth IDs (must match seed.ts)
 const TEST_USERS = {

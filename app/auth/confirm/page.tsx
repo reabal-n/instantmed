@@ -1,8 +1,8 @@
 "use client"
 
-import Link from 'next/link'
-import { Mail, ArrowLeft } from 'lucide-react'
 import { motion } from 'framer-motion'
+import { ArrowLeft,Mail } from 'lucide-react'
+import Link from 'next/link'
 
 export const dynamic = "force-dynamic"
 

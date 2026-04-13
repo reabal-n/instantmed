@@ -1,6 +1,7 @@
 "use client"
 
-import { Loader2, AlertTriangle } from "lucide-react"
+import { AlertTriangle,Loader2 } from "lucide-react"
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -11,8 +12,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { FLAG_KEYS } from "@/lib/data/types/feature-flags"
 import type { FlagKey } from "@/lib/data/types/feature-flags"
+import { FLAG_KEYS } from "@/lib/data/types/feature-flags"
 
 const KILL_SWITCH_LABELS: Record<string, string> = {
   [FLAG_KEYS.DISABLE_MED_CERT]: "Medical Certificates",

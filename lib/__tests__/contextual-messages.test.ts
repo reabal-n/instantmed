@@ -1,5 +1,6 @@
-import { describe, it, expect } from "vitest"
-import { selectContextualMessage, type ContextualMessageService } from "@/lib/marketing/contextual-messages"
+import { describe, expect,it } from "vitest"
+
+import { type ContextualMessageService,selectContextualMessage } from "@/lib/marketing/contextual-messages"
 
 function at(isoDay: string, hour: number): Date {
   return new Date(`${isoDay}T${String(hour).padStart(2, "0")}:30:00+10:00`)

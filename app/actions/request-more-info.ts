@@ -1,11 +1,14 @@
 "use server"
 
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { requireRole } from "@/lib/auth/helpers"
-import { logger } from "@/lib/observability/logger"
+import { createLogger } from "@/lib/observability/logger"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
+
+const log = createLogger("request-more-info")
 import { revalidatePath } from "next/cache"
+
+import { NeedsMoreInfoEmail } from "@/lib/email/components/templates/needs-more-info"
 import { sendEmail } from "@/lib/email/send-email"
-import { NeedsMoreInfoEmail } from "@/components/email/templates/needs-more-info"
 
 interface InfoRequestTemplate {
   code: string
@@ -39,7 +42,7 @@ export async function getInfoRequestTemplatesAction(): Promise<{
       .order("display_order", { ascending: true })
 
     if (error) {
-      logger.error("Failed to fetch info request templates", {}, error)
+      log.error("Failed to fetch info request templates", {}, error)
       return { success: false, error: "Failed to fetch templates" }
     }
 
@@ -121,7 +124,7 @@ export async function requestMoreInfoAction(
       .eq("id", intakeId)
 
     if (updateError) {
-      logger.error("Failed to update intake for info request", { intakeId }, updateError)
+      log.error("Failed to update intake for info request", { intakeId }, updateError)
       return { success: false, error: "Failed to update request" }
     }
 
@@ -153,7 +156,7 @@ export async function requestMoreInfoAction(
         ],
       })
 
-      logger.info("Info request email sent", { intakeId, to: patient.email })
+      log.info("Info request email sent", { intakeId, to: patient.email })
     }
 
     // Revalidate paths
@@ -164,7 +167,7 @@ export async function requestMoreInfoAction(
 
     return { success: true }
   } catch (error) {
-    logger.error("Request more info error", {
+    log.error("Request more info error", {
       intakeId,
       error: error instanceof Error ? error.message : String(error),
     })

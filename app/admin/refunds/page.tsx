@@ -1,6 +1,7 @@
-import { requireRole } from "@/lib/auth/helpers"
-import { RefundsClient } from "./refunds-client"
 import { getPaymentsWithRefundsAction, getRefundStatsAction } from "@/app/actions/admin-config"
+import { requireRole } from "@/lib/auth/helpers"
+
+import { RefundsClient } from "./refunds-client"
 
 export const dynamic = "force-dynamic"
 

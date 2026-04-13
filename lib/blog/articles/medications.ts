@@ -1,5 +1,5 @@
-import { Article, defaultAuthor } from '../types'
 import { blogImages } from '../images'
+import { Article, defaultAuthor } from '../types'
 
 export const medicationArticles: Article[] = [
   {

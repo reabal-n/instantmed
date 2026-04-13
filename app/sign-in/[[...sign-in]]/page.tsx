@@ -1,15 +1,16 @@
 "use client"
 
-import { useState, Suspense, useCallback } from "react"
-import { useSearchParams } from 'next/navigation'
-import Link from 'next/link'
+import { motion } from 'framer-motion'
+import { ArrowRight, CheckCircle, Clock, Eye, EyeOff,Loader2, Lock, Mail, Shield, Star } from 'lucide-react'
 import Image from 'next/image'
-import { Shield, Clock, CheckCircle, Star, Mail, ArrowRight, Loader2, Lock, Eye, EyeOff } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
+import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
+import { Suspense, useCallback,useState } from "react"
+
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { motion } from 'framer-motion'
 import { getPatientCount } from '@/lib/social-proof'
+import { createClient } from '@/lib/supabase/client'
 
 export const dynamic = "force-dynamic"
 

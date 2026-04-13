@@ -1,10 +1,12 @@
-import { redirect, notFound } from "next/navigation"
+import { notFound,redirect } from "next/navigation"
+
 import { requireRole } from "@/lib/auth/helpers"
-import { getIntakeWithDetails } from "@/lib/data/intakes"
-import { getOrCreateMedCertDraftForIntake, getLatestDocumentForIntake, getAIDraftsForIntake } from "@/lib/data/documents"
 import { getDoctorIdentity, isDoctorIdentityComplete } from "@/lib/data/doctor-identity"
-import { DocumentBuilderClient } from "./document-builder-client"
+import { getAIDraftsForIntake,getLatestDocumentForIntake, getOrCreateMedCertDraftForIntake } from "@/lib/data/documents"
+import { getIntakeWithDetails } from "@/lib/data/intakes"
 import { calculateAge } from "@/lib/format"
+
+import { DocumentBuilderClient } from "./document-builder-client"
 
 export const metadata = { title: "Certificate Builder" }
 

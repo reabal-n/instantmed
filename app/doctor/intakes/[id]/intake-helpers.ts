@@ -1,5 +1,5 @@
-import type { IntakeWithDetails, IntakeWithPatient, DeclineReasonCode } from "@/types/db"
 import type { AIDraft } from "@/app/actions/draft-approval"
+import type { DeclineReasonCode,IntakeWithDetails, IntakeWithPatient } from "@/types/db"
 
 export type { AIDraft }
 

@@ -1,11 +1,13 @@
 import "server-only"
 
 import * as React from "react"
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { sendEmail } from "./send-email"
-import { FollowUpReminderEmail, followUpReminderSubject } from "@/components/email/templates/follow-up-reminder"
+
 import { getAppUrl } from "@/lib/config/env"
+import { FollowUpReminderEmail, followUpReminderSubject } from "@/lib/email/components/templates/follow-up-reminder"
 import { createLogger } from "@/lib/observability/logger"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
+
+import { sendEmail } from "./send-email"
 
 const logger = createLogger("follow-up-reminder")
 

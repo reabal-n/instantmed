@@ -1,6 +1,7 @@
 import { ImageResponse } from 'next/og'
-import { SOCIAL_PROOF } from '@/lib/social-proof'
+
 import { PRICING_DISPLAY } from '@/lib/constants'
+import { SOCIAL_PROOF } from '@/lib/social-proof'
 
 export const runtime = 'edge'
 

@@ -1,18 +1,18 @@
 "use client"
 
+import { usePathname, useSearchParams } from "next/navigation"
+import type { PostHog } from "posthog-js"
 import {
+  type ReactNode,
   Suspense,
-  createContext,
-  useContext,
   useEffect,
   useRef,
   useState,
-  type ReactNode,
 } from "react"
-import { usePathname, useSearchParams } from "next/navigation"
-import { useAuth } from "@/lib/supabase/auth-provider"
-import type { PostHog } from "posthog-js"
+
 import { trackAIReferral } from "@/lib/analytics/ai-referral"
+import { PostHogContext, usePostHog } from "@/lib/analytics/posthog-context"
+import { useAuth } from "@/lib/supabase/auth-provider"
 
 /**
  * Local PostHog React Context - replaces `posthog-js/react`'s provider.
@@ -24,21 +24,19 @@ import { trackAIReferral } from "@/lib/analytics/ai-referral"
  * `<Provider>{children}</Provider>`" caused a structural component change
  * that unmounted and remounted the entire children tree on initial load.
  * Each remount reset every `useInView` ref → IntersectionObservers re-fired
- * → scroll-reveal animations replayed (the visible "fade in twice" bug).
+ * -> scroll-reveal animations replayed (the visible "fade in twice" bug).
  *
  * This implementation keeps the lazy posthog-js load *and* a stable React
- * tree by transitioning a Context value from `null → posthog instance`.
+ * tree by transitioning a Context value from `null -> posthog instance`.
  * Context value changes re-render consumers; they don't remount children.
  *
  * PostHog itself is initialized once in `instrumentation-client.ts` - this
  * provider only exposes the singleton through React context for components
  * that call `usePostHog()`.
  */
-const PostHogContext = createContext<PostHog | null>(null)
 
-export function usePostHog(): PostHog | null {
-  return useContext(PostHogContext)
-}
+// Re-export usePostHog so existing `import { usePostHog } from "@/components/providers/posthog-provider"` still works.
+export { usePostHog }
 
 /**
  * Page View Tracker - fires `$pageview` on every client-side navigation.

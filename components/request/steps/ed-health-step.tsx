@@ -17,35 +17,37 @@
  * 6. Previous ED treatment
  */
 
-import { useState, useCallback, useEffect, useMemo, useRef } from "react"
-import { useRouter } from "next/navigation"
-import { usePostHog } from "@/components/providers/posthog-provider"
 import {
-  HeartPulse,
   Activity,
-  Pill,
   AlertTriangle,
-  XCircle,
-  CheckCircle2,
   ArrowRight,
+  CheckCircle2,
+  HeartPulse,
+  Pill,
+  XCircle,
 } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { EnhancedSelectionButton } from "@/components/shared/enhanced-selection-button"
+import { useRouter } from "next/navigation"
+import { useCallback, useEffect, useMemo, useRef,useState } from "react"
+
+import { usePostHog } from "@/components/providers/posthog-provider"
+import { SwitchField } from "@/components/request/shared/medical-history-toggles"
+import { EnhancedSelectionButton } from "@/components/shared"
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
-import { SwitchField } from "@/components/request/shared/medical-history-toggles"
-import { cn } from "@/lib/utils"
-import { useRequestStore } from "../store"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
+import { cn } from "@/lib/utils"
+
+import { useRequestStore } from "../store"
 
 // ---------------------------------------------------------------------------
 // Types

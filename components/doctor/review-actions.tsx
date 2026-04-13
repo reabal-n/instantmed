@@ -1,27 +1,28 @@
 "use client"
 
-import { useState, useTransition, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
-import { usePanel } from "@/components/panels/panel-provider"
-import { useDoctorShortcuts } from "@/lib/hooks/use-doctor-shortcuts"
-import { saveDoctorNotesAction, declineIntakeAction } from "@/app/doctor/queue/actions"
-import { updateStatusAction } from "@/app/doctor/queue/actions"
-import {
-  fetchCertPreviewDataAction,
-  approveWithPreviewDataAction,
-} from "@/app/doctor/intakes/[id]/document/actions"
+import { useCallback,useRef, useState, useTransition } from "react"
+import { toast } from "sonner"
+
 import { regenerateDrafts } from "@/app/actions/draft-approval"
 import { resendCertificateAdmin } from "@/app/actions/resend-certificate-admin"
+import {
+  approveWithPreviewDataAction,
+  fetchCertPreviewDataAction,
+} from "@/app/doctor/intakes/[id]/document/actions"
+import { declineIntakeAction,saveDoctorNotesAction } from "@/app/doctor/queue/actions"
+import { updateStatusAction } from "@/app/doctor/queue/actions"
+import type { CertificatePreviewData } from "@/components/doctor/certificate-preview-dialog"
+import type { ReviewData } from "@/components/doctor/review/intake-review-context"
 import {
   findClinicalNoteDraft,
   formatClinicalNoteContent,
   MIN_CLINICAL_NOTES_LENGTH,
 } from "@/components/doctor/review/utils"
-import type { ReviewData } from "@/components/doctor/review/intake-review-context"
-import type { CertificatePreviewData } from "@/components/doctor/certificate-preview-dialog"
-import type { IntakeStatus, DeclineReasonCode } from "@/types/db"
+import { usePanel } from "@/components/panels/panel-provider"
 import { DECLINE_REASONS } from "@/lib/doctor/constants"
-import { toast } from "sonner"
+import { useDoctorShortcuts } from "@/lib/hooks/use-doctor-shortcuts"
+import type { DeclineReasonCode,IntakeStatus } from "@/types/db"
 
 // ---- Public interface ----
 

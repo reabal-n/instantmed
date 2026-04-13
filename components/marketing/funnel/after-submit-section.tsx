@@ -1,10 +1,12 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { useReducedMotion } from '@/components/ui/motion'
 import { Check } from 'lucide-react'
+
+import { useReducedMotion } from '@/components/ui/motion'
 import { cn } from '@/lib/utils'
-import type { ServiceFunnelConfig, ColorClasses } from './funnel-types'
+
+import type { ColorClasses,ServiceFunnelConfig } from './funnel-types'
 import { iconMap } from './funnel-types'
 
 interface AfterSubmitSectionProps {

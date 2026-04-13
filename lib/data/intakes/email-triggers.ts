@@ -1,6 +1,7 @@
 import "server-only"
-import { createLogger } from "@/lib/observability/logger"
+
 import { toError } from "@/lib/errors"
+import { createLogger } from "@/lib/observability/logger"
 
 const logger = createLogger("data-intakes-email")
 

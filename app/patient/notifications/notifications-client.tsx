@@ -1,26 +1,27 @@
 "use client"
 
-import { useState, useMemo, useEffect, useCallback } from "react"
-import Link from "next/link"
+import type { RealtimeChannel } from "@supabase/supabase-js"
+import { format } from "date-fns"
 import {
-  Bell,
-  FileText,
-  CreditCard,
-  Pill,
   AlertCircle,
+  Bell,
   CheckCheck,
+  CreditCard,
+  FileText,
+  Pill,
   Settings
 } from "lucide-react"
-import { LottieAnimation } from "@/components/ui/lottie-animation"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { cn } from "@/lib/utils"
-import { format } from "date-fns"
-import { formatRelative } from "@/lib/format"
-import { PatientErrorAlert } from "@/components/patient/error-alert"
-import { createClient } from "@/lib/supabase/client"
+import Link from "next/link"
+import { useCallback,useEffect, useMemo, useState } from "react"
 import { toast } from "sonner"
-import type { RealtimeChannel } from "@supabase/supabase-js"
+
+import { PatientErrorAlert } from "@/components/patient"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { LottieAnimation } from "@/components/ui/lottie-animation"
+import { formatRelative } from "@/lib/format"
+import { createClient } from "@/lib/supabase/client"
+import { cn } from "@/lib/utils"
 
 interface Notification {
   id: string

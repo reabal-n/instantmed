@@ -1,9 +1,10 @@
 "use client"
 
-import { useEffect, useRef } from "react"
 import type { AnimationItem } from "lottie-web"
-import { cn } from "@/lib/utils"
+import { useEffect, useRef } from "react"
+
 import { useReducedMotion } from "@/components/ui/motion"
+import { cn } from "@/lib/utils"
 
 type AnimationName =
   | "confetti"

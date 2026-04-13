@@ -1,28 +1,27 @@
-import { Navbar } from "@/components/shared/navbar"
-import { Footer } from "@/components/shared/footer"
-import { Button } from "@/components/ui/button"
 import {
-  ArrowRight,
-  Clock,
-  Shield,
-  CheckCircle2,
   AlertTriangle,
-  Stethoscope,
+  ArrowRight,
+  CheckCircle2,
+  Clock,
   FileText,
   MapPin,
+  Shield,
+  Stethoscope,
 } from "lucide-react"
+import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import type { Metadata } from "next"
-import { FAQSchema, BreadcrumbSchema, HealthArticleSchema } from "@/components/seo/healthcare-schema"
-import { MedicalDisclaimer } from "@/components/seo/medical-disclaimer"
+
+import { BreadcrumbSchema, FAQSchema, HealthArticleSchema, MedicalDisclaimer } from "@/components/seo"
+import { Footer,Navbar } from "@/components/shared"
+import { Button } from "@/components/ui/button"
 import { PageBreadcrumbs } from "@/components/uix"
-import { conditionsData } from "@/lib/seo/data/conditions"
 import { PRICING_DISPLAY } from "@/lib/constants"
 import {
-  getConditionLocationCombo,
   getAllConditionLocationComboSlugs,
+  getConditionLocationCombo,
 } from "@/lib/seo/data/condition-location-combos"
+import { conditionsData } from "@/lib/seo/data/conditions"
 
 const CITY_DISPLAY_NAMES: Record<string, string> = {
   sydney: "Sydney",

@@ -1,19 +1,20 @@
 "use client"
 
-import { useEffect, useState, useRef } from "react"
-import { useRouter } from "next/navigation"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
 import {
   AlertTriangle,
-  RefreshCw,
   LayoutDashboard,
-  Users,
-  MessageCircle,
-  Mail,
-  WifiOff,
   LogIn,
+  Mail,
+  MessageCircle,
+  RefreshCw,
+  Users,
+  WifiOff,
 } from "lucide-react"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { useEffect, useRef,useState } from "react"
+
+import { Button } from "@/components/ui/button"
 import { CONTACT_EMAIL } from "@/lib/constants"
 
 // Detect error type for better messaging

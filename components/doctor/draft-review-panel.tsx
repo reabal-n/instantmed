@@ -10,25 +10,26 @@
  * cognitive anchoring - doctors should review patient intake answers first.
  */
 
+import {
+  AlertTriangle,
+  Bot,
+  ChevronDown,
+  Loader2,
+  RefreshCw,
+} from "lucide-react"
 import { useState, useTransition } from "react"
-import { Button } from "@/components/ui/button"
+
+import type { AIDraft } from "@/app/actions/draft-approval"
+import { regenerateDrafts } from "@/app/actions/draft-approval"
+import { SingleDraftCard } from "@/components/doctor/single-draft-card"
 import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription,CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible"
-import {
-  Bot,
-  RefreshCw,
-  AlertTriangle,
-  ChevronDown,
-  Loader2,
-} from "lucide-react"
-import { regenerateDrafts } from "@/app/actions/draft-approval"
-import type { AIDraft } from "@/app/actions/draft-approval"
-import { SingleDraftCard } from "@/components/doctor/single-draft-card"
 
 interface DraftReviewPanelProps {
   drafts: AIDraft[]

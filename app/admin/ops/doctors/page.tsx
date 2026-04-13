@@ -1,7 +1,8 @@
 import { requireRole } from "@/lib/auth/helpers"
+import type { DateRange, SortDirection,SortField } from "@/lib/data/doctor-ops"
 import { getDoctorMetrics } from "@/lib/data/doctor-ops"
+
 import { DoctorOpsClient } from "./doctor-ops-client"
-import type { DateRange, SortField, SortDirection } from "@/lib/data/doctor-ops"
 
 export const dynamic = "force-dynamic"
 

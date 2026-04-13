@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
-import { applyRateLimit } from "@/lib/rate-limit/redis"
+
 import { requireApiRole } from "@/lib/auth/helpers"
-import { getIntakeMonitoringStats, getSlaBreachIntakes, getAutoApprovalMetrics, getTodayEarnings } from "@/lib/data/intakes"
+import { getAutoApprovalMetrics, getIntakeMonitoringStats, getSlaBreachIntakes, getTodayEarnings } from "@/lib/data/intakes"
+import { applyRateLimit } from "@/lib/rate-limit/redis"
 
 export const dynamic = "force-dynamic"
 

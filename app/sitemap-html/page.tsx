@@ -1,15 +1,16 @@
-import Link from "next/link";
-import { Navbar } from "@/components/shared/navbar";
-import { MarketingFooter } from "@/components/marketing";
-import { CenteredHero } from "@/components/heroes";
-import { CTABanner } from "@/components/sections";
-import { getAllConditionSlugs, getConditionBySlug } from "@/lib/seo/data/conditions";
-import { symptoms } from "@/lib/seo/data/symptoms";
-import { getGuideIndex } from "@/lib/seo/data/guides";
-import { getAllComparisonSlugs } from "@/lib/seo/data/comparisons";
-import { getAllIntentSlugs, getIntentPageBySlug } from "@/lib/seo/intents";
-import { audiencePageConfigs } from "@/lib/seo/data/audience-pages";
 import type { Metadata } from "next";
+import Link from "next/link";
+
+import { CenteredHero } from "@/components/heroes";
+import { MarketingFooter } from "@/components/marketing";
+import { CTABanner } from "@/components/sections";
+import { Navbar } from "@/components/shared";
+import { audiencePageConfigs } from "@/lib/seo/data/audience-pages";
+import { getAllComparisonSlugs } from "@/lib/seo/data/comparisons";
+import { getAllConditionSlugs, getConditionBySlug } from "@/lib/seo/data/conditions";
+import { getGuideIndex } from "@/lib/seo/data/guides";
+import { symptoms } from "@/lib/seo/data/symptoms";
+import { getAllIntentSlugs, getIntentPageBySlug } from "@/lib/seo/intents";
 
 export const metadata: Metadata = {
   title: "Sitemap | InstantMed",

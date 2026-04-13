@@ -6,21 +6,22 @@
  */
 
 import "server-only"
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { createLogger } from "@/lib/observability/logger"
+
 import { toError } from "@/lib/errors"
+import { createLogger } from "@/lib/observability/logger"
 import {
-  encryptJSONB,
   decryptJSONB,
-  isEncryptedPHI,
   type EncryptedPHI,
+  encryptJSONB,
+  isEncryptedPHI,
 } from "@/lib/security/phi-encryption"
 import {
   prepareAllergyDetailsWrite,
-  readAllergyDetails,
   prepareMedicalConditionsWrite,
+  readAllergyDetails,
   readMedicalConditions,
 } from "@/lib/security/phi-field-wrappers"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const logger = createLogger("intake-answers")
 
@@ -226,6 +227,7 @@ export async function getIntakeAnswers(
   }
 
   // Decrypt the main answers blob
+  // Supabase .select() returns an untyped row; the columns match IntakeAnswersRow
   const answers = await decryptAnswersRow(data as unknown as IntakeAnswersRow)
 
   // Decrypt extracted PHI fields (prefer _enc, fall back to plaintext)

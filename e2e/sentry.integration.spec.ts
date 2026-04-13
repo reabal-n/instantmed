@@ -8,8 +8,9 @@
  * - Playwright test identification
  */
 
-import { test, expect } from "@playwright/test"
-import { createSentryInterceptor, annotateSentryEvents } from "./helpers/sentry"
+import { expect,test } from "@playwright/test"
+
+import { annotateSentryEvents,createSentryInterceptor } from "./helpers/sentry"
 
 const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3001"
 

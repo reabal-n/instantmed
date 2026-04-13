@@ -1,17 +1,16 @@
 "use client"
 
-import type React from "react"
-
-import { useState } from "react"
+import { ArrowLeft,CheckCircle, Loader2, Mail } from "lucide-react"
 import Link from "next/link"
+import type React from "react"
+import { useState } from "react"
+import { toast } from "sonner"
+
+import { requestPasswordReset } from "@/app/actions/account"
+import { Footer,Navbar } from "@/components/shared"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Navbar } from "@/components/shared/navbar"
-import { Footer } from "@/components/shared/footer"
-import { Mail, Loader2, CheckCircle, ArrowLeft } from "lucide-react"
-import { requestPasswordReset } from "@/app/actions/account"
-import { toast } from "sonner"
 
 
 export function ForgotPasswordClient() {

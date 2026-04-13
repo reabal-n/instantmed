@@ -13,14 +13,14 @@
  */
 
 import { NextResponse } from "next/server"
-import { Webhook } from "svix"
 import React from "react"
+import { Webhook } from "svix"
 
-import { toError } from "@/lib/errors"
+import { MagicLinkEmail } from "@/lib/email/components/templates/magic-link"
 import { renderEmailToHtml } from "@/lib/email/react-renderer-server"
-import { MagicLinkEmail } from "@/components/email/templates/magic-link"
-import { applyRateLimit, getClientIdentifier } from "@/lib/rate-limit/redis"
+import { toError } from "@/lib/errors"
 import { createLogger } from "@/lib/observability/logger"
+import { applyRateLimit, getClientIdentifier } from "@/lib/rate-limit/redis"
 
 // --- Types ---
 

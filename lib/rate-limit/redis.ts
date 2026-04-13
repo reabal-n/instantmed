@@ -18,6 +18,7 @@
 
 import { Ratelimit } from "@upstash/ratelimit"
 import { Redis } from "@upstash/redis"
+
 import { createLogger } from "@/lib/observability/logger"
 
 const logger = createLogger("rate-limit")
@@ -124,6 +125,19 @@ export const rateLimitConfigs = {
         })
       : null,
     label: "webhookAuth",
+  },
+
+  /** Admin operations: 30 requests per minute per user */
+  admin: {
+    limiter: redis
+      ? new Ratelimit({
+          redis,
+          limiter: Ratelimit.slidingWindow(30, "1 m"),
+          analytics: true,
+          prefix: "ratelimit:admin",
+        })
+      : null,
+    label: "admin",
   },
 } as const
 

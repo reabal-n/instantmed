@@ -6,8 +6,9 @@
  * Tracks time from payment → doctor review → decision for SLA monitoring.
  */
 
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import * as Sentry from "@sentry/nextjs"
+
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 export interface RequestLatencyData {
   intakeId: string

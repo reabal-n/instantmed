@@ -1,7 +1,8 @@
 import "server-only"
+
+import { createLogger } from "@/lib/observability/logger"
 import { stripe } from "@/lib/stripe/client"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { createLogger } from "@/lib/observability/logger"
 
 const log = createLogger("referral-coupon")
 

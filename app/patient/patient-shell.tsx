@@ -1,12 +1,13 @@
 'use client'
 
-import { type ReactNode } from 'react'
+import { AnimatePresence,motion } from 'framer-motion'
 import { usePathname } from 'next/navigation'
-import { motion, AnimatePresence } from 'framer-motion'
-import { useReducedMotion } from '@/components/ui/motion'
-import { AuthenticatedShell } from '@/components/shell'
+import { type ReactNode } from 'react'
+
 import { GlobalIntakeNotifications } from '@/components/patient/global-intake-notifications'
+import { AuthenticatedShell } from '@/components/shell'
 import { MobileNav } from '@/components/ui/mobile-nav'
+import { useReducedMotion } from '@/components/ui/motion'
 
 /**
  * PatientShell - Wraps all patient pages with panel-based interface

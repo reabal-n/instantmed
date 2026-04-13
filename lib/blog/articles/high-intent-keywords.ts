@@ -1,5 +1,5 @@
-import type { Article, ArticleAuthor } from '../types'
 import { blogImages } from '../images'
+import type { Article, ArticleAuthor } from '../types'
 
 const drSarahChen: ArticleAuthor = {
   name: 'Our Medical Team',

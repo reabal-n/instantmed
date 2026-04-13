@@ -1,10 +1,6 @@
 'use client'
 
-import Link from 'next/link'
-import Image from 'next/image'
-import { Navbar } from '@/components/shared/navbar'
-import { MarketingFooter } from '@/components/marketing'
-import { Button } from '@/components/ui/button'
+import { motion } from 'framer-motion'
 import {
   AlertCircle,
   ArrowRight,
@@ -21,21 +17,26 @@ import {
   Smartphone,
   Users,
 } from 'lucide-react'
-import { AccordionSection, CTABanner, ProcessSteps } from '@/components/sections'
+import Image from 'next/image'
+import Link from 'next/link'
+
+import { MarketingFooter } from '@/components/marketing'
 import { RegulatoryPartners } from '@/components/marketing'
 import { LiveWaitTime, StatsStrip } from '@/components/marketing'
-import { EmergencyDisclaimer } from '@/components/shared/emergency-disclaimer'
-import { TestimonialsColumnsWrapper } from '@/components/ui/testimonials-columns-wrapper'
 import { MarketingPageShell } from '@/components/marketing/marketing-page-shell'
-import { AvailabilityIndicator } from '@/components/shared/availability-indicator'
-import { motion } from 'framer-motion'
-import { useReducedMotion } from '@/components/ui/motion'
-import { cn } from '@/lib/utils'
 import { useServiceAvailability } from '@/components/providers/service-availability-provider'
+import { AccordionSection, CTABanner, ProcessSteps } from '@/components/sections'
+import { AvailabilityIndicator } from '@/components/shared/availability-indicator'
+import { EmergencyDisclaimer } from '@/components/shared/emergency-disclaimer'
+import { Navbar } from '@/components/shared/navbar'
+import { Button } from '@/components/ui/button'
+import { useReducedMotion } from '@/components/ui/motion'
+import { TestimonialsColumnsWrapper } from '@/components/ui/testimonials-columns-wrapper'
+import { CONTACT_EMAIL, PRICING } from '@/lib/constants'
 import { getTestimonialsByService } from '@/lib/data/testimonials'
 import { getDailyStats } from '@/lib/marketing/daily-stats'
 import type { MedCertIntentConfig } from '@/lib/marketing/med-cert-intent-config'
-import { CONTACT_EMAIL, PRICING } from '@/lib/constants'
+import { cn } from '@/lib/utils'
 
 const trustBadges = [
   { name: 'AHPRA Registered', description: 'Australian doctors only', icon: BadgeCheck, color: 'text-success' },

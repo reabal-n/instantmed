@@ -1,21 +1,21 @@
 "use client"
-import { useState, useRef } from "react"
-import type React from "react"
-
+import { AlertTriangle, ArrowLeft, CreditCard, HelpCircle,Loader2, MapPin } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { createClient } from "@/lib/supabase/client"
+import type React from "react"
+import { useRef,useState } from "react"
+
+import { DataSecurityStrip } from "@/components/checkout/trust-badges"
+import { AddressAutocomplete, type AddressComponents } from "@/components/ui/address-autocomplete"
 import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
+import { GlassRadioGroup } from "@/components/ui/glass-radio-group"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { AddressAutocomplete, type AddressComponents } from "@/components/ui/address-autocomplete"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Loader2, MapPin, CreditCard, ArrowLeft, AlertTriangle, HelpCircle } from "lucide-react"
-import { DataSecurityStrip } from "@/components/checkout/trust-badges"
-import { validateMedicareNumber, validateMedicareExpiry } from "@/lib/validation/medicare"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { createClient } from "@/lib/supabase/client"
 import { validatePostcodeState } from "@/lib/validation/australian-address"
 import { validateAustralianPhone } from "@/lib/validation/australian-phone"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { GlassRadioGroup } from "@/components/ui/glass-radio-group"
+import { validateMedicareExpiry,validateMedicareNumber } from "@/lib/validation/medicare"
 
 const STATES = ["NSW", "VIC", "QLD", "WA", "SA", "TAS", "ACT", "NT"]
 const IRNS = [1, 2, 3, 4, 5, 6, 7, 8, 9]

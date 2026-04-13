@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next"
+
 import { allArticles } from "@/lib/blog/articles"
 
 const BUILD_DATE = new Date()

@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
+
 import { createLogger } from "@/lib/observability/logger"
 const log = createLogger("route")
 import { auth } from "@/lib/auth/helpers"
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 /** Escape ILIKE special characters to prevent wildcard injection */
 function escapeIlike(input: string): string {

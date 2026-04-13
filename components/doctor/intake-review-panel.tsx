@@ -1,38 +1,37 @@
 "use client"
 
-import { useState, useEffect, useRef, useCallback } from "react"
-import { useAuth } from "@/lib/supabase/auth-provider"
+import { ExternalLink, FileText,Loader2, RefreshCw } from "lucide-react"
 import Link from "next/link"
-import { SheetPanel } from "@/components/panels/sheet-panel"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Skeleton } from "@/components/ui/skeleton"
-import { ExternalLink, RefreshCw, Loader2, FileText } from "lucide-react"
-import { releaseIntakeLockAction } from "@/app/actions/intake-lock"
-import { formatIntakeStatus, formatServiceType } from "@/lib/format/intake"
-import { usePanel } from "@/components/panels/panel-provider"
-import { CertificatePreviewDialog } from "@/components/doctor/certificate-preview-dialog"
-import { useIntakeLock } from "@/components/doctor/hooks/use-intake-lock"
-import { useAuditTrail } from "@/components/doctor/hooks/use-audit-trail"
-import { useReviewActions } from "@/components/doctor/review-actions"
+import { useCallback,useEffect, useRef, useState } from "react"
 
+import { CertificatePreviewDialog } from "@/components/doctor/certificate-preview-dialog"
+import { useAuditTrail } from "@/components/doctor/hooks/use-audit-trail"
+import { useIntakeLock } from "@/components/doctor/hooks/use-intake-lock"
+import { ClinicalNotesEditor } from "@/components/doctor/review/clinical-notes-editor"
+import { DeclineIntakeDialog } from "@/components/doctor/review/decline-intake-dialog"
+import { IntakeActionButtons } from "@/components/doctor/review/intake-action-buttons"
 import {
   IntakeReviewProvider,
   type ReviewData,
 } from "@/components/doctor/review/intake-review-context"
+import { PatientInfoCard } from "@/components/doctor/review/patient-info-card"
+import { RequestInfoCard } from "@/components/doctor/review/request-info-card"
+import { SafetyFlagsCard } from "@/components/doctor/review/safety-flags-card"
 import {
   findClinicalNoteDraft,
   formatClinicalNoteContent,
-  isConcerningValue,
   formatDate,
   getStatusColor,
+  isConcerningValue,
 } from "@/components/doctor/review/utils"
-import { PatientInfoCard } from "@/components/doctor/review/patient-info-card"
-import { SafetyFlagsCard } from "@/components/doctor/review/safety-flags-card"
-import { ClinicalNotesEditor } from "@/components/doctor/review/clinical-notes-editor"
-import { IntakeActionButtons } from "@/components/doctor/review/intake-action-buttons"
-import { DeclineIntakeDialog } from "@/components/doctor/review/decline-intake-dialog"
-import { RequestInfoCard } from "@/components/doctor/review/request-info-card"
+import { useReviewActions } from "@/components/doctor/review-actions"
+import { usePanel } from "@/components/panels/panel-provider"
+import { SheetPanel } from "@/components/panels/sheet-panel"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Skeleton } from "@/components/ui/skeleton"
+import { formatIntakeStatus, formatServiceType } from "@/lib/format/intake"
+import { useAuth } from "@/lib/supabase/auth-provider"
 
 interface IntakeReviewPanelProps {
   intakeId: string

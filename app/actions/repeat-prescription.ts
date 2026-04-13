@@ -8,14 +8,15 @@
  * - Track completion status
  */
 
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
+import { revalidatePath } from "next/cache"
+
 import { requireRoleOrNull } from "@/lib/auth/helpers"
+import { env } from "@/lib/config/env"
+import { PrescriptionApprovedEmail, prescriptionApprovedSubject } from "@/lib/email/components/templates/prescription-approved"
+import { sendEmail } from "@/lib/email/send-email"
 import { createLogger } from "@/lib/observability/logger"
 import { logAuditEvent } from "@/lib/security/audit-log"
-import { revalidatePath } from "next/cache"
-import { sendEmail } from "@/lib/email/send-email"
-import { PrescriptionApprovedEmail, prescriptionApprovedSubject } from "@/components/email/templates/prescription-approved"
-import { env } from "@/lib/config/env"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const log = createLogger("repeat-prescription")
 

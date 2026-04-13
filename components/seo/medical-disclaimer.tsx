@@ -1,5 +1,6 @@
+import { Clock,Shield } from "lucide-react"
+
 import { cn } from "@/lib/utils"
-import { Shield, Clock } from "lucide-react"
 
 interface MedicalDisclaimerProps {
   reviewedDate?: string

@@ -1,17 +1,19 @@
 'use client'
 
-import Link from 'next/link'
-import Image from 'next/image'
 import { motion } from 'framer-motion'
-import { useReducedMotion } from '@/components/ui/motion'
-import { ArrowRight, Shield, Check, Clock, Users } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { cn } from '@/lib/utils'
+import { ArrowRight, Check, Clock, Shield, Users } from 'lucide-react'
+import Image from 'next/image'
+import Link from 'next/link'
+
 import { RotatingText } from '@/components/marketing/rotating-text'
 import { DoctorAvailabilityPill } from '@/components/shared/doctor-availability-pill'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { useReducedMotion } from '@/components/ui/motion'
 import { CONTACT_EMAIL } from '@/lib/constants'
-import type { ServiceFunnelConfig, ColorClasses } from './funnel-types'
+import { cn } from '@/lib/utils'
+
+import type { ColorClasses,ServiceFunnelConfig } from './funnel-types'
 
 interface HeroSectionProps {
   config: ServiceFunnelConfig

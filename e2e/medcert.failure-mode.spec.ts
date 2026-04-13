@@ -11,17 +11,18 @@
  * without hitting real Resend API.
  */
 
-import { test, expect } from "@playwright/test"
-import { waitForPageLoad } from "./helpers/test-utils"
+import { expect,test } from "@playwright/test"
+
 import { loginAsOperator, logoutTestUser } from "./helpers/auth"
 import {
+  countCertificateAuditLogs,
+  INTAKE_ID,
   isDbAvailable,
   resetIntakeForRetest,
   waitForIntakeStatus,
   waitForIssuedCertificate,
-  countCertificateAuditLogs,
-  INTAKE_ID,
 } from "./helpers/db"
+import { waitForPageLoad } from "./helpers/test-utils"
 
 test.describe("Medical Certificate Failure Mode - Email Failure", () => {
   test.beforeEach(async ({ page }) => {

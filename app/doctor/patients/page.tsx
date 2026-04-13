@@ -1,5 +1,7 @@
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
+import { asProfile } from "@/types/db"
+
 import { PatientsListClient } from "./patients-list-client"
 
 const log = createLogger("doctor-patients")
@@ -31,7 +33,7 @@ async function getPatients(page: number) {
   }
 
   return {
-    patients: data as unknown as import("@/types/db").Profile[],
+    patients: (data || []).map(row => asProfile(row as Record<string, unknown>)),
     total: count ?? 0,
   }
 }

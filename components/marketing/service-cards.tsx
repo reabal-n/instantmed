@@ -1,16 +1,17 @@
 'use client'
 
-import Link from 'next/link'
-import { ArrowRight, AlertCircle, Check } from 'lucide-react'
-import { serviceCategories } from '@/lib/marketing/homepage'
 import { motion, type Variants } from 'framer-motion'
-import { useReducedMotion } from '@/components/ui/motion'
+import { AlertCircle, ArrowRight, Check } from 'lucide-react'
+import Link from 'next/link'
+
 import { ServiceIconTile } from '@/components/icons/service-icons'
-import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
-import { useServiceAvailability, type ServiceId } from '@/components/providers/service-availability-provider'
 import { WaitlistForm } from '@/components/marketing/waitlist-form'
+import { type ServiceId,useServiceAvailability } from '@/components/providers/service-availability-provider'
+import { Button } from '@/components/ui/button'
+import { useReducedMotion } from '@/components/ui/motion'
 import { SectionPill } from '@/components/ui/section-pill'
+import { serviceCategories } from '@/lib/marketing/homepage'
+import { cn } from '@/lib/utils'
 
 // Service color → gradient background + accent border
 const colorThemeMap: Record<string, { gradient: string; border: string; iconGlow: string }> = {

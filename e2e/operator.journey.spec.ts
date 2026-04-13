@@ -14,25 +14,26 @@
  * This test uses a SINGLE operator session to verify the full journey.
  */
 
-import { test, expect } from "@playwright/test"
-import { waitForPageLoad } from "./helpers/test-utils"
+import { expect,test } from "@playwright/test"
+
 import { loginAsOperator, logoutTestUser } from "./helpers/auth"
 import {
-  isDbAvailable,
-  getActiveClinicIdentity,
-  updateClinicIdentity,
-  getIntakeStatus,
-  getIntakeDocumentForIntake,
-  resetIntakeForRetest,
-  waitForIntakeStatus,
-  waitForIssuedCertificate,
-  getLatestActiveTemplateByType,
-  compareTemplateConfigMinimal,
-  compareClinicIdentitySnapshot,
-  INTAKE_ID,
   type CertificateTemplate,
   type ClinicIdentity,
+  compareClinicIdentitySnapshot,
+  compareTemplateConfigMinimal,
+  getActiveClinicIdentity,
+  getIntakeDocumentForIntake,
+  getIntakeStatus,
+  getLatestActiveTemplateByType,
+  INTAKE_ID,
+  isDbAvailable,
+  resetIntakeForRetest,
+  updateClinicIdentity,
+  waitForIntakeStatus,
+  waitForIssuedCertificate,
 } from "./helpers/db"
+import { waitForPageLoad } from "./helpers/test-utils"
 
 // E2E_RUN_ID for unique test values
 const E2E_RUN_ID = process.env.E2E_RUN_ID || `run-${Date.now()}`

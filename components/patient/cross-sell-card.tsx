@@ -1,10 +1,11 @@
 "use client"
 
-import Link from "next/link"
 import { ArrowRight } from "lucide-react"
+import Link from "next/link"
+
 import { usePostHog } from "@/components/providers/posthog-provider"
-import type { ServiceType } from "@/types/db"
 import { PRICING_DISPLAY } from "@/lib/constants"
+import type { ServiceType } from "@/types/db"
 
 interface CrossSellCardProps {
   serviceType: ServiceType | undefined

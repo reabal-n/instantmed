@@ -15,15 +15,16 @@ import "server-only"
  * - outbox.ts: Outbox DB operations (create, claim, update, log)
  * - reconstruct.ts: Email reconstruction for dispatcher retries
  */
-
 import * as Sentry from "@sentry/nextjs"
-import { renderEmailToHtml } from "./react-renderer-server"
+
 import { env } from "@/lib/config/env"
-import { logger } from "@/lib/observability/logger"
-import { isEmailSuppressed, htmlToPlainText } from "./utils"
 import { CONTACT_EMAIL } from "@/lib/constants"
-import { recordDeliverySent } from "@/lib/monitoring/delivery-tracking"
 import { signUnsubscribeToken } from "@/lib/crypto/unsubscribe-token"
+import { recordDeliverySent } from "@/lib/monitoring/delivery-tracking"
+import { logger } from "@/lib/observability/logger"
+
+import { renderEmailToHtml } from "./react-renderer-server"
+import { htmlToPlainText,isEmailSuppressed } from "./utils"
 import { checkDailySendLimit, incrementDailySendCount } from "./warmup"
 
 // Re-export types for backwards compatibility
@@ -32,26 +33,26 @@ import { checkDailySendLimit, incrementDailySendCount } from "./warmup"
 //   MARKETING_EMAIL_TYPES → "@/lib/email/send/types"
 //   claimOutboxRow → "@/lib/email/send/outbox"
 //   reconstructEmailContent → "@/lib/email/send/reconstruct"
-export type { EmailType, SendEmailParams, SendEmailResult, OutboxRow } from "./send/types"
+export type { EmailType, OutboxRow,SendEmailParams, SendEmailResult } from "./send/types"
 
 // Import internals from split modules
-import type { SendEmailParams, SendEmailResult } from "./send/types"
-import { MARKETING_EMAIL_TYPES } from "./send/types"
 import {
-  isE2EMode,
-  RETRY_CONFIG,
   getRetryDelay,
-  sleep,
-  isRetryableError,
   injectUnsubscribeUrl,
+  isE2EMode,
+  isRetryableError,
   isValidEmail,
+  RETRY_CONFIG,
   sanitizeEmailForLog,
+  sleep,
 } from "./send/helpers"
 import {
   createPendingOutbox,
-  updateOutboxStatus,
   logToOutbox,
+  updateOutboxStatus,
 } from "./send/outbox"
+import type { SendEmailParams, SendEmailResult } from "./send/types"
+import { MARKETING_EMAIL_TYPES } from "./send/types"
 
 // ============================================
 // MAIN SEND FUNCTION
@@ -435,8 +436,8 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
 // DISPATCHER: SEND FROM OUTBOX ROW
 // ============================================
 
-import type { OutboxRow } from "./send/types"
 import { reconstructEmailContent } from "./send/reconstruct"
+import type { OutboxRow } from "./send/types"
 
 /**
  * Reconstruct and send an email from an outbox row (used by dispatcher).

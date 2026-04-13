@@ -1,7 +1,8 @@
 import "server-only"
 
-import { createLogger } from "@/lib/observability/logger"
 import * as Sentry from "@sentry/nextjs"
+
+import { createLogger } from "@/lib/observability/logger"
 
 const log = createLogger("cron-heartbeat")
 

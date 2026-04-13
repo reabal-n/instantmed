@@ -1,8 +1,10 @@
-import type Stripe from "stripe"
 import { NextResponse } from "next/server"
+import type Stripe from "stripe"
+
 import { sendSessionExpiredEmail } from "@/lib/email/template-sender"
 import { createLogger } from "@/lib/observability/logger"
-import type { WebhookContext, HandlerResult } from "./types"
+
+import type { HandlerResult,WebhookContext } from "./types"
 import { tryClaimEvent } from "./utils"
 
 const log = createLogger("stripe-webhook:checkout-expired")

@@ -1,10 +1,11 @@
 "use client"
-import { useState, useCallback } from "react"
-import { Check, AlertCircle, Clock, Sparkles } from "lucide-react"
-import { Input } from "@/components/uix"
+import { AlertCircle, Check, Clock, Sparkles } from "lucide-react"
+import { useCallback,useState } from "react"
+
 import { Label } from "@/components/ui/label"
+import { Input } from "@/components/uix"
 import { cn } from "@/lib/utils"
-import { validateMedicareNumber, formatMedicareNumber } from "@/lib/validation/medicare"
+import { formatMedicareNumber,validateMedicareNumber } from "@/lib/validation/medicare"
 
 interface MedicareCaptureProps {
   value: {

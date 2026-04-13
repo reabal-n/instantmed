@@ -1,9 +1,10 @@
-import { NextRequest, NextResponse } from "next/server"
-import { sendStatusTransitionEmail, type EmailTemplateType } from "@/lib/email/send-status"
-import { createLogger } from "@/lib/observability/logger"
-import { toError } from "@/lib/errors"
 import { timingSafeEqual } from "crypto"
+import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
+
+import { type EmailTemplateType,sendStatusTransitionEmail } from "@/lib/email/send-status"
+import { toError } from "@/lib/errors"
+import { createLogger } from "@/lib/observability/logger"
 
 const log = createLogger("route")
 

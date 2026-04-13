@@ -7,9 +7,9 @@
  * Used for audit trail and SLA monitoring.
  */
 
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { createLogger } from "@/lib/observability/logger"
 import { toError } from "@/lib/errors"
+import { createLogger } from "@/lib/observability/logger"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import type { IntakeStatus } from "@/types/db"
 
 const logger = createLogger("intake-events")

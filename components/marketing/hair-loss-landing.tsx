@@ -1,36 +1,36 @@
 "use client"
 
-import { useRef } from "react"
-import dynamic from "next/dynamic"
 import { motion } from "framer-motion"
-import { useReducedMotion, useScrollReveal } from "@/components/ui/motion"
 import { Pill } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
-import { PRICING } from "@/lib/constants"
-import { SOCIAL_PROOF, SOCIAL_PROOF_DISPLAY } from "@/lib/social-proof"
+import dynamic from "next/dynamic"
+import { useRef } from "react"
+
+import { ContextualMessage } from "@/components/marketing/contextual-message"
+// Hero is above-fold - not lazy loaded
+import { HairLossHeroSection } from "@/components/marketing/heroes/hair-loss-hero"
+import { LiveWaitTime } from "@/components/marketing/live-wait-time"
+import { RecentReviewsTicker } from "@/components/marketing/recent-reviews-ticker"
+import {
+  type LandingPageConfig,
+  LandingPageShell,
+  RecentActivityTicker,
+  ReferralStrip,
+  type SocialProofStat,
+  SocialProofStrip,
+} from "@/components/marketing/shared"
+import { ComparisonBar } from "@/components/marketing/shared/data-viz"
 import { STAT_PRESETS } from "@/components/marketing/total-patients-counter"
+import { ContentHubLinks } from "@/components/seo"
+import { Badge } from "@/components/ui/badge"
+import { useReducedMotion, useScrollReveal } from "@/components/ui/motion"
+import { SectionPill } from "@/components/ui/section-pill"
+import { PRICING } from "@/lib/constants"
+import { HAIR_LOSS_FAQ } from "@/lib/data/hair-loss-faq"
 import {
   getTestimonialsByService,
   getTestimonialsForColumns,
 } from "@/lib/data/testimonials"
-import { HAIR_LOSS_FAQ } from "@/lib/data/hair-loss-faq"
-import {
-  LandingPageShell,
-  ReferralStrip,
-  SocialProofStrip,
-  RecentActivityTicker,
-  type LandingPageConfig,
-  type SocialProofStat,
-} from "@/components/marketing/shared"
-import { LiveWaitTime } from "@/components/marketing/live-wait-time"
-import { ContextualMessage } from "@/components/marketing/contextual-message"
-import { RecentReviewsTicker } from "@/components/marketing/recent-reviews-ticker"
-import { ComparisonBar } from "@/components/marketing/shared/data-viz"
-import { SectionPill } from "@/components/ui/section-pill"
-import { ContentHubLinks } from "@/components/seo/content-hub-links"
-
-// Hero is above-fold - not lazy loaded
-import { HairLossHeroSection } from "@/components/marketing/heroes/hair-loss-hero"
+import { SOCIAL_PROOF, SOCIAL_PROOF_DISPLAY } from "@/lib/social-proof"
 
 // Below-fold lazy loads
 const TestimonialsSection = dynamic(

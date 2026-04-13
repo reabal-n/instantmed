@@ -7,9 +7,10 @@
  * Run with: PLAYWRIGHT=1 pnpm e2e --grep "dashboard-audit"
  */
 
-import { test, expect } from "@playwright/test"
+import { expect,test } from "@playwright/test"
+
+import { loginAsDoctor, loginAsOperator, loginAsPatient, logoutTestUser } from "./helpers/auth"
 import { waitForPageLoad } from "./helpers/test-utils"
-import { loginAsOperator, loginAsDoctor, loginAsPatient, logoutTestUser } from "./helpers/auth"
 
 // Pages derived from admin-sidebar, dashboard-sidebar, and route structure
 const ADMIN_PAGES = [

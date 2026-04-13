@@ -1,35 +1,37 @@
 "use client"
 
-import type React from "react"
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { motion, AnimatePresence } from "framer-motion"
-import { useReducedMotion } from "@/components/ui/motion"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { AddressAutocomplete, type AddressComponents } from "@/components/ui/address-autocomplete"
+import { AnimatePresence,motion } from "framer-motion"
 import {
+  AlertTriangle,
   ArrowLeft, 
   ArrowRight, 
   Check, 
-  Phone, 
-  MapPin, 
   CreditCard, 
+  MapPin, 
+  Phone, 
   Shield, 
-  AlertTriangle,
 } from "lucide-react"
+import { useRouter } from "next/navigation"
+import type React from "react"
+import { useState } from "react"
+
 import { DataSecurityStrip, OnboardingTrustFooter } from "@/components/checkout/trust-badges"
+import { AddressAutocomplete, type AddressComponents } from "@/components/ui/address-autocomplete"
+import { Button } from "@/components/ui/button"
+import { FormActions,FormGroup, FormSection } from "@/components/ui/form-section"
+import { FormStepper, type Step } from "@/components/ui/form-stepper"
+import { Input } from "@/components/ui/input"
+import { useReducedMotion } from "@/components/ui/motion"
+import { PageShell } from "@/components/ui/page-shell"
 import { ButtonSpinner } from "@/components/ui/skeleton"
-import { completeOnboardingAction } from "./actions"
-import type { AustralianState } from "@/types/db"
-import { validateMedicareNumber, validateMedicareExpiry } from "@/lib/validation/medicare"
+import { spring } from "@/lib/motion"
+import { cn } from "@/lib/utils"
 import { validatePostcodeState } from "@/lib/validation/australian-address"
 import { validateAustralianPhone } from "@/lib/validation/australian-phone"
-import { PageShell } from "@/components/ui/page-shell"
-import { FormStepper, type Step } from "@/components/ui/form-stepper"
-import { FormSection, FormGroup, FormActions } from "@/components/ui/form-section"
-import { cn } from "@/lib/utils"
-import { spring } from "@/lib/motion"
+import { validateMedicareExpiry,validateMedicareNumber } from "@/lib/validation/medicare"
+import type { AustralianState } from "@/types/db"
+
+import { completeOnboardingAction } from "./actions"
 
 interface OnboardingFlowProps {
   profileId: string

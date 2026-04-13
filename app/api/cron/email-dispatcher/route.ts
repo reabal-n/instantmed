@@ -1,11 +1,12 @@
 import * as Sentry from "@sentry/nextjs"
 import { NextRequest, NextResponse } from "next/server"
+
 import { verifyCronRequest } from "@/lib/api/cron-auth"
 import { processEmailDispatch } from "@/lib/email/email-dispatcher"
+import { toError } from "@/lib/errors"
 import { recordCronHeartbeat } from "@/lib/monitoring/cron-heartbeat"
 import { createLogger } from "@/lib/observability/logger"
 import { captureCronError } from "@/lib/observability/sentry"
-import { toError } from "@/lib/errors"
 
 const logger = createLogger("cron-email-dispatcher")
 

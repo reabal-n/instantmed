@@ -1,5 +1,6 @@
-import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
 import { getSuppressedEmails } from "@/app/actions/email-suppression"
+import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
+
 import { EmailSuppressionClient } from "./email-suppression-client"
 
 export const dynamic = "force-dynamic"

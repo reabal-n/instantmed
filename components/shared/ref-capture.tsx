@@ -1,7 +1,7 @@
 "use client"
 
-import { useEffect } from "react"
 import { useSearchParams } from "next/navigation"
+import { useEffect } from "react"
 
 /**
  * Captures ?ref=<code> from the URL and persists it as a 30-day cookie.

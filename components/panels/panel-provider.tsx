@@ -1,7 +1,8 @@
 'use client'
 
-import { createContext, useContext, useState, useCallback, type ReactNode } from 'react'
 import { AnimatePresence } from 'framer-motion'
+import { createContext, type ReactNode,useCallback, useContext, useState } from 'react'
+
 import { useReducedMotion } from '@/components/ui/motion'
 
 /**

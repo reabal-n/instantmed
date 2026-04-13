@@ -9,46 +9,46 @@
  * 5. Snapshot stability (catches unintentional visual regressions)
  */
 
-import { describe, it, expect } from "vitest"
 import * as React from "react"
 import { renderToStaticMarkup } from "react-dom/server"
+import { describe, expect,it } from "vitest"
 
 // All templates
 import {
-  WelcomeEmail, welcomeEmailSubject,
-  MedCertPatientEmail, medCertPatientEmailSubject,
+  AbandonedCheckoutEmail,   AbandonedCheckoutFollowupEmail, abandonedCheckoutFollowupSubject,
+abandonedCheckoutSubject,
+  ConsultApprovedEmail, consultApprovedSubject,
+  DeclineReengagementEmail, declineReengagementSubject,
+  EdApprovedEmail, edApprovedSubject,
+  FollowUpReminderEmail,
+  GuestCompleteAccountEmail, guestCompleteAccountSubject,
+  HairLossApprovedEmail, hairLossApprovedSubject,
+  IntakeSubmittedEmail, intakeSubmittedSubject,
+  MagicLinkEmail, magicLinkEmailSubject,
   MedCertEmployerEmail, medCertEmployerEmailSubject,
-  ScriptSentEmail, scriptSentEmailSubject,
-  RequestDeclinedEmail, requestDeclinedEmailSubject,
-  PaymentReceiptEmail, paymentReceiptEmailSubject,
+  MedCertPatientEmail, medCertPatientEmailSubject,
+  NeedsMoreInfoEmail, needsMoreInfoSubject,
   PaymentConfirmedEmail, paymentConfirmedSubject,
   PaymentFailedEmail, paymentFailedSubject,
+  PaymentReceiptEmail, paymentReceiptEmailSubject,
   PaymentRetryEmail, paymentRetrySubject,
-  NeedsMoreInfoEmail, needsMoreInfoSubject,
-  GuestCompleteAccountEmail, guestCompleteAccountSubject,
-  AbandonedCheckoutEmail, abandonedCheckoutSubject,
-  ConsultApprovedEmail, consultApprovedSubject,
-  EdApprovedEmail, edApprovedSubject,
-  HairLossApprovedEmail, hairLossApprovedSubject,
-  WeightLossApprovedEmail, weightLossApprovedSubject,
-  WomensHealthApprovedEmail, womensHealthApprovedSubject,
   PrescriptionApprovedEmail, prescriptionApprovedSubject,
-  RepeatRxReminderEmail, repeatRxReminderSubject,
   ReferralCreditEmail, referralCreditSubject,
-  IntakeSubmittedEmail, intakeSubmittedSubject,
-  RequestReceivedEmail, requestReceivedSubject,
   RefundIssuedEmail, refundIssuedEmailSubject,
-  VerificationCodeEmail, verificationCodeSubject,
-  StillReviewingEmail, stillReviewingSubject,
-  FollowUpReminderEmail,
-  DeclineReengagementEmail, declineReengagementSubject,
-  TreatmentFollowupEmail, treatmentFollowupSubject,
-  ReviewRequestEmail, reviewRequestSubject,
+  RepeatRxReminderEmail, repeatRxReminderSubject,
+  RequestDeclinedEmail, requestDeclinedEmailSubject,
+  RequestReceivedEmail, requestReceivedSubject,
   ReviewFollowupEmail, reviewFollowupSubject,
-  AbandonedCheckoutFollowupEmail, abandonedCheckoutFollowupSubject,
+  ReviewRequestEmail, reviewRequestSubject,
+  ScriptSentEmail, scriptSentEmailSubject,
+  StillReviewingEmail, stillReviewingSubject,
   SubscriptionNudgeEmail, subscriptionNudgeSubject,
-  MagicLinkEmail, magicLinkEmailSubject,
-} from "@/components/email/templates"
+  TreatmentFollowupEmail, treatmentFollowupSubject,
+  VerificationCodeEmail, verificationCodeSubject,
+  WeightLossApprovedEmail, weightLossApprovedSubject,
+  WelcomeEmail, welcomeEmailSubject,
+  WomensHealthApprovedEmail, womensHealthApprovedSubject,
+} from "@/lib/email/components/templates"
 
 // ============================================================================
 // HELPERS

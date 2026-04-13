@@ -1,7 +1,9 @@
 import type { Metadata } from "next"
 import Image from "next/image"
+
 import { verifyUnsubscribeToken } from "@/lib/crypto/unsubscribe-token"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
+
 import { PreferencesForm } from "./preferences-form"
 
 export const metadata: Metadata = {

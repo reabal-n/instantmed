@@ -8,11 +8,14 @@
  * Shared component - use basePath to control URL prefix.
  */
 
-import { useState } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { AlertTriangle, ArrowLeft,CheckCircle2, Clock, ExternalLink, Mail, RefreshCcw } from "lucide-react"
 import Link from "next/link"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { useRouter, useSearchParams } from "next/navigation"
+import { useState } from "react"
+
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Select,
   SelectContent,
@@ -28,10 +31,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
 import { Snippet } from "@/components/uix"
-import { RefreshCcw, ExternalLink, AlertTriangle, Clock, Mail, CheckCircle2, ArrowLeft } from "lucide-react"
-import type { StuckIntake, StuckCounts, StuckReason } from "@/lib/data/intake-ops"
+import type { StuckCounts, StuckIntake, StuckReason } from "@/lib/data/intake-ops"
 import { formatAge } from "@/lib/format"
 
 // ============================================================================

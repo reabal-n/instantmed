@@ -1,15 +1,16 @@
 "use client"
 
-import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
+import { useState, useTransition } from "react"
 import { toast } from "sonner"
+
+import { submitFollowup } from "@/app/actions/followups"
+import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Switch } from "@/components/ui/switch"
-import { Button } from "@/components/ui/button"
-import { submitFollowup } from "@/app/actions/followups"
+import { Textarea } from "@/components/ui/textarea"
 
 interface Props {
   followupId: string

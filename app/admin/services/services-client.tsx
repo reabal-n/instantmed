@@ -1,20 +1,21 @@
 "use client"
 
-import { useState, useCallback } from "react"
-import { useRouter } from "next/navigation"
+import { ArrowLeft,Plus, Settings } from "lucide-react"
 import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Settings, Plus, ArrowLeft } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { useCallback,useState } from "react"
 import { toast } from "sonner"
+
 import {
   createServiceAction,
-  updateServiceAction,
-  toggleServiceActiveAction,
   deleteServiceAction,
+  toggleServiceActiveAction,
+  updateServiceAction,
 } from "@/app/actions/admin-settings"
-import type { Service, ServiceInput } from "@/lib/data/types/services"
 import { ServiceFormDialog } from "@/app/admin/services/service-form-dialog"
 import { ServicesStats, ServicesTableCard, ToggleConfirmDialog } from "@/app/admin/services/services-table"
+import { Button } from "@/components/ui/button"
+import type { Service, ServiceInput } from "@/lib/data/types/services"
 
 interface ServicesConfigClientProps {
   initialServices: Service[]

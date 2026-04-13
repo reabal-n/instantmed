@@ -9,27 +9,28 @@
  *   Women's health · Weight management
  */
 
-import { PRICING_DISPLAY } from "@/lib/constants"
-import { useState, useEffect, useCallback } from "react"
+import { AnimatePresence,motion } from "framer-motion"
+import { ChevronRight, MessageSquare,RotateCcw, Star, Trash2 } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { usePostHog } from "@/components/providers/posthog-provider"
-import { motion, AnimatePresence } from "framer-motion"
-import { useReducedMotion } from "@/components/ui/motion"
-import { stagger } from "@/lib/motion"
-import { ChevronRight, RotateCcw, Trash2, Star, MessageSquare } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { LegitScriptSeal } from "@/components/marketing/legitscript-seal"
+import { useCallback,useEffect, useState } from "react"
+
 import { GoogleAdsCert } from "@/components/marketing/google-ads-cert"
-import { cn } from "@/lib/utils"
-import { getPatientCount } from "@/lib/social-proof"
-import { getPreferences, savePreferences } from "@/lib/request/preferences"
-import type { UnifiedServiceType } from "@/lib/request/step-registry"
+import { LegitScriptSeal } from "@/components/marketing/legitscript-seal"
+import { usePostHog } from "@/components/providers/posthog-provider"
+import { Button } from "@/components/ui/button"
+import { useReducedMotion } from "@/components/ui/motion"
+import { PRICING_DISPLAY } from "@/lib/constants"
+import { stagger } from "@/lib/motion"
 import {
-  getAllDrafts,
+  type CanonicalServiceType,
   clearDraft,
   type DraftData,
-  type CanonicalServiceType,
+  getAllDrafts,
 } from "@/lib/request/draft-storage"
+import { getPreferences, savePreferences } from "@/lib/request/preferences"
+import type { UnifiedServiceType } from "@/lib/request/step-registry"
+import { getPatientCount } from "@/lib/social-proof"
+import { cn } from "@/lib/utils"
 
 // ─── Service definitions ──────────────────────────────────────────────────
 

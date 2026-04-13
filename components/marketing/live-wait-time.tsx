@@ -1,11 +1,12 @@
 'use client'
 
-import { useState, useEffect, useSyncExternalStore } from 'react'
 import { motion } from 'framer-motion'
+import { Clock, FileText, Phone,Pill } from 'lucide-react'
+import { useEffect, useState, useSyncExternalStore } from 'react'
+
 import { useReducedMotion } from '@/components/ui/motion'
-import { Clock, FileText, Pill, Phone } from 'lucide-react'
-import { cn } from '@/lib/utils'
 import { SOCIAL_PROOF } from '@/lib/social-proof'
+import { cn } from '@/lib/utils'
 
 // Static, honest wait time data - no randomisation, no fake fluctuation
 const SERVICE_CONFIG = {

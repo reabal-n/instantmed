@@ -1,10 +1,11 @@
 'use client'
 
-import * as React from 'react'
+import { cva, type VariantProps } from 'class-variance-authority'
 import { motion } from 'framer-motion'
+import * as React from 'react'
+
 import { useReducedMotion } from '@/components/ui/motion'
 import { cn } from '@/lib/utils'
-import { cva, type VariantProps } from 'class-variance-authority'
 
 // =============================================================================
 // SPINNER VARIANTS

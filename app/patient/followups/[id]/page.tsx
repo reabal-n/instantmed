@@ -1,6 +1,8 @@
 import { notFound, redirect } from "next/navigation"
-import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
+
 import { getFollowup } from "@/app/actions/followups"
+import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
+
 import { FollowupForm } from "./followup-form"
 
 export const metadata = { title: "Treatment check-in - InstantMed" }

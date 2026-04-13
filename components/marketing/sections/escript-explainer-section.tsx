@@ -1,9 +1,10 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { useReducedMotion } from "@/components/ui/motion"
 import { Check } from "lucide-react"
+
 import { InteractiveProductMockup } from "@/components/marketing/shared/interactive-product-mockup"
+import { useReducedMotion } from "@/components/ui/motion"
 import { SectionPill } from "@/components/ui/section-pill"
 
 // =============================================================================

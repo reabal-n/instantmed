@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { createLogger } from "@/lib/observability/logger"
+
+import { canSendMarketingEmail } from "@/app/actions/email-preferences"
 import { verifyCronRequest } from "@/lib/api/cron-auth"
 import { sendDeclineReengagementEmail } from "@/lib/email/senders"
-import { canSendMarketingEmail } from "@/app/actions/email-preferences"
+import { createLogger } from "@/lib/observability/logger"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const logger = createLogger("cron-decline-reengagement")
 

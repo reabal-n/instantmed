@@ -1,8 +1,9 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { useReducedMotion } from "@/components/ui/motion"
 import { BadgeCheck, Users } from "lucide-react"
+
+import { useReducedMotion } from "@/components/ui/motion"
 
 // =============================================================================
 // COMPONENT

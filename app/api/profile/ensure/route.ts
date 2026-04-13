@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
+
+import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { createClient } from "@/lib/supabase/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { applyRateLimit } from "@/lib/rate-limit/redis"
 
 /** Escape ILIKE special characters to prevent wildcard injection */
 function escapeIlike(input: string): string {

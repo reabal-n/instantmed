@@ -1,39 +1,35 @@
 "use client";
 
-import Link from "next/link";
-import Image from "next/image";
 import { motion, useInView } from "framer-motion";
-import { useRef } from "react";
-import { HairLossGuideSection } from "@/components/marketing/sections/hair-loss-guide-section";
-import { safeJsonLd } from "@/lib/seo/safe-json-ld";
 import {
   ArrowRight,
   Clock,
-  Shield,
   EyeOff,
-  Pill,
   PhoneOff,
+  Pill,
+  Shield,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Navbar } from "@/components/shared/navbar";
-import { MarketingFooter } from "@/components/marketing";
-import { AvailabilityIndicator } from "@/components/shared/availability-indicator";
+import Image from "next/image";
+import Link from "next/link";
+import { useRef } from "react";
+
 import { CenteredHero } from "@/components/heroes";
+import { DoctorCredibility,MarketingFooter, MarketingPageShell, RegulatoryPartners } from "@/components/marketing";
+import { HairLossGuideSection, TestimonialsSection } from "@/components/marketing/sections";
 import {
-  FeatureGrid,
-  ProcessSteps,
-  Timeline,
   AccordionSection,
   CTABanner,
+  FeatureGrid,
+  ProcessSteps,
   SectionHeader,
+  Timeline,
 } from "@/components/sections";
+import { AvailabilityIndicator,Navbar } from "@/components/shared";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { scrollRevealConfig, useReducedMotion } from "@/components/ui/motion";
-import { RegulatoryPartners } from "@/components/marketing";
-import { MarketingPageShell } from "@/components/marketing/marketing-page-shell";
-import { DoctorCredibility } from "@/components/marketing/doctor-credibility";
 import { getTestimonialsByService, getTestimonialsForColumns } from "@/lib/data/testimonials"
-import { TestimonialsSection } from "@/components/marketing/sections/testimonials-section";
+import { safeJsonLd } from "@/lib/seo/safe-json-ld";
 
 /* ------------------------------------------------------------------ */
 /*  Data                                                               */

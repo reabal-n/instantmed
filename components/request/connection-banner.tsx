@@ -7,10 +7,11 @@
  * Appears at top of request flow when offline.
  */
 
-import { motion, AnimatePresence } from "framer-motion"
-import { useReducedMotion } from "@/components/ui/motion"
-import { WifiOff, CloudOff, RefreshCw } from "lucide-react"
+import { AnimatePresence,motion } from "framer-motion"
+import { CloudOff, RefreshCw,WifiOff } from "lucide-react"
+
 import { Button } from "@/components/ui/button"
+import { useReducedMotion } from "@/components/ui/motion"
 import { useConnectionStatus } from "@/lib/hooks/use-connection-status"
 
 interface ConnectionBannerProps {

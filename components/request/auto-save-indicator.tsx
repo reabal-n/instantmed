@@ -1,8 +1,9 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { AnimatePresence,motion } from "framer-motion"
 import { Cloud, CloudOff } from "lucide-react"
-import { motion, AnimatePresence } from "framer-motion"
+import { useEffect, useState } from "react"
+
 import { useReducedMotion } from "@/components/ui/motion"
 
 interface AutoSaveIndicatorProps {

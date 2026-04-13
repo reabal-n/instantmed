@@ -1,29 +1,30 @@
 "use client"
 
-import Link from "next/link"
-import { useRouter } from "next/navigation"
 import type { User as SupabaseUser } from "@supabase/supabase-js"
 import {
-  User,
   ChevronDown,
-  LayoutDashboard,
   ClipboardList,
   FileText,
+  LayoutDashboard,
+  User,
 } from "lucide-react"
-import { Button } from "@/components/uix"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+
+import { ServiceIconTile } from "@/components/icons/service-icons"
+import { useServiceAvailability } from "@/components/providers/service-availability-provider"
+import { AppSignInButton } from "@/components/shared/app-sign-in-button"
+import { AnimatedNavLink } from "@/components/shared/navbar/animated-nav-link"
+import { services } from "@/components/shared/navbar/services-dropdown"
+import { NotificationBell } from "@/components/shared/notification-bell"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { AppSignInButton } from "@/components/shared/app-sign-in-button"
-import { NotificationBell } from "@/components/shared/notification-bell"
-import { AnimatedNavLink } from "@/components/shared/navbar/animated-nav-link"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { services } from "@/components/shared/navbar/services-dropdown"
-import { ServiceIconTile } from "@/components/icons/service-icons"
-import { useServiceAvailability } from "@/components/providers/service-availability-provider"
+import { Button } from "@/components/uix"
 
 interface UserMenuProps {
   variant: "marketing" | "patient" | "doctor"

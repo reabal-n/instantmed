@@ -5,7 +5,7 @@
  * Preserves partial intake state during transition.
  */
 
-import type { StructuredIntake, ServiceType } from './structured-intake-schema'
+import type { ServiceType,StructuredIntake } from './structured-intake-schema'
 
 // =============================================================================
 // TRANSITION RULES

@@ -1,7 +1,8 @@
 "use client"
 
+import { AlertCircle,CheckCircle2 } from "lucide-react"
 import Link from "next/link"
-import { CheckCircle2, AlertCircle } from "lucide-react"
+
 import { CONTACT_EMAIL } from "@/lib/constants"
 
 // =============================================================================

@@ -1,10 +1,11 @@
 "use client"
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { FileText, Clock, CheckCircle } from "lucide-react"
+import { CheckCircle,Clock, FileText } from "lucide-react"
+
 import { ClinicalSummary } from "@/components/doctor/clinical-summary"
-import { formatServiceType } from "@/lib/format/intake"
 import { useIntakeReview } from "@/components/doctor/review/intake-review-context"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { formatServiceType } from "@/lib/format/intake"
 
 export function RequestInfoCard() {
   const { intake, service, answers, formatDate } = useIntakeReview()

@@ -1,10 +1,28 @@
 "use client"
 
+import {
+  ArrowLeft,
+  Award,
+  CheckCircle,
+  TrendingUp,
+  Trophy,
+  Users,
+  Zap,
+} from "lucide-react"
 import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+
+import {
+  Bar,
+  CartesianGrid,
+  LazyBarChart as BarChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "@/components/charts/lazy-charts"
 import { Badge } from "@/components/ui/badge"
-import { UserCard } from "@/components/uix"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription,CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Table,
   TableBody,
@@ -13,26 +31,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import {
-  ArrowLeft,
-  Trophy,
-  CheckCircle,
-  TrendingUp,
-  Users,
-  Award,
-  Zap,
-} from "lucide-react"
-import {
-  LazyBarChart as BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from "@/components/charts/lazy-charts"
-import { cn } from "@/lib/utils"
+import { UserCard } from "@/components/uix"
 import { formatMinutes } from "@/lib/format"
+import { cn } from "@/lib/utils"
 
 interface DoctorMetrics {
   id: string

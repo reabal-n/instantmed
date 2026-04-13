@@ -1,5 +1,5 @@
-import { Article, contentAuthors } from '../types'
 import { blogImages } from '../images'
+import { Article, contentAuthors } from '../types'
 
 export const trustBuildingArticles: Article[] = [
   {

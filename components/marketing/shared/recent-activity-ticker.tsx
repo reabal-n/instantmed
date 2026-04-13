@@ -1,9 +1,10 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { motion, AnimatePresence } from "framer-motion"
-import { useReducedMotion } from "@/components/ui/motion"
+import { AnimatePresence,motion } from "framer-motion"
 import { CheckCircle2 } from "lucide-react"
+import { useEffect, useState } from "react"
+
+import { useReducedMotion } from "@/components/ui/motion"
 
 interface ActivityEntry {
   name?: string

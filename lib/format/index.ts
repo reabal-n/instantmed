@@ -9,19 +9,18 @@
  */
 
 export {
-  formatDate,
-  formatDateTime,
-  formatDateLong,
   addDays,
+  calculateAge,
+  formatAge,
+  formatAUD,
+  formatCurrency,
+  formatDate,
+  formatDateLong,
+  formatDateTime,
+  formatMinutes,
+  formatRelative,
   formatShortDate,
   formatShortDateSafe,
-  formatRelative,
-  formatCurrency,
-  calculateAge,
-  formatAUD,
   formatTimeAgo,
-  formatAge,
-  formatMinutes,
 } from "./dates"
-
 export { formatIntakeStatus } from "./intake"

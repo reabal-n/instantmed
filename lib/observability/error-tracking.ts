@@ -6,9 +6,11 @@
  * easily connected to services like Sentry, LogRocket, etc.
  */
 
-import { logger } from './logger'
 import posthog from 'posthog-js'
+
 import { toError } from "@/lib/errors"
+
+import { logger } from './logger'
 
 interface ErrorContext {
   /** User ID if authenticated */

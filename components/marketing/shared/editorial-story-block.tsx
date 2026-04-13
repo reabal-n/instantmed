@@ -1,10 +1,11 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { cn } from "@/lib/utils"
+
 import { useReducedMotion } from "@/components/ui/motion"
 import { SectionPill } from "@/components/ui/section-pill"
-import { stagger, fadeUp } from "@/lib/motion"
+import { fadeUp,stagger } from "@/lib/motion"
+import { cn } from "@/lib/utils"
 
 // ---------------------------------------------------------------------------
 // Types

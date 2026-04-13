@@ -1,9 +1,10 @@
 'use client'
 
-import { cn } from '@/lib/utils'
 import { useEffect, useState } from 'react'
+
 import { TrustBadge } from '@/components/shared/trust-badge'
 import { TooltipProvider } from '@/components/ui/tooltip'
+import { cn } from '@/lib/utils'
 
 interface TrustBadgeFloatProps {
   className?: string

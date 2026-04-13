@@ -1,6 +1,8 @@
 import { Suspense } from "react"
-import { ConfirmedClient } from "./confirmed-client"
+
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
+
+import { ConfirmedClient } from "./confirmed-client"
 
 export const dynamic = "force-dynamic"
 

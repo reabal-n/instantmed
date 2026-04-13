@@ -1,8 +1,10 @@
+import type { FAQItem } from "@/types/faq"
+
 /**
  * Single source of truth for general consult FAQ data.
  * Used by both the landing page accordion and the structured data schema.
  */
-export const CONSULT_FAQ = [
+export const CONSULT_FAQ: readonly FAQItem[] = [
   {
     question: "Will the doctor call me?",
     answer:
@@ -38,4 +40,4 @@ export const CONSULT_FAQ = [
     answer:
       "Most consults are completed within 2 hours of submission. The doctor may call for 5-15 minutes depending on the complexity of your concern.",
   },
-] as const
+]

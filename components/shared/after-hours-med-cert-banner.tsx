@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { AnimatePresence,motion } from 'framer-motion'
+import { ArrowRight, Moon, X } from 'lucide-react'
 import Link from 'next/link'
-import { Moon, ArrowRight, X } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { useEffect,useState } from 'react'
+
 import { useReducedMotion } from '@/components/ui/motion'
 
 const OPEN_HOUR = 8

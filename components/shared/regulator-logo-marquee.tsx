@@ -1,8 +1,9 @@
 'use client'
 
 import Image from 'next/image'
-import { cn } from '@/lib/utils'
+
 import { useReducedMotion } from '@/components/ui/motion'
+import { cn } from '@/lib/utils'
 
 const REGULATOR_LOGOS = [
   { name: 'AHPRA', src: '/logos/AHPRA.png', width: 120, height: 40 },

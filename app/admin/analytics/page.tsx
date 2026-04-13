@@ -1,7 +1,8 @@
 import { requireRole } from "@/lib/auth/helpers"
-import { AnalyticsDashboardClient } from "./analytics-client"
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { getDoctorDashboardStats, getIntakeMonitoringStats } from "@/lib/data/intakes"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
+
+import { AnalyticsDashboardClient } from "./analytics-client"
 
 export const dynamic = "force-dynamic"
 

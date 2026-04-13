@@ -9,18 +9,20 @@
  * Certificates capped at 3 days max.
  */
 
-import { useState, useEffect, useCallback, useRef } from "react"
+import { ArrowRight,Briefcase, GraduationCap, Heart, Shield } from "lucide-react"
+import { useCallback, useEffect, useRef,useState } from "react"
+
 import { usePostHog } from "@/components/providers/posthog-provider"
-import { Briefcase, GraduationCap, Heart, Shield, ArrowRight } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
-import { useRequestStore } from "../store"
-import { FormField } from "../form-field"
-import { getSmartDefaults, recordStepCompletion, savePreferences } from "@/lib/request/preferences"
-import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
 import { MED_CERT_DURATIONS } from "@/lib/constants"
-import { cn } from "@/lib/utils"
+import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
+import { getSmartDefaults, recordStepCompletion, savePreferences } from "@/lib/request/preferences"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
+import { cn } from "@/lib/utils"
+
+import { FormField } from "../form-field"
+import { useRequestStore } from "../store"
 
 interface CertificateStepProps {
   serviceType: UnifiedServiceType

@@ -1,8 +1,9 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
+import { afterEach,beforeEach, describe, expect, it, vi } from "vitest"
+
 import {
+  calculateSlaCountdown,
   calculateWaitTime,
   getWaitTimeSeverity,
-  calculateSlaCountdown,
 } from "@/lib/doctor/queue-utils"
 
 describe("calculateWaitTime", () => {

@@ -5,7 +5,7 @@
  * Covers: encrypt/decrypt roundtrip, edge cases, error handling, key validation.
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest"
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
 // Mock the encryption key before importing the module
 const VALID_KEY = Buffer.from("test-encryption-key-32-bytes!!!!").toString("base64")

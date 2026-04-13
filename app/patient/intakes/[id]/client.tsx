@@ -1,47 +1,44 @@
 "use client"
 
-import { useState, useTransition } from "react"
-import { useRouter } from "next/navigation"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { 
-  Clock, 
-  CheckCircle, 
-  XCircle, 
   AlertCircle,
   ArrowLeft,
-  FileText,
-  Calendar,
-  Download,
-  Shield,
-  RefreshCw,
-  Mail,
-  HelpCircle,
   Ban,
-  Link2,
+  Calendar,
   Check,
+  CheckCircle, 
+  Clock, 
+  Download,
+  FileText,
+  HelpCircle,
+  Link2,
+  Mail,
+  RefreshCw,
+  Shield,
+  XCircle, 
 } from "lucide-react"
-import { formatIntakeStatus } from "@/lib/format/intake"
-import { INTAKE_STATUS, type IntakeStatus as StatusKey } from "@/lib/data/status"
-import { COPY } from "@/lib/microcopy/universal"
-import { capture } from "@/lib/analytics/capture"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { useState, useTransition } from "react"
+
 import { cancelIntake } from "@/app/actions/cancel-intake"
-import { resendCertificate } from "@/app/actions/resend-certificate"
 import { requestDateCorrection } from "@/app/actions/request-date-correction"
+import { resendCertificate } from "@/app/actions/resend-certificate"
+import { resendVerificationEmail } from "@/app/actions/resend-verification"
+import { CrossSellCard, EmailVerificationGate, IntakeStatusListener,IntakeStatusTracker, SendToEmployerDialog } from "@/components/patient"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { resendVerificationEmail } from "@/app/actions/resend-verification"
-import { retryPaymentForIntakeAction } from "@/lib/stripe/checkout"
-import { EmailVerificationGate } from "@/components/patient/email-verification-gate"
-import { CrossSellCard } from "@/components/patient/cross-sell-card"
-import { IntakeStatusTracker } from "@/components/patient/intake-status-tracker"
-import { SendToEmployerDialog } from "@/components/patient/send-to-employer-dialog"
-import { IntakeStatusListener } from "@/components/patient/intake-status-listener"
-import type { IntakeWithPatient, GeneratedDocument, IntakeDocument } from "@/types/db"
+import { capture } from "@/lib/analytics/capture"
 import type { IntakeStatus } from "@/lib/data/intake-lifecycle"
+import { INTAKE_STATUS, type IntakeStatus as StatusKey } from "@/lib/data/status"
+import { formatIntakeStatus } from "@/lib/format/intake"
+import { COPY } from "@/lib/microcopy/universal"
+import { retryPaymentForIntakeAction } from "@/lib/stripe/checkout"
+import type { GeneratedDocument, IntakeDocument,IntakeWithPatient } from "@/types/db"
 
 interface IntakeDetailClientProps {
   intake: IntakeWithPatient

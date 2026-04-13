@@ -4,12 +4,13 @@
  */
 
 import "server-only"
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
+
 import { createLogger } from "@/lib/observability/logger"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 // Re-export types and helpers from shared module (for backward compatibility)
 export type { ContentBlock, ContentBlockInput } from "@/lib/data/types/content-blocks"
-export { getContentCategories, formatCategory } from "@/lib/data/types/content-blocks"
+export { formatCategory,getContentCategories } from "@/lib/data/types/content-blocks"
 
 import type { ContentBlock, ContentBlockInput } from "@/lib/data/types/content-blocks"
 

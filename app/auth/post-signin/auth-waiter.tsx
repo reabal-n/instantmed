@@ -1,9 +1,10 @@
 "use client"
 
-import { useAuth } from "@/lib/supabase/auth-provider"
+import { Loader2 } from "lucide-react"
 import Link from "next/link"
 import { useEffect, useRef, useState } from "react"
-import { Loader2 } from "lucide-react"
+
+import { useAuth } from "@/lib/supabase/auth-provider"
 
 /**
  * Client-side auth waiter for post-signin.

@@ -17,14 +17,14 @@
  *   Fix: Use locator('#clinic_name') targeting input id directly
  */
 
-import { test, expect } from "@playwright/test"
-import { waitForPageLoad } from "./helpers/test-utils"
+import { expect,test } from "@playwright/test"
+
 import { loginAsOperator, logoutTestUser } from "./helpers/auth"
 import { 
   getActiveClinicIdentity, 
-  updateClinicIdentity,
-  isDbAvailable
-} from "./helpers/db"
+  isDbAvailable,
+  updateClinicIdentity} from "./helpers/db"
+import { waitForPageLoad } from "./helpers/test-utils"
 
 test.describe("Admin Clinic Identity", () => {
   test.beforeEach(async ({ page }) => {

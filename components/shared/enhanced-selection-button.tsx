@@ -1,9 +1,10 @@
 "use client"
 
-import React from "react"
 import { motion } from "framer-motion"
-import { useReducedMotion } from "@/components/ui/motion"
 import { Check } from "lucide-react"
+import React from "react"
+
+import { useReducedMotion } from "@/components/ui/motion"
 import { cn } from "@/lib/utils"
 
 interface EnhancedSelectionButtonProps {

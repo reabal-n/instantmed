@@ -1,6 +1,8 @@
 import type Stripe from "stripe"
+
 import { createLogger } from "@/lib/observability/logger"
-import type { WebhookContext, HandlerResult } from "./types"
+
+import type { HandlerResult,WebhookContext } from "./types"
 
 const log = createLogger("stripe-webhook:subscription-deleted")
 

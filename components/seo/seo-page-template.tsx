@@ -5,12 +5,6 @@
 
 'use client'
 
-import Link from 'next/link'
-import { Navbar } from '@/components/shared/navbar'
-import { Footer } from '@/components/shared/footer'
-import { SectionPill } from '@/components/ui/section-pill'
-import { Button } from '@/components/uix'
-import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion'
 import {
   AlertCircle,
   Check,
@@ -18,7 +12,14 @@ import {
   FileCheck,
   Stethoscope,
 } from 'lucide-react'
-import type { ConditionPage, CertificatePage, BenefitPage, ResourcePage } from '@/lib/seo/pages'
+import Link from 'next/link'
+
+import { Footer } from '@/components/shared/footer'
+import { Navbar } from '@/components/shared/navbar'
+import { Accordion, AccordionContent,AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
+import { SectionPill } from '@/components/ui/section-pill'
+import { Button } from '@/components/uix'
+import type { BenefitPage, CertificatePage, ConditionPage, ResourcePage } from '@/lib/seo/pages'
 
 type PageUnion = ConditionPage | CertificatePage | BenefitPage | ResourcePage
 

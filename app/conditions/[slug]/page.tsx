@@ -1,39 +1,39 @@
+import {
+  Activity,
+  AlertTriangle,
+  ArrowRight,
+  BookOpen,
+  CheckCircle2,
+  Clock,
+  Heart,
+  Pill,
+  RotateCcw,
+  ShieldCheck,
+  Stethoscope,
+} from "lucide-react"
 import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import {
-  ArrowRight,
-  CheckCircle2,
-  AlertTriangle,
-  Stethoscope,
-  Clock,
-  Heart,
-  RotateCcw,
-  Activity,
-  Pill,
-  BookOpen,
-  ShieldCheck,
-} from "lucide-react"
-import { Navbar } from "@/components/shared/navbar"
-import { MarketingFooter } from "@/components/marketing"
-import { MarketingPageShell } from "@/components/marketing/marketing-page-shell"
+
 import { CenteredHero } from "@/components/heroes"
+import { MarketingFooter, MarketingPageShell } from "@/components/marketing"
+import { TestimonialsSection } from "@/components/marketing/sections"
+import type { ChecklistItem,StatItem } from "@/components/sections"
 import {
-  SectionHeader,
-  StatStrip,
-  IconChecklist,
   AccordionSection,
   CTABanner,
+  IconChecklist,
+  SectionHeader,
+  StatStrip,
 } from "@/components/sections"
-import { TestimonialsSection } from "@/components/marketing/sections/testimonials-section"
-import { FAQSchema, BreadcrumbSchema, MedicalConditionSchema } from "@/components/seo/healthcare-schema"
-import { PageBreadcrumbs } from "@/components/uix"
+import { BreadcrumbSchema, FAQSchema, MedicalConditionSchema } from "@/components/seo"
+import { Navbar } from "@/components/shared"
 import { Button } from "@/components/ui/button"
-import { conditionsData } from "@/lib/seo/data/conditions"
+import { PageBreadcrumbs } from "@/components/uix"
 import { PRICING_DISPLAY } from "@/lib/constants"
-import { SOCIAL_PROOF } from "@/lib/social-proof"
 import { getTestimonialsForColumns } from "@/lib/data/testimonials"
-import type { StatItem, ChecklistItem } from "@/components/sections"
+import { conditionsData } from "@/lib/seo/data/conditions"
+import { SOCIAL_PROOF } from "@/lib/social-proof"
 
 const conditions = conditionsData
 

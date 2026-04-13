@@ -1,9 +1,10 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { AlertTriangle, Home, MessageCircle,RefreshCw } from "lucide-react"
 import Link from "next/link"
+import { useEffect, useState } from "react"
+
 import { Button } from "@/components/ui/button"
-import { AlertTriangle, Home, RefreshCw, MessageCircle } from "lucide-react"
 import { createLogger } from "@/lib/observability/logger"
 import { sanitizeError, sanitizeUrl } from "@/lib/observability/sanitize-phi"
 // framer-motion removed - module factory race condition (same fix as Sentry above).

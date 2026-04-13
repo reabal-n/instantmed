@@ -2,16 +2,18 @@
 
 import { motion } from "framer-motion";
 import { useRef } from "react";
-import { cn } from "@/lib/utils";
+
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { useReducedMotion,useScrollReveal } from "@/components/ui/motion";
+import { cn } from "@/lib/utils";
+
 import { SectionHeader } from "./section-header";
 import type { SectionProps } from "./types";
-import { useScrollReveal, useReducedMotion } from "@/components/ui/motion";
 
 const MotionAccordionItem = motion.create(AccordionItem);
 

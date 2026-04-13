@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 // framer-motion removed - module factory race condition in root layout chunk.
 // Progress bar uses CSS transition triggered via requestAnimationFrame.
 // useReducedMotion inlined here (not imported from motion.tsx) to avoid

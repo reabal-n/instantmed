@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
+
 import { requireApiRole } from "@/lib/auth/helpers"
+import { createLogger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { logger } from "@/lib/observability/logger"
+
+const log = createLogger("doctor-export")
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 
 
@@ -84,7 +87,7 @@ export async function GET(request: NextRequest) {
       },
     })
   } catch (error) {
-    logger.error("Export error", {
+    log.error("Export error", {
       error: error instanceof Error ? error.message : String(error),
     })
     return NextResponse.json({ error: "Export failed" }, { status: 500 })

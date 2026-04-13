@@ -1,10 +1,12 @@
-import { createServiceRoleClient } from "../supabase/service-role"
 import { auth } from "@/lib/auth/helpers"
-import { createLogger } from "@/lib/observability/logger"
 import { toError } from "@/lib/errors"
-import { encryptField, decryptField } from "@/lib/security/encryption"
+import { createLogger } from "@/lib/observability/logger"
+import { decryptField,encryptField } from "@/lib/security/encryption"
+
+import { createServiceRoleClient } from "../supabase/service-role"
 const logger = createLogger("data-profiles")
-import type { Profile, AustralianState } from "../../types/db"
+import type { AustralianState,Profile } from "../../types/db"
+import { asProfile } from "../../types/db"
 
 /**
  * Check if encryption is available (ENCRYPTION_KEY is set)
@@ -180,7 +182,7 @@ export async function getCurrentProfile(): Promise<Profile | null> {
   // Decrypt PHI fields
   const decryptedData = decryptProfilePhi(data)
 
-  return decryptedData as unknown as Profile
+  return asProfile(decryptedData)
 }
 
 /**
@@ -226,7 +228,7 @@ export async function getProfileById(profileId: string): Promise<Profile | null>
   // Decrypt PHI fields
   const decryptedData = decryptProfilePhi(data)
 
-  return decryptedData as unknown as Profile
+  return asProfile(decryptedData)
 }
 
 
@@ -283,7 +285,7 @@ export async function updateProfile(
   // Decrypt PHI fields before returning
   const decryptedData = decryptProfilePhi(data)
 
-  return decryptedData as unknown as Profile
+  return asProfile(decryptedData)
 }
 
 export interface OnboardingData {
@@ -349,7 +351,7 @@ export async function completeOnboarding(
   // Decrypt PHI fields before returning
   const decryptedProfile = decryptProfilePhi(profile)
 
-  return decryptedProfile as unknown as Profile
+  return asProfile(decryptedProfile)
 }
 
 /**

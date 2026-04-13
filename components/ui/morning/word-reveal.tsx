@@ -2,8 +2,9 @@
 
 import { motion } from "framer-motion";
 import { useRef } from "react";
+
+import { useReducedMotion,useScrollReveal } from "@/components/ui/motion";
 import { cn } from "@/lib/utils";
-import { useScrollReveal, useReducedMotion } from "@/components/ui/motion";
 
 // Persists across React StrictMode's simulated remount - DOM nodes are preserved.
 const _played = new WeakSet<Element>()

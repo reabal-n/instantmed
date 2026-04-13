@@ -1,26 +1,26 @@
-import type { Metadata } from "next"
-import Link from "next/link"
 import {
   ArrowRight,
-  Shield,
-  Clock,
-  Stethoscope,
-  FileText,
-  Pill,
-  MessageSquare,
-  CheckCircle2,
-  XCircle,
-  MapPin,
   BookOpen,
+  CheckCircle2,
+  Clock,
+  FileText,
+  MapPin,
+  MessageSquare,
+  Pill,
+  Shield,
+  Stethoscope,
+  XCircle,
 } from "lucide-react"
-import { Navbar } from "@/components/shared/navbar"
-import { Footer } from "@/components/shared/footer"
+import type { Metadata } from "next"
+import Link from "next/link"
+
+import { BreadcrumbSchema, FAQSchema } from "@/components/seo"
+import { Footer,Navbar } from "@/components/shared"
 import { Button } from "@/components/ui/button"
 import { SectionPill } from "@/components/ui/section-pill"
-import { BreadcrumbSchema, FAQSchema } from "@/components/seo/healthcare-schema"
-import { safeJsonLd } from "@/lib/seo/safe-json-ld"
-import { getAllStateSlugs, statesData } from "@/lib/seo/data/states"
 import { PRICING_DISPLAY } from "@/lib/constants"
+import { getAllStateSlugs, statesData } from "@/lib/seo/data/states"
+import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 
 // ============================================================================
 // METADATA - head-term pillar for "online doctor australia"

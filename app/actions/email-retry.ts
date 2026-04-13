@@ -1,20 +1,21 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
+
 import { requireRole } from "@/lib/auth/helpers"
-import { sendEmail } from "@/lib/email/send-email"
-import { sendFromOutboxRow, type OutboxRow } from "@/lib/email/send-email"
-import { claimOutboxRow } from "@/lib/email/send/outbox"
-import { MedCertPatientEmail } from "@/components/email/templates"
 import { env } from "@/lib/config/env"
 import {
   getCertificateById,
-  updateEmailStatus,
   incrementEmailRetry,
   logCertificateEvent,
+  updateEmailStatus,
 } from "@/lib/data/issued-certificates"
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
+import { MedCertPatientEmail } from "@/lib/email/components/templates"
+import { claimOutboxRow } from "@/lib/email/send/outbox"
+import { sendEmail } from "@/lib/email/send-email"
+import { type OutboxRow,sendFromOutboxRow } from "@/lib/email/send-email"
 import { createLogger } from "@/lib/observability/logger"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const log = createLogger("email-retry")
 

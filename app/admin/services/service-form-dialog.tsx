@@ -1,10 +1,15 @@
 "use client"
 
+import {
+  Clock,
+  DollarSign,
+  Loader2,
+  Save,
+  Settings,
+  Shield,
+} from "lucide-react"
+
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Switch } from "@/components/ui/switch"
 import {
   Dialog,
   DialogContent,
@@ -12,6 +17,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import {
   Select,
   SelectContent,
@@ -19,14 +26,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import {
-  Settings,
-  DollarSign,
-  Clock,
-  Shield,
-  Loader2,
-  Save,
-} from "lucide-react"
+import { Switch } from "@/components/ui/switch"
+import { Textarea } from "@/components/ui/textarea"
 import type { ServiceInput } from "@/lib/data/types/services"
 import { getServiceTypes } from "@/lib/data/types/services"
 

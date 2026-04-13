@@ -1,9 +1,10 @@
 "use client"
 
-import { cn } from "@/lib/utils"
+import { type HTMLMotionProps,motion } from "framer-motion"
 import type { ReactNode } from "react"
-import { motion, type HTMLMotionProps } from "framer-motion"
+
 import { useReducedMotion } from "@/components/ui/motion"
+import { cn } from "@/lib/utils"
 
 interface GlassCardProps extends Omit<HTMLMotionProps<"div">, "children"> {
   children: ReactNode

@@ -1,17 +1,19 @@
 import "server-only"
+
 import Stripe from "stripe"
+
 import { createLogger } from "@/lib/observability/logger"
 
 // Re-export price mapping functions (these don't need server-only)
 // This allows consumers to import from @/lib/stripe/client as before
 export {
-  getPriceIdForRequest,
-  getConsultPriceId,
   getAbsenceDays,
-  getDisplayPriceForCategory,
   getBasePriceCents,
-  type ServiceCategory,
+  getConsultPriceId,
+  getDisplayPriceForCategory,
+  getPriceIdForRequest,
   type PriceIdInput,
+  type ServiceCategory,
 } from "./price-mapping"
 
 const log = createLogger("stripe-client")

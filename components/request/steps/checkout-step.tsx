@@ -5,27 +5,28 @@
  * Uses shared CheckoutButton and integrates with Stripe checkout
  */
 
-import { useState, useEffect } from "react"
-import { usePostHog } from "@/components/providers/posthog-provider"
 import { motion } from "framer-motion"
-import { useReducedMotion } from "@/components/ui/motion"
-import { stagger } from "@/lib/motion"
-import { Check, Clock, Smartphone, MessageSquare, Lock, ShieldCheck, UserX, RefreshCw } from "lucide-react"
-import { Switch } from "@/components/ui/switch"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Badge } from "@/components/ui/badge"
+import { Check, Clock, Lock, MessageSquare, RefreshCw,ShieldCheck, Smartphone, UserX } from "lucide-react"
+import { useEffect,useState } from "react"
+
+import { createCheckoutFromUnifiedFlow } from "@/app/actions/unified-checkout"
+import { usePostHog } from "@/components/providers/posthog-provider"
+import { CheckoutButton, TrustBadgeRow } from "@/components/shared"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { CheckoutButton } from "@/components/shared/checkout-button"
-import { TrustBadgeRow } from "@/components/shared/trust-badge"
+import { Badge } from "@/components/ui/badge"
+import { Checkbox } from "@/components/ui/checkbox"
+import { useReducedMotion } from "@/components/ui/motion"
+import { Switch } from "@/components/ui/switch"
+import { getAttribution } from "@/lib/analytics/attribution"
+import { trackFunnelStep } from "@/lib/analytics/conversion-tracking"
+import { PRICING as APP_PRICING, PRICING_DISPLAY } from "@/lib/constants"
+import { getQueueEstimate } from "@/lib/data/queue-availability"
+import { stagger } from "@/lib/motion"
+import { getDisplayPrice, getServiceDisplayLabel } from "@/lib/request/display-helpers"
+import type { UnifiedServiceType } from "@/lib/request/step-registry"
+
 // getConsultSubtypePrice from @/lib/stripe/price-mapping available if needed
 import { useRequestStore } from "../store"
-import { createCheckoutFromUnifiedFlow } from "@/app/actions/unified-checkout"
-import type { UnifiedServiceType } from "@/lib/request/step-registry"
-import { getQueueEstimate } from "@/lib/data/queue-availability"
-import { PRICING as APP_PRICING, PRICING_DISPLAY } from "@/lib/constants"
-import { getDisplayPrice, getServiceDisplayLabel } from "@/lib/request/display-helpers"
-import { trackFunnelStep } from "@/lib/analytics/conversion-tracking"
-import { getAttribution } from "@/lib/analytics/attribution"
 
 // Prices sourced from lib/constants.ts (single source of truth)
 const PRICING: Record<UnifiedServiceType, { base: number; label: string }> = {

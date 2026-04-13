@@ -1,4 +1,5 @@
 import "server-only"
+
 import { createClient, SupabaseClient } from "@supabase/supabase-js"
 
 // Singleton instance for connection pooling

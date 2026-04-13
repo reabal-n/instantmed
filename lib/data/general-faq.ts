@@ -1,4 +1,4 @@
-import type { FAQGroup } from '@/components/ui/faq-list'
+import type { FAQGroup } from '@/types/faq'
 
 /**
  * Single source of truth for the general FAQ page (/faq).

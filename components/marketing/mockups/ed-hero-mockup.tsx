@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion"
 import { CheckCircle2, Pill, ShieldCheck } from "lucide-react"
+
 import { useReducedMotion } from "@/components/ui/motion"
 import { cn } from "@/lib/utils"
 

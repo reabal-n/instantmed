@@ -6,6 +6,7 @@
  */
 
 import { NextResponse } from "next/server"
+
 import { withSentryApiCapture } from "@/lib/observability/sentry"
 
 export const runtime = "nodejs"

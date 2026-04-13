@@ -1,22 +1,24 @@
 "use client"
 
-import { useState, useTransition, useRef, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
+import { useCallback,useEffect, useRef, useState, useTransition } from "react"
+import { toast } from "sonner"
+
+import { logViewedIntakeAnswersAction, logViewedSafetyFlagsAction } from "@/app/actions/clinician-audit"
+import type { AIDraft } from "@/app/actions/draft-approval"
 import { approveDraft, regenerateDrafts } from "@/app/actions/draft-approval"
-import { updateStatusAction, saveDoctorNotesAction, declineIntakeAction, markScriptSentAction, issueRefundAction } from "@/app/doctor/queue/actions"
-import { resendCertificateAdmin } from "@/app/actions/resend-certificate-admin"
+import { acquireIntakeLockAction, extendIntakeLockAction,releaseIntakeLockAction } from "@/app/actions/intake-lock"
 import { reissueCertificateAction } from "@/app/actions/reissue-cert"
 import { approveDateCorrection } from "@/app/actions/request-date-correction"
-import { fetchCertPreviewDataAction, approveWithPreviewDataAction } from "@/app/doctor/intakes/[id]/document/actions"
-import type { CertificatePreviewData } from "@/components/doctor/certificate-preview-dialog"
-import { logViewedIntakeAnswersAction, logViewedSafetyFlagsAction } from "@/app/actions/clinician-audit"
-import { acquireIntakeLockAction, releaseIntakeLockAction, extendIntakeLockAction } from "@/app/actions/intake-lock"
-import { usePanel } from "@/components/panels/panel-provider"
-import { ParchmentPrescribePanel } from "@/components/doctor/parchment-prescribe-panel"
-import type { IntakeWithDetails, IntakeStatus } from "@/types/db"
-import type { AIDraft } from "@/app/actions/draft-approval"
+import { resendCertificateAdmin } from "@/app/actions/resend-certificate-admin"
+import { approveWithPreviewDataAction,fetchCertPreviewDataAction } from "@/app/doctor/intakes/[id]/document/actions"
+import { declineIntakeAction, issueRefundAction,markScriptSentAction, saveDoctorNotesAction, updateStatusAction } from "@/app/doctor/queue/actions"
+import type { CertificatePreviewData } from "@/components/doctor"
+import { ParchmentPrescribePanel } from "@/components/doctor"
 import { MIN_CLINICAL_NOTES_LENGTH } from "@/components/doctor/review/utils"
-import { toast } from "sonner"
+import { usePanel } from "@/components/panels/panel-provider"
+import type { IntakeStatus,IntakeWithDetails } from "@/types/db"
+
 import type { IntakeDialogState } from "./use-intake-dialogs"
 
 /**
@@ -96,8 +98,8 @@ export function useIntakeActions({
     }
 
     acquireIntakeLockAction(intake.id).then((result) => {
-      if (result.warning) {
-        setActionMessage({ type: "error", text: result.warning })
+      if (result.data?.warning) {
+        setActionMessage({ type: "error", text: result.data.warning })
       }
       lockAcquiredAt.current = Date.now()
     })

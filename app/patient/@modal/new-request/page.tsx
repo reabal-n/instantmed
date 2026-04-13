@@ -1,8 +1,9 @@
 "use client"
 
-import { useRouter } from "next/navigation"
 import { X } from "lucide-react"
-import { ServiceSelector } from "@/components/patient/service-selector"
+import { useRouter } from "next/navigation"
+
+import { ServiceSelector } from "@/components/patient"
 
 export default function NewRequestModal() {
   const router = useRouter()

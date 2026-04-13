@@ -1,26 +1,28 @@
 "use server"
 
-import { stripe, getPriceIdForRequest, type ServiceCategory } from "./client"
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { checkServerActionRateLimit } from "@/lib/rate-limit/redis"
-import { validateRepeatScriptPayload } from "@/lib/validation/repeat-script-schema"
-import { validateMedCertPayload } from "@/lib/validation/med-cert-schema"
-import { isServiceDisabled, isMedicationBlocked, SERVICE_DISABLED_ERRORS } from "@/lib/feature-flags"
-import { checkCheckoutBlocked } from "@/lib/config/feature-flags"
-import { createLogger } from "@/lib/observability/logger"
-import { isControlledSubstance } from "@/lib/clinical/intake-validation"
-import { CONTACT_EMAIL } from "@/lib/constants"
-import { getAppUrl } from "@/lib/config/env"
-import { checkSafetyForServer, validateSafetyFieldsPresent } from "@/lib/safety/evaluate"
-import { trackSafetyOutcome, trackSafetyBlock, trackIntakeFunnelStep } from "@/lib/analytics/posthog-server"
+import { trackIntakeFunnelStep,trackSafetyBlock, trackSafetyOutcome } from "@/lib/analytics/posthog-server"
 import {
-  logRequestCreated,
-  logTermsConsentGiven,
-  logTelehealthConsentGiven,
   logAccuracyAttestationGiven,
+  logRequestCreated,
+  logTelehealthConsentGiven,
+  logTermsConsentGiven,
   type RequestType,
 } from "@/lib/audit/compliance-audit"
-import { TERMS_VERSION, TELEHEALTH_CONSENT_VERSION } from "@/lib/constants"
+import { isControlledSubstance } from "@/lib/clinical/intake-validation"
+import { getAppUrl } from "@/lib/config/env"
+import { checkCheckoutBlocked } from "@/lib/config/kill-switches"
+import { CONTACT_EMAIL } from "@/lib/constants"
+import { TELEHEALTH_CONSENT_VERSION,TERMS_VERSION } from "@/lib/constants"
+import { isMedicationBlocked, isServiceDisabled, SERVICE_DISABLED_ERRORS } from "@/lib/feature-flags"
+import { createLogger } from "@/lib/observability/logger"
+import { checkServerActionRateLimit } from "@/lib/rate-limit/redis"
+import { checkSafetyForServer, validateSafetyFieldsPresent } from "@/lib/safety/evaluate"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
+import { validateMedCertPayload } from "@/lib/validation/med-cert-schema"
+import { validateRepeatScriptPayload } from "@/lib/validation/repeat-script-schema"
+import type { ServiceCategory } from "@/types/services"
+
+import { getPriceIdForRequest,stripe } from "./client"
 
 const logger = createLogger("guest-checkout")
 

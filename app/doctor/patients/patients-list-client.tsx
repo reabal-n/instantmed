@@ -1,17 +1,18 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { Calendar, CheckCircle, ChevronLeft,ChevronRight, MapPin, Phone, Search, Users, XCircle } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { Input } from "@/components/ui/input"
+import { useMemo,useState } from "react"
+
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { UserCard } from "@/components/uix"
 import { Card, CardContent } from "@/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Search, Users, MapPin, Phone, Calendar, CheckCircle, XCircle, ChevronRight, ChevronLeft } from "lucide-react"
-import { formatDate, calculateAge } from "@/lib/format"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { UserCard } from "@/components/uix"
+import { calculateAge,formatDate } from "@/lib/format"
 import type { Profile } from "@/types/db"
 
 interface PatientsListClientProps {

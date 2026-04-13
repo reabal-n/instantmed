@@ -6,6 +6,7 @@
  */
 
 import { Redis } from '@upstash/redis'
+
 import { createLogger } from '@/lib/observability/logger'
 import { captureRedisWarning } from '@/lib/observability/redis-sentry'
 

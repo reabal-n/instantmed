@@ -1,6 +1,7 @@
-import { describe, it, expect } from "vitest"
 import { readFileSync } from "node:fs"
 import { resolve } from "node:path"
+
+import { describe, expect,it } from "vitest"
 
 /**
  * TGA compliance regression test
@@ -33,8 +34,6 @@ const PATIENT_FACING_STEPS = [
   "components/request/steps/weight-loss-assessment-step.tsx",
   "components/request/steps/womens-health-assessment-step.tsx",
   "components/request/steps/womens-health-type-step.tsx",
-  "components/request/steps/referral-reason-step.tsx",
-  "components/request/steps/safety-step.tsx",
 ]
 
 /**

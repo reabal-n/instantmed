@@ -1,11 +1,29 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  AlertCircle,
+  Code,
+  Eye,
+  Loader2,
+  Monitor,
+  RefreshCw,
+  Send,
+  Smartphone,
+} from "lucide-react"
+import { useEffect,useState } from "react"
+import { toast } from "sonner"
+
+import {
+  getAdminEmailTemplatesAction,
+  getAdminTemplateSampleDataAction,
+  previewAdminEmailTemplateAction,
+  sendAdminTestEmailAction,
+} from "@/app/actions/admin-email-preview"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   Select,
   SelectContent,
@@ -13,24 +31,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
-import {
-  Send,
-  Monitor,
-  Smartphone,
-  RefreshCw,
-  Eye,
-  Code,
-  Loader2,
-  AlertCircle,
-} from "lucide-react"
-import { toast } from "sonner"
-import {
-  sendAdminTestEmailAction,
-  getAdminEmailTemplatesAction,
-  getAdminTemplateSampleDataAction,
-  previewAdminEmailTemplateAction,
-} from "@/app/actions/admin-email-preview"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 export function EmailPreviewReactClient() {
   const [templates, setTemplates] = useState<Array<{ slug: string; name: string; availableTags: string[] }>>([])

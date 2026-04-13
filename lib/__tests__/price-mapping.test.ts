@@ -10,7 +10,8 @@
  *   - tiered-pricing.test.ts: getAbsenceDays legacy flow (local helper copy), PRICING constant values
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { afterEach,beforeEach, describe, expect, it, vi } from 'vitest'
+
 import { PRICING, PRICING_DISPLAY } from '@/lib/constants'
 
 const originalEnv = process.env

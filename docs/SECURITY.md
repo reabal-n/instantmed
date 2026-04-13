@@ -387,7 +387,7 @@ Monitoring: Sentry (errors, CSP), PostHog (behavior), Supabase (DB audit logs).
 
 ### Two Systems
 
-| Aspect | Env Flags (`lib/config/feature-flags.ts`) | DB Flags (`lib/feature-flags.ts`) |
+| Aspect | Env Kill Switches (`lib/config/kill-switches.ts`) | DB Flags (`lib/feature-flags.ts`) |
 |--------|-----------|----------|
 | Speed | Instant (no DB) | ~30s cache |
 | Admin UI | No | Yes |

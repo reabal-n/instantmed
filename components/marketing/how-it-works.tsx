@@ -1,12 +1,13 @@
 'use client'
 
-import { ArrowRight, Clock, CheckCircle2, Mail, FileText } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { motion } from 'framer-motion'
-import { useReducedMotion } from '@/components/ui/motion'
+import { ArrowRight, CheckCircle2, Clock, FileText,Mail } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
+
 import { FloatingCard } from '@/components/marketing/floating-card'
+import { Button } from '@/components/ui/button'
+import { useReducedMotion } from '@/components/ui/motion'
 import { SectionPill } from '@/components/ui/section-pill'
 
 function StepOneMockup() {

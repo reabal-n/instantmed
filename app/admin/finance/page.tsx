@@ -1,6 +1,7 @@
 import { requireRole } from "@/lib/auth/helpers"
-import { FinanceDashboardClient } from "./finance-client"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
+
+import { FinanceDashboardClient } from "./finance-client"
 
 export const dynamic = "force-dynamic"
 

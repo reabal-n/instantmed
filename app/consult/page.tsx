@@ -1,11 +1,13 @@
 import type { Metadata } from 'next'
+
+import { ConsultGuideSection } from '@/components/marketing/sections'
 import { ServiceFunnelPage } from '@/components/marketing/service-funnel-page'
-import { generalConsultFunnelConfig } from '@/lib/marketing/service-funnel-configs'
-import { getFeatureFlags } from '@/lib/feature-flags'
-import { BreadcrumbSchema, MedicalServiceSchema, HowToSchema, FAQSchema, HealthArticleSchema } from '@/components/seo/healthcare-schema'
+import { BreadcrumbSchema, FAQSchema, HealthArticleSchema,HowToSchema, MedicalServiceSchema } from '@/components/seo/healthcare-schema'
 import { PRICING_DISPLAY } from '@/lib/constants'
+import { getFeatureFlags } from '@/lib/feature-flags'
+import { generalConsultFunnelConfig } from '@/lib/marketing/service-funnel-configs'
+
 import { MedCertRedirectBanner } from './med-cert-redirect-banner'
-import { ConsultGuideSection } from '@/components/marketing/sections/consult-guide-section'
 
 const consultFaqs = [
   { question: "Will the doctor call me?", answer: "No - this is an async service. The doctor reviews your questionnaire and responds in writing with advice, a prescription, or a referral. If they need more information they'll message you through the platform. No phone call required." },

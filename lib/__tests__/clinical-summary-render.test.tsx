@@ -13,10 +13,11 @@
  *   - components/request/steps/hair-loss-assessment-step.tsx
  */
 
-import { describe, it, expect } from "vitest"
 import * as React from "react"
 import { renderToStaticMarkup } from "react-dom/server"
-import { ClinicalSummary } from "@/components/doctor/clinical-summary"
+import { describe, expect,it } from "vitest"
+
+import { ClinicalSummary } from "@/components/doctor"
 
 function render(element: React.ReactElement): string {
   return renderToStaticMarkup(element)

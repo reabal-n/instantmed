@@ -13,8 +13,9 @@
  */
 
 import crypto from "crypto"
-import { createLogger } from "@/lib/observability/logger"
+
 import { toError } from "@/lib/errors"
+import { createLogger } from "@/lib/observability/logger"
 
 const logger = createLogger("phi-encryption")
 

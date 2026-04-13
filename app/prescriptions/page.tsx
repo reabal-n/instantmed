@@ -1,18 +1,19 @@
 export const revalidate = 86400
 
 import type { Metadata } from 'next'
+
 import { PrescriptionsLanding } from '@/components/marketing/prescriptions-landing'
-import { PRESCRIPTION_FAQ } from '@/lib/data/prescription-faq'
 import {
   BreadcrumbSchema,
+  FAQSchema,
+  HealthArticleSchema,
   MedicalServiceSchema,
   PrescriptionHowToSchema,
-  SpeakableSchema,
-  FAQSchema,
   ReviewAggregateSchema,
-  HealthArticleSchema,
+  SpeakableSchema,
 } from '@/components/seo/healthcare-schema'
 import { PRICING, REVIEW_AGGREGATE } from '@/lib/constants'
+import { PRESCRIPTION_FAQ } from '@/lib/data/prescription-faq'
 
 export const metadata: Metadata = {
   title: 'Online Prescription Australia | Repeat & New Medication | InstantMed',

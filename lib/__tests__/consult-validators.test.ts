@@ -1,14 +1,15 @@
-import { describe, it, expect } from "vitest"
+import { describe, expect,it } from "vitest"
+
 import {
-  validateGeneralConsult,
-  validateEdConsult,
-  validateHairLossConsult,
+  validateConsultBySubtype,
   validateContraceptionConsult,
-  validateUtiConsult,
+  validateEdConsult,
+  validateGeneralConsult,
+  validateHairLossConsult,
   validateMorningAfterConsult,
+  validateUtiConsult,
   validateWeightLossConsult,
   validateWomensGeneralConsult,
-  validateConsultBySubtype,
 } from "../clinical/consult-validators"
 
 // ============================================================================

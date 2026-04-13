@@ -13,8 +13,9 @@
  * conversion friction while maintaining compliance.
  */
 
+import { AlertTriangle, CheckCircle, ChevronDown,Phone } from "lucide-react"
 import { useState } from "react"
-import { Phone, AlertTriangle, CheckCircle, ChevronDown } from "lucide-react"
+
 import { cn } from "@/lib/utils"
 
 interface EmergencyGateProps {

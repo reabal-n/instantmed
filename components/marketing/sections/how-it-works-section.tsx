@@ -1,13 +1,14 @@
 "use client"
 
-import Link from "next/link"
 import { motion } from "framer-motion"
-import { useReducedMotion } from "@/components/ui/motion"
 import { ArrowRight } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { FloatingCard } from "@/components/marketing/floating-card"
+import Link from "next/link"
+
 import { DottedGrid } from "@/components/marketing/dotted-grid"
-import { StepOneMockup, StepTwoMockup, StepThreeMockup } from "@/components/marketing/mockups/how-it-works-steps"
+import { FloatingCard } from "@/components/marketing/floating-card"
+import { StepOneMockup, StepThreeMockup,StepTwoMockup } from "@/components/marketing/mockups/how-it-works-steps"
+import { Button } from "@/components/ui/button"
+import { useReducedMotion } from "@/components/ui/motion"
 
 // =============================================================================
 // DATA

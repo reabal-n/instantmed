@@ -1,7 +1,9 @@
 import "server-only"
+
 import { unstable_cache } from "next/cache"
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
+
 import { getPatientCount } from "@/lib/social-proof"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 /**
  * Returns the real patient count from the database, cached for 1 hour.

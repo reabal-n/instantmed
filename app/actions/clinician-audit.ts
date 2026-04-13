@@ -1,14 +1,15 @@
 "use server"
 
-import { requireRole } from "@/lib/auth/helpers"
+import { headers } from "next/headers"
+
 import {
+  logClinicianViewedAISummary,
   logClinicianViewedIntakeAnswers,
   logClinicianViewedMedicalHistory,
   logClinicianViewedSafetyFlags,
-  logClinicianViewedAISummary,
   type RequestType,
 } from "@/lib/audit/compliance-audit"
-import { headers } from "next/headers"
+import { requireRole } from "@/lib/auth/helpers"
 
 /**
  * Clinician Audit Actions

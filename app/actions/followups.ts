@@ -1,20 +1,18 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
 import * as Sentry from "@sentry/nextjs"
+import { revalidatePath } from "next/cache"
+
 import { requireRoleOrNull } from "@/lib/auth/helpers"
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
-import { submitFollowupSchema, type SubmitFollowupInput } from "@/lib/validation/followup-schema"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
+import { type SubmitFollowupInput,submitFollowupSchema } from "@/lib/validation/followup-schema"
 
 const log = createLogger("followups-actions")
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
-interface ActionResult {
-  success: boolean
-  error?: string
-}
+import type { ActionResult } from "@/types/shared"
 
 export async function getFollowup(followupId: string) {
   if (!UUID_REGEX.test(followupId)) return null

@@ -1,20 +1,21 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
 import * as Sentry from "@sentry/nextjs"
-import {
-  updateIntakeStatus,
-  saveDoctorNotes,
-  flagForFollowup,
-  markAsReviewed,
-  updateScriptSent,
-} from "@/lib/data/intakes"
+import { revalidatePath } from "next/cache"
+
+import { declineIntake as declineIntakeCanonical } from "@/app/actions/decline-intake"
+import { trackIntakeFunnelStep } from "@/lib/analytics/posthog-server"
 import { requireRole } from "@/lib/auth/helpers"
 import { IntakeLifecycleError } from "@/lib/data/intake-lifecycle"
+import {
+  flagForFollowup,
+  markAsReviewed,
+  saveDoctorNotes,
+  updateIntakeStatus,
+  updateScriptSent,
+} from "@/lib/data/intakes"
 import { createLogger } from "@/lib/observability/logger"
-import { trackIntakeFunnelStep } from "@/lib/analytics/posthog-server"
 import type { IntakeStatus } from "@/types/db"
-import { declineIntake as declineIntakeCanonical } from "@/app/actions/decline-intake"
 
 const logger = createLogger("doctor-queue-actions")
 
@@ -257,7 +258,7 @@ export async function markScriptSentAction(
   try {
     const React = await import("react")
     const { sendEmail } = await import("@/lib/email/send-email")
-    const { ScriptSentEmail, scriptSentEmailSubject } = await import("@/components/email/templates/script-sent")
+    const { ScriptSentEmail, scriptSentEmailSubject } = await import("@/lib/email/components/templates/script-sent")
     const { getIntakeWithDetails } = await import("@/lib/data/intakes")
 
     // Dedup: skip email if webhook already sent one for this intake

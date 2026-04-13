@@ -1,27 +1,28 @@
 "use client"
 
-import { useRef } from "react"
-import Link from "next/link"
 import { motion } from "framer-motion"
-import { useReducedMotion } from "@/components/ui/motion"
+import {
+  Activity,
+  BadgeCheck,
+  ClipboardCheck,
+  HeartPulse,
+  Lock,
+  Pill,
+  ShieldAlert,
+  Stethoscope,
+  Workflow,
+} from "lucide-react"
+import Link from "next/link"
+import { useRef } from "react"
+
+import { usePostHog } from "@/components/providers/posthog-provider"
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
-import {
-  BadgeCheck,
-  HeartPulse,
-  ClipboardCheck,
-  Pill,
-  ShieldAlert,
-  Stethoscope,
-  Activity,
-  Workflow,
-  Lock,
-} from "lucide-react"
-import { usePostHog } from "@/components/providers/posthog-provider"
+import { useReducedMotion } from "@/components/ui/motion"
 
 // =============================================================================
 // DATA - all content preserved for SEO (E-E-A-T)

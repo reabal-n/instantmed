@@ -1,11 +1,12 @@
 "use client"
 
 import * as React from "react"
+
 import {
   Tooltip as RadixTooltip,
-  TooltipTrigger,
   TooltipContent,
   TooltipProvider,
+  TooltipTrigger,
 } from "@/components/ui/tooltip"
 
 export interface TooltipProps {

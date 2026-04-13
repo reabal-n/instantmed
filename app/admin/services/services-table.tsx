@@ -1,10 +1,18 @@
 "use client"
 
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Switch } from "@/components/ui/switch"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+import {
+  DollarSign,
+  Edit,
+  GripVertical,
+  Loader2,
+  Power,
+  PowerOff,
+  Search,
+  Settings,
+  Shield,
+  Trash2,
+} from "lucide-react"
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,6 +23,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
 import {
   Select,
   SelectContent,
@@ -22,6 +34,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Switch } from "@/components/ui/switch"
 import {
   Table,
   TableBody,
@@ -30,20 +43,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import {
-  Settings,
-  Edit,
-  Trash2,
-  Search,
-  DollarSign,
-  Shield,
-  Loader2,
-  GripVertical,
-  Power,
-  PowerOff,
-} from "lucide-react"
 import type { Service } from "@/lib/data/types/services"
-import { getServiceTypes, formatPrice } from "@/lib/data/types/services"
+import { formatPrice,getServiceTypes } from "@/lib/data/types/services"
 
 const SERVICE_TYPES = getServiceTypes()
 

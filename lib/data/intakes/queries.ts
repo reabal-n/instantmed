@@ -1,17 +1,25 @@
 import "server-only"
+
 import { unstable_cache } from "next/cache"
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { createLogger } from "@/lib/observability/logger"
+
 import { toError } from "@/lib/errors"
+import { createLogger } from "@/lib/observability/logger"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 const logger = createLogger("data-intakes")
+import { decryptProfilePhi } from "@/lib/data/profiles"
+import { readAnswers, readDoctorNotes, readPatientNoteContent } from "@/lib/security/phi-field-wrappers"
 import type {
-  IntakeWithPatient,
-  IntakeWithDetails,
   IntakeStatus,
+  IntakeWithDetails,
+  IntakeWithPatient,
   PatientNote,
 } from "@/types/db"
-import { readDoctorNotes, readAnswers, readPatientNoteContent } from "@/lib/security/phi-field-wrappers"
-import { decryptProfilePhi } from "@/lib/data/profiles"
+import {
+  asIntakeWithDetails,
+  asIntakeWithPatient,
+  asPatientNote,
+} from "@/types/db"
+
 import type { DashboardIntake, DashboardPrescription } from "./types"
 
 // ============================================
@@ -51,7 +59,7 @@ export function getPatientIntakes(
 
       if (countError) {
         logger.error("Error fetching patient intake count", {}, countError instanceof Error ? countError : new Error(String(countError)))
-        return { data: [] as IntakeWithPatient[], total: 0, page, pageSize }
+        return { data: [] as unknown as IntakeWithPatient[], total: 0, page, pageSize }
       }
 
       // Build data query with service join for UI display
@@ -70,7 +78,7 @@ export function getPatientIntakes(
 
       if (error) {
         logger.error("Error fetching patient intakes", {}, toError(error))
-        return { data: [] as IntakeWithPatient[], total: count ?? 0, page, pageSize }
+        return { data: [] as unknown as IntakeWithPatient[], total: count ?? 0, page, pageSize }
       }
 
       // Decrypt PHI fields (doctor_notes) before returning
@@ -162,7 +170,7 @@ export async function getIntakeForPatient(intakeId: string, patientId: string): 
     patient: Array.isArray(data.patient) ? data.patient[0] : data.patient,
   }
 
-  return unwrapped as unknown as IntakeWithPatient
+  return asIntakeWithPatient(unwrapped as Record<string, unknown>)
 }
 
 // ============================================
@@ -572,13 +580,13 @@ export async function getIntakeWithDetails(intakeId: string): Promise<IntakeWith
       }
     : null
 
-  return {
+  return asIntakeWithDetails({
     ...data,
     doctor_notes: doctorNotes,
     patient: decryptedPatient,
     service: Array.isArray(data.service) ? data.service[0] : data.service,
     answers: decryptedAnswers,
-  } as unknown as IntakeWithDetails
+  } as Record<string, unknown>)
 }
 
 /**
@@ -1077,7 +1085,7 @@ export async function getPatientNotes(
     }))
   )
 
-  return decrypted as unknown as PatientNote[]
+  return decrypted.map(row => asPatientNote(row as Record<string, unknown>))
 }
 
 // ============================================

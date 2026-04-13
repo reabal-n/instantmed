@@ -1,8 +1,9 @@
-import Link from "next/link"
 import { ArrowRight, Shield } from "lucide-react"
+import Link from "next/link"
+
 import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
 import { PRICING } from "@/lib/constants"
+import { cn } from "@/lib/utils"
 
 interface BlogCTACardProps {
   service?: "med-cert" | "prescription" | "consult"

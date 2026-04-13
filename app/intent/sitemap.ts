@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next"
+
 import { getAllIntentSlugs } from "@/lib/seo/intents"
 
 const CONTENT_ENRICHED = new Date("2026-04-13")

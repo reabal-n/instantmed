@@ -1,27 +1,26 @@
-import { Navbar } from "@/components/shared/navbar"
-import { ContentPageTracker } from "@/components/analytics/content-page-tracker"
-import { Footer } from "@/components/shared/footer"
-import { Button } from "@/components/ui/button"
 import {
   ArrowRight,
+  Building2,
+  CheckCircle2,
   Clock,
   Shield,
-  CheckCircle2,
   X,
   Zap,
-  Building2,
 } from "lucide-react"
+import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import type { Metadata } from "next"
-import { FAQSchema, BreadcrumbSchema, HealthArticleSchema } from "@/components/seo/healthcare-schema"
-import { MedicalDisclaimer } from "@/components/seo/medical-disclaimer"
+
+import { ContentPageTracker } from "@/components/analytics/content-page-tracker"
+import { DataDrivenGuideSection } from "@/components/marketing/sections"
+import { BreadcrumbSchema, FAQSchema, HealthArticleSchema, MedicalDisclaimer } from "@/components/seo"
+import { Footer,Navbar } from "@/components/shared"
+import { Button } from "@/components/ui/button"
 import { PageBreadcrumbs } from "@/components/uix"
 import { PRICING_DISPLAY } from "@/lib/constants"
-import { DataDrivenGuideSection } from "@/components/marketing/sections/data-driven-guide-section"
 import {
-  COMPETITOR_COMPARISONS,
   type ComparisonEntry,
+  COMPETITOR_COMPARISONS,
 } from "@/lib/seo/data/competitor-comparisons"
 
 // Built-in comparisons - general telehealth educational pages.

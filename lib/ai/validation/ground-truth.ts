@@ -5,8 +5,8 @@
  * to prevent hallucinations and ensure accuracy.
  */
 
-import type { MedCertDraftOutput } from "../schemas/med-cert-draft"
 import type { ClinicalNoteOutput } from "../schemas/clinical-note"
+import type { MedCertDraftOutput } from "../schemas/med-cert-draft"
 
 // Forbidden diagnosis terms - AI must not invent specific diagnoses
 const FORBIDDEN_DIAGNOSIS_TERMS = [

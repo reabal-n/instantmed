@@ -1,7 +1,8 @@
 "use client"
 
-import { useState, useEffect } from "react"
 import { Check, WifiOff } from "lucide-react"
+import { useEffect,useState } from "react"
+
 import { cn } from "@/lib/utils"
 
 /**

@@ -1,9 +1,10 @@
 import "server-only"
 
-import { NextRequest, NextResponse } from "next/server"
-import { timingSafeEqual } from "crypto"
-import { createLogger } from "@/lib/observability/logger"
 import * as Sentry from "@sentry/nextjs"
+import { timingSafeEqual } from "crypto"
+import { NextRequest, NextResponse } from "next/server"
+
+import { createLogger } from "@/lib/observability/logger"
 
 const logger = createLogger("cron-auth")
 

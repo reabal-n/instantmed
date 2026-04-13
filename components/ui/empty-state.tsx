@@ -1,13 +1,15 @@
 "use client"
 
-import { LucideIcon, Plus, Lightbulb, Sparkles } from "lucide-react"
-import { Button } from "./button"
-import { cn } from "@/lib/utils"
 import { motion } from "framer-motion"
+import { Lightbulb, LucideIcon, Plus, Sparkles } from "lucide-react"
+import Link from "next/link"
+
+import { LottieAnimation } from "@/components/ui/lottie-animation"
 import { useReducedMotion } from "@/components/ui/motion"
 import { fadeIn, fadeUp as slideUp } from "@/lib/motion"
-import Link from "next/link"
-import { LottieAnimation } from "@/components/ui/lottie-animation"
+import { cn } from "@/lib/utils"
+
+import { Button } from "./button"
 
 interface EmptyStateProps {
   icon: LucideIcon

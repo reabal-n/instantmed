@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { cn } from "@/lib/utils"
+
 import {
   Accordion,
   AccordionContent,
@@ -9,20 +9,14 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion"
 import { useReducedMotion } from "@/components/ui/motion"
+import { cn } from "@/lib/utils"
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Types
+// Types (re-exported from canonical location for backward compat)
 // ─────────────────────────────────────────────────────────────────────────────
 
-export interface FAQItem {
-  question: string
-  answer: string
-}
-
-export interface FAQGroup {
-  category?: string
-  items: FAQItem[]
-}
+export type { FAQGroup,FAQItem } from "@/types/faq"
+import type { FAQGroup,FAQItem } from "@/types/faq"
 
 interface FAQListProps {
   /** Flat list of FAQ items (ungrouped) */

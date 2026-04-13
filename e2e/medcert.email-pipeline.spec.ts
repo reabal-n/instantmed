@@ -10,21 +10,22 @@
  * Run with: PLAYWRIGHT=1 pnpm e2e --grep "email-pipeline"
  */
 
-import { test, expect } from "@playwright/test"
+import { expect,test } from "@playwright/test"
+
+import { loginAsOperator, logoutTestUser } from "./helpers/auth"
 import { 
-  isDbAvailable,
+  deleteEmailOutboxForIntake,
+  getIntakeDocumentForIntake,
   getSupabaseClient,
   INTAKE_ID,
-  getIntakeDocumentForIntake,
+  isDbAvailable,
   resetIntakeForRetest,
+  testEmailOutboxInsertSelect,
+  verifyEmailOutboxTable,
+  waitForEmailOutboxEntry,
   waitForIntakeStatus,
   waitForIssuedCertificate,
-  verifyEmailOutboxTable,
-  testEmailOutboxInsertSelect,
-  waitForEmailOutboxEntry,
-  deleteEmailOutboxForIntake,
 } from "./helpers/db"
-import { loginAsOperator, logoutTestUser } from "./helpers/auth"
 import { waitForPageLoad } from "./helpers/test-utils"
 
 // ============================================================================

@@ -1,9 +1,10 @@
 "use client";
 
-import { cn } from "@/lib/utils";
-import React from "react";
 import { motion } from "framer-motion";
+import React from "react";
+
 import { useReducedMotion } from "@/components/ui/motion";
+import { cn } from "@/lib/utils";
 
 interface CinematicSwitchProps {
   value: boolean | undefined;

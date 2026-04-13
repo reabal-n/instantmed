@@ -1,11 +1,11 @@
-import { Suspense } from "react"
 import type { Metadata } from "next"
+import { Suspense } from "react"
+
+import { PanelDashboard, type ProfileData } from "@/components/patient"
+import { Skeleton } from "@/components/ui/skeleton"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
-import { PanelDashboard } from "@/components/patient/panel-dashboard"
-import { type ProfileData } from "@/components/patient/profile-todo-card"
 import { getPatientDashboardData } from "@/lib/data/intakes"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { Skeleton } from "@/components/ui/skeleton"
 
 export const metadata: Metadata = {
   title: "Dashboard",

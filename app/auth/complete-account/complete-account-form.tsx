@@ -1,13 +1,13 @@
 "use client"
 
-import type React from "react"
-
-import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
-import { useAuth } from "@/lib/supabase/auth-provider"
 import { Check, Loader2 } from "lucide-react"
+import { useRouter } from "next/navigation"
+import type React from "react"
+import { useEffect, useState } from "react"
+
 import { Button } from "@/components/ui/button"
 import { Confetti } from "@/components/ui/confetti"
+import { useAuth } from "@/lib/supabase/auth-provider"
 
 export function CompleteAccountForm({
   intakeId,

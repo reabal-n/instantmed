@@ -1,9 +1,10 @@
-import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
+import { NextRequest, NextResponse } from "next/server"
+
 import { auth } from "@/lib/auth/helpers"
+import { toError } from "@/lib/errors"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
-import { toError } from "@/lib/errors"
 const logger = createLogger("amt-search")
 
 // NCTS FHIR Terminology Server for Australian Medicines Terminology (AMT)

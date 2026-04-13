@@ -1,12 +1,14 @@
 import "server-only"
 
 import * as React from "react"
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { sendEmail } from "./send-email"
-import { SubscriptionNudgeEmail, subscriptionNudgeSubject } from "@/components/email/templates/subscription-nudge"
+
 import { getAppUrl } from "@/lib/config/env"
+import { SubscriptionNudgeEmail, subscriptionNudgeSubject } from "@/lib/email/components/templates/subscription-nudge"
+import { canSendMarketingEmail } from "@/lib/email/preferences"
 import { createLogger } from "@/lib/observability/logger"
-import { canSendMarketingEmail } from "@/app/actions/email-preferences"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
+
+import { sendEmail } from "./send-email"
 
 const logger = createLogger("subscription-nudge")
 

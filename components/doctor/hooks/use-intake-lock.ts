@@ -1,10 +1,11 @@
 "use client"
 
-import { useState, useEffect, useCallback, useRef } from "react"
+import { useCallback, useEffect, useRef,useState } from "react"
+
 import {
   acquireIntakeLockAction,
-  releaseIntakeLockAction,
   extendIntakeLockAction,
+  releaseIntakeLockAction,
 } from "@/app/actions/intake-lock"
 
 const LOCK_EXTEND_INTERVAL_MS = 5 * 60 * 1000
@@ -26,8 +27,8 @@ export function useIntakeLock(intakeId: string, active = true) {
     hasAcquired.current = true
 
     acquireIntakeLockAction(intakeId).then((result) => {
-      if (result.warning) {
-        setLockWarning(result.warning)
+      if (result.data?.warning) {
+        setLockWarning(result.data.warning)
       }
     })
 

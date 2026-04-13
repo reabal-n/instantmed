@@ -9,9 +9,10 @@
  *   Body: { "secret": "<INDEXNOW_SECRET>" }
  */
 
-import { NextRequest, NextResponse } from "next/server"
-import { createLogger } from "@/lib/observability/logger"
 import * as Sentry from "@sentry/nextjs"
+import { NextRequest, NextResponse } from "next/server"
+
+import { createLogger } from "@/lib/observability/logger"
 
 const logger = createLogger("indexnow")
 

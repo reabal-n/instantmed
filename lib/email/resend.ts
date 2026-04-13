@@ -1,13 +1,14 @@
 "use server"
 
-import { logger } from "@/lib/observability/logger"
 import * as Sentry from "@sentry/nextjs"
-import { captureRedisWarning } from "@/lib/observability/redis-sentry"
+import { Redis } from "@upstash/redis"
 
 import { env } from "@/lib/config/env"
-import { isEmailSuppressed, htmlToPlainText } from "./utils"
-import { Redis } from "@upstash/redis"
 import { CONTACT_EMAIL } from "@/lib/constants"
+import { logger } from "@/lib/observability/logger"
+import { captureRedisWarning } from "@/lib/observability/redis-sentry"
+
+import { htmlToPlainText,isEmailSuppressed } from "./utils"
 
 /**
  * Email delivery service using Resend

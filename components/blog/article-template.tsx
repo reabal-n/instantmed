@@ -1,37 +1,37 @@
 'use client'
 
-import Link from "next/link"
-import { cn } from "@/lib/utils"
-import Image from "next/image"
 import { 
-  ArrowLeft, 
-  Clock, 
-  Calendar, 
-  Shield, 
-  CheckCircle2, 
   AlertTriangle,
-  Info,
-  Lightbulb,
-  FileText,
-  Stethoscope,
-  Pill,
+  ArrowLeft, 
   ArrowRight,
   BadgeCheck,
   Building2,
-  ChevronDown
-} from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { SocialShare } from "@/components/blog/social-share"
-import { RelatedArticles } from "@/components/blog/related-articles"
-import { BlogCTACard } from "@/components/marketing/blog-cta-card"
-import { TableOfContents } from "@/components/blog/table-of-contents"
-import { ArticleTags } from "@/components/blog/article-tags"
+  Calendar, 
+  CheckCircle2, 
+  ChevronDown,
+  Clock, 
+  FileText,
+  Info,
+  Lightbulb,
+  Pill,
+  Shield, 
+  Stethoscope} from "lucide-react"
+import Image from "next/image"
+import Link from "next/link"
+
 import { ArticleSeriesNav, SeriesBadge } from "@/components/blog/article-series"
+import { ArticleTags } from "@/components/blog/article-tags"
 import { HeroImage as _HeroImage } from "@/components/blog/hero-image"
 import { PopularArticlesCompact } from "@/components/blog/popular-articles"
-import type { Article, ArticleSection, RelatedService, ArticleFAQ, ArticleLink } from "@/lib/blog/types"
+import { RelatedArticles } from "@/components/blog/related-articles"
+import { SocialShare } from "@/components/blog/social-share"
+import { TableOfContents } from "@/components/blog/table-of-contents"
+import { BlogCTACard } from "@/components/marketing/blog-cta-card"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import type { Article, ArticleFAQ, ArticleLink,ArticleSection, RelatedService } from "@/lib/blog/types"
 import { PRICING_DISPLAY } from "@/lib/constants"
+import { cn } from "@/lib/utils"
 
 interface ArticleTemplateProps {
   article: Article

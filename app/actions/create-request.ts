@@ -1,7 +1,8 @@
 "use server"
 
-import { createIntakeAndCheckoutAction } from "@/lib/stripe/checkout"
 import crypto from "crypto"
+
+import { createIntakeAndCheckoutAction } from "@/lib/stripe/checkout"
 
 interface CreateRequestInput {
   category: string

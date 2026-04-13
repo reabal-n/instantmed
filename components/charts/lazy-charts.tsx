@@ -1,6 +1,7 @@
 "use client"
 
 import dynamic from "next/dynamic"
+
 import { Skeleton } from "@/components/ui/skeleton"
 
 /**
@@ -63,17 +64,17 @@ export const LazyComposedChart = dynamic(
 
 // Re-export common chart components (these are lightweight)
 export {
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
   Area,
   Bar,
+  CartesianGrid,
+  Cell,
+  Legend,
   Line,
   Pie,
-  Cell,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
 } from "recharts"
 
 /**

@@ -1,9 +1,10 @@
 "use client"
 
+import { AnimatePresence, motion, MotionConfig, type Variants } from "framer-motion"
+import { Check,ChevronDown } from "lucide-react"
 import * as React from "react"
-import { motion, AnimatePresence, MotionConfig, type Variants } from "framer-motion"
+
 import { useReducedMotion } from "@/components/ui/motion"
-import { ChevronDown, Check } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 // Custom hook for click outside detection

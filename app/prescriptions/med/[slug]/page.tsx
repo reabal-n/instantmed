@@ -1,17 +1,18 @@
+import { AlertTriangle, ArrowRight, CheckCircle, Clock, Pill, Shield } from "lucide-react"
+import { HelpCircle } from "lucide-react"
+import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import Script from "next/script"
-import { Navbar } from "@/components/shared/navbar"
+
 import { MarketingFooter } from "@/components/marketing"
-import { Button } from "@/components/ui/button"
+import { BreadcrumbSchema, FAQSchema } from "@/components/seo"
+import { MedicalDisclaimer } from "@/components/seo"
+import { Navbar } from "@/components/shared"
 import { Badge } from "@/components/ui/badge"
-import { getMedicationBySlug, CATEGORY_LABELS } from "@/lib/data/medications"
-import { ArrowRight, Pill, AlertTriangle, CheckCircle, Clock, Shield } from "lucide-react"
-import type { Metadata } from "next"
-import { BreadcrumbSchema, FAQSchema } from "@/components/seo/healthcare-schema"
+import { Button } from "@/components/ui/button"
+import { CATEGORY_LABELS,getMedicationBySlug } from "@/lib/data/medications"
 import { safeJsonLd } from "@/lib/seo/safe-json-ld"
-import { MedicalDisclaimer } from "@/components/seo/medical-disclaimer"
-import { HelpCircle } from "lucide-react"
 
 // Generic prescription-service FAQs shown on all medication pages
 const PRESCRIPTION_FAQS = [

@@ -8,44 +8,37 @@
  */
 
 export {
+  type ActorRole,
+  type AuditReadinessResult,
+  // Audit Readiness
+  checkAuditReadiness,
+  type ComplianceAuditEntry,
   // Types
   type ComplianceEventType,
-  type RequestType,
-  type ActorRole,
-  type TriageOutcome,
-  type ComplianceAuditEntry,
-  type AuditReadinessResult,
-  
-  // Core function
-  logComplianceEvent,
-  
-  // Section 1: Request Lifecycle
-  logRequestCreated,
-  logRequestReviewed,
-  logOutcomeAssigned,
-  
+  getComplianceTimeline,
+  logCallCompleted,
+  logCallInitiated,
+  // Section 4: Synchronous Contact Indicators
+  logCallRequiredFlagged,
   // Section 2: Clinician Involvement
   logClinicianOpenedRequest,
   logClinicianReviewedRequest,
   logClinicianSelectedOutcome,
-  
-  // Section 3: Triage Outcome
-  logTriageApproved,
-  logTriageNeedsCall,
-  logTriageDeclined,
-  logTriageOutcomeChanged,
-  
-  // Section 4: Synchronous Contact Indicators
-  logCallRequiredFlagged,
-  logCallInitiated,
-  logCallCompleted,
+  // Core function
+  logComplianceEvent,
   logDecisionAfterCall,
-  
+  logExternalPrescribingIndicated,
   // Section 5: Prescribing Boundary Evidence
   logNoPrescribingInPlatform,
-  logExternalPrescribingIndicated,
-  
-  // Audit Readiness
-  checkAuditReadiness,
-  getComplianceTimeline,
+  logOutcomeAssigned,
+  // Section 1: Request Lifecycle
+  logRequestCreated,
+  logRequestReviewed,
+  // Section 3: Triage Outcome
+  logTriageApproved,
+  logTriageDeclined,
+  logTriageNeedsCall,
+  logTriageOutcomeChanged,
+  type RequestType,
+  type TriageOutcome,
 } from "./compliance-audit"

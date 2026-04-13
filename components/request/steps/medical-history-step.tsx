@@ -10,15 +10,17 @@
  *    - grouped in a single card with clear "informational only" label
  */
 
-import { useState, useCallback } from "react"
-import { usePostHog } from "@/components/providers/posthog-provider"
 import { ArrowRight } from "lucide-react"
-import { Textarea } from "@/components/ui/textarea"
+import { useCallback,useState } from "react"
+
+import { usePostHog } from "@/components/providers/posthog-provider"
+import { EnhancedSelectionButton } from "@/components/shared"
 import { Button } from "@/components/ui/button"
-import { EnhancedSelectionButton } from "@/components/shared/enhanced-selection-button"
-import { useRequestStore } from "../store"
+import { Textarea } from "@/components/ui/textarea"
 import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
+
+import { useRequestStore } from "../store"
 
 interface MedicalHistoryStepProps {
   serviceType: UnifiedServiceType

@@ -12,13 +12,13 @@
  */
 
 import type {
-  StructuredIntake,
-  MedCertIntake,
-  RepeatRxIntake,
-  NewRxIntake,
   ConsultIntake,
-  IntakeFlag,
   FlagSeverity,
+  IntakeFlag,
+  MedCertIntake,
+  NewRxIntake,
+  RepeatRxIntake,
+  StructuredIntake,
 } from './structured-intake-schema'
 
 // =============================================================================

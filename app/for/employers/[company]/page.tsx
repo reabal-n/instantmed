@@ -1,23 +1,24 @@
+import {
+  ArrowRight,
+  Building2,
+  CheckCircle,
+  HelpCircle,
+  Mail,
+  Search,
+  Shield,
+} from "lucide-react"
 import type { Metadata } from "next"
-import Link from "next/link"
 import Image from "next/image"
+import Link from "next/link"
 import { notFound } from "next/navigation"
-import { Navbar } from "@/components/shared/navbar"
+
+import { ContentPageTracker } from "@/components/analytics/content-page-tracker"
 import { MarketingFooter } from "@/components/marketing"
+import { Navbar } from "@/components/shared"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { CONTACT_EMAIL, PRICING } from "@/lib/constants"
 import { safeJsonLd } from "@/lib/seo/safe-json-ld"
-import {
-  Building2,
-  Search,
-  Shield,
-  CheckCircle,
-  Mail,
-  ArrowRight,
-  HelpCircle,
-} from "lucide-react"
-import { ContentPageTracker } from "@/components/analytics/content-page-tracker"
 
 const EMPLOYER_DATA: Record<string, { name: string; logo: string; logoWidth: number; industry: string }> = {
   woolworths:       { name: "Woolworths",         logo: "/logos/woolworths.png",        logoWidth: 120, industry: "retail" },

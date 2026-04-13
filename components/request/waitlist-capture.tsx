@@ -6,11 +6,12 @@
  * Stores signup in localStorage to show "You're on the list" state.
  */
 
-import { useState, useCallback } from "react"
+import { CheckCircle2 } from "lucide-react"
+import { useCallback,useState } from "react"
+
 import { usePostHog } from "@/components/providers/posthog-provider"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { CheckCircle2 } from "lucide-react"
 
 const STORAGE_KEY = "instantmed_waitlist"
 

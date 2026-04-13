@@ -1,9 +1,10 @@
-import { NextRequest, NextResponse } from "next/server"
-import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { createLogger } from "@/lib/observability/logger"
 import * as Sentry from "@sentry/nextjs"
+import { NextRequest, NextResponse } from "next/server"
 import { Webhook } from "svix"
+
 import { updateDeliveryStatus } from "@/lib/monitoring/delivery-tracking"
+import { createLogger } from "@/lib/observability/logger"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"

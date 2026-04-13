@@ -1,6 +1,8 @@
 import type { Metadata } from "next"
+
+import { BreadcrumbSchema } from "@/components/seo"
+
 import { ReviewsClientPageComponent as ReviewsClientPage } from "./reviewsClientPage"
-import { BreadcrumbSchema } from "@/components/seo/healthcare-schema"
 
 export const metadata: Metadata = {
   title: "Patient Reviews | Online Doctor Australia",

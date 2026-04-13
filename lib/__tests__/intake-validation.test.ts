@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest"
+import { beforeEach,describe, expect, it, vi } from "vitest"
 
 // Mock the triage-rules-engine before importing the module under test
 vi.mock("@/lib/clinical/triage-rules-engine", () => ({
@@ -8,22 +8,22 @@ vi.mock("@/lib/clinical/triage-rules-engine", () => ({
 }))
 
 import {
-  quickEmergencyCheck,
+  COMMONLY_ABUSED_MEDICATIONS,
+  CONTROLLED_SUBSTANCE_DISCLAIMER,
+  EMERGENCY_SYMPTOM_PATTERNS,
   isControlledSubstance,
   isHighRiskFirstTime,
   isOutsideGPScope,
+  quickEmergencyCheck,
   validateIntake,
-  EMERGENCY_SYMPTOM_PATTERNS,
-  CONTROLLED_SUBSTANCE_DISCLAIMER,
-  COMMONLY_ABUSED_MEDICATIONS,
 } from "@/lib/clinical/intake-validation"
 import {
+  checkAutoReject,
   checkEmergencySymptoms,
   checkRedFlagPatterns,
-  checkAutoReject,
 } from "@/lib/clinical/triage-rules-engine"
-import { AUTO_REJECT_RULES } from "@/lib/clinical/triage-types"
 import type { ClinicalFlag } from "@/lib/clinical/triage-types"
+import { AUTO_REJECT_RULES } from "@/lib/clinical/triage-types"
 
 // ============================================================================
 // quickEmergencyCheck
