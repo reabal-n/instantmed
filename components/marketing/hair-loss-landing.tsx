@@ -135,38 +135,38 @@ const HAIR_LOSS_HOW_IT_WORKS_STEPS = [
 const TREATMENT_OPTIONS = [
   {
     id: "oral",
-    name: "Oral treatment option",
-    brand: "Daily oral option",
+    name: "Daily oral tablet",
+    brand: "Prescription treatment",
     description:
-      "Doctor-prescribed oral treatment taken once daily. Addresses the hormonal factors that contribute to hair follicle miniaturisation.",
+      "Doctor-prescribed oral treatment taken once daily. Addresses the hormonal factors that drive hair follicle miniaturisation at the source.",
     type: "Oral tablet",
     frequency: "Once daily",
-    results: "Visible results typically 3\u20136 months",
+    results: "Visible results typically 3-6 months",
     bestFor: "Hair loss at the crown and mid-scalp",
-    popular: true,
-  },
-  {
-    id: "topical",
-    name: "Topical treatment option",
-    brand: "Applied treatment option",
-    description:
-      "Doctor-prescribed topical solution or foam applied directly to the scalp. Stimulates hair follicles and supports regrowth.",
-    type: "Topical solution/foam",
-    frequency: "Once or twice daily",
-    results: "Visible results typically 2\u20134 months",
-    bestFor: "Thinning hair or receding hairline",
     popular: true,
   },
   {
     id: "combination",
     name: "Combination approach",
-    brand: "Dual treatment approach",
+    brand: "Prescription + over-the-counter",
     description:
-      "Using both oral and topical treatments together for maximum effectiveness. Addresses hair loss through multiple mechanisms at once.",
-    type: "Oral + topical",
+      "Your doctor prescribes oral treatment and recommends a complementary over-the-counter scalp treatment available from any pharmacy. Two mechanisms working together for maximum results.",
+    type: "Oral Rx + OTC scalp treatment",
     frequency: "As directed by your doctor",
     results: "Often more effective than either alone",
     bestFor: "Moderate to advanced hair loss",
+    popular: true,
+  },
+  {
+    id: "doctor_decides",
+    name: "Let the doctor decide",
+    brand: "Expert recommendation",
+    description:
+      "Your doctor reviews your assessment and recommends the best approach based on your pattern, severity, and medical history.",
+    type: "Personalised plan",
+    frequency: "As prescribed",
+    results: "Tailored to your situation",
+    bestFor: "Not sure where to start",
     popular: false,
   },
 ] as const

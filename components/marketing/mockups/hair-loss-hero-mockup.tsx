@@ -42,7 +42,7 @@ export function HairLossHeroMockup() {
 
           <div className="rounded-lg border border-border/40 bg-muted/30 p-3 space-y-1">
             <p className="text-[11px] text-muted-foreground">Your plan</p>
-            <p className="text-sm font-medium">Oral + topical option</p>
+            <p className="text-sm font-medium">Personalised treatment plan</p>
           </div>
 
           <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
