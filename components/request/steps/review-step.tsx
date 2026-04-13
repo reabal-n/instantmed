@@ -63,6 +63,8 @@ function ExpandableValue({ value }: { value: string }) {
         type="button"
         onClick={() => setExpanded(!expanded)}
         className="ml-1 inline-flex items-center gap-0.5 text-xs text-primary hover:text-primary/80 font-normal"
+        aria-expanded={expanded}
+        aria-label={expanded ? "Show less" : "Show more"}
       >
         {expanded ? (
           <>Less <ChevronUp className="w-3 h-3" /></>
@@ -88,7 +90,7 @@ function ReviewSection({
       <div className="px-5 pt-4 pb-2.5 flex items-center justify-between">
         <h3 className="text-sm font-medium text-foreground">{title}</h3>
         {onEdit && (
-          <Button variant="ghost" size="sm" onClick={onEdit} className="h-7 px-2 text-xs gap-1 rounded-lg hover:bg-muted/50 dark:hover:bg-white/10">
+          <Button variant="ghost" size="sm" onClick={onEdit} className="h-7 px-2 text-xs gap-1 rounded-lg hover:bg-muted/50 dark:hover:bg-white/10" aria-label={`Edit ${title}`}>
             <Edit2 className="w-3 h-3" />
             Edit
           </Button>
@@ -295,22 +297,28 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
       })
     }
 
-    // Hair loss assessment
+    // Hair loss assessment (4-step flow: goals, pattern, health, preferences)
     if (consultSubtype === 'hair_loss') {
-      const PATTERN_LABELS: Record<string, string> = {
-        male_pattern: 'Male pattern baldness',
-        receding: 'Receding hairline',
-        thinning_crown: 'Thinning at crown',
-        overall_thinning: 'Overall thinning',
-        overall: 'Overall thinning',
-        patchy: 'Patchy hair loss',
-        other: 'Other pattern',
+      const GOAL_LABELS: Record<string, string> = {
+        prevent: 'Prevent further loss',
+        regrow: 'Regrow what I\'ve lost',
+        both: 'Both (stop + regrow)',
+        exploring: 'Just exploring options',
       }
-      const HAIR_DURATION_LABELS: Record<string, string> = {
-        less_than_6_months: 'Less than 6 months',
-        '6_to_12_months': '6-12 months',
-        '1_to_2_years': '1-2 years',
-        more_than_2_years: 'More than 2 years',
+      const ONSET_LABELS: Record<string, string> = {
+        not_yet: 'Not yet (prevention)',
+        few_months: 'Last few months',
+        '6_12_months': '6-12 months',
+        '1_2_years': '1-2 years',
+        '2_plus_years': '2+ years',
+      }
+      const PATTERN_LABELS: Record<string, string> = {
+        none: 'No noticeable loss',
+        slight_recession: 'Slight recession at temples',
+        noticeable_thinning: 'Noticeable thinning / recession',
+        crown_plus_hairline: 'Crown thinning + hairline recession',
+        significant: 'Significant overall thinning',
+        extensive: 'Extensive loss',
       }
       const FAMILY_HISTORY_LABELS: Record<string, string> = {
         yes_father: "Yes, father's side",
@@ -321,8 +329,13 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
       }
       const HAIR_MED_LABELS: Record<string, string> = {
         oral: 'Daily oral tablet',
-        topical: 'Topical scalp treatment',
+        combination: 'Combination (oral + OTC scalp treatment)',
         doctor_decides: 'Doctor to recommend',
+      }
+      const REPRODUCTIVE_LABELS: Record<string, string> = {
+        no: 'No',
+        na: 'Not applicable',
+        yes: 'Yes',
       }
       const triedTreatments = [
         { key: 'triedMinoxidil', label: 'Topical solution' },
@@ -340,11 +353,15 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
       ].filter(c => answers[c.key]).map(c => c.label)
 
       const hairItems = [
-        { label: 'Pattern', value: PATTERN_LABELS[answers.hairPattern as string] || String(answers.hairPattern || '—') },
-        { label: 'Duration', value: HAIR_DURATION_LABELS[answers.hairDuration as string] || String(answers.hairDuration || '—') },
-        { label: 'Family history', value: FAMILY_HISTORY_LABELS[answers.hairFamilyHistory as string] || String(answers.hairFamilyHistory || '—') },
-        { label: 'Preference', value: HAIR_MED_LABELS[answers.hairMedicationPreference as string] || String(answers.hairMedicationPreference || '—') },
+        { label: 'Goal', value: GOAL_LABELS[answers.hairGoal as string] || String(answers.hairGoal || '-') },
+        { label: 'Onset', value: ONSET_LABELS[answers.hairOnset as string] || String(answers.hairOnset || '-') },
+        { label: 'Pattern', value: PATTERN_LABELS[answers.hairPattern as string] || String(answers.hairPattern || '-') },
+        { label: 'Family history', value: FAMILY_HISTORY_LABELS[answers.hairFamilyHistory as string] || String(answers.hairFamilyHistory || '-') },
+        { label: 'Preference', value: HAIR_MED_LABELS[answers.hairMedicationPreference as string] || String(answers.hairMedicationPreference || '-') },
       ]
+      if (answers.hairReproductive) {
+        hairItems.push({ label: 'Partner pregnant/trying', value: REPRODUCTIVE_LABELS[answers.hairReproductive as string] || String(answers.hairReproductive) })
+      }
       if (triedTreatments.length > 0) {
         hairItems.push({ label: 'Tried previously', value: triedTreatments.join(', ') })
       }
@@ -353,13 +370,19 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
       } else if (answers.scalpNone) {
         hairItems.push({ label: 'Scalp conditions', value: 'None' })
       }
+      if (answers.hairLowBP || answers.hairHeartConditions) {
+        const bpItems = []
+        if (answers.hairLowBP) bpItems.push('Low blood pressure / dizziness')
+        if (answers.hairHeartConditions) bpItems.push('Heart conditions / palpitations')
+        hairItems.push({ label: 'Cardiovascular', value: bpItems.join(', ') })
+      }
       if (answers.hairAdditionalInfo) {
         hairItems.push({ label: 'Additional info', value: String(answers.hairAdditionalInfo) })
       }
       sections.push({
         title: 'Hair Loss Assessment',
         items: hairItems,
-        stepId: 'hair-loss-assessment',
+        stepId: 'hair-loss-goals',
       })
     }
 
@@ -586,7 +609,7 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
             </Label>
           </div>
           {!safetyConfirmed && (
-            <p className="text-xs text-amber-600 dark:text-amber-400 mt-2 pl-7">
+            <p className="text-xs text-amber-600 dark:text-amber-400 mt-2 pl-7" aria-live="polite">
               Tick the box to confirm and continue to payment
             </p>
           )}

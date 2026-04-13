@@ -252,10 +252,51 @@ export const edPreferencesStepSchema = z.object({
   edPreference: nonEmptyString("Please select a treatment preference"),
 })
 
+// Hair loss - Step 1: Goals
+export const hairLossGoalsStepSchema = z.object({
+  hairGoal: nonEmptyString("Please select your goal"),
+  hairOnset: nonEmptyString("Please indicate when you first noticed changes"),
+})
+
+// Hair loss - Step 2: Assessment (visual Norwood + family history)
 export const hairLossAssessmentStepSchema = z.object({
   hairPattern: nonEmptyString("Please select your hair loss pattern"),
-  hairDuration: nonEmptyString("Please indicate how long you've noticed hair loss"),
   hairFamilyHistory: nonEmptyString("Please indicate family history"),
+})
+
+// Hair loss - Step 3: Health screening
+export const hairLossHealthStepSchema = z
+  .object({
+    hairReproductive: nonEmptyString("Please answer this safety question"),
+    has_allergies: z.union([z.literal("yes"), z.literal("no")]).optional(),
+    known_allergies: z.string().optional(),
+    has_conditions: z.union([z.literal("yes"), z.literal("no")]).optional(),
+    existing_conditions: z.string().optional(),
+    takes_medications: z.union([z.literal("yes"), z.literal("no")]).optional(),
+    current_medications: z.string().optional(),
+  })
+  .superRefine((data, ctx) => {
+    // Finasteride hard block: Category X teratogen
+    if (data.hairReproductive === "yes") {
+      ctx.addIssue({
+        code: "custom",
+        path: ["hairReproductive"],
+        message: "Hair loss medication cannot be prescribed when a partner is pregnant or trying to conceive",
+      })
+    }
+    if (data.has_allergies === "yes" && !data.known_allergies?.trim()) {
+      ctx.addIssue({ code: "custom", path: ["known_allergies"], message: "Please list your allergies" })
+    }
+    if (data.has_conditions === "yes" && !data.existing_conditions?.trim()) {
+      ctx.addIssue({ code: "custom", path: ["existing_conditions"], message: "Please list your conditions" })
+    }
+    if (data.takes_medications === "yes" && !data.current_medications?.trim()) {
+      ctx.addIssue({ code: "custom", path: ["current_medications"], message: "Please list your medications" })
+    }
+  })
+
+// Hair loss - Step 4: Preferences
+export const hairLossPreferencesStepSchema = z.object({
   hairMedicationPreference: nonEmptyString("Please select a treatment preference"),
 })
 
@@ -356,8 +397,20 @@ export function validateEdPreferencesStep(answers: Record<string, unknown>): Val
   return runSchema(edPreferencesStepSchema, answers)
 }
 
+export function validateHairLossGoalsStep(answers: Record<string, unknown>): ValidationResult {
+  return runSchema(hairLossGoalsStepSchema, answers)
+}
+
 export function validateHairLossAssessmentStep(answers: Record<string, unknown>): ValidationResult {
   return runSchema(hairLossAssessmentStepSchema, answers)
+}
+
+export function validateHairLossHealthStep(answers: Record<string, unknown>): ValidationResult {
+  return runSchema(hairLossHealthStepSchema, answers)
+}
+
+export function validateHairLossPreferencesStep(answers: Record<string, unknown>): ValidationResult {
+  return runSchema(hairLossPreferencesStepSchema, answers)
 }
 
 export function validateWomensHealthTypeStep(answers: Record<string, unknown>): ValidationResult {

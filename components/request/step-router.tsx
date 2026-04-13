@@ -34,7 +34,11 @@ const stepComponents = {
   'ed-assessment-step': lazy(() => import('./steps/ed-assessment-step')),
   'ed-health-step': lazy(() => import('./steps/ed-health-step')),
   'ed-preferences-step': lazy(() => import('./steps/ed-preferences-step')),
+  // Consult subtype-specific steps - Hair loss
+  'hair-loss-goals-step': lazy(() => import('./steps/hair-loss-goals-step')),
   'hair-loss-assessment-step': lazy(() => import('./steps/hair-loss-assessment-step')),
+  'hair-loss-health-step': lazy(() => import('./steps/hair-loss-health-step')),
+  'hair-loss-preferences-step': lazy(() => import('./steps/hair-loss-preferences-step')),
   'womens-health-type-step': lazy(() => import('./steps/womens-health-type-step')),
   'womens-health-assessment-step': lazy(() => import('./steps/womens-health-assessment-step')),
   'weight-loss-assessment-step': lazy(() => import('./steps/weight-loss-assessment-step')),

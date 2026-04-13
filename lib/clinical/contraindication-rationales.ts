@@ -71,8 +71,13 @@ const RATIONALES: Record<string, RationaleRule> = {
       "Patient reports a prior serious reaction to ED medication. Review the specific history before prescribing - consider a different molecule or decline.",
   },
 
-  // Hair loss -- future use (most hair-loss safety gates land with the intake rewrite)
-  // Placeholders left empty intentionally -- add as rename migrations land.
+  // Hair loss - reproductive safety (finasteride Category X)
+  hairReproductive: {
+    severity: "destructive",
+    matches: (v: unknown) => v === "yes",
+    text:
+      "Finasteride is Category X (TGA/FDA). Oral 5-alpha reductase inhibitors carry teratogenic risk. Only topical minoxidil (OTC) should be considered when reproductive exposure is possible. Service declined at intake.",
+  },
 }
 
 export function getContraindicationRationale(

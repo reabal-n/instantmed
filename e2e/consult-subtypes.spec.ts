@@ -41,7 +41,7 @@ const CONSULT_SUBTYPES = [
   {
     subtype: 'hair_loss',
     urlSubtype: 'hair_loss',
-    firstStepHeading: /hair loss|pattern.*hair/i,
+    firstStepHeading: /what matters to you|hair loss/i,
     expectedPriceEnvVar: 'STRIPE_PRICE_CONSULT_HAIR_LOSS',
     displayPrice: '$49.95',
   },
@@ -606,31 +606,48 @@ test.describe("Consult Subtype: Hair Loss - full step walkthrough", () => {
     await clearDrafts(page)
   })
 
-  test("walks through hair-loss-assessment → common tail to checkout", async ({ page }) => {
+  test("walks through 4-step hair loss flow to checkout", async ({ page }) => {
     await page.goto("/request?service=consult&subtype=hair_loss")
     await waitForPageLoad(page)
     await dismissOverlays(page)
 
-    // ── Step 1: Hair Loss Assessment ──
-    await waitForStep(page, /What type of hair loss are you experiencing/i)
+    // ── Step 1: Goals ──
+    await waitForStep(page, /what matters to you/i)
 
-    // Select hair pattern - "Male pattern baldness"
-    await page.getByLabel("What type of hair loss are you experiencing").getByLabel(
-      /Male pattern baldness/i
-    ).click()
+    // Select goal - "Regrow what I've lost"
+    await page.getByRole("button", { name: /Regrow what I've lost/i }).click()
 
-    // Select duration - "More than 2 years"
-    await page.getByLabel("How long have you been experiencing hair loss").getByLabel(
-      /More than 2 years/i
-    ).click()
+    // Select onset - "1-2 years"
+    await page.getByRole("button", { name: /1-2 years/i }).click()
+
+    await clickContinue(page)
+
+    // ── Step 2: Assessment (Norwood + family + treatments) ──
+    await waitForStep(page, /Tell us about your hair loss/i)
+
+    // Select pattern - "Noticeable thinning / recession"
+    await page.getByRole("button", { name: /Noticeable thinning/i }).click()
 
     // Select family history - "Yes, on my father's side"
     await page.getByLabel("Do you have a family history of hair loss").getByLabel(
       /Yes, on my father/i
     ).click()
 
-    // Select medication preference - click "Finasteride (oral)" card button
-    await page.getByRole("button", { name: /Finasteride \(oral\)/i }).click()
+    await clickContinue(page)
+
+    // ── Step 3: Health screening ──
+    await waitForStep(page, /quick health check/i)
+
+    // Reproductive question - select "No"
+    await page.getByRole("button", { name: /^No$/i }).click()
+
+    await clickContinue(page)
+
+    // ── Step 4: Preferences ──
+    await waitForStep(page, /treatment to fit your life/i)
+
+    // Select preference - "Daily oral tablet"
+    await page.getByRole("button", { name: /Daily oral tablet/i }).click()
 
     await clickContinue(page)
 

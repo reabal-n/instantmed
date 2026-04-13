@@ -300,11 +300,35 @@ const CONSULT_SUBTYPE_STEPS: Record<ConsultSubtype, StepDefinition[]> = {
   
   hair_loss: [
     {
+      id: 'hair-loss-goals',
+      label: 'What matters to you',
+      shortLabel: 'Goals',
+      componentPath: 'hair-loss-goals-step',
+      validateFn: 'validateHairLossGoalsStep',
+      required: true,
+    },
+    {
       id: 'hair-loss-assessment',
-      label: 'Hair loss assessment',
-      shortLabel: 'Assessment',
+      label: 'Your hair loss pattern',
+      shortLabel: 'Pattern',
       componentPath: 'hair-loss-assessment-step',
       validateFn: 'validateHairLossAssessmentStep',
+      required: true,
+    },
+    {
+      id: 'hair-loss-health',
+      label: 'Your health',
+      shortLabel: 'Health',
+      componentPath: 'hair-loss-health-step',
+      validateFn: 'validateHairLossHealthStep',
+      required: true,
+    },
+    {
+      id: 'hair-loss-preferences',
+      label: 'Your preferences',
+      shortLabel: 'Preferences',
+      componentPath: 'hair-loss-preferences-step',
+      validateFn: 'validateHairLossPreferencesStep',
       required: true,
     },
     ...CONSULT_COMMON_TAIL,

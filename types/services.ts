@@ -39,7 +39,10 @@ export type UnifiedStepId =
   | 'ed-assessment'     // ED-specific assessment (IIEF-5)
   | 'ed-health'         // ED health screening (nitrates, cardiac, medical history)
   | 'ed-preferences'    // ED treatment preferences
-  | 'hair-loss-assessment' // Hair loss pattern and history
+  | 'hair-loss-goals'      // Hair loss goals and onset
+  | 'hair-loss-assessment' // Hair loss pattern and history (Norwood visual)
+  | 'hair-loss-health'     // Hair loss health screening (reproductive, scalp, BP)
+  | 'hair-loss-preferences' // Hair loss treatment preferences
   | 'womens-health-type'   // Women's health sub-selection
   | 'womens-health-assessment' // Women's health specific questions
   | 'weight-loss-assessment'   // Weight loss goals and screening

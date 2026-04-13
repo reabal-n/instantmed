@@ -383,6 +383,30 @@ className="bg-muted/50 dark:bg-white/[0.06] border border-border/50
 // font-mono text-xs tracking-wider
 ```
 
+### Severity Badges
+
+Colored chip badges indicating severity/risk level. Reusable across clinical assessments, risk scores, triage indicators, and health classifications.
+
+```tsx
+// Markup pattern
+<span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium {colorClasses}">
+  {label}
+</span>
+```
+
+| Level | Light mode | Dark mode | Label examples |
+|-------|-----------|-----------|----------------|
+| 0 (None) | `bg-emerald-100 text-emerald-700` | `bg-emerald-900/30 text-emerald-400` | Minimal, None, Normal, Healthy |
+| 1 (Low) | `bg-sky-100 text-sky-700` | `bg-sky-900/30 text-sky-400` | Mild, Low, Early |
+| 2 (Medium) | `bg-amber-100 text-amber-700` | `bg-amber-900/30 text-amber-400` | Moderate, Medium |
+| 3 (Elevated) | `bg-orange-100 text-orange-700` | `bg-orange-900/30 text-orange-400` | Notable, Elevated |
+| 4 (High) | `bg-rose-100 text-rose-700` | `bg-rose-900/30 text-rose-400` | Advanced, High, Serious |
+| 5 (Critical) | `bg-red-100 text-red-700` | `bg-red-900/30 text-red-400` | Significant, Critical, Severe |
+
+**Usage contexts:** Hair loss Norwood selector, ED severity indicators, weight BMI categories, clinical triage priority, risk assessment scores, lab result indicators.
+
+**Do not use for:** Status tracking (use status pills above), UI state indicators, non-health contexts.
+
 ---
 
 ## 11. Components
