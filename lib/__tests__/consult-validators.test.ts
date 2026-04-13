@@ -152,6 +152,17 @@ describe("validateEdConsult", () => {
       expect.objectContaining({ type: "clinical_note", reason: "absent_morning_erections" })
     )
   })
+
+  it("accepts doctor_decides preference", () => {
+    const result = validateEdConsult({ ...validEd, edPreference: "doctor_decides" })
+    expect(result.valid).toBe(true)
+    expect(result.errors).toHaveLength(0)
+  })
+
+  it("accepts daily preference", () => {
+    const result = validateEdConsult({ ...validEd, edPreference: "daily" })
+    expect(result.valid).toBe(true)
+  })
 })
 
 // ============================================================================
@@ -160,9 +171,11 @@ describe("validateEdConsult", () => {
 
 describe("validateHairLossConsult", () => {
   const validHair = {
-    hairPattern: "male_pattern",
-    hairDuration: "1_to_2_years",
+    hairGoal: "regrow",
+    hairOnset: "1_2_years",
+    hairPattern: "noticeable_thinning",
     hairFamilyHistory: "yes_father",
+    hairReproductive: "no",
     hairMedicationPreference: "oral",
   }
 
@@ -175,23 +188,43 @@ describe("validateHairLossConsult", () => {
   it("fails without required fields", () => {
     const result = validateHairLossConsult({})
     expect(result.valid).toBe(false)
-    expect(result.errors.length).toBe(4)
+    expect(result.errors.length).toBe(6)
   })
 
-  it("flags patchy hair loss", () => {
-    const result = validateHairLossConsult({ ...validHair, hairPattern: "patchy" })
+  it("flags reproductive contraindication as hard block", () => {
+    const result = validateHairLossConsult({ ...validHair, hairReproductive: "yes" })
+    expect(result.flags).toContainEqual(
+      expect.objectContaining({ type: "safety_block", reason: "reproductive_contraindication" })
+    )
+  })
+
+  it("flags no visible loss", () => {
+    const result = validateHairLossConsult({ ...validHair, hairPattern: "none" })
     expect(result.valid).toBe(true)
     expect(result.flags).toContainEqual(
-      expect.objectContaining({ type: "clinical_note", reason: "patchy_hair_loss" })
+      expect.objectContaining({ type: "clinical_note", reason: "no_visible_loss" })
+    )
+  })
+
+  it("flags extensive loss with warning", () => {
+    const result = validateHairLossConsult({ ...validHair, hairPattern: "extensive" })
+    expect(result.valid).toBe(true)
+    expect(result.flags).toContainEqual(
+      expect.objectContaining({ type: "clinical_note", reason: "extensive_loss" })
     )
     expect(result.warnings.length).toBeGreaterThan(0)
   })
 
   it("flags recent onset hair loss", () => {
-    const result = validateHairLossConsult({ ...validHair, hairDuration: "less_than_6_months" })
+    const result = validateHairLossConsult({ ...validHair, hairOnset: "few_months" })
     expect(result.flags).toContainEqual(
       expect.objectContaining({ type: "clinical_note", reason: "recent_onset" })
     )
+  })
+
+  it("accepts combination preference", () => {
+    const result = validateHairLossConsult({ ...validHair, hairMedicationPreference: "combination" })
+    expect(result.valid).toBe(true)
   })
 
   it("flags active scalp folliculitis", () => {
@@ -206,6 +239,20 @@ describe("validateHairLossConsult", () => {
     const result = validateHairLossConsult({ ...validHair, scalpPsoriasis: true })
     expect(result.flags).toContainEqual(
       expect.objectContaining({ type: "clinical_note", reason: "scalp_psoriasis" })
+    )
+  })
+
+  it("flags low blood pressure", () => {
+    const result = validateHairLossConsult({ ...validHair, hairLowBP: true })
+    expect(result.flags).toContainEqual(
+      expect.objectContaining({ type: "clinical_note", reason: "low_blood_pressure" })
+    )
+  })
+
+  it("flags heart conditions", () => {
+    const result = validateHairLossConsult({ ...validHair, hairHeartConditions: true })
+    expect(result.flags).toContainEqual(
+      expect.objectContaining({ type: "clinical_note", reason: "heart_conditions" })
     )
   })
 })
@@ -601,9 +648,11 @@ describe("validateConsultBySubtype", () => {
 
   it("routes hair_loss correctly", () => {
     const result = validateConsultBySubtype("hair_loss", {
-      hairPattern: "male_pattern",
-      hairDuration: "more_than_2_years",
+      hairGoal: "both",
+      hairOnset: "2_plus_years",
+      hairPattern: "crown_plus_hairline",
       hairFamilyHistory: "yes_both",
+      hairReproductive: "no",
       hairMedicationPreference: "oral",
     })
     expect(result.valid).toBe(true)
