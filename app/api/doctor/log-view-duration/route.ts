@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
-import { requireApiRole } from "@/lib/auth"
+import { requireApiRole } from "@/lib/auth/helpers"
 import { logClinicianViewedIntakeAnswers } from "@/lib/audit/compliance-audit"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { requireValidCsrf } from "@/lib/security/csrf"

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getApiAuth } from "@/lib/auth"
+import { getApiAuth } from "@/lib/auth/helpers"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
 import { logAdminAction } from "@/lib/security/audit-log"

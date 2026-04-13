@@ -1,4 +1,4 @@
-import { searchPBSItemsEnhanced } from "@/lib/pbs/client"
+import { searchPBSItemsEnhanced } from "@/lib/clinical/pbs-client"
 import { createLogger } from "@/lib/observability/logger"
 
 const log = createLogger("clinical-decision-support")

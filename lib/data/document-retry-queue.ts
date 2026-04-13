@@ -1,6 +1,6 @@
 /**
  * Document Generation Retry Queue
- * 
+ *
  * Handles retrying failed PDF generation attempts with exponential backoff.
  * Uses the database as a persistent queue to survive server restarts.
  */
@@ -113,7 +113,7 @@ export async function queueDocumentRetry(
  */
 export async function getDocumentsReadyForRetry(): Promise<RetryableDocument[]> {
   const supabase = createServiceRoleClient()
-  
+
   const { data, error } = await supabase
     .from("document_generation_retries")
     .select("intake_id, document_type, subtype, attempt_count, last_error, next_retry_at")
@@ -121,12 +121,12 @@ export async function getDocumentsReadyForRetry(): Promise<RetryableDocument[]> 
     .lte("next_retry_at", new Date().toISOString())
     .order("next_retry_at", { ascending: true })
     .limit(10)
-  
+
   if (error) {
     logger.error("Failed to fetch retry queue", {}, new Error(error.message))
     return []
   }
-  
+
   return (data || []).map(row => ({
     intakeId: row.intake_id,
     documentType: row.document_type,

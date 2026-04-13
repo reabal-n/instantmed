@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getApiAuth } from "@/lib/auth"
+import { getApiAuth } from "@/lib/auth/helpers"
 import { logger } from "@/lib/observability/logger"
 import { requireValidCsrf } from "@/lib/security/csrf"
-import { executeCertApproval } from "@/lib/cert/execute-approval"
+import { executeCertApproval } from "@/lib/clinical/execute-cert-approval"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import type { CertReviewData } from "@/types/db"
 

@@ -1,4 +1,4 @@
-import { auth } from "@/lib/auth"
+import { auth } from "@/lib/auth/helpers"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { NextResponse } from "next/server"
 

@@ -71,9 +71,9 @@ export async function releaseStaleClaimsWithLogging(
     return { released: 0, errors }
   }
 
-  logger.info("Stale claims released", { 
-    released: releasedCount, 
-    expected: staleClaims.length 
+  logger.info("Stale claims released", {
+    released: releasedCount,
+    expected: staleClaims.length
   })
 
   return { released: releasedCount || 0, errors }

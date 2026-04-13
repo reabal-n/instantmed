@@ -10,7 +10,7 @@ import { checkCheckoutBlocked } from "@/lib/config/feature-flags"
 import { createLogger } from "@/lib/observability/logger"
 import { isControlledSubstance } from "@/lib/clinical/intake-validation"
 import { CONTACT_EMAIL } from "@/lib/constants"
-import { getAppUrl } from "@/lib/env"
+import { getAppUrl } from "@/lib/config/env"
 import { checkSafetyForServer, validateSafetyFieldsPresent } from "@/lib/safety/evaluate"
 import { trackSafetyOutcome, trackSafetyBlock, trackIntakeFunnelStep } from "@/lib/analytics/posthog-server"
 import {

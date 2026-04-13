@@ -9,7 +9,7 @@
 
 import * as React from "react"
 import { renderEmailToHtml } from "@/lib/email/react-renderer-server"
-import { requireRoleOrNull } from "@/lib/auth"
+import { requireRoleOrNull } from "@/lib/auth/helpers"
 
 // Subject can be a plain string or a function that takes a name/label arg
 type SubjectValue = string | ((...args: string[]) => string)

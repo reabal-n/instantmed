@@ -9,7 +9,7 @@
 
 import { createIntakeAndCheckoutAction } from "@/lib/stripe/checkout"
 import { createGuestCheckoutAction } from "@/lib/stripe/guest-checkout"
-import { getAuthenticatedUserWithProfile } from "@/lib/auth"
+import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
 import {
   validateCertificateStep,
   validateSymptomsStep,

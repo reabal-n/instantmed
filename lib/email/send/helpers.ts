@@ -4,7 +4,7 @@ import "server-only"
  * Email sending helper utilities: validation, retry logic, unsubscribe injection.
  */
 
-import { env } from "@/lib/env"
+import { env } from "@/lib/config/env"
 import { signUnsubscribeToken } from "@/lib/crypto/unsubscribe-token"
 import { UNSUBSCRIBE_PLACEHOLDER } from "@/components/email/base-email"
 

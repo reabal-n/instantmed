@@ -1,5 +1,5 @@
 import { createServiceRoleClient } from "../supabase/service-role"
-import { auth } from "@/lib/auth"
+import { auth } from "@/lib/auth/helpers"
 import { createLogger } from "@/lib/observability/logger"
 import { toError } from "@/lib/errors"
 import { encryptField, decryptField } from "@/lib/security/encryption"

@@ -10,10 +10,10 @@ function getServiceClient() {
 
 // ADVERSARIAL_SECURITY_AUDIT: Expanded fraud flag types
 export type FraudFlag = {
-  type: 
-    | "multiple_daily" 
-    | "suspicious_medicare" 
-    | "rapid_completion" 
+  type:
+    | "multiple_daily"
+    | "suspicious_medicare"
+    | "rapid_completion"
     | "duplicate_request"
     | "duplicate_medication"      // Critical #3: Multi-account medication stacking
     | "rolling_window_abuse"      // High #5: Certificate duration creep

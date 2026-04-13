@@ -1,11 +1,11 @@
 "use server"
 
-import { requireRoleOrNull } from "@/lib/auth"
+import { requireRoleOrNull } from "@/lib/auth/helpers"
 import { logger } from "@/lib/observability/logger"
 import { checkCertificateRateLimit } from "@/lib/rate-limit/doctor"
 import * as Sentry from "@sentry/nextjs"
 import type { CertReviewData } from "@/types/db"
-import { executeCertApproval, type ApproveCertResult } from "@/lib/cert/execute-approval"
+import { executeCertApproval, type ApproveCertResult } from "@/lib/clinical/execute-cert-approval"
 
 /**
  * Server action to approve a medical certificate intake, generate PDF, and email it to the patient.

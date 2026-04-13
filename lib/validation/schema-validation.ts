@@ -1,6 +1,6 @@
 /**
  * Schema Validation on Startup
- * 
+ *
  * Detects drift between code expectations and actual database schema.
  * Runs once at server startup via instrumentation.ts
  */
@@ -23,7 +23,7 @@ const REQUIRED_SCHEMA = {
 // Note: These are optional - only warn if missing, don't fail
 const OPTIONAL_FUNCTIONS = [
   "claim_intake_for_review",
-  "release_stale_intake_claims", 
+  "release_stale_intake_claims",
   "get_queue_position",
 ] as const
 
@@ -44,9 +44,9 @@ export interface SchemaValidationResult {
 export async function validateSchema(): Promise<SchemaValidationResult> {
   const errors: string[] = []
   const warnings: string[] = []
-  
+
   const supabase = createServiceRoleClient()
-  
+
   // Check tables and columns
   for (const [tableName, requiredColumns] of Object.entries(REQUIRED_SCHEMA)) {
     try {
@@ -55,7 +55,7 @@ export async function validateSchema(): Promise<SchemaValidationResult> {
         .from(tableName)
         .select(requiredColumns.join(","))
         .limit(1)
-      
+
       if (error) {
         if (error.code === "42P01") {
           errors.push(`Table '${tableName}' does not exist`)
@@ -72,7 +72,7 @@ export async function validateSchema(): Promise<SchemaValidationResult> {
       errors.push(`Failed to check table '${tableName}': ${err instanceof Error ? err.message : "unknown error"}`)
     }
   }
-  
+
   // Check required RPC functions (errors if missing)
   for (const funcName of REQUIRED_FUNCTIONS) {
     try {
@@ -84,7 +84,7 @@ export async function validateSchema(): Promise<SchemaValidationResult> {
       warnings.push(`Could not verify function '${funcName}': ${err instanceof Error ? err.message : "unknown"}`)
     }
   }
-  
+
   // Check optional RPC functions (warnings only if missing)
   for (const funcName of OPTIONAL_FUNCTIONS) {
     try {
@@ -96,7 +96,7 @@ export async function validateSchema(): Promise<SchemaValidationResult> {
       // Ignore errors for optional functions
     }
   }
-  
+
   return {
     valid: errors.length === 0,
     errors,
@@ -112,17 +112,17 @@ export async function validateSchema(): Promise<SchemaValidationResult> {
  */
 export async function runSchemaValidation(): Promise<void> {
   log.info("Starting schema validation...")
-  
+
   try {
     const result = await validateSchema()
-    
+
     if (result.valid) {
       log.info("Schema validation passed", {
         tablesChecked: result.tablesChecked,
         functionsChecked: result.functionsChecked,
         warnings: result.warnings.length,
       })
-      
+
       // Log warnings if any
       for (const warning of result.warnings) {
         log.warn("Schema warning", { message: warning })
@@ -132,7 +132,7 @@ export async function runSchemaValidation(): Promise<void> {
       for (const error of result.errors) {
         log.error("Schema validation error", { message: error })
       }
-      
+
       // In production, this is critical - fail fast
       if (process.env.NODE_ENV === "production") {
         throw new Error(`Schema validation failed: ${result.errors.join("; ")}`)
@@ -144,7 +144,7 @@ export async function runSchemaValidation(): Promise<void> {
     }
   } catch (err) {
     log.error("Schema validation crashed", {}, err instanceof Error ? err : undefined)
-    
+
     if (process.env.NODE_ENV === "production") {
       throw err
     }

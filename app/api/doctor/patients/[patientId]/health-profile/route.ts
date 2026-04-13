@@ -1,4 +1,4 @@
-import { requireApiRole } from "@/lib/auth"
+import { requireApiRole } from "@/lib/auth/helpers"
 import { getHealthProfile } from "@/lib/data/health-profile"
 import { NextResponse, type NextRequest } from "next/server"
 

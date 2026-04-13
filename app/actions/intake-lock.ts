@@ -1,6 +1,6 @@
 "use server"
 
-import { requireRole } from "@/lib/auth"
+import { requireRole } from "@/lib/auth/helpers"
 import { acquireIntakeLock, releaseIntakeLock, extendIntakeLock } from "@/lib/data/intake-lock"
 
 /**

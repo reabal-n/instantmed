@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getApiAuth } from "@/lib/auth"
+import { getApiAuth } from "@/lib/auth/helpers"
 import { sendViaResend } from "@/lib/email/resend"
 import { createLogger } from "@/lib/observability/logger"
 import { requireValidCsrf } from "@/lib/security/csrf"

@@ -1,7 +1,7 @@
 "use server"
 
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { getAuthenticatedUserWithProfile } from "@/lib/auth"
+import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
 import { decryptIfNeeded } from "@/lib/security/encryption"
 import { checkServerActionRateLimit } from "@/lib/rate-limit/redis"
 import { createLogger } from "@/lib/observability/logger"

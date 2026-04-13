@@ -10,11 +10,11 @@
 import * as Sentry from "@sentry/nextjs"
 import { z } from "zod"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { requireRoleOrNull } from "@/lib/auth"
+import { requireRoleOrNull } from "@/lib/auth/helpers"
 import { sendEmail, checkEmployerEmailRateLimit } from "@/lib/email/send-email"
 import { MedCertEmployerEmail, medCertEmployerEmailSubject } from "@/components/email/templates"
 import { logger } from "@/lib/observability/logger"
-import { env } from "@/lib/env"
+import { env } from "@/lib/config/env"
 import { checkEmployerEmailBlocked } from "@/lib/config/feature-flags"
 
 // Input validation schema

@@ -8,7 +8,7 @@
  * intake is moved back to in_review for manual doctor assessment.
  */
 
-import { requireRoleOrNull } from "@/lib/auth"
+import { requireRoleOrNull } from "@/lib/auth/helpers"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
 import { revokeCertificateAction } from "@/app/actions/revoke-cert"

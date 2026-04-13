@@ -25,26 +25,26 @@ export const CACHE_TAGS = {
   // User-related
   user: (userId: string) => `user:${userId}`,
   userProfile: (userId: string) => `user-profile:${userId}`,
-  
+
   // Request-related
   request: (requestId: string) => `request:${requestId}`,
   requests: "requests",
   userRequests: (userId: string) => `user-requests:${userId}`,
-  
+
   // Content-related
   medications: "medications",
   medication: (id: string) => `medication:${id}`,
   conditions: "conditions",
   condition: (slug: string) => `condition:${slug}`,
-  
+
   // Blog/CMS
   blogPosts: "blog-posts",
   blogPost: (slug: string) => `blog-post:${slug}`,
-  
+
   // Pricing/Products
   pricing: "pricing",
   products: "products",
-  
+
   // Settings
   featureFlags: "feature-flags",
   siteSettings: "site-settings",
@@ -78,7 +78,7 @@ export function createCachedFn<TArgs extends unknown[], TResult>(
  */
 export function getCacheHeaders(duration: keyof typeof CACHE_DURATIONS): Record<string, string> {
   const seconds = CACHE_DURATIONS[duration]
-  
+
   if (seconds === 0) {
     return {
       "Cache-Control": "no-store, no-cache, must-revalidate",
@@ -109,16 +109,16 @@ export function createCachedResponse<T>(
 export const CDN_CACHE_HEADERS = {
   /** Static assets (images, fonts, etc.) */
   static: "public, max-age=31536000, immutable",
-  
+
   /** HTML pages with revalidation */
   page: "public, s-maxage=60, stale-while-revalidate=300",
-  
+
   /** API responses with short cache */
   api: "public, s-maxage=10, stale-while-revalidate=60",
-  
+
   /** Private data (requires auth) */
   private: "private, no-cache, no-store, must-revalidate",
-  
+
   /** Dynamic but cacheable */
   dynamic: "public, s-maxage=0, stale-while-revalidate=86400",
 } as const
@@ -127,7 +127,7 @@ export const CDN_CACHE_HEADERS = {
  * Helper to set appropriate cache headers based on authentication state
  */
 export function getAuthAwareCacheHeaders(isAuthenticated: boolean) {
-  return isAuthenticated 
+  return isAuthenticated
     ? { "Cache-Control": CDN_CACHE_HEADERS.private }
     : { "Cache-Control": CDN_CACHE_HEADERS.page }
 }
@@ -153,7 +153,7 @@ export const SWR_CONFIG = {
  */
 export async function fetchWithCache<T>(
   url: string,
-  options: RequestInit & { 
+  options: RequestInit & {
     revalidate?: number
     tags?: string[]
   } = {}

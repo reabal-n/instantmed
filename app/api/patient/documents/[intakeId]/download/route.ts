@@ -10,7 +10,7 @@
 
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { getIntakeWithDetails } from "@/lib/data/intakes"
-import { getApiAuth } from "@/lib/auth"
+import { getApiAuth } from "@/lib/auth/helpers"
 import { createLogger } from "@/lib/observability/logger"
 import { getPostHogClient } from "@/lib/analytics/posthog-server"
 import { getCertificateForIntake, logCertificateEvent } from "@/lib/data/issued-certificates"

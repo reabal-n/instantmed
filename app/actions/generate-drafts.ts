@@ -36,7 +36,7 @@ export async function generateDraftsForIntake(
     // When called from Stripe webhook (no user session), auth will return null - that's OK
     // because the webhook handler already verified the Stripe signature.
     try {
-      const { requireRoleOrNull } = await import("@/lib/auth")
+      const { requireRoleOrNull } = await import("@/lib/auth/helpers")
       const authResult = await requireRoleOrNull(["doctor", "admin"])
       if (!authResult) {
         log.info("Draft generation called without doctor session (likely webhook)", { intakeId })

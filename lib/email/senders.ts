@@ -8,7 +8,7 @@
  */
 
 import { sendEmail } from "./send-email"
-import { env } from "@/lib/env"
+import { env } from "@/lib/config/env"
 import {
   RequestDeclinedEmail,
   requestDeclinedEmailSubject,

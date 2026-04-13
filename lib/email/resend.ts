@@ -4,7 +4,7 @@ import { logger } from "@/lib/observability/logger"
 import * as Sentry from "@sentry/nextjs"
 import { captureRedisWarning } from "@/lib/observability/redis-sentry"
 
-import { env } from "../env"
+import { env } from "@/lib/config/env"
 import { isEmailSuppressed, htmlToPlainText } from "./utils"
 import { Redis } from "@upstash/redis"
 import { CONTACT_EMAIL } from "@/lib/constants"

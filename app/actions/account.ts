@@ -1,7 +1,7 @@
 "use server"
 
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { auth } from "@/lib/auth"
+import { auth } from "@/lib/auth/helpers"
 import { revalidatePath } from "next/cache"
 
 /**

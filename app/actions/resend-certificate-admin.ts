@@ -2,10 +2,10 @@
 
 import { z } from "zod"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { requireRole } from "@/lib/auth"
+import { requireRole } from "@/lib/auth/helpers"
 import { sendEmail } from "@/lib/email/send-email"
 import { MedCertPatientEmail, medCertPatientEmailSubject } from "@/components/email/templates"
-import { env } from "@/lib/env"
+import { env } from "@/lib/config/env"
 import { logger } from "@/lib/observability/logger"
 import {
   getCertificateForIntake,

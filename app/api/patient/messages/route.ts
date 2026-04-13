@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { getApiAuth } from "@/lib/auth"
+import { getApiAuth } from "@/lib/auth/helpers"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { requireValidCsrf } from "@/lib/security/csrf"

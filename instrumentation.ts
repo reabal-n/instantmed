@@ -91,7 +91,7 @@ export async function register() {
   // Only run in Node.js runtime with Supabase configured
   if (process.env.NEXT_RUNTIME === "nodejs" && process.env.NEXT_PUBLIC_SUPABASE_URL) {
     try {
-      const { runSchemaValidation } = await import("@/lib/schema/validation")
+      const { runSchemaValidation } = await import("@/lib/validation/schema-validation")
       await runSchemaValidation()
     } catch (error) {
       // eslint-disable-next-line no-console

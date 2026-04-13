@@ -1,7 +1,7 @@
 import "server-only"
 
 import { createClient } from "@supabase/supabase-js"
-import { env } from "@/lib/env"
+import { env } from "@/lib/config/env"
 import { createLogger } from "@/lib/observability/logger"
 import { checkAndSanitize } from "@/lib/ai/prompt-safety"
 import { normalizeServiceType, getDraftCategory, type DraftCategory } from "@/lib/constants/service-types"

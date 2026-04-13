@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
-import { requireApiRole } from "@/lib/auth"
+import { requireApiRole } from "@/lib/auth/helpers"
 import { updateScriptSent } from "@/lib/data/intakes"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { requireValidCsrf } from "@/lib/security/csrf"

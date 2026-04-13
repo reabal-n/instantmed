@@ -124,7 +124,7 @@ export function isPreviousCustomer(): boolean {
  */
 export function getPersonalizedGreeting(): string | null {
   const userData = getUserData()
-  
+
   if (!userData) return null
 
   if (userData.firstName) {
@@ -146,7 +146,7 @@ export function getPersonalizedGreeting(): string | null {
  */
 export function getSuggestedService(): { service: string; name: string } | null {
   const userData = getUserData()
-  
+
   if (userData?.lastService && userData?.lastServiceName) {
     return {
       service: userData.lastService,

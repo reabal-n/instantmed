@@ -1,6 +1,6 @@
 "use server"
 
-import { requireRoleOrNull } from "@/lib/auth"
+import { requireRoleOrNull } from "@/lib/auth/helpers"
 import { syncPatientToParchment } from "@/lib/parchment/sync-patient"
 import { getSsoUrl, listUsers } from "@/lib/parchment/client"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"

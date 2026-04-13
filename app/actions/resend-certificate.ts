@@ -1,10 +1,10 @@
 "use server"
 
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { getApiAuth } from "@/lib/auth"
+import { getApiAuth } from "@/lib/auth/helpers"
 import { sendEmail } from "@/lib/email/send-email"
 import { MedCertPatientEmail, medCertPatientEmailSubject } from "@/components/email/templates"
-import { env } from "@/lib/env"
+import { env } from "@/lib/config/env"
 import { logger } from "@/lib/observability/logger"
 import { getCertificateForIntake } from "@/lib/data/issued-certificates"
 import { checkResendRateLimit } from "@/lib/rate-limit/resend-cert"

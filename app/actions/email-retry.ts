@@ -1,12 +1,12 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
-import { requireRole } from "@/lib/auth"
+import { requireRole } from "@/lib/auth/helpers"
 import { sendEmail } from "@/lib/email/send-email"
 import { sendFromOutboxRow, type OutboxRow } from "@/lib/email/send-email"
 import { claimOutboxRow } from "@/lib/email/send/outbox"
 import { MedCertPatientEmail } from "@/components/email/templates"
-import { env } from "@/lib/env"
+import { env } from "@/lib/config/env"
 import {
   getCertificateById,
   updateEmailStatus,

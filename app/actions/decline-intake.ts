@@ -16,7 +16,7 @@
 import * as Sentry from "@sentry/nextjs"
 import { revalidatePath } from "next/cache"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { requireRoleOrNull } from "@/lib/auth"
+import { requireRoleOrNull } from "@/lib/auth/helpers"
 import { createLogger } from "@/lib/observability/logger"
 import { trackIntakeFunnelStep } from "@/lib/analytics/posthog-server"
 import { stripe } from "@/lib/stripe/client"

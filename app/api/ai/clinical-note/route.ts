@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { streamText } from "ai"
 import { getModelWithConfig, isAIConfigured, AI_MODEL_CONFIG } from "@/lib/ai/provider"
-import { getApiAuth } from "@/lib/auth"
+import { getApiAuth } from "@/lib/auth/helpers"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { FORBIDDEN_DIAGNOSIS_TERMS, FORBIDDEN_MEDICATION_TERMS } from "@/lib/ai/validation/ground-truth"

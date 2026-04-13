@@ -168,7 +168,7 @@ export async function assertApprovalInvariants(
 
   if (!result.valid) {
     const firstError = result.errors[0] || "Approval invariant check failed"
-    
+
     // Determine error code
     let code: ApprovalInvariantError["code"] = "INVALID_STATUS"
     if (firstError.includes("Payment required")) {

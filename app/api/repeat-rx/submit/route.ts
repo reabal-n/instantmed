@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { auth } from "@/lib/auth"
+import { auth } from "@/lib/auth/helpers"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { createLogger } from "@/lib/observability/logger"

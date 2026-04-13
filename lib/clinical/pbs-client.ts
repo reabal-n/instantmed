@@ -173,7 +173,7 @@ function parseItemsToResults(
     const drugName = String(item.drug_name || item.li_drug_name || "")
     const form = item.li_form ? String(item.li_form) : null
     const key = `${drugName.toLowerCase()}-${form || ""}`
-    
+
     if (drugName && !seen.has(key)) {
       seen.add(key)
       results.push({
@@ -387,14 +387,14 @@ function correctMedicationTypo(query: string): string {
  */
 function levenshteinDistance(a: string, b: string): number {
   const matrix: number[][] = []
-  
+
   for (let i = 0; i <= b.length; i++) {
     matrix[i] = [i]
   }
   for (let j = 0; j <= a.length; j++) {
     matrix[0][j] = j
   }
-  
+
   for (let i = 1; i <= b.length; i++) {
     for (let j = 1; j <= a.length; j++) {
       if (b.charAt(i - 1) === a.charAt(j - 1)) {
@@ -408,7 +408,7 @@ function levenshteinDistance(a: string, b: string): number {
       }
     }
   }
-  
+
   return matrix[b.length][a.length]
 }
 
@@ -419,7 +419,7 @@ function levenshteinDistance(a: string, b: string): number {
 function _findFuzzyMatch(query: string, knownNames: string[]): string | null {
   const lowerQuery = query.toLowerCase()
   const maxDistance = Math.floor(query.length * 0.3) // Allow 30% error rate
-  
+
   for (const name of knownNames) {
     const distance = levenshteinDistance(lowerQuery, name.toLowerCase())
     if (distance <= maxDistance && distance > 0) {

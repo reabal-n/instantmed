@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { createLogger } from "@/lib/observability/logger"
-import { searchPBSItemsEnhanced } from "@/lib/pbs/client"
+import { searchPBSItemsEnhanced } from "@/lib/clinical/pbs-client"
 
 const log = createLogger("pbs-search")
 

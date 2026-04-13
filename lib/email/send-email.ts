@@ -18,7 +18,7 @@ import "server-only"
 
 import * as Sentry from "@sentry/nextjs"
 import { renderEmailToHtml } from "./react-renderer-server"
-import { env } from "@/lib/env"
+import { env } from "@/lib/config/env"
 import { logger } from "@/lib/observability/logger"
 import { isEmailSuppressed, htmlToPlainText } from "./utils"
 import { CONTACT_EMAIL } from "@/lib/constants"

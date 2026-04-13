@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
-import { auth } from "@/lib/auth"
+import { auth } from "@/lib/auth/helpers"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { toError } from "@/lib/errors"

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { requireApiRole } from "@/lib/auth"
+import { requireApiRole } from "@/lib/auth/helpers"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { getCertificateForIntake } from "@/lib/data/issued-certificates"
 import { applyRateLimit } from "@/lib/rate-limit/redis"

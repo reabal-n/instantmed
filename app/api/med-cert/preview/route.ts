@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getApiAuth } from "@/lib/auth"
+import { getApiAuth } from "@/lib/auth/helpers"
 import { renderTemplatePdf } from "@/lib/pdf/template-renderer"
 import { generateCertificateRef } from "@/lib/pdf/cert-identifiers"
 import { formatDateLong, formatShortDate, formatShortDateSafe } from "@/lib/format"

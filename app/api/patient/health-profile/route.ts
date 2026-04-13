@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { auth } from "@/lib/auth"
+import { auth } from "@/lib/auth/helpers"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { upsertHealthProfile } from "@/lib/data/health-profile"
 import { createLogger } from "@/lib/observability/logger"

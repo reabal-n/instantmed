@@ -1,7 +1,7 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
-import { requireRole } from "@/lib/auth"
+import { requireRole } from "@/lib/auth/helpers"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 export async function setDoctorAvailabilityAction(available: boolean): Promise<{ success: boolean; error?: string }> {

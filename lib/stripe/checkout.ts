@@ -2,7 +2,7 @@
 
 import { stripe, getPriceIdForRequest, type ServiceCategory } from "./client"
 import { checkServerActionRateLimit } from "@/lib/rate-limit/redis"
-import { getAuthenticatedUserWithProfile } from "@/lib/auth"
+import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
 import { validateRepeatScriptPayload } from "@/lib/validation/repeat-script-schema"
 import { validateMedCertPayload } from "@/lib/validation/med-cert-schema"
 import { isServiceDisabled, isMedicationBlocked, SERVICE_DISABLED_ERRORS } from "@/lib/feature-flags"
@@ -12,10 +12,10 @@ import { createLogger } from "@/lib/observability/logger"
 import { isControlledSubstance } from "@/lib/clinical/intake-validation"
 import { CONTACT_EMAIL } from "@/lib/constants"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { getAppUrl } from "@/lib/env"
+import { getAppUrl } from "@/lib/config/env"
 import { checkSafetyForServer, validateSafetyFieldsPresent } from "@/lib/safety/evaluate"
 import { trackSafetyOutcome, trackSafetyBlock, trackOperationalBlock, trackIntakeFunnelStep } from "@/lib/analytics/posthog-server"
-import { runFraudChecks, saveFraudFlags } from "@/lib/fraud/detector"
+import { runFraudChecks, saveFraudFlags } from "@/lib/security/fraud-detector"
 import {
   logRequestCreated,
   logTermsConsentGiven,

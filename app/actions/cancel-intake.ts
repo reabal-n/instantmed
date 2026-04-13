@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { getApiAuth } from "@/lib/auth"
+import { getApiAuth } from "@/lib/auth/helpers"
 import { logger } from "@/lib/observability/logger"
 import { checkServerActionRateLimit } from "@/lib/rate-limit/redis"
 

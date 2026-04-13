@@ -6,7 +6,7 @@
  */
 
 import { revalidatePath } from "next/cache"
-import { requireRole } from "@/lib/auth"
+import { requireRole } from "@/lib/auth/helpers"
 import {
   getClinicIdentityHistory,
   saveClinicIdentity,

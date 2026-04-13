@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 import * as Sentry from "@sentry/nextjs"
-import { requireRoleOrNull } from "@/lib/auth"
+import { requireRoleOrNull } from "@/lib/auth/helpers"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
 import { submitFollowupSchema, type SubmitFollowupInput } from "@/lib/validation/followup-schema"

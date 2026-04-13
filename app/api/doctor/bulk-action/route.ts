@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { requireApiRole } from "@/lib/auth"
+import { requireApiRole } from "@/lib/auth/helpers"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { createLogger } from "@/lib/observability/logger"
 import { refundIfEligible } from "@/lib/stripe/refunds"

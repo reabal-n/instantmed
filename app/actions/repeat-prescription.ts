@@ -9,13 +9,13 @@
  */
 
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { requireRoleOrNull } from "@/lib/auth"
+import { requireRoleOrNull } from "@/lib/auth/helpers"
 import { createLogger } from "@/lib/observability/logger"
 import { logAuditEvent } from "@/lib/security/audit-log"
 import { revalidatePath } from "next/cache"
 import { sendEmail } from "@/lib/email/send-email"
 import { PrescriptionApprovedEmail, prescriptionApprovedSubject } from "@/components/email/templates/prescription-approved"
-import { env } from "@/lib/env"
+import { env } from "@/lib/config/env"
 
 const log = createLogger("repeat-prescription")
 

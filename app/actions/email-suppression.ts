@@ -1,7 +1,7 @@
 "use server"
 
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { requireRole } from "@/lib/auth"
+import { requireRole } from "@/lib/auth/helpers"
 import { createLogger } from "@/lib/observability/logger"
 
 const logger = createLogger("email-suppression")

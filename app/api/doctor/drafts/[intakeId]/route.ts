@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { requireApiRole } from "@/lib/auth"
+import { requireApiRole } from "@/lib/auth/helpers"
 import { createLogger } from "@/lib/observability/logger"
 import { getDraftsForIntake } from "@/lib/ai/drafts"
 import { generateDraftsForIntake } from "@/app/actions/generate-drafts"

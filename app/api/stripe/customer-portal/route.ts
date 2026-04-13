@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
-import { getAuthenticatedUserWithProfile } from "@/lib/auth"
+import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
 import { stripe } from "@/lib/stripe/client"
-import { getAppUrl } from "@/lib/env"
+import { getAppUrl } from "@/lib/config/env"
 import { createLogger } from "@/lib/observability/logger"
 
 const logger = createLogger("stripe-customer-portal")

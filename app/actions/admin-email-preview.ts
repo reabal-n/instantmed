@@ -1,6 +1,6 @@
 "use server"
 
-import { requireRoleOrNull } from "@/lib/auth"
+import { requireRoleOrNull } from "@/lib/auth/helpers"
 import { sendViaResend } from "@/lib/email/resend"
 import { 
   getAllPreviewTemplates,

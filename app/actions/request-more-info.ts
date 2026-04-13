@@ -1,7 +1,7 @@
 "use server"
 
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { requireRole } from "@/lib/auth"
+import { requireRole } from "@/lib/auth/helpers"
 import { logger } from "@/lib/observability/logger"
 import { revalidatePath } from "next/cache"
 import { sendEmail } from "@/lib/email/send-email"

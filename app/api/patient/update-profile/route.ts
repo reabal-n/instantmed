@@ -1,4 +1,4 @@
-import { getApiAuth } from "@/lib/auth"
+import { getApiAuth } from "@/lib/auth/helpers"
 import { updateProfile } from "@/lib/data/profiles"
 import { NextResponse } from "next/server"
 import { requireValidCsrf } from "@/lib/security/csrf"

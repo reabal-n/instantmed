@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { auth } from "@/lib/auth"
+import { auth } from "@/lib/auth/helpers"
 import type { AustralianState } from "@/types/db"
 import { validateAustralianPhone } from "@/lib/validation/australian-phone"
 import { validatePostcodeState } from "@/lib/validation/australian-address"

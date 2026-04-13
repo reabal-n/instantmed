@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
-import { requireApiRole } from "@/lib/auth"
+import { requireApiRole } from "@/lib/auth/helpers"
 import { getIntakeWithDetails, getNextQueueIntakeId } from "@/lib/data/intakes"
 import { getOrCreateMedCertDraftForIntake } from "@/lib/data/documents"
 import { getAIDraftsForIntake } from "@/app/actions/draft-approval"

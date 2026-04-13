@@ -1,6 +1,6 @@
 "use server"
 
-import { auth, getApiAuth } from "@/lib/auth"
+import { auth, getApiAuth } from "@/lib/auth/helpers"
 import { createLogger } from "@/lib/observability/logger"
 import { toError } from "@/lib/errors"
 
