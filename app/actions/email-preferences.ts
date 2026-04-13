@@ -100,8 +100,5 @@ export async function unsubscribeFromMarketing(
   return result
 }
 
-/**
- * Check if a patient has opted out of marketing emails.
- * Re-exported from lib/email/preferences.ts (canonical location).
- */
-export { canSendMarketingEmail } from "@/lib/email/preferences"
+// canSendMarketingEmail lives at @/lib/email/preferences (canonical location).
+// Cannot re-export from "use server" files -- import directly from there.

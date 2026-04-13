@@ -35,14 +35,8 @@ import {
   processRefund,
 } from "./decline-refund"
 
-// Re-export split modules so existing importers don't break
-export { declineIntakesBulk } from "./decline-bulk"
-export {
-  FULL_REFUND_CATEGORIES,
-  PARTIAL_REFUND_CATEGORIES,
-  PARTIAL_REFUND_PERCENT,
-  processRefund,
-} from "./decline-refund"
+// Split modules: import directly from ./decline-bulk and ./decline-refund.
+// Cannot re-export non-async values from "use server" files.
 
 const logger = createLogger("decline-intake")
 

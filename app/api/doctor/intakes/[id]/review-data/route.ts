@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 
-import { getAIDraftsForIntake } from "@/app/actions/draft-approval"
+import { getAIDraftsForIntake } from "@/app/actions/drafts/draft-retrieval"
 import { logClinicianOpenedRequest } from "@/lib/audit/compliance-audit"
 import { requireApiRole } from "@/lib/auth/helpers"
 import { getOrCreateMedCertDraftForIntake } from "@/lib/data/documents"

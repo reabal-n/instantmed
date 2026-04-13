@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 
-import { canSendMarketingEmail } from "@/app/actions/email-preferences"
 import { verifyCronRequest } from "@/lib/api/cron-auth"
+import { canSendMarketingEmail } from "@/lib/email/preferences"
 import { sendDeclineReengagementEmail } from "@/lib/email/senders"
 import { createLogger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"

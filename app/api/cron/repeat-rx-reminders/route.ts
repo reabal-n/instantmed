@@ -1,8 +1,8 @@
 import * as Sentry from "@sentry/nextjs"
 import { NextRequest, NextResponse } from "next/server"
 
-import { canSendMarketingEmail } from "@/app/actions/email-preferences"
 import { acquireCronLock, releaseCronLock,verifyCronRequest } from "@/lib/api/cron-auth"
+import { canSendMarketingEmail } from "@/lib/email/preferences"
 import { toError } from "@/lib/errors"
 import { createLogger } from "@/lib/observability/logger"
 import { captureCronError } from "@/lib/observability/sentry"

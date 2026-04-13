@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation"
 
-import { getAIDraftsForIntake } from "@/app/actions/draft-approval"
+import { getAIDraftsForIntake } from "@/app/actions/drafts/draft-retrieval"
 import { getPendingDateCorrection } from "@/app/actions/request-date-correction"
 import { logClinicianOpenedRequest } from "@/lib/audit/compliance-audit"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"

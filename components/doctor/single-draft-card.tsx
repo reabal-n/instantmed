@@ -20,7 +20,8 @@ import {
 import { useEffect,useMemo, useState, useTransition } from "react"
 
 import type { AIDraft } from "@/app/actions/draft-approval"
-import { approveDraft, checkDraftStaleness,rejectDraft } from "@/app/actions/draft-approval"
+import { approveDraft, rejectDraft } from "@/app/actions/draft-approval"
+import { checkDraftStaleness } from "@/app/actions/drafts/draft-validation"
 import {
   ClinicalNoteDiffView,
   DraftContent,

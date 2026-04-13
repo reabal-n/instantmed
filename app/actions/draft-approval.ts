@@ -23,10 +23,9 @@ import { computeIntakeHash } from "./drafts/draft-validation"
 import type { DraftApprovalResult } from "./drafts/types"
 
 // ── Re-exports for backward compatibility ──────────────────────────────
-// Every symbol previously exported from this file is re-exported here so
-// existing `import { X } from "@/app/actions/draft-approval"` lines keep working.
-export { getAIDraftsForIntake } from "./drafts/draft-retrieval"
-export { checkDraftStaleness } from "./drafts/draft-validation"
+// Type-only re-exports are safe in "use server" files (erased at compile time).
+// Non-async function re-exports (getAIDraftsForIntake, checkDraftStaleness)
+// must be imported directly from their sub-modules.
 export type { AIDraft, AuditEventParams, ClinicalNoteContent, DraftApprovalResult } from "./drafts/types"
 
 const log = createLogger("draft-approval")
