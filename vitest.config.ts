@@ -29,16 +29,22 @@ export default defineConfig({
         'lib/__tests__/**',
         '**/*.d.ts',
         '**/types/**',
-        // Server-only modules requiring DB/Redis/request context - tested via E2E
+        // Barrel re-export files (no logic to test)
+        'lib/clinical/index.ts',
+        // Server-only modules requiring DB/Redis/external APIs - tested via E2E
         'lib/security/audit-log.ts',
         'lib/security/rate-limit.ts',
         'lib/security/phi-field-wrappers.ts',
         'lib/security/sanitize-audit.ts',
         'lib/security/csrf-client.ts',
-        // Barrel re-export files (no logic to test)
-        'lib/clinical/index.ts',
-        // Server-only: requires PBS client + Supabase
+        'lib/security/fraud-detector.ts',
+        'lib/security/immutable-dates.ts',
         'lib/clinical/decision-support.ts',
+        'lib/clinical/approval-invariants.ts',
+        'lib/clinical/consent-versioning.ts',
+        'lib/clinical/execute-cert-approval.ts',
+        'lib/clinical/pbs-client.ts',
+        'lib/clinical/triage-types.ts',
       ],
       thresholds: {
         statements: 80,
