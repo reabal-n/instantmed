@@ -38,7 +38,7 @@ import {
   getTestimonialsByService,
   getTestimonialsForColumns,
 } from "@/lib/data/testimonials"
-import { SOCIAL_PROOF, SOCIAL_PROOF_DISPLAY } from "@/lib/social-proof"
+import { getPatientCount,SOCIAL_PROOF, SOCIAL_PROOF_DISPLAY } from "@/lib/social-proof"
 
 // Below-fold lazy loads
 const TestimonialsSection = dynamic(
@@ -403,6 +403,13 @@ export function GeneralConsultLanding() {
             </div>
           </section>
 
+          {/* Clinical references */}
+          <div className="mx-auto max-w-3xl px-4 sm:px-6 pb-4">
+            <p className="text-[10px] text-muted-foreground/50 text-center leading-relaxed">
+              Telehealth consultations achieve equivalent clinical outcomes to in-person visits for common presentations (Snoswell et al., <em>J Telemed Telecare</em>, 2023). Patient satisfaction with telehealth GP consultations is comparable to face-to-face encounters (Kruse et al., <em>J Med Internet Res</em>, 2017). Australian telehealth consultations are regulated under the Health Practitioner Regulation National Law Act 2009.
+            </p>
+          </div>
+
           {/* Referral strip */}
           <ReferralStrip contextText="who could use a doctor" />
 
@@ -410,7 +417,7 @@ export function GeneralConsultLanding() {
           <FinalCtaSection
             onCTAClick={handleFinalCTA}
             title="Talk to a doctor today."
-            subtitle="Trusted by 3,000+ Australians for online healthcare. Describe your concern, and a GP reviews it the same day."
+            subtitle={`Trusted by ${getPatientCount().toLocaleString()}+ Australians for online healthcare. Describe your concern, and a GP reviews it the same day.`}
             ctaText={isDisabled ? "Contact us" : "Start your consult"}
             ctaHref={isDisabled ? "/contact" : "/request?service=consult"}
             price={PRICING.CONSULT}

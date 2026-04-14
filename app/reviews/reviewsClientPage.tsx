@@ -13,7 +13,7 @@ import {
   getFeaturedTestimonials,
   getReviewsPageTestimonials
 } from "@/lib/data/testimonials"
-import { SOCIAL_PROOF } from "@/lib/social-proof"
+import { getPatientCount,SOCIAL_PROOF } from "@/lib/social-proof"
 import { cn } from "@/lib/utils"
 
 // Get reviews from centralized data - limited to a curated selection
@@ -328,7 +328,7 @@ export function ReviewsClientPageComponent() {
           {/* CTA */}
           <CTABanner
             title="Ready to experience it yourself?"
-            subtitle="Join 3,000+ Australians who've already made the switch to smarter healthcare."
+            subtitle={`Join ${getPatientCount().toLocaleString()}+ Australians who've already made the switch to smarter healthcare.`}
             ctaText="Start a request"
             ctaHref="/request"
           />

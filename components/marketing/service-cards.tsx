@@ -136,8 +136,8 @@ function ServiceCard({ service, disabled }: ServiceCardProps) {
             </Button>
           )}
 
-          {/* Testimonial snippet on popular card */}
-          {service.popular && !disabled && service.testimonial && (
+          {/* Testimonial snippet */}
+          {!disabled && service.testimonial && (
             <div className="mt-3 pt-3 border-t border-border/30">
               <p className="text-[11px] text-muted-foreground italic leading-relaxed">
                 &ldquo;{service.testimonial.quote}&rdquo;

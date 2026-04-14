@@ -21,7 +21,7 @@ interface RegulatorLogoMarqueeProps {
 
 export function RegulatorLogoMarquee({
   className,
-  label = 'Regulated by',
+  label = 'Compliant with',
 }: RegulatorLogoMarqueeProps) {
   const prefersReducedMotion = useReducedMotion()
 

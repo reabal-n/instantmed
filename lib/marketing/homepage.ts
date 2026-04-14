@@ -98,6 +98,10 @@ export const serviceCategories = [
       "Repeats included where appropriate",
       "Sent to your phone via SMS"
     ],
+    testimonial: {
+      quote: "Script on my phone in 30 minutes. Took it to the chemist that afternoon.",
+      author: "David, Melbourne"
+    },
   },
   {
     id: "consult",
@@ -117,6 +121,10 @@ export const serviceCategories = [
       "Medication and referrals if needed",
       "Full refund if we can't help",
     ],
+    testimonial: {
+      quote: "Spoke to a doctor within the hour. Got a referral sorted without leaving work.",
+      author: "Tom, Adelaide"
+    },
   },
   {
     id: "ed",
@@ -136,6 +144,10 @@ export const serviceCategories = [
       "Discreet packaging, sent to any pharmacy",
       "Only pay if doctor approves",
     ],
+    testimonial: {
+      quote: "Discreet and straightforward. No awkward conversation, just results.",
+      author: "James, Brisbane"
+    },
   },
   {
     id: "hair-loss",
@@ -155,6 +167,10 @@ export const serviceCategories = [
       "No waiting room, no call needed",
       "eScript sent straight to your phone",
     ],
+    testimonial: {
+      quote: "Wish I'd done this sooner. Easy process and the treatment is working.",
+      author: "Mark, Perth"
+    },
   },
   {
     id: "womens-health",
@@ -344,30 +360,19 @@ export const footerLinks = {
   services: [
     { label: "Medical Certificates", href: "/medical-certificate" },
     { label: "Repeat Prescriptions", href: "/prescriptions" },
+    { label: "General Consult", href: "/consult" },
     { label: "ED Treatment", href: "/erectile-dysfunction" },
     { label: "Hair Loss Treatment", href: "/hair-loss" },
-    { label: "Weight Loss", href: "/weight-loss" },
   ],
   company: [
     { label: "About Us", href: "/about" },
-    { label: "Reviews", href: "/reviews" },
     { label: "How It Works", href: "/how-it-works" },
     { label: "Pricing", href: "/pricing" },
+    { label: "Reviews", href: "/reviews" },
+    { label: "Health Guides", href: "/blog" },
     { label: "FAQs", href: "/faq" },
-    { label: "Blog", href: "/blog" },
     { label: "Contact", href: "/contact" },
-    { label: "Sitemap", href: "/sitemap-html" },
-  ],
-  resources: [
-    { label: "Online Doctor Australia", href: "/online-doctor-australia" },
-    { label: "Telehealth Australia", href: "/telehealth-australia" },
-    { label: "Health Conditions", href: "/conditions" },
-    { label: "Symptoms Guide", href: "/symptoms" },
-    { label: "How-To Guides", href: "/guides" },
-    { label: "Compare Services", href: "/compare" },
-    { label: "Locations", href: "/locations" },
-    { label: "For You", href: "/for" },
-    { label: "Quick Answers", href: "/intent" },
+    { label: "For Employers", href: "/for/employers" },
   ],
   legal: [
     { label: "Privacy Policy", href: "/privacy" },

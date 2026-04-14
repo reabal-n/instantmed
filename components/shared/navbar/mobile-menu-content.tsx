@@ -1,12 +1,15 @@
 "use client"
 
 import {
+  BookOpen,
+  Building2,
   ClipboardList,
   DollarSign,
-  FileText,
+  HelpCircle,
+  Info,
   LayoutDashboard,
-  ListChecks,
   Settings,
+  ShieldCheck,
   User,
 } from "lucide-react"
 
@@ -42,19 +45,47 @@ export function MobileMenuContent({ variant, onClose }: MobileMenuContentProps) 
           />
         ))}
         <AnimatedMobileMenu.Divider />
+        <AnimatedMobileMenu.Section title="Resources" />
         <AnimatedMobileMenu.Item
-          item={{ label: "How it Works", href: "/how-it-works", icon: <ListChecks className="h-5 w-5" /> }}
-          index={3}
-          onClose={onClose}
-        />
-        <AnimatedMobileMenu.Item
-          item={{ label: "Health Guides", href: "/blog", icon: <FileText className="h-5 w-5" /> }}
-          index={4}
+          item={{ label: "How it Works", href: "/how-it-works", icon: <Info className="h-5 w-5" /> }}
+          index={services.length}
           onClose={onClose}
         />
         <AnimatedMobileMenu.Item
           item={{ label: "Pricing", href: "/pricing", icon: <DollarSign className="h-5 w-5" /> }}
-          index={5}
+          index={services.length + 1}
+          onClose={onClose}
+        />
+        <AnimatedMobileMenu.Item
+          item={{ label: "Health Guides", href: "/blog", icon: <BookOpen className="h-5 w-5" /> }}
+          index={services.length + 2}
+          onClose={onClose}
+        />
+        <AnimatedMobileMenu.Item
+          item={{ label: "FAQs", href: "/faq", icon: <HelpCircle className="h-5 w-5" /> }}
+          index={services.length + 3}
+          onClose={onClose}
+        />
+        <AnimatedMobileMenu.Divider />
+        <AnimatedMobileMenu.Section title="Company" />
+        <AnimatedMobileMenu.Item
+          item={{ label: "About Us", href: "/about", icon: <Info className="h-5 w-5" /> }}
+          index={services.length + 4}
+          onClose={onClose}
+        />
+        <AnimatedMobileMenu.Item
+          item={{ label: "Reviews", href: "/reviews", icon: <ShieldCheck className="h-5 w-5" /> }}
+          index={services.length + 5}
+          onClose={onClose}
+        />
+        <AnimatedMobileMenu.Item
+          item={{ label: "Trust & Safety", href: "/trust", icon: <ShieldCheck className="h-5 w-5" /> }}
+          index={services.length + 6}
+          onClose={onClose}
+        />
+        <AnimatedMobileMenu.Item
+          item={{ label: "For Employers", href: "/for/employers", icon: <Building2 className="h-5 w-5" /> }}
+          index={services.length + 7}
           onClose={onClose}
         />
       </>

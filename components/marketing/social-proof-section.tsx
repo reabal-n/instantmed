@@ -91,6 +91,9 @@ export function SocialProofSection() {
         <p className="text-xs text-muted-foreground text-center mt-6">
           Individual experiences may vary. All requests are subject to doctor assessment.
         </p>
+        <p className="text-[10px] text-muted-foreground/50 text-center mt-2 max-w-2xl mx-auto leading-relaxed">
+          Telehealth consultations achieve equivalent clinical outcomes to in-person visits for common presentations (Snoswell et al., <em>J Telemed Telecare</em>, 2023). Australian telehealth consultations are regulated under the Health Practitioner Regulation National Law Act 2009.
+        </p>
       </div>
     </section>
   )

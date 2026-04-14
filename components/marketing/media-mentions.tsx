@@ -59,29 +59,21 @@ function LogoItem({ partner }: { partner: typeof regulatoryPartners[number] }) {
 
 export function RegulatoryPartners({ className, exclude = [] }: RegulatoryPartnersProps) {
   const visible = regulatoryPartners.filter((p) => !exclude.includes(p.name))
-  // Double for seamless loop
-  const items = [...visible, ...visible]
 
   return (
-    <div className={cn('py-4 sm:py-6 overflow-hidden relative', className)}>
+    <div className={cn('py-4 sm:py-6', className)}>
       {/* Label */}
       <p className="text-[10px] font-semibold text-muted-foreground/40 text-center mb-3 uppercase tracking-[0.15em]">
-        Regulated by
+        Compliant with
       </p>
 
-      {/* Fade edges */}
-      <div className="absolute left-0 top-8 bottom-0 w-16 sm:w-24 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
-      <div className="absolute right-0 top-8 bottom-0 w-16 sm:w-24 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
-
-      {/* Marquee track */}
-      <div className="flex whitespace-nowrap motion-reduce:overflow-x-auto">
-        <div className="flex items-center gap-10 sm:gap-14 px-4 animate-marquee motion-reduce:animate-none">
-          {items.map((partner, i) => (
-            <div key={`${partner.name}-${i}`} className="flex items-center shrink-0" title={partner.name}>
-              <LogoItem partner={partner} />
-            </div>
-          ))}
-        </div>
+      {/* Static centered row */}
+      <div className="flex flex-wrap items-center justify-center gap-8 sm:gap-12 px-4">
+        {visible.map((partner) => (
+          <div key={partner.name} className="flex items-center shrink-0" title={partner.name}>
+            <LogoItem partner={partner} />
+          </div>
+        ))}
       </div>
     </div>
   )

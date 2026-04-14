@@ -9,8 +9,8 @@ import { useEffect,useState } from "react"
 
 import { AppSignInButton } from "@/components/shared/app-sign-in-button"
 import { BrandLogo } from "@/components/shared/brand-logo"
-import { AnimatedNavLink } from "@/components/shared/navbar/animated-nav-link"
 import { MobileMenuContent } from "@/components/shared/navbar/mobile-menu-content"
+import { ResourcesDropdown } from "@/components/shared/navbar/resources-dropdown"
 import { ServicesDropdown } from "@/components/shared/navbar/services-dropdown"
 import { UserMenu } from "@/components/shared/navbar/user-menu"
 import { AnimatedMobileMenu, MenuToggle } from "@/components/ui/animated-mobile-menu"
@@ -98,28 +98,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
               {variant === "marketing" && (
                 <>
                   <ServicesDropdown isActivePath={isActivePath} />
-
-                  <AnimatedNavLink
-                    href="/how-it-works"
-                    isActive={isActivePath("/how-it-works")}
-                    gradient="radial-gradient(circle, rgba(59,130,246,0.15) 0%, rgba(59,130,246,0.06) 50%, rgba(59,130,246,0) 100%)"
-                  >
-                    How it Works
-                  </AnimatedNavLink>
-                  <AnimatedNavLink
-                    href="/blog"
-                    isActive={isActivePath("/blog")}
-                    gradient="radial-gradient(circle, rgba(34,197,94,0.15) 0%, rgba(34,197,94,0.06) 50%, rgba(34,197,94,0) 100%)"
-                  >
-                    Health Guides
-                  </AnimatedNavLink>
-                  <AnimatedNavLink
-                    href="/pricing"
-                    isActive={isActivePath("/pricing")}
-                    gradient="radial-gradient(circle, rgba(245,158,11,0.15) 0%, rgba(245,158,11,0.06) 50%, rgba(245,158,11,0) 100%)"
-                  >
-                    Pricing
-                  </AnimatedNavLink>
+                  <ResourcesDropdown isActivePath={isActivePath} />
 
                   <UserMenu
                     variant="marketing"

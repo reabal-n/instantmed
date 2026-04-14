@@ -32,7 +32,7 @@ import { SectionPill } from "@/components/ui/section-pill"
 import { Textarea } from "@/components/ui/textarea"
 import { capture } from "@/lib/analytics/capture"
 import { CONTACT_EMAIL, CONTACT_EMAIL_COMPLAINTS, CONTACT_PHONE } from "@/lib/constants"
-import { SOCIAL_PROOF } from "@/lib/social-proof"
+import { getPatientCount,SOCIAL_PROOF } from "@/lib/social-proof"
 import { cn } from "@/lib/utils"
 
 const CONTACT_CONFIG = {
@@ -254,7 +254,7 @@ export function ContactClient() {
         {/* CTA Banner */}
         <CTABanner
           title="Looking for a medical certificate or repeat medication?"
-          subtitle="Join 3,000+ Australians who trust InstantMed. Fill in a quick form and a real GP reviews your request, most done within the hour."
+          subtitle={`Join ${getPatientCount().toLocaleString()}+ Australians who trust InstantMed. Fill in a quick form and a real GP reviews your request, most done within the hour.`}
           ctaText="Get started"
           ctaHref="/request"
           secondaryText="See how it works"

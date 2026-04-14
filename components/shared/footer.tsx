@@ -69,8 +69,8 @@ export function Footer({ variant = "marketing" }: FooterProps) {
             )}
           </div>
 
-          {/* Link columns - 2-col on mobile, 4-col on desktop */}
-          <div className="flex-1 grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-5 md:gap-x-8">
+          {/* Link columns - 2-col on mobile, 3-col on desktop */}
+          <div className="flex-1 grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-5 md:gap-x-8">
             <nav aria-label="Services">
               <p aria-hidden="true" className="uppercase text-[10px] text-muted-foreground/70 font-semibold tracking-wider mb-2">Services</p>
               <div className="flex flex-col gap-1.5">
@@ -92,19 +92,6 @@ export function Footer({ variant = "marketing" }: FooterProps) {
                 ))}
               </div>
             </nav>
-
-            {isMarketing && (
-              <nav aria-label="Resources">
-                <p aria-hidden="true" className="uppercase text-[10px] text-muted-foreground/70 font-semibold tracking-wider mb-2">Resources</p>
-                <div className="flex flex-col gap-1.5">
-                  {footerLinks.resources.map((link) => (
-                    <Link key={link.href} className="text-sm text-muted-foreground hover:text-foreground transition-colors" href={link.href}>
-                      {link.label}
-                    </Link>
-                  ))}
-                </div>
-              </nav>
-            )}
 
             {isMarketing && (
               <nav aria-label="Legal">

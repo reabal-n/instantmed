@@ -19,7 +19,7 @@ import {
   getTestimonialsByService,
   getTestimonialsForColumns,
 } from "@/lib/data/testimonials"
-import { SOCIAL_PROOF_DISPLAY } from "@/lib/social-proof"
+import { getPatientCount,SOCIAL_PROOF_DISPLAY } from "@/lib/social-proof"
 
 // Below-fold lazy loads - keep initial bundle small
 const TestimonialsSection = dynamic(
@@ -260,7 +260,7 @@ export function ErectileDysfunctionLanding() {
           <FinalCtaSection
             onCTAClick={handleFinalCTA}
             title="Discreet ED treatment, reviewed by a real doctor."
-            subtitle="Trusted by 3,000+ Australians for online healthcare. Fill a short form, a doctor reviews it, and your treatment is sent straight to your phone."
+            subtitle={`Trusted by ${getPatientCount().toLocaleString()}+ Australians for online healthcare. Fill a short form, a doctor reviews it, and your treatment is sent straight to your phone.`}
             ctaText={`Start assessment - $${PRICING.MENS_HEALTH.toFixed(2)}`}
             ctaHref="/request?service=consult&subtype=ed"
             price={PRICING.MENS_HEALTH}

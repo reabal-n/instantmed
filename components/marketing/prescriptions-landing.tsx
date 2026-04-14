@@ -42,7 +42,7 @@ import {
   getTestimonialsByService,
   getTestimonialsForColumns,
 } from "@/lib/data/testimonials"
-import { SOCIAL_PROOF, SOCIAL_PROOF_DISPLAY } from "@/lib/social-proof"
+import { getPatientCount,SOCIAL_PROOF, SOCIAL_PROOF_DISPLAY } from "@/lib/social-proof"
 import { cn } from "@/lib/utils"
 
 // Below-fold lazy loads
@@ -450,7 +450,7 @@ function FinalCTAInline({ onCTAClick, isDisabled }: { onCTAClick?: () => void; i
             Your regular medication, renewed from home.
           </h2>
           <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto leading-relaxed">
-            Join 3,000+ Australians who trust InstantMed. Answer a few questions, a doctor reviews it, and your script is sent same day.
+            Join {getPatientCount().toLocaleString()}+ Australians who trust InstantMed. Answer a few questions, a doctor reviews it, and your script is sent same day.
           </p>
           <Button
             asChild
@@ -648,6 +648,13 @@ export function PrescriptionsLanding() {
           {/* 7. FAQ - muted bg for rhythm */}
           <div className="bg-muted/30 dark:bg-white/[0.02]">
             <PrescriptionFAQSection onFAQOpen={handleFAQOpen} />
+          </div>
+
+          {/* Clinical references */}
+          <div className="mx-auto max-w-3xl px-4 sm:px-6 pb-4">
+            <p className="text-[10px] text-muted-foreground/50 text-center leading-relaxed">
+              Electronic prescribing reduces dispensing errors by 48% compared to handwritten scripts (Westbrook et al., <em>PLoS Med</em>, 2012). Telehealth prescription management achieves equivalent clinical outcomes to face-to-face for stable chronic medications (Snoswell et al., <em>J Telemed Telecare</em>, 2023). All prescribers are AHPRA-registered and comply with TGA scheduling requirements.
+            </p>
           </div>
 
           {/* Referral strip */}

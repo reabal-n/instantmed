@@ -1,7 +1,7 @@
 "use client"
 
 import { AnimatePresence,motion } from "framer-motion"
-import { Building2,ChevronDown } from "lucide-react"
+import { ChevronDown } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
@@ -12,17 +12,17 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useReducedMotion } from "@/components/ui/motion"
 import { cn } from "@/lib/utils"
 
 export const services: Array<{ serviceId: ServiceId; title: string; href: string; description: string; iconKey: string; color: string; badge?: string }> = [
-  { serviceId: "med-cert", title: "Medical Certificates", href: "/medical-certificate", description: "Work, uni & carer's leave",       iconKey: "FileText",  color: "emerald" },
-  { serviceId: "scripts",  title: "Repeat Medication",    href: "/repeat-prescriptions",  description: "Medications you already take", iconKey: "Pill",       color: "cyan"    },
-  { serviceId: "consult",  title: "ED Treatment",         href: "/erectile-dysfunction",  description: "Discreet, no call needed",     iconKey: "Lightning",  color: "blue",   badge: "Popular" },
-  { serviceId: "consult",  title: "Hair Loss Treatment",  href: "/hair-loss",             description: "Doctor-reviewed treatment plan", iconKey: "Sparkles", color: "violet"  },
+  { serviceId: "med-cert", title: "Medical Certificates", href: "/medical-certificate", description: "Work, uni & carer's leave",       iconKey: "FileText",    color: "emerald" },
+  { serviceId: "scripts",  title: "Repeat Medication",    href: "/prescriptions",         description: "Medications you already take", iconKey: "Pill",         color: "cyan"    },
+  { serviceId: "consult",  title: "General Consult",      href: "/consult",               description: "Talk to a GP online",          iconKey: "Stethoscope", color: "sky"     },
+  { serviceId: "consult",  title: "ED Treatment",         href: "/erectile-dysfunction",  description: "Discreet, no call needed",     iconKey: "Lightning",    color: "blue",   badge: "Popular" },
+  { serviceId: "consult",  title: "Hair Loss Treatment",  href: "/hair-loss",             description: "Doctor-reviewed treatment plan", iconKey: "Sparkles",  color: "violet"  },
 ]
 
 interface ServicesDropdownProps {
@@ -38,14 +38,12 @@ export function ServicesDropdown({ isActivePath }: ServicesDropdownProps) {
   const isServiceActive =
     isActivePath("/medical-certificate") ||
     isActivePath("/prescriptions") ||
-    isActivePath("/repeat-prescriptions") ||
+    isActivePath("/consult") ||
     isActivePath("/erectile-dysfunction") ||
-    isActivePath("/hair-loss") ||
-    isActivePath("/for/employers")
+    isActivePath("/hair-loss")
 
   const handleTriggerMouseEnter = () => {
     services.forEach(service => router.prefetch(service.href))
-    router.prefetch("/for/employers")
   }
 
   return (
@@ -122,18 +120,6 @@ export function ServicesDropdown({ isActivePath }: ServicesDropdownProps) {
                   )
                 })}
 
-                <DropdownMenuSeparator className="my-1.5 bg-border/40" />
-                <DropdownMenuItem asChild className="rounded-xl p-0 focus:bg-primary/10 dark:focus:bg-primary/20">
-                  <Link href="/for/employers" className="flex items-center gap-3 px-3 py-2.5 w-full">
-                    <div className="w-8 h-8 rounded-lg bg-amber-50 dark:bg-amber-500/10 flex items-center justify-center">
-                      <Building2 className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-foreground">For Employers</p>
-                      <p className="text-xs text-muted-foreground">Verify certificates</p>
-                    </div>
-                  </Link>
-                </DropdownMenuItem>
               </motion.div>
             </DropdownMenuContent>
           )}

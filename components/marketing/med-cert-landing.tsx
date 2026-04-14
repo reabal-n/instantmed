@@ -3,11 +3,8 @@
 import { motion } from "framer-motion"
 import {
   ArrowRight,
-  Briefcase,
   Building2,
   CheckCircle2,
-  GraduationCap,
-  Heart,
   Search,
   ShieldCheck,
 } from "lucide-react"
@@ -138,10 +135,11 @@ function EmployerCalloutStrip({ onEmployerClick, onVerifyClick }: { onEmployerCl
             Accepted by {SOCIAL_PROOF.employerAcceptancePercent}% of Australian employers and universities
           </p>
           <p className="text-center text-xs text-muted-foreground mt-1">
-            Legally valid under the Fair Work Act - same as a GP certificate
+            Legally valid under the Fair Work Act 2009 (Cth), s 107 - same as a GP certificate
           </p>
           <ScrollingLogoMarquee
             logos={EMPLOYER_LOGOS}
+            colored
             tooltipPrefix="Accepted by"
             analyticsEvent="employer_marquee_view"
             className="py-4"
@@ -266,83 +264,6 @@ function OutcomePreviewSection() {
   )
 }
 
-/** Certificate type comparison cards */
-const CERT_TYPES = [
-  {
-    icon: Briefcase,
-    title: "Work / Sick Leave",
-    description: "For calling in sick to work. Covers 1-3 days. Most popular.",
-    popular: true,
-  },
-  {
-    icon: Heart,
-    title: "Carer's Certificate",
-    description: "For caring for a sick family member. Covers 1-3 days.",
-    popular: false,
-  },
-  {
-    icon: GraduationCap,
-    title: "University / Student",
-    description: "For missed classes, exams, or assignments. Covers 1-3 days.",
-    popular: false,
-  },
-] as const
-
-function CertTypeComparison() {
-  const prefersReducedMotion = useReducedMotion()
-  const animate = !prefersReducedMotion
-
-  return (
-    <section data-track-section="cert_types" className="py-12 lg:py-16">
-      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-        <motion.div
-          className="text-center mb-8"
-          initial={animate ? { y: 12 } : {}}
-          whileInView={animate ? { opacity: 1, y: 0 } : undefined}
-          viewport={{ once: true }}
-          transition={{ duration: 0.4 }}
-        >
-          <SectionPill>Certificate types</SectionPill>
-          <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground mt-4">
-            Which certificate do you need?
-          </h2>
-        </motion.div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
-          {CERT_TYPES.map((cert, i) => (
-            <motion.div
-              key={cert.title}
-              className="relative bg-white dark:bg-card border border-border/50 rounded-2xl shadow-md shadow-primary/[0.06] p-6 flex flex-col"
-              initial={animate ? { y: 16, opacity: 0 } : {}}
-              whileInView={animate ? { opacity: 1, y: 0 } : undefined}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: i * 0.08 }}
-            >
-              {cert.popular && (
-                <span className="absolute -top-2.5 left-4 inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-[10px] font-semibold text-primary">
-                  Most popular
-                </span>
-              )}
-              <cert.icon className="h-6 w-6 text-primary mb-3" aria-hidden="true" />
-              <h3 className="text-base font-semibold text-foreground mb-1.5">{cert.title}</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed mb-4 flex-1">
-                {cert.description}
-              </p>
-              <p className="text-sm font-medium text-foreground mb-4">
-                From ${PRICING.MED_CERT.toFixed(2)}
-              </p>
-              <Button asChild size="sm" variant="outline" className="w-full">
-                <Link href="/request?service=med-cert">
-                  Get started
-                  <ArrowRight className="ml-1.5 h-3.5 w-3.5" aria-hidden="true" />
-                </Link>
-              </Button>
-            </motion.div>
-          ))}
-        </div>
-      </div>
-    </section>
-  )
-}
 
 // =============================================================================
 // MAIN PAGE COMPONENT
@@ -417,11 +338,6 @@ export function MedCertLanding() {
             {/* 7. Employer acceptance */}
             <EmployerCalloutStrip onEmployerClick={handleEmployerClick} onVerifyClick={handleVerifyClick} />
 
-            {/* 7b. Certificate type comparison */}
-            <div className="bg-muted/30 dark:bg-white/[0.02]">
-              <CertTypeComparison />
-            </div>
-
             {/* 8. What we cover / limitations */}
             <LimitationsSection />
 
@@ -438,6 +354,13 @@ export function MedCertLanding() {
               />
             </div>
 
+            {/* Clinical references */}
+            <div className="mx-auto max-w-3xl px-4 sm:px-6 py-4">
+              <p className="text-[10px] text-muted-foreground/50 text-center leading-relaxed">
+                Telehealth-issued medical certificates are accepted by Australian employers under the Fair Work Act 2009 (s 107). Telehealth consultations achieve equivalent clinical accuracy to in-person assessments for common presentations (Snoswell et al., <em>J Telemed Telecare</em>, 2023). All certificates are issued by AHPRA-registered practitioners.
+              </p>
+            </div>
+
             {/* 10. Pre-CTA friction removal */}
             <div className="py-6 sm:py-8">
               <p className="text-[10px] font-semibold text-muted-foreground/40 text-center mb-3 uppercase tracking-[0.15em]">
@@ -450,7 +373,7 @@ export function MedCertLanding() {
             <div data-track-section="final_cta">
               <CTABanner
                 title="Let a doctor handle the paperwork"
-                subtitle="Trusted by 3,000+ Australians. Two minutes on your phone, a real doctor reviews it, and your certificate lands in your inbox."
+                subtitle={`Trusted by ${patientCount.toLocaleString()}+ Australians. Two minutes on your phone, a real doctor reviews it, and your certificate lands in your inbox.`}
                 ctaText={isDisabled ? "Contact us" : `Get your certificate - $${PRICING.MED_CERT.toFixed(2)}`}
                 ctaHref={isDisabled ? "/contact" : "/request?service=med-cert"}
               />

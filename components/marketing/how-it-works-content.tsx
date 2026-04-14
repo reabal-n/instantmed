@@ -13,6 +13,7 @@ import { DoctorCredibility } from "@/components/marketing/doctor-credibility"
 import { RegulatoryPartners } from "@/components/marketing/media-mentions"
 import { InformationalPageShell } from "@/components/marketing/shared/informational-page-shell"
 import { CTABanner,FAQSection, FeatureGrid, Timeline } from "@/components/sections"
+import { getPatientCount } from "@/lib/social-proof"
 
 /* ────────────────────────────── Data ────────────────────────────── */
 
@@ -233,7 +234,7 @@ export function HowItWorksContent() {
         {/* CTA */}
         <CTABanner
           title="Ready when you are"
-          subtitle="Join 3,000+ Australians who trust InstantMed. Pick what you need, fill in a quick form, and a GP takes care of the rest."
+          subtitle={`Join ${getPatientCount().toLocaleString()}+ Australians who trust InstantMed. Pick what you need, fill in a quick form, and a GP takes care of the rest.`}
           ctaText="Get Med Cert"
           ctaHref="/request?service=med-cert"
           secondaryText="Renew medication"

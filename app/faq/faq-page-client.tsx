@@ -9,6 +9,7 @@ import { InformationalPageShell, RelatedArticles } from "@/components/marketing/
 import { AccordionSection, CTABanner } from "@/components/sections"
 import { FAQSchema } from "@/components/seo"
 import { GENERAL_FAQ } from "@/lib/data/general-faq"
+import { getPatientCount } from "@/lib/social-proof"
 import { cn } from "@/lib/utils"
 
 // ---------------------------------------------------------------------------
@@ -268,7 +269,7 @@ export default function FAQPage() {
           {/* CTA */}
           <CTABanner
             title="Still have questions?"
-            subtitle="Trusted by 3,000+ Australians for online healthcare. Our support team is here to help."
+            subtitle={`Trusted by ${getPatientCount().toLocaleString()}+ Australians for online healthcare. Our support team is here to help.`}
             ctaText="Contact Support"
             ctaHref="/contact"
           />

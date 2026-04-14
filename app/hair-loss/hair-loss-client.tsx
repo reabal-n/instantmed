@@ -278,6 +278,10 @@ function TreatmentOptions() {
             </Link>
           </Button>
         </div>
+
+        <p className="text-[10px] text-muted-foreground/50 text-center mt-8 max-w-3xl mx-auto leading-relaxed">
+          Finasteride reduces hair loss progression in 83-90% of men with androgenetic alopecia over 2 years (Kaufman et al., <em>J Am Acad Dermatol</em>, 1998). Topical minoxidil promotes regrowth in approximately 60% of patients (Olsen et al., <em>J Am Acad Dermatol</em>, 2002). TGA-approved for male pattern hair loss. Telehealth assessment of hair loss achieves comparable diagnostic accuracy to in-person consultation (Finnane et al., <em>Med J Aust</em>, 2017).
+        </p>
       </div>
     </section>
   );

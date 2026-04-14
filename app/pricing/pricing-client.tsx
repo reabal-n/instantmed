@@ -17,7 +17,7 @@ import { useReducedMotion } from "@/components/ui/motion"
 import { SectionPill } from "@/components/ui/section-pill"
 import { PRICING, PRICING_DISPLAY } from "@/lib/constants"
 import { getFeaturedTestimonials } from "@/lib/data/testimonials"
-import { SOCIAL_PROOF } from "@/lib/social-proof"
+import { getPatientCount,SOCIAL_PROOF } from "@/lib/social-proof"
 import { cn } from "@/lib/utils"
 
 /* ────────────────────────────── Data ────────────────────────────── */
@@ -414,7 +414,7 @@ export function PricingClient() {
         {/* CTA */}
         <CTABanner
           title="Ready to get started?"
-          subtitle="Trusted by 3,000+ Australians. Get started in under 2 minutes. Only pay if we can help."
+          subtitle={`Trusted by ${getPatientCount().toLocaleString()}+ Australians. Get started in under 2 minutes. Only pay if we can help.`}
           ctaText="Start a consult"
           ctaHref="/medical-certificate"
         />

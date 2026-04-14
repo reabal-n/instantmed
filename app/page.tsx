@@ -11,7 +11,6 @@ import { MarketingPageShell } from '@/components/marketing/marketing-page-shell'
 import { RegulatoryPartners } from '@/components/marketing/media-mentions'
 // After-hours banner removed - redundant with DoctorAvailabilityPill in hero
 import { ServiceCards } from '@/components/marketing/service-cards'
-import { ScrollingLogoMarquee } from '@/components/marketing/shared'
 import { SocialProofSection } from '@/components/marketing/social-proof-section'
 import { CTABanner } from '@/components/sections'
 import { FAQSection } from '@/components/sections'
@@ -23,26 +22,6 @@ import { PRICING_DISPLAY } from '@/lib/constants'
 import { getFeatureFlags } from '@/lib/feature-flags'
 import { faqItems } from '@/lib/marketing/homepage'
 import { cn } from '@/lib/utils'
-
-const EMPLOYER_LOGOS = [
-  { name: 'Woolworths', src: '/logos/woolworths.png' },
-  { name: 'Coles', src: '/logos/coles.png' },
-  { name: 'Commonwealth Bank', src: '/logos/commonwealthbank.png' },
-  { name: 'ANZ', src: '/logos/ANZ.png' },
-  { name: 'NAB', src: '/logos/nab.png' },
-  { name: 'Westpac', src: '/logos/westpac.png' },
-  { name: 'BHP', src: '/logos/BHP.png' },
-  { name: 'Telstra', src: '/logos/telstra.png' },
-  { name: 'JB Hi-Fi', src: '/logos/jbhifi.png' },
-  { name: "McDonald's", src: '/logos/mcdonalds.png' },
-  { name: 'Bunnings', src: '/logos/bunnings.png' },
-  { name: 'Amazon', src: '/logos/amazon.png' },
-  { name: 'Qantas', src: '/logos/qantas.svg' },
-  { name: 'Deloitte', src: '/logos/deloitte.svg' },
-  { name: 'PwC', src: '/logos/pwc.svg' },
-  { name: 'KPMG', src: '/logos/kpmg.svg' },
-  { name: 'Bupa', src: '/logos/bupa.svg' },
-]
 
 export const revalidate = 3600
 
@@ -148,16 +127,6 @@ export default async function HomePage() {
 
         {/* 2. Service cards - what we offer */}
         <ServiceCards />
-
-        {/* Employer logo marquee - credibility signal */}
-        <ScrollingLogoMarquee
-          logos={EMPLOYER_LOGOS}
-          heading="Our patients work at"
-          speed="slow"
-          colored
-          tooltipPrefix="Used by"
-          analyticsEvent="homepage_employer_marquee"
-        />
 
         {/* 2.5 Regulatory authority logos */}
         <RegulatoryPartners />

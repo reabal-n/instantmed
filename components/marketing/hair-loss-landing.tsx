@@ -30,7 +30,7 @@ import {
   getTestimonialsByService,
   getTestimonialsForColumns,
 } from "@/lib/data/testimonials"
-import { SOCIAL_PROOF, SOCIAL_PROOF_DISPLAY } from "@/lib/social-proof"
+import { getPatientCount,SOCIAL_PROOF, SOCIAL_PROOF_DISPLAY } from "@/lib/social-proof"
 
 // Below-fold lazy loads
 const TestimonialsSection = dynamic(
@@ -443,7 +443,7 @@ export function HairLossLanding() {
           <FinalCtaSection
             onCTAClick={handleFinalCTA}
             title="Start treating hair loss today."
-            subtitle="Trusted by 3,000+ Australians for online healthcare. Fill a short form, a doctor reviews it, and your treatment is sent straight to your phone."
+            subtitle={`Trusted by ${getPatientCount().toLocaleString()}+ Australians for online healthcare. Fill a short form, a doctor reviews it, and your treatment is sent straight to your phone.`}
             ctaText={`Start assessment - $${PRICING.HAIR_LOSS.toFixed(2)}`}
             ctaHref="/request?service=consult&subtype=hair_loss"
             price={PRICING.HAIR_LOSS}
