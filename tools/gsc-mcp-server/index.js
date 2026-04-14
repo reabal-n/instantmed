@@ -9,7 +9,7 @@ import { google } from "googleapis";
 // ADC auto-detected -- no key files needed
 const auth = new google.auth.GoogleAuth({
   scopes: [
-    "https://www.googleapis.com/auth/webmasters.readonly",
+    "https://www.googleapis.com/auth/webmasters",
     "https://www.googleapis.com/auth/indexing",
     "https://www.googleapis.com/auth/business.manage",
   ],

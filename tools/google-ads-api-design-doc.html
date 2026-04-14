@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Google Ads API Integration - Design Document | InstantMed</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Georgia, 'Times New Roman', serif;
+      font-size: 11pt;
+      line-height: 1.55;
+      color: #1a1a1a;
+      background: #fff;
+      padding: 0;
+    }
+
+    .page {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 40px 48px;
+    }
+
+    /* Header */
+    .header {
+      border-bottom: 2px solid #1a1a1a;
+      padding-bottom: 16px;
+      margin-bottom: 28px;
+    }
+
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+
+    .company-name {
+      font-size: 18pt;
+      font-weight: bold;
+      letter-spacing: -0.5px;
+      color: #1a1a1a;
+    }
+
+    .company-tagline {
+      font-size: 9pt;
+      color: #555;
+      margin-top: 2px;
+    }
+
+    .header-meta {
+      text-align: right;
+      font-size: 9pt;
+      color: #555;
+      line-height: 1.6;
+    }
+
+    .doc-title {
+      margin-top: 14px;
+      font-size: 13pt;
+      font-weight: bold;
+      color: #1a1a1a;
+    }
+
+    .doc-subtitle {
+      font-size: 9.5pt;
+      color: #555;
+      margin-top: 3px;
+    }
+
+    /* Sections */
+    section {
+      margin-bottom: 24px;
+    }
+
+    h2 {
+      font-size: 11pt;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #1a1a1a;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 4px;
+      margin-bottom: 10px;
+    }
+
+    p {
+      margin-bottom: 8px;
+    }
+
+    ul {
+      margin: 6px 0 8px 20px;
+    }
+
+    li {
+      margin-bottom: 3px;
+    }
+
+    /* Table */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 9.5pt;
+      margin-top: 8px;
+    }
+
+    th {
+      background: #f0f0f0;
+      border: 1px solid #ccc;
+      padding: 6px 8px;
+      text-align: left;
+      font-weight: bold;
+      font-size: 9pt;
+    }
+
+    td {
+      border: 1px solid #ccc;
+      padding: 6px 8px;
+      vertical-align: top;
+    }
+
+    tr:nth-child(even) td {
+      background: #fafafa;
+    }
+
+    /* Architecture Diagram */
+    .diagram {
+      margin: 12px 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      flex-wrap: nowrap;
+    }
+
+    .diagram-box {
+      border: 1.5px solid #444;
+      padding: 10px 14px;
+      text-align: center;
+      background: #f8f8f8;
+      min-width: 120px;
+      font-size: 9pt;
+      line-height: 1.4;
+    }
+
+    .diagram-box strong {
+      display: block;
+      font-size: 9.5pt;
+      margin-bottom: 2px;
+    }
+
+    .diagram-box small {
+      display: block;
+      font-size: 8pt;
+      color: #666;
+    }
+
+    .arrow {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0 4px;
+      min-width: 80px;
+    }
+
+    .arrow-line {
+      width: 100%;
+      height: 1.5px;
+      background: #444;
+      position: relative;
+    }
+
+    .arrow-line::after {
+      content: '';
+      position: absolute;
+      right: -1px;
+      top: -4px;
+      border-left: 8px solid #444;
+      border-top: 4.5px solid transparent;
+      border-bottom: 4.5px solid transparent;
+    }
+
+    .arrow-label {
+      font-size: 7.5pt;
+      color: #555;
+      margin-top: 4px;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    .diagram-note {
+      font-size: 8.5pt;
+      color: #555;
+      text-align: center;
+      margin-top: 10px;
+      font-style: italic;
+    }
+
+    /* Inline labels */
+    .label {
+      display: inline-block;
+      background: #e8e8e8;
+      border: 1px solid #bbb;
+      border-radius: 2px;
+      padding: 0 5px;
+      font-size: 8.5pt;
+      font-family: 'Courier New', monospace;
+    }
+
+    /* Footer */
+    .footer {
+      margin-top: 32px;
+      padding-top: 12px;
+      border-top: 1px solid #ccc;
+      font-size: 8.5pt;
+      color: #777;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    /* Print */
+    @media print {
+      body {
+        font-size: 10pt;
+      }
+
+      .page {
+        padding: 28px 36px;
+        max-width: 100%;
+      }
+
+      section {
+        margin-bottom: 20px;
+      }
+
+      .diagram-box {
+        min-width: 100px;
+        padding: 8px 10px;
+      }
+
+      .arrow {
+        min-width: 60px;
+      }
+
+      h2 {
+        margin-bottom: 8px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+
+    <!-- Header -->
+    <header class="header">
+      <div class="header-top">
+        <div>
+          <div class="company-name">InstantMed</div>
+          <div class="company-tagline">instantmed.com.au &nbsp;|&nbsp; Australian Telehealth</div>
+        </div>
+        <div class="header-meta">
+          <div><strong>ABN:</strong> 64 694 559 334</div>
+          <div><strong>Google Ads Account:</strong> 920-501-0513</div>
+          <div><strong>MCC Account:</strong> 897-378-8544</div>
+          <div><strong>Date:</strong> April 2026</div>
+        </div>
+      </div>
+      <div class="doc-title">Google Ads API Integration - Design Document</div>
+      <div class="doc-subtitle">Basic Access Application - Technical Specification</div>
+    </header>
+
+    <!-- Section 1: Company Overview -->
+    <section>
+      <h2>1. Company Overview</h2>
+      <p>
+        InstantMed Pty Ltd (ABN 64 694 559 334) is an Australian telehealth platform operating at
+        instantmed.com.au. The platform enables patients across Australia to request medical
+        certificates, repeat prescriptions, and GP consultations online. Registered practitioners
+        review requests asynchronously and deliver documents digitally, with no in-person visit
+        required.
+      </p>
+      <p>
+        InstantMed is a single-brand operator. It does not provide marketing or advertising services
+        to third parties and manages only its own Google Ads account.
+      </p>
+    </section>
+
+    <!-- Section 2: Tool Overview -->
+    <section>
+      <h2>2. Tool Overview</h2>
+      <p>
+        InstantMed has built a lightweight, internal-only analytics integration that connects the
+        Google Ads API to the company's development environment via the Model Context Protocol (MCP).
+        This tool is used exclusively by the founding team (founder and CTO) to monitor ad spend
+        efficiency and campaign performance.
+      </p>
+      <p><strong>What the tool does:</strong></p>
+      <ul>
+        <li>Fetches campaign performance data (impressions, clicks, cost, conversions) via GAQL queries</li>
+        <li>Surfaces keyword analytics and quality score metrics for optimisation review</li>
+        <li>Reports on cost-per-acquisition and conversion rates across service lines</li>
+        <li>Provides account-level spend summaries for budget planning</li>
+      </ul>
+      <p><strong>What the tool does not do:</strong></p>
+      <ul>
+        <li>It does not create, pause, modify, or delete any campaigns or ad groups</li>
+        <li>It does not adjust bids or budgets programmatically</li>
+        <li>It does not manage Google Ads accounts on behalf of any third party</li>
+        <li>It does not expose data outside the internal development environment</li>
+      </ul>
+      <p>
+        All campaign changes are made manually through the Google Ads UI by the internal team after
+        reviewing analytics output from this tool.
+      </p>
+    </section>
+
+    <!-- Section 3: Architecture Diagram -->
+    <section>
+      <h2>3. Architecture</h2>
+
+      <div class="diagram">
+        <div class="diagram-box">
+          <strong>Developer</strong>
+          <small>Founder / CTO<br>Local machine</small>
+        </div>
+        <div class="arrow">
+          <div class="arrow-line"></div>
+          <div class="arrow-label">Natural language<br>query</div>
+        </div>
+        <div class="diagram-box">
+          <strong>MCP Server</strong>
+          <small>Local Node.js<br>process</small>
+        </div>
+        <div class="arrow">
+          <div class="arrow-line"></div>
+          <div class="arrow-label">GAQL query<br>OAuth2 (ADC)</div>
+        </div>
+        <div class="diagram-box">
+          <strong>Google Ads API</strong>
+          <small>v19<br>Read-only</small>
+        </div>
+        <div class="arrow">
+          <div class="arrow-line"></div>
+          <div class="arrow-label">Structured<br>response</div>
+        </div>
+        <div class="diagram-box">
+          <strong>Campaign Data</strong>
+          <small>Displayed in<br>dev environment</small>
+        </div>
+      </div>
+
+      <p class="diagram-note">
+        All components run locally. No data is written to external storage. The MCP server process
+        terminates when the development session ends.
+      </p>
+
+      <p style="margin-top: 10px;"><strong>Authentication:</strong> The MCP server authenticates
+        using Google Application Default Credentials (ADC) via OAuth2. Credentials are stored in the
+        standard ADC location on the developer's local machine (<span class="label">~/.config/gcloud/</span>)
+        and are never transmitted to third parties or stored in the application codebase.
+      </p>
+
+      <p><strong>Query flow:</strong></p>
+      <ul>
+        <li>The developer issues a natural-language request (e.g., "show me campaign performance this week")</li>
+        <li>The MCP server translates this into a typed GAQL query</li>
+        <li>The query is sent to the Google Ads API using read-only service methods</li>
+        <li>Results are returned as structured JSON and displayed in the developer's terminal/IDE</li>
+        <li>No data is persisted after the session ends</li>
+      </ul>
+    </section>
+
+    <!-- Section 4: API Services Used -->
+    <section>
+      <h2>4. API Services Used</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Service</th>
+            <th>Method</th>
+            <th>Purpose</th>
+            <th>Access Type</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>GoogleAdsService</td>
+            <td>Search</td>
+            <td>Execute GAQL queries for campaign, ad group, and keyword performance reporting</td>
+            <td>Read-only</td>
+          </tr>
+          <tr>
+            <td>GoogleAdsService</td>
+            <td>SearchStream</td>
+            <td>Stream large result sets for date-range performance reports</td>
+            <td>Read-only</td>
+          </tr>
+          <tr>
+            <td>CustomerService</td>
+            <td>ListAccessibleCustomers</td>
+            <td>Enumerate accessible accounts under the MCC for account discovery</td>
+            <td>Read-only</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p style="margin-top: 10px;">
+        No mutate methods are used. The integration does not call <span class="label">CampaignService.MutateCampaigns</span>,
+        <span class="label">AdGroupService</span>, <span class="label">BiddingStrategyService</span>,
+        or any other write-capable endpoint.
+      </p>
+    </section>
+
+    <!-- Section 5: Data Handling -->
+    <section>
+      <h2>5. Data Handling</h2>
+      <p>
+        Data returned from the Google Ads API is used only for immediate analytical display within
+        the developer's environment. The following principles govern all data handling:
+      </p>
+      <ul>
+        <li><strong>No permanent storage:</strong> Query results are held in memory for the duration
+          of the session only. No results are written to files, databases, or external services.</li>
+        <li><strong>Read-only access:</strong> The integration is scoped to read-only API methods.
+          No campaign data is modified by this tool at any time.</li>
+        <li><strong>No PII beyond Google Ads audience data:</strong> The tool retrieves aggregate
+          performance metrics (impressions, clicks, cost, conversions). It does not retrieve
+          personally identifiable information about individual users or patients.</li>
+        <li><strong>Internal use only:</strong> Results are displayed within the developer's local
+          development environment (Claude Code / terminal). Data is not exported, shared, or published.</li>
+        <li><strong>Single-account scope:</strong> All queries are scoped to InstantMed's own Google
+          Ads account (920-501-0513). No third-party account data is accessed.</li>
+      </ul>
+    </section>
+
+    <!-- Section 6: Security -->
+    <section>
+      <h2>6. Security</h2>
+      <ul>
+        <li><strong>OAuth2 via Application Default Credentials:</strong> Authentication follows
+          Google's recommended ADC pattern. Credentials are stored locally in the standard ADC path
+          and are refreshed automatically by the Google Auth Library.</li>
+        <li><strong>No credential storage in source code:</strong> API keys and OAuth tokens are
+          never committed to the codebase or stored in environment variable files checked into
+          version control.</li>
+        <li><strong>Local execution only:</strong> The MCP server runs as a local process on the
+          developer's machine. It does not expose any HTTP endpoints and is not reachable over the
+          network.</li>
+        <li><strong>No third-party access:</strong> No contractors, vendors, or external parties
+          have access to the credentials or the tool output. The integration is operated solely by
+          the InstantMed founding team.</li>
+        <li><strong>Minimal OAuth scopes:</strong> The OAuth consent is requested with the
+          <span class="label">https://www.googleapis.com/auth/adwords</span> scope, which is
+          required for Google Ads API access. No additional Google scopes are requested.</li>
+        <li><strong>Audit trail:</strong> All API requests pass through Google's standard access
+          logging. No additional logging infrastructure is required given the internal, read-only
+          nature of the tool.</li>
+      </ul>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div>InstantMed Pty Ltd &nbsp;|&nbsp; ABN 64 694 559 334 &nbsp;|&nbsp; Level 1/457-459 Elizabeth St, Surry Hills NSW 2010</div>
+      <div>support@instantmed.com.au</div>
+    </footer>
+
+  </div>
+</body>
+</html>
