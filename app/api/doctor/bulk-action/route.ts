@@ -13,7 +13,7 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 const log = createLogger("bulk-action")
 
 // Valid statuses that can be transitioned from
-const ACTIONABLE_STATUSES = ["paid", "awaiting_review", "in_review", "pending_info"]
+const ACTIONABLE_STATUSES = ["paid", "in_review", "pending_info"]
 
 // Map category to RequestType
 function getRequestType(category: string | null): RequestType {

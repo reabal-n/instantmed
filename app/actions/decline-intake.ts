@@ -73,7 +73,7 @@ export interface DeclineResult {
 }
 
 // Valid statuses that can be declined
-const DECLINABLE_STATUSES = ["paid", "awaiting_review", "in_review", "pending_info", "pending_review", "awaiting_script"]
+const DECLINABLE_STATUSES = ["paid", "in_review", "pending_info", "awaiting_script"]
 
 // ============================================================================
 // MAIN ACTION

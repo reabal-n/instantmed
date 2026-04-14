@@ -59,12 +59,10 @@ export async function fetchCertPreviewDataAction(
       return { success: false, error: "Intake not found" }
     }
 
-    // Determine certificate type from service slug
     // Supabase returns joins as arrays - unwrap
     const serviceRaw = intake.service as unknown
     const service = (Array.isArray(serviceRaw) ? serviceRaw[0] : serviceRaw) as { slug: string } | null
     const slug = service?.slug || ""
-    const certSubtype = slug.includes("carer") ? "carer" : slug.includes("uni") ? "study" : "work"
 
     // Fetch draft data
     let draft = null
@@ -120,12 +118,22 @@ export async function fetchCertPreviewDataAction(
       } catch { /* non-blocking */ }
     }
 
+    // Resolve cert type: draft data is most reliable (created from intake answers),
+    // then fall back to service slug heuristic.
+    const draftCertType = draftData?.certificate_type
+    const slugCertType = slug.includes("carer") ? "carer" : slug.includes("uni") ? "study" : null
+    const certSubtype: "work" | "study" | "carer" =
+      draftCertType === "uni" ? "study"
+      : draftCertType === "carer" ? "carer"
+      : draftCertType === "work" ? "work"
+      : slugCertType ?? "work"
+
     return {
       success: true,
       data: {
         patientName: patient?.full_name || draftData?.patient_name || "Unknown",
         patientDob: patient?.date_of_birth || draftData?.dob || null,
-        certificateType: certSubtype as "work" | "study" | "carer",
+        certificateType: certSubtype,
         startDate: draftData?.date_from || aiStartDate || today,
         endDate: draftData?.date_to || aiEndDate || today,
         medicalReason: draftData?.reason || draftData?.reason_summary || "Medical Illness",

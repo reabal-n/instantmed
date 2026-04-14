@@ -25,6 +25,7 @@ const eslintConfig = [
       "test-results/**",
       "scripts/**",
       ".worktrees/**",
+      "tools/**",
     ],
   },
   // Base JS recommended

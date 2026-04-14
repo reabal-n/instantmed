@@ -218,7 +218,10 @@ export async function getOrCreateMedCertDraftForIntake(intakeId: string): Promis
   }
 
   // Determine subtype from service or answers
-  const certType = (answers.cert_type as string) ||
+  // Note: unified-checkout.ts transforms certType → certificate_type (snake_case),
+  // so read certificate_type first. cert_type is legacy fallback.
+  const certType = (answers.certificate_type as string) ||
+    (answers.cert_type as string) ||
     (aiDraftContent?.certificateType as string) || "work"
   let defaultCapacity = "Unable to work"
   if (certType === "uni") {

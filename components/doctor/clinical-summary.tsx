@@ -378,9 +378,14 @@ export function ClinicalSummary({ answers, consultSubtype, className, inline }: 
     "address_line1",
     "addressLine2",
     "address_line2",
-    // Symptom details already captured in primary fields
-    "symptomDetails",
-    "symptom_details",
+    // camelCase duplicates of snake_case fields shown in primary section
+    "symptomDetails",   // snake_case symptom_details is shown in primary
+    "symptomDuration",  // snake_case symptom_duration is shown in primary
+    // Payment/checkout metadata - not clinical
+    "isPriority",
+    "is_priority",
+    "subscribeAndSave",
+    "subscribe_and_save",
   ])
   
   for (const [key, value] of sortedEntries) {

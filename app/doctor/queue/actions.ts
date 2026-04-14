@@ -49,10 +49,10 @@ export async function updateStatusAction(
       .single()
 
     const notes = intake?.doctor_notes?.trim() || ""
-    if (notes.length < 20) {
+    if (notes.length < 50) {
       return {
         success: false,
-        error: "Clinical notes must be at least 20 characters before approving or sending a script.",
+        error: "Clinical notes must be at least 50 characters before approving or sending a script.",
         code: "INSUFFICIENT_CLINICAL_NOTES",
       }
     }
