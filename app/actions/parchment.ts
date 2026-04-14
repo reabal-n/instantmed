@@ -3,10 +3,13 @@
 import * as Sentry from "@sentry/nextjs"
 
 import { requireRoleOrNull } from "@/lib/auth/helpers"
+import { getFeatureFlags } from "@/lib/feature-flags"
 import { createLogger } from "@/lib/observability/logger"
 import { getSsoUrl, listUsers } from "@/lib/parchment/client"
 import { syncPatientToParchment } from "@/lib/parchment/sync-patient"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 const log = createLogger("parchment-actions")
 
@@ -22,9 +25,19 @@ const log = createLogger("parchment-actions")
 export async function getParchmentPrescribeUrlAction(
   intakeId: string,
 ): Promise<{ success: boolean; error?: string; ssoUrl?: string; parchmentPatientId?: string }> {
+  if (!UUID_RE.test(intakeId)) {
+    return { success: false, error: "Invalid intake ID" }
+  }
+
   const authResult = await requireRoleOrNull(["doctor", "admin"])
   if (!authResult) {
     return { success: false, error: "Unauthorized" }
+  }
+
+  // Defense-in-depth: block if feature flag is off (UI also guards this)
+  const flags = await getFeatureFlags()
+  if (!flags.parchment_embedded_prescribing) {
+    return { success: false, error: "Embedded prescribing is not enabled" }
   }
 
   try {

@@ -15,13 +15,17 @@ const redis = process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_RE
   : null
 
 async function acquireWebhookLock(scid: string): Promise<boolean> {
-  if (!redis) return true // fail open
+  if (!redis) {
+    log.warn("Redis unavailable for webhook dedup - failing open", { scid })
+    return true
+  }
   try {
     // SET NX EX 60 - returns "OK" if set, null if key already exists
     const result = await redis.set(`parchment:lock:${scid}`, "1", { nx: true, ex: 60 })
     return result === "OK"
-  } catch {
-    return true // fail open on Redis error
+  } catch (error) {
+    log.warn("Redis lock error for webhook dedup - failing open", { scid, error: error instanceof Error ? error.message : String(error) })
+    return true
   }
 }
 
@@ -76,6 +80,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid payload" }, { status: 400 })
   }
 
+  // Only handle prescription.created events - check early to avoid unnecessary validation
+  if (payload.event_type !== "prescription.created") {
+    log.info("Ignoring webhook event", { eventType: payload.event_type, eventId: payload.event_id })
+    return NextResponse.json({ received: true })
+  }
+
   // Validate organization and partner IDs match our configuration
   const expectedOrgId = process.env.PARCHMENT_ORGANIZATION_ID
   const expectedPartnerId = process.env.PARCHMENT_PARTNER_ID
@@ -86,12 +96,6 @@ export async function POST(request: Request) {
   if (expectedPartnerId && payload.partner_id !== expectedPartnerId) {
     log.warn("Webhook partner_id mismatch", { expected: expectedPartnerId, received: payload.partner_id })
     return NextResponse.json({ error: "Partner mismatch" }, { status: 403 })
-  }
-
-  // Only handle prescription.created events
-  if (payload.event_type !== "prescription.created") {
-    log.info("Ignoring webhook event", { eventType: payload.event_type, eventId: payload.event_id })
-    return NextResponse.json({ received: true })
   }
 
   const { patient_id, partner_patient_id, scid, user_id } = payload.data
@@ -250,8 +254,12 @@ export async function POST(request: Request) {
         log.info("Patient notification email sent via webhook", { intakeId: intake.id })
       }
     } catch (emailError) {
-      // Non-fatal - script is already marked as sent
+      // Non-fatal - script is already marked as sent, but alert so we can follow up
       log.error("Failed to send notification email from webhook", { intakeId: intake.id }, emailError instanceof Error ? emailError : new Error(String(emailError)))
+      Sentry.captureException(emailError instanceof Error ? emailError : new Error(String(emailError)), {
+        level: "warning",
+        extra: { intakeId: intake.id, scid, context: "parchment_webhook_email" },
+      })
     }
 
     const duration = Date.now() - startTime

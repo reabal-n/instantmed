@@ -50,13 +50,13 @@ export function ParchmentPrescribePanel({
       setSsoUrl(result.ssoUrl)
       setIframeLoaded(false)
 
-      // SSO tokens expire in 300s - warn at 240s, auto-refresh at 290s
+      // SSO tokens expire in 300s - auto-refresh at 270s (30s safety margin)
       if (ssoExpiryTimer.current) clearTimeout(ssoExpiryTimer.current)
       ssoExpiryTimer.current = setTimeout(() => {
         setSsoExpired(true)
         toast.warning("Parchment session expiring - refreshing...", { duration: 3000 })
         loadPrescribingUrl()
-      }, 240_000) // 4 minutes
+      }, 270_000) // 4.5 minutes
     } else {
       setError(result.error || "Failed to load prescribing portal")
       toast.error(result.error || "Failed to load Parchment")
