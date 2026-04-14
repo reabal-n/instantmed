@@ -15,7 +15,7 @@ import { SectionPill } from "@/components/ui/section-pill"
 import { PageBreadcrumbs } from "@/components/uix"
 import { allArticles,getAllArticleSlugs, getArticleBySlug, getRelatedArticles } from "@/lib/blog/articles"
 import { legacyPosts } from "@/lib/blog/articles/legacy-posts"
-import { PRICING_DISPLAY } from "@/lib/constants"
+import { PRICING, PRICING_DISPLAY } from "@/lib/constants"
 import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 
 interface PageProps {
@@ -209,13 +209,13 @@ export default async function BlogPostPage({ params }: PageProps) {
           <HowToSchema
             name={article.title}
             description={article.excerpt}
-            totalTime="PT30M"
-            estimatedCost={slug.includes('prescription') ? '29.95' : '19.95'}
+            totalTime="PT120M"
+            estimatedCost={slug.includes('prescription') ? String(PRICING.REPEAT_SCRIPT) : String(PRICING.MED_CERT)}
             steps={[
               { name: 'Complete a brief questionnaire', text: 'Tell us about your situation and what you need. Takes about 2 minutes.' },
               { name: 'Verify your identity', text: 'Provide your details including name and date of birth. Medicare is optional for certificates.' },
               { name: 'Make payment', text: `Pay securely online. Certificates from ${PRICING_DISPLAY.MED_CERT}, prescriptions ${PRICING_DISPLAY.REPEAT_SCRIPT}.` },
-              { name: 'Doctor reviews your request', text: 'An AHPRA-registered doctor reviews your request. Most completed within an hour.' },
+              { name: 'Doctor reviews your request', text: 'An AHPRA-registered doctor reviews your request. Most reviewed within 1-2 hours.' },
               { name: 'Receive your document', text: slug.includes('prescription') 
                 ? 'If approved, your eScript is sent via SMS to your phone. Take it to any pharmacy.'
                 : 'Your medical certificate is emailed as a PDF, valid for work and institutions.' 

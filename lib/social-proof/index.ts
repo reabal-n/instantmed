@@ -49,7 +49,7 @@ const TOTAL_MS = TARGET_DATE.getTime() - ANCHOR_DATE.getTime()
  */
 export const SOCIAL_PROOF = {
   // ── Ratings & Reviews ──
-  averageRating: 4.8,
+  averageRating: 5.0,
   /** Verified reviews count - must match GOOGLE_REVIEWS.count */
   reviewCount: 3,
 

@@ -44,15 +44,25 @@ export async function getParchmentPrescribeUrlAction(
       }
     }
 
-    // Get patient_id and answers from the intake
+    // Get patient_id and answers from the intake (verify doctor owns it)
     const { data: intake } = await supabase
       .from("intakes")
-      .select("patient_id, answers")
+      .select("patient_id, answers, claimed_by")
       .eq("id", intakeId)
       .single()
 
     if (!intake?.patient_id) {
       return { success: false, error: "Intake or patient not found" }
+    }
+
+    // Defense-in-depth: verify this doctor claimed the intake
+    if (intake.claimed_by !== authResult.profile.id) {
+      log.warn("Parchment prescribe attempted by non-claiming doctor", {
+        intakeId,
+        claimedBy: intake.claimed_by,
+        attemptedBy: authResult.profile.id,
+      })
+      return { success: false, error: "You must claim this intake before prescribing" }
     }
 
     // Extract answers for sex field fallback

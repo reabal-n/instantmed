@@ -40,7 +40,7 @@ export default function HowItWorksPage() {
       <HowToSchema
         name="How to Use InstantMed for Online Healthcare"
         description="Get a medical certificate, prescription, or doctor consultation online in three simple steps. No appointment needed."
-        totalTime="PT60M"
+        totalTime="PT120M"
         steps={[
           {
             name: "Tell us what you need",
@@ -48,7 +48,7 @@ export default function HowItWorksPage() {
           },
           {
             name: "A real doctor reviews it",
-            text: "An AHPRA-registered GP reviews your request and medical history. If they need more info, they'll reach out directly. Most reviews done within the hour.",
+            text: "An AHPRA-registered GP reviews your request and medical history. If they need more info, they'll reach out directly. Most reviews done within 1-2 hours.",
           },
           {
             name: "Get your document",
