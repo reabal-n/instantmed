@@ -57,7 +57,11 @@ function offsetToDate(offset: number): Date {
 }
 
 function offsetToISO(offset: number): string {
-  return offsetToDate(offset).toISOString().split("T")[0]
+  const d = offsetToDate(offset)
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, "0")
+  const day = String(d.getDate()).padStart(2, "0")
+  return `${y}-${m}-${day}`
 }
 
 function isoToOffset(iso: string): number | null {
