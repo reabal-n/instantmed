@@ -370,44 +370,8 @@ export async function markAsReviewed(intakeId: string, doctorId: string): Promis
   return true
 }
 
-/**
- * Decline an intake with reason
- */
-export async function declineIntake(
-  intakeId: string,
-  doctorId: string,
-  reasonCode: string,
-  reasonNote?: string
-): Promise<boolean> {
-  const supabase = createServiceRoleClient()
-
-  const { error } = await supabase
-    .from("intakes")
-    .update({
-      status: "declined",
-      decision: "declined",
-      decline_reason_code: reasonCode,
-      decline_reason_note: reasonNote || null,
-      decline_reason: reasonNote || reasonCode,
-      decided_at: new Date().toISOString(),
-      declined_at: new Date().toISOString(),
-      reviewed_by: doctorId,
-      reviewed_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", intakeId)
-
-  if (error) {
-    logger.error("Error declining intake", {}, toError(error))
-    return false
-  }
-
-  // Revalidate patient dashboard caches after decline
-  revalidateTag("patient-intakes")
-  revalidateTag("patient-dashboard")
-
-  return true
-}
+// Legacy declineIntake() removed -- use canonical app/actions/decline-intake.ts
+// which handles refund + email + audit consistently.
 
 // ============================================
 // PATIENT NOTES (Longitudinal Encounter Notes)

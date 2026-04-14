@@ -50,6 +50,7 @@ import {
 import { Textarea } from "@/components/ui/textarea"
 import { Pagination,UserCard } from "@/components/uix"
 import { capture } from "@/lib/analytics/capture"
+import { prefetchReviewData } from "@/lib/doctor/review-data-cache"
 import { SERVICE_TYPES } from "@/lib/doctor/service-types"
 import { calculateAge } from "@/lib/format"
 import { formatServiceType } from "@/lib/format/intake"
@@ -174,7 +175,12 @@ export function QueueTable({
               >
                 {/* Collapsed row */}
                 <CardHeader
+                  role="button"
+                  tabIndex={0}
+                  aria-expanded={isExpanded}
+                  aria-label={`${intake.patient.full_name} - ${service?.short_name || formatServiceType(service?.type || "")}`}
                   className="cursor-pointer hover:bg-muted/50 transition-colors py-4 px-5"
+                  onMouseEnter={() => prefetchReviewData(intake.id)}
                   onClick={() => {
                     if (!isExpanded) {
                       capture("doctor_case_opened", {
@@ -183,6 +189,12 @@ export function QueueTable({
                       })
                     }
                     onToggleExpand(intake.id)
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault()
+                      onToggleExpand(intake.id)
+                    }
                   }}
                 >
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3">
@@ -278,6 +290,7 @@ export function QueueTable({
                   <CardContent className="pt-0 pb-5 px-5 space-y-3">
                     <button
                       type="button"
+                      onMouseEnter={() => prefetchReviewData(intake.id)}
                       onClick={() => openReviewPanel(intake.id)}
                       className="inline-flex items-center text-sm text-primary hover:underline"
                     >
@@ -359,8 +372,18 @@ export function QueueTable({
               return (
                 <div
                   key={intake.id}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Review AI-approved case for ${intake.patient.full_name}`}
                   className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors cursor-pointer"
+                  onMouseEnter={() => prefetchReviewData(intake.id)}
                   onClick={() => openReviewPanel(intake.id)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault()
+                      openReviewPanel(intake.id)
+                    }
+                  }}
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <UserCard name={intake.patient.full_name} size="sm" className="shrink-0" />
@@ -459,8 +482,17 @@ export function QueueTable({
               return (
                 <div
                   key={intake.id}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`View completed case for ${intake.patient.full_name}`}
                   className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 p-2.5 rounded-lg border bg-card hover:bg-accent/50 transition-colors cursor-pointer"
                   onClick={() => router.push(`/doctor/intakes/${intake.id}`)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault()
+                      router.push(`/doctor/intakes/${intake.id}`)
+                    }
+                  }}
                 >
                   <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-wrap">
                     <UserCard name={intake.patient.full_name} size="sm" className="shrink-0" />

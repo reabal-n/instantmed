@@ -30,6 +30,7 @@ import { SheetPanel } from "@/components/panels/sheet-panel"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
+import { consumePrefetchedData } from "@/lib/doctor/review-data-cache"
 import { formatIntakeStatus, formatServiceType } from "@/lib/format/intake"
 import { useAuth } from "@/lib/supabase/auth-provider"
 
@@ -50,12 +51,12 @@ export function IntakeReviewPanel({ intakeId, onActionComplete }: IntakeReviewPa
 
   const viewStartTime = useRef<number>(Date.now())
 
-  // Fetch data on mount
+  // Fetch data on mount - uses prefetched response from hover cache when available
   useEffect(() => {
     let cancelled = false
     async function fetchData() {
       try {
-        const res = await fetch(`/api/doctor/intakes/${intakeId}/review-data`)
+        const res = await (consumePrefetchedData(intakeId) ?? fetch(`/api/doctor/intakes/${intakeId}/review-data`))
         if (!res.ok) {
           const body = await res.json().catch(() => ({ error: "Failed to load" }))
           throw new Error(body.error || `HTTP ${res.status}`)

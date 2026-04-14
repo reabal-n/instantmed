@@ -6,9 +6,12 @@ import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import { EmptyState } from "@/components/ui/empty-state"
+import { Pagination } from "@/components/uix"
 import { capture } from "@/lib/analytics/capture"
 import type { ScriptTask, ScriptTaskStatus } from "@/lib/data/script-tasks"
 import { formatDateTime } from "@/lib/format"
+
+const PAGE_SIZE = 50
 
 interface ScriptsClientProps {
   initialTasks: ScriptTask[]
@@ -18,6 +21,7 @@ interface ScriptsClientProps {
     confirmed: number
     total: number
   }
+  initialTotal: number
 }
 
 const STATUS_CONFIG: Record<ScriptTaskStatus, { label: string; color: string; icon: typeof Clock }> = {
@@ -26,14 +30,34 @@ const STATUS_CONFIG: Record<ScriptTaskStatus, { label: string; color: string; ic
   confirmed: { label: "Confirmed", color: "bg-success-light text-success", icon: CheckCircle2 },
 }
 
-export function ScriptsClient({ initialTasks, initialCounts }: ScriptsClientProps) {
+export function ScriptsClient({ initialTasks, initialCounts, initialTotal }: ScriptsClientProps) {
   const [filter, setFilter] = useState<ScriptTaskStatus | "all">("all")
   const [tasks, setTasks] = useState(initialTasks)
   const [counts, setCounts] = useState(initialCounts)
+  const [total, setTotal] = useState(initialTotal)
+  const [page, setPage] = useState(1)
   const [isPending, startTransition] = useTransition()
   const lastKnownGoodTasks = useRef(initialTasks)
 
+  const totalPages = Math.ceil(total / PAGE_SIZE)
   const filteredTasks = filter === "all" ? tasks : tasks.filter((t) => t.status === filter)
+
+  function fetchPage(newPage: number, statusFilter?: ScriptTaskStatus | "all") {
+    const activeFilter = statusFilter ?? filter
+    startTransition(async () => {
+      const params = new URLSearchParams({ page: String(newPage), pageSize: String(PAGE_SIZE) })
+      if (activeFilter !== "all") params.set("status", activeFilter)
+      const res = await fetch(`/api/doctor/scripts?${params}`)
+      if (res.ok) {
+        const data = await res.json()
+        setTasks(data.tasks)
+        setCounts(data.counts)
+        setTotal(data.total)
+        setPage(newPage)
+        lastKnownGoodTasks.current = data.tasks
+      }
+    })
+  }
 
   async function updateStatus(taskId: string, newStatus: ScriptTaskStatus) {
     // Optimistic update
@@ -64,16 +88,8 @@ export function ScriptsClient({ initialTasks, initialCounts }: ScriptsClientProp
       }
       toast.success(`Marked as ${STATUS_CONFIG[newStatus].label}`)
 
-      // Refresh data and update last-known-good state
-      startTransition(async () => {
-        const refreshRes = await fetch("/api/doctor/scripts")
-        if (refreshRes.ok) {
-          const data = await refreshRes.json()
-          setTasks(data.tasks)
-          setCounts(data.counts)
-          lastKnownGoodTasks.current = data.tasks
-        }
-      })
+      // Refresh current page and update last-known-good state
+      fetchPage(page)
     } catch {
       // Revert optimistic update to last-known-good state (not stale initial prop)
       setTasks(lastKnownGoodTasks.current)
@@ -91,16 +107,7 @@ export function ScriptsClient({ initialTasks, initialCounts }: ScriptsClientProp
         </div>
 
         <button
-          onClick={() => {
-            startTransition(async () => {
-              const res = await fetch("/api/doctor/scripts")
-              if (res.ok) {
-                const data = await res.json()
-                setTasks(data.tasks)
-                setCounts(data.counts)
-              }
-            })
-          }}
+          onClick={() => fetchPage(page)}
           className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-muted/50 transition-colors"
           aria-label="Refresh script tasks"
         >
@@ -117,7 +124,11 @@ export function ScriptsClient({ initialTasks, initialCounts }: ScriptsClientProp
           return (
             <button
               key={status}
-              onClick={() => setFilter(filter === status ? "all" : status)}
+              onClick={() => {
+                const newFilter = filter === status ? "all" : status
+                setFilter(newFilter)
+                fetchPage(1, newFilter)
+              }}
               className={`flex items-center gap-4 rounded-xl border border-border/50 p-5 transition-all duration-200 ${
                 filter === status
                   ? "border-sky-300 bg-sky-50/50 dark:border-sky-700 dark:bg-sky-950/30"
@@ -145,7 +156,10 @@ export function ScriptsClient({ initialTasks, initialCounts }: ScriptsClientProp
             Showing: {STATUS_CONFIG[filter].label}
           </span>
           <button
-            onClick={() => setFilter("all")}
+            onClick={() => {
+              setFilter("all")
+              fetchPage(1, "all")
+            }}
             className="text-sm text-sky-600 hover:underline"
             aria-label="Clear filter"
           >
@@ -156,7 +170,7 @@ export function ScriptsClient({ initialTasks, initialCounts }: ScriptsClientProp
 
       {/* Task list */}
       <div className="space-y-2">
-        {filteredTasks.length === 0 ? (
+        {filteredTasks.length === 0 && !isPending ? (
           <EmptyState
             icon={CheckCircle2}
             title="All caught up!"
@@ -236,6 +250,22 @@ export function ScriptsClient({ initialTasks, initialCounts }: ScriptsClientProp
           })
         )}
       </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-2 pt-4 border-t">
+          <p className="text-sm text-muted-foreground">
+            {(page - 1) * PAGE_SIZE + 1} - {Math.min(page * PAGE_SIZE, total)} of {total}
+          </p>
+          <Pagination
+            total={totalPages}
+            page={page}
+            onChange={(p) => fetchPage(p)}
+            showControls
+            size="sm"
+          />
+        </div>
+      )}
     </div>
   )
 }

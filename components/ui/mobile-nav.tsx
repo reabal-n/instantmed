@@ -1,6 +1,6 @@
 "use client"
 
-import { Activity, BarChart3, ClipboardList, FileCheck,FileText, FolderOpen, Home, LogOut, MessageSquare, MoreHorizontal, Settings, Shield, ShieldAlert, User, X } from "lucide-react"
+import { Activity, BarChart3, ClipboardList, FileCheck,FileText, FolderOpen, Home, LogOut, MessageSquare, MoreHorizontal, Settings, User, X } from "lucide-react"
 import { usePathname, useRouter } from "next/navigation"
 import { useState } from "react"
 
@@ -101,19 +101,9 @@ const doctorMoreItems: NavItem[] = [
     href: "/doctor/certificates",
   },
   {
-    label: "Admin Queue",
-    icon: Shield,
-    href: "/admin",
-  },
-  {
     label: "Analytics",
     icon: BarChart3,
     href: "/doctor/analytics",
-  },
-  {
-    label: "Email Suppression",
-    icon: ShieldAlert,
-    href: "/doctor/email-suppression",
   },
   {
     label: "Settings",
@@ -150,8 +140,13 @@ export function MobileNav({ items = defaultItems, moreMenuItems = moreItems, cla
           <div
             className="absolute inset-0 bg-black/40 backdrop-blur-xs"
             onClick={() => setMoreOpen(false)}
+            aria-hidden="true"
           />
-          <div className="absolute bottom-0 left-0 right-0 bg-background rounded-t-2xl border-t border-border safe-area-pb animate-in slide-in-from-bottom duration-200">
+          <div
+            role="dialog"
+            aria-label="More navigation options"
+            className="absolute bottom-0 left-0 right-0 bg-background rounded-t-2xl border-t border-border safe-area-pb animate-in slide-in-from-bottom duration-200"
+          >
             <div className="flex items-center justify-between px-5 pt-4 pb-2">
               <p className="text-sm font-semibold text-foreground">More</p>
               <button

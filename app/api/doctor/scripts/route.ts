@@ -9,6 +9,8 @@ import { applyRateLimit } from "@/lib/rate-limit/redis"
 const log = createLogger("doctor-scripts-api")
 
 const statusSchema = z.enum(["pending_send", "sent", "confirmed"]).nullable()
+const pageSchema = z.coerce.number().int().min(1).default(1)
+const pageSizeSchema = z.coerce.number().int().min(1).max(100).default(50)
 
 export const dynamic = "force-dynamic"
 
@@ -30,12 +32,15 @@ export async function GET(request: NextRequest) {
     }
     const status = parsed.data
 
-    const [tasks, counts] = await Promise.all([
-      getScriptTasks(status ? { status } : undefined),
+    const page = pageSchema.parse(request.nextUrl.searchParams.get("page") ?? 1)
+    const pageSize = pageSizeSchema.parse(request.nextUrl.searchParams.get("pageSize") ?? 50)
+
+    const [{ tasks, total }, counts] = await Promise.all([
+      getScriptTasks(status ? { status, page, pageSize } : { page, pageSize }),
       getScriptTaskCounts(),
     ])
 
-    return NextResponse.json({ tasks, counts })
+    return NextResponse.json({ tasks, counts, total, page, pageSize })
   } catch (error) {
     log.error("Failed to fetch script tasks", {
       error: error instanceof Error ? error.message : "Unknown error",

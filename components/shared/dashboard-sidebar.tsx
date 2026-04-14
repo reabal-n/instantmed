@@ -54,9 +54,7 @@ const doctorNavItems: NavItem[] = [
   { href: "/doctor/scripts", label: "Scripts", icon: ClipboardList },
   { href: "/doctor/certificates", label: "Certificates", icon: FileCheck },
   { href: "/doctor/patients", label: "Patients", icon: Users },
-  { href: "/admin", label: "Admin Queue", icon: FileText },
   { href: "/doctor/analytics", label: "Analytics", icon: BarChart3 },
-  { href: "/doctor/email-suppression", label: "Email Suppression", icon: ShieldAlert },
   { href: "/doctor/settings/identity", label: "Settings", icon: Settings },
 ]
 
@@ -72,6 +70,7 @@ const patientNavItems: NavItem[] = [
 
 const adminNavItems: NavItem[] = [
   { href: "/admin", label: "Admin Panel", icon: Shield },
+  { href: "/doctor/email-suppression", label: "Email Suppression", icon: ShieldAlert },
 ]
 
 function NavLink({ item, isActive, badgeCount }: { item: NavItem; isActive: boolean; badgeCount?: number }) {

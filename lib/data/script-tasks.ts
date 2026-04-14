@@ -26,12 +26,20 @@ export interface ScriptTask {
 export async function getScriptTasks(filters?: {
   status?: ScriptTaskStatus
   doctorId?: string
-}): Promise<ScriptTask[]> {
+  page?: number
+  pageSize?: number
+}): Promise<{ tasks: ScriptTask[]; total: number }> {
   const supabase = createServiceRoleClient()
+  const page = filters?.page ?? 1
+  const pageSize = filters?.pageSize ?? 50
+  const from = (page - 1) * pageSize
+  const to = from + pageSize - 1
+
   let query = supabase
     .from("script_tasks")
-    .select("id, intake_id, repeat_rx_request_id, doctor_id, patient_name, patient_email, medication_name, medication_strength, medication_form, status, notes, sent_at, confirmed_at, created_at, updated_at")
+    .select("id, intake_id, repeat_rx_request_id, doctor_id, patient_name, patient_email, medication_name, medication_strength, medication_form, status, notes, sent_at, confirmed_at, created_at, updated_at", { count: "exact" })
     .order("created_at", { ascending: false })
+    .range(from, to)
 
   if (filters?.status) {
     query = query.eq("status", filters.status)
@@ -40,14 +48,14 @@ export async function getScriptTasks(filters?: {
     query = query.eq("doctor_id", filters.doctorId)
   }
 
-  const { data, error } = await query
+  const { data, error, count } = await query
 
   if (error) {
     log.error("Failed to fetch script tasks", { error: error.message })
-    return []
+    return { tasks: [], total: 0 }
   }
 
-  return (data || []) as ScriptTask[]
+  return { tasks: (data || []) as ScriptTask[], total: count ?? 0 }
 }
 
 export async function getScriptTaskCounts(): Promise<{

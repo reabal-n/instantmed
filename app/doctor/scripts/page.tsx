@@ -8,10 +8,10 @@ export const dynamic = "force-dynamic"
 
 export default async function ScriptsPage() {
   // Layout enforces doctor/admin role
-  const [tasks, counts] = await Promise.all([
-    getScriptTasks(),
+  const [{ tasks, total }, counts] = await Promise.all([
+    getScriptTasks({ page: 1, pageSize: 50 }),
     getScriptTaskCounts(),
   ])
 
-  return <ScriptsClient initialTasks={tasks} initialCounts={counts} />
+  return <ScriptsClient initialTasks={tasks} initialCounts={counts} initialTotal={total} />
 }

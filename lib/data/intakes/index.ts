@@ -31,7 +31,6 @@ export {
 export {
   createIntake,
   createPatientNote,
-  declineIntake,
   flagForFollowup,
   markAsReviewed,
   markIntakeRefunded,
