@@ -3,11 +3,13 @@
 import { motion } from 'framer-motion'
 import { Shield } from 'lucide-react'
 
+import { StickerIcon } from '@/components/icons/stickers'
+
 import { useReducedMotion } from '@/components/ui/motion'
 import { cn } from '@/lib/utils'
 
 import type { ColorClasses,ServiceFunnelConfig } from './funnel-types'
-import { iconMap } from './funnel-types'
+import { iconMap, STICKER_ICON_MAP } from './funnel-types'
 
 interface TrustSectionProps {
   config: ServiceFunnelConfig
@@ -34,6 +36,7 @@ export function TrustSection({ config, colors }: TrustSectionProps) {
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {config.trust.badges.map((badge, i) => {
             const Icon = iconMap[badge.icon] || Shield
+            const stickerName = STICKER_ICON_MAP[badge.icon]
             return (
               <motion.div
                 key={i}
@@ -43,9 +46,15 @@ export function TrustSection({ config, colors }: TrustSectionProps) {
                 transition={{ duration: 0.4, delay: i * 0.1 }}
                 className="text-center p-6 bg-white dark:bg-card rounded-xl border border-border/50 dark:border-white/15 shadow-md shadow-primary/[0.06] dark:shadow-none hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/[0.08] transition-all duration-300"
               >
-                <div className={cn('w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-4', colors.light)}>
-                  <Icon className={cn('w-6 h-6', colors.text)} />
-                </div>
+                {stickerName ? (
+                  <div className="flex items-center justify-center mx-auto mb-4">
+                    <StickerIcon name={stickerName} size={48} />
+                  </div>
+                ) : (
+                  <div className={cn('w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-4', colors.light)}>
+                    <Icon className={cn('w-6 h-6', colors.text)} />
+                  </div>
+                )}
                 <h3 className="font-semibold text-foreground mb-1">{badge.title}</h3>
                 <p className="text-sm text-muted-foreground">{badge.description}</p>
               </motion.div>

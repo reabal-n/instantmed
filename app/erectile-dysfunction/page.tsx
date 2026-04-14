@@ -15,7 +15,7 @@ import { ED_FAQ } from "@/lib/data/ed-faq"
 export const revalidate = 86400
 
 export const metadata: Metadata = {
-  title: "ED Treatment Online Australia | Doctor-Reviewed | InstantMed",
+  title: { absolute: "ED Treatment Online Australia | Doctor-Reviewed | InstantMed" },
   description: `Discreet ED treatment from an AHPRA-registered Australian doctor. No call needed. Reviewed within 1–2 hours. From $${PRICING.MENS_HEALTH.toFixed(2)}.`,
   keywords: [
     "ed treatment online australia",

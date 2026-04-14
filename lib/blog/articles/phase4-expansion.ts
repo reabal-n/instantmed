@@ -2355,6 +2355,11 @@ export const phase4ExpansionArticles: Article[] = [
         type: 'paragraph',
         content: 'This is not one of those articles that buries the answer under fifteen paragraphs of filler. Here is the practical reality of getting antibiotics through telehealth in Australia, written for adults who want facts rather than marketing copy.',
       },
+      {
+        type: 'callout',
+        variant: 'info',
+        content: 'Quick answer: Yes. Antibiotics are Schedule 4 prescription-only medicines in Australia under the TGA Poisons Standard. You cannot buy them without a valid prescription from an AHPRA-registered doctor. Telehealth doctors can prescribe antibiotics for eligible conditions - no waiting room required.',
+      },
       { type: 'heading', content: 'The Legal Framework: TGA and AHPRA Rules', level: 2 },
       {
         type: 'paragraph',

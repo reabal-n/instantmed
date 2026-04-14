@@ -1,6 +1,6 @@
 "use client"
 
-import { Accessibility, Eye,Lock, ShieldCheck } from "lucide-react"
+import { StickerIcon } from "@/components/icons/stickers"
 
 import { AboutGuideSection } from "@/components/marketing/sections"
 import { AnimatedDonutChart, ComparisonBar, EditorialStoryBlock, InformationalPageShell, ScrollingLogoMarquee, TestimonialCard } from "@/components/marketing/shared"
@@ -54,25 +54,25 @@ const ABOUT_FAQS = [
 
 const VALUES = [
   {
-    icon: <ShieldCheck className="h-5 w-5" />,
+    icon: <StickerIcon name="security-shield" size={48} />,
     title: "Clinical rigour",
     description:
       "Every request is reviewed by an AHPRA-registered GP following evidence-based protocols. We never automate clinical decisions.",
   },
   {
-    icon: <Lock className="h-5 w-5" />,
+    icon: <StickerIcon name="lock" size={48} />,
     title: "Privacy first",
     description:
       "AES-256-GCM encryption, Australian-hosted servers, full compliance with the Privacy Act and all 13 APPs.",
   },
   {
-    icon: <Accessibility className="h-5 w-5" />,
+    icon: <StickerIcon name="accessibility" size={48} />,
     title: "Accessible care",
     description:
       "24/7 medical certificates. No phone calls or video chats for most requests. Healthcare that fits around your life.",
   },
   {
-    icon: <Eye className="h-5 w-5" />,
+    icon: <StickerIcon name="eye" size={48} />,
     title: "Full transparency",
     description:
       "Flat fees, no hidden costs. Full refund if we can't help. You'll always know exactly what you're paying for.",

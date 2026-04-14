@@ -15,7 +15,7 @@ import { HAIR_LOSS_FAQ } from "@/lib/data/hair-loss-faq"
 export const revalidate = 86400
 
 export const metadata: Metadata = {
-  title: "Hair Loss Treatment Online Australia | Doctor-Reviewed | InstantMed",
+  title: { absolute: "Hair Loss Treatment Online Australia | Doctor-Reviewed | InstantMed" },
   description: `Doctor-led hair loss assessment from an AHPRA-registered Australian doctor. Discreet, no call needed. From $${PRICING.HAIR_LOSS.toFixed(2)}.`,
   keywords: [
     "hair loss treatment australia",

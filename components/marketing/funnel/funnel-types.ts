@@ -23,6 +23,8 @@ import {
 } from 'lucide-react'
 import type React from 'react'
 
+import type { StickerIconName } from '@/components/icons/stickers'
+
 // ===========================================
 // TYPE DEFINITIONS (canonical source: @/types/marketing)
 // ===========================================
@@ -70,4 +72,19 @@ export const iconMap: Record<string, React.ComponentType<{ className?: string }>
   Shield, Clock, Lock, Check, Building2, Users, Star, FileText, Pill,
   Stethoscope, ClipboardList, FileCheck, MessageCircle, AlertCircle,
   Phone, Mail, RefreshCw, BadgeCheck, HelpCircle, Sparkles, CheckCircle2,
+}
+
+export const STICKER_ICON_MAP: Record<string, StickerIconName> = {
+  ClipboardList: 'medical-history',
+  FileCheck: 'medical-history',
+  FileText: 'medical-history',
+  Stethoscope: 'stethoscope',
+  Mail: 'email',
+  Shield: 'security-shield',
+  Clock: 'clock',
+  BadgeCheck: 'verified-badge',
+  CheckCircle2: 'checkmark',
+  Sparkles: 'hair-brush',
+  Pill: 'pill-bottle',
+  Lightning: 'lightning',
 }

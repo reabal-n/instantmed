@@ -5,18 +5,9 @@ import { motion } from "framer-motion"
 import {
   ArrowRight,
   CheckCircle2,
-  Eye,
-  FileCheck,
-  Fingerprint,
-  Lock,
-  Phone,
-  Scale,
-  Send,
-  ServerCog,
-  ShieldCheck,
   Star,
-  UserCheck,
 } from "lucide-react"
+import { StickerIcon } from "@/components/icons/stickers"
 import Link from "next/link"
 import { useSyncExternalStore } from "react"
 
@@ -258,32 +249,32 @@ export default function TrustPage() {
           highlightWords={["trust"]}
           features={[
             {
-              icon: <Lock className="w-6 h-6" />,
+              icon: <StickerIcon name="lock" size={48} />,
               title: "AES-256 Encryption",
               description: "Bank-grade encryption for all personal health information at rest and in transit.",
             },
             {
-              icon: <ShieldCheck className="w-6 h-6" />,
+              icon: <StickerIcon name="security-shield" size={48} />,
               title: "Privacy Act Compliant",
               description: "Full compliance with the Privacy Act 1988 and all 13 Australian Privacy Principles.",
             },
             {
-              icon: <Fingerprint className="w-6 h-6" />,
+              icon: <StickerIcon name="fingerprint" size={48} />,
               title: "AHPRA Verified",
               description: "Every doctor's registration is verified and continuously monitored.",
             },
             {
-              icon: <ServerCog className="w-6 h-6" />,
+              icon: <StickerIcon name="server" size={48} />,
               title: "Australian Servers",
               description: "All health data stored exclusively on Australian-based servers.",
             },
             {
-              icon: <Eye className="w-6 h-6" />,
+              icon: <StickerIcon name="eye" size={48} />,
               title: "Clinical Audits",
               description: "Regular audits of clinical decisions to maintain the highest standards.",
             },
             {
-              icon: <Scale className="w-6 h-6" />,
+              icon: <StickerIcon name="scales" size={48} />,
               title: "Complaints Process",
               description: "48-hour response for general complaints; 14-day Medical Director review for clinical complaints.",
             },
@@ -339,27 +330,27 @@ export default function TrustPage() {
             {
               title: "You submit your request",
               description: "Answer a few questions about your situation. Takes about 2 minutes.",
-              icon: <FileCheck className="w-5 h-5" />,
+              icon: <StickerIcon name="medical-history" size={48} />,
             },
             {
               title: "Request enters review queue",
               description: "Securely transmitted and queued for doctor review.",
-              icon: <Send className="w-5 h-5" />,
+              icon: <StickerIcon name="sent" size={48} />,
             },
             {
               title: "Doctor reviews your case",
               description: "An AHPRA-registered doctor reviews your full submission. Average ~34 min.",
-              icon: <UserCheck className="w-5 h-5" />,
+              icon: <StickerIcon name="user-check" size={48} />,
             },
             {
               title: "Personal follow-up",
               description: "The doctor may approve, request more info, or contact you directly.",
-              icon: <Phone className="w-5 h-5" />,
+              icon: <StickerIcon name="phone" size={48} />,
             },
             {
               title: "Document delivered",
               description: "Certificates emailed to your dashboard. eScripts sent via SMS.",
-              icon: <Send className="w-5 h-5" />,
+              icon: <StickerIcon name="sent" size={48} />,
             },
           ]}
           className="bg-muted/30 dark:bg-muted/10"

@@ -474,7 +474,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!cityData) return {}
 
   return {
-    title: `Online Doctor ${cityData.name} | Med Certs from ${PRICING_DISPLAY.MED_CERT} | InstantMed`,
+    title: { absolute: `Online Doctor ${cityData.name} | Med Certs from ${PRICING_DISPLAY.MED_CERT} | InstantMed` },
     description: `Skip the ${cityData.name} GP queue. AHPRA-registered Australian doctors review online. Med certs from ${PRICING_DISPLAY.MED_CERT}, repeat scripts. No appointment needed.`,
     keywords: [
       `online doctor ${cityData.name.toLowerCase()}`,

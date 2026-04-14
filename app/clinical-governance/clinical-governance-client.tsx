@@ -1,5 +1,6 @@
 "use client"
 
+import type { ReactNode } from "react"
 import {
   AlertTriangle,
   BookOpen,
@@ -9,6 +10,7 @@ import {
   Scale,
   UserCheck,
 } from "lucide-react"
+import { StickerIcon } from "@/components/icons/stickers"
 import Link from "next/link"
 
 import { StatsHero } from "@/components/heroes"
@@ -60,39 +62,47 @@ const reviewProcess: TimelineStep[] = [
   },
 ]
 
+function TrustIcon({ icon }: { icon: ReactNode }) {
+  return (
+    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+      {icon}
+    </div>
+  )
+}
+
 const safeguards: FeatureItem[] = [
   {
-    icon: <UserCheck className="h-6 w-6" />,
+    icon: <TrustIcon icon={<UserCheck className="w-6 h-6 text-primary" />} />,
     title: "Clinical Leadership",
     description:
       "Medical Director reviews all clinical protocols. Senior GP oversight on complex cases with direct escalation pathway.",
   },
   {
-    icon: <Scale className="h-6 w-6" />,
+    icon: <TrustIcon icon={<Scale className="w-6 h-6 text-primary" />} />,
     title: "Scope of Practice",
     description:
       "Focused on low-complexity, high-frequency presentations. Complex or high-risk cases referred to in-person care.",
   },
   {
-    icon: <ClipboardCheck className="h-6 w-6" />,
+    icon: <TrustIcon icon={<ClipboardCheck className="w-6 h-6 text-primary" />} />,
     title: "Quality Assurance",
     description:
       "Regular peer review, random audits, incident reporting framework, and patient feedback integration into protocols.",
   },
   {
-    icon: <AlertTriangle className="h-6 w-6" />,
+    icon: <TrustIcon icon={<AlertTriangle className="w-6 h-6 text-primary" />} />,
     title: "Safety Boundaries",
     description:
       "No controlled substances (S8). No treatments requiring physical examination. Automatic escalation for red-flag symptoms.",
   },
   {
-    icon: <RefreshCw className="h-6 w-6" />,
+    icon: <TrustIcon icon={<RefreshCw className="w-6 h-6 text-primary" />} />,
     title: "Continuous Improvement",
     description:
       "Quarterly protocol reviews, post-incident reviews, integration of new clinical guidelines, and regular team training.",
   },
   {
-    icon: <BookOpen className="h-6 w-6" />,
+    icon: <TrustIcon icon={<BookOpen className="w-6 h-6 text-primary" />} />,
     title: "Evidence-Based Protocols",
     description:
       "Clinical processes align with RACGP Standards, TGA regulations, PBS guidelines, and AHPRA Telehealth Guidelines.",

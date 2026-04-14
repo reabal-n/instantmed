@@ -18,9 +18,9 @@ import { PRICING_DISPLAY } from "@/lib/constants";
 export const revalidate = 43200;
 
 export const metadata: Metadata = {
-  title: "Health Guides | Telehealth Resources",
+  title: "Telehealth Health Guides & Medical Articles",
   description:
-    "Doctor-reviewed health guides on med certs, telehealth and prescriptions. Written by AHPRA-registered Australian GPs.",
+    "Doctor-reviewed guides on medical certificates, telehealth and prescriptions. Written by AHPRA-registered Australian GPs.",
   openGraph: {
     title: "InstantMed Health Guides",
     description:

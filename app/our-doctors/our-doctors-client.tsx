@@ -1,17 +1,15 @@
 "use client"
 
+import type { ReactNode } from "react"
 import {
   BadgeCheck,
-  Briefcase,
-  Building2,
   ExternalLink,
   GraduationCap,
-  HeartPulse,
   MapPin,
   Shield,
-  Stethoscope,
   Users,
 } from "lucide-react"
+import { StickerIcon } from "@/components/icons/stickers"
 import Link from "next/link"
 
 import { CenteredHero } from "@/components/heroes"
@@ -27,27 +25,35 @@ import type { FAQGroup } from "@/components/ui/faq-list"
 
 /* ────────────────────────────── Data ────────────────────────────── */
 
+function TrustIcon({ icon }: { icon: ReactNode }) {
+  return (
+    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+      {icon}
+    </div>
+  )
+}
+
 const credentials: FeatureItem[] = [
   {
-    icon: <Shield className="h-6 w-6" />,
+    icon: <TrustIcon icon={<BadgeCheck className="w-6 h-6 text-primary" />} />,
     title: "AHPRA Registered",
     description:
       "Every doctor holds current registration with the Australian Health Practitioner Regulation Agency. No exceptions.",
   },
   {
-    icon: <GraduationCap className="h-6 w-6" />,
+    icon: <TrustIcon icon={<GraduationCap className="w-6 h-6 text-primary" />} />,
     title: "Qualified GPs",
     description:
       "Our doctors hold medical degrees from accredited Australian or equivalent international institutions.",
   },
   {
-    icon: <MapPin className="h-6 w-6" />,
+    icon: <TrustIcon icon={<MapPin className="w-6 h-6 text-primary" />} />,
     title: "Australian Based",
     description:
       "All our doctors work from Australia and understand local healthcare guidelines and patient needs.",
   },
   {
-    icon: <Users className="h-6 w-6" />,
+    icon: <TrustIcon icon={<Users className="w-6 h-6 text-primary" />} />,
     title: "Medical Director Oversight",
     description:
       "Clinical protocols are developed and reviewed by a Medical Director with RACGP Fellowship.",
@@ -56,25 +62,25 @@ const credentials: FeatureItem[] = [
 
 const experienceAreas: FeatureItem[] = [
   {
-    icon: <Stethoscope className="h-6 w-6" />,
+    icon: <StickerIcon name="stethoscope" size={48} />,
     title: "General Practice",
     description:
       "Years of experience managing a wide range of common health concerns in community settings.",
   },
   {
-    icon: <HeartPulse className="h-6 w-6" />,
+    icon: <StickerIcon name="heart-with-pulse" size={48} />,
     title: "Emergency Medicine",
     description:
       "Background in acute care equips our doctors to identify red flags and escalate appropriately.",
   },
   {
-    icon: <Building2 className="h-6 w-6" />,
+    icon: <StickerIcon name="hospital" size={48} />,
     title: "Hospital Medicine",
     description:
       "Experience across public and private hospital systems throughout Australia.",
   },
   {
-    icon: <Briefcase className="h-6 w-6" />,
+    icon: <StickerIcon name="briefcase" size={48} />,
     title: "Telehealth",
     description:
       "Trained specifically in remote consultation best practices and digital healthcare delivery.",

@@ -50,7 +50,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const description = `${condition.description} Get assessed by an Australian doctor online. Medical certificates available. Fast, confidential telehealth.`
 
   return {
-    title,
+    title: { absolute: title },
     description,
     keywords: [
       `${condition.name.toLowerCase()} medical certificate`,

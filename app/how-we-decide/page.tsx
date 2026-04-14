@@ -1,13 +1,4 @@
-import {
-  AlertCircle,
-  ClipboardCheck,
-  Eye,
-  Heart,
-  MessageCircle,
-  ShieldCheck,
-  Stethoscope,
-  UserCheck,
-} from "lucide-react"
+import { StickerIcon } from "@/components/icons/stickers"
 import type { Metadata } from "next"
 
 import { CenteredHero } from "@/components/heroes"
@@ -84,25 +75,25 @@ export const metadata: Metadata = {
 
 const reviewFactors: FeatureItem[] = [
   {
-    icon: <ClipboardCheck className="h-5 w-5" />,
+    icon: <StickerIcon name="checklist" size={48} />,
     title: "What you've told us",
     description:
       "Your symptoms, how long you've been unwell, and anything else that helps paint the picture.",
   },
   {
-    icon: <Stethoscope className="h-5 w-5" />,
+    icon: <StickerIcon name="stethoscope" size={48} />,
     title: "Your medical background",
     description:
       "Conditions you've mentioned, medications you're on, and anything that might affect what's safe for you.",
   },
   {
-    icon: <Eye className="h-5 w-5" />,
+    icon: <StickerIcon name="eye" size={48} />,
     title: "What you're asking for",
     description:
       "Whether it's a certificate, a script renewal, or something else - and whether that makes sense given everything above.",
   },
   {
-    icon: <ShieldCheck className="h-5 w-5" />,
+    icon: <StickerIcon name="security-shield" size={48} />,
     title: "Clinical guidelines",
     description:
       "The same rules any doctor follows. Some things just need to be done in person. We don\u2019t bend on that.",
@@ -139,25 +130,25 @@ const declineReasons: ChecklistItem[] = [
 
 const safetyFeatures: FeatureItem[] = [
   {
-    icon: <UserCheck className="h-5 w-5" />,
+    icon: <StickerIcon name="user-check" size={48} />,
     title: "Real doctors, real accountability",
     description:
       "Every reviewer is an AHPRA-registered doctor. They put their name on every decision.",
   },
   {
-    icon: <Heart className="h-5 w-5" />,
+    icon: <StickerIcon name="heart" size={48} />,
     title: "No pressure to approve",
     description:
       "Our doctors aren\u2019t paid to say yes. They\u2019re paid to get it right. Big difference.",
   },
   {
-    icon: <MessageCircle className="h-5 w-5" />,
+    icon: <StickerIcon name="speech-bubble" size={48} />,
     title: "We reach out when it matters",
     description:
       "If something\u2019s unclear, the doctor will contact you. We\u2019d rather ask than assume.",
   },
   {
-    icon: <AlertCircle className="h-5 w-5" />,
+    icon: <StickerIcon name="info" size={48} />,
     title: "Honest about our limits",
     description:
       "If you need in-person care, we\u2019ll say so. We\u2019re not trying to handle everything \u2014 just the things we can do well.",

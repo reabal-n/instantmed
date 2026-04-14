@@ -284,8 +284,8 @@ export const BADGE_PRESETS: Record<string, PresetEntry[]> = {
     { id: 'google_pharmacy', variant: 'styled' },
   ],
 
-  // Footer strip - all plain
-  footer: ['ahpra', 'tga', 'medical_director', 'refund', 'privacy'],
+  // Footer strip - 3 most consumer-relevant
+  footer: ['ahpra', 'refund', 'privacy'],
 
   // Third-party certification logos - styled logo cards
   trust_certifications: [

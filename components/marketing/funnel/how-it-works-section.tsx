@@ -2,6 +2,8 @@
 
 import { motion } from 'framer-motion'
 import { ArrowRight, ClipboardList,Clock } from 'lucide-react'
+
+import { StickerIcon } from '@/components/icons/stickers'
 import Link from 'next/link'
 
 import { Button } from '@/components/ui/button'
@@ -9,7 +11,7 @@ import { useReducedMotion } from '@/components/ui/motion'
 import { cn } from '@/lib/utils'
 
 import type { ColorClasses,ServiceFunnelConfig } from './funnel-types'
-import { iconMap } from './funnel-types'
+import { iconMap, STICKER_ICON_MAP } from './funnel-types'
 
 interface HowItWorksSectionProps {
   config: ServiceFunnelConfig
@@ -39,6 +41,7 @@ export function HowItWorksSection({ config, colors }: HowItWorksSectionProps) {
         <div className="grid md:grid-cols-3 gap-8">
           {config.howItWorks.steps.map((step, i) => {
             const Icon = iconMap[step.icon] || ClipboardList
+            const stickerName = STICKER_ICON_MAP[step.icon]
             return (
               <motion.div
                 key={step.number}
@@ -60,9 +63,15 @@ export function HowItWorksSection({ config, colors }: HowItWorksSectionProps) {
                   </div>
 
                   {/* Icon */}
-                  <div className={cn('w-14 h-14 rounded-xl flex items-center justify-center mx-auto mb-4', colors.light)}>
-                    <Icon className={cn('h-7 w-7', colors.text)} />
-                  </div>
+                  {stickerName ? (
+                    <div className="flex items-center justify-center mx-auto mb-4">
+                      <StickerIcon name={stickerName} size={52} />
+                    </div>
+                  ) : (
+                    <div className={cn('w-14 h-14 rounded-xl flex items-center justify-center mx-auto mb-4', colors.light)}>
+                      <Icon className={cn('h-7 w-7', colors.text)} />
+                    </div>
+                  )}
 
                   <h3 className="text-lg font-semibold text-foreground mb-2">{step.title}</h3>
                   <p className="text-sm text-muted-foreground mb-3">{step.description}</p>

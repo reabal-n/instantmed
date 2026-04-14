@@ -9,10 +9,11 @@ import {
   Zap,
 } from "lucide-react"
 
+import { StickerIcon, type StickerIconName } from "@/components/icons/stickers"
 import { cn } from "@/lib/utils"
 
 // ─── Shared icon system ───────────────────────────────────────────────────────
-// Uses clean lucide-react icons on gradient tiles. White strokes on color = sharp, modern.
+// Sticker icons for illustrative service tiles; Lucide fallback for unmatched keys.
 
 const iconComponents: Record<string, React.ComponentType<{ className?: string }>> = {
   FileText:  FileCheck2,
@@ -21,6 +22,14 @@ const iconComponents: Record<string, React.ComponentType<{ className?: string }>
   Sparkles,
   Heart,
   Flame:     TrendingDown,
+}
+
+const stickerMap: Record<string, StickerIconName> = {
+  FileText:   'medical-history',
+  Pill:       'pill-bottle',
+  Lightning:  'lightning',
+  Sparkles:   'hair-brush',
+  Stethoscope: 'stethoscope',
 }
 
 export const serviceColorConfig: Record<string, { bg: string; text: string; from: string; to: string; shadow: string }> = {
@@ -47,9 +56,20 @@ interface ServiceIconTileProps {
 }
 
 export function ServiceIconTile({ iconKey, color, size = 'md', className }: ServiceIconTileProps) {
-  const Icon = iconComponents[iconKey] || FileCheck2
+  const stickerName = stickerMap[iconKey]
   const colors = serviceColorConfig[color] || serviceColorConfig.emerald
   const { tile, icon } = tileSizes[size]
+  const stickerSize = size === 'sm' ? 32 : size === 'md' ? 40 : 48
+
+  if (stickerName) {
+    return (
+      <div className={cn('flex items-center justify-center flex-shrink-0', className)}>
+        <StickerIcon name={stickerName} size={stickerSize} />
+      </div>
+    )
+  }
+
+  const Icon = iconComponents[iconKey] || FileCheck2
   return (
     <div
       className={cn(tile, 'flex items-center justify-center flex-shrink-0', colors.bg, className)}

@@ -43,6 +43,22 @@ const nextConfig = {
       hostname: "api.dicebear.com"
     }]
   },
+  webpack(config) {
+    config.module.rules.push({
+      test: /\.svg$/i,
+      issuer: /\.[jt]sx?$/,
+      use: [{
+        loader: '@svgr/webpack',
+        options: {
+          svgo: true,
+          svgoConfig: {
+            plugins: [{ name: 'preset-default', params: { overrides: { removeViewBox: false } } }],
+          },
+        },
+      }],
+    })
+    return config
+  },
   serverExternalPackages: ["@supabase/ssr", "posthog-node"],
   // Ensure the certificate PDF template is bundled into the serverless function.
   // Without this, `public/templates/template.pdf` is missing from /var/task at

@@ -3,12 +3,9 @@
 import { motion, useInView } from "framer-motion";
 import {
   ArrowRight,
-  Clock,
-  EyeOff,
-  PhoneOff,
   Pill,
-  Shield,
 } from "lucide-react";
+import { StickerIcon } from "@/components/icons/stickers";
 import Image from "next/image";
 import Link from "next/link";
 import { useRef } from "react";
@@ -76,25 +73,25 @@ const treatments = [
 
 const platformFeatures = [
   {
-    icon: <PhoneOff className="h-6 w-6" />,
+    icon: <StickerIcon name="no-mobile" size={48} />,
     title: "Complete Online",
     description:
       "Answer questions from your phone. Most consultations don't require a call.",
   },
   {
-    icon: <Clock className="h-6 w-6" />,
+    icon: <StickerIcon name="clock" size={48} />,
     title: "Reviewed Within Hours",
     description:
       "Our doctors review requests quickly. Most are reviewed within a few hours during business hours.",
   },
   {
-    icon: <EyeOff className="h-6 w-6" />,
+    icon: <StickerIcon name="privacy" size={48} />,
     title: "100% Discreet",
     description:
       "Your consultation is private. Medications come in standard pharmacy packaging.",
   },
   {
-    icon: <Shield className="h-6 w-6" />,
+    icon: <StickerIcon name="security-shield" size={48} />,
     title: "AHPRA-Registered Doctors",
     description:
       "All consultations reviewed by fully qualified Australian doctors.",

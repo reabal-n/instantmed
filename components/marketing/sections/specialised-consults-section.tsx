@@ -1,9 +1,10 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { ArrowRight, ClipboardList, Shield, Sparkles, Stethoscope } from "lucide-react"
+import { ArrowRight } from "lucide-react"
 import Link from "next/link"
 
+import { StickerIcon, type StickerIconName } from "@/components/icons/stickers"
 import { useReducedMotion } from "@/components/ui/motion"
 import { PRICING_DISPLAY } from "@/lib/constants"
 
@@ -11,9 +12,15 @@ import { PRICING_DISPLAY } from "@/lib/constants"
 // DATA
 // =============================================================================
 
-const consults = [
+const consults: Array<{
+  icon: StickerIconName
+  title: string
+  description: string
+  price: string
+  href: string
+}> = [
   {
-    icon: Shield,
+    icon: 'security-shield',
     title: "Erectile Dysfunction",
     description:
       "Discreet assessment and treatment. Clinically proven medications prescribed if appropriate.",
@@ -21,7 +28,7 @@ const consults = [
     href: "/erectile-dysfunction",
   },
   {
-    icon: Sparkles,
+    icon: 'hair-brush',
     title: "Hair Loss",
     description:
       "Medical assessment for hair loss. Evidence-based treatments prescribed by an Australian GP.",
@@ -29,7 +36,7 @@ const consults = [
     href: "/hair-loss",
   },
   {
-    icon: Stethoscope,
+    icon: 'stethoscope',
     title: "Women\u2019s Health",
     description:
       "Contraception, hormonal concerns, and general women\u2019s health. Compassionate, confidential care.",
@@ -37,7 +44,7 @@ const consults = [
     href: "/request?service=consult&subtype=womens-health",
   },
   {
-    icon: ClipboardList,
+    icon: 'medical-history',
     title: "Weight Management",
     description:
       "Doctor-guided weight management plans. Medication options discussed if clinically appropriate.",
@@ -88,8 +95,8 @@ export function SpecialisedConsultsSection() {
                 className="group flex flex-col h-full rounded-2xl bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-md shadow-primary/[0.06] dark:shadow-none hover:shadow-lg hover:-translate-y-0.5 transition-all"
               >
                 <div className="flex-1 p-5">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary mb-3">
-                    <consult.icon className="h-5 w-5" />
+                  <div className="mb-3">
+                    <StickerIcon name={consult.icon} size={40} />
                   </div>
                   <p className="text-sm font-semibold text-foreground">{consult.title}</p>
                   <p className="mt-1.5 text-xs text-muted-foreground leading-relaxed">

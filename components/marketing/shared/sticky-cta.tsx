@@ -92,15 +92,16 @@ export function StickyCTA({
         </div>
       </motion.div>
 
-      {/* Sticky desktop CTA - top bar, appears after hero scrolls out */}
+      {/* Sticky desktop CTA - slides in below navbar, appears after hero scrolls out */}
       <motion.div
         role="region"
         aria-label="Quick purchase"
-        className="hidden lg:block fixed top-0 left-0 right-0 z-40"
-        initial={prefersReducedMotion ? {} : { y: -60, opacity: 0 }}
+        className="hidden lg:block fixed left-0 right-0 z-40"
+        style={{ top: '62px' }}
+        initial={prefersReducedMotion ? {} : { y: -80, opacity: 0 }}
         animate={prefersReducedMotion
           ? { opacity: show ? 1 : 0 }
-          : { y: show ? 0 : -60, opacity: show ? 1 : 0 }
+          : { y: show ? 0 : -80, opacity: show ? 1 : 0 }
         }
         transition={{ duration: 0.3, ease: "easeOut" }}
         aria-hidden={!show}

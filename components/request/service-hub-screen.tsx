@@ -11,6 +11,7 @@
 
 import { AnimatePresence,motion } from "framer-motion"
 import { ChevronRight, MessageSquare,RotateCcw, Star, Trash2 } from "lucide-react"
+import { StickerIcon, type StickerIconName } from "@/components/icons/stickers"
 import { useRouter } from "next/navigation"
 import { useCallback,useEffect, useState } from "react"
 
@@ -41,7 +42,7 @@ interface ServiceDef {
   price: string
   pricePrefix?: string
   effort: string
-  emoji: string
+  icon: StickerIconName
   popular?: boolean
   service: UnifiedServiceType
   subtype?: string
@@ -55,7 +56,7 @@ const SERVICES: ServiceDef[] = [
     price: PRICING_DISPLAY.MED_CERT,
     pricePrefix: "From",
     effort: "~2 min",
-    emoji: "\uD83D\uDCCB",
+    icon: "certificate",
     popular: true,
     service: "med-cert",
     subtype: undefined,
@@ -66,7 +67,7 @@ const SERVICES: ServiceDef[] = [
     subtitle: "Renew an existing medication online",
     price: PRICING_DISPLAY.REPEAT_SCRIPT,
     effort: "~3 min",
-    emoji: "\uD83D\uDC8A",
+    icon: "pill-bottle",
     service: "repeat-script",
     subtype: undefined,
   },
@@ -76,7 +77,7 @@ const SERVICES: ServiceDef[] = [
     subtitle: "Discreet assessment, no phone call",
     price: PRICING_DISPLAY.MENS_HEALTH,
     effort: "~4 min",
-    emoji: "\u26A1",
+    icon: "lightning",
     service: "consult",
     subtype: "ed",
   },
@@ -86,7 +87,7 @@ const SERVICES: ServiceDef[] = [
     subtitle: "Doctor-assessed treatment plan",
     price: PRICING_DISPLAY.HAIR_LOSS,
     effort: "~2 min",
-    emoji: "\u2728",
+    icon: "hair-brush",
     service: "consult",
     subtype: "hair_loss",
   },
@@ -96,7 +97,7 @@ const SERVICES: ServiceDef[] = [
     subtitle: "Speak with a doctor about anything",
     price: PRICING_DISPLAY.CONSULT,
     effort: "~5 min",
-    emoji: "\uD83E\uDE7A",
+    icon: "stethoscope",
     service: "consult",
     subtype: undefined,
   },
@@ -390,7 +391,7 @@ function CompactServiceRow({
   price,
   pricePrefix,
   effort,
-  emoji,
+  icon,
   popular,
   onClick,
   prefersReducedMotion,
@@ -407,8 +408,8 @@ function CompactServiceRow({
         )}
       >
         <div className="flex items-center gap-3.5">
-          {/* Emoji */}
-          <span className="text-xl shrink-0 leading-none" role="img">{emoji}</span>
+          {/* Sticker */}
+          <StickerIcon name={icon} size={36} className="shrink-0" />
 
           {/* Content */}
           <div className="flex-1 min-w-0">

@@ -4,13 +4,12 @@ import {
   Activity,
   ArrowRight,
   CheckCircle2,
-  Clock,
   Lock,
   Pill,
-  Scale,
   Shield,
   Zap,
 } from "lucide-react"
+import { StickerIcon } from "@/components/icons/stickers"
 import Image from "next/image"
 import Link from "next/link"
 import Script from "next/script"
@@ -54,22 +53,22 @@ const treatments = [
 
 const platformFeatures = [
   {
-    icon: <Scale className="w-6 h-6" />,
+    icon: <StickerIcon name="scales" size={48} />,
     title: "Medically Supervised",
     description: "All prescriptions reviewed by AHPRA-registered doctors who specialise in weight management.",
   },
   {
-    icon: <Clock className="w-6 h-6" />,
+    icon: <StickerIcon name="clock" size={48} />,
     title: "Quick Turnaround",
     description: "Most prescriptions issued within 15 minutes during business hours. No long waits.",
   },
   {
-    icon: <Activity className="w-6 h-6" />,
+    icon: <StickerIcon name="pulse" size={48} />,
     title: "Ongoing Support",
     description: "Regular check-ins to monitor progress, adjust dosage, and ensure you're on track.",
   },
   {
-    icon: <Shield className="w-6 h-6" />,
+    icon: <StickerIcon name="security-shield" size={48} />,
     title: "Safe & Regulated",
     description: "Only TGA-approved treatment options recommended after thorough health assessment.",
   },

@@ -34,7 +34,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       ? article.heroImage
       : `${baseUrl}${article.heroImage.startsWith("/") ? "" : "/"}${article.heroImage}`
     return {
-      title: article.seo.title,
+      title: { absolute: article.seo.title },
       description: article.seo.description,
       keywords: article.seo.keywords,
       robots: { index: true, follow: true },

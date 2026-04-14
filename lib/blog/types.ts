@@ -13,9 +13,11 @@ export interface ArticleLink {
 }
 
 export interface ArticleSection {
-  type: 'paragraph' | 'heading' | 'list' | 'callout' | 'faq'
+  type: 'paragraph' | 'heading' | 'list' | 'callout' | 'faq' | 'table' | 'steps'
   content: string
   items?: string[]
+  headers?: string[] // table column headers
+  rows?: string[][] // table body rows
   variant?: 'info' | 'warning' | 'tip' | 'emergency'
   level?: 2 | 3
   links?: ArticleLink[]

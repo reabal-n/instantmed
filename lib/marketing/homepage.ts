@@ -366,19 +366,10 @@ export const footerLinks = {
   ],
   company: [
     { label: "About Us", href: "/about" },
-    { label: "How It Works", href: "/how-it-works" },
     { label: "Pricing", href: "/pricing" },
     { label: "Reviews", href: "/reviews" },
     { label: "Health Guides", href: "/blog" },
-    { label: "FAQs", href: "/faq" },
     { label: "Contact", href: "/contact" },
-    { label: "For Employers", href: "/for/employers" },
-  ],
-  legal: [
-    { label: "Privacy Policy", href: "/privacy" },
-    { label: "Terms of Service", href: "/terms" },
-    { label: "Refund Policy", href: "/refund-policy" },
-    { label: "Trust & Safety", href: "/trust" },
   ],
 }
 
