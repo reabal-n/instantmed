@@ -30,6 +30,8 @@ export interface ScrollingLogoMarqueeProps {
   hideHeading?: boolean
   /** Animation speed */
   speed?: "slow" | "normal" | "fast"
+  /** Show logos in full color instead of grayscale */
+  colored?: boolean
   /** Tooltip prefix (e.g., "Accepted by" renders "Accepted by {name}") */
   tooltipPrefix?: string
   /** Analytics event name for view tracking */
@@ -54,10 +56,12 @@ const SPEED_CLASS: Record<string, string> = {
 function LogoRow({
   logos,
   tooltipPrefix,
+  colored,
   className,
 }: {
   logos: LogoItem[]
   tooltipPrefix?: string
+  colored?: boolean
   className?: string
 }) {
   return (
@@ -72,7 +76,12 @@ function LogoRow({
                   alt={logo.name}
                   width={96}
                   height={32}
-                  className="object-contain h-6 w-auto opacity-40 grayscale hover:opacity-70 hover:grayscale-0 transition-all duration-300 dark:brightness-150 dark:contrast-75"
+                  className={cn(
+                    "object-contain h-6 w-auto transition-all duration-300",
+                    colored
+                      ? "opacity-60 hover:opacity-90"
+                      : "opacity-40 grayscale hover:opacity-70 hover:grayscale-0 dark:brightness-150 dark:contrast-75",
+                  )}
                   unoptimized={logo.src.endsWith(".svg")}
                 />
               </div>
@@ -98,6 +107,7 @@ export function ScrollingLogoMarquee({
   heading,
   hideHeading,
   speed = "normal",
+  colored,
   tooltipPrefix,
   analyticsEvent,
   className,
@@ -144,7 +154,12 @@ export function ScrollingLogoMarquee({
                 alt={logo.name}
                 width={96}
                 height={32}
-                className="object-contain h-6 w-auto opacity-40 grayscale dark:brightness-150 dark:contrast-75"
+                className={cn(
+                  "object-contain h-6 w-auto",
+                  colored
+                    ? "opacity-60"
+                    : "opacity-40 grayscale dark:brightness-150 dark:contrast-75",
+                )}
                 unoptimized={logo.src.endsWith(".svg")}
               />
             </div>
@@ -175,8 +190,8 @@ export function ScrollingLogoMarquee({
             SPEED_CLASS[speed] ?? SPEED_CLASS.normal
           )}
         >
-          <LogoRow logos={logos} tooltipPrefix={tooltipPrefix} className="px-5" />
-          <LogoRow logos={logos} tooltipPrefix={tooltipPrefix} className="px-5" />
+          <LogoRow logos={logos} tooltipPrefix={tooltipPrefix} colored={colored} className="px-5" />
+          <LogoRow logos={logos} tooltipPrefix={tooltipPrefix} colored={colored} className="px-5" />
         </div>
       </div>
     </div>

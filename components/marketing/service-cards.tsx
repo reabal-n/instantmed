@@ -13,16 +13,7 @@ import { SectionPill } from '@/components/ui/section-pill'
 import { serviceCategories } from '@/lib/marketing/homepage'
 import { cn } from '@/lib/utils'
 
-// Service color → gradient background + accent border
-const colorThemeMap: Record<string, { gradient: string; border: string; iconGlow: string }> = {
-  emerald: { gradient: 'from-emerald-50/80 to-white dark:from-emerald-950/15 dark:to-card', border: 'border-t-emerald-500', iconGlow: 'shadow-emerald-500/20' },
-  cyan:    { gradient: 'from-cyan-50/80 to-white dark:from-cyan-950/15 dark:to-card',    border: 'border-t-cyan-500',    iconGlow: 'shadow-cyan-500/20' },
-  blue:    { gradient: 'from-indigo-50/80 to-white dark:from-indigo-950/15 dark:to-card', border: 'border-t-indigo-500',  iconGlow: 'shadow-indigo-500/20' },
-  violet:  { gradient: 'from-violet-50/80 to-white dark:from-violet-950/15 dark:to-card', border: 'border-t-violet-500',  iconGlow: 'shadow-violet-500/20' },
-  pink:    { gradient: 'from-pink-50/80 to-white dark:from-pink-950/15 dark:to-card',    border: 'border-t-pink-500',    iconGlow: 'shadow-pink-500/20' },
-  rose:    { gradient: 'from-rose-50/80 to-white dark:from-rose-950/15 dark:to-card',    border: 'border-t-rose-500',    iconGlow: 'shadow-rose-500/20' },
-}
-const defaultTheme = { gradient: 'from-primary/5 to-white dark:from-primary/5 dark:to-card', border: 'border-t-primary', iconGlow: 'shadow-primary/20' }
+// Clean card style - no gradients, no colored borders
 
 function useServiceCardVariants() {
   const prefersReducedMotion = useReducedMotion()
@@ -88,33 +79,30 @@ function ServiceCard({ service, disabled }: ServiceCardProps) {
         )}
 
         <div className={cn(
-          'relative h-full rounded-xl overflow-hidden flex flex-col p-5',
-          'bg-gradient-to-br',
-          (colorThemeMap[service.color] || defaultTheme).gradient,
-          'border border-border/40',
-          'border-t-2',
-          (colorThemeMap[service.color] || defaultTheme).border,
-          'shadow-md shadow-primary/[0.06]',
-          'transition-all duration-300',
+          'relative h-full rounded-xl flex flex-col p-5',
+          'bg-white dark:bg-card',
+          'border border-border/50 dark:border-white/10',
+          'shadow-sm',
+          'transition-all duration-200',
           disabled && 'opacity-60',
           !disabled && [
-            'hover:shadow-xl hover:shadow-primary/[0.1] hover:-translate-y-1 hover:border-primary/30',
-            service.popular && 'ring-2 ring-primary/50 dark:ring-primary/30 shadow-xl shadow-primary/[0.1]',
+            'hover:shadow-lg hover:-translate-y-0.5 hover:border-border',
+            service.popular && 'ring-1 ring-primary/20 shadow-md',
           ],
         )}>
-          {/* Icon - larger presence with glow */}
-          <ServiceIconTile iconKey={service.icon} color={service.color} size="lg" className={cn('mb-4 shadow-lg', (colorThemeMap[service.color] || defaultTheme).iconGlow)} />
+          {/* Icon - compact, no glow */}
+          <ServiceIconTile iconKey={service.icon} color={service.color} size="md" className="mb-4" />
 
           {/* Title + Price */}
-          <h3 className="text-base font-semibold text-foreground group-hover:text-primary transition-colors duration-300 mb-0.5">
+          <h3 className="text-base font-semibold text-foreground group-hover:text-primary transition-colors duration-200 mb-0.5">
             {service.title}
           </h3>
-          <p className="text-sm font-medium text-muted-foreground mb-2">
+          <p className="text-sm text-muted-foreground mb-2">
             From ${service.priceFrom.toFixed(2)}
           </p>
 
           {/* Description */}
-          <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+          <p className="text-sm text-muted-foreground/80 line-clamp-2 mb-3">
             {service.description}
           </p>
 
@@ -180,28 +168,23 @@ function ComingSoonCard({ service }: ComingSoonCardProps) {
       </div>
 
       <div className={cn(
-        'relative h-full rounded-xl overflow-hidden flex flex-col p-5',
-        'bg-gradient-to-br',
-        (colorThemeMap[service.color] || defaultTheme).gradient,
-        'border border-border/40',
-        'border-t-2',
-        (colorThemeMap[service.color] || defaultTheme).border,
-        'shadow-md shadow-primary/[0.06]',
-        'opacity-75',
+        'relative h-full rounded-xl flex flex-col p-5',
+        'bg-muted/30 dark:bg-card',
+        'border border-dashed border-border/60 dark:border-white/10',
       )}>
         {/* Icon */}
-        <ServiceIconTile iconKey={service.icon} color={service.color} size="lg" className="mb-4 grayscale opacity-60" />
+        <ServiceIconTile iconKey={service.icon} color={service.color} size="md" className="mb-4 opacity-40 grayscale" />
 
         {/* Title + Price */}
-        <h3 className="text-base font-semibold text-foreground mb-0.5">
+        <h3 className="text-base font-semibold text-muted-foreground mb-0.5">
           {service.title}
         </h3>
-        <p className="text-sm font-medium text-muted-foreground mb-2">
+        <p className="text-sm text-muted-foreground/60 mb-2">
           From ${service.priceFrom.toFixed(2)}
         </p>
 
         {/* Description */}
-        <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+        <p className="text-sm text-muted-foreground/60 line-clamp-2 mb-3">
           {service.description}
         </p>
 
@@ -210,10 +193,10 @@ function ComingSoonCard({ service }: ComingSoonCardProps) {
           <ul className="space-y-1.5 mb-4 flex-1">
             {service.benefits.map((benefit, idx) => (
               <li key={idx} className={cn(
-                "flex items-start gap-2 text-sm text-muted-foreground/70",
+                "flex items-start gap-2 text-sm text-muted-foreground/50",
                 idx >= 2 && "hidden sm:flex",
               )}>
-                <Check className="h-3.5 w-3.5 text-muted-foreground/40 mt-0.5 shrink-0" />
+                <Check className="h-3.5 w-3.5 text-muted-foreground/30 mt-0.5 shrink-0" />
                 <span>{benefit}</span>
               </li>
             ))}

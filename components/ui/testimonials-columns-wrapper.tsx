@@ -39,27 +39,37 @@ export function TestimonialsColumnsWrapper({
   );
   const thirdColumn = testimonials.slice(Math.ceil((testimonials.length * 2) / 3));
 
+  const hasHeader = title || subtitle || badgeText
+
   return (
     <section className={cn("relative", className)}>
       <div className="container z-10 mx-auto px-4">
-        <motion.div
-          initial={prefersReducedMotion ? false : { y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.5, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-          viewport={{ once: true }}
-          className="flex flex-col items-center justify-center max-w-[540px] mx-auto"
-        >
-          <div className="flex justify-center">
-            <SectionPill>{badgeText}</SectionPill>
-          </div>
+        {hasHeader && (
+          <motion.div
+            initial={prefersReducedMotion ? false : { y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.5, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+            viewport={{ once: true }}
+            className="flex flex-col items-center justify-center max-w-[540px] mx-auto"
+          >
+            {badgeText && (
+              <div className="flex justify-center">
+                <SectionPill>{badgeText}</SectionPill>
+              </div>
+            )}
 
-          <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold tracking-tighter mt-4 text-center text-foreground">
-            {title}
-          </h2>
-          <p className="text-center mt-3 text-muted-foreground dark:text-foreground/60 text-sm">
-            {subtitle}
-          </p>
-        </motion.div>
+            {title && (
+              <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold tracking-tighter mt-4 text-center text-foreground">
+                {title}
+              </h2>
+            )}
+            {subtitle && (
+              <p className="text-center mt-3 text-muted-foreground dark:text-foreground/60 text-sm">
+                {subtitle}
+              </p>
+            )}
+          </motion.div>
+        )}
 
         <div className="flex justify-center gap-4 mt-8 [mask-image:linear-gradient(to_bottom,transparent,black_10%,black_90%,transparent)] max-h-[420px] overflow-hidden">
           <TestimonialsColumn testimonials={firstColumn} duration={15} />

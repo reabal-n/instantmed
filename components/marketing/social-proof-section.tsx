@@ -1,64 +1,22 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { ArrowRight,Clock, ShieldCheck, Star, Users } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 
 import { AnimatedStat } from '@/components/marketing/animated-stat'
 import { GoogleReviewsBadge } from '@/components/marketing/google-reviews-badge'
 import { useReducedMotion } from '@/components/ui/motion'
-import { SectionPill } from '@/components/ui/section-pill'
 import { TestimonialsColumnsWrapper } from '@/components/ui/testimonials-columns-wrapper'
 import { getHomepageTestimonials } from '@/lib/data/testimonials'
 import { SOCIAL_PROOF } from '@/lib/social-proof'
 import { getPatientCount } from '@/lib/social-proof'
-import { cn } from '@/lib/utils'
 
-const bentoStats = [
-  {
-    icon: Users,
-    value: getPatientCount(),
-    suffix: '+',
-    label: 'Australians helped',
-    detail: 'and counting',
-    accentBorder: 'bg-primary',
-    valueColor: 'text-primary',
-    iconColor: 'text-primary/40',
-    decimals: 0,
-  },
-  {
-    icon: Star,
-    value: SOCIAL_PROOF.averageRating,
-    suffix: '/5',
-    label: 'Patient rating',
-    detail: 'from verified reviews',
-    accentBorder: 'bg-amber-500',
-    valueColor: 'text-amber-600 dark:text-amber-400',
-    iconColor: 'text-amber-400/40',
-    decimals: 1,
-  },
-  {
-    icon: Clock,
-    value: SOCIAL_PROOF.sameDayDeliveryPercent,
-    suffix: '%',
-    label: 'Delivered same day',
-    detail: 'of all requests',
-    accentBorder: 'bg-blue-500',
-    valueColor: 'text-blue-600 dark:text-blue-400',
-    iconColor: 'text-blue-400/40',
-    decimals: 0,
-  },
-  {
-    icon: ShieldCheck,
-    value: 100,
-    suffix: '%',
-    label: 'AHPRA-registered',
-    detail: 'every single doctor',
-    accentBorder: 'bg-emerald-500',
-    valueColor: 'text-emerald-600 dark:text-emerald-400',
-    iconColor: 'text-emerald-400/40',
-    decimals: 0,
-  },
+const inlineStats = [
+  { value: getPatientCount(), suffix: '+', label: 'Australians helped', decimals: 0 },
+  { value: SOCIAL_PROOF.averageRating, suffix: '/5', label: 'Patient rating', decimals: 1 },
+  { value: SOCIAL_PROOF.sameDayDeliveryPercent, suffix: '%', label: 'Same-day delivery', decimals: 0 },
+  { value: 100, suffix: '%', label: 'AHPRA-registered doctors', decimals: 0 },
 ]
 
 export function SocialProofSection() {
@@ -70,15 +28,12 @@ export function SocialProofSection() {
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <motion.div
-          className="text-center mb-6 sm:mb-8 lg:mb-10"
+          className="text-center mb-8 sm:mb-10 lg:mb-12"
           initial={prefersReducedMotion ? {} : { y: 20, opacity: 0 }}
           whileInView={{ y: 0, opacity: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
         >
-          <div className="mb-4">
-            <SectionPill>Social proof</SectionPill>
-          </div>
           <h2 className="text-2xl sm:text-3xl font-semibold text-foreground tracking-tight mb-3">
             Real patients. Real reviews.
           </h2>
@@ -87,43 +42,30 @@ export function SocialProofSection() {
           </p>
         </motion.div>
 
-        {/* Bento grid stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-8 sm:mb-10 lg:mb-12">
-          {bentoStats.map((stat, i) => (
-            <motion.div
-              key={stat.label}
-              className={cn(
-                'rounded-xl p-4 sm:p-5 relative overflow-hidden',
-                'bg-white dark:bg-card',
-                'border border-border/50 dark:border-white/10',
-                'shadow-sm shadow-primary/[0.04] dark:shadow-none',
+        {/* Inline stat strip - clean typographic row */}
+        <motion.div
+          className="flex flex-wrap justify-center items-baseline gap-x-8 gap-y-4 sm:gap-x-12 mb-8 sm:mb-10 lg:mb-12"
+          initial={prefersReducedMotion ? {} : { y: 12, opacity: 0 }}
+          whileInView={{ y: 0, opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+        >
+          {inlineStats.map((stat, i) => (
+            <div key={stat.label} className="flex items-baseline gap-x-8 sm:gap-x-12">
+              <div className="text-center">
+                <p className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground leading-none">
+                  <AnimatedStat value={stat.value} suffix={stat.suffix} decimals={stat.decimals} />
+                </p>
+                <p className="text-xs text-muted-foreground mt-1.5">
+                  {stat.label}
+                </p>
+              </div>
+              {i < inlineStats.length - 1 && (
+                <div className="hidden sm:block w-px h-8 bg-border/50 self-center" />
               )}
-              initial={prefersReducedMotion ? {} : { y: 16, opacity: 0 }}
-              whileInView={{ y: 0, opacity: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: i * 0.08 }}
-            >
-              {/* Left accent stripe */}
-              <div className={cn('absolute left-0 top-3 bottom-3 w-0.5 rounded-full', stat.accentBorder)} />
-
-              {/* Icon - subtle accent in top-right */}
-              <stat.icon className={cn('w-5 h-5 mb-3', stat.iconColor)} />
-
-              {/* Stat number - hero element with color */}
-              <p className={cn('text-2xl sm:text-3xl font-bold tracking-tight leading-none mb-1', stat.valueColor)}>
-                <AnimatedStat value={stat.value} suffix={stat.suffix} decimals={stat.decimals} />
-              </p>
-
-              {/* Label */}
-              <p className="text-xs sm:text-sm font-medium text-foreground">
-                {stat.label}
-              </p>
-              <p className="text-[10px] text-muted-foreground/60 mt-0.5">
-                {stat.detail}
-              </p>
-            </motion.div>
+            </div>
           ))}
-        </div>
+        </motion.div>
 
         {/* Google Reviews badge */}
         <div className="flex flex-col items-center gap-2 mb-6 sm:mb-8 lg:mb-10">

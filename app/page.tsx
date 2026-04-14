@@ -11,7 +11,7 @@ import { MarketingPageShell } from '@/components/marketing/marketing-page-shell'
 import { RegulatoryPartners } from '@/components/marketing/media-mentions'
 // After-hours banner removed - redundant with DoctorAvailabilityPill in hero
 import { ServiceCards } from '@/components/marketing/service-cards'
-import { ComparisonBar, ScrollingLogoMarquee } from '@/components/marketing/shared'
+import { ScrollingLogoMarquee } from '@/components/marketing/shared'
 import { SocialProofSection } from '@/components/marketing/social-proof-section'
 import { CTABanner } from '@/components/sections'
 import { FAQSection } from '@/components/sections'
@@ -19,7 +19,6 @@ import { FAQSchema, MedicalBusinessSchema, SpeakableSchema } from '@/components/
 import { HashScrollHandler } from '@/components/shared/hash-scroll-handler'
 import { Navbar } from '@/components/shared/navbar'
 import { ReturningPatientBanner } from '@/components/shared/returning-patient-banner'
-import { TrustBadgeRow } from '@/components/shared/trust-badge'
 import { PRICING_DISPLAY } from '@/lib/constants'
 import { getFeatureFlags } from '@/lib/feature-flags'
 import { faqItems } from '@/lib/marketing/homepage'
@@ -153,8 +152,9 @@ export default async function HomePage() {
         {/* Employer logo marquee - credibility signal */}
         <ScrollingLogoMarquee
           logos={EMPLOYER_LOGOS}
-          heading="Trusted by employees at"
+          heading="Our patients work at"
           speed="slow"
+          colored
           tooltipPrefix="Used by"
           analyticsEvent="homepage_employer_marquee"
         />
@@ -169,34 +169,8 @@ export default async function HomePage() {
           </Suspense>
         </div>
 
-        {/* 3.5 Time comparison data viz */}
-        <section className="py-16 lg:py-20">
-          <div className="mx-auto max-w-xl px-4 sm:px-6">
-            <p className="text-center text-xs font-semibold uppercase tracking-widest text-muted-foreground/50 mb-6">
-              Why go online?
-            </p>
-            <div className="rounded-2xl bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-md shadow-primary/[0.06] dark:shadow-none p-6">
-              <ComparisonBar
-                us={{
-                  label: 'InstantMed',
-                  value: '~30 min',
-                  subtext: 'Average turnaround for medical certificates',
-                }}
-                them={{
-                  label: 'GP clinic visit',
-                  value: '2+ hours',
-                  subtext: 'Travel + wait + consult + admin',
-                }}
-                ratio={0.25}
-              />
-            </div>
-          </div>
-        </section>
-
-        {/* 4. Social proof - muted bg for rhythm */}
-        <div className="bg-muted/30 dark:bg-white/[0.02]">
-          <SocialProofSection />
-        </div>
+        {/* 4. Social proof */}
+        <SocialProofSection />
 
         {/* 5. FAQs */}
         <FAQSection
@@ -206,14 +180,6 @@ export default async function HomePage() {
           items={faqItems}
           viewAllHref="/faq"
         />
-
-        {/* 5.5 Pre-CTA friction removal */}
-        <div className="py-6 sm:py-8">
-          <p className="text-[10px] font-semibold text-muted-foreground/40 text-center mb-3 uppercase tracking-[0.15em]">
-            No barriers
-          </p>
-          <TrustBadgeRow preset="pre_cta" className="justify-center gap-3" />
-        </div>
 
         {/* 6. Final CTA */}
         <CTABanner
