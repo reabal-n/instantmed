@@ -1,5 +1,5 @@
 import { blogImages } from '../images'
-import { Article, contentAuthors } from '../types'
+import { Article, defaultAuthor } from '../types'
 
 export const highIntentSeoArticles: Article[] = [
   {
@@ -13,7 +13,7 @@ export const highIntentSeoArticles: Article[] = [
     updatedAt: '2026-01-23',
     readingTime: 4,
     viewCount: 0,
-    author: contentAuthors.emmaWilson,
+    author: defaultAuthor,
     heroImage: blogImages.medCertWork,
     heroImageAlt: 'Professional reviewing workplace documentation',
     content: [
@@ -225,7 +225,7 @@ export const highIntentSeoArticles: Article[] = [
     updatedAt: '2026-01-23',
     readingTime: 3,
     viewCount: 0,
-    author: contentAuthors.jamesPatel,
+    author: defaultAuthor,
     heroImage: blogImages.doctorsNote,
     heroImageAlt: 'Medical documentation and paperwork',
     content: [
@@ -393,7 +393,7 @@ export const highIntentSeoArticles: Article[] = [
     updatedAt: '2026-01-23',
     readingTime: 4,
     viewCount: 0,
-    author: contentAuthors.marcusThompson,
+    author: defaultAuthor,
     heroImage: blogImages.afterHoursDoctor,
     heroImageAlt: 'Person using phone for healthcare at night',
     content: [
@@ -569,7 +569,7 @@ export const highIntentSeoArticles: Article[] = [
     updatedAt: '2026-01-23',
     readingTime: 4,
     viewCount: 0,
-    author: contentAuthors.sarahChen,
+    author: defaultAuthor,
     heroImage: blogImages.bulkBilling,
     heroImageAlt: 'Healthcare payment and billing concept',
     content: [
@@ -745,7 +745,7 @@ export const highIntentSeoArticles: Article[] = [
     updatedAt: '2026-01-23',
     readingTime: 3,
     viewCount: 0,
-    author: contentAuthors.jamesPatel,
+    author: defaultAuthor,
     heroImage: blogImages.backdating,
     heroImageAlt: 'Calendar and medical documentation concept',
     content: [
@@ -906,7 +906,7 @@ export const highIntentSeoArticles: Article[] = [
     updatedAt: '2026-01-23',
     readingTime: 3,
     viewCount: 0,
-    author: contentAuthors.emmaWilson,
+    author: defaultAuthor,
     heroImage: blogImages.wfhSick,
     heroImageAlt: 'Person working from home while unwell',
     content: [

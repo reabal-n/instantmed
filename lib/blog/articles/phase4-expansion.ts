@@ -4,7 +4,7 @@
  */
 
 import { blogImages } from '../images'
-import { Article, contentAuthors,defaultAuthor } from '../types'
+import { Article, defaultAuthor } from '../types'
 
 export const phase4ExpansionArticles: Article[] = [
   // Medical Certificates
@@ -206,7 +206,7 @@ export const phase4ExpansionArticles: Article[] = [
     updatedAt: '2026-03-16',
     readingTime: 5,
     viewCount: 0,
-    author: contentAuthors.marcusThompson,
+    author: defaultAuthor,
     heroImage: blogImages.prepareForTelehealth,
     heroImageAlt: 'Person preparing for online doctor consultation',
     content: [
@@ -1121,7 +1121,7 @@ export const phase4ExpansionArticles: Article[] = [
     updatedAt: '2026-03-16',
     readingTime: 3,
     viewCount: 0,
-    author: contentAuthors.emmaWilson,
+    author: defaultAuthor,
     heroImage: blogImages.returnToWork,
     heroImageAlt: 'Shift worker managing health and work',
     content: [
@@ -1280,7 +1280,7 @@ export const phase4ExpansionArticles: Article[] = [
     updatedAt: '2026-03-16',
     readingTime: 3,
     viewCount: 0,
-    author: contentAuthors.oliviaNguyen,
+    author: defaultAuthor,
     heroImage: blogImages.genericHealth,
     heroImageAlt: 'Gold Coast healthcare access',
     content: [
@@ -1410,7 +1410,7 @@ export const phase4ExpansionArticles: Article[] = [
     updatedAt: '2026-03-16',
     readingTime: 3,
     viewCount: 0,
-    author: contentAuthors.jamesPatel,
+    author: defaultAuthor,
     heroImage: blogImages.genericHealth,
     heroImageAlt: 'Canberra healthcare access',
     content: [
@@ -1549,7 +1549,7 @@ export const phase4ExpansionArticles: Article[] = [
     updatedAt: '2026-03-16',
     readingTime: 7,
     viewCount: 0,
-    author: contentAuthors.sarahChen,
+    author: defaultAuthor,
     heroImage: blogImages.ahpraRegistered,
     heroImageAlt: 'Doctor verification and credentials',
     content: [
@@ -1894,7 +1894,7 @@ export const phase4ExpansionArticles: Article[] = [
     updatedAt: '2026-03-16',
     readingTime: 7,
     viewCount: 0,
-    author: contentAuthors.emmaWilson,
+    author: defaultAuthor,
     heroImage: blogImages.universityMedCert,
     heroImageAlt: 'Teacher managing health and work',
     content: [
@@ -2087,7 +2087,7 @@ export const phase4ExpansionArticles: Article[] = [
     updatedAt: '2026-03-16',
     readingTime: 7,
     viewCount: 0,
-    author: contentAuthors.jamesPatel,
+    author: defaultAuthor,
     heroImage: blogImages.genericHealth,
     heroImageAlt: 'Newcastle healthcare access',
     content: [
@@ -2138,7 +2138,7 @@ export const phase4ExpansionArticles: Article[] = [
     updatedAt: '2026-03-16',
     readingTime: 7,
     viewCount: 0,
-    author: contentAuthors.emmaWilson,
+    author: defaultAuthor,
     heroImage: blogImages.certificateDuration,
     heroImageAlt: 'Bereavement and workplace support',
     content: [
@@ -2190,7 +2190,7 @@ export const phase4ExpansionArticles: Article[] = [
     updatedAt: '2026-03-16',
     readingTime: 7,
     viewCount: 0,
-    author: contentAuthors.sarahChen,
+    author: defaultAuthor,
     heroImage: blogImages.telehealthPrivacy,
     heroImageAlt: 'Medical records and privacy',
     content: [
@@ -2292,7 +2292,7 @@ export const phase4ExpansionArticles: Article[] = [
     updatedAt: '2026-03-16',
     readingTime: 7,
     viewCount: 0,
-    author: contentAuthors.marcusThompson,
+    author: defaultAuthor,
     heroImage: blogImages.workFromHomeSick,
     heroImageAlt: 'Remote worker accessing healthcare',
     content: [
@@ -2334,16 +2334,16 @@ export const phase4ExpansionArticles: Article[] = [
   // ─── High-Volume SEO Articles (April 2026) ────────────────────────────
   {
     slug: 'can-you-get-antibiotics-online-australia',
-    title: 'Can You Get Antibiotics Online in Australia?',
+    title: 'How to Get Antibiotics Online in Australia',
     subtitle: 'TGA regulations, telehealth prescribing, and what you need to know about antibiotic stewardship.',
     excerpt: 'Wondering if you can get antibiotics prescribed online in Australia? Here is what the TGA allows, which conditions qualify for telehealth prescribing, and why antibiotic stewardship matters.',
     category: 'medications',
     tags: ['prescription', 'medication', 'telehealth', 'online-doctor', 'infection'],
     publishedAt: '2026-04-01',
-    updatedAt: '2026-04-01',
+    updatedAt: '2026-04-14',
     readingTime: 8,
     viewCount: 0,
-    author: contentAuthors.marcusThompson,
+    author: defaultAuthor,
     heroImage: blogImages.antibioticsGuide,
     heroImageAlt: 'Medical consultation and prescription concept',
     content: [
@@ -2508,8 +2508,8 @@ export const phase4ExpansionArticles: Article[] = [
       { title: 'Repeat Prescriptions', description: 'Renew existing prescriptions', href: '/prescriptions', icon: 'prescription' },
     ],
     seo: {
-      title: 'Can You Get Antibiotics Online in Australia? | InstantMed',
-      description: 'Find out if you can get antibiotics prescribed online in Australia. TGA regulations, suitable conditions for telehealth prescribing, and antibiotic stewardship explained.',
+      title: 'How to Get Antibiotics Online in Australia | InstantMed',
+      description: 'Yes, AHPRA doctors can prescribe antibiotics online for eligible conditions. No waiting room. eScript sent to your phone. Find out if you qualify.',
       keywords: ['antibiotics online australia', 'get antibiotics online', 'telehealth antibiotics', 'online antibiotic prescription australia', 'TGA antibiotics'],
     },
   },
@@ -2524,7 +2524,7 @@ export const phase4ExpansionArticles: Article[] = [
     updatedAt: '2026-04-01',
     readingTime: 8,
     viewCount: 0,
-    author: contentAuthors.emmaWilson,
+    author: defaultAuthor,
     heroImage: blogImages.mentalHealthCertOnline,
     heroImageAlt: 'Person taking time for mental health and wellbeing',
     content: [
@@ -2738,7 +2738,7 @@ export const phase4ExpansionArticles: Article[] = [
     updatedAt: '2026-04-01',
     readingTime: 7,
     viewCount: 0,
-    author: contentAuthors.sarahChen,
+    author: defaultAuthor,
     heroImage: blogImages.bulkBilling,
     heroImageAlt: 'Healthcare costs and Medicare concept',
     content: [

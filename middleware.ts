@@ -48,6 +48,17 @@ export default async function middleware(req: NextRequest) {
     return NextResponse.redirect(url, 301)
   }
 
+  // Ghost URLs: orphaned pages that no longer exist but are indexed by Google.
+  // Return 410 Gone (not 404) — Google permanently drops 410s from the crawl queue.
+  // A 404 signals "might come back"; a 410 signals "stop wasting crawl budget."
+  const ghostPaths = [
+    "/performance-anxiety",
+    "/start",
+  ]
+  if (ghostPaths.includes(pathname)) {
+    return new NextResponse(null, { status: 410 })
+  }
+
   // Block dev routes in production and preview.
   // Use 410 Gone (not 404) so Google permanently drops these from its crawl queue.
   // A 404 means "might come back" — Google retries. A 410 means "stop wasting crawl budget."

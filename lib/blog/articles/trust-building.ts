@@ -1,5 +1,5 @@
 import { blogImages } from '../images'
-import { Article, contentAuthors } from '../types'
+import { Article, defaultAuthor } from '../types'
 
 export const trustBuildingArticles: Article[] = [
   {
@@ -13,7 +13,7 @@ export const trustBuildingArticles: Article[] = [
     updatedAt: '2026-01-23',
     readingTime: 3,
     viewCount: 0,
-    author: contentAuthors.jamesPatel,
+    author: defaultAuthor,
     heroImage: blogImages.ahpraRegistered,
     heroImageAlt: 'Healthcare professional credentials concept',
     content: [
@@ -172,7 +172,7 @@ export const trustBuildingArticles: Article[] = [
     updatedAt: '2026-01-23',
     readingTime: 4,
     viewCount: 0,
-    author: contentAuthors.emmaWilson,
+    author: defaultAuthor,
     heroImage: blogImages.employerReject,
     heroImageAlt: 'Workplace discussion about documentation',
     content: [
@@ -355,7 +355,7 @@ export const trustBuildingArticles: Article[] = [
     updatedAt: '2026-01-23',
     readingTime: 3,
     viewCount: 0,
-    author: contentAuthors.sarahChen,
+    author: defaultAuthor,
     heroImage: blogImages.noMedicare,
     heroImageAlt: 'International traveller accessing healthcare',
     content: [
@@ -526,7 +526,7 @@ export const trustBuildingArticles: Article[] = [
     updatedAt: '2026-01-23',
     readingTime: 4,
     viewCount: 0,
-    author: contentAuthors.marcusThompson,
+    author: defaultAuthor,
     heroImage: blogImages.elderlyTelehealth,
     heroImageAlt: 'Senior person using technology for healthcare',
     content: [
@@ -719,7 +719,7 @@ export const trustBuildingArticles: Article[] = [
     updatedAt: '2026-01-23',
     readingTime: 4,
     viewCount: 0,
-    author: contentAuthors.sarahChen,
+    author: defaultAuthor,
     heroImage: blogImages.emergencyVsTelehealth,
     heroImageAlt: 'Healthcare decision-making concept',
     content: [
@@ -894,7 +894,7 @@ export const trustBuildingArticles: Article[] = [
     updatedAt: '2026-01-23',
     readingTime: 4,
     viewCount: 0,
-    author: contentAuthors.oliviaNguyen,
+    author: defaultAuthor,
     heroImage: blogImages.uniExtension,
     heroImageAlt: 'University student managing assignments and health',
     content: [

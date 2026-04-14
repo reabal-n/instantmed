@@ -21,9 +21,15 @@ export default function robots(): MetadataRoute.Robots {
           "/doctor/",       // Doctor dashboard
           "/admin/",        // Admin dashboard
           "/api/",          // API routes
-          "/auth/",         // Auth flow (sign-in, callback)
+          // NOTE: /auth/ is intentionally NOT blocked for Googlebot.
+          // Auth pages have robots: noindex in their metadata layout.
+          // Blocking /auth/ in robots.txt creates a catch-22: Google can't
+          // crawl to see the noindex tag, so already-indexed auth pages stay
+          // in the index indefinitely. Allow crawl, let noindex do the work.
+          "/auth/callback",   // OAuth callback — no content, pure redirect
+          "/auth/confirm",    // Email confirm — no content, pure redirect
+          "/auth/post-signin", // Post-signin redirect — no content
           "/_next/",        // Next.js build output (JS/CSS chunks)
-          // Canonical tags handle duplicate parameterized URLs - no blanket block needed
           "/search",        // Internal search
           "/*/search",      // Category search pages
         ],
