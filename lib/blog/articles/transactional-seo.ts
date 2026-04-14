@@ -1,5 +1,5 @@
 import { blogImages } from '../images'
-import { Article, contentAuthors } from '../types'
+import { Article, defaultAuthor } from '../types'
 
 export const transactionalSeoArticles: Article[] = [
   // Article 1: Medical Certificate Online Australia
@@ -14,7 +14,7 @@ export const transactionalSeoArticles: Article[] = [
     updatedAt: '2026-04-01',
     readingTime: 9,
     viewCount: 0,
-    author: contentAuthors.sarahChen,
+    author: defaultAuthor,
     heroImage: blogImages.sickLeaveCertOnline,
     heroImageAlt: 'Person using a laptop at home while unwell',
     content: [
@@ -211,7 +211,7 @@ export const transactionalSeoArticles: Article[] = [
     updatedAt: '2026-04-01',
     readingTime: 8,
     viewCount: 0,
-    author: contentAuthors.emmaWilson,
+    author: defaultAuthor,
     heroImage: blogImages.employerReject,
     heroImageAlt: 'Two people having a professional workplace conversation',
     content: [
@@ -408,7 +408,7 @@ export const transactionalSeoArticles: Article[] = [
     updatedAt: '2026-04-01',
     readingTime: 9,
     viewCount: 0,
-    author: contentAuthors.jamesPatel,
+    author: defaultAuthor,
     heroImage: blogImages.repeatPrescriptionOnline,
     heroImageAlt: 'Person checking their phone for a digital prescription',
     content: [
@@ -630,7 +630,7 @@ export const transactionalSeoArticles: Article[] = [
     updatedAt: '2026-04-01',
     readingTime: 10,
     viewCount: 0,
-    author: contentAuthors.marcusThompson,
+    author: defaultAuthor,
     heroImage: blogImages.telehealthVsInPerson,
     heroImageAlt: 'Split image comparing a doctor consultation and a telehealth screen',
     content: [

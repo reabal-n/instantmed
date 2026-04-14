@@ -1,5 +1,5 @@
 import { blogImages } from '../images'
-import { Article, contentAuthors } from '../types'
+import { Article, defaultAuthor } from '../types'
 
 export const additionalSeoArticles: Article[] = [
   {
@@ -13,7 +13,7 @@ export const additionalSeoArticles: Article[] = [
     updatedAt: '2026-01-23',
     readingTime: 3,
     viewCount: 0,
-    author: contentAuthors.emmaWilson,
+    author: defaultAuthor,
     heroImage: blogImages.certificateDuration,
     heroImageAlt: 'Person needing urgent medical documentation',
     content: [
@@ -187,7 +187,7 @@ export const additionalSeoArticles: Article[] = [
     updatedAt: '2026-01-23',
     readingTime: 4,
     viewCount: 0,
-    author: contentAuthors.sarahChen,
+    author: defaultAuthor,
     heroImage: blogImages.repeatPrescriptions,
     heroImageAlt: 'Person managing their medication renewals',
     content: [
@@ -372,7 +372,7 @@ export const additionalSeoArticles: Article[] = [
     updatedAt: '2026-01-23',
     readingTime: 4,
     viewCount: 0,
-    author: contentAuthors.marcusThompson,
+    author: defaultAuthor,
     heroImage: blogImages.whatIsTelehealth,
     heroImageAlt: 'Person having an online doctor consultation',
     content: [
@@ -568,7 +568,7 @@ export const additionalSeoArticles: Article[] = [
     updatedAt: '2026-01-23',
     readingTime: 4,
     viewCount: 0,
-    author: contentAuthors.jamesPatel,
+    author: defaultAuthor,
     heroImage: blogImages.telehealthPrivacy,
     heroImageAlt: 'Secure healthcare technology concept',
     content: [

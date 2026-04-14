@@ -4,7 +4,7 @@
  */
 
 import { blogImages } from '../images'
-import { Article, articleSeries,contentAuthors } from '../types'
+import { Article, articleSeries, defaultAuthor } from '../types'
 
 export const competitorComparisonArticles: Article[] = [
   // Article 1: Best Online Doctor Services in Australia
@@ -21,7 +21,7 @@ export const competitorComparisonArticles: Article[] = [
     updatedAt: '2026-04-01',
     readingTime: 9,
     viewCount: 0,
-    author: contentAuthors.marcusThompson,
+    author: defaultAuthor,
     heroImage: blogImages.telehealthConsultation,
     heroImageAlt:
       'Laptop showing a telehealth consultation interface with Australian healthcare context',
@@ -334,7 +334,7 @@ export const competitorComparisonArticles: Article[] = [
     updatedAt: '2026-04-01',
     readingTime: 8,
     viewCount: 0,
-    author: contentAuthors.jamesPatel,
+    author: defaultAuthor,
     heroImage: blogImages.telehealthVsInPerson,
     heroImageAlt:
       'Split image showing a telehealth consultation on one side and a GP clinic on the other',

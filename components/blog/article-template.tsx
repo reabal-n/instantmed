@@ -412,12 +412,19 @@ export function ArticleTemplate({ article, relatedArticles, allArticles = [] }: 
       <div className="mt-8 pt-6 border-t border-border">
         <div className="bg-white dark:bg-card rounded-xl p-4 border border-border/50 dark:border-white/10">
           <div className="flex items-center gap-2 flex-wrap">
-            <p className="font-semibold text-foreground">{article.author.name}</p>
-            <span className="text-sm text-muted-foreground">{article.author.credentials}</span>
+            <div className="flex items-center gap-1.5">
+              <p className="font-semibold text-foreground">{article.author.name}</p>
+              <BadgeCheck className="w-4 h-4 text-primary shrink-0" />
+            </div>
+            {article.author.credentials && (
+              <span className="text-sm text-muted-foreground">{article.author.credentials}</span>
+            )}
           </div>
-          <p className="text-sm text-muted-foreground mt-1">
-            AHPRA: {article.author.ahpraNumber}
-          </p>
+          {article.author.ahpraNumber && (
+            <p className="text-sm text-muted-foreground mt-1">
+              AHPRA: {article.author.ahpraNumber}
+            </p>
+          )}
         </div>
       </div>
 
@@ -431,7 +438,7 @@ export function ArticleTemplate({ article, relatedArticles, allArticles = [] }: 
               month: 'long',
               year: 'numeric'
             })}
-            {' '}by {article.author.name}
+            {' '}by <span className="inline-flex items-center gap-1">{article.author.name}<BadgeCheck className="w-3.5 h-3.5 text-primary inline-block" /></span>
           </p>
           <SocialShare 
             url={`https://instantmed.com.au/blog/${article.slug}`}

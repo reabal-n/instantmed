@@ -1,5 +1,5 @@
 import { blogImages } from '../images'
-import { Article, contentAuthors } from '../types'
+import { Article, defaultAuthor } from '../types'
 
 export const locationArticles: Article[] = [
   {
@@ -13,7 +13,7 @@ export const locationArticles: Article[] = [
     updatedAt: '2026-01-23',
     readingTime: 3,
     viewCount: 0,
-    author: contentAuthors.marcusThompson,
+    author: defaultAuthor,
     heroImage: blogImages.sydneyHarbour,
     heroImageAlt: 'Sydney Harbour with Opera House and city skyline',
     content: [
@@ -175,7 +175,7 @@ export const locationArticles: Article[] = [
     updatedAt: '2026-01-23',
     readingTime: 3,
     viewCount: 0,
-    author: contentAuthors.sarahChen,
+    author: defaultAuthor,
     heroImage: blogImages.melbourneSkyline,
     heroImageAlt: 'Melbourne city skyline with Yarra River',
     content: [
@@ -336,7 +336,7 @@ export const locationArticles: Article[] = [
     updatedAt: '2026-01-23',
     readingTime: 3,
     viewCount: 0,
-    author: contentAuthors.jamesPatel,
+    author: defaultAuthor,
     heroImage: blogImages.brisbaneRiver,
     heroImageAlt: 'Brisbane city and Story Bridge along the river',
     content: [
@@ -496,7 +496,7 @@ export const locationArticles: Article[] = [
     updatedAt: '2026-01-23',
     readingTime: 3,
     viewCount: 0,
-    author: contentAuthors.emmaWilson,
+    author: defaultAuthor,
     heroImage: blogImages.perthCity,
     heroImageAlt: 'Perth city skyline at sunset',
     content: [
@@ -658,7 +658,7 @@ export const locationArticles: Article[] = [
     updatedAt: '2026-01-23',
     readingTime: 3,
     viewCount: 0,
-    author: contentAuthors.oliviaNguyen,
+    author: defaultAuthor,
     heroImage: blogImages.adelaideCity,
     heroImageAlt: 'Adelaide city and parklands',
     content: [
