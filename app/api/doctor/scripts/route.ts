@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { z } from "zod"
 
 import { requireApiRole } from "@/lib/auth/helpers"
 import { getScriptTaskCounts,getScriptTasks } from "@/lib/data/script-tasks"
@@ -6,6 +7,8 @@ import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 
 const log = createLogger("doctor-scripts-api")
+
+const statusSchema = z.enum(["pending_send", "sent", "confirmed"]).nullable()
 
 export const dynamic = "force-dynamic"
 
@@ -20,7 +23,12 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const status = request.nextUrl.searchParams.get("status") as "pending_send" | "sent" | "confirmed" | null
+    const rawStatus = request.nextUrl.searchParams.get("status")
+    const parsed = statusSchema.safeParse(rawStatus)
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Invalid status filter" }, { status: 400 })
+    }
+    const status = parsed.data
 
     const [tasks, counts] = await Promise.all([
       getScriptTasks(status ? { status } : undefined),

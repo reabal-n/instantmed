@@ -8,6 +8,8 @@ import { getIntakeWithDetails, getNextQueueIntakeId } from "@/lib/data/intakes"
 import { getCertificateForIntake } from "@/lib/data/issued-certificates"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
 /**
  * GET /api/doctor/intakes/[id]/review-data
  *
@@ -22,6 +24,10 @@ export async function GET(
   if (rateLimitResponse) return rateLimitResponse
 
   const { id: intakeId } = await params
+
+  if (!UUID_RE.test(intakeId)) {
+    return NextResponse.json({ error: "Invalid intake ID" }, { status: 400 })
+  }
 
   // Auth + role check (defense-in-depth - middleware also protects /api/doctor/*)
   const auth = await requireApiRole(["doctor", "admin"])

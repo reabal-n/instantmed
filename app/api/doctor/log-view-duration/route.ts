@@ -3,9 +3,12 @@ import { z } from "zod"
 
 import { logClinicianViewedIntakeAnswers } from "@/lib/audit/compliance-audit"
 import { requireApiRole } from "@/lib/auth/helpers"
+import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { requireValidCsrf } from "@/lib/security/csrf"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
+
+const log = createLogger("log-view-duration")
 
 const logViewDurationSchema = z.object({
   intakeId: z.string().uuid(),
@@ -53,7 +56,8 @@ export async function POST(request: NextRequest) {
     )
 
     return NextResponse.json({ success: true })
-  } catch {
+  } catch (error) {
+    log.error("Failed to log view duration", {}, error instanceof Error ? error : undefined)
     return NextResponse.json({ error: "Failed to log" }, { status: 500 })
   }
 }

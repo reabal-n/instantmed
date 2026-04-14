@@ -8,6 +8,8 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const log = createLogger("doctor-cert-download")
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
 /**
  * GET /api/doctor/certificates/[intakeId]/download
  *
@@ -19,6 +21,10 @@ export async function GET(
   { params }: { params: Promise<{ intakeId: string }> }
 ) {
   const { intakeId } = await params
+
+  if (!UUID_RE.test(intakeId)) {
+    return NextResponse.json({ error: "Invalid intake ID" }, { status: 400 })
+  }
 
   const rateLimitResponse = await applyRateLimit(request, "standard")
   if (rateLimitResponse) return rateLimitResponse

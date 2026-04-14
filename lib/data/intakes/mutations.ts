@@ -336,12 +336,14 @@ export async function flagForFollowup(intakeId: string, reason: string): Promise
 }
 
 /**
- * Mark intake as reviewed
+ * Mark intake as reviewed (paid -> in_review).
+ * Uses optimistic lock to prevent race conditions when two doctors
+ * attempt to claim the same intake simultaneously.
  */
 export async function markAsReviewed(intakeId: string, doctorId: string): Promise<boolean> {
   const supabase = createServiceRoleClient()
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("intakes")
     .update({
       reviewed_by: doctorId,
@@ -350,9 +352,18 @@ export async function markAsReviewed(intakeId: string, doctorId: string): Promis
       updated_at: new Date().toISOString(),
     })
     .eq("id", intakeId)
+    .eq("status", "paid") // Optimistic lock: only transition from paid
+    .select("id")
+    .maybeSingle()
 
   if (error) {
     logger.error("Error marking as reviewed", {}, toError(error))
+    return false
+  }
+
+  // If no row was updated, intake was already claimed or not in 'paid' status
+  if (!data) {
+    logger.warn("markAsReviewed: intake not in 'paid' status, skipping", { intakeId, doctorId })
     return false
   }
 

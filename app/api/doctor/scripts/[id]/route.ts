@@ -16,6 +16,8 @@ const updateScriptTaskSchema = z.object({
 
 const log = createLogger("doctor-scripts-update")
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -30,6 +32,11 @@ export async function PATCH(
     if (csrfError) return csrfError
 
     const { id } = await params
+
+    if (!UUID_RE.test(id)) {
+      return NextResponse.json({ error: "Invalid task ID" }, { status: 400 })
+    }
+
     const authResult = await requireApiRole(["doctor", "admin"])
     if (!authResult) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })

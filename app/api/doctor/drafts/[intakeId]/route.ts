@@ -9,6 +9,8 @@ import { requireValidCsrf } from "@/lib/security/csrf"
 
 const log = createLogger("doctor-drafts-api")
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
 /**
  * GET /api/doctor/drafts/[intakeId]
  * Fetch AI-generated drafts for an intake (doctor only)
@@ -30,8 +32,8 @@ export async function GET(
 
     const { intakeId } = await params
 
-    if (!intakeId) {
-      return NextResponse.json({ error: "Intake ID required" }, { status: 400 })
+    if (!UUID_RE.test(intakeId)) {
+      return NextResponse.json({ error: "Invalid intake ID" }, { status: 400 })
     }
 
     const drafts = await getDraftsForIntake(intakeId)
@@ -80,8 +82,8 @@ export async function POST(
 
     const { intakeId } = await params
 
-    if (!intakeId) {
-      return NextResponse.json({ error: "Intake ID required" }, { status: 400 })
+    if (!UUID_RE.test(intakeId)) {
+      return NextResponse.json({ error: "Invalid intake ID" }, { status: 400 })
     }
 
     log.info("Regenerating drafts for intake", {
