@@ -78,17 +78,13 @@ export const medicalCertificateArticles: Article[] = [
         level: 2
       },
       {
-        type: 'paragraph',
-        content: 'Getting a medical certificate for mental health follows the same process as any other condition:'
-      },
-      {
-        type: 'list',
+        type: 'steps',
         content: '',
         items: [
-          'Complete a brief health questionnaire describing how you\'re feeling',
-          'A doctor reviews your information and assesses your situation',
-          'If appropriate, they issue a certificate for the recommended time off',
-          'You receive your certificate digitally, usually within an hour'
+          'Complete a brief health questionnaire online - describe how you\'re feeling and how long you\'ve been affected.',
+          'A doctor reviews your information and assesses whether time off is clinically appropriate.',
+          'If appropriate, they issue a certificate covering the recommended period.',
+          'Receive your certificate digitally - typically within an hour, sometimes sooner.',
         ]
       },
       {
@@ -110,17 +106,14 @@ export const medicalCertificateArticles: Article[] = [
         level: 2
       },
       {
-        type: 'paragraph',
-        content: 'Under Australian law, you have the right to:'
-      },
-      {
-        type: 'list',
+        type: 'table',
         content: '',
-        items: [
-          'Use your personal/sick leave for mental health conditions',
-          'Keep your diagnosis private - certificates don\'t need to specify the condition',
-          'Not face discrimination for taking mental health leave',
-          'Request reasonable workplace adjustments for ongoing conditions'
+        headers: ['Your right', 'What this means in practice'],
+        rows: [
+          ['Personal leave for mental health', 'Mental health qualifies the same as any physical illness under Fair Work Australia'],
+          ['Diagnosis stays private', 'Certificates say "unfit for work due to a medical condition" - no specifics required'],
+          ['No discrimination', 'Your employer cannot treat you differently for taking mental health leave'],
+          ['Workplace adjustments', 'For ongoing conditions, you can request reasonable changes to your role or hours'],
         ]
       },
       {
@@ -276,18 +269,34 @@ export const medicalCertificateArticles: Article[] = [
       },
       {
         type: 'heading',
+        content: 'Recovery Timeline',
+        level: 2
+      },
+      {
+        type: 'table',
+        content: '',
+        headers: ['Phase', 'Timeframe', 'What to focus on'],
+        rows: [
+          ['Acute', 'First 12-24 hours', 'Rest and hydration only - sip water or oral rehydration solution. Avoid solid food.'],
+          ['Settling', '24-48 hours', 'Introduce bland foods - dry toast, plain rice, bananas. Avoid dairy and caffeine.'],
+          ['Recovery', '48-72 hours', 'Gradually return to normal foods. Continue resting when tired.'],
+          ['Return to normal', '3+ days', 'Most people are fully recovered. Food handlers: wait 48 hours after last symptoms before returning.'],
+        ]
+      },
+      {
+        type: 'heading',
         content: 'Recovery Tips',
         level: 2
       },
       {
-        type: 'list',
+        type: 'steps',
         content: '',
         items: [
-          'Stay hydrated - small sips of water, clear broth, or oral rehydration solution',
-          'Rest as much as possible',
-          'Avoid solid food until vomiting stops, then start with bland foods',
-          'Avoid dairy, caffeine, alcohol, and fatty foods until fully recovered',
-          'Wash hands thoroughly and frequently to prevent spreading'
+          'Hydrate constantly - small, frequent sips of water or oral rehydration solution are better than large amounts at once.',
+          'Rest as much as possible. Food poisoning depletes your body and recovery takes energy.',
+          'Avoid solid food until vomiting settles, then introduce bland foods: dry toast, plain rice, bananas, crackers.',
+          'Skip dairy, caffeine, alcohol, and fatty foods until you are fully recovered.',
+          'Wash hands thoroughly and frequently to prevent spreading the infection to others.',
         ]
       },
       {
@@ -444,13 +453,13 @@ export const medicalCertificateArticles: Article[] = [
         links: [{ text: 'telehealth consultation', href: '/blog/what-is-telehealth', title: 'What is telehealth?' }]
       },
       {
-        type: 'list',
+        type: 'steps',
         content: '',
         items: [
-          'Complete a brief questionnaire about your symptoms',
-          'A doctor reviews your information',
-          'If appropriate, they issue a certificate for 1-2 days',
-          'You receive your certificate digitally'
+          'Complete a brief questionnaire online - describe your symptoms and how they are affecting your ability to work.',
+          'A doctor reviews your information and assesses whether time off is clinically appropriate.',
+          'If appropriate, they issue a certificate - typically covering 1-2 days.',
+          'Receive your certificate digitally, usually within an hour.',
         ]
       },
       {
@@ -577,22 +586,18 @@ export const medicalCertificateArticles: Article[] = [
       },
       {
         type: 'heading',
-        content: 'Types of Medical Evidence Centrelink Accepts',
+        content: 'What Evidence Centrelink Accepts',
         level: 2
       },
       {
-        type: 'paragraph',
-        content: 'Depending on your situation, Centrelink may accept:'
-      },
-      {
-        type: 'list',
+        type: 'table',
         content: '',
-        items: [
-          'Standard medical certificates for short-term illness',
-          'Centrelink Medical Certificate (SU415) for capacity assessments',
-          'Medical reports from treating doctors',
-          'Specialist reports for specific conditions',
-          'Hospital discharge summaries'
+        headers: ['Evidence type', 'When it\'s required', 'Who can provide it'],
+        rows: [
+          ['Standard medical certificate', 'Short-term illness affecting mutual obligations', 'Any AHPRA-registered doctor, including telehealth'],
+          ['Centrelink Medical Certificate (SU415)', 'Capacity assessments for some payments', 'Your treating doctor'],
+          ['Medical or specialist report', 'Complex claims (DSP, ongoing exemptions)', 'Your regular GP or specialist'],
+          ['Hospital discharge summary', 'After hospitalisation', 'The treating hospital'],
         ]
       },
       {
@@ -840,31 +845,15 @@ export const medicalCertificateArticles: Article[] = [
         level: 2
       },
       {
-        type: 'heading',
-        content: 'Caring for a Sick Child',
-        level: 3
-      },
-      {
-        type: 'paragraph',
-        content: 'When your child is unwell and can\'t attend school or childcare, you can use carer\'s leave. For brief illnesses, many employers accept a simple notification. For longer absences, a certificate from the child\'s doctor may be requested.'
-      },
-      {
-        type: 'heading',
-        content: 'Caring for an Elderly Parent',
-        level: 3
-      },
-      {
-        type: 'paragraph',
-        content: 'If your parent needs care due to illness, injury, or a medical appointment they can\'t attend alone, carer\'s leave applies. Their doctor can provide a certificate confirming they needed assistance.'
-      },
-      {
-        type: 'heading',
-        content: 'Caring for a Partner',
-        level: 3
-      },
-      {
-        type: 'paragraph',
-        content: 'When your partner is ill and needs care - whether from surgery recovery, acute illness, or a flare-up of a chronic condition - you can take carer\'s leave to support them.'
+        type: 'table',
+        content: '',
+        headers: ['Situation', 'Carer\'s leave applies?', 'Evidence needed'],
+        rows: [
+          ['Sick child can\'t attend school or childcare', 'Yes', 'Certificate from child\'s doctor, or stat dec for brief illnesses'],
+          ['Elderly parent needs care or hospital escort', 'Yes', 'Certificate confirming they required assistance'],
+          ['Partner recovering from illness or surgery', 'Yes', 'Their medical certificate or discharge summary'],
+          ['Family member\'s medical emergency', 'Yes', 'Documentation of the emergency once resolved'],
+        ]
       },
       {
         type: 'heading',
@@ -987,14 +976,15 @@ export const medicalCertificateArticles: Article[] = [
         content: 'Recovery times vary greatly depending on the type of surgery and your overall health. Some general guidelines:'
       },
       {
-        type: 'list',
+        type: 'table',
         content: '',
-        items: [
-          'Minor procedures (skin lesions, scope procedures): 1-3 days',
-          'Laparoscopic surgery: 1-2 weeks',
-          'Abdominal surgery: 2-6 weeks',
-          'Joint replacement: 6-12 weeks',
-          'Major surgery: 6 weeks or more'
+        headers: ['Surgery type', 'Typical time off', 'Notes'],
+        rows: [
+          ['Minor procedures (skin lesions, scopes)', '1-3 days', 'Sedation recovery may extend this for some procedures'],
+          ['Laparoscopic surgery (keyhole)', '1-2 weeks', 'Physical jobs may need longer - follow surgeon\'s advice'],
+          ['Abdominal surgery (open)', '2-6 weeks', 'No lifting restrictions typically apply for 4-6 weeks'],
+          ['Joint replacement', '6-12 weeks', 'Phased return and physiotherapy usually required'],
+          ['Major surgery', '6+ weeks', 'Highly individual - surgeon will provide specific guidance'],
         ]
       },
       {
@@ -1049,36 +1039,14 @@ export const medicalCertificateArticles: Article[] = [
         level: 2
       },
       {
-        type: 'paragraph',
-        content: 'Before returning to work, consider:'
-      },
-      {
-        type: 'list',
+        type: 'steps',
         content: '',
         items: [
-          'Have you been cleared by your surgeon or treating doctor?',
-          'Can you safely perform your job duties?',
-          'Do you need modified duties or a graduated return?',
-          'Are there any ongoing restrictions (lifting, driving, standing)?'
-        ]
-      },
-      {
-        type: 'heading',
-        content: 'Modified Duties and Graduated Return',
-        level: 2
-      },
-      {
-        type: 'paragraph',
-        content: 'Many people benefit from a graduated return to work. Your doctor can provide a certificate specifying:'
-      },
-      {
-        type: 'list',
-        content: '',
-        items: [
-          'Reduced hours initially (e.g., half days)',
-          'Restrictions on physical tasks (no lifting over X kg)',
-          'Requirement for rest breaks',
-          'Duration of modified duties before full return'
+          'Get clearance from your surgeon or treating doctor before returning - do not assume the original certificate timeline is fixed.',
+          'Assess whether you can safely perform your job duties. Physical jobs need more recovery time than desk work.',
+          'Discuss a graduated return with your doctor - they can write a certificate specifying reduced hours or modified duties.',
+          'Communicate any ongoing restrictions to your employer (no lifting over X kg, no driving, mandatory rest breaks).',
+          'Your employer has obligations under workplace health and safety law to accommodate reasonable modifications during recovery.',
         ]
       },
       {
@@ -1154,21 +1122,16 @@ export const medicalCertificateArticles: Article[] = [
         level: 2
       },
       {
-        type: 'paragraph',
-        content: 'Common pregnancy symptoms that may warrant sick leave include:'
-      },
-      {
-        type: 'list',
+        type: 'table',
         content: '',
-        items: [
-          'Severe morning sickness (hyperemesis gravidarum)',
-          'Extreme fatigue, especially in first and third trimesters',
-          'Back pain or pelvic girdle pain',
-          'Pregnancy-related anaemia',
-          'High blood pressure or pre-eclampsia',
-          'Gestational diabetes management',
-          'Threatened miscarriage or bleeding',
-          'Mental health concerns during pregnancy'
+        headers: ['Condition', 'When it typically peaks', 'Time off usually needed'],
+        rows: [
+          ['Morning sickness / hyperemesis', 'First trimester (weeks 6-12)', 'Days to weeks depending on severity'],
+          ['Extreme fatigue', 'First and third trimesters', '1-3 days per episode, or modified duties'],
+          ['Pelvic girdle or back pain', 'Second and third trimesters', 'Depends on job - sedentary work less affected'],
+          ['High blood pressure / pre-eclampsia', 'Third trimester', 'Often ongoing - requires medical management'],
+          ['Threatened miscarriage or bleeding', 'Any stage', 'Immediate rest and medical review required'],
+          ['Mental health concerns', 'Any stage', 'Varies - discuss with your treating doctor'],
         ]
       },
       {
@@ -1224,18 +1187,15 @@ export const medicalCertificateArticles: Article[] = [
         level: 2
       },
       {
-        type: 'paragraph',
-        content: 'Pregnant employees have specific protections under Australian law:'
-      },
-      {
-        type: 'list',
+        type: 'table',
         content: '',
-        items: [
-          'You cannot be discriminated against for pregnancy-related illness',
-          'You can use sick leave for pregnancy symptoms like any other illness',
-          'You can request modified duties or "light duties" if your job poses risks',
-          'You have the right to a safe workplace throughout pregnancy',
-          'Your employer cannot make you take parental leave early due to illness'
+        headers: ['Your right', 'What this means in practice'],
+        rows: [
+          ['No discrimination for pregnancy illness', 'Pregnancy-related sick leave cannot be used against you in performance reviews or dismissal'],
+          ['Sick leave for pregnancy symptoms', 'Morning sickness, fatigue, and complications all qualify like any other medical condition'],
+          ['Right to modified duties', 'You can request light duties if your role poses physical risk during pregnancy'],
+          ['Safe workplace', 'Your employer must assess and adjust workplace hazards throughout your pregnancy'],
+          ['Sick leave is separate from parental leave', 'Your employer cannot force you to start parental leave early due to illness'],
         ]
       },
       {
@@ -1379,16 +1339,17 @@ export const medicalCertificateArticles: Article[] = [
         content: 'While every case is individual, here are typical ranges:'
       },
       {
-        type: 'list',
+        type: 'table',
         content: '',
-        items: [
-          'Cold and flu: 1-5 days',
-          'Gastroenteritis: 1-3 days (48 hours symptom-free for food handlers)',
-          'Migraine: 1-2 days per episode',
-          'Back pain (acute): 2-7 days',
-          'Minor surgery: 3-14 days depending on procedure',
-          'Mental health: 1-5 days initially, with review',
-          'COVID-19: 5-7 days typically'
+        headers: ['Condition', 'Typical duration', 'Notes'],
+        rows: [
+          ['Cold and flu', '1-5 days', 'Longer if fever is high or symptoms severe'],
+          ['Gastroenteritis', '1-3 days', '48 hours symptom-free required for food handlers before returning'],
+          ['Migraine', '1-2 days per episode', 'May need regular certificates for a recurring condition'],
+          ['Acute back pain', '2-7 days', 'Depends on job demands and severity'],
+          ['Minor surgery', '3-14 days', 'Varies widely by procedure type'],
+          ['Mental health', '1-5 days initially', 'With recommendation for ongoing GP review'],
+          ['COVID-19', '5-7 days typically', 'Based on current clinical guidelines'],
         ]
       },
       {
@@ -1429,17 +1390,14 @@ export const medicalCertificateArticles: Article[] = [
         content: 'If your initial certificate is expiring but you\'re still unwell, you can request an extension. The doctor will assess whether continued time off is appropriate.'
       },
       {
-        type: 'paragraph',
-        content: 'For extension certificates, it helps to explain:'
-      },
-      {
-        type: 'list',
+        type: 'steps',
         content: '',
         items: [
-          'Your current symptoms and how they\'re affecting your ability to work',
-          'Whether you\'ve improved, stayed the same, or worsened',
-          'Any treatments you\'ve tried',
-          'Your original condition and when it started'
+          'Contact the same service or your GP to request an extension before your current certificate expires.',
+          'Describe your current symptoms and how they are affecting your ability to work.',
+          'Mention whether your condition has improved, stayed the same, or worsened since your last certificate.',
+          'Note any treatments you have tried and whether they have helped.',
+          'The doctor reviews and issues an extended certificate if clinically appropriate.',
         ]
       },
       {

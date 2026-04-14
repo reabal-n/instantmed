@@ -23,11 +23,15 @@ export const medicationGuideArticles: Article[] = [
       { type: 'paragraph', content: 'During sexual arousal, nitric oxide is released in the penile tissue, triggering production of cyclic GMP (cGMP). cGMP relaxes smooth muscle and increases blood flow, producing an erection. PDE5 is the enzyme that breaks down cGMP. By inhibiting PDE5, sildenafil and tadalafil allow cGMP to accumulate and sustain the erection for longer. Neither drug causes an erection on its own -- arousal is still required.' },
 
       { type: 'heading', content: 'Quick Comparison Table', level: 2 },
-      { type: 'list', content: 'Key differences at a glance:', items: [
-        'Sildenafil: onset 30-60 minutes, duration 4-6 hours, take on demand, affected by fatty meals',
-        'Tadalafil (as-needed): onset 30-60 minutes, duration up to 36 hours, less affected by food',
-        'Tadalafil (daily low-dose 5mg): continuous effect, no timing required, also treats BPH symptoms',
-      ] },
+      { type: 'table', content: '', headers: ['Feature', 'Sildenafil (on demand)', 'Tadalafil (on demand)', 'Tadalafil (daily 5mg)'], rows: [
+        ['Onset time', '30-60 minutes', '30-60 minutes', 'Continuous (after 5 days)'],
+        ['Duration of action', '4-6 hours', 'Up to 36 hours', 'Continuous'],
+        ['Timing required?', 'Yes - take before sex', 'Flexible within 36 hours', 'No - fully spontaneous'],
+        ['Affected by fatty meals?', 'Yes - can delay/reduce effect', 'Minimal effect', 'Minimal effect'],
+        ['Common unique side effects', 'Visual tinge, nasal congestion', 'Back pain, muscle aches', 'Back pain, muscle aches'],
+        ['PBS listed (for ED)?', 'No - private script', 'No - private script', 'No - private script'],
+        ['Also treats BPH?', 'No', 'No', 'Yes - TGA-approved'],
+      ]},
 
       { type: 'heading', content: 'Sildenafil: The Original', level: 2 },
       { type: 'paragraph', content: 'Sildenafil was the first oral ED medication approved in Australia (1998). It is available as generic tablets in 25mg, 50mg, and 100mg doses. The typical starting dose is 50mg, taken approximately 30-60 minutes before sexual activity. It should not be taken more than once per day.' },
@@ -67,12 +71,12 @@ export const medicationGuideArticles: Article[] = [
 
       { type: 'heading', content: 'PBS Status and Cost in Australia', level: 2 },
       { type: 'paragraph', content: 'Neither sildenafil nor tadalafil is listed on the PBS for erectile dysfunction. Both are private (non-PBS) prescriptions in Australia, meaning you pay the full price without government subsidy. However, because both are now available as generics, prices have dropped significantly.' },
-      { type: 'list', content: 'Approximate pharmacy pricing (2026, generic):', items: [
-        'Sildenafil 50mg: $3-$8 per tablet (generic)',
-        'Sildenafil 100mg: $4-$10 per tablet (generic)',
-        'Tadalafil 20mg: $4-$10 per tablet (generic)',
-        'Tadalafil 5mg daily: $1.50-$4 per tablet (generic), roughly $45-$120/month',
-      ] },
+      { type: 'table', content: '', headers: ['Medication', 'Approximate generic price (2026)', 'Notes'], rows: [
+        ['Sildenafil 50mg', '$3-$8 per tablet', 'Most common starting dose'],
+        ['Sildenafil 100mg', '$4-$10 per tablet', 'Higher dose, often split'],
+        ['Tadalafil 20mg (on demand)', '$4-$10 per tablet', 'Standard as-needed dose'],
+        ['Tadalafil 5mg (daily)', '$1.50-$4 per tablet (~$45-$120/month)', 'Higher total cost but continuous coverage'],
+      ]},
       { type: 'callout', variant: 'tip', content: 'Prices vary significantly between pharmacies. Generic versions are bioequivalent to branded products (TGA-approved) and can save you 70-80% compared to the original brands. Ask your pharmacist for the generic option.' },
 
       { type: 'heading', content: 'Contraindications -- Who Should Not Take PDE5 Inhibitors', level: 2 },
@@ -89,24 +93,11 @@ export const medicationGuideArticles: Article[] = [
 
       { type: 'heading', content: 'Which One Should You Choose?', level: 2 },
       { type: 'paragraph', content: 'There is no universally "better" option. The choice depends on your lifestyle, how frequently you are sexually active, whether you have concurrent BPH, your side-effect tolerance, and cost preferences.' },
-      { type: 'list', content: 'Consider sildenafil if:', items: [
-        'You are sexually active once or twice a week and can plan timing',
-        'You want the lowest per-dose cost',
-        'You prefer a shorter duration of action',
-        'Back pain or muscle aches are a concern (less common with sildenafil)',
-      ] },
-      { type: 'list', content: 'Consider tadalafil (as-needed) if:', items: [
-        'You want a longer window without strict timing',
-        'Spontaneity is important',
-        'You eat at irregular times (tadalafil is less affected by food)',
-        'Visual side effects are a concern (tadalafil does not cause them)',
-      ] },
-      { type: 'list', content: 'Consider tadalafil (daily 5mg) if:', items: [
-        'You are sexually active 3+ times per week',
-        'You also have BPH/urinary symptoms',
-        'You want complete spontaneity with no planning required',
-        'You are willing to take a daily medication',
-      ] },
+      { type: 'table', content: '', headers: ['Choose this option', 'If this describes you'], rows: [
+        ['Sildenafil (on demand)', 'Sexually active 1-2x per week, can plan timing, want lowest per-dose cost, prefer shorter duration'],
+        ['Tadalafil (on demand)', 'Want flexibility without strict timing, eat at irregular times, concerned about visual side effects'],
+        ['Tadalafil (daily 5mg)', 'Sexually active 3+ times per week, also have BPH/urinary symptoms, want complete spontaneity'],
+      ]},
 
       { type: 'heading', content: 'Switching Between Them', level: 2 },
       { type: 'paragraph', content: 'If one PDE5 inhibitor is not effective or causes unacceptable side effects, switching to the other is a standard clinical approach. Australian Therapeutic Guidelines recommend trying a PDE5 inhibitor on at least 4-6 separate occasions before concluding it is ineffective. The first attempt is often not representative -- anxiety, incorrect timing, or a heavy meal can affect results.' },

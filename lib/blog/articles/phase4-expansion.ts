@@ -62,26 +62,12 @@ export const phase4ExpansionArticles: Article[] = [
         content: 'You do not need to be bedridden to qualify. Courts are looking for genuine hardship, not a performance of suffering. A straightforward explanation from your doctor is sufficient.',
       },
       { type: 'heading', content: 'State-by-State Processes', level: 2 },
-      { type: 'heading', content: 'New South Wales', level: 3 },
-      {
-        type: 'paragraph',
-        content: 'In NSW, jury service is managed under the Jury Act 1977. You can apply for exemption or deferral online through the NSW Jury Duty website or by contacting the Sheriff\'s Office. Medical certificates should be attached to your online application or posted. NSW allows exemptions for "good cause," which includes medical conditions and caring responsibilities. You will receive a written response - typically within 1-2 weeks.',
-      },
-      { type: 'heading', content: 'Victoria', level: 3 },
-      {
-        type: 'paragraph',
-        content: 'Victoria operates under the Juries Act 2000. Exemption applications go through the Juries Commissioner\'s Office. You can apply online, by post, or by phone. Victoria explicitly lists permanent exemption categories (people over 70, for example) and temporary exemptions for medical conditions. A medical certificate must state your name, the condition\'s impact on your ability to serve, and the expected duration.',
-      },
-      { type: 'heading', content: 'Queensland', level: 3 },
-      {
-        type: 'paragraph',
-        content: 'Queensland\'s Jury Act 1995 allows exemptions for "physical or mental disability" and for people with caring responsibilities for someone who cannot care for themselves. Applications go to the Sheriff\'s Office. Queensland is generally pragmatic about exemption requests supported by medical evidence. Respond promptly - they are less sympathetic to last-minute applications.',
-      },
-      {
-        type: 'callout',
-        variant: 'info',
-        content: 'Other states and territories (SA, WA, TAS, NT, ACT) follow similar processes. Your summons will include specific instructions and contact details for your jurisdiction. When in doubt, call the number on your summons - court staff are used to fielding these questions.',
-      },
+      { type: 'table', content: '', headers: ['State/territory', 'Governing legislation', 'Where to apply', 'Key notes'], rows: [
+        ['NSW', 'Jury Act 1977', 'NSW Jury Duty website or Sheriff\'s Office', 'Exemptions for "good cause" including medical conditions. Response usually within 1-2 weeks.'],
+        ['Victoria', 'Juries Act 2000', 'Juries Commissioner\'s Office', 'Online, post, or phone. Certificate must state impact on ability to serve and expected duration.'],
+        ['Queensland', 'Jury Act 1995', 'Sheriff\'s Office', 'Allows exemptions for physical or mental disability. Respond promptly - late applications viewed less favourably.'],
+        ['SA, WA, TAS, NT, ACT', 'State/territory legislation', 'Contact details on your summons', 'Similar processes to other states. Call the number on your summons if unsure.'],
+      ]},
       { type: 'heading', content: 'What Courts Actually Look For', level: 2 },
       {
         type: 'paragraph',

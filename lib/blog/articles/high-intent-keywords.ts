@@ -1,13 +1,5 @@
 import { blogImages } from '../images'
-import type { Article, ArticleAuthor } from '../types'
-
-const drSarahChen: ArticleAuthor = {
-  name: 'Our Medical Team',
-  credentials: 'MBBS, FRACGP',
-  ahpraNumber: 'MED0002194837',
-  bio: 'Our doctors are AHPRA-registered general practitioners with extensive clinical experience. They are Fellows of the Royal Australian College of General Practitioners and are passionate about improving healthcare access through telehealth.',
-  image: 'https://api.dicebear.com/7.x/notionists/svg?seed=MedTeam'
-}
+import { Article, defaultAuthor } from '../types'
 
 export const highIntentKeywordArticles: Article[] = [
   // 1. "sick leave certificate online Australia"
@@ -22,7 +14,7 @@ export const highIntentKeywordArticles: Article[] = [
     updatedAt: '2026-01-10',
     readingTime: 7,
     viewCount: 0,
-    author: drSarahChen,
+    author: defaultAuthor,
     heroImage: blogImages.sickLeaveCertOnline,
     heroImageAlt: 'Person at home on laptop obtaining a sick leave certificate online',
     content: [
@@ -45,16 +37,16 @@ export const highIntentKeywordArticles: Article[] = [
         content: 'Getting a sick leave certificate online follows a simple process that can be completed from your bed, couch, or anywhere you have internet access.'
       },
       {
-        type: 'list',
-        content: 'The typical steps involved are:',
+        type: 'steps',
+        content: '',
         items: [
-          'Visit a telehealth platform and select the medical certificate service',
-          'Complete a health questionnaire describing your symptoms, when they started, and how many days you need off',
-          'Provide your personal details including your name, date of birth, and employer name if required',
-          'Make payment securely online',
-          'An AHPRA-registered doctor reviews your information and, if clinically appropriate, issues a certificate',
-          'Your certificate is delivered as a PDF via email, typically within 30 to 60 minutes during business hours'
-        ]
+          'Visit a telehealth platform and select the medical certificate service.',
+          'Complete a health questionnaire describing your symptoms, when they started, and how many days you need off.',
+          'Provide your personal details including your name, date of birth, and employer name if required.',
+          'Make payment securely online.',
+          'An AHPRA-registered doctor reviews your information and, if clinically appropriate, issues a certificate.',
+          'Your certificate is delivered as a PDF via email, typically within 30 to 60 minutes during business hours.',
+        ],
       },
       {
         type: 'callout',
@@ -117,28 +109,17 @@ export const highIntentKeywordArticles: Article[] = [
         type: 'paragraph',
         content: 'Understanding your rights helps you feel confident when providing your certificate to your employer.'
       },
-      { type: 'heading', content: 'Your employer can:', level: 3 },
       {
-        type: 'list',
+        type: 'table',
         content: '',
-        items: [
-          'Request a medical certificate as evidence of your illness',
-          'Ask for the dates you will be absent',
-          'Request confirmation of when you expect to return to work',
-          'Require a fitness for duty clearance for safety-critical positions'
-        ]
-      },
-      { type: 'heading', content: 'Your employer cannot:', level: 3 },
-      {
-        type: 'list',
-        content: '',
-        items: [
-          'Demand to know your specific diagnosis or medical condition',
-          'Require you to attend a specific medical provider of their choosing',
-          'Contact your doctor without your written consent',
-          'Reject a valid certificate issued by a registered practitioner, including via telehealth',
-          'Penalise you for using an online doctor rather than visiting in person'
-        ]
+        headers: ['Your employer CAN', 'Your employer CANNOT'],
+        rows: [
+          ['Request a medical certificate as evidence of illness', 'Demand to know your specific diagnosis or medical condition'],
+          ['Ask for the dates you will be absent', 'Require you to attend a specific medical provider of their choosing'],
+          ['Request confirmation of when you expect to return to work', 'Contact your doctor without your written consent'],
+          ['Require a fitness-for-duty clearance for safety-critical positions', 'Reject a valid certificate issued by a registered practitioner, including via telehealth'],
+          ['', 'Penalise you for using an online doctor rather than visiting in person'],
+        ],
       },
       { type: 'heading', content: 'How Much Does an Online Sick Leave Certificate Cost?', level: 2 },
       {
@@ -173,16 +154,16 @@ export const highIntentKeywordArticles: Article[] = [
       },
       { type: 'heading', content: 'Tips for a Smooth Online Certificate Experience', level: 2 },
       {
-        type: 'list',
+        type: 'steps',
         content: 'Follow these steps to ensure your request is processed quickly and smoothly:',
         items: [
-          'Describe your symptoms clearly and honestly in the health questionnaire',
-          'Mention when your symptoms started and how they have progressed',
-          'State how many days off work you believe you need',
-          'Double-check your personal details, especially your name as it appears on work records',
-          'Provide a valid email address where the certificate can be delivered',
-          'Keep your phone nearby in case the doctor needs to follow up with questions'
-        ]
+          'Describe your symptoms clearly and honestly in the health questionnaire.',
+          'Mention when your symptoms started and how they have progressed.',
+          'State how many days off work you believe you need.',
+          'Double-check your personal details, especially your name as it appears on work records.',
+          'Provide a valid email address where the certificate can be delivered.',
+          'Keep your phone nearby in case the doctor needs to follow up with questions.',
+        ],
       },
       { type: 'heading', content: 'The Bottom Line', level: 2 },
       {
@@ -232,7 +213,7 @@ export const highIntentKeywordArticles: Article[] = [
     updatedAt: '2026-01-15',
     readingTime: 8,
     viewCount: 0,
-    author: drSarahChen,
+    author: defaultAuthor,
     heroImage: blogImages.repeatPrescriptionOnline,
     heroImageAlt: 'Medication bottles and prescription paperwork on a desk',
     content: [
@@ -251,16 +232,16 @@ export const highIntentKeywordArticles: Article[] = [
       },
       { type: 'heading', content: 'How Online Repeat Prescriptions Work', level: 2 },
       {
-        type: 'list',
-        content: 'The process typically involves the following steps:',
+        type: 'steps',
+        content: '',
         items: [
-          'Submit a request through a telehealth platform, listing your current medications and the prescribing details',
-          'Provide your medical history, current health status, and any changes since your last prescription',
-          'An AHPRA-registered doctor reviews your request and medical information',
-          'If the doctor is satisfied that the medication remains appropriate, they issue a new prescription',
-          'You receive an eScript via SMS, which you can present at any pharmacy in Australia',
-          'Alternatively, the doctor can fax or electronically send the prescription to your preferred pharmacy'
-        ]
+          'Submit a request through a telehealth platform, listing your current medications and the prescribing details.',
+          'Provide your medical history, current health status, and any changes since your last prescription.',
+          'An AHPRA-registered doctor reviews your request and medical information.',
+          'If the doctor is satisfied that the medication remains appropriate, they issue a new prescription.',
+          'You receive an eScript via SMS, which you can present at any pharmacy in Australia.',
+          'Alternatively, the doctor can electronically send the prescription to your preferred pharmacy.',
+        ],
       },
       {
         type: 'callout',
@@ -272,33 +253,21 @@ export const highIntentKeywordArticles: Article[] = [
         type: 'paragraph',
         content: 'Many common medications used for ongoing conditions can be prescribed through telehealth. The key factor is that the medication must be stable and well-established for your condition.'
       },
-      { type: 'heading', content: 'Commonly prescribed online:', level: 3 },
       {
-        type: 'list',
+        type: 'table',
         content: '',
-        items: [
-          'Blood pressure medications such as ACE inhibitors, ARBs, and beta-blockers',
-          'Cholesterol-lowering medications including statins',
-          'Oral contraceptive pills and other hormonal contraceptives',
-          'Asthma preventers and relievers',
-          'Thyroid medications like thyroxine',
-          'Diabetes medications including metformin',
-          'Reflux and gastric medications such as proton pump inhibitors',
-          'Antihistamines for chronic allergies',
-          'Some antidepressants and anxiety medications for established patients'
-        ]
-      },
-      { type: 'heading', content: 'Medications that cannot be prescribed online:', level: 3 },
-      {
-        type: 'list',
-        content: '',
-        items: [
-          'Schedule 8 controlled substances including opioid painkillers, stimulants, and benzodiazepines',
-          'Medications that require regular blood monitoring, such as warfarin or lithium, without recent test results',
-          'New psychiatric medications that have not been previously prescribed for you',
-          'Medications that require a physical examination before renewal',
-          'Any medication where the doctor determines an in-person assessment is necessary'
-        ]
+        headers: ['Can prescribe online', 'Cannot prescribe online'],
+        rows: [
+          ['Blood pressure medications (ACE inhibitors, ARBs, beta-blockers)', 'Schedule 8 controlled substances (opioids, stimulants, benzodiazepines)'],
+          ['Cholesterol-lowering medications including statins', 'Medications requiring regular blood monitoring without recent test results'],
+          ['Oral contraceptive pills and hormonal contraceptives', 'New psychiatric medications not previously prescribed for you'],
+          ['Asthma preventers and relievers', 'Medications requiring a physical examination before renewal'],
+          ['Thyroid medications like thyroxine', 'Any medication where the doctor determines in-person assessment is needed'],
+          ['Diabetes medications including metformin', ''],
+          ['Reflux and gastric medications (proton pump inhibitors)', ''],
+          ['Antihistamines for chronic allergies', ''],
+          ['Antidepressants and anxiety medications (established patients)', ''],
+        ],
       },
       {
         type: 'callout',
@@ -378,15 +347,15 @@ export const highIntentKeywordArticles: Article[] = [
       },
       { type: 'heading', content: 'Tips for Managing Your Repeat Prescriptions', level: 2 },
       {
-        type: 'list',
+        type: 'steps',
         content: '',
         items: [
-          'Set a reminder on your phone two weeks before your medication runs out',
-          'Keep a list of all your current medications, including doses, in your phone',
-          'Use an Active Script List through your pharmacy to track all your electronic prescriptions in one place',
-          'Request your repeat prescription during business hours for faster turnaround',
-          'Let the telehealth doctor know if you see multiple specialists, so they have the full picture'
-        ]
+          'Set a reminder on your phone two weeks before your medication runs out.',
+          'Keep a list of all your current medications, including doses, in your phone.',
+          'Use an Active Script List through your pharmacy to track all your electronic prescriptions in one place.',
+          'Request your repeat prescription during business hours for faster turnaround.',
+          'Let the telehealth doctor know if you see multiple specialists, so they have the full picture.',
+        ],
       }
     ],
     faqs: [
@@ -431,7 +400,7 @@ export const highIntentKeywordArticles: Article[] = [
     updatedAt: '2026-01-08',
     readingTime: 8,
     viewCount: 0,
-    author: drSarahChen,
+    author: defaultAuthor,
     heroImage: blogImages.telehealthConsultation,
     heroImageAlt: 'Doctor conducting a video telehealth consultation with a patient',
     content: [
@@ -449,20 +418,15 @@ export const highIntentKeywordArticles: Article[] = [
         content: 'Telehealth expanded significantly in Australia during the COVID-19 pandemic, and Medicare now provides permanent item numbers for many telehealth services. This means some telehealth consultations can be bulk-billed or partially rebated through Medicare.'
       },
       { type: 'heading', content: 'Types of Telehealth Consultations', level: 2 },
-      { type: 'heading', content: 'Video Consultations', level: 3 },
       {
-        type: 'paragraph',
-        content: 'Video consultations are the closest equivalent to a face-to-face visit. You and the doctor can see each other, which allows the doctor to observe visual symptoms such as skin conditions, swelling, or general appearance. Video is preferred for initial consultations and more complex discussions.'
-      },
-      { type: 'heading', content: 'Phone Consultations', level: 3 },
-      {
-        type: 'paragraph',
-        content: 'Phone consultations are suitable for straightforward matters such as discussing test results, renewing stable prescriptions, or brief follow-ups. They are particularly useful for patients with limited internet connectivity or those who find video calls challenging.'
-      },
-      { type: 'heading', content: 'Asynchronous (Questionnaire-Based) Consultations', level: 3 },
-      {
-        type: 'paragraph',
-        content: 'Some telehealth services use a structured questionnaire model. You complete a detailed health form describing your symptoms and needs, and a doctor reviews your information and responds with advice, a prescription, or a certificate. This model is common for straightforward requests like medical certificates and repeat prescriptions.'
+        type: 'table',
+        content: '',
+        headers: ['Consultation type', 'What it involves', 'Best for'],
+        rows: [
+          ['Video consultation', 'Real-time video call where the doctor can observe visual symptoms such as skin conditions, swelling, or general appearance', 'Initial consultations, complex discussions, conditions with visible symptoms'],
+          ['Phone consultation', 'Audio call for straightforward matters like test results, stable prescription renewals, or brief follow-ups', 'Limited internet access, patients who find video calls challenging, brief check-ins'],
+          ['Asynchronous (questionnaire)', 'You complete a detailed health form; a doctor reviews and responds with advice, a prescription, or a certificate', 'Medical certificates, repeat prescriptions, non-urgent requests'],
+        ],
       },
       { type: 'heading', content: 'What Can Be Treated via Telehealth?', level: 2 },
       {
@@ -509,18 +473,18 @@ export const highIntentKeywordArticles: Article[] = [
         content: 'A little preparation helps you get the most from your telehealth appointment.'
       },
       {
-        type: 'list',
+        type: 'steps',
         content: '',
         items: [
-          'Find a quiet, private space where you can speak freely about your health',
-          'Ensure your device is charged and your internet connection is stable for video calls',
-          'Have your Medicare card and any concession cards ready',
-          'Write down your symptoms, including when they started and how they have changed',
-          'List all medications you are currently taking, including supplements',
-          'Prepare any questions you want to ask the doctor',
-          'If consulting about a skin condition, take clear, well-lit photos beforehand',
-          'Have your preferred pharmacy details handy if you expect to need a prescription'
-        ]
+          'Find a quiet, private space where you can speak freely about your health.',
+          'Ensure your device is charged and your internet connection is stable for video calls.',
+          'Have your Medicare card and any concession cards ready.',
+          'Write down your symptoms, including when they started and how they have changed.',
+          'List all medications you are currently taking, including supplements.',
+          'Prepare any questions you want to ask the doctor.',
+          'If consulting about a skin condition, take clear, well-lit photos beforehand.',
+          'Have your preferred pharmacy details handy if you expect to need a prescription.',
+        ],
       },
       { type: 'heading', content: 'What Happens During the Consultation', level: 2 },
       {
@@ -634,7 +598,7 @@ export const highIntentKeywordArticles: Article[] = [
     updatedAt: '2026-01-12',
     readingTime: 7,
     viewCount: 0,
-    author: drSarahChen,
+    author: defaultAuthor,
     heroImage: blogImages.onlineDoctorCertWork,
     heroImageAlt: 'Professional at a desk with medical documentation',
     content: [
@@ -666,17 +630,17 @@ export const highIntentKeywordArticles: Article[] = [
       },
       { type: 'heading', content: 'Step-by-Step: Getting an Online Doctor Certificate', level: 2 },
       {
-        type: 'list',
-        content: 'The process is straightforward and typically takes under an hour:',
+        type: 'steps',
+        content: '',
         items: [
-          'Choose a reputable telehealth service that offers medical certificates. Look for AHPRA-registered doctors and transparent pricing.',
+          'Choose a reputable telehealth service with AHPRA-registered doctors and transparent pricing.',
           'Create an account and select the medical certificate service option.',
-          'Complete the health questionnaire. Be honest and thorough about your symptoms, when they started, and how they affect your ability to work.',
-          'Enter your personal details including your full name, date of birth, and the dates you need the certificate to cover.',
-          'Make your payment securely online. Most services accept credit card, debit card, or PayPal.',
-          'A doctor reviews your submission. They may contact you for additional information if needed.',
-          'Once approved, your certificate is emailed to you as a PDF. Print it or forward it to your employer digitally.'
-        ]
+          'Complete the health questionnaire - be honest about your symptoms, when they started, and how they affect your ability to work.',
+          'Enter your personal details: full name, date of birth, and the dates you need the certificate to cover.',
+          'Make your payment securely online.',
+          'A doctor reviews your submission and may contact you for additional information if needed.',
+          'Once approved, your certificate is emailed as a PDF - forward it to your employer digitally or print it.',
+        ],
       },
       { type: 'heading', content: 'Will My Employer Accept an Online Certificate?', level: 2 },
       {
@@ -760,15 +724,15 @@ export const highIntentKeywordArticles: Article[] = [
       },
       { type: 'heading', content: 'Avoiding Common Issues', level: 2 },
       {
-        type: 'list',
-        content: 'To ensure your online certificate is accepted without problems:',
+        type: 'steps',
+        content: '',
         items: [
-          'Use your full legal name as it appears on your employment records',
-          'Make sure the dates on the certificate match the days you were or will be absent',
-          'Submit the certificate to your employer promptly, ideally on the first day of absence or as soon as you receive it',
-          'Keep a copy for your personal records',
-          'Check that the doctor\'s AHPRA registration details are clearly visible on the certificate'
-        ]
+          'Use your full legal name as it appears on your employment records.',
+          'Make sure the dates on the certificate match the days you were or will be absent.',
+          'Submit the certificate to your employer promptly, ideally on the first day of absence or as soon as you receive it.',
+          'Keep a copy for your personal records.',
+          "Check that the doctor's AHPRA registration details are clearly visible on the certificate.",
+        ],
       }
     ],
     faqs: [
@@ -813,7 +777,7 @@ export const highIntentKeywordArticles: Article[] = [
     updatedAt: '2026-01-18',
     readingTime: 8,
     viewCount: 0,
-    author: drSarahChen,
+    author: defaultAuthor,
     heroImage: blogImages.eScriptGuide,
     heroImageAlt: 'Person holding a smartphone displaying a digital prescription',
     content: [
@@ -832,16 +796,16 @@ export const highIntentKeywordArticles: Article[] = [
       },
       { type: 'heading', content: 'How eScripts Work: Step by Step', level: 2 },
       {
-        type: 'list',
-        content: 'The eScript process is straightforward:',
+        type: 'steps',
+        content: '',
         items: [
-          'Your doctor writes a prescription electronically during your consultation, whether in person or via telehealth',
-          'The prescription is uploaded to a secure national prescription system called the Electronic Prescription Delivery Service',
-          'You receive an SMS on your mobile phone containing a link to your eScript token',
-          'The SMS includes a QR code or a unique token ID that the pharmacy can scan',
-          'You present this to any pharmacy in Australia to have your medication dispensed',
-          'If your prescription includes repeats, the pharmacy records the dispensing and the remaining repeats stay on your token'
-        ]
+          'Your doctor writes a prescription electronically during your consultation, whether in person or via telehealth.',
+          'The prescription is uploaded to a secure national prescription system.',
+          'You receive an SMS on your mobile phone containing a link to your eScript token.',
+          'The SMS includes a QR code or unique token ID that the pharmacy can scan.',
+          'Present this to any pharmacy in Australia to have your medication dispensed.',
+          'If your prescription includes repeats, the pharmacy records the dispensing and remaining repeats stay on your token.',
+        ],
       },
       {
         type: 'callout',
@@ -849,20 +813,15 @@ export const highIntentKeywordArticles: Article[] = [
         content: 'You do not need to download a special app to use eScripts. The SMS you receive contains everything you need. However, some apps can help you manage multiple eScripts in one place.'
       },
       { type: 'heading', content: 'How to Get an eScript', level: 2 },
-      { type: 'heading', content: 'From your regular GP:', level: 3 },
       {
-        type: 'paragraph',
-        content: 'Most GP clinics now support electronic prescribing. During your appointment, let your doctor know you would prefer an eScript instead of a paper prescription. They will need your mobile phone number to send the token. If your GP\'s system does not support eScripts, they can still issue a traditional paper prescription.'
-      },
-      { type: 'heading', content: 'From a telehealth doctor:', level: 3 },
-      {
-        type: 'paragraph',
-        content: 'Telehealth services are ideally suited for eScripts, as there is no opportunity to hand over a paper prescription. When you receive a prescription through a telehealth consultation, it will typically be sent as an eScript automatically. This is one of the main advantages of using telehealth for prescription renewals.'
-      },
-      { type: 'heading', content: 'From a specialist:', level: 3 },
-      {
-        type: 'paragraph',
-        content: 'Specialists can also issue eScripts. The process works the same way. After your specialist appointment, you receive the eScript via SMS rather than collecting a paper prescription from reception.'
+        type: 'table',
+        content: '',
+        headers: ['How you get it', 'What to do', 'Key point'],
+        rows: [
+          ['From your regular GP', "Ask for an eScript instead of a paper prescription; your doctor needs your mobile number to send the token", "If your GP's system doesn't support eScripts, they can still issue a paper prescription"],
+          ['From a telehealth doctor', 'Telehealth prescriptions are sent as eScripts automatically - no paper option needed', 'Your phone number is all that is required; ideal for prescription renewals'],
+          ['From a specialist', 'Same as your GP - you receive the token via SMS after your appointment', 'No need to collect a paper script from reception'],
+        ],
       },
       { type: 'heading', content: 'Using Your eScript at the Pharmacy', level: 2 },
       {
@@ -995,7 +954,7 @@ export const highIntentKeywordArticles: Article[] = [
     updatedAt: '2026-01-20',
     readingTime: 7,
     viewCount: 0,
-    author: drSarahChen,
+    author: defaultAuthor,
     heroImage: blogImages.mentalHealthCertOnline,
     heroImageAlt: 'Person in a calm setting reflecting on mental health and wellbeing',
     content: [
@@ -1018,16 +977,16 @@ export const highIntentKeywordArticles: Article[] = [
         content: 'The process of getting a medical certificate online for mental health follows the same steps as any other telehealth medical certificate. However, given the nature of mental health concerns, some aspects deserve special attention.'
       },
       {
-        type: 'list',
-        content: 'What the process involves:',
+        type: 'steps',
+        content: '',
         items: [
-          'Select a telehealth service that offers medical certificates and has experience with mental health presentations',
-          'Complete the health questionnaire, describing how you are feeling and how it affects your ability to work',
-          'Be honest about your symptoms. You do not need to provide a formal diagnosis, just describe your experience',
-          'The doctor assesses whether your current mental state makes you unfit for work',
-          'If appropriate, the doctor issues a certificate covering the recommended period',
-          'You receive your certificate via email, typically stating you are unfit for work due to a medical condition'
-        ]
+          'Select a telehealth service with experience handling mental health presentations.',
+          'Complete the health questionnaire, describing how you are feeling and how it affects your ability to work.',
+          'Be honest about your symptoms - you do not need a formal diagnosis, just describe your experience.',
+          'The doctor assesses whether your current mental state makes you unfit for work.',
+          'If appropriate, the doctor issues a certificate covering the recommended period.',
+          'You receive your certificate via email stating you are unfit for work due to a medical condition.',
+        ],
       },
       {
         type: 'callout',
@@ -1168,7 +1127,7 @@ export const highIntentKeywordArticles: Article[] = [
     updatedAt: '2026-01-25',
     readingTime: 7,
     viewCount: 0,
-    author: drSarahChen,
+    author: defaultAuthor,
     heroImage: blogImages.sameDayMedCert,
     heroImageAlt: 'Clock and medical stethoscope representing fast medical certificate service',
     content: [
@@ -1182,16 +1141,16 @@ export const highIntentKeywordArticles: Article[] = [
         content: 'The fastest way to get a same-day medical certificate is through an online telehealth service. These services are specifically designed for efficiency and can often deliver a certificate within 30 to 60 minutes during business hours.'
       },
       {
-        type: 'list',
-        content: 'How it works:',
+        type: 'steps',
+        content: '',
         items: [
-          'Visit a telehealth platform from your phone, tablet, or computer',
-          'Complete a brief health questionnaire about your symptoms',
-          'Provide your personal details and payment',
-          'An AHPRA-registered doctor reviews your submission',
-          'If appropriate, a certificate is issued and emailed to you as a PDF',
-          'Total time from start to receiving your certificate is typically 30 to 60 minutes'
-        ]
+          'Visit a telehealth platform from your phone, tablet, or computer.',
+          'Complete a brief health questionnaire about your symptoms.',
+          'Provide your personal details and payment.',
+          'An AHPRA-registered doctor reviews your submission.',
+          'If appropriate, a certificate is issued and emailed to you as a PDF.',
+          'Total time from start to receiving your certificate is typically 30 to 60 minutes.',
+        ],
       },
       {
         type: 'callout',
@@ -1217,14 +1176,15 @@ export const highIntentKeywordArticles: Article[] = [
       },
       { type: 'heading', content: 'Comparing Your Same-Day Options', level: 2 },
       {
-        type: 'list',
-        content: 'Here is a comparison of the main options for getting a certificate quickly:',
-        items: [
-          'Online telehealth: Fastest turnaround (30 to 60 minutes), no travel required, available from home, costs $15 to $40',
-          'Walk-in clinic: No appointment needed, but expect 30 minutes to 2 hours wait, travel required, bulk-billing may be available',
-          'Same-day GP appointment: Depends on availability, travel required, your GP knows your history, bulk-billing may be available',
-          'After-hours service: Available evenings and weekends, longer wait times, may cost more, doctor may visit your home'
-        ]
+        type: 'table',
+        content: '',
+        headers: ['Option', 'Typical wait', 'Best when', 'Cost'],
+        rows: [
+          ['Online telehealth', '30-60 minutes', 'Too unwell to travel; need it fast', '$15-$40'],
+          ['Walk-in clinic', '30 min to 2 hours', 'No telehealth access; prefer in-person', 'Bulk-billing may be available'],
+          ['Same-day GP appointment', 'Depends on availability', 'Your GP knows your history', 'Bulk-billing may be available'],
+          ['After-hours service', 'Varies (evenings and weekends)', 'Outside standard hours; non-urgent', 'Often higher gap fees'],
+        ],
       },
       { type: 'heading', content: 'What You Need to Have Ready', level: 2 },
       {
@@ -1275,38 +1235,29 @@ export const highIntentKeywordArticles: Article[] = [
         content: 'The best approach is to see a doctor as soon as possible when you become unwell. With telehealth, you can request a certificate from your bed on the first day of illness, eliminating the need for retrospective documentation.'
       },
       { type: 'heading', content: 'Same-Day Certificates for Different Situations', level: 2 },
-      { type: 'heading', content: 'For work', level: 3 },
       {
-        type: 'paragraph',
-        content: 'A standard medical certificate stating you are unfit for work, with the dates of your absence. This is the most common request and is straightforward for both in-person and telehealth doctors.'
-      },
-      { type: 'heading', content: 'For university', level: 3 },
-      {
-        type: 'paragraph',
-        content: 'University medical certificates may have specific requirements depending on your institution. Some universities require certificates that cover specific dates or reference particular assessments. Check your university\'s policy before requesting the certificate.'
-      },
-      { type: 'heading', content: 'For Centrelink', level: 3 },
-      {
-        type: 'paragraph',
-        content: 'Centrelink may require specific wording on medical certificates, particularly for exemption from mutual obligations. Let your doctor know the certificate is for Centrelink purposes so they can include the appropriate information.'
-      },
-      { type: 'heading', content: 'For carer\'s leave', level: 3 },
-      {
-        type: 'paragraph',
-        content: 'If you are taking leave to care for a sick family member, you may need a certificate confirming the family member\'s illness or a statutory declaration. Telehealth services can issue carer\'s leave certificates as well.'
+        type: 'table',
+        content: '',
+        headers: ['Certificate type', 'What to know'],
+        rows: [
+          ['For work', 'Standard certificate stating you are unfit for work, with dates of absence. The most common request - straightforward for both in-person and telehealth.'],
+          ['For university', "Check your institution's specific requirements - some require certificates referencing particular assessments or covering specific dates."],
+          ['For Centrelink', 'Let your doctor know the certificate is for Centrelink so they can include appropriate wording for mutual obligations exemptions.'],
+          ["For carer's leave", "You may need a certificate confirming the family member's illness or a statutory declaration. Telehealth services can issue carer's leave certificates."],
+        ],
       },
       { type: 'heading', content: 'Tips for Getting Your Certificate Faster', level: 2 },
       {
-        type: 'list',
+        type: 'steps',
         content: '',
         items: [
-          'Use telehealth for the fastest turnaround, especially if you are too unwell to travel',
-          'Submit your request during business hours for quicker doctor availability',
-          'Provide complete and accurate information in the health questionnaire to avoid delays',
-          'Double-check your personal details, especially your email address, before submitting',
-          'Have your payment ready to avoid delays at checkout',
-          'Keep your phone nearby in case the doctor needs to follow up with questions'
-        ]
+          'Use telehealth for the fastest turnaround, especially if you are too unwell to travel.',
+          'Submit your request during business hours for quicker doctor availability.',
+          'Provide complete and accurate information in the health questionnaire to avoid delays.',
+          'Double-check your personal details, especially your email address, before submitting.',
+          'Have your payment ready to avoid delays at checkout.',
+          'Keep your phone nearby in case the doctor needs to follow up with questions.',
+        ],
       },
       { type: 'heading', content: 'What If the Doctor Declines to Issue a Certificate?', level: 2 },
       {

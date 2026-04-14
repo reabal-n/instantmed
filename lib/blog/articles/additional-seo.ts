@@ -23,61 +23,25 @@ export const additionalSeoArticles: Article[] = [
         links: [{ text: 'medical certificate', href: '/blog/medical-certificate-for-work', title: 'Medical certificates for work' }]
       },
       { type: 'heading', content: 'Your Same-Day Options', level: 2 },
-      { type: 'heading', content: 'Telehealth Services', level: 3 },
-      {
-        type: 'paragraph',
-        content: 'Online doctors can often issue certificates within an hour during business hours. You don\'t need to leave home, which is ideal when you\'re unwell.'
-      },
-      {
-        type: 'list',
-        content: '',
-        items: [
-          'Submit your request online',
-          'Doctor reviews your symptoms',
-          'Certificate sent digitally - often within 1-2 hours',
-          'No travel required'
-        ]
-      },
-      { type: 'heading', content: 'Walk-In Clinics', level: 3 },
-      {
-        type: 'paragraph',
-        content: 'Medical centres that accept walk-ins can see you the same day, though you may wait:'
-      },
-      {
-        type: 'list',
-        content: '',
-        items: [
-          'No appointment needed',
-          'Wait times vary (often 30-90 minutes)',
-          'Good if you need a physical examination',
-          'Available in most shopping centres and suburbs'
-        ]
-      },
-      { type: 'heading', content: 'After-Hours GP Services', level: 3 },
-      {
-        type: 'paragraph',
-        content: 'If it\'s evening or weekend, after-hours services include:',
-        links: [{ text: 'after-hours services', href: '/blog/online-doctor-after-hours', title: 'After-hours online doctor' }]
-      },
-      {
-        type: 'list',
-        content: '',
-        items: [
-          'After-hours GP clinics',
-          'Home doctor services',
-          '24/7 telehealth providers'
-        ]
-      },
+      { type: 'table', content: '', headers: ['Option', 'Typical time to certificate', 'Best when'], rows: [
+        ['Telehealth (online doctor)', '30 minutes to 2 hours', 'You do not need a physical exam and want to stay home'],
+        ['Walk-in medical centre', '1-3 hours including wait', 'You need physical examination or prefer face-to-face'],
+        ['After-hours GP clinic', 'Varies - often 1-3 hours', 'Evening or weekend, needs physical assessment'],
+        ['24/7 telehealth service', '30 minutes to 2 hours', 'Any time of day or night, non-emergency conditions'],
+      ]},
       {
         type: 'callout',
         variant: 'tip',
         content: 'Telehealth is usually the fastest option for straightforward illnesses like cold, flu, or gastro. You can request a certificate from bed.'
       },
-      { type: 'heading', content: 'What You Need', level: 2 },
-      {
-        type: 'paragraph',
-        content: 'To get a same-day certificate, have ready:'
-      },
+      { type: 'heading', content: 'How to Get a Telehealth Certificate Today', level: 2 },
+      { type: 'steps', content: '', items: [
+        'Submit your request online - describe your symptoms and how long you have been unwell.',
+        'A doctor reviews your information and assesses whether time off is clinically appropriate.',
+        'If appropriate, your certificate is issued and sent digitally - often within 1-2 hours.',
+        'Forward the certificate to your employer. It is legally valid from any AHPRA-registered doctor.',
+      ]},
+      { type: 'heading', content: 'What You Need Ready', level: 2 },
       {
         type: 'list',
         content: '',
@@ -85,18 +49,20 @@ export const additionalSeoArticles: Article[] = [
           'Your symptoms and when they started',
           'How many days you expect to need off',
           'Your full name (as it appears on work records)',
-          'Medicare card (if applicable, but not essential)',
+          'Medicare card (not required for telehealth medical certificates)',
           'Payment method'
         ]
       },
       { type: 'heading', content: 'How Long Will It Take?', level: 2 },
       {
-        type: 'list',
+        type: 'table',
         content: '',
-        items: [
-          'Telehealth: typically 30 minutes to 2 hours',
-          'Walk-in clinic: 1-3 hours including wait',
-          'After-hours GP: varies by service and demand'
+        headers: ['Service', 'Typical wait time'],
+        rows: [
+          ['Telehealth (business hours)', '30 minutes to 2 hours'],
+          ['Telehealth (after hours)', '1-4 hours depending on demand'],
+          ['Walk-in clinic', '1-3 hours including waiting room time'],
+          ['After-hours GP', 'Varies by service and location'],
         ]
       },
       { type: 'heading', content: 'Cost Comparison', level: 2 },
@@ -197,58 +163,29 @@ export const additionalSeoArticles: Article[] = [
         links: [{ text: 'regular medications', href: '/blog/understanding-repeat-prescriptions', title: 'Understanding repeat prescriptions' }]
       },
       { type: 'heading', content: 'How Online Prescription Renewal Works', level: 2 },
-      {
-        type: 'list',
-        content: '',
-        items: [
-          'You submit a request for your medication',
-          'Provide details about your medical history and current dosage',
-          'A doctor reviews your request',
-          'If appropriate, they issue an eScript to your phone',
-          'Take your phone to any pharmacy to collect'
-        ]
-      },
+      { type: 'steps', content: '', items: [
+        'Submit your request online - include your medication name, strength, and how long you have been taking it.',
+        'A doctor reviews your request and checks it is still clinically appropriate.',
+        'If approved, they issue an eScript (SMS with QR code) directly to your phone.',
+        'Take your phone to any pharmacy in Australia. Show the pharmacist the QR code or token number.',
+        'Collect your medication and pay the standard co-payment (PBS rate if applicable).',
+      ]},
       {
         type: 'callout',
         variant: 'info',
         content: 'The eScript is sent via SMS. Show the pharmacist the QR code or token number, and they\'ll dispense your medication.'
       },
-      { type: 'heading', content: 'What Can Be Renewed Online?', level: 2 },
-      {
-        type: 'paragraph',
-        content: 'Most regular medications can be renewed via telehealth, including:'
-      },
-      {
-        type: 'list',
-        content: '',
-        items: [
-          'Blood pressure medications',
-          'Cholesterol medications',
-          'Diabetes medications (non-insulin)',
-          'Thyroid medications',
-          'Contraceptive pills',
-          'Asthma preventers',
-          'Reflux medications',
-          'Many mental health medications (with appropriate review)',
-          'Skin condition treatments'
-        ]
-      },
-      { type: 'heading', content: 'What Can\'t Be Renewed Online?', level: 2 },
-      {
-        type: 'paragraph',
-        content: 'Some medications have restrictions and require in-person care:',
-        links: [{ text: 'restrictions', href: '/blog/medications-not-prescribed-online', title: 'Medications not prescribed online' }]
-      },
-      {
-        type: 'list',
-        content: '',
-        items: [
-          'Schedule 8 medications (opioids, stimulants, benzodiazepines)',
-          'Medications requiring regular monitoring (blood tests)',
-          'Some mental health medications (especially first prescriptions)',
-          'Medications that need specialist oversight'
-        ]
-      },
+      { type: 'heading', content: 'What Can (and Can\'t) Be Renewed Online', level: 2 },
+      { type: 'table', content: '', headers: ['Can be renewed online', 'Requires in-person care'], rows: [
+        ['Blood pressure medications (ongoing)', 'Schedule 8 medications (opioids, stimulants)'],
+        ['Cholesterol medications', 'Medications requiring recent blood test results'],
+        ['Diabetes medications (non-insulin)', 'First-time prescriptions for new conditions'],
+        ['Thyroid medications', 'Medications needing specialist oversight'],
+        ['Contraceptive pills', 'Insulin and injectable medications'],
+        ['Asthma preventers', 'Complex psychiatric medications (new start)'],
+        ['Reflux and stomach medications', ''],
+        ['Many mental health medications (with review)', ''],
+      ]},
       { type: 'heading', content: 'Information You\'ll Need', level: 2 },
       {
         type: 'paragraph',

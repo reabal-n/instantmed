@@ -31,22 +31,14 @@ export const trustBuildingArticles: Article[] = [
         content: 'AHPRA works with 15 National Boards that set standards for different health professions, including doctors, nurses, pharmacists, psychologists, and more.'
       },
       { type: 'heading', content: 'What AHPRA Registration Means', level: 2 },
-      {
-        type: 'paragraph',
-        content: 'When a doctor is AHPRA-registered, it means they have:'
-      },
-      {
-        type: 'list',
-        content: '',
-        items: [
-          'Completed an approved medical degree',
-          'Met the Medical Board of Australia\'s requirements',
-          'Passed required examinations and assessments',
-          'Met English language requirements',
-          'No conditions preventing them from practising safely',
-          'Agreed to follow professional standards and codes of conduct'
-        ]
-      },
+      { type: 'table', content: '', headers: ['Requirement', 'What this means'], rows: [
+        ['Approved medical degree', 'Graduated from a TGA and Medical Board-recognised medical school'],
+        ['Examinations and assessments', 'Passed all required practical and written assessments for registration'],
+        ['English language standards', 'Demonstrated proficiency required for safe patient communication'],
+        ['Criminal history check', 'Background check ensuring no issues preventing safe practice'],
+        ['Professional standards', 'Agreed to AHPRA\'s code of conduct and ongoing obligations'],
+        ['Annual renewal', 'Registration is renewed each year with continuing professional development'],
+      ]},
       {
         type: 'callout',
         variant: 'info',
@@ -70,20 +62,13 @@ export const trustBuildingArticles: Article[] = [
         ]
       },
       { type: 'heading', content: 'How to Verify a Doctor\'s Registration', level: 2 },
-      {
-        type: 'paragraph',
-        content: 'You can check any health practitioner\'s registration on the AHPRA public register:'
-      },
-      {
-        type: 'list',
-        content: '',
-        items: [
-          'Visit ahpra.gov.au and click "Check a practitioner"',
-          'Search by name and profession',
-          'View their registration status, type, and any conditions',
-          'See which specialty (if any) they\'re registered in'
-        ]
-      },
+      { type: 'steps', content: '', items: [
+        'Go to ahpra.gov.au and click "Check a practitioner" in the top navigation.',
+        'Search by the doctor\'s name and select "Medical Practitioners" as the profession type.',
+        'Review their registration status - it should show as "Registered" with an active expiry date.',
+        'Check for any conditions, undertakings, or notations on their registration.',
+        'Note which specialty (if any) they are registered in - relevant for specialist referrals.',
+      ]},
       {
         type: 'callout',
         variant: 'tip',

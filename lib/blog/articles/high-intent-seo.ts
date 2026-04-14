@@ -66,42 +66,21 @@ export const highIntentSeoArticles: Article[] = [
         content: 'Your certificate does NOT need to include your diagnosis. "Medical condition" is sufficient, and your employer cannot demand more detail.'
       },
       { type: 'heading', content: 'What Employers Can and Can\'t Ask', level: 2 },
-      { type: 'heading', content: 'Employers CAN:', level: 3 },
-      {
-        type: 'list',
-        content: '',
-        items: [
-          'Request a medical certificate as evidence',
-          'Ask when you expect to return',
-          'Request a fitness for work clearance for safety-critical roles'
-        ]
-      },
-      { type: 'heading', content: 'Employers CANNOT:', level: 3 },
-      {
-        type: 'list',
-        content: '',
-        items: [
-          'Demand to know your specific diagnosis',
-          'Require you to see a specific doctor',
-          'Contact your doctor without your consent',
-          'Reject a valid certificate from a registered practitioner'
-        ]
-      },
+      { type: 'table', content: '', headers: ['Employers CAN ask', 'Employers CANNOT ask'], rows: [
+        ['For a medical certificate as evidence', 'For your specific diagnosis'],
+        ['When you expect to return to work', 'Details of your medical condition'],
+        ['A fitness-for-work clearance for safety-critical roles', 'You to see a specific doctor they choose'],
+        ['Evidence for absences exceeding 1-2 days', 'To contact your doctor without your consent'],
+        ['', 'To reject a valid certificate from a registered practitioner'],
+      ]},
       { type: 'heading', content: 'How to Get a Medical Certificate', level: 2 },
-      {
-        type: 'paragraph',
-        content: 'You have several options for obtaining a medical certificate:'
-      },
-      {
-        type: 'list',
-        content: '',
-        items: [
-          'Your regular GP - ideal if they know your medical history',
-          'A walk-in clinic - useful if your GP is unavailable',
-          'Telehealth services - convenient when you\'re unwell at home',
-          'Hospital emergency department - only for genuine emergencies'
-        ]
-      },
+      { type: 'steps', content: '', items: [
+        'Choose your method: telehealth (fastest, no travel), walk-in clinic (if exam needed), or your regular GP.',
+        'Describe your symptoms honestly - how long you have been unwell and how it is affecting you.',
+        'A doctor reviews your situation and determines whether time off is clinically appropriate.',
+        'Receive your certificate digitally (telehealth) or in person. It is valid from any AHPRA-registered doctor.',
+        'Send the certificate to your employer or HR. You are not required to disclose your diagnosis.',
+      ]},
       {
         type: 'paragraph',
         content: 'For straightforward illnesses like cold, flu, or gastro, telehealth is often the most convenient option. You don\'t need to travel while unwell, and you can receive your certificate digitally.',

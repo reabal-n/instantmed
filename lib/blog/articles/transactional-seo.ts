@@ -298,16 +298,16 @@ export const transactionalSeoArticles: Article[] = [
         content: 'The diplomatic approach works better than the confrontational one, even when you\'re legally in the right. Start with information, not threats.'
       },
       {
-        type: 'list',
+        type: 'steps',
         content: '',
         items: [
-          'Provide the certificate promptly - don\'t give your employer a procedural reason to object',
-          'If questioned, calmly point out that the certificate is from an AHPRA-registered doctor and meets the requirements of the Fair Work Act',
-          'Offer to show the AHPRA registration check if they\'re unsure about the doctor\'s credentials',
-          'Put your response in writing (email) so there\'s a record',
-          'If the issue persists, contact the Fair Work Ombudsman on 13 13 94 for advice',
-          'Consider speaking with your union representative if applicable'
-        ]
+          "Provide the certificate promptly - don't give your employer a procedural reason to object.",
+          'If questioned, calmly point out that the certificate is from an AHPRA-registered doctor and meets the requirements of the Fair Work Act.',
+          "Offer to show the AHPRA registration check if they're unsure about the doctor's credentials.",
+          "Put your response in writing (email) so there's a record.",
+          'If the issue persists, contact the Fair Work Ombudsman on 13 13 94 for advice.',
+          'Consider speaking with your union representative if applicable.',
+        ],
       },
       {
         type: 'callout',
@@ -430,45 +430,31 @@ export const transactionalSeoArticles: Article[] = [
         content: 'Most routine medications that you\'re already stable on can be prescribed through a telehealth consultation. The key word is "stable" - the doctor needs to be satisfied that the medication is working, you\'re not experiencing side effects, and there\'s no reason to change the treatment plan.'
       },
       {
-        type: 'list',
-        content: 'Common medications prescribed via telehealth include:',
-        items: [
-          'Blood pressure medications',
-          'Cholesterol-lowering medications',
-          'Oral contraceptives and hormonal contraception',
-          'Antidepressants and anti-anxiety medications (on a stable dose)',
-          'Asthma inhalers and preventers',
-          'Thyroid medications',
-          'Reflux and acid-reducing medications',
-          'Skin treatments for acne, eczema, and rosacea',
-          'Antihistamines and allergy medications (prescription-strength)',
-          'Diabetes medications (stable, well-managed)'
-        ]
+        type: 'table',
+        content: '',
+        headers: ['Can prescribe online', 'Cannot prescribe online'],
+        rows: [
+          ['Blood pressure medications', 'Schedule 8 controlled substances (opioids, benzodiazepines, ADHD medications, testosterone)'],
+          ['Cholesterol-lowering medications', 'Medications requiring a physical examination for safe prescribing'],
+          ['Oral contraceptives and hormonal contraception', 'Medications where the dose is still being adjusted'],
+          ['Antidepressants and anti-anxiety medications (stable dose)', 'New psychiatric medications not yet stabilised'],
+          ['Asthma inhalers and preventers', 'Medications requiring recent blood tests or monitoring not yet completed'],
+          ['Thyroid medications', ''],
+          ['Reflux and acid-reducing medications', ''],
+          ['Skin treatments for acne, eczema, and rosacea', ''],
+          ['Antihistamines (prescription-strength)', ''],
+          ['Diabetes medications (stable, well-managed)', ''],
+        ],
       },
       {
         type: 'paragraph',
-        content: 'The common thread is stability. If you\'ve been on the medication for a while, your condition is well-managed, and nothing has changed, a telehealth doctor can assess your situation and issue a new prescription. This covers the majority of routine renewals.'
+        content: "The common thread is stability. If you've been on the medication for a while, your condition is well-managed, and nothing has changed, a telehealth doctor can assess your situation and issue a new prescription. This covers the majority of routine renewals."
       },
-      { type: 'heading', content: 'What Can\'t Be Prescribed Online', level: 2 },
-      {
-        type: 'paragraph',
-        content: 'This is the important part, and there are no exceptions. Some medications are legally restricted from telehealth prescribing, and legitimate services will be upfront about this.'
-      },
-      {
-        type: 'list',
-        content: 'Medications that cannot be prescribed through telehealth:',
-        items: [
-          'Schedule 8 controlled substances - this includes strong opioid painkillers, benzodiazepines (for anxiety and sleep), ADHD medications, and testosterone',
-          'Any medication requiring a physical examination for safe prescribing',
-          'Medications where the dose is still being adjusted or titrated',
-          'New psychiatric medications that haven\'t been stabilised',
-          'Medications that require recent blood tests or monitoring that hasn\'t been completed'
-        ]
-      },
+      { type: 'heading', content: "What Can't Be Prescribed Online", level: 2 },
       {
         type: 'callout',
         variant: 'warning',
-        content: 'If a telehealth service offers to prescribe Schedule 8 controlled substances (strong painkillers, benzodiazepines, stimulants), that\'s a red flag. These medications require in-person assessment and are subject to strict state-based monitoring programs.'
+        content: "If a telehealth service offers to prescribe Schedule 8 controlled substances (strong painkillers, benzodiazepines, stimulants), that's a red flag. These medications require in-person assessment and are subject to strict state-based monitoring programs."
       },
       {
         type: 'paragraph',
@@ -708,16 +694,17 @@ export const transactionalSeoArticles: Article[] = [
         content: 'This is where things get practical. The cost difference between telehealth and in-person GP visits depends heavily on whether you can access bulk billing.'
       },
       {
-        type: 'list',
+        type: 'table',
         content: '',
-        items: [
-          'Bulk-billed GP: Free (if you can find one taking new patients and get an appointment within a reasonable timeframe)',
-          'Private GP consultation: $60-$120 out of pocket, with a Medicare rebate of approximately $41 - leaving a gap of $19-$79',
-          'After-hours GP or house call: $150-$300+',
-          'Telehealth medical certificate: $19.95-$39.95 (no Medicare rebate)',
-          'Telehealth repeat prescription: $29.95 (no Medicare rebate)',
-          'Telehealth general consultation: $49.95 (no Medicare rebate)'
-        ]
+        headers: ['Option', 'Cost', 'Notes'],
+        rows: [
+          ['Bulk-billed GP', 'Free', 'If you can find one taking new patients with reasonable wait times'],
+          ['Private GP consultation', '$60-$120 out of pocket', 'Medicare rebates ~$41; gap of $19-$79'],
+          ['After-hours GP or house call', '$150-$300+', 'Higher fees for after-hours service'],
+          ['Telehealth medical certificate', '$19.95-$39.95', 'No Medicare rebate; 1-3 day duration'],
+          ['Telehealth repeat prescription', '$29.95', 'No Medicare rebate; flat fee'],
+          ['Telehealth general consultation', '$49.95', 'No Medicare rebate'],
+        ],
       },
       {
         type: 'paragraph',
@@ -729,15 +716,16 @@ export const transactionalSeoArticles: Article[] = [
         content: 'This is often the deciding factor. The median wait for a GP appointment in Australia varies dramatically by location and whether you\'re seeking bulk billing.'
       },
       {
-        type: 'list',
+        type: 'table',
         content: '',
-        items: [
-          'Bulk-billed GP in a capital city: 2-4 weeks for a routine appointment',
-          'Private GP in a capital city: 1-5 days',
-          'Rural or regional GP: highly variable - some areas have month-long waits or no local GP at all',
-          'Walk-in clinic: same-day, but expect 1-3 hours in the waiting room',
-          'Telehealth (InstantMed): same-day review, typically within a few hours'
-        ]
+        headers: ['Option', 'Typical wait', 'Notes'],
+        rows: [
+          ['Bulk-billed GP (capital city)', '2-4 weeks', 'For a routine appointment'],
+          ['Private GP (capital city)', '1-5 days', 'Faster with a gap payment'],
+          ['Rural or regional GP', 'Highly variable', 'Some areas have month-long waits or no local GP at all'],
+          ['Walk-in clinic', 'Same day', 'Expect 1-3 hours in the waiting room'],
+          ['Telehealth (InstantMed)', 'Same-day', 'Typically reviewed within a few hours'],
+        ],
       },
       {
         type: 'paragraph',

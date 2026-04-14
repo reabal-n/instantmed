@@ -28,15 +28,15 @@ export const locationArticles: Article[] = [
         content: 'Telehealth connects you with Australian-registered doctors via your phone, tablet, or computer. The process is simple:'
       },
       {
-        type: 'list',
+        type: 'steps',
         content: '',
         items: [
-          'Request a consultation online',
-          'Describe your symptoms or what you need',
-          'A doctor reviews your information',
-          'Receive advice, prescriptions, or certificates digitally',
-          'Collect medications from any Sydney pharmacy'
-        ]
+          'Request a consultation online.',
+          'Describe your symptoms or what you need.',
+          'A doctor reviews your information.',
+          'Receive advice, prescriptions, or certificates digitally.',
+          'Collect medications from any Sydney pharmacy.',
+        ],
       },
       { type: 'heading', content: 'Services Available Online', level: 2 },
       {
@@ -190,15 +190,15 @@ export const locationArticles: Article[] = [
         content: 'Telehealth connects you with AHPRA-registered doctors via video, phone, or messaging:'
       },
       {
-        type: 'list',
+        type: 'steps',
         content: '',
         items: [
-          'Submit your request online',
-          'Describe your symptoms or needs',
-          'A doctor reviews and responds',
-          'Receive prescriptions as eScripts to your phone',
-          'Pick up from any Melbourne pharmacy'
-        ]
+          'Submit your request online.',
+          'Describe your symptoms or needs.',
+          'A doctor reviews and responds.',
+          'Receive prescriptions as eScripts to your phone.',
+          'Pick up from any Melbourne pharmacy.',
+        ],
       },
       { type: 'heading', content: 'What You Can Access Online', level: 2 },
       {
@@ -351,15 +351,15 @@ export const locationArticles: Article[] = [
         content: 'Telehealth connects you with registered Australian doctors online:'
       },
       {
-        type: 'list',
+        type: 'steps',
         content: '',
         items: [
-          'Request a consultation via website or app',
-          'Share your symptoms and what you need',
-          'A doctor reviews your request',
-          'Receive advice, prescriptions, or certificates',
-          'Collect medications from any Brisbane pharmacy'
-        ]
+          'Request a consultation via website or app.',
+          'Share your symptoms and what you need.',
+          'A doctor reviews your request.',
+          'Receive advice, prescriptions, or certificates.',
+          'Collect medications from any Brisbane pharmacy.',
+        ],
       },
       { type: 'heading', content: 'Available Services', level: 2 },
       {
@@ -511,15 +511,15 @@ export const locationArticles: Article[] = [
         content: 'Connect with AHPRA-registered doctors via your device:'
       },
       {
-        type: 'list',
+        type: 'steps',
         content: '',
         items: [
-          'Submit your consultation request',
-          'Describe your symptoms or needs',
-          'A doctor reviews and responds',
-          'Receive eScripts to your phone',
-          'Collect from any Perth pharmacy'
-        ]
+          'Submit your consultation request.',
+          'Describe your symptoms or needs.',
+          'A doctor reviews and responds.',
+          'Receive eScripts to your phone.',
+          'Collect from any Perth pharmacy.',
+        ],
       },
       { type: 'heading', content: 'Available Services', level: 2 },
       {
@@ -673,15 +673,15 @@ export const locationArticles: Article[] = [
         content: 'Telehealth connects you with registered doctors via your device:'
       },
       {
-        type: 'list',
+        type: 'steps',
         content: '',
         items: [
-          'Request a consultation online',
-          'Share your symptoms or what you need',
-          'A doctor reviews your information',
-          'Receive prescriptions via eScript',
-          'Pick up from any Adelaide pharmacy'
-        ]
+          'Request a consultation online.',
+          'Share your symptoms or what you need.',
+          'A doctor reviews your information.',
+          'Receive prescriptions via eScript.',
+          'Pick up from any Adelaide pharmacy.',
+        ],
       },
       { type: 'heading', content: 'Services Available', level: 2 },
       {
