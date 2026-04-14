@@ -1,5 +1,4 @@
 export { AfterHoursMedCertBanner } from "./after-hours-med-cert-banner"
-export { AnimatedIcon, ImagingIcon,MedCertIcon, PillIcon, ReferralIcon } from "./animated-icons"
 export { AppSignInButton } from "./app-sign-in-button"
 export { AvailabilityIndicator } from "./availability-indicator"
 export { BrandLogo } from "./brand-logo"

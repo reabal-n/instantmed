@@ -41,78 +41,91 @@ if (!sentryDsn && sentryEnabled) {
   console.warn("[Sentry] NEXT_PUBLIC_SENTRY_DSN not configured - error tracking disabled");
 }
 
-Sentry.init({
-  dsn: sentryDsn,
-  enabled: sentryEnabled,
-  environment: sentryEnvironment,
-  release: sentryRelease,
+// Defer Sentry init until after page is interactive to avoid blocking LCP/TBT.
+// replayIntegration is lazy-loaded separately so its ~50KB bundle stays off
+// the critical path entirely.
+function initSentry() {
+  Sentry.init({
+    dsn: sentryDsn,
+    enabled: sentryEnabled,
+    environment: sentryEnvironment,
+    release: sentryRelease,
 
-  // Add optional integrations for additional features
-  integrations: [Sentry.replayIntegration()],
+    // No replay integration here — loaded lazily after idle (below)
+    integrations: [],
 
-  // Performance Monitoring
-  tracesSampleRate: sentryEnvironment === "production" ? 0.1 : 1.0,
+    // Performance Monitoring
+    tracesSampleRate: sentryEnvironment === "production" ? 0.1 : 1.0,
 
-  // Enable logs to be sent to Sentry
-  enableLogs: true,
+    // Enable logs to be sent to Sentry
+    enableLogs: true,
 
-  // Session Replay - reduced for PageSpeed (lower TBT)
-  replaysSessionSampleRate: 0.01,
-  replaysOnErrorSampleRate: 0.5,
+    // Session Replay rates — integration loaded lazily below
+    replaysSessionSampleRate: 0.01,
+    replaysOnErrorSampleRate: 0.5,
 
-  // Filter out common non-actionable errors
-  ignoreErrors: [
-    // Browser extensions
-    /extensions\//i,
-    /^chrome:\/\//i,
-    // Network errors
-    "Network request failed",
-    "Failed to fetch",
-    "Load failed",
-    // User-initiated navigation
-    "AbortError",
-    // Common benign errors
-    "ResizeObserver loop",
-    "Non-Error promise rejection",
-  ],
+    // Filter out common non-actionable errors
+    ignoreErrors: [
+      /extensions\//i,
+      /^chrome:\/\//i,
+      "Network request failed",
+      "Failed to fetch",
+      "Load failed",
+      "AbortError",
+      "ResizeObserver loop",
+      "Non-Error promise rejection",
+    ],
 
-  // Disable sending user PII (Personally Identifiable Information)
-  // https://docs.sentry.io/platforms/javascript/guides/nextjs/configuration/options/#sendDefaultPii
-  sendDefaultPii: false,
+    sendDefaultPii: false,
 
-  beforeSend(event) {
-    if (!sentryEnabled) return null;
-
-    // Scrub sensitive headers
-    if (event.request?.headers) {
-      delete event.request.headers["Authorization"];
-      delete event.request.headers["Cookie"];
-    }
-    // Scrub PHI from extra context
-    if (event.extra) {
-      event.extra = scrubPHIFromObject(event.extra) as Record<string, unknown>;
-    }
-    // Scrub breadcrumbs
-    if (event.breadcrumbs) {
-      for (const breadcrumb of event.breadcrumbs) {
-        if (breadcrumb.message) breadcrumb.message = scrubPHI(breadcrumb.message);
-        if (breadcrumb.data) breadcrumb.data = scrubPHIFromObject(breadcrumb.data) as Record<string, unknown>;
+    beforeSend(event) {
+      if (!sentryEnabled) return null;
+      if (event.request?.headers) {
+        delete event.request.headers["Authorization"];
+        delete event.request.headers["Cookie"];
       }
-    }
+      if (event.extra) {
+        event.extra = scrubPHIFromObject(event.extra) as Record<string, unknown>;
+      }
+      if (event.breadcrumbs) {
+        for (const breadcrumb of event.breadcrumbs) {
+          if (breadcrumb.message) breadcrumb.message = scrubPHI(breadcrumb.message);
+          if (breadcrumb.data) breadcrumb.data = scrubPHIFromObject(breadcrumb.data) as Record<string, unknown>;
+        }
+      }
+      if (isPlaywrightMode) event.tags = { ...event.tags, playwright: "1" };
+      return event;
+    },
+    beforeBreadcrumb(breadcrumb) {
+      if (breadcrumb.message) breadcrumb.message = scrubPHI(breadcrumb.message);
+      if (breadcrumb.data) breadcrumb.data = scrubPHIFromObject(breadcrumb.data) as Record<string, unknown>;
+      return breadcrumb;
+    },
+  });
+}
 
-    // Add E2E context tags when in PLAYWRIGHT mode
-    if (isPlaywrightMode) {
-      event.tags = { ...event.tags, playwright: "1" };
-    }
+// Schedule Sentry init after the page is interactive so it stays off the
+// critical path (improves LCP and TBT on Lighthouse mobile).
+if ("requestIdleCallback" in window) {
+  requestIdleCallback(initSentry, { timeout: 3000 });
+} else {
+  setTimeout(initSentry, 1500);
+}
 
-    return event;
-  },
-  beforeBreadcrumb(breadcrumb) {
-    if (breadcrumb.message) breadcrumb.message = scrubPHI(breadcrumb.message);
-    if (breadcrumb.data) breadcrumb.data = scrubPHIFromObject(breadcrumb.data) as Record<string, unknown>;
-    return breadcrumb;
-  },
-});
+// Load the Sentry Replay integration lazily after idle — keeps its ~50KB
+// bundle completely off the initial load path.
+if (sentryEnabled && sentryDsn) {
+  const addReplay = () => {
+    import("@sentry/nextjs").then(({ replayIntegration }) => {
+      Sentry.addIntegration(replayIntegration());
+    }).catch(() => {/* ignore */});
+  };
+  if ("requestIdleCallback" in window) {
+    requestIdleCallback(addReplay, { timeout: 8000 });
+  } else {
+    setTimeout(addReplay, 5000);
+  }
+}
 
 export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;
 

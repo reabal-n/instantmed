@@ -1,9 +1,8 @@
 "use client"
 
-import type { AnimationItem } from "lottie-web"
-import { useEffect, useRef } from "react"
+import { AlertCircle, Bell, CheckCircle2, FileText, Inbox, Loader2 } from "lucide-react"
+import type React from "react"
 
-import { useReducedMotion } from "@/components/ui/motion"
 import { cn } from "@/lib/utils"
 
 type AnimationName =
@@ -15,16 +14,6 @@ type AnimationName =
   | "notification"
   | "success"
 
-const fileMap: Record<AnimationName, string> = {
-  confetti: "/animations/Confetti.json",
-  "empty-state": "/animations/Empty State.json",
-  error: "/animations/Error.json",
-  "loading-files": "/animations/Loading Files.json",
-  loading: "/animations/Loading.json",
-  notification: "/animations/Notification.json",
-  success: "/animations/Success.json",
-}
-
 interface LottieAnimationProps {
   name: AnimationName
   loop?: boolean
@@ -33,53 +22,40 @@ interface LottieAnimationProps {
   size?: number
 }
 
+const iconMap: Record<AnimationName, React.ComponentType<{ className?: string }>> = {
+  confetti: CheckCircle2,
+  "empty-state": Inbox,
+  error: AlertCircle,
+  "loading-files": FileText,
+  loading: Loader2,
+  notification: Bell,
+  success: CheckCircle2,
+}
+
+const colorMap: Record<AnimationName, string> = {
+  confetti: "text-primary",
+  "empty-state": "text-muted-foreground",
+  error: "text-destructive",
+  "loading-files": "text-muted-foreground",
+  loading: "text-primary animate-spin",
+  notification: "text-muted-foreground",
+  success: "text-emerald-500",
+}
+
 export function LottieAnimation({
   name,
-  loop = true,
-  autoplay = true,
   className,
   size = 120,
 }: LottieAnimationProps) {
-  const containerRef = useRef<HTMLDivElement>(null)
-  const animationRef = useRef<AnimationItem | null>(null)
-  const prefersReducedMotion = useReducedMotion()
-
-  useEffect(() => {
-    if (!containerRef.current || prefersReducedMotion) return
-
-    let cancelled = false
-    import("lottie-web").then((mod) => {
-      if (cancelled || !containerRef.current) return
-      animationRef.current = mod.default.loadAnimation({
-        container: containerRef.current,
-        renderer: "svg",
-        loop,
-        autoplay,
-        path: fileMap[name],
-      })
-    })
-
-    return () => {
-      cancelled = true
-      animationRef.current?.destroy()
-    }
-  }, [name, loop, autoplay, prefersReducedMotion])
-
-  // For reduced motion, show a static placeholder
-  if (prefersReducedMotion) {
-    return (
-      <div
-        className={cn("flex items-center justify-center", className)}
-        style={{ width: size, height: size }}
-      />
-    )
-  }
+  const Icon = iconMap[name]
+  const color = colorMap[name]
 
   return (
     <div
-      ref={containerRef}
       className={cn("flex items-center justify-center", className)}
       style={{ width: size, height: size }}
-    />
+    >
+      <Icon className={cn("w-1/2 h-1/2", color)} />
+    </div>
   )
 }

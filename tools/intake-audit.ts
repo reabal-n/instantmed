@@ -20,55 +20,88 @@ const OUT = path.resolve(__dirname, "screenshots/intake")
 
 const MOBILE = { width: 375, height: 812 }
 
-// Each entry: [slug, URL, description]
-const INTAKE_SCREENS: Array<{ slug: string; url: string; label: string }> = [
-  { slug: "service-hub",   url: "/request",                                   label: "Service hub" },
-  { slug: "med-cert",      url: "/request?service=med-cert",                  label: "Med cert — step 1 (certificate)" },
-  { slug: "prescription",  url: "/request?service=prescription",              label: "Prescription — step 1 (medication)" },
-  { slug: "consult",       url: "/request?service=consult&subtype=general",   label: "General consult — step 1 (reason)" },
-  { slug: "ed",            url: "/request?service=consult&subtype=ed",        label: "ED — step 1 (goals)" },
-  { slug: "hair-loss",     url: "/request?service=consult&subtype=hair_loss", label: "Hair loss — step 1 (goals)" },
+// waitForText: a string that appears INSIDE the lazy-loaded step form content
+// (not in the header). Used to confirm the component has mounted and is visible
+// before taking the screenshot — avoids the race where the opacity check fires
+// while the step is still in Suspense (no opacity:0 elements yet, but also no
+// content yet).
+const INTAKE_SCREENS: Array<{ slug: string; url: string; label: string; waitForText: string }> = [
+  { slug: "service-hub",   url: "/request",                                   label: "Service hub",                        waitForText: "Medical certificate" },
+  { slug: "med-cert",      url: "/request?service=med-cert",                  label: "Med cert — step 1 (certificate)",    waitForText: "Certificate type" },
+  { slug: "prescription",  url: "/request?service=prescription",              label: "Prescription — step 1 (medication)", waitForText: "Medication name" },
+  { slug: "consult",       url: "/request?service=consult&subtype=general",   label: "General consult — step 1 (reason)",  waitForText: "General consultation" },
+  { slug: "ed",            url: "/request?service=consult&subtype=ed",        label: "ED — step 1 (goals)",                waitForText: "What's your main goal" },
+  { slug: "hair-loss",     url: "/request?service=consult&subtype=hair_loss", label: "Hair loss — step 1 (goals)",         waitForText: "What's your main goal" },
 ]
 
-async function waitForStep(page: Awaited<ReturnType<Awaited<ReturnType<typeof chromium.launch>>["newPage"]>>) {
-  // After networkidle we still need to wait for:
-  //   1. React hydration to complete
-  //   2. Zustand store to init (reads localStorage, triggers setServiceType useEffect)
-  //   3. Lazy step chunk to download and mount inside <Suspense>
-  //   4. Framer Motion enter→center animation to finish (opacity 0→1, 150–200ms)
-  //
-  // Phase 1 — flat wait for React hydration + all mount effects to fire.
-  // The subtype effect has an empty dep array so it runs after the first render
-  // cycle. 2s is more than enough for:
-  //   • React hydration (~50ms)
-  //   • setServiceType effect → step A renders at opacity:0 → animates to 1 (~200ms)
-  //   • subtype effect fires → step sequence changes → step A exits → step B enters (~300ms)
-  // If we only wait for the first "no opacity:0" we catch step A in its settled
-  // state before the subtype transition starts.
-  await page.waitForTimeout(5_000)
+type Page = Awaited<ReturnType<Awaited<ReturnType<typeof chromium.launch>>["newPage"]>>
 
-  // Phase 2 — wait for the subtype-triggered step transition to fully settle.
-  // After phase 1, any in-progress Framer Motion animations (step B entering)
-  // should complete within the next timeout.
-  try {
-    await page.waitForFunction(
-      () => !Array.from(document.querySelectorAll<HTMLElement>("*"))
-        .some((el) => {
-          const op = parseFloat(el.style.opacity ?? "")
-          return !Number.isNaN(op) && op < 0.1
-        }),
-      { timeout: 10_000 },
-    )
-  } catch {
-    // Fall through
+async function waitForStep(page: Page, waitForText: string) {
+  // Strategy: poll with page.evaluate every 500ms instead of a flat sleep.
+  //
+  // In headless Chromium, long flat waits (waitForTimeout) allow the browser
+  // to enter a low-activity state where it may defer or skip paint operations.
+  // page.evaluate forces the browser to execute JS, keeping it active and
+  // ensuring rendering stays current.
+  //
+  // Each poll: check if the target text is visible AND no elements are at
+  // opacity < 0.1 (Framer Motion animation complete). Continue polling until
+  // both conditions are met or timeout.
+  //
+  // Also covers subtype transitions (ED/hair-loss) where:
+  //   setServiceType effect → 'concern' step → 200ms animation → settled
+  //   setSubtype effect → step changes → lazy load → 200ms animation → settled
+  // The poll waits for text that only exists after the subtype step loads.
+  const deadline = Date.now() + 20_000
+  let settled = false
+  while (!settled && Date.now() < deadline) {
+    settled = await page.evaluate((text: string) => {
+      const hasText = (document.body.innerText ?? "").includes(text)
+      const hasOpacityZero = Array.from(document.querySelectorAll("*")).some((el) => {
+        const op = parseFloat((el as HTMLElement).style.opacity ?? "")
+        return !Number.isNaN(op) && op < 0.1
+      })
+      // Also force a full style recalculation on each poll to keep the
+      // browser's rendering pipeline active.
+      Array.from(document.querySelectorAll("*")).forEach((el) => {
+        window.getComputedStyle(el as HTMLElement).opacity
+      })
+      return hasText && !hasOpacityZero
+    }, waitForText)
+
+    if (!settled) {
+      await page.waitForTimeout(500)
+    }
   }
-  // Final paint flush
-  await page.waitForTimeout(200)
+
+  // Final compositing buffer.
+  await page.waitForTimeout(300)
+}
+
+async function warmup(browser: Awaited<ReturnType<typeof chromium.launch>>, screens: typeof INTAKE_SCREENS) {
+  // Visit each URL once to trigger webpack chunk compilation on the dev server.
+  // Without this, the first visit to each route compiles the lazy step component
+  // on-demand (1-5s), and the screenshot is taken before the component mounts.
+  // Second visit is instant because the compiled chunk is cached.
+  console.log("  Warming up dev server (first-visit compilation)...")
+  for (const screen of screens) {
+    const ctx = await browser.newContext({ viewport: MOBILE })
+    const page = await ctx.newPage()
+    await page.addInitScript(`try { localStorage.clear() } catch (e) {}`)
+    try {
+      await page.goto(`${BASE}${screen.url}`, { waitUntil: "networkidle", timeout: 60_000 })
+    } catch {
+      // ignore warmup failures
+    }
+    await ctx.close()
+  }
+  console.log("  Done warming up.\n")
 }
 
 async function run() {
   const args = process.argv.slice(2)
   const filter = args.find((a) => !a.startsWith("--"))
+  const skipWarmup = args.includes("--no-warmup")
 
   const screens = filter
     ? INTAKE_SCREENS.filter((s) => s.slug === filter || s.url.includes(filter))
@@ -84,6 +117,11 @@ async function run() {
   const browser = await chromium.launch()
   console.log(`\nCapturing intake screens at ${MOBILE.width}px mobile\n`)
 
+  // Warm up first (unless single-screen capture or explicitly skipped)
+  if (!skipWarmup && !filter) {
+    await warmup(browser, screens)
+  }
+
   for (const screen of screens) {
     const ctx = await browser.newContext({
       viewport: MOBILE,
@@ -98,11 +136,18 @@ async function run() {
     // scripts so this beats the persist middleware's localStorage.getItem call.
     await page.addInitScript(`try { localStorage.clear() } catch (e) {}`)
 
-
     try {
       await page.goto(`${BASE}${screen.url}`, { waitUntil: "networkidle", timeout: 30_000 })
-      await waitForStep(page)
+      await waitForStep(page, screen.waitForText)
 
+      // Final reflow flush — evaluating getComputedStyle on the full DOM
+      // forces all pending Framer Motion style mutations to commit before
+      // the screenshot captures the frame.
+      await page.evaluate(() => {
+        Array.from(document.querySelectorAll("*")).forEach((el) => {
+          window.getComputedStyle(el as HTMLElement).opacity
+        })
+      })
 
       const filename = `${screen.slug}-mobile.png`
       await page.screenshot({ path: path.join(OUT, filename), fullPage: true })

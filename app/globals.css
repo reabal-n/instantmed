@@ -1171,6 +1171,45 @@ body {
   }
 }
 
+/* Hero entrance animations — CSS-only so they run before JS hydration.
+   Replaces Framer Motion motion.div wrappers for above-fold elements to
+   eliminate animation-engine registration cost from the hydration TBT. */
+@keyframes hero-slide-down {
+  from { transform: translateY(-10px); }
+  to { transform: translateY(0); }
+}
+
+@keyframes hero-mockup-enter {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.hero-availability-enter {
+  animation: hero-slide-down 0.4s ease-out both;
+}
+
+.hero-cta-enter {
+  /* reuse headline keyframe — same y direction, 0.15s delay */
+  animation: hero-headline-enter 0.4s ease-out 0.15s both;
+}
+
+.hero-trust-enter {
+  animation: hero-headline-enter 0.5s ease-out 0.3s both;
+}
+
+.hero-mobile-mockup-enter {
+  animation: hero-mockup-enter 0.4s ease-out 0.35s both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-availability-enter,
+  .hero-cta-enter,
+  .hero-trust-enter,
+  .hero-mobile-mockup-enter {
+    animation: none;
+  }
+}
+
 /* Fade in up with spring */
 @keyframes fade-in-up {
   from {
