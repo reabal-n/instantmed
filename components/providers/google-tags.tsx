@@ -15,20 +15,27 @@ import { captureAttribution } from "@/lib/analytics/attribution"
  */
 export function GoogleTags() {
   useEffect(() => {
+    // Only load Google tags on production domains - skip Vercel previews
+    const hostname = window.location.hostname
+    const isProduction = hostname === "instantmed.com.au" || hostname === "www.instantmed.com.au"
+    if (!isProduction) return
+
     window.dataLayer = window.dataLayer || []
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     function gtag(...args: any[]) { window.dataLayer!.push(args) }
     window.gtag = gtag
 
+    // Australian implied consent model (Privacy Act 1988).
+    // Consent defaults to granted - users can opt out via the cookie banner.
+    // EEA-specific defaults are handled in Google Tag admin settings.
     gtag("consent", "default", {
-      ad_storage: "denied",
-      ad_user_data: "denied",
+      ad_storage: "granted",
+      ad_user_data: "granted",
       ad_personalization: "denied",
       analytics_storage: "granted",
       functionality_storage: "granted",
       personalization_storage: "denied",
       security_storage: "granted",
-      wait_for_update: 500,
     })
 
     // Load gtag.js after consent defaults are set

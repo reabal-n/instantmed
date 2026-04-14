@@ -118,7 +118,7 @@ export async function setEnhancedConversionsData(params: {
 /**
  * Initialize Google Consent Mode v2
  * Call this before any gtag calls (typically in layout)
- * Default: deny all, then update based on user consent
+ * Australian implied consent model: defaults to granted, users opt out via cookie banner.
  */
 export function initConsentMode() {
   if (typeof window === 'undefined') return
@@ -128,16 +128,16 @@ export function initConsentMode() {
     window.dataLayer!.push(args)
   }
 
-  // Set defaults - deny all until user consents
+  // Australian Privacy Act 1988 - implied consent model.
+  // Defaults to granted; cookie banner provides opt-out.
   gtag('consent', 'default', {
-    ad_storage: 'denied',
-    ad_user_data: 'denied',
+    ad_storage: 'granted',
+    ad_user_data: 'granted',
     ad_personalization: 'denied',
-    analytics_storage: 'granted', // We need basic analytics
+    analytics_storage: 'granted',
     functionality_storage: 'granted',
     personalization_storage: 'denied',
     security_storage: 'granted',
-    wait_for_update: 500, // Wait 500ms for CMP to load
   })
 }
 
