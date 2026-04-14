@@ -101,7 +101,7 @@ export const medicationArticles: Article[] = [
       { type: 'paragraph', content: 'The Pharmaceutical Benefits Scheme (PBS) is an Australian Government program that subsidises the cost of prescription medications, making them more affordable for everyone.', links: [{ text: 'prescription medications', href: '/blog/online-prescription-australia', title: 'Get a prescription online' }] },
       { type: 'heading', content: 'How the PBS Works', level: 2 },
       { type: 'paragraph', content: 'The government negotiates prices with pharmaceutical companies and pays part of the cost. You pay a set co-payment amount, and the government covers the rest.' },
-      { type: 'heading', content: 'PBS Co-payment Amounts (2024)', level: 2 },
+      { type: 'heading', content: 'PBS Co-payment Amounts (2025-26)', level: 2 },
       { type: 'list', content: '', items: ['General patients: up to $31.60 per prescription', 'Concession card holders: up to $7.70 per prescription', 'Safety net thresholds reduce costs further for high users'] },
       { type: 'callout', variant: 'info', content: 'Co-payment amounts are updated each year on 1 January. Check the PBS website for current rates.' },
       { type: 'heading', content: 'Who Can Access PBS Pricing?', level: 2 },
@@ -120,10 +120,10 @@ export const medicationArticles: Article[] = [
       { question: 'What if I can\'t afford my medication?', answer: 'Ask your pharmacist about generic alternatives. Check if you qualify for a concession card. Some pharmaceutical companies have patient assistance programs.' }
     ],
     relatedServices: [
-      { title: 'Prescription Request', description: 'Request PBS-listed medications', href: '/repeat-prescription', icon: 'prescription' },
+      { title: 'Prescription Request', description: 'Request PBS-listed medications', href: '/prescriptions', icon: 'prescription' },
       { title: 'GP Consultation', description: 'Discuss medication options', href: '/consult', icon: 'consult' }
     ],
-    seo: { title: 'Understanding the PBS | Pharmaceutical Benefits Scheme | InstantMed', description: 'The PBS subsidises prescription medications in Australia. Learn how it works, co-payment amounts, and how to access PBS pricing.', keywords: ['PBS', 'pharmaceutical benefits scheme', 'PBS medications', 'medication subsidy australia'] }
+    seo: { title: 'PBS Pharmaceutical Benefits Scheme Explained | InstantMed', description: 'PBS co-payments: $31.60 (general) or $7.70 (concession) per script. How the PBS works, safety net thresholds, and who qualifies for subsidised medications.', keywords: ['PBS', 'pharmaceutical benefits scheme', 'PBS medications', 'PBS co-payment', 'medication subsidy australia', 'PBS safety net'] }
   },
   {
     slug: 'generic-vs-brand-medications',

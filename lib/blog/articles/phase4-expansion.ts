@@ -2933,8 +2933,8 @@ export const phase4ExpansionArticles: Article[] = [
       { title: 'Repeat Prescriptions', description: 'Renew your prescriptions', href: '/prescriptions', icon: 'prescription' },
     ],
     seo: {
-      title: 'Telehealth Bulk Billing Australia | What You Actually Pay | InstantMed',
-      description: 'Most telehealth is not bulk billed. Find out who qualifies for Medicare rebates, what private telehealth costs, and whether the gap is worth paying.',
+      title: 'Is Telehealth Bulk Billed in Australia? | InstantMed',
+      description: 'Most telehealth is not bulk billed. Medicare requires an existing GP relationship. Learn what you will actually pay and when private telehealth is worth it.',
       keywords: ['telehealth bulk billed', 'is telehealth free australia', 'telehealth medicare rebate', 'bulk billing telehealth', 'private telehealth cost australia'],
     },
   },

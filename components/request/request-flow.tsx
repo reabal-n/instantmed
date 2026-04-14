@@ -20,7 +20,7 @@
 import { AnimatePresence,motion } from "framer-motion"
 import { ArrowLeft, X } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { useCallback, useEffect, useMemo, useRef,useState } from "react"
+import { useEffect, useMemo, useRef,useState } from "react"
 
 import { AutoSaveIndicator } from "@/components/request/auto-save-indicator"
 import { DraftRestorationBanner } from "@/components/request/draft-restoration-banner"
@@ -31,7 +31,6 @@ import { SubtypeMismatchBanner } from "@/components/request/subtype-mismatch-ban
 import { TimeRemaining } from "@/components/request/time-remaining"
 import { Button } from "@/components/ui/button"
 import { useReducedMotion } from "@/components/ui/motion"
-import { trackFunnelStep } from "@/lib/analytics/conversion-tracking"
 import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
 import { isValidCertCategory } from "@/lib/marketing/med-cert-selector"
 import {
@@ -43,47 +42,18 @@ import {
   type UnifiedServiceType,
   type UnifiedStepId,
 } from "@/lib/request/step-registry"
-import { evaluateSafety, type SafetyEvaluationResult } from "@/lib/safety"
+import { type SafetyEvaluationResult } from "@/lib/safety"
 
 import { ConnectionBanner } from "./connection-banner"
 import { FlowErrorScreen } from "./flow-error-screen"
 import { useFlowAnalytics } from "./hooks/use-flow-analytics"
+import { useFlowNavigation } from "./hooks/use-flow-navigation"
 import { useSwipeNavigation } from "./hooks/use-swipe-navigation"
 import { useUnsavedChanges } from "./hooks/use-unsaved-changes"
 import { ServiceHubScreen } from "./service-hub-screen"
 import { StepRouter } from "./step-router"
 import { useRequestStore } from "./store"
 
-// Map UnifiedServiceType → safety config slug for client-side pre-check
-// Must match server-side getServiceSlug() in lib/stripe/checkout.ts
-function getSafetySlug(serviceType: UnifiedServiceType, answers: Record<string, unknown>): string {
-  switch (serviceType) {
-    case 'med-cert':
-      return 'med-cert-sick'
-    case 'prescription':
-    case 'repeat-script':
-      return 'common-scripts'
-    case 'consult': {
-      const subtype = answers.consultSubtype as string | undefined
-      if (subtype === 'weight_loss') return 'weight-loss'
-      if (subtype === 'ed') return 'consult'
-      return 'consult'
-    }
-    default:
-      return 'consult'
-  }
-}
-
-// Steps that trigger a safety pre-check when completed
-// These are the first clinical steps per service - catch blocks early
-const SAFETY_PRE_CHECK_STEPS = new Set([
-  'symptoms',          // med-cert: after symptom selection
-  'medication',        // prescription/repeat-script: after medication selection
-  'medical-history',   // shared: after medical history (catches drug interactions)
-  'ed-health',         // ED consult: after health screening (nitrates, cardiac, medical history)
-  'weight-loss-assessment', // Weight loss: after BMI/screening
-  'consult-reason',    // General consult: after describing concern
-])
 
 interface HealthProfilePrefill {
   allergies?: string[]
@@ -160,7 +130,6 @@ export function RequestFlow({
     currentStepId,
     direction,
     setServiceType,
-    nextStep,
     prevStep,
     goToStep,
     answers,
@@ -169,7 +138,6 @@ export function RequestFlow({
     setIdentity,
     setAuthContext,
     lastSavedAt,
-    reset,
   } = useRequestStore()
   
   // Rehydrate persisted store after mount (SSR-safe pattern).
@@ -397,140 +365,39 @@ export function RequestFlow({
     canGoBack: currentStepIndex > 0,
   })
 
-  // Handle back navigation with tracking
-  const handleBack = useCallback(() => {
-    posthog?.capture('request_step_back', {
-      service_type: analyticsServiceType,
-      from_step: currentStepId,
-      step_index: currentStepIndex,
-    })
-    
-    if (currentStepIndex > 0) {
-      prevStep()
-    } else {
-      router.back()
-    }
-  }, [currentStepIndex, currentStepId, analyticsServiceType, prevStep, router, posthog])
-
-  // Handle next navigation with tracking + safety pre-check
-  const handleNext = useCallback(() => {
-    trackStepCompleted()
-
-    // Run safety pre-check when leaving key clinical steps
-    // This catches emergencies and hard blocks EARLY, before the patient
-    // invests more time filling out details + payment info.
-    // Full server-side check still runs at checkout as a backstop.
-    if (effectiveService && SAFETY_PRE_CHECK_STEPS.has(currentStepId)) {
-      const slug = getSafetySlug(effectiveService, answers)
-      const result = evaluateSafety(slug, answers)
-
-      if (result.outcome === 'DECLINE' || result.outcome === 'REQUIRES_CALL') {
-        posthog?.capture('safety_precheck_blocked', {
-          service_type: analyticsServiceType,
-          step_id: currentStepId,
-          outcome: result.outcome,
-          risk_tier: result.riskTier,
-          triggered_rules: result.triggeredRules.map(r => r.ruleId),
-        })
-        setSafetyBlock(result)
-        return // Don't advance - show safety block dialog
-      }
-    }
-
-    nextStep()
-  }, [trackStepCompleted, analyticsServiceType, currentStepId, nextStep, posthog, effectiveService, answers])
-
-  // Handle flow completion with tracking
-  const handleComplete = useCallback(() => {
-    posthog?.capture('request_flow_completed', {
-      service_type: analyticsServiceType,
-      total_steps: activeSteps.length,
-      is_authenticated: isAuthenticated,
-    })
-    void trackFunnelStep('intake_complete', analyticsServiceType, patientEmail)
-    router.push('/patient/intakes/success')
-  }, [analyticsServiceType, activeSteps.length, isAuthenticated, router, posthog, patientEmail])
-
-  // Handle exit with tracking
-  const handleExit = useCallback(() => {
-    const subtype = (answers.consultSubtype as string | undefined) ?? undefined
-    posthog?.capture('intake_abandoned', {
-      service_type: analyticsServiceType,
-      step_id: currentStepId,
-      step_number: currentStepIndex + 1,
-      subtype,
-    })
-    // Full page navigation to avoid white-page from layout mismatch
-    window.location.href = '/'
-  }, [analyticsServiceType, currentStepId, currentStepIndex, answers.consultSubtype, posthog])
-
-  // Handle draft restoration
-  const handleRestoreDraft = useCallback(() => {
-    setShowDraftBanner(false)
-    posthog?.capture('request_draft_restored', { service_type: analyticsServiceType })
-  }, [analyticsServiceType, posthog])
-
-  // Handle draft discard
-  const handleDiscardDraft = useCallback(() => {
-    setShowDraftBanner(false)
-    reset()
-    if (initialService) {
-      setServiceType(initialService)
-    }
-    posthog?.capture('request_draft_discarded', { service_type: analyticsServiceType })
-  }, [reset, initialService, setServiceType, analyticsServiceType, posthog])
-
-  // Handle consult subtype mismatch - resume existing draft
-  const handleResumeDraft = useCallback(() => {
-    setShowSubtypeMismatch(false)
-    // Keep the draft subtype (don't change consultSubtype in store)
-    // Navigate to the draft's subtype URL for consistency
-    if (draftSubtype) {
-      router.replace(`/request?service=consult&subtype=${draftSubtype}`)
-    }
-    posthog?.capture('consult_draft_resumed', { 
-      service_type: analyticsServiceType,
-      draft_subtype: draftSubtype,
-      url_subtype: initialSubtype,
-    })
-  }, [draftSubtype, initialSubtype, analyticsServiceType, router, posthog])
-
-  // Handle consult subtype mismatch - start fresh with URL subtype
-  const handleStartFreshSubtype = useCallback(() => {
-    setShowSubtypeMismatch(false)
-    // Clear only consult-related answers and apply URL subtype
-    setAnswer('consultSubtype', initialSubtype)
-    setAnswer('consultCategory', undefined)
-    setAnswer('consultDetails', undefined)
-    // Clear any subtype-specific answers
-    setAnswer('edOnset', undefined)
-    setAnswer('edFrequency', undefined)
-    setAnswer('hairPattern', undefined)
-    setAnswer('womensHealthOption', undefined)
-    setAnswer('currentWeight', undefined)
-    setAnswer('preferredTimeSlot', undefined)
-    
-    posthog?.capture('consult_draft_cleared_for_new_subtype', { 
-      service_type: analyticsServiceType,
-      old_subtype: draftSubtype,
-      new_subtype: initialSubtype,
-    })
-  }, [initialSubtype, draftSubtype, analyticsServiceType, setAnswer, posthog])
-
-  // Handle step click (navigate to a previous step)
-  const handleStepClick = useCallback((stepId: string, stepIndex: number) => {
-    if (stepIndex === currentStepIndex) return // Already on this step
-    
-    posthog?.capture('request_step_jumped', {
-      service_type: analyticsServiceType,
-      from_step: currentStepId,
-      to_step: stepId,
-      from_index: currentStepIndex,
-      to_index: stepIndex,
-    })
-    
-    goToStep(stepId as Parameters<typeof goToStep>[0])
-  }, [currentStepIndex, currentStepId, analyticsServiceType, goToStep, posthog])
+  const {
+    handleBack,
+    handleNext,
+    handleComplete,
+    handleExit,
+    handleRestoreDraft,
+    handleDiscardDraft,
+    handleResumeDraft,
+    handleStartFreshSubtype,
+    handleStepClick,
+    handleExitWithConfirm,
+    confirmExit,
+    handleSelectService,
+  } = useFlowNavigation({
+    initialService,
+    initialSubtype,
+    posthog,
+    analyticsServiceType,
+    patientEmail,
+    trackStepCompleted,
+    currentStepId,
+    currentStepIndex,
+    effectiveService,
+    answers,
+    activeSteps,
+    isAuthenticated,
+    hasUnsavedChanges,
+    setShowExitConfirm,
+    setSafetyBlock,
+    draftSubtype,
+    setShowDraftBanner,
+    setShowSubtypeMismatch,
+  })
 
   // Keyboard navigation: Escape to go back
   // Note: Enter to continue is handled by individual step components
@@ -539,21 +406,6 @@ export function RequestFlow({
     onBack: handleBack,
     enabled: !showExitConfirm,
   })
-
-  // Handle exit with confirmation for unsaved changes
-  const handleExitWithConfirm = useCallback(() => {
-    if (hasUnsavedChanges && currentStepIndex > 0) {
-      setShowExitConfirm(true)
-    } else {
-      handleExit()
-    }
-  }, [hasUnsavedChanges, currentStepIndex, handleExit, setShowExitConfirm])
-
-  // Confirm exit
-  const confirmExit = useCallback(() => {
-    setShowExitConfirm(false)
-    handleExit()
-  }, [handleExit, setShowExitConfirm])
 
   // Service name for display
   const serviceName = useMemo(() => {
@@ -565,22 +417,6 @@ export function RequestFlow({
     }
     return serviceType ? names[serviceType] : 'request'
   }, [serviceType])
-
-  // Handle service selection from hub
-  const handleSelectService = useCallback((service: UnifiedServiceType, consultSubtype?: string) => {
-    // Set the service type (does not reset other drafts)
-    setServiceType(service)
-
-    // Set consultSubtype in answers so step registry branches correctly.
-    // The mount-only effect (line ~263) handles direct URL navigation,
-    // but client-side navigation from the hub doesn't remount the component.
-    if (service === 'consult' && consultSubtype) {
-      setAnswer('consultSubtype', consultSubtype)
-      router.push(`/request?service=${service}&subtype=${consultSubtype}`)
-    } else {
-      router.push(`/request?service=${service}`)
-    }
-  }, [setServiceType, setAnswer, router])
 
   // No service param provided - show service hub
   if (initialService === null && !rawServiceParam) {
