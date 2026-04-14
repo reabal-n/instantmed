@@ -1031,8 +1031,8 @@ export const highIntentSeoArticles: Article[] = [
       { title: 'GP Consultation', description: 'Discuss your health', href: '/consult', icon: 'consult' }
     ],
     seo: {
-      title: 'WFH Sick Certificate | Do You Need One? | InstantMed',
-      description: 'If you\'re sick but can work from home, do you need a medical certificate? Understand your options and workplace expectations.',
+      title: 'Work From Home Sick Certificate | Do You Need One? | InstantMed',
+      description: 'Sick but working from home? Find out whether you need a certificate, what your employer can ask, and how to get one online without leaving the house.',
       keywords: ['wfh sick certificate', 'work from home sick leave', 'remote work sick note', 'medical certificate working from home']
     }
   }

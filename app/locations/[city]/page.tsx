@@ -474,23 +474,24 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!cityData) return {}
 
   return {
-    title: `Online Doctor ${cityData.name} | Telehealth ${cityData.state}`,
-    description: `Online doctor consults in ${cityData.name}. Med certs & scripts from AHPRA-registered doctors. Serving ${cityData.state}.`,
+    title: `Online Doctor ${cityData.name} | Med Certs from ${PRICING_DISPLAY.MED_CERT} | InstantMed`,
+    description: `Skip the ${cityData.name} GP queue. AHPRA-registered Australian doctors review online. Med certs from ${PRICING_DISPLAY.MED_CERT}, repeat scripts. No appointment needed.`,
     keywords: [
       `online doctor ${cityData.name.toLowerCase()}`,
       `telehealth ${cityData.name.toLowerCase()}`,
       `medical certificate ${cityData.name.toLowerCase()}`,
       `online prescription ${cityData.name.toLowerCase()}`,
+      `doctor ${cityData.name.toLowerCase()}`,
     ],
     openGraph: {
       title: `Online Doctor ${cityData.name} | InstantMed`,
-      description: `Telehealth consultations for ${cityData.name} residents. Fast, affordable, and convenient.`,
+      description: `Skip the ${cityData.name} GP queue. AHPRA-registered Australian doctors review online. Med certs from ${PRICING_DISPLAY.MED_CERT}, repeat scripts. No appointment needed.`,
       url: `https://instantmed.com.au/locations/${city}`,
     },
     twitter: {
       card: "summary_large_image",
       title: `Online Doctor ${cityData.name} | InstantMed`,
-      description: `Telehealth consultations for ${cityData.name} residents. Fast, affordable, and convenient.`,
+      description: `Skip the ${cityData.name} GP queue. AHPRA-registered Australian doctors review online. Med certs from ${PRICING_DISPLAY.MED_CERT}, repeat scripts. No appointment needed.`,
     },
     alternates: {
       canonical: `https://instantmed.com.au/locations/${city}`,

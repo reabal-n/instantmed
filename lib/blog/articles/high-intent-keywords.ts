@@ -796,7 +796,7 @@ export const highIntentKeywordArticles: Article[] = [
     relatedArticles: ['medical-certificate-for-work', 'sick-leave-certificate-online-australia', 'same-day-medical-certificate'],
     seo: {
       title: 'Online Doctor Certificate for Work | Valid & Accepted | InstantMed',
-      description: 'Get a valid doctor certificate for work from an online AHPRA-registered doctor. Accepted by all Australian employers. Fast delivery.',
+      description: 'Get a valid doctor certificate for work without leaving home. AHPRA-registered doctors, accepted by all Australian employers. From $19.95.',
       keywords: ['online doctor certificate for work', 'doctor certificate online', 'medical certificate for work online', 'work sick certificate online', 'telehealth medical certificate']
     }
   },

@@ -2279,7 +2279,7 @@ export const phase4ExpansionArticles: Article[] = [
       { title: 'Medical Certificate', description: 'Carer\'s leave and school absence', href: '/medical-certificate/carer', icon: 'certificate' },
       { title: 'GP Consultation', description: 'Discuss your child\'s health', href: '/consult', icon: 'consult' },
     ],
-    seo: { title: 'Medical Certificates When Your Child Is Sick | InstantMed', description: 'Get a medical certificate for carer\'s leave or school absence when your child is sick. No need to take them to a clinic.', keywords: ['sick child medical certificate', 'carers leave certificate', 'school absence certificate child'] },
+    seo: { title: "Child Sick? Get a Carer's Leave Certificate Online | InstantMed", description: "No GP visit needed. Get a carer's leave or school absence certificate online. AHPRA-registered doctors, from $19.95, fast delivery.", keywords: ['sick child medical certificate', 'carers leave certificate', 'school absence certificate child'] },
   },
   {
     slug: 'remote-workers-telehealth',
@@ -2723,7 +2723,7 @@ export const phase4ExpansionArticles: Article[] = [
     ],
     seo: {
       title: 'How to Get a Mental Health Certificate for Work | InstantMed',
-      description: 'Mental health days are valid sick leave in Australia. Learn how to get a medical certificate for mental health, your rights under the Fair Work Act, and what employers can ask.',
+      description: 'Mental health days are valid sick leave under the Fair Work Act. Get a certificate online. No waiting room, no awkward explanation to a GP. From $19.95.',
       keywords: ['mental health certificate work', 'mental health day sick leave', 'mental health medical certificate', 'fair work act mental health', 'mental health day australia'],
     },
   },
@@ -2933,8 +2933,8 @@ export const phase4ExpansionArticles: Article[] = [
       { title: 'Repeat Prescriptions', description: 'Renew your prescriptions', href: '/prescriptions', icon: 'prescription' },
     ],
     seo: {
-      title: 'Is Telehealth Bulk Billed in Australia? | InstantMed',
-      description: 'Find out if telehealth is bulk billed in Australia. Medicare eligibility, private telehealth costs, PBS subsidies, gap fees, and what you actually pay explained.',
+      title: 'Telehealth Bulk Billing Australia | What You Actually Pay | InstantMed',
+      description: 'Most telehealth is not bulk billed. Find out who qualifies for Medicare rebates, what private telehealth costs, and whether the gap is worth paying.',
       keywords: ['telehealth bulk billed', 'is telehealth free australia', 'telehealth medicare rebate', 'bulk billing telehealth', 'private telehealth cost australia'],
     },
   },
