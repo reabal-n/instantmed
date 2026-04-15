@@ -44,19 +44,25 @@ const nextConfig = {
     }]
   },
   webpack(config) {
-    // Find Next.js's default SVG rule (asset/resource or file-loader) and
-    // exclude our sticker SVGs from it so SVGR can handle them instead.
-    const defaultSvgRule = config.module.rules.find(
-      (rule) => rule.test instanceof RegExp && rule.test.test('.svg')
-    )
-    if (defaultSvgRule) {
-      defaultSvgRule.exclude = /\.svg$/i
+    // Walk ALL rules (including nested oneOf arrays) and exclude SVGs from
+    // any existing rule that would otherwise match them. Next.js 15 may nest
+    // the asset/resource SVG rule inside a oneOf array, so a shallow find()
+    // won't always reach it.
+    function excludeSvgFromRule(rules) {
+      for (const rule of rules) {
+        if (rule.test instanceof RegExp && rule.test.test('.svg')) {
+          rule.exclude = /\.svg$/i
+        }
+        if (Array.isArray(rule.oneOf)) excludeSvgFromRule(rule.oneOf)
+      }
     }
+    excludeSvgFromRule(config.module.rules)
 
-    // Handle *.svg imports from JS/TS as React components via @svgr/webpack
+    // Handle ALL *.svg imports as React components via @svgr/webpack.
+    // No issuer restriction — the issuer condition can fail to match in
+    // Next.js's server compilation pass, leaving SVGs with no loader at all.
     config.module.rules.push({
       test: /\.svg$/i,
-      issuer: /\.[jt]sx?$/,
       use: [{
         loader: '@svgr/webpack',
         options: {
