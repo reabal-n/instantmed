@@ -36,9 +36,9 @@ export function MorningSkyBackground({ className }: MorningSkyBackgroundProps) {
           }}
         />
 
-        {/* Cloud shapes */}
+        {/* Cloud shapes — blur reduced to 8-20px (was 40-60px); CSS kills them entirely on mobile */}
         <div
-          className="absolute rounded-full"
+          className="morning-sky-cloud absolute rounded-full"
           style={{
             background:
               "radial-gradient(ellipse, rgba(255,255,255,0.6) 0%, transparent 70%)",
@@ -46,14 +46,14 @@ export function MorningSkyBackground({ className }: MorningSkyBackgroundProps) {
             height: "20%",
             top: "8%",
             left: "15%",
-            filter: "blur(40px)",
+            filter: "blur(20px)",
             animation: prefersReducedMotion
               ? "none"
               : "cloud-drift-1 60s ease-in-out infinite",
           }}
         />
         <div
-          className="absolute rounded-full"
+          className="morning-sky-cloud absolute rounded-full"
           style={{
             background:
               "radial-gradient(ellipse, rgba(255,255,255,0.45) 0%, transparent 70%)",
@@ -61,14 +61,14 @@ export function MorningSkyBackground({ className }: MorningSkyBackgroundProps) {
             height: "18%",
             top: "15%",
             right: "10%",
-            filter: "blur(50px)",
+            filter: "blur(20px)",
             animation: prefersReducedMotion
               ? "none"
               : "cloud-drift-2 80s ease-in-out infinite",
           }}
         />
         <div
-          className="absolute rounded-full"
+          className="morning-sky-cloud absolute rounded-full"
           style={{
             background:
               "radial-gradient(ellipse, rgba(255,255,255,0.35) 0%, transparent 70%)",
@@ -76,7 +76,7 @@ export function MorningSkyBackground({ className }: MorningSkyBackgroundProps) {
             height: "15%",
             top: "30%",
             left: "30%",
-            filter: "blur(60px)",
+            filter: "blur(16px)",
             animation: prefersReducedMotion
               ? "none"
               : "cloud-drift-3 70s ease-in-out infinite",
@@ -84,7 +84,7 @@ export function MorningSkyBackground({ className }: MorningSkyBackgroundProps) {
         />
         {/* Warm dawn accent */}
         <div
-          className="absolute rounded-full"
+          className="morning-sky-cloud absolute rounded-full"
           style={{
             background:
               "radial-gradient(ellipse, rgba(240,180,160,0.12) 0%, transparent 70%)",
@@ -92,7 +92,7 @@ export function MorningSkyBackground({ className }: MorningSkyBackgroundProps) {
             height: "25%",
             top: "5%",
             right: "5%",
-            filter: "blur(60px)",
+            filter: "blur(16px)",
             animation: prefersReducedMotion
               ? "none"
               : "cloud-drift-2 90s ease-in-out infinite reverse",
@@ -132,7 +132,7 @@ export function MorningSkyBackground({ className }: MorningSkyBackgroundProps) {
         />
         {/* Teal nebula wash */}
         <div
-          className="absolute rounded-full"
+          className="morning-sky-cloud absolute rounded-full"
           style={{
             background:
               "radial-gradient(ellipse, rgba(93,184,201,0.06) 0%, transparent 70%)",
@@ -140,7 +140,7 @@ export function MorningSkyBackground({ className }: MorningSkyBackgroundProps) {
             height: "35%",
             top: "10%",
             left: "20%",
-            filter: "blur(80px)",
+            filter: "blur(30px)",
           }}
         />
       </div>

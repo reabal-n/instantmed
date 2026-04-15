@@ -38,6 +38,40 @@ export default function TermsPage() {
             <div className="mx-auto max-w-3xl">
               <div className="bg-white dark:bg-card rounded-2xl border border-border/50 dark:border-white/10 shadow-md shadow-primary/[0.06] p-8 sm:p-12 divide-y divide-border/40">
 
+                {/* Table of contents */}
+                <nav aria-label="Contents" className="pb-8">
+                  <p className="text-xs font-semibold text-muted-foreground/60 uppercase tracking-wider mb-3">Contents</p>
+                  <ol className="grid sm:grid-cols-2 gap-x-6 gap-y-1.5 list-none">
+                    {[
+                      [1, "Acceptance of Terms"],
+                      [2, "Eligibility"],
+                      [3, "Nature of Services"],
+                      [4, "Medical Disclaimer"],
+                      [5, "Fees, Payment, and Refunds"],
+                      [6, "Prescriptions"],
+                      [7, "Telehealth Consent"],
+                      [8, "AI-Assisted Services"],
+                      [9, "Record Retention"],
+                      [10, "Service Availability"],
+                      [11, "Limitation of Liability"],
+                      [12, "Dispute Resolution"],
+                      [13, "Governing Law"],
+                      [14, "Account Termination"],
+                      [15, "Contact"],
+                    ].map(([n, title]) => (
+                      <li key={n}>
+                        <a
+                          href={`#section-${n}`}
+                          className="flex items-baseline gap-2 text-sm text-muted-foreground hover:text-primary transition-colors group"
+                        >
+                          <span className="text-[10px] font-mono text-muted-foreground/40 group-hover:text-primary/50 shrink-0 w-4">{n}.</span>
+                          {title}
+                        </a>
+                      </li>
+                    ))}
+                  </ol>
+                </nav>
+
                 <LegalSection number="1" title="Acceptance of Terms">
                   <p>
                     By accessing or using InstantMed&apos;s services, you agree to be bound by these Terms of

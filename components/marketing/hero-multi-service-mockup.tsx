@@ -22,7 +22,8 @@ export function HeroMultiServiceMockup() {
       <motion.div
         className="absolute inset-x-2 top-0 rounded-2xl bg-gradient-to-br from-violet-50 to-white dark:from-violet-950/20 dark:to-card border border-violet-200/40 dark:border-violet-800/20 shadow-md shadow-violet-500/[0.08] dark:shadow-none p-4 rotate-2 origin-center"
         initial={animate ? { y: 20, opacity: 0 } : {}}
-        animate={{ y: 0, opacity: 1 }}
+        whileInView={{ y: 0, opacity: 1 }}
+        viewport={{ once: true }}
         transition={{ duration: 0.5, delay: 0.1, ease: "easeOut" }}
       >
         <div className="flex items-center justify-between">
@@ -47,7 +48,8 @@ export function HeroMultiServiceMockup() {
       <motion.div
         className="absolute inset-x-1 top-[100px] rounded-2xl bg-gradient-to-br from-cyan-50 to-white dark:from-cyan-950/20 dark:to-card border border-cyan-200/40 dark:border-cyan-800/20 shadow-lg shadow-cyan-500/[0.08] dark:shadow-none p-4 -rotate-1 origin-center"
         initial={animate ? { y: 20, opacity: 0 } : {}}
-        animate={{ y: 0, opacity: 1 }}
+        whileInView={{ y: 0, opacity: 1 }}
+        viewport={{ once: true }}
         transition={{ duration: 0.5, delay: 0.3, ease: "easeOut" }}
       >
         <div className="flex items-center justify-between">
@@ -79,7 +81,8 @@ export function HeroMultiServiceMockup() {
       <motion.div
         className="absolute inset-x-0 top-[200px] rounded-2xl bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-950/20 dark:to-card border border-emerald-200/40 dark:border-emerald-800/20 shadow-xl shadow-emerald-500/[0.1] dark:shadow-none p-5 space-y-4"
         initial={animate ? { y: 20, opacity: 0 } : {}}
-        animate={{ y: 0, opacity: 1 }}
+        whileInView={{ y: 0, opacity: 1 }}
+        viewport={{ once: true }}
         transition={{ duration: 0.5, delay: 0.5, ease: "easeOut" }}
       >
         <div className="flex items-center justify-between">

@@ -38,6 +38,38 @@ export default function PrivacyPage() {
             <div className="mx-auto max-w-3xl">
               <div className="bg-white dark:bg-card rounded-2xl border border-border/50 dark:border-white/10 shadow-md shadow-primary/[0.06] p-8 sm:p-12 divide-y divide-border/40">
 
+                {/* Table of contents */}
+                <nav aria-label="Contents" className="pb-8">
+                  <p className="text-xs font-semibold text-muted-foreground/60 uppercase tracking-wider mb-3">Contents</p>
+                  <ol className="grid sm:grid-cols-2 gap-x-6 gap-y-1.5 list-none">
+                    {[
+                      [1, "Introduction"],
+                      [2, "Information We Collect"],
+                      [3, "How We Use Your Information"],
+                      [4, "AI-Assisted Documentation"],
+                      [5, "Third-Party Service Providers"],
+                      [6, "Health Information"],
+                      [7, "Data Security"],
+                      [8, "Your Rights"],
+                      [9, "Cookies and Analytics"],
+                      [10, "Data Retention"],
+                      [11, "Children's Privacy"],
+                      [12, "Data Breach Notification"],
+                      [13, "Contact Us"],
+                    ].map(([n, title]) => (
+                      <li key={n}>
+                        <a
+                          href={`#section-${n}`}
+                          className="flex items-baseline gap-2 text-sm text-muted-foreground hover:text-primary transition-colors group"
+                        >
+                          <span className="text-[10px] font-mono text-muted-foreground/40 group-hover:text-primary/50 shrink-0 w-4">{n}.</span>
+                          {title}
+                        </a>
+                      </li>
+                    ))}
+                  </ol>
+                </nav>
+
                 <LegalSection number="1" title="Introduction">
                   <p>
                     InstantMed (&quot;we&quot;, &quot;our&quot;, or &quot;us&quot;) is committed to protecting your privacy and

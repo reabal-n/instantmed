@@ -492,6 +492,7 @@ function LegitScriptBadge({ config, className }: { config: BadgeConfig; classNam
             alt="LegitScript certified"
             width={26}
             height={28}
+            priority
             unoptimized
             className="h-auto w-auto rounded-sm dark:bg-white/95 dark:p-0.5"
             style={{ width: 26, height: 28 }}

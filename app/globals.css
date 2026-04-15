@@ -3575,6 +3575,15 @@ button:not(.no-micro):active:not(:disabled),
   50% { transform: translateX(15px); }
 }
 
+/* Mobile: remove blur filters from sky clouds entirely — GPU compositing cost is
+   too high on mobile for a decorative effect. The radial gradient alone is enough. */
+@media (max-width: 639px) {
+  .morning-sky-cloud {
+    filter: none !important;
+    animation: none !important;
+  }
+}
+
 @keyframes testimonial-scroll {
   0% { transform: translateY(0); }
   100% { transform: translateY(-50%); }
