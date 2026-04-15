@@ -189,8 +189,8 @@ export function LiveWaitTime({
   if (variant === 'strip') {
     return (
       <motion.div
-        initial={prefersReducedMotion ? {} : { opacity: 0, y: -4 }}
-        animate={{ opacity: 1, y: 0 }}
+        initial={prefersReducedMotion ? {} : { y: -4 }}
+        animate={{ y: 0 }}
         transition={{ duration: 0.3, ease: 'easeOut' }}
         className={cn(
           'py-3.5 px-4',
@@ -260,8 +260,8 @@ export function LiveWaitTime({
   // Card variant - more prominent, grid layout
   return (
     <motion.div
-      initial={prefersReducedMotion ? {} : { opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
+      initial={prefersReducedMotion ? {} : { y: 8 }}
+      animate={{ y: 0 }}
       transition={{ duration: 0.35, ease: 'easeOut' }}
       className={cn(
         'rounded-2xl border border-border dark:border-white/10',

@@ -99,8 +99,8 @@ export function HowItWorksSection({
               <motion.div
                 key={step.number}
                 className="relative"
-                initial={animate ? { opacity: 0, y: 20 } : {}}
-                whileInView={animate ? { opacity: 1, y: 0 } : undefined}
+                initial={animate ? { y: 20 } : {}}
+                whileInView={animate ? { y: 0 } : undefined}
                 viewport={{ once: true, margin: "-50px" }}
                 transition={
                   animate

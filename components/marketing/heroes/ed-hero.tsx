@@ -44,8 +44,8 @@ export function EDHeroSection({
             {/* Doctor availability pill */}
             <motion.div
               className="flex justify-center lg:justify-start mb-4 sm:mb-8"
-              initial={animate ? { opacity: 0, y: -10 } : {}}
-              animate={{ opacity: 1, y: 0 }}
+              initial={animate ? { y: -10 } : {}}
+              animate={{ y: 0 }}
               transition={{ duration: 0.4 }}
             >
               <DoctorAvailabilityPill alwaysAvailable />
@@ -65,8 +65,8 @@ export function EDHeroSection({
             {/* Subheadline */}
             <motion.p
               className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-3 sm:mb-4 leading-relaxed text-balance"
-              initial={animate ? { opacity: 0, y: 12 } : {}}
-              animate={{ opacity: 1, y: 0 }}
+              initial={animate ? { y: 12 } : {}}
+              animate={{ y: 0 }}
               transition={{ duration: 0.4, delay: 0.1 }}
             >
               Fill a short health form. A doctor reviews it and - if
@@ -88,8 +88,8 @@ export function EDHeroSection({
             {/* Rotating secondary proof badge */}
             <motion.div
               className="flex justify-center lg:justify-start mb-6"
-              initial={animate ? { opacity: 0 } : {}}
-              animate={{ opacity: 1 }}
+              initial={animate ? { y: 6 } : {}}
+              animate={{ y: 0 }}
               transition={{ duration: 0.4, delay: 0.15 }}
             >
               <div className="inline-flex items-center gap-1.5 text-xs font-medium text-primary/80 dark:text-primary/70">
@@ -102,8 +102,8 @@ export function EDHeroSection({
             <motion.div
               ref={ctaRef}
               className="flex flex-col sm:flex-row items-center gap-3 justify-center lg:justify-start mb-4 sm:mb-6"
-              initial={animate ? { opacity: 0, y: 12 } : {}}
-              animate={{ opacity: 1, y: 0 }}
+              initial={animate ? { y: 12 } : {}}
+              animate={{ y: 0 }}
               transition={{ duration: 0.4, delay: 0.12 }}
             >
               <MagneticButton>
@@ -139,8 +139,8 @@ export function EDHeroSection({
             {/* Quick quiz anchor - low-commitment engagement hook */}
             <motion.div
               className="flex justify-center lg:justify-start mb-4 sm:mb-6"
-              initial={animate ? { opacity: 0 } : {}}
-              animate={{ opacity: 1 }}
+              initial={animate ? { y: 6 } : {}}
+              animate={{ y: 0 }}
               transition={{ duration: 0.4, delay: 0.18 }}
             >
               <a
@@ -155,8 +155,8 @@ export function EDHeroSection({
             {/* Trust signals - hidden on mobile to keep CTA above fold */}
             <motion.div
               className="hidden sm:flex flex-col gap-2"
-              initial={animate ? { opacity: 0 } : {}}
-              animate={{ opacity: 1 }}
+              initial={animate ? { y: 8 } : {}}
+              animate={{ y: 0 }}
               transition={{ duration: 0.5, delay: 0.3 }}
             >
               <p className="text-xs sm:text-sm text-muted-foreground flex items-center justify-center lg:justify-start gap-2">
@@ -178,8 +178,8 @@ export function EDHeroSection({
             {/* Secondary anchor CTA - desktop only */}
             <motion.div
               className="hidden sm:flex justify-center lg:justify-start mt-4"
-              initial={animate ? { opacity: 0 } : {}}
-              animate={{ opacity: 1 }}
+              initial={animate ? { y: 6 } : {}}
+              animate={{ y: 0 }}
               transition={{ duration: 0.5, delay: 0.45 }}
             >
               <a

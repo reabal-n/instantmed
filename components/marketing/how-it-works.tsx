@@ -119,8 +119,8 @@ export function HowItWorks() {
         {/* Section Header */}
         <motion.div
           className="text-center mb-8 sm:mb-10 lg:mb-12"
-          initial={animate ? { y: 20, opacity: 0 } : false}
-          whileInView={animate ? { opacity: 1, y: 0 } : undefined}
+          initial={animate ? { y: 20 } : false}
+          whileInView={animate ? { y: 0 } : undefined}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
         >
@@ -184,8 +184,8 @@ export function HowItWorks() {
         {/* CTA */}
         <motion.div
           className="mt-8 sm:mt-10 lg:mt-12 text-center"
-          initial={animate ? { y: 10, opacity: 0 } : false}
-          whileInView={animate ? { opacity: 1, y: 0 } : undefined}
+          initial={animate ? { y: 10 } : false}
+          whileInView={animate ? { y: 0 } : undefined}
           viewport={{ once: true }}
           transition={{ delay: 0.3 }}
         >

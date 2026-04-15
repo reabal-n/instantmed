@@ -14,7 +14,7 @@ export function HairLossHeroMockup() {
       {/* Main card */}
       <motion.div
         className="relative rounded-2xl border border-border/50 dark:border-white/15 bg-white dark:bg-card shadow-xl shadow-violet-500/[0.08] overflow-hidden"
-        initial={animate ? { opacity: 0, y: 18 } : {}}
+        initial={animate ? { y: 18 } : {}}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
@@ -55,8 +55,8 @@ export function HairLossHeroMockup() {
       {/* Floating badge */}
       <motion.div
         className="absolute -bottom-3 -right-3 rounded-full bg-white dark:bg-card shadow-lg shadow-violet-500/[0.15] border border-border/50 px-3 py-1.5 text-[11px] font-semibold text-violet-600 dark:text-violet-400"
-        initial={animate ? { opacity: 0, scale: 0.8 } : {}}
-        animate={{ opacity: 1, scale: 1 }}
+        initial={animate ? { scale: 0.8 } : {}}
+        animate={{ scale: 1 }}
         transition={{ duration: 0.4, delay: 0.3 }}
       >
         Doctor-reviewed

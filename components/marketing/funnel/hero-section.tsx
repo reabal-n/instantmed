@@ -37,8 +37,8 @@ export function HeroSection({ config, colors, isDisabled }: HeroSectionProps) {
         {/* Doctor availability pill - same as homepage */}
         <motion.div
           className="flex justify-center lg:justify-start mb-8"
-          initial={prefersReducedMotion ? {} : { opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={prefersReducedMotion ? {} : { y: -10 }}
+          animate={{ y: 0 }}
           transition={{ duration: 0.4 }}
         >
           <DoctorAvailabilityPill alwaysAvailable={config.serviceId === 'med-cert'} />
@@ -67,8 +67,8 @@ export function HeroSection({ config, colors, isDisabled }: HeroSectionProps) {
 
             {/* Subheadline */}
             <motion.p
-              initial={prefersReducedMotion ? {} : { opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={prefersReducedMotion ? {} : { y: 12 }}
+              animate={{ y: 0 }}
               transition={{ duration: 0.4, delay: 0.1 }}
               className={cn('text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mb-6 leading-relaxed text-balance', hasImages ? 'lg:mx-0' : 'mx-auto')}
             >
@@ -78,8 +78,8 @@ export function HeroSection({ config, colors, isDisabled }: HeroSectionProps) {
             {/* Price anchor */}
             <motion.div
               className={cn('flex flex-wrap items-center gap-3 mb-6', hasImages ? 'justify-center lg:justify-start' : 'justify-center')}
-              initial={prefersReducedMotion ? {} : { opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={prefersReducedMotion ? {} : { y: 12 }}
+              animate={{ y: 0 }}
               transition={{ duration: 0.4, delay: 0.12 }}
             >
               <Badge variant="price" shape="pill" size="lg">
@@ -94,8 +94,8 @@ export function HeroSection({ config, colors, isDisabled }: HeroSectionProps) {
 
             {/* CTA + Highlight Badge Row */}
             <motion.div
-              initial={prefersReducedMotion ? {} : { opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={prefersReducedMotion ? {} : { y: 12 }}
+              animate={{ y: 0 }}
               transition={{ duration: 0.4, delay: 0.15 }}
               className={cn('flex flex-col sm:flex-row items-center gap-3 mb-6', hasImages ? 'lg:justify-start' : 'justify-center')}
             >
@@ -142,8 +142,8 @@ export function HeroSection({ config, colors, isDisabled }: HeroSectionProps) {
             {/* Trust signals - compact like homepage */}
             <motion.div
               className="flex flex-col gap-2"
-              initial={prefersReducedMotion ? {} : { opacity: 0 }}
-              animate={{ opacity: 1 }}
+              initial={prefersReducedMotion ? {} : { y: 8 }}
+              animate={{ y: 0 }}
               transition={{ duration: 0.5, delay: 0.3 }}
             >
               {config.hero.reassurances.slice(0, 2).map((item, i) => (
@@ -174,8 +174,8 @@ export function HeroSection({ config, colors, isDisabled }: HeroSectionProps) {
           {hasImages && (
             <motion.div
               className="hidden lg:block relative shrink-0 mt-0"
-              initial={prefersReducedMotion ? {} : { opacity: 0, x: 30 }}
-              animate={{ opacity: 1, x: 0 }}
+              initial={prefersReducedMotion ? {} : { x: 30 }}
+              animate={{ x: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
             >
               <div className="relative">
@@ -195,8 +195,8 @@ export function HeroSection({ config, colors, isDisabled }: HeroSectionProps) {
                 {/* Floating trust badge */}
                 <motion.div
                   className="absolute -bottom-4 -left-6 bg-white dark:bg-card rounded-2xl p-3 shadow-xl shadow-primary/[0.08] dark:shadow-none border border-border/50 dark:border-white/15"
-                  initial={prefersReducedMotion ? {} : { opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
+                  initial={prefersReducedMotion ? {} : { scale: 0.8 }}
+                  animate={{ scale: 1 }}
                   transition={{ duration: 0.5, delay: 0.7 }}
                 >
                   <div className="flex items-center gap-2">

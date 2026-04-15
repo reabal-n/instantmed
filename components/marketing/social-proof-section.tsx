@@ -45,8 +45,8 @@ export function SocialProofSection() {
         {/* Inline stat strip - clean typographic row */}
         <motion.div
           className="flex flex-wrap justify-center items-baseline gap-x-8 gap-y-4 sm:gap-x-12 mb-8 sm:mb-10 lg:mb-12"
-          initial={prefersReducedMotion ? {} : { y: 12, opacity: 0 }}
-          whileInView={{ y: 0, opacity: 1 }}
+          initial={prefersReducedMotion ? {} : { y: 12 }}
+          whileInView={{ y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.4, delay: 0.1 }}
         >

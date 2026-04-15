@@ -123,8 +123,8 @@ export function MedCertIntentPage({ config }: MedCertIntentPageProps) {
             <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               <motion.div
                 className="flex justify-center mb-6"
-                initial={prefersReducedMotion ? {} : { opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
+                initial={prefersReducedMotion ? {} : { y: -10 }}
+                animate={{ y: 0 }}
                 transition={{ duration: 0.5 }}
               >
                 <AvailabilityIndicator variant="badge" service="med-cert" />
@@ -141,8 +141,8 @@ export function MedCertIntentPage({ config }: MedCertIntentPageProps) {
 
                   <motion.p
                     className="text-base sm:text-lg text-muted-foreground max-w-2xl mb-8 leading-relaxed lg:mx-0 mx-auto"
-                    initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
+                    initial={prefersReducedMotion ? {} : { y: 20 }}
+                    animate={{ y: 0 }}
                     transition={{ duration: 0.5, delay: 0.2 }}
                   >
                     {config.heroSubheadline}
@@ -150,8 +150,8 @@ export function MedCertIntentPage({ config }: MedCertIntentPageProps) {
 
                   <motion.div
                     className="flex flex-col sm:flex-row gap-4 items-center lg:justify-start justify-center mb-6"
-                    initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
+                    initial={prefersReducedMotion ? {} : { y: 20 }}
+                    animate={{ y: 0 }}
                     transition={{ duration: 0.5, delay: 0.3 }}
                   >
                     <Button
@@ -177,8 +177,8 @@ export function MedCertIntentPage({ config }: MedCertIntentPageProps) {
 
                   <motion.div
                     className="mb-6"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
+                    initial={{ y: 6 }}
+                    animate={{ y: 0 }}
                     transition={{ duration: 0.5, delay: 0.35 }}
                   >
                     <EmergencyDisclaimer variant="hero" className="text-xs sm:text-sm" />
@@ -187,8 +187,8 @@ export function MedCertIntentPage({ config }: MedCertIntentPageProps) {
 
                 <motion.div
                   className="hidden lg:block relative mt-12 lg:mt-0 shrink-0"
-                  initial={prefersReducedMotion ? {} : { opacity: 0, x: 40 }}
-                  animate={{ opacity: 1, x: 0 }}
+                  initial={prefersReducedMotion ? {} : { x: 40 }}
+                  animate={{ x: 0 }}
                   transition={{ duration: 0.5, delay: 0.5 }}
                 >
                   <div className="relative w-80 xl:w-96 aspect-[4/5] rounded-3xl overflow-hidden shadow-2xl">
@@ -203,8 +203,8 @@ export function MedCertIntentPage({ config }: MedCertIntentPageProps) {
                     <div className="absolute inset-0 bg-gradient-to-t from-black/15 to-transparent" />
                     <motion.div
                       className="absolute bottom-4 left-4 bg-white dark:bg-card shadow-md rounded-xl px-3 py-2 border border-border/50 dark:border-white/15"
-                      initial={prefersReducedMotion ? {} : { opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
+                      initial={prefersReducedMotion ? {} : { y: 10 }}
+                      animate={{ y: 0 }}
                       transition={{ duration: 0.5, delay: 0.9 }}
                     >
                       <div className="flex items-center gap-2">
@@ -217,8 +217,8 @@ export function MedCertIntentPage({ config }: MedCertIntentPageProps) {
 
                 <motion.div
                   className="lg:hidden mt-10 flex justify-center"
-                  initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
+                  initial={prefersReducedMotion ? {} : { y: 20 }}
+                  animate={{ y: 0 }}
                   transition={{ duration: 0.5, delay: 0.5 }}
                 >
                   <div className="relative w-48 h-32 rounded-2xl bg-linear-to-br from-primary/10 to-primary/5 border border-primary/20 p-4 shadow-lg">
@@ -242,8 +242,8 @@ export function MedCertIntentPage({ config }: MedCertIntentPageProps) {
 
               <motion.div
                 className="mt-10"
-                initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
+                initial={prefersReducedMotion ? {} : { y: 20 }}
+                animate={{ y: 0 }}
                 transition={{ duration: 0.5, delay: 0.45 }}
               >
                 <LiveWaitTime variant="compact" services={['med-cert']} />
@@ -251,8 +251,8 @@ export function MedCertIntentPage({ config }: MedCertIntentPageProps) {
 
               <motion.div
                 className="mt-6 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm text-muted-foreground"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
+                initial={{ y: 6 }}
+                animate={{ y: 0 }}
                 transition={{ duration: 0.5, delay: 0.5 }}
               >
                 <span className="font-semibold text-foreground">From ${PRICING.MED_CERT.toFixed(2)}</span>
