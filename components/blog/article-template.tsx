@@ -362,15 +362,6 @@ function FAQSection({ faqs }: { faqs: ArticleFAQ[] }) {
           )
         })}
       </div>
-      {/* Hidden content for crawlers */}
-      <div className="sr-only" aria-hidden="true">
-        {faqs.map((faq, i) => (
-          <div key={`seo-${i}`}>
-            <h3>{faq.question}</h3>
-            <p>{faq.answer}</p>
-          </div>
-        ))}
-      </div>
     </div>
   )
 }
