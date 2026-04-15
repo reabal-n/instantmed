@@ -98,19 +98,22 @@ export const medicationArticles: Article[] = [
   },
   {
     slug: 'pbs-pharmaceutical-benefits-scheme',
-    title: 'Understanding the PBS',
-    subtitle: 'How the Pharmaceutical Benefits Scheme makes medications affordable.',
-    excerpt: 'The PBS subsidises prescription medications in Australia. Learn how it works and how to access PBS pricing.',
+    title: 'PBS Co-Payments 2025-26: How the PBS Works',
+    subtitle: 'How the Pharmaceutical Benefits Scheme makes medications affordable for Australians.',
+    excerpt: 'PBS co-payments are $31.60 for general patients and $7.70 for concession card holders in 2025-26. How the Pharmaceutical Benefits Scheme works and who qualifies.',
     category: 'medications',
     publishedAt: '2024-11-10',
-    updatedAt: '2026-01-10',
+    updatedAt: '2026-04-15',
     readingTime: 3,
     viewCount: 29540,
     author: defaultAuthor,
     heroImage: blogImages.genericHealth,
     heroImageAlt: 'Subsidised medications through PBS',
     content: [
-      { type: 'paragraph', content: 'The Pharmaceutical Benefits Scheme (PBS) is an Australian Government program that subsidises the cost of prescription medications, making them more affordable for everyone.', links: [{ text: 'prescription medications', href: '/blog/online-prescription-australia', title: 'Get a prescription online' }] },
+      { type: 'paragraph', content: 'The Pharmaceutical Benefits Scheme (PBS) subsidises the cost of most prescription medications in Australia. General patients pay up to $31.60 per script; concession card holders pay up to $7.70. The government covers the rest - often $50-200+ per item. Most commonly prescribed medications, including antibiotics, blood pressure drugs, and diabetes medications, are PBS-listed.', links: [
+        { text: 'prescription medications', href: '/blog/online-prescription-australia', title: 'Get a prescription online' },
+        { text: 'antibiotics', href: '/blog/can-you-get-antibiotics-online-australia', title: 'Are antibiotics prescription only in Australia?' }
+      ] },
       { type: 'heading', content: 'How the PBS Works', level: 2 },
       { type: 'paragraph', content: 'The government negotiates prices with pharmaceutical companies and pays part of the cost. You pay a set co-payment amount, and the government covers the rest.' },
       { type: 'heading', content: 'PBS Co-payment Amounts (2025-26)', level: 2 },
@@ -120,26 +123,30 @@ export const medicationArticles: Article[] = [
         ['Safety net (concession)', 'Free', 'After spending $262.80 in a calendar year'],
         ['Safety net (general)', 'Concession rate', 'After spending $1,563.50 in a calendar year'],
       ]},
-      { type: 'callout', variant: 'info', content: 'Co-payment amounts are updated each year on 1 January. Check the PBS website for current rates.' },
+      { type: 'callout', variant: 'info', content: 'Co-payment amounts are updated each year on 1 January. Check the PBS website for current rates. The amounts above are correct for 2025-26.' },
       { type: 'heading', content: 'Who Can Access PBS Pricing?', level: 2 },
       { type: 'list', content: '', items: ['Australian citizens', 'Permanent residents', 'Some visa holders', 'Visitors from countries with reciprocal healthcare agreements'] },
       { type: 'heading', content: 'PBS Safety Net', level: 2 },
       { type: 'paragraph', content: 'If you spend a lot on PBS medications, the Safety Net provides additional savings. Track your spending with a Safety Net card from your pharmacy - ask for one if you do not already have it. Once you reach the annual threshold, costs reduce significantly for the rest of that calendar year.' },
+      { type: 'heading', content: 'PBS Subsidies and Telehealth', level: 2 },
+      { type: 'paragraph', content: 'PBS pricing applies to the medication, not to how the prescription was obtained. A prescription issued via telehealth attracts exactly the same PBS subsidy as one from an in-person GP visit. Whether you see a bulk-billed GP or use a private telehealth service, you pay the same co-payment at the pharmacy.' },
       { type: 'heading', content: 'Non-PBS Medications', level: 2 },
-      { type: 'paragraph', content: 'Not all medications are on the PBS. For non-PBS medications, you pay the full price. Your pharmacist can tell you if a medication is PBS-listed.' },
+      { type: 'paragraph', content: 'Not all medications are on the PBS. For non-PBS medications, you pay the full price, which varies by manufacturer. Your pharmacist can tell you if a medication is PBS-listed and whether a cheaper generic alternative is available.' },
       { type: 'heading', content: 'Getting PBS Pricing', level: 2 },
-      { type: 'list', content: '', items: ['Provide your Medicare card at the pharmacy', 'Concession card holders should show their card', 'The pharmacist applies the correct pricing automatically'] }
+      { type: 'list', content: '', items: ['Provide your Medicare card at the pharmacy', 'Concession card holders should show their card', 'The pharmacist applies the correct pricing automatically', 'eScripts from telehealth services work identically to paper scripts at any pharmacy'] }
     ],
     faqs: [
-      { question: 'Why is my medication not on the PBS?', answer: 'Not all medications are PBS-listed. New medications take time to be added. Some medications may be listed only for specific conditions.' },
-      { question: 'Can I get PBS pricing without a Medicare card?', answer: 'You generally need Medicare eligibility. Visitors from some countries with reciprocal agreements may qualify.' },
-      { question: 'What if I can\'t afford my medication?', answer: 'Ask your pharmacist about generic alternatives. Check if you qualify for a concession card. Some pharmaceutical companies have patient assistance programs.' }
+      { question: 'What are the PBS co-payments for 2025-26?', answer: 'General patients pay up to $31.60 per PBS script. Concession card holders (Pensioner Concession Card, Health Care Card, Commonwealth Seniors Health Card) pay up to $7.70 per script. Once you reach the Safety Net threshold, costs reduce further for the rest of the calendar year.' },
+      { question: 'Does PBS apply to telehealth prescriptions?', answer: 'Yes. PBS subsidies are attached to the medication, not the consultation. A prescription from a telehealth service receives the same PBS subsidy as one from an in-person GP. You pay the standard co-payment at any pharmacy.' },
+      { question: 'Why is my medication not on the PBS?', answer: 'Not all medications are PBS-listed. New medications take time to be added. Some medications may be listed only for specific conditions or patient types.' },
+      { question: 'Can I get PBS pricing without a Medicare card?', answer: 'You generally need Medicare eligibility. Visitors from some countries with reciprocal healthcare agreements (UK, Ireland, New Zealand, and others) may qualify.' },
+      { question: 'What if I can\'t afford my medication?', answer: 'Ask your pharmacist about generic alternatives - they cost the same under PBS but have lower out-of-pocket prices for non-PBS items. Check if you qualify for a concession card. Some pharmaceutical companies have patient assistance programs for expensive non-PBS medications.' }
     ],
     relatedServices: [
       { title: 'Prescription Request', description: 'Request PBS-listed medications', href: '/prescriptions', icon: 'prescription' },
       { title: 'GP Consultation', description: 'Discuss medication options', href: '/consult', icon: 'consult' }
     ],
-    seo: { title: 'PBS Pharmaceutical Benefits Scheme Explained | InstantMed', description: 'PBS co-payments: $31.60 (general) or $7.70 (concession) per script. How the PBS works, safety net thresholds, and who qualifies for subsidised medications.', keywords: ['PBS', 'pharmaceutical benefits scheme', 'PBS medications', 'PBS co-payment', 'medication subsidy australia', 'PBS safety net'] }
+    seo: { title: 'PBS Co-Payments 2025-26 | How the PBS Works | InstantMed', description: 'PBS co-payments are $31.60 (general) or $7.70 (concession) per script in 2025-26. How the Pharmaceutical Benefits Scheme works, safety net thresholds, and who qualifies.', keywords: ['PBS co-payment 2025', 'pharmaceutical benefits scheme', 'PBS medications australia', 'pbs co-payment amount', 'medication subsidy australia', 'PBS safety net', 'pbs prescription cost'] }
   },
   {
     slug: 'generic-vs-brand-medications',

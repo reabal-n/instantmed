@@ -131,7 +131,8 @@ export default async function BlogPostPage({ params }: PageProps) {
       'sick-leave-certificate-online-australia',
       'repeat-prescription-online-australia',
       'online-doctor-certificate-for-work',
-      'how-escripts-work-australia'
+      'how-escripts-work-australia',
+      'antibiotic-prescription-online-australia'
     ]
     const isHowToArticle = howToSlugs.includes(slug)
 
