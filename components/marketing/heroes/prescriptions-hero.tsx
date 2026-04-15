@@ -13,7 +13,6 @@ import {
 import Link from "next/link"
 
 import { EScriptHeroMockup } from "@/components/marketing/mockups/escript-hero-mockup"
-import { RotatingText } from "@/components/marketing/rotating-text"
 import { ClosingCountdown } from "@/components/marketing/shared/closing-countdown"
 import { DoctorAvailabilityPill,TrustBadgeRow } from "@/components/shared"
 import { Button } from "@/components/ui/button"
@@ -22,7 +21,7 @@ import { useReducedMotion } from "@/components/ui/motion"
 import { PRICING, PRICING_DISPLAY } from "@/lib/constants"
 import { SOCIAL_PROOF_DISPLAY } from "@/lib/social-proof"
 
-const ROTATING_BADGES = [
+const STATIC_BADGES = [
   "Sent to your phone",
   "Any pharmacy in Australia",
   "Same-day delivery",
@@ -51,7 +50,7 @@ export function PrescriptionsHeroSection({
             <motion.div
               className="flex justify-center lg:justify-start mb-4 sm:mb-8"
               initial={animate ? { y: -10 } : {}}
-              animate={{ opacity: 1, y: 0 }}
+              animate={{ y: 0 }}
               transition={{ duration: 0.4 }}
             >
               <DoctorAvailabilityPill />
@@ -72,7 +71,7 @@ export function PrescriptionsHeroSection({
             <motion.p
               className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-3 sm:mb-4 leading-relaxed text-balance"
               initial={animate ? { y: 12 } : {}}
-              animate={{ opacity: 1, y: 0 }}
+              animate={{ y: 0 }}
               transition={{ duration: 0.4, delay: 0.1 }}
             >
               An AHPRA-registered GP reviews your request and sends an
@@ -84,24 +83,26 @@ export function PrescriptionsHeroSection({
             <motion.p
               className="text-sm font-semibold text-foreground mb-2 flex items-center justify-center lg:justify-start gap-1.5"
               initial={animate ? { y: 8 } : {}}
-              animate={{ opacity: 1, y: 0 }}
+              animate={{ y: 0 }}
               transition={{ duration: 0.4, delay: 0.11 }}
             >
               {PRICING_DISPLAY.FROM_SCRIPT}
               <span className="text-xs font-normal text-muted-foreground">- no hidden fees</span>
             </motion.p>
 
-            {/* Rotating secondary proof badge */}
+            {/* Static proof chips */}
             <motion.div
-              className="flex justify-center lg:justify-start mb-6"
-              initial={{}}
-              animate={{ opacity: 1 }}
+              className="flex flex-wrap justify-center lg:justify-start gap-x-4 gap-y-1.5 mb-6"
+              initial={animate ? { y: 6 } : {}}
+              animate={{ y: 0 }}
               transition={{ duration: 0.4, delay: 0.15 }}
             >
-              <div className="inline-flex items-center gap-1.5 text-xs font-medium text-primary/80 dark:text-primary/70">
-                <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-primary" />
-                <RotatingText texts={ROTATING_BADGES} interval={3000} />
-              </div>
+              {STATIC_BADGES.map((label) => (
+                <span key={label} className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <CheckCircle2 className="h-3 w-3 shrink-0 text-primary/70" aria-hidden="true" />
+                  {label}
+                </span>
+              ))}
             </motion.div>
 
             {/* CTA */}
@@ -109,7 +110,7 @@ export function PrescriptionsHeroSection({
               ref={ctaRef}
               className="flex flex-col sm:flex-row items-center gap-3 justify-center lg:justify-start mb-4"
               initial={animate ? { y: 12 } : {}}
-              animate={{ opacity: 1, y: 0 }}
+              animate={{ y: 0 }}
               transition={{ duration: 0.4, delay: 0.12 }}
             >
               <MagneticButton>
@@ -123,7 +124,7 @@ export function PrescriptionsHeroSection({
                   <Link href={isDisabled ? "/contact" : "/request?service=prescription"}>
                     {isDisabled
                       ? "Contact us"
-                      : `Renew medication \u2014 $${PRICING.REPEAT_SCRIPT.toFixed(2)}`}
+                      : `Renew medication \u00b7 $${PRICING.REPEAT_SCRIPT.toFixed(2)}`}
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Link>
                 </Button>
@@ -151,8 +152,8 @@ export function PrescriptionsHeroSection({
             {/* Sub-CTA labels */}
             <motion.div
               className="flex flex-col sm:flex-row items-center gap-x-6 gap-y-1 justify-center lg:justify-start mb-4 text-xs text-muted-foreground"
-              initial={{}}
-              animate={{ opacity: 1 }}
+              initial={animate ? { y: 4 } : {}}
+              animate={{ y: 0 }}
               transition={{ duration: 0.4, delay: 0.18 }}
             >
               <span className="flex items-center gap-1">
@@ -166,8 +167,8 @@ export function PrescriptionsHeroSection({
             </motion.div>
             <motion.div
               className="flex flex-col items-center lg:items-start gap-0.5 mb-6"
-              initial={{}}
-              animate={{ opacity: 1 }}
+              initial={animate ? { y: 4 } : {}}
+              animate={{ y: 0 }}
               transition={{ duration: 0.4, delay: 0.2 }}
             >
               <div className="flex flex-col items-center lg:items-start gap-0.5">
@@ -185,8 +186,8 @@ export function PrescriptionsHeroSection({
             {/* Trust signals */}
             <motion.div
               className="hidden sm:flex flex-col gap-2"
-              initial={{}}
-              animate={{ opacity: 1 }}
+              initial={animate ? { y: 4 } : {}}
+              animate={{ y: 0 }}
               transition={{ duration: 0.5, delay: 0.3 }}
             >
               <p className="text-xs sm:text-sm text-muted-foreground flex items-center justify-center lg:justify-start gap-2">
@@ -208,8 +209,8 @@ export function PrescriptionsHeroSection({
             {/* Secondary anchor CTA - desktop only */}
             <motion.div
               className="hidden sm:flex justify-center lg:justify-start mt-4"
-              initial={{}}
-              animate={{ opacity: 1 }}
+              initial={animate ? { y: 4 } : {}}
+              animate={{ y: 0 }}
               transition={{ duration: 0.5, delay: 0.45 }}
             >
               <a

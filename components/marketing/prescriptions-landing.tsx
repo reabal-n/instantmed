@@ -124,7 +124,7 @@ const HOW_IT_WORKS_STEPS = [
     step: 2,
     title: "A real GP reviews it",
     description: "An AHPRA-registered doctor checks your request and medical history.",
-    time: "~30 minutes",
+    time: `~${SOCIAL_PROOF.averageResponseMinutes} min`,
   },
   {
     icon: Smartphone,
@@ -139,7 +139,7 @@ const LANDING_CONFIG: LandingPageConfig = {
   serviceId: "scripts",
   analyticsId: "prescription",
   sticky: {
-    ctaText: `Renew your medication \u2014 $${PRICING.REPEAT_SCRIPT.toFixed(2)}`,
+    ctaText: `Renew your medication \u00b7 $${PRICING.REPEAT_SCRIPT.toFixed(2)}`,
     ctaHref: "/request?service=prescription",
     mobileSummary: `Need your medication? Open ${SOCIAL_PROOF_DISPLAY.operatingHours} AEST.`,
     desktopLabel: `Repeat Medication \u00b7 Open ${SOCIAL_PROOF_DISPLAY.operatingHours} AEST \u00b7 7 days`,

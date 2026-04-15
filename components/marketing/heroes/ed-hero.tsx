@@ -11,18 +11,17 @@ import {
 import Link from "next/link"
 
 import { EDHeroMockup } from "@/components/marketing/mockups/ed-hero-mockup"
-import { RotatingText } from "@/components/marketing/rotating-text"
 import { DoctorAvailabilityPill,TrustBadgeRow } from "@/components/shared"
 import { Button } from "@/components/ui/button"
 import { MagneticButton } from "@/components/ui/magnetic-button"
 import { useReducedMotion } from "@/components/ui/motion"
 import { PRICING, PRICING_DISPLAY } from "@/lib/constants"
 
-const ROTATING_BADGES = [
-  "No call needed",
+const STATIC_BADGES = [
+  "No call required",
   "Discreet packaging",
   "Doctor-reviewed",
-  "Full refund if we can't help",
+  "Full refund if we can\u2019t help",
 ]
 
 export function EDHeroSection({
@@ -44,14 +43,14 @@ export function EDHeroSection({
             {/* Doctor availability pill */}
             <motion.div
               className="flex justify-center lg:justify-start mb-4 sm:mb-8"
-              initial={animate ? { y: -10 } : {}}
-              animate={{ y: 0 }}
+              initial={animate ? { opacity: 0, y: -10 } : {}}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4 }}
             >
               <DoctorAvailabilityPill alwaysAvailable />
             </motion.div>
 
-            {/* Headline - plain h1 with CSS animation so LCP text is visible on first paint */}
+            {/* Headline */}
             <h1
               className="text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight mb-3 sm:mb-6 leading-[1.15] animate-hero-headline"
             >
@@ -65,19 +64,19 @@ export function EDHeroSection({
             {/* Subheadline */}
             <motion.p
               className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-3 sm:mb-4 leading-relaxed text-balance"
-              initial={animate ? { y: 12 } : {}}
-              animate={{ y: 0 }}
+              initial={animate ? { opacity: 0, y: 12 } : {}}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.1 }}
             >
-              Fill a short health form. A doctor reviews it and - if
-              appropriate - sends treatment straight to your phone. No call,
+              Fill a short health form. A doctor reviews it and, if
+              appropriate, sends treatment straight to your phone. No call,
               no waiting room.
             </motion.p>
 
             {/* Price anchor */}
             <motion.p
               className="text-sm font-semibold text-foreground mb-2 flex items-center justify-center lg:justify-start gap-1.5"
-              initial={animate ? { y: 8 } : {}}
+              initial={animate ? { opacity: 0, y: 8 } : {}}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.11 }}
             >
@@ -85,25 +84,27 @@ export function EDHeroSection({
               <span className="text-xs font-normal text-muted-foreground">- no hidden fees</span>
             </motion.p>
 
-            {/* Rotating secondary proof badge */}
+            {/* Static proof chips */}
             <motion.div
-              className="flex justify-center lg:justify-start mb-6"
-              initial={animate ? { y: 6 } : {}}
-              animate={{ y: 0 }}
+              className="flex flex-wrap justify-center lg:justify-start gap-x-4 gap-y-1.5 mb-6"
+              initial={animate ? { opacity: 0 } : {}}
+              animate={{ opacity: 1 }}
               transition={{ duration: 0.4, delay: 0.15 }}
             >
-              <div className="inline-flex items-center gap-1.5 text-xs font-medium text-primary/80 dark:text-primary/70">
-                <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-primary" aria-hidden="true" />
-                <RotatingText texts={ROTATING_BADGES} interval={3000} />
-              </div>
+              {STATIC_BADGES.map((label) => (
+                <span key={label} className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <CheckCircle2 className="h-3 w-3 shrink-0 text-primary/70" aria-hidden="true" />
+                  {label}
+                </span>
+              ))}
             </motion.div>
 
             {/* CTA */}
             <motion.div
               ref={ctaRef}
               className="flex flex-col sm:flex-row items-center gap-3 justify-center lg:justify-start mb-4 sm:mb-6"
-              initial={animate ? { y: 12 } : {}}
-              animate={{ y: 0 }}
+              initial={animate ? { opacity: 0, y: 12 } : {}}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.12 }}
             >
               <MagneticButton>
@@ -114,7 +115,7 @@ export function EDHeroSection({
                   onClick={onCTAClick}
                 >
                   <Link href="/request?service=consult&subtype=ed">
-                    Start assessment - ${PRICING.MENS_HEALTH.toFixed(2)}
+                    Start assessment \u00b7 ${PRICING.MENS_HEALTH.toFixed(2)}
                     <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
                   </Link>
                 </Button>
@@ -127,7 +128,7 @@ export function EDHeroSection({
               </div>
             </motion.div>
 
-            {/* AHPRA + LegitScript trust row - directly below CTA */}
+            {/* AHPRA + LegitScript trust row */}
             <TrustBadgeRow
               badges={[
                 { id: "ahpra", variant: "styled" },
@@ -136,11 +137,11 @@ export function EDHeroSection({
               className="mt-4 justify-center lg:justify-start gap-3"
             />
 
-            {/* Quick quiz anchor - low-commitment engagement hook */}
+            {/* Quiz anchor */}
             <motion.div
               className="flex justify-center lg:justify-start mb-4 sm:mb-6"
-              initial={animate ? { y: 6 } : {}}
-              animate={{ y: 0 }}
+              initial={animate ? { opacity: 0, y: 6 } : {}}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.18 }}
             >
               <a
@@ -152,11 +153,11 @@ export function EDHeroSection({
               </a>
             </motion.div>
 
-            {/* Trust signals - hidden on mobile to keep CTA above fold */}
+            {/* Trust signals - hidden on mobile */}
             <motion.div
               className="hidden sm:flex flex-col gap-2"
-              initial={animate ? { y: 8 } : {}}
-              animate={{ y: 0 }}
+              initial={animate ? { opacity: 0, y: 8 } : {}}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.3 }}
             >
               <p className="text-xs sm:text-sm text-muted-foreground flex items-center justify-center lg:justify-start gap-2">
@@ -178,8 +179,8 @@ export function EDHeroSection({
             {/* Secondary anchor CTA - desktop only */}
             <motion.div
               className="hidden sm:flex justify-center lg:justify-start mt-4"
-              initial={animate ? { y: 6 } : {}}
-              animate={{ y: 0 }}
+              initial={animate ? { opacity: 0, y: 6 } : {}}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.45 }}
             >
               <a
@@ -192,12 +193,12 @@ export function EDHeroSection({
             </motion.div>
           </div>
 
-          {/* Hero product mockup - desktop only, mobile gets version below */}
+          {/* Hero product mockup - desktop only */}
           <div className="hidden lg:block relative shrink-0 mt-0">
             <EDHeroMockup />
           </div>
 
-          {/* Mobile mockup - below text content */}
+          {/* Mobile mockup */}
           <div className="lg:hidden mt-4 w-full max-w-xs mx-auto">
             <EDHeroMockup />
           </div>

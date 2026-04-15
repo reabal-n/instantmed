@@ -15,7 +15,7 @@ const complianceItems = [
   { icon: Building2, text: 'Australian Owned & Operated' },
   { icon: Shield, text: 'AHPRA Registered Doctors', highlight: true },
   { icon: Lock, text: 'Secure & Encrypted' },
-  { icon: CheckCircle2, text: 'Medicare Compliant' },
+  { icon: CheckCircle2, text: 'Privacy Act Protected' },
 ]
 
 /**

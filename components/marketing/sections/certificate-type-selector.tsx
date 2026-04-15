@@ -15,7 +15,6 @@ import { Suspense, useEffect, useRef,useState } from "react"
 import { usePostHog } from "@/components/providers/posthog-provider"
 import { Button } from "@/components/ui/button"
 import { useReducedMotion } from "@/components/ui/motion"
-import { SectionPill } from "@/components/ui/section-pill"
 import { MED_CERT_DURATIONS, PRICING } from "@/lib/constants"
 import {
   CERT_CATEGORIES,
@@ -131,14 +130,11 @@ export function CertificateTypeSelector({
         {/* Header */}
         <motion.div
           className="text-center mb-8"
-          initial={animate ? { y: 20 } : {}}
+          initial={animate ? { opacity: 0, y: 20 } : {}}
           whileInView={animate ? { opacity: 1, y: 0 } : undefined}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
         >
-          <div className="mb-4">
-            <SectionPill>Certificates</SectionPill>
-          </div>
           <h2 className="text-2xl sm:text-3xl font-semibold text-foreground tracking-tight mb-3">
             Which certificate do you need?
           </h2>
@@ -285,7 +281,7 @@ export function CertificateTypeSelector({
               className="text-muted-foreground hover:text-foreground"
             >
               <Link href="/request?service=med-cert">
-                Skip - I&apos;ll choose during the form
+                I&apos;ll choose during the form
                 <ArrowRight
                   className="ml-1.5 h-3.5 w-3.5"
                   aria-hidden="true"

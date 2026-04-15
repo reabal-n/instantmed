@@ -1,11 +1,10 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { ArrowRight, Check, Clock, Shield, Users } from 'lucide-react'
+import { ArrowRight, Check, CheckCircle2, Clock, Shield, Users } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 
-import { RotatingText } from '@/components/marketing/rotating-text'
 import { DoctorAvailabilityPill } from '@/components/shared/doctor-availability-pill'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -23,7 +22,7 @@ interface HeroSectionProps {
 
 export function HeroSection({ config, colors, isDisabled }: HeroSectionProps) {
   const hasImages = config.hero.images?.primary
-  const hasRotatingWords = config.hero.headlineRotatingWords && config.hero.headlineRotatingWords.length > 0
+  const hasStaticBadges = config.hero.headlineRotatingWords && config.hero.headlineRotatingWords.length > 0
   const prefersReducedMotion = useReducedMotion()
 
   return (
@@ -37,8 +36,8 @@ export function HeroSection({ config, colors, isDisabled }: HeroSectionProps) {
         {/* Doctor availability pill - same as homepage */}
         <motion.div
           className="flex justify-center lg:justify-start mb-8"
-          initial={prefersReducedMotion ? {} : { y: -10 }}
-          animate={{ y: 0 }}
+          initial={prefersReducedMotion ? {} : { opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
         >
           <DoctorAvailabilityPill alwaysAvailable={config.serviceId === 'med-cert'} />
@@ -47,17 +46,16 @@ export function HeroSection({ config, colors, isDisabled }: HeroSectionProps) {
         <div className={cn('flex flex-col items-center', hasImages && 'lg:flex-row lg:items-center lg:gap-12 xl:gap-14')}>
           {/* Text content */}
           <div className={cn('flex-1 text-center', hasImages && 'lg:text-left')}>
-            {/* Headline with optional rotating text */}
-            {/* Plain h1 with CSS animation so LCP text is visible on first paint */}
+            {/* Headline */}
             <h1
               className="text-[1.35rem] sm:text-2xl md:text-3xl lg:text-4xl font-semibold tracking-tight text-foreground mb-6 leading-[1.15] animate-hero-headline"
             >
-              {hasRotatingWords ? (
+              {config.hero.headlineGradient ? (
                 <>
                   {config.hero.headline}{' '}
                   <br className="hidden sm:block" />
                   <span className="text-premium-gradient">
-                    <RotatingText texts={config.hero.headlineRotatingWords!} interval={3500} />
+                    {config.hero.headlineGradient}
                   </span>
                 </>
               ) : (
@@ -67,8 +65,8 @@ export function HeroSection({ config, colors, isDisabled }: HeroSectionProps) {
 
             {/* Subheadline */}
             <motion.p
-              initial={prefersReducedMotion ? {} : { y: 12 }}
-              animate={{ y: 0 }}
+              initial={prefersReducedMotion ? {} : { opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.1 }}
               className={cn('text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mb-6 leading-relaxed text-balance', hasImages ? 'lg:mx-0' : 'mx-auto')}
             >
@@ -77,26 +75,43 @@ export function HeroSection({ config, colors, isDisabled }: HeroSectionProps) {
 
             {/* Price anchor */}
             <motion.div
-              className={cn('flex flex-wrap items-center gap-3 mb-6', hasImages ? 'justify-center lg:justify-start' : 'justify-center')}
-              initial={prefersReducedMotion ? {} : { y: 12 }}
-              animate={{ y: 0 }}
+              className={cn('flex flex-wrap items-center gap-3 mb-4', hasImages ? 'justify-center lg:justify-start' : 'justify-center')}
+              initial={prefersReducedMotion ? {} : { opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.12 }}
             >
               <Badge variant="price" shape="pill" size="lg">
-                {config.serviceName} from $${config.pricing.price.toFixed(2)}
+                {config.serviceName} from ${config.pricing.price.toFixed(2)}
               </Badge>
               {config.pricing.originalPrice && (
                 <p className="text-xs text-muted-foreground">
-                  Typically $${config.pricing.originalPrice}+ at a GP clinic
+                  Typically ${config.pricing.originalPrice}+ at a GP clinic
                 </p>
               )}
             </motion.div>
 
+            {/* Static trust chips */}
+            {hasStaticBadges && (
+              <motion.div
+                className={cn('flex flex-wrap gap-x-4 gap-y-1.5 mb-6', hasImages ? 'justify-center lg:justify-start' : 'justify-center')}
+                initial={prefersReducedMotion ? {} : { opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.4, delay: 0.15 }}
+              >
+                {config.hero.headlineRotatingWords!.map((label) => (
+                  <span key={label} className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <CheckCircle2 className="h-3 w-3 shrink-0 text-primary/70" aria-hidden="true" />
+                    {label}
+                  </span>
+                ))}
+              </motion.div>
+            )}
+
             {/* CTA + Highlight Badge Row */}
             <motion.div
-              initial={prefersReducedMotion ? {} : { y: 12 }}
-              animate={{ y: 0 }}
-              transition={{ duration: 0.4, delay: 0.15 }}
+              initial={prefersReducedMotion ? {} : { opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.18 }}
               className={cn('flex flex-col sm:flex-row items-center gap-3 mb-6', hasImages ? 'lg:justify-start' : 'justify-center')}
             >
               {isDisabled ? (
@@ -142,8 +157,8 @@ export function HeroSection({ config, colors, isDisabled }: HeroSectionProps) {
             {/* Trust signals - compact like homepage */}
             <motion.div
               className="flex flex-col gap-2"
-              initial={prefersReducedMotion ? {} : { y: 8 }}
-              animate={{ y: 0 }}
+              initial={prefersReducedMotion ? {} : { opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.3 }}
             >
               {config.hero.reassurances.slice(0, 2).map((item, i) => (
@@ -174,8 +189,8 @@ export function HeroSection({ config, colors, isDisabled }: HeroSectionProps) {
           {hasImages && (
             <motion.div
               className="hidden lg:block relative shrink-0 mt-0"
-              initial={prefersReducedMotion ? {} : { x: 30 }}
-              animate={{ x: 0 }}
+              initial={prefersReducedMotion ? {} : { opacity: 0, x: 30 }}
+              animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
             >
               <div className="relative">
@@ -195,8 +210,8 @@ export function HeroSection({ config, colors, isDisabled }: HeroSectionProps) {
                 {/* Floating trust badge */}
                 <motion.div
                   className="absolute -bottom-4 -left-6 bg-white dark:bg-card rounded-2xl p-3 shadow-xl shadow-primary/[0.08] dark:shadow-none border border-border/50 dark:border-white/15"
-                  initial={prefersReducedMotion ? {} : { scale: 0.8 }}
-                  animate={{ scale: 1 }}
+                  initial={prefersReducedMotion ? {} : { opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 0.5, delay: 0.7 }}
                 >
                   <div className="flex items-center gap-2">

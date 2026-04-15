@@ -78,7 +78,7 @@ const LANDING_CONFIG: LandingPageConfig = {
   sticky: {
     ctaText: `Get your certificate - $${PRICING.MED_CERT.toFixed(2)}`,
     ctaHref: "/request?service=med-cert",
-    mobileSummary: "Doctor available now \u00b7 Available 24/7",
+    mobileSummary: "Med certs 24/7 \u00b7 ~20 min review",
     desktopLabel: "Doctor available now \u00b7 Medical Certificate",
     priceLabel: `From $${PRICING.MED_CERT.toFixed(2)}`,
     desktopCtaText: "Get your certificate",
@@ -193,7 +193,7 @@ function CertComparisonViz() {
           <ComparisonBar
             us={{
               label: "InstantMed",
-              value: "~30 min",
+              value: `~${SOCIAL_PROOF.certTurnaroundMinutes} min`,
               subtext: "Average delivery",
             }}
             them={{
@@ -243,7 +243,10 @@ export function MedCertLanding() {
 
             {/* 4. How It Works */}
             <div data-track-section="how_it_works">
-              <HowItWorksSection onCTAClick={handleHowItWorksCTA} />
+              <HowItWorksSection
+                onCTAClick={handleHowItWorksCTA}
+                ctaText={`Get your certificate - $${PRICING.MED_CERT.toFixed(2)}`}
+              />
             </div>
 
             {/* 6. Time comparison data viz */}

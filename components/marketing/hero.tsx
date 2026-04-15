@@ -6,6 +6,7 @@ import dynamic from 'next/dynamic'
 import type React from "react"
 
 import { LastReviewedSignal } from '@/components/marketing/last-reviewed-signal'
+import { usePatientCount } from '@/lib/hooks/use-patient-count'
 
 // Desktop-only stacked card mockup — never the LCP element, safe for ssr:false
 const HeroMultiServiceMockup = dynamic(
@@ -27,6 +28,8 @@ import { Button } from "@/components/ui/button"
 const LCP_CLASSES = "text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-6 leading-relaxed text-balance"
 
 export function Hero({ children }: { children?: React.ReactNode }) {
+  const patientCount = usePatientCount()
+
   return (
     <section className="relative overflow-hidden pt-6 pb-6 sm:pt-14 sm:pb-18 lg:pt-20 lg:pb-24">
       <div className="mx-auto max-w-5xl px-6 sm:px-8 lg:px-10">
@@ -40,7 +43,8 @@ export function Hero({ children }: { children?: React.ReactNode }) {
 
             {/* Headline - server-rendered static text for LCP */}
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight mb-5 sm:mb-8 leading-[1.15] animate-hero-headline">
-              Skip the GP queue. Certs, scripts, and treatment.
+              Consults, certs, and treatment.{" "}
+              <span className="text-premium-gradient">From your bed.</span>
             </h1>
 
             {/* LCP slot - server-rendered when passed as children, else fallback */}
@@ -73,6 +77,14 @@ export function Hero({ children }: { children?: React.ReactNode }) {
                 </Link>
               </Button>
             </div>
+
+            {/* Patient count */}
+            {patientCount > 0 && (
+              <p className="text-xs text-muted-foreground flex items-center justify-center lg:justify-start gap-1.5 mb-4 sm:mb-5 -mt-4">
+                <CheckCircle2 className="h-3.5 w-3.5 text-success shrink-0" aria-hidden="true" />
+                Trusted by {patientCount.toLocaleString()}+ Australians
+              </p>
+            )}
 
             {/* Trust signals */}
             <div className="hero-trust-enter flex flex-col items-center lg:items-start gap-1">

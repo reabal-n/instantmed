@@ -489,6 +489,7 @@ export function ArticleTemplate({ article, relatedArticles, allArticles = [] }: 
           fill
           className="object-cover"
           priority
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 672px, 750px"
         />
       </div>
 

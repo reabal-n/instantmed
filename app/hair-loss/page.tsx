@@ -16,7 +16,7 @@ export const revalidate = 86400
 
 export const metadata: Metadata = {
   title: { absolute: "Hair Loss Treatment | Online, No GP Visit | InstantMed" },
-  description: `Hair loss assessment from an Australian doctor. Fill out a form — no call, no clinic visit. From $${PRICING.HAIR_LOSS.toFixed(2)}.`,
+  description: `Hair loss assessment from an Australian doctor. Fill out a form, no call, no clinic visit. From $${PRICING.HAIR_LOSS.toFixed(2)}.`,
   keywords: [
     "hair loss treatment australia",
     "hair loss treatment online",
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Hair Loss Treatment | Online, No GP Visit | InstantMed",
     description:
-      "Hair loss treatment online — fill out a form, no call, no clinic visit. Reviewed by an Australian doctor.",
+      "Hair loss treatment online. Fill out a form, no call, no clinic visit. Reviewed by an Australian doctor.",
     url: "https://instantmed.com.au/hair-loss",
     type: "website",
     locale: "en_AU",

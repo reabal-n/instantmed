@@ -34,9 +34,9 @@ const GUIDE_SECTIONS = [
     icon: HeartPulse,
     title: "Understanding erectile dysfunction",
     paragraphs: [
-      "Erectile dysfunction (ED) is more common than most people realise. The Men in Australia Telephone Survey (MATeS, Holden et al., 2005) found that at least one in five Australian men over 40 experience ED regularly, rising to nearly two in three men over 70. It\u2019s not a character flaw or a sign of weakness \u2014 it\u2019s a medical condition with well-understood biology and effective treatments. The reason early medical review matters is that ED is often the first visible symptom of something else going on: most commonly reduced blood flow from cardiovascular disease, but also diabetes, high blood pressure, hormonal changes, certain medications, and psychological factors like stress, anxiety, or depression.",
-      "The underlying mechanism in the majority of cases is vascular. An erection depends on blood flowing into and staying within the penis, which requires healthy arteries, healthy nerves, and the right hormonal signals. When any of those links break down \u2014 narrowed arteries, nerve damage from diabetes, low testosterone, medication side effects \u2014 the result is difficulty achieving or maintaining an erection. Because the blood vessels involved are smaller than those in the heart, ED can be an early warning sign for cardiovascular problems that haven\u2019t caused symptoms elsewhere yet. This is one of the reasons a rushed, chatbot-style assessment is the wrong approach to ED.",
-      "Psychological and situational factors matter too. Performance anxiety, relationship stress, work pressure, poor sleep, alcohol, and recreational drug use can all contribute \u2014 sometimes as the main cause, more often alongside physical factors. A good assessment considers both sides rather than assuming one or the other. For some people the right first step is medication; for others it\u2019s investigating an underlying condition; for others it\u2019s addressing lifestyle factors or talking to a GP or psychologist in person. A responsible online service helps you figure out which.",
+      "Erectile dysfunction (ED) is more common than most people realise. The Men in Australia Telephone Survey (MATeS, Holden et al., 2005) found that at least one in five Australian men over 40 experience ED regularly, rising to nearly two in three men over 70. It\u2019s not a character flaw or a sign of weakness  -  it\u2019s a medical condition with well-understood biology and effective treatments. The reason early medical review matters is that ED is often the first visible symptom of something else going on: most commonly reduced blood flow from cardiovascular disease, but also diabetes, high blood pressure, hormonal changes, certain medications, and psychological factors like stress, anxiety, or depression.",
+      "The underlying mechanism in the majority of cases is vascular. An erection depends on blood flowing into and staying within the penis, which requires healthy arteries, healthy nerves, and the right hormonal signals. When any of those links break down  -  narrowed arteries, nerve damage from diabetes, low testosterone, medication side effects  -  the result is difficulty achieving or maintaining an erection. Because the blood vessels involved are smaller than those in the heart, ED can be an early warning sign for cardiovascular problems that haven\u2019t caused symptoms elsewhere yet. This is one of the reasons a rushed, chatbot-style assessment is the wrong approach to ED.",
+      "Psychological and situational factors matter too. Performance anxiety, relationship stress, work pressure, poor sleep, alcohol, and recreational drug use can all contribute  -  sometimes as the main cause, more often alongside physical factors. A good assessment considers both sides rather than assuming one or the other. For some people the right first step is medication; for others it\u2019s investigating an underlying condition; for others it\u2019s addressing lifestyle factors or talking to a GP or psychologist in person. A responsible online service helps you figure out which.",
     ],
   },
   {
@@ -44,9 +44,9 @@ const GUIDE_SECTIONS = [
     icon: ClipboardCheck,
     title: "How our assessment works",
     paragraphs: [
-      "Our assessment is a structured health questionnaire covering your symptoms, duration, medical history, current medications, and relevant lifestyle factors. It takes most people two to three minutes to complete. The questions are the same ones a GP would ask in a clinic \u2014 they\u2019re designed to surface the information a doctor needs to make a safe prescribing decision, and to flag anything that would make treatment unsafe or require in-person review.",
-      "Once you submit, an AHPRA-registered Australian doctor reviews your questionnaire, typically within one to two hours during operating hours. If the doctor has questions, they\u2019ll message you through the platform \u2014 no video call required unless it\u2019s genuinely needed for safety. If treatment is appropriate, an eScript is sent to your phone by SMS, which you can take to any Australian pharmacy.",
-      "If treatment is not appropriate \u2014 because of a safety issue, because a different cause needs investigation, or because the doctor thinks you should be seen in person \u2014 we tell you directly and issue a full refund. We don\u2019t prescribe anything we\u2019re not comfortable with. We\u2019d rather lose the sale than put someone at risk.",
+      "Our assessment is a structured health questionnaire covering your symptoms, duration, medical history, current medications, and relevant lifestyle factors. It takes most people two to three minutes to complete. The questions are the same ones a GP would ask in a clinic  -  they\u2019re designed to surface the information a doctor needs to make a safe prescribing decision, and to flag anything that would make treatment unsafe or require in-person review.",
+      "Once you submit, an AHPRA-registered Australian doctor reviews your questionnaire, typically within one to two hours during operating hours. If the doctor has questions, they\u2019ll message you through the platform  -  no video call required unless it\u2019s genuinely needed for safety. If treatment is appropriate, an eScript is sent to your phone by SMS, which you can take to any Australian pharmacy.",
+      "If treatment is not appropriate  -  because of a safety issue, because a different cause needs investigation, or because the doctor thinks you should be seen in person  -  we tell you directly and issue a full refund. We don\u2019t prescribe anything we\u2019re not comfortable with. We\u2019d rather lose the sale than put someone at risk.",
     ],
   },
   {
@@ -54,8 +54,8 @@ const GUIDE_SECTIONS = [
     icon: Pill,
     title: "Treatment options we can assess",
     paragraphs: [
-      "The first-line prescription treatments for ED are a class of oral medications your doctor will discuss with you during review. They work by improving blood flow to the penis in response to sexual arousal. They are not aphrodisiacs and do not cause erections on their own \u2014 they only work in combination with normal sexual stimulation. This is the single most important thing to understand about how they work, and a good doctor will always explain it.",
-      "Different oral treatments have different windows of action \u2014 some work for a few hours and are taken shortly before activity, others work over a longer window and can be taken on demand or as a lower daily dose depending on the situation. No single option is objectively \"better\" \u2014 the right choice depends on how often you need treatment, your lifestyle, your other medications, and your medical history. A doctor\u2019s role is to walk through those trade-offs honestly rather than push whatever is in stock.",
+      "The first-line prescription treatments for ED are a class of oral medications your doctor will discuss with you during review. They work by improving blood flow to the penis in response to sexual arousal. They are not aphrodisiacs and do not cause erections on their own  -  they only work in combination with normal sexual stimulation. This is the single most important thing to understand about how they work, and a good doctor will always explain it.",
+      "Different oral treatments have different windows of action  -  some work for a few hours and are taken shortly before activity, others work over a longer window and can be taken on demand or as a lower daily dose depending on the situation. No single option is objectively \"better\"  -  the right choice depends on how often you need treatment, your lifestyle, your other medications, and your medical history. A doctor\u2019s role is to walk through those trade-offs honestly rather than push whatever is in stock.",
       "We can also recommend non-pharmacological approaches where they\u2019re appropriate. Addressing sleep, reducing alcohol, managing stress, exercising regularly, and treating underlying conditions like high blood pressure or diabetes all matter and sometimes make a bigger difference than medication. If the doctor thinks your situation calls for one of those approaches first, they\u2019ll say so rather than defaulting to a script.",
     ],
   },
@@ -64,9 +64,9 @@ const GUIDE_SECTIONS = [
     icon: ShieldAlert,
     title: "Safety, contraindications, and side effects",
     paragraphs: [
-      "Oral ED treatments are not safe for everyone. The single hardest contraindication is nitrate medication \u2014 if you take nitrates for chest pain (glyceryl trinitrate, isosorbide, or similar), combining them with these treatments can cause a life-threatening drop in blood pressure. This is a hard stop, not a precaution. Our safety screening flags nitrates explicitly, and the doctor confirms it as part of their review. We do not prescribe around this rule.",
-      "Other situations where these treatments may not be safe or may need modification include recent heart attack or stroke, uncontrolled high or low blood pressure, severe heart failure, significant liver or kidney disease, and certain eye conditions (NAION). Some medications interact \u2014 particularly alpha-blockers (e.g., tamsulosin, prazosin) used for blood pressure or enlarged prostate, some antifungals, and some HIV medications. Our screening asks about these directly, and the reviewing doctor performs the final clinical check per TGA prescribing guidelines.",
-      "The most common side effects of oral ED treatments are mild and temporary: headache, flushing, nasal congestion, indigestion, or (rarely) visual disturbance. Most people tolerate them well. Rarer but more serious side effects \u2014 sudden vision loss, sudden hearing loss, prolonged painful erection lasting more than four hours \u2014 need urgent medical attention and are discussed with you before you start. Honest, upfront information about risks is part of the service.",
+      "Oral ED treatments are not safe for everyone. The single hardest contraindication is nitrate medication  -  if you take nitrates for chest pain (glyceryl trinitrate, isosorbide, or similar), combining them with these treatments can cause a life-threatening drop in blood pressure. This is a hard stop, not a precaution. Our safety screening flags nitrates explicitly, and the doctor confirms it as part of their review. We do not prescribe around this rule.",
+      "Other situations where these treatments may not be safe or may need modification include recent heart attack or stroke, uncontrolled high or low blood pressure, severe heart failure, significant liver or kidney disease, and certain eye conditions (NAION). Some medications interact  -  particularly alpha-blockers (e.g., tamsulosin, prazosin) used for blood pressure or enlarged prostate, some antifungals, and some HIV medications. Our screening asks about these directly, and the reviewing doctor performs the final clinical check per TGA prescribing guidelines.",
+      "The most common side effects of oral ED treatments are mild and temporary: headache, flushing, nasal congestion, indigestion, or (rarely) visual disturbance. Most people tolerate them well. Rarer but more serious side effects  -  sudden vision loss, sudden hearing loss, prolonged painful erection lasting more than four hours  -  need urgent medical attention and are discussed with you before you start. Honest, upfront information about risks is part of the service.",
     ],
   },
   {
@@ -74,9 +74,9 @@ const GUIDE_SECTIONS = [
     icon: Stethoscope,
     title: "When you should see a GP in person",
     paragraphs: [
-      "Online assessment is a good fit for a lot of ED cases, but not all of them. If your ED started suddenly alongside other symptoms \u2014 new chest pain on exertion, shortness of breath, leg swelling, unexplained weight loss, significant new mood changes, or neurological symptoms like weakness or numbness \u2014 we\u2019ll ask you to see a GP in person before considering medication. Sudden-onset ED with those features can be the first sign of a cardiovascular or neurological issue that needs examination and testing, not a script.",
+      "Online assessment is a good fit for a lot of ED cases, but not all of them. If your ED started suddenly alongside other symptoms  -  new chest pain on exertion, shortness of breath, leg swelling, unexplained weight loss, significant new mood changes, or neurological symptoms like weakness or numbness  -  we\u2019ll ask you to see a GP in person before considering medication. Sudden-onset ED with those features can be the first sign of a cardiovascular or neurological issue that needs examination and testing, not a script.",
       "If you\u2019ve never had a cardiovascular check and have several risk factors (age, family history, smoking, high blood pressure, high cholesterol, diabetes, significant weight gain), a baseline in-person assessment is a good idea before starting treatment. Oral ED treatments are generally safe, but they put extra demand on the heart during sex, and the responsible move is to know your baseline first. Our doctors will tell you if that applies to you.",
-      "We also recommend in-person care when the main contributor looks psychological rather than physical \u2014 persistent low mood, significant anxiety, relationship issues that would benefit from counselling, or trauma. Medication can have a place alongside that work, but it isn\u2019t a substitute for it. If your situation fits this description, the doctor will let you know and, where appropriate, suggest next steps.",
+      "We also recommend in-person care when the main contributor looks psychological rather than physical  -  persistent low mood, significant anxiety, relationship issues that would benefit from counselling, or trauma. Medication can have a place alongside that work, but it isn\u2019t a substitute for it. If your situation fits this description, the doctor will let you know and, where appropriate, suggest next steps.",
     ],
   },
 ] as const
@@ -109,7 +109,7 @@ const TELEHEALTH_STEPS = [
   {
     number: "1",
     title: "Structured form (about 5 minutes)",
-    text: "You\u2019ll answer a short health questionnaire that covers your medical history, current medications, and a few targeted questions about symptoms. There are no video calls required \u2014 most patients are reviewed without any real-time conversation.",
+    text: "You\u2019ll answer a short health questionnaire that covers your medical history, current medications, and a few targeted questions about symptoms. There are no video calls required  -  most patients are reviewed without any real-time conversation.",
   },
   {
     number: "2",
@@ -119,23 +119,23 @@ const TELEHEALTH_STEPS = [
   {
     number: "3",
     title: "eScript delivery to your phone",
-    text: "Same-day is possible when you submit during operating hours. The eScript goes to your nominated pharmacy as a standard electronic prescription \u2014 the pharmacist sees the script, not your assessment.",
+    text: "Same-day is possible when you submit during operating hours. The eScript goes to your nominated pharmacy as a standard electronic prescription  -  the pharmacist sees the script, not your assessment.",
   },
   {
     number: "4",
     title: "Discreet pharmacy collection or delivery",
-    text: "Pharmacies dispense in standard packaging with no indication of contents. Your bank statement shows \u2018InstantMed\u2019 only. The whole loop \u2014 assessment to dispensed medication \u2014 usually closes in under 24 hours.",
+    text: "Pharmacies dispense in standard packaging with no indication of contents. Your bank statement shows \u2018InstantMed\u2019 only. The whole loop  -  assessment to dispensed medication  -  usually closes in under 24 hours.",
   },
 ] as const
 
 const PRIVACY_POINTS = [
   {
     title: "What the pharmacist sees",
-    text: "Only the prescription itself. Dose, quantity, instructions. Not your assessment answers, not your reason for seeking treatment, not your medical history. A standard electronic prescription \u2014 indistinguishable from any other.",
+    text: "Only the prescription itself. Dose, quantity, instructions. Not your assessment answers, not your reason for seeking treatment, not your medical history. A standard electronic prescription  -  indistinguishable from any other.",
   },
   {
     title: "What the bank statement says",
-    text: "\u2018InstantMed\u2019 \u2014 nothing else. No medication name, no service descriptor, no billing code suggesting anything about what was purchased.",
+    text: "\u2018InstantMed\u2019  -  nothing else. No medication name, no service descriptor, no billing code suggesting anything about what was purchased.",
   },
   {
     title: "How the package arrives",

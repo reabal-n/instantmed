@@ -18,6 +18,7 @@ import { ServiceCards } from '@/components/marketing/service-cards'
 // SSR enabled (default) keeps content in HTML for crawlers and CLS prevention.
 const SocialProofSection = dynamic(
   () => import('@/components/marketing/social-proof-section').then(m => ({ default: m.SocialProofSection })),
+  { loading: () => <div className="min-h-[400px]" /> },
 )
 import { CTABanner } from '@/components/sections'
 import { FAQSection } from '@/components/sections'
@@ -28,7 +29,6 @@ import { ReturningPatientBanner } from '@/components/shared/returning-patient-ba
 import { PRICING_DISPLAY } from '@/lib/constants'
 import { getFeatureFlags } from '@/lib/feature-flags'
 import { faqItems } from '@/lib/marketing/homepage'
-import { cn } from '@/lib/utils'
 
 export const revalidate = 3600
 
@@ -36,7 +36,7 @@ export const revalidate = 3600
 // Note: Avoid prescription drug terms (script, prescription) per Google Ads policy for Australia
 export const metadata: Metadata = {
   title: { absolute: 'Online Doctor Australia | Consults, Repeat Rx, Med Certs, ED & Hair Loss | InstantMed' },
-  description: `Doctor consultations from ${PRICING_DISPLAY.CONSULT}. Repeat medication from ${PRICING_DISPLAY.REPEAT_SCRIPT}. Medical certificates from ${PRICING_DISPLAY.MED_CERT} in under 30 minutes. AHPRA-registered Australian GPs, 100% online.`,
+  description: `Doctor consultations from ${PRICING_DISPLAY.CONSULT}. Repeat medication from ${PRICING_DISPLAY.REPEAT_SCRIPT}. Medical certificates from ${PRICING_DISPLAY.MED_CERT} in under 20 minutes. AHPRA-registered Australian GPs, 100% online.`,
   keywords: [
     'online doctor australia',
     'telehealth australia',
@@ -67,11 +67,6 @@ export const metadata: Metadata = {
   alternates: {
     canonical: 'https://instantmed.com.au',
   },
-}
-
-// Loading skeleton for below-the-fold sections
-function SectionSkeleton({ height = 'h-96' }: { height?: string }) {
-  return <div className={cn(height, "animate-pulse bg-muted/20 rounded-xl")} />
 }
 
 // Streamed async component - fetches flags independently so the main page
@@ -107,7 +102,7 @@ export default async function HomePage() {
       <FAQSchema faqs={faqSchemaData} />
       <SpeakableSchema
         name="InstantMed - Online Doctor Australia"
-        description={`Get medical certificates in under 30 minutes, 24/7. Repeat medication and discreet treatment for ED and hair loss from AHPRA-registered Australian doctors. ${PRICING_DISPLAY.FROM_MED_CERT}.`}
+        description={`Get medical certificates in under 20 minutes, 24/7. Repeat medication and discreet treatment for ED and hair loss from AHPRA-registered Australian doctors. ${PRICING_DISPLAY.FROM_MED_CERT}.`}
         url="/"
       />
 
@@ -140,9 +135,7 @@ export default async function HomePage() {
 
         {/* 3. How it works - muted bg for rhythm */}
         <div className="bg-muted/30 dark:bg-white/[0.02]">
-          <Suspense fallback={<SectionSkeleton />}>
-            <HowItWorks />
-          </Suspense>
+          <HowItWorks />
         </div>
 
         {/* 4. Social proof */}

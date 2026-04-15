@@ -109,7 +109,7 @@ export const serviceCategories = [
     title: "General Consult",
     shortTitle: "Consult",
     benefitQuestion: "Need to talk to a doctor?",
-    description: "A full clinical assessment with an AHPRA-registered GP, from your phone",
+    description: "A full clinical assessment with an AHPRA-registered GP. No appointment, no waiting room.",
     icon: "Stethoscope",
     color: "sky",
     priceFrom: 49.95,
@@ -117,7 +117,7 @@ export const serviceCategories = [
     popular: false,
     cta: "Start your consult",
     benefits: [
-      "Phone or video with a real GP",
+      "Full clinical assessment by a real GP",
       "Medication and referrals if needed",
       "Full refund if we can't help",
     ],
@@ -316,7 +316,7 @@ export const faqItems = [
   },
   {
     question: "How fast is it really?",
-    answer: "Medical certificates are typically issued in under 30 minutes, available 24/7. Prescriptions and consultations are reviewed within 1–2 hours during operating hours. You'll get email updates as things progress, so you're not left wondering.",
+    answer: "Medical certificates are typically issued in under 20 minutes, available 24/7. Prescriptions and consultations are reviewed within 1–2 hours during operating hours. You'll get email updates as things progress, so you're not left wondering.",
   },
   {
     question: "Is my information private?",
@@ -340,7 +340,7 @@ export const faqItems = [
   },
   {
     question: "How do prescriptions work?",
-    answer: "A doctor reviews your request and, if clinically appropriate, sends an electronic prescription (eScript) directly to your phone via SMS. Take it to any pharmacy in Australia. No paper scripts, no fax machines, no carrier pigeons.",
+    answer: "A doctor reviews your request and, if clinically appropriate, sends an electronic prescription (eScript) directly to your phone via SMS. Take it to any pharmacy in Australia. No paper scripts, no waiting for a callback.",
   },
   {
     question: "Are you available on weekends and after hours?",

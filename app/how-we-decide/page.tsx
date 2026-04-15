@@ -104,7 +104,7 @@ const declineReasons: ChecklistItem[] = [
   {
     text: "You might need to be seen in person",
     subtext:
-      "Some things really do need a physical exam. It\u2019s not us being difficult \u2014 it\u2019s just the nature of medicine.",
+      "Some things really do need a physical exam. It\u2019s not us being difficult - it\u2019s just the nature of medicine.",
   },
   {
     text: "The medication needs monitoring",
@@ -114,7 +114,7 @@ const declineReasons: ChecklistItem[] = [
   {
     text: "Something sounds more serious",
     subtext:
-      "If your symptoms suggest you should see someone urgently, we\u2019ll tell you. That\u2019s not a decline \u2014 that\u2019s looking out for you.",
+      "If your symptoms suggest you should see someone urgently, we\u2019ll tell you. That\u2019s not a decline - that\u2019s looking out for you.",
   },
   {
     text: "We need more information",
@@ -151,7 +151,7 @@ const safetyFeatures: FeatureItem[] = [
     icon: <StickerIcon name="info" size={48} />,
     title: "Honest about our limits",
     description:
-      "If you need in-person care, we\u2019ll say so. We\u2019re not trying to handle everything \u2014 just the things we can do well.",
+      "If you need in-person care, we\u2019ll say so. We\u2019re not trying to handle everything, just the things we can do well.",
   },
 ]
 

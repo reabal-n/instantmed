@@ -9,7 +9,7 @@ export const revalidate = 86400
 
 export const metadata: Metadata = {
   title: { absolute: "Medical Certificate | Under an Hour, No Call | InstantMed" },
-  description: `Get a medical certificate for work or study in under an hour. Fill out a form — no call, no appointment. From $${PRICING.MED_CERT.toFixed(2)}.`,
+  description: `Get a medical certificate for work or study in under an hour. Fill out a form, no call, no appointment. From $${PRICING.MED_CERT.toFixed(2)}.`,
   keywords: [
     "medical certificate online australia",
     "sick note online",
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Medical Certificate | Under an Hour, No Call | InstantMed",
     description:
-      "Medical certificate for work, uni, or carer's leave in under an hour. Fill out a form — no call, no appointment needed.",
+      "Medical certificate for work, uni, or carer's leave in under an hour. Fill out a form, no call, no appointment needed.",
     url: "https://instantmed.com.au/medical-certificate",
     type: "website",
     locale: "en_AU",
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Medical Certificate | Under an Hour, No Call | InstantMed",
-    description: "Medical certificate in under an hour. Just a form — no call, no video, no waiting room.",
+    description: "Medical certificate in under an hour. Just a form, no call, no video, no waiting room.",
   },
   alternates: {
     canonical: "https://instantmed.com.au/medical-certificate",

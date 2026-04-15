@@ -9,7 +9,6 @@ import { WaitlistForm } from '@/components/marketing/waitlist-form'
 import { type ServiceId,useServiceAvailability } from '@/components/providers/service-availability-provider'
 import { Button } from '@/components/ui/button'
 import { useReducedMotion } from '@/components/ui/motion'
-import { SectionPill } from '@/components/ui/section-pill'
 import { serviceCategories } from '@/lib/marketing/homepage'
 import { cn } from '@/lib/utils'
 
@@ -28,7 +27,7 @@ function useServiceCardVariants() {
   const itemVariants: Variants = prefersReducedMotion
     ? { hidden: {}, visible: {} }
     : {
-        hidden: { y: 24 },
+        hidden: { opacity: 0, y: 24 },
         visible: {
           y: 0,
           opacity: 1,
@@ -223,14 +222,11 @@ export function ServiceCards() {
         {/* Section Header */}
         <motion.div
           className="text-center mb-8 sm:mb-10 lg:mb-12"
-          initial={prefersReducedMotion ? {} : { y: 20 }}
-          whileInView={{ y: 0 }}
+          initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: prefersReducedMotion ? 0 : 0.6 }}
         >
-          <div className="mb-4">
-            <SectionPill>Services</SectionPill>
-          </div>
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-semibold text-foreground tracking-tight mb-3 sm:mb-4">
             What do you need?
           </h2>

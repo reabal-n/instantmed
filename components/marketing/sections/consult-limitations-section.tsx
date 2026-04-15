@@ -17,7 +17,7 @@ export function ConsultLimitationsSection() {
           </p>
           <ul className="grid sm:grid-cols-2 gap-x-6 gap-y-2">
             {[
-              "Emergencies \u2014 call 000 immediately",
+              "Emergencies: call 000 immediately",
               "Conditions requiring physical examination",
               "Schedule 8 drugs (opioids, stimulants)",
               "Workers\u2019 compensation assessments",

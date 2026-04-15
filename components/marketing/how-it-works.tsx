@@ -111,7 +111,7 @@ export function HowItWorks() {
   const animate = !prefersReducedMotion
 
   const stepMockups = [StepOneMockup, StepTwoMockup, StepThreeMockup]
-  const stepBadges = ["~2 min", "~30 min", "Same day"]
+  const stepBadges = ["~2 min", "~20 min", "Same day"]
 
   return (
     <section id="how-it-works" className="py-10 sm:py-16 lg:py-24 scroll-mt-20">
@@ -119,8 +119,8 @@ export function HowItWorks() {
         {/* Section Header */}
         <motion.div
           className="text-center mb-8 sm:mb-10 lg:mb-12"
-          initial={animate ? { y: 20 } : false}
-          whileInView={animate ? { y: 0 } : undefined}
+          initial={animate ? { opacity: 0, y: 20 } : false}
+          whileInView={animate ? { opacity: 1, y: 0 } : undefined}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
         >
@@ -128,7 +128,7 @@ export function HowItWorks() {
             <SectionPill>How it works</SectionPill>
           </div>
           <h2 className="text-2xl sm:text-3xl font-semibold text-foreground mb-2 tracking-tight">
-            Three steps. That&apos;s it.
+            Three steps. No waiting room.
           </h2>
           <p className="text-sm text-muted-foreground">
             No appointments. No phone calls. No admin.
@@ -184,8 +184,8 @@ export function HowItWorks() {
         {/* CTA */}
         <motion.div
           className="mt-8 sm:mt-10 lg:mt-12 text-center"
-          initial={animate ? { y: 10 } : false}
-          whileInView={animate ? { y: 0 } : undefined}
+          initial={animate ? { opacity: 0, y: 10 } : false}
+          whileInView={animate ? { opacity: 1, y: 0 } : undefined}
           viewport={{ once: true }}
           transition={{ delay: 0.3 }}
         >
@@ -200,7 +200,7 @@ export function HowItWorks() {
             </Link>
           </Button>
           <p className="text-xs text-muted-foreground mt-2.5">
-            Reviewed within 1-2 hours, most days.
+            Med certs typically ready in under 20 minutes.
           </p>
         </motion.div>
       </div>
@@ -221,7 +221,7 @@ const steps = [
   },
   {
     number: "3",
-    title: "Done.",
+    title: "Documents delivered",
     description: "Certificate to your inbox. Prescription to your phone. All taken care of.",
   },
 ]

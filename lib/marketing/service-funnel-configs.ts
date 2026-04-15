@@ -12,6 +12,7 @@ export const repeatScriptFunnelConfig: ServiceFunnelConfig = {
   hero: {
     badge: 'Prescribed by Australian GPs',
     headline: 'Repeat medication.',
+    headlineGradient: 'Any pharmacy, same day.',
     headlineRotatingWords: ['Reviewed by Australian GPs.', 'Sent to your phone.', 'Any pharmacy, same day.'],
     subheadline: `For medications you already take. A doctor reviews your request and sends an eScript straight to your phone.`,
     reassurances: [
@@ -244,6 +245,7 @@ export const generalConsultFunnelConfig: ServiceFunnelConfig = {
   hero: {
     badge: 'Australian GP consultations',
     headline: 'See a doctor today.',
+    headlineGradient: 'From your phone.',
     headlineRotatingWords: ['No waiting rooms.', 'Medication if needed.', 'From your phone.'],
     subheadline: `Talk to an AHPRA-registered GP about health concerns, treatment options, or anything you'd normally see a doctor for. Medication may be prescribed by your doctor if clinically appropriate.`,
     reassurances: [

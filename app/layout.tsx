@@ -15,6 +15,7 @@ import { ServiceAvailabilityProvider } from "@/components/providers/service-avai
 import { ServiceWorkerRegistration } from "@/components/pwa/service-worker-registration"
 import { OrganizationSchema, WebSiteSchema } from "@/components/seo"
 import { CookieBanner, LazyOverlays, PageTransitionProvider,ReferralCapture, SkipToContent, UrgentNoticeBanner } from "@/components/shared"
+import { DeferredMount } from "@/components/ui/deferred-mount"
 import { NetworkStatus } from "@/components/ui/error-recovery"
 import { MeshGradientCanvas } from "@/components/ui/morning/mesh-gradient-canvas-loader"
 import { NavigationProgress } from "@/components/ui/morning/navigation-progress"
@@ -150,6 +151,7 @@ export default function RootLayout({
           <link rel="preconnect" href="https://us.posthog.com" />
           <link rel="preconnect" href="https://api.dicebear.com" />
           <link rel="preconnect" href="https://www.googletagmanager.com" />
+          <link rel="preconnect" href="https://images.unsplash.com" />
           <link rel="manifest" href="/manifest.webmanifest" />
 
         </head>
@@ -173,13 +175,17 @@ export default function RootLayout({
                 </div>
                 <Toaster position="top-center" richColors />
                 <LazyOverlays />
-                <Analytics />
-                <WebVitalsReporter />
-                <ServiceWorkerRegistration />
+                <DeferredMount>
+                  <Analytics />
+                  <WebVitalsReporter />
+                  <ServiceWorkerRegistration />
+                </DeferredMount>
                 <Suspense fallback={null}>
                   <ReferralCapture />
                 </Suspense>
-                <CookieBanner />
+                <DeferredMount timeout={3000}>
+                  <CookieBanner />
+                </DeferredMount>
                 </ServiceAvailabilityProvider>
           </ThemeProvider>
           </MotionProvider>

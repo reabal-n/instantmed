@@ -84,7 +84,7 @@ const PricingSection = dynamic(
 
 const PRICING_FEATURES = [
   "Full clinical assessment by an AHPRA-registered GP",
-  "Phone or video consultation",
+  "Doctor assessment, call if needed",
   "Medication if clinically appropriate",
   "Referral letters if needed",
   "Follow-up messaging with your doctor",
@@ -140,7 +140,7 @@ const LANDING_CONFIG: LandingPageConfig = {
   serviceId: "consult",
   analyticsId: "consult",
   sticky: {
-    ctaText: `Start your consult \u2014 $${PRICING.CONSULT.toFixed(2)}`,
+    ctaText: `Start your consult \u00b7 $${PRICING.CONSULT.toFixed(2)}`,
     ctaHref: "/request?service=consult",
     mobileSummary: `Need to see a doctor? Open ${SOCIAL_PROOF_DISPLAY.operatingHours} AEST.`,
     desktopLabel: `General Consult \u00b7 Open ${SOCIAL_PROOF_DISPLAY.operatingHours} AEST \u00b7 7 days`,
@@ -323,14 +323,14 @@ export function GeneralConsultLanding() {
           {/* 3. Pricing */}
           <PricingSection
             title="One flat fee. Save $30\u201370 vs a clinic."
-            subtitle="One flat fee \u2014 no gap fees, no surprises. Same quality of care as in-person."
+            subtitle="One flat fee. No gap fees, no surprises. Same quality of care as in-person."
             price={PRICING.CONSULT}
             originalPrice="~$120"
             features={PRICING_FEATURES}
             ctaText={
               isDisabled
                 ? "Contact us"
-                : `Start your consult \u2014 $${PRICING.CONSULT.toFixed(2)}`
+                : `Start your consult \u00b7 $${PRICING.CONSULT.toFixed(2)}`
             }
             ctaHref={isDisabled ? "/contact" : "/request?service=consult"}
             colors={{

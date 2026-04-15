@@ -45,7 +45,7 @@ export function FinalCtaSection({ config, colors, isDisabled }: FinalCtaSectionP
             </Link>
           </Button>
           <p className="mt-4 text-white/80 text-sm font-medium">
-            From $${config.pricing.price.toFixed(2)} · No account required
+            From ${config.pricing.price.toFixed(2)} · No account required
           </p>
           <p className="mt-1 text-white/60 text-xs">
             Takes about 2 minutes · Full refund if we can&apos;t help

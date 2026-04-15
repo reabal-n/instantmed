@@ -115,7 +115,7 @@ export function DoctorAvailabilityPill({ alwaysAvailable = false }: DoctorAvaila
           <span className="h-3 w-px bg-emerald-300/50 dark:bg-emerald-700/50" />
           <span className="flex items-center gap-1.5 text-xs text-emerald-600/80 dark:text-emerald-400/80">
             <Zap className="w-3 h-3" />
-            <span>Instant approval</span>
+            <span>~20 min avg</span>
           </span>
         </div>
       </motion.div>

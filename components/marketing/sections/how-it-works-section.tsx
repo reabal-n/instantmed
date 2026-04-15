@@ -27,7 +27,7 @@ const MED_CERT_STEPS = [
     title: "A real GP reviews it",
     description:
       "AHPRA-registered doctor reviews your request. Same standards as in-person.",
-    badge: "~30 min",
+    badge: "~20 min",
   },
   {
     number: "3",
@@ -38,14 +38,11 @@ const MED_CERT_STEPS = [
   },
 ]
 
-/** Video walkthrough URL - set to a real URL to enable the embed link in HowItWorksSection */
-const VIDEO_WALKTHROUGH_URL: string | null = null
-
 // =============================================================================
 // COMPONENT
 // =============================================================================
 
-/** Section 2: How It Works with animated FloatingCard mockups */
+/** Section: How It Works with animated FloatingCard mockups */
 export function HowItWorksSection({
   onCTAClick,
   steps = MED_CERT_STEPS,
@@ -67,7 +64,7 @@ export function HowItWorksSection({
     <section
       id="how-it-works"
       aria-label="How it works"
-      className="relative py-20 lg:py-24 scroll-mt-20"
+      className="relative py-14 lg:py-18 scroll-mt-20"
     >
       <DottedGrid />
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 relative">
@@ -166,19 +163,6 @@ export function HowItWorksSection({
           <p className="text-xs text-muted-foreground mt-2.5">
             Most people are sorted in under an hour
           </p>
-          {VIDEO_WALKTHROUGH_URL && (
-            <a
-              href={VIDEO_WALKTHROUGH_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 mt-4 text-sm text-primary hover:text-primary/80 transition-colors"
-            >
-              <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 border border-primary/20">
-                <ArrowRight className="h-4 w-4" />
-              </span>
-              Watch a 60-second walkthrough
-            </a>
-          )}
         </motion.div>
       </div>
     </section>

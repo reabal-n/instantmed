@@ -12,6 +12,7 @@ export interface ServiceFunnelConfig {
   hero: {
     badge: string
     headline: string
+    headlineGradient?: string
     headlineRotatingWords?: string[]
     subheadline: string
     reassurances: string[]

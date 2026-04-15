@@ -113,7 +113,7 @@ const pricingFaqs = [
       {
         question: "Why isn\u2019t this covered by Medicare?",
         answer:
-          "Most asynchronous telehealth services in Australia operate outside of Medicare. Medicare item numbers are structured around real-time consultations with an established provider-patient relationship. Our service \u2014 where a doctor reviews your request without a scheduled appointment \u2014 doesn\u2019t fit existing Medicare billing categories. This is standard across the telehealth industry, not specific to us.",
+          "Most asynchronous telehealth services in Australia operate outside of Medicare. Medicare item numbers are structured around real-time consultations with an established provider-patient relationship. Our service (where a doctor reviews your request without a scheduled appointment) doesn\u2019t fit existing Medicare billing categories. This is standard across the telehealth industry, not specific to us.",
       },
       {
         question: "Do I need a Medicare card to use InstantMed?",
@@ -133,7 +133,7 @@ const pricingFaqs = [
       {
         question: "Do you offer discounts for students or concession card holders?",
         answer:
-          "Our pricing is already designed to be accessible \u2014 significantly less than the average out-of-pocket cost of a private GP visit. We don\u2019t currently offer tiered pricing by concession status, but we\u2019re exploring this for the future. If cost is a barrier, reach out to us at support@instantmed.com.au.",
+          "Our pricing is already designed to be accessible, significantly less than the average out-of-pocket cost of a private GP visit. We don\u2019t currently offer tiered pricing by concession status, but we\u2019re exploring this for the future. If cost is a barrier, reach out to us at support@instantmed.com.au.",
       },
       {
         question: "What if I need a longer medical certificate?",
@@ -148,7 +148,7 @@ const pricingFaqs = [
       {
         question: "Can I use InstantMed for my family members?",
         answer:
-          "Each request must be submitted by \u2014 or on behalf of \u2014 the individual patient. You can submit a request for a dependent (such as a child with parental consent), but each person needs their own profile. You can\u2019t use a single account to get certificates for multiple adults.",
+          "Each request must be submitted by, or on behalf of, the individual patient. You can submit a request for a dependent (such as a child with parental consent), but each person needs their own profile. You can\u2019t use a single account to get certificates for multiple adults.",
       },
 ]
 

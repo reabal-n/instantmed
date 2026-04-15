@@ -12,7 +12,6 @@ import Link from "next/link"
 import { useEffect, useState } from "react"
 
 import { ConsultChatMockup } from "@/components/marketing/mockups/consult-chat-mockup"
-import { RotatingText } from "@/components/marketing/rotating-text"
 import { ClosingCountdown } from "@/components/marketing/shared/closing-countdown"
 import { DoctorAvailabilityPill,TrustBadgeRow } from "@/components/shared"
 import { Button } from "@/components/ui/button"
@@ -21,7 +20,7 @@ import { useReducedMotion } from "@/components/ui/motion"
 import { PRICING, PRICING_DISPLAY } from "@/lib/constants"
 import { SOCIAL_PROOF_DISPLAY } from "@/lib/social-proof"
 
-const ROTATING_BADGES = [
+const STATIC_BADGES = [
   "AHPRA registered doctors",
   "Medication if needed",
   "Same-day response",
@@ -43,7 +42,7 @@ function ContextualMessage() {
     if (day === 1 && hour < 12) {
       setMessage("Waiting weeks for a GP? Most consults are completed same day.")
     } else if (day === 0 && hour >= 17) {
-      setMessage("Start tonight \u2014 doctor typically responds by Monday morning.")
+      setMessage("Start tonight. Doctor typically responds by Monday morning.")
     } else if (day >= 1 && day <= 5 && hour >= 18) {
       setMessage("Too late for a GP? We\u2019re open until 10pm AEST, seven days.")
     } else if ((day === 0 || day === 6) && hour >= 8 && hour < 17) {
@@ -84,7 +83,7 @@ export function GeneralConsultHeroSection({
             <motion.div
               className="flex justify-center lg:justify-start mb-4 sm:mb-8"
               initial={animate ? { y: -10 } : {}}
-              animate={{ opacity: 1, y: 0 }}
+              animate={{ y: 0 }}
               transition={{ duration: 0.4 }}
             >
               <DoctorAvailabilityPill />
@@ -105,7 +104,7 @@ export function GeneralConsultHeroSection({
             <motion.p
               className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-3 sm:mb-4 leading-relaxed text-balance"
               initial={animate ? { y: 12 } : {}}
-              animate={{ opacity: 1, y: 0 }}
+              animate={{ y: 0 }}
               transition={{ duration: 0.4, delay: 0.1 }}
             >
               A full clinical assessment with an AHPRA-registered GP.
@@ -116,24 +115,26 @@ export function GeneralConsultHeroSection({
             <motion.p
               className="text-sm font-semibold text-foreground mb-2 flex items-center justify-center lg:justify-start gap-1.5"
               initial={animate ? { y: 8 } : {}}
-              animate={{ opacity: 1, y: 0 }}
+              animate={{ y: 0 }}
               transition={{ duration: 0.4, delay: 0.11 }}
             >
               {PRICING_DISPLAY.FROM_CONSULT}
               <span className="text-xs font-normal text-muted-foreground">- no hidden fees</span>
             </motion.p>
 
-            {/* Rotating secondary proof badge */}
+            {/* Static proof chips */}
             <motion.div
-              className="flex justify-center lg:justify-start mb-6"
-              initial={{}}
-              animate={{ opacity: 1 }}
+              className="flex flex-wrap justify-center lg:justify-start gap-x-4 gap-y-1.5 mb-6"
+              initial={animate ? { y: 4 } : {}}
+              animate={{ y: 0 }}
               transition={{ duration: 0.4, delay: 0.15 }}
             >
-              <div className="inline-flex items-center gap-1.5 text-xs font-medium text-primary/80 dark:text-primary/70">
-                <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-primary" />
-                <RotatingText texts={ROTATING_BADGES} interval={3000} />
-              </div>
+              {STATIC_BADGES.map((label) => (
+                <span key={label} className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <CheckCircle2 className="h-3 w-3 shrink-0 text-primary/70" aria-hidden="true" />
+                  {label}
+                </span>
+              ))}
             </motion.div>
 
             {/* CTA */}
@@ -141,7 +142,7 @@ export function GeneralConsultHeroSection({
               ref={ctaRef}
               className="flex flex-col sm:flex-row items-center gap-3 justify-center lg:justify-start mb-6"
               initial={animate ? { y: 12 } : {}}
-              animate={{ opacity: 1, y: 0 }}
+              animate={{ y: 0 }}
               transition={{ duration: 0.4, delay: 0.12 }}
             >
               <MagneticButton>
@@ -153,7 +154,7 @@ export function GeneralConsultHeroSection({
                   disabled={isDisabled}
                 >
                   <Link href={isDisabled ? "/contact" : "/request?service=consult"}>
-                    {isDisabled ? "Contact us" : `Start your consult \u2014 $${PRICING.CONSULT.toFixed(2)}`}
+                    {isDisabled ? "Contact us" : `Start your consult \u00b7 $${PRICING.CONSULT.toFixed(2)}`}
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Link>
                 </Button>
@@ -183,8 +184,8 @@ export function GeneralConsultHeroSection({
             {/* Trust signals */}
             <motion.div
               className="hidden sm:flex flex-col gap-2"
-              initial={{}}
-              animate={{ opacity: 1 }}
+              initial={animate ? { y: 4 } : {}}
+              animate={{ y: 0 }}
               transition={{ duration: 0.5, delay: 0.3 }}
             >
               <p className="text-xs sm:text-sm text-muted-foreground flex items-center justify-center lg:justify-start gap-2">
@@ -205,8 +206,8 @@ export function GeneralConsultHeroSection({
             {/* Secondary anchor CTA - desktop only */}
             <motion.div
               className="hidden sm:flex justify-center lg:justify-start mt-4"
-              initial={{}}
-              animate={{ opacity: 1 }}
+              initial={animate ? { y: 4 } : {}}
+              animate={{ y: 0 }}
               transition={{ duration: 0.5, delay: 0.45 }}
             >
               <a

@@ -13,6 +13,7 @@
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest --watch",
     "ci": "pnpm install --frozen-lockfile && pnpm lint && pnpm test run && pnpm build",
+    "blog:images": "node scripts/update-blog-images.mjs",
     "smoke:backend": "npx tsx scripts/smoke-backend.ts",
     "check:rls": "npx tsx scripts/rls-check.ts",
     "import:artg": "npx tsx scripts/import_artg.ts",

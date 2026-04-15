@@ -28,9 +28,8 @@ export function EScriptHeroMockup({ compact = false }: EScriptHeroMockupProps) {
           "rounded-2xl bg-white dark:bg-card border border-border/50 shadow-xl shadow-primary/[0.08] dark:shadow-none space-y-4",
           compact ? "p-4" : "p-5"
         )}
-        initial={animate ? { y: 20 } : {}}
-        whileInView={animate ? { opacity: 1, y: 0 } : undefined}
-        viewport={{ once: true }}
+        initial={animate ? { opacity: 0, y: 20 } : {}}
+        animate={animate ? { opacity: 1, y: 0 } : {}}
         transition={{ duration: 0.5, delay: 0.2, ease: "easeOut" }}
       >
         {/* Header */}
@@ -61,9 +60,8 @@ export function EScriptHeroMockup({ compact = false }: EScriptHeroMockupProps) {
         {!compact && (
           <motion.div
             className="absolute -top-3 -right-3 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white dark:bg-card border border-border/50 shadow-lg shadow-primary/[0.06] text-xs font-medium text-muted-foreground"
-            initial={animate ? { scale: 0.8 } : {}}
-            whileInView={animate ? { opacity: 1, scale: 1 } : undefined}
-            viewport={{ once: true }}
+            initial={animate ? { opacity: 0, scale: 0.8 } : {}}
+            animate={animate ? { opacity: 1, scale: 1 } : {}}
             transition={{ duration: 0.4, delay: 0.5, ease: "easeOut" }}
           >
             <Smartphone className="w-3.5 h-3.5 text-primary" />
@@ -90,9 +88,8 @@ export function EScriptHeroMockup({ compact = false }: EScriptHeroMockupProps) {
       {!compact && (
         <motion.div
           className="absolute -bottom-8 -right-4 xl:-right-8 rounded-xl bg-white dark:bg-card border border-border/50 shadow-lg shadow-primary/[0.06] dark:shadow-none p-3 min-w-[210px]"
-          initial={animate ? { x: 20 } : {}}
-          whileInView={animate ? { opacity: 1, x: 0 } : undefined}
-          viewport={{ once: true }}
+          initial={animate ? { opacity: 0, x: 20 } : {}}
+          animate={animate ? { opacity: 1, x: 0 } : {}}
           transition={{ duration: 0.5, delay: 0.6, ease: "easeOut" }}
         >
           <motion.div

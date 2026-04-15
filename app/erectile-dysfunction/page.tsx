@@ -16,7 +16,7 @@ export const revalidate = 86400
 
 export const metadata: Metadata = {
   title: { absolute: "ED Treatment | Private, No Call, No Clinic | InstantMed" },
-  description: `Discreet ED treatment from an Australian doctor. Fill out a form — no call, no face-to-face. Reviewed within 1–2 hours. From $${PRICING.MENS_HEALTH.toFixed(2)}.`,
+  description: `Discreet ED treatment from an Australian doctor. Fill out a form, no call, no face-to-face appointment. Reviewed within 1-2 hours. From $${PRICING.MENS_HEALTH.toFixed(2)}.`,
   keywords: [
     "ed treatment online australia",
     "erectile dysfunction treatment online",
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: "ED Treatment | Private, No Call, No Clinic | InstantMed",
-    description: "Discreet ED treatment online. Fill out a form — no call, no face-to-face appointment. Reviewed by an Australian doctor.",
+    description: "Discreet ED treatment online. Fill out a form, no call, no face-to-face appointment. Reviewed by an Australian doctor.",
     url: "https://instantmed.com.au/erectile-dysfunction",
     type: "website",
     locale: "en_AU",
@@ -36,7 +36,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "ED Treatment | Private, No Call, No Clinic | InstantMed",
-    description: "Discreet ED treatment online — just a form, no call, no face-to-face.",
+    description: "Discreet ED treatment online. Just a form, no call, no face-to-face.",
   },
   alternates: {
     canonical: "https://instantmed.com.au/erectile-dysfunction",

@@ -61,7 +61,7 @@ export function WordReveal({
   }
 
   return (
-    <Tag ref={ref} className={cn("flex flex-wrap", className)}>
+    <Tag ref={ref} aria-label={text} className={cn("flex flex-wrap", className)}>
       {words.map((word, i) => {
         const isHighlighted = highlightWords.some(
           (hw) => hw.toLowerCase() === word.toLowerCase().replace(/[^a-z]/g, "")

@@ -29,14 +29,14 @@ export const metadata: Metadata = {
   description: `Skip the waiting room. Fill out a form, an Australian doctor reviews it, and you get treatment advice, a prescription, or a referral. ${PRICING_DISPLAY.FROM_CONSULT}.`,
   openGraph: {
     title: 'See a Doctor Online | No Waiting Room, No Call | InstantMed',
-    description: 'Skip the waiting room. Fill out a form — get treatment advice, a prescription, or a referral from an Australian doctor.',
+    description: 'Skip the waiting room. Fill out a form, an Australian doctor reviews it, and you get treatment advice, a prescription, or a referral.',
     type: 'website',
     url: 'https://instantmed.com.au/consult',
   },
   twitter: {
     card: 'summary_large_image',
     title: 'See a Doctor Online | No Waiting Room, No Call | InstantMed',
-    description: 'Skip the waiting room. Fill out a form — get treatment advice, a prescription, or a referral from an Australian doctor.',
+    description: 'Skip the waiting room. Fill out a form, an Australian doctor reviews it, and you get treatment advice, a prescription, or a referral.',
   },
   alternates: {
     canonical: 'https://instantmed.com.au/consult',
