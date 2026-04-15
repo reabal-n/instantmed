@@ -225,6 +225,9 @@ const nextConfig = {
       // (ServiceFunnelPage, 12 FAQs, feature-flagged med-cert redirect
       // banner, HowToSchema). /general-consult → /consult, permanent.
       { source: "/general-consult", destination: "/consult", permanent: true },
+      // Blog cannibalization consolidation -- duplicate articles merged into canonical versions
+      { source: "/blog/are-online-medical-certificates-valid", destination: "/blog/are-online-medical-certificates-valid-australia", permanent: true },
+      { source: "/blog/repeat-prescription-online-australia", destination: "/blog/repeat-prescription-online", permanent: true },
       { source: "/admin/studio", destination: "/admin/settings/templates", permanent: true },
       { source: "/admin/settings", destination: "/admin/features", permanent: true },
       // Public image path migration — old root paths redirected
