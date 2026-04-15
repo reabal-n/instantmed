@@ -8,17 +8,15 @@ import {
 import Link from "next/link"
 
 import { ContextualMessage } from "@/components/marketing/contextual-message"
-import { HeroTestimonialRotator } from "@/components/marketing/hero-testimonial-rotator"
 import { MedCertHeroMockup } from "@/components/marketing/mockups/med-cert-hero-mockup"
 import { RotatingText } from "@/components/marketing/rotating-text"
-import { TrustBadgeCollapsible } from "@/components/marketing/shared/trust-badge-collapsible"
 import { DoctorAvailabilityPill } from "@/components/shared"
 import { TrustBadgeRow } from "@/components/shared"
 import { Button } from "@/components/ui/button"
 import { MagneticButton } from "@/components/ui/magnetic-button"
 import { useReducedMotion } from "@/components/ui/motion"
 import { PRICING } from "@/lib/constants"
-import { BADGE_REGISTRY, type PresetEntry } from "@/lib/marketing/trust-badges"
+import { BADGE_REGISTRY } from "@/lib/marketing/trust-badges"
 import { SOCIAL_PROOF_DISPLAY } from "@/lib/social-proof"
 
 const ROTATING_BADGES = [
@@ -26,16 +24,6 @@ const ROTATING_BADGES = [
   BADGE_REGISTRY.no_appointment.label,
   BADGE_REGISTRY.same_day.label,
   BADGE_REGISTRY.refund.label,
-]
-
-/** Combined hero + certification badges for collapsible display */
-const HERO_TRUST_BADGES: PresetEntry[] = [
-  { id: "social_proof", variant: "styled" },
-  { id: "no_call", variant: "styled" },
-  "refund",
-  "ahpra",
-  { id: "legitscript", variant: "styled" },
-  { id: "google_pharmacy", variant: "styled" },
 ]
 
 export function MedCertHeroSection({
@@ -139,29 +127,15 @@ export function MedCertHeroSection({
               </div>
             </motion.div>
 
-            {/* AHPRA + LegitScript trust row - directly below CTA */}
+            {/* 3 key trust badges — LegitScript + Google Pharmacy + No call */}
             <TrustBadgeRow
               badges={[
-                { id: "ahpra", variant: "styled" },
                 { id: "legitscript", variant: "styled" },
+                { id: "google_pharmacy", variant: "styled" },
+                { id: "no_call", variant: "styled" },
               ]}
               className="mt-4 justify-center lg:justify-start gap-3"
             />
-
-            {/* Trust signals - collapsible (show 3, expand for rest) */}
-            <motion.div
-              className="flex flex-col items-center lg:items-start gap-1"
-              initial={animate ? { y: 8 } : {}}
-              animate={{ y: 0 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-            >
-              <TrustBadgeCollapsible
-                badges={HERO_TRUST_BADGES}
-                initialCount={3}
-                className="mt-3 justify-center lg:justify-start"
-              />
-              <HeroTestimonialRotator className="mt-3 mx-auto lg:mx-0 text-center lg:text-left" />
-            </motion.div>
           </div>
 
           {/* Hero product mockup - desktop only, mobile gets compact version below */}

@@ -1,20 +1,19 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { CheckCircle2, Clock, FileText, Mail, PhoneOff } from "lucide-react"
+import { CheckCircle2, Clock, Mail, PhoneOff } from "lucide-react"
 
 import { useReducedMotion } from "@/components/ui/motion"
 import { cn } from "@/lib/utils"
 
 interface MedCertHeroMockupProps {
-  /** Compact mode for mobile - shows form card only, no timeline overlay */
+  /** Compact mode for mobile - no floating overlays */
   compact?: boolean
 }
 
 /**
- * Med-cert-specific hero mockup for the /medical-certificate landing page.
- * Shows the certificate request flow: form → doctor review → delivered.
- * Replaces the generic HeroProductMockup on this page.
+ * Medical certificate document mockup for the /medical-certificate hero.
+ * Looks like the actual certificate the patient receives — not the intake form.
  */
 export function MedCertHeroMockup({ compact = false }: MedCertHeroMockupProps) {
   const prefersReducedMotion = useReducedMotion()
@@ -22,56 +21,82 @@ export function MedCertHeroMockup({ compact = false }: MedCertHeroMockupProps) {
 
   return (
     <div className={cn("relative", compact ? "w-full" : "w-72 xl:w-80")}>
-      {/* Main form card */}
+      {/* Certificate card */}
       <motion.div
-        className={cn(
-          "rounded-2xl bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-950/20 dark:to-card border border-emerald-200/40 dark:border-emerald-800/20 shadow-xl shadow-emerald-500/[0.1] dark:shadow-none space-y-4",
-          compact ? "p-4" : "p-5"
-        )}
+        className="rounded-2xl bg-white dark:bg-card border border-border/50 shadow-xl shadow-primary/[0.08] dark:shadow-none overflow-hidden"
         initial={animate ? { y: 20 } : {}}
         whileInView={animate ? { opacity: 1, y: 0 } : undefined}
         viewport={{ once: true }}
         transition={{ duration: 0.5, delay: 0.2, ease: "easeOut" }}
       >
-        {/* Header */}
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-            <FileText className="w-4 h-4 text-primary" />
+        {/* Certificate header bar */}
+        <div className="bg-slate-800 dark:bg-slate-900 px-5 py-3.5 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-5 h-5 rounded-md bg-primary flex items-center justify-center shrink-0">
+              <span className="text-[9px] font-black text-white leading-none">+</span>
+            </div>
+            <span className="text-[11px] font-semibold text-white/90 tracking-wide">InstantMed</span>
           </div>
-          <span className="text-sm font-semibold text-foreground">Medical Certificate</span>
+          <span className="text-[9px] text-white/50 uppercase tracking-[0.12em] font-medium">Medical Certificate</span>
         </div>
 
-        {/* Form fields */}
-        <div className="space-y-3">
+        {/* Certificate body */}
+        <div className={cn("px-5 py-4 space-y-3.5", compact ? "px-4 py-3 space-y-3" : "")}>
+          {/* To whom it may concern */}
+          <p className="text-[10px] text-muted-foreground italic">To Whom It May Concern</p>
+
+          {/* Patient */}
           <div>
-            <p className="text-[11px] font-medium text-muted-foreground mb-1">Reason for absence</p>
-            <div className="h-9 rounded-lg bg-muted/50 dark:bg-muted/20 border border-border/50 px-3 flex items-center">
-              <span className="text-sm text-foreground/70">Cold and flu symptoms</span>
+            <p className="text-[9px] font-semibold text-muted-foreground/60 uppercase tracking-wider mb-0.5">Patient</p>
+            <p className="text-sm font-semibold text-foreground">Sarah Mitchell</p>
+          </div>
+
+          {/* Date + Duration row */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <p className="text-[9px] font-semibold text-muted-foreground/60 uppercase tracking-wider mb-0.5">Date</p>
+              <p className="text-xs font-medium text-foreground">15 April 2026</p>
+            </div>
+            <div>
+              <p className="text-[9px] font-semibold text-muted-foreground/60 uppercase tracking-wider mb-0.5">Absent for</p>
+              <p className="text-xs font-medium text-foreground">1 Day (Work)</p>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-2">
+
+          {/* Certification text */}
+          <div className="bg-muted/40 dark:bg-white/[0.04] rounded-lg px-3 py-2.5">
+            <p className="text-[10px] text-muted-foreground leading-relaxed">
+              This certifies that the above patient was under my care and was unfit for work on the above date due to illness.
+            </p>
+          </div>
+
+          {/* Doctor + stamp */}
+          <div className="flex items-end justify-between pt-0.5">
             <div>
-              <p className="text-[11px] font-medium text-muted-foreground mb-1">Duration</p>
-              <div className="h-9 rounded-lg bg-muted/50 dark:bg-muted/20 border border-border/50 px-3 flex items-center">
-                <span className="text-sm text-foreground/70">1 day</span>
-              </div>
+              <p className="text-[9px] font-semibold text-muted-foreground/60 uppercase tracking-wider mb-0.5">Doctor</p>
+              <p className="text-xs font-semibold text-foreground">Dr. A. Williams</p>
+              <p className="text-[9px] text-muted-foreground font-mono tracking-wide mt-0.5">MED0001234567</p>
             </div>
-            <div>
-              <p className="text-[11px] font-medium text-muted-foreground mb-1">For</p>
-              <div className="h-9 rounded-lg bg-muted/50 dark:bg-muted/20 border border-border/50 px-3 flex items-center">
-                <span className="text-sm text-foreground/70">Work</span>
+            {/* Verified stamp */}
+            <div className="flex flex-col items-center gap-1">
+              <div className="w-11 h-11 rounded-full border-2 border-primary/25 flex items-center justify-center">
+                <CheckCircle2 className="w-5 h-5 text-primary/60" />
               </div>
+              <span className="text-[8px] font-semibold text-primary/60 uppercase tracking-wider">Verified</span>
             </div>
           </div>
         </div>
 
-        {/* Submit button */}
-        <div className="h-10 rounded-lg bg-primary flex items-center justify-center shadow-md shadow-primary/25">
-          <span className="text-sm font-semibold text-white">Submit request</span>
+        {/* Footer strip */}
+        <div className="bg-muted/30 dark:bg-white/[0.03] border-t border-border/30 px-5 py-2 flex items-center justify-between">
+          <span className="text-[9px] text-muted-foreground/50">instantmed.com.au</span>
+          <span className="text-[9px] text-muted-foreground/50 font-mono">REF: IM-2026-{compact ? "4823" : "48231"}</span>
         </div>
+      </motion.div>
 
-        {/* Time badge top-right - desktop only */}
-        {!compact && (
+      {/* Floating badges — desktop only */}
+      {!compact && (
+        <>
           <motion.div
             className="absolute -top-3 -right-3 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white dark:bg-card border border-border/50 shadow-lg shadow-primary/[0.06] text-xs font-medium text-muted-foreground"
             initial={animate ? { scale: 0.8 } : {}}
@@ -82,10 +107,7 @@ export function MedCertHeroMockup({ compact = false }: MedCertHeroMockupProps) {
             <Clock className="w-3.5 h-3.5 text-primary" />
             Takes ~2 min
           </motion.div>
-        )}
 
-        {/* No appointment badge top-left - desktop only */}
-        {!compact && (
           <motion.div
             className="absolute -top-3 -left-3 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white dark:bg-card border border-border/50 shadow-lg shadow-primary/[0.06] text-xs font-medium text-muted-foreground"
             initial={animate ? { scale: 0.8 } : {}}
@@ -94,12 +116,12 @@ export function MedCertHeroMockup({ compact = false }: MedCertHeroMockupProps) {
             transition={{ duration: 0.4, delay: 0.65, ease: "easeOut" }}
           >
             <PhoneOff className="w-3.5 h-3.5 text-primary" />
-            No appointment needed
+            No appointment
           </motion.div>
-        )}
-      </motion.div>
+        </>
+      )}
 
-      {/* Progress timeline - overlapping bottom-right, desktop only */}
+      {/* Delivery notification overlay — desktop only */}
       {!compact && (
         <motion.div
           className="absolute -bottom-8 -right-4 xl:-right-8 rounded-xl bg-white dark:bg-card border border-border/50 shadow-lg shadow-primary/[0.06] dark:shadow-none p-3 min-w-[210px]"
@@ -118,41 +140,31 @@ export function MedCertHeroMockup({ compact = false }: MedCertHeroMockupProps) {
             whileInView="visible"
             viewport={{ once: true }}
           >
-            <motion.div
-              className="flex items-center gap-2"
-              variants={animate
-                ? { hidden: { opacity: 0, x: -8 }, visible: { opacity: 1, x: 0, transition: { duration: 0.3, ease: "easeOut" } } }
-                : { hidden: { opacity: 1 }, visible: { opacity: 1 } }
-              }
-            >
-              <CheckCircle2 className="w-3.5 h-3.5 text-success shrink-0" />
-              <span className="text-[11px] text-foreground/60">Request submitted</span>
-              <span className="text-[9px] text-muted-foreground ml-auto">2m ago</span>
-            </motion.div>
-            <motion.div
-              className="flex items-center gap-2"
-              variants={animate
-                ? { hidden: { opacity: 0, x: -8 }, visible: { opacity: 1, x: 0, transition: { duration: 0.3, ease: "easeOut" } } }
-                : { hidden: { opacity: 1 }, visible: { opacity: 1 } }
-              }
-            >
-              <CheckCircle2 className="w-3.5 h-3.5 text-success shrink-0" />
-              <span className="text-[11px] text-foreground/60">Doctor reviewed</span>
-              <span className="text-[9px] text-muted-foreground ml-auto">Just now</span>
-            </motion.div>
-            <motion.div
-              className="flex items-center gap-2"
-              variants={animate
-                ? { hidden: { opacity: 0, x: -8 }, visible: { opacity: 1, x: 0, transition: { duration: 0.3, ease: "easeOut" } } }
-                : { hidden: { opacity: 1 }, visible: { opacity: 1 } }
-              }
-            >
-              <Mail className="w-3.5 h-3.5 text-primary shrink-0" />
-              <span className="text-[11px] font-medium text-foreground">Certificate sent</span>
-              <span className="inline-flex items-center gap-0.5 ml-auto px-1.5 py-0.5 rounded-full bg-success/10 text-[9px] font-medium text-success animate-pulse">
-                Done
-              </span>
-            </motion.div>
+            {[
+              { icon: CheckCircle2, iconClass: "text-success", text: "Request submitted", meta: "2m ago", bold: false },
+              { icon: CheckCircle2, iconClass: "text-success", text: "Doctor reviewed", meta: "Just now", bold: false },
+              { icon: Mail, iconClass: "text-primary", text: "Certificate sent", meta: null, bold: true },
+            ].map(({ icon: Icon, iconClass, text, meta, bold }) => (
+              <motion.div
+                key={text}
+                className="flex items-center gap-2"
+                variants={animate
+                  ? { hidden: { opacity: 0, x: -8 }, visible: { opacity: 1, x: 0, transition: { duration: 0.3, ease: "easeOut" } } }
+                  : { hidden: { opacity: 1 }, visible: { opacity: 1 } }
+                }
+              >
+                <Icon className={cn("w-3.5 h-3.5 shrink-0", iconClass)} />
+                <span className={cn("text-[11px]", bold ? "font-medium text-foreground" : "text-foreground/60")}>
+                  {text}
+                </span>
+                {meta && <span className="text-[9px] text-muted-foreground ml-auto">{meta}</span>}
+                {bold && (
+                  <span className="inline-flex items-center gap-0.5 ml-auto px-1.5 py-0.5 rounded-full bg-success/10 text-[9px] font-medium text-success animate-pulse">
+                    Done
+                  </span>
+                )}
+              </motion.div>
+            ))}
           </motion.div>
         </motion.div>
       )}

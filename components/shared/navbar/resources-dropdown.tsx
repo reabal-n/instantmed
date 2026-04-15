@@ -1,20 +1,12 @@
 "use client"
 
 import { AnimatePresence, motion } from "framer-motion"
-import {
-  BookOpen,
-  Building2,
-  ChevronDown,
-  DollarSign,
-  HelpCircle,
-  Info,
-  MapPin,
-  ShieldCheck,
-} from "lucide-react"
+import { ChevronDown } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 
+import { StickerIcon, type StickerIconName } from "@/components/icons/stickers"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,19 +17,18 @@ import {
 import { useReducedMotion } from "@/components/ui/motion"
 import { cn } from "@/lib/utils"
 
-const resourceLinks = [
-  { title: "How It Works",    href: "/how-it-works",  description: "Our 3-step process",   icon: Info },
-  { title: "Pricing",         href: "/pricing",       description: "Transparent flat fees", icon: DollarSign },
-  { title: "Health Guides",   href: "/blog",          description: "Articles and advice",   icon: BookOpen },
-  { title: "FAQs",            href: "/faq",           description: "Common questions",      icon: HelpCircle },
+const resourceLinks: Array<{ title: string; href: string; description: string; sticker: StickerIconName }> = [
+  { title: "How It Works",   href: "/how-it-works",  description: "Our 3-step process",    sticker: "lightning"     },
+  { title: "FAQs",           href: "/faq",           description: "Common questions",       sticker: "speech-bubble" },
+  { title: "Health Guides",  href: "/blog",          description: "Articles and advice",    sticker: "open-book"     },
 ]
 
-const companyLinks = [
-  { title: "About Us",        href: "/about",         icon: Info },
-  { title: "Reviews",         href: "/reviews",       icon: ShieldCheck },
-  { title: "Trust & Safety",  href: "/trust",         icon: ShieldCheck },
-  { title: "For Employers",   href: "/for/employers", icon: Building2 },
-  { title: "Locations",       href: "/locations",     icon: MapPin },
+const companyLinks: Array<{ title: string; href: string; sticker: StickerIconName }> = [
+  { title: "About Us",       href: "/about",         sticker: "people"          },
+  { title: "Reviews",        href: "/reviews",       sticker: "verified-badge"  },
+  { title: "Trust & Safety", href: "/trust",         sticker: "security-shield" },
+  { title: "For Employers",  href: "/for/employers", sticker: "briefcase"       },
+  { title: "Locations",      href: "/locations",     sticker: "map-pin"         },
 ]
 
 interface ResourcesDropdownProps {
@@ -51,7 +42,6 @@ export function ResourcesDropdown({ isActivePath }: ResourcesDropdownProps) {
 
   const isResourceActive =
     isActivePath("/how-it-works") ||
-    isActivePath("/pricing") ||
     isActivePath("/blog") ||
     isActivePath("/faq") ||
     isActivePath("/about") ||
@@ -76,7 +66,7 @@ export function ResourcesDropdown({ isActivePath }: ResourcesDropdownProps) {
               isResourceActive ? "text-foreground" : "text-muted-foreground hover:text-foreground"
             )}
           >
-            Resources
+            Company
             <ChevronDown className={cn(
               "h-3 w-3 transition-transform duration-200",
               open && "rotate-180"
@@ -90,7 +80,7 @@ export function ResourcesDropdown({ isActivePath }: ResourcesDropdownProps) {
               forceMount
               loop
               align="start"
-              className="w-56 rounded-2xl border border-dawn-200/40 dark:border-white/10 bg-white/90 dark:bg-white/10 backdrop-blur-xl p-0 overflow-hidden shadow-xl shadow-primary/[0.08]"
+              className="w-60 rounded-2xl border border-dawn-200/40 dark:border-white/10 bg-white/90 dark:bg-white/10 backdrop-blur-xl p-0 overflow-hidden shadow-xl shadow-primary/[0.08]"
             >
               <motion.div
                 initial={prefersReducedMotion ? false : { opacity: 0, y: -4, scale: 0.98 }}
@@ -102,9 +92,7 @@ export function ResourcesDropdown({ isActivePath }: ResourcesDropdownProps) {
                 {resourceLinks.map((link) => (
                   <DropdownMenuItem key={link.href} asChild className="rounded-xl p-0 focus:bg-primary/10 dark:focus:bg-primary/20">
                     <Link href={link.href} className="flex items-center gap-3 px-3 py-2.5 w-full">
-                      <div className="w-8 h-8 rounded-lg bg-primary/5 dark:bg-primary/10 flex items-center justify-center shrink-0">
-                        <link.icon className="w-4 h-4 text-primary/70" />
-                      </div>
+                      <StickerIcon name={link.sticker} size={32} />
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-foreground">{link.title}</p>
                         <p className="text-xs text-muted-foreground">{link.description}</p>
@@ -121,7 +109,7 @@ export function ResourcesDropdown({ isActivePath }: ResourcesDropdownProps) {
                 {companyLinks.map((link) => (
                   <DropdownMenuItem key={link.href} asChild className="rounded-xl p-0 focus:bg-primary/10 dark:focus:bg-primary/20">
                     <Link href={link.href} className="flex items-center gap-2.5 px-3 py-2 w-full">
-                      <link.icon className="w-3.5 h-3.5 text-muted-foreground/60 shrink-0" />
+                      <StickerIcon name={link.sticker} size={24} />
                       <p className="text-sm text-muted-foreground hover:text-foreground">{link.title}</p>
                     </Link>
                   </DropdownMenuItem>

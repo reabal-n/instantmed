@@ -3,12 +3,11 @@
 import { motion } from "framer-motion"
 import {
   ArrowRight,
-  Briefcase,
   Check,
   CheckCircle2,
-  GraduationCap,
-  Heart,
 } from "lucide-react"
+
+import { StickerIcon } from "@/components/icons/stickers"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { useEffect, useRef,useState } from "react"
@@ -31,11 +30,30 @@ import { cn } from "@/lib/utils"
 // DATA
 // =============================================================================
 
-/** Icon map - keeps lucide imports in the component (not the lib module). */
-const CATEGORY_ICONS: Record<CertCategory, typeof Briefcase> = {
-  work: Briefcase,
-  study: GraduationCap,
-  carer: Heart,
+/** Sticker icon map for category cards */
+const CATEGORY_STICKERS: Record<CertCategory, import("@/components/icons/stickers").StickerIconName> = {
+  work:  "briefcase",
+  study: "graduation-cap",
+  carer: "heart-with-pulse",
+}
+
+/** Feature checkmarks shown in each card */
+const CATEGORY_FEATURES: Record<CertCategory, string[]> = {
+  work: [
+    "Accepted by Fair Work Act employers",
+    "Same-day PDF to your inbox",
+    "AHPRA doctor on every certificate",
+  ],
+  study: [
+    "Accepted by all Australian universities",
+    "Supports exam deferral & special consideration",
+    "Delivered before submission deadlines",
+  ],
+  carer: [
+    "Valid under Fair Work Act s 107",
+    "Covers any immediate family member",
+    "Full refund if we can't help",
+  ],
 }
 
 const CATEGORY_GRADIENTS: Record<CertCategory, { gradient: string; selectedGradient: string }> = {
@@ -110,7 +128,6 @@ export function CertificateTypeSelector({
         {/* Category cards */}
         <div className="grid sm:grid-cols-3 gap-4">
           {CERT_CATEGORIES.map((cat, i) => {
-            const Icon = CATEGORY_ICONS[cat.id]
             const isSelected = selected === cat.id
             const colors = CATEGORY_GRADIENTS[cat.id]
             return (
@@ -136,20 +153,30 @@ export function CertificateTypeSelector({
                     <Check className="h-4 w-4 text-primary" aria-hidden="true" />
                   </div>
                 )}
-                <div
-                  className={cn(
-                    "w-10 h-10 rounded-xl flex items-center justify-center mb-3",
-                    isSelected ? "bg-primary/15" : "bg-primary/10",
-                  )}
-                >
-                  <Icon className="w-5 h-5 text-primary" aria-hidden="true" />
+
+                {/* Sticker icon */}
+                <div className="mb-3">
+                  <StickerIcon name={CATEGORY_STICKERS[cat.id]} size={40} />
                 </div>
+
                 <h3 className="text-base font-semibold text-foreground mb-1">
                   {cat.label}
                 </h3>
                 <p className="text-xs text-muted-foreground leading-relaxed mb-3">
                   {cat.description}
                 </p>
+
+                {/* Feature checkmarks */}
+                <ul className="space-y-1.5 mb-3">
+                  {CATEGORY_FEATURES[cat.id].map((feat) => (
+                    <li key={feat} className="flex items-start gap-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0 mt-0.5" aria-hidden="true" />
+                      <span className="text-[11px] text-muted-foreground leading-tight">{feat}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                {/* Reason pills */}
                 <div className="flex flex-wrap gap-1.5">
                   {cat.reasons.map((reason) => (
                     <span
@@ -248,23 +275,22 @@ const comparisonRows: Array<{
   instant: string | boolean
   gp: string | boolean
   telehealth: string | boolean
-  instantHighlight?: boolean
+  instantWins?: boolean
 }> = [
-  { label: 'Cost', instant: `$${PRICING.MED_CERT.toFixed(2)}`, gp: SOCIAL_PROOF.gpPriceStandard, telehealth: '~$60', instantHighlight: true },
-  { label: 'Turnaround', instant: `~${SOCIAL_PROOF.certTurnaroundMinutes} min avg`, gp: 'Requires booking', telehealth: '1-2 hours', instantHighlight: true },
+  { label: 'Price', instant: `$${PRICING.MED_CERT.toFixed(2)}`, gp: SOCIAL_PROOF.gpPriceStandard, telehealth: '~$60', instantWins: true },
+  { label: 'Turnaround', instant: `~${SOCIAL_PROOF.certTurnaroundMinutes} min`, gp: 'Needs booking', telehealth: '1-2 hours', instantWins: true },
+  { label: 'Open 24/7', instant: true, gp: false, telehealth: 'Limited', instantWins: true },
+  { label: 'No appointment', instant: true, gp: false, telehealth: false, instantWins: true },
   { label: 'No waiting room', instant: true, gp: false, telehealth: true },
-  { label: 'Employer accepted', instant: true, gp: true, telehealth: true },
   { label: 'AHPRA doctor', instant: true, gp: true, telehealth: true },
-  { label: 'Open 24/7', instant: true, gp: false, telehealth: 'Limited', instantHighlight: true },
-  { label: 'No appointment', instant: true, gp: false, telehealth: false, instantHighlight: true },
-  { label: 'You save', instant: '-', gp: '~$50', telehealth: '~$40', instantHighlight: true },
 ]
 
-function renderCell(value: string | boolean) {
-  if (value === true) return <CheckCircle2 className="w-4 h-4 text-success mx-auto" />
+function renderCell(value: string | boolean, isInstant = false, wins = false) {
+  if (value === true)
+    return <CheckCircle2 className={cn("w-4 h-4 mx-auto", isInstant && wins ? "text-primary" : "text-success")} />
   if (value === false)
-    return <span className="text-muted-foreground/50" aria-hidden="true">&mdash;</span>
-  return <span>{value}</span>
+    return <span className="text-muted-foreground/30" aria-hidden="true">&times;</span>
+  return <span className={cn(isInstant && wins ? "font-semibold text-foreground" : "")}>{value}</span>
 }
 
 function ComparisonTable() {
@@ -301,35 +327,38 @@ function ComparisonTable() {
       <h3 className="text-base font-semibold text-foreground text-center mb-4">
         How we compare
       </h3>
-      <div className="overflow-x-auto rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/10 shadow-md shadow-primary/[0.06] dark:shadow-none">
-        <table className="w-full text-sm border-collapse">
+      <div className="overflow-x-auto rounded-xl border border-border/50 dark:border-white/10 shadow-md shadow-primary/[0.06] dark:shadow-none">
+        <table className="w-full text-sm border-collapse bg-white dark:bg-card rounded-xl overflow-hidden">
           <thead>
-            <tr className="border-b border-border/50">
-              <th scope="col" className="text-left py-3 px-4 text-muted-foreground font-medium text-xs sticky left-0 z-10 bg-white dark:bg-card">
+            <tr className="border-b border-border/40">
+              <th scope="col" className="text-left py-3 px-4 text-muted-foreground font-medium text-xs w-[30%] bg-white dark:bg-card sticky left-0 z-10">
                 <span className="sr-only">Feature</span>
               </th>
-              <th scope="col" className="text-center py-3 px-4 font-semibold text-primary bg-primary/5 dark:bg-primary/10 text-xs">
-                InstantMed
+              {/* InstantMed — highlighted column */}
+              <th scope="col" className="text-center py-0 px-4 w-[23%] bg-primary/5 dark:bg-primary/10">
+                <div className="flex flex-col items-center gap-1 py-3">
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary text-[9px] font-semibold text-white uppercase tracking-wider">
+                    Best value
+                  </span>
+                  <span className="text-xs font-semibold text-primary">InstantMed</span>
+                </div>
               </th>
-              <th scope="col" className="text-center py-3 px-4 text-muted-foreground font-medium text-xs">
+              <th scope="col" className="text-center py-3 px-4 text-muted-foreground font-medium text-xs w-[23%]">
                 GP Clinic
               </th>
-              <th scope="col" className="text-center py-3 px-4 text-muted-foreground font-medium text-xs">
+              <th scope="col" className="text-center py-3 px-4 text-muted-foreground font-medium text-xs w-[23%]">
                 Other Telehealth
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-border/30">
+          <tbody className="divide-y divide-border/25">
             {comparisonRows.map((row, i) => (
               <tr key={i} className="hover:bg-muted/20 transition-colors">
-                <th scope="row" className="py-2.5 px-4 text-left text-muted-foreground font-medium text-xs sticky left-0 z-10 bg-white dark:bg-card">
+                <th scope="row" className="py-2.5 px-4 text-left text-muted-foreground font-medium text-xs bg-white dark:bg-card sticky left-0 z-10">
                   {row.label}
                 </th>
-                <td className={cn(
-                  'py-2.5 px-4 text-center text-xs bg-primary/5 dark:bg-primary/10',
-                  row.instantHighlight ? 'font-semibold text-foreground' : 'text-foreground',
-                )}>
-                  {renderCell(row.instant)}
+                <td className="py-2.5 px-4 text-center text-xs bg-primary/5 dark:bg-primary/10">
+                  {renderCell(row.instant, true, row.instantWins)}
                 </td>
                 <td className="py-2.5 px-4 text-center text-xs text-muted-foreground">
                   {renderCell(row.gp)}
@@ -343,7 +372,7 @@ function ComparisonTable() {
         </table>
       </div>
       <p className="mt-3 text-[11px] text-muted-foreground/60 text-center leading-relaxed">
-        GP cost estimated from MBS item 23 consultation fee. Telehealth prices based on comparable med-cert services.
+        GP cost estimated from MBS item 23 fee. Telehealth prices based on comparable services.
       </p>
     </motion.div>
   )

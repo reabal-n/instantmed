@@ -9,6 +9,7 @@ import { useEffect,useState } from "react"
 
 import { AppSignInButton } from "@/components/shared/app-sign-in-button"
 import { BrandLogo } from "@/components/shared/brand-logo"
+import { AnimatedNavLink } from "@/components/shared/navbar/animated-nav-link"
 import { MobileMenuContent } from "@/components/shared/navbar/mobile-menu-content"
 import { ResourcesDropdown } from "@/components/shared/navbar/resources-dropdown"
 import { ServicesDropdown } from "@/components/shared/navbar/services-dropdown"
@@ -98,6 +99,20 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
               {variant === "marketing" && (
                 <>
                   <ServicesDropdown isActivePath={isActivePath} />
+                  <AnimatedNavLink
+                    href="/pricing"
+                    isActive={isActivePath("/pricing")}
+                    gradient="radial-gradient(circle, rgba(59,130,246,0.15) 0%, rgba(59,130,246,0.06) 50%, rgba(59,130,246,0) 100%)"
+                  >
+                    Pricing
+                  </AnimatedNavLink>
+                  <AnimatedNavLink
+                    href="/blog"
+                    isActive={isActivePath("/blog")}
+                    gradient="radial-gradient(circle, rgba(16,185,129,0.15) 0%, rgba(16,185,129,0.06) 50%, rgba(16,185,129,0) 100%)"
+                  >
+                    Blog
+                  </AnimatedNavLink>
                   <ResourcesDropdown isActivePath={isActivePath} />
 
                   <UserMenu

@@ -13,7 +13,6 @@ import Link from "next/link"
 import { useCallback } from "react"
 
 import { ComplianceMarquee } from "@/components/marketing/compliance-marquee"
-import { HeroOutcomeMockup } from "@/components/marketing/hero-outcome-mockup"
 // Hero is above-fold - not lazy loaded
 import { MedCertHeroSection } from "@/components/marketing/heroes/med-cert-hero"
 import {
@@ -22,8 +21,6 @@ import {
 } from "@/components/marketing/shared"
 import { ComparisonBar } from "@/components/marketing/shared/data-viz"
 import { type LogoItem,ScrollingLogoMarquee } from "@/components/marketing/shared/scrolling-logo-marquee"
-import { ContentHubLinks } from "@/components/seo"
-import { TrustBadgeRow } from "@/components/shared"
 import { Button } from "@/components/ui/button"
 import { useReducedMotion } from "@/components/ui/motion"
 import { SectionPill } from "@/components/ui/section-pill"
@@ -169,43 +166,40 @@ function EmployerCalloutStrip({ onEmployerClick, onVerifyClick }: { onEmployerCl
   )
 }
 
-/** Data viz: certificate turnaround vs GP visit */
+/** Data viz: certificate turnaround vs GP visit — compact */
 function CertComparisonViz() {
   const prefersReducedMotion = useReducedMotion()
   const animate = !prefersReducedMotion
 
   return (
-    <section aria-label="Time comparison" className="py-10 lg:py-14">
-      <div className="mx-auto max-w-xl px-4 sm:px-6">
+    <section aria-label="Time comparison" className="py-6 lg:py-8">
+      <div className="mx-auto max-w-lg px-4 sm:px-6">
         <motion.div
-          className="text-center mb-6"
-          initial={animate ? { y: 12 } : {}}
+          className="text-center mb-4"
+          initial={animate ? { y: 10 } : {}}
           whileInView={animate ? { opacity: 1, y: 0 } : undefined}
           viewport={{ once: true }}
           transition={{ duration: 0.4 }}
         >
-          <SectionPill>Time saved</SectionPill>
-          <h2 className="text-xl sm:text-2xl font-semibold tracking-tight text-foreground mt-4 mb-2">
-            Your time is valuable
-          </h2>
+          <p className="text-xs font-semibold text-muted-foreground/50 uppercase tracking-[0.12em]">Your time is valuable</p>
         </motion.div>
         <motion.div
-          className="rounded-2xl bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-md shadow-primary/[0.06] dark:shadow-none p-6"
-          initial={animate ? { y: 16 } : {}}
+          className="rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/10 shadow-sm p-4"
+          initial={animate ? { y: 12 } : {}}
           whileInView={animate ? { opacity: 1, y: 0 } : undefined}
           viewport={{ once: true }}
-          transition={{ duration: 0.4, delay: 0.1 }}
+          transition={{ duration: 0.4, delay: 0.08 }}
         >
           <ComparisonBar
             us={{
               label: "InstantMed",
               value: "~30 min",
-              subtext: "Average certificate delivery time",
+              subtext: "Average delivery",
             }}
             them={{
-              label: "GP clinic visit",
+              label: "GP clinic",
               value: "2+ hours",
-              subtext: "Travel + wait + consult + admin",
+              subtext: "Travel + wait + admin",
             }}
             ratio={0.25}
           />
@@ -216,54 +210,6 @@ function CertComparisonViz() {
 }
 
 /** Outcome preview - what the approved certificate looks like */
-function OutcomePreviewSection() {
-  return (
-    <section data-track-section="outcome" className="py-12 lg:py-16">
-      <div className="mx-auto max-w-5xl px-6 sm:px-8 lg:px-10">
-        <div className="flex flex-col lg:flex-row items-center gap-10 lg:gap-16">
-          <div className="flex-1 min-w-0">
-            <div className="mb-4">
-              <SectionPill>What you get</SectionPill>
-            </div>
-            <h2 className="text-2xl sm:text-3xl font-semibold text-foreground tracking-tight mb-4">
-              Here&apos;s what you&apos;ll get
-            </h2>
-            <p className="text-sm text-muted-foreground max-w-md mb-6 leading-relaxed">
-              Your doctor reviews the request and issues a valid medical certificate,
-              delivered straight to your inbox as a secure PDF.
-            </p>
-            <ul className="space-y-2.5">
-              {[
-                "Employer-accepted PDF certificate",
-                "AHPRA-registered doctor on every cert",
-                "Verifiable via our online portal",
-              ].map((item) => (
-                <li key={item} className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
-                  {item}
-                </li>
-              ))}
-            </ul>
-            <Button
-              asChild
-              size="lg"
-              className="mt-6 px-8 h-11 font-semibold shadow-md shadow-primary/20 hover:shadow-xl hover:shadow-primary/25 hover:-translate-y-0.5 transition-all"
-            >
-              <Link href="/request?service=med-cert">
-                Get your certificate
-                <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
-              </Link>
-            </Button>
-          </div>
-          <div className="shrink-0">
-            <HeroOutcomeMockup />
-          </div>
-        </div>
-      </div>
-    </section>
-  )
-}
-
 
 // =============================================================================
 // MAIN PAGE COMPONENT
@@ -273,13 +219,7 @@ export function MedCertLanding() {
   const patientCount = usePatientCount()
 
   return (
-    <LandingPageShell config={LANDING_CONFIG} afterFooter={
-      <>
-        <MedCertGuideSection />
-        <CompetitorLinksSection slugs={["instantmed-vs-cleanbill", "instantmed-vs-qoctor", "instantmed-vs-instantscripts"]} />
-        <ContentHubLinks service="med-cert" />
-      </>
-    }>
+    <LandingPageShell config={LANDING_CONFIG}>
       {({ isDisabled, heroCTARef, analytics, handleHeroCTA, handleHowItWorksCTA, handleFAQOpen }) => {
         // eslint-disable-next-line react-hooks/rules-of-hooks
         useSectionVisibilityFunnel(analytics.trackSectionView)
@@ -293,55 +233,53 @@ export function MedCertLanding() {
             {/* 1. Hero */}
             <MedCertHeroSection ctaRef={heroCTARef} onCTAClick={handleHeroCTA} />
 
-            {/* 2. Certificate type selector */}
+            {/* 2. Certificate type selector — get intent before social proof */}
             <div data-track-section="selector">
               <CertificateTypeSelector />
             </div>
 
-            {/* 3. Regulatory authority logos */}
+            {/* 3. Employer acceptance — validates the selection just made */}
+            <EmployerCalloutStrip onEmployerClick={handleEmployerClick} onVerifyClick={handleVerifyClick} />
+
+            {/* 4. Regulatory authority logos */}
             <RegulatoryPartners />
 
-            {/* 4. How It Works */}
+            {/* 5. How It Works */}
             <div data-track-section="how_it_works">
               <HowItWorksSection onCTAClick={handleHowItWorksCTA} />
             </div>
 
-            {/* 5. Outcome preview */}
-            <OutcomePreviewSection />
-
-            {/* 5b. Time comparison data viz */}
+            {/* 6. Time comparison data viz */}
             <div className="bg-muted/30 dark:bg-white/[0.02]">
               <CertComparisonViz />
             </div>
 
-            {/* Refund guarantee + trust counter */}
-            <section className="py-8 sm:py-12">
-              <div className="mx-auto max-w-xl px-4 text-center">
-                <div className="rounded-2xl bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06] p-6">
-                  <ShieldCheck className="h-8 w-8 text-success mx-auto mb-3" aria-hidden="true" />
-                  <h3 className="text-base font-semibold text-foreground mb-2">100% refund guarantee</h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    If our doctor can&apos;t issue your certificate, you get a full refund. No questions asked.
-                  </p>
+            {/* 7. Refund guarantee + trust counter — combined */}
+            <section className="py-6 sm:py-8">
+              <div className="mx-auto max-w-lg px-4">
+                <div className="rounded-2xl bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06] p-5 flex items-center gap-4">
+                  <div className="shrink-0">
+                    <ShieldCheck className="h-9 w-9 text-success" aria-hidden="true" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-foreground">100% refund guarantee</p>
+                    <p className="text-xs text-muted-foreground leading-relaxed mt-0.5">
+                      If our doctor can&apos;t issue your certificate, you get a full refund. Trusted by {patientCount.toLocaleString()}+ Australians.
+                    </p>
+                  </div>
                 </div>
-                <p className="mt-4 text-xs text-muted-foreground">
-                  Trusted by {patientCount.toLocaleString()}+ Australians
-                </p>
               </div>
             </section>
 
-            {/* 6. Social proof */}
+            {/* 8. Social proof */}
             <div data-track-section="social_proof">
               <SocialProofSection />
             </div>
 
-            {/* 7. Employer acceptance */}
-            <EmployerCalloutStrip onEmployerClick={handleEmployerClick} onVerifyClick={handleVerifyClick} />
-
-            {/* 8. What we cover / limitations */}
+            {/* 10. What we cover / limitations */}
             <LimitationsSection />
 
-            {/* 9. FAQ */}
+            {/* 11. FAQ */}
             <div data-track-section="faq">
               <FAQSection
                 pill="FAQ"
@@ -361,15 +299,31 @@ export function MedCertLanding() {
               </p>
             </div>
 
-            {/* 10. Pre-CTA friction removal */}
+            {/* 12. Deep-dive guide + competitor links (SEO, above footer) */}
+            <MedCertGuideSection />
+            <CompetitorLinksSection slugs={["instantmed-vs-cleanbill", "instantmed-vs-qoctor", "instantmed-vs-instantscripts"]} />
+
+            {/* 13. Pre-CTA friction removal */}
             <div className="py-6 sm:py-8">
-              <p className="text-[10px] font-semibold text-muted-foreground/40 text-center mb-3 uppercase tracking-[0.15em]">
-                No barriers
-              </p>
-              <TrustBadgeRow preset="pre_cta" className="justify-center gap-3" />
+              <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
+                {[
+                  "No Medicare card needed",
+                  "No phone call required",
+                  "2-minute form",
+                  "Full refund if declined",
+                ].map((item) => (
+                  <span
+                    key={item}
+                    className="inline-flex items-center gap-1.5 text-xs text-muted-foreground px-3 py-1.5 rounded-full border border-border/40 bg-white dark:bg-card shadow-sm"
+                  >
+                    <CheckCircle2 className="h-3 w-3 text-success shrink-0" aria-hidden="true" />
+                    {item}
+                  </span>
+                ))}
+              </div>
             </div>
 
-            {/* 11. Final CTA */}
+            {/* 14. Final CTA */}
             <div data-track-section="final_cta">
               <CTABanner
                 title="Let a doctor handle the paperwork"
