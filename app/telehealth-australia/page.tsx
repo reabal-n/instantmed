@@ -32,7 +32,7 @@ import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 const CANONICAL = "https://instantmed.com.au/telehealth-australia"
 
 export const metadata: Metadata = {
-  title: "Telehealth Australia | AHPRA-Governed Online Healthcare, 2026",
+  title: { absolute: "Telehealth Australia | Online, No Waiting Room | InstantMed" },
   description: `Telehealth in Australia explained - how it works, what it costs, the Medicare and PBS rules, and which conditions are suitable for virtual care. InstantMed delivers AHPRA-governed telehealth nationwide from ${PRICING_DISPLAY.MED_CERT}.`,
   keywords: [
     "telehealth australia",
@@ -47,7 +47,7 @@ export const metadata: Metadata = {
     "telehealth consultation australia",
   ],
   openGraph: {
-    title: "Telehealth Australia - How Virtual Care Works | InstantMed",
+    title: "Telehealth Australia | Online, No Waiting Room | InstantMed",
     description: `A practical guide to telehealth in Australia: regulation, cost, Medicare, suitable conditions, and how to get started. ${PRICING_DISPLAY.FROM_MED_CERT} with AHPRA-registered doctors.`,
     url: CANONICAL,
     siteName: "InstantMed",

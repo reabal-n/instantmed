@@ -21,7 +21,7 @@ const howItWorksFaqs = [
 ]
 
 export const metadata: Metadata = {
-  title: 'How Online Doctor Consultations Work',
+  title: 'How It Works | Fill a Form, Get Reviewed, Done',
   description: 'Submit your request online, an AHPRA-registered doctor reviews it, and receive your medical certificate or eScript digitally. Three simple steps.',
   alternates: {
     canonical: 'https://instantmed.com.au/how-it-works',

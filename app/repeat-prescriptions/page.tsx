@@ -26,11 +26,11 @@ const repeatRxFaqs = [
 ]
 
 export const metadata: Metadata = {
-  title: 'Repeat Medication Online | Same-Day Review',
-  description: 'Renew your regular medications online. Australian doctors review your request and send your medication to any pharmacy. Submit from home.',
+  title: 'Repeat Prescription | Online, No Appointment',
+  description: 'Renew your regular medications online. Fill out a form — no GP visit, no waiting room. eScript sent to your phone, valid at any pharmacy.',
   openGraph: {
-    title: 'Online Repeat Medication | InstantMed',
-    description: 'Renew your regular medications online. Australian doctors review your request and send your medication to any pharmacy.',
+    title: 'Repeat Prescription | Online, No Appointment | InstantMed',
+    description: 'Renew your regular medications online. No GP visit, no waiting room — eScript to your phone.',
     type: 'website',
     url: 'https://instantmed.com.au/repeat-prescriptions',
   },

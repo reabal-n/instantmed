@@ -16,8 +16,8 @@ import { PRICING, REVIEW_AGGREGATE } from '@/lib/constants'
 import { PRESCRIPTION_FAQ } from '@/lib/data/prescription-faq'
 
 export const metadata: Metadata = {
-  title: 'Online Prescription Australia | Repeat & New Medication',
-  description: `Renew your regular medications or get a new prescription online. AHPRA-registered Australian doctors review your request and send an eScript to your phone - any pharmacy, same day. Repeat from $${PRICING.REPEAT_SCRIPT.toFixed(2)}.`,
+  title: 'Get a Prescription Online | No GP Visit Required',
+  description: `Renew your regular medications or get a new prescription online. Fill out a form — no appointment, no waiting room. eScript sent to your phone. From $${PRICING.REPEAT_SCRIPT.toFixed(2)}.`,
   keywords: [
     'online prescription australia',
     'repeat prescription online',
@@ -31,8 +31,8 @@ export const metadata: Metadata = {
     'new prescription online australia',
   ],
   openGraph: {
-    title: 'Online Prescription Australia | Repeat & New Medication',
-    description: `Renew your regular medications online. AHPRA-registered doctors send an eScript to your phone. Any pharmacy, same day. From $${PRICING.REPEAT_SCRIPT.toFixed(2)}.`,
+    title: 'Get a Prescription Online | No GP Visit | InstantMed',
+    description: `Fill out a form — no appointment needed. eScript sent to your phone, valid at any pharmacy. From $${PRICING.REPEAT_SCRIPT.toFixed(2)}.`,
     type: 'website',
     url: 'https://instantmed.com.au/prescriptions',
     locale: 'en_AU',
@@ -40,8 +40,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Online Prescription Australia | InstantMed',
-    description: `Renew your regular medications online. eScript to your phone, any pharmacy. From $${PRICING.REPEAT_SCRIPT.toFixed(2)}.`,
+    title: 'Get a Prescription Online | No GP Visit | InstantMed',
+    description: `Online prescription — no appointment, no waiting room. eScript to your phone. From $${PRICING.REPEAT_SCRIPT.toFixed(2)}.`,
   },
   alternates: {
     canonical: 'https://instantmed.com.au/prescriptions',

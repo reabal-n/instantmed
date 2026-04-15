@@ -15,8 +15,8 @@ import { ED_FAQ } from "@/lib/data/ed-faq"
 export const revalidate = 86400
 
 export const metadata: Metadata = {
-  title: { absolute: "ED Treatment Online Australia | Doctor-Reviewed | InstantMed" },
-  description: `Discreet ED treatment from an AHPRA-registered Australian doctor. No call needed. Reviewed within 1–2 hours. From $${PRICING.MENS_HEALTH.toFixed(2)}.`,
+  title: { absolute: "ED Treatment | Private, No Call, No Clinic | InstantMed" },
+  description: `Discreet ED treatment from an Australian doctor. Fill out a form — no call, no face-to-face. Reviewed within 1–2 hours. From $${PRICING.MENS_HEALTH.toFixed(2)}.`,
   keywords: [
     "ed treatment online australia",
     "erectile dysfunction treatment online",
@@ -26,8 +26,8 @@ export const metadata: Metadata = {
     "discreet ed treatment",
   ],
   openGraph: {
-    title: "ED Treatment Online Australia | InstantMed",
-    description: "Doctor-reviewed ED treatment, no call needed. From an AHPRA-registered Australian doctor.",
+    title: "ED Treatment | Private, No Call, No Clinic | InstantMed",
+    description: "Discreet ED treatment online. Fill out a form — no call, no face-to-face appointment. Reviewed by an Australian doctor.",
     url: "https://instantmed.com.au/erectile-dysfunction",
     type: "website",
     locale: "en_AU",
@@ -35,8 +35,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "ED Treatment Online Australia | InstantMed",
-    description: "Doctor-reviewed ED treatment, no call needed.",
+    title: "ED Treatment | Private, No Call, No Clinic | InstantMed",
+    description: "Discreet ED treatment online — just a form, no call, no face-to-face.",
   },
   alternates: {
     canonical: "https://instantmed.com.au/erectile-dysfunction",

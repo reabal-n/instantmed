@@ -1,9 +1,9 @@
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "FAQs",
+  title: { absolute: "Telehealth FAQs | How InstantMed Works" },
   description:
-    "Frequently asked questions about InstantMed online medical consultations, medication, and certificates.",
+    "Common questions about InstantMed — how it works, what's included, turnaround times, and what doctors can help with online.",
   alternates: {
     canonical: "https://instantmed.com.au/faq",
   },

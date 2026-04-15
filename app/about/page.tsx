@@ -8,17 +8,17 @@ import { AboutClient } from "./about-client"
 export const revalidate = 86400
 
 export const metadata: Metadata = {
-  title: "About Us | Australian Online Doctors",
-  description: "Australian telehealth platform connecting patients with AHPRA-registered doctors for medical certificates, medication, and consultations. 100% online.",
+  title: { absolute: "About InstantMed | Australia's Online Doctor Service" },
+  description: "InstantMed is an Australian telehealth platform. See a doctor online — no waiting room, no call, just a form. AHPRA-registered doctors, 100% online.",
   openGraph: {
-    title: "About InstantMed | Australian Online Doctors",
-    description: "Connecting Australians with AHPRA-registered doctors for secure online healthcare. Med certs, medication, and consultations.",
+    title: "About InstantMed | Australia's Online Doctor Service",
+    description: "See a doctor online without the waiting room. Med certs, prescriptions, and consultations from AHPRA-registered Australian doctors.",
     url: "https://instantmed.com.au/about",
   },
   twitter: {
     card: "summary_large_image",
-    title: "About InstantMed | Australian Online Doctors",
-    description: "Connecting Australians with AHPRA-registered doctors for secure online healthcare. Med certs, medication, and consultations.",
+    title: "About InstantMed | Australia's Online Doctor Service",
+    description: "See a doctor online without the waiting room. Med certs, prescriptions, and consultations from AHPRA-registered Australian doctors.",
   },
   alternates: {
     canonical: "https://instantmed.com.au/about",

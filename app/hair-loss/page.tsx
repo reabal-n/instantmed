@@ -15,8 +15,8 @@ import { HAIR_LOSS_FAQ } from "@/lib/data/hair-loss-faq"
 export const revalidate = 86400
 
 export const metadata: Metadata = {
-  title: { absolute: "Hair Loss Treatment Online Australia | Doctor-Reviewed | InstantMed" },
-  description: `Doctor-led hair loss assessment from an AHPRA-registered Australian doctor. Discreet, no call needed. From $${PRICING.HAIR_LOSS.toFixed(2)}.`,
+  title: { absolute: "Hair Loss Treatment | Online, No GP Visit | InstantMed" },
+  description: `Hair loss assessment from an Australian doctor. Fill out a form — no call, no clinic visit. From $${PRICING.HAIR_LOSS.toFixed(2)}.`,
   keywords: [
     "hair loss treatment australia",
     "hair loss treatment online",
@@ -26,9 +26,9 @@ export const metadata: Metadata = {
     "androgenetic alopecia treatment",
   ],
   openGraph: {
-    title: "Hair Loss Treatment Online Australia | InstantMed",
+    title: "Hair Loss Treatment | Online, No GP Visit | InstantMed",
     description:
-      "Doctor-reviewed hair loss treatment, no call needed. From an AHPRA-registered Australian doctor.",
+      "Hair loss treatment online — fill out a form, no call, no clinic visit. Reviewed by an Australian doctor.",
     url: "https://instantmed.com.au/hair-loss",
     type: "website",
     locale: "en_AU",
