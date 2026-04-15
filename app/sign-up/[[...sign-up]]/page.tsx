@@ -1,6 +1,6 @@
 "use client"
 
-import { AnimatePresence,motion } from 'framer-motion'
+import { AnimatePresence,motion, useReducedMotion } from 'framer-motion'
 import { ArrowRight, CheckCircle, Loader2, Lock, Mail, Shield,Star } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -45,6 +45,7 @@ type FormState = 'idle' | 'loading' | 'success' | 'error'
 function SignUpForm() {
   const searchParams = useSearchParams()
   const redirectUrl = searchParams.get('redirect_url') || searchParams.get('redirect') || ''
+  const shouldReduceMotion = useReducedMotion()
 
   const [email, setEmail] = useState('')
   const [formState, setFormState] = useState<FormState>('idle')
@@ -118,14 +119,14 @@ function SignUpForm() {
         {formState === 'success' ? (
           <motion.div
             key="success"
-            initial={{ opacity: 0, y: 8 }}
+            initial={shouldReduceMotion ? false : { opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
+            exit={shouldReduceMotion ? undefined : { opacity: 0, y: -8 }}
             transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
             className="bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06] rounded-2xl p-8 text-center"
           >
             <motion.div
-              initial={{ scale: 0.8 }}
+              initial={shouldReduceMotion ? false : { scale: 0.8 }}
               animate={{ scale: 1 }}
               transition={{ delay: 0.1, type: 'spring', stiffness: 200, damping: 15 }}
               className="w-16 h-16 rounded-2xl bg-success/10 flex items-center justify-center mx-auto mb-5"
@@ -157,9 +158,9 @@ function SignUpForm() {
         ) : (
           <motion.div
             key="form"
-            initial={{ opacity: 0, y: 8 }}
+            initial={shouldReduceMotion ? false : { opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
+            exit={shouldReduceMotion ? undefined : { opacity: 0, y: -8 }}
             transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
             className="bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06] rounded-2xl p-8"
           >

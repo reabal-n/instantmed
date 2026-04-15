@@ -3,6 +3,8 @@
  * Centralized place for all app-wide constants
  */
 
+import { SOCIAL_PROOF } from "@/lib/social-proof"
+
 export const APP_NAME = "InstantMed"
 export const APP_DESCRIPTION =
   "Get medical certificates and prescriptions online from AHPRA-registered Australian GPs."
@@ -76,10 +78,10 @@ export const PRICING_DISPLAY = {
 
 // Review aggregate schema - used across service landing pages for structured data.
 // Must reflect genuine verified reviews only (schema.org compliance).
-// Sync with GOOGLE_REVIEWS.count in lib/social-proof/index.ts when reviews change.
+// Derives from SOCIAL_PROOF in lib/social-proof — update values there, not here.
 export const REVIEW_AGGREGATE = {
-  ratingValue: 5.0,
-  reviewCount: 3,
+  ratingValue: SOCIAL_PROOF.averageRating,
+  reviewCount: SOCIAL_PROOF.reviewCount,
 } as const
 
 // Consent/terms version for compliance audit (align with Terms page "Last updated")

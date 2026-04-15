@@ -123,7 +123,7 @@ const pricingFaqs = [
       {
         question: "How much do prescriptions cost at the pharmacy?",
         answer:
-          "Our fee covers the doctor\u2019s review and eScript generation only. Medication costs are separate and paid at your pharmacy. With a Medicare card, most PBS-listed medications cost $31.60 or less ($7.70 for concession card holders). Without Medicare, you\u2019ll pay the full retail price. Your pharmacist can confirm the exact cost before you purchase.",
+          "Our fee covers the doctor\u2019s review and eScript generation only. Medication costs are separate and paid at your pharmacy. From 1 January 2026, PBS medications cost up to $25.00 for general patients ($7.70 for concession card holders, frozen until 2030). Without Medicare, you\u2019ll pay the full retail price. Your pharmacist can confirm the exact cost before you purchase. Source: pbs.gov.au/info/healthpro/explanatory-notes/front/fee",
       },
       {
         question: "Is there a fee for follow-up questions?",

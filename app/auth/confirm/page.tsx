@@ -1,6 +1,6 @@
 "use client"
 
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { ArrowLeft,Mail } from 'lucide-react'
 import Link from 'next/link'
 
@@ -12,16 +12,17 @@ export const dynamic = "force-dynamic"
  * but this page catches direct navigation and edge cases.
  */
 export default function AuthConfirmPage() {
+  const shouldReduceMotion = useReducedMotion()
   return (
     <div className="min-h-screen flex items-center justify-center p-6 bg-background">
       <motion.div
-        initial={{ opacity: 0, y: 8 }}
+        initial={shouldReduceMotion ? false : { opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
         className="w-full max-w-md bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06] rounded-2xl p-8 text-center"
       >
         <motion.div
-          initial={{ scale: 0.8 }}
+          initial={shouldReduceMotion ? false : { scale: 0.8 }}
           animate={{ scale: 1 }}
           transition={{ delay: 0.1, type: 'spring', stiffness: 200, damping: 15 }}
           className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-5"

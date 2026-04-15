@@ -1,6 +1,6 @@
 "use client"
 
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { ArrowRight, CheckCircle, Clock, Eye, EyeOff,Loader2, Lock, Mail, Shield, Star } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -45,6 +45,7 @@ type FormState = 'idle' | 'loading' | 'success' | 'error'
 function SignInForm() {
   const searchParams = useSearchParams()
   const redirectUrl = searchParams.get('redirect_url') || searchParams.get('redirect') || ''
+  const shouldReduceMotion = useReducedMotion()
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -127,7 +128,7 @@ function SignInForm() {
 
           <motion.div
             key="form"
-            initial={{ opacity: 0, y: 8 }}
+            initial={shouldReduceMotion ? false : { opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
             className="bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06] rounded-2xl p-8"

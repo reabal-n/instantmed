@@ -7,7 +7,7 @@ import { BreadcrumbSchema } from "@/components/seo"
 import { Footer,Navbar } from "@/components/shared"
 import { Button } from "@/components/ui/button"
 import { SectionPill } from "@/components/ui/section-pill"
-import { PRICING_DISPLAY } from "@/lib/constants"
+import { PRICING, PRICING_DISPLAY } from "@/lib/constants"
 import { autoLinkParagraph } from "@/lib/seo/auto-linker"
 import { DEEP_CITY_CONTENT } from "@/lib/seo/data/deep-city-content"
 import { safeJsonLd } from "@/lib/seo/safe-json-ld"
@@ -567,7 +567,7 @@ export default async function CityPage({ params }: PageProps) {
             name: "Medical Certificate",
             description: "Online medical certificate for work or study"
           },
-          price: "19.95",
+          price: PRICING.MED_CERT.toFixed(2),
           priceCurrency: "AUD"
         },
         {
@@ -577,7 +577,7 @@ export default async function CityPage({ params }: PageProps) {
             name: "Online Prescription",
             description: "eScript prescription sent to your phone"
           },
-          price: "29.95",
+          price: PRICING.REPEAT_SCRIPT.toFixed(2),
           priceCurrency: "AUD"
         }
       ]

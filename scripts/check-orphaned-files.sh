@@ -58,10 +58,12 @@ done < <(grep -rl --exclude-dir=node_modules --exclude-dir=.next --exclude-dir=.
 
 # ── 4. Stale worktree directories ────────────────────────────────────────
 if [[ -d ".worktrees" ]]; then
-  registered=$(git worktree list --porcelain 2>/dev/null | grep "^worktree " | wc -l | tr -d ' ')
+  # registered = total git worktrees (includes main worktree, so subtract 1 for linked count)
+  registered_total=$(git worktree list --porcelain 2>/dev/null | grep "^worktree " | wc -l | tr -d ' ')
+  linked_registered=$((registered_total - 1))
   ondisk=$(find .worktrees -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l | tr -d ' ')
-  if [[ "$ondisk" -gt 0 ]]; then
-    echo "WARNING: .worktrees/ has $ondisk directories but only $registered are registered with git"
+  if [[ "$ondisk" -gt "$linked_registered" ]]; then
+    echo "WARNING: .worktrees/ has $ondisk directories but only $linked_registered linked worktrees registered with git"
     orphans=$((orphans + 1))
   fi
 fi

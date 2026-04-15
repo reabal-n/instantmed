@@ -178,7 +178,7 @@ const nextConfig = {
       },
       {
         source: "/auth/sign-in",
-        destination: "/auth/login",
+        destination: "/sign-in",
         permanent: true
       },
       {

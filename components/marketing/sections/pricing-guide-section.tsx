@@ -37,7 +37,7 @@ const GUIDE_SECTIONS = [
     title: "PBS subsidies and medication costs",
     paragraphs: [
       "Our consultation fee covers the doctor's assessment and eScript generation only. The actual cost of your medication is a separate expense, paid at the pharmacy when you collect your prescription. These are two distinct charges - our fee for the clinical service, and the pharmacy's charge for the medication itself.",
-      "The good news is that Australia's Pharmaceutical Benefits Scheme (PBS) subsidises many common medications. If you hold a valid Medicare card, most common prescriptions cost $31.60 or less at the pharmacy (2024-25 PBS co-payment). Concession card holders pay $7.70 or less. Without Medicare, you'll pay the full retail price, which varies by medication.",
+      "The good news is that Australia's Pharmaceutical Benefits Scheme (PBS) subsidises many common medications. From 1 January 2026, if you hold a valid Medicare card, most common prescriptions cost up to $25.00 at the pharmacy (down from $31.60). Concession card holders pay up to $7.70 (frozen until 2030). Without Medicare, you'll pay the full retail price, which varies by medication. Source: health.gov.au/cheaper-medicines/pbs-co-payments",
       "We can't tell you exactly what your medication will cost at the pharmacy because prices vary between pharmacies and depend on whether you have Medicare and concession entitlements. Your pharmacist can give you a precise cost before you commit to purchasing. The PBS website (pbs.gov.au) also lists subsidy information for specific medications.",
     ],
   },

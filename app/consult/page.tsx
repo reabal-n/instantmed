@@ -3,7 +3,7 @@ import type { Metadata } from 'next'
 import { ConsultGuideSection } from '@/components/marketing/sections'
 import { ServiceFunnelPage } from '@/components/marketing/service-funnel-page'
 import { BreadcrumbSchema, FAQSchema, HealthArticleSchema,HowToSchema, MedicalServiceSchema } from '@/components/seo/healthcare-schema'
-import { PRICING_DISPLAY } from '@/lib/constants'
+import { PRICING, PRICING_DISPLAY } from '@/lib/constants'
 import { getFeatureFlags } from '@/lib/feature-flags'
 import { generalConsultFunnelConfig } from '@/lib/marketing/service-funnel-configs'
 
@@ -70,13 +70,13 @@ export default async function ConsultPage({ searchParams }: ConsultPageProps) {
       <MedicalServiceSchema
         name="Online Doctor Consultation"
         description="A proper doctor consult without the clinic visit. Australian doctors assess your health concerns and provide treatment advice."
-        price="49.95"
+        price={PRICING.CONSULT.toFixed(2)}
       />
       <HowToSchema
         name="How to Get an Online Doctor Consultation in Australia"
         description="Consult with an AHPRA-registered GP online. Get treatment advice, prescriptions, or referrals without visiting a clinic."
         totalTime="PT120M"
-        estimatedCost="49.95"
+        estimatedCost={PRICING.CONSULT.toFixed(2)}
         steps={[
           {
             name: "Describe your health concern",

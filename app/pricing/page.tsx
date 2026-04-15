@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 
 import { BreadcrumbSchema, MedicalServiceSchema } from "@/components/seo"
-import { PRICING_DISPLAY } from "@/lib/constants"
+import { PRICING, PRICING_DISPLAY } from "@/lib/constants"
 
 import { PricingClient } from "./pricing-client"
 
@@ -45,12 +45,12 @@ export default function PricingPage() {
       <MedicalServiceSchema
         name="Medical Certificate"
         description="Get a valid medical certificate for work or study reviewed by an Australian registered doctor"
-        price="19.95"
+        price={PRICING.MED_CERT.toFixed(2)}
       />
       <MedicalServiceSchema
         name="Online Prescription"
         description="Request prescriptions for common medications from registered Australian doctors"
-        price="29.95"
+        price={PRICING.REPEAT_SCRIPT.toFixed(2)}
       />
       <PricingClient />
     </>
