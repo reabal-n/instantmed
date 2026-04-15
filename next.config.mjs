@@ -44,6 +44,16 @@ const nextConfig = {
     }]
   },
   webpack(config) {
+    // Find Next.js's default SVG rule (asset/resource or file-loader) and
+    // exclude our sticker SVGs from it so SVGR can handle them instead.
+    const defaultSvgRule = config.module.rules.find(
+      (rule) => rule.test instanceof RegExp && rule.test.test('.svg')
+    )
+    if (defaultSvgRule) {
+      defaultSvgRule.exclude = /\.svg$/i
+    }
+
+    // Handle *.svg imports from JS/TS as React components via @svgr/webpack
     config.module.rules.push({
       test: /\.svg$/i,
       issuer: /\.[jt]sx?$/,
