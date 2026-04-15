@@ -44,9 +44,9 @@ export function HeroTestimonialRotator({ className }: HeroTestimonialRotatorProp
       <AnimatePresence mode="wait">
         <motion.div
           key={index}
-          initial={prefersReducedMotion ? {} : { opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={prefersReducedMotion ? {} : { opacity: 0, y: -6 }}
+          initial={prefersReducedMotion ? {} : { y: 6 }}
+          animate={{ y: 0 }}
+          exit={prefersReducedMotion ? {} : { y: -6 }}
           transition={{ duration: 0.3 }}
         >
           {/* Stars */}

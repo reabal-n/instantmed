@@ -97,8 +97,8 @@ export function DoctorAvailabilityPill({ alwaysAvailable = false }: DoctorAvaila
   if (alwaysAvailable) {
     return (
       <motion.div
-        initial={prefersReducedMotion ? {} : { opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
+        initial={prefersReducedMotion ? {} : { y: -10 }}
+        animate={{ y: 0 }}
         transition={{ delay: prefersReducedMotion ? 0 : 0.5, duration: prefersReducedMotion ? 0 : 0.4 }}
         className="flex justify-center"
       >
@@ -124,8 +124,8 @@ export function DoctorAvailabilityPill({ alwaysAvailable = false }: DoctorAvaila
 
   return (
     <motion.div
-      initial={prefersReducedMotion ? {} : { opacity: 0, y: -10 }}
-      animate={{ opacity: 1, y: 0 }}
+      initial={prefersReducedMotion ? {} : { y: -10 }}
+      animate={{ y: 0 }}
       transition={{ delay: prefersReducedMotion ? 0 : 0.5, duration: prefersReducedMotion ? 0 : 0.4 }}
       className="flex justify-center"
     >

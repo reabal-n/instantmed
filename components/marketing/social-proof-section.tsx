@@ -29,8 +29,8 @@ export function SocialProofSection() {
         {/* Header */}
         <motion.div
           className="text-center mb-8 sm:mb-10 lg:mb-12"
-          initial={prefersReducedMotion ? {} : { y: 20, opacity: 0 }}
-          whileInView={{ y: 0, opacity: 1 }}
+          initial={prefersReducedMotion ? {} : { y: 20 }}
+          whileInView={{ y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
         >

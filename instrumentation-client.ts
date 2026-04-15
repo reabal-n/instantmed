@@ -2,9 +2,17 @@
 // The added config here will be used whenever a users loads a page in their browser.
 // https://docs.sentry.io/platforms/javascript/guides/nextjs/
 
-import * as Sentry from "@sentry/nextjs";
-
 import { scrubPHI, scrubPHIFromObject } from "@/lib/observability/scrub-phi";
+
+// Sentry module reference — populated after lazy load.
+// Exported as a function ref so Next.js router can capture transitions even if
+// Sentry hasn't finished loading when the first navigation fires.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let _sentryCapture: ((...args: any[]) => void) | null = null;
+
+export function onRouterTransitionStart(...args: unknown[]) {
+  _sentryCapture?.(...args);
+}
 
 /**
  * Client-side Sentry environment detection
@@ -42,9 +50,13 @@ if (!sentryDsn && sentryEnabled) {
 }
 
 // Defer Sentry init until after page is interactive to avoid blocking LCP/TBT.
-// replayIntegration is lazy-loaded separately so its ~50KB bundle stays off
-// the critical path entirely.
-function initSentry() {
+// @sentry/nextjs is ~150KB gzipped — keeping it off the critical path saves
+// ~400–600ms of parse/compile time on simulated mobile (PSI conditions).
+async function loadAndInitSentry() {
+  const Sentry = await import("@sentry/nextjs");
+
+  _sentryCapture = Sentry.captureRouterTransitionStart;
+
   Sentry.init({
     dsn: sentryDsn,
     enabled: sentryEnabled,
@@ -102,32 +114,30 @@ function initSentry() {
       return breadcrumb;
     },
   });
+
+  // Load the Sentry Replay integration lazily after idle — keeps its ~50KB
+  // bundle completely off the initial load path.
+  if (sentryEnabled && sentryDsn) {
+    const addReplay = () => {
+      import("@sentry/nextjs").then(({ replayIntegration }) => {
+        Sentry.addIntegration(replayIntegration());
+      }).catch(() => {/* ignore */});
+    };
+    if ("requestIdleCallback" in window) {
+      requestIdleCallback(addReplay, { timeout: 8000 });
+    } else {
+      setTimeout(addReplay, 5000);
+    }
+  }
 }
 
 // Schedule Sentry init after the page is interactive so it stays off the
 // critical path (improves LCP and TBT on Lighthouse mobile).
 if ("requestIdleCallback" in window) {
-  requestIdleCallback(initSentry, { timeout: 3000 });
+  requestIdleCallback(() => loadAndInitSentry(), { timeout: 3000 });
 } else {
-  setTimeout(initSentry, 1500);
+  setTimeout(() => loadAndInitSentry(), 1500);
 }
-
-// Load the Sentry Replay integration lazily after idle — keeps its ~50KB
-// bundle completely off the initial load path.
-if (sentryEnabled && sentryDsn) {
-  const addReplay = () => {
-    import("@sentry/nextjs").then(({ replayIntegration }) => {
-      Sentry.addIntegration(replayIntegration());
-    }).catch(() => {/* ignore */});
-  };
-  if ("requestIdleCallback" in window) {
-    requestIdleCallback(addReplay, { timeout: 8000 });
-  } else {
-    setTimeout(addReplay, 5000);
-  }
-}
-
-export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;
 
 // PostHog Analytics initialization (single source of truth - do not duplicate in provider)
 // Dynamic import to avoid module-level crash when posthog-js can't initialize

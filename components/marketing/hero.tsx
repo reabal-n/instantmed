@@ -2,11 +2,24 @@
 
 import { ArrowRight, CheckCircle2, FileText, Pill, Smartphone } from 'lucide-react'
 import Link from 'next/link'
+import dynamic from 'next/dynamic'
 import type React from "react"
 
-import { HeroMultiServiceMockup } from '@/components/marketing/hero-multi-service-mockup'
-import { HeroTestimonialRotator } from '@/components/marketing/hero-testimonial-rotator'
 import { LastReviewedSignal } from '@/components/marketing/last-reviewed-signal'
+
+// Desktop-only stacked card mockup — never the LCP element, safe for ssr:false
+const HeroMultiServiceMockup = dynamic(
+  () => import('@/components/marketing/hero-multi-service-mockup').then(m => ({ default: m.HeroMultiServiceMockup })),
+  { ssr: false }
+)
+
+// Testimonial rotator — decorative, below main CTA. ssr:false keeps framer-motion
+// AnimatePresence out of the SSR bundle for this component. A min-h placeholder
+// prevents layout shift while the JS chunk loads.
+const HeroTestimonialRotator = dynamic(
+  () => import('@/components/marketing/hero-testimonial-rotator').then(m => ({ default: m.HeroTestimonialRotator })),
+  { ssr: false, loading: () => <div className="min-h-[60px]" /> }
+)
 import { DoctorAvailabilityPill } from '@/components/shared/doctor-availability-pill'
 import { TrustBadgeRow } from '@/components/shared/trust-badge'
 import { Button } from "@/components/ui/button"

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import dynamic from 'next/dynamic'
 import { Suspense } from 'react'
 
 import {
@@ -11,7 +12,13 @@ import { MarketingPageShell } from '@/components/marketing/marketing-page-shell'
 import { RegulatoryPartners } from '@/components/marketing/media-mentions'
 // After-hours banner removed - redundant with DoctorAvailabilityPill in hero
 import { ServiceCards } from '@/components/marketing/service-cards'
-import { SocialProofSection } from '@/components/marketing/social-proof-section'
+
+// Heavy below-fold section: framer-motion animations + testimonial columns.
+// Dynamic import splits it into its own chunk so the main bundle stays lean.
+// SSR enabled (default) keeps content in HTML for crawlers and CLS prevention.
+const SocialProofSection = dynamic(
+  () => import('@/components/marketing/social-proof-section').then(m => ({ default: m.SocialProofSection })),
+)
 import { CTABanner } from '@/components/sections'
 import { FAQSection } from '@/components/sections'
 import { FAQSchema, MedicalBusinessSchema, SpeakableSchema } from '@/components/seo/healthcare-schema'
