@@ -6,7 +6,7 @@ import { EmailSuppressionClient } from "./email-suppression-client"
 export const dynamic = "force-dynamic"
 
 export const metadata = {
-  title: "Email Suppression | InstantMed Doctor Portal",
+  title: { absolute: "Email Suppression | InstantMed Doctor Portal" },
 }
 
 export default async function EmailSuppressionPage() {

@@ -28,7 +28,7 @@ export const revalidate = 3600
 // SEO metadata for homepage - critical for Google ranking
 // Note: Avoid prescription drug terms (script, prescription) per Google Ads policy for Australia
 export const metadata: Metadata = {
-  title: { absolute: 'Online Doctor Australia | Consults, Repeat Rx & Med Certs | InstantMed' },
+  title: { absolute: 'Online Doctor Australia | Consults, Repeat Rx, Med Certs, ED & Hair Loss | InstantMed' },
   description: `Doctor consultations from ${PRICING_DISPLAY.CONSULT}. Repeat medication from ${PRICING_DISPLAY.REPEAT_SCRIPT}. Medical certificates from ${PRICING_DISPLAY.MED_CERT} in under 30 minutes. AHPRA-registered Australian GPs, 100% online.`,
   keywords: [
     'online doctor australia',
@@ -43,7 +43,7 @@ export const metadata: Metadata = {
     'hair loss treatment online',
   ],
   openGraph: {
-    title: 'Online Doctor Australia | Consults, Repeat Rx & Med Certs | InstantMed',
+    title: 'Online Doctor Australia | Consults, Repeat Rx, Med Certs, ED & Hair Loss | InstantMed',
     description: 'Online doctor consultations, repeat medication & medical certificates from AHPRA-registered Australian GPs. No video calls, 100% online.',
     type: 'website',
     locale: 'en_AU',

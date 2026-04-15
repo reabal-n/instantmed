@@ -42,7 +42,7 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: {
     default: "InstantMed | Online Doctor Australia",
-    template: "%s",
+    template: "%s | InstantMed",
   },
   description:
     `Get medical certificates, repeat medication & doctor consults online from ${PRICING_DISPLAY.MED_CERT}. AHPRA-registered Australian doctors. No video calls, results in under an hour.`,

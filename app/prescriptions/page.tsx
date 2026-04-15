@@ -16,7 +16,7 @@ import { PRICING, REVIEW_AGGREGATE } from '@/lib/constants'
 import { PRESCRIPTION_FAQ } from '@/lib/data/prescription-faq'
 
 export const metadata: Metadata = {
-  title: 'Online Prescription Australia | Repeat & New Medication | InstantMed',
+  title: 'Online Prescription Australia | Repeat & New Medication',
   description: `Renew your regular medications or get a new prescription online. AHPRA-registered Australian doctors review your request and send an eScript to your phone - any pharmacy, same day. Repeat from $${PRICING.REPEAT_SCRIPT.toFixed(2)}.`,
   keywords: [
     'online prescription australia',
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     'new prescription online australia',
   ],
   openGraph: {
-    title: 'Online Prescription Australia | Repeat & New Medication | InstantMed',
+    title: 'Online Prescription Australia | Repeat & New Medication',
     description: `Renew your regular medications online. AHPRA-registered doctors send an eScript to your phone. Any pharmacy, same day. From $${PRICING.REPEAT_SCRIPT.toFixed(2)}.`,
     type: 'website',
     url: 'https://instantmed.com.au/prescriptions',

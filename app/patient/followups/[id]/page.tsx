@@ -5,7 +5,7 @@ import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
 
 import { FollowupForm } from "./followup-form"
 
-export const metadata = { title: "Treatment check-in - InstantMed" }
+export const metadata = { title: "Treatment check-in" }
 export const dynamic = "force-dynamic"
 
 export default async function PatientFollowupPage({

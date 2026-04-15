@@ -6,7 +6,7 @@ import { AnalyticsClient } from "./analytics-client"
 export const dynamic = "force-dynamic"
 
 export const metadata = {
-  title: "Analytics | InstantMed Doctor Portal",
+  title: { absolute: "Analytics | InstantMed Doctor Portal" },
 }
 
 // Pagination constants

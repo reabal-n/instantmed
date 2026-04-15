@@ -13,7 +13,7 @@ import { symptoms } from "@/lib/seo/data/symptoms";
 import { getAllIntentSlugs, getIntentPageBySlug } from "@/lib/seo/intents";
 
 export const metadata: Metadata = {
-  title: "Sitemap | InstantMed",
+  title: "Sitemap",
   description:
     "Browse all pages on InstantMed - medical certificates, prescriptions, consultations, health conditions, symptoms, and more.",
   alternates: { canonical: "https://instantmed.com.au/sitemap-html" },

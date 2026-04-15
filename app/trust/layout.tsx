@@ -6,7 +6,7 @@ import { BreadcrumbSchema } from "@/components/seo"
 export const revalidate = 86400
 
 export const metadata: Metadata = {
-  title: "Why Trust InstantMed? | AHPRA Registered Doctors",
+  title: { absolute: "Why Trust InstantMed? | AHPRA Registered Doctors" },
   description:
     "Doctor verification, data security and Medicare compliance. 100% Australian-based with AHPRA-registered doctors. Bank-level encryption.",
   keywords: [

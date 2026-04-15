@@ -7,7 +7,7 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { PreferencesForm } from "./preferences-form"
 
 export const metadata: Metadata = {
-  title: "Email Preferences - InstantMed",
+  title: "Email Preferences",
   robots: { index: false, follow: false },
 }
 
