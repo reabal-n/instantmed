@@ -10,7 +10,7 @@ import {
 import { StickerIcon } from "@/components/icons/stickers"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
-import { useEffect, useRef,useState } from "react"
+import { Suspense, useEffect, useRef,useState } from "react"
 
 import { usePostHog } from "@/components/providers/posthog-provider"
 import { Button } from "@/components/ui/button"
@@ -67,12 +67,31 @@ const CATEGORY_GRADIENTS: Record<CertCategory, { gradient: string; selectedGradi
 // =============================================================================
 
 /**
- * Interactive certificate type selector - engagement hook for the med cert
- * landing page. Replaces the trust-strip wall between hero and HowItWorks.
- *
- * Shows 3 category cards (work / study / carer) with common reasons.
- * Selection reveals the pricing ladder + CTA that links to the intake with
- * `certType` pre-seeded via URL param.
+ * Reads certType / utm_content from the URL and calls onAutoSelect once.
+ * Isolated into its own component so it can be wrapped in <Suspense>,
+ * allowing CertificateTypeSelector itself to render server-side.
+ */
+function SearchParamsAutoSelect({
+  onAutoSelect,
+}: {
+  onAutoSelect: (cat: CertCategory) => void
+}) {
+  const searchParams = useSearchParams()
+  useEffect(() => {
+    const certType = searchParams.get("certType") || searchParams.get("utm_content")
+    if (certType && ["work", "study", "carer"].includes(certType)) {
+      onAutoSelect(certType as CertCategory)
+    }
+    // Run once on mount only
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+  return null
+}
+
+/**
+ * Interactive certificate type selector — engagement hook for the med cert
+ * landing page. Renders SSR; URL-param auto-select handled client-side via
+ * an inner Suspense boundary to avoid the useSearchParams SSR bailout.
  */
 export function CertificateTypeSelector({
   className,
@@ -83,21 +102,19 @@ export function CertificateTypeSelector({
   const prefersReducedMotion = useReducedMotion()
   const animate = !prefersReducedMotion
   const [selected, setSelected] = useState<CertCategory | null>(null)
+  const [selectedDays, setSelectedDays] = useState<number>(MED_CERT_DURATIONS.options[0])
 
-  const searchParams = useSearchParams()
-
-  // Auto-select from URL params (utm_content or certType)
-  useEffect(() => {
-    const certType = searchParams.get("certType") || searchParams.get("utm_content")
-    if (certType && !selected && ["work", "study", "carer"].includes(certType)) {
-      setSelected(certType as CertCategory)
-    }
-  }, [searchParams, selected])
+  const handleAutoSelect = (cat: CertCategory) => {
+    setSelected((prev) => prev ?? cat)
+  }
 
   const handleSelect = (category: CertCategory) => {
     setSelected(category)
     posthog?.capture(CERT_TYPE_POSTHOG_EVENT, { [CERT_TYPE_POSTHOG_PROPERTY]: category })
   }
+
+  const selectedPrice = MED_CERT_DURATIONS.prices[selectedDays as keyof typeof MED_CERT_DURATIONS.prices]
+  const selectedLabel = MED_CERT_DURATIONS.labels[selectedDays as keyof typeof MED_CERT_DURATIONS.labels]
 
   return (
     <section
@@ -105,6 +122,11 @@ export function CertificateTypeSelector({
       aria-label="Choose your certificate type"
       className={cn("py-12 lg:py-16 scroll-mt-20", className)}
     >
+      {/* Client-only URL param reader — Suspense prevents SSR bailout */}
+      <Suspense fallback={null}>
+        <SearchParamsAutoSelect onAutoSelect={handleAutoSelect} />
+      </Suspense>
+
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <motion.div
@@ -204,17 +226,31 @@ export function CertificateTypeSelector({
           transition={{ duration: 0.3 }}
           style={{ overflow: "hidden" }}
         >
-          <div className="inline-flex items-center gap-4 sm:gap-6 mb-4">
-            {MED_CERT_DURATIONS.options.map((days) => (
-              <div key={days} className="text-center">
-                <p className="text-xs text-muted-foreground mb-0.5">
-                  {MED_CERT_DURATIONS.labels[days]}
-                </p>
-                <p className="text-sm font-semibold text-foreground">
-                  ${MED_CERT_DURATIONS.prices[days].toFixed(2)}
-                </p>
-              </div>
-            ))}
+          {/* Interactive duration tiles */}
+          <div className="inline-flex items-center gap-2 sm:gap-3 mb-5 p-1 rounded-xl bg-muted/40 border border-border/30">
+            {MED_CERT_DURATIONS.options.map((days) => {
+              const isActive = selectedDays === days
+              return (
+                <button
+                  key={days}
+                  type="button"
+                  onClick={() => setSelectedDays(days)}
+                  className={cn(
+                    "relative px-4 py-2 rounded-lg text-center transition-all cursor-pointer min-w-[80px]",
+                    isActive
+                      ? "bg-white dark:bg-card shadow-sm border border-border/50 ring-1 ring-primary/20"
+                      : "hover:bg-white/60 dark:hover:bg-white/5",
+                  )}
+                >
+                  <p className={cn("text-xs mb-0.5", isActive ? "text-primary font-medium" : "text-muted-foreground")}>
+                    {MED_CERT_DURATIONS.labels[days as keyof typeof MED_CERT_DURATIONS.labels]}
+                  </p>
+                  <p className={cn("text-sm font-semibold", isActive ? "text-foreground" : "text-muted-foreground")}>
+                    ${MED_CERT_DURATIONS.prices[days as keyof typeof MED_CERT_DURATIONS.prices].toFixed(2)}
+                  </p>
+                </button>
+              )
+            })}
           </div>
           <div>
             <Button
@@ -224,9 +260,9 @@ export function CertificateTypeSelector({
             >
               <Link
                 href={`/request?service=med-cert${selected ? `&certType=${selected}` : ""}`}
-                onClick={() => posthog?.capture("cta_clicked", { location: "cert_selector", cert_type: selected })}
+                onClick={() => posthog?.capture("cta_clicked", { location: "cert_selector", cert_type: selected, days: selectedDays })}
               >
-                Get your certificate
+                Get your {selectedLabel} certificate &middot; ${selectedPrice.toFixed(2)}
                 <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
               </Link>
             </Button>
@@ -281,7 +317,7 @@ const comparisonRows: Array<{
   { label: 'Turnaround', instant: `~${SOCIAL_PROOF.certTurnaroundMinutes} min`, gp: 'Needs booking', telehealth: '1-2 hours', instantWins: true },
   { label: 'Open 24/7', instant: true, gp: false, telehealth: 'Limited', instantWins: true },
   { label: 'No appointment', instant: true, gp: false, telehealth: false, instantWins: true },
-  { label: 'No waiting room', instant: true, gp: false, telehealth: true },
+  { label: 'Same-day certificate', instant: true, gp: false, telehealth: 'Often next day', instantWins: true },
   { label: 'AHPRA doctor', instant: true, gp: true, telehealth: true },
 ]
 

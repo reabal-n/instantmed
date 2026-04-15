@@ -33,7 +33,7 @@ import { SOCIAL_PROOF, SOCIAL_PROOF_DISPLAY } from "@/lib/social-proof"
 // Below-fold lazy loads
 const CertificateTypeSelector = dynamic(
   () => import("@/components/marketing/sections/certificate-type-selector").then((m) => m.CertificateTypeSelector),
-  { loading: () => <div className="min-h-[400px]" />, ssr: false },
+  { loading: () => <div className="min-h-[400px]" /> },
 )
 const HowItWorksSection = dynamic(
   () => import("@/components/marketing/sections/how-it-works-section").then((m) => m.HowItWorksSection),
@@ -231,7 +231,7 @@ export function MedCertLanding() {
         return (
           <>
             {/* 1. Hero */}
-            <MedCertHeroSection ctaRef={heroCTARef} onCTAClick={handleHeroCTA} />
+            <MedCertHeroSection ctaRef={heroCTARef} onCTAClick={handleHeroCTA} patientCount={patientCount} />
 
             {/* 2. Certificate type selector — get intent before social proof */}
             <div data-track-section="selector">
@@ -241,18 +241,13 @@ export function MedCertLanding() {
             {/* 3. Employer acceptance — validates the selection just made */}
             <EmployerCalloutStrip onEmployerClick={handleEmployerClick} onVerifyClick={handleVerifyClick} />
 
-            {/* 4. Regulatory authority logos */}
-            <RegulatoryPartners />
-
-            {/* 5. How It Works */}
+            {/* 4. How It Works */}
             <div data-track-section="how_it_works">
               <HowItWorksSection onCTAClick={handleHowItWorksCTA} />
             </div>
 
             {/* 6. Time comparison data viz */}
-            <div className="bg-muted/30 dark:bg-white/[0.02]">
-              <CertComparisonViz />
-            </div>
+            <CertComparisonViz />
 
             {/* 7. Refund guarantee + trust counter — combined */}
             <section className="py-6 sm:py-8">
@@ -264,7 +259,7 @@ export function MedCertLanding() {
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-foreground">100% refund guarantee</p>
                     <p className="text-xs text-muted-foreground leading-relaxed mt-0.5">
-                      If our doctor can&apos;t issue your certificate, you get a full refund. Trusted by {patientCount.toLocaleString()}+ Australians.
+                      If our doctor can&apos;t issue your certificate, you get a full refund. No questions asked.
                     </p>
                   </div>
                 </div>
@@ -286,7 +281,7 @@ export function MedCertLanding() {
                 title="Before you start"
                 subtitle="Everything you need to know about getting your certificate."
                 items={MED_CERT_FAQ}
-                initialCount={6}
+                initialCount={4}
                 onFAQOpen={handleFAQOpen}
                 viewAllHref="/faq"
               />
@@ -302,6 +297,9 @@ export function MedCertLanding() {
             {/* 12. Deep-dive guide + competitor links (SEO, above footer) */}
             <MedCertGuideSection />
             <CompetitorLinksSection slugs={["instantmed-vs-cleanbill", "instantmed-vs-qoctor", "instantmed-vs-instantscripts"]} />
+
+            {/* 12. Authority logos — trust-seal right before CTA */}
+            <RegulatoryPartners />
 
             {/* 13. Pre-CTA friction removal */}
             <div className="py-6 sm:py-8">

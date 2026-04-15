@@ -29,9 +29,11 @@ const ROTATING_BADGES = [
 export function MedCertHeroSection({
   ctaRef,
   onCTAClick,
+  patientCount,
 }: {
   ctaRef?: React.RefObject<HTMLDivElement>
   onCTAClick?: () => void
+  patientCount?: number
 }) {
   const prefersReducedMotion = useReducedMotion()
   const animate = !prefersReducedMotion
@@ -70,19 +72,8 @@ export function MedCertHeroSection({
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.1 }}
             >
-              Valid for work, uni, or carer&apos;s leave. Reviewed by an
-              AHPRA-registered GP and delivered straight to your inbox.
-            </motion.p>
-
-            {/* Price anchor */}
-            <motion.p
-              className="text-sm font-semibold text-foreground mb-2 flex items-center justify-center lg:justify-start gap-1.5"
-              initial={animate ? { y: 8 } : {}}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.11 }}
-            >
-              From ${PRICING.MED_CERT.toFixed(2)}
-              <span className="text-xs font-normal text-muted-foreground">- no hidden fees</span>
+              Valid for work, uni, or carer&apos;s leave. An AHPRA-registered GP
+              reviews your request. Most certificates are ready in under 20 minutes.
             </motion.p>
 
             {/* Rotating secondary proof badge */}
@@ -123,9 +114,22 @@ export function MedCertHeroSection({
                 <p className="text-xs text-muted-foreground">
                   {SOCIAL_PROOF_DISPLAY.gpComparison} clinic
                 </p>
-                <ContextualMessage service="med-cert" className="text-xs text-muted-foreground/80 italic mt-1" />
+                <ContextualMessage service="med-cert" className="text-xs font-medium text-primary/70 border-l-2 border-primary/30 pl-2 mt-1" />
               </div>
             </motion.div>
+
+            {/* Social proof count */}
+            {patientCount && patientCount > 0 && (
+              <motion.p
+                className="text-xs text-muted-foreground flex items-center justify-center lg:justify-start gap-1.5 mb-4 sm:mb-5 -mt-2"
+                initial={animate ? { opacity: 0 } : {}}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.4, delay: 0.3 }}
+              >
+                <CheckCircle2 className="h-3.5 w-3.5 text-success shrink-0" aria-hidden="true" />
+                Trusted by {patientCount.toLocaleString()}+ Australians
+              </motion.p>
+            )}
 
             {/* 3 key trust badges — LegitScript + Google Pharmacy + No call */}
             <TrustBadgeRow
