@@ -449,8 +449,8 @@ export function HairLossGuideSection() {
 
           {/* Norwood stages visualiser */}
           <motion.div
-            initial={animate ? { opacity: 0, y: 16 } : {}}
-            whileInView={animate ? { opacity: 1, y: 0 } : undefined}
+            initial={animate ? { y: 16 } : {}}
+            whileInView={animate ? { y: 0 } : undefined}
             viewport={{ once: true }}
             transition={{ duration: 0.4 }}
           >

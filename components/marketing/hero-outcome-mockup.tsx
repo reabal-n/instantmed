@@ -26,8 +26,8 @@ export function HeroOutcomeMockup() {
       {/* Approved certificate card - paper-cream treatment */}
       <motion.div
         className="relative rounded-2xl bg-[#FAF8F5] dark:bg-card border border-border/50 dark:border-white/15 shadow-xl shadow-primary/[0.1] dark:shadow-none p-5 space-y-4 overflow-hidden"
-        initial={animate ? { y: 20, opacity: 0 } : {}}
-        animate={{ y: 0, opacity: 1 }}
+        initial={animate ? { y: 20 } : {}}
+        animate={{ y: 0 }}
         transition={{ duration: 0.5, delay: 0.2, ease: "easeOut" }}
       >
         <GrainOverlay />
@@ -87,8 +87,8 @@ export function HeroOutcomeMockup() {
       {/* Floating notification */}
       <motion.div
         className="absolute -bottom-5 -right-4 xl:-right-6 rounded-xl bg-[#FAF8F5] dark:bg-card border border-border/50 dark:border-white/15 shadow-lg shadow-primary/[0.08] dark:shadow-none p-2.5 flex items-center gap-2.5 min-w-[190px]"
-        initial={animate ? { x: 20, opacity: 0 } : {}}
-        animate={{ x: 0, opacity: 1 }}
+        initial={animate ? { x: 20 } : {}}
+        animate={{ x: 0 }}
         transition={{ duration: 0.5, delay: 1.2, ease: "easeOut" }}
       >
         <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">

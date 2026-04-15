@@ -247,16 +247,16 @@ export function HairLossProgressTimeline({
             "rounded-2xl border border-border/50 bg-white shadow-md shadow-primary/[0.06] dark:bg-card",
             "p-5 sm:p-7 lg:p-8",
           )}
-          initial={animate ? { opacity: 0, y: 20 } : {}}
-          whileInView={animate ? { opacity: 1, y: 0 } : undefined}
+          initial={animate ? { y: 20 } : {}}
+          whileInView={animate ? { y: 0 } : undefined}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
         >
           {/* Header */}
           <motion.div
             className="mb-4 text-center"
-            initial={animate ? { opacity: 0, y: 12 } : {}}
-            whileInView={animate ? { opacity: 1, y: 0 } : undefined}
+            initial={animate ? { y: 12 } : {}}
+            whileInView={animate ? { y: 0 } : undefined}
             viewport={{ once: true }}
             transition={{ duration: 0.4, delay: 0.1 }}
           >
@@ -279,8 +279,8 @@ export function HairLossProgressTimeline({
               {/* Scalp SVG */}
               <motion.div
                 className="mt-6"
-                initial={{ opacity: 0, y: 16 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                initial={{ y: 16 }}
+                whileInView={{ y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.4, delay: 0.2 }}
               >
@@ -294,8 +294,8 @@ export function HairLossProgressTimeline({
               {/* Slider + milestones */}
               <motion.div
                 className="relative mt-8"
-                initial={{ opacity: 0, y: 16 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                initial={{ y: 16 }}
+                whileInView={{ y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.4, delay: 0.3 }}
               >
@@ -347,8 +347,8 @@ export function HairLossProgressTimeline({
           {/* CTA */}
           <motion.div
             className="mt-7 flex justify-center"
-            initial={animate ? { opacity: 0, y: 12 } : {}}
-            whileInView={animate ? { opacity: 1, y: 0 } : undefined}
+            initial={animate ? { y: 12 } : {}}
+            whileInView={animate ? { y: 0 } : undefined}
             viewport={{ once: true }}
             transition={{ duration: 0.4, delay: 0.35 }}
           >

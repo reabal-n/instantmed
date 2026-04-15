@@ -293,8 +293,8 @@ function ComparisonTable() {
     <motion.div
       ref={tableRef}
       className="mt-10"
-      initial={prefersReducedMotion ? {} : { y: 16, opacity: 0 }}
-      whileInView={{ y: 0, opacity: 1 }}
+      initial={prefersReducedMotion ? {} : { y: 16 }}
+      whileInView={{ y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.4, delay: 0.1 }}
     >
