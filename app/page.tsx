@@ -28,8 +28,8 @@ export const revalidate = 3600
 // SEO metadata for homepage - critical for Google ranking
 // Note: Avoid prescription drug terms (script, prescription) per Google Ads policy for Australia
 export const metadata: Metadata = {
-  title: { absolute: 'Online Doctor Australia | Med Certs, ED & Hair Loss | InstantMed' },
-  description: `Medical certificates from ${PRICING_DISPLAY.MED_CERT} in under 30 minutes. Repeat medication from ${PRICING_DISPLAY.REPEAT_SCRIPT}. Discreet ED and hair loss treatment from ${PRICING_DISPLAY.CONSULT}. AHPRA-registered Australian doctors, 100% online.`,
+  title: { absolute: 'Online Doctor Australia | Consults, Repeat Rx & Med Certs | InstantMed' },
+  description: `Doctor consultations from ${PRICING_DISPLAY.CONSULT}. Repeat medication from ${PRICING_DISPLAY.REPEAT_SCRIPT}. Medical certificates from ${PRICING_DISPLAY.MED_CERT} in under 30 minutes. AHPRA-registered Australian GPs, 100% online.`,
   keywords: [
     'online doctor australia',
     'telehealth australia',
@@ -43,8 +43,8 @@ export const metadata: Metadata = {
     'hair loss treatment online',
   ],
   openGraph: {
-    title: 'Online Doctor Australia | Med Certs, ED & Hair Loss | InstantMed',
-    description: 'Medical certificates in under 30 minutes, 24/7. Discreet ED and hair loss treatment reviewed by AHPRA-registered Australian doctors.',
+    title: 'Online Doctor Australia | Consults, Repeat Rx & Med Certs | InstantMed',
+    description: 'Online doctor consultations, repeat medication & medical certificates from AHPRA-registered Australian GPs. No video calls, 100% online.',
     type: 'website',
     locale: 'en_AU',
     url: 'https://instantmed.com.au',
@@ -54,7 +54,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'InstantMed - Online Doctor Australia',
-    description: 'Medical certificates in under 30 minutes, 24/7. Discreet ED and hair loss treatment reviewed by AHPRA-registered Australian doctors.',
+    description: 'Online doctor consultations, repeat medication & medical certificates from AHPRA-registered Australian GPs. No video calls, 100% online.',
     // Twitter image handled by app/opengraph-image.tsx convention file
   },
   alternates: {

@@ -42,7 +42,7 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: {
     default: "InstantMed | Online Doctor Australia",
-    template: "%s | InstantMed",
+    template: "%s",
   },
   description:
     `Get medical certificates, repeat medication & doctor consults online from ${PRICING_DISPLAY.MED_CERT}. AHPRA-registered Australian doctors. No video calls, results in under an hour.`,
@@ -61,7 +61,7 @@ export const metadata: Metadata = {
   icons: {
     shortcut: "/favicon.ico",
     icon: [
-      { url: "/favicon.ico", sizes: "32x32", type: "image/x-icon" },
+      { url: "/favicon.ico", sizes: "48x48", type: "image/x-icon" },
       { url: "/icon.png", type: "image/png", sizes: "512x512" },
     ],
     apple: { url: "/apple-icon.png", type: "image/png", sizes: "180x180" },

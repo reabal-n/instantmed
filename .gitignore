@@ -73,6 +73,8 @@ storybook-static
 !public/branding/*.png
 !public/logos/*.png
 !public/images/**/*.png
+!app/icon.png
+!app/apple-icon.png
 
 node_modules
 node_modules 2

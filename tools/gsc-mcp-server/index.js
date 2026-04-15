@@ -784,54 +784,173 @@ async function handlePagespeedCompare(args) {
 
 // --- Google Business Profile handlers ---
 
-async function handleGbpListLocations() {
-  const mybusiness = google.mybusinessaccountmanagement({
-    version: "v1",
-    auth,
-  });
+// Cache the location lookup — accounts.list() has a 1 QPM quota; only call it once per process.
+// Set GBP_LOCATION_NAME env var (e.g. "locations/123456789") to skip the accounts.list()
+// call entirely. Get this value from: GBP dashboard URL or first successful gbp_list_locations call.
+let gbpLocationCache = null;
 
-  const accountsRes = await mybusiness.accounts.list();
+async function resolveGbpLocation() {
+  if (gbpLocationCache) return gbpLocationCache;
+
+  const token = await auth.getAccessToken();
+
+  // Fast path: if GBP_LOCATION_NAME is set, skip the costly accounts.list() call
+  if (process.env.GBP_LOCATION_NAME) {
+    const locationName = process.env.GBP_LOCATION_NAME; // e.g. "locations/123456789"
+    gbpLocationCache = {
+      account: { name: "unknown", accountName: "InstantMed", type: "LOCATION_GROUP", role: "OWNER", state: {} },
+      location: { name: locationName, title: "InstantMed" },
+      locationId: locationName,
+    };
+    return gbpLocationCache;
+  }
+
+  // Slow path: discover account + location via API (burns 1 QPM quota on mybusinessaccountmanagement)
+  const accountsClient = google.mybusinessaccountmanagement({ version: "v1", auth });
+  const accountsRes = await accountsClient.accounts.list();
   const accounts = accountsRes.data.accounts || [];
 
   if (accounts.length === 0) {
-    return { error: "No GBP accounts found for this Google account." };
+    throw new Error("No GBP accounts found. Set GBP_LOCATION_NAME env var to skip this lookup.");
   }
 
-  const results = [];
-  for (const account of accounts) {
-    results.push({
+  const accountName = accounts[0].name; // e.g. "accounts/123456789"
+
+  // Fetch locations via mybusinessbusinessinformation REST
+  const locRes = await fetch(
+    `https://mybusinessbusinessinformation.googleapis.com/v1/${accountName}/locations` +
+      `?readMask=name,title,storefrontAddress,websiteUri,regularHours,phoneNumbers,profile`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+  const locData = await locRes.json();
+
+  if (locData.error) {
+    throw new Error(`Locations API: ${locData.error.message}`);
+  }
+
+  const locations = locData.locations || [];
+  const location = locations[0] || null;
+
+  gbpLocationCache = {
+    account: accounts[0],
+    location,
+    locationId: location?.name, // e.g. "locations/123456789"
+  };
+
+  return gbpLocationCache;
+}
+
+async function handleGbpListLocations() {
+  const { account, location } = await resolveGbpLocation();
+
+  return {
+    account: {
       name: account.name,
       accountName: account.accountName,
       type: account.type,
       role: account.role,
       state: account.state,
-    });
-  }
-
-  return { accounts: results };
+    },
+    location: location
+      ? {
+          name: location.name,
+          title: location.title,
+          address: location.storefrontAddress,
+          website: location.websiteUri,
+          phone: location.phoneNumbers?.primaryPhone,
+        }
+      : null,
+  };
 }
 
 async function handleGbpGetReviews(args) {
-  const mybusiness = google.mybusinessaccountmanagement({
-    version: "v1",
-    auth,
-  });
+  const pageSize = Math.min(args.pageSize || 20, 50);
 
-  // First, list accounts to find the right one
-  const accountsRes = await mybusiness.accounts.list();
-  const accounts = accountsRes.data.accounts || [];
+  // Fast path: use Places API (New) with a Place ID — no GBP partner access needed.
+  // Set GBP_PLACE_ID in .mcp.json to enable this path.
+  // Find it: business.google.com → your listing → Share → copy the CID from the URL,
+  // then convert: https://maps.google.com/?cid=XXXX → Place ID via
+  //   curl "https://places.googleapis.com/v1/places:searchText" -d '{"textQuery":"<name>"}' ...
+  // OR go to maps.google.com, find your listing, right-click → "What's here" for the Place ID.
+  if (process.env.GBP_PLACE_ID) {
+    const placesKey = process.env.PLACES_API_KEY;
+    if (!placesKey) {
+      return { error: "GBP_PLACE_ID set but PLACES_API_KEY missing in env." };
+    }
 
-  if (accounts.length === 0) {
-    return { error: "No GBP accounts found." };
+    const res = await fetch(
+      `https://places.googleapis.com/v1/places/${process.env.GBP_PLACE_ID}`,
+      {
+        headers: {
+          "X-Goog-Api-Key": placesKey,
+          "X-Goog-FieldMask": "reviews,rating,userRatingCount,displayName",
+        },
+      }
+    );
+    const data = await res.json();
+
+    if (data.error) {
+      throw new Error(`Places API: ${data.error.message}`);
+    }
+
+    const reviews = (data.reviews || []).slice(0, pageSize);
+
+    return {
+      source: "places-api",
+      businessName: data.displayName?.text || "Unknown",
+      totalReviewCount: data.userRatingCount || reviews.length,
+      averageRating: data.rating || null,
+      reviews: reviews.map((r) => ({
+        author: r.authorAttribution?.displayName || "Anonymous",
+        rating: r.rating,
+        comment: r.text?.text || "",
+        publishTime: r.publishTime,
+        relativePublishTimeDescription: r.relativePublishTimeDescription,
+        replyText: null, // Places API doesn't return owner replies
+      })),
+    };
   }
 
+  // GBP API path (requires GBP partner access approval from Google).
+  // mybusinessaccountmanagement.googleapis.com has a quota of 0 by default —
+  // you must request quota increase at: console.cloud.google.com/iam-admin/quotas
+  // and filter for "mybusinessaccountmanagement".
+  const { locationId } = await resolveGbpLocation();
+
+  if (!locationId) {
+    return { error: "No GBP location found. Set GBP_LOCATION_NAME or GBP_PLACE_ID env var." };
+  }
+
+  const token = await auth.getAccessToken();
+
+  // Reviews are on the older mybusiness v4 API (the split mybusinessreviews API is not
+  // publicly available). Use direct REST call.
+  const res = await fetch(
+    `https://mybusiness.googleapis.com/v4/${locationId}/reviews?pageSize=${pageSize}`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+  const data = await res.json();
+
+  if (data.error) {
+    throw new Error(`GBP Reviews API: ${data.error.message}`);
+  }
+
+  const reviews = data.reviews || [];
+  const starMap = { ONE: 1, TWO: 2, THREE: 3, FOUR: 4, FIVE: 5 };
+
   return {
-    accounts: accounts.map((a) => ({
-      name: a.name,
-      accountName: a.accountName,
-      type: a.type,
+    source: "gbp-api",
+    totalReviewCount: data.totalReviewCount || reviews.length,
+    averageRating: data.averageRating || null,
+    reviews: reviews.map((r) => ({
+      author: r.reviewer?.displayName || "Anonymous",
+      rating: starMap[r.starRating] || r.starRating,
+      comment: r.comment || "",
+      createTime: r.createTime,
+      updateTime: r.updateTime,
+      replyText: r.reviewReply?.comment || null,
+      replyTime: r.reviewReply?.updateTime || null,
     })),
-    note: "GBP Reviews API requires My Business API v4 which uses a different endpoint. Use the GBP dashboard or the account info above to verify your listing.",
   };
 }
 
