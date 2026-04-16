@@ -8,20 +8,20 @@
  * - Google Consent Mode v2 support
  */
 
-// Conversion action IDs — Google Ads account AW-18088966690 (certified, account 920-501-0513)
-// PURCHASE ID from the conversion tag email (Apr 2026).
+// Conversion action IDs — Google Ads account AW-17795889471 (account 920-501-0513)
+// Get conversion labels from: Google Ads → Goals → Conversions → click each action → Tag setup
 // Micro-conversion IDs need to be created in Google Ads UI:
-//   Tools → Measurement → Conversions → + New conversion action → Website
+//   Goals → Conversions → + New conversion action → Website
 //   Create: Landing Page View, Start Intake, Intake Complete, Checkout Start
 //   Then replace the placeholder IDs below with the real ones.
 const CONVERSION_IDS = {
-  // Main conversion: Payment completed
-  PURCHASE: 'AW-18088966690/uXvDCN2hhJ0cEKL0vrFD',
-  // Micro-conversions — replace these once created in the new account
-  LANDING_VIEW: 'AW-18088966690/REPLACE_LANDING_VIEW',
-  START_INTAKE: 'AW-18088966690/REPLACE_START_INTAKE',
-  INTAKE_COMPLETE: 'AW-18088966690/REPLACE_INTAKE_COMPLETE',
-  CHECKOUT_START: 'AW-18088966690/REPLACE_CHECKOUT_START',
+  // Main conversion: Payment completed — replace label with one from AW-17795889471 account
+  PURCHASE: 'AW-17795889471/SqypCNva94YcEL_y3qVC',
+  // Micro-conversions — replace these once created in Google Ads UI
+  LANDING_VIEW: 'AW-17795889471/REPLACE_LANDING_VIEW',
+  START_INTAKE: 'AW-17795889471/REPLACE_START_INTAKE',
+  INTAKE_COMPLETE: 'AW-17795889471/REPLACE_INTAKE_COMPLETE',
+  CHECKOUT_START: 'AW-17795889471/REPLACE_CHECKOUT_START',
 } as const
 
 type ConversionEvent = keyof typeof CONVERSION_IDS

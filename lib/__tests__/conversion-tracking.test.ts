@@ -43,7 +43,7 @@ describe("conversion tracking", () => {
 
     const calls = gtagMock.mock.calls as GtagCall[]
     const conversionCall = calls.find(([kind, event]) => kind === "event" && event === "conversion")
-    expect(conversionCall?.[2].send_to).toBe("AW-18088966690/uXvDCN2hhJ0cEKL0vrFD")
+    expect(conversionCall?.[2].send_to).toBe("AW-17795889471/SqypCNva94YcEL_y3qVC")
   })
 
   it("updates consent mode correctly for marketing permissions", () => {
@@ -67,6 +67,6 @@ describe("conversion tracking", () => {
 
     const calls = gtagMock.mock.calls as GtagCall[]
     const conversionCall = calls.find(([kind, event]) => kind === "event" && event === "conversion")
-    expect(conversionCall?.[2].send_to).toBe("AW-18088966690/REPLACE_CHECKOUT_START")
+    expect(conversionCall?.[2].send_to).toBe("AW-17795889471/REPLACE_CHECKOUT_START")
   })
 })

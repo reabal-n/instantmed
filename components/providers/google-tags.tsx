@@ -40,11 +40,11 @@ export function GoogleTags() {
 
     // Load gtag.js after consent defaults are set
     const script = document.createElement("script")
-    script.src = "https://www.googletagmanager.com/gtag/js?id=AW-18088966690"
+    script.src = "https://www.googletagmanager.com/gtag/js?id=AW-17795889471"
     script.async = true
     script.onload = () => {
       gtag("js", new Date())
-      gtag("config", "AW-18088966690", { allow_enhanced_conversions: true })
+      gtag("config", "AW-17795889471", { allow_enhanced_conversions: true })
     }
     document.head.appendChild(script)
 
