@@ -1,6 +1,5 @@
 "use client"
 
-import { motion } from "framer-motion"
 import {
   ArrowRight,
   CheckCircle2,
@@ -13,7 +12,6 @@ import { DoctorAvailabilityPill } from "@/components/shared"
 import { TrustBadgeRow } from "@/components/shared"
 import { Button } from "@/components/ui/button"
 import { MagneticButton } from "@/components/ui/magnetic-button"
-import { useReducedMotion } from "@/components/ui/motion"
 import { PRICING } from "@/lib/constants"
 import { BADGE_REGISTRY } from "@/lib/marketing/trust-badges"
 import { SOCIAL_PROOF_DISPLAY } from "@/lib/social-proof"
@@ -34,24 +32,16 @@ export function MedCertHeroSection({
   onCTAClick?: () => void
   patientCount?: number
 }) {
-  const prefersReducedMotion = useReducedMotion()
-  const animate = !prefersReducedMotion
-
   return (
     <section data-track-section="hero" aria-label="Medical certificate service overview" className="relative overflow-hidden pt-6 pb-6 sm:pt-16 sm:pb-20 lg:pt-20 lg:pb-24">
       <div className="mx-auto max-w-5xl px-6 sm:px-8 lg:px-10">
         <div className="flex flex-col lg:flex-row items-center lg:gap-12 xl:gap-14">
           {/* Text content */}
           <div className="flex-1 min-w-0 text-center lg:text-left">
-            {/* Doctor availability pill */}
-            <motion.div
-              className="flex justify-center lg:justify-start mb-4 sm:mb-8"
-              initial={animate ? { opacity: 0, y: -10 } : {}}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4 }}
-            >
+            {/* Doctor availability pill — CSS animation: no opacity:0 flash on hydration */}
+            <div className="flex justify-center lg:justify-start mb-4 sm:mb-8 hero-availability-enter">
               <DoctorAvailabilityPill alwaysAvailable />
-            </motion.div>
+            </div>
 
             {/* Headline */}
             <h1
@@ -65,38 +55,25 @@ export function MedCertHeroSection({
             </h1>
 
             {/* Subheadline */}
-            <motion.p
-              className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-3 sm:mb-4 leading-relaxed text-balance"
-              initial={animate ? { opacity: 0, y: 12 } : {}}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.1 }}
-            >
+            <p className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-3 sm:mb-4 leading-relaxed text-balance hero-subheadline-enter">
               Valid for work, uni, or carer&apos;s leave. An AHPRA-registered GP
               reviews your request. Most certificates are ready in under 20 minutes.
-            </motion.p>
+            </p>
 
             {/* Static proof chips — all claims visible at once */}
-            <motion.div
-              className="flex flex-wrap justify-center lg:justify-start gap-x-4 gap-y-1.5 mb-6"
-              initial={animate ? { opacity: 0, y: 6 } : {}}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.15 }}
-            >
+            <div className="flex flex-wrap justify-center lg:justify-start gap-x-4 gap-y-1.5 mb-6 hero-trust-enter">
               {STATIC_BADGES.map((label) => (
                 <span key={label} className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
                   <CheckCircle2 className="h-3 w-3 shrink-0 text-primary/70" aria-hidden="true" />
                   {label}
                 </span>
               ))}
-            </motion.div>
+            </div>
 
             {/* CTA */}
-            <motion.div
+            <div
               ref={ctaRef}
-              className="flex flex-col sm:flex-row items-center gap-3 justify-center lg:justify-start mb-4 sm:mb-6"
-              initial={animate ? { opacity: 0, y: 12 } : {}}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.12 }}
+              className="flex flex-col sm:flex-row items-center gap-3 justify-center lg:justify-start mb-4 sm:mb-6 hero-cta-enter"
             >
               <MagneticButton>
                 <Button
@@ -117,19 +94,14 @@ export function MedCertHeroSection({
                 </p>
                 <ContextualMessage service="med-cert" className="text-xs font-medium text-primary/70 border-l-2 border-primary/30 pl-2 mt-1" />
               </div>
-            </motion.div>
+            </div>
 
             {/* Social proof count */}
             {patientCount && patientCount > 0 && (
-              <motion.p
-                className="text-xs text-muted-foreground flex items-center justify-center lg:justify-start gap-1.5 mb-4 sm:mb-5 -mt-2"
-                initial={animate ? { opacity: 0, y: 6 } : {}}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: 0.3 }}
-              >
+              <p className="text-xs text-muted-foreground flex items-center justify-center lg:justify-start gap-1.5 mb-4 sm:mb-5 -mt-2 hero-count-enter">
                 <CheckCircle2 className="h-3.5 w-3.5 text-success shrink-0" aria-hidden="true" />
                 Trusted by {patientCount.toLocaleString()}+ Australians
-              </motion.p>
+              </p>
             )}
 
             {/* 3 key trust badges — LegitScript + Google Pharmacy + No call */}

@@ -1173,32 +1173,42 @@ body {
 
 /* Hero entrance animations — CSS-only so they run before JS hydration.
    Replaces Framer Motion motion.div wrappers for above-fold elements to
-   eliminate animation-engine registration cost from the hydration TBT. */
-@keyframes hero-slide-down {
-  from { transform: translateY(-10px); }
-  to { transform: translateY(0); }
+   eliminate the opacity:0 flash that delays LCP when framer-motion hydrates. */
+
+/* Fade + slide up (subheadline, badges, CTA, count) */
+@keyframes hero-fade-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes hero-mockup-enter {
-  from { transform: translateY(10px); }
-  to { transform: translateY(0); }
+/* Fade + slide down (availability pill) */
+@keyframes hero-fade-down {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-.hero-availability-enter {
-  animation: hero-slide-down 0.4s ease-out both;
+/* Fade + slide up — mockup (larger y travel) */
+@keyframes hero-fade-up-lg {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-.hero-cta-enter {
-  /* reuse headline keyframe — same y direction, 0.15s delay */
-  animation: hero-headline-enter 0.4s ease-out 0.15s both;
-}
+.hero-availability-enter  { animation: hero-fade-down 0.4s ease-out both; }
+.hero-subheadline-enter   { animation: hero-fade-up  0.4s ease-out 0.10s both; }
+.hero-cta-enter           { animation: hero-fade-up  0.4s ease-out 0.12s both; }
+.hero-trust-enter         { animation: hero-fade-up  0.5s ease-out 0.15s both; }
+.hero-count-enter         { animation: hero-fade-up  0.4s ease-out 0.30s both; }
+.hero-mockup-enter        { animation: hero-fade-up-lg 0.5s ease-out 0.20s both; }
+.hero-mobile-mockup-enter { animation: hero-fade-up-lg 0.4s ease-out 0.35s both; }
 
-.hero-trust-enter {
-  animation: hero-headline-enter 0.5s ease-out 0.3s both;
-}
-
-.hero-mobile-mockup-enter {
-  animation: hero-mockup-enter 0.4s ease-out 0.35s both;
+@media (prefers-reduced-motion: reduce) {
+  .hero-availability-enter,
+  .hero-subheadline-enter,
+  .hero-cta-enter,
+  .hero-trust-enter,
+  .hero-count-enter,
+  .hero-mockup-enter,
+  .hero-mobile-mockup-enter { animation: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {

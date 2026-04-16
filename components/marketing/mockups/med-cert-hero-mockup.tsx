@@ -1,9 +1,7 @@
 "use client"
 
-import { motion } from "framer-motion"
 import { CheckCircle2, Clock, Mail, PhoneOff } from "lucide-react"
 
-import { useReducedMotion } from "@/components/ui/motion"
 import { cn } from "@/lib/utils"
 
 interface MedCertHeroMockupProps {
@@ -14,20 +12,18 @@ interface MedCertHeroMockupProps {
 /**
  * Medical certificate document mockup for the /medical-certificate hero.
  * Looks like the actual certificate the patient receives — not the intake form.
+ *
+ * CSS animations only — no framer-motion — so the mockup is visible from SSR
+ * without the opacity:0 hydration flash that delays LCP.
  */
 export function MedCertHeroMockup({ compact = false }: MedCertHeroMockupProps) {
-  const prefersReducedMotion = useReducedMotion()
-  const animate = !prefersReducedMotion
-
   return (
     <div className={cn("relative", compact ? "w-full" : "w-72 xl:w-80")}>
       {/* Certificate card */}
-      <motion.div
-        className="rounded-2xl bg-white dark:bg-card border border-border/50 shadow-xl shadow-primary/[0.08] dark:shadow-none overflow-hidden"
-        initial={animate ? { opacity: 0, y: 20 } : {}}
-        animate={animate ? { opacity: 1, y: 0 } : {}}
-        transition={{ duration: 0.5, delay: 0.2, ease: "easeOut" }}
-      >
+      <div className={cn(
+        "rounded-2xl bg-white dark:bg-card border border-border/50 shadow-xl shadow-primary/[0.08] dark:shadow-none overflow-hidden",
+        compact ? "hero-mobile-mockup-enter" : "hero-mockup-enter",
+      )}>
         {/* Certificate header bar */}
         <div className="bg-slate-800 dark:bg-slate-900 px-5 py-3.5 flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -91,64 +87,40 @@ export function MedCertHeroMockup({ compact = false }: MedCertHeroMockupProps) {
           <span className="text-[9px] text-muted-foreground/50">instantmed.com.au</span>
           <span className="text-[9px] text-muted-foreground/50 font-mono">REF: IM-2026-{compact ? "4823" : "48231"}</span>
         </div>
-      </motion.div>
+      </div>
 
       {/* Floating badges — desktop only */}
       {!compact && (
         <>
-          <motion.div
-            className="absolute -top-3 -right-3 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white dark:bg-card border border-border/50 shadow-lg shadow-primary/[0.06] text-xs font-medium text-muted-foreground"
-            initial={animate ? { opacity: 0, scale: 0.8 } : {}}
-            animate={animate ? { opacity: 1, scale: 1 } : {}}
-            transition={{ duration: 0.4, delay: 0.5, ease: "easeOut" }}
+          <div className="absolute -top-3 -right-3 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white dark:bg-card border border-border/50 shadow-lg shadow-primary/[0.06] text-xs font-medium text-muted-foreground"
+            style={{ animation: "hero-fade-up 0.4s ease-out 0.50s both" }}
           >
             <Clock className="w-3.5 h-3.5 text-primary" />
             Takes ~2 min
-          </motion.div>
+          </div>
 
-          <motion.div
-            className="absolute -top-3 -left-3 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white dark:bg-card border border-border/50 shadow-lg shadow-primary/[0.06] text-xs font-medium text-muted-foreground"
-            initial={animate ? { opacity: 0, scale: 0.8 } : {}}
-            animate={animate ? { opacity: 1, scale: 1 } : {}}
-            transition={{ duration: 0.4, delay: 0.65, ease: "easeOut" }}
+          <div className="absolute -top-3 -left-3 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white dark:bg-card border border-border/50 shadow-lg shadow-primary/[0.06] text-xs font-medium text-muted-foreground"
+            style={{ animation: "hero-fade-up 0.4s ease-out 0.65s both" }}
           >
             <PhoneOff className="w-3.5 h-3.5 text-primary" />
             No appointment
-          </motion.div>
+          </div>
         </>
       )}
 
       {/* Delivery notification overlay — desktop only */}
       {!compact && (
-        <motion.div
+        <div
           className="absolute -bottom-8 -right-4 xl:-right-8 rounded-xl bg-white dark:bg-card border border-border/50 shadow-lg shadow-primary/[0.06] dark:shadow-none p-3 min-w-[210px]"
-          initial={animate ? { opacity: 0, x: 20 } : {}}
-          animate={animate ? { opacity: 1, x: 0 } : {}}
-          transition={{ duration: 0.5, delay: 0.6, ease: "easeOut" }}
+          style={{ animation: "hero-fade-up 0.5s ease-out 0.60s both" }}
         >
-          <motion.div
-            className="space-y-2"
-            variants={{
-              hidden: {},
-              visible: { transition: { staggerChildren: animate ? 0.2 : 0, delayChildren: animate ? 0.3 : 0 } },
-            }}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-          >
+          <div className="space-y-2">
             {[
               { icon: CheckCircle2, iconClass: "text-success", text: "Request submitted", meta: "2m ago", bold: false },
               { icon: CheckCircle2, iconClass: "text-success", text: "Doctor reviewed", meta: "Just now", bold: false },
               { icon: Mail, iconClass: "text-primary", text: "Certificate sent", meta: null, bold: true },
             ].map(({ icon: Icon, iconClass, text, meta, bold }) => (
-              <motion.div
-                key={text}
-                className="flex items-center gap-2"
-                variants={animate
-                  ? { hidden: { opacity: 0, x: -8 }, visible: { opacity: 1, x: 0, transition: { duration: 0.3, ease: "easeOut" } } }
-                  : { hidden: { opacity: 1 }, visible: { opacity: 1 } }
-                }
-              >
+              <div key={text} className="flex items-center gap-2">
                 <Icon className={cn("w-3.5 h-3.5 shrink-0", iconClass)} />
                 <span className={cn("text-[11px]", bold ? "font-medium text-foreground" : "text-foreground/60")}>
                   {text}
@@ -159,10 +131,10 @@ export function MedCertHeroMockup({ compact = false }: MedCertHeroMockupProps) {
                     Done
                   </span>
                 )}
-              </motion.div>
+              </div>
             ))}
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
       )}
     </div>
   )
