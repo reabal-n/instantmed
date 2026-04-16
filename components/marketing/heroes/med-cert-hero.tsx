@@ -130,7 +130,7 @@ export function MedCertHeroSection({
         {/* Lifestyle photo — flat-lay showing the actual product: certificate + InstantMed on screen */}
         <div className="mt-8 sm:mt-10 w-full relative aspect-[16/9] rounded-2xl overflow-hidden shadow-lg">
           <Image
-            src="/images/medcert-1.png"
+            src="/images/medcert-1.webp"
             alt="Medical certificate document on desk alongside laptop showing InstantMed"
             fill
             className="object-cover object-center"

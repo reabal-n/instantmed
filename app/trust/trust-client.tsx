@@ -144,7 +144,7 @@ export default function TrustPage() {
           title="Your health. Our responsibility."
           highlightWords={["responsibility"]}
           subtitle="Real doctors. Transparent process. Every request reviewed by a qualified, AHPRA-registered clinician."
-          imageSrc="/images/trust-hero.jpeg"
+          imageSrc="/images/trust-hero.webp"
           imageAlt="Patient requesting a medical certificate from home"
         >
           <div className="flex flex-col gap-4">
@@ -174,7 +174,7 @@ export default function TrustPage() {
           title="AHPRA-registered doctors. No exceptions."
           highlightWords={["AHPRA-registered"]}
           description="Every doctor on InstantMed holds current registration with the Australian Health Practitioner Regulation Agency. We verify credentials before they join and monitor registration status continuously."
-          imageSrc="/images/trust-doctor.jpeg"
+          imageSrc="/images/trust-doctor.webp"
           imageAlt="Doctor reviewing a patient request at their desk"
           imagePosition="right"
         >
@@ -210,7 +210,7 @@ export default function TrustPage() {
           title="Your data stays in Australia. Always encrypted."
           highlightWords={["encrypted"]}
           description="Your health information is protected with AES-256 encryption - the same standard used by banks. All data stored on Australian servers, fully compliant with the Privacy Act 1988."
-          imageSrc="/images/trust-security.jpeg"
+          imageSrc="/images/trust-security.webp"
           imageAlt="Secure data center with blue lighting"
           imagePosition="left"
         >

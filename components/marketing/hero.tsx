@@ -143,7 +143,7 @@ export function Hero({ children }: { children?: React.ReactNode }) {
         {/* Lifestyle photo — person at home using their phone for a doctor visit */}
         <div className="mt-8 sm:mt-10 w-full relative aspect-[16/9] rounded-2xl overflow-hidden shadow-lg">
           <Image
-            src="/images/home-1.jpeg"
+            src="/images/home-1.webp"
             alt="Person relaxing at home using their phone to see a doctor online"
             fill
             className="object-cover object-top"

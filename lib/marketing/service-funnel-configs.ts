@@ -22,7 +22,7 @@ export const repeatScriptFunnelConfig: ServiceFunnelConfig = {
     ctaText: `Renew your medication - ${PRICING_DISPLAY.REPEAT_SCRIPT}`,
     ctaHref: '/request?service=prescription',
     images: {
-      primary: '/images/rptrx-1.jpeg',
+      primary: '/images/rx-1.webp',
     },
     highlightBadge: {
       text: 'Sent via SMS',
@@ -120,7 +120,7 @@ export const repeatScriptFunnelConfig: ServiceFunnelConfig = {
     title: 'Your medication, sent to any pharmacy',
     highlightWords: ['any pharmacy'],
     description: 'Once approved, your medication token is sent straight to your phone. Present it at any pharmacy in Australia. No paper needed, no waiting. PBS subsidies apply at the counter.',
-    imageSrc: '/images/rptrx-2.jpeg',
+    imageSrc: '/images/rx-2.webp',
     imageAlt: 'Prescription medication ready for pharmacy collection',
     imagePosition: 'right' as const,
     badges: [

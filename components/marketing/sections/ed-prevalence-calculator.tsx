@@ -1,11 +1,12 @@
 "use client"
 
-import { motion } from "framer-motion"
 import Link from "next/link"
 import { useEffect, useRef, useState } from "react"
 
 import { usePostHog } from "@/components/providers/posthog-provider"
 import { Button } from "@/components/ui/button"
+import { motion } from "framer-motion"
+
 import { useReducedMotion } from "@/components/ui/motion"
 import {
   getDecadeLabel,

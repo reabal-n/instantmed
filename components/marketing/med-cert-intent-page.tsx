@@ -193,7 +193,7 @@ export function MedCertIntentPage({ config }: MedCertIntentPageProps) {
                 >
                   <div className="relative w-80 xl:w-96 aspect-[4/5] rounded-3xl overflow-hidden shadow-2xl">
                     <Image
-                      src="/images/medcert-1.jpeg"
+                      src="/images/medcert-1.webp"
                       alt="Person requesting a medical certificate on their phone"
                       fill
                       className="object-cover"
@@ -361,7 +361,7 @@ export function MedCertIntentPage({ config }: MedCertIntentPageProps) {
                   transition={{ duration: 0.5 }}
                 >
                   <Image
-                    src="/images/medcert-2.jpeg"
+                    src="/images/medcert-2.webp"
                     alt="Person holding an InstantMed medical certificate"
                     width={400}
                     height={400}

@@ -235,7 +235,7 @@ export function GeneralConsultHeroSection({
         {/* Lifestyle photo — person at home on laptop for online doctor consultation */}
         <div className="mt-8 sm:mt-10 w-full relative aspect-[16/9] rounded-2xl overflow-hidden shadow-lg">
           <Image
-            src="/images/consult-1.jpg"
+            src="/images/consult-1.webp"
             alt="Person at home on a laptop having an online doctor consultation"
             fill
             className="object-cover object-center"

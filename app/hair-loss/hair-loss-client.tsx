@@ -341,7 +341,7 @@ export function HairLossClient({ faqSchema }: HairLossClientProps) {
           <section className="px-4 pb-12">
             <div className="mx-auto max-w-3xl overflow-hidden rounded-2xl border border-border/50 dark:border-white/15 shadow-lg shadow-primary/[0.06] dark:shadow-none">
               <Image
-                src="/images/consult-1.jpeg"
+                src="/images/consult-1.webp"
                 alt="Patient completing an online consultation from their phone"
                 width={800}
                 height={450}
