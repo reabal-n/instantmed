@@ -1,5 +1,3 @@
-"use client"
-
 import { TestimonialsColumnsWrapper } from "@/components/ui/testimonials-columns-wrapper"
 import { getTestimonialsForColumns } from "@/lib/data/testimonials"
 

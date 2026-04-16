@@ -1,6 +1,3 @@
-"use client"
-
-import { motion } from "framer-motion"
 import { BadgeCheck } from "lucide-react"
 import Link from "next/link"
 import type { ReactNode } from "react"
@@ -11,7 +8,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
-import { useReducedMotion } from "@/components/ui/motion"
+import { Reveal } from "@/components/ui/reveal"
 
 // =============================================================================
 // DATA
@@ -181,9 +178,6 @@ const GUIDE_ITEMS: readonly GuideItem[] = [
  * Rendered BELOW the FAQ.
  */
 export function MedCertGuideSection() {
-  const prefersReducedMotion = useReducedMotion()
-  const animate = !prefersReducedMotion
-
   return (
     <section
       aria-label="Medical certificate guide"
@@ -191,13 +185,7 @@ export function MedCertGuideSection() {
     >
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <motion.div
-          className="text-center mb-10"
-          initial={animate ? { y: 20 } : {}}
-          whileInView={animate ? { opacity: 1, y: 0 } : undefined}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-        >
+        <Reveal className="text-center mb-10">
           <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-xs font-medium text-primary mb-4">
             <BadgeCheck className="h-3.5 w-3.5" />
             Medically reviewed by AHPRA-registered GPs
@@ -209,15 +197,10 @@ export function MedCertGuideSection() {
             Tap any topic to expand. Written and reviewed by AHPRA-registered
             GPs - last updated April 2026.
           </p>
-        </motion.div>
+        </Reveal>
 
         {/* Accordion - flat style, all collapsed by default */}
-        <motion.div
-          initial={animate ? { y: 16 } : {}}
-          whileInView={animate ? { opacity: 1, y: 0 } : undefined}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-        >
+        <Reveal delay={0.1}>
           <Accordion type="single" collapsible className="space-y-0">
             {GUIDE_ITEMS.map((item) => (
               <AccordionItem
@@ -236,16 +219,10 @@ export function MedCertGuideSection() {
               </AccordionItem>
             ))}
           </Accordion>
-        </motion.div>
+        </Reveal>
 
         {/* Clinical governance link */}
-        <motion.div
-          className="mt-10 pt-6 border-t border-border/40 text-center"
-          initial={{}}
-          whileInView={animate ? { opacity: 1 } : undefined}
-          viewport={{ once: true }}
-          transition={{ delay: 0.3 }}
-        >
+        <div className="mt-10 pt-6 border-t border-border/40 text-center">
           <p className="text-xs text-muted-foreground">
             All clinical decisions are made by AHPRA-registered doctors
             following{" "}
@@ -260,7 +237,7 @@ export function MedCertGuideSection() {
             <em>TGA prescribing guidelines</em>. We never automate clinical
             decisions.
           </p>
-        </motion.div>
+        </div>
       </div>
     </section>
   )

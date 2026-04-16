@@ -1220,6 +1220,32 @@ body {
   }
 }
 
+/* ============================================================
+   SCROLL REVEAL — replaces framer-motion whileInView
+   Used by <Reveal> in components/ui/reveal.tsx
+   ============================================================ */
+.reveal-hidden {
+  opacity: 0;
+  transform: translateY(12px);
+}
+
+.reveal-visible {
+  animation: reveal-fade-up 0.5s ease-out both;
+}
+
+@keyframes reveal-fade-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Prefers-reduced-motion: skip the hidden state so content is never invisible */
+@media (prefers-reduced-motion: reduce) {
+  .reveal-hidden {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 /* Fade in up with spring */
 @keyframes fade-in-up {
   from {

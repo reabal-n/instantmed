@@ -1,5 +1,3 @@
-"use client"
-
 import { AlertCircle } from "lucide-react"
 
 import { CONTACT_EMAIL } from "@/lib/constants"

@@ -1,10 +1,5 @@
-"use client"
-
-import { motion } from "framer-motion"
-
-import { useReducedMotion } from "@/components/ui/motion"
+import { Reveal } from "@/components/ui/reveal"
 import { SectionPill } from "@/components/ui/section-pill"
-import { fadeUp,stagger } from "@/lib/motion"
 import { cn } from "@/lib/utils"
 
 // ---------------------------------------------------------------------------
@@ -73,8 +68,6 @@ export function EditorialStoryBlock({
   blocks,
   className,
 }: EditorialStoryBlockProps) {
-  const prefersReducedMotion = useReducedMotion()
-
   return (
     <section className={cn("py-16 lg:py-24", className)}>
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
@@ -92,15 +85,9 @@ export function EditorialStoryBlock({
           <p className="text-sm text-muted-foreground mb-8 max-w-lg">{subtitle}</p>
         )}
 
-        <motion.div
-          variants={stagger.container}
-          initial={prefersReducedMotion ? {} : "initial"}
-          whileInView="animate"
-          viewport={{ once: true }}
-          className="space-y-5"
-        >
+        <div className="space-y-5">
           {blocks.map((block, i) => (
-            <motion.div key={i} variants={prefersReducedMotion ? {} : fadeUp}>
+            <Reveal key={i} delay={i * 0.05}>
               {block.type === "paragraph" && <ParagraphBlock content={block.content} />}
               {block.type === "stat-callout" && (
                 <StatCallout value={block.value} label={block.label} color={block.color} />
@@ -108,9 +95,9 @@ export function EditorialStoryBlock({
               {block.type === "pull-quote" && (
                 <PullQuote quote={block.quote} attribution={block.attribution} />
               )}
-            </motion.div>
+            </Reveal>
           ))}
-        </motion.div>
+        </div>
       </div>
     </section>
   )

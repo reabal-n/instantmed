@@ -1,5 +1,3 @@
-"use client"
-
 import { AlertCircle,CheckCircle2 } from "lucide-react"
 import Link from "next/link"
 

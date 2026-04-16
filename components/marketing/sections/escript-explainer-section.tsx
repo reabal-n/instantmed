@@ -1,10 +1,7 @@
-"use client"
-
-import { motion } from "framer-motion"
 import { Check } from "lucide-react"
 
 import { InteractiveProductMockup } from "@/components/marketing/shared/interactive-product-mockup"
-import { useReducedMotion } from "@/components/ui/motion"
+import { Reveal } from "@/components/ui/reveal"
 import { SectionPill } from "@/components/ui/section-pill"
 
 // =============================================================================
@@ -25,20 +22,11 @@ const KEY_FACTS = [
 
 /** eScript explainer - split layout with interactive phone mockup + key facts */
 export function EScriptExplainerSection() {
-  const prefersReducedMotion = useReducedMotion()
-  const animate = !prefersReducedMotion
-
   return (
     <section aria-label="What is an eScript" className="py-16 lg:py-24">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <motion.div
-          className="text-center mb-12"
-          initial={animate ? { y: 20 } : {}}
-          whileInView={animate ? { opacity: 1, y: 0 } : undefined}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-        >
+        <Reveal className="text-center mb-12">
           <SectionPill>Digital prescriptions</SectionPill>
           <h2 className="text-2xl sm:text-3xl font-semibold text-foreground mt-4 mb-3 tracking-tight">
             What is an eScript?
@@ -47,7 +35,7 @@ export function EScriptExplainerSection() {
             eScripts are digital prescriptions. The national standard in
             Australia since 2020. No paper needed, works everywhere.
           </p>
-        </motion.div>
+        </Reveal>
 
         {/* Split layout: mockup + facts */}
         <div className="grid md:grid-cols-2 gap-8 lg:gap-12 items-center">
@@ -95,37 +83,24 @@ export function EScriptExplainerSection() {
           </InteractiveProductMockup>
 
           {/* Key facts */}
-          <div>
+          <Reveal>
             <ul className="space-y-4">
-              {KEY_FACTS.map((fact, i) => (
-                <motion.li
-                  key={fact}
-                  className="flex items-start gap-3"
-                  initial={animate ? { x: 12 } : {}}
-                  whileInView={animate ? { x: 0, opacity: 1 } : undefined}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.3, delay: i * 0.08 }}
-                >
+              {KEY_FACTS.map((fact) => (
+                <li key={fact} className="flex items-start gap-3">
                   <span className="flex-shrink-0 w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center mt-0.5">
                     <Check className="h-3 w-3 text-primary" />
                   </span>
                   <span className="text-sm text-foreground leading-relaxed">{fact}</span>
-                </motion.li>
+                </li>
               ))}
             </ul>
 
-            <motion.p
-              className="mt-6 text-xs text-muted-foreground leading-relaxed"
-              initial={animate ? {} : {}}
-              whileInView={animate ? { opacity: 1 } : undefined}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: 0.4 }}
-            >
+            <p className="mt-6 text-xs text-muted-foreground leading-relaxed">
               eScripts were introduced by the Australian Government in 2020 as
               the national standard for electronic prescriptions. They work with
               the same medications and PBS subsidies as paper scripts.
-            </motion.p>
-          </div>
+            </p>
+          </Reveal>
         </div>
       </div>
     </section>

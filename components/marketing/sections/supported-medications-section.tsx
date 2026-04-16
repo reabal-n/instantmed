@@ -1,6 +1,3 @@
-"use client"
-
-import { motion } from "framer-motion"
 import type { LucideIcon } from "lucide-react"
 import {
   Brain,
@@ -13,7 +10,7 @@ import {
   Wind,
 } from "lucide-react"
 
-import { useReducedMotion } from "@/components/ui/motion"
+import { Reveal } from "@/components/ui/reveal"
 import { SectionPill } from "@/components/ui/section-pill"
 import { cn } from "@/lib/utils"
 
@@ -103,20 +100,11 @@ const CATEGORIES: MedCategory[] = [
 
 /** Medication categories grid with color-coded accent borders and hover effects */
 export function SupportedMedicationsSection() {
-  const prefersReducedMotion = useReducedMotion()
-  const animate = !prefersReducedMotion
-
   return (
     <section aria-label="Supported medications" className="py-12 lg:py-16">
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <motion.div
-          className="text-center mb-10"
-          initial={animate ? { y: 20 } : {}}
-          whileInView={animate ? { opacity: 1, y: 0 } : undefined}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-        >
+        <Reveal className="text-center mb-10">
           <SectionPill>Medications</SectionPill>
           <h2 className="text-2xl sm:text-3xl font-semibold text-foreground mt-4 mb-3 tracking-tight">
             Common medications we can renew
@@ -125,39 +113,36 @@ export function SupportedMedicationsSection() {
             For medications you already take. If your medication isn&apos;t
             listed, submit a request and the doctor will let you know.
           </p>
-        </motion.div>
+        </Reveal>
 
         {/* Grid */}
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {CATEGORIES.map((cat, index) => (
-            <motion.div
-              key={cat.name}
-              className={cn(
-                "rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/15 border-t-2",
-                cat.accent,
-                "shadow-sm shadow-primary/[0.04] dark:shadow-none p-4",
-                "hover:shadow-md hover:shadow-primary/[0.08] hover:-translate-y-0.5 transition-all duration-300"
-              )}
-              initial={animate ? { y: 20 } : {}}
-              whileInView={animate ? { opacity: 1, y: 0 } : undefined}
-              viewport={{ once: true }}
-              transition={{ duration: 0.3, delay: index * 0.05 }}
-            >
+            <Reveal key={cat.name} delay={index * 0.05}>
               <div
                 className={cn(
-                  "inline-flex items-center justify-center w-8 h-8 rounded-lg mb-3",
-                  cat.iconBg
+                  "rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/15 border-t-2",
+                  cat.accent,
+                  "shadow-sm shadow-primary/[0.04] dark:shadow-none p-4",
+                  "hover:shadow-md hover:shadow-primary/[0.08] hover:-translate-y-0.5 transition-all duration-300"
                 )}
               >
-                <cat.icon className={cn("h-4 w-4", cat.iconColor)} />
+                <div
+                  className={cn(
+                    "inline-flex items-center justify-center w-8 h-8 rounded-lg mb-3",
+                    cat.iconBg
+                  )}
+                >
+                  <cat.icon className={cn("h-4 w-4", cat.iconColor)} />
+                </div>
+                <p className="text-sm font-semibold text-foreground mb-1">
+                  {cat.name}
+                </p>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  {cat.examples}
+                </p>
               </div>
-              <p className="text-sm font-semibold text-foreground mb-1">
-                {cat.name}
-              </p>
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                {cat.examples}
-              </p>
-            </motion.div>
+            </Reveal>
           ))}
         </div>
       </div>

@@ -1,10 +1,7 @@
-"use client"
-
-import { motion } from "framer-motion"
-import { BadgeCheck, Heart, Lock, MapPin,Monitor, ShieldCheck } from "lucide-react"
+import { BadgeCheck, Heart, Lock, MapPin, Monitor, ShieldCheck } from "lucide-react"
 import Link from "next/link"
 
-import { useReducedMotion } from "@/components/ui/motion"
+import { Reveal } from "@/components/ui/reveal"
 
 // =============================================================================
 // DATA
@@ -69,9 +66,6 @@ const GUIDE_SECTIONS = [
 
 /** Long-form E-E-A-T content section - who we are, how we work, clinical standards */
 export function AboutGuideSection() {
-  const prefersReducedMotion = useReducedMotion()
-  const animate = !prefersReducedMotion
-
   return (
     <section
       aria-label="About InstantMed guide"
@@ -79,13 +73,7 @@ export function AboutGuideSection() {
     >
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <motion.div
-          className="text-center mb-12"
-          initial={animate ? { y: 20 } : {}}
-          whileInView={animate ? { opacity: 1, y: 0 } : undefined}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-        >
+        <Reveal className="text-center mb-12">
           <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-xs font-medium text-primary mb-4">
             <BadgeCheck className="h-3.5 w-3.5" />
             Medically reviewed by AHPRA-registered GPs
@@ -97,18 +85,12 @@ export function AboutGuideSection() {
             Our approach to telehealth, clinical standards, and why we built
             InstantMed.
           </p>
-        </motion.div>
+        </Reveal>
 
         {/* Content sections */}
         <div className="space-y-12">
           {GUIDE_SECTIONS.map((section, i) => (
-            <motion.div
-              key={section.id}
-              initial={animate ? { y: 16 } : {}}
-              whileInView={animate ? { opacity: 1, y: 0 } : undefined}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: i * 0.05 }}
-            >
+            <Reveal key={section.id} delay={i * 0.05}>
               <div className="flex items-start gap-4">
                 <div className="shrink-0 mt-0.5 w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
                   <section.icon className="w-4.5 h-4.5 text-primary" />
@@ -129,18 +111,12 @@ export function AboutGuideSection() {
                   </div>
                 </div>
               </div>
-            </motion.div>
+            </Reveal>
           ))}
         </div>
 
         {/* Clinical governance link */}
-        <motion.div
-          className="mt-12 pt-8 border-t border-border/40 text-center"
-          initial={{}}
-          whileInView={animate ? { opacity: 1 } : undefined}
-          viewport={{ once: true }}
-          transition={{ delay: 0.3 }}
-        >
+        <div className="mt-12 pt-8 border-t border-border/40 text-center">
           <p className="text-xs text-muted-foreground">
             All clinical decisions are made by AHPRA-registered doctors following{" "}
             <Link
@@ -151,7 +127,7 @@ export function AboutGuideSection() {
             </Link>
             . We never automate clinical decisions.
           </p>
-        </motion.div>
+        </div>
       </div>
     </section>
   )

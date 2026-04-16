@@ -1,8 +1,4 @@
-"use client"
-
-import { motion } from "framer-motion"
-
-import { useReducedMotion } from "@/components/ui/motion"
+import { Reveal } from "@/components/ui/reveal"
 
 // =============================================================================
 // DATA
@@ -25,40 +21,26 @@ const concerns = [
 
 /** Grid of common presenting concerns suitable for telehealth */
 export function CommonConcernsSection() {
-  const prefersReducedMotion = useReducedMotion()
-  const animate = !prefersReducedMotion
-
   return (
     <section aria-label="Common presenting concerns" className="py-12 lg:py-16">
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-        <motion.div
-          initial={animate ? { y: 20 } : {}}
-          whileInView={animate ? { opacity: 1, y: 0 } : {}}
-          viewport={{ once: true, margin: "-50px" }}
-          transition={{ duration: 0.4 }}
-          className="text-center mb-8"
-        >
+        <Reveal className="text-center mb-8">
           <h2 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
             Common presenting concerns
           </h2>
           <p className="mt-2 text-sm text-muted-foreground max-w-xl mx-auto">
             The following conditions are typically suitable for telehealth assessment.
           </p>
-        </motion.div>
+        </Reveal>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {concerns.map((concern, i) => (
-            <motion.div
-              key={concern.title}
-              initial={animate ? { y: 20 } : {}}
-              whileInView={animate ? { opacity: 1, y: 0 } : {}}
-              viewport={{ once: true, margin: "-30px" }}
-              transition={{ duration: 0.3, delay: animate ? i * 0.05 : 0 }}
-              className="p-4 rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none"
-            >
-              <p className="text-sm font-semibold text-foreground">{concern.title}</p>
-              <p className="mt-1 text-xs text-muted-foreground">{concern.examples}</p>
-            </motion.div>
+            <Reveal key={concern.title} delay={i * 0.05}>
+              <div className="p-4 rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none">
+                <p className="text-sm font-semibold text-foreground">{concern.title}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{concern.examples}</p>
+              </div>
+            </Reveal>
           ))}
         </div>
       </div>

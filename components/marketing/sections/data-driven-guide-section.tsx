@@ -1,6 +1,3 @@
-"use client"
-
-import { motion } from "framer-motion"
 import {
   BadgeCheck,
   BookOpen,
@@ -21,10 +18,10 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 
-import { useReducedMotion } from "@/components/ui/motion"
+import { Reveal } from "@/components/ui/reveal"
 
 // =============================================================================
-// ICON REGISTRY - resolves string names to components inside "use client"
+// ICON REGISTRY
 // =============================================================================
 
 const ICON_MAP: Record<string, LucideIcon> = {
@@ -89,20 +86,11 @@ export function DataDrivenGuideSection({
   sections,
   showGovernanceLink = true,
 }: DataDrivenGuideSectionProps) {
-  const prefersReducedMotion = useReducedMotion()
-  const animate = !prefersReducedMotion
-
   return (
     <section aria-label={ariaLabel} className="py-20 lg:py-24">
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <motion.div
-          className="text-center mb-12"
-          initial={animate ? { y: 20 } : {}}
-          whileInView={animate ? { opacity: 1, y: 0 } : undefined}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-        >
+        <Reveal className="text-center mb-12">
           <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-xs font-medium text-primary mb-4">
             <BadgeCheck className="h-3.5 w-3.5" />
             {badge}
@@ -115,18 +103,12 @@ export function DataDrivenGuideSection({
               {subtitle}
             </p>
           )}
-        </motion.div>
+        </Reveal>
 
         {/* Content sections */}
         <div className="space-y-12">
           {sections.map((section, i) => (
-            <motion.div
-              key={section.id}
-              initial={animate ? { y: 16 } : {}}
-              whileInView={animate ? { opacity: 1, y: 0 } : undefined}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: i * 0.05 }}
-            >
+            <Reveal key={section.id} delay={i * 0.05}>
               <div className="flex items-start gap-4">
                 <div className="shrink-0 mt-0.5 w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
                   {(() => {
@@ -150,19 +132,13 @@ export function DataDrivenGuideSection({
                   </div>
                 </div>
               </div>
-            </motion.div>
+            </Reveal>
           ))}
         </div>
 
         {/* Clinical governance link */}
         {showGovernanceLink && (
-          <motion.div
-            className="mt-12 pt-8 border-t border-border/40 text-center"
-            initial={{}}
-            whileInView={animate ? { opacity: 1 } : undefined}
-            viewport={{ once: true }}
-            transition={{ delay: 0.3 }}
-          >
+          <div className="mt-12 pt-8 border-t border-border/40 text-center">
             <p className="text-xs text-muted-foreground">
               All clinical decisions are made by AHPRA-registered doctors
               following{" "}
@@ -174,7 +150,7 @@ export function DataDrivenGuideSection({
               </Link>
               . We never automate clinical decisions.
             </p>
-          </motion.div>
+          </div>
         )}
       </div>
     </section>

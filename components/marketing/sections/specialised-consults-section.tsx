@@ -1,11 +1,8 @@
-"use client"
-
-import { motion } from "framer-motion"
 import { ArrowRight } from "lucide-react"
 import Link from "next/link"
 
 import { StickerIcon, type StickerIconName } from "@/components/icons/stickers"
-import { useReducedMotion } from "@/components/ui/motion"
+import { Reveal } from "@/components/ui/reveal"
 import { PRICING_DISPLAY } from "@/lib/constants"
 
 // =============================================================================
@@ -59,19 +56,10 @@ const consults: Array<{
 
 /** Specialised consultation type cards with pricing and links */
 export function SpecialisedConsultsSection() {
-  const prefersReducedMotion = useReducedMotion()
-  const animate = !prefersReducedMotion
-
   return (
     <section aria-label="Specialised consultations" className="py-12 lg:py-16">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-        <motion.div
-          initial={animate ? { y: 20 } : {}}
-          whileInView={animate ? { opacity: 1, y: 0 } : {}}
-          viewport={{ once: true, margin: "-50px" }}
-          transition={{ duration: 0.4 }}
-          className="text-center mb-8"
-        >
+        <Reveal className="text-center mb-8">
           <h2 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
             Specialised consultations
           </h2>
@@ -79,17 +67,11 @@ export function SpecialisedConsultsSection() {
             Looking for something specific? Dedicated pathways with doctors experienced in these
             areas.
           </p>
-        </motion.div>
+        </Reveal>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {consults.map((consult, i) => (
-            <motion.div
-              key={consult.title}
-              initial={animate ? { y: 20 } : {}}
-              whileInView={animate ? { opacity: 1, y: 0 } : {}}
-              viewport={{ once: true, margin: "-30px" }}
-              transition={{ duration: 0.3, delay: animate ? i * 0.05 : 0 }}
-            >
+            <Reveal key={consult.title} delay={i * 0.05}>
               <Link
                 href={consult.href}
                 className="group flex flex-col h-full rounded-2xl bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-md shadow-primary/[0.06] dark:shadow-none hover:shadow-lg hover:-translate-y-0.5 transition-all"
@@ -108,7 +90,7 @@ export function SpecialisedConsultsSection() {
                   <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
                 </div>
               </Link>
-            </motion.div>
+            </Reveal>
           ))}
         </div>
       </div>

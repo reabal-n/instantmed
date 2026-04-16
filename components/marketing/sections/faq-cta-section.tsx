@@ -1,9 +1,7 @@
 "use client"
 
-import { motion } from "framer-motion"
-
 import { FAQList } from "@/components/ui/faq-list"
-import { useReducedMotion } from "@/components/ui/motion"
+import { Reveal } from "@/components/ui/reveal"
 import { CONTACT_EMAIL } from "@/lib/constants"
 import { MED_CERT_FAQ } from "@/lib/data/med-cert-faq"
 
@@ -23,27 +21,18 @@ export function FaqCtaSection({
   faqs?: readonly FAQItem[]
   subtitle?: string
 }) {
-  const prefersReducedMotion = useReducedMotion()
-  const animate = !prefersReducedMotion
-
   return (
     <section id="faq" aria-label="Frequently asked questions" className="py-20 lg:py-24 scroll-mt-20">
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <motion.div
-          className="text-center mb-10"
-          initial={animate ? { y: 20 } : {}}
-          whileInView={animate ? { opacity: 1, y: 0 } : undefined}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-        >
+        <Reveal className="text-center mb-10">
           <h2 className="text-2xl sm:text-3xl font-semibold text-foreground mb-4 tracking-tight">
             Common questions
           </h2>
           <p className="text-muted-foreground max-w-lg mx-auto text-sm">
             {subtitle}
           </p>
-        </motion.div>
+        </Reveal>
 
         {/* Accordion - flat style, no double containers */}
         <FAQList
@@ -58,13 +47,7 @@ export function FaqCtaSection({
         />
 
         {/* Contact */}
-        <motion.div
-          className="mt-10 text-center"
-          initial={{}}
-          whileInView={animate ? { opacity: 1 } : undefined}
-          viewport={{ once: true }}
-          transition={{ delay: 0.3 }}
-        >
+        <div className="mt-10 text-center">
           <p className="text-muted-foreground mb-2 text-sm">
             Still have questions?
           </p>
@@ -74,7 +57,7 @@ export function FaqCtaSection({
           >
             Contact our support team
           </a>
-        </motion.div>
+        </div>
 
         {/* Emergency note */}
         <p className="mt-8 text-center text-xs text-muted-foreground/70">

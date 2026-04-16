@@ -1,5 +1,3 @@
-"use client"
-
 import { DottedGrid } from "@/components/marketing/dotted-grid"
 import { TrustBadgeGrid } from "@/components/shared"
 import { cn } from "@/lib/utils"

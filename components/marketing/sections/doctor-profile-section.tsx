@@ -1,9 +1,6 @@
-"use client"
-
-import { motion } from "framer-motion"
 import { BadgeCheck, Users } from "lucide-react"
 
-import { useReducedMotion } from "@/components/ui/motion"
+import { Reveal } from "@/components/ui/reveal"
 
 // =============================================================================
 // COMPONENT
@@ -11,52 +8,45 @@ import { useReducedMotion } from "@/components/ui/motion"
 
 /** Doctor profile - trust signal, med-cert page only */
 export function DoctorProfileSection() {
-  const prefersReducedMotion = useReducedMotion()
-  const animate = !prefersReducedMotion
-
   return (
     <section aria-label="Reviewed by a real doctor" className="py-16 lg:py-20 bg-muted/20 dark:bg-muted/10">
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-        <motion.div
-          initial={animate ? { y: 20 } : {}}
-          whileInView={animate ? { opacity: 1, y: 0 } : undefined}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-          className="rounded-2xl bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06] dark:shadow-none p-6 sm:p-8 flex flex-col sm:flex-row items-center sm:items-start gap-6"
-        >
-          {/* Icon */}
-          <div className="shrink-0">
-            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-              <Users className="w-7 h-7 text-primary" />
+        <Reveal>
+          <div className="rounded-2xl bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06] dark:shadow-none p-6 sm:p-8 flex flex-col sm:flex-row items-center sm:items-start gap-6">
+            {/* Icon */}
+            <div className="shrink-0">
+              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+                <Users className="w-7 h-7 text-primary" />
+              </div>
             </div>
-          </div>
 
-          {/* Details */}
-          <div className="text-center sm:text-left flex-1">
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 border border-primary/20 mb-3">
-              <BadgeCheck className="h-3.5 w-3.5 text-primary" />
-              <span className="text-xs font-medium text-primary">AHPRA Verified</span>
+            {/* Details */}
+            <div className="text-center sm:text-left flex-1">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 border border-primary/20 mb-3">
+                <BadgeCheck className="h-3.5 w-3.5 text-primary" />
+                <span className="text-xs font-medium text-primary">AHPRA Verified</span>
+              </div>
+              <h2 className="text-lg font-semibold text-foreground mb-2">
+                AHPRA-registered GPs
+              </h2>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Every request is reviewed and approved by an experienced,
+                AHPRA-registered Australian doctor. No automated clinical decisions.
+              </p>
+              <p className="mt-3 text-xs text-muted-foreground/70">
+                Verify any doctor&apos;s registration on the{" "}
+                <a
+                  href="https://www.ahpra.gov.au/Registration/Registers-of-Practitioners.aspx"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline"
+                >
+                  AHPRA public register
+                </a>
+              </p>
             </div>
-            <h2 className="text-lg font-semibold text-foreground mb-2">
-              AHPRA-registered GPs
-            </h2>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              Every request is reviewed and approved by an experienced,
-              AHPRA-registered Australian doctor. No automated clinical decisions.
-            </p>
-            <p className="mt-3 text-xs text-muted-foreground/70">
-              Verify any doctor&apos;s registration on the{" "}
-              <a
-                href="https://www.ahpra.gov.au/Registration/Registers-of-Practitioners.aspx"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-primary hover:underline"
-              >
-                AHPRA public register
-              </a>
-            </p>
           </div>
-        </motion.div>
+        </Reveal>
       </div>
     </section>
   )
