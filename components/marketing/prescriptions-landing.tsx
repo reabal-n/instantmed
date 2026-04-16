@@ -170,6 +170,7 @@ function HowItWorksInline({ onCTAClick, isDisabled }: { onCTAClick?: () => void;
           {HOW_IT_WORKS_STEPS.map((step, i) => (
             <Reveal
               key={step.step}
+              instant={i < 2}
               delay={i * 0.1}
               className="relative bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-md shadow-primary/[0.06] dark:shadow-none rounded-2xl p-6 text-center"
             >

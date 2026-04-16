@@ -171,6 +171,7 @@ function HowItWorksInline({ onCTAClick, isDisabled }: { onCTAClick?: () => void;
           {HOW_IT_WORKS_STEPS.map((step, i) => (
             <Reveal
               key={step.title}
+              instant={i < 2}
               delay={i * 0.1}
               className="relative flex flex-col items-center text-center md:items-start md:text-left"
             >

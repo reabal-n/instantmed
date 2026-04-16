@@ -85,6 +85,7 @@ export function HowItWorksSection({
             return (
               <Reveal
                 key={step.number}
+                instant={index < 2}
                 className="relative"
                 delay={index * 0.1}
               >
