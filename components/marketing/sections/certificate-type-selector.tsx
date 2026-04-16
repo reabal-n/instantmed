@@ -6,12 +6,11 @@ import {
   Check,
   CheckCircle2,
 } from "lucide-react"
-
-import { StickerIcon } from "@/components/icons/stickers"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { Suspense, useEffect, useRef,useState } from "react"
 
+import { StickerIcon } from "@/components/icons/stickers"
 import { usePostHog } from "@/components/providers/posthog-provider"
 import { Button } from "@/components/ui/button"
 import { useReducedMotion } from "@/components/ui/motion"

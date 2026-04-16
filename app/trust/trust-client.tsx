@@ -7,12 +7,12 @@ import {
   CheckCircle2,
   Star,
 } from "lucide-react"
-import { StickerIcon } from "@/components/icons/stickers"
 import Link from "next/link"
 import { useSyncExternalStore } from "react"
 
 // Morning Canvas components
 import { SplitHero } from "@/components/heroes"
+import { StickerIcon } from "@/components/icons/stickers"
 import { GoogleAdsCert,LegitScriptSeal, MarketingFooter } from "@/components/marketing"
 import { TrustGuideSection } from "@/components/marketing/sections"
 import {

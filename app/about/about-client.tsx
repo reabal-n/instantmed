@@ -1,7 +1,6 @@
 "use client"
 
 import { StickerIcon } from "@/components/icons/stickers"
-
 import { AboutGuideSection } from "@/components/marketing/sections"
 import { AnimatedDonutChart, ComparisonBar, EditorialStoryBlock, InformationalPageShell, ScrollingLogoMarquee, TestimonialCard } from "@/components/marketing/shared"
 import { CTABanner, FAQSection, FeatureGrid } from "@/components/sections"

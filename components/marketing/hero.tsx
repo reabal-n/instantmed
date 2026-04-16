@@ -1,8 +1,8 @@
 'use client'
 
 import { ArrowRight, CheckCircle2, FileText, Pill, Smartphone } from 'lucide-react'
-import Link from 'next/link'
 import dynamic from 'next/dynamic'
+import Link from 'next/link'
 import type React from "react"
 
 import { LastReviewedSignal } from '@/components/marketing/last-reviewed-signal'

@@ -1,7 +1,7 @@
-import { StickerIcon } from "@/components/icons/stickers"
 import type { Metadata } from "next"
 
 import { CenteredHero } from "@/components/heroes"
+import { StickerIcon } from "@/components/icons/stickers"
 import { MarketingFooter } from "@/components/marketing"
 import { HowWeDecideGuideSection } from "@/components/marketing/sections"
 import type { ChecklistItem, FeatureItem, ProcessStep } from "@/components/sections"

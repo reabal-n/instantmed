@@ -2,10 +2,9 @@
 
 import { motion } from 'framer-motion'
 import { ArrowRight, ClipboardList,Clock } from 'lucide-react'
-
-import { StickerIcon } from '@/components/icons/stickers'
 import Link from 'next/link'
 
+import { StickerIcon } from '@/components/icons/stickers'
 import { Button } from '@/components/ui/button'
 import { useReducedMotion } from '@/components/ui/motion'
 import { cn } from '@/lib/utils'

@@ -5,12 +5,12 @@ import {
   ArrowRight,
   Pill,
 } from "lucide-react";
-import { StickerIcon } from "@/components/icons/stickers";
 import Image from "next/image";
 import Link from "next/link";
 import { useRef } from "react";
 
 import { CenteredHero } from "@/components/heroes";
+import { StickerIcon } from "@/components/icons/stickers";
 import { DoctorCredibility,MarketingFooter, MarketingPageShell, RegulatoryPartners } from "@/components/marketing";
 import { HairLossGuideSection, TestimonialsSection } from "@/components/marketing/sections";
 import {

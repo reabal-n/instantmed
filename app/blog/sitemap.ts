@@ -2,7 +2,6 @@ import type { MetadataRoute } from "next"
 
 import { allArticles } from "@/lib/blog/articles"
 
-const BUILD_DATE = new Date()
 const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://instantmed.com.au"
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {

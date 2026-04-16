@@ -45,6 +45,7 @@ interface StickerIconProps {
 
 export function StickerIcon({ name, size = 48, className }: StickerIconProps) {
   return (
+    // eslint-disable-next-line @next/next/no-img-element
     <img
       src={`/icons/stickers/${name}.svg`}
       width={size}

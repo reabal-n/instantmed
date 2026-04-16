@@ -11,10 +11,10 @@
 
 import { AnimatePresence,motion } from "framer-motion"
 import { ChevronRight, MessageSquare,RotateCcw, Star, Trash2 } from "lucide-react"
-import { StickerIcon, type StickerIconName } from "@/components/icons/stickers"
 import { useRouter } from "next/navigation"
 import { useCallback,useEffect, useState } from "react"
 
+import { StickerIcon, type StickerIconName } from "@/components/icons/stickers"
 import { GoogleAdsCert } from "@/components/marketing/google-ads-cert"
 import { LegitScriptSeal } from "@/components/marketing/legitscript-seal"
 import { usePostHog } from "@/components/providers/posthog-provider"

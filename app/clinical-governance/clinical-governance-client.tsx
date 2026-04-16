@@ -1,6 +1,5 @@
 "use client"
 
-import type { ReactNode } from "react"
 import {
   AlertTriangle,
   BookOpen,
@@ -10,8 +9,8 @@ import {
   Scale,
   UserCheck,
 } from "lucide-react"
-import { StickerIcon } from "@/components/icons/stickers"
 import Link from "next/link"
+import type { ReactNode } from "react"
 
 import { StatsHero } from "@/components/heroes"
 import { MarketingFooter } from "@/components/marketing"

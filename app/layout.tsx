@@ -144,14 +144,16 @@ export default function RootLayout({
         style={{ backgroundColor: '#f8f7f4' }}
       >
         <head>
-          {/* Preconnect to critical third-party origins - Sentry (LCP savings) */}
-          <link rel="preconnect" href="https://o4510623218860032.ingest.us.sentry.io" />
+          {/* Preconnect to critical third-party origins.
+              crossOrigin="anonymous" is required for CORS resources — without it the
+              browser opens an extra non-CORS connection and the preconnect is wasted. */}
+          <link rel="preconnect" href="https://o4510623218860032.ingest.us.sentry.io" crossOrigin="anonymous" />
           <link rel="dns-prefetch" href="https://js.stripe.com" />
           <link rel="dns-prefetch" href="https://api.stripe.com" />
-          <link rel="preconnect" href="https://us.posthog.com" />
-          <link rel="preconnect" href="https://api.dicebear.com" />
-          <link rel="preconnect" href="https://www.googletagmanager.com" />
-          <link rel="preconnect" href="https://images.unsplash.com" />
+          <link rel="preconnect" href="https://us.posthog.com" crossOrigin="anonymous" />
+          <link rel="preconnect" href="https://api.dicebear.com" crossOrigin="anonymous" />
+          <link rel="preconnect" href="https://www.googletagmanager.com" crossOrigin="anonymous" />
+          <link rel="preconnect" href="https://images.unsplash.com" crossOrigin="anonymous" />
           <link rel="manifest" href="/manifest.webmanifest" />
 
         </head>

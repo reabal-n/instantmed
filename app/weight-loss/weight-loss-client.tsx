@@ -9,12 +9,12 @@ import {
   Shield,
   Zap,
 } from "lucide-react"
-import { StickerIcon } from "@/components/icons/stickers"
 import Image from "next/image"
 import Link from "next/link"
 import Script from "next/script"
 
 import { CenteredHero } from "@/components/heroes"
+import { StickerIcon } from "@/components/icons/stickers"
 import { DoctorCredibility,MarketingFooter, RegulatoryPartners } from "@/components/marketing"
 import { TestimonialsSection, WeightLossGuideSection } from "@/components/marketing/sections"
 import {

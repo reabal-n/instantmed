@@ -1,6 +1,5 @@
 "use client"
 
-import type { ReactNode } from "react"
 import {
   BadgeCheck,
   ExternalLink,
@@ -9,10 +8,11 @@ import {
   Shield,
   Users,
 } from "lucide-react"
-import { StickerIcon } from "@/components/icons/stickers"
 import Link from "next/link"
+import type { ReactNode } from "react"
 
 import { CenteredHero } from "@/components/heroes"
+import { StickerIcon } from "@/components/icons/stickers"
 import { MarketingFooter } from "@/components/marketing"
 import { DoctorsGuideSection } from "@/components/marketing/sections"
 import { AccordionSection, CTABanner,FeatureGrid, IconChecklist } from "@/components/sections"

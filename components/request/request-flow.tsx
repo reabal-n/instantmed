@@ -369,7 +369,7 @@ export function RequestFlow({
     handleBack,
     handleNext,
     handleComplete,
-    handleExit,
+    handleExit: _handleExit,
     handleRestoreDraft,
     handleDiscardDraft,
     handleResumeDraft,

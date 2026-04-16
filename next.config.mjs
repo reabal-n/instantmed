@@ -20,6 +20,30 @@ const nextConfig = {
     serverActions: {
       bodySizeLimit: '1mb',
     },
+    // Tree-shake large barrel exports so only imported symbols are bundled.
+    // Eliminates the 211KB+ of unused JS from lucide-react, radix, and framer-motion
+    // that Lighthouse flags as wasted bytes on every page.
+    optimizePackageImports: [
+      'lucide-react',
+      'framer-motion',
+      '@radix-ui/react-accordion',
+      '@radix-ui/react-alert-dialog',
+      '@radix-ui/react-avatar',
+      '@radix-ui/react-checkbox',
+      '@radix-ui/react-collapsible',
+      '@radix-ui/react-dialog',
+      '@radix-ui/react-dropdown-menu',
+      '@radix-ui/react-popover',
+      '@radix-ui/react-progress',
+      '@radix-ui/react-radio-group',
+      '@radix-ui/react-select',
+      '@radix-ui/react-separator',
+      '@radix-ui/react-slot',
+      '@radix-ui/react-switch',
+      '@radix-ui/react-tabs',
+      '@radix-ui/react-tooltip',
+      'date-fns',
+    ],
   },
   images: {
     // Enable Next.js Image Optimization

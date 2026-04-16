@@ -1,6 +1,5 @@
 'use client'
 
-import { useEffect, useRef, useState } from "react"
 import {
   AlertTriangle,
   ArrowLeft,
@@ -19,6 +18,7 @@ import {
   Stethoscope} from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
+import { useEffect, useRef, useState } from "react"
 
 import { ArticleSeriesNav, SeriesBadge } from "@/components/blog/article-series"
 import { ArticleTags } from "@/components/blog/article-tags"
@@ -29,9 +29,7 @@ import { SocialShare } from "@/components/blog/social-share"
 import { TableOfContents } from "@/components/blog/table-of-contents"
 import { BlogCTACard } from "@/components/marketing/blog-cta-card"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import type { Article, ArticleFAQ, ArticleLink,ArticleSection, RelatedService } from "@/lib/blog/types"
-import { PRICING_DISPLAY } from "@/lib/constants"
 import { cn } from "@/lib/utils"
 
 interface ArticleTemplateProps {

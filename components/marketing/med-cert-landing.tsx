@@ -2,7 +2,6 @@
 
 import { motion } from "framer-motion"
 import {
-  ArrowRight,
   Building2,
   CheckCircle2,
   Search,
@@ -21,9 +20,7 @@ import {
 } from "@/components/marketing/shared"
 import { ComparisonBar } from "@/components/marketing/shared/data-viz"
 import { type LogoItem,ScrollingLogoMarquee } from "@/components/marketing/shared/scrolling-logo-marquee"
-import { Button } from "@/components/ui/button"
 import { useReducedMotion } from "@/components/ui/motion"
-import { SectionPill } from "@/components/ui/section-pill"
 import { PRICING } from "@/lib/constants"
 import { MED_CERT_FAQ } from "@/lib/data/med-cert-faq"
 import { usePatientCount } from "@/lib/hooks/use-patient-count"

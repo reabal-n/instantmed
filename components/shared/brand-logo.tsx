@@ -37,6 +37,7 @@ export function BrandLogo({
         width={iconSize}
         height={iconSize}
         className="rounded-lg object-contain transition-opacity duration-200 group-hover:opacity-80"
+        style={{ width: iconSize, height: iconSize, flexShrink: 0 }}
         priority
       />
       {!iconOnly && (
@@ -46,7 +47,7 @@ export function BrandLogo({
           width={textWidth}
           height={textHeight}
           className="object-contain dark:brightness-0 dark:invert transition-opacity duration-200 group-hover:opacity-80"
-          style={{ width: textWidth, height: textHeight, filter: "drop-shadow(0 0 6px rgba(37,99,235,0.2))" }}
+          style={{ width: textWidth, height: textHeight, flexShrink: 0, filter: "drop-shadow(0 0 6px rgba(37,99,235,0.2))" }}
           priority
         />
       )}

@@ -4,7 +4,6 @@ import { motion } from 'framer-motion'
 import { Shield } from 'lucide-react'
 
 import { StickerIcon } from '@/components/icons/stickers'
-
 import { useReducedMotion } from '@/components/ui/motion'
 import { cn } from '@/lib/utils'
 
