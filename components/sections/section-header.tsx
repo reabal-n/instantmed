@@ -1,10 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { useRef } from "react";
-
 import { WordReveal } from "@/components/ui/morning/word-reveal";
-import { useReducedMotion,useScrollReveal } from "@/components/ui/motion";
 import { SectionPill } from "@/components/ui/section-pill";
 import { cn } from "@/lib/utils";
 
@@ -27,13 +23,8 @@ export function SectionHeader({
   className,
   titleAs = "h2",
 }: SectionHeaderProps) {
-  const ref = useRef<HTMLDivElement>(null);
-  const isInView = useScrollReveal(ref);
-  const prefersReducedMotion = useReducedMotion();
-
   return (
     <div
-      ref={ref}
       className={cn(
         "mb-12 max-w-3xl",
         align === "center" ? "mx-auto text-center" : "text-left",
@@ -57,20 +48,9 @@ export function SectionHeader({
       />
 
       {subtitle && (
-        <motion.p
-          className="mt-4 text-lg text-muted-foreground leading-relaxed"
-          initial={prefersReducedMotion ? {} : { y: 8 }}
-          animate={
-            prefersReducedMotion
-              ? {}
-              : isInView
-                ? { opacity: 1, y: 0 }
-                : undefined
-          }
-          transition={{ duration: 0.3, delay: 0.3, ease: "easeOut" }}
-        >
+        <p className="mt-4 text-lg text-muted-foreground leading-relaxed">
           {subtitle}
-        </motion.p>
+        </p>
       )}
     </div>
   );

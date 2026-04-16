@@ -3,22 +3,20 @@
 import {
   ArrowRight,
   CheckCircle2,
-  ClipboardList,
   Clock,
-  FileText,
-  RefreshCw,
   ShieldCheck,
-  Smartphone,
   Star,
-  Stethoscope,
   Users,
 } from "lucide-react"
 import dynamic from "next/dynamic"
 import Link from "next/link"
 
+import { StickerIcon } from "@/components/icons/stickers"
 // Hero is above-fold - not lazy loaded
 import { PrescriptionsHeroSection } from "@/components/marketing/heroes/prescriptions-hero"
 import { LiveWaitTime } from "@/components/marketing/live-wait-time"
+import { HowItWorksInline } from "@/components/marketing/sections/how-it-works-inline"
+import { ServiceFinalCTA } from "@/components/marketing/sections/service-final-cta"
 import {
   type LandingPageConfig,
   LandingPageShell,
@@ -69,17 +67,9 @@ const PrescriptionLimitationsSection = dynamic(
   () => import("@/components/marketing/sections/prescription-limitations-section").then((m) => m.PrescriptionLimitationsSection),
   { loading: () => <div className="min-h-[150px]" /> },
 )
-const CompetitorLinksSection = dynamic(
-  () => import("@/components/marketing/sections/competitor-links-section").then((m) => m.CompetitorLinksSection),
-  { loading: () => <div className="min-h-[200px]" /> },
-)
 const RegulatoryPartners = dynamic(
   () => import("@/components/marketing/media-mentions").then((m) => m.RegulatoryPartners),
   { loading: () => <div className="min-h-[120px]" /> },
-)
-const RepeatRxGuideSection = dynamic(
-  () => import("@/components/marketing/sections/repeat-rx-guide-section").then((m) => m.RepeatRxGuideSection),
-  { loading: () => <div className="min-h-[400px]" /> },
 )
 
 // =============================================================================
@@ -112,21 +102,21 @@ const RELATED_ARTICLES_DATA = [
 
 const HOW_IT_WORKS_STEPS = [
   {
-    icon: ClipboardList,
+    sticker: "medical-history" as const,
     step: 1,
     title: "Enter your medication",
     description: "Tell us what you need renewed. Takes about five minutes.",
     time: "~5 minutes",
   },
   {
-    icon: Stethoscope,
+    sticker: "stethoscope" as const,
     step: 2,
     title: "A real GP reviews it",
     description: "An AHPRA-registered doctor checks your request and medical history.",
     time: `~${SOCIAL_PROOF.averageResponseMinutes} min`,
   },
   {
-    icon: Smartphone,
+    sticker: "sent" as const,
     step: 3,
     title: "eScript sent to your phone",
     description: "Your electronic prescription is sent via SMS. Take it to any pharmacy.",
@@ -152,103 +142,39 @@ const LANDING_CONFIG: LandingPageConfig = {
 // UNIQUE SECTIONS
 // =============================================================================
 
-/** How It Works - simplified 3-step inline section */
-function HowItWorksInline({ onCTAClick, isDisabled }: { onCTAClick?: () => void; isDisabled?: boolean }) {
-  return (
-    <section id="how-it-works" aria-label="How it works" className="py-16 lg:py-20">
-      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-        <Reveal instant className="text-center mb-12">
-          <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground mb-3">
-            Three steps. No waiting room.
-          </h2>
-          <p className="text-muted-foreground max-w-xl mx-auto text-balance">
-            From your couch to your pharmacy - most scripts are sent same day.
-          </p>
-        </Reveal>
-
-        <div className="grid md:grid-cols-3 gap-6 lg:gap-8">
-          {HOW_IT_WORKS_STEPS.map((step, i) => (
-            <Reveal
-              key={step.step}
-              instant={i < 2}
-              delay={i * 0.1}
-              className="relative bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-md shadow-primary/[0.06] dark:shadow-none rounded-2xl p-6 text-center"
-            >
-              <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 text-primary font-semibold text-sm mb-4">
-                {step.step}
-              </div>
-              <step.icon className="mx-auto h-8 w-8 text-primary/70 mb-3" />
-              <h3 className="text-base font-semibold text-foreground mb-2">
-                {step.title}
-              </h3>
-              <p className="text-sm text-muted-foreground leading-relaxed mb-3">
-                {step.description}
-              </p>
-              <span className="inline-flex items-center gap-1 text-xs font-medium text-primary/70">
-                <Clock className="h-3 w-3" />
-                {step.time}
-              </span>
-            </Reveal>
-          ))}
-        </div>
-
-        <Reveal className="flex justify-center mt-10" delay={0.3}>
-          <Button
-            asChild
-            size="lg"
-            className="px-8 h-12 text-base font-semibold shadow-md shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 transition-all"
-            onClick={onCTAClick}
-            disabled={isDisabled}
-          >
-            <Link href={isDisabled ? "/contact" : "/request?service=prescription"}>
-              {isDisabled ? "Contact us" : "Renew your medication"}
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Link>
-          </Button>
-        </Reveal>
-      </div>
-    </section>
-  )
-}
 
 /** Service differentiation - repeat ($29.95) vs new prescription ($49.95) */
 function ServiceComparisonSection({ isDisabled }: { isDisabled?: boolean }) {
   const services = [
     {
-      icon: RefreshCw,
+      sticker: "synchronize" as const,
       title: "Repeat prescription",
-      subtitle: "Renew a medication you already take",
+      subtitle: "Renewing a medication you already take",
       price: PRICING.REPEAT_SCRIPT,
-      priceNote: "one-time fee",
       href: "/request?service=prescription",
       badge: "Most common",
-      badgeColor: "bg-primary/10 text-primary",
       highlight: true,
       bullets: [
         "Medication you've been prescribed before",
-        "eScript sent to your phone via SMS",
-        "Works at any pharmacy Australia-wide",
-        "PBS subsidies apply at the pharmacy",
-        "Repeats included where appropriate",
+        "eScript via SMS to any Australian pharmacy",
+        "PBS pricing applies at the counter",
       ],
+      ctaText: "Renew medication",
     },
     {
-      icon: FileText,
+      sticker: "stethoscope" as const,
       title: "New prescription",
-      subtitle: "Start a medication you haven't used before",
+      subtitle: "Starting a medication for the first time",
       price: PRICING.NEW_SCRIPT,
-      priceNote: "one-time fee",
       href: "/request?service=consult",
       badge: null,
-      badgeColor: "",
       highlight: false,
       bullets: [
-        "Medication you haven't been prescribed",
         "Doctor assessment included",
-        "eScript sent to your phone via SMS",
-        "Full refund if unsuitable",
-        "Most requests reviewed same day",
+        "eScript sent to your phone",
+        "Full refund if we can\u2019t help",
       ],
+      ctaText: "New prescription",
     },
   ]
 
@@ -256,10 +182,8 @@ function ServiceComparisonSection({ isDisabled }: { isDisabled?: boolean }) {
     <section id="pricing" aria-label="Service options" className="py-16 lg:py-20">
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
         <Reveal className="text-center mb-10">
-          <p className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-background px-3 py-1.5 text-xs font-medium text-foreground/70 shadow-sm shadow-primary/[0.04] mb-4">
-            Pricing
-          </p>
-          <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground mb-3">
+          <SectionPill>Pricing</SectionPill>
+          <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground mt-4 mb-3">
             Repeat or new - one flat fee.
           </h2>
           <p className="text-muted-foreground max-w-xl mx-auto text-balance">
@@ -273,75 +197,83 @@ function ServiceComparisonSection({ isDisabled }: { isDisabled?: boolean }) {
               key={service.title}
               delay={i * 0.1}
               className={cn(
-                "relative rounded-2xl border p-6 flex flex-col transition-all duration-300",
+                "relative rounded-2xl border flex flex-col overflow-hidden",
                 service.highlight
-                  ? "bg-white dark:bg-card border-primary/30 ring-2 ring-primary shadow-lg shadow-primary/[0.1] hover:shadow-xl hover:shadow-primary/[0.15] hover:-translate-y-1"
-                  : "bg-white dark:bg-card border-border/50 dark:border-white/15 shadow-md shadow-primary/[0.06] dark:shadow-none hover:shadow-lg hover:shadow-primary/[0.08] hover:-translate-y-0.5"
+                  ? "bg-white dark:bg-card border-primary/30 shadow-xl shadow-primary/[0.12]"
+                  : "bg-white dark:bg-card border-border/50 dark:border-white/15 shadow-md shadow-primary/[0.06] dark:shadow-none"
               )}
             >
-              {service.badge && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <span className={cn("inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border border-primary/20", service.badgeColor)}>
-                    {service.badge}
-                  </span>
-                </div>
+              {/* Accent strip on highlighted card */}
+              {service.highlight && (
+                <div className="h-1 w-full bg-linear-to-r from-primary/60 via-primary to-primary/60" />
               )}
 
-              <div className="flex items-start gap-4 mb-5">
-                <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <service.icon className="h-5 w-5 text-primary" />
+              <div className="p-6 flex flex-col flex-1">
+                {/* Sticker + badge row */}
+                <div className="flex items-start justify-between mb-4">
+                  <StickerIcon name={service.sticker} size={56} />
+                  {service.badge && (
+                    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold bg-primary/10 text-primary border border-primary/20">
+                      {service.badge}
+                    </span>
+                  )}
                 </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-foreground">{service.title}</h3>
-                  <p className="text-sm text-muted-foreground">{service.subtitle}</p>
+
+                {/* Title + subtitle */}
+                <h3 className="text-lg font-semibold text-foreground mb-1">{service.title}</h3>
+                <p className="text-sm text-muted-foreground mb-5">{service.subtitle}</p>
+
+                {/* Price */}
+                <div className="mb-5">
+                  <span className="text-4xl font-bold tracking-tight text-foreground">
+                    ${service.price.toFixed(2)}
+                  </span>
+                  <span className="text-sm text-muted-foreground ml-2">one-time</span>
                 </div>
+
+                {/* Bullets */}
+                <ul className="space-y-2 mb-6 flex-1">
+                  {service.bullets.map((bullet) => (
+                    <li key={bullet} className="flex items-start gap-2 text-sm text-muted-foreground">
+                      <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
+                      {bullet}
+                    </li>
+                  ))}
+                </ul>
+
+                <Button
+                  asChild
+                  size="lg"
+                  variant={service.highlight ? "default" : "outline"}
+                  className={cn(
+                    "w-full h-11 font-semibold",
+                    service.highlight && "shadow-md shadow-primary/20"
+                  )}
+                  disabled={isDisabled}
+                >
+                  <Link href={isDisabled ? "/contact" : service.href}>
+                    {isDisabled ? "Contact us" : service.ctaText}
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
+                </Button>
               </div>
-
-              <div className="mb-5">
-                <span className="text-4xl font-semibold tracking-tight text-foreground">
-                  ${service.price.toFixed(2)}
-                </span>
-                <span className="text-sm text-muted-foreground ml-2">{service.priceNote}</span>
-              </div>
-
-              <ul className="space-y-2.5 mb-6 flex-1">
-                {service.bullets.map((bullet) => (
-                  <li key={bullet} className="flex items-start gap-2 text-sm text-muted-foreground">
-                    <CheckCircle2 className="h-4 w-4 text-primary shrink-0 mt-0.5" />
-                    {bullet}
-                  </li>
-                ))}
-              </ul>
-
-              <Button
-                asChild
-                size="lg"
-                variant={service.highlight ? "default" : "outline"}
-                className={cn(
-                  "w-full h-11 font-semibold",
-                  service.highlight && "shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30"
-                )}
-                disabled={isDisabled}
-              >
-                <Link href={isDisabled ? "/contact" : service.href}>
-                  {isDisabled ? "Contact us" : `Get ${service.title.toLowerCase()}`}
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
             </Reveal>
           ))}
         </div>
 
         {/* Subscription upsell */}
-        <Reveal className="mt-8 rounded-xl border border-primary/20 bg-primary/5 dark:bg-primary/10 p-4 sm:p-5 text-center" delay={0.2}>
-          <p className="text-sm font-medium text-foreground mb-1">
-            <RefreshCw className="inline w-3.5 h-3.5 text-primary mr-1.5 -mt-0.5" />
-            Need repeat scripts every month?
-          </p>
-          <p className="text-sm text-muted-foreground">
-            Subscribe &amp; Save for <span className="font-medium text-foreground">${PRICING.REPEAT_RX_MONTHLY}/mo</span> - your repeat script auto-renews each month with no forms to fill out.
-            The option appears at checkout.
-          </p>
+        <Reveal className="mt-8 rounded-xl border border-primary/20 bg-primary/5 dark:bg-primary/10 p-4 sm:p-5" delay={0.2}>
+          <div className="flex items-start gap-3">
+            <StickerIcon name="synchronize" size={36} className="shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-medium text-foreground mb-0.5">
+                Need repeat scripts every month?
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Subscribe &amp; Save for <span className="font-medium text-foreground">${PRICING.REPEAT_RX_MONTHLY}/mo</span> - your repeat script auto-renews with no forms to fill out. The option appears at checkout.
+              </p>
+            </div>
+          </div>
         </Reveal>
 
         <p className="text-center text-xs text-muted-foreground mt-6">
@@ -383,41 +315,6 @@ function PrescriptionFAQSection({ onFAQOpen }: { onFAQOpen?: (question: string, 
   )
 }
 
-/** Inline Final CTA - prescription-specific */
-function FinalCTAInline({ onCTAClick, isDisabled }: { onCTAClick?: () => void; isDisabled?: boolean }) {
-  return (
-    <section aria-label="Get started" className="py-20 lg:py-24 bg-linear-to-br from-primary/5 via-primary/10 to-sky-100/50 dark:from-primary/10 dark:via-primary/5 dark:to-card">
-      <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center">
-        <Reveal>
-          <h2 className="text-3xl sm:text-4xl font-semibold text-foreground mb-4 tracking-tight">
-            Your regular medication, renewed from home.
-          </h2>
-          <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto leading-relaxed">
-            Join {getPatientCount().toLocaleString()}+ Australians who trust InstantMed. Answer a few questions, a doctor reviews it, and your script is sent same day.
-          </p>
-          <Button
-            asChild
-            size="lg"
-            className="px-10 h-14 text-lg font-semibold shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 transition-all"
-            onClick={onCTAClick}
-            disabled={isDisabled}
-          >
-            <Link href={isDisabled ? "/contact" : "/request?service=prescription"}>
-              {isDisabled ? "Contact us" : "Renew your medication"}
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Link>
-          </Button>
-          <p className="mt-4 text-muted-foreground text-sm font-medium">
-            From ${PRICING.REPEAT_SCRIPT.toFixed(2)} &middot; No account required
-          </p>
-          <p className="mt-1 text-muted-foreground text-xs">
-            Takes about 2 minutes &middot; Full refund if we can&apos;t help
-          </p>
-        </Reveal>
-      </div>
-    </section>
-  )
-}
 
 /** Data viz: prescription turnaround vs GP visit */
 function PrescriptionComparisonViz() {
@@ -528,7 +425,15 @@ export function PrescriptionsLanding() {
           <PBSCalloutStrip />
 
           {/* 2. How It Works */}
-          <HowItWorksInline onCTAClick={handleHowItWorksCTA} isDisabled={isDisabled} />
+          <HowItWorksInline
+            steps={HOW_IT_WORKS_STEPS}
+            ctaHref="/request?service=prescription"
+            ctaText="Renew your medication"
+            onCTAClick={handleHowItWorksCTA}
+            isDisabled={isDisabled}
+            heading="Three steps. No waiting room."
+            subheading="From your couch to your pharmacy - most scripts are sent same day."
+          />
 
           {/* 3. eScript explainer - muted bg for rhythm */}
           <div className="bg-muted/30 dark:bg-white/[0.02]">
@@ -564,14 +469,8 @@ export function PrescriptionsLanding() {
             />
           </div>
 
-          {/* Competitor comparisons */}
-          <CompetitorLinksSection slugs={["instantmed-vs-instantscripts", "instantmed-vs-hub-health", "instantmed-vs-doctors-on-demand"]} />
-
           {/* Regulatory Partners - Medicare excluded */}
           <RegulatoryPartners className="py-12" exclude={["Medicare"]} />
-
-          {/* Deep E-E-A-T guide content */}
-          <RepeatRxGuideSection />
 
           {/* 7. FAQ - muted bg for rhythm */}
           <div className="bg-muted/30 dark:bg-white/[0.02]">
@@ -589,7 +488,15 @@ export function PrescriptionsLanding() {
           <ReferralStrip contextText="who needs their medication renewed" />
 
           {/* 8. Final CTA */}
-          <FinalCTAInline onCTAClick={handleFinalCTA} isDisabled={isDisabled} />
+          <ServiceFinalCTA
+            title="Your regular medication, renewed from home."
+            ctaHref="/request?service=prescription"
+            price={PRICING.REPEAT_SCRIPT}
+            ctaText="Renew your medication"
+            onCTAClick={handleFinalCTA}
+            isDisabled={isDisabled}
+            subtitle={`Join ${getPatientCount().toLocaleString()}+ Australians who trust InstantMed. Answer a few questions, a doctor reviews it, and your script is sent same day.`}
+          />
         </>
       )}
     </LandingPageShell>

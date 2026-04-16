@@ -10,18 +10,22 @@ import {
 import { ComplianceMarquee } from '@/components/marketing/compliance-marquee'
 import { MarketingPageShell } from '@/components/marketing/marketing-page-shell'
 import { RegulatoryPartners } from '@/components/marketing/media-mentions'
-// After-hours banner removed - redundant with DoctorAvailabilityPill in hero
 import { ServiceCards } from '@/components/marketing/service-cards'
 
-// Heavy below-fold section: framer-motion animations + testimonial columns.
-// Dynamic import splits it into its own chunk so the main bundle stays lean.
-// SSR enabled (default) keeps content in HTML for crawlers and CLS prevention.
+// Below-fold sections: all defer framer-motion out of the critical JS path.
+// SSR:true (default) keeps full HTML in the initial response for SEO + CLS.
+// The framer-motion chunk only loads after LCP, cutting ~162KB from the
+// critical bundle and dropping mobile TBT significantly.
 const SocialProofSection = dynamic(
   () => import('@/components/marketing/social-proof-section').then(m => ({ default: m.SocialProofSection })),
   { loading: () => <div className="min-h-[400px]" /> },
 )
-import { CTABanner } from '@/components/sections'
-import { FAQSection } from '@/components/sections'
+const CTABanner = dynamic(
+  () => import('@/components/sections/cta-banner').then(m => ({ default: m.CTABanner })),
+)
+const FAQSection = dynamic(
+  () => import('@/components/sections/faq-section').then(m => ({ default: m.FAQSection })),
+)
 import { FAQSchema, MedicalBusinessSchema, SpeakableSchema } from '@/components/seo/healthcare-schema'
 import { HashScrollHandler } from '@/components/shared/hash-scroll-handler'
 import { Navbar } from '@/components/shared/navbar'

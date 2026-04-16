@@ -1,6 +1,5 @@
 "use client"
 
-import { motion } from "framer-motion"
 import { ArrowRight } from "lucide-react"
 import Link from "next/link"
 import { useState } from "react"
@@ -11,7 +10,6 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
-import { useReducedMotion } from "@/components/ui/motion"
 import { cn } from "@/lib/utils"
 
 import { SectionHeader } from "./section-header"
@@ -46,8 +44,6 @@ export function FAQSection({
   viewAllHref,
   initialCount,
 }: FAQSectionProps) {
-  const prefersReducedMotion = useReducedMotion()
-  const animate = !prefersReducedMotion
   const [expanded, setExpanded] = useState(false)
   const visibleItems = initialCount && !expanded ? items.slice(0, initialCount) : items
 
@@ -68,25 +64,18 @@ export function FAQSection({
           }}
         >
           {visibleItems.map((item, index) => (
-            <motion.div
+            <AccordionItem
               key={index}
-              initial={animate ? { y: 6, opacity: 0 } : {}}
-              whileInView={animate ? { opacity: 1, y: 0 } : undefined}
-              viewport={{ once: true }}
-              transition={{ duration: 0.25, delay: index * 0.03 }}
+              value={index.toString()}
+              className="border-b border-border/30 first:border-t first:border-t-border/30"
             >
-              <AccordionItem
-                value={index.toString()}
-                className="border-b border-border/30 first:border-t first:border-t-border/30"
-              >
-                <AccordionTrigger className="py-4 text-left text-[15px] font-medium text-foreground hover:no-underline gap-4">
-                  {item.question}
-                </AccordionTrigger>
-                <AccordionContent className="text-sm text-muted-foreground leading-relaxed">
-                  {item.answer}
-                </AccordionContent>
-              </AccordionItem>
-            </motion.div>
+              <AccordionTrigger className="py-4 text-left text-[15px] font-medium text-foreground hover:no-underline gap-4">
+                {item.question}
+              </AccordionTrigger>
+              <AccordionContent className="text-sm text-muted-foreground leading-relaxed">
+                {item.answer}
+              </AccordionContent>
+            </AccordionItem>
           ))}
         </Accordion>
 

@@ -1,25 +1,25 @@
 "use client"
 
-import { Pill } from "lucide-react"
+import { ArrowRight, CheckCircle2, Pill } from "lucide-react"
 import dynamic from "next/dynamic"
+import Link from "next/link"
 
-import { ContextualMessage } from "@/components/marketing/contextual-message"
+import { StickerIcon } from "@/components/icons/stickers"
 // Hero is above-fold - not lazy loaded
 import { HairLossHeroSection } from "@/components/marketing/heroes/hair-loss-hero"
 import { LiveWaitTime } from "@/components/marketing/live-wait-time"
-import { RecentReviewsTicker } from "@/components/marketing/recent-reviews-ticker"
+import { HowItWorksInline } from "@/components/marketing/sections/how-it-works-inline"
+import { ServiceFinalCTA } from "@/components/marketing/sections/service-final-cta"
 import {
   type LandingPageConfig,
   LandingPageShell,
-  RecentActivityTicker,
   ReferralStrip,
-  type SocialProofStat,
-  SocialProofStrip,
 } from "@/components/marketing/shared"
 import { ComparisonBar } from "@/components/marketing/shared/data-viz"
-import { STAT_PRESETS } from "@/components/marketing/total-patients-counter"
 import { ContentHubLinks } from "@/components/seo"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { FAQList } from "@/components/ui/faq-list"
 import { Reveal } from "@/components/ui/reveal"
 import { SectionPill } from "@/components/ui/section-pill"
 import { PRICING } from "@/lib/constants"
@@ -28,106 +28,56 @@ import {
   getTestimonialsByService,
   getTestimonialsForColumns,
 } from "@/lib/data/testimonials"
-import { getPatientCount,SOCIAL_PROOF, SOCIAL_PROOF_DISPLAY } from "@/lib/social-proof"
+import { SOCIAL_PROOF } from "@/lib/social-proof"
 
 // Below-fold lazy loads
 const TestimonialsSection = dynamic(
   () => import("@/components/marketing/sections/testimonials-section").then((m) => m.TestimonialsSection),
   { loading: () => <div className="min-h-[500px]" /> },
 )
-const HowItWorksSection = dynamic(
-  () => import("@/components/marketing/sections/how-it-works-section").then((m) => m.HowItWorksSection),
-  { loading: () => <div className="min-h-[400px]" /> },
-)
-const HairLossGuideSection = dynamic(
-  () => import("@/components/marketing/sections/hair-loss-guide-section").then((m) => m.HairLossGuideSection),
-  { loading: () => <div className="min-h-[600px]" /> },
-)
 const DoctorProfileSection = dynamic(
   () => import("@/components/marketing/sections/doctor-profile-section").then((m) => m.DoctorProfileSection),
   { loading: () => <div className="min-h-[200px]" /> },
 )
-const FaqCtaSection = dynamic(
-  () => import("@/components/marketing/sections/faq-cta-section").then((m) => m.FaqCtaSection),
-  { loading: () => <div className="min-h-[500px]" /> },
-)
-const FinalCtaSection = dynamic(
-  () => import("@/components/marketing/sections/final-cta-section").then((m) => m.FinalCtaSection),
-  { loading: () => <div className="min-h-[300px]" /> },
-)
-const HairLossLimitationsSection = dynamic(
-  () => import("@/components/marketing/sections/hair-loss-limitations-section").then((m) => m.HairLossLimitationsSection),
-  { loading: () => <div className="min-h-[150px]" /> },
-)
-const HairLossHookQuiz = dynamic(
-  () => import("@/components/marketing/sections/hair-loss-hook-quiz").then((m) => m.HairLossHookQuiz),
-  { loading: () => <div className="min-h-[500px]" />, ssr: false },
-)
-const HairLossProgressTimeline = dynamic(
-  () => import("@/components/marketing/sections/hair-loss-progress-timeline").then((m) => m.HairLossProgressTimeline),
-  { loading: () => <div className="min-h-[400px]" /> },
-)
-const HairLossFamilyHistoryStrip = dynamic(
-  () => import("@/components/marketing/sections/hair-loss-family-history-strip").then((m) => m.HairLossFamilyHistoryStrip),
-  { loading: () => <div className="min-h-[200px]" /> },
-)
-const PricingSection = dynamic(
-  () => import("@/components/marketing/sections/pricing-section").then((m) => m.PricingSection),
-  { loading: () => <div className="min-h-[400px]" /> },
-)
 const RegulatoryPartners = dynamic(
   () => import("@/components/marketing/media-mentions").then((m) => m.RegulatoryPartners),
   { loading: () => <div className="min-h-[120px]" /> },
-)
-const CompetitorLinksSection = dynamic(
-  () => import("@/components/marketing/sections/competitor-links-section").then((m) => m.CompetitorLinksSection),
-  { loading: () => <div className="min-h-[200px]" /> },
 )
 
 // =============================================================================
 // DATA
 // =============================================================================
 
-const PRICING_FEATURES = [
+const HOW_IT_WORKS_STEPS = [
+  {
+    sticker: "medical-history" as const,
+    step: 1,
+    title: "Fill a short health form",
+    description: "Quick assessment covering your hair loss pattern and health history. Takes about 2 minutes.",
+    time: "~2 minutes",
+  },
+  {
+    sticker: "stethoscope" as const,
+    step: 2,
+    title: "A real GP reviews it",
+    description: "An AHPRA-registered doctor reviews your assessment and recommends the right treatment approach.",
+    time: `~${SOCIAL_PROOF.averageResponseMinutes} min`,
+  },
+  {
+    sticker: "pill-bottle" as const,
+    step: 3,
+    title: "Treatment plan delivered",
+    description: "Your prescription is sent via SMS. Collect treatment from any Australian pharmacy.",
+    time: "Same day",
+  },
+]
+
+const PRICING_BULLETS = [
   "AHPRA-registered Australian doctor reviews your form",
   "eScript sent to your phone via SMS",
   "Collect from any Australian pharmacy",
   "Discreet packaging - nothing on the outside",
-  "Full refund if we can't help",
-]
-
-const SOCIAL_PROOF_STATS: SocialProofStat[] = [...STAT_PRESETS['consult']]
-
-const RECENT_ACTIVITY_ENTRIES = [
-  { city: "Melbourne", minutesAgo: 18 },
-  { city: "Sydney", minutesAgo: 37 },
-  { city: "Brisbane", minutesAgo: 9 },
-  { city: "Perth", minutesAgo: 52 },
-  { city: "Adelaide", minutesAgo: 14 },
-  { city: "Gold Coast", minutesAgo: 29 },
-  { city: "Canberra", minutesAgo: 6 },
-  { city: "Hobart", minutesAgo: 44 },
-]
-
-const HAIR_LOSS_HOW_IT_WORKS_STEPS = [
-  {
-    number: "1",
-    title: "Tell us what\u2019s going on",
-    description: "Quick health form, takes about 2 minutes. No account needed to start.",
-    badge: "~2 min",
-  },
-  {
-    number: "2",
-    title: "A real GP reviews it",
-    description: "AHPRA-registered doctor reviews your assessment. Same standards as in-person.",
-    badge: "~1 hour",
-  },
-  {
-    number: "3",
-    title: "Treatment plan delivered",
-    description: "eScript sent to your phone via SMS. Collect your treatment from any Australian pharmacy.",
-    badge: "Same day",
-  },
+  "Full refund if we can\u2019t help",
 ]
 
 const TREATMENT_OPTIONS = [
@@ -175,33 +125,31 @@ const LANDING_CONFIG: LandingPageConfig = {
   sticky: {
     ctaText: `Start assessment - $${PRICING.HAIR_LOSS.toFixed(2)}`,
     ctaHref: "/request?service=consult&subtype=hair_loss",
-    mobileSummary: "Doctor-reviewed hair loss treatment. No call needed.",
+    mobileSummary: "2-min form \u00b7 Doctor-reviewed \u00b7 No call needed",
     desktopLabel: "Hair loss treatment \u00b7 Doctor-reviewed",
     priceLabel: `From $${PRICING.HAIR_LOSS.toFixed(2)}`,
     desktopCtaText: "Start assessment",
-    responseTime: `Avg response: ${SOCIAL_PROOF_DISPLAY.responseTime}`,
+    responseTime: `Avg response: ${SOCIAL_PROOF.averageResponseMinutes} min`,
   },
 }
 
 // =============================================================================
-// UNIQUE SECTION: Treatment Options
+// UNIQUE SECTIONS
 // =============================================================================
 
 function TreatmentOptions() {
   return (
     <section id="treatments" aria-label="Hair loss treatment options" className="py-16 lg:py-20">
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-violet-500/10 border border-violet-500/20 text-xs font-medium text-violet-600 dark:text-violet-400 mb-3">
-            Treatment options
-          </div>
-          <h2 className="text-2xl sm:text-3xl font-semibold text-foreground tracking-tight mb-2">
+        <Reveal className="text-center mb-8">
+          <SectionPill>Treatment options</SectionPill>
+          <h2 className="text-2xl sm:text-3xl font-semibold text-foreground tracking-tight mt-4 mb-2">
             Clinically-proven approaches
           </h2>
           <p className="text-sm text-muted-foreground">
             Your doctor recommends the best TGA-approved option for your assessment.
           </p>
-        </div>
+        </Reveal>
 
         <div className="space-y-4">
           {TREATMENT_OPTIONS.map((treatment, i) => (
@@ -215,14 +163,14 @@ function TreatmentOptions() {
                   <div className="flex items-center gap-2 flex-wrap mb-1">
                     <h3 className="text-lg font-semibold text-foreground">{treatment.name}</h3>
                     {treatment.popular && (
-                      <Badge className="bg-violet-500/10 text-violet-600 dark:text-violet-400 hover:bg-violet-500/10 text-xs border-0">
+                      <Badge className="bg-primary/10 text-primary hover:bg-primary/10 text-xs border-0">
                         Popular
                       </Badge>
                     )}
                   </div>
                   <p className="text-xs text-muted-foreground">{treatment.brand}</p>
                 </div>
-                <Pill className="h-5 w-5 text-violet-600 dark:text-violet-400 shrink-0" aria-hidden="true" />
+                <Pill className="h-5 w-5 text-primary/60 shrink-0" aria-hidden="true" />
               </div>
 
               <p className="text-sm text-muted-foreground mb-4">{treatment.description}</p>
@@ -251,22 +199,93 @@ function TreatmentOptions() {
   )
 }
 
-// =============================================================================
-// UNIQUE SECTION: Inline Social Proof Band
-// =============================================================================
-
-function HairLossSocialProofBand() {
+function HairLossPricingSection({ isDisabled }: { isDisabled?: boolean }) {
   return (
-    <section aria-label="Social proof" className="py-8 lg:py-12 border-b border-border/30 dark:border-white/10">
-      <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 flex flex-col items-center gap-4 text-center">
-        <p className="text-base sm:text-lg text-foreground font-medium">
-          {SOCIAL_PROOF.averageRating}/5{" "}
-          <span className="text-muted-foreground text-sm sm:text-base">
-            patient rating &middot; AHPRA-registered doctors
-          </span>
-        </p>
-        <ContextualMessage service="hair-loss" className="text-sm text-muted-foreground italic" />
-        <RecentReviewsTicker format="named" artifact="treatment" />
+    <section id="pricing" aria-label="Pricing" className="py-16 lg:py-20">
+      <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+        <Reveal className="text-center mb-10">
+          <SectionPill>Pricing</SectionPill>
+          <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground mt-4 mb-3">
+            One flat fee. No hidden costs.
+          </h2>
+          <p className="text-muted-foreground max-w-xl mx-auto text-balance">
+            You only pay if the doctor approves treatment.
+          </p>
+        </Reveal>
+
+        <Reveal className="max-w-sm mx-auto">
+          <div className="relative rounded-2xl border flex flex-col overflow-hidden bg-white dark:bg-card border-primary/30 shadow-xl shadow-primary/[0.12]">
+            {/* Accent strip */}
+            <div className="h-1 w-full bg-linear-to-r from-primary/60 via-primary to-primary/60" />
+
+            <div className="p-6 flex flex-col flex-1">
+              <div className="flex items-start justify-between mb-4">
+                <StickerIcon name="pill-bottle" size={56} />
+                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold bg-primary/10 text-primary border border-primary/20">
+                  One-time
+                </span>
+              </div>
+
+              <h3 className="text-lg font-semibold text-foreground mb-1">Hair Loss Assessment</h3>
+              <p className="text-sm text-muted-foreground mb-5">Private online consult + eScript if approved</p>
+
+              <div className="mb-5">
+                <span className="text-4xl font-bold tracking-tight text-foreground">
+                  ${PRICING.HAIR_LOSS.toFixed(2)}
+                </span>
+                <span className="text-sm text-muted-foreground ml-2">one-time</span>
+              </div>
+
+              <ul className="space-y-2 mb-6 flex-1">
+                {PRICING_BULLETS.map((bullet) => (
+                  <li key={bullet} className="flex items-start gap-2 text-sm text-muted-foreground">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
+                    {bullet}
+                  </li>
+                ))}
+              </ul>
+
+              <Button
+                asChild
+                size="lg"
+                className="w-full h-11 font-semibold shadow-md shadow-primary/20"
+                disabled={isDisabled}
+              >
+                <Link href={isDisabled ? "/contact" : "/request?service=consult&subtype=hair_loss"}>
+                  {isDisabled ? "Contact us" : "Start assessment"}
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+            </div>
+          </div>
+        </Reveal>
+      </div>
+    </section>
+  )
+}
+
+function HairLossFAQSection({ onFAQOpen }: { onFAQOpen?: (question: string, index: number) => void }) {
+  return (
+    <section aria-label="Frequently asked questions" className="py-16 lg:py-20">
+      <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+        <Reveal className="text-center mb-10">
+          <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground mb-3">
+            Frequently asked questions
+          </h2>
+          <p className="text-muted-foreground text-balance">
+            Everything you need to know about hair loss treatment online
+          </p>
+        </Reveal>
+        <FAQList
+          items={HAIR_LOSS_FAQ}
+          type="single"
+          onValueChange={(value: string) => {
+            if (onFAQOpen && value) {
+              const idx = HAIR_LOSS_FAQ.findIndex((f) => f.question === value)
+              if (idx !== -1) onFAQOpen(value, idx)
+            }
+          }}
+        />
       </div>
     </section>
   )
@@ -277,7 +296,6 @@ function HairLossSocialProofBand() {
 // =============================================================================
 
 export function HairLossLanding() {
-  // Testimonials data - service-specific with fallback
   const serviceTestimonials = getTestimonialsByService("consultation")
   const columnsData = serviceTestimonials.slice(0, 9).map((t) => ({
     text: t.text,
@@ -292,13 +310,6 @@ export function HairLossLanding() {
       ? columnsData
       : getTestimonialsForColumns().slice(0, 9)
 
-  const pricingColors = {
-    light: "bg-violet-500/10",
-    text: "text-violet-600 dark:text-violet-400",
-    border: "border-violet-500/20",
-    button: "bg-primary hover:bg-primary/90",
-  }
-
   return (
     <LandingPageShell
       config={LANDING_CONFIG}
@@ -312,30 +323,15 @@ export function HairLossLanding() {
           {/* Live wait time */}
           <LiveWaitTime variant="strip" services={["consult-hair-loss"]} />
 
-          {/* 2. Hair loss hook quiz - Norwood self-rating + duration */}
-          <HairLossHookQuiz />
-
-          {/* 3. Social proof band */}
-          <HairLossSocialProofBand />
-
-          {/* Recent activity ticker */}
-          <RecentActivityTicker
-            entries={RECENT_ACTIVITY_ENTRIES}
-            messageTemplate="A patient in {city} received their treatment plan {minutesAgo} min ago"
-          />
-
-          {/* Social proof stats */}
-          <SocialProofStrip stats={SOCIAL_PROOF_STATS} />
-
-          {/* 4. How It Works */}
-          <HowItWorksSection
-            onCTAClick={handleHowItWorksCTA}
-            steps={HAIR_LOSS_HOW_IT_WORKS_STEPS}
-            ctaText={`Start assessment - $${PRICING.HAIR_LOSS.toFixed(2)}`}
+          {/* 2. How It Works */}
+          <HowItWorksInline
+            steps={HOW_IT_WORKS_STEPS}
             ctaHref="/request?service=consult&subtype=hair_loss"
+            onCTAClick={handleHowItWorksCTA}
+            isDisabled={isDisabled}
           />
 
-          {/* Response time comparison */}
+          {/* 3. Time comparison */}
           <div className="bg-muted/30 dark:bg-white/[0.02]">
             <section className="py-12 lg:py-16 px-4 sm:px-6">
               <div className="mx-auto max-w-xl">
@@ -361,74 +357,42 @@ export function HairLossLanding() {
             </section>
           </div>
 
-          {/* Treatment options - unique to hair loss */}
+          {/* 4. Treatment options - unique to hair loss */}
           <TreatmentOptions />
 
-          {/* Progress timeline */}
-          <div className="bg-muted/30 dark:bg-white/[0.02]">
-            <HairLossProgressTimeline />
-          </div>
-
-          {/* Long-form guide - E-E-A-T content for SEO depth */}
-          <HairLossGuideSection />
-
-          {/* Family history strip */}
-          <HairLossFamilyHistoryStrip />
-
-          {/* Doctor profile - trust signal */}
+          {/* 5. Doctor profile */}
           <DoctorProfileSection />
 
-          {/* Pre-qualify before pricing */}
-          <HairLossLimitationsSection />
+          {/* 6. Pricing */}
+          <HairLossPricingSection isDisabled={isDisabled} />
 
-          {/* Pricing */}
-          <PricingSection
-            title="One flat fee. No hidden costs."
-            subtitle="You only pay if the doctor approves treatment."
-            price={PRICING.HAIR_LOSS}
-            features={PRICING_FEATURES}
-            ctaText={
-              isDisabled
-                ? "Contact us"
-                : `Start assessment - $${PRICING.HAIR_LOSS.toFixed(2)}`
-            }
-            ctaHref={isDisabled ? "/contact" : "/request?service=consult&subtype=hair_loss"}
-            colors={pricingColors}
-          />
-
-          {/* Testimonials */}
+          {/* 7. Testimonials */}
           <div className="bg-muted/30 dark:bg-white/[0.02]">
-          <TestimonialsSection
-            testimonials={testimonialsForColumns}
-            title="What patients say"
-            subtitle="Real reviews from Australians who've used our consultation service"
-          />
+            <TestimonialsSection
+              testimonials={testimonialsForColumns}
+              title="What patients say"
+              subtitle="Real reviews from Australians who've used our service"
+            />
           </div>
-
-          {/* Competitor comparisons */}
-          <CompetitorLinksSection slugs={["instantmed-vs-hub-health", "instantmed-vs-doctors-on-demand", "instantmed-vs-instantscripts"]} />
 
           {/* Regulatory Partners */}
           <RegulatoryPartners className="py-12" />
 
-          {/* FAQ */}
-          <FaqCtaSection
-            onFAQOpen={handleFAQOpen}
-            faqs={HAIR_LOSS_FAQ}
-            subtitle="Everything you need to know about hair loss treatment online."
-          />
+          {/* 8. FAQ */}
+          <div className="bg-muted/30 dark:bg-white/[0.02]">
+            <HairLossFAQSection onFAQOpen={handleFAQOpen} />
+          </div>
 
           {/* Referral strip */}
           <ReferralStrip contextText="dealing with hair loss" />
 
-          {/* Final CTA */}
-          <FinalCtaSection
-            onCTAClick={handleFinalCTA}
+          {/* 9. Final CTA */}
+          <ServiceFinalCTA
             title="Start treating hair loss today."
-            subtitle={`Trusted by ${getPatientCount().toLocaleString()}+ Australians for online healthcare. Fill a short form, a doctor reviews it, and your treatment is sent straight to your phone.`}
-            ctaText={`Start assessment - $${PRICING.HAIR_LOSS.toFixed(2)}`}
             ctaHref="/request?service=consult&subtype=hair_loss"
             price={PRICING.HAIR_LOSS}
+            onCTAClick={handleFinalCTA}
+            isDisabled={isDisabled}
           />
         </>
       )}
