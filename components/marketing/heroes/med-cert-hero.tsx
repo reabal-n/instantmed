@@ -4,6 +4,7 @@ import {
   ArrowRight,
   CheckCircle2,
 } from "lucide-react"
+import Image from "next/image"
 import Link from "next/link"
 
 import { ContextualMessage } from "@/components/marketing/contextual-message"
@@ -124,6 +125,18 @@ export function MedCertHeroSection({
           <div className="lg:hidden mt-4 w-full max-w-xs mx-auto">
             <MedCertHeroMockup compact />
           </div>
+        </div>
+
+        {/* Lifestyle photo — flat-lay showing the actual product: certificate + InstantMed on screen */}
+        <div className="mt-8 sm:mt-10 w-full relative aspect-[16/9] rounded-2xl overflow-hidden shadow-lg">
+          <Image
+            src="/images/medcert-1.png"
+            alt="Medical certificate document on desk alongside laptop showing InstantMed"
+            fill
+            className="object-cover object-center"
+            priority
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 960px"
+          />
         </div>
       </div>
     </section>

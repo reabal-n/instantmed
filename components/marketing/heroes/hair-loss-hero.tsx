@@ -8,6 +8,7 @@ import {
   Clock,
   PhoneOff,
 } from "lucide-react"
+import Image from "next/image"
 import Link from "next/link"
 
 import { HairLossHeroMockup } from "@/components/marketing/mockups/hair-loss-hero-mockup"
@@ -185,6 +186,18 @@ export function HairLossHeroSection({
           <div className="lg:hidden mt-8 w-full max-w-sm mx-auto">
             <HairLossHeroMockup />
           </div>
+        </div>
+
+        {/* Lifestyle photo — man confidently checking his hair in the mirror */}
+        <div className="mt-8 sm:mt-10 w-full relative aspect-[16/9] rounded-2xl overflow-hidden shadow-lg">
+          <Image
+            src="/images/hairloss-2.jpg"
+            alt="Man confidently checking his hair in the bathroom mirror"
+            fill
+            className="object-cover object-center"
+            priority
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 960px"
+          />
         </div>
       </div>
     </section>

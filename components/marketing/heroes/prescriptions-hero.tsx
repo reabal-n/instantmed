@@ -10,6 +10,7 @@ import {
   PhoneOff,
   RefreshCw,
 } from "lucide-react"
+import Image from "next/image"
 import Link from "next/link"
 
 import { EScriptHeroMockup } from "@/components/marketing/mockups/escript-hero-mockup"
@@ -232,6 +233,18 @@ export function PrescriptionsHeroSection({
           <div className="lg:hidden mt-8 w-full max-w-sm mx-auto">
             <EScriptHeroMockup compact />
           </div>
+        </div>
+
+        {/* Lifestyle photo — pharmacy prescription pickup showing Chemist Warehouse */}
+        <div className="mt-8 sm:mt-10 w-full relative aspect-[16/9] rounded-2xl overflow-hidden shadow-lg">
+          <Image
+            src="/images/home-3.png"
+            alt="Picking up a prescription at a Chemist Warehouse pharmacy"
+            fill
+            className="object-cover object-center"
+            priority
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 960px"
+          />
         </div>
       </div>
     </section>

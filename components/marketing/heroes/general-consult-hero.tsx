@@ -8,6 +8,7 @@ import {
   Clock,
   Phone,
 } from "lucide-react"
+import Image from "next/image"
 import Link from "next/link"
 import { useEffect, useState } from "react"
 
@@ -229,6 +230,18 @@ export function GeneralConsultHeroSection({
           <div className="lg:hidden mt-8 w-full max-w-sm mx-auto">
             <ConsultChatMockup compact />
           </div>
+        </div>
+
+        {/* Lifestyle photo — person at home on laptop for online doctor consultation */}
+        <div className="mt-8 sm:mt-10 w-full relative aspect-[16/9] rounded-2xl overflow-hidden shadow-lg">
+          <Image
+            src="/images/consult-1.jpg"
+            alt="Person at home on a laptop having an online doctor consultation"
+            fill
+            className="object-cover object-center"
+            priority
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 960px"
+          />
         </div>
       </div>
     </section>

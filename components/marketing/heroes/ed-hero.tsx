@@ -8,6 +8,7 @@ import {
   Clock,
   PhoneOff,
 } from "lucide-react"
+import Image from "next/image"
 import Link from "next/link"
 
 import { EDHeroMockup } from "@/components/marketing/mockups/ed-hero-mockup"
@@ -202,6 +203,18 @@ export function EDHeroSection({
           <div className="lg:hidden mt-4 w-full max-w-xs mx-auto">
             <EDHeroMockup />
           </div>
+        </div>
+
+        {/* Lifestyle photo — couple laughing together at home */}
+        <div className="mt-8 sm:mt-10 w-full relative aspect-[16/9] rounded-2xl overflow-hidden shadow-lg">
+          <Image
+            src="/images/ed-1.jpg"
+            alt="Couple laughing together at home"
+            fill
+            className="object-cover object-center"
+            priority
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 960px"
+          />
         </div>
       </div>
     </section>

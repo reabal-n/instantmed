@@ -2,6 +2,7 @@
 
 import { ArrowRight, CheckCircle2, FileText, Pill, Smartphone } from 'lucide-react'
 import dynamic from 'next/dynamic'
+import Image from 'next/image'
 import Link from 'next/link'
 import type React from "react"
 
@@ -137,6 +138,18 @@ export function Hero({ children }: { children?: React.ReactNode }) {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Lifestyle photo — person at home using their phone for a doctor visit */}
+        <div className="mt-8 sm:mt-10 w-full relative aspect-[16/9] rounded-2xl overflow-hidden shadow-lg">
+          <Image
+            src="/images/home-1.jpeg"
+            alt="Person relaxing at home using their phone to see a doctor online"
+            fill
+            className="object-cover object-top"
+            priority
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 960px"
+          />
         </div>
       </div>
     </section>
