@@ -67,6 +67,6 @@ describe("conversion tracking", () => {
 
     const calls = gtagMock.mock.calls as GtagCall[]
     const conversionCall = calls.find(([kind, event]) => kind === "event" && event === "conversion")
-    expect(conversionCall?.[2].send_to).toBe("AW-17795889471/REPLACE_CHECKOUT_START")
+    expect(conversionCall?.[2].send_to).toBe("AW-17795889471/4MCMCMrGhYccEL_y3qVC")
   })
 })

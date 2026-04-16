@@ -17,11 +17,11 @@
 const CONVERSION_IDS = {
   // Main conversion: Payment completed — replace label with one from AW-17795889471 account
   PURCHASE: 'AW-17795889471/SqypCNva94YcEL_y3qVC',
-  // Micro-conversions — replace these once created in Google Ads UI
-  LANDING_VIEW: 'AW-17795889471/REPLACE_LANDING_VIEW',
-  START_INTAKE: 'AW-17795889471/REPLACE_START_INTAKE',
-  INTAKE_COMPLETE: 'AW-17795889471/REPLACE_INTAKE_COMPLETE',
-  CHECKOUT_START: 'AW-17795889471/REPLACE_CHECKOUT_START',
+  // Micro-conversions
+  LANDING_VIEW: 'AW-17795889471/0nc1CO2Q8IYcEL_y3qVC',      // Page view
+  START_INTAKE: 'AW-17795889471/REPLACE_START_INTAKE',        // No matching action yet — create in Google Ads if needed
+  INTAKE_COMPLETE: 'AW-17795889471/sndHCPjy-IYcEL_y3qVC',   // Submit lead form
+  CHECKOUT_START: 'AW-17795889471/4MCMCMrGhYccEL_y3qVC',    // Begin checkout
 } as const
 
 type ConversionEvent = keyof typeof CONVERSION_IDS
