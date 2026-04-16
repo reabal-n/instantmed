@@ -11,14 +11,12 @@
  *   <TrustBadgeRow preset="trust_certifications" />  // LegitScript + Google cert logos
  */
 
-import { animate,motion, useMotionValue, useTransform } from 'framer-motion'
 import { Lock } from 'lucide-react'
 import Image from 'next/image'
-import { useEffect } from 'react'
 
 import { useReducedMotion } from '@/components/ui/motion'
-import { Tooltip, TooltipContent, TooltipProvider,TooltipTrigger } from '@/components/ui/tooltip'
-import { BADGE_PRESETS, BADGE_REGISTRY, type BadgeConfig,type BadgeId, type BadgeVariant, type PresetEntry, resolveEntry } from '@/lib/marketing/trust-badges'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { BADGE_PRESETS, BADGE_REGISTRY, type BadgeConfig, type BadgeId, type BadgeVariant, type PresetEntry, resolveEntry } from '@/lib/marketing/trust-badges'
 import { getPatientCount } from '@/lib/social-proof'
 import { cn } from '@/lib/utils'
 
@@ -116,7 +114,7 @@ function NoSpeakingBadge({ config, className }: { config: BadgeConfig; className
   )
 }
 
-// form_only - document lines fill in (Framer)
+// form_only - document lines fill in (CSS scaleX)
 function FormOnlyBadge({ config, className, reducedMotion }: { config: BadgeConfig; className?: string; reducedMotion: boolean }) {
   const Icon = config.icon
   return (
@@ -132,7 +130,7 @@ function FormOnlyBadge({ config, className, reducedMotion }: { config: BadgeConf
       {!reducedMotion && (
         <svg viewBox="0 0 24 14" width={24} height={14} aria-hidden="true">
           {[2, 7, 12].map((y, i) => (
-            <motion.rect
+            <rect
               key={y}
               x={0}
               y={y}
@@ -140,10 +138,11 @@ function FormOnlyBadge({ config, className, reducedMotion }: { config: BadgeConf
               height={1.5}
               rx={1}
               fill="currentColor"
-              initial={{ scaleX: 0 }}
-              animate={{ scaleX: 1 }}
-              transition={{ duration: 0.4, delay: i * 0.15, ease: 'easeOut' }}
-              style={{ transformOrigin: 'left center' }}
+              className={cn(
+                "badge-rect-fill",
+                i === 1 && "badge-rect-fill-1",
+                i === 2 && "badge-rect-fill-2",
+              )}
             />
           ))}
         </svg>
@@ -152,7 +151,7 @@ function FormOnlyBadge({ config, className, reducedMotion }: { config: BadgeConf
   )
 }
 
-// no_waiting_room - clock strikethrough overlay (Framer)
+// no_waiting_room - clock strikethrough overlay (CSS dash-draw)
 function NoWaitingRoomBadge({ config, className, reducedMotion }: { config: BadgeConfig; className?: string; reducedMotion: boolean }) {
   const Icon = config.icon
   return (
@@ -173,17 +172,14 @@ function NoWaitingRoomBadge({ config, className, reducedMotion }: { config: Badg
             className="absolute inset-0 text-amber-600"
             aria-hidden="true"
           >
-            <motion.line
+            <line
               x1={0}
               y1={0}
               x2={14}
               y2={14}
               stroke="currentColor"
               strokeWidth={1.5}
-              strokeDasharray={20}
-              initial={{ strokeDashoffset: 20 }}
-              animate={{ strokeDashoffset: 0 }}
-              transition={{ duration: 0.4, ease: 'easeOut' }}
+              className="badge-line-draw"
             />
           </svg>
         )}
@@ -193,7 +189,7 @@ function NoWaitingRoomBadge({ config, className, reducedMotion }: { config: Badg
   )
 }
 
-// no_appointment - CalendarX X strokes draw (Framer)
+// no_appointment - CalendarX X strokes draw (CSS dash-draw)
 function NoAppointmentBadge({ config, className, reducedMotion }: { config: BadgeConfig; className?: string; reducedMotion: boolean }) {
   const Icon = config.icon
   return (
@@ -214,23 +210,19 @@ function NoAppointmentBadge({ config, className, reducedMotion }: { config: Badg
             className="absolute inset-0 text-orange-600"
             aria-hidden="true"
           >
-            <motion.path
+            <path
               d="M2,2 L8,8"
               stroke="currentColor"
               strokeWidth={1.5}
               fill="none"
-              initial={{ pathLength: 0 }}
-              animate={{ pathLength: 1 }}
-              transition={{ duration: 0.3, ease: 'easeOut' }}
+              className="badge-x-draw"
             />
-            <motion.path
+            <path
               d="M8,2 L2,8"
               stroke="currentColor"
               strokeWidth={1.5}
               fill="none"
-              initial={{ pathLength: 0 }}
-              animate={{ pathLength: 1 }}
-              transition={{ duration: 0.3, delay: 0.1, ease: 'easeOut' }}
+              className="badge-x-draw badge-x-draw-delay"
             />
           </svg>
         )}
@@ -321,27 +313,25 @@ function AhpraBadge({ config, className }: { config: BadgeConfig; className?: st
   )
 }
 
-// refund / legally_valid - hexagonal stamp (Framer) - shared implementation
+// refund / legally_valid - hexagonal stamp (CSS rotate settle)
 function HexStampBadge({ config, className, reducedMotion }: { config: BadgeConfig; className?: string; reducedMotion: boolean }) {
   const Icon = config.icon
   return (
-    <motion.div
+    <div
       className={cn(
         'inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full border',
         config.pillClass,
+        !reducedMotion && 'hex-stamp-animate',
         className,
       )}
       style={{
         clipPath: 'polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%)',
         padding: '6px 16px',
       }}
-      initial={{ rotate: reducedMotion ? 0 : -3 }}
-      animate={{ rotate: 0 }}
-      transition={{ duration: 0.4, ease: 'easeOut' }}
     >
       <Icon className={cn('w-3.5 h-3.5 shrink-0', config.iconColor)} aria-hidden="true" />
       <span>{config.label}</span>
-    </motion.div>
+    </div>
   )
 }
 
@@ -400,7 +390,7 @@ function StripeBadge({ config, className }: { config: BadgeConfig; className?: s
   )
 }
 
-// real_gp - ECG line draws (Framer)
+// real_gp - ECG line draws (CSS dash-draw)
 function RealGpBadge({ config, className, reducedMotion }: { config: BadgeConfig; className?: string; reducedMotion: boolean }) {
   const Icon = config.icon
   return (
@@ -415,15 +405,12 @@ function RealGpBadge({ config, className, reducedMotion }: { config: BadgeConfig
       <span>{config.label}</span>
       {!reducedMotion && (
         <svg viewBox="0 0 30 16" width={30} height={16} aria-hidden="true">
-          <motion.path
+          <path
             d="M0,8 L6,8 L8,2 L12,14 L16,2 L20,8 L30,8"
             stroke="currentColor"
             strokeWidth={1.5}
             fill="none"
-            className="text-teal-600"
-            initial={{ pathLength: 0 }}
-            animate={{ pathLength: 1 }}
-            transition={{ duration: 0.8, ease: 'easeOut' }}
+            className="text-teal-600 badge-ecg-draw"
           />
         </svg>
       )}
@@ -431,7 +418,7 @@ function RealGpBadge({ config, className, reducedMotion }: { config: BadgeConfig
   )
 }
 
-// no_medicare - strikethrough overlay (Framer)
+// no_medicare - strikethrough overlay (CSS dash-draw)
 function NoMedicareBadge({ config, className, reducedMotion }: { config: BadgeConfig; className?: string; reducedMotion: boolean }) {
   const Icon = config.icon
   return (
@@ -451,17 +438,14 @@ function NoMedicareBadge({ config, className, reducedMotion }: { config: BadgeCo
           className="absolute inset-0 text-amber-600"
           aria-hidden="true"
         >
-          <motion.line
+          <line
             x1={0}
             y1={0}
             x2={14}
             y2={14}
             stroke="currentColor"
             strokeWidth={1.5}
-            strokeDasharray={20}
-            initial={{ strokeDashoffset: reducedMotion ? 0 : 20 }}
-            animate={{ strokeDashoffset: 0 }}
-            transition={reducedMotion ? { duration: 0 } : { duration: 0.4, ease: 'easeOut' }}
+            className={!reducedMotion ? "badge-line-draw" : undefined}
           />
         </svg>
       </div>
@@ -585,18 +569,9 @@ function InstantPdfBadge({ config, className }: { config: BadgeConfig; className
   )
 }
 
-// social_proof - counter animation (Framer)
-function SocialProofBadge({ config, className, reducedMotion }: { config: BadgeConfig; className?: string; reducedMotion: boolean }) {
+// social_proof - static patient count (counter animation removed for bundle performance)
+function SocialProofBadge({ config, className }: { config: BadgeConfig; className?: string }) {
   const count = getPatientCount()
-  const motionCount = useMotionValue(count - 30)
-  const displayCount = useTransform(motionCount, Math.round)
-
-  useEffect(() => {
-    if (reducedMotion) return
-    const controls = animate(motionCount, count, { duration: 1.2, ease: 'easeOut' })
-    return controls.stop
-  }, [reducedMotion, count, motionCount])
-
   return (
     <div
       className={cn(
@@ -606,13 +581,7 @@ function SocialProofBadge({ config, className, reducedMotion }: { config: BadgeC
       )}
     >
       <config.icon className={cn('w-3.5 h-3.5 shrink-0', config.iconColor)} aria-hidden="true" />
-      {reducedMotion ? (
-        <span>{count} Australians helped</span>
-      ) : (
-        <span>
-          <motion.span>{displayCount}</motion.span> Australians helped
-        </span>
-      )}
+      <span>{count.toLocaleString()} Australians helped</span>
     </div>
   )
 }
@@ -655,7 +624,7 @@ function StyledBadge({ id, className }: { id: BadgeId; className?: string }) {
     case 'instant_pdf':
       return <InstantPdfBadge config={config} className={className} />
     case 'social_proof':
-      return <SocialProofBadge config={config} className={className} reducedMotion={reducedMotion} />
+      return <SocialProofBadge config={config} className={className} />
     case 'legitscript':
       return <LegitScriptBadge config={config} className={className} />
     case 'google_pharmacy':

@@ -1,9 +1,7 @@
 "use client"
 
-import { motion } from "framer-motion"
 import { type ReactNode } from "react"
 
-import { useReducedMotion } from "@/components/ui/motion"
 import { cn } from "@/lib/utils"
 
 interface SectionPillProps {
@@ -12,10 +10,8 @@ interface SectionPillProps {
 }
 
 export function SectionPill({ children, className }: SectionPillProps) {
-  const prefersReducedMotion = useReducedMotion()
-
   return (
-    <motion.span
+    <span
       className={cn(
         "inline-flex items-center rounded-full border border-border/60",
         "bg-background px-4 py-1.5 text-xs font-medium text-foreground/70",
@@ -23,11 +19,8 @@ export function SectionPill({ children, className }: SectionPillProps) {
         "dark:bg-white/[0.06] dark:border-white/10 dark:text-foreground/70",
         className
       )}
-      initial={prefersReducedMotion ? {} : { opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, ease: "easeOut" }}
     >
       {children}
-    </motion.span>
+    </span>
   )
 }

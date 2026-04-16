@@ -1,6 +1,5 @@
 'use client'
 
-import { motion } from 'framer-motion'
 import { Moon, Zap } from 'lucide-react'
 import { useEffect, useState, useSyncExternalStore } from 'react'
 
@@ -96,12 +95,7 @@ export function DoctorAvailabilityPill({ alwaysAvailable = false }: DoctorAvaila
   // Always-available state - med certs (auto-approved, genuinely 24/7)
   if (alwaysAvailable) {
     return (
-      <motion.div
-        initial={prefersReducedMotion ? {} : { y: -10 }}
-        animate={{ y: 0 }}
-        transition={{ delay: prefersReducedMotion ? 0 : 0.5, duration: prefersReducedMotion ? 0 : 0.4 }}
-        className="flex justify-center"
-      >
+      <div className="flex justify-center">
         <div className="inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200/50 dark:border-emerald-800/30 shadow-lg shadow-emerald-500/5 dark:shadow-emerald-500/10 hover:shadow-xl hover:bg-emerald-50/90 dark:hover:bg-emerald-950/30 transition-all duration-300">
           <span className="flex items-center gap-2 text-xs font-medium text-emerald-700 dark:text-emerald-400">
             <span className="relative flex h-2 w-2 sm:h-2.5 sm:w-2.5">
@@ -118,17 +112,12 @@ export function DoctorAvailabilityPill({ alwaysAvailable = false }: DoctorAvaila
             <span>~20 min avg</span>
           </span>
         </div>
-      </motion.div>
+      </div>
     )
   }
 
   return (
-    <motion.div
-      initial={prefersReducedMotion ? {} : { y: -10 }}
-      animate={{ y: 0 }}
-      transition={{ delay: prefersReducedMotion ? 0 : 0.5, duration: prefersReducedMotion ? 0 : 0.4 }}
-      className="flex justify-center"
-    >
+    <div className="flex justify-center">
       <div className="inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200/50 dark:border-emerald-800/30 shadow-lg shadow-emerald-500/5 dark:shadow-emerald-500/10 hover:shadow-xl hover:bg-emerald-50/90 dark:hover:bg-emerald-950/30 transition-all duration-300">
         {isOnline ? (
           <>
@@ -163,6 +152,6 @@ export function DoctorAvailabilityPill({ alwaysAvailable = false }: DoctorAvaila
           </>
         )}
       </div>
-    </motion.div>
+    </div>
   )
 }

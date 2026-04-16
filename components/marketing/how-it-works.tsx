@@ -1,13 +1,12 @@
 'use client'
 
-import { motion } from 'framer-motion'
-import { ArrowRight, CheckCircle2, Clock, FileText,Mail } from 'lucide-react'
+import { ArrowRight, CheckCircle2, Clock, FileText, Mail } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 
 import { FloatingCard } from '@/components/marketing/floating-card'
 import { Button } from '@/components/ui/button'
-import { useReducedMotion } from '@/components/ui/motion'
+import { Reveal } from '@/components/ui/reveal'
 import { SectionPill } from '@/components/ui/section-pill'
 
 function StepOneMockup() {
@@ -107,9 +106,6 @@ function StepThreeMockup() {
 const directions: Array<"left" | "up" | "right"> = ["left", "up", "right"]
 
 export function HowItWorks() {
-  const prefersReducedMotion = useReducedMotion()
-  const animate = !prefersReducedMotion
-
   const stepMockups = [StepOneMockup, StepTwoMockup, StepThreeMockup]
   const stepBadges = ["~2 min", "~20 min", "Same day"]
 
@@ -117,13 +113,7 @@ export function HowItWorks() {
     <section id="how-it-works" className="py-10 sm:py-16 lg:py-24 scroll-mt-20">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 relative">
         {/* Section Header */}
-        <motion.div
-          className="text-center mb-8 sm:mb-10 lg:mb-12"
-          initial={animate ? { opacity: 0, y: 20 } : false}
-          whileInView={animate ? { opacity: 1, y: 0 } : undefined}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-        >
+        <Reveal instant className="text-center mb-8 sm:mb-10 lg:mb-12">
           <div className="mb-4">
             <SectionPill>How it works</SectionPill>
           </div>
@@ -133,7 +123,7 @@ export function HowItWorks() {
           <p className="text-sm text-muted-foreground">
             No appointments. No phone calls. No admin.
           </p>
-        </motion.div>
+        </Reveal>
 
         {/* Timeline - horizontal on desktop, vertical on mobile */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-6 relative">
@@ -182,13 +172,7 @@ export function HowItWorks() {
         </div>
 
         {/* CTA */}
-        <motion.div
-          className="mt-8 sm:mt-10 lg:mt-12 text-center"
-          initial={animate ? { opacity: 0, y: 10 } : false}
-          whileInView={animate ? { opacity: 1, y: 0 } : undefined}
-          viewport={{ once: true }}
-          transition={{ delay: 0.3 }}
-        >
+        <Reveal className="mt-8 sm:mt-10 lg:mt-12 text-center" delay={0.3}>
           <Button
             asChild
             variant="default"
@@ -202,7 +186,7 @@ export function HowItWorks() {
           <p className="text-xs text-muted-foreground mt-2.5">
             Med certs typically ready in under 20 minutes.
           </p>
-        </motion.div>
+        </Reveal>
       </div>
     </section>
   )

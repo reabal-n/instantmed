@@ -1,44 +1,17 @@
 'use client'
 
-import { motion, type Variants } from 'framer-motion'
 import { AlertCircle, ArrowRight, Check } from 'lucide-react'
 import Link from 'next/link'
 
 import { ServiceIconTile } from '@/components/icons/service-icons'
 import { WaitlistForm } from '@/components/marketing/waitlist-form'
-import { type ServiceId,useServiceAvailability } from '@/components/providers/service-availability-provider'
+import { type ServiceId, useServiceAvailability } from '@/components/providers/service-availability-provider'
 import { Button } from '@/components/ui/button'
-import { useReducedMotion } from '@/components/ui/motion'
+import { Reveal } from '@/components/ui/reveal'
 import { serviceCategories } from '@/lib/marketing/homepage'
 import { cn } from '@/lib/utils'
 
 // Clean card style - no gradients, no colored borders
-
-function useServiceCardVariants() {
-  const prefersReducedMotion = useReducedMotion()
-
-  const containerVariants: Variants = {
-    hidden: {},
-    visible: {
-      transition: { staggerChildren: prefersReducedMotion ? 0 : 0.1 },
-    },
-  }
-
-  const itemVariants: Variants = prefersReducedMotion
-    ? { hidden: {}, visible: {} }
-    : {
-        hidden: { y: 24 },
-        visible: {
-          y: 0,
-          transition: {
-            duration: 0.45,
-            ease: [0.25, 0.46, 0.45, 0.94],
-          },
-        },
-      }
-
-  return { containerVariants, itemVariants, prefersReducedMotion }
-}
 
 interface ServiceCardProps {
   service: (typeof serviceCategories)[number]
@@ -209,7 +182,6 @@ function ComingSoonCard({ service }: ComingSoonCardProps) {
 }
 
 export function ServiceCards() {
-  const { containerVariants, itemVariants, prefersReducedMotion } = useServiceCardVariants()
   const { isServiceDisabled } = useServiceAvailability()
 
   const activeServices = serviceCategories.filter((s) => !('comingSoon' in s && s.comingSoon))
@@ -219,13 +191,7 @@ export function ServiceCards() {
     <section id="pricing" className="py-10 sm:py-16 lg:py-24 scroll-mt-20">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <motion.div
-          className="text-center mb-8 sm:mb-10 lg:mb-12"
-          initial={prefersReducedMotion ? {} : { y: 20 }}
-          whileInView={{ y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: prefersReducedMotion ? 0 : 0.6 }}
-        >
+        <Reveal instant className="text-center mb-8 sm:mb-10 lg:mb-12">
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-semibold text-foreground tracking-tight mb-3 sm:mb-4">
             What do you need?
           </h2>
@@ -235,31 +201,25 @@ export function ServiceCards() {
           <p className="hidden sm:block text-sm text-muted-foreground/70">
             {serviceCategories.length} services &middot; {comingSoonServices.length} more coming
           </p>
-        </motion.div>
+        </Reveal>
 
         {/* Service Cards Grid */}
-        <motion.div
-          className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5"
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0 }}
-        >
-          {activeServices.map((service) => {
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {activeServices.map((service, i) => {
             const disabled = isServiceDisabled(service.id as ServiceId)
             return (
-              <motion.div key={service.id} variants={itemVariants}>
+              <Reveal key={service.id} delay={i * 0.05}>
                 <ServiceCard service={service} disabled={disabled} />
-              </motion.div>
+              </Reveal>
             )
           })}
 
-          {comingSoonServices.map((service) => (
-            <motion.div key={service.id} variants={itemVariants}>
+          {comingSoonServices.map((service, i) => (
+            <Reveal key={service.id} delay={(activeServices.length + i) * 0.05}>
               <ComingSoonCard service={service} />
-            </motion.div>
+            </Reveal>
           ))}
-        </motion.div>
+        </div>
 
         {/* Note */}
         <p className="text-center text-xs text-muted-foreground mt-8">

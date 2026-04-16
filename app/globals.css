@@ -1278,6 +1278,74 @@ body {
   }
 }
 
+/* ============================================================
+   TRUST BADGE SVG ANIMATIONS — CSS replacements for framer-motion
+   ============================================================ */
+
+/* Diagonal line draw (NoWaitingRoomBadge, NoMedicareBadge) */
+@keyframes badge-line-draw {
+  from { stroke-dashoffset: 20; }
+  to   { stroke-dashoffset: 0; }
+}
+.badge-line-draw {
+  stroke-dasharray: 20;
+  animation: badge-line-draw 0.4s ease-out both;
+}
+
+/* X stroke draw (NoAppointmentBadge) */
+@keyframes badge-x-draw {
+  from { stroke-dashoffset: 12; }
+  to   { stroke-dashoffset: 0; }
+}
+.badge-x-draw {
+  stroke-dasharray: 12;
+  animation: badge-x-draw 0.3s ease-out both;
+}
+.badge-x-draw-delay { animation-delay: 0.1s; }
+
+/* Rect fill left-to-right (FormOnlyBadge) */
+@keyframes badge-rect-fill {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+.badge-rect-fill {
+  transform-origin: left center;
+  animation: badge-rect-fill 0.4s ease-out both;
+}
+.badge-rect-fill-1 { animation-delay: 0.15s; }
+.badge-rect-fill-2 { animation-delay: 0.30s; }
+
+/* ECG path draw (RealGpBadge) — path length ~55px, 80 gives buffer */
+@keyframes badge-ecg-draw {
+  from { stroke-dashoffset: 80; }
+  to   { stroke-dashoffset: 0; }
+}
+.badge-ecg-draw {
+  stroke-dasharray: 80;
+  animation: badge-ecg-draw 0.8s ease-out both;
+}
+
+/* Hex stamp settle — replaces framer-motion rotate on HexStampBadge */
+@keyframes hex-stamp-settle {
+  from { transform: rotate(-3deg); }
+  to   { transform: rotate(0deg); }
+}
+.hex-stamp-animate {
+  animation: hex-stamp-settle 0.4s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .badge-line-draw,
+  .badge-x-draw,
+  .badge-rect-fill,
+  .badge-ecg-draw,
+  .hex-stamp-animate {
+    animation: none;
+    stroke-dashoffset: 0;
+    transform: none;
+  }
+}
+
 @keyframes slide-in-right {
   from {
     opacity: 0;

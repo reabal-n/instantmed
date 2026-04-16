@@ -1,11 +1,10 @@
 "use client"
 
-import { motion, type Variants } from "framer-motion"
-import { LayoutDashboard,LogOut } from "lucide-react"
+import { LayoutDashboard, LogOut } from "lucide-react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { useTheme } from "next-themes"
-import { useEffect,useState } from "react"
+import { useEffect, useState } from "react"
 
 import { AppSignInButton } from "@/components/shared/app-sign-in-button"
 import { BrandLogo } from "@/components/shared/brand-logo"
@@ -15,7 +14,6 @@ import { ResourcesDropdown } from "@/components/shared/navbar/resources-dropdown
 import { ServicesDropdown } from "@/components/shared/navbar/services-dropdown"
 import { UserMenu } from "@/components/shared/navbar/user-menu"
 import { AnimatedMobileMenu, MenuToggle } from "@/components/ui/animated-mobile-menu"
-import { useReducedMotion } from "@/components/ui/motion"
 import { Button } from "@/components/uix"
 import { useAuth } from "@/lib/supabase/auth-provider"
 import { cn } from "@/lib/utils"
@@ -24,15 +22,6 @@ interface NavbarProps {
   variant?: "marketing" | "patient" | "doctor"
   userName?: string
 }
-
-const navGlowVariants: Variants = {
-  initial: { opacity: 0 },
-  hover: {
-    opacity: 1,
-    transition: { duration: 0.3, ease: "easeOut" },
-  },
-}
-
 
 export function Navbar({ variant = "marketing", userName }: NavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -43,7 +32,6 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
   const { theme } = useTheme()
   const isDarkTheme = theme === "dark"
   const { signOut, user, isLoaded } = useAuth()
-  const prefersReducedMotion = useReducedMotion()
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10)
@@ -65,9 +53,9 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
         className={cn("fixed left-0 right-0 z-50 px-4 sm:px-6 top-0")}
         style={{ paddingTop: 'max(0.5rem, env(safe-area-inset-top))' }}
       >
-        <motion.nav
+        <nav
           className={cn(
-            "relative mx-auto max-w-5xl rounded-2xl p-1 border shadow-lg",
+            "group relative mx-auto max-w-5xl rounded-2xl p-1 border shadow-lg",
             "transition-[border-color,box-shadow,background-color] duration-300",
             scrolled
               ? "bg-background/95 backdrop-blur-xl border-border/60 shadow-xl"
@@ -75,21 +63,17 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
           )}
           role="navigation"
           aria-label="Main navigation"
-          initial="initial"
-          whileHover={prefersReducedMotion ? undefined : "hover"}
         >
-          {/* Nav glow effect - AUDIT FIX: disabled when user prefers reduced motion */}
-          {!prefersReducedMotion && (
-            <motion.div
-              className={cn(
-                "absolute -inset-2 rounded-3xl z-0 pointer-events-none",
-                isDarkTheme
-                  ? "bg-gradient-radial from-transparent via-primary/15 to-transparent"
-                  : "bg-gradient-radial from-transparent via-primary/8 to-transparent"
-              )}
-              variants={navGlowVariants}
-            />
-          )}
+          {/* Nav glow effect - CSS group-hover replaces framer-motion whileHover */}
+          <div
+            className={cn(
+              "absolute -inset-2 rounded-3xl z-0 pointer-events-none",
+              "opacity-0 group-hover:opacity-100 transition-opacity duration-300",
+              isDarkTheme
+                ? "bg-gradient-radial from-transparent via-primary/15 to-transparent"
+                : "bg-gradient-radial from-transparent via-primary/8 to-transparent"
+            )}
+          />
           <div className="relative z-10 flex items-center justify-between px-3 py-1">
             {/* Logo */}
             <BrandLogo size="md" className="relative z-10" />
@@ -154,7 +138,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
               <MenuToggle toggle={() => setMobileMenuOpen(!mobileMenuOpen)} isOpen={mobileMenuOpen} />
             </div>
           </div>
-        </motion.nav>
+        </nav>
       </header>
 
       {/* Animated Mobile Menu */}
