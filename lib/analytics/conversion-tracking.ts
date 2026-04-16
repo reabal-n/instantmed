@@ -8,15 +8,20 @@
  * - Google Consent Mode v2 support
  */
 
-// Conversion action IDs - configure these in Google Ads
+// Conversion action IDs — Google Ads account AW-18088966690 (certified, account 920-501-0513)
+// PURCHASE ID from the conversion tag email (Apr 2026).
+// Micro-conversion IDs need to be created in Google Ads UI:
+//   Tools → Measurement → Conversions → + New conversion action → Website
+//   Create: Landing Page View, Start Intake, Intake Complete, Checkout Start
+//   Then replace the placeholder IDs below with the real ones.
 const CONVERSION_IDS = {
   // Main conversion: Payment completed
-  PURCHASE: 'AW-17795889471/SqypCNva94YcEL_y3qVC',
-  // Micro-conversions for funnel optimization
-  LANDING_VIEW: 'AW-17795889471/0nc1CO2Q8IYcEL_y3qVC',
-  START_INTAKE: 'AW-17795889471/BD9bCPyf8IYcEL_y3qVC',
-  INTAKE_COMPLETE: 'AW-17795889471/sndHCPjy-IYcEL_y3qVC',
-  CHECKOUT_START: 'AW-17795889471/4MCMCMrGhYccEL_y3qVC',
+  PURCHASE: 'AW-18088966690/uXvDCN2hhJ0cEKL0vrFD',
+  // Micro-conversions — replace these once created in the new account
+  LANDING_VIEW: 'AW-18088966690/REPLACE_LANDING_VIEW',
+  START_INTAKE: 'AW-18088966690/REPLACE_START_INTAKE',
+  INTAKE_COMPLETE: 'AW-18088966690/REPLACE_INTAKE_COMPLETE',
+  CHECKOUT_START: 'AW-18088966690/REPLACE_CHECKOUT_START',
 } as const
 
 type ConversionEvent = keyof typeof CONVERSION_IDS

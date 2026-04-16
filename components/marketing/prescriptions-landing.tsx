@@ -1,6 +1,7 @@
 "use client"
-
 import { motion } from "framer-motion"
+import { useReducedMotion } from "@/components/ui/motion"
+
 import {
   ArrowRight,
   CheckCircle2,
@@ -34,7 +35,7 @@ import { TestimonialCard } from "@/components/marketing/shared/testimonial-card"
 import { ContentHubLinks } from "@/components/seo"
 import { Button } from "@/components/ui/button"
 import { FAQList } from "@/components/ui/faq-list"
-import { useReducedMotion } from "@/components/ui/motion"
+import { Reveal } from "@/components/ui/reveal"
 import { SectionPill } from "@/components/ui/section-pill"
 import { PRICING } from "@/lib/constants"
 import { PRESCRIPTION_FAQ } from "@/lib/data/prescription-faq"
@@ -155,36 +156,25 @@ const LANDING_CONFIG: LandingPageConfig = {
 
 /** How It Works - simplified 3-step inline section */
 function HowItWorksInline({ onCTAClick, isDisabled }: { onCTAClick?: () => void; isDisabled?: boolean }) {
-  const prefersReducedMotion = useReducedMotion()
-  const animate = !prefersReducedMotion
-
+  const animate = !useReducedMotion()
   return (
     <section id="how-it-works" aria-label="How it works" className="py-16 lg:py-20">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-        <motion.div
-          className="text-center mb-12"
-          initial={animate ? { y: 12 } : {}}
-          whileInView={animate ? { opacity: 1, y: 0 } : undefined}
-          viewport={{ once: true }}
-          transition={{ duration: 0.4 }}
-        >
+        <Reveal className="text-center mb-12">
           <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground mb-3">
             Three steps. No waiting room.
           </h2>
           <p className="text-muted-foreground max-w-xl mx-auto text-balance">
             From your couch to your pharmacy - most scripts are sent same day.
           </p>
-        </motion.div>
+        </Reveal>
 
         <div className="grid md:grid-cols-3 gap-6 lg:gap-8">
           {HOW_IT_WORKS_STEPS.map((step, i) => (
-            <motion.div
+            <Reveal
               key={step.step}
+              delay={i * 0.1}
               className="relative bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-md shadow-primary/[0.06] dark:shadow-none rounded-2xl p-6 text-center"
-              initial={animate ? { y: 16 } : {}}
-              whileInView={animate ? { opacity: 1, y: 0 } : undefined}
-              viewport={{ once: true }}
-              transition={{ duration: 0.35, delay: i * 0.1 }}
             >
               <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 text-primary font-semibold text-sm mb-4">
                 {step.step}
@@ -200,7 +190,7 @@ function HowItWorksInline({ onCTAClick, isDisabled }: { onCTAClick?: () => void;
                 <Clock className="h-3 w-3" />
                 {step.time}
               </span>
-            </motion.div>
+            </Reveal>
           ))}
         </div>
 

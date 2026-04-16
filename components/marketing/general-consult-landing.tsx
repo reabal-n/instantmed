@@ -1,6 +1,6 @@
 "use client"
-
 import { motion } from "framer-motion"
+
 import {
   ArrowRight,
   ClipboardList,
@@ -30,7 +30,7 @@ import { ComparisonBar } from "@/components/marketing/shared/data-viz"
 import { ContentHubLinks } from "@/components/seo"
 import { Button } from "@/components/ui/button"
 import { FAQList } from "@/components/ui/faq-list"
-import { useReducedMotion } from "@/components/ui/motion"
+import { Reveal } from "@/components/ui/reveal"
 import { SectionPill } from "@/components/ui/section-pill"
 import { CONTACT_EMAIL,PRICING } from "@/lib/constants"
 import { CONSULT_FAQ } from "@/lib/data/consult-faq"
@@ -156,36 +156,24 @@ const LANDING_CONFIG: LandingPageConfig = {
 
 /** How It Works - inline 3-step section */
 function HowItWorksInline({ onCTAClick, isDisabled }: { onCTAClick?: () => void; isDisabled?: boolean }) {
-  const prefersReducedMotion = useReducedMotion()
-  const animate = !prefersReducedMotion
-
   return (
     <section id="how-it-works" aria-label="How it works" className="py-20 lg:py-24 scroll-mt-20">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-        <motion.div
-          className="text-center mb-12"
-          initial={animate ? { y: 20 } : {}}
-          whileInView={animate ? { opacity: 1, y: 0 } : undefined}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-        >
+        <Reveal className="text-center mb-12">
           <h2 className="text-2xl sm:text-3xl font-semibold text-foreground mb-3 tracking-tight">
             How it works
           </h2>
           <p className="text-muted-foreground max-w-lg mx-auto text-sm">
             Three steps to a doctor consultation - no waiting room, no travel.
           </p>
-        </motion.div>
+        </Reveal>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-6 lg:gap-10 mb-12">
           {HOW_IT_WORKS_STEPS.map((step, i) => (
-            <motion.div
+            <Reveal
               key={step.title}
+              delay={i * 0.1}
               className="relative flex flex-col items-center text-center md:items-start md:text-left"
-              initial={animate ? { y: 20 } : {}}
-              whileInView={animate ? { opacity: 1, y: 0 } : undefined}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: i * 0.1 }}
             >
               <div className="flex items-center gap-3 mb-3">
                 <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary/10 text-primary">
@@ -198,17 +186,11 @@ function HowItWorksInline({ onCTAClick, isDisabled }: { onCTAClick?: () => void;
               <h3 className="text-lg font-semibold text-foreground mb-1.5">{step.title}</h3>
               <p className="text-sm text-muted-foreground leading-relaxed mb-2">{step.description}</p>
               <span className="text-xs font-medium text-primary/70">{step.time}</span>
-            </motion.div>
+            </Reveal>
           ))}
         </div>
 
-        <motion.div
-          className="flex justify-center"
-          initial={animate ? { y: 10 } : {}}
-          whileInView={animate ? { opacity: 1, y: 0 } : undefined}
-          viewport={{ once: true }}
-          transition={{ duration: 0.4, delay: 0.3 }}
-        >
+        <Reveal className="flex justify-center" delay={0.3}>
           <Button
             asChild
             size="lg"
@@ -221,7 +203,7 @@ function HowItWorksInline({ onCTAClick, isDisabled }: { onCTAClick?: () => void;
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>
-        </motion.div>
+        </Reveal>
       </div>
     </section>
   )
