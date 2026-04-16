@@ -1,9 +1,5 @@
-"use client"
+import { CheckCircle2, MapPin, Pill, Smartphone } from "lucide-react"
 
-import { motion } from "framer-motion"
-import { CheckCircle2,MapPin, Pill, Smartphone } from "lucide-react"
-
-import { useReducedMotion } from "@/components/ui/motion"
 import { cn } from "@/lib/utils"
 
 interface EScriptHeroMockupProps {
@@ -14,23 +10,19 @@ interface EScriptHeroMockupProps {
 /**
  * eScript-specific hero mockup for the prescriptions landing page.
  * Shows the eScript delivery flow: request → doctor review → SMS sent.
- * Replaces the generic HeroProductMockup on this page.
+ * CSS animations only — no framer-motion — so the mockup is visible from SSR
+ * without the opacity:0 hydration flash that delays LCP.
  */
 export function EScriptHeroMockup({ compact = false }: EScriptHeroMockupProps) {
-  const prefersReducedMotion = useReducedMotion()
-  const animate = !prefersReducedMotion
-
   return (
     <div className={cn("relative", compact ? "w-full" : "w-72 xl:w-80")}>
       {/* Main card */}
-      <motion.div
+      <div
         className={cn(
           "rounded-2xl bg-white dark:bg-card border border-border/50 shadow-xl shadow-primary/[0.08] dark:shadow-none space-y-4",
-          compact ? "p-4" : "p-5"
+          compact ? "p-4" : "p-5",
+          compact ? "hero-mobile-mockup-enter" : "hero-mockup-enter",
         )}
-        initial={animate ? { opacity: 0, y: 20 } : {}}
-        animate={animate ? { opacity: 1, y: 0 } : {}}
-        transition={{ duration: 0.5, delay: 0.2, ease: "easeOut" }}
       >
         {/* Header */}
         <div className="flex items-center gap-2.5">
@@ -55,90 +47,64 @@ export function EScriptHeroMockup({ compact = false }: EScriptHeroMockupProps) {
           <MapPin className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
           <span className="text-[11px] text-muted-foreground">Works at any pharmacy in Australia</span>
         </div>
+      </div>
 
-        {/* Sent via SMS badge - top-right, desktop only */}
-        {!compact && (
-          <motion.div
+      {/* Floating badges — desktop only */}
+      {!compact && (
+        <>
+          <div
             className="absolute -top-3 -right-3 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white dark:bg-card border border-border/50 shadow-lg shadow-primary/[0.06] text-xs font-medium text-muted-foreground"
-            initial={animate ? { opacity: 0, scale: 0.8 } : {}}
-            animate={animate ? { opacity: 1, scale: 1 } : {}}
-            transition={{ duration: 0.4, delay: 0.5, ease: "easeOut" }}
+            style={{ animation: "hero-fade-up 0.4s ease-out 0.50s both" }}
           >
             <Smartphone className="w-3.5 h-3.5 text-primary" />
             Sent via SMS
-          </motion.div>
-        )}
+          </div>
 
-        {/* Any pharmacy badge - top-left, desktop only */}
-        {!compact && (
-          <motion.div
+          <div
             className="absolute -top-3 -left-3 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white dark:bg-card border border-border/50 shadow-lg shadow-primary/[0.06] text-xs font-medium text-muted-foreground"
-            initial={animate ? { scale: 0.8 } : {}}
-            whileInView={animate ? { opacity: 1, scale: 1 } : undefined}
-            viewport={{ once: true }}
-            transition={{ duration: 0.4, delay: 0.65, ease: "easeOut" }}
+            style={{ animation: "hero-fade-up 0.4s ease-out 0.65s both" }}
           >
             <MapPin className="w-3.5 h-3.5 text-primary" />
             Any pharmacy
-          </motion.div>
-        )}
-      </motion.div>
+          </div>
+        </>
+      )}
 
-      {/* Progress timeline - overlapping bottom-right, desktop only */}
+      {/* Progress timeline — desktop only */}
       {!compact && (
-        <motion.div
+        <div
           className="absolute -bottom-8 -right-4 xl:-right-8 rounded-xl bg-white dark:bg-card border border-border/50 shadow-lg shadow-primary/[0.06] dark:shadow-none p-3 min-w-[210px]"
-          initial={animate ? { opacity: 0, x: 20 } : {}}
-          animate={animate ? { opacity: 1, x: 0 } : {}}
-          transition={{ duration: 0.5, delay: 0.6, ease: "easeOut" }}
+          style={{ animation: "hero-fade-up 0.5s ease-out 0.6s both" }}
         >
-          <motion.div
-            className="space-y-2"
-            variants={{
-              hidden: {},
-              visible: { transition: { staggerChildren: animate ? 0.2 : 0, delayChildren: animate ? 0.3 : 0 } },
-            }}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-          >
-            <motion.div
+          <div className="space-y-2">
+            <div
               className="flex items-center gap-2"
-              variants={animate
-                ? { hidden: { opacity: 0, x: -8 }, visible: { opacity: 1, x: 0, transition: { duration: 0.3, ease: "easeOut" } } }
-                : { hidden: { opacity: 1 }, visible: { opacity: 1 } }
-              }
+              style={{ animation: "hero-fade-up 0.3s ease-out 0.9s both" }}
             >
               <CheckCircle2 className="w-3.5 h-3.5 text-success shrink-0" />
               <span className="text-[11px] text-foreground/60">Request submitted</span>
               <span className="text-[9px] text-muted-foreground ml-auto">5m ago</span>
-            </motion.div>
-            <motion.div
+            </div>
+            <div
               className="flex items-center gap-2"
-              variants={animate
-                ? { hidden: { opacity: 0, x: -8 }, visible: { opacity: 1, x: 0, transition: { duration: 0.3, ease: "easeOut" } } }
-                : { hidden: { opacity: 1 }, visible: { opacity: 1 } }
-              }
+              style={{ animation: "hero-fade-up 0.3s ease-out 1.1s both" }}
             >
               <CheckCircle2 className="w-3.5 h-3.5 text-success shrink-0" />
               <span className="text-[11px] text-foreground/60">Doctor reviewed</span>
               <span className="text-[9px] text-muted-foreground ml-auto">Just now</span>
-            </motion.div>
-            <motion.div
+            </div>
+            <div
               className="flex items-center gap-2"
-              variants={animate
-                ? { hidden: { opacity: 0, x: -8 }, visible: { opacity: 1, x: 0, transition: { duration: 0.3, ease: "easeOut" } } }
-                : { hidden: { opacity: 1 }, visible: { opacity: 1 } }
-              }
+              style={{ animation: "hero-fade-up 0.3s ease-out 1.3s both" }}
             >
               <Smartphone className="w-3.5 h-3.5 text-primary shrink-0" />
               <span className="text-[11px] font-medium text-foreground">eScript sent</span>
               <span className="inline-flex items-center gap-0.5 ml-auto px-1.5 py-0.5 rounded-full bg-success/10 text-[9px] font-medium text-success">
                 Done
               </span>
-            </motion.div>
-          </motion.div>
-        </motion.div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )

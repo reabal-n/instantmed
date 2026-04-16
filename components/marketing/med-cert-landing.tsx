@@ -1,6 +1,5 @@
 "use client"
 
-import { motion } from "framer-motion"
 import {
   Building2,
   CheckCircle2,
@@ -19,8 +18,8 @@ import {
   LandingPageShell,
 } from "@/components/marketing/shared"
 import { ComparisonBar } from "@/components/marketing/shared/data-viz"
-import { type LogoItem,ScrollingLogoMarquee } from "@/components/marketing/shared/scrolling-logo-marquee"
-import { useReducedMotion } from "@/components/ui/motion"
+import { type LogoItem, ScrollingLogoMarquee } from "@/components/marketing/shared/scrolling-logo-marquee"
+import { Reveal } from "@/components/ui/reveal"
 import { PRICING } from "@/lib/constants"
 import { MED_CERT_FAQ } from "@/lib/data/med-cert-faq"
 import { usePatientCount } from "@/lib/hooks/use-patient-count"
@@ -165,28 +164,13 @@ function EmployerCalloutStrip({ onEmployerClick, onVerifyClick }: { onEmployerCl
 
 /** Data viz: certificate turnaround vs GP visit — compact */
 function CertComparisonViz() {
-  const prefersReducedMotion = useReducedMotion()
-  const animate = !prefersReducedMotion
-
   return (
     <section aria-label="Time comparison" className="py-6 lg:py-8">
       <div className="mx-auto max-w-lg px-4 sm:px-6">
-        <motion.div
-          className="text-center mb-4"
-          initial={animate ? { y: 10 } : {}}
-          whileInView={animate ? { opacity: 1, y: 0 } : undefined}
-          viewport={{ once: true }}
-          transition={{ duration: 0.4 }}
-        >
+        <Reveal className="text-center mb-4">
           <p className="text-xs font-semibold text-muted-foreground/50 uppercase tracking-[0.12em]">Your time is valuable</p>
-        </motion.div>
-        <motion.div
-          className="rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/10 shadow-sm p-4"
-          initial={animate ? { y: 12 } : {}}
-          whileInView={animate ? { opacity: 1, y: 0 } : undefined}
-          viewport={{ once: true }}
-          transition={{ duration: 0.4, delay: 0.08 }}
-        >
+        </Reveal>
+        <Reveal delay={0.08} className="rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/10 shadow-sm p-4">
           <ComparisonBar
             us={{
               label: "InstantMed",
@@ -200,7 +184,7 @@ function CertComparisonViz() {
             }}
             ratio={0.25}
           />
-        </motion.div>
+        </Reveal>
       </div>
     </section>
   )

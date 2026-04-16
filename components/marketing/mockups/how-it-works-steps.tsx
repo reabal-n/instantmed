@@ -1,5 +1,3 @@
-"use client"
-
 import { CheckCircle2, Clock, Download, FileText, Mail } from "lucide-react"
 import Image from "next/image"
 

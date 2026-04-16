@@ -1,5 +1,4 @@
 "use client"
-import { motion } from "framer-motion"
 
 import {
   ArrowRight,
@@ -239,7 +238,7 @@ export function GeneralConsultLanding() {
         </>
       }
     >
-      {({ isDisabled, heroCTARef, handleHeroCTA, handleHowItWorksCTA, handleFinalCTA, handleFAQOpen, prefersReducedMotion }) => (
+      {({ isDisabled, heroCTARef, handleHeroCTA, handleHowItWorksCTA, handleFinalCTA, handleFAQOpen }) => (
         <>
           {/* 1. Hero */}
           <GeneralConsultHeroSection ctaRef={heroCTARef} onCTAClick={handleHeroCTA} isDisabled={isDisabled} />
@@ -339,20 +338,14 @@ export function GeneralConsultLanding() {
           {/* 5. FAQ */}
           <section id="faq" aria-label="Frequently asked questions" className="py-20 lg:py-24 scroll-mt-20">
             <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-              <motion.div
-                className="text-center mb-10"
-                initial={prefersReducedMotion ? {} : { y: 20 }}
-                whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5 }}
-              >
+              <Reveal className="text-center mb-10">
                 <h2 className="text-2xl sm:text-3xl font-semibold text-foreground mb-4 tracking-tight">
                   Common questions
                 </h2>
                 <p className="text-muted-foreground max-w-lg mx-auto text-sm">
                   Everything you need to know about online consultations.
                 </p>
-              </motion.div>
+              </Reveal>
 
               <FAQList
                 items={CONSULT_FAQ}
@@ -365,13 +358,7 @@ export function GeneralConsultLanding() {
                 }}
               />
 
-              <motion.div
-                className="mt-10 text-center"
-                initial={{}}
-                whileInView={prefersReducedMotion ? undefined : { opacity: 1 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.3 }}
-              >
+              <Reveal className="mt-10 text-center" delay={0.3}>
                 <p className="text-muted-foreground mb-2 text-sm">
                   Still have questions?
                 </p>
@@ -381,7 +368,7 @@ export function GeneralConsultLanding() {
                 >
                   {CONTACT_EMAIL}
                 </a>
-              </motion.div>
+              </Reveal>
             </div>
           </section>
 

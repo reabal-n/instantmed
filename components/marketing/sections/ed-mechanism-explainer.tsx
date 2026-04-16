@@ -1,13 +1,12 @@
 "use client"
 
-import { motion, useInView } from "framer-motion"
 import { ArrowRight } from "lucide-react"
 import Link from "next/link"
-import { useEffect,useRef } from "react"
+import { useEffect, useRef } from "react"
 
 import { usePostHog } from "@/components/providers/posthog-provider"
 import { Button } from "@/components/ui/button"
-import { useReducedMotion } from "@/components/ui/motion"
+import { Reveal } from "@/components/ui/reveal"
 import { cn } from "@/lib/utils"
 
 interface EdMechanismExplainerProps {
@@ -182,23 +181,28 @@ const FRAMES = [
 // =============================================================================
 
 export function EdMechanismExplainer({ className }: EdMechanismExplainerProps) {
-  const prefersReducedMotion = useReducedMotion()
   const posthog = usePostHog()
 
-  // Fire `ed_mechanism_viewed` once when the first frame enters the viewport.
-  const firstFrameRef = useRef<HTMLDivElement>(null)
-  const firstFrameInView = useInView(firstFrameRef, {
-    once: true,
-    amount: 0,
-  })
+  const sectionRef = useRef<HTMLElement>(null)
   const viewedFiredRef = useRef(false)
 
+  // Fire `ed_mechanism_viewed` once when the section enters the viewport.
   useEffect(() => {
-    if (firstFrameInView && !viewedFiredRef.current) {
-      viewedFiredRef.current = true
-      posthog?.capture("ed_mechanism_viewed")
-    }
-  }, [firstFrameInView, posthog])
+    const el = sectionRef.current
+    if (!el) return
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !viewedFiredRef.current) {
+          viewedFiredRef.current = true
+          posthog?.capture("ed_mechanism_viewed")
+          observer.disconnect()
+        }
+      },
+      { threshold: 0 }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [posthog])
 
   const handleCtaClick = () => {
     posthog?.capture("ed_mechanism_cta_clicked")
@@ -206,6 +210,7 @@ export function EdMechanismExplainer({ className }: EdMechanismExplainerProps) {
 
   return (
     <section
+      ref={sectionRef}
       aria-label="How oral ED treatment works"
       className={cn("py-12 lg:py-16", className)}
     >
@@ -222,32 +227,20 @@ export function EdMechanismExplainer({ className }: EdMechanismExplainerProps) {
 
         {/* Frames grid */}
         <div className="grid gap-6 lg:grid-cols-3">
-          {FRAMES.map((frame, i) => {
-            const initial = prefersReducedMotion ? undefined : { y: 24 }
-            const whileInView = prefersReducedMotion ? undefined : { opacity: 1, y: 0 }
-            return (
-              <motion.div
-                key={frame.id}
-                ref={i === 0 ? firstFrameRef : undefined}
-                className="rounded-2xl border border-border/50 bg-white dark:bg-card shadow-md shadow-primary/[0.06] p-6"
-                initial={initial}
-                whileInView={whileInView}
-                viewport={{ once: true, amount: 0 }}
-                transition={{
-                  duration: 0.5,
-                  delay: prefersReducedMotion ? 0 : i * 0.1,
-                  ease: [0.25, 0.1, 0.25, 1],
-                }}
-              >
-                <div className="h-40 w-full flex items-center justify-center">
-                  {frame.svg}
-                </div>
-                <p className="mt-4 text-sm text-muted-foreground leading-relaxed text-center">
-                  {frame.label}
-                </p>
-              </motion.div>
-            )
-          })}
+          {FRAMES.map((frame, i) => (
+            <Reveal
+              key={frame.id}
+              delay={i * 0.1}
+              className="rounded-2xl border border-border/50 bg-white dark:bg-card shadow-md shadow-primary/[0.06] p-6"
+            >
+              <div className="h-40 w-full flex items-center justify-center">
+                {frame.svg}
+              </div>
+              <p className="mt-4 text-sm text-muted-foreground leading-relaxed text-center">
+                {frame.label}
+              </p>
+            </Reveal>
+          ))}
         </div>
 
         {/* Primary CTA */}

@@ -1,34 +1,26 @@
-"use client"
-
-import { motion } from "framer-motion"
 import { CheckCircle2, Pill, ShieldCheck } from "lucide-react"
 
-import { useReducedMotion } from "@/components/ui/motion"
 import { cn } from "@/lib/utils"
 
 interface EDHeroMockupProps {
   compact?: boolean
 }
 
+/**
+ * ED hero mockup — treatment plan approval card.
+ * CSS animations only — no framer-motion — SSR-safe with no hydration flash.
+ */
 export function EDHeroMockup({ compact = false }: EDHeroMockupProps) {
-  const prefersReducedMotion = useReducedMotion()
-  const animate = !prefersReducedMotion
-
   return (
     <div
       className={cn(
         "relative w-full max-w-sm mx-auto",
-        compact ? "max-w-xs" : "max-w-sm lg:max-w-md"
+        compact ? "max-w-xs" : "max-w-sm lg:max-w-md",
       )}
       aria-hidden="true"
     >
       {/* Main card */}
-      <motion.div
-        className="relative rounded-2xl border border-border/50 dark:border-white/15 bg-white dark:bg-card shadow-xl shadow-primary/[0.08] overflow-hidden"
-        initial={animate ? { y: 18 } : {}}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
+      <div className="relative rounded-2xl border border-border/50 dark:border-white/15 bg-white dark:bg-card shadow-xl shadow-primary/[0.08] overflow-hidden hero-mockup-enter">
         <div className="p-5 sm:p-6 space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -61,17 +53,15 @@ export function EDHeroMockup({ compact = false }: EDHeroMockupProps) {
             <span>Discreet packaging · No call needed</span>
           </div>
         </div>
-      </motion.div>
+      </div>
 
       {/* Floating badge */}
-      <motion.div
+      <div
         className="absolute -bottom-3 -right-3 rounded-full bg-white dark:bg-card shadow-lg shadow-primary/[0.15] border border-border/50 px-3 py-1.5 text-[11px] font-semibold text-primary"
-        initial={animate ? { scale: 0.8 } : {}}
-        animate={{ scale: 1 }}
-        transition={{ duration: 0.4, delay: 0.3 }}
+        style={{ animation: "hero-fade-up 0.4s ease-out 0.3s both" }}
       >
         Doctor-reviewed
-      </motion.div>
+      </div>
     </div>
   )
 }

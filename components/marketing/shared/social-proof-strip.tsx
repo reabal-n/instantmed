@@ -1,10 +1,10 @@
 "use client"
 
-import { motion } from "framer-motion"
 import type { LucideIcon } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 
 import { useReducedMotion } from "@/components/ui/motion"
+import { Reveal } from "@/components/ui/reveal"
 import { cn } from "@/lib/utils"
 
 // ---------------------------------------------------------------------------
@@ -86,27 +86,15 @@ function AnimatedStat({ value, suffix, decimals = 0 }: { value: number; suffix: 
 // ---------------------------------------------------------------------------
 
 export function SocialProofStrip({ stats }: SocialProofStripProps) {
-  const prefersReducedMotion = useReducedMotion()
-  const animate = !prefersReducedMotion
-
   return (
     <section aria-label="Social proof statistics" className="py-8 border-y border-border/30 dark:border-white/10 bg-muted/50">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-        <motion.div
-          className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8"
-          initial={animate ? { y: 10 } : {}}
-          whileInView={animate ? { opacity: 1, y: 0 } : undefined}
-          viewport={{ once: true }}
-          transition={{ duration: 0.4 }}
-        >
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
           {stats.map((stat, i) => (
-            <motion.div
+            <Reveal
               key={stat.label}
               className="flex items-center gap-3"
-              initial={animate ? { y: 10 } : {}}
-              whileInView={animate ? { opacity: 1, y: 0 } : undefined}
-              viewport={{ once: true }}
-              transition={{ duration: 0.3, delay: i * 0.08 }}
+              delay={i * 0.08}
             >
               <stat.icon className={cn("w-5 h-5 shrink-0", stat.color)} aria-hidden="true" />
               <div>
@@ -115,9 +103,9 @@ export function SocialProofStrip({ stats }: SocialProofStripProps) {
                 </p>
                 <p className="text-xs text-muted-foreground">{stat.label}</p>
               </div>
-            </motion.div>
+            </Reveal>
           ))}
-        </motion.div>
+        </div>
       </div>
     </section>
   )

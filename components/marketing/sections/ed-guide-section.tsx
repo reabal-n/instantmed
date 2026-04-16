@@ -1,6 +1,5 @@
 "use client"
 
-import { motion } from "framer-motion"
 import {
   Activity,
   BadgeCheck,
@@ -22,7 +21,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
-import { useReducedMotion } from "@/components/ui/motion"
+import { Reveal } from "@/components/ui/reveal"
 
 // =============================================================================
 // DATA - all content preserved for SEO (E-E-A-T)
@@ -149,8 +148,6 @@ const PRIVACY_POINTS = [
 
 /** Long-form E-E-A-T content section - collapsed into accordion for UX, fully indexed for SEO */
 export function EDGuideSection() {
-  const prefersReducedMotion = useReducedMotion()
-  const animate = !prefersReducedMotion
   const posthog = usePostHog()
   const prevOpen = useRef<Set<string>>(new Set(["understanding"]))
 
@@ -170,13 +167,7 @@ export function EDGuideSection() {
     >
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <motion.div
-          className="text-center mb-8"
-          initial={animate ? { y: 20 } : {}}
-          whileInView={animate ? { opacity: 1, y: 0 } : undefined}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-        >
+        <Reveal className="text-center mb-8">
           <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-xs font-medium text-primary mb-4">
             <BadgeCheck className="h-3.5 w-3.5" />
             Medically reviewed by AHPRA-registered GPs
@@ -187,7 +178,7 @@ export function EDGuideSection() {
           <p className="text-muted-foreground text-sm max-w-xl mx-auto">
             Assessment, treatments, safety, and when to see a GP in person.
           </p>
-        </motion.div>
+        </Reveal>
 
         {/* Accordion content - all text rendered in DOM for SEO */}
         <Accordion
@@ -347,13 +338,7 @@ export function EDGuideSection() {
         </Accordion>
 
         {/* Clinical governance link */}
-        <motion.div
-          className="mt-8 pt-6 border-t border-border/40 text-center"
-          initial={{}}
-          whileInView={animate ? { opacity: 1 } : undefined}
-          viewport={{ once: true }}
-          transition={{ delay: 0.3 }}
-        >
+        <Reveal className="mt-8 pt-6 border-t border-border/40 text-center" delay={0.3}>
           <p className="text-xs text-muted-foreground">
             All clinical decisions are made by AHPRA-registered doctors following{" "}
             <Link
@@ -364,7 +349,7 @@ export function EDGuideSection() {
             </Link>
             , RACGP telehealth standards, and TGA prescribing guidelines. We never automate clinical decisions.
           </p>
-        </motion.div>
+        </Reveal>
       </div>
     </section>
   )

@@ -1,6 +1,5 @@
 "use client"
 
-import { motion } from "framer-motion"
 import {
   ArrowRight,
   CheckCircle2,
@@ -12,10 +11,9 @@ import Image from "next/image"
 import Link from "next/link"
 
 import { EDHeroMockup } from "@/components/marketing/mockups/ed-hero-mockup"
-import { DoctorAvailabilityPill,TrustBadgeRow } from "@/components/shared"
+import { DoctorAvailabilityPill, TrustBadgeRow } from "@/components/shared"
 import { Button } from "@/components/ui/button"
 import { MagneticButton } from "@/components/ui/magnetic-button"
-import { useReducedMotion } from "@/components/ui/motion"
 import { PRICING, PRICING_DISPLAY } from "@/lib/constants"
 
 const STATIC_BADGES = [
@@ -32,9 +30,6 @@ export function EDHeroSection({
   ctaRef?: React.RefObject<HTMLDivElement>
   onCTAClick?: () => void
 }) {
-  const prefersReducedMotion = useReducedMotion()
-  const animate = !prefersReducedMotion
-
   return (
     <section aria-label="ED treatment service overview" className="relative overflow-hidden pt-6 pb-6 sm:pt-16 sm:pb-20 lg:pt-20 lg:pb-24">
       <div className="mx-auto max-w-5xl px-6 sm:px-8 lg:px-10">
@@ -42,14 +37,9 @@ export function EDHeroSection({
           {/* Text content */}
           <div className="flex-1 min-w-0 text-center lg:text-left">
             {/* Doctor availability pill */}
-            <motion.div
-              className="flex justify-center lg:justify-start mb-4 sm:mb-8"
-              initial={animate ? { opacity: 0, y: -10 } : {}}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4 }}
-            >
+            <div className="flex justify-center lg:justify-start mb-4 sm:mb-8 hero-availability-enter">
               <DoctorAvailabilityPill alwaysAvailable />
-            </motion.div>
+            </div>
 
             {/* Headline */}
             <h1
@@ -63,50 +53,32 @@ export function EDHeroSection({
             </h1>
 
             {/* Subheadline */}
-            <motion.p
-              className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-3 sm:mb-4 leading-relaxed text-balance"
-              initial={animate ? { opacity: 0, y: 12 } : {}}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.1 }}
-            >
+            <p className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-3 sm:mb-4 leading-relaxed text-balance hero-subheadline-enter">
               Fill a short health form. A doctor reviews it and, if
               appropriate, sends treatment straight to your phone. No call,
               no waiting room.
-            </motion.p>
+            </p>
 
             {/* Price anchor */}
-            <motion.p
-              className="text-sm font-semibold text-foreground mb-2 flex items-center justify-center lg:justify-start gap-1.5"
-              initial={animate ? { opacity: 0, y: 8 } : {}}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.11 }}
-            >
+            <p className="text-sm font-semibold text-foreground mb-2 flex items-center justify-center lg:justify-start gap-1.5 hero-cta-enter">
               {PRICING_DISPLAY.MENS_HEALTH}
               <span className="text-xs font-normal text-muted-foreground">- no hidden fees</span>
-            </motion.p>
+            </p>
 
             {/* Static proof chips */}
-            <motion.div
-              className="flex flex-wrap justify-center lg:justify-start gap-x-4 gap-y-1.5 mb-6"
-              initial={animate ? { opacity: 0 } : {}}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.4, delay: 0.15 }}
-            >
+            <div className="flex flex-wrap justify-center lg:justify-start gap-x-4 gap-y-1.5 mb-6 hero-trust-enter">
               {STATIC_BADGES.map((label) => (
                 <span key={label} className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
                   <CheckCircle2 className="h-3 w-3 shrink-0 text-primary/70" aria-hidden="true" />
                   {label}
                 </span>
               ))}
-            </motion.div>
+            </div>
 
             {/* CTA */}
-            <motion.div
+            <div
               ref={ctaRef}
-              className="flex flex-col sm:flex-row items-center gap-3 justify-center lg:justify-start mb-4 sm:mb-6"
-              initial={animate ? { opacity: 0, y: 12 } : {}}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.12 }}
+              className="flex flex-col sm:flex-row items-center gap-3 justify-center lg:justify-start mb-4 sm:mb-6 hero-cta-enter"
             >
               <MagneticButton>
                 <Button
@@ -127,7 +99,7 @@ export function EDHeroSection({
                   8am\u201310pm AEST, 7 days
                 </p>
               </div>
-            </motion.div>
+            </div>
 
             {/* AHPRA + LegitScript trust row */}
             <TrustBadgeRow
@@ -139,12 +111,7 @@ export function EDHeroSection({
             />
 
             {/* Quiz anchor */}
-            <motion.div
-              className="flex justify-center lg:justify-start mb-4 sm:mb-6"
-              initial={animate ? { opacity: 0, y: 6 } : {}}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.18 }}
-            >
+            <div className="flex justify-center lg:justify-start mb-4 sm:mb-6 hero-trust-enter">
               <a
                 href="#ed-quiz"
                 className="inline-flex items-center gap-1.5 text-xs font-medium text-primary/80 hover:text-primary transition-colors dark:text-primary/70 dark:hover:text-primary/90"
@@ -152,15 +119,10 @@ export function EDHeroSection({
                 Not sure? Take a 30-second quiz
                 <ChevronDown className="h-3.5 w-3.5" aria-hidden="true" />
               </a>
-            </motion.div>
+            </div>
 
             {/* Trust signals - hidden on mobile */}
-            <motion.div
-              className="hidden sm:flex flex-col gap-2"
-              initial={animate ? { opacity: 0, y: 8 } : {}}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-            >
+            <div className="hidden sm:flex flex-col gap-2 hero-count-enter">
               <p className="text-xs sm:text-sm text-muted-foreground flex items-center justify-center lg:justify-start gap-2">
                 <CheckCircle2 className="h-4 w-4 text-primary shrink-0" aria-hidden="true" />
                 <span>
@@ -175,15 +137,10 @@ export function EDHeroSection({
                 </div>
               </div>
               <TrustBadgeRow preset="trust_certifications" className="justify-center lg:justify-start" />
-            </motion.div>
+            </div>
 
             {/* Secondary anchor CTA - desktop only */}
-            <motion.div
-              className="hidden sm:flex justify-center lg:justify-start mt-4"
-              initial={animate ? { opacity: 0, y: 6 } : {}}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.45 }}
-            >
+            <div className="hidden sm:flex justify-center lg:justify-start mt-4 hero-count-enter">
               <a
                 href="#how-it-works"
                 className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
@@ -191,7 +148,7 @@ export function EDHeroSection({
                 See how it works
                 <ChevronDown className="h-3.5 w-3.5" aria-hidden="true" />
               </a>
-            </motion.div>
+            </div>
           </div>
 
           {/* Hero product mockup - desktop only */}

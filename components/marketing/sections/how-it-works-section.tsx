@@ -1,14 +1,13 @@
 "use client"
 
-import { motion } from "framer-motion"
 import { ArrowRight } from "lucide-react"
 import Link from "next/link"
 
 import { DottedGrid } from "@/components/marketing/dotted-grid"
 import { FloatingCard } from "@/components/marketing/floating-card"
-import { StepOneMockup, StepThreeMockup,StepTwoMockup } from "@/components/marketing/mockups/how-it-works-steps"
+import { StepOneMockup, StepThreeMockup, StepTwoMockup } from "@/components/marketing/mockups/how-it-works-steps"
 import { Button } from "@/components/ui/button"
-import { useReducedMotion } from "@/components/ui/motion"
+import { Reveal } from "@/components/ui/reveal"
 
 // =============================================================================
 // DATA
@@ -54,9 +53,6 @@ export function HowItWorksSection({
   ctaText?: string
   ctaHref?: string
 }) {
-  const prefersReducedMotion = useReducedMotion()
-  const animate = !prefersReducedMotion
-
   const stepMockups = [StepOneMockup, StepTwoMockup, StepThreeMockup]
   const directions: Array<"left" | "up" | "right"> = ["left", "up", "right"]
 
@@ -69,13 +65,7 @@ export function HowItWorksSection({
       <DottedGrid />
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 relative">
         {/* Header */}
-        <motion.div
-          className="text-center mb-12"
-          initial={animate ? { y: 20 } : {}}
-          whileInView={animate ? { opacity: 1, y: 0 } : undefined}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-        >
+        <Reveal className="text-center mb-12">
           <h2 className="text-2xl sm:text-3xl font-semibold text-foreground mb-2 tracking-tight">
             Three steps. Stay in bed.
           </h2>
@@ -83,7 +73,7 @@ export function HowItWorksSection({
             No appointments. No waiting rooms. Just your phone and a few
             minutes.
           </p>
-        </motion.div>
+        </Reveal>
 
         {/* Timeline */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-6 relative">
@@ -93,17 +83,10 @@ export function HowItWorksSection({
           {steps.map((step, index) => {
             const Mockup = stepMockups[index]
             return (
-              <motion.div
+              <Reveal
                 key={step.number}
                 className="relative"
-                initial={animate ? { y: 20 } : {}}
-                whileInView={animate ? { y: 0 } : undefined}
-                viewport={{ once: true, margin: "-50px" }}
-                transition={
-                  animate
-                    ? { duration: 0.4, delay: index * 0.1, ease: "easeOut" }
-                    : undefined
-                }
+                delay={index * 0.1}
               >
                 <div className="text-center mb-4">
                   <span
@@ -137,19 +120,13 @@ export function HowItWorksSection({
                     {step.badge}
                   </span>
                 </div>
-              </motion.div>
+              </Reveal>
             )
           })}
         </div>
 
         {/* CTA */}
-        <motion.div
-          className="mt-12 text-center"
-          initial={animate ? { y: 10 } : {}}
-          whileInView={animate ? { opacity: 1, y: 0 } : undefined}
-          viewport={{ once: true }}
-          transition={{ delay: 0.3 }}
-        >
+        <Reveal className="mt-12 text-center" delay={0.3}>
           <Button
             asChild
             size="lg"
@@ -163,7 +140,7 @@ export function HowItWorksSection({
           <p className="text-xs text-muted-foreground mt-2.5">
             Most people are sorted in under an hour
           </p>
-        </motion.div>
+        </Reveal>
       </div>
     </section>
   )

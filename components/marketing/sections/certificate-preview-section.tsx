@@ -1,12 +1,11 @@
 "use client"
 
-import { motion } from "framer-motion"
 import { ArrowRight, Check, FileText, ShieldCheck } from "lucide-react"
 import Link from "next/link"
 
 import { CertificateShowcaseMockup } from "@/components/marketing/mockups/certificate-showcase"
 import { Button } from "@/components/ui/button"
-import { useReducedMotion } from "@/components/ui/motion"
+import { Reveal } from "@/components/ui/reveal"
 
 // =============================================================================
 // DATA
@@ -25,20 +24,12 @@ const CERTIFICATE_FEATURES = [
 
 /** Section 3: Certificate Preview - split layout with animated mockup */
 export function CertificatePreviewSection({ onCTAClick }: { onCTAClick?: () => void }) {
-  const prefersReducedMotion = useReducedMotion()
-  const animate = !prefersReducedMotion
-
   return (
     <section aria-label="Certificate preview" className="py-20 lg:py-24 bg-muted/20 dark:bg-muted/10">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           {/* Text content */}
-          <motion.div
-            initial={animate ? { x: -20 } : {}}
-            whileInView={animate ? { opacity: 1, x: 0 } : undefined}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-          >
+          <Reveal>
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 mb-4">
               <FileText className="w-4 h-4 text-primary" />
               <span className="text-sm font-medium text-primary">
@@ -98,18 +89,12 @@ export function CertificatePreviewSection({ onCTAClick }: { onCTAClick?: () => v
                 Verify a certificate
               </Link>
             </div>
-          </motion.div>
+          </Reveal>
 
           {/* Certificate mockup */}
-          <motion.div
-            initial={animate ? { x: 20 } : {}}
-            whileInView={animate ? { opacity: 1, x: 0 } : undefined}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.15 }}
-            className="flex justify-center"
-          >
+          <Reveal delay={0.15} className="flex justify-center">
             <CertificateShowcaseMockup />
-          </motion.div>
+          </Reveal>
         </div>
       </div>
     </section>

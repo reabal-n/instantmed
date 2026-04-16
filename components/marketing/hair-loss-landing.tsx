@@ -1,9 +1,7 @@
 "use client"
 
-import { motion } from "framer-motion"
 import { Pill } from "lucide-react"
 import dynamic from "next/dynamic"
-import { useRef } from "react"
 
 import { ContextualMessage } from "@/components/marketing/contextual-message"
 // Hero is above-fold - not lazy loaded
@@ -22,7 +20,7 @@ import { ComparisonBar } from "@/components/marketing/shared/data-viz"
 import { STAT_PRESETS } from "@/components/marketing/total-patients-counter"
 import { ContentHubLinks } from "@/components/seo"
 import { Badge } from "@/components/ui/badge"
-import { useReducedMotion, useScrollReveal } from "@/components/ui/motion"
+import { Reveal } from "@/components/ui/reveal"
 import { SectionPill } from "@/components/ui/section-pill"
 import { PRICING } from "@/lib/constants"
 import { HAIR_LOSS_FAQ } from "@/lib/data/hair-loss-faq"
@@ -190,10 +188,6 @@ const LANDING_CONFIG: LandingPageConfig = {
 // =============================================================================
 
 function TreatmentOptions() {
-  const ref = useRef<HTMLDivElement>(null)
-  const isInView = useScrollReveal(ref)
-  const prefersReducedMotion = useReducedMotion()
-
   return (
     <section id="treatments" aria-label="Hair loss treatment options" className="py-16 lg:py-20">
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
@@ -209,24 +203,12 @@ function TreatmentOptions() {
           </p>
         </div>
 
-        <div ref={ref} className="space-y-4">
+        <div className="space-y-4">
           {TREATMENT_OPTIONS.map((treatment, i) => (
-            <motion.div
+            <Reveal
               key={treatment.id}
+              delay={i * 0.1}
               className="rounded-2xl border border-border/50 dark:border-white/15 bg-white dark:bg-card shadow-md shadow-primary/[0.06] dark:shadow-none p-5 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/[0.08] transition-all duration-300"
-              initial={prefersReducedMotion ? {} : { y: 16 }}
-              animate={
-                prefersReducedMotion
-                  ? {}
-                  : isInView
-                    ? { opacity: 1, y: 0 }
-                    : {}
-              }
-              transition={{
-                duration: 0.4,
-                delay: i * 0.1,
-                ease: [0.25, 0.1, 0.25, 1],
-              }}
             >
               <div className="flex items-start justify-between mb-3">
                 <div className="flex-1">
@@ -261,7 +243,7 @@ function TreatmentOptions() {
                   </div>
                 ))}
               </div>
-            </motion.div>
+            </Reveal>
           ))}
         </div>
       </div>

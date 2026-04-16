@@ -1,6 +1,4 @@
 "use client"
-import { motion } from "framer-motion"
-import { useReducedMotion } from "@/components/ui/motion"
 
 import {
   ArrowRight,
@@ -156,7 +154,6 @@ const LANDING_CONFIG: LandingPageConfig = {
 
 /** How It Works - simplified 3-step inline section */
 function HowItWorksInline({ onCTAClick, isDisabled }: { onCTAClick?: () => void; isDisabled?: boolean }) {
-  const animate = !useReducedMotion()
   return (
     <section id="how-it-works" aria-label="How it works" className="py-16 lg:py-20">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
@@ -194,13 +191,7 @@ function HowItWorksInline({ onCTAClick, isDisabled }: { onCTAClick?: () => void;
           ))}
         </div>
 
-        <motion.div
-          className="flex justify-center mt-10"
-          initial={animate ? { y: 10 } : {}}
-          whileInView={animate ? { opacity: 1, y: 0 } : undefined}
-          viewport={{ once: true }}
-          transition={{ duration: 0.35, delay: 0.3 }}
-        >
+        <Reveal className="flex justify-center mt-10" delay={0.3}>
           <Button
             asChild
             size="lg"
@@ -213,7 +204,7 @@ function HowItWorksInline({ onCTAClick, isDisabled }: { onCTAClick?: () => void;
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>
-        </motion.div>
+        </Reveal>
       </div>
     </section>
   )
@@ -221,9 +212,6 @@ function HowItWorksInline({ onCTAClick, isDisabled }: { onCTAClick?: () => void;
 
 /** Service differentiation - repeat ($29.95) vs new prescription ($49.95) */
 function ServiceComparisonSection({ isDisabled }: { isDisabled?: boolean }) {
-  const prefersReducedMotion = useReducedMotion()
-  const animate = !prefersReducedMotion
-
   const services = [
     {
       icon: RefreshCw,
@@ -266,13 +254,7 @@ function ServiceComparisonSection({ isDisabled }: { isDisabled?: boolean }) {
   return (
     <section id="pricing" aria-label="Service options" className="py-16 lg:py-20">
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-        <motion.div
-          className="text-center mb-10"
-          initial={animate ? { y: 12 } : {}}
-          whileInView={animate ? { opacity: 1, y: 0 } : undefined}
-          viewport={{ once: true }}
-          transition={{ duration: 0.4 }}
-        >
+        <Reveal className="text-center mb-10">
           <p className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-background px-3 py-1.5 text-xs font-medium text-foreground/70 shadow-sm shadow-primary/[0.04] mb-4">
             Pricing
           </p>
@@ -282,22 +264,19 @@ function ServiceComparisonSection({ isDisabled }: { isDisabled?: boolean }) {
           <p className="text-muted-foreground max-w-xl mx-auto text-balance">
             No hidden costs. Full refund if we can&apos;t help.
           </p>
-        </motion.div>
+        </Reveal>
 
         <div className="grid md:grid-cols-2 gap-6">
           {services.map((service, i) => (
-            <motion.div
+            <Reveal
               key={service.title}
+              delay={i * 0.1}
               className={cn(
                 "relative rounded-2xl border p-6 flex flex-col transition-all duration-300",
                 service.highlight
                   ? "bg-white dark:bg-card border-primary/30 ring-2 ring-primary shadow-lg shadow-primary/[0.1] hover:shadow-xl hover:shadow-primary/[0.15] hover:-translate-y-1"
                   : "bg-white dark:bg-card border-border/50 dark:border-white/15 shadow-md shadow-primary/[0.06] dark:shadow-none hover:shadow-lg hover:shadow-primary/[0.08] hover:-translate-y-0.5"
               )}
-              initial={animate ? { y: 16 } : {}}
-              whileInView={animate ? { opacity: 1, y: 0 } : undefined}
-              viewport={{ once: true }}
-              transition={{ duration: 0.35, delay: i * 0.1 }}
             >
               {service.badge && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
@@ -348,18 +327,12 @@ function ServiceComparisonSection({ isDisabled }: { isDisabled?: boolean }) {
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
-            </motion.div>
+            </Reveal>
           ))}
         </div>
 
         {/* Subscription upsell */}
-        <motion.div
-          className="mt-8 rounded-xl border border-primary/20 bg-primary/5 dark:bg-primary/10 p-4 sm:p-5 text-center"
-          initial={animate ? { y: 12 } : {}}
-          whileInView={animate ? { opacity: 1, y: 0 } : undefined}
-          viewport={{ once: true }}
-          transition={{ duration: 0.4, delay: 0.2 }}
-        >
+        <Reveal className="mt-8 rounded-xl border border-primary/20 bg-primary/5 dark:bg-primary/10 p-4 sm:p-5 text-center" delay={0.2}>
           <p className="text-sm font-medium text-foreground mb-1">
             <RefreshCw className="inline w-3.5 h-3.5 text-primary mr-1.5 -mt-0.5" />
             Need repeat scripts every month?
@@ -368,20 +341,14 @@ function ServiceComparisonSection({ isDisabled }: { isDisabled?: boolean }) {
             Subscribe &amp; Save for <span className="font-medium text-foreground">${PRICING.REPEAT_RX_MONTHLY}/mo</span> - your repeat script auto-renews each month with no forms to fill out.
             The option appears at checkout.
           </p>
-        </motion.div>
+        </Reveal>
 
-        <motion.p
-          className="text-center text-xs text-muted-foreground mt-6"
-          initial={{}}
-          whileInView={animate ? { opacity: 1 } : undefined}
-          viewport={{ once: true }}
-          transition={{ duration: 0.4, delay: 0.25 }}
-        >
+        <p className="text-center text-xs text-muted-foreground mt-6">
           Not sure which you need?{" "}
           <span className="font-medium text-foreground">
             Repeat = medication you already take. New = something you haven&apos;t been prescribed.
           </span>
-        </motion.p>
+        </p>
       </div>
     </section>
   )
@@ -389,26 +356,17 @@ function ServiceComparisonSection({ isDisabled }: { isDisabled?: boolean }) {
 
 /** FAQ section - prescription-specific */
 function PrescriptionFAQSection({ onFAQOpen }: { onFAQOpen?: (question: string, index: number) => void }) {
-  const prefersReducedMotion = useReducedMotion()
-  const animate = !prefersReducedMotion
-
   return (
     <section aria-label="Frequently asked questions" className="py-16 lg:py-20">
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-        <motion.div
-          className="text-center mb-10"
-          initial={animate ? { y: 12 } : {}}
-          whileInView={animate ? { opacity: 1, y: 0 } : undefined}
-          viewport={{ once: true }}
-          transition={{ duration: 0.4 }}
-        >
+        <Reveal className="text-center mb-10">
           <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground mb-3">
             Frequently asked questions
           </h2>
           <p className="text-muted-foreground text-balance">
             Everything you need to know about renewing your medication
           </p>
-        </motion.div>
+        </Reveal>
         <FAQList
           items={PRESCRIPTION_FAQ}
           type="single"
@@ -426,16 +384,10 @@ function PrescriptionFAQSection({ onFAQOpen }: { onFAQOpen?: (question: string, 
 
 /** Inline Final CTA - prescription-specific */
 function FinalCTAInline({ onCTAClick, isDisabled }: { onCTAClick?: () => void; isDisabled?: boolean }) {
-  const prefersReducedMotion = useReducedMotion()
-
   return (
     <section aria-label="Get started" className="py-20 lg:py-24 bg-linear-to-br from-primary/5 via-primary/10 to-sky-100/50 dark:from-primary/10 dark:via-primary/5 dark:to-card">
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center">
-        <motion.div
-          initial={prefersReducedMotion ? {} : { y: 20 }}
-          whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-        >
+        <Reveal>
           <h2 className="text-3xl sm:text-4xl font-semibold text-foreground mb-4 tracking-tight">
             Your regular medication, renewed from home.
           </h2>
@@ -460,7 +412,7 @@ function FinalCTAInline({ onCTAClick, isDisabled }: { onCTAClick?: () => void; i
           <p className="mt-1 text-muted-foreground text-xs">
             Takes about 2 minutes &middot; Full refund if we can&apos;t help
           </p>
-        </motion.div>
+        </Reveal>
       </div>
     </section>
   )
@@ -468,31 +420,16 @@ function FinalCTAInline({ onCTAClick, isDisabled }: { onCTAClick?: () => void; i
 
 /** Data viz: prescription turnaround vs GP visit */
 function PrescriptionComparisonViz() {
-  const prefersReducedMotion = useReducedMotion()
-  const animate = !prefersReducedMotion
-
   return (
     <section aria-label="Time comparison" className="py-12 lg:py-16">
       <div className="mx-auto max-w-xl px-4 sm:px-6">
-        <motion.div
-          className="text-center mb-8"
-          initial={animate ? { y: 12 } : {}}
-          whileInView={animate ? { opacity: 1, y: 0 } : undefined}
-          viewport={{ once: true }}
-          transition={{ duration: 0.4 }}
-        >
+        <Reveal className="text-center mb-8">
           <SectionPill>Time saved</SectionPill>
           <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground mt-4 mb-2">
             Skip the waiting room
           </h2>
-        </motion.div>
-        <motion.div
-          className="rounded-2xl bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-md shadow-primary/[0.06] dark:shadow-none p-6"
-          initial={animate ? { y: 16 } : {}}
-          whileInView={animate ? { opacity: 1, y: 0 } : undefined}
-          viewport={{ once: true }}
-          transition={{ duration: 0.4, delay: 0.1 }}
-        >
+        </Reveal>
+        <Reveal className="rounded-2xl bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-md shadow-primary/[0.06] dark:shadow-none p-6" delay={0.1}>
           <ComparisonBar
             us={{
               label: "InstantMed",
@@ -506,7 +443,7 @@ function PrescriptionComparisonViz() {
             }}
             ratio={0.25}
           />
-        </motion.div>
+        </Reveal>
       </div>
     </section>
   )

@@ -1,11 +1,10 @@
 "use client"
 
-import { motion } from "framer-motion"
 import { ArrowRight } from "lucide-react"
 import Link from "next/link"
 
 import { Button } from "@/components/ui/button"
-import { useReducedMotion } from "@/components/ui/motion"
+import { Reveal } from "@/components/ui/reveal"
 import { PRICING } from "@/lib/constants"
 
 // =============================================================================
@@ -33,16 +32,10 @@ export function FinalCtaSection({
   price = PRICING.MED_CERT,
   testimonial,
 }: FinalCtaSectionProps) {
-  const prefersReducedMotion = useReducedMotion()
-
   return (
     <section aria-label="Get started" className="py-20 lg:py-24 bg-linear-to-br from-primary/5 via-primary/10 to-sky-100/50 dark:from-primary/10 dark:via-primary/5 dark:to-card">
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center">
-        <motion.div
-          initial={prefersReducedMotion ? {} : { y: 20 }}
-          whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-        >
+        <Reveal>
           <h2 className="text-3xl sm:text-4xl font-semibold text-foreground mb-4 tracking-tight">
             {title}
           </h2>
@@ -77,7 +70,7 @@ export function FinalCtaSection({
               </p>
             </div>
           )}
-        </motion.div>
+        </Reveal>
       </div>
     </section>
   )

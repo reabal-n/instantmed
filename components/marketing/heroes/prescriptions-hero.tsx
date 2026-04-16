@@ -1,6 +1,5 @@
 "use client"
 
-import { motion } from "framer-motion"
 import {
   ArrowRight,
   CheckCircle2,
@@ -15,10 +14,9 @@ import Link from "next/link"
 
 import { EScriptHeroMockup } from "@/components/marketing/mockups/escript-hero-mockup"
 import { ClosingCountdown } from "@/components/marketing/shared/closing-countdown"
-import { DoctorAvailabilityPill,TrustBadgeRow } from "@/components/shared"
+import { DoctorAvailabilityPill, TrustBadgeRow } from "@/components/shared"
 import { Button } from "@/components/ui/button"
 import { MagneticButton } from "@/components/ui/magnetic-button"
-import { useReducedMotion } from "@/components/ui/motion"
 import { PRICING, PRICING_DISPLAY } from "@/lib/constants"
 import { SOCIAL_PROOF_DISPLAY } from "@/lib/social-proof"
 
@@ -38,9 +36,6 @@ export function PrescriptionsHeroSection({
   onCTAClick?: () => void
   isDisabled?: boolean
 }) {
-  const prefersReducedMotion = useReducedMotion()
-  const animate = !prefersReducedMotion
-
   return (
     <section aria-label="Prescription service overview" className="relative overflow-hidden pt-8 pb-10 sm:pt-16 sm:pb-20 lg:pt-20 lg:pb-24">
       <div className="mx-auto max-w-5xl px-6 sm:px-8 lg:px-10">
@@ -48,14 +43,9 @@ export function PrescriptionsHeroSection({
           {/* Text content */}
           <div className="flex-1 min-w-0 text-center lg:text-left">
             {/* Doctor availability pill */}
-            <motion.div
-              className="flex justify-center lg:justify-start mb-4 sm:mb-8"
-              initial={animate ? { y: -10 } : {}}
-              animate={{ y: 0 }}
-              transition={{ duration: 0.4 }}
-            >
+            <div className="flex justify-center lg:justify-start mb-4 sm:mb-8 hero-availability-enter">
               <DoctorAvailabilityPill />
-            </motion.div>
+            </div>
 
             {/* Headline */}
             <h1
@@ -69,50 +59,32 @@ export function PrescriptionsHeroSection({
             </h1>
 
             {/* Subheadline */}
-            <motion.p
-              className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-3 sm:mb-4 leading-relaxed text-balance"
-              initial={animate ? { y: 12 } : {}}
-              animate={{ y: 0 }}
-              transition={{ duration: 0.4, delay: 0.1 }}
-            >
+            <p className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-3 sm:mb-4 leading-relaxed text-balance hero-subheadline-enter">
               An AHPRA-registered GP reviews your request and sends an
               eScript straight to your phone. Any pharmacy in Australia,
               same day.
-            </motion.p>
+            </p>
 
             {/* Price anchor */}
-            <motion.p
-              className="text-sm font-semibold text-foreground mb-2 flex items-center justify-center lg:justify-start gap-1.5"
-              initial={animate ? { y: 8 } : {}}
-              animate={{ y: 0 }}
-              transition={{ duration: 0.4, delay: 0.11 }}
-            >
+            <p className="text-sm font-semibold text-foreground mb-2 flex items-center justify-center lg:justify-start gap-1.5 hero-cta-enter">
               {PRICING_DISPLAY.FROM_SCRIPT}
               <span className="text-xs font-normal text-muted-foreground">- no hidden fees</span>
-            </motion.p>
+            </p>
 
             {/* Static proof chips */}
-            <motion.div
-              className="flex flex-wrap justify-center lg:justify-start gap-x-4 gap-y-1.5 mb-6"
-              initial={animate ? { y: 6 } : {}}
-              animate={{ y: 0 }}
-              transition={{ duration: 0.4, delay: 0.15 }}
-            >
+            <div className="flex flex-wrap justify-center lg:justify-start gap-x-4 gap-y-1.5 mb-6 hero-trust-enter">
               {STATIC_BADGES.map((label) => (
                 <span key={label} className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
                   <CheckCircle2 className="h-3 w-3 shrink-0 text-primary/70" aria-hidden="true" />
                   {label}
                 </span>
               ))}
-            </motion.div>
+            </div>
 
             {/* CTA */}
-            <motion.div
+            <div
               ref={ctaRef}
-              className="flex flex-col sm:flex-row items-center gap-3 justify-center lg:justify-start mb-4"
-              initial={animate ? { y: 12 } : {}}
-              animate={{ y: 0 }}
-              transition={{ duration: 0.4, delay: 0.12 }}
+              className="flex flex-col sm:flex-row items-center gap-3 justify-center lg:justify-start mb-4 hero-cta-enter"
             >
               <MagneticButton>
                 <Button
@@ -141,7 +113,8 @@ export function PrescriptionsHeroSection({
                   New prescription
                 </Link>
               </Button>
-            </motion.div>
+            </div>
+
             {/* AHPRA + LegitScript trust row - directly below CTA */}
             <TrustBadgeRow
               badges={[
@@ -150,13 +123,9 @@ export function PrescriptionsHeroSection({
               ]}
               className="mt-4 mb-2 justify-center lg:justify-start gap-3"
             />
+
             {/* Sub-CTA labels */}
-            <motion.div
-              className="flex flex-col sm:flex-row items-center gap-x-6 gap-y-1 justify-center lg:justify-start mb-4 text-xs text-muted-foreground"
-              initial={animate ? { y: 4 } : {}}
-              animate={{ y: 0 }}
-              transition={{ duration: 0.4, delay: 0.18 }}
-            >
+            <div className="flex flex-col sm:flex-row items-center gap-x-6 gap-y-1 justify-center lg:justify-start mb-4 text-xs text-muted-foreground hero-trust-enter">
               <span className="flex items-center gap-1">
                 <RefreshCw className="h-3 w-3 shrink-0 text-primary" />
                 Renewing an existing script - from ${PRICING.REPEAT_SCRIPT.toFixed(2)}
@@ -165,13 +134,9 @@ export function PrescriptionsHeroSection({
                 <FileText className="h-3 w-3 shrink-0 text-muted-foreground" />
                 Need something new - ${PRICING.NEW_SCRIPT.toFixed(2)}
               </span>
-            </motion.div>
-            <motion.div
-              className="flex flex-col items-center lg:items-start gap-0.5 mb-6"
-              initial={animate ? { y: 4 } : {}}
-              animate={{ y: 0 }}
-              transition={{ duration: 0.4, delay: 0.2 }}
-            >
+            </div>
+
+            <div className="flex flex-col items-center lg:items-start gap-0.5 mb-6 hero-mockup-enter">
               <div className="flex flex-col items-center lg:items-start gap-0.5">
                 <p className="text-xs text-muted-foreground">
                   {SOCIAL_PROOF_DISPLAY.gpComparisonComplex}
@@ -182,15 +147,10 @@ export function PrescriptionsHeroSection({
                 </p>
                 <ClosingCountdown />
               </div>
-            </motion.div>
+            </div>
 
             {/* Trust signals */}
-            <motion.div
-              className="hidden sm:flex flex-col gap-2"
-              initial={animate ? { y: 4 } : {}}
-              animate={{ y: 0 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-            >
+            <div className="hidden sm:flex flex-col gap-2 hero-count-enter">
               <p className="text-xs sm:text-sm text-muted-foreground flex items-center justify-center lg:justify-start gap-2">
                 <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
                 <span>
@@ -205,15 +165,10 @@ export function PrescriptionsHeroSection({
                 </div>
               </div>
               <TrustBadgeRow preset="trust_certifications" className="justify-center lg:justify-start" />
-            </motion.div>
+            </div>
 
             {/* Secondary anchor CTA - desktop only */}
-            <motion.div
-              className="hidden sm:flex justify-center lg:justify-start mt-4"
-              initial={animate ? { y: 4 } : {}}
-              animate={{ y: 0 }}
-              transition={{ duration: 0.5, delay: 0.45 }}
-            >
+            <div className="hidden sm:flex justify-center lg:justify-start mt-4 hero-count-enter">
               <a
                 href="#how-it-works"
                 className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
@@ -221,7 +176,7 @@ export function PrescriptionsHeroSection({
                 See how it works
                 <ChevronDown className="h-3.5 w-3.5" />
               </a>
-            </motion.div>
+            </div>
           </div>
 
           {/* Hero product mockup - desktop only */}

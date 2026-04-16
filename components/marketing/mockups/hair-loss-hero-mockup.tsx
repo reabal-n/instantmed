@@ -1,22 +1,15 @@
-"use client"
+import { CheckCircle2, ShieldCheck, Sparkles } from "lucide-react"
 
-import { motion } from "framer-motion"
-import { CheckCircle2, ShieldCheck,Sparkles } from "lucide-react"
-
-import { useReducedMotion } from "@/components/ui/motion"
-
+/**
+ * Hair loss hero mockup — treatment plan card.
+ * CSS animations only — no framer-motion — SSR-safe with no hydration flash.
+ */
 export function HairLossHeroMockup() {
-  const prefersReducedMotion = useReducedMotion()
-  const animate = !prefersReducedMotion
-
   return (
     <div className="relative w-full mx-auto max-w-sm lg:max-w-md" aria-hidden="true">
       {/* Main card */}
-      <motion.div
-        className="relative rounded-2xl border border-border/50 dark:border-white/15 bg-white dark:bg-card shadow-xl shadow-violet-500/[0.08] overflow-hidden"
-        initial={animate ? { y: 18 } : {}}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
+      <div
+        className="relative rounded-2xl border border-border/50 dark:border-white/15 bg-white dark:bg-card shadow-xl shadow-violet-500/[0.08] overflow-hidden hero-mockup-enter"
       >
         <div className="p-5 sm:p-6 space-y-4">
           <div className="flex items-center justify-between">
@@ -50,17 +43,15 @@ export function HairLossHeroMockup() {
             <span>Shipped discreetly · No call needed</span>
           </div>
         </div>
-      </motion.div>
+      </div>
 
       {/* Floating badge */}
-      <motion.div
+      <div
         className="absolute -bottom-3 -right-3 rounded-full bg-white dark:bg-card shadow-lg shadow-violet-500/[0.15] border border-border/50 px-3 py-1.5 text-[11px] font-semibold text-violet-600 dark:text-violet-400"
-        initial={animate ? { scale: 0.8 } : {}}
-        animate={{ scale: 1 }}
-        transition={{ duration: 0.4, delay: 0.3 }}
+        style={{ animation: "hero-fade-up 0.4s ease-out 0.3s both" }}
       >
         Doctor-reviewed
-      </motion.div>
+      </div>
     </div>
   )
 }
