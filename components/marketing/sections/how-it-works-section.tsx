@@ -65,7 +65,7 @@ export function HowItWorksSection({
       <DottedGrid />
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 relative">
         {/* Header */}
-        <Reveal className="text-center mb-12">
+        <Reveal instant className="text-center mb-12">
           <h2 className="text-2xl sm:text-3xl font-semibold text-foreground mb-2 tracking-tight">
             Three steps. Stay in bed.
           </h2>

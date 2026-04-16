@@ -27,10 +27,9 @@ function useServiceCardVariants() {
   const itemVariants: Variants = prefersReducedMotion
     ? { hidden: {}, visible: {} }
     : {
-        hidden: { opacity: 0, y: 24 },
+        hidden: { y: 24 },
         visible: {
           y: 0,
-          opacity: 1,
           transition: {
             duration: 0.45,
             ease: [0.25, 0.46, 0.45, 0.94],
@@ -222,8 +221,8 @@ export function ServiceCards() {
         {/* Section Header */}
         <motion.div
           className="text-center mb-8 sm:mb-10 lg:mb-12"
-          initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          initial={prefersReducedMotion ? {} : { y: 20 }}
+          whileInView={{ y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: prefersReducedMotion ? 0 : 0.6 }}
         >

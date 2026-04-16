@@ -230,6 +230,7 @@ export function EdMechanismExplainer({ className }: EdMechanismExplainerProps) {
           {FRAMES.map((frame, i) => (
             <Reveal
               key={frame.id}
+              instant={i < 2}
               delay={i * 0.1}
               className="rounded-2xl border border-border/50 bg-white dark:bg-card shadow-md shadow-primary/[0.06] p-6"
             >

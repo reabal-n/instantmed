@@ -158,7 +158,7 @@ function HowItWorksInline({ onCTAClick, isDisabled }: { onCTAClick?: () => void;
   return (
     <section id="how-it-works" aria-label="How it works" className="py-20 lg:py-24 scroll-mt-20">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-        <Reveal className="text-center mb-12">
+        <Reveal instant className="text-center mb-12">
           <h2 className="text-2xl sm:text-3xl font-semibold text-foreground mb-3 tracking-tight">
             How it works
           </h2>

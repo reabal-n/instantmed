@@ -167,10 +167,10 @@ function CertComparisonViz() {
   return (
     <section aria-label="Time comparison" className="py-6 lg:py-8">
       <div className="mx-auto max-w-lg px-4 sm:px-6">
-        <Reveal className="text-center mb-4">
+        <Reveal instant className="text-center mb-4">
           <p className="text-xs font-semibold text-muted-foreground/50 uppercase tracking-[0.12em]">Your time is valuable</p>
         </Reveal>
-        <Reveal delay={0.08} className="rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/10 shadow-sm p-4">
+        <Reveal instant className="rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/10 shadow-sm p-4">
           <ComparisonBar
             us={{
               label: "InstantMed",
