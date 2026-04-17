@@ -382,8 +382,14 @@ const nextConfig = {
 const sentryConfig = {
   org: process.env.SENTRY_ORG || "instantmed",
   project: process.env.SENTRY_PROJECT || "instantmed",
+  authToken: process.env.SENTRY_AUTH_TOKEN,
   silent: !process.env.CI,
   silenceErrors: true,
+  sourcemaps: {
+    // Skip upload entirely when auth token is absent (silenceErrors alone
+    // doesn't prevent a non-zero exit from sentry-cli in v10).
+    disable: !process.env.SENTRY_AUTH_TOKEN,
+  },
   // widenClientFileUpload disabled — adds significant memory overhead to
   // builds (contributes to 8GB heap requirement). Default source map upload
   // covers the standard _next/static directory which is sufficient.
