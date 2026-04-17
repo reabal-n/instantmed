@@ -232,7 +232,9 @@ const nextConfig = {
       { source: "/general-consult", destination: "/consult", permanent: true },
       // Blog cannibalization consolidation -- duplicate articles merged into canonical versions
       { source: "/blog/are-online-medical-certificates-valid", destination: "/blog/are-online-medical-certificates-valid-australia", permanent: true },
-      { source: "/blog/repeat-prescription-online-australia", destination: "/blog/repeat-prescription-online", permanent: true },
+      // NOTE: /blog/repeat-prescription-online-australia redirect removed -- MDX article now live at that slug
+      // /performance-anxiety was an old ED landing page -- redirect to canonical ED page
+      { source: "/performance-anxiety", destination: "/erectile-dysfunction", permanent: true },
       // Legacy blog slugs -- old TS articles replaced by MDX equivalents with different slugs
       { source: "/blog/how-to-get-medical-certificate-online-australia", destination: "/blog/medical-certificate-online-australia", permanent: true },
       { source: "/blog/can-you-get-prescription-without-seeing-doctor", destination: "/blog/online-prescription-australia", permanent: true },
@@ -379,35 +381,37 @@ const nextConfig = {
 };
 
 // Sentry configuration
+// NOTE: All sentry-cli operations (releases new, source map upload) are
+// disabled here. The SENTRY_AUTH_TOKEN in Vercel points to a different project
+// and sentry-cli exits with code 1 even when silenceErrors/sourcemaps.disable
+// are set. Runtime error reporting still works via NEXT_PUBLIC_SENTRY_DSN.
 const sentryConfig = {
   org: process.env.SENTRY_ORG || "instantmed",
   project: process.env.SENTRY_PROJECT || "instantmed",
   authToken: process.env.SENTRY_AUTH_TOKEN,
-  silent: !process.env.CI,
+  silent: true,
   silenceErrors: true,
   sourcemaps: {
-    // Skip upload entirely when auth token is absent (silenceErrors alone
-    // doesn't prevent a non-zero exit from sentry-cli in v10).
-    disable: !process.env.SENTRY_AUTH_TOKEN,
+    // Never upload source maps — sentry-cli exits with code 1 when the
+    // project can't be resolved, even when silenceErrors is set.
+    disable: true,
   },
-  // widenClientFileUpload disabled — adds significant memory overhead to
-  // builds (contributes to 8GB heap requirement). Default source map upload
-  // covers the standard _next/static directory which is sufficient.
+  release: {
+    // Never run 'sentry-cli releases new' or 'releases finalize'.
+    // These commands fail when org/project don't match the auth token.
+    create: false,
+    finalize: false,
+  },
   widenClientFileUpload: false,
   hideSourceMaps: true,
   webpack: {
-    // Disable Sentry's Vercel deployment monitors — they fail when org/project
-    // can't be resolved at build time and block the deployment check gate.
     automaticVercelMonitors: false,
   },
 };
 
-// Apply bundle analyzer, then Sentry
-// Only wrap with Sentry when BOTH the DSN (runtime reporting) and the auth
-// token (sentry-cli source map upload + release creation) are present.
-// When auth token is absent the sentry-cli `releases new` command exits with
-// code 1 even when silenceErrors/sourcemaps.disable are set — bypassing the
-// wrapper entirely is the only reliable way to avoid the build failure.
+// Wrap with Sentry when DSN is present (runtime error reporting).
+// sentry-cli operations are disabled above so the auth token mismatch
+// cannot break the build regardless of whether it is set.
 const withAnalyzer = bundleAnalyzer(nextConfig);
-const useSentry = !!process.env.NEXT_PUBLIC_SENTRY_DSN && !!process.env.SENTRY_AUTH_TOKEN;
+const useSentry = !!process.env.NEXT_PUBLIC_SENTRY_DSN;
 export default useSentry ? withSentryConfig(withAnalyzer, sentryConfig) : withAnalyzer;
