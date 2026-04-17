@@ -403,6 +403,11 @@ const sentryConfig = {
 };
 
 // Apply bundle analyzer, then Sentry
+// Only wrap with Sentry when BOTH the DSN (runtime reporting) and the auth
+// token (sentry-cli source map upload + release creation) are present.
+// When auth token is absent the sentry-cli `releases new` command exits with
+// code 1 even when silenceErrors/sourcemaps.disable are set — bypassing the
+// wrapper entirely is the only reliable way to avoid the build failure.
 const withAnalyzer = bundleAnalyzer(nextConfig);
-const useSentry = !!process.env.NEXT_PUBLIC_SENTRY_DSN;
+const useSentry = !!process.env.NEXT_PUBLIC_SENTRY_DSN && !!process.env.SENTRY_AUTH_TOKEN;
 export default useSentry ? withSentryConfig(withAnalyzer, sentryConfig) : withAnalyzer;
