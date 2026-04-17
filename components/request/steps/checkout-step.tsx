@@ -10,6 +10,7 @@ import { Check, Clock, Lock, MessageSquare, RefreshCw,ShieldCheck, Smartphone, U
 import { useEffect,useState } from "react"
 
 import { createCheckoutFromUnifiedFlow } from "@/app/actions/unified-checkout"
+import { PaymentLogos } from "@/components/checkout/payment-logos"
 import { usePostHog } from "@/components/providers/posthog-provider"
 import { CheckoutButton, TrustBadgeRow } from "@/components/shared"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -49,8 +50,6 @@ const PRICING: Record<UnifiedServiceType, { base: number; label: string }> = {
 }
 
 // Use CONSULT_SUBTYPE_DISPLAY_LABELS from display-helpers (single source of truth)
-
-const PAYMENT_METHODS = ['Visa', 'Mastercard', 'Amex', 'Apple Pay', 'Google Pay']
 
 function ReviewItem({ label, value }: { label: string; value: string }) {
   return (
@@ -397,6 +396,22 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
         </div>
       </motion.div>
 
+      {/* Inline trust strip */}
+      <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 text-xs text-muted-foreground/70">
+        <span className="flex items-center gap-1.5">
+          <ShieldCheck className="w-3 h-3 text-emerald-500" />
+          AHPRA-registered doctors
+        </span>
+        <span className="flex items-center gap-1.5">
+          <Lock className="w-3 h-3" />
+          Stripe secure
+        </span>
+        <span className="flex items-center gap-1.5">
+          <RefreshCw className="w-3 h-3" />
+          Full refund if declined
+        </span>
+      </div>
+
       {/* Error message */}
       <div aria-live="polite">
         {error && (
@@ -448,18 +463,10 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
             </span>
           </div>
 
-          {/* Stripe + payment methods - single trust line */}
-          <div className="flex flex-wrap items-center justify-center gap-x-1.5 gap-y-1 text-xs text-muted-foreground/60">
-            <span className="flex items-center gap-1">
-              <Lock className="h-3 w-3" />
-              Secured by Stripe
-            </span>
-            <span aria-hidden="true">·</span>
-            {PAYMENT_METHODS.map((method) => (
-              <span key={method} className="px-1.5 py-0.5 rounded bg-muted/30 border border-border/30">
-                {method}
-              </span>
-            ))}
+          {/* Stripe + payment method logos */}
+          <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground/60">
+            <Lock className="h-3 w-3 shrink-0" />
+            <PaymentLogos />
           </div>
 
           {/* AHPRA + LegitScript certification badges */}
