@@ -43,6 +43,10 @@ const RegulatoryPartners = dynamic(
   () => import("@/components/marketing/media-mentions").then((m) => m.RegulatoryPartners),
   { loading: () => <div className="min-h-[120px]" /> },
 )
+const HairLossGuideSection = dynamic(
+  () => import("@/components/marketing/sections/hair-loss-guide-section").then((m) => m.HairLossGuideSection),
+  { loading: () => <div className="min-h-[400px]" /> },
+)
 
 // =============================================================================
 // DATA
@@ -382,6 +386,9 @@ export function HairLossLanding() {
           <div className="bg-muted/30 dark:bg-white/[0.02]">
             <HairLossFAQSection onFAQOpen={handleFAQOpen} />
           </div>
+
+          {/* Guide - deep E-E-A-T content for organic search */}
+          <HairLossGuideSection />
 
           {/* Referral strip */}
           <ReferralStrip contextText="dealing with hair loss" />

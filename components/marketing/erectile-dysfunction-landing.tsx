@@ -42,7 +42,10 @@ const RegulatoryPartners = dynamic(
   () => import("@/components/marketing/media-mentions").then((m) => m.RegulatoryPartners),
   { loading: () => <div className="min-h-[120px]" /> },
 )
-
+const EDGuideSection = dynamic(
+  () => import("@/components/marketing/sections/ed-guide-section").then((m) => m.EDGuideSection),
+  { loading: () => <div className="min-h-[400px]" /> },
+)
 
 // =============================================================================
 // DATA
@@ -279,6 +282,9 @@ export function ErectileDysfunctionLanding() {
           <div className="bg-muted/30 dark:bg-white/[0.02]">
             <EDFAQSection onFAQOpen={handleFAQOpen} />
           </div>
+
+          {/* Guide - deep E-E-A-T content for organic search */}
+          <EDGuideSection />
 
           {/* Referral strip */}
           <ReferralStrip contextText="dealing with ED" />
