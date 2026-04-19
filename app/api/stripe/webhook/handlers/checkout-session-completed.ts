@@ -691,10 +691,12 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
         }
 
         // 5c: Telegram notification to doctor
-        import("@/lib/notifications/telegram")
-          .then(({ notifyNewIntakeViaTelegram }) => {
+        // Wrapped in after() so Vercel doesn't kill the fetch before it completes
+        after(async () => {
+          try {
+            const { notifyNewIntakeViaTelegram } = await import("@/lib/notifications/telegram")
             const serviceSlug = session.metadata?.service_slug ?? ""
-            return notifyNewIntakeViaTelegram({
+            await notifyNewIntakeViaTelegram({
               intakeId,
               patientName: patientProfile.full_name || "Patient",
               serviceName: getServiceDisplayName({
@@ -705,10 +707,10 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
               amount: `$${(session.amount_total! / 100).toFixed(2)}`,
               serviceSlug,
             })
-          })
-          .catch((err) => {
+          } catch (err) {
             log.error("Telegram notification error (non-fatal)", { intakeId }, err)
-          })
+          }
+        })
       }
     }
 

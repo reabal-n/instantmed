@@ -38,7 +38,7 @@ const VALID_STATUS_TRANSITIONS: Record<IntakeStatus, IntakeStatus[]> = {
   draft: ["pending_payment", "cancelled"],
   pending_payment: ["paid", "checkout_failed", "cancelled", "expired"],
   checkout_failed: ["pending_payment", "cancelled"], // Retry or abandon
-  paid: ["in_review", "approved", "cancelled"],
+  paid: ["in_review", "approved", "awaiting_script", "cancelled"],
   in_review: ["approved", "declined", "pending_info", "escalated"],
   pending_info: ["in_review", "paid", "cancelled", "expired"],
   approved: ["completed", "awaiting_script"],
