@@ -65,9 +65,14 @@ export function PatientInfoCard() {
           <div className="flex items-start gap-1.5">
             <MapPin className="h-3.5 w-3.5 text-muted-foreground mt-0.5" />
             <div>
-              <p className="text-xs text-muted-foreground">Location</p>
+              <p className="text-xs text-muted-foreground">Address</p>
               <p className="font-medium">
-                {intake.patient.suburb || "N/A"}, {intake.patient.state || ""}
+                {[
+                  intake.patient.address_line1,
+                  intake.patient.suburb,
+                  intake.patient.state,
+                  intake.patient.postcode,
+                ].filter(Boolean).join(", ") || "N/A"}
               </p>
             </div>
           </div>

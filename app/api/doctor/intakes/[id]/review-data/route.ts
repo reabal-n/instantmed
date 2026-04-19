@@ -71,15 +71,7 @@ export async function GET(
     }
   }
 
-  // Mask Medicare number
-  let maskedMedicare = "Not provided"
-  if (intake.patient.medicare_number) {
-    const cleaned = intake.patient.medicare_number.replace(/\s/g, "")
-    maskedMedicare =
-      cleaned.length >= 6
-        ? `${cleaned.slice(0, 4)} •••• ${cleaned.slice(-2)}`
-        : intake.patient.medicare_number
-  }
+  const maskedMedicare = intake.patient.medicare_number ?? "Not provided"
 
   return NextResponse.json({
     intake,

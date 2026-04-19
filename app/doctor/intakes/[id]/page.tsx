@@ -74,16 +74,8 @@ export default async function DoctorIntakeDetailPage({
     followups = (data ?? []) as DoctorFollowupRow[]
   }
 
-  // Mask Medicare number
-  const maskMedicare = (medicare: string | null): string => {
-    if (!medicare) return "Not provided"
-    const cleaned = medicare.replace(/\s/g, "")
-    if (cleaned.length < 6) return medicare
-    return `${cleaned.slice(0, 4)} •••• ${cleaned.slice(-2)}`
-  }
-
   const patientAge = calculateAge(intake.patient.date_of_birth)
-  const maskedMedicare = maskMedicare(intake.patient.medicare_number)
+  const maskedMedicare = intake.patient.medicare_number ?? "Not provided"
 
   return (
     <IntakeDetailClient

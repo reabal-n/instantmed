@@ -90,9 +90,12 @@ export function IntakeDetailAnswers({
             <div className="flex items-center gap-2 min-w-0 text-muted-foreground">
               <MapPin className="h-3.5 w-3.5 shrink-0" />
               <span className="truncate">
-                {intake.patient.suburb
-                  ? `${intake.patient.suburb}${intake.patient.state ? `, ${intake.patient.state}` : ""}`
-                  : "—"}
+                {[
+                  intake.patient.address_line1,
+                  intake.patient.suburb,
+                  intake.patient.state,
+                  intake.patient.postcode,
+                ].filter(Boolean).join(", ") || "—"}
               </span>
             </div>
           </div>
