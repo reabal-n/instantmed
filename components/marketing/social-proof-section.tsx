@@ -32,7 +32,7 @@ export function SocialProofSection() {
           initial={prefersReducedMotion ? {} : { y: 20 }}
           whileInView={{ y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
+          transition={{ duration: 0.3 }}
         >
           <h2 className="text-2xl sm:text-3xl font-semibold text-foreground tracking-tight mb-3">
             Real patients. Real reviews.

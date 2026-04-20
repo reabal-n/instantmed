@@ -60,7 +60,7 @@ export function EdPrevalenceCalculator({
 
   const barTransition = prefersReducedMotion
     ? { duration: 0 }
-    : { type: "spring" as const, stiffness: 140, damping: 20 }
+    : { duration: 0.2, ease: 'easeOut' }
 
   return (
     <section
@@ -125,7 +125,7 @@ export function EdPrevalenceCalculator({
             >
               <motion.div
                 className="h-3 rounded-full bg-primary"
-                initial={false}
+                initial={{}}
                 animate={{ width: `${rate}%` }}
                 transition={barTransition}
               />

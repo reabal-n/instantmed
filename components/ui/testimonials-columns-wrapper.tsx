@@ -46,9 +46,9 @@ export function TestimonialsColumnsWrapper({
       <div className="container z-10 mx-auto px-4">
         {hasHeader && (
           <motion.div
-            initial={prefersReducedMotion ? false : { y: 20 }}
+            initial={prefersReducedMotion ? {} : { y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.5, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+            transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.3, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
             viewport={{ once: true }}
             className="flex flex-col items-center justify-center max-w-[540px] mx-auto"
           >

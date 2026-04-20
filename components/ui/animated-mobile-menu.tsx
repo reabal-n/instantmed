@@ -60,14 +60,14 @@ const itemVariants: Variants = {
     y: 0,
     opacity: 1,
     transition: {
-      y: { stiffness: 1000, velocity: -100 },
+      y: { duration: 0.2, ease: 'easeOut' },
     },
   },
   closed: {
     y: 50,
     opacity: 0,
     transition: {
-      y: { stiffness: 1000 },
+      y: { duration: 0.15, ease: 'easeOut' },
     },
   },
 }
@@ -317,7 +317,7 @@ export function AnimatedMobileMenu({
 
   return (
     <motion.nav
-      initial={false}
+      initial={{}}
       animate={isOpen ? "open" : "closed"}
       custom={height}
       ref={containerRef}

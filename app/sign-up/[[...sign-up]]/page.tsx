@@ -126,9 +126,9 @@ function SignUpForm() {
             className="bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06] rounded-2xl p-8 text-center"
           >
             <motion.div
-              initial={shouldReduceMotion ? false : { scale: 0.8 }}
+              initial={shouldReduceMotion ? {} : { scale: 0.8 }}
               animate={{ scale: 1 }}
-              transition={{ delay: 0.1, type: 'spring', stiffness: 200, damping: 15 }}
+              transition={{ delay: 0.1, duration: 0.2, ease: 'easeOut' }}
               className="w-16 h-16 rounded-2xl bg-success/10 flex items-center justify-center mx-auto mb-5"
             >
               <Mail className="w-8 h-8 text-success" />

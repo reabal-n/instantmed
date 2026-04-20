@@ -100,7 +100,7 @@ function ScalpSvg({ month, animated, className, title }: ScalpSvgProps) {
 
       {/* Hair density group - the single morph target */}
       <motion.g
-        initial={false}
+        initial={{}}
         animate={
           animated
             ? {
@@ -118,7 +118,7 @@ function ScalpSvg({ month, animated, className, title }: ScalpSvgProps) {
                 transformOrigin: "120px 30px",
               }
         }
-        transition={{ type: "spring", stiffness: 120, damping: 22 }}
+        transition={{ duration: 0.2, ease: 'easeOut' }}
         stroke="#0B1F3A"
         strokeLinecap="round"
       >
@@ -250,7 +250,7 @@ export function HairLossProgressTimeline({
           initial={animate ? { y: 20 } : {}}
           whileInView={animate ? { y: 0 } : undefined}
           viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
+          transition={{ duration: 0.3 }}
         >
           {/* Header */}
           <motion.div

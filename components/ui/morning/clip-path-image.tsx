@@ -58,7 +58,7 @@ export function ClipPathImage({
             ? { clipPath: clip.visible }
             : { clipPath: clip.hidden }
       }
-      transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
+      transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
     >
       <motion.div
         initial={prefersReducedMotion ? {} : { scale: alreadyPlayed ? 1 : 1.02 }}
@@ -69,7 +69,7 @@ export function ClipPathImage({
               ? { scale: 1 }
               : { scale: 1.02 }
         }
-        transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
+        transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
       >
         <Image
           src={src}

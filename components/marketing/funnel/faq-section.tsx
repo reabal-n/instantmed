@@ -27,7 +27,7 @@ export function FaqSection({ config }: FaqSectionProps) {
           initial={prefersReducedMotion ? {} : { y: 20 }}
           whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
+          transition={{ duration: 0.3 }}
         >
           <div className="mb-6">
             <SectionPill>FAQ</SectionPill>

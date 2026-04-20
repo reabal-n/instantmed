@@ -404,7 +404,7 @@ function TestimonialSection({ patientCount, mounted: _mounted }: { patientCount:
         >
           <motion.div
             variants={fadeUp}
-            transition={{ duration: 0.5, ease: "easeOut" }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
             className="flex items-center justify-center gap-1 mb-4"
           >
             {[...Array(5)].map((_, i) => (
@@ -416,14 +416,14 @@ function TestimonialSection({ patientCount, mounted: _mounted }: { patientCount:
           </motion.div>
           <motion.h2
             variants={fadeUp}
-            transition={{ duration: 0.5, ease: "easeOut" }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
             className="text-3xl sm:text-4xl font-semibold tracking-tight text-foreground"
           >
             What patients say
           </motion.h2>
           <motion.p
             variants={fadeUp}
-            transition={{ duration: 0.5, ease: "easeOut" }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
             className="mt-4 text-muted-foreground text-lg"
           >
             Real feedback from{" "}
@@ -442,7 +442,7 @@ function TestimonialSection({ patientCount, mounted: _mounted }: { patientCount:
           initial={shouldReduce ? undefined : {}}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.3 }}
+          transition={{ duration: 0.3, delay: 0.3 }}
           className="mt-10 text-center"
         >
           <Link
@@ -497,7 +497,7 @@ function TestimonialCard({
     <motion.div
       variants={fadeUp}
       whileHover={{ y: -2, transition: { duration: 0.25, ease: "easeOut" } }}
-      transition={{ duration: 0.5, ease: "easeOut" }}
+      transition={{ duration: 0.3, ease: "easeOut" }}
       className={cn(
         "rounded-2xl p-6 sm:p-7",
         "bg-card border border-border/50",

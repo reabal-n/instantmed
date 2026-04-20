@@ -77,7 +77,7 @@ export function IOSToggle({
             'pointer-events-none inline-block rounded-full bg-white shadow-md',
             thumb
           )}
-          initial={false}
+          initial={{}}
           animate={{
             x: checked ? parseInt(translate.replace('translate-x-', '')) * 4 : 2,
           }}
@@ -149,7 +149,7 @@ export function SegmentedControl({
       {selectedIndex >= 0 && (
         <motion.div
           className="absolute top-1 bottom-1 bg-white dark:bg-white/15 rounded-lg shadow-sm"
-          initial={false}
+          initial={{}}
           animate={{
             left: `calc(${(selectedIndex / options.length) * 100}% + 4px)`,
             width: `calc(${100 / options.length}% - 8px)`,

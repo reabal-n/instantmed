@@ -46,7 +46,7 @@ export function WhoItsForSection({ config, colors }: WhoItsForSectionProps) {
                 initial={prefersReducedMotion ? {} : { y: 30 }}
                 whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: i * 0.1 }}
+                transition={{ duration: 0.3, delay: i * 0.1 }}
                 className={cn(
                   'rounded-2xl p-6 border transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5',
                   isPositive && 'bg-success-light border-success-border hover:shadow-primary/[0.06] hover:border-success-border',

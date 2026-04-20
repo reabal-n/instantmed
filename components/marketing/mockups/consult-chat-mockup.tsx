@@ -31,7 +31,7 @@ export function ConsultChatMockup({ compact = false }: ConsultChatMockupProps) {
         initial={animate ? { y: 20 } : {}}
         whileInView={animate ? { opacity: 1, y: 0 } : undefined}
         viewport={{ once: true }}
-        transition={{ duration: 0.5, delay: 0.2, ease: "easeOut" }}
+        transition={{ duration: 0.3, delay: 0.2, ease: "easeOut" }}
       >
         {/* Header */}
         <div className="flex items-center gap-2.5">
@@ -125,7 +125,7 @@ export function ConsultChatMockup({ compact = false }: ConsultChatMockupProps) {
           initial={animate ? { x: 20 } : {}}
           whileInView={animate ? { opacity: 1, x: 0 } : undefined}
           viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.6, ease: "easeOut" }}
+          transition={{ duration: 0.3, delay: 0.6, ease: "easeOut" }}
         >
           <motion.div
             className="space-y-2"

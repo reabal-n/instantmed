@@ -132,7 +132,7 @@ export function CertificateTypeSelector({
           initial={animate ? { opacity: 0, y: 20 } : {}}
           whileInView={animate ? { opacity: 1, y: 0 } : undefined}
           viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
+          transition={{ duration: 0.3 }}
         >
           <h2 className="text-2xl sm:text-3xl font-semibold text-foreground tracking-tight mb-3">
             Which certificate do you need?
@@ -212,7 +212,7 @@ export function CertificateTypeSelector({
         {/* Pricing ladder + CTA - visible once a category is selected */}
         <motion.div
           className="mt-6 text-center"
-          initial={false}
+          initial={{}}
           animate={
             selected
               ? { opacity: 1, y: 0, height: "auto" }

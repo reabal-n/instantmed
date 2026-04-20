@@ -56,7 +56,7 @@ const AnimatedText = React.forwardRef<HTMLDivElement, AnimatedTextProps>(
             className={cn("text-2xl sm:text-3xl md:text-4xl font-semibold text-center", textClassName)}
             initial={prefersReducedMotion ? {} : { y: -20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.5 }}
+            transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.3 }}
             whileHover={prefersReducedMotion ? undefined : { y: -2 }}
           >
             {text}
@@ -80,7 +80,7 @@ const AnimatedText = React.forwardRef<HTMLDivElement, AnimatedTextProps>(
               animate="visible"
               whileHover={prefersReducedMotion ? undefined : {
                 d: underlineHoverPath,
-                transition: { duration: 0.5 },
+                transition: { duration: 0.3 },
               }}
             />
           </motion.svg>

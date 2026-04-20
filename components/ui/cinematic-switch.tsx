@@ -67,7 +67,7 @@ export function CinematicSwitch({
       {/* Switch Track */}
       <motion.div
         className="relative w-16 h-8 rounded-full shadow-inner"
-        initial={false}
+        initial={{}}
         animate={{
           backgroundColor: trackColor,
         }}
@@ -76,7 +76,7 @@ export function CinematicSwitch({
         {/* Switch Thumb */}
         <motion.div
           className="absolute top-1 left-1 w-6 h-6 rounded-full border border-white/10 shadow-md"
-          initial={false}
+          initial={{}}
           animate={{
             x: isOn ? 32 : 0,
             backgroundColor: thumbColor,

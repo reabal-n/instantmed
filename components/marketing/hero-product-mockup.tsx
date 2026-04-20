@@ -16,7 +16,7 @@ export function HeroProductMockup() {
         className="rounded-2xl bg-white dark:bg-card border border-border/50 shadow-xl shadow-primary/[0.08] dark:shadow-none p-5 space-y-4"
         initial={animate ? { y: 20 } : {}}
         animate={{ y: 0 }}
-        transition={{ duration: 0.5, delay: 0.2, ease: "easeOut" }}
+        transition={{ duration: 0.3, delay: 0.2, ease: "easeOut" }}
       >
         {/* Header */}
         <div className="flex items-center gap-2.5">
@@ -70,7 +70,7 @@ export function HeroProductMockup() {
         className="absolute -bottom-6 -right-6 xl:-right-8 rounded-xl bg-white dark:bg-card border border-border/50 shadow-lg shadow-primary/[0.06] dark:shadow-none p-3 flex items-center gap-3 min-w-[200px]"
         initial={animate ? { x: 20 } : {}}
         animate={{ x: 0 }}
-        transition={{ duration: 0.5, delay: 0.6, ease: "easeOut" }}
+        transition={{ duration: 0.3, delay: 0.6, ease: "easeOut" }}
       >
         {/* Avatar */}
         <div className="relative shrink-0">

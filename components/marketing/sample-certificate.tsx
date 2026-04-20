@@ -23,7 +23,7 @@ export function SampleCertificate({ className = '', animate = true }: SampleCert
     initial: { y: 20 },
     whileInView: { opacity: 1, y: 0 },
     viewport: { once: true },
-    transition: { duration: 0.5 },
+    transition: { duration: 0.3 },
   } : {}
 
   return (

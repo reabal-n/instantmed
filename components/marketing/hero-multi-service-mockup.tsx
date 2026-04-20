@@ -26,7 +26,7 @@ export function HeroMultiServiceMockup() {
         className="rounded-2xl bg-white dark:bg-card border border-border/50 shadow-xl shadow-primary/[0.08] dark:shadow-none overflow-hidden"
         initial={animate ? { opacity: 0, y: 20 } : {}}
         animate={animate ? { opacity: 1, y: 0 } : {}}
-        transition={{ duration: 0.5, delay: 0.2, ease: "easeOut" }}
+        transition={{ duration: 0.3, delay: 0.2, ease: "easeOut" }}
       >
         {/* Header bar */}
         <div className="bg-slate-800 dark:bg-slate-900 px-5 py-3.5 flex items-center justify-between">
@@ -145,7 +145,7 @@ export function HeroMultiServiceMockup() {
         className="absolute -bottom-8 -right-4 xl:-right-8 rounded-xl bg-white dark:bg-card border border-border/50 shadow-lg shadow-primary/[0.06] dark:shadow-none p-3 min-w-[200px]"
         initial={animate ? { opacity: 0, x: 20 } : {}}
         animate={animate ? { opacity: 1, x: 0 } : {}}
-        transition={{ duration: 0.5, delay: 0.65, ease: "easeOut" }}
+        transition={{ duration: 0.3, delay: 0.65, ease: "easeOut" }}
       >
         <motion.div
           className="space-y-2"

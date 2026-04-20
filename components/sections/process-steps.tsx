@@ -56,7 +56,7 @@ export function ProcessSteps({
                   : undefined
             }
             style={{ transformOrigin: "left" }}
-            transition={{ duration: 0.5, delay: 0.1, ease: "easeOut" }}
+            transition={{ duration: 0.3, delay: 0.1, ease: "easeOut" }}
           />
 
           {steps.map((step, i) => (
@@ -98,7 +98,7 @@ export function ProcessSteps({
             initial={prefersReducedMotion ? {} : { scaleY: 0 }}
             animate={prefersReducedMotion ? {} : isInView ? { scaleY: 1 } : undefined}
             style={{ transformOrigin: "top" }}
-            transition={{ duration: 0.5, delay: 0.1, ease: "easeOut" }}
+            transition={{ duration: 0.3, delay: 0.1, ease: "easeOut" }}
           />
           {steps.map((step, i) => (
             <motion.div

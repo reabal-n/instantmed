@@ -66,7 +66,7 @@ const IconWrapper = ({
   return (
     <motion.div
       className="w-5 h-5 mr-2.5 relative flex items-center justify-center"
-      initial={false}
+      initial={{}}
       animate={isHovered ? { scale: 1.02 } : { scale: 1 }}
       transition={{ duration: 0.2 }}
     >

@@ -125,7 +125,7 @@ export function MedCertIntentPage({ config }: MedCertIntentPageProps) {
                 className="flex justify-center mb-6"
                 initial={prefersReducedMotion ? {} : { y: -10 }}
                 animate={{ y: 0 }}
-                transition={{ duration: 0.5 }}
+                transition={{ duration: 0.3 }}
               >
                 <AvailabilityIndicator variant="badge" service="med-cert" />
               </motion.div>
@@ -143,7 +143,7 @@ export function MedCertIntentPage({ config }: MedCertIntentPageProps) {
                     className="text-base sm:text-lg text-muted-foreground max-w-2xl mb-8 leading-relaxed lg:mx-0 mx-auto"
                     initial={prefersReducedMotion ? {} : { y: 20 }}
                     animate={{ y: 0 }}
-                    transition={{ duration: 0.5, delay: 0.2 }}
+                    transition={{ duration: 0.3, delay: 0.2 }}
                   >
                     {config.heroSubheadline}
                   </motion.p>
@@ -152,7 +152,7 @@ export function MedCertIntentPage({ config }: MedCertIntentPageProps) {
                     className="flex flex-col sm:flex-row gap-4 items-center lg:justify-start justify-center mb-6"
                     initial={prefersReducedMotion ? {} : { y: 20 }}
                     animate={{ y: 0 }}
-                    transition={{ duration: 0.5, delay: 0.3 }}
+                    transition={{ duration: 0.3, delay: 0.3 }}
                   >
                     <Button
                       asChild
@@ -179,7 +179,7 @@ export function MedCertIntentPage({ config }: MedCertIntentPageProps) {
                     className="mb-6"
                     initial={{ y: 6 }}
                     animate={{ y: 0 }}
-                    transition={{ duration: 0.5, delay: 0.35 }}
+                    transition={{ duration: 0.3, delay: 0.35 }}
                   >
                     <EmergencyDisclaimer variant="hero" className="text-xs sm:text-sm" />
                   </motion.div>
@@ -189,7 +189,7 @@ export function MedCertIntentPage({ config }: MedCertIntentPageProps) {
                   className="hidden lg:block relative mt-12 lg:mt-0 shrink-0"
                   initial={prefersReducedMotion ? {} : { x: 40 }}
                   animate={{ x: 0 }}
-                  transition={{ duration: 0.5, delay: 0.5 }}
+                  transition={{ duration: 0.3, delay: 0.5 }}
                 >
                   <div className="relative w-80 xl:w-96 aspect-[4/5] rounded-3xl overflow-hidden shadow-2xl">
                     <Image
@@ -205,7 +205,7 @@ export function MedCertIntentPage({ config }: MedCertIntentPageProps) {
                       className="absolute bottom-4 left-4 bg-white dark:bg-card shadow-md rounded-xl px-3 py-2 border border-border/50 dark:border-white/15"
                       initial={prefersReducedMotion ? {} : { y: 10 }}
                       animate={{ y: 0 }}
-                      transition={{ duration: 0.5, delay: 0.9 }}
+                      transition={{ duration: 0.3, delay: 0.9 }}
                     >
                       <div className="flex items-center gap-2">
                         <Shield className="w-4 h-4 text-success" />
@@ -219,7 +219,7 @@ export function MedCertIntentPage({ config }: MedCertIntentPageProps) {
                   className="lg:hidden mt-10 flex justify-center"
                   initial={prefersReducedMotion ? {} : { y: 20 }}
                   animate={{ y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.5 }}
+                  transition={{ duration: 0.3, delay: 0.5 }}
                 >
                   <div className="relative w-48 h-32 rounded-2xl bg-linear-to-br from-primary/10 to-primary/5 border border-primary/20 p-4 shadow-lg">
                     <div className="flex items-center gap-3">
@@ -244,7 +244,7 @@ export function MedCertIntentPage({ config }: MedCertIntentPageProps) {
                 className="mt-10"
                 initial={prefersReducedMotion ? {} : { y: 20 }}
                 animate={{ y: 0 }}
-                transition={{ duration: 0.5, delay: 0.45 }}
+                transition={{ duration: 0.3, delay: 0.45 }}
               >
                 <LiveWaitTime variant="compact" services={['med-cert']} />
               </motion.div>
@@ -253,7 +253,7 @@ export function MedCertIntentPage({ config }: MedCertIntentPageProps) {
                 className="mt-6 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm text-muted-foreground"
                 initial={{ y: 6 }}
                 animate={{ y: 0 }}
-                transition={{ duration: 0.5, delay: 0.5 }}
+                transition={{ duration: 0.3, delay: 0.5 }}
               >
                 <span className="font-semibold text-foreground">From ${PRICING.MED_CERT.toFixed(2)}</span>
                 <span className="hidden sm:inline text-border">·</span>
@@ -297,7 +297,7 @@ export function MedCertIntentPage({ config }: MedCertIntentPageProps) {
                 initial={prefersReducedMotion ? {} : { y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.5 }}
+                transition={{ duration: 0.3 }}
               >
                 <h2 className="text-2xl sm:text-3xl font-semibold text-foreground mb-3 tracking-tight">
                   {config.explainerTitle}
@@ -311,7 +311,7 @@ export function MedCertIntentPage({ config }: MedCertIntentPageProps) {
                 initial={prefersReducedMotion ? {} : { y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: 0.1 }}
+                transition={{ duration: 0.3, delay: 0.1 }}
               >
                 {config.explainerParagraphs.map((para, i) => (
                   <p key={i} className="text-muted-foreground leading-relaxed">
@@ -324,7 +324,7 @@ export function MedCertIntentPage({ config }: MedCertIntentPageProps) {
                 initial={prefersReducedMotion ? {} : { y: 10 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: 0.2 }}
+                transition={{ duration: 0.3, delay: 0.2 }}
               >
                 <div className="flex items-center gap-2">
                   <div className="flex -space-x-2">
@@ -358,7 +358,7 @@ export function MedCertIntentPage({ config }: MedCertIntentPageProps) {
                   initial={prefersReducedMotion ? {} : { x: -20 }}
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true }}
-                  transition={{ duration: 0.5 }}
+                  transition={{ duration: 0.3 }}
                 >
                   <Image
                     src="/images/medcert-2.webp"
@@ -373,7 +373,7 @@ export function MedCertIntentPage({ config }: MedCertIntentPageProps) {
                   initial={prefersReducedMotion ? {} : { y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: 0.1 }}
+                  transition={{ duration: 0.3, delay: 0.1 }}
                 >
                   <h2 className="text-xl sm:text-2xl font-semibold text-foreground mb-3 tracking-tight">
                     {config.recognitionTitle}
@@ -419,7 +419,7 @@ export function MedCertIntentPage({ config }: MedCertIntentPageProps) {
                 initial={prefersReducedMotion ? {} : { y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.5 }}
+                transition={{ duration: 0.3 }}
               >
                 <EmergencyDisclaimer variant="inline" />
               </motion.div>

@@ -164,7 +164,7 @@ export function HeroSection({ config, colors, isDisabled }: HeroSectionProps) {
               className="flex flex-col gap-2"
               initial={prefersReducedMotion ? {} : { opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
+              transition={{ duration: 0.3, delay: 0.3 }}
             >
               {config.hero.reassurances.slice(0, 2).map((item, i) => (
                 <p key={i} className={cn('text-sm text-muted-foreground flex items-center gap-2', hasImages ? 'justify-center lg:justify-start' : 'justify-center')}>
@@ -196,7 +196,7 @@ export function HeroSection({ config, colors, isDisabled }: HeroSectionProps) {
               className="hidden lg:block relative shrink-0 mt-0"
               initial={prefersReducedMotion ? {} : { opacity: 0, x: 30 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
+              transition={{ duration: 0.3, delay: 0.2 }}
             >
               <div className="relative">
                 {/* Main image */}
@@ -217,7 +217,7 @@ export function HeroSection({ config, colors, isDisabled }: HeroSectionProps) {
                   className="absolute -bottom-4 -left-6 bg-white dark:bg-card rounded-2xl p-3 shadow-xl shadow-primary/[0.08] dark:shadow-none border border-border/50 dark:border-white/15"
                   initial={prefersReducedMotion ? {} : { opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.5, delay: 0.7 }}
+                  transition={{ duration: 0.3, delay: 0.7 }}
                 >
                   <div className="flex items-center gap-2">
                     <div className={cn('w-8 h-8 rounded-full flex items-center justify-center', colors.light)}>
