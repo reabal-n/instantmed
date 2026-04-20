@@ -37,7 +37,7 @@ export function Confetti({
           particleCount: 100,
           spread: 70,
           origin: { y: 0.6 },
-          colors: ["#2563EB", "#4f46e5", "#F59E0B", "#10B981"], // primary, indigo, amber, emerald — canvas-confetti needs raw hex
+          colors: ["#2563EB", "#0EA5E9", "#F59E0B", "#10B981"], // primary, sky, amber, emerald — canvas-confetti needs raw hex
           ...options,
         }
 

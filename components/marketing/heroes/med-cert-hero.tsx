@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button"
 import { MagneticButton } from "@/components/ui/magnetic-button"
 import { PRICING } from "@/lib/constants"
 import { BADGE_REGISTRY } from "@/lib/marketing/trust-badges"
-import { SOCIAL_PROOF_DISPLAY } from "@/lib/social-proof"
+import { getPatientCount, SOCIAL_PROOF_DISPLAY } from "@/lib/social-proof"
 
 export function MedCertHeroSection({
   ctaRef,
@@ -30,7 +30,7 @@ export function MedCertHeroSection({
     BADGE_REGISTRY.no_appointment.label,
     patientCount && patientCount > 0
       ? `Trusted by ${patientCount.toLocaleString()}+ Australians`
-      : "Trusted by 3,000+ Australians",
+      : `Trusted by ${getPatientCount().toLocaleString()}+ Australians`,
     BADGE_REGISTRY.refund.label,
   ]
 

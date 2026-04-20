@@ -1,0 +1,20 @@
+# CODEOWNERS — design system files require review before merge.
+# Any PR touching these paths must be approved by @rey.
+
+# Design system source of truth
+docs/DESIGN_SYSTEM.md @rey
+docs/DESIGN_SYSTEM_CHANGELOG.md @rey
+lib/design-system/ @rey
+
+# Icon system
+components/icons/ @rey
+
+# Morning Canvas primitives
+components/ui/morning/ @rey
+
+# Global tokens and base styles
+app/globals.css @rey
+
+# CI design-token enforcement scripts
+scripts/verify-tokens.sh @rey
+eslint.config.mjs @rey

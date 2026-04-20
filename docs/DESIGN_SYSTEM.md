@@ -308,13 +308,15 @@ All service icons use the `ServiceIconTile` component (`components/icons/service
 | Token | Gradient | Use |
 |-------|----------|-----|
 | `emerald` | `#10B981 → #059669` | Medical Certificates |
-| `cyan` | `#0EA5E9 → #0284C7` | Repeat Medication |
-| `blue` | `#6366F1 → #4F46E5` | ED Treatment |
-| `violet` | `#A855F7 → #7C3AED` | Hair Loss |
+| `cyan` / `sky` | `#0EA5E9 → #0284C7` | Repeat Medication / General Consult |
+| `blue` | `#6366F1 → #4F46E5` | ED Treatment _(service-icon exception — see note)_ |
+| `amber` | `#F59E0B → #D97706` | Hair Loss |
 | `pink` | `#EC4899 → #DB2777` | Women's Health |
 | `rose` | `#F43F5E → #E11D48` | Weight Loss |
 
-**Icon keys:** `"FileText"` · `"Pill"` · `"Lightning"` · `"Sparkles"` · `"Heart"` · `"Flame"`
+> **Service-icon exception (§1 C1 sweep):** The `blue` token (`#6366F1 → #4F46E5`) uses indigo — visually adjacent to violet but distinctly blue on-screen. It is permitted **only inside `ServiceIconTile`** (the 40×40px icon tile). It must not appear on marketing surfaces, text, backgrounds, or borders. The `violet` token was removed from `serviceColorConfig` in 2026-04-20 (Phase 2a) and is not available. If ED Treatment ever changes palette, use `sky` or `blue` (Tailwind) — never `violet`.
+
+**Icon keys:** `"FileText"` · `"Pill"` · `"Lightning"` · `"Sparkles"` · `"Heart"` · `"Flame"` · `"Stethoscope"`
 
 **SVG fill pattern (duotone effect):** Primary shape `rgba(255,255,255,0.92)` · Secondary/depth `rgba(255,255,255,0.38–0.5)` · Content lines `rgba(0,0,0,0.10–0.16)`. The gradient background shows through semi-transparent white, creating a natural two-tone look.
 

@@ -40,7 +40,7 @@ export function ISOLogo({ className }: LogoProps) {
 export function AHPRALogo({ className }: LogoProps) {
   return (
     <svg viewBox="0 0 32 32" className={cn("w-6 h-6", className)} fill="none">
-      <rect width="32" height="32" rx="6" fill="#4F46E5" />
+      <rect width="32" height="32" rx="6" fill="#0284C7" />
       <path
         d="M16 6L20 14H12L16 6Z"
         fill="white"
@@ -55,7 +55,7 @@ export function AHPRALogo({ className }: LogoProps) {
 export function TGALogo({ className }: LogoProps) {
   return (
     <svg viewBox="0 0 32 32" className={cn("w-6 h-6", className)} fill="none">
-      <rect width="32" height="32" rx="6" fill="#7C3AED" />
+      <rect width="32" height="32" rx="6" fill="#0F766E" />
       <text x="16" y="14" textAnchor="middle" fill="white" fontSize="8" fontWeight="bold" fontFamily="system-ui">TGA</text>
       <path
         d="M10 20H22M10 24H18"
