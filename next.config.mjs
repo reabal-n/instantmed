@@ -48,7 +48,7 @@ const nextConfig = {
       hostname: "api.dicebear.com"
     }]
   },
-  webpack(config) {
+  webpack(config, { dev, isServer }) {
     // Walk ALL rules (including nested oneOf arrays) and exclude SVGs from
     // any existing rule that would otherwise match them. Next.js 15 may nest
     // the asset/resource SVG rule inside a oneOf array, so a shallow find()
@@ -78,6 +78,24 @@ const nextConfig = {
         },
       }],
     })
+
+    // Next 15.5 bug workaround: next-devtools/dev-overlay modules leak into
+    // production client bundles (~217KB of CSS + JS). The source guards the
+    // require() with process.env.NODE_ENV !== 'production', but webpack's DCE
+    // doesn't strip the require target because other require()s reach the
+    // same module. Null-alias them in prod so webpack shakes them out entirely.
+    if (!dev && !isServer) {
+      config.resolve = config.resolve || {}
+      config.resolve.alias = {
+        ...(config.resolve.alias || {}),
+        // Match all internal dev-overlay paths used by next/dist/client/*
+        'next/dist/next-devtools/userspace/app/errors': false,
+        'next/dist/next-devtools/userspace/app/app-dev-overlay-error-boundary': false,
+        'next/dist/next-devtools/userspace/app/segment-explorer-node': false,
+        'next/dist/next-devtools/userspace/app/errors/stitched-error': false,
+        'next/dist/compiled/next-devtools': false,
+      }
+    }
     return config
   },
   serverExternalPackages: ["@supabase/ssr", "posthog-node"],

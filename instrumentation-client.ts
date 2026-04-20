@@ -150,9 +150,13 @@ if (process.env.NEXT_PUBLIC_POSTHOG_KEY) {
       person_profiles: "identified_only",
       capture_pageview: false,   // Manual pageview tracking in PostHogProvider for SPA
       capture_pageleave: true,
-      capture_exceptions: true,
+      // Sentry already captures exceptions + has PHI scrubbing; posthog duplicating
+      // this just adds network chatter and an extra module.
+      capture_exceptions: false,
       autocapture: true,
       disable_session_recording: true,  // Deferred - starts after idle to avoid blocking LCP
+      // Surveys module is ~25KB and we have no surveys live. Skip loading it.
+      disable_surveys: true,
       session_recording: {
         maskAllInputs: true,          // PHI protection - mask all form inputs
         maskTextSelector: "[data-phi]", // Extra masking for PHI-tagged elements
