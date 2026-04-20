@@ -17,7 +17,7 @@ export const repeatScriptFunnelConfig: ServiceFunnelConfig = {
     subheadline: `For medications you already take. A doctor reviews your request and sends an eScript straight to your phone.`,
     reassurances: [
       'AHPRA-registered doctors · Works at any pharmacy · Full refund if we can\'t help',
-      'No account required · Full refund if we can\'t help',
+      'No account required · eScript delivered to your phone via SMS',
     ],
     ctaText: `Renew your medication - ${PRICING_DISPLAY.REPEAT_SCRIPT}`,
     ctaHref: '/request?service=prescription',
@@ -250,7 +250,7 @@ export const generalConsultFunnelConfig: ServiceFunnelConfig = {
     subheadline: `Talk to an AHPRA-registered GP about health concerns, treatment options, or anything you'd normally see a doctor for. Medication may be prescribed by your doctor if clinically appropriate.`,
     reassurances: [
       'AHPRA-registered doctors · Medication & referrals if needed · Full refund if we can\'t help',
-      'No account required · Full refund if we can\'t help',
+      'No account required · eScript sent to any Australian pharmacy',
     ],
     ctaText: `Start your consult - ${PRICING_DISPLAY.CONSULT}`,
     ctaHref: '/request?service=consult',

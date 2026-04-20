@@ -22,7 +22,9 @@
 
 | File | Scope | When to load |
 |------|-------|-------------|
-| `docs/DESIGN_SYSTEM.md` | Color, typography, spacing, components, elevation, layout, motion, animation, voice, brand | **Every UI session.** Load before any UI/frontend/marketing work. The design system is law. |
+| `docs/AI_ONBOARDING.md` | **Start here.** 5-min orientation for AI assistants on UI: top 10 rules, canonical files, common gotchas, ship checklist | **First** UI session in any new context. |
+| `docs/DESIGN_SYSTEM.md` | Color, typography, spacing, components, elevation, layout, motion, animation, voice, brand. Pinned at v1.0.0. | **Every UI session.** Load before any UI/frontend/marketing work. The design system is law. |
+| `docs/DESIGN_SYSTEM_CHANGELOG.md` | Breaking + notable design-system changes with version history | Bumping `DESIGN_SYSTEM_VERSION` or auditing drift |
 | `docs/ARCHITECTURE.md` | System design, data flows, portals, DB schema, API routes, directory index, tech stack, key pages, AI config | Building features, understanding flows, navigating the codebase |
 | `docs/CLINICAL.md` | Clinical boundaries, prescribing rules, AI limits, consent, privacy (APP 1-13) | Any clinical logic, AI prompts, compliance work |
 | `docs/SECURITY.md` | PHI encryption, RLS, rate limiting, audit logging, incident classification | Security work, auth, data access patterns |

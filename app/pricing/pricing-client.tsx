@@ -1,11 +1,12 @@
 "use client"
 
 import { AnimatePresence,motion } from "framer-motion"
-import { ArrowRight, Check, Clock, FileText, Gift, Pill, Shield, Star, Stethoscope,Zap } from "lucide-react"
+import { ArrowRight, Check, Clock, Gift, Shield, Star, Zap } from "lucide-react"
 import Link from "next/link"
 import { useEffect, useRef, useState } from "react"
 
 import { StatsHero } from "@/components/heroes"
+import { ServiceIconTile } from "@/components/icons/service-icons"
 import { DoctorCredibility, RegulatoryPartners } from "@/components/marketing"
 import { CompetitorLinksSection, PricingGuideSection } from "@/components/marketing/sections"
 import { ComparisonBar, InformationalPageShell, TestimonialCard } from "@/components/marketing/shared"
@@ -22,6 +23,9 @@ import { cn } from "@/lib/utils"
 
 /* ────────────────────────────── Data ────────────────────────────── */
 
+// Pricing card services. Icon + colour tokens sourced from canonical
+// service-catalog; hex `color` retained for legacy checkmark + button
+// variants (cleaned up in Phase 2 sweep).
 const services = [
   {
     name: "Medical Certificate",
@@ -37,8 +41,9 @@ const services = [
     ],
     popular: true,
     href: "/medical-certificate",
-    icon: FileText,
-    color: "#2563EB",
+    iconKey: "FileText",
+    colorToken: "emerald",
+    color: "#059669",
     cta: `Get your certificate - $${PRICING.MED_CERT}`,
   },
   {
@@ -54,8 +59,9 @@ const services = [
     ],
     popular: false,
     href: "/prescriptions",
-    icon: Pill,
-    color: "#4f46e5",
+    iconKey: "Pill",
+    colorToken: "cyan",
+    color: "#0284C7",
     cta: `Renew medication - $${PRICING.REPEAT_SCRIPT}`,
   },
   {
@@ -72,8 +78,9 @@ const services = [
     ],
     popular: false,
     href: "/consult",
-    icon: Stethoscope,
-    color: "#059669",
+    iconKey: "Stethoscope",
+    colorToken: "sky",
+    color: "#0284C7",
     cta: `Start assessment - from $${PRICING.HAIR_LOSS}`,
   },
 ]
@@ -218,12 +225,7 @@ export function PricingClient() {
                   )}
 
                   <div className="flex justify-center mb-3">
-                    <div
-                      className="w-12 h-12 rounded-xl flex items-center justify-center"
-                      style={{ backgroundColor: `${service.color}20` }}
-                    >
-                      <service.icon className="w-7 h-7" style={{ color: service.color }} />
-                    </div>
+                    <ServiceIconTile iconKey={service.iconKey} color={service.colorToken} size="lg" />
                   </div>
 
                   <div className="text-center mb-4">

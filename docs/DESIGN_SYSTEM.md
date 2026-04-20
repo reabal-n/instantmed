@@ -1,5 +1,7 @@
 # DESIGN_SYSTEM.md — InstantMed
 
+> **Version: 1.0.0** · Pinned 2026-04-20 · See [changelog](DESIGN_SYSTEM_CHANGELOG.md) · Pin constant: `lib/design-system/version.ts`
+
 > **Load every session.** Single source of truth for all visual, layout, and interaction decisions. The design system is law.
 
 > Brand essence: "Clarity emerging." Calm authority. Morning light. Good judgment. If it feels impressive but loud — kill it. If it resembles crypto/AI SaaS — kill it. If it feels like wellness marketing — kill it.

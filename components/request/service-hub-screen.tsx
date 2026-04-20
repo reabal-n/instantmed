@@ -14,13 +14,12 @@ import { ChevronRight, MessageSquare,RotateCcw, Star, Trash2 } from "lucide-reac
 import { useRouter } from "next/navigation"
 import { useCallback,useEffect, useState } from "react"
 
-import { StickerIcon, type StickerIconName } from "@/components/icons/stickers"
+import { ServiceIconTile } from "@/components/icons/service-icons"
 import { GoogleAdsCert } from "@/components/marketing/google-ads-cert"
 import { LegitScriptSeal } from "@/components/marketing/legitscript-seal"
 import { usePostHog } from "@/components/providers/posthog-provider"
 import { Button } from "@/components/ui/button"
 import { useReducedMotion } from "@/components/ui/motion"
-import { PRICING_DISPLAY } from "@/lib/constants"
 import { stagger } from "@/lib/motion"
 import {
   type CanonicalServiceType,
@@ -30,93 +29,24 @@ import {
 } from "@/lib/request/draft-storage"
 import { getPreferences, savePreferences } from "@/lib/request/preferences"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
+import {
+  getActiveServices,
+  getComingSoonServices,
+  type ServiceDef as CanonicalServiceDef,
+} from "@/lib/services/service-catalog"
 import { getPatientCount } from "@/lib/social-proof"
 import { cn } from "@/lib/utils"
 
 // ─── Service definitions ──────────────────────────────────────────────────
+//
+// Sourced from the canonical catalog (lib/services/service-catalog.ts).
+// Do not inline definitions here — update the catalog instead.
+//
+// Local alias that adds the click handler shape expected by CompactServiceRow.
+type ServiceDef = CanonicalServiceDef
 
-interface ServiceDef {
-  id: string
-  title: string
-  subtitle: string
-  price: string
-  pricePrefix?: string
-  effort: string
-  icon: StickerIconName
-  popular?: boolean
-  service: UnifiedServiceType
-  subtype?: string
-}
-
-const SERVICES: ServiceDef[] = [
-  {
-    id: "med-cert",
-    title: "Medical certificate",
-    subtitle: "Doctor-reviewed, ready in ~30 min",
-    price: PRICING_DISPLAY.MED_CERT,
-    pricePrefix: "From",
-    effort: "~2 min",
-    icon: "certificate",
-    popular: true,
-    service: "med-cert",
-    subtype: undefined,
-  },
-  {
-    id: "repeat-rx",
-    title: "Refill a prescription",
-    subtitle: "Renew an existing medication online",
-    price: PRICING_DISPLAY.REPEAT_SCRIPT,
-    effort: "~3 min",
-    icon: "pill-bottle",
-    service: "repeat-script",
-    subtype: undefined,
-  },
-  {
-    id: "ed",
-    title: "Erectile dysfunction",
-    subtitle: "Discreet assessment, no phone call",
-    price: PRICING_DISPLAY.MENS_HEALTH,
-    effort: "~4 min",
-    icon: "lightning",
-    service: "consult",
-    subtype: "ed",
-  },
-  {
-    id: "hair-loss",
-    title: "Hair loss treatment",
-    subtitle: "Doctor-assessed treatment plan",
-    price: PRICING_DISPLAY.HAIR_LOSS,
-    effort: "~2 min",
-    icon: "hair-brush",
-    service: "consult",
-    subtype: "hair_loss",
-  },
-  {
-    id: "general-consult",
-    title: "General consultation",
-    subtitle: "Speak with a doctor about anything",
-    price: PRICING_DISPLAY.CONSULT,
-    effort: "~5 min",
-    icon: "stethoscope",
-    service: "consult",
-    subtype: undefined,
-  },
-]
-
-const COMING_SOON = [
-  {
-    id: "womens-health",
-    title: "Women's health",
-    subtitle: "Contraception, UTI treatment & more",
-    emoji: "\uD83E\uDDF1",
-  },
-  {
-    id: "weight-loss",
-    title: "Weight management",
-    subtitle: "Doctor-guided treatment plan",
-    emoji: "\uD83C\uDFAF",
-  },
-]
+const SERVICES: ServiceDef[] = getActiveServices()
+const COMING_SOON: ServiceDef[] = getComingSoonServices()
 
 const SERVICE_NAMES: Record<string, string> = {
   "med-cert": "medical certificate",
@@ -330,7 +260,7 @@ export function ServiceHubScreen({ onSelectService }: ServiceHubScreenProps) {
             <CompactServiceRow
               key={svc.id}
               {...svc}
-              onClick={() => handleSelectService(svc.service, svc.subtype)}
+              onClick={() => handleSelectService(svc.serviceRoute, svc.subtype)}
               prefersReducedMotion={prefersReducedMotion}
             />
           ))}
@@ -348,7 +278,12 @@ export function ServiceHubScreen({ onSelectService }: ServiceHubScreenProps) {
                 className="rounded-xl bg-muted/30 border border-border/30 px-4 py-3.5"
               >
                 <div className="flex items-center gap-2.5">
-                  <span className="text-base opacity-50" role="img">{svc.emoji}</span>
+                  <ServiceIconTile
+                    iconKey={svc.iconKey}
+                    color={svc.colorToken}
+                    size="sm"
+                    className="opacity-60 grayscale"
+                  />
                   <div>
                     <h4 className="text-sm font-medium text-muted-foreground">
                       {svc.title}
@@ -391,7 +326,8 @@ function CompactServiceRow({
   price,
   pricePrefix,
   effort,
-  icon,
+  iconKey,
+  colorToken,
   popular,
   onClick,
   prefersReducedMotion,
@@ -408,8 +344,8 @@ function CompactServiceRow({
         )}
       >
         <div className="flex items-center gap-3.5">
-          {/* Sticker */}
-          <StickerIcon name={icon} size={36} className="shrink-0" />
+          {/* Service icon tile — canonical gradient-tile variant */}
+          <ServiceIconTile iconKey={iconKey} color={colorToken} size="md" className="shrink-0" />
 
           {/* Content */}
           <div className="flex-1 min-w-0">
