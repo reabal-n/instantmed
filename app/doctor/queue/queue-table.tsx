@@ -253,7 +253,7 @@ export function QueueTable({
                     </Badge>
                   )}
                   {intake.ai_approved && (
-                    <Badge className="bg-violet-50 dark:bg-violet-500/10 text-violet-700 dark:text-violet-400 border-violet-200 dark:border-violet-500/20">
+                    <Badge className="bg-teal-50 dark:bg-teal-500/10 text-teal-700 dark:text-teal-400 border-teal-200 dark:border-teal-500/20">
                       <Sparkles className="w-3 h-3 mr-1" />Auto-reviewed
                     </Badge>
                   )}
@@ -332,10 +332,10 @@ export function QueueTable({
 
       {/* AI-Approved Review Section - above pagination so doctors always see it */}
       {aiApprovedIntakes.length > 0 && (
-        <Card className="border-violet-200/50 dark:border-violet-500/20">
+        <Card className="border-teal-200/50 dark:border-teal-500/20">
           <CardHeader className="pb-3">
             <div className="flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-violet-600 dark:text-violet-400" />
+              <Sparkles className="h-4 w-4 text-teal-600 dark:text-teal-400" />
               <h3 className="text-sm font-semibold text-foreground">
                 AI-Approved Certificates ({aiApprovedIntakes.length})
               </h3>
@@ -367,7 +367,7 @@ export function QueueTable({
                       <Badge variant="outline" className="text-xs">
                         {aiService?.short_name || "Med Cert"}
                       </Badge>
-                      <Badge className="bg-violet-50 dark:bg-violet-500/10 text-violet-700 dark:text-violet-400 border-violet-200 dark:border-violet-500/20">
+                      <Badge className="bg-teal-50 dark:bg-teal-500/10 text-teal-700 dark:text-teal-400 border-teal-200 dark:border-teal-500/20">
                         <Sparkles className="w-3 h-3 mr-1" />
                         AI approved
                       </Badge>

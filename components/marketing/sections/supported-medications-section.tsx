@@ -48,9 +48,9 @@ const CATEGORIES: MedCategory[] = [
     icon: Shield,
     name: "Contraceptives",
     examples: "Combined pill, mini pill",
-    accent: "border-t-violet-400/60",
-    iconBg: "bg-violet-50 dark:bg-violet-500/10",
-    iconColor: "text-violet-500",
+    accent: "border-t-pink-400/60",
+    iconBg: "bg-pink-50 dark:bg-pink-500/10",
+    iconColor: "text-pink-500",
   },
   {
     icon: Wind,

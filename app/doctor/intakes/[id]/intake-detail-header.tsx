@@ -260,17 +260,17 @@ export function IntakeDetailHeader({
 
       {/* AI Auto-Approved Info */}
       {intake.ai_approved && (
-        <Card className="border-violet-200/50 dark:border-violet-500/20 bg-violet-50/50 dark:bg-violet-500/5">
+        <Card className="border-teal-200/50 dark:border-teal-500/20 bg-teal-50/50 dark:bg-teal-500/5">
           <CardContent className="px-4 py-3">
             <div className="flex items-start gap-3">
-              <div className="rounded-full bg-violet-100 dark:bg-violet-500/20 p-1.5 shrink-0 mt-0.5">
-                <Sparkles className="h-3.5 w-3.5 text-violet-600 dark:text-violet-400" />
+              <div className="rounded-full bg-teal-100 dark:bg-teal-500/20 p-1.5 shrink-0 mt-0.5">
+                <Sparkles className="h-3.5 w-3.5 text-teal-600 dark:text-teal-400" />
               </div>
               <div className="space-y-1 min-w-0">
-                <p className="text-sm font-medium text-violet-700 dark:text-violet-300">
+                <p className="text-sm font-medium text-teal-700 dark:text-teal-300">
                   AI Auto-Approved
                   {intake.ai_approved_at && (
-                    <span className="font-normal text-violet-500 dark:text-violet-400 ml-2 text-xs">
+                    <span className="font-normal text-teal-500 dark:text-teal-400 ml-2 text-xs">
                       {new Date(intake.ai_approved_at).toLocaleString("en-AU", {
                         day: "numeric", month: "short", hour: "2-digit", minute: "2-digit",
                       })}
@@ -278,7 +278,7 @@ export function IntakeDetailHeader({
                   )}
                 </p>
                 {intake.ai_approval_reason && (
-                  <p className="text-xs text-violet-600/80 dark:text-violet-400/80">
+                  <p className="text-xs text-teal-600/80 dark:text-teal-400/80">
                     {intake.ai_approval_reason}
                   </p>
                 )}

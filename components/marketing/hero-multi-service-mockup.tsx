@@ -61,7 +61,7 @@ export function HeroMultiServiceMockup() {
             },
             {
               icon: Stethoscope,
-              color: "violet",
+              color: "sky",
               title: "Treatment Plan",
               status: "Doctor reviewed",
               trailingIcon: CheckCircle2,
@@ -73,7 +73,7 @@ export function HeroMultiServiceMockup() {
                 "flex items-center gap-3 p-3 rounded-xl border",
                 color === "emerald" && "bg-emerald-50 dark:bg-emerald-950/20 border-emerald-100 dark:border-emerald-900/30",
                 color === "cyan" && "bg-cyan-50 dark:bg-cyan-950/20 border-cyan-100 dark:border-cyan-900/30",
-                color === "violet" && "bg-violet-50 dark:bg-violet-950/20 border-violet-100 dark:border-violet-900/30",
+                color === "sky" && "bg-sky-50 dark:bg-sky-950/20 border-sky-100 dark:border-sky-900/30",
               )}
               initial={animate ? { opacity: 0, x: -8 } : {}}
               animate={animate ? { opacity: 1, x: 0 } : {}}
@@ -83,13 +83,13 @@ export function HeroMultiServiceMockup() {
                 "w-8 h-8 rounded-lg flex items-center justify-center shrink-0",
                 color === "emerald" && "bg-emerald-100 dark:bg-emerald-950/50",
                 color === "cyan" && "bg-cyan-100 dark:bg-cyan-950/50",
-                color === "violet" && "bg-violet-100 dark:bg-violet-950/50",
+                color === "sky" && "bg-sky-100 dark:bg-sky-950/50",
               )}>
                 <Icon className={cn(
                   "w-4 h-4",
                   color === "emerald" && "text-emerald-600 dark:text-emerald-400",
                   color === "cyan" && "text-cyan-600 dark:text-cyan-400",
-                  color === "violet" && "text-violet-600 dark:text-violet-400",
+                  color === "sky" && "text-sky-600 dark:text-sky-400",
                 )} />
               </div>
               <div className="flex-1 min-w-0">
@@ -98,7 +98,7 @@ export function HeroMultiServiceMockup() {
                   "text-[10px] font-medium",
                   color === "emerald" && "text-emerald-600 dark:text-emerald-400",
                   color === "cyan" && "text-cyan-600 dark:text-cyan-400",
-                  color === "violet" && "text-violet-600 dark:text-violet-400",
+                  color === "sky" && "text-sky-600 dark:text-sky-400",
                 )}>{status}</p>
               </div>
               <TrailingIcon className={cn(
