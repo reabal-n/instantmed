@@ -232,6 +232,9 @@ const nextConfig = {
       { source: "/general-consult", destination: "/consult", permanent: true },
       // Blog cannibalization consolidation -- duplicate articles merged into canonical versions
       { source: "/blog/are-online-medical-certificates-valid", destination: "/blog/are-online-medical-certificates-valid-australia", permanent: true },
+      // antibiotic-prescription-online-australia and can-you-get-antibiotics-online-australia target
+      // identical queries -- the latter is already indexed with 1,000+ impressions, consolidate traffic
+      { source: "/blog/antibiotic-prescription-online-australia", destination: "/blog/can-you-get-antibiotics-online-australia", permanent: true },
       // NOTE: /blog/repeat-prescription-online-australia redirect removed -- MDX article now live at that slug
       // /performance-anxiety was an old ED landing page -- redirect to canonical ED page
       { source: "/performance-anxiety", destination: "/erectile-dysfunction", permanent: true },
