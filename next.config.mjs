@@ -25,6 +25,10 @@ const nextConfig = {
     // fixing the actual unused-JS issue (which is Next.js's own devtools chunk,
     // not barrel exports). Net negative on performance — do not re-enable until
     // the next-devtools chunk issue is resolved upstream.
+    //
+    // optimizeCss: true was tested and reverted — critters peer-dep crashes
+    // the build in Next 15.5.15 with MODULE_NOT_FOUND on jest-worker's
+    // processChild.js. Re-evaluate when Next ships its stable CSS inliner.
   },
   images: {
     // Enable Next.js Image Optimization

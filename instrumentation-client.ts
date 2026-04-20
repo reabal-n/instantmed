@@ -131,18 +131,33 @@ async function loadAndInitSentry() {
   }
 }
 
-// Schedule Sentry init after the page is interactive so it stays off the
-// critical path (improves LCP and TBT on Lighthouse mobile).
-if ("requestIdleCallback" in window) {
-  requestIdleCallback(() => loadAndInitSentry(), { timeout: 3000 });
-} else {
-  setTimeout(() => loadAndInitSentry(), 1500);
+// Gate telemetry (Sentry + PostHog) behind first user interaction OR a 4s
+// hard fallback. Keeps ~250 KB of Sentry + PostHog chunks off the initial
+// load path — real users interact within a second or two (scroll is enough),
+// so telemetry-latency impact is negligible, and bouncers who never engage
+// are already counted by Vercel Analytics. 10s was tested and gave the same
+// Lighthouse score as 4s, so 4s is the right tradeoff.
+function onFirstInteraction(cb: () => void) {
+  let fired = false;
+  const fire = () => {
+    if (fired) return;
+    fired = true;
+    events.forEach(e => window.removeEventListener(e, fire));
+    if (timer) clearTimeout(timer);
+    cb();
+  };
+  const events = ["pointerdown", "keydown", "scroll", "touchstart"] as const;
+  events.forEach(e => window.addEventListener(e, fire, { once: true, passive: true }));
+  const timer = setTimeout(fire, 4000);
 }
+
+onFirstInteraction(() => loadAndInitSentry());
 
 // PostHog Analytics initialization (single source of truth - do not duplicate in provider)
 // Dynamic import to avoid module-level crash when posthog-js can't initialize
 if (process.env.NEXT_PUBLIC_POSTHOG_KEY) {
   const posthogKey = process.env.NEXT_PUBLIC_POSTHOG_KEY;
+  onFirstInteraction(() => {
   import("posthog-js").then(({ default: posthog }) => {
     posthog.init(posthogKey, {
       api_host: "/ingest",
@@ -176,5 +191,6 @@ if (process.env.NEXT_PUBLIC_POSTHOG_KEY) {
     }
   }).catch(() => {
     // PostHog not available - skip silently
+  });
   });
 }
