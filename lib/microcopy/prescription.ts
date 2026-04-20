@@ -1,4 +1,7 @@
+import { isControlledSubstance } from "@/lib/clinical/intake-validation"
 import { PRICING_DISPLAY } from "@/lib/constants"
+
+export { isControlledSubstance }
 
 /**
  * Prescription Flow Microcopy Dictionary
@@ -219,38 +222,3 @@ export const RX_MICROCOPY = {
   },
 } as const
 
-// Controlled substance patterns for knockout
-export const CONTROLLED_PATTERNS = [
-  /oxycodone/i,
-  /oxycontin/i,
-  /endone/i,
-  /morphine/i,
-  /codeine/i,
-  /dexamphetamine/i,
-  /dexedrine/i,
-  /vyvanse/i,
-  /lisdexamfetamine/i,
-  /methylphenidate/i,
-  /ritalin/i,
-  /concerta/i,
-  /diazepam/i,
-  /valium/i,
-  /alprazolam/i,
-  /xanax/i,
-  /temazepam/i,
-  /normison/i,
-  /clonazepam/i,
-  /rivotril/i,
-  /lorazepam/i,
-  /ativan/i,
-  /oxazepam/i,
-  /serepax/i,
-  /nitrazepam/i,
-  /mogadon/i,
-  /fentanyl/i,
-  /tramadol/i,
-]
-
-export function isControlledSubstance(medication: string): boolean {
-  return CONTROLLED_PATTERNS.some((pattern) => pattern.test(medication))
-}

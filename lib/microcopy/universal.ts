@@ -3,7 +3,10 @@
  * Tone: professional, witty, relatable, friendly, slightly irreverent, reassuring
  * Never: "asynchronous", "automated", "no doctor involved"
  */
+import { isControlledSubstance } from "@/lib/clinical/intake-validation"
 import { PRICING_DISPLAY } from "@/lib/constants"
+
+export { isControlledSubstance }
 
 export const COPY = {
   // Global messaging
@@ -249,10 +252,3 @@ export const COPY = {
   },
 } as const
 
-// Controlled substances regex (Schedule 8)
-export const CONTROLLED_REGEX =
-  /\b(oxycodone|oxycontin|endone|targin|morphine|ms\s?contin|kapanol|fentanyl|durogesic|methadone|codeine|panadeine\s?forte|nurofen\s?plus|mersyndol|tramadol|tramal|zydol|alprazolam|xanax|kalma|diazepam|valium|antenex|temazepam|temaze|normison|clonazepam|rivotril|paxam|lorazepam|ativan|nitrazepam|mogadon|alodorm|oxazepam|serepax|murelax|flunitrazepam|rohypnol|hypnodorm|midazolam|hypnovel|methylphenidate|ritalin|concerta|dexamphetamine|dexedrine|lisdexamfetamine|vyvanse|modafinil|modavigil|testosterone|androderm|reandron|sustanon|primoteston|anabolic|nandrolone|stanozolol|ketamine|ghb|gamma)/i
-
-export function isControlledSubstance(medication: string): boolean {
-  return CONTROLLED_REGEX.test(medication)
-}

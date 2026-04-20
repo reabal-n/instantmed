@@ -36,6 +36,9 @@ export const metadata: Metadata = {
     description:
       "Learn how to verify medical certificates issued by InstantMed. Quick, secure verification for employers.",
   },
+  alternates: {
+    canonical: "https://instantmed.com.au/for/employers",
+  },
 }
 
 const employerLogos = [

@@ -4,21 +4,16 @@ import {
   AlertTriangle,
   CheckCircle,
   ChevronDown,
-  ChevronRight,
   Clock,
   Eye,
-  FileText,
-  Flag,
   Loader2,
-  MoreVertical,
+  MessageSquare,
   ShieldAlert,
   Sparkles,
-  XCircle,
   Zap,
 } from "lucide-react"
-import { MessageSquare } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { useTransition } from "react"
+import { useState,useTransition } from "react"
 import { toast } from "sonner"
 
 import { revokeAIApproval } from "@/app/actions/revoke-ai-approval"
@@ -33,13 +28,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { EmptyState } from "@/components/ui/empty-state"
 import {
   Select,
   SelectContent,
@@ -59,6 +47,22 @@ import type { IntakeWithPatient } from "@/types/db"
 
 import type { PaginationInfo } from "./types"
 import type { QueueDialogState } from "./use-queue-dialogs"
+
+function getChiefComplaint(intake: IntakeWithPatient): string | null {
+  const a = (intake.answers as Array<{ answers: Record<string, unknown> }> | null | undefined)?.[0]?.answers
+  if (!a) return null
+  const candidate = (
+    a["symptom_details"] ??
+    a["symptoms"] ??
+    a["consult_reason"] ??
+    a["edGoal"] ??
+    a["medication_name"] ??
+    a["drug_name"] ??
+    a["reason_for_request"]
+  )
+  if (typeof candidate !== "string" || !candidate.trim()) return null
+  return candidate.length > 50 ? `${candidate.slice(0, 50)}…` : candidate
+}
 
 /**
  * Map a consult subtype to a short scanning-aid label for the queue chip.
@@ -88,6 +92,7 @@ export interface QueueTableProps {
   getWaitTimeSeverity: (createdAt: string, slaDeadline?: string | null) => "normal" | "warning" | "critical"
   calculateSlaCountdown: (slaDeadline: string | null | undefined) => string | null
   openReviewPanel: (intakeId: string) => void
+  openIntakeId: string | null
   dialogs: QueueDialogState
 
   // Extra sections
@@ -109,6 +114,7 @@ export function QueueTable({
   getWaitTimeSeverity,
   calculateSlaCountdown,
   openReviewPanel,
+  openIntakeId,
   dialogs: {
     declineDialog,
     setDeclineDialog,
@@ -144,215 +150,162 @@ export function QueueTable({
 }: QueueTableProps) {
   const router = useRouter()
   const [, startTransition] = useTransition()
+  const [completedExpanded, setCompletedExpanded] = useState(false)
 
   const totalPages = pagination ? Math.ceil(pagination.total / pagination.pageSize) : 1
   const currentPage = pagination?.page ?? 1
 
   return (
     <>
-      {/* Queue List */}
-      <div className="space-y-3">
-        {filteredIntakes.length === 0 ? (
-          <EmptyState
-            icon={CheckCircle}
-            title="Queue is clear!"
-            description="No requests pending review. New requests will appear here automatically."
-          />
-        ) : (
-          filteredIntakes.map((intake) => {
-            const isExpanded = expandedId === intake.id
+      {/* Queue List — flat rows, single click opens review panel */}
+      {filteredIntakes.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-16 px-6 text-center rounded-xl border border-dashed border-border/60 bg-muted/20">
+          <div className="text-4xl mb-3" aria-hidden="true">🎉</div>
+          <h3 className="text-base font-semibold text-foreground mb-1">Queue is clear!</h3>
+          <p className="text-sm text-muted-foreground max-w-xs">
+            All caught up. New requests will appear here automatically.
+          </p>
+        </div>
+      ) : (
+        <div className="rounded-xl border border-border overflow-hidden">
+          {filteredIntakes.map((intake, index) => {
+            const isFocused = expandedId === intake.id
             const waitSeverity = getWaitTimeSeverity(intake.created_at, intake.sla_deadline)
             const patientAge = calculateAge(intake.patient.date_of_birth)
             const service = intake.service as { name?: string; type?: string; short_name?: string } | undefined
 
+            const isOpen = openIntakeId === intake.id
+            const chiefComplaint = getChiefComplaint(intake)
             return (
-              <Card
+              <div
                 key={intake.id}
+                role="button"
+                tabIndex={0}
+                aria-label={`Open case for ${intake.patient.full_name} — ${service?.short_name || formatServiceType(service?.type || "")}`}
                 className={cn(
-                  "rounded-xl border-border transition-all duration-200",
-                  isExpanded && "ring-2 ring-primary/30"
+                  "group flex items-center gap-3 px-4 py-3.5 cursor-pointer transition-colors",
+                  "hover:bg-muted/40",
+                  index < filteredIntakes.length - 1 && "border-b border-border/40",
+                  isFocused && "bg-primary/[0.04] ring-1 ring-inset ring-primary/20",
+                  isOpen && "bg-primary/[0.06]"
                 )}
+                onMouseEnter={() => prefetchReviewData(intake.id)}
+                onClick={() => {
+                  capture("doctor_case_opened", {
+                    intake_id: intake.id,
+                    service_type: service?.type,
+                  })
+                  onToggleExpand(intake.id)
+                  openReviewPanel(intake.id)
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault()
+                    openReviewPanel(intake.id)
+                  }
+                }}
               >
-                {/* Collapsed row */}
-                <CardHeader
-                  role="button"
-                  tabIndex={0}
-                  aria-expanded={isExpanded}
-                  aria-label={`${intake.patient.full_name} - ${service?.short_name || formatServiceType(service?.type || "")}`}
-                  className="cursor-pointer hover:bg-muted/50 transition-colors py-4 px-5"
-                  onMouseEnter={() => prefetchReviewData(intake.id)}
-                  onClick={() => {
-                    if (!isExpanded) {
-                      capture("doctor_case_opened", {
-                        intake_id: intake.id,
-                        service_type: (intake.service as { type?: string })?.type,
-                      })
-                    }
-                    onToggleExpand(intake.id)
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault()
-                      onToggleExpand(intake.id)
-                    }
-                  }}
-                >
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3">
-                    <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-                      {isExpanded ? (
-                        <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground hidden sm:block" />
-                      ) : (
-                        <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground hidden sm:block" />
-                      )}
-                      <UserCard
-                        name={intake.patient.full_name}
-                        description={patientAge != null ? `${patientAge}y` : ""}
-                        size="sm"
-                        className="shrink-0"
-                      />
-                      <div className="min-w-0 flex items-center gap-1.5 flex-wrap">
-                        <Badge variant="outline" className="text-xs">
-                          {service?.short_name || formatServiceType(service?.type || "")}
-                        </Badge>
-                        {(() => {
-                          const subtypeLabel = getConsultSubtypeLabel(intake.subtype)
-                          return subtypeLabel ? (
-                            <Badge variant="secondary" className="text-xs">
-                              {subtypeLabel}
-                            </Badge>
-                          ) : null
-                        })()}
-                        {intake.is_priority && (
-                          <Badge className="bg-warning-light text-warning border-warning-border">
-                            <Zap className="w-3 h-3 mr-1" />
-                            Priority
-                          </Badge>
-                        )}
-                        {hasRedFlags(intake) && (
-                          <Badge className="bg-destructive/10 text-destructive border-destructive/20">
-                            <ShieldAlert className="w-3 h-3 mr-1" />
-                            Flagged
-                          </Badge>
-                        )}
-                        {intake.ai_draft_status === "completed" && (
-                          <Badge className="bg-info-light text-info border-info-border">
-                            <Sparkles className="w-3 h-3 mr-1" />
-                            AI ready
-                          </Badge>
-                        )}
-                        {intake.ai_approved && (
-                          <Badge className="bg-violet-50 dark:bg-violet-500/10 text-violet-700 dark:text-violet-400 border-violet-200 dark:border-violet-500/20">
-                            <Sparkles className="w-3 h-3 mr-1" />
-                            Auto-reviewed
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
-                      {intake.sla_deadline ? (
-                        <div
-                          className={cn(
-                            "flex items-center gap-1.5 text-sm font-medium",
-                            waitSeverity === "critical"
-                              ? "text-destructive"
-                              : waitSeverity === "warning"
-                              ? "text-warning"
-                              : "text-success"
-                          )}
-                        >
-                          <Clock className="h-4 w-4" />
-                          <span>{calculateSlaCountdown(intake.sla_deadline)}</span>
-                        </div>
-                      ) : (
-                        <div
-                          className={cn(
-                            "flex items-center gap-1.5 text-sm",
-                            waitSeverity === "critical"
-                              ? "text-destructive"
-                              : waitSeverity === "warning"
-                              ? "text-warning"
-                              : "text-muted-foreground"
-                          )}
-                        >
-                          <Clock className="h-4 w-4" />
-                          <span className="font-medium">{calculateWaitTime(intake.created_at)}</span>
-                        </div>
-                      )}
-                      {waitSeverity === "critical" && (
-                        <AlertTriangle className="h-4 w-4 text-destructive" aria-label="Critical" />
-                      )}
-                    </div>
-                  </div>
-                </CardHeader>
+                {/* Patient */}
+                <UserCard
+                  name={intake.patient.full_name}
+                  description={patientAge != null ? `${patientAge}y` : ""}
+                  size="sm"
+                  className="shrink-0"
+                />
 
-                {/* Expanded - just link + actions, detailed review on the detail page */}
-                {isExpanded && (
-                  <CardContent className="pt-0 pb-5 px-5 space-y-3">
-                    <button
-                      type="button"
-                      onMouseEnter={() => prefetchReviewData(intake.id)}
-                      onClick={() => openReviewPanel(intake.id)}
-                      className="inline-flex items-center text-sm text-primary hover:underline"
-                    >
-                      <FileText className="h-3.5 w-3.5 mr-1" />
-                      Review case
-                    </button>
+                {/* Badges */}
+                <div className="min-w-0 flex items-center gap-1.5 flex-wrap flex-1">
+                  <Badge variant="outline" className="text-xs">
+                    {service?.short_name || formatServiceType(service?.type || "")}
+                  </Badge>
+                  {(() => {
+                    const subtypeLabel = getConsultSubtypeLabel(intake.subtype)
+                    return subtypeLabel ? (
+                      <Badge variant="secondary" className="text-xs">{subtypeLabel}</Badge>
+                    ) : null
+                  })()}
+                  {intake.is_priority && (
+                    <Badge className="bg-warning-light text-warning border-warning-border">
+                      <Zap className="w-3 h-3 mr-1" />Priority
+                    </Badge>
+                  )}
+                  {hasRedFlags(intake) && (
+                    <Badge className="bg-destructive/10 text-destructive border-destructive/20">
+                      <ShieldAlert className="w-3 h-3 mr-1" />Flagged
+                    </Badge>
+                  )}
+                  {intake.ai_draft_status === "completed" && (
+                    <Badge className="bg-info-light text-info border-info-border">
+                      <Sparkles className="w-3 h-3 mr-1" />AI ready
+                    </Badge>
+                  )}
+                  {intake.ai_approved && (
+                    <Badge className="bg-violet-50 dark:bg-violet-500/10 text-violet-700 dark:text-violet-400 border-violet-200 dark:border-violet-500/20">
+                      <Sparkles className="w-3 h-3 mr-1" />Auto-reviewed
+                    </Badge>
+                  )}
+                  {isOpen && (
+                    <Badge className="bg-primary/10 text-primary border-primary/20 text-xs">
+                      Open
+                    </Badge>
+                  )}
+                </div>
 
-                    <div className="flex flex-wrap items-center gap-2.5 pt-3 border-t">
-                      <Button
-                        onClick={() => onApprove(intake.id, service?.type)}
-                        disabled={isPending || !identityComplete}
-                        className="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50"
-                        title={
-                          !identityComplete
-                            ? "Complete your Certificate Identity in Settings first"
-                            : undefined
-                        }
-                      >
-                        {isPending ? (
-                          <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
-                        ) : (
-                          <CheckCircle className="h-4 w-4 mr-1.5" />
-                        )}
-                        {service?.type === SERVICE_TYPES.MED_CERTS
-                          ? "Review & Build"
-                          : service?.type === SERVICE_TYPES.COMMON_SCRIPTS
-                          ? "Approve Script"
-                          : "Approve"}
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        onClick={() => setDeclineDialog(intake.id)}
-                        disabled={isPending}
-                      >
-                        <XCircle className="h-4 w-4 mr-1.5" />
-                        Decline
-                      </Button>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="outline" size="sm">
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => setInfoDialog(intake.id)}>
-                            <MessageSquare className="h-4 w-4 mr-2" />
-                            Request more info
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => setFlagDialog(intake.id)}>
-                            <Flag className="h-4 w-4 mr-2" />
-                            Flag for follow-up
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </CardContent>
+                {/* Hover quick-action buttons */}
+                <div className={cn(
+                  "items-center gap-1 shrink-0",
+                  "hidden group-hover:flex",
+                  isFocused && "flex"
+                )}>
+                  <Button
+                    size="sm"
+                    className="h-7 px-2.5 text-xs bg-emerald-600 hover:bg-emerald-700 text-white"
+                    onClick={(e) => { e.stopPropagation(); onApprove(intake.id, service?.type) }}
+                    disabled={isPending || !identityComplete}
+                    title={!identityComplete ? "Complete your Certificate Identity in Settings first" : undefined}
+                  >
+                    {isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <CheckCircle className="h-3 w-3 mr-1" />}
+                    {service?.type === SERVICE_TYPES.MED_CERTS ? "Review" : service?.type === SERVICE_TYPES.COMMON_SCRIPTS ? "Script" : "Approve"}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 px-2.5 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
+                    onClick={(e) => { e.stopPropagation(); setDeclineDialog(intake.id) }}
+                    disabled={isPending}
+                  >
+                    Decline
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setInfoDialog(intake.id)
+                    }}
+                    title="Request more info"
+                  >
+                    <MessageSquare className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+
+                {/* Wait time */}
+                <div className={cn(
+                  "flex items-center gap-1 text-xs font-medium tabular-nums shrink-0",
+                  waitSeverity === "critical" ? "text-destructive" : waitSeverity === "warning" ? "text-warning" : "text-muted-foreground"
+                )}>
+                  <Clock className="h-3.5 w-3.5" />
+                  <span>{intake.sla_deadline ? calculateSlaCountdown(intake.sla_deadline) : calculateWaitTime(intake.created_at)}</span>
+                </div>
+                {waitSeverity === "critical" && (
+                  <AlertTriangle className="h-3.5 w-3.5 text-destructive shrink-0" aria-label="Critical" />
                 )}
-              </Card>
+              </div>
             )
-          })
-        )}
-      </div>
+          })}
+        </div>
+      )}
 
       {/* AI-Approved Review Section - above pagination so doctors always see it */}
       {aiApprovedIntakes.length > 0 && (
@@ -469,13 +422,21 @@ export function QueueTable({
       {recentlyCompleted.length > 0 && (
         <Card className="border-border/50">
           <CardHeader className="pb-3">
-            <div className="flex items-center gap-2">
-              <CheckCircle className="h-4 w-4 text-success" />
-              <h3 className="text-sm font-semibold text-foreground">
-                Completed Today ({recentlyCompleted.length})
-              </h3>
-            </div>
+            <button
+              className="flex items-center justify-between w-full text-left"
+              onClick={() => setCompletedExpanded((v) => !v)}
+              aria-expanded={completedExpanded}
+            >
+              <div className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-success" />
+                <h3 className="text-sm font-semibold text-foreground">
+                  Completed Today ({recentlyCompleted.length})
+                </h3>
+              </div>
+              <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform", completedExpanded && "rotate-180")} />
+            </button>
           </CardHeader>
+          {completedExpanded && (
           <CardContent className="pt-0 space-y-1.5">
             {recentlyCompleted.slice(0, 5).map((intake) => {
               const svc = intake.service as { short_name?: string; type?: string } | undefined
@@ -522,6 +483,7 @@ export function QueueTable({
               )
             })}
           </CardContent>
+          )}
         </Card>
       )}
 

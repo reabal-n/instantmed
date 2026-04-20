@@ -71,6 +71,9 @@ export const metadata: Metadata = {
     description:
       "Every request is reviewed by a real Australian doctor. Here's what they look at and how they decide.",
   },
+  alternates: {
+    canonical: "https://instantmed.com.au/how-we-decide",
+  },
 }
 
 const reviewFactors: FeatureItem[] = [

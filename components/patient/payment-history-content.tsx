@@ -22,6 +22,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { EmptyState } from "@/components/ui/empty-state"
 import { Input } from "@/components/ui/input"
 import { useReducedMotion } from "@/components/ui/motion"
 import { PAYMENT_STATUS } from "@/lib/data/status"
@@ -210,15 +211,17 @@ export function PaymentHistoryContent(_props: PaymentHistoryContentProps) {
               <p className="text-muted-foreground">Loading payment history...</p>
             </div>
           </div>
+        ) : invoices.length === 0 ? (
+          <EmptyState
+            icon={CreditCard}
+            title="No payments yet"
+            description="Your payment history will appear here after your first request."
+          />
         ) : filteredInvoices.length === 0 ? (
           <div className="flex items-center justify-center py-12">
             <div className="text-center">
               <CreditCard className="w-12 h-12 text-muted-foreground/40 mx-auto mb-4" />
-              <p className="text-muted-foreground">
-                {searchQuery || filterStatus !== "all"
-                  ? "No invoices match your filters"
-                  : "No invoices yet"}
-              </p>
+              <p className="text-muted-foreground">No invoices match your filters</p>
             </div>
           </div>
         ) : (

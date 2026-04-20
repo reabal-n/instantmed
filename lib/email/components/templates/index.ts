@@ -135,6 +135,10 @@ export { ReviewFollowupEmail, reviewFollowupSubject } from "./review-followup"
 export type { SubscriptionNudgeEmailProps } from "./subscription-nudge"
 export { SubscriptionNudgeEmail, subscriptionNudgeSubject } from "./subscription-nudge"
 
+// --- Subscription Cancelled ---
+export type { SubscriptionCancelledEmailProps } from "./subscription-cancelled"
+export { SubscriptionCancelledEmail, subscriptionCancelledSubject } from "./subscription-cancelled"
+
 // --- Magic Link (Supabase auth hook) ---
 export type { MagicLinkEmailProps } from "./magic-link"
 export { MagicLinkEmail, magicLinkEmailSubject } from "./magic-link"

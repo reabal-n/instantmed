@@ -15,6 +15,9 @@ export const metadata: Metadata = {
     title: "Healthcare Guides | InstantMed",
     description: "Practical guides on telehealth and healthcare in Australia.",
   },
+  alternates: {
+    canonical: "https://instantmed.com.au/guides",
+  },
 }
 
 export default function GuidesIndexPage() {

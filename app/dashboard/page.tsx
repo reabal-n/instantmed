@@ -1,6 +1,14 @@
+import type { Metadata } from "next"
 import { redirect } from 'next/navigation'
 
 import { getAuthenticatedUserWithProfile } from '@/lib/auth/helpers'
+
+export const metadata: Metadata = {
+  robots: {
+    index: false,
+    follow: false,
+  },
+}
 
 export default async function DashboardRedirect() {
   const authUser = await getAuthenticatedUserWithProfile()

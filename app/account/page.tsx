@@ -1,6 +1,14 @@
+import type { Metadata } from "next"
 import { redirect } from "next/navigation"
 
 import { auth } from "@/lib/auth/helpers"
+
+export const metadata: Metadata = {
+  robots: {
+    index: false,
+    follow: false,
+  },
+}
 
 // Prevent static generation for dynamic auth
 export const dynamic = "force-dynamic"

@@ -128,22 +128,17 @@ const nextConfig = {
         permanent: true
       },
       {
+        source: "/medical-certificate/location/:suburb",
+        destination: "/medical-certificate/:suburb",
+        permanent: true,
+      },
+      {
         source: "/repeat-prescription",
         destination: "/prescriptions",
         permanent: true
       },
       {
         source: "/repeat-prescription/:path*",
-        destination: "/prescriptions/:path*",
-        permanent: true
-      },
-      {
-        source: "/repeat-prescriptions",
-        destination: "/prescriptions",
-        permanent: true
-      },
-      {
-        source: "/repeat-prescriptions/:path*",
         destination: "/prescriptions/:path*",
         permanent: true
       },

@@ -43,6 +43,10 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       `${med.brandNames[0].toLowerCase()} doctor`,
       `${med.name.toLowerCase()} telehealth`,
     ],
+    robots: {
+      index: false,
+      follow: false,
+    },
     alternates: {
       canonical: `${baseUrl}/prescriptions/med/${slug}`,
     },

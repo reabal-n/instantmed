@@ -7,4 +7,11 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "https://instantmed.com.au/faq",
   },
+  openGraph: {
+    title: "Telehealth FAQs | How InstantMed Works",
+    description:
+      "Common questions about InstantMed — how it works, what's included, turnaround times, and what doctors can help with online.",
+    url: "https://instantmed.com.au/faq",
+    type: "website",
+  },
 }

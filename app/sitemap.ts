@@ -51,6 +51,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const servicePages = [
     "/consult",
+    "/repeat-prescriptions",
     "/weight-loss",
     "/medical-certificate/work",
     "/medical-certificate/study",
@@ -62,6 +63,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/medical-certificate/employer-acceptance",
     "/medical-certificate/centrelink",
     "/medical-certificate/jury-duty",
+  ]
+
+  // Audience-specific landing pages
+  const audiencePages = [
+    "/for/shift-workers",
+    "/for/tradies",
+    "/for/students",
+    "/for/corporate",
   ]
 
   // Employer verification pages - high-intent long-tail SEO
@@ -115,6 +124,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })),
     ...medCertLocationSlugs.map((slug) => ({
       url: `${baseUrl}/medical-certificate/${slug}`,
+      lastModified: BUILD_DATE,
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
+    })),
+    ...audiencePages.map((route) => ({
+      url: `${baseUrl}${route}`,
       lastModified: BUILD_DATE,
       changeFrequency: "monthly" as const,
       priority: 0.7,

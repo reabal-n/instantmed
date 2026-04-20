@@ -2,10 +2,11 @@
 
 /**
  * Step Error Boundary - Catches and displays errors within step components
- * 
+ *
  * Provides user-friendly error UI with retry and reset options.
  */
 
+import * as Sentry from "@sentry/nextjs"
 import { AlertTriangle, Home,RefreshCw } from "lucide-react"
 import { Component, type ReactNode } from "react"
 
@@ -46,7 +47,8 @@ export class StepErrorBoundary extends Component<
     return { hasError: true, error }
   }
 
-  componentDidCatch(error: Error, _errorInfo: React.ErrorInfo) {
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    Sentry.captureException(error, { extra: { errorInfo } })
     // Log error to monitoring service in development
     if (process.env.NODE_ENV === 'development') {
       // eslint-disable-next-line no-console

@@ -14,6 +14,9 @@ export const metadata: Metadata = {
     title: "Compare Healthcare Options | InstantMed",
     description: "Honest comparisons between telehealth and other healthcare options.",
   },
+  alternates: {
+    canonical: "https://instantmed.com.au/compare",
+  },
 }
 
 const comparisons = [

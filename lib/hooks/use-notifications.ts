@@ -1,5 +1,6 @@
 "use client"
 
+import * as Sentry from "@sentry/nextjs"
 import type { RealtimeChannel } from "@supabase/supabase-js"
 import { useCallback,useEffect, useState } from "react"
 
@@ -90,6 +91,7 @@ export function useNotifications(): UseNotificationsReturn {
 
       setNotifications(data || [])
     } catch (err) {
+      Sentry.captureException(err)
       if (process.env.NODE_ENV === 'development') {
         // eslint-disable-next-line no-console
         console.error("Error fetching notifications:", err)
@@ -113,6 +115,7 @@ export function useNotifications(): UseNotificationsReturn {
         prev.map(n => (n.id === id ? { ...n, read: true } : n))
       )
     } catch (err) {
+      Sentry.captureException(err)
       // eslint-disable-next-line no-console
       console.error("Error marking notification as read:", err)
     }
@@ -132,6 +135,7 @@ export function useNotifications(): UseNotificationsReturn {
 
       setNotifications(prev => prev.map(n => ({ ...n, read: true })))
     } catch (err) {
+      Sentry.captureException(err)
       if (process.env.NODE_ENV === 'development') {
         // eslint-disable-next-line no-console
         console.error("Error marking all notifications as read:", err)

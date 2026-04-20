@@ -26,6 +26,12 @@ export const metadata: Metadata = {
   alternates: {
     canonical: 'https://instantmed.com.au/how-it-works',
   },
+  openGraph: {
+    title: 'How It Works | Fill a Form, Get Reviewed, Done',
+    description: 'Submit your request online, an AHPRA-registered doctor reviews it, and receive your medical certificate or eScript digitally. Three simple steps.',
+    url: 'https://instantmed.com.au/how-it-works',
+    type: 'website',
+  },
 }
 
 export default function HowItWorksPage() {

@@ -1,6 +1,7 @@
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 
 import { getFeatureFlags } from "@/lib/feature-flags"
+import { applyRateLimit } from "@/lib/rate-limit/redis"
 
 export const revalidate = 30
 
@@ -14,7 +15,10 @@ const CACHE_HEADERS = {
   "Cache-Control": "public, max-age=30, stale-while-revalidate=60",
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const rateLimitResponse = await applyRateLimit(request, "standard")
+  if (rateLimitResponse) return rateLimitResponse
+
   try {
     const flags = await getFeatureFlags()
     return NextResponse.json({

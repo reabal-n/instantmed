@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 
 import { verifyUnsubscribeToken } from "@/lib/crypto/unsubscribe-token"
 import { createLogger } from "@/lib/observability/logger"
+import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const log = createLogger("unsubscribe")
@@ -35,6 +36,9 @@ export async function GET(request: NextRequest) {
  * Actually performs the unsubscribe. Requires signed token in body.
  */
 export async function POST(request: NextRequest) {
+  const rateLimitResponse = await applyRateLimit(request, "standard")
+  if (rateLimitResponse) return rateLimitResponse
+
   let token: string
   let type: string
 
