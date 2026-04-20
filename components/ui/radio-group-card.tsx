@@ -32,9 +32,9 @@ const RadioCard = React.forwardRef<
       // Calm glass surface
       "bg-white dark:bg-card",
       "border-border/50 dark:border-white/10",
-      "shadow-[0_1px_3px_rgba(0,0,0,0.04)]",
-      // Subtle hover - light settling effect
-      "hover:bg-white dark:hover:bg-white/10 hover:border-border/60 hover:shadow-[0_2px_8px_rgba(0,0,0,0.06)]",
+      "shadow-sm shadow-primary/[0.04]",
+      // Subtle hover - light settling effect (sky-toned shadow per §5)
+      "hover:bg-white dark:hover:bg-white/10 hover:border-border/60 hover:shadow-md hover:shadow-primary/[0.06]",
       // Focus state
       "focus-visible:outline-2 focus-visible:outline-ring/70",
       // Selected state - clear visual feedback

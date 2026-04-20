@@ -692,7 +692,7 @@ export function ConsultFlowClient({
                   </div>
 
                   <Button
-                    className="w-full h-11 rounded-full bg-primary hover:bg-primary/90 text-white shadow-[0_2px_8px_rgba(0,0,0,0.1)] transition-all duration-300"
+                    className="w-full h-11 rounded-full bg-primary hover:bg-primary/90 text-white shadow-md shadow-primary/20 transition-all duration-300"
                     onClick={() => router.push(`/sign-in?redirect=${encodeURIComponent(window.location.href)}`)}
                   >
                     Sign in with email
@@ -808,7 +808,7 @@ export function ConsultFlowClient({
             </Button>
           ) : step !== "signup" || !showEmailConfirm ? (
             <Button
-              className="w-full h-12 rounded-full text-base bg-primary hover:bg-primary/90 text-white shadow-[0_2px_8px_rgba(0,0,0,0.1)] transition-all duration-300"
+              className="w-full h-12 rounded-full text-base bg-primary hover:bg-primary/90 text-white shadow-md shadow-primary/20 transition-all duration-300"
               disabled={!canContinue()}
               onClick={() => {
                 if (step === "safety" && checkSafetyKnockout()) {

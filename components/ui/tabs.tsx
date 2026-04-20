@@ -29,7 +29,7 @@ const TabsList = React.forwardRef<
       "bg-muted/50",
       "border border-border/40 dark:border-white/10",
       "rounded-full",
-      "shadow-[0_4px_20px_rgba(0,0,0,0.06)]",
+      "shadow-md shadow-primary/[0.06]",
       "text-muted-foreground",
       className
     )}

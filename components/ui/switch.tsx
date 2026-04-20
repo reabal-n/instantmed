@@ -74,8 +74,8 @@ function Switch({
           className={cn(
             // iOS-style thumb
             "pointer-events-none block h-[26px] w-[26px] rounded-full",
-            // Clean white thumb with subtle shadow
-            "bg-white shadow-[0_1px_4px_rgba(0,0,0,0.12),0_1px_2px_rgba(0,0,0,0.08)]",
+            // Clean white thumb with sky-toned shadow (§5 canon — never black)
+            "bg-white shadow-[0_1px_4px_rgba(59,130,246,0.14),0_1px_2px_rgba(59,130,246,0.10)]",
             // Slide animation
             "translate-x-0.5 data-[state=checked]:translate-x-[22px]",
             // Gentle transition
