@@ -206,12 +206,18 @@ export function QueueTable({
                 }}
               >
                 {/* Patient */}
-                <UserCard
-                  name={intake.patient.full_name}
-                  description={patientAge != null ? `${patientAge}y` : ""}
-                  size="sm"
-                  className="shrink-0"
-                />
+                <div className="shrink-0 min-w-0">
+                  <UserCard
+                    name={intake.patient.full_name}
+                    description={patientAge != null ? `${patientAge}y` : ""}
+                    size="sm"
+                  />
+                  {chiefComplaint && (
+                    <p className="text-xs text-muted-foreground mt-0.5 truncate max-w-[160px] pl-9">
+                      {chiefComplaint}
+                    </p>
+                  )}
+                </div>
 
                 {/* Badges */}
                 <div className="min-w-0 flex items-center gap-1.5 flex-wrap flex-1">
@@ -584,33 +590,40 @@ export function QueueTable({
             <DialogTitle>Decline Request</DialogTitle>
             <DialogDescription>Select a reason. The patient will be notified by email.</DialogDescription>
           </DialogHeader>
-          <div className="space-y-5">
+          <div className="space-y-4">
             <div>
-              <label className="text-sm font-medium mb-2.5 block">Reason</label>
-              <Select value={declineReasonCode} onValueChange={handleDeclineTemplateChange}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a reason..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {declineTemplates.map((template) => (
-                    <SelectItem key={template.code} value={template.code}>
-                      {template.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <p className="text-sm font-medium mb-2.5">Reason</p>
+              <div className="flex flex-wrap gap-2">
+                {declineTemplates.map((template) => (
+                  <button
+                    key={template.code}
+                    onClick={() => handleDeclineTemplateChange(template.code)}
+                    className={cn(
+                      "px-3 py-1.5 rounded-full text-sm border transition-colors",
+                      declineReasonCode === template.code
+                        ? "bg-destructive text-destructive-foreground border-destructive"
+                        : "border-border text-muted-foreground hover:text-foreground hover:border-foreground/30"
+                    )}
+                  >
+                    {template.label}
+                  </button>
+                ))}
+              </div>
             </div>
-            <div>
-              <label className="text-sm font-medium mb-2 block">
-                Note {requiresNote ? "(required)" : "(optional)"}
-              </label>
-              <Textarea
-                placeholder="Additional details for the patient..."
-                value={declineReasonNote}
-                onChange={(e) => setDeclineReasonNote(e.target.value)}
-                className="min-h-[100px]"
-              />
-            </div>
+            {declineReasonCode && (
+              <div>
+                <label className="text-sm font-medium mb-2 block">
+                  Note {requiresNote ? "(required)" : "(optional)"}
+                </label>
+                <Textarea
+                  placeholder="Additional details for the patient..."
+                  value={declineReasonNote}
+                  onChange={(e) => setDeclineReasonNote(e.target.value)}
+                  className="min-h-[80px]"
+                  autoFocus
+                />
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button

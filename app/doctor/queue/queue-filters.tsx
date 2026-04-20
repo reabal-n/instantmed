@@ -2,6 +2,7 @@
 
 import { RefreshCw, Search, Volume2, VolumeOff } from "lucide-react"
 
+import { KeyboardShortcutsModal } from "@/components/doctor/keyboard-shortcuts-modal"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
@@ -71,12 +72,22 @@ export function QueueFilters({
           >
             {soundMuted ? <VolumeOff className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5" />}
           </Button>
-          <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={onRefresh}>
+          <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={onRefresh} title="Refresh queue">
             <RefreshCw className="h-3.5 w-3.5" />
           </Button>
-          <kbd className="hidden lg:inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-mono text-muted-foreground/50 bg-muted/30 rounded border border-border/30">
-            j/k
-          </kbd>
+          <KeyboardShortcutsModal
+            trigger={
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground"
+                title="Keyboard shortcuts (?)"
+                aria-label="Show keyboard shortcuts"
+              >
+                <kbd className="text-xs font-mono font-semibold">?</kbd>
+              </Button>
+            }
+          />
         </div>
       </div>
 

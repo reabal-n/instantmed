@@ -215,7 +215,7 @@ export function useReviewActions({
             ? "Certificate approved and sent to patient."
             : "Certificate approved. Email will be sent shortly."
         toast.success(emailNote)
-        setTimeout(closeAndRefresh, 800)
+        closeAndRefresh()
       } else {
         toast.error(result.error || "Failed to approve certificate")
       }
@@ -242,7 +242,7 @@ export function useReviewActions({
       const result = await updateStatusAction(intake.id, status)
       if (result.success) {
         toast.success(status === "approved" ? "Case approved" : "Case updated")
-        setTimeout(closeAndRefresh, 800)
+        closeAndRefresh()
       } else {
         toast.error(result.error || "Failed to update status")
       }
@@ -256,7 +256,7 @@ export function useReviewActions({
       if (result.success) {
         setShowDeclineDialog(false)
         toast.success("Case declined and patient notified")
-        setTimeout(closeAndRefresh, 800)
+        closeAndRefresh()
       } else {
         toast.error(result.error || "Failed to decline")
       }

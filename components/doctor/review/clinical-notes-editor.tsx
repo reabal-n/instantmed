@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
+import { cn } from "@/lib/utils"
 
 export function ClinicalNotesEditor() {
   const {
@@ -65,7 +66,12 @@ export function ClinicalNotesEditor() {
                 <span className="text-sm">Generating draft...</span>
               </div>
             ) : (
-              <div className="rounded-lg border border-border/60 bg-background overflow-hidden focus-within:ring-1 focus-within:ring-ring focus-within:border-ring transition-colors">
+              <div className={cn(
+                "rounded-lg border bg-background overflow-hidden focus-within:ring-1 transition-colors",
+                doctorNotes.trim().length > 0 && doctorNotes.trim().length < MIN_CLINICAL_NOTES_LENGTH
+                  ? "border-amber-300 dark:border-amber-500/50 focus-within:ring-amber-400/50 focus-within:border-amber-400"
+                  : "border-border/60 focus-within:ring-ring focus-within:border-ring"
+              )}>
                 <FormattingToolbar />
                 <Textarea
                   ref={notesRef}
@@ -105,18 +111,30 @@ export function ClinicalNotesEditor() {
                       : "Generate AI draft"}
                 </Button>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2.5">
                 {noteSaved && <span className="text-xs text-emerald-600">Saved!</span>}
-                <span
-                  className={`text-xs tabular-nums ${
-                    doctorNotes.trim().length >= MIN_CLINICAL_NOTES_LENGTH
-                      ? "text-muted-foreground"
-                      : "text-amber-600 dark:text-amber-500"
-                  }`}
-                  aria-live="polite"
-                >
-                  {doctorNotes.trim().length}/{MIN_CLINICAL_NOTES_LENGTH} min
-                </span>
+                {doctorNotes.trim().length < MIN_CLINICAL_NOTES_LENGTH ? (
+                  <div className="flex items-center gap-1.5" aria-live="polite">
+                    <div className="w-20 h-1.5 rounded-full bg-muted overflow-hidden">
+                      <div
+                        className={cn(
+                          "h-full rounded-full transition-all duration-300",
+                          doctorNotes.trim().length === 0
+                            ? "w-0"
+                            : doctorNotes.trim().length < MIN_CLINICAL_NOTES_LENGTH * 0.5
+                              ? "bg-amber-400"
+                              : "bg-amber-500"
+                        )}
+                        style={{ width: `${Math.min(100, (doctorNotes.trim().length / MIN_CLINICAL_NOTES_LENGTH) * 100)}%` }}
+                      />
+                    </div>
+                    <span className="text-xs tabular-nums text-amber-600 dark:text-amber-500">
+                      {doctorNotes.trim().length}/{MIN_CLINICAL_NOTES_LENGTH}
+                    </span>
+                  </div>
+                ) : (
+                  <span className="text-xs text-muted-foreground" aria-live="polite">Min met</span>
+                )}
               </div>
             </div>
           </>

@@ -4,6 +4,7 @@ import {
   Activity,
   AlertCircle,
   CheckCircle,
+  ChevronDown,
   Clock,
   CreditCard,
   DollarSign,
@@ -75,6 +76,7 @@ export function IntakeMonitor({ initialStats, refreshInterval = 30000 }: IntakeM
   const [stats, setStats] = useState<IntakeMonitorStats>(initialStats)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date())
+  const [showDetails, setShowDetails] = useState(false)
 
   const fetchStats = useCallback(async () => {
     try {
@@ -109,6 +111,13 @@ export function IntakeMonitor({ initialStats, refreshInterval = 30000 }: IntakeM
 
   const queueHealthy = stats.queueSize < 10
   const avgTimeHealthy = stats.avgReviewTimeMinutes === null || stats.avgReviewTimeMinutes < 60
+  const oldestVariant = stats.oldestInQueueMinutes === null
+    ? "default"
+    : stats.oldestInQueueMinutes > 1440 // > 24h
+      ? "danger"
+      : stats.oldestInQueueMinutes > 60
+        ? "warning"
+        : "default"
 
   return (
     <Card className="border-border rounded-xl">
@@ -159,6 +168,7 @@ export function IntakeMonitor({ initialStats, refreshInterval = 30000 }: IntakeM
             label="Oldest"
             value={formatMinutes(stats.oldestInQueueMinutes)}
             icon={AlertCircle}
+            variant={oldestVariant}
           />
         </div>
 
@@ -180,79 +190,86 @@ export function IntakeMonitor({ initialStats, refreshInterval = 30000 }: IntakeM
           </div>
         )}
 
-        {/* Secondary Row */}
-        <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-border/40">
-          {/* Earnings */}
-          {stats.todayEarnings != null && stats.todayEarnings > 0 && (
-            <div className="flex items-center gap-1.5">
-              <DollarSign className="h-3.5 w-3.5 text-emerald-500" />
-              <span className="text-sm font-medium text-success tabular-nums">
-                ${(stats.todayEarnings / 100).toFixed(2)}
+        {/* Secondary Row — collapsed by default */}
+        <div className="pt-2 border-t border-border/40">
+          <button
+            onClick={() => setShowDetails((v) => !v)}
+            className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors w-full"
+            aria-expanded={showDetails}
+          >
+            <span className="flex items-center gap-2 flex-1 flex-wrap">
+              <span className="flex items-center gap-1">
+                <CheckCircle className="h-3 w-3 text-emerald-500" />
+                <span className="font-medium text-success tabular-nums">{stats.approvedToday}</span>
+                <span>approved</span>
               </span>
-              <span className="text-xs text-muted-foreground">today</span>
-            </div>
-          )}
-          {stats.todayEarnings != null && stats.todayEarnings > 0 && (
-            <div className="h-3.5 w-px bg-border/60" />
-          )}
-
-          <div className="flex items-center gap-1.5">
-            <CreditCard className="h-3.5 w-3.5 text-muted-foreground" />
-            <span className="text-sm text-muted-foreground">
-              <span className="font-medium text-success">{stats.paidCount}</span> paid
+              <span className="text-border/60">·</span>
+              <span className="flex items-center gap-1">
+                <XCircle className="h-3 w-3 text-destructive/70" />
+                <span className="font-medium text-destructive tabular-nums">{stats.declinedToday}</span>
+                <span>declined</span>
+              </span>
+              {approvalRate !== null && <span>({approvalRate}%)</span>}
             </span>
-            {stats.pendingCount > 0 && (
-              <Badge
-                variant="outline"
-                className="text-xs h-5 px-1.5 bg-warning-light text-warning border-warning-border"
-                title="Stripe payments awaiting webhook confirmation"
-              >
-                {stats.pendingCount} payment pending
-              </Badge>
-            )}
-          </div>
+            <ChevronDown className={cn("h-3.5 w-3.5 shrink-0 transition-transform", showDetails && "rotate-180")} />
+          </button>
 
-          <div className="h-3.5 w-px bg-border/60" />
+          {showDetails && (
+            <div className="flex flex-wrap items-center gap-3 mt-3">
+              {stats.todayEarnings != null && stats.todayEarnings > 0 && (
+                <>
+                  <div className="flex items-center gap-1.5">
+                    <DollarSign className="h-3.5 w-3.5 text-emerald-500" />
+                    <span className="text-sm font-medium text-success tabular-nums">
+                      ${(stats.todayEarnings / 100).toFixed(2)}
+                    </span>
+                    <span className="text-xs text-muted-foreground">today</span>
+                  </div>
+                  <div className="h-3.5 w-px bg-border/60" />
+                </>
+              )}
 
-          <div className="flex items-center gap-2.5">
-            <div className="flex items-center gap-1">
-              <CheckCircle className="h-3.5 w-3.5 text-emerald-500" />
-              <span className="text-sm font-medium text-success tabular-nums">{stats.approvedToday}</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <XCircle className="h-3.5 w-3.5 text-destructive/70" />
-              <span className="text-sm font-medium text-destructive tabular-nums">{stats.declinedToday}</span>
-            </div>
-            {approvalRate !== null && (
-              <span className="text-xs text-muted-foreground">
-                ({approvalRate}%)
-              </span>
-            )}
-          </div>
-
-          {(stats.aiApprovedToday != null && (stats.aiAttemptedToday ?? 0) > 0) && (
-            <>
-              <div className="h-3.5 w-px bg-border/60" />
-              <div className="flex items-center gap-1 text-xs text-violet-600 dark:text-violet-400">
-                <Sparkles className="h-3.5 w-3.5" />
-                <span>{stats.aiApprovedToday} AI approved</span>
-                {aiHitRate !== null && (
-                  <span className="text-muted-foreground">({aiHitRate}% hit rate)</span>
+              <div className="flex items-center gap-1.5">
+                <CreditCard className="h-3.5 w-3.5 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">
+                  <span className="font-medium text-success">{stats.paidCount}</span> paid
+                </span>
+                {stats.pendingCount > 0 && (
+                  <Badge
+                    variant="outline"
+                    className="text-xs h-5 px-1.5 bg-warning-light text-warning border-warning-border"
+                    title="Stripe payments awaiting webhook confirmation"
+                  >
+                    {stats.pendingCount} payment pending
+                  </Badge>
                 )}
-                {stats.aiRevokedToday ? (
-                  <span className="text-muted-foreground">· {stats.aiRevokedToday} revoked</span>
-                ) : null}
               </div>
-            </>
-          )}
 
-          {stats.queueSize === 0 && (
-            <>
-              <div className="h-3.5 w-px bg-border/60" />
-              <Badge variant="outline" className="text-xs h-5 px-1.5 bg-success-light text-success border-success-border">
-                Queue clear
-              </Badge>
-            </>
+              {(stats.aiApprovedToday != null && (stats.aiAttemptedToday ?? 0) > 0) && (
+                <>
+                  <div className="h-3.5 w-px bg-border/60" />
+                  <div className="flex items-center gap-1 text-xs text-violet-600 dark:text-violet-400">
+                    <Sparkles className="h-3.5 w-3.5" />
+                    <span>{stats.aiApprovedToday} AI approved</span>
+                    {aiHitRate !== null && (
+                      <span className="text-muted-foreground">({aiHitRate}% hit rate)</span>
+                    )}
+                    {stats.aiRevokedToday ? (
+                      <span className="text-muted-foreground">· {stats.aiRevokedToday} revoked</span>
+                    ) : null}
+                  </div>
+                </>
+              )}
+
+              {stats.queueSize === 0 && (
+                <>
+                  <div className="h-3.5 w-px bg-border/60" />
+                  <Badge variant="outline" className="text-xs h-5 px-1.5 bg-success-light text-success border-success-border">
+                    Queue clear
+                  </Badge>
+                </>
+              )}
+            </div>
           )}
         </div>
       </CardContent>

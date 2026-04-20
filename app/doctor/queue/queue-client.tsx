@@ -2,7 +2,7 @@
 
 import { AlertTriangle, RefreshCw } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { useCallback,useEffect, useMemo, useState, useTransition } from "react"
+import { useCallback,useEffect, useMemo, useRef, useState, useTransition } from "react"
 import { toast } from "sonner"
 
 import { IntakeReviewPanel } from "@/components/doctor"
@@ -31,8 +31,14 @@ export function QueueClient({
   todayEarnings: _todayEarnings,
 }: QueueClientProps) {
   const router = useRouter()
-  const { openPanel } = usePanel()
+  const { openPanel, activePanel } = usePanel()
+
+  const openIntakeId = activePanel?.id.startsWith("intake-review-")
+    ? activePanel.id.replace("intake-review-", "")
+    : null
   const [intakes, setIntakes] = useState(initialIntakes)
+  // Keep a live ref to filtered intakes for use in panel callbacks
+  const filteredIntakesRef = useRef<IntakeWithPatient[]>([])
 
   // Sync server data into local state after router.refresh() soft-refreshes the page.
   // useState(initialIntakes) only reads the prop on mount, so without this effect
@@ -108,13 +114,40 @@ export function QueueClient({
 
   // Open intake review in a slide-over panel (stays on queue)
   const openReviewPanel = useCallback((intakeId: string) => {
+    const getAdjacentId = (direction: "next" | "prev") => {
+      const list = filteredIntakesRef.current
+      const idx = list.findIndex((r) => r.id === intakeId)
+      if (idx === -1) return null
+      return direction === "next" ? (list[idx + 1]?.id ?? null) : (list[idx - 1]?.id ?? null)
+    }
+
     openPanel({
       id: `intake-review-${intakeId}`,
       type: "sheet",
       component: (
         <IntakeReviewPanel
           intakeId={intakeId}
-          onActionComplete={() => router.refresh()}
+          onActionComplete={() => {
+            router.refresh()
+            // Auto-advance: open the next case in the filtered queue
+            setIntakes((prev) => {
+              const remaining = prev.filter((r) => r.id !== intakeId)
+              const currentIdx = prev.findIndex((r) => r.id === intakeId)
+              const nextIntake = remaining[currentIdx] ?? remaining[currentIdx - 1]
+              if (nextIntake) {
+                setTimeout(() => openReviewPanel(nextIntake.id), 150)
+              }
+              return prev
+            })
+          }}
+          onNextCase={() => {
+            const nextId = getAdjacentId("next")
+            if (nextId) openReviewPanel(nextId)
+          }}
+          onPrevCase={() => {
+            const prevId = getAdjacentId("prev")
+            if (prevId) openReviewPanel(prevId)
+          }}
         />
       ),
     })
@@ -132,11 +165,26 @@ export function QueueClient({
         : "approved"
       const result = await updateStatusAction(intakeId, newStatus)
       if (result.success) {
+        const removedIntake = intakes.find((r) => r.id === intakeId)
         setIntakes((prev) => prev.filter((r) => r.id !== intakeId))
         if (serviceType === SERVICE_TYPES.COMMON_SCRIPTS || serviceType === SERVICE_TYPES.REPEAT_RX) {
           openReviewPanel(intakeId)
         } else {
-          toast.success("Request approved")
+          toast.success("Request approved", {
+            action: removedIntake ? {
+              label: "Undo",
+              onClick: async () => {
+                const revert = await updateStatusAction(intakeId, "paid")
+                if (revert.success) {
+                  setIntakes((prev) => [removedIntake, ...prev])
+                  toast.success("Approval undone")
+                } else {
+                  toast.error("Couldn't undo approval")
+                }
+              },
+            } : undefined,
+            duration: 5000,
+          })
         }
       } else if (result.code === "INSUFFICIENT_CLINICAL_NOTES") {
         toast.error("Add clinical notes (50+ chars) in the case review before approving.", {
@@ -147,7 +195,7 @@ export function QueueClient({
         toast.error(result.error || "Failed to approve")
       }
     })
-  }, [openReviewPanel, startTransition])
+  }, [openReviewPanel, startTransition, intakes])
 
 
   const hasRedFlags = useCallback((intake: IntakeWithPatient): boolean => {
@@ -191,6 +239,9 @@ export function QueueClient({
       formatServiceType(service?.type || "").toLowerCase().includes(query)
     )
   })
+
+  // Keep ref in sync for panel navigation callbacks
+  filteredIntakesRef.current = filteredIntakes
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -276,29 +327,32 @@ export function QueueClient({
         </div>
       )}
 
-      <QueueFilters
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        soundMuted={soundMuted}
-        onToggleSound={() => {
-          const newMuted = !soundMuted
-          setSoundMuted(newMuted)
-          localStorage.setItem("instantmed:queue-sound-muted", String(newMuted))
-        }}
-        onRefresh={() => router.refresh()}
-        statusFilter={statusFilter}
-        onStatusFilterChange={setStatusFilter}
-        intakes={intakes}
-        filteredCount={filteredIntakes.length}
-        isStale={isStale}
-        isReconnecting={isReconnecting}
-      />
+      <div className="sticky top-0 z-10 bg-background -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 pb-4 shadow-[inset_0_-1px_0_0_hsl(var(--border)/0.4)]">
+        <QueueFilters
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          soundMuted={soundMuted}
+          onToggleSound={() => {
+            const newMuted = !soundMuted
+            setSoundMuted(newMuted)
+            localStorage.setItem("instantmed:queue-sound-muted", String(newMuted))
+          }}
+          onRefresh={() => router.refresh()}
+          statusFilter={statusFilter}
+          onStatusFilterChange={setStatusFilter}
+          intakes={intakes}
+          filteredCount={filteredIntakes.length}
+          isStale={isStale}
+          isReconnecting={isReconnecting}
+        />
+      </div>
 
       <QueueTable
         filteredIntakes={filteredIntakes}
         intakes={intakes}
         expandedId={expandedId}
         onToggleExpand={(id) => setExpandedId(expandedId === id ? null : id)}
+        openIntakeId={openIntakeId}
         isPending={dialogs.isPending || isApprovePending}
         identityComplete={identityComplete}
         onApprove={handleApprove}
