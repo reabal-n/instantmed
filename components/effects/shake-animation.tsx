@@ -72,7 +72,7 @@ export function ShakeInput({
         hasError && !prefersReducedMotion
           ? {
               x: [0, -4, 4, -4, 4, -2, 2, 0],
-              transition: { duration: 0.4, ease: "easeOut" },
+              transition: { duration: 0.3, ease: "easeOut" },
             }
           : {}
       }

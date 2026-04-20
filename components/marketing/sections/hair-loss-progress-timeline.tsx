@@ -258,7 +258,7 @@ export function HairLossProgressTimeline({
             initial={animate ? { y: 12 } : {}}
             whileInView={animate ? { y: 0 } : undefined}
             viewport={{ once: true }}
-            transition={{ duration: 0.4, delay: 0.1 }}
+            transition={{ duration: 0.3, delay: 0.1 }}
           >
             <h2 className="text-2xl font-semibold text-foreground sm:text-3xl">
               What treatment progress looks like
@@ -282,7 +282,7 @@ export function HairLossProgressTimeline({
                 initial={{ y: 16 }}
                 whileInView={{ y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: 0.2 }}
+                transition={{ duration: 0.3, delay: 0.2 }}
               >
                 <ScalpSvg
                   month={month}
@@ -297,7 +297,7 @@ export function HairLossProgressTimeline({
                 initial={{ y: 16 }}
                 whileInView={{ y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: 0.3 }}
+                transition={{ duration: 0.3, delay: 0.3 }}
               >
                 {/* Milestone pills sitting above the track */}
                 <div className="pointer-events-none absolute inset-x-0 -top-2 h-0">
@@ -350,7 +350,7 @@ export function HairLossProgressTimeline({
             initial={animate ? { y: 12 } : {}}
             whileInView={animate ? { y: 0 } : undefined}
             viewport={{ once: true }}
-            transition={{ duration: 0.4, delay: 0.35 }}
+            transition={{ duration: 0.3, delay: 0.35 }}
           >
             <Button asChild size="lg" onClick={handleCtaClick}>
               <Link href="/request?service=consult&subtype=hair_loss">

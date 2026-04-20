@@ -35,7 +35,7 @@ function TimelineItem({ step, index }: { step: TimelineStep; index: number }) {
             : undefined
       }
       transition={{
-        duration: 0.4,
+        duration: 0.3,
         delay: 0.1,
         ease: [0.25, 0.1, 0.25, 1],
       }}
@@ -73,7 +73,7 @@ function TimelineItem({ step, index }: { step: TimelineStep; index: number }) {
           }
           style={{ transformOrigin: "top" }}
           transition={{
-            duration: 0.4,
+            duration: 0.3,
             delay: 0.3,
             ease: "easeOut",
           }}

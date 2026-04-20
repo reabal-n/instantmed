@@ -163,7 +163,7 @@ export function CertificateTypeSelector({
                 initial={animate ? { y: 16 } : {}}
                 whileInView={animate ? { opacity: 1, y: 0 } : undefined}
                 viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: i * 0.08 }}
+                transition={{ duration: 0.3, delay: i * 0.08 }}
               >
                 {isSelected && (
                   <div className="absolute top-3 right-3">
@@ -353,7 +353,7 @@ function ComparisonTable() {
       initial={prefersReducedMotion ? {} : { y: 16 }}
       whileInView={{ y: 0 }}
       viewport={{ once: true }}
-      transition={{ duration: 0.4, delay: 0.1 }}
+      transition={{ duration: 0.3, delay: 0.1 }}
     >
       <h3 className="text-base font-semibold text-foreground text-center mb-4">
         How we compare

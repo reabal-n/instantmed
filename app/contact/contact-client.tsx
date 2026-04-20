@@ -120,7 +120,7 @@ export function ContactClient() {
                 <motion.div
                   initial={prefersReducedMotion ? {} : { scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
+                  transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
                 >
                   <div
                     className="mx-auto w-20 h-20 rounded-full bg-gradient-to-br from-primary to-accent-teal flex items-center justify-center mb-6"
@@ -282,7 +282,7 @@ function ContactInfoCard({ prefersReducedMotion }: { prefersReducedMotion: boole
       ref={ref}
       initial={prefersReducedMotion ? {} : { y: 16 }}
       animate={prefersReducedMotion ? {} : isInView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.4, delay: 0.1, ease: [0.25, 0.1, 0.25, 1] }}
+      transition={{ duration: 0.3, delay: 0.1, ease: [0.25, 0.1, 0.25, 1] }}
     >
       <div className="rounded-2xl border border-border/50 dark:border-white/15 bg-white dark:bg-card shadow-md shadow-primary/[0.06] dark:shadow-none p-6">
         <h3 className="text-lg font-semibold mb-6 flex items-center gap-2">
@@ -372,7 +372,7 @@ function FAQLinkCard({ prefersReducedMotion }: { prefersReducedMotion: boolean |
       ref={ref}
       initial={prefersReducedMotion ? {} : { y: 16 }}
       animate={prefersReducedMotion ? {} : isInView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.4, delay: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
+      transition={{ duration: 0.3, delay: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
     >
       <div className="rounded-2xl border border-border/50 dark:border-white/15 bg-white dark:bg-card shadow-md shadow-primary/[0.06] dark:shadow-none p-6">
         <HelpCircle className="h-8 w-8 text-primary mb-3" aria-hidden="true" />
@@ -422,7 +422,7 @@ function ContactFormCard({
       className="lg:col-span-3"
       initial={prefersReducedMotion ? {} : { y: 16 }}
       animate={prefersReducedMotion ? {} : isInView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.4, delay: 0.15, ease: [0.25, 0.1, 0.25, 1] }}
+      transition={{ duration: 0.3, delay: 0.15, ease: [0.25, 0.1, 0.25, 1] }}
     >
       <div className="rounded-2xl border border-border/50 dark:border-white/15 bg-white dark:bg-card shadow-lg shadow-primary/[0.06] dark:shadow-none p-8">
         <h3 className="text-lg font-semibold mb-6 flex items-center gap-2">

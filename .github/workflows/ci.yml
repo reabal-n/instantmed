@@ -43,6 +43,9 @@ jobs:
       - name: Run unit tests with coverage
         run: pnpm test --run --coverage
 
+      - name: Check design token compliance
+        run: bash scripts/verify-tokens.sh
+
       - name: Check for route conflicts
         run: bash scripts/check-route-conflicts.sh
 

@@ -140,7 +140,7 @@ export function DoctorCredibility({
                 initial={prefersReducedMotion ? {} : { y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: i * 0.1, duration: 0.4 }}
+                transition={{ delay: i * 0.1, duration: 0.3 }}
                 className="text-center p-5 rounded-2xl bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-md shadow-primary/[0.06] dark:shadow-none"
               >
                 <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-3', config.bg)}>

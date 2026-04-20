@@ -33,7 +33,8 @@
     "smoke:stripe": "npx tsx scripts/stripe-smoke-test.ts",
     "keys:rotate": "npx tsx scripts/rotate-keys.ts",
     "test:templates": "npx tsx scripts/test-all-templates.ts",
-    "seo:generate": "npx tsx scripts/seo-generator.ts"
+    "seo:generate": "npx tsx scripts/seo-generator.ts",
+    "verify:tokens": "bash scripts/verify-tokens.sh"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.66",

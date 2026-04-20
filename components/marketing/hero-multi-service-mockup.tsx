@@ -123,7 +123,7 @@ export function HeroMultiServiceMockup() {
         className="absolute -top-3 -left-3 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white dark:bg-card border border-border/50 shadow-lg shadow-primary/[0.06] text-xs font-medium text-muted-foreground"
         initial={animate ? { opacity: 0, scale: 0.8 } : {}}
         animate={animate ? { opacity: 1, scale: 1 } : {}}
-        transition={{ duration: 0.4, delay: 0.55, ease: "easeOut" }}
+        transition={{ duration: 0.3, delay: 0.55, ease: "easeOut" }}
       >
         <Clock className="w-3.5 h-3.5 text-primary" />
         Takes ~2 min
@@ -134,7 +134,7 @@ export function HeroMultiServiceMockup() {
         className="absolute -top-3 -right-3 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white dark:bg-card border border-border/50 shadow-lg shadow-primary/[0.06] text-xs font-medium text-muted-foreground"
         initial={animate ? { opacity: 0, scale: 0.8 } : {}}
         animate={animate ? { opacity: 1, scale: 1 } : {}}
-        transition={{ duration: 0.4, delay: 0.7, ease: "easeOut" }}
+        transition={{ duration: 0.3, delay: 0.7, ease: "easeOut" }}
       >
         <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
         24/7 available

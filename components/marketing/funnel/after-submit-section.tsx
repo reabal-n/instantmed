@@ -43,7 +43,7 @@ export function AfterSubmitSection({ config, colors }: AfterSubmitSectionProps) 
                 initial={prefersReducedMotion ? {} : { x: -20 }}
                 whileInView={prefersReducedMotion ? undefined : { opacity: 1, x: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: i * 0.1 }}
+                transition={{ duration: 0.3, delay: i * 0.1 }}
                 className="flex gap-4 p-5 bg-white dark:bg-card rounded-xl border border-border/50 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none hover:shadow-lg hover:shadow-primary/[0.08] hover:border-primary/15 hover:-translate-y-0.5 transition-all duration-300"
               >
                 <div className={cn('w-10 h-10 rounded-lg flex items-center justify-center shrink-0', colors.light)}>

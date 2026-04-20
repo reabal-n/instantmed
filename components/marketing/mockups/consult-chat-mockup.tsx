@@ -96,7 +96,7 @@ export function ConsultChatMockup({ compact = false }: ConsultChatMockupProps) {
             initial={animate ? { scale: 0.8 } : {}}
             whileInView={animate ? { opacity: 1, scale: 1 } : undefined}
             viewport={{ once: true }}
-            transition={{ duration: 0.4, delay: 0.5, ease: "easeOut" }}
+            transition={{ duration: 0.3, delay: 0.5, ease: "easeOut" }}
           >
             <BadgeCheck className="w-3.5 h-3.5 text-success" />
             AHPRA registered
@@ -110,7 +110,7 @@ export function ConsultChatMockup({ compact = false }: ConsultChatMockupProps) {
             initial={animate ? { scale: 0.8 } : {}}
             whileInView={animate ? { opacity: 1, scale: 1 } : undefined}
             viewport={{ once: true }}
-            transition={{ duration: 0.4, delay: 0.65, ease: "easeOut" }}
+            transition={{ duration: 0.3, delay: 0.65, ease: "easeOut" }}
           >
             <Clock className="w-3.5 h-3.5 text-primary" />
             Within 2 hours

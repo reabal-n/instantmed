@@ -32,7 +32,7 @@ export function CertificateShowcaseMockup() {
   const fadeUp: Variants = animate
     ? {
         hidden: { opacity: 0, y: 8 },
-        visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" } },
+        visible: { opacity: 1, y: 0, transition: { duration: 0.3, ease: "easeOut" } },
       }
     : { hidden: { opacity: 1 }, visible: { opacity: 1 } }
 
@@ -148,7 +148,7 @@ export function CertificateShowcaseMockup() {
         initial={animate ? { scale: 0.8 } : {}}
         whileInView={animate ? { opacity: 1, scale: 1 } : undefined}
         viewport={{ once: true }}
-        transition={{ duration: 0.4, delay: 0.6 }}
+        transition={{ duration: 0.3, delay: 0.6 }}
       >
         <BadgeCheck className="w-3.5 h-3.5 text-emerald-500" />
         <span className="text-[10px] font-medium text-foreground">Accepted everywhere</span>
@@ -159,7 +159,7 @@ export function CertificateShowcaseMockup() {
         initial={animate ? { scale: 0.8 } : {}}
         whileInView={animate ? { opacity: 1, scale: 1 } : undefined}
         viewport={{ once: true }}
-        transition={{ duration: 0.4, delay: 0.8 }}
+        transition={{ duration: 0.3, delay: 0.8 }}
       >
         <Shield className="w-3.5 h-3.5 text-primary" aria-hidden="true" />
         <span className="text-[10px] font-medium text-foreground">Unique verification ID</span>
@@ -171,7 +171,7 @@ export function CertificateShowcaseMockup() {
         initial={animate ? { scale: 0.8 } : {}}
         whileInView={animate ? { opacity: 1, scale: 1 } : undefined}
         viewport={{ once: true }}
-        transition={{ duration: 0.4, delay: 1.0 }}
+        transition={{ duration: 0.3, delay: 1.0 }}
       >
         <span className="relative flex h-2 w-2">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success/60" />

@@ -38,7 +38,7 @@ export function HeroSection({ config, colors, isDisabled }: HeroSectionProps) {
           className="flex justify-center lg:justify-start mb-8"
           initial={prefersReducedMotion ? {} : { opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
+          transition={{ duration: 0.3 }}
         >
           <div className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium bg-green-50 border border-green-200 text-green-800 dark:bg-green-950/40 dark:border-green-800 dark:text-green-300">
             <Phone className="w-3.5 h-3.5" aria-hidden="true" />
@@ -72,7 +72,7 @@ export function HeroSection({ config, colors, isDisabled }: HeroSectionProps) {
             <motion.p
               initial={prefersReducedMotion ? {} : { opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.1 }}
+              transition={{ duration: 0.3, delay: 0.1 }}
               className={cn('text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mb-6 leading-relaxed text-balance', hasImages ? 'lg:mx-0' : 'mx-auto')}
             >
               {config.hero.subheadline}
@@ -83,7 +83,7 @@ export function HeroSection({ config, colors, isDisabled }: HeroSectionProps) {
               className={cn('flex flex-wrap items-center gap-3 mb-4', hasImages ? 'justify-center lg:justify-start' : 'justify-center')}
               initial={prefersReducedMotion ? {} : { opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.12 }}
+              transition={{ duration: 0.3, delay: 0.12 }}
             >
               <Badge variant="price" shape="pill" size="lg">
                 {config.serviceName} from ${config.pricing.price.toFixed(2)}
@@ -101,7 +101,7 @@ export function HeroSection({ config, colors, isDisabled }: HeroSectionProps) {
                 className={cn('flex flex-wrap gap-x-4 gap-y-1.5 mb-6', hasImages ? 'justify-center lg:justify-start' : 'justify-center')}
                 initial={prefersReducedMotion ? {} : { opacity: 0 }}
                 animate={{ opacity: 1 }}
-                transition={{ duration: 0.4, delay: 0.15 }}
+                transition={{ duration: 0.3, delay: 0.15 }}
               >
                 {config.hero.headlineRotatingWords!.map((label) => (
                   <span key={label} className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
@@ -116,7 +116,7 @@ export function HeroSection({ config, colors, isDisabled }: HeroSectionProps) {
             <motion.div
               initial={prefersReducedMotion ? {} : { opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.18 }}
+              transition={{ duration: 0.3, delay: 0.18 }}
               className={cn('flex flex-col sm:flex-row items-center gap-3 mb-6', hasImages ? 'lg:justify-start' : 'justify-center')}
             >
               {isDisabled ? (

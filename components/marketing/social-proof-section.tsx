@@ -48,7 +48,7 @@ export function SocialProofSection() {
           initial={prefersReducedMotion ? {} : { y: 12 }}
           whileInView={{ y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.4, delay: 0.1 }}
+          transition={{ duration: 0.3, delay: 0.1 }}
         >
           {inlineStats.map((stat, i) => (
             <div key={stat.label} className="flex items-baseline gap-x-8 sm:gap-x-12">

@@ -58,7 +58,7 @@ export function HeroProductMockup() {
           className="absolute -top-3 -right-3 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white dark:bg-card border border-border/50 shadow-lg shadow-primary/[0.06] text-xs font-medium text-muted-foreground"
           initial={animate ? { scale: 0.8 } : {}}
           animate={{ scale: 1 }}
-          transition={{ duration: 0.4, delay: 0.5, ease: "easeOut" }}
+          transition={{ duration: 0.3, delay: 0.5, ease: "easeOut" }}
         >
           <Clock className="w-3.5 h-3.5 text-primary" />
           Takes ~2 min

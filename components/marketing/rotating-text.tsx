@@ -60,7 +60,7 @@ export function RotatingText({
           initial={{ y: 16, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: -16, opacity: 0 }}
-          transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
           className={cn("inline-block text-balance", gradientClasses, className)}
           style={gradientStyle}
         >

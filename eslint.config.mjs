@@ -128,6 +128,56 @@ const eslintConfig = [
       }],
     },
   },
+  // ── Design system enforcement: Morning Canvas v1.0.0 ─────────────────────
+  // Catch prohibited patterns at lint-time. Hard failures — treat as errors.
+  // Run `pnpm verify:tokens` for the equivalent shell-level audit.
+  {
+    files: ["**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        // M2: Custom box-shadow arbitrary values — use canonical tokens instead.
+        // Allowed exception: drop-shadow-[...] (CSS filter on SVG/text nodes).
+        {
+          selector: "Literal[value=/(?<![dD]rop-)shadow-\\[0_/]",
+          message:
+            "Design token violation (M2): replace shadow-[0_...] with shadow-{sm|md|lg|xl} shadow-{color}/{opacity}. See docs/DESIGN_SYSTEM.md §5.",
+        },
+        // M6-A: initial={false} on motion elements — must be initial={{}}.
+        // AnimatePresence initial={false} is a valid boolean API prop — excluded here.
+        {
+          selector:
+            "JSXOpeningElement:not([name.name='AnimatePresence']) > JSXAttribute[name.name='initial'][value.expression.value=false]",
+          message:
+            "Motion canon violation (M6-A): use initial={{}} instead of initial={false}. Only AnimatePresence accepts initial={false}.",
+        },
+        // M6-B: Spring physics in transitions — use { duration: 0.2, ease: 'easeOut' }.
+        // Exception: useSpring MotionValues and mouse-tracking physics — see verify-tokens.sh allowlist.
+        {
+          selector: "Property[key.name='stiffness']",
+          message:
+            "Motion canon violation (M6-B): stiffness belongs only in useSpring MotionValues or mouse-tracking hooks — not entrance/exit transitions. Use { duration: 0.2, ease: 'easeOut' }.",
+        },
+        {
+          selector: "Property[key.name='type'][value.value='spring']",
+          message:
+            "Motion canon violation (M6-B): type:'spring' not allowed in transitions. Use { duration: 0.2, ease: 'easeOut' }.",
+        },
+      ],
+    },
+  },
+  // Intentional spring-physics exceptions: mouse-tracking interactions and animated counters.
+  // These files use useSpring/damping for genuine physics UX — not entrance transitions.
+  {
+    files: [
+      "components/ui/morning/perspective-tilt-card.tsx",
+      "components/marketing/shared/interactive-product-mockup.tsx",
+      "components/sections/stat-strip.tsx",
+    ],
+    rules: {
+      "no-restricted-syntax": "off",
+    },
+  },
   // Import boundary: types/ must be pure type definitions — no runtime imports
   {
     files: ["types/**/*.ts"],
