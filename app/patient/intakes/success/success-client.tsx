@@ -24,6 +24,7 @@ interface SuccessClientProps {
   patientEmail?: string
   patientId?: string
   queuePosition?: number | null
+  isNewCustomer?: boolean
 }
 
 export function SuccessClient({
@@ -35,6 +36,7 @@ export function SuccessClient({
   patientEmail,
   patientId,
   queuePosition: initialQueuePosition,
+  isNewCustomer,
 }: SuccessClientProps) {
   const prefersReducedMotion = useReducedMotion()
   const posthog = usePostHog()
@@ -189,6 +191,7 @@ export function SuccessClient({
       service: serviceName || "unknown",
       serviceName: serviceName || "Request",
       email: patientEmail,
+      isNewCustomer,
     })
 
     // PostHog purchase event - completes the funnel: step_viewed → step_completed → purchase_completed
@@ -198,7 +201,7 @@ export function SuccessClient({
       value: valueDollars,
       currency: 'AUD',
     })
-  }, [intakeId, serviceName, amountCents, patientEmail, posthog])
+  }, [intakeId, serviceName, amountCents, patientEmail, posthog, isNewCustomer])
 
   // Show loading state while verifying payment
   if (isVerifying) {

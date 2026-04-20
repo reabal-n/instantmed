@@ -118,7 +118,10 @@ export function IntakeReviewPanel({ intakeId, onActionComplete }: IntakeReviewPa
     onActionComplete,
   })
 
-  // Pre-fill clinical notes from AI draft when data first loads
+  // Pre-fill clinical notes when data first loads.
+  // setInitialNotes(notes, dbNotes) sets the baseline so auto-save only fires
+  // for content that differs from what's already in the DB.
+  // AI drafts pass dbNotes="" so auto-save persists them after 2.5 s.
   useEffect(() => {
     if (!data) return
     const existingNotes = data.intake.doctor_notes || ""
@@ -126,17 +129,14 @@ export function IntakeReviewPanel({ intakeId, onActionComplete }: IntakeReviewPa
       const clinicalDraft = findClinicalNoteDraft(data.aiDrafts)
       if (clinicalDraft) {
         const formatted = formatClinicalNoteContent(clinicalDraft.content)
-        if (formatted) {
-          actions.setDoctorNotes(formatted)
-          // Note: isAiPrefilled is managed inside useReviewActions
-        } else {
-          actions.setDoctorNotes("")
-        }
+        // dbNotes="" → auto-save will persist the draft after 2.5 s inactivity
+        actions.setInitialNotes(formatted || "", "")
       } else {
-        actions.setDoctorNotes("")
+        actions.setInitialNotes("", "")
       }
     } else {
-      actions.setDoctorNotes(existingNotes)
+      // dbNotes=existingNotes → already in DB, no immediate auto-save
+      actions.setInitialNotes(existingNotes, existingNotes)
     }
     // Only run when data first arrives
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -200,6 +200,7 @@ export function IntakeReviewPanel({ intakeId, onActionComplete }: IntakeReviewPa
     setRedFlagsAcknowledged,
     doctorNotes: actions.doctorNotes,
     setDoctorNotes: actions.setDoctorNotes,
+    setInitialNotes: actions.setInitialNotes,
     noteSaved: actions.noteSaved,
     setNoteSaved: actions.setNoteSaved,
     isAiPrefilled: actions.isAiPrefilled,

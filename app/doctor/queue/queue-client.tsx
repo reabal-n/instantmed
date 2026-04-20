@@ -45,7 +45,7 @@ export function QueueClient({
   const [searchQuery, setSearchQuery] = useState("")
   const debouncedSearch = useDebounce(searchQuery, 200)
   const [statusFilter, setStatusFilter] = useState<"all" | "review" | "pending_info" | "scripts">("all")
-  const [, startTransition] = useTransition()
+  const [isApprovePending, startTransition] = useTransition()
   const dialogs = useQueueDialogs({ intakes, setIntakes })
   const [, setTick] = useState(0) // Forces re-render for live wait time ticking
   const [soundMuted, setSoundMuted] = useState(() => {
@@ -134,11 +134,15 @@ export function QueueClient({
       if (result.success) {
         setIntakes((prev) => prev.filter((r) => r.id !== intakeId))
         if (serviceType === SERVICE_TYPES.COMMON_SCRIPTS || serviceType === SERVICE_TYPES.REPEAT_RX) {
-          // Open panel for script workflow (mark sent, etc.)
           openReviewPanel(intakeId)
         } else {
           toast.success("Request approved")
         }
+      } else if (result.code === "INSUFFICIENT_CLINICAL_NOTES") {
+        toast.error("Add clinical notes (50+ chars) in the case review before approving.", {
+          action: { label: "Open case", onClick: () => openReviewPanel(intakeId) },
+          duration: 6000,
+        })
       } else {
         toast.error(result.error || "Failed to approve")
       }
@@ -295,7 +299,7 @@ export function QueueClient({
         intakes={intakes}
         expandedId={expandedId}
         onToggleExpand={(id) => setExpandedId(expandedId === id ? null : id)}
-        isPending={dialogs.isPending}
+        isPending={dialogs.isPending || isApprovePending}
         identityComplete={identityComplete}
         onApprove={handleApprove}
         hasRedFlags={hasRedFlags}

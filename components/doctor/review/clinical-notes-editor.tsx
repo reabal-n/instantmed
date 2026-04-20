@@ -56,7 +56,7 @@ export function ClinicalNotesEditor() {
           <>
             {isAiPrefilled && (
               <p className="text-xs text-muted-foreground">
-                Pre-filled from AI draft. Edits save on approval, or click Save to persist now.
+                AI draft — auto-saves as you type.
               </p>
             )}
             {isRegenerating && !doctorNotes ? (

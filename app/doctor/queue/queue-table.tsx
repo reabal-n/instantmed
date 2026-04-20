@@ -375,7 +375,7 @@ export function QueueTable({
                   role="button"
                   tabIndex={0}
                   aria-label={`Review AI-approved case for ${intake.patient.full_name}`}
-                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors cursor-pointer"
+                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 p-3 rounded-lg border border-border/40 bg-muted/30 hover:bg-muted/60 transition-colors cursor-pointer"
                   onMouseEnter={() => prefetchReviewData(intake.id)}
                   onClick={() => openReviewPanel(intake.id)}
                   onKeyDown={(e) => {
@@ -485,7 +485,7 @@ export function QueueTable({
                   role="button"
                   tabIndex={0}
                   aria-label={`View completed case for ${intake.patient.full_name}`}
-                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 p-2.5 rounded-lg border bg-card hover:bg-accent/50 transition-colors cursor-pointer"
+                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 p-2.5 rounded-lg border border-border/40 bg-muted/30 hover:bg-muted/60 transition-colors cursor-pointer"
                   onClick={() => router.push(`/doctor/intakes/${intake.id}`)}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" || e.key === " ") {

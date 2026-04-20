@@ -1,7 +1,7 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { useCallback,useRef, useState, useTransition } from "react"
+import { useCallback, useEffect, useRef, useState, useTransition } from "react"
 import { toast } from "sonner"
 
 import { regenerateDrafts } from "@/app/actions/draft-approval"
@@ -33,6 +33,8 @@ export interface ReviewActionsState {
   // Doctor notes
   doctorNotes: string
   setDoctorNotes: (v: string) => void
+  /** Set notes from server data — records the baseline so auto-save only fires for doctor edits. */
+  setInitialNotes: (notes: string, dbNotes: string) => void
   noteSaved: boolean
   setNoteSaved: (v: boolean) => void
   isAiPrefilled: boolean
@@ -97,6 +99,16 @@ export function useReviewActions({
   const [noteSaved, setNoteSaved] = useState(false)
   const [isAiPrefilled, setIsAiPrefilled] = useState(false)
   const notesRef = useRef<HTMLTextAreaElement>(null)
+  // Tracks the last content successfully persisted to DB so we only auto-save diffs.
+  const lastSavedNotesRef = useRef<string>("")
+  const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Load notes from server without triggering auto-save for unchanged content.
+  // Pass dbNotes="" for AI-draft prefills (not yet in DB → auto-save will persist them).
+  const setInitialNotes = useCallback((notes: string, dbNotes: string) => {
+    setDoctorNotes(notes)
+    lastSavedNotesRef.current = dbNotes
+  }, [])
 
   // Decline dialog
   const [showDeclineDialog, setShowDeclineDialog] = useState(false)
@@ -114,6 +126,31 @@ export function useReviewActions({
   const intake = data?.intake
   const service = intake?.service as { name?: string; type?: string; short_name?: string } | undefined
   const hasClinicalDraft = !!findClinicalNoteDraft(data?.aiDrafts || [])
+
+  // Auto-save: debounced 2.5 s after last keystroke.
+  const intakeId = intake?.id
+  const intakeStatus = intake?.status
+  useEffect(() => {
+    if (!intakeId) return
+    if (intakeStatus && ["approved", "completed", "awaiting_script"].includes(intakeStatus)) return
+    if (doctorNotes === lastSavedNotesRef.current) return
+
+    if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current)
+    autoSaveTimerRef.current = setTimeout(async () => {
+      const snapshot = doctorNotes
+      if (snapshot === lastSavedNotesRef.current) return
+      const result = await saveDoctorNotesAction(intakeId, snapshot)
+      if (result.success) {
+        lastSavedNotesRef.current = snapshot
+        setNoteSaved(true)
+        setTimeout(() => setNoteSaved(false), 2000)
+      }
+    }, 2500)
+
+    return () => {
+      if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current)
+    }
+  }, [doctorNotes, intakeId, intakeStatus])
 
   // ---- Helpers ----
 
@@ -267,6 +304,7 @@ export function useReviewActions({
     startTransition(async () => {
       const result = await saveDoctorNotesAction(intake.id, doctorNotes)
       if (result.success) {
+        lastSavedNotesRef.current = doctorNotes
         setNoteSaved(true)
         setIsAiPrefilled(false)
         setTimeout(() => setNoteSaved(false), 3000)
@@ -341,6 +379,7 @@ export function useReviewActions({
     isPending,
     doctorNotes,
     setDoctorNotes,
+    setInitialNotes,
     noteSaved,
     setNoteSaved,
     isAiPrefilled,

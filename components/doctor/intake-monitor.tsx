@@ -202,8 +202,12 @@ export function IntakeMonitor({ initialStats, refreshInterval = 30000 }: IntakeM
               <span className="font-medium text-success">{stats.paidCount}</span> paid
             </span>
             {stats.pendingCount > 0 && (
-              <Badge variant="outline" className="text-xs h-5 px-1.5 bg-warning-light text-warning border-warning-border">
-                {stats.pendingCount} pending
+              <Badge
+                variant="outline"
+                className="text-xs h-5 px-1.5 bg-warning-light text-warning border-warning-border"
+                title="Stripe payments awaiting webhook confirmation"
+              >
+                {stats.pendingCount} payment pending
               </Badge>
             )}
           </div>

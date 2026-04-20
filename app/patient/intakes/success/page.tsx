@@ -28,27 +28,31 @@ export default async function PaymentSuccessPage({
   let isPriority = false
   let patientEmail: string | undefined
   let queuePosition: number | null = null
+  let isNewCustomer: boolean | undefined
 
   // Get authenticated user for ownership verification
   const authUser = await getAuthenticatedUserWithProfile()
 
   if (intakeId) {
     const supabase = createServiceRoleClient()
-    const { data: queueData } = await supabase.rpc("get_queue_position", { p_intake_id: intakeId })
+    const [{ data: queueData }, { data }] = await Promise.all([
+      supabase.rpc("get_queue_position", { p_intake_id: intakeId }),
+      supabase
+        .from("intakes")
+        .select(`
+          status,
+          is_priority,
+          patient_id,
+          amount_cents,
+          service:services(name, short_name)
+        `)
+        .eq("id", intakeId)
+        .single(),
+    ])
+
     if (queueData !== null && queueData !== undefined) {
       queuePosition = Number(queueData)
     }
-    const { data } = await supabase
-      .from("intakes")
-      .select(`
-        status,
-        is_priority,
-        patient_id,
-        amount_cents,
-        service:services(name, short_name)
-      `)
-      .eq("id", intakeId)
-      .single()
 
     // Verify the authenticated user owns this intake
     if (data?.patient_id && authUser?.profile?.id) {
@@ -65,6 +69,18 @@ export default async function PaymentSuccessPage({
     amountCents = data?.amount_cents ?? undefined
     const serviceData = data?.service as { name?: string; short_name?: string } | null
     serviceName = serviceData?.short_name || serviceData?.name || undefined
+
+    // Determine new_customer for Google Ads conversion optimization.
+    // Count previous paid intakes for this patient (excluding current one).
+    if (data?.patient_id) {
+      const { count } = await supabase
+        .from("intakes")
+        .select("id", { count: "exact", head: true })
+        .eq("patient_id", data.patient_id)
+        .not("status", "in", "(pending_payment,declined)")
+        .neq("id", intakeId)
+      isNewCustomer = (count ?? 0) === 0
+    }
   }
 
   if (authUser?.profile?.email) {
@@ -83,6 +99,7 @@ export default async function PaymentSuccessPage({
           patientEmail={patientEmail}
           patientId={authUser?.profile?.id}
           queuePosition={queuePosition}
+          isNewCustomer={isNewCustomer}
         />
       </div>
     </div>

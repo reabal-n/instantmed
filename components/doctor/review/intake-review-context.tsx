@@ -37,6 +37,7 @@ export interface IntakeReviewContextValue {
   // Clinical notes
   doctorNotes: string
   setDoctorNotes: (v: string) => void
+  setInitialNotes: (notes: string, dbNotes: string) => void
   noteSaved: boolean
   setNoteSaved: (v: boolean) => void
   isAiPrefilled: boolean

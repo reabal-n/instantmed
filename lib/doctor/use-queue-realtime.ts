@@ -2,7 +2,6 @@
 
 import { useRouter } from "next/navigation"
 import { useEffect, useRef, useState } from "react"
-import { toast } from "sonner"
 
 import { createClient } from "@/lib/supabase/client"
 import type { IntakeWithPatient } from "@/types/db"
@@ -21,7 +20,6 @@ interface UseQueueRealtimeResult {
 
 const MAX_BACKOFF_MS = 30_000
 const STALE_THRESHOLD_MS = 90_000
-const SOFT_REFRESH_MS = 60_000
 const STALE_CHECK_MS = 30_000
 
 export function useQueueRealtime({
@@ -58,10 +56,6 @@ export function useQueueRealtime({
       }
     }, STALE_CHECK_MS)
 
-    const softRefreshInterval = setInterval(() => {
-      router.refresh()
-    }, SOFT_REFRESH_MS)
-
     function subscribe() {
       if (!active) return
 
@@ -81,16 +75,9 @@ export function useQueueRealtime({
 
             if (payload.eventType === "INSERT") {
               const newRow = payload.new as IntakeWithPatient
-              const serviceData = newRow.service as { short_name?: string } | undefined
-              const serviceName = serviceData?.short_name || "New request"
-              const patientName = newRow.patient?.full_name
+              // Sound only — toast is handled by IntakeNotificationListener
+              // to avoid duplicate notifications.
               playNotificationSoundRef.current()
-              toast.info(
-                patientName
-                  ? `${serviceName} from ${patientName}`
-                  : `${serviceName} added to queue`,
-                { duration: 5000 },
-              )
               onInsertRef.current(newRow)
             } else if (payload.eventType === "UPDATE") {
               onUpdateRef.current(payload.new as Partial<IntakeWithPatient> & { id: string })
@@ -126,7 +113,6 @@ export function useQueueRealtime({
       active = false
       if (channel) supabase.removeChannel(channel)
       clearInterval(staleCheckInterval)
-      clearInterval(softRefreshInterval)
       if (reconnectTimer) clearTimeout(reconnectTimer)
     }
   }, [router])
