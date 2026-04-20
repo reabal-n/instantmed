@@ -232,10 +232,10 @@ export function AnimatedSelect({
                   "w-full rounded-xl p-1.5 shadow-lg overflow-hidden",
                   // Light mode
                   "bg-card/95 backdrop-blur-xl border border-border/60",
-                  "shadow-[0_8px_32px_rgba(59,130,246,0.10)]",
-                  // Dark mode — sky-toned glow (§5; never black)
+                  "shadow-lg shadow-primary/10",
+                  // Dark mode — border contrast only (§5 card canon)
                   "dark:bg-zinc-900/95 dark:border-white/10",
-                  "dark:shadow-[0_8px_32px_rgba(93,184,201,0.18)]"
+                  "dark:shadow-none"
                 )}
                 initial={{ borderRadius: 12 }}
                 animate={{

@@ -28,7 +28,7 @@ const PopoverContent = React.forwardRef<
         // Shape
         "rounded-2xl p-4",
         // Glow shadow
-        "shadow-[0_8px_30px_rgb(59,130,246,0.15)] dark:shadow-[0_8px_30px_rgb(139,92,246,0.15)]",
+        "shadow-lg shadow-primary/15 dark:shadow-none",
         // Z-index
         "z-50",
         // Width

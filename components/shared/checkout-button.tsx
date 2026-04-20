@@ -86,7 +86,7 @@ export const CheckoutButton = forwardRef<HTMLButtonElement, CheckoutButtonProps>
           className={cn(
             "w-full group relative overflow-hidden rounded-2xl p-[2px]",
             "bg-linear-to-r from-primary via-primary/80 to-primary",
-            "hover:shadow-[0_8px_30px_rgb(var(--primary)/0.3)]",
+            "hover:shadow-lg hover:shadow-primary/30",
             "transition-all duration-300",
             "disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none",
             className

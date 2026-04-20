@@ -131,7 +131,7 @@ function SafetyKnockout() {
         <p className="text-red-700 text-base">
           Based on your responses, this service is not appropriate for your current situation.
         </p>
-        <div className="bg-white dark:bg-card rounded-2xl p-6 sm:p-8 border border-red-200/50 dark:border-red-800/30 shadow-[0_8px_30px_rgb(239,68,68,0.15)] space-y-5">
+        <div className="bg-white dark:bg-card rounded-2xl p-6 sm:p-8 border border-red-200/50 dark:border-red-800/30 shadow-lg shadow-red-500/15 space-y-5">
           <p className="font-medium">If this is a medical emergency:</p>
           <Button asChild variant="destructive" className="w-full h-12">
             <a href="tel:000">Call 000</a>
@@ -527,8 +527,8 @@ export function ConsultFlowClient({
                     }}
                     className={`w-full p-5 rounded-2xl border-2 text-left transition-all duration-300 ${
                       consultReason === reason.id
-                        ? "border-primary/50 bg-primary/10 dark:bg-primary/20 shadow-[0_4px_16px_rgb(59,130,246,0.15)]"
-                        : "bg-white dark:bg-card border-border/50 hover:border-primary/40 hover:bg-muted/50 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgb(59,130,246,0.1)]"
+                        ? "border-primary/50 bg-primary/10 dark:bg-primary/20 shadow-md shadow-primary/15"
+                        : "bg-white dark:bg-card border-border/50 hover:border-primary/40 hover:bg-muted/50 hover:-translate-y-0.5 hover:shadow-md hover:shadow-primary/10"
                     }`}
                   >
                     <span className="font-medium">{reason.label}</span>
@@ -793,7 +793,7 @@ export function ConsultFlowClient({
         <div className="max-w-lg mx-auto">
           {step === "payment" ? (
             <Button
-              className="w-full h-12 rounded-full text-base bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white shadow-[0_8px_30px_rgb(59,130,246,0.3)] hover:shadow-[0_12px_40px_rgb(59,130,246,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+              className="w-full h-12 rounded-full text-base bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
               disabled={isSubmitting}
               onClick={handleSubmit}
             >

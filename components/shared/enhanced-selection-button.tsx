@@ -39,19 +39,19 @@ export function EnhancedSelectionButton({
       // Add right padding to prevent text overlapping with absolute checkmark
       "pr-7",
       selected
-        ? "bg-sky-50 dark:bg-sky-500/10 text-sky-800 dark:text-sky-200 border-2 border-sky-300/60 dark:border-sky-600/40 shadow-[0_2px_8px_rgba(138,187,224,0.15)]"
+        ? "bg-sky-50 dark:bg-sky-500/10 text-sky-800 dark:text-sky-200 border-2 border-sky-300/60 dark:border-sky-600/40 shadow-sm shadow-sky-400/15"
         : "bg-white dark:bg-card border-2 border-border/50 dark:border-white/10 hover:border-border/60 hover:bg-muted/50 dark:hover:bg-white/10 text-foreground"
     ),
     card: cn(
       "w-full p-5 rounded-2xl border-2 text-left",
       selected
-        ? "bg-sky-50/80 dark:bg-sky-500/10 border-sky-300/60 dark:border-sky-600/40 text-foreground shadow-[0_2px_12px_rgba(138,187,224,0.12)]"
+        ? "bg-sky-50/80 dark:bg-sky-500/10 border-sky-300/60 dark:border-sky-600/40 text-foreground shadow-sm shadow-sky-400/12"
         : "border-border/50 dark:border-white/10 bg-white dark:bg-card hover:border-border/60 hover:bg-muted/50 dark:hover:bg-white/10 text-foreground"
     ),
     option: cn(
       "w-full p-3 min-h-[64px] rounded-xl border-2 flex items-center gap-2.5 text-left",
       selected
-        ? "bg-sky-50/80 dark:bg-sky-500/10 border-sky-300/60 dark:border-sky-600/40 text-foreground shadow-[0_2px_8px_rgba(138,187,224,0.12)]"
+        ? "bg-sky-50/80 dark:bg-sky-500/10 border-sky-300/60 dark:border-sky-600/40 text-foreground shadow-sm shadow-sky-400/12"
         : "border-border/50 dark:border-white/10 bg-white dark:bg-card hover:border-border/60 hover:bg-muted/50 dark:hover:bg-white/10 text-foreground"
     ),
     default: cn(

@@ -54,7 +54,7 @@ const DropdownMenuSubContent = React.forwardRef<
       // Border
       "border border-border/50 dark:border-white/15",
       // Glow shadow
-      "shadow-[0_8px_30px_rgb(59,130,246,0.15)] dark:shadow-[0_8px_30px_rgb(93,184,201,0.15)]",
+      "shadow-lg shadow-primary/15 dark:shadow-none",
       // Text
       "text-popover-foreground",
       // Animation
@@ -84,7 +84,7 @@ const DropdownMenuContent = React.forwardRef<
         // Border
         "border border-border/50 dark:border-white/15",
         // Glow shadow
-        "shadow-[0_8px_30px_rgb(59,130,246,0.15)] dark:shadow-[0_8px_30px_rgb(93,184,201,0.15)]",
+        "shadow-lg shadow-primary/15 dark:shadow-none",
         // Text
         "text-popover-foreground",
         // Animation

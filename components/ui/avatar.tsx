@@ -40,7 +40,7 @@ function Avatar({
         "relative flex shrink-0 overflow-hidden rounded-full",
         sizeClasses[size],
         "ring-2 ring-white/50 dark:ring-white/20",
-        "hover:ring-primary/50 hover:shadow-[0_0_20px_rgb(59,130,246,0.3)]",
+        "hover:ring-primary/50 hover:shadow-lg hover:shadow-primary/30",
         "transition-all duration-300",
         className
       )}

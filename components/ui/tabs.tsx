@@ -57,8 +57,8 @@ const TabsTrigger = React.forwardRef<
       // Active/selected state - Soft Pop Glass glow
       "data-[state=active]:bg-white dark:data-[state=active]:bg-card",
       "data-[state=active]:text-foreground",
-      "data-[state=active]:shadow-[0_4px_16px_rgba(59,130,246,0.2)]",
-      "dark:data-[state=active]:shadow-[0_4px_16px_rgba(139,92,246,0.2)]",
+      "data-[state=active]:shadow-md data-[state=active]:shadow-primary/20",
+      "dark:data-[state=active]:shadow-none",
       className
     )}
     {...props}

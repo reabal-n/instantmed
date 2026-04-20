@@ -75,7 +75,7 @@ function Switch({
             // iOS-style thumb
             "pointer-events-none block h-[26px] w-[26px] rounded-full",
             // Clean white thumb with sky-toned shadow (§5 canon — never black)
-            "bg-white shadow-[0_1px_4px_rgba(59,130,246,0.14),0_1px_2px_rgba(59,130,246,0.10)]",
+            "bg-white shadow-sm shadow-primary/[0.12]",
             // Slide animation
             "translate-x-0.5 data-[state=checked]:translate-x-[22px]",
             // Gentle transition

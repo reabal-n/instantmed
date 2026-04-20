@@ -30,7 +30,7 @@ function Progress({
           "h-full w-full flex-1 rounded-full transition-all duration-300",
           // Gradient indicator with glow
           "bg-gradient-to-r from-primary via-primary to-blue-500",
-          "shadow-[0_0_20px_rgb(59,130,246,0.4)]"
+          "shadow-lg shadow-primary/40"
         )}
         style={{ transform: `translateX(-${100 - (value || 0)}%)` }}
       />

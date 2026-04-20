@@ -18,7 +18,7 @@ export function PillButton({
       onClick={onClick}
       className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
         selected
-          ? "bg-sky-50 dark:bg-sky-500/20 text-sky-800 dark:text-sky-200 border-2 border-sky-300/60 dark:border-sky-600/40 shadow-[0_2px_8px_rgba(138,187,224,0.15)]"
+          ? "bg-sky-50 dark:bg-sky-500/20 text-sky-800 dark:text-sky-200 border-2 border-sky-300/60 dark:border-sky-600/40 shadow-sm shadow-sky-400/15"
           : "bg-white dark:bg-card text-foreground dark:text-muted-foreground border-2 border-border/60 dark:border-border/40 hover:border-border hover:bg-muted/50"
       }`}
     >
@@ -43,7 +43,7 @@ export function MultiPillButton({
       onClick={onClick}
       className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
         selected
-          ? "bg-sky-50 dark:bg-sky-500/20 text-sky-800 dark:text-sky-200 border-2 border-sky-300/60 dark:border-sky-600/40 shadow-[0_2px_8px_rgba(138,187,224,0.15)]"
+          ? "bg-sky-50 dark:bg-sky-500/20 text-sky-800 dark:text-sky-200 border-2 border-sky-300/60 dark:border-sky-600/40 shadow-sm shadow-sky-400/15"
           : "bg-white dark:bg-card text-foreground dark:text-muted-foreground border-2 border-border/60 dark:border-border/40 hover:border-border hover:bg-muted/50"
       }`}
     >

@@ -40,7 +40,7 @@ const RadioCard = React.forwardRef<
       // Selected state - clear visual feedback
       "data-[state=checked]:bg-sky-50/80 dark:data-[state=checked]:bg-sky-900/20",
       "data-[state=checked]:border-sky-300/60 dark:data-[state=checked]:border-sky-600/40",
-      "data-[state=checked]:shadow-[0_2px_8px_rgba(138,187,224,0.15)]",
+      "data-[state=checked]:shadow-sm data-[state=checked]:shadow-sky-400/15",
       "disabled:cursor-not-allowed disabled:opacity-50",
       className
     )}

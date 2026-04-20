@@ -236,7 +236,7 @@ const MenuItem = ({ item, index, onClose }: MenuItemProps) => {
           "transition-all duration-300",
           // Glass hover effect
           "hover:bg-card/70 dark:hover:bg-white/15",
-          "hover:shadow-[0_4px_20px_rgb(59,130,246,0.1)]",
+          "hover:shadow-md hover:shadow-primary/10",
           "active:bg-muted dark:active:bg-white/25",
           "group"
         )}

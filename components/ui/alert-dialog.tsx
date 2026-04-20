@@ -47,7 +47,7 @@ const AlertDialogContent = React.forwardRef<
         // Shape
         "rounded-3xl",
         // Sky-toned glow shadow (§5 canon — never black or violet)
-        "shadow-[0_8px_40px_rgb(59,130,246,0.2)] dark:shadow-[0_8px_40px_rgb(93,184,201,0.18)]",
+        "shadow-xl shadow-primary/20 dark:shadow-none",
         // Animation
         "duration-200",
         "data-[state=open]:animate-in data-[state=closed]:animate-out",

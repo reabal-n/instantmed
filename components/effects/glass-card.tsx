@@ -40,9 +40,9 @@ const glassStyles = {
 
 // Glow colors
 const glowColors = {
-  blue: "hover:shadow-[0_8px_30px_rgba(197,221,240,0.20)] dark:hover:shadow-[0_8px_30px_rgba(148,163,184,0.15)]",
-  purple: "hover:shadow-[0_8px_30px_rgba(245,169,98,0.20)] dark:hover:shadow-[0_8px_30px_rgba(249,201,146,0.12)]",
-  emerald: "hover:shadow-[0_8px_30px_rgba(107,191,138,0.20)] dark:hover:shadow-[0_8px_30px_rgba(134,239,172,0.12)]",
+  blue: "hover:shadow-lg hover:shadow-sky-300/20 dark:hover:shadow-none",
+  purple: "hover:shadow-lg hover:shadow-amber-400/20 dark:hover:shadow-none",
+  emerald: "hover:shadow-lg hover:shadow-emerald-400/20 dark:hover:shadow-none",
   none: "",
 }
 
