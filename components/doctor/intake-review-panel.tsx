@@ -39,9 +39,11 @@ interface IntakeReviewPanelProps {
   onActionComplete?: () => void
   onNextCase?: () => void
   onPrevCase?: () => void
+  caseIndex?: number
+  totalCases?: number
 }
 
-export function IntakeReviewPanel({ intakeId, onActionComplete, onNextCase, onPrevCase }: IntakeReviewPanelProps) {
+export function IntakeReviewPanel({ intakeId, onActionComplete, onNextCase, onPrevCase, caseIndex, totalCases }: IntakeReviewPanelProps) {
   useAuth()
   const { closePanel } = usePanel()
   const [data, setData] = useState<ReviewData | null>(null)
@@ -158,6 +160,10 @@ export function IntakeReviewPanel({ intakeId, onActionComplete, onNextCase, onPr
       // dbNotes=existingNotes → already in DB, no immediate auto-save
       actions.setInitialNotes(existingNotes, existingNotes)
     }
+    // Auto-focus notes for reviewable cases so doctor can start typing immediately
+    if (isReviewable) {
+      setTimeout(() => actions.notesRef.current?.focus(), 100)
+    }
     // Only run when data first arrives
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data])
@@ -223,6 +229,7 @@ export function IntakeReviewPanel({ intakeId, onActionComplete, onNextCase, onPr
     setInitialNotes: actions.setInitialNotes,
     noteSaved: actions.noteSaved,
     setNoteSaved: actions.setNoteSaved,
+    noteDirty: actions.noteDirty,
     isAiPrefilled: actions.isAiPrefilled,
     hasClinicalDraft: actions.hasClinicalDraft,
     isRegenerating: actions.isRegenerating,
@@ -248,7 +255,11 @@ export function IntakeReviewPanel({ intakeId, onActionComplete, onNextCase, onPr
     <>
       <SheetPanel
         title={intake.patient.full_name}
-        description={`${service?.short_name || formatServiceType(service?.type || "")} · ${formatIntakeStatus(intake.status)}`}
+        description={[
+          service?.short_name || formatServiceType(service?.type || ""),
+          formatIntakeStatus(intake.status),
+          caseIndex != null && totalCases != null ? `Case ${caseIndex + 1} of ${totalCases}` : null,
+        ].filter(Boolean).join(" · ")}
         width={720}
         onClose={handlePanelClose}
       >

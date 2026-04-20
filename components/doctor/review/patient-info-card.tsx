@@ -2,28 +2,48 @@
 
 import {
   Calendar,
+  Check,
+  ChevronDown,
+  Copy,
   CreditCard,
   Mail,
   MapPin,
   Phone,
   User,
 } from "lucide-react"
+import { useState } from "react"
 
 import { useIntakeReview } from "@/components/doctor/review/intake-review-context"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { cn } from "@/lib/utils"
 
 export function PatientInfoCard() {
   const { intake, data } = useIntakeReview()
+  const [open, setOpen] = useState(true)
+  const [medicarecopied, setMedicareCopied] = useState(false)
+
+  const copyMedicare = () => {
+    const num = intake.patient.medicare_number
+    if (!num) return
+    navigator.clipboard.writeText(num).then(() => {
+      setMedicareCopied(true)
+      setTimeout(() => setMedicareCopied(false), 2000)
+    }).catch(() => { /* clipboard unavailable */ })
+  }
 
   return (
     <Card>
-      <CardHeader className="py-4 px-5">
+      <CardHeader
+        className="py-4 px-5 cursor-pointer select-none"
+        onClick={() => setOpen((v) => !v)}
+      >
         <CardTitle className="flex items-center gap-2 text-sm">
           <User className="h-4 w-4" />
           Patient
+          <ChevronDown className={cn("h-3.5 w-3.5 ml-auto text-muted-foreground transition-transform", !open && "-rotate-90")} />
         </CardTitle>
       </CardHeader>
-      <CardContent className="px-5 py-4">
+      {open && <CardContent className="px-5 py-4">
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div>
             <p className="text-xs text-muted-foreground">Name</p>
@@ -45,7 +65,22 @@ export function PatientInfoCard() {
             <CreditCard className="h-3.5 w-3.5 text-muted-foreground mt-0.5" />
             <div>
               <p className="text-xs text-muted-foreground">Medicare</p>
-              <p className="font-medium font-mono text-xs">{data.maskedMedicare}</p>
+              <div className="flex items-center gap-1.5">
+                <p className="font-medium font-mono text-xs">{data.maskedMedicare}</p>
+                {intake.patient.medicare_number && (
+                  <button
+                    type="button"
+                    onClick={copyMedicare}
+                    className="text-muted-foreground/50 hover:text-muted-foreground transition-colors"
+                    aria-label="Copy Medicare number"
+                    title="Copy Medicare number"
+                  >
+                    {medicarecopied
+                      ? <Check className="h-3 w-3 text-success" />
+                      : <Copy className="h-3 w-3" />}
+                  </button>
+                )}
+              </div>
             </div>
           </div>
           <div className="flex items-start gap-1.5">
@@ -77,7 +112,7 @@ export function PatientInfoCard() {
             </div>
           </div>
         </div>
-      </CardContent>
+      </CardContent>}
     </Card>
   )
 }

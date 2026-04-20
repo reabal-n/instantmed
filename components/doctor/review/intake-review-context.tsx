@@ -40,6 +40,7 @@ export interface IntakeReviewContextValue {
   setInitialNotes: (notes: string, dbNotes: string) => void
   noteSaved: boolean
   setNoteSaved: (v: boolean) => void
+  noteDirty: boolean
   isAiPrefilled: boolean
   hasClinicalDraft: boolean
   isRegenerating: boolean

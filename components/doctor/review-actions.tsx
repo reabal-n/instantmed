@@ -37,6 +37,8 @@ export interface ReviewActionsState {
   setInitialNotes: (notes: string, dbNotes: string) => void
   noteSaved: boolean
   setNoteSaved: (v: boolean) => void
+  /** True while there are unsaved changes pending the 2.5 s debounce */
+  noteDirty: boolean
   isAiPrefilled: boolean
   hasClinicalDraft: boolean
   isRegenerating: boolean
@@ -382,6 +384,7 @@ export function useReviewActions({
     setInitialNotes,
     noteSaved,
     setNoteSaved,
+    noteDirty: doctorNotes !== lastSavedNotesRef.current,
     isAiPrefilled,
     hasClinicalDraft,
     isRegenerating,

@@ -28,7 +28,7 @@ export function QueueClient({
   pagination,
   aiApprovedIntakes = [],
   recentlyCompleted = [],
-  todayEarnings: _todayEarnings,
+  todayEarnings,
 }: QueueClientProps) {
   const router = useRouter()
   const { openPanel, activePanel } = usePanel()
@@ -48,9 +48,28 @@ export function QueueClient({
   }, [initialIntakes])
 
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [readIds, setReadIds] = useState<Set<string>>(() => {
+    if (typeof window === "undefined") return new Set()
+    try {
+      const stored = sessionStorage.getItem("instantmed:queue-read-ids")
+      return stored ? new Set(JSON.parse(stored) as string[]) : new Set()
+    } catch { return new Set() }
+  })
+
+  const markAsRead = useCallback((intakeId: string) => {
+    setReadIds((prev) => {
+      if (prev.has(intakeId)) return prev
+      const next = new Set(prev)
+      next.add(intakeId)
+      try { sessionStorage.setItem("instantmed:queue-read-ids", JSON.stringify([...next])) } catch { /* ignore */ }
+      return next
+    })
+  }, [])
+
   const [searchQuery, setSearchQuery] = useState("")
   const debouncedSearch = useDebounce(searchQuery, 200)
   const [statusFilter, setStatusFilter] = useState<"all" | "review" | "pending_info" | "scripts">("all")
+  const [priorityModeActive, setPriorityModeActive] = useState(false)
   const [isApprovePending, startTransition] = useTransition()
   const dialogs = useQueueDialogs({ intakes, setIntakes })
   const [, setTick] = useState(0) // Forces re-render for live wait time ticking
@@ -60,6 +79,22 @@ export function QueueClient({
     }
     return false
   })
+
+  // Auto-activate priority mode when SLA-breached cases exist
+  useEffect(() => {
+    const now = Date.now()
+    const hasSlaBreaches = intakes.some(
+      (r) => r.sla_deadline && new Date(r.sla_deadline).getTime() < now && ["paid", "in_review"].includes(r.status)
+    )
+    if (hasSlaBreaches && !priorityModeActive) {
+      setPriorityModeActive(true)
+      setStatusFilter("review")
+    } else if (!hasSlaBreaches && priorityModeActive) {
+      setPriorityModeActive(false)
+    }
+  // Only re-run when intakes list changes — not on every filter state change
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [intakes])
 
   // Tick every 30s to update wait time displays live
   useEffect(() => {
@@ -114,12 +149,16 @@ export function QueueClient({
 
   // Open intake review in a slide-over panel (stays on queue)
   const openReviewPanel = useCallback((intakeId: string) => {
-    const getAdjacentId = (direction: "next" | "prev") => {
+    markAsRead(intakeId)
+    const getAdjacentId = (direction: "next" | "prev"): string | null => {
       const list = filteredIntakesRef.current
       const idx = list.findIndex((r) => r.id === intakeId)
       if (idx === -1) return null
       return direction === "next" ? (list[idx + 1]?.id ?? null) : (list[idx - 1]?.id ?? null)
     }
+
+    const list = filteredIntakesRef.current
+    const caseIndex = list.findIndex((r) => r.id === intakeId)
 
     openPanel({
       id: `intake-review-${intakeId}`,
@@ -127,6 +166,8 @@ export function QueueClient({
       component: (
         <IntakeReviewPanel
           intakeId={intakeId}
+          caseIndex={caseIndex >= 0 ? caseIndex : undefined}
+          totalCases={list.length > 0 ? list.length : undefined}
           onActionComplete={() => {
             router.refresh()
             // Auto-advance: open the next case in the filtered queue
@@ -151,7 +192,7 @@ export function QueueClient({
         />
       ),
     })
-  }, [openPanel, router])
+  }, [openPanel, router, markAsRead])
 
   const handleApprove = useCallback(async (intakeId: string, serviceType?: string | null) => {
     if (serviceType === SERVICE_TYPES.MED_CERTS) {
@@ -229,14 +270,35 @@ export function QueueClient({
     if (statusFilter === "pending_info" && r.status !== "pending_info") return false
     if (statusFilter === "scripts" && r.status !== "awaiting_script") return false
 
-    // Search filter
+    // Search filter — supports smart tokens: risk:high type:ed status:scripts priority:true
     if (!debouncedSearch.trim()) return true
-    const query = debouncedSearch.toLowerCase()
     const service = r.service as { name?: string; type?: string } | undefined
+
+    // Extract tokens from search query
+    const rawTokens = debouncedSearch.toLowerCase().match(/\w+:\S+/g) ?? []
+    const plainQuery = debouncedSearch.toLowerCase().replace(/\w+:\S+/g, "").trim()
+
+    for (const token of rawTokens) {
+      const [key, val] = token.split(":") as [string, string]
+      if (key === "risk" || key === "risk_tier") {
+        if ((r.risk_tier ?? "low") !== val && !(val === "high" && hasRedFlags(r))) return false
+      } else if (key === "type") {
+        if (!service?.type?.toLowerCase().includes(val)) return false
+      } else if (key === "status") {
+        if (r.status !== val) return false
+      } else if (key === "priority") {
+        if (val === "true" && !r.is_priority) return false
+        if (val === "false" && r.is_priority) return false
+      } else if (key === "flag" || key === "flags") {
+        if (!hasRedFlags(r)) return false
+      }
+    }
+
+    if (!plainQuery) return true
     return (
-      r.patient.full_name.toLowerCase().includes(query) ||
-      r.patient.medicare_number?.includes(query) ||
-      formatServiceType(service?.type || "").toLowerCase().includes(query)
+      r.patient.full_name.toLowerCase().includes(plainQuery) ||
+      r.patient.medicare_number?.includes(plainQuery) ||
+      formatServiceType(service?.type || "").toLowerCase().includes(plainQuery)
     )
   })
 
@@ -301,8 +363,57 @@ export function QueueClient({
     return () => window.removeEventListener("keydown", handleKeyDown)
   }, [expandedId, filteredIntakes, openReviewPanel, handleApprove, dialogs])
 
+  const reviewedToday = recentlyCompleted.length
+  const queueSize = intakes.length
+  const approvalRate = recentlyCompleted.length > 0
+    ? Math.round((recentlyCompleted.filter((r) => r.status === "approved" || r.status === "completed").length / recentlyCompleted.length) * 100)
+    : null
+
   return (
     <div className="space-y-6">
+      {/* Daily stats strip */}
+      {(reviewedToday > 0 || queueSize > 0 || todayEarnings) && (
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-1 px-0.5 text-xs text-muted-foreground">
+          {reviewedToday > 0 && (
+            <span>
+              <span className="font-medium text-foreground tabular-nums">{reviewedToday}</span>{" "}reviewed today
+              {approvalRate !== null && (
+                <span className="ml-1 text-muted-foreground/70">({approvalRate}%)</span>
+              )}
+            </span>
+          )}
+          {queueSize > 0 && (
+            <span>
+              <span className="font-medium text-foreground tabular-nums">{queueSize}</span>{" "}in queue
+            </span>
+          )}
+          {todayEarnings != null && todayEarnings > 0 && (
+            <span>
+              <span className="font-medium text-success tabular-nums">${(todayEarnings / 100).toFixed(2)}</span>{" "}today
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* Priority inbox banner */}
+      {priorityModeActive && (
+        <div
+          role="alert"
+          className="flex items-center gap-3 p-3 rounded-lg bg-destructive/10 border border-destructive/20"
+        >
+          <AlertTriangle className="h-4 w-4 text-destructive shrink-0" />
+          <p className="flex-1 text-sm font-medium text-destructive">
+            SLA breach — showing priority cases first
+          </p>
+          <button
+            className="text-xs text-destructive/70 hover:text-destructive underline underline-offset-2 shrink-0"
+            onClick={() => { setPriorityModeActive(false); setStatusFilter("all") }}
+          >
+            Show all
+          </button>
+        </div>
+      )}
+
       {/* Stale Data Warning */}
       {isStale && (
         <div
@@ -353,6 +464,7 @@ export function QueueClient({
         expandedId={expandedId}
         onToggleExpand={(id) => setExpandedId(expandedId === id ? null : id)}
         openIntakeId={openIntakeId}
+        readIds={readIds}
         isPending={dialogs.isPending || isApprovePending}
         identityComplete={identityComplete}
         onApprove={handleApprove}

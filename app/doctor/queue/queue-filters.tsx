@@ -1,10 +1,12 @@
 "use client"
 
-import { RefreshCw, Search, Volume2, VolumeOff } from "lucide-react"
+import { HelpCircle, RefreshCw, Search, Volume2, VolumeOff } from "lucide-react"
+import { useEffect, useRef } from "react"
 
 import { KeyboardShortcutsModal } from "@/components/doctor/keyboard-shortcuts-modal"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
 import type { IntakeWithPatient } from "@/types/db"
 
@@ -22,6 +24,14 @@ export interface QueueFiltersProps {
   isReconnecting: boolean
 }
 
+const SEARCH_TOKENS = [
+  { token: "risk:high", desc: "High-risk or flagged cases" },
+  { token: "priority:true", desc: "Express / priority cases" },
+  { token: "type:ed", desc: "Filter by service type (ed, certs, rx…)" },
+  { token: "status:paid", desc: "Filter by exact status" },
+  { token: "flags:true", desc: "Any red-flag cases" },
+]
+
 export function QueueFilters({
   searchQuery,
   onSearchChange,
@@ -35,6 +45,20 @@ export function QueueFilters({
   isStale,
   isReconnecting,
 }: QueueFiltersProps) {
+  const searchRef = useRef<HTMLInputElement>(null)
+
+  // `/` key focuses the search input (standard queue shortcut)
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key !== "/") return
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
+      e.preventDefault()
+      searchRef.current?.focus()
+    }
+    window.addEventListener("keydown", handler)
+    return () => window.removeEventListener("keydown", handler)
+  }, [])
+
   return (
     <>
       {/* Header + Search */}
@@ -55,13 +79,43 @@ export function QueueFilters({
           )}
         </div>
         <div className="flex items-center gap-2">
-          <Input
-            placeholder="Search patients..."
-            value={searchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
-            className="w-full sm:w-56 h-9 text-sm"
-            startContent={<Search className="h-3.5 w-3.5 text-muted-foreground" />}
-          />
+          <div className="relative flex items-center">
+            <Input
+              ref={searchRef}
+              placeholder="Search… or / to focus"
+              value={searchQuery}
+              onChange={(e) => onSearchChange(e.target.value)}
+              className="w-full sm:w-56 h-9 text-sm"
+              startContent={<Search className="h-3.5 w-3.5 text-muted-foreground" />}
+            />
+            <Popover>
+              <PopoverTrigger asChild>
+                <button
+                  type="button"
+                  className="absolute right-2.5 text-muted-foreground/50 hover:text-muted-foreground transition-colors"
+                  aria-label="Search token help"
+                >
+                  <HelpCircle className="h-3 w-3" />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent side="bottom" align="end" className="w-72 p-3">
+                <p className="text-xs font-medium text-foreground mb-2">Smart search tokens</p>
+                <div className="space-y-1.5">
+                  {SEARCH_TOKENS.map(({ token, desc }) => (
+                    <div key={token} className="flex items-baseline gap-2">
+                      <code className="text-xs font-mono bg-muted px-1.5 py-0.5 rounded text-foreground shrink-0">
+                        {token}
+                      </code>
+                      <span className="text-xs text-muted-foreground">{desc}</span>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-muted-foreground mt-2.5 pt-2 border-t border-border/40">
+                  Combine with a name or Medicare number.
+                </p>
+              </PopoverContent>
+            </Popover>
+          </div>
           <Button
             variant="ghost"
             size="icon"

@@ -11,13 +11,67 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
 
+const SNIPPETS_BY_TYPE: Record<string, { label: string; text: string }[]> = {
+  med_certs: [
+    { label: "Viral URTI", text: "Patient presented with viral upper respiratory tract infection symptoms including sore throat, nasal congestion, fatigue and low-grade fever. Clinical assessment supports a period of absence from work/study." },
+    { label: "MSK / Back pain", text: "Patient reports musculoskeletal symptoms consistent with back strain. Aggravated by prolonged sitting/standing. Rest, analgesia and gradual mobilisation recommended. Medical absence is clinically appropriate." },
+    { label: "GI illness", text: "Patient presenting with gastrointestinal symptoms including nausea, abdominal discomfort and altered bowel habits. Medical absence is clinically appropriate while symptomatic." },
+    { label: "Mental health", text: "Patient presenting with acute psychological distress impacting capacity to attend work/study. Medical absence is clinically appropriate to allow rest and recovery." },
+    { label: "Migraine", text: "Patient presenting with migraine episode with associated photophobia and functional impairment. Medical absence is clinically appropriate." },
+  ],
+  repeat_rx: [
+    { label: "Stable repeat", text: "Patient has an established, stable prescription for this medication. No contraindications identified. Repeat prescription is clinically appropriate." },
+    { label: "Controlled condition", text: "Patient reports good tolerance and therapeutic effect from current medication. Condition is well-controlled. Repeat prescription is appropriate." },
+    { label: "No change", text: "No changes to current clinical picture. Patient confirms adherence and no adverse effects. Repeat prescription approved." },
+  ],
+  common_scripts: [
+    { label: "Stable repeat", text: "Patient has an established, stable prescription for this medication. No contraindications identified. Repeat prescription is clinically appropriate." },
+    { label: "Controlled condition", text: "Patient reports good therapeutic effect from current medication. Condition is well-controlled. Repeat prescription is appropriate." },
+  ],
+}
+
+const DEFAULT_SNIPPETS = [
+  { label: "Viral URTI", text: "Patient presented with viral upper respiratory tract infection. Symptoms consistent with clinical history provided. Management plan discussed." },
+  { label: "MSK pain", text: "Patient reports musculoskeletal symptoms. Clinical history reviewed. Rest and appropriate analgesia recommended." },
+  { label: "GI symptoms", text: "Patient reporting gastrointestinal symptoms. Clinical history reviewed and assessed as consistent with presentation." },
+  { label: "Anxiety/stress", text: "Patient presenting with symptoms consistent with anxiety and acute psychological stress. Telehealth review conducted. Management options discussed." },
+  { label: "Follow-up", text: "Follow-up review conducted via telehealth. Patient reports [progress]. Current management plan continues to be appropriate." },
+]
+
+function insertAtCursor(
+  ref: React.RefObject<HTMLTextAreaElement>,
+  current: string,
+  snippet: string,
+  onChange: (v: string) => void
+) {
+  const el = ref.current
+  if (!el) {
+    onChange(current ? `${current}\n\n${snippet}` : snippet)
+    return
+  }
+  const start = el.selectionStart ?? current.length
+  const end = el.selectionEnd ?? current.length
+  const prefix = current.slice(0, start)
+  const suffix = current.slice(end)
+  const separator = prefix.length > 0 && !prefix.endsWith("\n\n") ? "\n\n" : ""
+  const newValue = `${prefix}${separator}${snippet}${suffix}`
+  onChange(newValue)
+  setTimeout(() => {
+    el.focus()
+    const pos = prefix.length + separator.length + snippet.length
+    el.setSelectionRange(pos, pos)
+  }, 0)
+}
+
 export function ClinicalNotesEditor() {
   const {
     intake,
+    service,
     doctorNotes,
     setDoctorNotes,
     noteSaved,
     setNoteSaved,
+    noteDirty,
     isAiPrefilled,
     hasClinicalDraft,
     isRegenerating,
@@ -28,6 +82,7 @@ export function ClinicalNotesEditor() {
   } = useIntakeReview()
 
   const isReadonly = ["approved", "completed", "awaiting_script"].includes(intake.status)
+  const snippets = (service?.type && SNIPPETS_BY_TYPE[service.type]) || DEFAULT_SNIPPETS
 
   return (
     <Card>
@@ -60,6 +115,29 @@ export function ClinicalNotesEditor() {
                 AI draft — auto-saves as you type.
               </p>
             )}
+
+            {/* Snippet chips */}
+            {!isRegenerating && (
+              <div className="flex flex-wrap gap-1.5">
+                {snippets.map((s) => (
+                  <button
+                    key={s.label}
+                    type="button"
+                    disabled={isPending || isRegenerating}
+                    onClick={() => {
+                      insertAtCursor(notesRef, doctorNotes, s.text, (v) => {
+                        setDoctorNotes(v)
+                        setNoteSaved(false)
+                      })
+                    }}
+                    className="px-2.5 py-1 text-xs rounded-full border border-border/60 text-muted-foreground hover:text-foreground hover:border-foreground/30 hover:bg-muted/40 transition-colors disabled:opacity-40"
+                  >
+                    + {s.label}
+                  </button>
+                ))}
+              </div>
+            )}
+
             {isRegenerating && !doctorNotes ? (
               <div className="flex items-center gap-2 py-8 text-muted-foreground">
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -113,6 +191,12 @@ export function ClinicalNotesEditor() {
               </div>
               <div className="flex items-center gap-2.5">
                 {noteSaved && <span className="text-xs text-emerald-600">Saved!</span>}
+                {!noteSaved && noteDirty && !isPending && (
+                  <span className="flex items-center gap-1 text-xs text-muted-foreground" aria-live="polite">
+                    <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />
+                    Auto-saving…
+                  </span>
+                )}
                 {doctorNotes.trim().length < MIN_CLINICAL_NOTES_LENGTH ? (
                   <div className="flex items-center gap-1.5" aria-live="polite">
                     <div className="w-20 h-1.5 rounded-full bg-muted overflow-hidden">

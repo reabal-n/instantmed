@@ -93,6 +93,7 @@ export interface QueueTableProps {
   calculateSlaCountdown: (slaDeadline: string | null | undefined) => string | null
   openReviewPanel: (intakeId: string) => void
   openIntakeId: string | null
+  readIds: Set<string>
   dialogs: QueueDialogState
 
   // Extra sections
@@ -115,6 +116,7 @@ export function QueueTable({
   calculateSlaCountdown,
   openReviewPanel,
   openIntakeId,
+  readIds,
   dialogs: {
     declineDialog,
     setDeclineDialog,
@@ -155,6 +157,9 @@ export function QueueTable({
   const totalPages = pagination ? Math.ceil(pagination.total / pagination.pageSize) : 1
   const currentPage = pagination?.page ?? 1
 
+  // A patient is "returning" if they have a recently completed case — derived from recentlyCompleted prop
+  const returningPatientIds = new Set(recentlyCompleted.map((r) => r.patient_id))
+
   return (
     <>
       {/* Queue List — flat rows, single click opens review panel */}
@@ -175,6 +180,8 @@ export function QueueTable({
             const service = intake.service as { name?: string; type?: string; short_name?: string } | undefined
 
             const isOpen = openIntakeId === intake.id
+            const isRead = readIds.has(intake.id)
+            const isReturning = returningPatientIds.has(intake.patient_id)
             const chiefComplaint = getChiefComplaint(intake)
             return (
               <div
@@ -250,6 +257,11 @@ export function QueueTable({
                       <Sparkles className="w-3 h-3 mr-1" />Auto-reviewed
                     </Badge>
                   )}
+                  {isReturning && (
+                    <Badge variant="outline" className="text-xs text-muted-foreground border-border/50">
+                      Returning
+                    </Badge>
+                  )}
                   {isOpen && (
                     <Badge className="bg-primary/10 text-primary border-primary/20 text-xs">
                       Open
@@ -295,6 +307,11 @@ export function QueueTable({
                     <MessageSquare className="h-3.5 w-3.5" />
                   </Button>
                 </div>
+
+                {/* Unread dot */}
+                {!isRead && (
+                  <span className="h-2 w-2 rounded-full bg-primary shrink-0" aria-label="Unread" />
+                )}
 
                 {/* Wait time */}
                 <div className={cn(

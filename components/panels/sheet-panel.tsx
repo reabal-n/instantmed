@@ -53,9 +53,12 @@ export function SheetPanel({
     closePanel()
   }
 
-  // Prevent body scroll when sheet is open
+  // Prevent body scroll when sheet is open — only on smaller screens where the sheet overlays content
   useEffect(() => {
-    document.body.style.overflow = 'hidden'
+    const xl = window.matchMedia('(min-width: 1280px)')
+    if (!xl.matches) {
+      document.body.style.overflow = 'hidden'
+    }
     return () => {
       document.body.style.overflow = 'unset'
     }
@@ -76,13 +79,13 @@ export function SheetPanel({
 
   return (
     <div className="fixed inset-0 z-50">
-      {/* Backdrop */}
+      {/* Backdrop — hidden on xl+ so the panel docks without dimming the queue */}
       <motion.div
         variants={backdropVariants}
         initial={prefersReducedMotion ? {} : "hidden"}
         animate="visible"
         exit="hidden"
-        className="absolute inset-0 bg-black/40"
+        className="absolute inset-0 bg-black/40 xl:hidden"
         onClick={handleClose}
         aria-hidden="true"
       />
@@ -95,6 +98,7 @@ export function SheetPanel({
         exit={prefersReducedMotion ? { opacity: 0 } : "exit"}
         className={cn(
           'absolute top-0 h-full bg-background shadow-2xl flex flex-col',
+          'xl:border-l xl:border-border/60',
           side === 'right' ? 'right-0' : 'left-0',
           className
         )}
