@@ -289,7 +289,7 @@ export function AnalyticsClient({ analytics, doctorName }: AnalyticsClientProps)
                     contentStyle={{
                       borderRadius: "8px",
                       border: "1px solid hsl(var(--border))",
-                      boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                      boxShadow: "0 4px 12px rgba(2,132,199,0.12)",
                     }}
                   />
                   <Legend />

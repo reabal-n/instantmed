@@ -328,7 +328,7 @@ export function IntakeStatusTracker({
           animate={{
             height: `${Math.max(0, Math.min(100, (currentIndex / (STATUS_STEPS.length - 1)) * 100))}%`,
           }}
-          transition={{ duration: prefersReducedMotion ? 0 : 0.5, ease: "easeOut" }}
+          transition={{ duration: prefersReducedMotion ? 0 : 0.3, ease: "easeOut" }}
         />
 
         {/* Steps */}

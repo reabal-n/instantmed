@@ -128,7 +128,7 @@ export function ProfileTodoCard({ profileData, onOpenDrawer, hideWhenMedCertOnly
               className="h-full bg-primary rounded-full"
               initial={prefersReducedMotion ? {} : { width: 0 }}
               animate={{ width: `${(completedCount / items.length) * 100}%` }}
-              transition={{ duration: prefersReducedMotion ? 0 : 0.5, ease: "easeOut", delay: prefersReducedMotion ? 0 : 0.2 }}
+              transition={{ duration: prefersReducedMotion ? 0 : 0.3, ease: "easeOut", delay: prefersReducedMotion ? 0 : 0.15 }}
             />
           </div>
         </div>

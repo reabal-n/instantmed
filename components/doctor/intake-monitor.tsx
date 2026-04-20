@@ -248,7 +248,7 @@ export function IntakeMonitor({ initialStats, refreshInterval = 30000 }: IntakeM
               {(stats.aiApprovedToday != null && (stats.aiAttemptedToday ?? 0) > 0) && (
                 <>
                   <div className="h-3.5 w-px bg-border/60" />
-                  <div className="flex items-center gap-1 text-xs text-violet-600 dark:text-violet-400">
+                  <div className="flex items-center gap-1 text-xs text-sky-600 dark:text-sky-400">
                     <Sparkles className="h-3.5 w-3.5" />
                     <span>{stats.aiApprovedToday} AI approved</span>
                     {aiHitRate !== null && (
