@@ -41,6 +41,13 @@ export function SupabaseAuthProvider({ children }: SupabaseAuthProviderProps) {
     if (initializedRef.current) return
     initializedRef.current = true
 
+    // E2E bypass: __e2e_auth_role cookie is readable client-side (non-httpOnly).
+    // Skip Supabase session check to prevent SIGNED_OUT → router.refresh() redirect chain.
+    if (typeof document !== 'undefined' && document.cookie.includes('__e2e_auth_role=')) {
+      setIsLoaded(true)
+      return
+    }
+
     // Get initial session
     supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
       setSession(initialSession)
