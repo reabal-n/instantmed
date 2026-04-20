@@ -1,14 +1,8 @@
 "use client"
 
-/**
- * Cookie Consent Banner
- * 
- * DISCLOSURE_CONSENT_AUDIT P1: Cookie consent for GDPR/privacy compliance
- */
-
 import { X } from "lucide-react"
 import Link from "next/link"
-import { useCallback,useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 
 import { Button } from "@/components/ui/button"
 import { updateConsent } from "@/lib/analytics/conversion-tracking"
@@ -16,9 +10,10 @@ import { cn } from "@/lib/utils"
 
 const COOKIE_CONSENT_KEY = "instantmed_cookie_consent"
 const COOKIE_CONSENT_VERSION = "1.0"
+const NOTIFICATION_DURATION_MS = 8000
 
 export type CookiePreferences = {
-  essential: boolean // Always true
+  essential: boolean
   analytics: boolean
   marketing: boolean
   version: string
@@ -40,77 +35,6 @@ function syncGoogleConsent(preferences: CookiePreferences) {
     adPersonalization: preferences.marketing,
     analyticsStorage: preferences.analytics,
   })
-}
-
-function CookieIcon({ className }: { className?: string }) {
-  return (
-    <svg 
-      viewBox="0 0 64 64" 
-      className={className}
-      aria-hidden="true"
-    >
-      {/* Cookie base with 3D gradient */}
-      <defs>
-        <radialGradient id="cookieGrad" cx="30%" cy="30%" r="70%">
-          <stop offset="0%" stopColor="#E8C87A" />
-          <stop offset="50%" stopColor="#D4A853" />
-          <stop offset="100%" stopColor="#B8863B" />
-        </radialGradient>
-        <radialGradient id="chipGrad" cx="40%" cy="30%" r="60%">
-          <stop offset="0%" stopColor="#5D3A1A" />
-          <stop offset="100%" stopColor="#3D2510" />
-        </radialGradient>
-        <radialGradient id="biteGrad" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor="#F5E6C8" />
-          <stop offset="100%" stopColor="#E8D4B0" />
-        </radialGradient>
-        <filter id="cookieShadow" x="-20%" y="-20%" width="140%" height="140%">
-          <feDropShadow dx="0" dy="2" stdDeviation="2" floodOpacity="0.15"/>
-        </filter>
-        {/* Clip path for bite mark */}
-        <clipPath id="biteMask">
-          <path d="M0,0 H64 V64 H0 V0 Z M52,12 a8,8 0 1,0 0,0.1" />
-        </clipPath>
-      </defs>
-      
-      <g clipPath="url(#biteMask)">
-        {/* Cookie body */}
-        <ellipse 
-          cx="32" cy="34" rx="26" ry="24" 
-          fill="url(#cookieGrad)" 
-          filter="url(#cookieShadow)"
-        />
-        
-        {/* Cookie edge highlight */}
-        <ellipse 
-          cx="32" cy="32" rx="26" ry="24" 
-          fill="url(#cookieGrad)"
-        />
-        
-        {/* Chocolate chips */}
-        <ellipse cx="20" cy="26" rx="5" ry="4" fill="url(#chipGrad)" />
-        <ellipse cx="38" cy="22" rx="4" ry="3.5" fill="url(#chipGrad)" />
-        <ellipse cx="28" cy="38" rx="5" ry="4" fill="url(#chipGrad)" />
-        <ellipse cx="44" cy="36" rx="4" ry="3.5" fill="url(#chipGrad)" />
-        <ellipse cx="18" cy="42" rx="3.5" ry="3" fill="url(#chipGrad)" />
-        
-        {/* Chip highlights */}
-        <ellipse cx="19" cy="25" rx="1.5" ry="1" fill="#7D4A2A" opacity="0.6" />
-        <ellipse cx="37" cy="21" rx="1.2" ry="0.8" fill="#7D4A2A" opacity="0.6" />
-        <ellipse cx="27" cy="37" rx="1.5" ry="1" fill="#7D4A2A" opacity="0.6" />
-        
-        {/* Cookie texture dots */}
-        <circle cx="48" cy="28" r="2" fill="#C9975A" />
-        <circle cx="14" cy="34" r="1.5" fill="#C9975A" />
-        <circle cx="36" cy="46" r="1.8" fill="#C9975A" />
-      </g>
-      
-      {/* Bite edge crumbs */}
-      <circle cx="46" cy="8" r="1.5" fill="#D4A853" />
-      <circle cx="58" cy="18" r="1.2" fill="#D4A853" />
-      <circle cx="50" cy="5" r="1" fill="#E8C87A" />
-    </svg>
-  )
 }
 
 function Toggle({ checked, onChange, id }: { checked: boolean; onChange: (checked: boolean) => void; id: string }) {
@@ -143,68 +67,79 @@ export function CookieBanner() {
   const [isVisible, setIsVisible] = useState(false)
   const [showDetails, setShowDetails] = useState(false)
   const [preferences, setPreferences] = useState<CookiePreferences>(DEFAULT_PREFERENCES)
+  const dismissTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const dismiss = useCallback(() => {
+    if (dismissTimerRef.current) clearTimeout(dismissTimerRef.current)
+    setIsVisible(false)
+    setTimeout(() => setShowBanner(false), 300)
+  }, [])
 
   useEffect(() => {
-    // Check if consent already given
     const stored = localStorage.getItem(COOKIE_CONSENT_KEY)
     if (stored) {
       try {
         const parsed = JSON.parse(stored) as CookiePreferences
-        // Check if version matches - consent already given, don't show banner
         if (parsed.version === COOKIE_CONSENT_VERSION) {
           syncGoogleConsent(parsed)
+          setPreferences(parsed)
           return
         }
       } catch {
-        // Invalid stored data, show banner
+        // fall through to auto-accept
       }
     }
-    // Show banner after a short delay to avoid layout shift
-    const timer = setTimeout(() => {
+
+    // AU Privacy Act 1988 — implied consent model.
+    // Accept all by default; show a brief notification so users can opt out.
+    const defaults: CookiePreferences = { ...DEFAULT_PREFERENCES, acceptedAt: new Date().toISOString() }
+    localStorage.setItem(COOKIE_CONSENT_KEY, JSON.stringify(defaults))
+    syncGoogleConsent(defaults)
+    setPreferences(defaults)
+    window.dispatchEvent(new CustomEvent("cookieConsentUpdated", { detail: defaults }))
+
+    const showTimer = setTimeout(() => {
       setShowBanner(true)
-      // Trigger animation after mount
       requestAnimationFrame(() => setIsVisible(true))
-    }, 1000)
-    return () => clearTimeout(timer)
+
+      // Auto-dismiss after notification duration
+      dismissTimerRef.current = setTimeout(dismiss, NOTIFICATION_DURATION_MS)
+    }, 1500)
+
+    return () => {
+      clearTimeout(showTimer)
+      if (dismissTimerRef.current) clearTimeout(dismissTimerRef.current)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Escape key handler
-  const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    if (e.key === "Escape" && showDetails) {
-      setShowDetails(false)
-    }
-  }, [showDetails])
+  // Cancel auto-dismiss when user opens the detailed panel
+  const handleOpenDetails = () => {
+    if (dismissTimerRef.current) clearTimeout(dismissTimerRef.current)
+    setShowDetails(true)
+  }
 
   useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        if (showDetails) setShowDetails(false)
+        else dismiss()
+      }
+    }
     document.addEventListener("keydown", handleKeyDown)
     return () => document.removeEventListener("keydown", handleKeyDown)
-  }, [handleKeyDown])
+  }, [showDetails, dismiss])
 
   const savePreferences = (prefs: CookiePreferences) => {
-    const updated = {
-      ...prefs,
-      acceptedAt: new Date().toISOString(),
-    }
+    const updated = { ...prefs, acceptedAt: new Date().toISOString() }
     localStorage.setItem(COOKIE_CONSENT_KEY, JSON.stringify(updated))
     syncGoogleConsent(updated)
     setPreferences(updated)
-    setShowBanner(false)
-
-    // Dispatch event for analytics providers to check
     window.dispatchEvent(new CustomEvent("cookieConsentUpdated", { detail: updated }))
+    dismiss()
   }
 
-  const handleAcceptAll = () => {
-    savePreferences({
-      essential: true,
-      analytics: true,
-      marketing: true,
-      version: COOKIE_CONSENT_VERSION,
-      acceptedAt: "",
-    })
-  }
-
-  const handleRejectNonEssential = () => {
+  const handleOptOutNonEssential = () => {
     savePreferences({
       essential: true,
       analytics: false,
@@ -214,104 +149,75 @@ export function CookieBanner() {
     })
   }
 
-  const handleSavePreferences = () => {
-    savePreferences(preferences)
-  }
+  const handleSavePreferences = () => savePreferences(preferences)
 
   if (!showBanner) return null
 
   return (
-    <div 
+    <div
       className={cn(
-        "fixed bottom-4 left-4 right-4 sm:left-6 sm:right-auto sm:bottom-6 z-50 sm:max-w-sm",
+        "fixed bottom-4 left-4 right-4 sm:left-6 sm:right-auto sm:bottom-6 z-50 sm:max-w-xs",
         "transition-all duration-300 ease-out motion-reduce:transition-none",
         isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
       )}
-      role="dialog"
-      aria-label="Cookie consent"
+      role={showDetails ? "dialog" : "status"}
+      aria-label={showDetails ? "Cookie settings" : "Cookie notice"}
     >
-      <div className="bg-white dark:bg-card rounded-2xl shadow-xl border border-border/50 dark:border-white/15 dark:shadow-none overflow-hidden">
+      <div className="bg-white dark:bg-card rounded-2xl shadow-lg border border-border/50 dark:border-white/15 overflow-hidden">
         {!showDetails ? (
-          // Simple view - compact floating card
-          <div className="p-4">
-            <div className="flex items-start gap-3">
-              <CookieIcon className="w-10 h-10 shrink-0" />
+          <div className="p-3.5">
+            <div className="flex items-start gap-2.5">
               <div className="flex-1 min-w-0">
-                <p className="text-sm text-foreground leading-snug">
-                  We use cookies to keep things running smoothly.{" "}
-                  <Link
-                    href="/privacy#cookies"
-                    className="text-primary hover:underline font-medium"
-                  >
-                    Learn more about our cookie policy
+                <p className="text-xs text-muted-foreground leading-snug">
+                  We use cookies to measure performance and improve your experience.{" "}
+                  <Link href="/privacy#cookies" className="underline hover:no-underline">
+                    Privacy policy
                   </Link>
                 </p>
               </div>
-            </div>
-            
-            <div className="flex items-center gap-2 mt-4">
-              <button 
-                onClick={() => setShowDetails(true)}
-                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+              <button
+                onClick={dismiss}
+                aria-label="Dismiss"
+                className="shrink-0 text-muted-foreground/60 hover:text-foreground transition-colors -mt-0.5"
               >
-                Manage
+                <X className="w-3.5 h-3.5" />
               </button>
-              <div className="flex-1" />
-              <Button 
-                variant="ghost"
-                size="sm" 
-                onClick={handleRejectNonEssential}
-                className="text-xs h-8 px-3 text-muted-foreground hover:bg-muted"
+            </div>
+            <div className="flex items-center gap-3 mt-2.5">
+              <button
+                onClick={handleOpenDetails}
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors underline hover:no-underline"
               >
-                Essential only
-              </Button>
-              <Button 
-                size="sm" 
-                onClick={handleAcceptAll}
-                className="h-8 px-4 bg-foreground hover:bg-foreground/90 text-background font-medium shadow-sm"
-              >
-                Accept all
-              </Button>
+                Manage cookies
+              </button>
             </div>
           </div>
         ) : (
-          // Detailed preferences view
           <div className="p-4">
             <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <CookieIcon className="w-6 h-6" />
-                <h3 className="font-semibold text-foreground text-sm">Cookie settings</h3>
-              </div>
-              <Button 
-                variant="ghost" 
-                size="icon" 
+              <h3 className="font-semibold text-foreground text-sm">Cookie settings</h3>
+              <button
                 onClick={() => setShowDetails(false)}
-                aria-label="Close preferences"
-                className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                aria-label="Back"
+                className="text-muted-foreground hover:text-foreground transition-colors"
               >
                 <X className="h-4 w-4" />
-              </Button>
+              </button>
             </div>
 
             <div className="space-y-2">
-              {/* Essential - always on */}
               <div className="flex items-center justify-between py-2 px-3 rounded-lg bg-muted dark:bg-white/5">
                 <div>
                   <p className="text-sm font-medium text-foreground">Essential</p>
-                  <p className="text-xs text-muted-foreground">
-                    Required for the site to work
-                  </p>
+                  <p className="text-xs text-muted-foreground">Required for the site to work</p>
                 </div>
                 <span className="text-xs text-muted-foreground/60">Always on</span>
               </div>
 
-              {/* Analytics */}
               <div className="flex items-center justify-between py-2 px-3 rounded-lg bg-muted dark:bg-white/5">
                 <label htmlFor="analytics-toggle" className="cursor-pointer flex-1">
                   <p className="text-sm font-medium text-foreground">Analytics</p>
-                  <p className="text-xs text-muted-foreground">
-                    Helps us improve the experience
-                  </p>
+                  <p className="text-xs text-muted-foreground">Helps us improve the experience</p>
                 </label>
                 <Toggle
                   id="analytics-toggle"
@@ -320,13 +226,10 @@ export function CookieBanner() {
                 />
               </div>
 
-              {/* Marketing */}
               <div className="flex items-center justify-between py-2 px-3 rounded-lg bg-muted dark:bg-white/5">
                 <label htmlFor="marketing-toggle" className="cursor-pointer flex-1">
                   <p className="text-sm font-medium text-foreground">Marketing</p>
-                  <p className="text-xs text-muted-foreground">
-                    Measures ad effectiveness
-                  </p>
+                  <p className="text-xs text-muted-foreground">Measures ad effectiveness</p>
                 </label>
                 <Toggle
                   id="marketing-toggle"
@@ -337,16 +240,16 @@ export function CookieBanner() {
             </div>
 
             <div className="flex justify-end gap-2 mt-4 pt-3 border-t border-border/50">
-              <Button 
+              <Button
                 variant="ghost"
-                size="sm" 
-                onClick={handleRejectNonEssential}
+                size="sm"
+                onClick={handleOptOutNonEssential}
                 className="text-xs h-8 px-3 text-muted-foreground"
               >
                 Essential only
               </Button>
-              <Button 
-                size="sm" 
+              <Button
+                size="sm"
                 onClick={handleSavePreferences}
                 className="h-8 px-4 bg-foreground hover:bg-foreground/90 text-background font-medium shadow-sm"
               >
@@ -360,52 +263,28 @@ export function CookieBanner() {
   )
 }
 
-/**
- * Hook to get current cookie preferences
- */
 export function useCookieConsent(): CookiePreferences | null {
   const [preferences, setPreferences] = useState<CookiePreferences | null>(null)
 
   useEffect(() => {
-    const loadPreferences = () => {
-      const stored = localStorage.getItem(COOKIE_CONSENT_KEY)
-      if (stored) {
-        try {
-          setPreferences(JSON.parse(stored))
-        } catch {
-          setPreferences(null)
-        }
-      }
+    const stored = localStorage.getItem(COOKIE_CONSENT_KEY)
+    if (stored) {
+      try { setPreferences(JSON.parse(stored)) } catch { setPreferences(null) }
     }
-
-    loadPreferences()
-
-    // Listen for updates
-    const handleUpdate = (e: CustomEvent<CookiePreferences>) => {
-      setPreferences(e.detail)
-    }
-
+    const handleUpdate = (e: CustomEvent<CookiePreferences>) => setPreferences(e.detail)
     window.addEventListener("cookieConsentUpdated", handleUpdate as EventListener)
-    return () => {
-      window.removeEventListener("cookieConsentUpdated", handleUpdate as EventListener)
-    }
+    return () => window.removeEventListener("cookieConsentUpdated", handleUpdate as EventListener)
   }, [])
 
   return preferences
 }
 
-/**
- * Check if a specific cookie type is allowed
- */
 export function isCookieAllowed(type: "analytics" | "marketing"): boolean {
   if (typeof window === "undefined") return false
-  
   const stored = localStorage.getItem(COOKIE_CONSENT_KEY)
   if (!stored) return false
-  
   try {
-    const prefs = JSON.parse(stored) as CookiePreferences
-    return prefs[type] === true
+    return (JSON.parse(stored) as CookiePreferences)[type] === true
   } catch {
     return false
   }

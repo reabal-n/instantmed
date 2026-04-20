@@ -1,4 +1,3 @@
-export { ClosingCountdown } from "./closing-countdown"
 export { AnimatedDonutChart, AnimatedProgressBar, ComparisonBar } from "./data-viz"
 export type { EditorialStoryBlockProps } from "./editorial-story-block"
 export { EditorialStoryBlock } from "./editorial-story-block"

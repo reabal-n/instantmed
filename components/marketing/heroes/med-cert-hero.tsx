@@ -3,26 +3,18 @@
 import {
   ArrowRight,
   CheckCircle2,
+  PhoneOff,
 } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 
-import { ContextualMessage } from "@/components/marketing/contextual-message"
 import { MedCertHeroMockup } from "@/components/marketing/mockups/med-cert-hero-mockup"
-import { DoctorAvailabilityPill } from "@/components/shared"
 import { TrustBadgeRow } from "@/components/shared"
 import { Button } from "@/components/ui/button"
 import { MagneticButton } from "@/components/ui/magnetic-button"
 import { PRICING } from "@/lib/constants"
 import { BADGE_REGISTRY } from "@/lib/marketing/trust-badges"
 import { SOCIAL_PROOF_DISPLAY } from "@/lib/social-proof"
-
-const STATIC_BADGES = [
-  BADGE_REGISTRY.legally_valid.label,
-  BADGE_REGISTRY.no_appointment.label,
-  BADGE_REGISTRY.same_day.label,
-  BADGE_REGISTRY.refund.label,
-]
 
 export function MedCertHeroSection({
   ctaRef,
@@ -33,15 +25,27 @@ export function MedCertHeroSection({
   onCTAClick?: () => void
   patientCount?: number
 }) {
+  const trustChips = [
+    BADGE_REGISTRY.legally_valid.label,
+    BADGE_REGISTRY.no_appointment.label,
+    patientCount && patientCount > 0
+      ? `Trusted by ${patientCount.toLocaleString()}+ Australians`
+      : "Trusted by 3,000+ Australians",
+    BADGE_REGISTRY.refund.label,
+  ]
+
   return (
     <section data-track-section="hero" aria-label="Medical certificate service overview" className="relative overflow-hidden pt-6 pb-6 sm:pt-16 sm:pb-20 lg:pt-20 lg:pb-24">
       <div className="mx-auto max-w-5xl px-6 sm:px-8 lg:px-10">
         <div className="flex flex-col lg:flex-row items-center lg:gap-12 xl:gap-14">
           {/* Text content */}
           <div className="flex-1 min-w-0 text-center lg:text-left">
-            {/* Doctor availability pill — CSS animation: no opacity:0 flash on hydration */}
+            {/* No call required pill */}
             <div className="flex justify-center lg:justify-start mb-4 sm:mb-8 hero-availability-enter">
-              <DoctorAvailabilityPill alwaysAvailable />
+              <div className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium bg-green-50 border border-green-200 text-green-800 dark:bg-green-950/40 dark:border-green-800 dark:text-green-300">
+                <PhoneOff className="w-3.5 h-3.5" aria-hidden="true" />
+                No call required
+              </div>
             </div>
 
             {/* Headline */}
@@ -61,11 +65,11 @@ export function MedCertHeroSection({
               reviews your request. Most certificates are ready in under 20 minutes.
             </p>
 
-            {/* Static proof chips — all claims visible at once */}
+            {/* Static proof chips */}
             <div className="flex flex-wrap justify-center lg:justify-start gap-x-4 gap-y-1.5 mb-6 hero-trust-enter">
-              {STATIC_BADGES.map((label) => (
+              {trustChips.map((label) => (
                 <span key={label} className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <CheckCircle2 className="h-3 w-3 shrink-0 text-primary/70" aria-hidden="true" />
+                  <CheckCircle2 className="h-3 w-3 shrink-0 text-emerald-600" aria-hidden="true" />
                   {label}
                 </span>
               ))}
@@ -89,28 +93,17 @@ export function MedCertHeroSection({
                   </Link>
                 </Button>
               </MagneticButton>
-              <div className="flex flex-col items-center lg:items-start gap-0.5">
-                <p className="text-xs text-muted-foreground">
-                  {SOCIAL_PROOF_DISPLAY.gpComparison} clinic
-                </p>
-                <ContextualMessage service="med-cert" className="text-xs font-medium text-primary/70 border-l-2 border-primary/30 pl-2 mt-1" />
-              </div>
-            </div>
-
-            {/* Social proof count */}
-            {patientCount && patientCount > 0 && (
-              <p className="text-xs text-muted-foreground flex items-center justify-center lg:justify-start gap-1.5 mb-4 sm:mb-5 -mt-2 hero-count-enter">
-                <CheckCircle2 className="h-3.5 w-3.5 text-success shrink-0" aria-hidden="true" />
-                Trusted by {patientCount.toLocaleString()}+ Australians
+              <p className="text-xs text-muted-foreground">
+                {SOCIAL_PROOF_DISPLAY.gpComparison} clinic
               </p>
-            )}
+            </div>
 
             {/* 3 key trust badges — LegitScript + Google Pharmacy + No call */}
             <TrustBadgeRow
               badges={[
                 { id: "legitscript", variant: "styled" },
                 { id: "google_pharmacy", variant: "styled" },
-                { id: "no_call", variant: "styled" },
+                { id: "ahpra", variant: "styled" },
               ]}
               className="mt-4 justify-center lg:justify-start gap-3"
             />
@@ -127,15 +120,16 @@ export function MedCertHeroSection({
           </div>
         </div>
 
-        {/* Lifestyle photo — flat-lay showing the actual product: certificate + InstantMed on screen */}
+        {/* Lifestyle photo */}
         <div className="mt-8 sm:mt-10 w-full relative aspect-[16/9] rounded-2xl overflow-hidden shadow-lg">
           <Image
-            src="/images/medcert-1.webp"
+            src="/images/medcert-2.webp"
             alt="Medical certificate document on desk alongside laptop showing InstantMed"
             fill
             className="object-cover object-center"
             priority
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 960px"
+            quality={85}
+            sizes="(max-width: 640px) 100vw, (max-width: 1280px) 100vw, 1200px"
           />
         </div>
       </div>

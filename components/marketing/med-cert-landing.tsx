@@ -10,7 +10,7 @@ import dynamic from "next/dynamic"
 import Link from "next/link"
 import { useCallback } from "react"
 
-import { ComplianceMarquee } from "@/components/marketing/compliance-marquee"
+import { StripePaymentLogos } from "@/components/checkout/payment-logos"
 // Hero is above-fold - not lazy loaded
 import { MedCertHeroSection } from "@/components/marketing/heroes/med-cert-hero"
 import {
@@ -31,10 +31,7 @@ const CertificateTypeSelector = dynamic(
   () => import("@/components/marketing/sections/certificate-type-selector").then((m) => m.CertificateTypeSelector),
   { loading: () => <div className="min-h-[400px]" /> },
 )
-const HowItWorksSection = dynamic(
-  () => import("@/components/marketing/sections/how-it-works-section").then((m) => m.HowItWorksSection),
-  { loading: () => <div className="min-h-[400px]" /> },
-)
+import { HowItWorksInline } from "@/components/marketing/sections/how-it-works-inline"
 const SocialProofSection = dynamic(
   () => import("@/components/marketing/social-proof-section").then((m) => m.SocialProofSection),
   { loading: () => <div className="min-h-[400px]" /> },
@@ -46,14 +43,6 @@ const RegulatoryPartners = dynamic(
 const LimitationsSection = dynamic(
   () => import("@/components/marketing/sections/limitations-section").then((m) => m.LimitationsSection),
   { loading: () => <div className="min-h-[150px]" /> },
-)
-const MedCertGuideSection = dynamic(
-  () => import("@/components/marketing/sections/med-cert-guide-section").then((m) => m.MedCertGuideSection),
-  { loading: () => <div className="min-h-[600px]" /> },
-)
-const CompetitorLinksSection = dynamic(
-  () => import("@/components/marketing/sections/competitor-links-section").then((m) => m.CompetitorLinksSection),
-  { loading: () => <div className="min-h-[200px]" /> },
 )
 const FAQSection = dynamic(
   () => import("@/components/sections").then((m) => ({ default: m.FAQSection })),
@@ -68,6 +57,30 @@ const CTABanner = dynamic(
 // DATA
 // =============================================================================
 
+const HOW_IT_WORKS_STEPS = [
+  {
+    sticker: "medical-history" as const,
+    step: 1,
+    title: "Fill a short health form",
+    description: "Tell us about your symptoms and how long you've been unwell. Takes about 2 minutes.",
+    time: "~2 minutes",
+  },
+  {
+    sticker: "stethoscope" as const,
+    step: 2,
+    title: "A real GP reviews it",
+    description: `An AHPRA-registered doctor reviews your assessment. Average review time is ~${SOCIAL_PROOF.averageResponseMinutes} minutes.`,
+    time: `~${SOCIAL_PROOF.averageResponseMinutes} min`,
+  },
+  {
+    sticker: "certificate" as const,
+    step: 3,
+    title: "Certificate sent to you",
+    description: "Your medical certificate is emailed to you as a PDF. Valid under the Fair Work Act 2009.",
+    time: "Same day",
+  },
+]
+
 const LANDING_CONFIG: LandingPageConfig = {
   serviceId: "med-cert",
   analyticsId: "med-cert",
@@ -80,15 +93,7 @@ const LANDING_CONFIG: LandingPageConfig = {
     desktopCtaText: "Get your certificate",
     pricingScrollTarget: "certificate-type",
     responseTime: `Avg response: ${SOCIAL_PROOF_DISPLAY.responseTime}`,
-    mobileFooter: (
-      <div className="flex items-center justify-center gap-2 mt-1.5">
-        <span className="text-[10px] text-muted-foreground/50">Secured by Stripe</span>
-        <span className="text-muted-foreground/30">&middot;</span>
-        <span className="text-[10px] text-muted-foreground/50">Apple Pay</span>
-        <span className="text-muted-foreground/30">&middot;</span>
-        <span className="text-[10px] text-muted-foreground/50">Google Pay</span>
-      </div>
-    ),
+    mobileFooter: <StripePaymentLogos className="mt-1.5 opacity-60" />,
   },
 }
 
@@ -224,9 +229,13 @@ export function MedCertLanding() {
 
             {/* 4. How It Works */}
             <div data-track-section="how_it_works">
-              <HowItWorksSection
+              <HowItWorksInline
+                steps={HOW_IT_WORKS_STEPS}
+                ctaHref="/request?service=med-cert"
+                ctaText={`Get your certificate \u00b7 $${PRICING.MED_CERT.toFixed(2)}`}
                 onCTAClick={handleHowItWorksCTA}
-                ctaText={`Get your certificate - $${PRICING.MED_CERT.toFixed(2)}`}
+                heading="How it works"
+                subheading="No appointment, no waiting room. Fill a form, a doctor reviews it, and your certificate lands in your inbox."
               />
             </div>
 
@@ -278,14 +287,7 @@ export function MedCertLanding() {
               </p>
             </div>
 
-            {/* 12. Deep-dive guide + competitor links (SEO, above footer) */}
-            <MedCertGuideSection />
-            <CompetitorLinksSection slugs={["instantmed-vs-cleanbill", "instantmed-vs-qoctor", "instantmed-vs-instantscripts"]} />
-
-            {/* 12. Authority logos — trust-seal right before CTA */}
-            <RegulatoryPartners />
-
-            {/* 13. Pre-CTA friction removal */}
+            {/* 12. Pre-CTA friction removal */}
             <div className="py-6 sm:py-8">
               <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
                 {[
@@ -305,7 +307,7 @@ export function MedCertLanding() {
               </div>
             </div>
 
-            {/* 14. Final CTA */}
+            {/* 13. Final CTA */}
             <div data-track-section="final_cta">
               <CTABanner
                 title="Let a doctor handle the paperwork"
@@ -315,8 +317,8 @@ export function MedCertLanding() {
               />
             </div>
 
-            {/* Compliance strip */}
-            <ComplianceMarquee />
+            {/* 14. Compliant with — regulatory logos footer closer */}
+            <RegulatoryPartners />
           </>
         )
       }}

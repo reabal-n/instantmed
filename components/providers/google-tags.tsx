@@ -1,61 +1,68 @@
 "use client"
 
+import Script from "next/script"
 import { useEffect } from "react"
 
 import { captureAttribution } from "@/lib/analytics/attribution"
 
+// Only load Google tags on Vercel production - skip preview deployments and local dev.
+// NEXT_PUBLIC_VERCEL_ENV is set automatically by Vercel: 'production' | 'preview' | 'development'
+const IS_PROD = process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
+
+const CONSENT_INIT = `
+window.dataLayer=window.dataLayer||[];
+function gtag(){dataLayer.push(arguments);}
+// Australian implied consent model (Privacy Act 1988).
+// Defaults to granted — users can opt out via cookie banner.
+gtag("consent","default",{
+  ad_storage:"granted",
+  ad_user_data:"granted",
+  ad_personalization:"denied",
+  analytics_storage:"granted",
+  functionality_storage:"granted",
+  personalization_storage:"denied",
+  security_storage:"granted"
+});
+`
+
 /**
- * Initializes Google Consent Mode v2 and loads Google Analytics/Ads (gtag.js).
+ * Loads Google Tag (AW-17795889471) with Consent Mode v2.
  *
- * Uses useEffect + DOM APIs instead of next/script to avoid the React 19
- * "Encountered a script tag while rendering React component" error. React never
- * creates a <script> DOM node - the script is injected directly into <head>.
+ * Uses next/script so the gtag.js src appears in the initial SSR HTML,
+ * making it detectable by Google's tag coverage crawler. The earlier
+ * useEffect+DOM approach caused Google to report /medical-certificate
+ * as "Not tagged" because the script was only injected after JS executed.
  *
- * Consent defaults are set BEFORE gtag.js loads (order within the effect).
+ * Consent defaults are set via a beforeInteractive inline script so they
+ * are in the dataLayer before gtag.js loads (required for Consent Mode v2).
  */
 export function GoogleTags() {
   useEffect(() => {
-    // Only load Google tags on production domains - skip Vercel previews
-    const hostname = window.location.hostname
-    const isProduction = hostname === "instantmed.com.au" || hostname === "www.instantmed.com.au"
-    if (!isProduction) return
-
-    window.dataLayer = window.dataLayer || []
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    function gtag(...args: any[]) { window.dataLayer!.push(args) }
-    window.gtag = gtag
-
-    // Australian implied consent model (Privacy Act 1988).
-    // Consent defaults to granted - users can opt out via the cookie banner.
-    // EEA-specific defaults are handled in Google Tag admin settings.
-    gtag("consent", "default", {
-      ad_storage: "granted",
-      ad_user_data: "granted",
-      ad_personalization: "denied",
-      analytics_storage: "granted",
-      functionality_storage: "granted",
-      personalization_storage: "denied",
-      security_storage: "granted",
-    })
-
-    // Load gtag.js after consent defaults are set
-    const script = document.createElement("script")
-    script.src = "https://www.googletagmanager.com/gtag/js?id=AW-17795889471"
-    script.async = true
-    script.onload = () => {
-      gtag("js", new Date())
-      gtag("config", "AW-17795889471", { allow_enhanced_conversions: true })
-    }
-    document.head.appendChild(script)
-
-    // Capture gclid/gbraid/wbraid + UTM params on first page load.
-    // Must run client-side after navigation so URL params are available.
+    if (!IS_PROD) return
     captureAttribution()
-
-    return () => {
-      if (script.parentNode) document.head.removeChild(script)
-    }
   }, [])
 
-  return null
+  if (!IS_PROD) return null
+
+  return (
+    <>
+      {/* beforeInteractive is intentional: consent defaults must be in dataLayer
+          before gtag.js loads (Consent Mode v2 requirement). The lint rule targets
+          pages/_document.js usage but this pattern works correctly in App Router. */}
+      {/* eslint-disable-next-line @next/next/no-before-interactive-script-outside-document */}
+      <Script
+        id="google-consent-init"
+        strategy="beforeInteractive"
+        dangerouslySetInnerHTML={{ __html: CONSENT_INIT }}
+      />
+      <Script
+        src="https://www.googletagmanager.com/gtag/js?id=AW-17795889471"
+        strategy="afterInteractive"
+        onLoad={() => {
+          window.gtag?.("js", new Date())
+          window.gtag?.("config", "AW-17795889471", { allow_enhanced_conversions: true })
+        }}
+      />
+    </>
+  )
 }

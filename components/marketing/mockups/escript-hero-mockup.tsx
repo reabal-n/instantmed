@@ -1,4 +1,4 @@
-import { CheckCircle2, MapPin, Pill, Smartphone } from "lucide-react"
+import { CheckCircle2, MapPin, Smartphone } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
@@ -7,11 +7,71 @@ interface EScriptHeroMockupProps {
   compact?: boolean
 }
 
+/** Minimal SVG QR code — visually convincing, not scannable */
+function QRCode({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 21 21"
+      xmlns="http://www.w3.org/2000/svg"
+      className={cn("w-full h-full", className)}
+      aria-hidden="true"
+    >
+      {/* Top-left finder */}
+      <rect x="0" y="0" width="7" height="7" fill="currentColor" />
+      <rect x="1" y="1" width="5" height="5" fill="white" />
+      <rect x="2" y="2" width="3" height="3" fill="currentColor" />
+      {/* Top-right finder */}
+      <rect x="14" y="0" width="7" height="7" fill="currentColor" />
+      <rect x="15" y="1" width="5" height="5" fill="white" />
+      <rect x="16" y="2" width="3" height="3" fill="currentColor" />
+      {/* Bottom-left finder */}
+      <rect x="0" y="14" width="7" height="7" fill="currentColor" />
+      <rect x="1" y="15" width="5" height="5" fill="white" />
+      <rect x="2" y="16" width="3" height="3" fill="currentColor" />
+      {/* Timing patterns */}
+      <rect x="8" y="6" width="1" height="1" fill="currentColor" />
+      <rect x="10" y="6" width="1" height="1" fill="currentColor" />
+      <rect x="12" y="6" width="1" height="1" fill="currentColor" />
+      <rect x="6" y="8" width="1" height="1" fill="currentColor" />
+      <rect x="6" y="10" width="1" height="1" fill="currentColor" />
+      <rect x="6" y="12" width="1" height="1" fill="currentColor" />
+      {/* Data modules */}
+      <rect x="8" y="8" width="2" height="2" fill="currentColor" />
+      <rect x="11" y="8" width="1" height="1" fill="currentColor" />
+      <rect x="13" y="8" width="2" height="2" fill="currentColor" />
+      <rect x="8" y="11" width="1" height="2" fill="currentColor" />
+      <rect x="10" y="11" width="2" height="1" fill="currentColor" />
+      <rect x="13" y="11" width="1" height="1" fill="currentColor" />
+      <rect x="8" y="14" width="1" height="1" fill="currentColor" />
+      <rect x="10" y="14" width="1" height="1" fill="currentColor" />
+      <rect x="12" y="14" width="1" height="1" fill="currentColor" />
+      <rect x="8" y="16" width="2" height="1" fill="currentColor" />
+      <rect x="11" y="16" width="1" height="1" fill="currentColor" />
+      <rect x="13" y="15" width="2" height="2" fill="currentColor" />
+      <rect x="14" y="8" width="1" height="1" fill="currentColor" />
+      <rect x="16" y="8" width="1" height="1" fill="currentColor" />
+      <rect x="18" y="8" width="1" height="1" fill="currentColor" />
+      <rect x="15" y="10" width="2" height="1" fill="currentColor" />
+      <rect x="18" y="10" width="1" height="2" fill="currentColor" />
+      <rect x="14" y="12" width="1" height="1" fill="currentColor" />
+      <rect x="16" y="12" width="2" height="1" fill="currentColor" />
+      <rect x="14" y="14" width="2" height="2" fill="currentColor" />
+      <rect x="17" y="14" width="1" height="1" fill="currentColor" />
+      <rect x="19" y="15" width="2" height="2" fill="currentColor" />
+      <rect x="17" y="17" width="3" height="1" fill="currentColor" />
+      <rect x="14" y="17" width="2" height="1" fill="currentColor" />
+      <rect x="8" y="18" width="1" height="1" fill="currentColor" />
+      <rect x="10" y="19" width="2" height="1" fill="currentColor" />
+      <rect x="8" y="20" width="1" height="1" fill="currentColor" />
+      <rect x="11" y="20" width="1" height="1" fill="currentColor" />
+    </svg>
+  )
+}
+
 /**
  * eScript-specific hero mockup for the prescriptions landing page.
- * Shows the eScript delivery flow: request → doctor review → SMS sent.
- * CSS animations only — no framer-motion — so the mockup is visible from SSR
- * without the opacity:0 hydration flash that delays LCP.
+ * Shows the eScript token card: QR code + prescription details + delivery timeline.
+ * CSS animations only — no framer-motion — so the mockup is visible from SSR.
  */
 export function EScriptHeroMockup({ compact = false }: EScriptHeroMockupProps) {
   return (
@@ -19,34 +79,53 @@ export function EScriptHeroMockup({ compact = false }: EScriptHeroMockupProps) {
       {/* Main card */}
       <div
         className={cn(
-          "rounded-2xl bg-white dark:bg-card border border-border/50 shadow-xl shadow-primary/[0.08] dark:shadow-none space-y-4",
+          "rounded-2xl bg-white dark:bg-card border border-border/50 shadow-xl shadow-primary/[0.08] dark:shadow-none",
           compact ? "p-4" : "p-5",
           compact ? "hero-mobile-mockup-enter" : "hero-mockup-enter",
         )}
       >
+        {/* Status bar */}
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-[11px] font-semibold text-foreground">InstantMed</span>
+          <span className="text-[10px] text-muted-foreground">2:34 PM</span>
+        </div>
+
         {/* Header */}
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-            <Pill className="w-4 h-4 text-primary" />
-          </div>
+        <div className="flex items-center justify-between mb-2">
           <span className="text-sm font-semibold text-foreground">eScript Ready</span>
+          <span className="inline-flex items-center gap-1 text-[10px] font-medium text-success px-2 py-0.5 rounded-full bg-success/10 border border-success/20">
+            Active
+          </span>
         </div>
 
-        {/* SMS notification area */}
-        <div className="rounded-xl bg-muted/50 dark:bg-muted/20 border border-border/50 p-3.5 space-y-2">
-          <p className="text-[12px] leading-relaxed text-foreground/70">
-            Your eScript is ready. Show this at any pharmacy to collect your medication.
-          </p>
-          <p className="text-[11px] font-medium text-primary">
-            escript.health/tk-2847-x
-          </p>
+        <p className="text-[11px] text-foreground/60 leading-relaxed mb-3">
+          Your electronic prescription is ready. Show this at any pharmacy to collect your medication.
+        </p>
+
+        {/* QR code + token info */}
+        <div className="flex items-start gap-3 rounded-xl bg-muted/40 dark:bg-muted/20 border border-border/40 p-3 mb-3">
+          {/* QR code */}
+          <div className="shrink-0 w-[62px] h-[62px] rounded-lg bg-white border border-border/60 p-1.5 shadow-sm">
+            <QRCode className="text-foreground" />
+          </div>
+
+          {/* Token details */}
+          <div className="min-w-0 flex-1">
+            <p className="text-[9px] uppercase tracking-widest text-muted-foreground mb-0.5 font-medium">
+              Prescription Token
+            </p>
+            <p className="text-[12px] font-mono font-bold text-primary tracking-wider mb-1.5">
+              ABCD-1234-EFGH
+            </p>
+            <p className="text-[10px] font-medium text-foreground/80">Atorvastatin 40mg</p>
+            <p className="text-[10px] text-muted-foreground">Qty: 30 &middot; Repeats: 5</p>
+          </div>
         </div>
 
-        {/* Pharmacy instruction */}
-        <div className="flex items-center gap-2">
-          <MapPin className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-          <span className="text-[11px] text-muted-foreground">Works at any pharmacy in Australia</span>
-        </div>
+        {/* Footer */}
+        <p className="text-[10px] text-muted-foreground text-center">
+          Show to any pharmacist to collect
+        </p>
       </div>
 
       {/* Floating badges — desktop only */}

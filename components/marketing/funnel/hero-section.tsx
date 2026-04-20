@@ -1,15 +1,15 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { ArrowRight, Check, CheckCircle2, Clock, Shield, Users } from 'lucide-react'
+import { ArrowRight, Check, CheckCircle2, Clock, Phone, Shield, Users } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 
-import { DoctorAvailabilityPill } from '@/components/shared/doctor-availability-pill'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { useReducedMotion } from '@/components/ui/motion'
 import { CONTACT_EMAIL } from '@/lib/constants'
+import { SOCIAL_PROOF_DISPLAY } from '@/lib/social-proof'
 import { cn } from '@/lib/utils'
 
 import type { ColorClasses,ServiceFunnelConfig } from './funnel-types'
@@ -33,14 +33,19 @@ export function HeroSection({ config, colors, isDisabled }: HeroSectionProps) {
       </div>
 
       <div className="relative mx-auto max-w-5xl px-6 sm:px-8 lg:px-10">
-        {/* Doctor availability pill - same as homepage */}
+        {/* Availability pill */}
         <motion.div
           className="flex justify-center lg:justify-start mb-8"
           initial={prefersReducedMotion ? {} : { opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
         >
-          <DoctorAvailabilityPill alwaysAvailable={config.serviceId === 'med-cert'} />
+          <div className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium bg-green-50 border border-green-200 text-green-800 dark:bg-green-950/40 dark:border-green-800 dark:text-green-300">
+            <Phone className="w-3.5 h-3.5" aria-hidden="true" />
+            {config.serviceId === 'med-cert'
+              ? 'Med certs available 24/7'
+              : `Open ${SOCIAL_PROOF_DISPLAY.operatingHours} AEST \u00b7 7 days`}
+          </div>
         </motion.div>
 
         <div className={cn('flex flex-col items-center', hasImages && 'lg:flex-row lg:items-center lg:gap-12 xl:gap-14')}>

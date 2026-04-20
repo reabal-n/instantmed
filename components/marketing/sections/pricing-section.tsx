@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import { AlertCircle,ArrowRight, Check, RefreshCw } from 'lucide-react'
 import Link from 'next/link'
 
+import { StripePaymentLogos } from '@/components/checkout/payment-logos'
 import { Button } from '@/components/ui/button'
 import { useReducedMotion } from '@/components/ui/motion'
 import { PRICING } from '@/lib/constants'
@@ -131,10 +132,7 @@ export function PricingSection({
             100% refund if we can&apos;t help
           </div>
           <p className="mt-2 text-xs text-muted-foreground">No account required</p>
-          <p className="mt-1.5 text-[11px] text-muted-foreground/70 flex items-center justify-center gap-1">
-            <svg className="w-3 h-3 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-            Secured by Stripe · 256-bit SSL
-          </p>
+          <StripePaymentLogos className="mt-1.5 opacity-60" />
 
           {/* Optional footnotes */}
           {(refundNote || medicareNote) && (

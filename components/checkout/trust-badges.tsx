@@ -21,6 +21,7 @@ import {
   Lock,
   Shield} from "lucide-react"
 
+import { PaymentLogos } from "@/components/checkout/payment-logos"
 import { TrustBadgeRow } from "@/components/shared"
 import { cn } from "@/lib/utils"
 
@@ -85,10 +86,11 @@ export function PaymentMethodIcons({
   className?: string
 }) {
   return (
-    <div className={cn("flex items-center justify-center", className)}>
-      <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-        <Lock className="w-3.5 h-3.5" />
-        Secured by Stripe. Your payment details are encrypted.
+    <div className={cn("flex flex-col items-center gap-1.5", className)}>
+      <PaymentLogos />
+      <p className="text-[10px] text-muted-foreground/60 flex items-center gap-1">
+        <Lock className="w-3 h-3" />
+        Your payment details are encrypted
       </p>
     </div>
   )

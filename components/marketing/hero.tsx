@@ -1,13 +1,16 @@
 'use client'
 
-import { ArrowRight, CheckCircle2, FileText, Pill, Smartphone } from 'lucide-react'
+import { ArrowRight, CheckCircle2, FileText, Phone, Pill, Smartphone } from 'lucide-react'
 import dynamic from 'next/dynamic'
 import Image from 'next/image'
 import Link from 'next/link'
 import type React from "react"
 
 import { LastReviewedSignal } from '@/components/marketing/last-reviewed-signal'
+import { TrustBadgeRow } from '@/components/shared/trust-badge'
+import { Button } from "@/components/ui/button"
 import { usePatientCount } from '@/lib/hooks/use-patient-count'
+import { SOCIAL_PROOF_DISPLAY } from '@/lib/social-proof'
 
 // Desktop-only stacked card mockup — never the LCP element, safe for ssr:false
 const HeroMultiServiceMockup = dynamic(
@@ -22,9 +25,6 @@ const HeroTestimonialRotator = dynamic(
   () => import('@/components/marketing/hero-testimonial-rotator').then(m => ({ default: m.HeroTestimonialRotator })),
   { ssr: false, loading: () => <div className="min-h-[60px]" /> }
 )
-import { DoctorAvailabilityPill } from '@/components/shared/doctor-availability-pill'
-import { TrustBadgeRow } from '@/components/shared/trust-badge'
-import { Button } from "@/components/ui/button"
 
 const LCP_CLASSES = "text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-6 leading-relaxed text-balance"
 
@@ -37,9 +37,12 @@ export function Hero({ children }: { children?: React.ReactNode }) {
         <div className="flex flex-col lg:flex-row items-center lg:gap-12 xl:gap-14">
           {/* Text content */}
           <div className="flex-1 min-w-0 text-center lg:text-left">
-            {/* Doctor availability pill */}
+            {/* Availability pill */}
             <div className="hero-availability-enter flex justify-center lg:justify-start mb-5 sm:mb-8">
-              <DoctorAvailabilityPill />
+              <div className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium bg-green-50 border border-green-200 text-green-800 dark:bg-green-950/40 dark:border-green-800 dark:text-green-300">
+                <Phone className="w-3.5 h-3.5" aria-hidden="true" />
+                Open {SOCIAL_PROOF_DISPLAY.operatingHours} AEST &middot; 7 days
+              </div>
             </div>
 
             {/* Headline - server-rendered static text for LCP */}

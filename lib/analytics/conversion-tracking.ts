@@ -15,13 +15,13 @@
 //   Create: Landing Page View, Start Intake, Intake Complete, Checkout Start
 //   Then replace the placeholder IDs below with the real ones.
 const CONVERSION_IDS = {
-  // Main conversion: Payment completed — replace label with one from AW-17795889471 account
+  // Main conversion: Payment completed
   PURCHASE: 'AW-17795889471/SqypCNva94YcEL_y3qVC',
   // Micro-conversions
-  LANDING_VIEW: 'AW-17795889471/0nc1CO2Q8IYcEL_y3qVC',      // Page view
-  START_INTAKE: 'AW-17795889471/REPLACE_START_INTAKE',        // No matching action yet — create in Google Ads if needed
-  INTAKE_COMPLETE: 'AW-17795889471/sndHCPjy-IYcEL_y3qVC',   // Submit lead form
-  CHECKOUT_START: 'AW-17795889471/4MCMCMrGhYccEL_y3qVC',    // Begin checkout
+  LANDING_VIEW: 'AW-17795889471/0nc1CO2Q8IYcEL_y3qVC',
+  // START_INTAKE: no conversion action in Google Ads — tracked via trackStepEvent instead
+  INTAKE_COMPLETE: 'AW-17795889471/sndHCPjy-IYcEL_y3qVC',
+  CHECKOUT_START: 'AW-17795889471/4MCMCMrGhYccEL_y3qVC',
 } as const
 
 type ConversionEvent = keyof typeof CONVERSION_IDS
@@ -29,7 +29,6 @@ type ConversionEvent = keyof typeof CONVERSION_IDS
 // Estimated conversion values for micro-conversions (used for Smart Bidding optimization)
 const MICRO_CONVERSION_VALUES: Record<string, number> = {
   LANDING_VIEW: 0.50,
-  START_INTAKE: 2.00,
   INTAKE_COMPLETE: 5.00,
   CHECKOUT_START: 10.00,
 }
@@ -39,6 +38,7 @@ interface ConversionData {
   currency?: string
   transaction_id?: string
   service?: string
+  new_customer?: boolean
   items?: Array<{
     id: string
     name: string
@@ -185,11 +185,14 @@ export function trackConversion(event: ConversionEvent, data?: ConversionData) {
   // Use micro-conversion value if no explicit value provided
   const value = data?.value ?? MICRO_CONVERSION_VALUES[event] ?? undefined
 
-  const conversionPayload = {
+  const conversionPayload: Record<string, unknown> = {
     send_to: conversionId,
     value,
     currency: data?.currency || 'AUD',
     transaction_id: data?.transaction_id,
+  }
+  if (data?.new_customer !== undefined) {
+    conversionPayload.new_customer = data.new_customer
   }
 
   const fireEvent = (fn: (...args: unknown[]) => void) => {
@@ -231,6 +234,7 @@ export async function trackPurchase(params: {
   service: string
   serviceName: string
   email?: string
+  isNewCustomer?: boolean
 }) {
   // Set enhanced conversions data before conversion (for better attribution)
   if (params.email) {
@@ -242,6 +246,7 @@ export async function trackPurchase(params: {
     value: params.value,
     currency: 'AUD',
     service: params.service,
+    new_customer: params.isNewCustomer,
     items: [{
       id: params.service,
       name: params.serviceName,
@@ -269,9 +274,9 @@ export async function trackFunnelStep(
   service?: string,
   email?: string,
 ) {
-  const eventMap: Record<string, ConversionEvent> = {
+  const eventMap: Record<string, ConversionEvent | null> = {
     landing: 'LANDING_VIEW',
-    start: 'START_INTAKE',
+    start: null,  // No Google Ads conversion action — tracked via trackStepEvent instead
     intake_complete: 'INTAKE_COMPLETE',
     checkout: 'CHECKOUT_START',
   }
