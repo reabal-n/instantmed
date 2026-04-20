@@ -373,7 +373,11 @@ export function QueueClient({
     <div className="space-y-6">
       {/* Daily stats strip */}
       {(reviewedToday > 0 || queueSize > 0 || todayEarnings) && (
-        <div className="flex flex-wrap items-center gap-x-5 gap-y-1 px-0.5 text-xs text-muted-foreground">
+        <div
+          className="flex flex-wrap items-center gap-x-5 gap-y-1 px-0.5 text-xs text-muted-foreground"
+          aria-live="polite"
+          aria-atomic="false"
+        >
           {reviewedToday > 0 && (
             <span>
               <span className="font-medium text-foreground tabular-nums">{reviewedToday}</span>{" "}reviewed today
@@ -383,7 +387,7 @@ export function QueueClient({
             </span>
           )}
           {queueSize > 0 && (
-            <span>
+            <span aria-label={`${queueSize} intake${queueSize === 1 ? "" : "s"} in queue`}>
               <span className="font-medium text-foreground tabular-nums">{queueSize}</span>{" "}in queue
             </span>
           )}

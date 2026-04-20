@@ -97,6 +97,8 @@ body {
   /* Primary: Morning sky blue — trustworthy, calm, professional (WCAG AA: 5.17:1 with white) */
   --primary: #2563EB;
   --primary-foreground: #ffffff;
+  /* Brand accent: semantic alias for highlight text. Resolves to primary (light) / teal (dark). */
+  --brand-accent: var(--primary);
   
   /* Secondary: Soft mist — premium white space */
   --secondary: var(--mist-100);
@@ -282,6 +284,8 @@ body {
   /* Primary - calm teal glow */
   --primary: #5DB8C9;
   --primary-foreground: #ffffff;
+  /* Brand accent: resolves to teal in dark mode for headline highlights */
+  --brand-accent: var(--primary);
   
   /* Secondary - cool starlight */
   --secondary: rgba(168, 204, 232, 0.12);
@@ -380,6 +384,7 @@ body {
   --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
+  --color-brand-accent: var(--brand-accent);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
@@ -2197,16 +2202,24 @@ body {
   animation: shimmer-sweep 1.5s infinite;
 }
 
-/* Text gradient */
+/* Text gradient — sky-toned, no violet. Light: blue→sky. Dark: teal→sky. */
 .text-gradient-mint {
-  background: linear-gradient(135deg, #2563EB 0%, #4f46e5 100%);
+  background: linear-gradient(135deg, #2563EB 0%, #0EA5E9 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .text-gradient-primary {
-  background: linear-gradient(135deg, #2563EB 0%, #4f46e5 100%);
+  background: linear-gradient(135deg, #2563EB 0%, #0EA5E9 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.dark .text-gradient-mint,
+.dark .text-gradient-primary {
+  background: linear-gradient(135deg, #5DB8C9 0%, #7DD3E1 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;

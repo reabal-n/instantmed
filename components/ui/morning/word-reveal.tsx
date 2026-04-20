@@ -26,7 +26,7 @@ export function WordReveal({
   highlightClassName = "text-primary",
   as: Tag = "h2",
   staggerDelay = 0.06,
-  wordDuration = 0.4,
+  wordDuration = 0.3,
 }: WordRevealProps) {
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useScrollReveal(ref);
@@ -42,8 +42,10 @@ export function WordReveal({
     return (
       <Tag className={className}>
         {words.map((word, i) => {
-          const isHighlighted = highlightWords.some(
-            (hw) => hw.toLowerCase() === word.toLowerCase().replace(/[^a-z]/g, "")
+          const isHighlighted = highlightWords.some((hw) =>
+            hw.toLowerCase().split(/\s+/).some(
+              (part) => part === word.toLowerCase().replace(/[^a-z]/g, "")
+            )
           );
           return (
             <span key={i}>
@@ -63,8 +65,10 @@ export function WordReveal({
   return (
     <Tag ref={ref} aria-label={text} className={cn("flex flex-wrap", className)}>
       {words.map((word, i) => {
-        const isHighlighted = highlightWords.some(
-          (hw) => hw.toLowerCase() === word.toLowerCase().replace(/[^a-z]/g, "")
+        const isHighlighted = highlightWords.some((hw) =>
+          hw.toLowerCase().split(/\s+/).some(
+            (part) => part === word.toLowerCase().replace(/[^a-z]/g, "")
+          )
         );
         return (
           <motion.span
