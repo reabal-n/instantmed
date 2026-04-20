@@ -46,7 +46,7 @@ export function Hero({ children }: { children?: React.ReactNode }) {
             </div>
 
             {/* Headline - server-rendered static text for LCP */}
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight mb-5 sm:mb-8 leading-[1.15] animate-hero-headline">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight mb-5 sm:mb-8 leading-[1.15]">
               Consults, certs, and treatment.{" "}
               <span className="text-premium-gradient">From your bed.</span>
             </h1>
@@ -143,14 +143,16 @@ export function Hero({ children }: { children?: React.ReactNode }) {
           </div>
         </div>
 
-        {/* Lifestyle photo — person at home using their phone for a doctor visit */}
+        {/* Lifestyle photo — person at home using their phone for a doctor visit.
+            Below-fold on mobile, so no `priority`: preloading this 46KB image was
+            competing with LCP (the h1 + subhead + CTAs) for bandwidth. */}
         <div className="mt-8 sm:mt-10 w-full relative aspect-[16/9] rounded-2xl overflow-hidden shadow-lg">
           <Image
             src="/images/home-1.webp"
             alt="Person relaxing at home using their phone to see a doctor online"
             fill
             className="object-cover object-top"
-            priority
+            loading="lazy"
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 960px"
           />
         </div>
