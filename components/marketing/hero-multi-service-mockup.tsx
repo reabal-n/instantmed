@@ -105,7 +105,7 @@ export function HeroMultiServiceMockup() {
                 "w-4 h-4 shrink-0",
                 color === "emerald" && "text-emerald-500",
                 color === "cyan" && "text-cyan-500",
-                color === "violet" && "text-violet-500",
+                color === "sky" && "text-sky-500",
               )} />
             </motion.div>
           ))}

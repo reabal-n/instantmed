@@ -22,7 +22,7 @@ export const services: Array<{ serviceId: ServiceId; title: string; href: string
   { serviceId: "scripts",  title: "Repeat Medication",    href: "/prescriptions",         description: "Medications you already take", iconKey: "Pill",         color: "cyan"    },
   { serviceId: "consult",  title: "General Consult",      href: "/consult",               description: "Talk to a GP online",          iconKey: "Stethoscope", color: "sky"     },
   { serviceId: "consult",  title: "ED Treatment",         href: "/erectile-dysfunction",  description: "Discreet, no call needed",     iconKey: "Lightning",    color: "blue",   badge: "Popular" },
-  { serviceId: "consult",  title: "Hair Loss Treatment",  href: "/hair-loss",             description: "Doctor-reviewed treatment plan", iconKey: "Sparkles",  color: "violet"  },
+  { serviceId: "consult",  title: "Hair Loss Treatment",  href: "/hair-loss",             description: "Doctor-reviewed treatment plan", iconKey: "Sparkles",  color: "amber"   },
 ]
 
 interface ServicesDropdownProps {

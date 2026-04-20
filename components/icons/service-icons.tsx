@@ -44,16 +44,12 @@ const stickerMap: Record<string, StickerIconName> = {
 }
 
 // Service colour tokens. Pair with lib/services/service-catalog.ts `colorToken`.
-//
-// NOTE on `violet`: retained only for backward compatibility during the
-// C1 sweep. Do NOT use for new surfaces. Hair loss now uses `amber`
-// per DESIGN_SYSTEM.md §1 (--service-hair: #F59E0B).
+// violet is intentionally absent — prohibited per DESIGN_SYSTEM.md §1 C1 sweep.
 export const serviceColorConfig: Record<string, { bg: string; text: string; from: string; to: string; shadow: string }> = {
   emerald: { bg: 'bg-emerald-50 dark:bg-emerald-950/30', text: 'text-emerald-600 dark:text-emerald-400', from: '#10B981', to: '#059669', shadow: 'rgba(5,150,105,0.28)' },
   cyan:    { bg: 'bg-sky-50 dark:bg-sky-950/30',         text: 'text-sky-600 dark:text-sky-400',         from: '#0EA5E9', to: '#0284C7', shadow: 'rgba(2,132,199,0.28)' },
   blue:    { bg: 'bg-indigo-50 dark:bg-indigo-950/30',   text: 'text-indigo-600 dark:text-indigo-400',   from: '#6366F1', to: '#4F46E5', shadow: 'rgba(79,70,229,0.28)' },
   amber:   { bg: 'bg-amber-50 dark:bg-amber-950/30',     text: 'text-amber-600 dark:text-amber-400',     from: '#F59E0B', to: '#D97706', shadow: 'rgba(217,119,6,0.28)' },
-  violet:  { bg: 'bg-violet-50 dark:bg-violet-950/30',   text: 'text-violet-600 dark:text-violet-400',   from: '#A855F7', to: '#7C3AED', shadow: 'rgba(124,58,237,0.28)' },
   pink:    { bg: 'bg-pink-50 dark:bg-pink-950/30',       text: 'text-pink-600 dark:text-pink-400',       from: '#EC4899', to: '#DB2777', shadow: 'rgba(219,39,119,0.28)' },
   rose:    { bg: 'bg-rose-50 dark:bg-rose-950/30',       text: 'text-rose-600 dark:text-rose-400',       from: '#F43F5E', to: '#E11D48', shadow: 'rgba(225,29,72,0.28)' },
   sky:     { bg: 'bg-sky-50 dark:bg-sky-950/30',         text: 'text-sky-600 dark:text-sky-400',         from: '#0EA5E9', to: '#0284C7', shadow: 'rgba(2,132,199,0.28)' },
