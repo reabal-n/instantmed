@@ -689,29 +689,31 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
         } catch (emailErr) {
           log.error("Request received email error (non-fatal)", { intakeId }, emailErr)
         }
-
-        // 5c: Telegram notification to doctor
-        // Wrapped in after() so Vercel doesn't kill the fetch before it completes
-        after(async () => {
-          try {
-            const { notifyNewIntakeViaTelegram } = await import("@/lib/notifications/telegram")
-            const serviceSlug = session.metadata?.service_slug ?? ""
-            await notifyNewIntakeViaTelegram({
-              intakeId,
-              patientName: patientProfile.full_name || "Patient",
-              serviceName: getServiceDisplayName({
-                serviceSlug,
-                category: session.metadata?.category,
-                subtype: session.metadata?.subtype,
-              }),
-              amount: `$${(session.amount_total! / 100).toFixed(2)}`,
-              serviceSlug,
-            })
-          } catch (err) {
-            log.error("Telegram notification error (non-fatal)", { intakeId }, err)
-          }
-        })
       }
+
+      // 5c: Telegram notification to doctor
+      // Intentionally outside the patientProfile?.email guard — doctor must be notified
+      // on every paid order regardless of whether the patient profile fetch succeeded.
+      // Wrapped in after() so Vercel doesn't kill the outbound fetch before it completes.
+      after(async () => {
+        try {
+          const { notifyNewIntakeViaTelegram } = await import("@/lib/notifications/telegram")
+          const serviceSlug = session.metadata?.service_slug ?? ""
+          await notifyNewIntakeViaTelegram({
+            intakeId,
+            patientName: patientProfile?.full_name || "Patient",
+            serviceName: getServiceDisplayName({
+              serviceSlug,
+              category: session.metadata?.category,
+              subtype: session.metadata?.subtype,
+            }),
+            amount: `$${(session.amount_total! / 100).toFixed(2)}`,
+            serviceSlug,
+          })
+        } catch (err) {
+          log.error("Telegram notification error (non-fatal)", { intakeId }, err)
+        }
+      })
     }
 
     // STEP 6: Generate AI drafts + attempt auto-approval (background)

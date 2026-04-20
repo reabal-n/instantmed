@@ -156,6 +156,37 @@ export async function handleAsyncPaymentSucceeded(ctx: WebhookContext): Promise<
       })
     }
 
+    // Telegram notification to doctor — separate from email so it always fires
+    // even if the patient profile fetch later fails.
+    after(async () => {
+      try {
+        const { notifyNewIntakeViaTelegram } = await import("@/lib/notifications/telegram")
+        const serviceSlug = session.metadata?.service_slug ?? ""
+        const serviceName = serviceSlug
+          .replace(/-/g, " ")
+          .replace(/\b\w/g, (c: string) => c.toUpperCase()) || "Medical Request"
+        // Best-effort name lookup — fall back to "Patient" if unavailable
+        let patientName = "Patient"
+        if (patientId) {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("full_name")
+            .eq("id", patientId)
+            .maybeSingle()
+          if (profile?.full_name) patientName = profile.full_name
+        }
+        await notifyNewIntakeViaTelegram({
+          intakeId,
+          patientName,
+          serviceName,
+          amount: `$${((session.amount_total ?? 0) / 100).toFixed(2)}`,
+          serviceSlug,
+        })
+      } catch (err) {
+        log.error("Telegram notification error (non-fatal)", { intakeId }, err)
+      }
+    })
+
     log.info("Async payment confirmed - intake marked as paid", { intakeId, paymentIntentId })
   } catch (error) {
     log.error("Error processing async_payment_succeeded", { intakeId, eventId: event.id }, error)
