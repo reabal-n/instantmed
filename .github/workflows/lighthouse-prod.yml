@@ -1,0 +1,57 @@
+name: Lighthouse Production
+
+# Nightly production Lighthouse audit against the live site. Runs on a
+# desktop profile across all customer-facing marketing surfaces and posts
+# the report as an artifact.
+#
+# Why separate from CI:
+#   - CI runs on a built localhost server, which tells us about code-level
+#     regressions but not real production latency, CDN behaviour, or
+#     third-party tag bloat.
+#   - Nightly run against instantmed.com.au catches cache/CDN regressions,
+#     third-party SDK bloat (PostHog/Sentry/etc), and real-world TLS +
+#     DNS overhead that localhost CI never sees.
+#
+# Triggers:
+#   - schedule: 02:00 UTC daily (~12:00 AEST lunchtime — non-peak)
+#   - workflow_dispatch: manual trigger via the Actions UI
+
+on:
+  schedule:
+    - cron: "0 2 * * *"
+  workflow_dispatch:
+
+jobs:
+  lighthouse-prod:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      - name: Install Lighthouse CI
+        run: npm install -g @lhci/cli
+
+      - name: Run Lighthouse against production
+        run: |
+          # Production config lives in lighthouserc.prod.json.
+          # No startServerCommand — we audit the live deployed URLs.
+          lhci collect --config=./lighthouserc.prod.json
+          lhci assert --config=./lighthouserc.prod.json || echo "::warning::Production Lighthouse assertions failed — see artifact"
+          lhci upload --config=./lighthouserc.prod.json
+
+      - name: Upload production Lighthouse results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lighthouse-prod-report
+          path: .lighthouseci/
+          retention-days: 30
