@@ -13,6 +13,7 @@ import { useCallback } from "react"
 import { StripePaymentLogos } from "@/components/checkout/payment-logos"
 // Hero is above-fold - not lazy loaded
 import { MedCertHeroSection } from "@/components/marketing/heroes/med-cert-hero"
+import { LiveWaitTime } from "@/components/marketing/live-wait-time"
 import {
   type LandingPageConfig,
   LandingPageShell,
@@ -218,6 +219,9 @@ export function MedCertLanding() {
           <>
             {/* 1. Hero */}
             <MedCertHeroSection ctaRef={heroCTARef} onCTAClick={handleHeroCTA} patientCount={patientCount} />
+
+            {/* Live wait time strip — mirrors peer landing pages (scripts/ed/hair-loss). */}
+            <LiveWaitTime variant="strip" services={["med-cert"]} />
 
             {/* 2. Certificate type selector — get intent before social proof */}
             <div data-track-section="selector">
