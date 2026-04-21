@@ -832,6 +832,7 @@ describe("Email Templates", () => {
           requestType="Medical Certificate"
           amount="$19.95"
           requestId="REQ-TEST"
+          paidAt="21 April 2026"
           appUrl={APP_URL}
         />
       )
