@@ -74,21 +74,22 @@ export async function GET(request: NextRequest) {
     }
 
     // 3. Bounced emails in last hour (from email_outbox)
+    // Only track the business metric — don't raise a Sentry alert here.
+    // The daily digest email already surfaces bounce trends, and Resend's
+    // own dashboard flags the domain-level issue. Spam-rate SLO is the
+    // real concern; single-bounce spikes are almost always one bad address.
     const { count: bouncedEmails } = await supabase
       .from("email_outbox")
       .select("id", { count: "exact", head: true })
       .eq("delivery_status", "bounced")
       .gte("delivery_status_updated_at", oneHourAgo.toISOString())
 
-    if (bouncedEmails && bouncedEmails >= 2) {
-      alerts.push({
-        metric: "email_bounced",
-        severity: bouncedEmails >= 5 ? "critical" : "warning",
-        detail: `${bouncedEmails} bounced emails in last hour`,
-      })
+    if (bouncedEmails && bouncedEmails >= 5) {
+      // Only track `critical` tier (>=5/hr sustained). No duplicate Sentry
+      // alert in the loop below — metric goes to PostHog for trending only.
       trackBusinessMetric({
         metric: "email_bounced",
-        severity: bouncedEmails >= 5 ? "critical" : "warning",
+        severity: "critical",
         metadata: { count: bouncedEmails, window: "1h" },
       })
     }

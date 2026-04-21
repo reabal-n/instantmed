@@ -37,9 +37,11 @@ export function Hero({ children }: { children?: React.ReactNode }) {
         <div className="flex flex-col lg:flex-row items-center lg:gap-12 xl:gap-14">
           {/* Text content */}
           <div className="flex-1 min-w-0 text-center lg:text-left">
-            {/* Social-proof pill — above the fold, above the H1. Three signals
-                in one compact row: rating · patient count · live availability.
-                Replaces the old availability-only pill. */}
+            {/* Social-proof pill — above the fold, above the H1. Four signals
+                in one compact row: rating · patient count · no-Medicare-friction
+                · live availability. Replaces the old availability-only pill.
+                Mobile shows the first three (Open-now is desktop-only to save
+                horizontal space). */}
             <div className="hero-availability-enter flex justify-center lg:justify-start mb-5 sm:mb-8">
               <div className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium bg-white dark:bg-card border border-border/60 shadow-sm shadow-primary/[0.04]">
                 <span className="inline-flex items-center gap-0.5 text-amber-500" aria-label={`${SOCIAL_PROOF.averageRating} out of 5 rating`}>
@@ -54,6 +56,8 @@ export function Hero({ children }: { children?: React.ReactNode }) {
                     </span>
                   </>
                 )}
+                <span className="text-border/70" aria-hidden="true">·</span>
+                <span className="text-muted-foreground">No Medicare needed</span>
                 <span className="text-border/70 hidden sm:inline" aria-hidden="true">·</span>
                 <span className="hidden sm:inline-flex items-center gap-1 text-green-700 dark:text-green-400">
                   <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" aria-hidden="true" />

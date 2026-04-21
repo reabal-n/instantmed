@@ -162,11 +162,18 @@ export async function GET(request: NextRequest) {
     }
 
     // ─── Recipients ──────────────────────────────────────────────────────────
+    // Priority: DIGEST_EMAIL_RECIPIENT (founder digest only) → ADMIN_EMAILS
+    // (general admin distro list) → CONTACT_EMAIL (last-resort fallback).
+    // We keep these separate so operational admin alerts and the founder's
+    // morning digest can route to different inboxes.
+    const digestOverride = process.env.DIGEST_EMAIL_RECIPIENT
     const adminEmailsEnv = process.env.ADMIN_EMAILS
-    const recipients = (adminEmailsEnv
-      ? adminEmailsEnv.split(",").map(s => s.trim()).filter(Boolean)
-      : [CONTACT_EMAIL])
-      .filter(e => /^.+@.+\..+$/.test(e))
+    const rawRecipients = digestOverride
+      ? digestOverride.split(",").map(s => s.trim()).filter(Boolean)
+      : (adminEmailsEnv
+        ? adminEmailsEnv.split(",").map(s => s.trim()).filter(Boolean)
+        : [CONTACT_EMAIL])
+    const recipients = rawRecipients.filter(e => /^.+@.+\..+$/.test(e))
 
     if (recipients.length === 0) {
       logger.warn("daily_digest_no_recipients")

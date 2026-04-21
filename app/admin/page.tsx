@@ -1,4 +1,8 @@
+import { Suspense } from "react"
+
 import { AdminDashboardClient } from "@/app/admin/admin-dashboard-client"
+import { YesterdayWidget } from "@/components/admin/yesterday-widget"
+import { Card, CardContent } from "@/components/ui/card"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
 import { getAllIntakesForAdmin, getDoctorDashboardStats } from "@/lib/data/intakes"
 import type { IntakeWithPatient } from "@/types/db"
@@ -21,11 +25,23 @@ export default async function AdminPage() {
     : { total: 0, in_queue: 0, approved: 0, declined: 0, pending_info: 0, scripts_pending: 0 }
 
   return (
-    <AdminDashboardClient
-      allIntakes={intakesResult.data || []}
-      totalIntakes={intakesResult.total || 0}
-      stats={stats}
-      doctorName={profile.full_name}
-    />
+    <div className="space-y-8">
+      {/* Mirrors the 8am AEST digest email — so the admin view is never
+          out of sync with the inbox summary. Streamed via Suspense so the
+          rest of the dashboard paints before Stripe/Supabase complete. */}
+      <Suspense fallback={
+        <Card className="rounded-xl border-border/50">
+          <CardContent className="p-6 h-48 animate-pulse" />
+        </Card>
+      }>
+        <YesterdayWidget />
+      </Suspense>
+      <AdminDashboardClient
+        allIntakes={intakesResult.data || []}
+        totalIntakes={intakesResult.total || 0}
+        stats={stats}
+        doctorName={profile.full_name}
+      />
+    </div>
   )
 }

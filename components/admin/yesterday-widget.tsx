@@ -1,0 +1,192 @@
+import "server-only"
+
+import { AlertCircle, CheckCircle2, Clock, DollarSign, Users, XCircle } from "lucide-react"
+
+import { Card, CardContent } from "@/components/ui/card"
+import { stripe } from "@/lib/stripe/client"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
+import { cn } from "@/lib/utils"
+
+/**
+ * YesterdayWidget — mirrors the daily digest email on /admin.
+ *
+ * Source of truth for both this widget and the cron digest is the same
+ * Supabase/Stripe query set. Keeps the "log in to admin" view in lock-step
+ * with the 8am AEST email the founder already got that morning, so there's
+ * never a discrepancy between inbox and dashboard.
+ *
+ * Compute cost is low (2 Supabase counts + 1 Stripe charges.list). Runs
+ * on each /admin visit; no caching because stale numbers > live numbers
+ * for an ops view.
+ */
+export async function YesterdayWidget() {
+  const supabase = createServiceRoleClient()
+  const now = new Date()
+  const since = new Date(now.getTime() - 24 * 60 * 60 * 1000)
+  const eightHoursAgo = new Date(now.getTime() - 8 * 60 * 60 * 1000)
+
+  // Run in parallel
+  const [
+    intakeCountsResult,
+    newPatientsResult,
+    stuckPaidResult,
+    revenueResult,
+    openDisputesResult,
+  ] = await Promise.allSettled([
+    supabase
+      .from("intakes")
+      .select("id, status, payment_status", { count: "exact" })
+      .gte("created_at", since.toISOString()),
+    supabase
+      .from("profiles")
+      .select("id", { count: "exact", head: true })
+      .gte("created_at", since.toISOString()),
+    supabase
+      .from("intakes")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "paid")
+      .lt("created_at", eightHoursAgo.toISOString()),
+    (async () => {
+      try {
+        const charges = await stripe.charges.list({
+          created: { gte: Math.floor(since.getTime() / 1000) },
+          limit: 100,
+        })
+        let cents = 0
+        let count = 0
+        for (const c of charges.data) {
+          if (c.paid && !c.refunded && c.status === "succeeded") {
+            cents += c.amount
+            count++
+          }
+        }
+        return { cents, count }
+      } catch {
+        return { cents: 0, count: 0 }
+      }
+    })(),
+    (async () => {
+      try {
+        const disputes = await stripe.disputes.list({ limit: 20 })
+        return disputes.data.filter(
+          (d) =>
+            d.status === "warning_needs_response" || d.status === "needs_response",
+        ).length
+      } catch {
+        return 0
+      }
+    })(),
+  ])
+
+  const intakes =
+    intakeCountsResult.status === "fulfilled"
+      ? intakeCountsResult.value.data ?? []
+      : []
+  const paidCount = intakes.filter((i) => i.payment_status === "paid").length
+  const approved = intakes.filter((i) => i.status === "approved").length
+  const declined = intakes.filter((i) => i.status === "declined").length
+  const newPatients =
+    newPatientsResult.status === "fulfilled"
+      ? newPatientsResult.value.count ?? 0
+      : 0
+  const stuckPaid =
+    stuckPaidResult.status === "fulfilled"
+      ? stuckPaidResult.value.count ?? 0
+      : 0
+  const revenue =
+    revenueResult.status === "fulfilled"
+      ? revenueResult.value
+      : { cents: 0, count: 0 }
+  const openDisputes =
+    openDisputesResult.status === "fulfilled" ? openDisputesResult.value : 0
+
+  const revenueDisplay = `$${(revenue.cents / 100).toFixed(2)}`
+  const attentionCount = stuckPaid + openDisputes
+
+  const cells: Array<{
+    icon: React.ComponentType<{ className?: string }>
+    label: string
+    value: string | number
+    tone?: "default" | "success" | "warning" | "danger"
+  }> = [
+    { icon: DollarSign, label: "Revenue (24h)", value: revenueDisplay, tone: "success" },
+    { icon: CheckCircle2, label: "Paid orders", value: paidCount },
+    { icon: CheckCircle2, label: "Approved", value: approved },
+    { icon: XCircle, label: "Declined", value: declined },
+    { icon: Users, label: "New patients", value: newPatients },
+    {
+      icon: AlertCircle,
+      label: "Needs attention",
+      value: attentionCount,
+      tone: attentionCount > 0 ? "warning" : "default",
+    },
+  ]
+
+  return (
+    <Card className="rounded-xl border-border/50 bg-linear-to-br from-background to-muted/20">
+      <CardContent className="p-6">
+        <div className="flex items-center justify-between mb-5">
+          <div>
+            <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">
+              Yesterday
+            </div>
+            <h2 className="text-lg sm:text-xl font-semibold tracking-tight text-foreground">
+              {revenueDisplay} &middot; {paidCount} order{paidCount === 1 ? "" : "s"}
+              {attentionCount > 0 && (
+                <span className="ml-2 inline-flex items-center gap-1 text-sm font-medium text-warning">
+                  <AlertCircle className="h-4 w-4" aria-hidden="true" />
+                  {attentionCount}
+                </span>
+              )}
+            </h2>
+          </div>
+          <div className="hidden sm:flex items-center gap-1.5 text-xs text-muted-foreground">
+            <Clock className="h-3.5 w-3.5" />
+            Last 24h
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+          {cells.map(({ icon: Icon, label, value, tone = "default" }) => (
+            <div
+              key={label}
+              className="flex flex-col gap-1 p-3 rounded-lg bg-card border border-border/40"
+            >
+              <div className="flex items-center gap-1.5 text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+                <Icon className="h-3 w-3" aria-hidden="true" />
+                {label}
+              </div>
+              <div
+                className={cn(
+                  "text-lg sm:text-xl font-semibold tabular-nums tracking-tight",
+                  tone === "success" && "text-success",
+                  tone === "warning" && "text-warning",
+                  tone === "danger" && "text-destructive",
+                )}
+              >
+                {value}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {(stuckPaid > 0 || openDisputes > 0) && (
+          <div className="mt-4 pt-4 border-t border-border/40">
+            <ul className="text-xs text-warning space-y-1">
+              {stuckPaid > 0 && (
+                <li>
+                  &middot; {stuckPaid} intake{stuckPaid === 1 ? "" : "s"} stuck in &lsquo;paid&rsquo; &gt;8h
+                </li>
+              )}
+              {openDisputes > 0 && (
+                <li>
+                  &middot; {openDisputes} open Stripe dispute{openDisputes === 1 ? "" : "s"}
+                </li>
+              )}
+            </ul>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
