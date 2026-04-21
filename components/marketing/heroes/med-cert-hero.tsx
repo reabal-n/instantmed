@@ -118,14 +118,16 @@ export function MedCertHeroSection({
           </div>
         </div>
 
-        {/* Lifestyle photo */}
+        {/* Lifestyle photo — below the fold on mobile. No `priority`:
+            preloading this image competes with the h1 + subhead + CTAs for
+            LCP bandwidth on constrained 4G profiles. */}
         <div className="mt-8 sm:mt-10 w-full relative aspect-[16/9] rounded-2xl overflow-hidden shadow-lg">
           <Image
             src="/images/medcert-2.webp"
             alt="Medical certificate document on desk alongside laptop showing InstantMed"
             fill
             className="object-cover object-center"
-            priority
+            loading="lazy"
             quality={85}
             sizes="(max-width: 640px) 100vw, (max-width: 1280px) 100vw, 1200px"
           />
