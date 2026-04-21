@@ -382,7 +382,7 @@ export default function TelehealthAustraliaPage() {
                   items. This rule was introduced to stop pop-up bulk-billing telehealth services
                   from claiming rebates for one-off patients. InstantMed is a private-pay
                   telehealth service - we don&apos;t claim Medicare rebates, which means no gap-fee
-                  uncertainty and no need for a pre-existing relationship with our doctors. The
+                  uncertainty and no need for a pre-existing patient relationship with the practice. The
                   trade-off is that you pay the full private fee rather than a Medicare co-payment.
                 </p>
                 <p>

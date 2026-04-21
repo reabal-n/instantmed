@@ -56,7 +56,7 @@ const audienceFaqs = [
   },
   {
     question: "Do you cover carer's leave certificates?",
-    answer: "Yes. If you need time off to care for a family member or dependent, our doctors can issue a medical certificate for carer's leave where clinically appropriate. This applies to parents, carers, and anyone with caring responsibilities.",
+    answer: "Yes. If you need time off to care for a family member or dependent, an AHPRA-registered doctor can issue a medical certificate for carer's leave where clinically appropriate. This applies to parents, carers, and anyone with caring responsibilities.",
   },
   {
     question: "Is the service available outside business hours?",

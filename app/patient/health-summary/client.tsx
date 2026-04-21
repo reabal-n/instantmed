@@ -238,7 +238,7 @@ export function HealthSummaryClient({ summary }: HealthSummaryClientProps) {
                     {summary.stats.activeRequests} active request{summary.stats.activeRequests > 1 ? "s" : ""}
                   </p>
                   <p className="text-sm text-warning">
-                    Currently being reviewed by our doctors
+                    Currently under doctor review
                   </p>
                 </div>
               </div>

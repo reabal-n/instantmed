@@ -85,8 +85,8 @@ const trustFAQs = [
     answer: "Every certificate issued by InstantMed includes a unique verification ID. Employers, universities, and other institutions can verify any certificate at instantmed.com.au/verify by entering the certificate ID. This confirms the certificate was genuinely issued by our practice, the date it was issued, and the period of the certificate. This provides a level of verification that paper certificates from traditional clinics typically cannot offer.",
   },
   {
-    question: "What qualifications do your doctors have?",
-    answer: "All doctors on InstantMed are registered medical practitioners with the Medical Board of Australia via AHPRA. They hold recognised medical degrees from Australian or internationally accredited universities, have completed supervised training, and maintain ongoing professional development. All doctors carry professional indemnity insurance that meets Medical Board requirements.",
+    question: "What qualifications does the reviewing doctor hold?",
+    answer: "Every clinician on InstantMed is a registered medical practitioner with the Medical Board of Australia via AHPRA. They hold a recognised medical degree from an Australian or internationally accredited university, have completed supervised training, and maintain ongoing professional development. Every clinician carries professional indemnity insurance that meets Medical Board requirements.",
   },
   {
     question: "Are telehealth certificates accepted by universities?",

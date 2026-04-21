@@ -181,7 +181,7 @@ export default async function ConditionPage({ params }: PageProps) {
               <IconChecklist
                 pill="Symptoms"
                 title={`Common symptoms of ${condition.name}`}
-                subtitle="Our doctors assess these symptoms online - no in-person visit required."
+                subtitle="An AHPRA-registered doctor assesses these symptoms online - no in-person visit required."
                 items={symptomItems}
                 columns={2}
                 className="bg-muted/30 dark:bg-white/[0.04]"

@@ -95,7 +95,7 @@ export default function GuidesIndexPage() {
                 Need a Medical Certificate Now?
               </h2>
               <p className="text-muted-foreground mb-8">
-                Skip the reading - our doctors can help you in under an hour.
+                Skip the reading - an AHPRA-registered doctor can help you in under an hour.
               </p>
               <Button asChild size="lg" className="rounded-full shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all">
                 <Link href="/request">

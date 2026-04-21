@@ -102,10 +102,10 @@ export default function TermsPage() {
 
                 <LegalSection number="4" title="Medical Disclaimer">
                   <p>
-                    Our doctors make clinical decisions based on the information you provide. You are
-                    responsible for providing accurate and complete health information. Not all requests can
-                    be approved - our doctors may decline requests if they determine that a face-to-face
-                    consultation or further investigation is required.
+                    The reviewing AHPRA-registered doctor makes clinical decisions based on the information
+                    you provide. You are responsible for providing accurate and complete health information.
+                    Not all requests can be approved - the reviewing doctor may decline requests if they
+                    determine that a face-to-face consultation or further investigation is required.
                   </p>
                 </LegalSection>
 

@@ -34,15 +34,15 @@ const intents = [
 const intentFaqs = [
   {
     question: "How do I know which service I need?",
-    answer: "If you're unsure, start with a general consultation. Our doctors will assess your situation and point you toward the right service - whether that's a medical certificate, a prescription, or something else entirely.",
+    answer: "If you're unsure, start with a general consultation. An AHPRA-registered doctor will assess your situation and point you toward the right service - whether that's a medical certificate, a prescription, or something else entirely.",
   },
   {
     question: "Can I switch services after starting?",
-    answer: "If you start a request and realise you need a different service, you can begin a new request for the right one. Our doctors may also suggest a different service if they think it's more appropriate for your situation.",
+    answer: "If you start a request and realise you need a different service, you can begin a new request for the right one. The reviewing doctor may also suggest a different service if they think it's more appropriate for your situation.",
   },
   {
     question: "What if I'm not sure what's wrong?",
-    answer: "That's perfectly fine - you don't need a self-diagnosis. Describe your symptoms and concerns, and our doctor will work through it with you. That's literally what they're trained for.",
+    answer: "That's perfectly fine - you don't need a self-diagnosis. Describe your symptoms and concerns, and the reviewing doctor will work through it with you. That's literally what they're trained for.",
   },
   {
     question: "How long does it take to get a response?",
@@ -54,15 +54,15 @@ const intentFaqs = [
   },
   {
     question: "Do I need to see a doctor in person?",
-    answer: "Most requests don't require an in-person visit. Our doctors assess everything online. If they determine you need a physical examination or specialist referral, they'll let you know.",
+    answer: "Most requests don't require an in-person visit. The reviewing doctor assesses everything online. If they determine you need a physical examination or specialist referral, they'll let you know.",
   },
   {
     question: "How does payment work?",
-    answer: "You pay when you submit your request. We accept Visa, Mastercard, Amex, Apple Pay, and Google Pay via Stripe. If the doctor can't help with your situation, you'll receive a full refund - no questions asked.",
+    answer: "You pay when you submit your request. We accept Visa, Mastercard, Amex, Apple Pay, and Google Pay via Stripe. If the doctor can't help with your situation, you'll receive a full refund.",
   },
   {
     question: "Can I use InstantMed from anywhere in Australia?",
-    answer: "Yes. As long as you're in Australia and have an internet connection, you can use InstantMed. Our doctors are registered to practise across all states and territories.",
+    answer: "Yes. As long as you're in Australia and have an internet connection, you can use InstantMed. Our AHPRA-registered clinicians can practise across all states and territories.",
   },
 ]
 

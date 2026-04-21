@@ -22,16 +22,16 @@ import { GUARANTEE } from "@/lib/marketing/voice"
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://instantmed.com.au"
 
 export const metadata: Metadata = {
-  title: "Our Guarantee | 2-Hour Review or Your Money Back",
+  title: "Our Guarantee | 2-Hour Review or We Waive the Fee",
   description:
-    "Doctor approves in 2 hours or your money back. Here is exactly how the guarantee works, what qualifies, and how refunds are processed.",
+    "Doctor reviews in 2 hours or we waive the fee. Here is exactly how the guarantee works, what qualifies, and how refunds are processed.",
   alternates: {
     canonical: "/guarantee",
   },
   openGraph: {
     title: "Our Guarantee | InstantMed",
     description:
-      "Doctor approves in 2 hours or your money back. Plain English. No fine print.",
+      "Doctor reviews in 2 hours or we waive the fee. Plain English. No fine print.",
     url: `${SITE_URL}/guarantee`,
     siteName: "InstantMed",
     type: "website",
@@ -40,7 +40,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Our Guarantee | InstantMed",
-    description: "Doctor approves in 2 hours or your money back.",
+    description: "Doctor reviews in 2 hours or we waive the fee.",
   },
 }
 
@@ -100,7 +100,7 @@ const qualifyingFeatures: FeatureItem[] = [
     icon: <StickerIcon name="clock" size={48} />,
     title: "2 hours, from payment to review",
     description:
-      "Timed from the moment your request hits the doctor queue. Miss the window, get your money back.",
+      "Timed from the moment your request hits the doctor queue. Miss the window, the fee is waived.",
   },
   {
     icon: <StickerIcon name="user-check" size={48} />,
@@ -177,7 +177,7 @@ export default function GuaranteePage() {
           <CenteredHero
             pill="Our Guarantee"
             title={GUARANTEE}
-            highlightWords={["2 hours", "money back."]}
+            highlightWords={["2 hours", "waive the fee."]}
             subtitle="No fine print, no asterisks. If a doctor has not reviewed your request within 2 hours of payment, we refund the whole thing. You still get the review if you want it."
           >
             <div className="mt-8 flex justify-center">
@@ -212,7 +212,7 @@ export default function GuaranteePage() {
 
           <CTABanner
             title="Ready to see a doctor?"
-            subtitle="Start a request now. A doctor reviews it within 2 hours or you get your money back."
+            subtitle="Start a request now. A doctor reviews it within 2 hours or we waive the fee."
             ctaText="Start a request"
             ctaHref="/request"
             secondaryText="Read the full terms"

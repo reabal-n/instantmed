@@ -37,7 +37,7 @@ const symptoms = Object.values(symptomsData).map((s) => ({
 const symptomsFaqs = [
   {
     question: "Is this a diagnosis tool?",
-    answer: "No. Our symptom guides are for general health information only. They can help you understand what might be going on, but they don't replace a proper medical assessment. For a clinical opinion, start a consultation with one of our doctors.",
+    answer: "No. Our symptom guides are for general health information only. They can help you understand what might be going on, but they don't replace a proper medical assessment. For a clinical opinion, start a consultation with an AHPRA-registered doctor.",
   },
   {
     question: "When should I go to emergency instead?",
@@ -45,11 +45,11 @@ const symptomsFaqs = [
   },
   {
     question: "Can you treat my symptoms via telehealth?",
-    answer: "Many common symptoms can be assessed and managed via telehealth, including sore throats, headaches, coughs, fevers, and fatigue. Our doctors will tell you if your symptoms need in-person examination instead.",
+    answer: "Many common symptoms can be assessed and managed via telehealth, including sore throats, headaches, coughs, fevers, and fatigue. The reviewing doctor will tell you if your symptoms need in-person examination instead.",
   },
   {
     question: "What if I have multiple symptoms at the same time?",
-    answer: "That's completely normal - most illnesses come with a few symptoms at once. Describe everything you're experiencing in your consultation request, and our doctor will consider the full picture.",
+    answer: "That's completely normal - most illnesses come with a few symptoms at once. Describe everything you're experiencing in your consultation request, and the reviewing doctor will consider the full picture.",
   },
   {
     question: "Can I get a medical certificate based on my symptoms?",

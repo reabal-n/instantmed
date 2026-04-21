@@ -53,12 +53,12 @@ const howWeDecideFaqs = [
     answer: "Contact us at support@instantmed.com.au. Complaints are taken seriously and responded to within 48 hours. For formal clinical complaints, email complaints@instantmed.com.au - these are reviewed by our Medical Director within 14 days.",
   },
   {
-    question: "Are your doctors insured?",
-    answer: "Yes. All doctors maintain professional indemnity insurance, which is a requirement for AHPRA registration. This protects both the doctor and the patient in the event of an adverse outcome.",
+    question: "Is the reviewing doctor insured?",
+    answer: "Yes. Every clinician on the platform maintains professional indemnity insurance, which is a requirement for AHPRA registration. This protects both the doctor and the patient in the event of an adverse outcome.",
   },
   {
     question: "How does this compare to seeing a GP in person?",
-    answer: "The clinical standard is the same - our doctors follow the same guidelines and have the same obligations as any GP. The information available is different: we rely on your reported history rather than a physical examination. For straightforward presentations, history-based assessment is well-established and effective in medical practice.",
+    answer: "The clinical standard is the same - the reviewing doctor follows the same guidelines and has the same obligations as any GP. The information available is different: we rely on your reported history rather than a physical examination. For straightforward presentations, history-based assessment is well-established and effective in medical practice.",
   },
 ]
 
@@ -142,7 +142,7 @@ const safetyFeatures: FeatureItem[] = [
     icon: <StickerIcon name="heart" size={48} />,
     title: "No pressure to approve",
     description:
-      "Our doctors aren\u2019t paid to say yes. They\u2019re paid to get it right. Big difference.",
+      "Clinicians on our platform aren\u2019t paid to say yes. They\u2019re paid to get it right. Big difference.",
   },
   {
     icon: <StickerIcon name="speech-bubble" size={48} />,

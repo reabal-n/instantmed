@@ -76,20 +76,20 @@ const CITY_FAQS: Record<string, Array<{ q: string; a: string }>> = {
     { q: "Can I get a repeat script through InstantMed in Brisbane?", a: "Yes. If you have an existing prescription, we can arrange a repeat via eScript sent to your phone." },
   ],
   perth: [
-    { q: "Does InstantMed account for WA time zones?", a: "Yes. Our platform is available 7 days a week and our doctors work across all Australian time zones, including AWST." },
+    { q: "Does InstantMed account for WA time zones?", a: "Yes. Our platform is available 7 days a week and clinical reviews are available across all Australian time zones, including AWST." },
     { q: "Can I use InstantMed in regional WA?", a: "Yes - anywhere in Western Australia with internet access. We serve Perth metro and all regional areas." },
     { q: "How do eScripts work in Western Australia?", a: "eScripts work the same way across Australia. You receive a QR code via SMS that any pharmacy can scan." },
   ],
   adelaide: [
     { q: "Is InstantMed available in South Australia?", a: "Yes - we serve all of Adelaide and regional SA. All you need is an internet connection." },
-    { q: "Are your doctors registered in South Australia?", a: "Our doctors are AHPRA-registered, which means they can practise anywhere in Australia, including SA." },
+    { q: "Is your doctor registered in South Australia?", a: "Our AHPRA-registered Medical Director can practise anywhere in Australia, including SA. AHPRA registration is national." },
     { q: "How much does a medical certificate cost in Adelaide?", a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT}. The same price applies regardless of your location.` },
   ],
 }
 
 // Fallback FAQs for cities without specific ones
 const DEFAULT_FAQS = [
-  { q: "Is InstantMed available in my area?", a: "Yes - InstantMed works anywhere in Australia with an internet connection. No matter your location, our doctors can help." },
+  { q: "Is InstantMed available in my area?", a: "Yes - InstantMed works anywhere in Australia with an internet connection. No matter your location, an AHPRA-registered doctor can help." },
   { q: "Are your medical certificates accepted by employers?", a: "Yes. Our certificates are issued by AHPRA-registered doctors and are legally valid for all Australian employers and educational institutions." },
   { q: "How fast will I receive my medical certificate?", a: "Most medical certificates are reviewed within 45 minutes during business hours. You'll receive it as a PDF via email." },
 ]

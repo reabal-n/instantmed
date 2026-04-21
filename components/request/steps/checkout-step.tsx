@@ -464,7 +464,7 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
             <ShieldCheck className="w-3.5 h-3.5" />
             <span className="font-medium">
               {serviceType === 'consult'
-                ? "Money-back guarantee if we can't help"
+                ? "Refund if we can't help"
                 : "Full refund if we can't help"}
             </span>
           </div>

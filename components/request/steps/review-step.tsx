@@ -634,7 +634,7 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
             </span>
             <span className="flex items-center gap-1">
               <RefreshCw className="w-3 h-3" />
-              {serviceType === 'consult' ? "Money-back guarantee" : "Full refund if declined"}
+              {serviceType === 'consult' ? "Refund if we can't help" : "Full refund if declined"}
             </span>
           </div>
           <div className="flex items-center gap-3">

@@ -38,25 +38,25 @@ const credentials: FeatureItem[] = [
     icon: <TrustIcon icon={<BadgeCheck className="w-6 h-6 text-primary" />} />,
     title: "AHPRA Registered",
     description:
-      "Every doctor holds current registration with the Australian Health Practitioner Regulation Agency. No exceptions.",
+      "Current, unrestricted registration with the Australian Health Practitioner Regulation Agency. Independently verifiable on the AHPRA public register.",
   },
   {
     icon: <TrustIcon icon={<GraduationCap className="w-6 h-6 text-primary" />} />,
-    title: "Qualified GPs",
+    title: "Qualified GP",
     description:
-      "Our doctors hold medical degrees from accredited Australian or equivalent international institutions.",
+      "Medical degree from an accredited Australian or equivalent international institution. Practising as a general practitioner.",
   },
   {
     icon: <TrustIcon icon={<MapPin className="w-6 h-6 text-primary" />} />,
     title: "Australian Based",
     description:
-      "All our doctors work from Australia and understand local healthcare guidelines and patient needs.",
+      "Practising from within Australia under Australian healthcare guidelines and AHPRA jurisdiction.",
   },
   {
     icon: <TrustIcon icon={<Users className="w-6 h-6 text-primary" />} />,
-    title: "Medical Director Oversight",
+    title: "Medical Director",
     description:
-      "Clinical protocols are developed and maintained by an AHPRA-registered Medical Director.",
+      "Clinical protocols are written and maintained by our AHPRA-registered Medical Director, who also reviews every request.",
   },
 ]
 
@@ -65,90 +65,90 @@ const experienceAreas: FeatureItem[] = [
     icon: <StickerIcon name="stethoscope" size={48} />,
     title: "General Practice",
     description:
-      "Years of experience managing a wide range of common health concerns in community settings.",
+      "Experience managing a wide range of common health concerns in community settings.",
   },
   {
     icon: <StickerIcon name="heart-with-pulse" size={48} />,
     title: "Emergency Medicine",
     description:
-      "Background in acute care equips our doctors to identify red flags and escalate appropriately.",
+      "Acute-care background to identify red flags and escalate appropriately when a request falls outside telehealth scope.",
   },
   {
     icon: <StickerIcon name="hospital" size={48} />,
     title: "Hospital Medicine",
     description:
-      "Experience across public and private hospital systems throughout Australia.",
+      "Experience across Australian public and private hospital systems.",
   },
   {
     icon: <StickerIcon name="briefcase" size={48} />,
     title: "Telehealth",
     description:
-      "Trained specifically in remote consultation best practices and digital healthcare delivery.",
+      "Trained in remote-assessment best practice and RACGP telehealth guidelines.",
   },
 ]
 
 const standards: ChecklistItem[] = [
-  { text: "Current AHPRA registration verified before onboarding" },
-  { text: "Minimum years of post-graduate clinical experience" },
+  { text: "Current AHPRA registration verified before any clinical work" },
+  { text: "Minimum post-graduate clinical experience requirement" },
   { text: "Professional indemnity insurance maintained" },
-  { text: "Regular participation in continuing medical education" },
-  { text: "Adherence to RACGP standards for general practice" },
+  { text: "Ongoing continuing medical education" },
+  { text: "Clinical work aligned with RACGP standards for general practice" },
   { text: "Background checks and credentialing completed" },
 ]
 
 const doctorFaqs: FAQGroup[] = [
   {
-    category: "Our Doctors",
+    category: "Our Clinical Team",
     items: [
       {
-        question: "Are your doctors real, registered Australian doctors?",
+        question: "Is the reviewing doctor a real, registered Australian GP?",
         answer:
-          "Yes. Every doctor on InstantMed holds current registration with the Australian Health Practitioner Regulation Agency (AHPRA). You can verify any doctor's registration on the AHPRA public register at ahpra.gov.au. We don't use overseas practitioners, nurse practitioners, or AI to make clinical decisions.",
+          "Yes. Your request is reviewed by an AHPRA-registered Australian general practitioner whose name and registration number you can independently verify on the AHPRA public register at ahpra.gov.au. We do not use overseas practitioners, nurse practitioners, or AI to make clinical decisions.",
       },
       {
-        question: "Can I choose which doctor reviews my request?",
+        question: "Who actually reviews my request?",
         answer:
-          "Requests are assigned to available doctors based on their current workload and availability. You can't select a specific doctor, but all of our doctors meet the same credentialing requirements and follow identical clinical protocols - so the standard of care is consistent regardless of who reviews your request.",
+          "InstantMed currently operates with one AHPRA-registered Australian GP who serves as both the treating practitioner and the Medical Director. You are not being reviewed by an anonymous team behind a logo. You are being reviewed by a named, registered, identifiable clinician. Their name and AHPRA number appear on every certificate and prescription we issue, and are available on request for any consultation.",
       },
       {
-        question: "What qualifications do your doctors have?",
+        question: "What qualifications does the reviewing doctor hold?",
         answer:
-          "Our doctors hold medical degrees from accredited Australian or equivalent international institutions, current AHPRA registration, professional indemnity insurance, and have completed telehealth-specific training. They meet minimum post-graduate clinical experience requirements and participate in ongoing continuing medical education.",
+          "A medical degree from an accredited Australian or equivalent international institution, current AHPRA registration, professional indemnity insurance, and experience across general practice, emergency medicine, and hospital systems. The Medical Director is subject to the same regulatory oversight and continuing professional development obligations as any other registered GP in Australia.",
       },
       {
         question: "How do you verify doctor credentials?",
         answer:
-          "Doctor credentials are verified against the AHPRA public register before onboarding, and registration status is monitored on an ongoing basis - not just checked once. Professional indemnity insurance is verified annually. If a doctor's registration status changes for any reason, their access to the platform is suspended immediately.",
+          "Credentials are verified against the AHPRA public register before any clinical work begins, and registration status is monitored on an ongoing basis rather than checked once. Professional indemnity insurance is verified annually. If registration status changes for any reason, platform access is suspended immediately. The same standards apply to any future clinician onboarded.",
       },
       {
-        question: "Do your doctors have experience in telehealth?",
+        question: "Does the reviewing doctor have telehealth experience?",
         answer:
-          "Yes. All doctors on InstantMed have completed telehealth-specific training covering remote assessment techniques, asynchronous consultation best practices, and RACGP telehealth guidelines. Telehealth is a specific clinical skillset beyond general practice, and we screen for this during credentialing.",
+          "Yes. Telehealth is a specific clinical skillset beyond general practice, and our Medical Director practises in line with RACGP telehealth standards covering remote assessment, asynchronous consultation, and appropriate escalation when a request falls outside what can be safely handled remotely.",
       },
       {
-        question: "Can I see the same doctor for follow-up requests?",
+        question: "Will the same doctor review my follow-up requests?",
         answer:
-          "This isn't guaranteed, as requests are assigned based on doctor availability. However, all doctors have access to your previous consultation history on the platform, so they can review any relevant context from earlier requests when assessing your current one.",
+          "At current scale, yes. Because a single AHPRA-registered Medical Director reviews requests on the platform, your follow-up is seen by the same clinician with access to your previous consultation history. As additional clinicians are onboarded, any new reviewer has access to the same history on the platform to provide continuity of care.",
       },
       {
-        question: "What happens if a doctor has concerns about my request?",
+        question: "What happens if the doctor has concerns about my request?",
         answer:
-          "If a doctor has concerns about your request, they may contact you for additional information, recommend that you see a GP in person, or decline the request entirely. If your request is declined for any reason, you'll receive a full refund. We'd rather refer you to the right care than issue something that isn't clinically appropriate.",
+          "The reviewing doctor may contact you for additional information, recommend that you see a GP in person, or decline the request entirely. If your request is declined for clinical reasons, you receive a full refund. We would rather refer you to the right care than issue something that is not clinically appropriate.",
       },
       {
-        question: "Are your doctors supervised?",
+        question: "What clinical oversight is in place?",
         answer:
-          "An AHPRA-registered Medical Director provides clinical oversight of all protocols and guidelines. Clinical decisions are audited against written protocols, and those protocols are reviewed quarterly. Doctors make independent clinical decisions, but those decisions are subject to audit and review.",
+          "Our Medical Director is responsible for designing and maintaining all clinical protocols, which are reviewed on a regular cadence and enforced through the platform itself (including hard blocks on out-of-scope requests and controlled substances). Our full clinical governance framework is documented at /clinical-governance.",
       },
       {
-        question: "Can your doctors prescribe any medication?",
+        question: "What can and cannot be prescribed?",
         answer:
-          "Doctors prescribe within TGA (Therapeutic Goods Administration) guidelines and their scope of practice. Schedule 8 controlled substances - including opioids, benzodiazepines, and stimulants - are not available through telehealth on our platform. If your medication falls outside what can be safely prescribed remotely, your doctor will let you know and suggest an alternative pathway.",
+          "Prescribing follows TGA (Therapeutic Goods Administration) guidelines and the treating doctor's scope of practice. Schedule 8 controlled substances (including opioids, benzodiazepines, and stimulants) are not available through telehealth on our platform. If a medication falls outside what can be safely prescribed remotely, the doctor will tell you and suggest an alternative pathway.",
       },
       {
         question: "How many doctors does InstantMed have?",
         answer:
-          "Our consulting team varies in size based on availability and demand. Rather than advertising a specific number, we focus on ensuring every doctor on the platform meets identical credentialing requirements, follows the same clinical protocols, and is subject to the same ongoing oversight and audit processes.",
+          "InstantMed currently operates with one AHPRA-registered Australian GP, who serves as both the treating practitioner and the Medical Director. This is an honest disclosure of scale. The platform is built to support multiple clinicians, and our credentialing standards are documented and enforceable for every clinician who joins.",
       },
     ],
   },
@@ -174,10 +174,10 @@ export default function OurDoctorsClient({ verifiedDoctorCount }: OurDoctorsClie
       <main className="flex-1">
         {/* Hero */}
         <CenteredHero
-          pill="Real Australian Doctors"
+          pill="AHPRA-Registered Australian Practice"
           title="Every request reviewed by a real GP"
           highlightWords={["a real GP"]}
-          subtitle="No algorithms. No shortcuts. Every single request is reviewed by an AHPRA-registered Australian doctor who takes the time to understand your situation before making a clinical decision."
+          subtitle="No algorithms. No shortcuts. Every request is reviewed by an AHPRA-registered Australian doctor who takes the time to understand your situation before making a clinical decision."
         >
           <div className="flex flex-wrap justify-center gap-3">
             <Badge variant="outline" className="py-2 px-4">
@@ -198,30 +198,32 @@ export default function OurDoctorsClient({ verifiedDoctorCount }: OurDoctorsClie
         {/* Credentials Grid */}
         <FeatureGrid
           title="Our credentialing standards"
-          subtitle="We hold our doctors to the same standards you'd expect from any quality medical practice."
+          subtitle="The standards we uphold for every clinician who reviews a request on InstantMed."
           features={credentials}
           columns={4}
         />
 
-        {/* Consulting team summary - multi-doctor model, no individual names.
-            We surface only a count + the credentialing standards every doctor
-            on the platform meets, per CLAUDE.md Platform Identity. */}
+        {/* Clinical team summary - singular Medical Director model per CLAUDE.md
+            Platform Identity. We surface the count (currently 1) and the
+            credentialing standards every clinician on the platform meets. */}
         {verifiedDoctorCount > 0 && (
           <section className="py-20 px-4 bg-muted/30">
             <div className="mx-auto max-w-3xl text-center">
               <h2 className="text-2xl font-semibold text-foreground sm:text-3xl mb-4">
-                Our consulting team
+                Our clinical team
               </h2>
               <p className="text-muted-foreground mb-8">
-                Every doctor on InstantMed is AHPRA-registered, Australian-based,
-                and individually verified on the AHPRA public register before
-                they take a single request.
+                InstantMed currently operates with an AHPRA-registered
+                Australian GP who serves as both the treating practitioner and
+                the Medical Director. This is an honest disclosure of scale.
+                You are reviewed by a named, registered, identifiable clinician
+                whose AHPRA status you can verify independently.
               </p>
               <div className="inline-flex items-center gap-3 rounded-2xl border border-border/50 dark:border-white/15 bg-white dark:bg-card shadow-md shadow-primary/[0.06] dark:shadow-none px-6 py-5">
                 <BadgeCheck className="w-6 h-6 text-primary shrink-0" />
                 <div className="text-left">
                   <p className="text-sm text-muted-foreground">
-                    AHPRA-verified consulting doctors
+                    AHPRA-verified consulting clinicians
                   </p>
                   <p className="text-xl font-semibold text-foreground">
                     {verifiedDoctorCount}
@@ -232,11 +234,11 @@ export default function OurDoctorsClient({ verifiedDoctorCount }: OurDoctorsClie
                 </div>
               </div>
               <p className="text-xs text-muted-foreground mt-6 max-w-xl mx-auto">
-                Roster size varies based on demand. Every doctor - regardless
-                of when they joined - meets the same credentialing standards
-                listed above. Your treating doctor&apos;s name and AHPRA number
-                appear on every certificate or script we issue, so you can
-                independently verify them on the AHPRA register.
+                The treating practitioner&apos;s name and AHPRA number appear
+                on every certificate and prescription we issue, so you can
+                independently verify them on the AHPRA register. The
+                credentialing standards listed above apply to every clinician
+                who joins the platform.
               </p>
             </div>
           </section>
@@ -245,23 +247,24 @@ export default function OurDoctorsClient({ verifiedDoctorCount }: OurDoctorsClie
         {/* Experience Areas */}
         <FeatureGrid
           title="Clinical experience that matters"
-          subtitle="Our doctors bring diverse backgrounds in medicine, ensuring they can handle a range of clinical scenarios appropriately."
+          subtitle="A background across general practice, emergency medicine, and hospital systems means clinical scenarios are handled appropriately."
           features={experienceAreas}
           columns={2}
         />
 
         {/* Standards Checklist */}
         <IconChecklist
-          title="What we require from every doctor"
-          subtitle="Before any doctor reviews requests on InstantMed, they must meet these requirements."
+          title="What we require from every clinician"
+          subtitle="Before any clinician reviews requests on InstantMed, they must meet these requirements."
           items={standards}
         />
 
         {/* Note below checklist */}
         <div className="px-4 -mt-12 mb-8">
           <p className="text-center text-sm text-muted-foreground max-w-2xl mx-auto">
-            Our consulting doctor roster varies based on availability. All doctors
-            meet the same credentialing requirements and clinical standards.
+            The credentialing requirements and clinical standards above apply
+            to every clinician who joins the platform, regardless of when they
+            onboard.
           </p>
         </div>
 
@@ -269,12 +272,12 @@ export default function OurDoctorsClient({ verifiedDoctorCount }: OurDoctorsClie
         <section className="py-20 px-4 bg-muted/30">
           <div className="mx-auto max-w-2xl text-center">
             <h2 className="text-2xl font-semibold text-foreground mb-4">
-              Verify doctor registration yourself
+              Verify the registration yourself
             </h2>
             <p className="text-muted-foreground mb-6">
-              Every doctor&apos;s registration can be independently verified
-              on the AHPRA public register. The doctor&apos;s name appears on
-              every certificate we issue - you&apos;re welcome to check.
+              The treating doctor&apos;s registration can be independently
+              verified on the AHPRA public register. Their name appears on
+              every certificate we issue, so you are welcome to check.
             </p>
             <Button asChild variant="outline" className="rounded-full bg-transparent">
               <Link
@@ -295,8 +298,8 @@ export default function OurDoctorsClient({ verifiedDoctorCount }: OurDoctorsClie
         {/* FAQs */}
         <AccordionSection
           pill="Common Questions"
-          title="Frequently asked questions about our doctors"
-          subtitle="Straight answers about credentials, oversight, and how our consulting team works."
+          title="Frequently asked questions about our clinical team"
+          subtitle="Straight answers about credentials, oversight, and how our clinical governance model works."
           groups={doctorFaqs}
         />
 
@@ -304,7 +307,7 @@ export default function OurDoctorsClient({ verifiedDoctorCount }: OurDoctorsClie
         <section className="px-4 py-8 border-t border-border/30 dark:border-white/10">
           <div className="mx-auto max-w-3xl">
             <h3 className="text-sm font-semibold text-foreground mb-4 text-center">
-              Health resources reviewed by our doctors
+              Health resources reviewed by a registered GP
             </h3>
             <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 text-sm">
               <Link href="/conditions" className="text-primary hover:underline">
@@ -332,7 +335,7 @@ export default function OurDoctorsClient({ verifiedDoctorCount }: OurDoctorsClie
         {/* CTA */}
         <CTABanner
           title="Ready to get started?"
-          subtitle="Complete a short form and one of our doctors will review your request."
+          subtitle="Complete a short form and an AHPRA-registered doctor will review your request."
           ctaText="Start a request"
           ctaHref="/request"
           secondaryText="Our clinical standards"

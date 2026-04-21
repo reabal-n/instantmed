@@ -25,7 +25,7 @@ export const PROP_PHRASE = "A GP, the way it should've been."
 export const ICONIC_HOOK = "The doctor is in."
 
 /** Time-bound guarantee. Above checkout CTA, inline on heros, on /guarantee. */
-export const GUARANTEE = "Doctor approves in 2 hours or your money back."
+export const GUARANTEE = "Doctor reviews in 2 hours or we waive the fee."
 
 // ── Phrases you own (use freely) ──────────────────────────────────────
 

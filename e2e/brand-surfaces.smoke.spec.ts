@@ -22,7 +22,7 @@ import { expect, test } from "@playwright/test"
 // Kept as string literals (not imports) so the test fails if the module
 // breaks OR if the rendered text silently diverges from the SoT.
 // Regenerate these if GUARANTEE or the Trust Ribbon label changes.
-const GUARANTEE_LITERAL = "Doctor approves in 2 hours or your money back."
+const GUARANTEE_LITERAL = "Doctor reviews in 2 hours or we waive the fee."
 const AHPRA_LITERAL = "AHPRA-registered doctors"
 
 const BRAND_SURFACES = [
@@ -67,6 +67,6 @@ test.describe("Brand surfaces smoke", () => {
     await page.goto("/guarantee", { waitUntil: "domcontentloaded" })
     const title = await page.title()
     expect(title).toContain("Guarantee")
-    expect(title).toContain("Money Back")
+    expect(title).toContain("Waive")
   })
 })

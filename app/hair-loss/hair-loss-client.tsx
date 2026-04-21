@@ -82,7 +82,7 @@ const platformFeatures = [
     icon: <StickerIcon name="clock" size={48} />,
     title: "Reviewed Within Hours",
     description:
-      "Our doctors review requests quickly. Most are reviewed within a few hours during business hours.",
+      "An AHPRA-registered doctor reviews requests quickly. Most are reviewed within a few hours during business hours.",
   },
   {
     icon: <StickerIcon name="privacy" size={48} />,
@@ -148,7 +148,7 @@ const faqGroups = [
       {
         question: "What treatment options are available?",
         answer:
-          "Our doctors can recommend different treatment approaches based on your assessment. One option is an oral treatment that addresses hormonal factors contributing to hair loss - it's most effective for hair loss at the crown and mid-scalp. Another option is a topical treatment applied directly to the scalp that stimulates hair follicles and increases blood flow. Many men use both approaches together for best results.",
+          "The reviewing doctor can recommend different treatment approaches based on your assessment. One option is an oral treatment that addresses hormonal factors contributing to hair loss - it's most effective for hair loss at the crown and mid-scalp. Another option is a topical treatment applied directly to the scalp that stimulates hair follicles and increases blood flow. Many men use both approaches together for best results.",
       },
       {
         question: "How long until I see results?",
@@ -158,12 +158,12 @@ const faqGroups = [
       {
         question: "Are there side effects?",
         answer:
-          "Topical treatments may cause scalp irritation or unwanted facial hair growth (rare). Oral treatments may cause decreased libido or erectile changes in a small percentage of men (1-2%), which typically resolve after stopping treatment. Our doctors will discuss potential side effects with you.",
+          "Topical treatments may cause scalp irritation or unwanted facial hair growth (rare). Oral treatments may cause decreased libido or erectile changes in a small percentage of men (1-2%), which typically resolve after stopping treatment. Your treating doctor will discuss potential side effects with you.",
       },
       {
         question: "Do I need a doctor consultation for these treatments?",
         answer:
-          "Oral treatments always require a doctor consultation in Australia. Topical treatments at higher strengths are also prescription-only, though lower strengths are available over the counter. Our doctors can recommend both approaches after assessment.",
+          "Oral treatments always require a doctor consultation in Australia. Topical treatments at higher strengths are also prescription-only, though lower strengths are available over the counter. The reviewing doctor can recommend both approaches after assessment.",
       },
       {
         question: "Is the service really discreet?",
@@ -196,7 +196,7 @@ function TreatmentOptions() {
       <SectionHeader
         pill="Treatment Options"
         title="Clinically-Proven Approaches"
-        subtitle="Our doctors can recommend TGA-approved hair loss treatment options based on your assessment"
+        subtitle="The reviewing doctor can recommend TGA-approved hair loss treatment options based on your assessment"
         highlightWords={["Clinically-Proven"]}
       />
 
@@ -261,8 +261,8 @@ function TreatmentOptions() {
 
         <div className="pt-4 text-center">
           <p className="text-sm text-muted-foreground mb-4">
-            Not sure which is right for you? Our doctors will recommend the best
-            option.
+            Not sure which is right for you? The reviewing doctor will recommend
+            the best option.
           </p>
           <Button
             asChild
@@ -277,7 +277,7 @@ function TreatmentOptions() {
         </div>
 
         <p className="text-[10px] text-muted-foreground/50 text-center mt-8 max-w-3xl mx-auto leading-relaxed">
-          Finasteride reduces hair loss progression in 83-90% of men with androgenetic alopecia over 2 years (Kaufman et al., <em>J Am Acad Dermatol</em>, 1998). Topical minoxidil promotes regrowth in approximately 60% of patients (Olsen et al., <em>J Am Acad Dermatol</em>, 2002). TGA-approved for male pattern hair loss. Telehealth assessment of hair loss achieves comparable diagnostic accuracy to in-person consultation (Finnane et al., <em>Med J Aust</em>, 2017).
+          Androgenetic alopecia is managed with TGA-approved oral and topical treatments where clinically appropriate. Individual outcomes vary and are determined by your treating doctor. Telehealth assessment of hair loss achieves comparable diagnostic accuracy to in-person consultation (Finnane et al., <em>Med J Aust</em>, 2017).
         </p>
       </div>
     </section>
@@ -407,7 +407,7 @@ export function HairLossClient({ faqSchema }: HairLossClientProps) {
 
           <CTABanner
             title="Ready to Get Started?"
-            subtitle="Complete a confidential consultation in minutes. Our doctors are ready to help."
+            subtitle="Complete a confidential consultation in minutes. An AHPRA-registered doctor is ready to help."
             ctaText="Start Consultation"
             ctaHref="/request?service=consult&subtype=hair_loss"
           />

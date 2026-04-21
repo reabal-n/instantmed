@@ -137,7 +137,7 @@ const guideSections: GuideSectionData[] = [
     icon: "ShieldAlert",
     title: "Our prescribing boundaries",
     paragraphs: [
-      "InstantMed maintains strict prescribing boundaries that go beyond minimum regulatory requirements. We do not prescribe Schedule 8 (controlled) substances under any circumstances. This is a hard boundary enforced at the platform level - our intake system will not accept requests for these medications, and our doctors cannot override this restriction. There is no clinical scenario in which an asynchronous telehealth consultation is the appropriate channel for initiating or continuing controlled substance therapy.",
+      "InstantMed maintains strict prescribing boundaries that go beyond minimum regulatory requirements. We do not prescribe Schedule 8 (controlled) substances under any circumstances. This is a hard boundary enforced at the platform level - our intake system will not accept requests for these medications, and the restriction cannot be clinician-overridden. There is no clinical scenario in which an asynchronous telehealth consultation is the appropriate channel for initiating or continuing controlled substance therapy.",
       "We focus on repeat prescriptions for medications that the patient is already established on, prescribed by their regular GP or specialist. We do not initiate new medications for complex conditions, adjust doses for medications with narrow therapeutic indices, or prescribe medications that require monitoring through blood tests or other investigations that we cannot facilitate remotely.",
       "Every prescription request is validated against our clinical protocols before it reaches a doctor. The system checks for known contraindications, flags medications that require specific monitoring, and identifies requests that fall outside our defined scope of practice. The reviewing doctor makes the final clinical decision - the system supports that decision with structured information, but does not replace clinical judgement.",
       "If a prescribing request falls outside our scope, we decline it with a clear explanation and a recommendation that the patient consult their regular GP or an appropriate specialist. Declining a request is not a failure of service - it is the governance framework working as designed. A platform that approves everything is not practising medicine; it is dispensing.",
@@ -175,8 +175,8 @@ const clinicalGovernanceFaqs = [
     answer: "Our Medical Director - an AHPRA-registered practising GP - designs and reviews all clinical protocols. Protocols are updated quarterly, or sooner when new clinical guidelines are published by RACGP, TGA, or other relevant bodies. Protocol changes are version-controlled, documented with rationale, and audited for compliance.",
   },
   {
-    question: "What qualifications do your doctors have?",
-    answer: "Every doctor on the InstantMed platform holds current, unrestricted registration with AHPRA (the Australian Health Practitioner Regulation Agency). Their registration status can be independently verified on the AHPRA public register. All clinicians practise within their scope of training and against written protocols overseen by our Medical Director.",
+    question: "What are the practitioner qualifications?",
+    answer: "InstantMed currently operates with a single AHPRA-registered general practitioner who serves as both the treating doctor and Medical Director. Registration is current, unrestricted, and independently verifiable on the AHPRA public register. All clinical work is conducted within the Medical Director's scope of training and against written protocols.",
   },
   {
     question: "How are clinical decisions audited?",
@@ -280,7 +280,7 @@ export default function ClinicalGovernanceClient() {
               Independent verification
             </h2>
             <p className="text-muted-foreground mb-6">
-              Our doctors&apos; registration can be independently verified on
+              Our Medical Director&apos;s registration can be independently verified on
               the AHPRA public register. Our clinical standards align with RACGP
               guidelines for general practice.
             </p>
@@ -339,7 +339,7 @@ export default function ClinicalGovernanceClient() {
           subtitle="We're happy to explain how we maintain quality and safety across all consultations."
           ctaText="Contact us"
           ctaHref="/contact"
-          secondaryText="Meet our doctors"
+          secondaryText="About our clinicians"
           secondaryHref="/our-doctors"
         />
       </main>

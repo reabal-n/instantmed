@@ -66,7 +66,7 @@ const faqs = [
   },
   {
     question: "What if my employer questions the certificate?",
-    answer: "You can point out that the certificate includes the doctor's AHPRA registration and provider number, which can be verified. Our doctors are all registered with the Australian Health Practitioner Regulation Agency.",
+    answer: "You can point out that the certificate includes the doctor's AHPRA registration and provider number, which can be verified. Every clinician on our platform is registered with the Australian Health Practitioner Regulation Agency.",
   },
   {
     question: "Is the doctor's provider number on the certificate?",
@@ -170,7 +170,7 @@ export default function EmployerAcceptancePage() {
                     <div>
                       <h3 className="font-semibold mb-1">Australian-Based Practice</h3>
                       <p className="text-sm text-muted-foreground">
-                        Our doctors and operations are 100% based in Australia. We&apos;re not an offshore service or certificate mill.
+                        Our clinicians and operations are 100% based in Australia. We&apos;re not an offshore service or certificate mill.
                       </p>
                     </div>
                   </div>

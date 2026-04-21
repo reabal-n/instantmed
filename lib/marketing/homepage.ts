@@ -312,7 +312,7 @@ export const faqItems = [
   },
   {
     question: "What if the doctor says no?",
-    answer: "Full refund, no questions. We'd rather be upfront than take your money for something we can't help with.",
+    answer: "Full refund if we can't help. We'd rather be upfront than charge for something a doctor can't clinically assist with.",
   },
   {
     question: "How fast is it really?",

@@ -5,10 +5,10 @@ import { GUARANTEE } from "@/lib/marketing/voice"
 import { cn } from "@/lib/utils"
 
 /**
- * GuaranteeBadge - the time-bound, money-back promise pill.
+ * GuaranteeBadge - the time-bound review promise pill.
  *
  * Single source of truth is `GUARANTEE` in lib/marketing/voice.ts
- * ("Doctor approves in 2 hours or your money back.")
+ * ("Doctor reviews in 2 hours or we waive the fee.")
  *
  * Renders in three sizes so it can live above a checkout CTA (`md`),
  * inline on heroes (`sm`), or on a dedicated standalone block (`lg`).

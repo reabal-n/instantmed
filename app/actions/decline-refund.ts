@@ -27,7 +27,7 @@ export const FULL_REFUND_CATEGORIES = ["medical_certificate", "prescription"]
 
 // Categories eligible for PARTIAL auto-refund on decline.
 // Consults: 50% refund acknowledges doctor review time was spent while still honoring
-// the "money-back guarantee if we can't help" promise on checkout.
+// the "refund if we can't help" promise on checkout.
 export const PARTIAL_REFUND_CATEGORIES = ["consult"]
 export const PARTIAL_REFUND_PERCENT = 0.5
 

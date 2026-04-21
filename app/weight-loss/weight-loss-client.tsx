@@ -94,7 +94,7 @@ const faqs = [
   {
     question: "What treatment options are available?",
     answer:
-      "Our doctors can recommend different treatment approaches based on your health assessment. Some options work with your body's natural hormone systems for long-term support, while others are designed for shorter-term use alongside lifestyle changes. Your doctor will discuss the best approach for your individual health profile and goals.",
+      "The reviewing doctor can recommend different treatment approaches based on your health assessment. Some options work with your body's natural hormone systems for long-term support, while others are designed for shorter-term use alongside lifestyle changes. Your treating doctor will discuss the best approach for your individual health profile and goals.",
   },
   {
     question: "Do I need to have tried other weight management methods first?",
@@ -114,7 +114,7 @@ const faqs = [
   {
     question: "What side effects should I expect?",
     answer:
-      "Side effects vary by treatment approach. Some options may cause temporary digestive symptoms like nausea or diarrhoea. Other approaches may cause increased heart rate, dry mouth, or sleep changes. Our doctors will discuss potential side effects and how to manage them based on your specific treatment plan.",
+      "Side effects vary by treatment approach. Some options may cause temporary digestive symptoms like nausea or diarrhoea. Other approaches may cause increased heart rate, dry mouth, or sleep changes. Your treating doctor will discuss potential side effects and how to manage them based on your specific treatment plan.",
   },
   {
     question: "How long will I need treatment?",
@@ -235,7 +235,7 @@ export function WeightLossClient() {
                 <div className="text-center mb-8">
                   <h2 className="text-2xl sm:text-3xl font-semibold mb-2">Treatment Options</h2>
                   <p className="text-sm text-muted-foreground max-w-xl mx-auto">
-                    Our doctors can recommend TGA-approved treatment options based on your health assessment
+                    The reviewing doctor can recommend TGA-approved treatment options based on your health assessment
                   </p>
                 </div>
 
@@ -278,7 +278,7 @@ export function WeightLossClient() {
 
                 <div className="mt-6 text-center">
                   <p className="text-xs text-muted-foreground mb-4">
-                    Not sure which is right for you? Our doctors will help you choose the best option.
+                    Not sure which is right for you? The reviewing doctor will help you choose the best option.
                   </p>
                   <Link href="/request?service=consult&subtype=weight_loss">
                     <Button className="bg-primary hover:bg-primary/90 text-xs h-9">
@@ -402,7 +402,7 @@ export function WeightLossClient() {
           {/* Final CTA */}
           <CTABanner
             title="Ready to Start Your Journey?"
-            subtitle="Complete a health assessment in minutes. Our doctors will review your case and recommend the best treatment option."
+            subtitle="Complete a health assessment in minutes. An AHPRA-registered doctor will review your case and recommend the best treatment option."
             ctaText="Start Consultation"
             ctaHref="/request?service=consult&subtype=weight_loss"
           />
