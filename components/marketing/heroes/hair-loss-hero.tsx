@@ -7,7 +7,6 @@ import { GuaranteeBadge } from "@/components/marketing/guarantee-badge"
 import { HairLossHeroMockup } from "@/components/marketing/mockups/hair-loss-hero-mockup"
 import { TrustBadgeRow } from "@/components/shared/trust-badge"
 import { Button } from "@/components/ui/button"
-import { MagneticButton } from "@/components/ui/magnetic-button"
 import { PRICING_DISPLAY } from "@/lib/constants"
 
 export function HairLossHeroSection({
@@ -49,19 +48,17 @@ export function HairLossHeroSection({
               ref={ctaRef}
               className="flex flex-col sm:flex-row items-center gap-3 justify-center lg:justify-start mb-5 hero-cta-enter"
             >
-              <MagneticButton>
-                <Button
-                  asChild
-                  size="lg"
-                  className="px-8 h-12 text-base font-semibold shadow-md shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 transition-all active:scale-[0.98]"
-                  onClick={onCTAClick}
-                >
-                  <Link href="/request?service=consult&subtype=hair_loss">
-                    Start assessment · {PRICING_DISPLAY.HAIR_LOSS}
-                    <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
-                  </Link>
-                </Button>
-              </MagneticButton>
+              <Button
+                asChild
+                size="lg"
+                className="px-8 h-12 text-base font-semibold shadow-md shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 transition-all active:scale-[0.98]"
+                onClick={onCTAClick}
+              >
+                <Link href="/request?service=consult&subtype=hair_loss">
+                  Start assessment · {PRICING_DISPLAY.HAIR_LOSS}
+                  <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
+                </Link>
+              </Button>
             </div>
 
             {/* Guarantee pill */}

@@ -41,8 +41,14 @@ if [[ -d "app/flow" ]] || [[ -d "app/(flow)" ]]; then
 fi
 
 # ── 3. @deprecated modules with zero imports ─────────────────────────────
+# Exclude the guard tests themselves — they scan for the @deprecated literal
+# as part of their policy, so they would always self-match.
 while IFS= read -r deprecated_file; do
   [[ -f "$deprecated_file" ]] || continue
+  case "$deprecated_file" in
+    ./lib/__tests__/deprecated-guard.test.ts) continue ;;
+    ./lib/__tests__/voice-guard.test.ts)      continue ;;
+  esac
   # Get the import path (e.g., lib/foo/bar.ts -> @/lib/foo/bar)
   import_path="${deprecated_file%.ts}"
   import_path="${import_path%.tsx}"

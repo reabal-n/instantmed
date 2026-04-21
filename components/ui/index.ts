@@ -54,7 +54,6 @@ export { CompactStepper,FormStepper, MiniStepper } from "./form-stepper"
 // -----------------------------------------------------------------------------
 export type { ButtonProps } from "./button"
 export { Button, buttonVariants } from "./button"
-export { MagneticButton } from "./magnetic-button"
 
 // -----------------------------------------------------------------------------
 // Layout -- cards, containers, pages, separators

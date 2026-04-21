@@ -13,7 +13,6 @@ import Link from "next/link"
 import { EScriptHeroMockup } from "@/components/marketing/mockups/escript-hero-mockup"
 import { TrustBadgeRow } from "@/components/shared"
 import { Button } from "@/components/ui/button"
-import { MagneticButton } from "@/components/ui/magnetic-button"
 import { PRICING, PRICING_DISPLAY } from "@/lib/constants"
 
 const TRUST_CHIPS = [
@@ -84,22 +83,20 @@ export function PrescriptionsHeroSection({
               ref={ctaRef}
               className="flex flex-col sm:flex-row items-center gap-3 justify-center lg:justify-start mb-4 hero-cta-enter"
             >
-              <MagneticButton>
-                <Button
-                  asChild
-                  size="lg"
-                  className="px-8 h-12 text-base font-semibold shadow-md shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 transition-all active:scale-[0.98]"
-                  onClick={onCTAClick}
-                  disabled={isDisabled}
-                >
-                  <Link href={isDisabled ? "/contact" : "/request?service=prescription"}>
-                    {isDisabled
-                      ? "Contact us"
-                      : `Renew medication \u00b7 $${PRICING.REPEAT_SCRIPT.toFixed(2)}`}
-                    <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
-                  </Link>
-                </Button>
-              </MagneticButton>
+              <Button
+                asChild
+                size="lg"
+                className="px-8 h-12 text-base font-semibold shadow-md shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 transition-all active:scale-[0.98]"
+                onClick={onCTAClick}
+                disabled={isDisabled}
+              >
+                <Link href={isDisabled ? "/contact" : "/request?service=prescription"}>
+                  {isDisabled
+                    ? "Contact us"
+                    : `Renew medication \u00b7 $${PRICING.REPEAT_SCRIPT.toFixed(2)}`}
+                  <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
+                </Link>
+              </Button>
               <Button
                 asChild
                 variant="outline"
