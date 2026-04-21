@@ -293,6 +293,16 @@ export const BADGE_PRESETS: Record<string, PresetEntry[]> = {
     { id: 'google_pharmacy', variant: 'styled' },
   ],
 
+  // Trust Ribbon - the 4-badge authority row that sits under every hero.
+  // Credential + independent cert + privacy framework + transport encryption.
+  // Each badge has a tooltipHref where possible so the claim is verifiable.
+  trust_ribbon: [
+    { id: 'ahpra', variant: 'styled' },
+    { id: 'legitscript', variant: 'styled' },
+    'privacy',
+    'ssl',
+  ],
+
   // Sticky float sidebar
   float: [
     { id: 'no_call', variant: 'styled' },

@@ -1,18 +1,14 @@
 "use client"
 
-import { ArrowRight, CheckCircle2 } from "lucide-react"
+import { ArrowRight } from "lucide-react"
 import Link from "next/link"
 
+import { GuaranteeBadge } from "@/components/marketing/guarantee-badge"
 import { HairLossHeroMockup } from "@/components/marketing/mockups/hair-loss-hero-mockup"
+import { TrustBadgeRow } from "@/components/shared/trust-badge"
 import { Button } from "@/components/ui/button"
 import { MagneticButton } from "@/components/ui/magnetic-button"
 import { PRICING_DISPLAY } from "@/lib/constants"
-
-const TRUST_ITEMS = [
-  "AHPRA-registered doctors",
-  "LegitScript certified",
-  "Full refund if we can't help",
-]
 
 export function HairLossHeroSection({
   ctaRef,
@@ -68,15 +64,16 @@ export function HairLossHeroSection({
               </MagneticButton>
             </div>
 
-            {/* Trust - one row only */}
-            <div className="flex flex-wrap justify-center lg:justify-start gap-x-4 gap-y-1.5 hero-trust-enter">
-              {TRUST_ITEMS.map((label) => (
-                <span key={label} className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <CheckCircle2 className="h-3 w-3 shrink-0 text-emerald-500" aria-hidden="true" />
-                  {label}
-                </span>
-              ))}
+            {/* Guarantee pill */}
+            <div className="flex justify-center lg:justify-start mb-3 hero-trust-enter">
+              <GuaranteeBadge size="md" />
             </div>
+
+            {/* Trust Ribbon: AHPRA + LegitScript + Privacy + SSL */}
+            <TrustBadgeRow
+              preset="trust_ribbon"
+              className="justify-center lg:justify-start hero-trust-enter"
+            />
           </div>
 
           {/* Hero mockup - desktop */}

@@ -24,11 +24,12 @@ const resourceLinks: Array<{ title: string; href: string; description: string; s
 ]
 
 const companyLinks: Array<{ title: string; href: string; sticker: StickerIconName }> = [
-  { title: "About Us",       href: "/about",         sticker: "people"          },
-  { title: "Reviews",        href: "/reviews",       sticker: "verified-badge"  },
-  { title: "Trust & Safety", href: "/trust",         sticker: "security-shield" },
-  { title: "For Employers",  href: "/for/employers", sticker: "briefcase"       },
-  { title: "Locations",      href: "/locations",     sticker: "map-pin"         },
+  { title: "About Us",           href: "/about",                sticker: "people"          },
+  { title: "Reviews",            href: "/reviews",              sticker: "verified-badge"  },
+  { title: "Trust & Safety",     href: "/trust",                sticker: "security-shield" },
+  { title: "Clinical Governance",href: "/clinical-governance",  sticker: "stethoscope"     },
+  { title: "For Employers",      href: "/for/employers",        sticker: "briefcase"       },
+  { title: "Locations",          href: "/locations",            sticker: "map-pin"         },
 ]
 
 interface ResourcesDropdownProps {
@@ -47,6 +48,7 @@ export function ResourcesDropdown({ isActivePath }: ResourcesDropdownProps) {
     isActivePath("/about") ||
     isActivePath("/reviews") ||
     isActivePath("/trust") ||
+    isActivePath("/clinical-governance") ||
     isActivePath("/for/employers") ||
     isActivePath("/locations")
 

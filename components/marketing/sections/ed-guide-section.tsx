@@ -118,13 +118,13 @@ export function EDGuideSection() {
               <div className="rounded-lg bg-primary/5 border border-primary/15 p-3 flex items-start gap-2.5">
                 <HeartPulse className="h-4 w-4 text-primary shrink-0 mt-0.5" />
                 <p className="text-sm font-medium text-foreground">
-                  At least 1 in 5 Australian men over 40 experience ED regularly — rising to 2 in 3 men over 70.
+                  At least 1 in 5 Australian men over 40 experience ED regularly, rising to 2 in 3 men over 70.
                 </p>
               </div>
               <Bullets items={[
-                "ED is a medical condition, not a character flaw — it has well-understood biology and effective treatments.",
+                "ED is a medical condition, not a character flaw, it has well-understood biology and effective treatments.",
                 "Most cases are vascular: blood flow is reduced due to narrowed arteries, often from cardiovascular disease, diabetes, or high blood pressure.",
-                "ED is often the first visible sign of cardiovascular problems that haven't shown up elsewhere yet — early review matters.",
+                "ED is often the first visible sign of cardiovascular problems that haven't shown up elsewhere yet, early review matters.",
                 "Psychological factors (performance anxiety, stress, poor sleep, alcohol) are frequently involved, sometimes as the main cause.",
               ]} />
             </div>
@@ -138,7 +138,7 @@ export function EDGuideSection() {
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 {[
-                  { title: "Cardiovascular", text: "The arteries supplying the penis are narrower than those around the heart — they often show stress first. New-onset ED in a man over 40 is worth mentioning at the next GP visit." },
+                  { title: "Cardiovascular", text: "The arteries supplying the penis are narrower than those around the heart, they often show stress first. New-onset ED in a man over 40 is worth mentioning at the next GP visit." },
                   { title: "Diabetes", text: "High blood sugar damages blood vessels and nerves involved in the erectile response. In some men, ED is the first symptom of undiagnosed diabetes." },
                   { title: "Testosterone", text: "Low testosterone isn't a common standalone cause, but when it's a factor it usually comes with low libido, fatigue, and mood changes. A blood test rules it in or out." },
                   { title: "Sleep apnoea", text: "Untreated sleep apnoea fragments sleep, drops nocturnal testosterone, and stresses the cardiovascular system. Treating it sometimes improves erectile function on its own." },
@@ -159,7 +159,7 @@ export function EDGuideSection() {
             <div className="pt-1">
               <div className="space-y-4">
                 {[
-                  { n: "1", title: "Short health form (~2 min)", text: "Questions about your symptoms, medical history, and current medications — the same ones a GP would ask. No video call required." },
+                  { n: "1", title: "Short health form (~2 min)", text: "Questions about your symptoms, medical history, and current medications, the same ones a GP would ask. No video call required." },
                   { n: "2", title: "Doctor review (typically 1–2 hours)", text: "An AHPRA-registered Australian doctor reviews your submission. If they need clarification, they'll message you. If appropriate, they approve and prescribe." },
                   { n: "3", title: "eScript to your phone", text: "Prescription sent by SMS. Take it to any Australian pharmacy. If treatment isn't appropriate, we tell you directly and refund in full." },
                 ].map((step, i, arr) => (
@@ -186,13 +186,13 @@ export function EDGuideSection() {
               <div className="rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-700/50 p-3 flex items-start gap-2.5">
                 <Pill className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
                 <p className="text-sm font-medium text-foreground">
-                  These treatments only work with normal sexual stimulation — they are not aphrodisiacs.
+                  These treatments only work with normal sexual stimulation, they are not aphrodisiacs.
                 </p>
               </div>
               <Bullets items={[
                 "First-line treatments are oral tablets that work by improving blood flow in response to sexual arousal.",
-                "Different options have different windows — some last a few hours, others 24–36 hours. The right choice depends on your lifestyle and medical history.",
-                "There's no objectively 'best' option — your doctor walks through the trade-offs based on your assessment.",
+                "Different options have different windows, some last a few hours, others 24–36 hours. The right choice depends on your lifestyle and medical history.",
+                "There's no objectively 'best' option, your doctor walks through the trade-offs based on your assessment.",
                 "Non-pharmacological factors also matter: sleep, alcohol, exercise, and treating underlying conditions sometimes make the biggest difference.",
               ]} />
             </div>
@@ -213,8 +213,8 @@ export function EDGuideSection() {
               <Bullets items={[
                 "Also requires caution with: recent heart attack or stroke, uncontrolled blood pressure, severe heart failure, significant liver or kidney disease.",
                 "Drug interactions to flag: alpha-blockers (tamsulosin, prazosin), some antifungals, some HIV medications.",
-                "Common side effects: headache, flushing, nasal congestion, indigestion — usually mild and temporary.",
-                "Rare but urgent: sudden vision or hearing loss, or an erection lasting more than 4 hours — seek immediate medical attention.",
+                "Common side effects: headache, flushing, nasal congestion, indigestion, usually mild and temporary.",
+                "Rare but urgent: sudden vision or hearing loss, or an erection lasting more than 4 hours, seek immediate medical attention.",
               ]} />
             </div>
           </GuideItem>
@@ -226,7 +226,7 @@ export function EDGuideSection() {
               <Bullets items={[
                 "ED started suddenly alongside new chest pain, shortness of breath, leg swelling, neurological symptoms, or unexplained weight loss.",
                 "You've never had a cardiovascular check and have multiple risk factors (age, smoking, family history, high blood pressure, diabetes).",
-                "The main contributor looks psychological — persistent low mood, significant anxiety, relationship difficulties, or trauma.",
+                "The main contributor looks psychological, persistent low mood, significant anxiety, relationship difficulties, or trauma.",
                 "You notice visibly scarred or inflamed patches of scalp that could suggest a different condition requiring examination.",
               ]} />
             </div>
@@ -237,8 +237,8 @@ export function EDGuideSection() {
             <div className="space-y-2.5 pt-1">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                 {[
-                  { title: "The pharmacist sees", text: "Only the prescription — dose, quantity, instructions. Not your assessment answers or medical history." },
-                  { title: "Your bank statement shows", text: "'InstantMed' — nothing else. No medication name, no condition, no billing code." },
+                  { title: "The pharmacist sees", text: "Only the prescription, dose, quantity, instructions. Not your assessment answers or medical history." },
+                  { title: "Your bank statement shows", text: "'InstantMed', nothing else. No medication name, no condition, no billing code." },
                   { title: "The package looks like", text: "Standard pharmacy packaging. Nothing on the outside references the medication or the condition." },
                 ].map((point) => (
                   <div key={point.title} className="rounded-lg border border-border/50 bg-muted/30 p-3.5">

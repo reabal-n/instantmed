@@ -530,7 +530,7 @@ const builtInComparisons: Record<string, ComparisonEntry> = {
       "Your pharmacy doesn't support eScripts (rare)",
       "You prefer to hold a physical copy",
     ],
-    verdict: "e-Prescriptions are the modern standard in Australia. They're more convenient, can't be lost, and work seamlessly with telehealth. Paper prescriptions are still valid but less common. Most pharmacies accept eScripts.",
+    verdict: "e-Prescriptions are the modern standard in Australia. They're more convenient, can't be lost, and pair cleanly with telehealth. Paper prescriptions are still valid but less common. Most pharmacies accept eScripts.",
     faqs: [
       { q: "Do all pharmacies accept eScripts?", a: "Yes. eScripts are now the standard across Australia. Any pharmacy can scan the QR code or enter the token." },
       { q: "What if I lose my eScript?", a: "Contact your doctor or the service that issued it. They can resend it. One advantage of eScripts - they're digital and resendable." },
@@ -599,7 +599,7 @@ const builtInComparisons: Record<string, ComparisonEntry> = {
           title: "The Transition from Paper to Digital",
           paragraphs: [
             "Australia has been transitioning to e-prescriptions since 2020, and the shift is now well advanced. Virtually all pharmacies accept eScripts, and most GPs issue them by default. Paper prescriptions aren't going away entirely - they're still valid and sometimes necessary - but they're increasingly the exception rather than the rule.",
-            "For patients, the transition has been largely seamless. If you've used a QR code to check in somewhere or scan a menu, you already have the technical skills for eScripts. The learning curve is minimal. For older patients or those less comfortable with technology, pharmacists are accustomed to walking people through the process."
+            "For patients, the transition has been largely painless. If you've used a QR code to check in somewhere or scan a menu, you already have the technical skills for eScripts. The learning curve is minimal. For older patients or those less comfortable with technology, pharmacists are accustomed to walking people through the process."
           ]
         },
         {
@@ -608,7 +608,7 @@ const builtInComparisons: Record<string, ComparisonEntry> = {
           paragraphs: [
             "Before e-prescriptions, telehealth had a prescription problem. If a doctor consulted with you remotely but needed to prescribe medication, they had to either post a paper script (slow and unreliable) or fax it to a specific pharmacy (limiting your choice). eScripts solved this completely - the prescription is delivered digitally, instantly, and can be filled anywhere.",
             "This is why telehealth has grown so rapidly alongside e-prescriptions. The two technologies remove the two biggest barriers to remote healthcare: the need to be physically present for the consultation, and the need to physically collect a prescription. Together, they mean a patient in rural NSW can consult a doctor and have their prescription ready at the local pharmacy without leaving home.",
-            "For repeat prescriptions in particular, the telehealth-plus-eScript combination is transformative. Instead of booking a GP appointment, waiting days, travelling to the clinic, sitting in the waiting room, and then driving to the pharmacy - you fill in a form, receive your eScript, and walk to your nearest pharmacy. The clinical standard is the same; the logistics are just better."
+            "For repeat prescriptions in particular, the telehealth-plus-eScript combination is a genuine step up. Instead of booking a GP appointment, waiting days, travelling to the clinic, sitting in the waiting room, and then driving to the pharmacy - you fill in a form, receive your eScript, and walk to your nearest pharmacy. The clinical standard is the same; the logistics are just better."
           ]
         }
       ]

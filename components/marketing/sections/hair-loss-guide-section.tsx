@@ -34,7 +34,7 @@ import { cn } from "@/lib/utils"
 const HAIR_LOSS_TYPES = [
   {
     heading: "Androgenetic alopecia (pattern hair loss)",
-    body: "The most common cause by a wide margin. Follicles gradually shrink under hormonal influence. This is what online assessment is designed for — treatment works, and earlier is better.",
+    body: "The most common cause by a wide margin. Follicles gradually shrink under hormonal influence. This is what online assessment is designed for, treatment works, and earlier is better.",
     status: "treatable" as const,
   },
   {
@@ -54,7 +54,7 @@ const HAIR_LOSS_TYPES = [
   },
   {
     heading: "Autoimmune (alopecia areata)",
-    body: "Sudden patchy loss caused by the immune system attacking follicles. Distinct from gradual androgenetic alopecia. Needs in-person assessment — telehealth is not the right first step here.",
+    body: "Sudden patchy loss caused by the immune system attacking follicles. Distinct from gradual androgenetic alopecia. Needs in-person assessment, telehealth is not the right first step here.",
     status: "specialist" as const,
   },
 ]
@@ -84,12 +84,12 @@ const GROWTH_PHASES = [
 ]
 
 const TIMELINE_MILESTONES = [
-  { label: "M1", heading: "Month 1", body: "Paradoxical shedding sometimes increases as follicles shift phase — uncomfortable but expected.", color: "bg-muted/60 border-muted-foreground/25 dark:bg-muted/30", dot: "bg-muted-foreground/30" },
+  { label: "M1", heading: "Month 1", body: "Paradoxical shedding sometimes increases as follicles shift phase, uncomfortable but expected.", color: "bg-muted/60 border-muted-foreground/25 dark:bg-muted/30", dot: "bg-muted-foreground/30" },
   { label: "M2", heading: "Month 2", body: "Shedding typically stabilises.", color: "bg-muted/60 border-muted-foreground/25 dark:bg-muted/30", dot: "bg-muted-foreground/30" },
-  { label: "M3", heading: "Month 3", body: "First signs — hairline feels less thin, less shedding in the shower.", color: "bg-amber-50 border-amber-200 dark:bg-amber-950/30 dark:border-amber-700/50", dot: "bg-amber-400" },
+  { label: "M3", heading: "Month 3", body: "First signs, hairline feels less thin, less shedding in the shower.", color: "bg-amber-50 border-amber-200 dark:bg-amber-950/30 dark:border-amber-700/50", dot: "bg-amber-400" },
   { label: "M6", heading: "Month 6", body: "Clear improvement visible in photos compared to month 0.", color: "bg-primary/5 border-primary/25", dot: "bg-primary/60" },
   { label: "M9", heading: "Month 9", body: "Regrowth is usually obvious to the person and often to others.", color: "bg-emerald-50 border-emerald-200 dark:bg-emerald-950/30 dark:border-emerald-700/50", dot: "bg-emerald-400" },
-  { label: "M12", heading: "Month 12", body: "Full treatment window — most of the improvement that's going to happen has happened by now.", color: "bg-emerald-100 border-emerald-300 dark:bg-emerald-950/40 dark:border-emerald-600/60", dot: "bg-emerald-500" },
+  { label: "M12", heading: "Month 12", body: "Full treatment window, most of the improvement that's going to happen has happened by now.", color: "bg-emerald-100 border-emerald-300 dark:bg-emerald-950/40 dark:border-emerald-600/60", dot: "bg-emerald-500" },
 ]
 
 // =============================================================================
@@ -190,7 +190,7 @@ function NorwoodStagesReveal() {
 // COMPONENT
 // =============================================================================
 
-/** Long-form E-E-A-T content — hair loss biology, treatments, safety, telehealth */
+/** Long-form E-E-A-T content, hair loss biology, treatments, safety, telehealth */
 export function HairLossGuideSection() {
   return (
     <section aria-label="Hair loss treatment guide" className="py-16 lg:py-20">
@@ -225,10 +225,10 @@ export function HairLossGuideSection() {
                 </div>
               </div>
               <Bullets items={[
-                "Androgenetic alopecia (pattern hair loss) is the most common type — driven by DHT, a hormone derived from testosterone that gradually miniaturises hair follicles.",
+                "Androgenetic alopecia (pattern hair loss) is the most common type, driven by DHT, a hormone derived from testosterone that gradually miniaturises hair follicles.",
                 "Men typically see recession at the temples and crown; women usually see diffuse thinning across the top of the scalp.",
                 "The Norwood scale (men) and Ludwig scale (women) classify severity and guide treatment decisions.",
-                "It's significantly easier to maintain existing hair than to regrow what's already been lost — early intervention isn't marketing, it's biology.",
+                "It's significantly easier to maintain existing hair than to regrow what's already been lost, early intervention isn't marketing, it's biology.",
               ]} />
             </div>
           </GuideItem>
@@ -276,7 +276,7 @@ export function HairLossGuideSection() {
           <GuideItem value="growth-cycle" icon={RefreshCw} title="The hair growth cycle, explained">
             <div className="space-y-3 pt-1">
               <p className="text-sm text-muted-foreground">
-                Hair doesn't grow continuously. Each follicle cycles through three phases — and that's why treatment takes months to show results.
+                Hair doesn't grow continuously. Each follicle cycles through three phases, and that's why treatment takes months to show results.
               </p>
               <div className="flex items-stretch gap-1.5">
                 {GROWTH_PHASES.map((phase, i) => (
@@ -304,7 +304,7 @@ export function HairLossGuideSection() {
                 ))}
               </div>
               <p className="text-xs text-muted-foreground">
-                Treatment shifts follicles out of telogen and back into anagen — which is why you often see MORE shedding in the first month before things improve. It's working.
+                Treatment shifts follicles out of telogen and back into anagen, which is why you often see MORE shedding in the first month before things improve. It's working.
               </p>
             </div>
           </GuideItem>
@@ -315,7 +315,7 @@ export function HairLossGuideSection() {
               <div className="rounded-lg bg-primary/5 border border-primary/15 p-3 flex items-start gap-2.5">
                 <BadgeCheck className="h-4 w-4 text-primary shrink-0 mt-0.5" />
                 <p className="text-sm font-medium text-foreground">
-                  Both treatment categories are TGA-registered in Australia — approved for safety, quality, and efficacy.
+                  Both treatment categories are TGA-registered in Australia, approved for safety, quality, and efficacy.
                 </p>
               </div>
               <div className="grid sm:grid-cols-2 gap-2.5">
@@ -331,8 +331,8 @@ export function HairLossGuideSection() {
                 </div>
               </div>
               <Bullets items={[
-                "Results take time — 3 months minimum to see reduced shedding, 6–12 months for visible regrowth.",
-                "Stopping at month 4 because you haven't seen results yet is the single most common reason treatment 'doesn't work' — you haven't given it long enough.",
+                "Results take time, 3 months minimum to see reduced shedding, 6–12 months for visible regrowth.",
+                "Stopping at month 4 because you haven't seen results yet is the single most common reason treatment 'doesn't work', you haven't given it long enough.",
               ]} />
             </div>
           </GuideItem>
@@ -367,11 +367,11 @@ export function HairLossGuideSection() {
                 <p className="text-xs font-semibold text-foreground mb-2">Your doctor checks five things:</p>
                 <ul className="space-y-1.5">
                   {[
-                    "Pattern of hair loss — consistent with androgenetic alopecia, or diffuse, patchy, or scarring?",
-                    "Duration and rate of progression — stable, slowly worsening, or accelerating?",
-                    "Current medications and supplements — some cause or contribute to shedding",
-                    "Family history on both sides — your maternal grandfather's pattern is as relevant as your father's",
-                    "Recent health changes — thyroid symptoms, weight changes, stress, or recent illness",
+                    "Pattern of hair loss, consistent with androgenetic alopecia, or diffuse, patchy, or scarring?",
+                    "Duration and rate of progression, stable, slowly worsening, or accelerating?",
+                    "Current medications and supplements, some cause or contribute to shedding",
+                    "Family history on both sides, your maternal grandfather's pattern is as relevant as your father's",
+                    "Recent health changes, thyroid symptoms, weight changes, stress, or recent illness",
                   ].map((item) => (
                     <li key={item} className="flex items-start gap-2 text-xs text-muted-foreground">
                       <span className="shrink-0 w-1.5 h-1.5 rounded-full bg-primary/50 mt-1.5" aria-hidden="true" />
@@ -381,9 +381,9 @@ export function HairLossGuideSection() {
                 </ul>
               </div>
               <Bullets items={[
-                "You may be asked to upload scalp photos — they're genuinely diagnostic and often more informative than a physical examination.",
+                "You may be asked to upload scalp photos, they're genuinely diagnostic and often more informative than a physical examination.",
                 "Based on the assessment, your doctor creates a personalised plan: which treatment, what strength, what to expect, and when to follow up.",
-                "Hair loss is well-suited to telehealth — diagnosis is primarily history-based, monitoring is photo-based, and there's nothing that requires a stethoscope.",
+                "Hair loss is well-suited to telehealth, diagnosis is primarily history-based, monitoring is photo-based, and there's nothing that requires a stethoscope.",
                 "Many people delay treatment because they find it embarrassing. Online consultations remove that barrier entirely.",
               ]} />
             </div>
@@ -397,13 +397,13 @@ export function HairLossGuideSection() {
                 <div>
                   <p className="text-sm font-semibold text-destructive mb-1">Hard stop: pregnancy</p>
                   <p className="text-xs text-muted-foreground">
-                    Women who are pregnant, breastfeeding, or may become pregnant must not take or handle oral DHT-blocking tablets. Risk of birth defects in a male fetus is clearly established — hard contraindication, not a precaution.
+                    Women who are pregnant, breastfeeding, or may become pregnant must not take or handle oral DHT-blocking tablets. Risk of birth defects in a male fetus is clearly established, hard contraindication, not a precaution.
                   </p>
                 </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                 {[
-                  { heading: "Physical", body: "Scalp irritation from topical treatments is the most common side effect — usually manageable by switching formulation. Side effects from oral treatment are uncommon and generally reversible." },
+                  { heading: "Physical", body: "Scalp irritation from topical treatments is the most common side effect, usually manageable by switching formulation. Side effects from oral treatment are uncommon and generally reversible." },
                   { heading: "Sexual function and mood", body: "A small percentage on oral treatment report changes in libido, sexual function, or mood. Data is genuinely mixed on frequency and persistence. Flag it if you notice anything." },
                   { heading: "How to spot them early", body: "Keep a note of how you feel in the first 2–3 months. If something shifts, flag it to the doctor. Clear baselines make follow-up much more useful." },
                 ].map((block) => (
@@ -420,9 +420,9 @@ export function HairLossGuideSection() {
           <GuideItem value="ongoing" icon={Repeat} title="Ongoing treatment and repeat prescriptions">
             <div className="space-y-3 pt-1">
               <Bullets items={[
-                "Hair loss treatment is maintenance, not a course — the improvement you achieve is preserved only as long as you keep taking it.",
+                "Hair loss treatment is maintenance, not a course, the improvement you achieve is preserved only as long as you keep taking it.",
                 "After your initial consultation, repeat prescriptions are available through a short follow-up form. No need to retell your full history each time.",
-                "Each repeat is a fresh clinical decision by a doctor — not an auto-renewal algorithm.",
+                "Each repeat is a fresh clinical decision by a doctor, not an auto-renewal algorithm.",
               ]} />
               <Link
                 href="/prescriptions"
@@ -436,7 +436,7 @@ export function HairLossGuideSection() {
                   If you stop treatment
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  Hair that was preserved or regrown typically reverts within 6–12 months of stopping — often back to where you'd have been if you'd never started. Factor ongoing commitment into the decision before you begin.
+                  Hair that was preserved or regrown typically reverts within 6–12 months of stopping, often back to where you'd have been if you'd never started. Factor ongoing commitment into the decision before you begin.
                 </p>
               </div>
             </div>

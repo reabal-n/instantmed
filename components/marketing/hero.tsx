@@ -6,10 +6,12 @@ import Image from 'next/image'
 import Link from 'next/link'
 import type React from "react"
 
+import { GuaranteeBadge } from '@/components/marketing/guarantee-badge'
 import { LastReviewedSignal } from '@/components/marketing/last-reviewed-signal'
 import { TrustBadgeRow } from '@/components/shared/trust-badge'
 import { Button } from "@/components/ui/button"
 import { usePatientCount } from '@/lib/hooks/use-patient-count'
+import { WEDGE } from '@/lib/marketing/voice'
 import { SOCIAL_PROOF } from '@/lib/social-proof'
 
 // Desktop-only stacked card mockup — never the LCP element, safe for ssr:false
@@ -75,12 +77,12 @@ export function Hero({ children }: { children?: React.ReactNode }) {
             {/* LCP slot - server-rendered when passed as children, else fallback */}
             {children ?? (
               <p className={LCP_CLASSES}>
-                Real Australian doctors review every request. No appointments, no video calls - just fill in a quick form and a GP takes care of the rest. Reviewed within 1-2 hours, most days.
+                Real Australian doctors review every request. {WEDGE} Fill in a quick form and a GP takes care of the rest. Reviewed within 1-2 hours, most days.
               </p>
             )}
 
             {/* CTAs */}
-            <div className="hero-cta-enter flex flex-col sm:flex-row gap-3 justify-center lg:justify-start mb-5 sm:mb-8">
+            <div className="hero-cta-enter flex flex-col sm:flex-row gap-3 justify-center lg:justify-start mb-3 sm:mb-4">
               <Button
                 asChild
                 size="lg"
@@ -103,6 +105,11 @@ export function Hero({ children }: { children?: React.ReactNode }) {
               </Button>
             </div>
 
+            {/* Guarantee pill - sits directly under primary CTA */}
+            <div className="flex justify-center lg:justify-start mb-5 sm:mb-8">
+              <GuaranteeBadge size="md" />
+            </div>
+
             {/* Patient count */}
             {patientCount > 0 && (
               <p className="text-xs text-muted-foreground flex items-center justify-center lg:justify-start gap-1.5 mb-4 sm:mb-5 -mt-4">
@@ -121,9 +128,9 @@ export function Hero({ children }: { children?: React.ReactNode }) {
                 ]}
                 className="mt-4 justify-center lg:justify-start"
               />
-              {/* Certification badges */}
+              {/* Trust Ribbon: AHPRA + LegitScript + Privacy + SSL */}
               <TrustBadgeRow
-                preset="trust_certifications"
+                preset="trust_ribbon"
                 className="mt-2 justify-center lg:justify-start"
               />
               <LastReviewedSignal className="mt-3 justify-center lg:justify-start" />

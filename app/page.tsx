@@ -33,6 +33,7 @@ import { ReturningPatientBanner } from '@/components/shared/returning-patient-ba
 import { PRICING_DISPLAY } from '@/lib/constants'
 import { getFeatureFlags } from '@/lib/feature-flags'
 import { faqItems } from '@/lib/marketing/homepage'
+import { WEDGE } from '@/lib/marketing/voice'
 
 export const revalidate = 3600
 
@@ -127,7 +128,7 @@ export default async function HomePage() {
         {/* 1. Hero with main value prop */}
         <Hero>
           <p className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-8 leading-relaxed sm:leading-normal lg:leading-relaxed text-balance">
-            Real Australian doctors review every request - medical certificates from {PRICING_DISPLAY.MED_CERT}, repeat scripts, and discreet treatment for ED and hair loss. No appointments, no waiting rooms.
+            Real Australian doctors review every request. {WEDGE} Medical certificates from {PRICING_DISPLAY.MED_CERT}, repeat scripts, and discreet treatment for ED and hair loss.
           </p>
         </Hero>
 

@@ -77,10 +77,11 @@ const HOW_IT_WORKS_STEPS = [
 ]
 
 const PRICING_BULLETS = [
+  "Includes a 30-day follow-up check-in with your doctor",
   "AHPRA-registered Australian doctor reviews your form",
   "eScript sent to your phone via SMS",
   "Collect from any Australian pharmacy",
-  "Discreet packaging - nothing on the outside",
+  "Discreet packaging, nothing on the outside",
   "Full refund if we can\u2019t help",
 ]
 
@@ -237,7 +238,7 @@ function HairLossPricingSection({ isDisabled }: { isDisabled?: boolean }) {
                 <span className="text-4xl font-bold tracking-tight text-foreground">
                   ${PRICING.HAIR_LOSS.toFixed(2)}
                 </span>
-                <span className="text-sm text-muted-foreground ml-2">one-time</span>
+                <span className="text-sm text-muted-foreground ml-2">consult + 30-day follow-up</span>
               </div>
 
               <ul className="space-y-2 mb-6 flex-1">

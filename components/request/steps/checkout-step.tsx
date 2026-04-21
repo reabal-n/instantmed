@@ -11,6 +11,7 @@ import { useEffect,useState } from "react"
 
 import { createCheckoutFromUnifiedFlow } from "@/app/actions/unified-checkout"
 import { PaymentLogos } from "@/components/checkout/payment-logos"
+import { GuaranteeBadge } from "@/components/marketing/guarantee-badge"
 import { usePostHog } from "@/components/providers/posthog-provider"
 import { CheckoutButton, TrustBadgeRow } from "@/components/shared"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -443,6 +444,11 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
       {/* Checkout button - sticky on mobile, inline on desktop */}
       <div className="fixed bottom-0 left-0 right-0 z-30 bg-background/95 backdrop-blur-md border-t px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:static sm:bg-transparent sm:backdrop-blur-none sm:border-0 sm:p-0 sm:z-auto">
         <div className="max-w-lg mx-auto space-y-2">
+          {/* Time-bound guarantee - sits directly above the pay button */}
+          <div className="flex justify-center pb-1">
+            <GuaranteeBadge size="md" />
+          </div>
+
           <CheckoutButton
             onClick={handleCheckout}
             isLoading={isProcessing}

@@ -40,6 +40,9 @@ jobs:
             echo "::warning::Lint exceeded 60s budget (${ELAPSED}s) -- investigate slow rules"
           fi
 
+      - name: Voice guard (banned phrases + em-dashes in marketing surfaces)
+        run: pnpm vitest run lib/__tests__/voice-guard.test.ts
+
       - name: Run unit tests with coverage
         run: pnpm test --run --coverage
 
