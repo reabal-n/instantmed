@@ -20,6 +20,7 @@ import {
   MIN_CLINICAL_NOTES_LENGTH,
 } from "@/components/doctor/review/utils"
 import { usePanel } from "@/components/panels/panel-provider"
+import { playApprovalSound } from "@/lib/audio/approval-sound"
 import { DECLINE_REASONS } from "@/lib/doctor/constants"
 import { useDoctorShortcuts } from "@/lib/hooks/use-doctor-shortcuts"
 import type { DeclineReasonCode,IntakeStatus } from "@/types/db"
@@ -216,6 +217,7 @@ export function useReviewActions({
           result.emailStatus === "sent"
             ? "Certificate approved and sent to patient."
             : "Certificate approved. Email will be sent shortly."
+        playApprovalSound()
         toast.success(emailNote)
         closeAndRefresh()
       } else {
@@ -243,6 +245,9 @@ export function useReviewActions({
       }
       const result = await updateStatusAction(intake.id, status)
       if (result.success) {
+        if (status === "approved" || status === "awaiting_script") {
+          playApprovalSound()
+        }
         toast.success(status === "approved" ? "Case approved" : "Case updated")
         closeAndRefresh()
       } else {

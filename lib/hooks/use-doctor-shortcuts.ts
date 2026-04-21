@@ -92,6 +92,20 @@ export function useDoctorShortcuts({
         return
       }
 
+      // Vim-style J/K (no modifier): Next / Previous case
+      if (!isMod && !event.shiftKey && !event.altKey) {
+        if (event.key === "j") {
+          event.preventDefault()
+          onNext?.()
+          return
+        }
+        if (event.key === "k") {
+          event.preventDefault()
+          onPrevious?.()
+          return
+        }
+      }
+
       // Escape: Close dialogs
       if (event.key === "Escape") {
         onEscape?.()
@@ -113,8 +127,10 @@ export function useDoctorShortcuts({
 export const DOCTOR_SHORTCUTS = [
   { keys: ["⌘", "A"], label: "Approve", description: "Approve current case" },
   { keys: ["⌘", "D"], label: "Decline", description: "Open decline dialog" },
-  { keys: ["⌘", "→"], label: "Next", description: "Go to next case" },
-  { keys: ["⌘", "←"], label: "Previous", description: "Go to previous case" },
+  { keys: ["J"], label: "Next", description: "Go to next case" },
+  { keys: ["K"], label: "Previous", description: "Go to previous case" },
+  { keys: ["⌘", "→"], label: "Next (alt)", description: "Go to next case" },
+  { keys: ["⌘", "←"], label: "Previous (alt)", description: "Go to previous case" },
   { keys: ["⌘", "N"], label: "Note", description: "Focus clinical notes" },
   { keys: ["⌘", "K"], label: "Commands", description: "Open command palette" },
   { keys: ["⌘", "Enter"], label: "Submit", description: "Submit current action" },
@@ -208,6 +224,20 @@ export function useDoctorShortcutsExtended({
         event.preventDefault()
         onNote?.()
         return
+      }
+
+      // Vim-style J/K (no modifier): Next / Previous case
+      if (!isMod && !event.shiftKey && !event.altKey) {
+        if (event.key === "j") {
+          event.preventDefault()
+          onNext?.()
+          return
+        }
+        if (event.key === "k") {
+          event.preventDefault()
+          onPrevious?.()
+          return
+        }
       }
     },
     [disabled, onApprove, onDecline, onNext, onPrevious, onNote, onEscape, onCommandPalette, onSubmit]

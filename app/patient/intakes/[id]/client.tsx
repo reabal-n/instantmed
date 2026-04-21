@@ -25,7 +25,7 @@ import { cancelIntake } from "@/app/actions/cancel-intake"
 import { requestDateCorrection } from "@/app/actions/request-date-correction"
 import { resendCertificate } from "@/app/actions/resend-certificate"
 import { resendVerificationEmail } from "@/app/actions/resend-verification"
-import { CrossSellCard, EmailVerificationGate, IntakeStatusListener,IntakeStatusTracker, SendToEmployerDialog } from "@/components/patient"
+import { CrossSellCard, DocumentReadyReveal, EmailVerificationGate, IntakeStatusListener,IntakeStatusTracker, SendToEmployerDialog } from "@/components/patient"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -524,6 +524,7 @@ export function IntakeDetailClient({
               isVerified={isEmailVerified}
               onResendVerification={resendVerificationEmail}
             >
+              <DocumentReadyReveal intakeId={intake.id} approvedAt={intake.approved_at}>
               <Card className="border-success-border bg-linear-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/20">
                 <CardContent className="pt-6">
                   <div className="flex items-start gap-4">
@@ -618,6 +619,7 @@ export function IntakeDetailClient({
                   </div>
                 </CardContent>
               </Card>
+              </DocumentReadyReveal>
             </EmailVerificationGate>
           )}
 

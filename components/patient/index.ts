@@ -1,4 +1,5 @@
 export { CrossSellCard } from "./cross-sell-card"
+export { DocumentReadyReveal } from "./document-ready-reveal"
 export { EmailVerificationBanner,EmailVerificationGate } from "./email-verification-gate"
 export { PatientErrorAlert } from "./error-alert"
 export type { FollowupRow } from "./followup-tracker-card"
