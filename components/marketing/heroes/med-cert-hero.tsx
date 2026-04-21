@@ -55,14 +55,15 @@ export function MedCertHeroSection({
               Sick today? Certificate in{" "}
               <br className="hidden sm:block" />
               <span className="text-premium-gradient">
-                your inbox in under an hour.
+                your inbox in under 30 minutes.
               </span>
             </h1>
 
             {/* Subheadline */}
             <p className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-3 sm:mb-4 leading-relaxed text-balance hero-subheadline-enter">
               Valid for work, uni, or carer&apos;s leave. An AHPRA-registered GP
-              reviews your request. Most certificates are ready in under 20 minutes.
+              reviews your request and sends the certificate to your inbox, typically
+              within 30 minutes.
             </p>
 
             {/* Static proof chips */}

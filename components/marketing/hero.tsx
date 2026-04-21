@@ -1,6 +1,6 @@
 'use client'
 
-import { ArrowRight, CheckCircle2, FileText, Phone, Pill, Smartphone } from 'lucide-react'
+import { ArrowRight, CheckCircle2, FileText, Pill, Smartphone, Star } from 'lucide-react'
 import dynamic from 'next/dynamic'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -10,7 +10,7 @@ import { LastReviewedSignal } from '@/components/marketing/last-reviewed-signal'
 import { TrustBadgeRow } from '@/components/shared/trust-badge'
 import { Button } from "@/components/ui/button"
 import { usePatientCount } from '@/lib/hooks/use-patient-count'
-import { SOCIAL_PROOF_DISPLAY } from '@/lib/social-proof'
+import { SOCIAL_PROOF } from '@/lib/social-proof'
 
 // Desktop-only stacked card mockup — never the LCP element, safe for ssr:false
 const HeroMultiServiceMockup = dynamic(
@@ -37,11 +37,28 @@ export function Hero({ children }: { children?: React.ReactNode }) {
         <div className="flex flex-col lg:flex-row items-center lg:gap-12 xl:gap-14">
           {/* Text content */}
           <div className="flex-1 min-w-0 text-center lg:text-left">
-            {/* Availability pill */}
+            {/* Social-proof pill — above the fold, above the H1. Three signals
+                in one compact row: rating · patient count · live availability.
+                Replaces the old availability-only pill. */}
             <div className="hero-availability-enter flex justify-center lg:justify-start mb-5 sm:mb-8">
-              <div className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium bg-green-50 border border-green-200 text-green-800 dark:bg-green-950/40 dark:border-green-800 dark:text-green-300">
-                <Phone className="w-3.5 h-3.5" aria-hidden="true" />
-                Open {SOCIAL_PROOF_DISPLAY.operatingHours} AEST &middot; 7 days
+              <div className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium bg-white dark:bg-card border border-border/60 shadow-sm shadow-primary/[0.04]">
+                <span className="inline-flex items-center gap-0.5 text-amber-500" aria-label={`${SOCIAL_PROOF.averageRating} out of 5 rating`}>
+                  <Star className="w-3.5 h-3.5 fill-current" aria-hidden="true" />
+                  <span className="text-foreground font-semibold tabular-nums">{SOCIAL_PROOF.averageRating.toFixed(1)}</span>
+                </span>
+                {patientCount > 0 && (
+                  <>
+                    <span className="text-border/70" aria-hidden="true">·</span>
+                    <span className="text-muted-foreground">
+                      <span className="text-foreground font-semibold tabular-nums">{patientCount.toLocaleString()}+</span> Australians
+                    </span>
+                  </>
+                )}
+                <span className="text-border/70 hidden sm:inline" aria-hidden="true">·</span>
+                <span className="hidden sm:inline-flex items-center gap-1 text-green-700 dark:text-green-400">
+                  <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" aria-hidden="true" />
+                  Open now
+                </span>
               </div>
             </div>
 

@@ -189,7 +189,8 @@ export async function markNeedsDoctor(
     })
 
     const alertMsg = `*Intake Needs Doctor*\n\nIntake ${intakeId.slice(0, 8)}\\.\\.\\. dropped to queue\\.\nReason: ${escapeMarkdownValue(reason)}`
-    sendTelegramAlert(alertMsg).catch(() => {})
+    // Intake dropped to manual queue is expected — not urgent. Silenced.
+    sendTelegramAlert(alertMsg, { severity: "warning" }).catch(() => {})
   }
 
   return result

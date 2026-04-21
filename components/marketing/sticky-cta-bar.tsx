@@ -8,12 +8,12 @@ import { useCallback,useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { PRICING_DISPLAY } from "@/lib/constants"
 
-const SERVICE_CONFIG: Record<string, { name: string; price: string; href: string }> = {
-  "/medical-certificate": { name: "Medical Certificate", price: `from ${PRICING_DISPLAY.MED_CERT}`, href: "/medical-certificate/new" },
-  "/prescriptions": { name: "Prescription", price: PRICING_DISPLAY.REPEAT_SCRIPT, href: "/prescriptions/new" },
+const SERVICE_CONFIG: Record<string, { name: string; price: string; href: string; wait: string }> = {
+  "/medical-certificate": { name: "Medical Certificate", price: `from ${PRICING_DISPLAY.MED_CERT}`, href: "/medical-certificate/new", wait: "Usually under 30 min" },
+  "/prescriptions": { name: "Prescription", price: PRICING_DISPLAY.REPEAT_SCRIPT, href: "/prescriptions/new", wait: "Usually within 1–2h" },
 }
 
-const DEFAULT_CONFIG = { name: "See a doctor", price: `from ${PRICING_DISPLAY.MED_CERT}`, href: "/request" }
+const DEFAULT_CONFIG = { name: "See a doctor", price: `from ${PRICING_DISPLAY.MED_CERT}`, href: "/request", wait: "Usually same day" }
 
 // Session limiting
 const SESSION_KEY = "sticky_cta_shown"
@@ -89,7 +89,7 @@ export function StickyCTABar() {
             </p>
             <p className="text-xs text-muted-foreground flex items-center gap-1">
               <Clock className="w-3 h-3" />
-              {config.price} · Usually under an hour
+              {config.price} · {config.wait}
             </p>
           </div>
           <Button

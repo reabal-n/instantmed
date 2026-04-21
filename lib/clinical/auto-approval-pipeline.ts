@@ -627,7 +627,9 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
     await markFailedRetrying(supabase, intakeId, `pipeline_error: ${approvalResult.error}`)
 
     const alertMsg = `*Auto\\-Approval Failed*\n\nIntake ${intakeId.slice(0, 8)}\\.\\.\\. fell to queue\\.\nError: ${escapeMarkdownValue(approvalResult.error || "Unknown")}`
-    sendTelegramAlert(alertMsg).catch(() => {})
+    // Auto-approval fallback is expected behaviour (design intent: fall to
+    // manual queue on any uncertainty). Not urgent; silenced from Telegram.
+    sendTelegramAlert(alertMsg, { severity: "warning" }).catch(() => {})
 
     trackOutcome("failed", "pipeline_error", { error: approvalResult.error })
     return {

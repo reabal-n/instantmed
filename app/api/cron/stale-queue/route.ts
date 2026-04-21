@@ -102,7 +102,10 @@ export async function GET(request: NextRequest) {
 
         const count = staleDoctorAlerts.length
         const msg = `⏰ *${count} request${count > 1 ? "s" : ""} waiting ${doctorAlertThresholdHours}h\\+*\n\n${lines}\n\n[Open queue →](${appUrl}/doctor/queue)`
-        await sendTelegramAlert(msg)
+        // Stuck-queue reminder is workload pressure, not an outage. Sentry
+        // captures it for trend analysis; daily digest surfaces the count.
+        // Override with TELEGRAM_ALL_LEVELS=1 if you want the live pings back.
+        await sendTelegramAlert(msg, { severity: "warning" })
 
         // Mark alerted - prevents repeat notifications per intake
         await supabase
