@@ -83,6 +83,9 @@ node_modules 2
 .worktrees/
 DAILY_AUDIT_PROMPT.md
 
+# Claude Code session state (scheduled_tasks.lock etc)
+.claude/
+
 # MCP config (contains absolute paths)
 .mcp.json
 

@@ -7,7 +7,6 @@ export { MarketingPageShell } from "./marketing-page-shell"
 
 // ── Landing pages ──────────────────────────────────────────────────
 export { ErectileDysfunctionLanding } from "./erectile-dysfunction-landing"
-export { GeneralConsultLanding } from "./general-consult-landing"
 export { HairLossLanding } from "./hair-loss-landing"
 export { MedCertIntentPage } from "./med-cert-intent-page"
 export { MedCertLanding } from "./med-cert-landing"
@@ -23,8 +22,6 @@ export { ServicePicker } from "./service-picker"
 export { DottedGrid } from "./dotted-grid"
 export { FloatingCard } from "./floating-card"
 export { HeroMultiServiceMockup } from "./hero-multi-service-mockup"
-export { HeroOutcomeMockup } from "./hero-outcome-mockup"
-export { HeroProductMockup } from "./hero-product-mockup"
 export { HeroTestimonialRotator } from "./hero-testimonial-rotator"
 export { RotatingText } from "./rotating-text"
 
@@ -40,11 +37,9 @@ export { GoogleReviewsBadge } from "./google-reviews-badge"
 export { GUARANTEE_HREF,GuaranteeBadge } from "./guarantee-badge"
 export { LegitScriptSeal } from "./legitscript-seal"
 export { MediaMentions,RegulatoryPartners } from "./media-mentions"
-export { PatientReviews } from "./patient-reviews"
 export { RecentReviewsTicker } from "./recent-reviews-ticker"
 export { SocialProofSection } from "./social-proof-section"
 export { TrustBadgeSlider } from "./trust-badge-slider"
-export { TrustStrip } from "./trust-strip"
 
 // ── Stats & signals ────────────────────────────────────────────────
 export { AnimatedStat } from "./animated-stat"
