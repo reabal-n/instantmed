@@ -128,7 +128,7 @@ function EmployerCalloutStrip({ onEmployerClick, onVerifyClick }: { onEmployerCl
     <section data-track-section="employer" className="py-8 sm:py-10">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <div className="rounded-2xl bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06] p-6 sm:p-8">
-          <p className="text-center text-sm text-success/90 font-medium flex items-center justify-center gap-2 mb-4">
+          <p className="text-center text-sm text-success font-medium flex items-center justify-center gap-2 mb-4">
             <CheckCircle2 className="h-4 w-4 shrink-0" aria-hidden="true" />
             Accepted by {SOCIAL_PROOF.employerAcceptancePercent}% of Australian employers and universities
           </p>
@@ -146,7 +146,7 @@ function EmployerCalloutStrip({ onEmployerClick, onVerifyClick }: { onEmployerCl
             <Link
               href="/for/employers"
               onClick={onEmployerClick}
-              className="inline-flex items-center gap-1.5 font-medium text-primary/80 hover:text-primary transition-colors"
+              className="inline-flex items-center gap-1.5 font-medium text-primary hover:text-primary/80 transition-colors"
             >
               <Building2 className="h-3.5 w-3.5" aria-hidden="true" />
               For Employers & HR
@@ -155,7 +155,7 @@ function EmployerCalloutStrip({ onEmployerClick, onVerifyClick }: { onEmployerCl
             <Link
               href="/verify"
               onClick={onVerifyClick}
-              className="inline-flex items-center gap-1.5 font-medium text-primary/80 hover:text-primary transition-colors"
+              className="inline-flex items-center gap-1.5 font-medium text-primary hover:text-primary/80 transition-colors"
             >
               <Search className="h-3.5 w-3.5" aria-hidden="true" />
               Verify a Certificate

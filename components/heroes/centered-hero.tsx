@@ -1,10 +1,6 @@
-"use client";
-
-import { motion } from "framer-motion"
 import { type ReactNode } from "react";
 
 import { WordReveal } from "@/components/ui/morning/word-reveal";
-import { useReducedMotion } from "@/components/ui/motion";
 import { SectionPill } from "@/components/ui/section-pill";
 import { cn } from "@/lib/utils";
 
@@ -17,6 +13,19 @@ interface CenteredHeroProps {
   className?: string;
 }
 
+/**
+ * Centered marketing hero.
+ *
+ * IMPORTANT for LCP: the subtitle and children MUST render with default opacity
+ * (no `initial={{ opacity: 0 }}`). On the conditions landing pages the subtitle
+ * is the LCP element; when it was wrapped in a framer-motion fade-in, Lighthouse
+ * saw a ~6-8s render delay on Ubuntu CI hardware because the text was invisible
+ * until JS hydrated and the delay-timer expired. Plain HTML renders immediately.
+ * See docs/audits/... and commit history for the regression context.
+ *
+ * The title keeps WordReveal because the words are present in the DOM (only
+ * transform-animated) and are SSR'd via the reduced-motion code path when set.
+ */
 export function CenteredHero({
   pill,
   title,
@@ -25,8 +34,6 @@ export function CenteredHero({
   children,
   className,
 }: CenteredHeroProps) {
-  const prefersReducedMotion = useReducedMotion();
-
   return (
     <section className={cn("relative py-20 px-4 lg:py-28", className)}>
       <div className="mx-auto max-w-3xl text-center">
@@ -42,25 +49,11 @@ export function CenteredHero({
           className="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl justify-center"
         />
         {subtitle && (
-          <motion.p
-            className="mt-6 text-lg text-muted-foreground max-w-xl mx-auto"
-            initial={prefersReducedMotion ? {} : { opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.6 }}
-          >
+          <p className="mt-6 text-lg text-muted-foreground max-w-xl mx-auto">
             {subtitle}
-          </motion.p>
+          </p>
         )}
-        {children && (
-          <motion.div
-            className="mt-8"
-            initial={prefersReducedMotion ? {} : { opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.8 }}
-          >
-            {children}
-          </motion.div>
-        )}
+        {children && <div className="mt-8">{children}</div>}
       </div>
     </section>
   );

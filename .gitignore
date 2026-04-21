@@ -91,3 +91,4 @@ DAILY_AUDIT_PROMPT.md
 
 # Tool server dependencies
 tools/*/node_modules
+.lighthouseci/

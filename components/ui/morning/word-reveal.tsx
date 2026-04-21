@@ -74,8 +74,13 @@ export function WordReveal({
           <motion.span
             key={i}
             className={cn("inline-block mr-[0.25em]", isHighlighted && highlightClassName)}
-            initial={alreadyPlayed ? { opacity: 1, y: 0 } : { opacity: 0, y: 12 }}
-            animate={shouldAnimate ? { opacity: 1, y: 0 } : undefined}
+            // NB: do NOT start at opacity:0 — when this component renders the h1
+            // on marketing heroes, the words are the LCP candidate. Starting
+            // invisible adds the full animation delay to LCP on slow hardware.
+            // Y-translate alone is visually equivalent and keeps text paintable
+            // at first frame.
+            initial={alreadyPlayed ? { y: 0 } : { y: 12 }}
+            animate={shouldAnimate ? { y: 0 } : undefined}
             transition={{
               duration: wordDuration,
               delay: i * staggerDelay,

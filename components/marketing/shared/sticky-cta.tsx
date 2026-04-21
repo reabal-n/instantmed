@@ -56,7 +56,12 @@ export function StickyCTA({
 
   return (
     <>
-      {/* Sticky mobile CTA - bottom drawer, appears after hero scrolls out */}
+      {/* Sticky mobile CTA - bottom drawer, appears after hero scrolls out.
+          We use the `inert` attribute (not `aria-hidden`) when hidden because
+          the region contains a focusable <Link>. `aria-hidden="true"` on a
+          subtree with focusable descendants is an axe failure
+          (aria-hidden-focus). `inert` removes the subtree from BOTH the
+          accessibility tree AND the focus order, which is what we want here. */}
       <motion.div
         role="region"
         aria-label="Quick purchase"
@@ -67,7 +72,9 @@ export function StickyCTA({
           : { y: show ? 0 : 100 }
         }
         transition={{ duration: 0.3, ease: "easeOut" }}
-        aria-hidden={!show}
+        // @ts-expect-error -- React 18 typings predate `inert` HTML attribute;
+        // works in all evergreen browsers (Chrome 102+, Firefox 112+, Safari 15.5+).
+        inert={!show ? "" : undefined}
       >
         <div className="bg-white/90 dark:bg-card/90 backdrop-blur-lg border-t border-border/50 px-4 pt-2.5 pb-3 safe-area-pb">
           <p className="text-xs text-muted-foreground text-center mb-2">
@@ -92,7 +99,8 @@ export function StickyCTA({
         </div>
       </motion.div>
 
-      {/* Sticky desktop CTA - slides in below navbar, appears after hero scrolls out */}
+      {/* Sticky desktop CTA - slides in below navbar. Same `inert` pattern as
+          mobile (see comment above): aria-hidden+focusable=axe failure. */}
       <motion.div
         role="region"
         aria-label="Quick purchase"
@@ -104,7 +112,8 @@ export function StickyCTA({
           : { y: show ? 0 : -80, opacity: show ? 1 : 0 }
         }
         transition={{ duration: 0.3, ease: "easeOut" }}
-        aria-hidden={!show}
+        // @ts-expect-error -- see mobile sticky CTA above.
+        inert={!show ? "" : undefined}
       >
         <div className="bg-white/95 dark:bg-card/95 backdrop-blur-lg border-b border-border/50 shadow-sm">
           <div className="mx-auto max-w-5xl px-6 h-14 flex items-center justify-between gap-6">

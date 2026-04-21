@@ -111,12 +111,12 @@ export function LimitationsSection() {
           Not sure if we can help?{" "}
           <a
             href={`mailto:${CONTACT_EMAIL}`}
-            className="text-primary hover:underline"
+            className="text-primary underline underline-offset-4 decoration-primary/40 hover:decoration-primary"
           >
             Ask us first
           </a>{" "}
           or{" "}
-          <Link href="/faq" className="text-primary hover:underline">
+          <Link href="/faq" className="text-primary underline underline-offset-4 decoration-primary/40 hover:decoration-primary">
             check our FAQ
           </Link>
           {" "}- we&apos;ll be straight with you.
