@@ -95,7 +95,6 @@ export function UserMenu({
           href="/patient"
           icon={<LayoutDashboard className="h-4 w-4" aria-hidden="true" />}
           isActive={isActivePath("/patient") && !isActivePath("/patient/intakes") && !isActivePath("/patient/settings")}
-          gradient="radial-gradient(circle, rgba(99,102,241,0.15) 0%, rgba(99,102,241,0.06) 50%, rgba(99,102,241,0) 100%)"
         >
           Dashboard
         </AnimatedNavLink>
@@ -103,7 +102,6 @@ export function UserMenu({
           href="/patient/intakes"
           icon={<ClipboardList className="h-4 w-4" aria-hidden="true" />}
           isActive={isActivePath("/patient/intakes")}
-          gradient="radial-gradient(circle, rgba(34,197,94,0.15) 0%, rgba(34,197,94,0.06) 50%, rgba(34,197,94,0) 100%)"
         >
           My Requests
         </AnimatedNavLink>
@@ -161,7 +159,6 @@ export function UserMenu({
           href="/doctor/dashboard"
           icon={<LayoutDashboard className="h-4 w-4" aria-hidden="true" />}
           isActive={pathname === "/doctor/dashboard"}
-          gradient="radial-gradient(circle, rgba(59,130,246,0.15) 0%, rgba(59,130,246,0.06) 50%, rgba(59,130,246,0) 100%)"
         >
           Queue
         </AnimatedNavLink>
@@ -169,7 +166,6 @@ export function UserMenu({
           href="/doctor/patients"
           icon={<User className="h-4 w-4" aria-hidden="true" />}
           isActive={isActivePath("/doctor/patients")}
-          gradient="radial-gradient(circle, rgba(168,85,247,0.15) 0%, rgba(168,85,247,0.06) 50%, rgba(168,85,247,0) 100%)"
         >
           Patients
         </AnimatedNavLink>
@@ -177,7 +173,6 @@ export function UserMenu({
           href="/doctor/intakes"
           icon={<FileText className="h-4 w-4" aria-hidden="true" />}
           isActive={isActivePath("/doctor/intakes")}
-          gradient="radial-gradient(circle, rgba(34,197,94,0.15) 0%, rgba(34,197,94,0.06) 50%, rgba(34,197,94,0) 100%)"
         >
           Intakes
         </AnimatedNavLink>

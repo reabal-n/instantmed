@@ -86,14 +86,12 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                   <AnimatedNavLink
                     href="/pricing"
                     isActive={isActivePath("/pricing")}
-                    gradient="radial-gradient(circle, rgba(59,130,246,0.15) 0%, rgba(59,130,246,0.06) 50%, rgba(59,130,246,0) 100%)"
                   >
                     Pricing
                   </AnimatedNavLink>
                   <AnimatedNavLink
                     href="/blog"
                     isActive={isActivePath("/blog")}
-                    gradient="radial-gradient(circle, rgba(16,185,129,0.15) 0%, rgba(16,185,129,0.06) 50%, rgba(16,185,129,0) 100%)"
                   >
                     Blog
                   </AnimatedNavLink>

@@ -7,14 +7,12 @@ import { cn } from "@/lib/utils"
 export interface AnimatedNavLinkProps {
   href: string
   children: React.ReactNode
-  /** @deprecated gradient glow removed for bundle performance */
-  gradient?: string
   icon?: React.ReactNode
   isActive?: boolean
   onClick?: (e: React.MouseEvent<HTMLAnchorElement>) => void
 }
 
-export function AnimatedNavLink({ href, children, gradient: _gradient, icon, isActive, onClick }: AnimatedNavLinkProps) {
+export function AnimatedNavLink({ href, children, icon, isActive, onClick }: AnimatedNavLinkProps) {
   return (
     <div className="relative">
       <Link

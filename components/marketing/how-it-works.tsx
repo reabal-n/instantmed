@@ -103,7 +103,6 @@ function StepThreeMockup() {
   )
 }
 
-const directions: Array<"left" | "up" | "right"> = ["left", "up", "right"]
 
 export function HowItWorks() {
   const stepMockups = [StepOneMockup, StepTwoMockup, StepThreeMockup]
@@ -159,10 +158,7 @@ export function HowItWorks() {
 
                 {/* Floating card with mockup */}
                 <div className="order-3 lg:order-2">
-                  <FloatingCard
-                    delay={index * 0.15}
-                    direction={directions[index]}
-                  >
+                  <FloatingCard delay={index * 0.15}>
                     <Mockup />
                   </FloatingCard>
                 </div>

@@ -5,8 +5,6 @@ interface FloatingCardProps {
   children: React.ReactNode
   className?: string
   delay?: number
-  /** @deprecated direction is no longer used — all cards reveal upward */
-  direction?: "left" | "right" | "up"
 }
 
 export function FloatingCard({ children, className, delay = 0 }: FloatingCardProps) {

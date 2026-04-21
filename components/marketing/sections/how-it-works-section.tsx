@@ -54,7 +54,6 @@ export function HowItWorksSection({
   ctaHref?: string
 }) {
   const stepMockups = [StepOneMockup, StepTwoMockup, StepThreeMockup]
-  const directions: Array<"left" | "up" | "right"> = ["left", "up", "right"]
 
   return (
     <section
@@ -98,7 +97,7 @@ export function HowItWorksSection({
                   </span>
                 </div>
 
-                <FloatingCard delay={index * 0.15} direction={directions[index]}>
+                <FloatingCard delay={index * 0.15}>
                   <Mockup />
                 </FloatingCard>
 
