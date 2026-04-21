@@ -72,9 +72,8 @@ async function loadAndInitSentry() {
     // Enable logs to be sent to Sentry
     enableLogs: true,
 
-    // Session Replay rates — integration loaded lazily below
-    replaysSessionSampleRate: 0.01,
-    replaysOnErrorSampleRate: 0.5,
+    // No session replay — PostHog already records sessions with PHI masking.
+    // Two session recorders is waste; we keep Sentry for errors + traces only.
 
     // Filter out common non-actionable errors
     ignoreErrors: [
@@ -115,20 +114,6 @@ async function loadAndInitSentry() {
     },
   });
 
-  // Load the Sentry Replay integration lazily after idle — keeps its ~50KB
-  // bundle completely off the initial load path.
-  if (sentryEnabled && sentryDsn) {
-    const addReplay = () => {
-      import("@sentry/nextjs").then(({ replayIntegration }) => {
-        Sentry.addIntegration(replayIntegration());
-      }).catch(() => {/* ignore */});
-    };
-    if ("requestIdleCallback" in window) {
-      requestIdleCallback(addReplay, { timeout: 8000 });
-    } else {
-      setTimeout(addReplay, 5000);
-    }
-  }
 }
 
 // Gate telemetry (Sentry + PostHog) behind first user interaction OR a 4s

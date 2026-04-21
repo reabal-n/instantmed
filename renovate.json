@@ -1,0 +1,80 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":semanticCommits",
+    ":prHourlyLimit2",
+    ":prConcurrentLimit5",
+    ":enableVulnerabilityAlertsWithLabel(security)"
+  ],
+  "schedule": ["before 6am on monday"],
+  "timezone": "Australia/Sydney",
+  "labels": ["dependencies"],
+  "rangeStrategy": "bump",
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": ["before 6am on monday"]
+  },
+  "vulnerabilityAlerts": {
+    "enabled": true,
+    "labels": ["security", "priority:high"],
+    "schedule": ["at any time"]
+  },
+  "packageRules": [
+    {
+      "description": "Framework pins — CLAUDE.md stack policy forbids unsupervised majors. Block ALL major updates; require explicit user approval.",
+      "matchPackageNames": [
+        "next",
+        "react",
+        "react-dom",
+        "@types/react",
+        "@types/react-dom",
+        "framer-motion",
+        "tailwindcss",
+        "@tailwindcss/postcss"
+      ],
+      "matchUpdateTypes": ["major"],
+      "enabled": false
+    },
+    {
+      "description": "Framework minors + patches — allow, but review before merge.",
+      "matchPackageNames": [
+        "next",
+        "react",
+        "react-dom",
+        "@types/react",
+        "@types/react-dom",
+        "framer-motion",
+        "tailwindcss",
+        "@tailwindcss/postcss"
+      ],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": false,
+      "labels": ["dependencies", "framework"]
+    },
+    {
+      "description": "Dev dependencies minor + patch — auto-merge after CI passes.",
+      "matchDepTypes": ["devDependencies"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true,
+      "automergeType": "branch",
+      "platformAutomerge": true
+    },
+    {
+      "description": "Group minor + patch runtime deps weekly.",
+      "matchDepTypes": ["dependencies"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "runtime deps (minor + patch)",
+      "automerge": false
+    },
+    {
+      "description": "Group type-only updates.",
+      "matchPackageNames": ["/^@types//"],
+      "groupName": "@types"
+    }
+  ],
+  "prBodyDefinitions": {
+    "Why": "Why update? Security fix / new feature / stale dep?"
+  },
+  "prBodyColumns": ["Package", "Change", "Age", "Adoption", "Passing", "Confidence", "Why"]
+}

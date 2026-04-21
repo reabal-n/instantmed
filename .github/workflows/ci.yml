@@ -72,12 +72,15 @@ jobs:
           STRIPE_PRICE_REPEAT_RX_MONTHLY: price_placeholder_repeat_rx_monthly
         run: |
           START=$(date +%s)
-          pnpm build
+          pnpm build 2>&1 | tee /tmp/next-build-output.txt
           ELAPSED=$(( $(date +%s) - START ))
           echo "Build completed in ${ELAPSED}s"
           if [ "$ELAPSED" -gt 180 ]; then
             echo "::warning::Build exceeded 180s budget (${ELAPSED}s) -- check for bundle bloat"
           fi
+
+      - name: Bundle size gate (shared first-load JS)
+        run: bash scripts/check-bundle-size.sh
 
   lighthouse:
     needs: build
@@ -138,6 +141,17 @@ jobs:
           # performance + best-practices stay at "warn" — third-party SDKs
           # (PostHog, Sentry) hurt those scores but aren't blockers
           # for a pre-launch telehealth marketing site.
+          # Specific metric budgets in addition to the overall perf category.
+          # Metric-level assertions are deterministic — the aggregate score
+          # varies ±5 points on cold Ubuntu runners, but the underlying
+          # metrics (FCP/LCP/TBT/CLS) are stable.
+          #
+          # Budgets set after the 2026-04-20 perf sprint:
+          #   FCP  <= 3.0s   (CI typically ~1.5s)
+          #   LCP  <= 5.5s   (CI typically ~3-5s)
+          #   TBT  <= 400ms  (CI typically <100ms post telemetry gating)
+          #   CLS  <= 0.1    (UX requirement, not just lighthouse)
+          #   overall perf score: warn-only (noisy)
           lhci autorun \
             --collect.startServerCommand="pnpm start" \
             --collect.url="http://localhost:3000/" \
@@ -149,6 +163,10 @@ jobs:
             --assert.assertions.categories:accessibility="error" \
             --assert.assertions.categories:best-practices="warn" \
             --assert.assertions.categories:seo="error" \
+            --assert.assertions.first-contentful-paint='["error", {"maxNumericValue": 3000}]' \
+            --assert.assertions.largest-contentful-paint='["error", {"maxNumericValue": 5500}]' \
+            --assert.assertions.total-blocking-time='["error", {"maxNumericValue": 400}]' \
+            --assert.assertions.cumulative-layout-shift='["error", {"maxNumericValue": 0.1}]' \
             --upload.target="temporary-public-storage"
 
       - name: Upload Lighthouse results

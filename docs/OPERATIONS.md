@@ -518,6 +518,64 @@ WHERE i.status = 'approved'
 
 ---
 
+## Service Level Objectives (SLOs)
+
+> **What this section is:** the formal targets we commit to. Below these, we're "broken" and must respond. Above these, we're fine to ship. Every alert in the Monitoring Rules section exists to protect one of these SLOs.
+>
+> **Review cadence:** monthly. If an SLO is consistently green, tighten it. If consistently red, either invest in fixing the underlying issue or loosen it with a written justification.
+
+### Web Performance SLOs (measured by real-user CrUX + Lighthouse CI)
+
+| Metric | Target (p75) | Current | Source |
+|---|---|---|---|
+| First Contentful Paint (FCP) | ≤ 2.0s | 1.4s local / 3.4s prod | `WebVitalsReporter`, PSI |
+| Largest Contentful Paint (LCP) | ≤ 2.5s | 5.2s prod conversion pages | `WebVitalsReporter`, PSI |
+| Cumulative Layout Shift (CLS) | ≤ 0.1 | 0.003 | `WebVitalsReporter` |
+| Total Blocking Time (TBT) | ≤ 200ms | 80-330ms | Lighthouse CI |
+| Interaction to Next Paint (INP) | ≤ 200ms | TBD (needs dashboard) | `WebVitalsReporter` |
+
+**CI gate:** LHCI asserts FCP ≤ 3s, LCP ≤ 5.5s, TBT ≤ 400ms, CLS ≤ 0.1. More generous than the SLO because CI runners are noisier than real-user conditions. Breaching blocks merge.
+
+**Bundle-size gate:** shared first-load JS ≤ 160 KB (current: 129 KB). Enforced by `scripts/check-bundle-size.sh` after every build.
+
+### Reliability SLOs
+
+| SLO | Target | Window | Error Budget |
+|---|---|---|---|
+| Crash-free user sessions | ≥ 99.5% | 30-day rolling | 0.5% = ~3.6 hours/mo of sessions may crash |
+| Server 5xx rate | < 0.5% | 7-day rolling | Violation → page |
+| Payment-intent success (after card accepted) | ≥ 99.9% | 30-day rolling | Any webhook-failure stack → page |
+| Intake submit → certificate delivered (medcert) | ≥ 99% | 7-day rolling | Failures must be refunded within 24h |
+| Email delivery success (non-bounce) | ≥ 98% | 7-day rolling | Bounce spike → investigate provider |
+
+### Clinical-Safety SLOs (non-negotiable)
+
+| SLO | Target | Reason |
+|---|---|---|
+| Controlled-substance requests blocked at submit | 100% | Clinical safety — Schedule 8 cannot be prescribed via this channel |
+| PHI leaks to Sentry/PostHog (detected in breadcrumbs/replays) | 0 | Privacy Act 1988 APP 11 obligation |
+| Doctor action audit-log completeness | 100% | AHPRA audit trail requirement |
+
+Violations of any clinical-safety SLO are P0 incidents regardless of frequency.
+
+### Response Expectations
+
+| Severity | Response time | Escalation |
+|---|---|---|
+| P0 (PHI leak, payment broken, clinical-safety breach) | 15 min | Phone + Telegram + Sentry |
+| P1 (SLO breach sustained 30 min) | 1 hour | Telegram + Sentry email |
+| P2 (SLO warning / non-breaching anomaly) | Next business day | Sentry email |
+| P3 (informational, trend) | Weekly review | Dashboard only |
+
+### How SLOs are measured
+
+- **RUM**: `WebVitalsReporter` in `app/layout.tsx` fires `web_vital` events to PostHog. Build a PostHog Insight grouping by `$pathname` + `device_type` for p50/p75/p95.
+- **CI-Lab**: `@lhci/cli` on every push to `main` + every PR. Results retained 14 days as GH artifact.
+- **Synthetic**: TBD (Checkly / BetterStack / Vercel built-in checks). Until wired, rely on RUM lag — slower feedback.
+- **Error tracking**: Sentry captures + custom tags (see `lib/observability/sentry.ts`).
+
+---
+
 ## Monitoring Rules
 
 ### Golden Signals & Thresholds
