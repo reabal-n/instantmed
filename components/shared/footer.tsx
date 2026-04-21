@@ -109,6 +109,7 @@ export function Footer({ variant = "marketing" }: FooterProps) {
             <Link href="/privacy" className="hover:text-foreground transition-colors">Privacy</Link>
             <Link href="/terms" className="hover:text-foreground transition-colors">Terms</Link>
             <Link href="/refund-policy" className="hover:text-foreground transition-colors">Refund</Link>
+            <Link href="/complaints" className="hover:text-foreground transition-colors">Complaints</Link>
             <Link href="/trust" className="hover:text-foreground transition-colors">Trust & Safety</Link>
           </div>
         </div>

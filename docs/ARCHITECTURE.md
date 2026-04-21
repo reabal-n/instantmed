@@ -827,8 +827,10 @@ Models in `lib/ai/provider.ts`. Routed through Vercel AI Gateway in production (
 | `/blog` | Doctor-reviewed health articles (12h ISR revalidation) |
 | `/faq` | 34 FAQs across 7 categories |
 | `/contact` | Contact form → support@instantmed.com.au |
-| `/terms` | Terms of Service (Feb 2026) |
+| `/terms` | Terms of Service (Feb 2026). §5 "Clinical Governance Model" discloses the solo AHPRA-registered Medical Director and links to `/clinical-governance`. §13 links to `/complaints`. |
 | `/privacy` | Privacy Policy (Feb 2026) |
+| `/complaints` | 8-section complaints policy: 24h ack, 14-day clinical SLA, AHPRA + 8 state HCCC bodies + OAIC privacy escalation. Linked from footer + Terms §13. |
+| `/clinical-governance` | Solo-director governance framework (protocol design, audit cadence, scope boundaries). Marketing surface uses "AHPRA-registered Medical Director" language — never FRACGP/cohort/peer-review claims. |
 | `/conditions/[slug]` | Health condition pages |
 | `/symptoms/[slug]` | Symptom pages |
 | `/guides/[slug]` | How-to health guides |

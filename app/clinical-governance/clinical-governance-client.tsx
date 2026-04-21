@@ -47,17 +47,17 @@ const reviewProcess: TimelineStep[] = [
   {
     title: "Clinical Leadership",
     description:
-      "Medical Director holds FRACGP fellowship and reviews all clinical protocols. Senior GP oversight on complex cases with direct escalation pathways.",
+      "AHPRA-registered Medical Director designs and maintains every clinical protocol. Complex or out-of-scope cases are declined with a documented pathway back to in-person care.",
   },
   {
     title: "Quality Assurance",
     description:
-      "Regular peer review of clinical decisions, random audits of certificates and prescriptions, incident reporting framework, and patient feedback integration.",
+      "Structured self-audit against written protocols, random sampling of approved and declined cases, incident reporting framework, and patient feedback integration.",
   },
   {
     title: "Continuous Improvement",
     description:
-      "Quarterly protocol reviews by Medical Director, post-incident reviews and process updates, integration of new clinical guidelines, and regular training for consulting doctors.",
+      "Quarterly protocol reviews, post-incident reviews and process updates, integration of new RACGP/TGA guidelines, and ongoing CPD in line with AHPRA requirements.",
   },
 ]
 
@@ -74,7 +74,7 @@ const safeguards: FeatureItem[] = [
     icon: <TrustIcon icon={<UserCheck className="w-6 h-6 text-primary" />} />,
     title: "Clinical Leadership",
     description:
-      "Medical Director reviews all clinical protocols. Senior GP oversight on complex cases with direct escalation pathway.",
+      "AHPRA-registered Medical Director maintains every clinical protocol with a documented review cycle and escalation pathway.",
   },
   {
     icon: <TrustIcon icon={<Scale className="w-6 h-6 text-primary" />} />,
@@ -86,7 +86,7 @@ const safeguards: FeatureItem[] = [
     icon: <TrustIcon icon={<ClipboardCheck className="w-6 h-6 text-primary" />} />,
     title: "Quality Assurance",
     description:
-      "Regular peer review, random audits, incident reporting framework, and patient feedback integration into protocols.",
+      "Structured self-audit, random sampling of approved and declined cases, incident reporting framework, and patient feedback integration.",
   },
   {
     icon: <TrustIcon icon={<AlertTriangle className="w-6 h-6 text-primary" />} />,
@@ -98,7 +98,7 @@ const safeguards: FeatureItem[] = [
     icon: <TrustIcon icon={<RefreshCw className="w-6 h-6 text-primary" />} />,
     title: "Continuous Improvement",
     description:
-      "Quarterly protocol reviews, post-incident reviews, integration of new clinical guidelines, and regular team training.",
+      "Quarterly protocol reviews, post-incident reviews, integration of new RACGP/TGA guidelines, and ongoing CPD.",
   },
   {
     icon: <TrustIcon icon={<BookOpen className="w-6 h-6 text-primary" />} />,
@@ -127,7 +127,7 @@ const guideSections: GuideSectionData[] = [
     title: "How doctor decisions are reviewed",
     paragraphs: [
       "Every clinical decision at InstantMed is traceable. When a doctor approves, declines, or escalates a patient request, that decision is recorded with the clinical reasoning, the information reviewed, and the outcome. This audit trail is not optional - it is built into the platform architecture and cannot be bypassed.",
-      "Our Medical Director conducts regular peer reviews of clinical decisions across all service types. This includes random sampling of approved certificates and prescriptions, targeted review of declined or escalated cases, and thematic analysis of decision patterns across the doctor cohort. Peer review is not about second-guessing individual doctors - it is about ensuring consistency, identifying training opportunities, and catching systemic issues before they affect patients.",
+      "Our Medical Director conducts structured audits of clinical decisions across all service types. This includes random sampling of approved certificates and prescriptions, targeted review of declined or escalated cases, and thematic analysis of decision patterns over time. The goal is ensuring consistency, identifying protocol gaps, and catching systemic issues before they affect patients.",
       "We maintain a structured incident reporting framework. Any adverse outcome, clinical near-miss, patient complaint, or process failure is logged, investigated, and reviewed. Post-incident reviews result in documented process changes where warranted. This is standard practice in hospital settings and accredited general practices - we apply the same rigour to telehealth.",
       "Patient feedback is integrated into our quality cycle. Every interaction generates an opportunity for the patient to report concerns, and those reports feed directly into clinical review processes. A complaint about a declined request is treated differently from a complaint about communication - both are investigated, but through different pathways with different clinical oversight.",
     ],
@@ -172,15 +172,15 @@ const guideSections: GuideSectionData[] = [
 const clinicalGovernanceFaqs = [
   {
     question: "Who reviews clinical protocols at InstantMed?",
-    answer: "Our Medical Director - a practising GP with FRACGP fellowship - designs and reviews all clinical protocols. Protocols are updated quarterly, or sooner when new clinical guidelines are published by RACGP, TGA, or other relevant bodies. Protocol changes are documented, communicated to all consulting doctors, and audited for compliance.",
+    answer: "Our Medical Director - an AHPRA-registered practising GP - designs and reviews all clinical protocols. Protocols are updated quarterly, or sooner when new clinical guidelines are published by RACGP, TGA, or other relevant bodies. Protocol changes are version-controlled, documented with rationale, and audited for compliance.",
   },
   {
     question: "What qualifications do your doctors have?",
-    answer: "Every doctor on the InstantMed platform holds current, unrestricted registration with AHPRA (the Australian Health Practitioner Regulation Agency). Their registration status can be independently verified on the AHPRA public register. All doctors practise within their scope of training and are subject to ongoing peer review by our Medical Director.",
+    answer: "Every doctor on the InstantMed platform holds current, unrestricted registration with AHPRA (the Australian Health Practitioner Regulation Agency). Their registration status can be independently verified on the AHPRA public register. All clinicians practise within their scope of training and against written protocols overseen by our Medical Director.",
   },
   {
     question: "How are clinical decisions audited?",
-    answer: "Clinical decisions are audited through multiple mechanisms: random sampling of approved and declined requests, targeted review of escalated cases, thematic analysis of decision patterns across the doctor cohort, and review of all patient complaints with a clinical component. Audit findings are documented and feed into quarterly protocol reviews.",
+    answer: "Clinical decisions are audited through multiple mechanisms: random sampling of approved and declined requests, targeted review of escalated cases, thematic analysis of decision patterns over time, and review of all patient complaints with a clinical component. Audit findings are documented and feed into quarterly protocol reviews.",
   },
   {
     question: "What happens if a doctor makes a mistake?",
@@ -204,15 +204,15 @@ const clinicalGovernanceFaqs = [
   },
   {
     question: "How often are your protocols updated?",
-    answer: "Clinical protocols are formally reviewed quarterly by our Medical Director. However, updates occur more frequently when triggered by new clinical guidelines from RACGP or TGA, post-incident reviews, emerging evidence relevant to our scope of practice, or regulatory changes. All protocol changes are version-controlled, documented with rationale, and communicated to consulting doctors before implementation.",
+    answer: "Clinical protocols are formally reviewed quarterly by our Medical Director. However, updates occur more frequently when triggered by new clinical guidelines from RACGP or TGA, post-incident reviews, emerging evidence relevant to our scope of practice, or regulatory changes. All protocol changes are version-controlled and documented with rationale before implementation.",
   },
   {
     question: "Is there a Medical Director overseeing care?",
-    answer: "Yes. Our Medical Director is a practising GP with FRACGP fellowship who provides clinical oversight across all services. This includes designing and reviewing protocols, conducting peer review of clinical decisions, managing incident investigations, and ensuring alignment with RACGP, AHPRA, and TGA requirements. Medical Director oversight is not a marketing claim - it is a structural requirement of our clinical governance framework.",
+    answer: "Yes. Our Medical Director is an AHPRA-registered practising GP who provides clinical oversight across all services. This includes designing and reviewing protocols, auditing clinical decisions, managing incident investigations, and ensuring alignment with RACGP, AHPRA, and TGA requirements. Medical Director oversight is not a marketing claim - it is a structural requirement of our clinical governance framework.",
   },
   {
     question: "How do you handle conflicts of interest?",
-    answer: "Doctors on our platform are not incentivised to approve requests. There is no financial or performance benefit to approving rather than declining a request - the clinical decision stands on its own merits. Approval and decline rates are monitored as quality indicators, and any pattern suggesting inappropriate approval is investigated through peer review. This separation between commercial outcomes and clinical decisions is fundamental to safe telehealth practice.",
+    answer: "Clinicians on our platform are not incentivised to approve requests. There is no financial or performance benefit to approving rather than declining a request - the clinical decision stands on its own merits. When a request is declined for clinical reasons, the patient is refunded in full. Approval and decline rates are monitored as quality indicators, and any pattern suggesting inappropriate approval is investigated. This separation between commercial outcomes and clinical decisions is fundamental to safe telehealth practice.",
   },
   {
     question: "What data do you collect and how is it protected?",

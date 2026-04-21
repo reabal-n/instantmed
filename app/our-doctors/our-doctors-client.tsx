@@ -56,7 +56,7 @@ const credentials: FeatureItem[] = [
     icon: <TrustIcon icon={<Users className="w-6 h-6 text-primary" />} />,
     title: "Medical Director Oversight",
     description:
-      "Clinical protocols are developed and reviewed by a Medical Director with RACGP Fellowship.",
+      "Clinical protocols are developed and maintained by an AHPRA-registered Medical Director.",
   },
 ]
 
@@ -138,7 +138,7 @@ const doctorFaqs: FAQGroup[] = [
       {
         question: "Are your doctors supervised?",
         answer:
-          "A Medical Director with RACGP Fellowship provides clinical oversight of all protocols and guidelines. Clinical decisions are independently audited through a peer review process, and clinical protocols are reviewed quarterly. Doctors make independent clinical decisions, but those decisions are subject to audit and review.",
+          "An AHPRA-registered Medical Director provides clinical oversight of all protocols and guidelines. Clinical decisions are audited against written protocols, and those protocols are reviewed quarterly. Doctors make independent clinical decisions, but those decisions are subject to audit and review.",
       },
       {
         question: "Can your doctors prescribe any medication?",

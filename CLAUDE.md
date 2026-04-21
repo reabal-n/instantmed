@@ -13,8 +13,8 @@
 | ABN | 64 694 559 334 |
 | Address | Level 1/457-459 Elizabeth Street, Surry Hills NSW 2010 |
 | Support | support@instantmed.com.au · 0450 722 549 |
-| Complaints | complaints@instantmed.com.au (14-day SLA, AHPRA escalation) |
-| Doctor model | Supports multiple doctors. Do not expose individual doctor names on marketing pages. |
+| Complaints | complaints@instantmed.com.au · 24h ack · 14-day clinical SLA · canonical page at `/complaints` · linked from footer + Terms §13. Escalation: AHPRA + 8 state HCCC bodies + OAIC (privacy). |
+| Doctor model | Supports multiple doctors. Currently operates with **one** AHPRA-registered GP who serves as both treating practitioner and Medical Director (disclosed in Terms §5, `/clinical-governance`, `/complaints` §4). Never advertise FRACGP, peer review across a cohort, or team training — marketing surfaces use "AHPRA-registered Medical Director" only. Do not expose individual doctor names on marketing pages. |
 | Hours | Med certs: 24/7. Rx/Consults: 8am–10pm AEST, 7 days. Target 1-2h review, 24h max. No customer-facing SLA guarantee. |
 | Eligibility | Australia only · 18+ (parental consent for minors) · Medicare optional for med certs, required for Rx/consults |
 

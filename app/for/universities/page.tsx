@@ -333,8 +333,8 @@ export default function UniversitiesPage() {
                   </div>
                   <h3 className="font-semibold text-foreground mb-2">Clinical Standards</h3>
                   <p className="text-sm text-muted-foreground">
-                    Our protocols align with RACGP standards and are overseen by
-                    a Medical Director with FRACGP qualification.
+                    Our protocols align with RACGP Standards and AHPRA Telehealth Guidelines,
+                    and are maintained by our Medical Director.
                   </p>
                   <Link
                     href="/clinical-governance"

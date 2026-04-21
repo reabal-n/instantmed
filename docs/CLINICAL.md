@@ -395,3 +395,20 @@ When litigation or investigation is anticipated: legal places hold on specific r
 | **Privacy Act 1988 (Cth)** | Australian Privacy Principles | Security, use/disclosure, access, correction |
 | **My Health Records Act 2012** | Data handling | Health record obligations |
 | **Health Records Act 2001 (Vic)** | State-level | Additional Victorian obligations where applicable |
+
+---
+
+## Complaint Handling
+
+Canonical complaints policy lives at [`/complaints`](../app/complaints/page.tsx). Referenced from Terms §13 and the marketing footer.
+
+| Stage | SLA | Owner |
+|-------|-----|-------|
+| Acknowledgement of complaint | Within 24 business hours | Medical Director |
+| Service complaints (billing, refunds, response time) | Substantive response within 48 hours | Operations |
+| Clinical complaints (decision, decline, Rx, cert) | Substantive response within 14 calendar days | Medical Director |
+| Privacy complaints (APP 1-13) | Reviewed against Privacy Act 1988; escalation to OAIC | `complaints@instantmed.com.au` + `privacy@instantmed.com.au` |
+
+**Escalation pathways** disclosed on `/complaints`: AHPRA notifications + 8 state/territory HCCC bodies (NSW HCCC, VIC HCC, QLD Office of the Health Ombudsman, WA HADSCO, SA HCSCC, TAS HCC, ACT HRC, NT HCSCC) + OAIC for privacy.
+
+**Governance framing** (same language in Terms §5, `/clinical-governance`, `/complaints` §4): InstantMed currently operates with a single AHPRA-registered Australian GP as both treating practitioner and Medical Director. Frame this as an honest disclosure of scale, not a limitation. **Do NOT advertise** FRACGP fellowship, peer review across a cohort, or team training on marketing surfaces — these claims were stripped in the 2026-04-21 solo-director pass.

@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import Link from "next/link"
 
 import { CenteredHero } from "@/components/heroes"
 import { MarketingFooter, MarketingPageShell } from "@/components/marketing"
@@ -47,17 +48,18 @@ export default function TermsPage() {
                       [2, "Eligibility"],
                       [3, "Nature of Services"],
                       [4, "Medical Disclaimer"],
-                      [5, "Fees, Payment, and Refunds"],
-                      [6, "Prescriptions"],
-                      [7, "Telehealth Consent"],
-                      [8, "AI-Assisted Services"],
-                      [9, "Record Retention"],
-                      [10, "Service Availability"],
-                      [11, "Limitation of Liability"],
-                      [12, "Dispute Resolution"],
-                      [13, "Governing Law"],
-                      [14, "Account Termination"],
-                      [15, "Contact"],
+                      [5, "Clinical Governance Model"],
+                      [6, "Fees, Payment, and Refunds"],
+                      [7, "Prescriptions"],
+                      [8, "Telehealth Consent"],
+                      [9, "AI-Assisted Services"],
+                      [10, "Record Retention"],
+                      [11, "Service Availability"],
+                      [12, "Limitation of Liability"],
+                      [13, "Dispute Resolution"],
+                      [14, "Governing Law"],
+                      [15, "Account Termination"],
+                      [16, "Contact"],
                     ].map(([n, title]) => (
                       <li key={n}>
                         <a
@@ -107,7 +109,31 @@ export default function TermsPage() {
                   </p>
                 </LegalSection>
 
-                <LegalSection number="5" title="Fees, Payment, and Refunds" id="fees">
+                <LegalSection number="5" title="Clinical Governance Model" id="governance">
+                  <p>
+                    InstantMed currently operates with a single AHPRA-registered Australian GP who serves as
+                    both the treating practitioner and the Medical Director. This is an honest disclosure of
+                    scale. You are not being reviewed by an anonymous team behind a logo - you are being
+                    reviewed by a named, registered, identifiable clinician whose AHPRA status you can verify
+                    independently on the public register.
+                  </p>
+                  <p>
+                    The Medical Director holds current, unrestricted AHPRA registration, maintains professional
+                    indemnity insurance, and is subject to the same regulatory oversight and professional
+                    obligations as any other registered GP in Australia. The treating practitioner&apos;s name
+                    and AHPRA registration number are disclosed on every medical certificate and prescription
+                    issued, and are available on request for any consultation via{" "}
+                    <a href={`mailto:${CONTACT_EMAIL_COMPLAINTS}`}>{CONTACT_EMAIL_COMPLAINTS}</a>.
+                  </p>
+                  <p>
+                    Our clinical governance framework, including protocol design, audit cadence, and scope
+                    boundaries, is documented at{" "}
+                    <Link href="/clinical-governance">/clinical-governance</Link>. The framework is designed
+                    to scale as additional clinicians are onboarded.
+                  </p>
+                </LegalSection>
+
+                <LegalSection number="6" title="Fees, Payment, and Refunds" id="fees">
                   <p>
                     Service fees are displayed before you submit a request. Payment is required at the time
                     of submission.
@@ -137,7 +163,7 @@ export default function TermsPage() {
                   </p>
                 </LegalSection>
 
-                <LegalSection number="6" title="Prescriptions">
+                <LegalSection number="7" title="Prescriptions">
                   <p>
                     Prescriptions are issued at the sole discretion of the treating doctor. We do not
                     prescribe certain medications including Schedule 8 drugs, benzodiazepines, or other
@@ -146,7 +172,7 @@ export default function TermsPage() {
                   </p>
                 </LegalSection>
 
-                <LegalSection number="7" title="Telehealth Consent">
+                <LegalSection number="8" title="Telehealth Consent">
                   <p>
                     By using InstantMed, you consent to receiving healthcare services via telehealth (online
                     consultation). You understand and agree that:
@@ -167,7 +193,7 @@ export default function TermsPage() {
                   </ul>
                 </LegalSection>
 
-                <LegalSection number="8" title="AI-Assisted Services" id="ai">
+                <LegalSection number="9" title="AI-Assisted Services" id="ai">
                   <p>InstantMed uses artificial intelligence to assist with certain administrative tasks, including:</p>
                   <ul>
                     <li>Summarizing your intake information for efficient doctor review</li>
@@ -181,7 +207,7 @@ export default function TermsPage() {
                   </p>
                 </LegalSection>
 
-                <LegalSection number="9" title="Record Retention">
+                <LegalSection number="10" title="Record Retention">
                   <p>
                     In accordance with Australian healthcare record-keeping requirements, we retain your
                     health records for a minimum of 7 years from the date of your last consultation. You may
@@ -189,7 +215,7 @@ export default function TermsPage() {
                   </p>
                 </LegalSection>
 
-                <LegalSection number="10" title="Service Availability">
+                <LegalSection number="11" title="Service Availability">
                   <p>
                     Our service operates during business hours (8am–10pm AEST, 7 days a week). While we aim
                     to review most requests within 1–2 hours during these times, review times may vary
@@ -201,7 +227,7 @@ export default function TermsPage() {
                   </p>
                 </LegalSection>
 
-                <LegalSection number="11" title="Limitation of Liability">
+                <LegalSection number="12" title="Limitation of Liability">
                   <p>
                     To the maximum extent permitted by law, InstantMed shall not be liable for any indirect,
                     incidental, special, consequential, or punitive damages arising from your use of our
@@ -210,13 +236,15 @@ export default function TermsPage() {
                   </p>
                 </LegalSection>
 
-                <LegalSection number="12" title="Dispute Resolution">
+                <LegalSection number="13" title="Dispute Resolution">
                   <p>
                     If you have a complaint about our services, please contact us first at{" "}
                     <a href={`mailto:${CONTACT_EMAIL_COMPLAINTS}`} className="text-primary hover:underline">
                       {CONTACT_EMAIL_COMPLAINTS}
                     </a>
-                    . We will endeavour to resolve your complaint within 14 business days.
+                    . We will endeavour to resolve your complaint within 14 business days. Our full complaints
+                    process, including escalation pathways to AHPRA and state health complaints commissioners,
+                    is documented at <Link href="/complaints" className="text-primary hover:underline">/complaints</Link>.
                   </p>
                   <p className="mt-3">
                     If we cannot resolve your complaint to your satisfaction, you may lodge a complaint with
@@ -225,7 +253,7 @@ export default function TermsPage() {
                   </p>
                 </LegalSection>
 
-                <LegalSection number="13" title="Governing Law">
+                <LegalSection number="14" title="Governing Law">
                   <p>
                     These Terms of Service are governed by the laws of New South Wales, Australia. You agree
                     to submit to the exclusive jurisdiction of the courts of New South Wales for any disputes
@@ -233,16 +261,16 @@ export default function TermsPage() {
                   </p>
                 </LegalSection>
 
-                <LegalSection number="14" title="Account Termination">
+                <LegalSection number="15" title="Account Termination">
                   <p>
                     We reserve the right to suspend or terminate your account if you violate these terms,
                     provide false information, or misuse our services. You may request account deletion at
-                    any time by contacting us. Note that health records must be retained as per Section 9,
+                    any time by contacting us. Note that health records must be retained as per Section 10,
                     even after account deletion.
                   </p>
                 </LegalSection>
 
-                <LegalSection number="15" title="Contact">
+                <LegalSection number="16" title="Contact">
                   <p>
                     For questions about these terms, please contact us at{" "}
                     <a href={`mailto:${CONTACT_EMAIL_LEGAL}`} className="text-primary hover:underline">

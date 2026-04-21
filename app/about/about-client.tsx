@@ -208,7 +208,7 @@ export function AboutClient() {
                     "I review every request as if the patient were sitting in front of me. Just because it's online doesn't mean the standard of care is any different. If I have concerns or questions, I follow up. Patient safety always comes first.",
                   avatar:
                     "https://api.dicebear.com/7.x/notionists/svg?seed=MedDirector",
-                  location: "MBBS FRACGP, AHPRA Registered",
+                  location: "AHPRA-registered GP",
                 }}
               />
             </div>
