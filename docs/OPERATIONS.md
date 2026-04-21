@@ -16,6 +16,36 @@
 3. If Stripe is down: enable per-service kill switches (`DISABLE_CHECKOUT_MED_CERT`, `DISABLE_CHECKOUT_PRESCRIPTION`, `DISABLE_CHECKOUT_CONSULT`); monitor `email_outbox` for failed payment confirmation emails
 4. When Stripe recovers: disable kill switches, process DLQ items via `/admin/webhook-dlq`, verify all pending payments reconcile
 
+### Stripe Webhook DLQ — Incident Triage
+
+**Symptoms:** `/admin/webhook-dlq` shows unresolved entries, Sentry surfaces `stripe-webhook` errors, or a patient reports "I paid but nothing happened."
+
+**Diagnosis (5 min):**
+1. Open `/admin/webhook-dlq`. Note the `event_type` and `error_message` for each entry.
+2. Common causes:
+   - `Intake not found` -> checkout ran against a stale/deleted intake. Usually safe to resolve; patient needs a refund manually via Stripe dashboard.
+   - `Missing intake_id` -> metadata missing on session. Check `stripe_sessions` table for the session, look up customer email in Stripe, refund via dashboard.
+   - DB error during handler -> Supabase outage or RLS regression. Fix root cause first, then retry.
+3. Cross-reference: for each DLQ entry, search Stripe dashboard Events > filter by `event_id` to confirm original delivery attempt.
+
+**Recovery:**
+1. Fix the root cause (deploy, env var, etc.).
+2. In `/admin/webhook-dlq`, click **Retry** on each entry. Retry POSTs to `/api/stripe/webhook` with `X-Admin-Replay` + the stored payload.
+3. On success the entry auto-resolves. Verify the target intake transitioned correctly.
+4. If retry fails consistently after fix, mark **Resolve** with notes describing the manual action taken.
+
+**Drill (quarterly):** In a staging branch, trigger a DLQ entry by forcing a handler error. Confirm it appears in `/admin/webhook-dlq`, then retry and verify resolution. Run the existing e2e spec locally to catch regressions:
+```bash
+PLAYWRIGHT=1 STRIPE_WEBHOOK_SECRET=whsec_test_... pnpm e2e e2e/stripe-webhook.spec.ts
+```
+
+**Key files:**
+- Dispatcher: `app/api/stripe/webhook/route.ts`
+- Handlers: `app/api/stripe/webhook/handlers/*.ts` (one per event type)
+- DLQ admin: `app/api/admin/webhook-dlq/route.ts`
+- Replay auth: `INTERNAL_API_SECRET` env var (required for admin retry)
+- e2e: `e2e/stripe-webhook.spec.ts` (signature, idempotency, refund paths)
+
 ### Email Delivery Failures
 
 **Symptoms:** Emails stuck "pending" in `email_outbox`, email dispatcher cron reporting high failure counts.
