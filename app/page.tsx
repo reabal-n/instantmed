@@ -8,6 +8,7 @@ import {
   MarketingFooter,
 } from '@/components/marketing'
 import { ComplianceMarquee } from '@/components/marketing/compliance-marquee'
+import { IntakeResumeChip } from '@/components/marketing/intake-resume-chip'
 import { MarketingPageShell } from '@/components/marketing/marketing-page-shell'
 import { RegulatoryPartners } from '@/components/marketing/media-mentions'
 import { ServiceCards } from '@/components/marketing/service-cards'
@@ -116,6 +117,9 @@ export default async function HomePage() {
 
       {/* Returning patient recognition */}
       <ReturningPatientBanner className="mx-4 mt-2" />
+
+      {/* Resume unfinished intake draft */}
+      <IntakeResumeChip className="mx-4 mt-2 max-w-5xl lg:mx-auto" />
 
       <Navbar variant="marketing" />
 
