@@ -161,6 +161,16 @@ export async function GET(request: NextRequest) {
       logger.warn("stripe_dispute_list_failed", { err: String(err) })
     }
 
+    // Stripe webhook DLQ — stale items older than 24h. The dlq-monitor cron
+    // only Sentry-alerts at 5+ items (emergency only); everything smaller is
+    // surfaced here so the founder sees drift without getting paged.
+    const dlqThreshold = new Date(now.getTime() - 24 * 60 * 60 * 1000)
+    const { count: dlqStale } = await supabase
+      .from("stripe_webhook_dead_letter")
+      .select("id", { count: "exact", head: true })
+      .is("resolved_at", null)
+      .lt("created_at", dlqThreshold.toISOString())
+
     // ─── Recipients ──────────────────────────────────────────────────────────
     // Priority: DIGEST_EMAIL_RECIPIENT (founder digest only) → ADMIN_EMAILS
     // (general admin distro list) → CONTACT_EMAIL (last-resort fallback).
@@ -198,6 +208,7 @@ export async function GET(request: NextRequest) {
     if ((stuckPaid ?? 0) > 0) attentionItems.push(`${stuckPaid} intake${stuckPaid === 1 ? "" : "s"} stuck in 'paid' &gt;8h`)
     if ((highRiskWaiting ?? 0) > 0) attentionItems.push(`${highRiskWaiting} high/critical risk intake${highRiskWaiting === 1 ? "" : "s"} in queue`)
     if (openDisputes > 0) attentionItems.push(`${openDisputes} open Stripe dispute${openDisputes === 1 ? "" : "s"}`)
+    if ((dlqStale ?? 0) > 0) attentionItems.push(`${dlqStale} Stripe webhook${dlqStale === 1 ? "" : "s"} in DLQ &gt;24h`)
 
     const attentionHtml = attentionItems.length > 0
       ? `<ul style="margin:4px 0 0 0;padding-left:18px;color:#b91c1c">${attentionItems.map(i => `<li>${i}</li>`).join("")}</ul>`

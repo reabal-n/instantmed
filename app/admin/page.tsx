@@ -9,8 +9,14 @@ import type { IntakeWithPatient } from "@/types/db"
 
 export const dynamic = "force-dynamic"
 
-export default async function AdminPage() {
+export default async function AdminPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ window?: string }>
+}) {
   const { profile } = (await getAuthenticatedUserWithProfile())!
+  const params = (await searchParams) ?? {}
+  const digestWindow = params.window === "today" ? "today" : "yesterday"
 
   const results = await Promise.allSettled([
     getAllIntakesForAdmin({ page: 1, pageSize: 50 }),
@@ -34,7 +40,7 @@ export default async function AdminPage() {
           <CardContent className="p-6 h-48 animate-pulse" />
         </Card>
       }>
-        <YesterdayWidget />
+        <YesterdayWidget window={digestWindow} />
       </Suspense>
       <AdminDashboardClient
         allIntakes={intakesResult.data || []}

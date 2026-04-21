@@ -44,11 +44,27 @@ const log = createLogger("parchment-webhook")
  * 4. Auto-mark script sent with the SCID as parchment_reference
  * 5. Patient email notification is triggered by updateScriptSent → markScriptSentAction
  */
+// Parchment prescription payloads are tiny JSON (<1KB). Cap at 64KB so a
+// flood of oversized bodies with invalid signatures can't chew up memory.
+const MAX_BODY_BYTES = 64 * 1024
+
 export async function POST(request: Request) {
   const startTime = Date.now()
 
+  // Reject oversized payloads before reading the body into memory
+  const contentLength = request.headers.get("content-length")
+  if (contentLength && parseInt(contentLength, 10) > MAX_BODY_BYTES) {
+    log.warn("Webhook body exceeds max size", { contentLength })
+    return NextResponse.json({ error: "Payload too large" }, { status: 413 })
+  }
+
   // Read raw body for signature verification
   const rawBody = await request.text()
+  if (rawBody.length > MAX_BODY_BYTES) {
+    log.warn("Webhook body exceeds max size (post-read)", { bodyLength: rawBody.length })
+    return NextResponse.json({ error: "Payload too large" }, { status: 413 })
+  }
+
   const signatureHeader = request.headers.get("X-Webhook-Signature")
 
   if (!signatureHeader) {

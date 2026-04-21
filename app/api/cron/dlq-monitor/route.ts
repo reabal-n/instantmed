@@ -43,25 +43,31 @@ export async function GET(request: NextRequest) {
     const staleCount = count || 0
 
     if (staleCount > 0) {
-      // Alert via Sentry
-      Sentry.captureMessage(`Dead Letter Queue Alert: ${staleCount} unresolved items older than ${ALERT_THRESHOLD_HOURS}h`, {
-        level: "warning",
-        tags: {
-          source: "dlq-monitor",
-          alert_type: "stale_items",
-        },
-        extra: {
-          stale_count: staleCount,
-          threshold_hours: ALERT_THRESHOLD_HOURS,
-          oldest_items: staleItems?.map(item => ({
-            event_id: item.event_id,
-            event_type: item.event_type,
-            error: item.error_message,
-            created_at: item.created_at,
-            intake_id: item.intake_id,
-          })),
-        },
-      })
+      // Only Sentry-alert for genuine emergencies — 5+ stale items indicates
+      // a systemic processing failure worth interrupting for. A single stuck
+      // item is normal operational drift; it surfaces in the daily digest's
+      // "needs attention" block at 8am AEST and via /admin YesterdayWidget,
+      // so low-volume warnings don't need their own email ping.
+      if (staleCount >= 5) {
+        Sentry.captureMessage(`Dead Letter Queue Alert: ${staleCount} unresolved items older than ${ALERT_THRESHOLD_HOURS}h`, {
+          level: "error",
+          tags: {
+            source: "dlq-monitor",
+            alert_type: "stale_items",
+          },
+          extra: {
+            stale_count: staleCount,
+            threshold_hours: ALERT_THRESHOLD_HOURS,
+            oldest_items: staleItems?.map(item => ({
+              event_id: item.event_id,
+              event_type: item.event_type,
+              error: item.error_message,
+              created_at: item.created_at,
+              intake_id: item.intake_id,
+            })),
+          },
+        })
+      }
 
       logger.warn("DLQ has stale items requiring attention", {
         stale_count: staleCount,

@@ -301,8 +301,20 @@ export function verifyWebhookSignature(
     return { valid: false, error: "Invalid signature header format" }
   }
 
-  // Replay protection: 5-minute window
+  // Signature must be even-length hex (HMAC-SHA256 → 64 hex chars)
+  if (!/^[0-9a-f]+$/i.test(signature) || signature.length % 2 !== 0) {
+    return { valid: false, error: "Signature must be hex-encoded" }
+  }
+
+  // Replay protection: 5-minute window. Reject non-numeric timestamps so a
+  // malformed "t=abc" can't silently bypass the window check via NaN math.
+  if (!/^\d+$/.test(timestamp)) {
+    return { valid: false, error: "Timestamp must be a unix integer" }
+  }
   const ts = parseInt(timestamp, 10)
+  if (!Number.isFinite(ts)) {
+    return { valid: false, error: "Timestamp must be a unix integer" }
+  }
   const now = Math.floor(Date.now() / 1000)
   if (Math.abs(now - ts) > 300) {
     return { valid: false, error: "Timestamp outside 5-minute window" }

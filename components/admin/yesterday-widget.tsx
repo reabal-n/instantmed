@@ -1,11 +1,11 @@
-import "server-only"
-
 import { AlertCircle, CheckCircle2, Clock, DollarSign, Users, XCircle } from "lucide-react"
 
 import { Card, CardContent } from "@/components/ui/card"
 import { stripe } from "@/lib/stripe/client"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { cn } from "@/lib/utils"
+
+import { YesterdayWidgetWindowToggle } from "./yesterday-widget-toggle"
 
 /**
  * YesterdayWidget — mirrors the daily digest email on /admin.
@@ -15,17 +15,42 @@ import { cn } from "@/lib/utils"
  * with the 8am AEST email the founder already got that morning, so there's
  * never a discrepancy between inbox and dashboard.
  *
- * Compute cost is low (2 Supabase counts + 1 Stripe charges.list). Runs
- * on each /admin visit; no caching because stale numbers > live numbers
- * for an ops view.
+ * Two windows via `?window=today|yesterday` query (URL-driven so you can
+ * bookmark either). Default is "yesterday" to match the digest email.
+ * Compute cost is low (4 Supabase queries + 1 Stripe list). Runs on each
+ * /admin visit; no caching because stale numbers > live numbers for ops.
  */
-export async function YesterdayWidget() {
+export async function YesterdayWidget({
+  window = "yesterday",
+}: {
+  window?: "today" | "yesterday"
+}) {
   const supabase = createServiceRoleClient()
   const now = new Date()
-  const since = new Date(now.getTime() - 24 * 60 * 60 * 1000)
+
+  // "today"     = midnight-to-now in Sydney time (today's running totals)
+  // "yesterday" = last 24 hours rolling window (matches the digest email)
+  let since: Date
+  let windowLabel: string
+  if (window === "today") {
+    const sydneyNow = new Date(
+      now.toLocaleString("en-US", { timeZone: "Australia/Sydney" }),
+    )
+    sydneyNow.setHours(0, 0, 0, 0)
+    // Adjust back from Sydney local to UTC
+    const offsetMs = sydneyNow.getTime() - new Date(
+      sydneyNow.toLocaleString("en-US", { timeZone: "UTC" }),
+    ).getTime()
+    since = new Date(sydneyNow.getTime() - offsetMs)
+    windowLabel = "Today"
+  } else {
+    since = new Date(now.getTime() - 24 * 60 * 60 * 1000)
+    windowLabel = "Yesterday"
+  }
+
   const eightHoursAgo = new Date(now.getTime() - 8 * 60 * 60 * 1000)
 
-  // Run in parallel
+  // Parallelise all reads
   const [
     intakeCountsResult,
     newPatientsResult,
@@ -89,6 +114,9 @@ export async function YesterdayWidget() {
     newPatientsResult.status === "fulfilled"
       ? newPatientsResult.value.count ?? 0
       : 0
+  // Needs-attention is always a live "right now" view — not scoped to the
+  // window. A stuck intake is a stuck intake regardless of which column
+  // you're looking at.
   const stuckPaid =
     stuckPaidResult.status === "fulfilled"
       ? stuckPaidResult.value.count ?? 0
@@ -109,7 +137,7 @@ export async function YesterdayWidget() {
     value: string | number
     tone?: "default" | "success" | "warning" | "danger"
   }> = [
-    { icon: DollarSign, label: "Revenue (24h)", value: revenueDisplay, tone: "success" },
+    { icon: DollarSign, label: `${windowLabel}'s revenue`, value: revenueDisplay, tone: "success" },
     { icon: CheckCircle2, label: "Paid orders", value: paidCount },
     { icon: CheckCircle2, label: "Approved", value: approved },
     { icon: XCircle, label: "Declined", value: declined },
@@ -128,7 +156,7 @@ export async function YesterdayWidget() {
         <div className="flex items-center justify-between mb-5">
           <div>
             <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">
-              Yesterday
+              {windowLabel}
             </div>
             <h2 className="text-lg sm:text-xl font-semibold tracking-tight text-foreground">
               {revenueDisplay} &middot; {paidCount} order{paidCount === 1 ? "" : "s"}
@@ -140,9 +168,12 @@ export async function YesterdayWidget() {
               )}
             </h2>
           </div>
-          <div className="hidden sm:flex items-center gap-1.5 text-xs text-muted-foreground">
-            <Clock className="h-3.5 w-3.5" />
-            Last 24h
+          <div className="flex items-center gap-3">
+            <YesterdayWidgetWindowToggle current={window} />
+            <div className="hidden sm:flex items-center gap-1.5 text-xs text-muted-foreground">
+              <Clock className="h-3.5 w-3.5" />
+              {window === "today" ? "Since midnight" : "Last 24h"}
+            </div>
           </div>
         </div>
 
