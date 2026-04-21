@@ -1,0 +1,12 @@
+# Vulnerability Disclosure — InstantMed
+# Please report security issues responsibly. We commit to:
+#   - acknowledging your report within 2 business days
+#   - providing a status update within 7 days
+#   - not pursuing legal action against good-faith researchers
+# See https://securitytxt.org for the spec.
+
+Contact: mailto:security@instantmed.com.au
+Expires: 2027-04-21T00:00:00.000Z
+Preferred-Languages: en
+Canonical: https://instantmed.com.au/.well-known/security.txt
+Policy: https://instantmed.com.au/privacy

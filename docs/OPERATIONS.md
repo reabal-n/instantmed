@@ -762,6 +762,57 @@ pg_restore --no-owner --dbname="$NEW_DATABASE_URL" backup-YYYYMMDD.dump
 | Full data loss | 4-8h | 24h | Restore from daily backup |
 | Code regression | 5min (rollback) | 0 | Vercel instant rollback to previous deployment |
 
+### Pre-Launch Drills — do each once, confirm muscle memory
+
+> These are the "never the first time in production" drills. Schedule each **before** first paid customer.
+
+#### Drill 1 — Code rollback (5 min)
+
+1. Vercel dashboard → Project → Deployments
+2. Pick the previous successful deployment (not current)
+3. Click "Promote to production"
+4. Confirm the promotion — Vercel CDN cuts over in 30–60s
+5. Verify in an incognito window: `curl -sI https://instantmed.com.au/` → check `x-vercel-id` header changed
+6. Promote current deployment back to restore
+
+**Success criterion:** full cycle in under 3 minutes, no intake/checkout interruption.
+
+#### Drill 2 — Database backup restore (60 min)
+
+1. Supabase Dashboard → Project → Database → Backups → pick latest daily snapshot
+2. Click "Restore" → chooses new project (Supabase forces a new project for restores)
+3. In the new project SQL editor:
+   ```sql
+   -- Row counts — compare to prod
+   SELECT 'intakes', count(*) FROM intakes
+   UNION ALL SELECT 'profiles', count(*) FROM profiles
+   UNION ALL SELECT 'intake_events', count(*) FROM intake_events;
+   -- Sample intake should exist
+   SELECT id, status, service_type, created_at FROM intakes ORDER BY created_at DESC LIMIT 5;
+   ```
+4. Verify an RLS policy still works:
+   ```sql
+   -- Should return zero rows when run as the `anon` role
+   SET ROLE anon;
+   SELECT id FROM intakes LIMIT 1;  -- must return 0 rows
+   RESET ROLE;
+   ```
+5. Delete the restored project once verified — only the drill confirmation matters.
+
+**Success criterion:** row counts match prod ±1%, RLS still enforced, no storage bucket URLs broken.
+
+#### Drill 3 — Incident-response tabletop (60 min)
+
+Walk through each scenario aloud. For each: who notices, what's the first action, what gets rolled back, what gets communicated to customers.
+
+- **A.** Stripe webhook handler returns 500 for 20 minutes. Payments succeed, intakes never transition to `paid`.
+- **B.** Supabase RLS policy change breaks patient dashboard (all patients see blank intake list).
+- **C.** A single patient's medicare number appears in a Sentry breadcrumb.
+- **D.** Doctor queue shows 0 items but `intakes` has 12 `paid` rows.
+- **E.** A patient reports they never received their certificate email. Resend shows `delivered`.
+
+**Success criterion:** for each scenario, you have (1) detection path, (2) mitigation, (3) communication draft, (4) post-incident root-cause action. Write what's missing into this doc immediately after the drill.
+
 ### Disaster Recovery Checklist
 
 **If a secret is compromised:**

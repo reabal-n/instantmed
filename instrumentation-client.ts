@@ -154,6 +154,11 @@ if (process.env.NEXT_PUBLIC_POSTHOG_KEY) {
       // this just adds network chatter and an extra module.
       capture_exceptions: false,
       autocapture: true,
+      // Native Web Vitals capture — fires $web_vitals events for LCP, FCP,
+      // CLS, INP, TTFB, FID. Real-user metric (CrUX-equivalent), measured
+      // from actual browsers. Zero LCP impact because posthog-js itself
+      // loads after first interaction.
+      capture_performance: { web_vitals: true, network_timing: false },
       disable_session_recording: true,  // Deferred - starts after idle to avoid blocking LCP
       // Surveys module is ~25KB and we have no surveys live. Skip loading it.
       disable_surveys: true,
