@@ -401,26 +401,27 @@ const nextConfig = {
 };
 
 // Sentry configuration
-// NOTE: All sentry-cli operations (releases new, source map upload) are
-// disabled here. The SENTRY_AUTH_TOKEN in Vercel points to a different project
-// and sentry-cli exits with code 1 even when silenceErrors/sourcemaps.disable
-// are set. Runtime error reporting still works via NEXT_PUBLIC_SENTRY_DSN.
+// Source maps upload and release tracking activate only when
+// SENTRY_AUTH_TOKEN is present (Vercel prod/preview). Local dev builds
+// skip sentry-cli entirely so missing tokens can't break the build.
+//
+// Org slug is `reys-projects` (verified via Sentry API). An earlier
+// value of `instantmed` caused sentry-cli to exit with code 1 because
+// the org didn't exist; that historical failure is why this was
+// previously force-disabled.
+const hasSentryAuth = !!process.env.SENTRY_AUTH_TOKEN;
 const sentryConfig = {
-  org: process.env.SENTRY_ORG || "instantmed",
+  org: process.env.SENTRY_ORG || "reys-projects",
   project: process.env.SENTRY_PROJECT || "instantmed",
   authToken: process.env.SENTRY_AUTH_TOKEN,
   silent: true,
   silenceErrors: true,
   sourcemaps: {
-    // Never upload source maps — sentry-cli exits with code 1 when the
-    // project can't be resolved, even when silenceErrors is set.
-    disable: true,
+    disable: !hasSentryAuth,
   },
   release: {
-    // Never run 'sentry-cli releases new' or 'releases finalize'.
-    // These commands fail when org/project don't match the auth token.
-    create: false,
-    finalize: false,
+    create: hasSentryAuth,
+    finalize: hasSentryAuth,
   },
   widenClientFileUpload: false,
   hideSourceMaps: true,
