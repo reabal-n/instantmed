@@ -134,7 +134,7 @@ export function generateMedicalServiceSchema(service: string, name: string, desc
       "@type": "Country",
       name: "Australia",
     },
-    medicalSpecialty: "GeneralPractice",
+    medicalSpecialty: "PrimaryCare",
     availableService: {
       "@type": "MedicalProcedure",
       name,

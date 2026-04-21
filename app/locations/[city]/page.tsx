@@ -12,52 +12,6 @@ import { autoLinkParagraph } from "@/lib/seo/auto-linker"
 import { DEEP_CITY_CONTENT } from "@/lib/seo/data/deep-city-content"
 import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 
-// Geo coordinates for each city (latitude, longitude)
-const GEO_COORDS: Record<string, { lat: string; lng: string }> = {
-  sydney: { lat: "-33.8688", lng: "151.2093" },
-  melbourne: { lat: "-37.8136", lng: "144.9631" },
-  brisbane: { lat: "-27.4705", lng: "153.0260" },
-  perth: { lat: "-31.9514", lng: "115.8617" },
-  adelaide: { lat: "-34.9285", lng: "138.6007" },
-  "gold-coast": { lat: "-28.0167", lng: "153.4000" },
-  canberra: { lat: "-35.2802", lng: "149.1310" },
-  newcastle: { lat: "-32.9283", lng: "151.7817" },
-  hobart: { lat: "-42.8821", lng: "147.3272" },
-  darwin: { lat: "-12.4634", lng: "130.8456" },
-  "sunshine-coast": { lat: "-26.6500", lng: "153.0667" },
-  wollongong: { lat: "-34.4248", lng: "150.8931" },
-  geelong: { lat: "-38.1499", lng: "144.3617" },
-  townsville: { lat: "-19.2590", lng: "146.8169" },
-  cairns: { lat: "-16.9186", lng: "145.7781" },
-  toowoomba: { lat: "-27.5598", lng: "151.9507" },
-  ballarat: { lat: "-37.5622", lng: "143.8503" },
-  bendigo: { lat: "-36.7570", lng: "144.2794" },
-  launceston: { lat: "-41.4332", lng: "147.1441" },
-  mackay: { lat: "-21.1411", lng: "149.1861" },
-  rockhampton: { lat: "-23.3791", lng: "150.5100" },
-  bunbury: { lat: "-33.3271", lng: "115.6414" },
-  "wagga-wagga": { lat: "-35.1082", lng: "147.3598" },
-  "albury-wodonga": { lat: "-36.0737", lng: "146.9135" },
-  "hervey-bay": { lat: "-25.2882", lng: "152.8531" },
-  parramatta: { lat: "-33.8150", lng: "151.0010" },
-  "bondi-beach": { lat: "-33.8915", lng: "151.2767" },
-  fremantle: { lat: "-32.0569", lng: "115.7439" },
-  "central-coast": { lat: "-33.3075", lng: "151.4244" },
-  penrith: { lat: "-33.7514", lng: "150.6944" },
-  ipswich: { lat: "-27.6144", lng: "152.7578" },
-  "port-macquarie": { lat: "-31.4333", lng: "152.9000" },
-  "coffs-harbour": { lat: "-30.2963", lng: "153.1135" },
-  orange: { lat: "-33.2839", lng: "149.1003" },
-  dubbo: { lat: "-32.2430", lng: "148.6048" },
-  mildura: { lat: "-34.1856", lng: "142.1625" },
-  shepparton: { lat: "-36.3833", lng: "145.4000" },
-  gladstone: { lat: "-23.8485", lng: "151.2578" },
-  bundaberg: { lat: "-24.8661", lng: "152.3489" },
-  "mount-gambier": { lat: "-37.8292", lng: "140.7831" },
-  "port-augusta": { lat: "-32.4930", lng: "137.7728" },
-  "alice-springs": { lat: "-23.6980", lng: "133.8807" },
-}
-
 // City-specific content paragraphs for unique SEO value
 const CITY_CONTENT: Record<string, string> = {
   sydney: "Sydney residents can skip crowded CBD clinics and long waits at bulk-billing practices. Whether you're in the Eastern Suburbs, Inner West or out in Parramatta, InstantMed connects you with a doctor from anywhere with phone signal.",
@@ -511,22 +465,23 @@ export default async function CityPage({ params }: PageProps) {
     notFound()
   }
 
-  const geo = GEO_COORDS[city] || GEO_COORDS.sydney
   const deepContent = DEEP_CITY_CONTENT[city]
   const faqs = [...(CITY_FAQS[city] || DEFAULT_FAQS), ...(deepContent?.additionalFaqs ?? [])]
   const cityContent = CITY_CONTENT[city]
 
-  // Enhanced Local Business Schema for SEO
+  // We don't operate a physical clinic in each city — describe the service
+  // available in that area rather than declaring a per-city MedicalBusiness
+  // (which Google can treat as misleading-location and which creates
+  // multiple un-linked Organization nodes across the site).
   const localSchema = {
     "@context": "https://schema.org",
-    "@type": "MedicalBusiness",
-    "@id": `https://instantmed.com.au/locations/${city}#business`,
-    name: `InstantMed - Online Doctor ${cityData.name}`,
+    "@type": "Service",
+    "@id": `https://instantmed.com.au/locations/${city}#service`,
+    name: `Online Doctor in ${cityData.name}`,
     description: `Online doctor consultations, medical certificates, and prescriptions for ${cityData.name} residents. AHPRA-registered Australian doctors.`,
     url: `https://instantmed.com.au/locations/${city}`,
-    logo: "https://instantmed.com.au/branding/logo.png",
-    image: "https://instantmed.com.au/branding/logo.png",
-    telephone: "+61-450-722-549",
+    provider: { "@id": "https://instantmed.com.au/#organization" },
+    serviceType: "Telehealth",
     areaServed: {
       "@type": "City",
       name: cityData.name,
@@ -536,26 +491,6 @@ export default async function CityPage({ params }: PageProps) {
         containedInPlace: { "@type": "Country", name: "Australia" }
       },
     },
-    geo: {
-      "@type": "GeoCoordinates",
-      latitude: geo.lat,
-      longitude: geo.lng,
-    },
-    address: {
-      "@type": "PostalAddress",
-      addressCountry: "AU",
-      addressRegion: cityData.state,
-      addressLocality: cityData.name
-    },
-    priceRange: "$$",
-    openingHoursSpecification: [
-      {
-        "@type": "OpeningHoursSpecification",
-        dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
-        opens: "08:00",
-        closes: "22:00"
-      }
-    ],
     hasOfferCatalog: {
       "@type": "OfferCatalog",
       name: "Telehealth Services",
@@ -581,9 +516,7 @@ export default async function CityPage({ params }: PageProps) {
           priceCurrency: "AUD"
         }
       ]
-    },
-    medicalSpecialty: "General Practice",
-    isAcceptingNewPatients: true
+    }
   }
 
   // FAQ Schema for SEO

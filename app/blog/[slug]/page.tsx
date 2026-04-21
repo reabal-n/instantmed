@@ -93,45 +93,33 @@ export default async function BlogPostPage({ params }: PageProps) {
   ]
   const isHowToArticle = howToSlugs.includes(slug)
 
+  const heroImageUrl = article.heroImage.startsWith('http')
+    ? article.heroImage
+    : `https://instantmed.com.au${article.heroImage}`
   const articleSchema = {
     "@context": "https://schema.org",
-    "@type": "MedicalWebPage",
+    "@type": ["MedicalWebPage", "BlogPosting"],
     headline: article.title,
     description: article.excerpt,
-    image: {
-      "@type": "ImageObject",
-      url: article.heroImage.startsWith('http')
-        ? article.heroImage
-        : `https://instantmed.com.au${article.heroImage}`,
-      width: 1200,
-      height: 630
-    },
+    image: [heroImageUrl],
     wordCount,
     author: {
-      "@type": "Person",
-      name: article.author.name,
-      jobTitle: "Medical Doctor",
-      identifier: {
-        "@type": "PropertyValue",
-        propertyID: "AHPRA",
-        value: article.author.ahpraNumber
-      }
+      "@type": "MedicalOrganization",
+      "@id": "https://instantmed.com.au/#organization",
+      name: "InstantMed",
+      url: "https://instantmed.com.au",
     },
     reviewedBy: {
-      "@type": "Person",
-      name: article.author.name,
-      jobTitle: "Medical Doctor",
-      identifier: {
-        "@type": "PropertyValue",
-        propertyID: "AHPRA",
-        value: article.author.ahpraNumber
-      }
+      "@type": "MedicalOrganization",
+      "@id": "https://instantmed.com.au/#organization",
+      name: "InstantMed",
     },
     lastReviewed: article.updatedAt,
     datePublished: article.publishedAt,
     dateModified: article.updatedAt,
     publisher: {
       "@type": "MedicalOrganization",
+      "@id": "https://instantmed.com.au/#organization",
       name: "InstantMed",
       url: "https://instantmed.com.au",
       logo: {
@@ -142,10 +130,6 @@ export default async function BlogPostPage({ params }: PageProps) {
     mainEntityOfPage: {
       "@type": "WebPage",
       "@id": `https://instantmed.com.au/blog/${slug}`
-    },
-    about: {
-      "@type": "MedicalCondition",
-      name: article.title
     },
     inLanguage: "en-AU",
     isAccessibleForFree: true

@@ -160,34 +160,12 @@ export default function EmployersPage() {
     })),
   }
 
-  // #3 - Organization schema for rich results
-  const orgSchema = {
-    "@context": "https://schema.org",
-    "@type": "MedicalOrganization",
-    name: "InstantMed",
-    url: "https://instantmed.com.au",
-    logo: "https://instantmed.com.au/branding/wordmark.png",
-    address: {
-      "@type": "PostalAddress",
-      streetAddress: "Level 1/457-459 Elizabeth Street",
-      addressLocality: "Surry Hills",
-      addressRegion: "NSW",
-      postalCode: "2010",
-      addressCountry: "AU",
-    },
-    contactPoint: {
-      "@type": "ContactPoint",
-      email: CONTACT_EMAIL,
-      contactType: "customer service",
-    },
-  }
+  // Org schema is emitted globally from app/layout.tsx; don't duplicate here.
 
   return (
     <div className="flex min-h-screen flex-col">
       <script id="faq-schema" type="application/ld+json"
         suppressHydrationWarning dangerouslySetInnerHTML={{ __html: safeJsonLd(faqSchema) }} />
-      <script id="org-schema" type="application/ld+json"
-        suppressHydrationWarning dangerouslySetInnerHTML={{ __html: safeJsonLd(orgSchema) }} />
       <Navbar variant="marketing" />
 
       <main className="flex-1">

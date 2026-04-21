@@ -26,7 +26,7 @@ export function OrganizationSchema({ baseUrl = "https://instantmed.com.au" }: Or
     slogan: "Healthcare that fits your schedule",
     foundingDate: "2025",
     taxID: "64694559334",
-    medicalSpecialty: "GeneralPractice",
+    medicalSpecialty: "PrimaryCare",
     isAccreditedBy: {
       "@type": "Organization",
       name: "Australian Health Practitioner Regulation Agency",

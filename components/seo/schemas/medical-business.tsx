@@ -37,7 +37,7 @@ export function MedicalBusinessSchema({ baseUrl = "https://instantmed.com.au" }:
         closes: "22:00"
       }
     ],
-    medicalSpecialty: ["GeneralPractice"],
+    medicalSpecialty: ["PrimaryCare"],
     availableService: [
       {
         "@type": "MedicalProcedure",
