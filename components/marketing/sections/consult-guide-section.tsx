@@ -1,16 +1,22 @@
-import { AlertTriangle, BadgeCheck, CheckCircle, ClipboardList, Lock, Stethoscope } from "lucide-react"
+import { BadgeCheck } from "lucide-react"
 import Link from "next/link"
 
+import { StickerIcon, type StickerIconName } from "@/components/icons/stickers"
 import { Reveal } from "@/components/ui/reveal"
 
 // =============================================================================
 // DATA
 // =============================================================================
 
-const GUIDE_SECTIONS = [
+const GUIDE_SECTIONS: Array<{
+  id: string
+  sticker: StickerIconName
+  title: string
+  paragraphs: readonly string[]
+}> = [
   {
     id: "what-to-expect",
-    icon: Stethoscope,
+    sticker: "stethoscope",
     title: "What to expect from a telehealth consultation",
     paragraphs: [
       "When you request a consultation through InstantMed, you're not talking to a chatbot or filling in a form that disappears into a queue. You're submitting your health concern to an AHPRA-registered doctor who reviews your case individually. You'll describe your symptoms, medical history, and what you're hoping to address - the same information you'd share in a GP waiting room, minus the waiting room.",
@@ -20,7 +26,7 @@ const GUIDE_SECTIONS = [
   },
   {
     id: "what-doctor-can-do",
-    icon: ClipboardList,
+    sticker: "checklist",
     title: "What a doctor can do in an online consult",
     paragraphs: [
       "Telehealth consultations cover a broader range of care than most people expect. Your doctor can prescribe medication and send it as an eScript to any pharmacy in Australia - no paper scripts, no faxes, no chasing up. They can provide treatment advice for your condition, recommend over-the-counter options, or adjust an existing treatment plan that isn't working.",
@@ -30,7 +36,7 @@ const GUIDE_SECTIONS = [
   },
   {
     id: "when-right",
-    icon: CheckCircle,
+    sticker: "checkmark",
     title: "When telehealth is right for your concern",
     paragraphs: [
       "Telehealth works well when the doctor's assessment depends primarily on what you tell them rather than what they can physically examine. That covers more ground than you might think. Skin conditions - especially with clear photos - can often be assessed remotely. Urinary tract infections, seasonal allergies, and minor infections follow predictable patterns where your symptoms and history tell the story.",
@@ -40,7 +46,7 @@ const GUIDE_SECTIONS = [
   },
   {
     id: "when-in-person",
-    icon: AlertTriangle,
+    sticker: "warning",
     title: "When you need to see a doctor in person",
     paragraphs: [
       "Some things genuinely need hands-on assessment, and we're upfront about that. If you've found a lump, injured a joint, or are experiencing chest pain, shortness of breath, or severe abdominal pain - see a doctor in person or call 000. These are conditions where physical examination, imaging, or immediate intervention may be necessary, and telehealth can't replicate that.",
@@ -50,7 +56,7 @@ const GUIDE_SECTIONS = [
   },
   {
     id: "privacy",
-    icon: Lock,
+    sticker: "lock",
     title: "Your privacy and what we share",
     paragraphs: [
       "Doctor-patient confidentiality applies to telehealth consultations in exactly the same way it applies to an in-person visit. Your doctor is bound by the same legal and ethical obligations regardless of whether they're across a desk or across the internet. Your health information is protected under the Privacy Act 1988 and the Australian Privacy Principles.",
@@ -58,7 +64,7 @@ const GUIDE_SECTIONS = [
       "One detail worth noting: because InstantMed consultations are private (not bulk-billed through Medicare), no record of your visit appears on your Medicare claims history. If you choose private telehealth, that's a genuinely private interaction. Your employer won't know, your insurer won't know, and it won't show up on any government record.",
     ],
   },
-] as const
+]
 
 // =============================================================================
 // COMPONENT
@@ -92,8 +98,8 @@ export function ConsultGuideSection() {
           {GUIDE_SECTIONS.map((section, i) => (
             <Reveal key={section.id} delay={i * 0.05}>
               <div className="flex items-start gap-4">
-                <div className="shrink-0 mt-0.5 w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <section.icon className="w-4.5 h-4.5 text-primary" />
+                <div className="shrink-0 mt-0.5">
+                  <StickerIcon name={section.sticker} size={36} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="text-lg font-semibold text-foreground mb-3">

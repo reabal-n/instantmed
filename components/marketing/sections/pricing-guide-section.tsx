@@ -1,16 +1,22 @@
-import { BadgeCheck, Banknote, CalendarOff, FileText, Pill, RotateCcw } from "lucide-react"
+import { BadgeCheck } from "lucide-react"
 import Link from "next/link"
 
+import { StickerIcon, type StickerIconName } from "@/components/icons/stickers"
 import { Reveal } from "@/components/ui/reveal"
 
 // =============================================================================
 // DATA
 // =============================================================================
 
-const GUIDE_SECTIONS = [
+const GUIDE_SECTIONS: Array<{
+  id: string
+  sticker: StickerIconName
+  title: string
+  paragraphs: readonly string[]
+}> = [
   {
     id: "telehealth-pricing",
-    icon: Banknote,
+    sticker: "wallet",
     title: "Understanding telehealth pricing in Australia",
     paragraphs: [
       "Most telehealth platforms in Australia operate outside of Medicare. This isn't unusual - it's standard across the industry. Medicare rebates are designed around traditional GP consultations where a provider-patient relationship is established through ongoing care. Asynchronous telehealth services, where a doctor reviews your request without a real-time appointment, don't fit neatly into existing Medicare item numbers.",
@@ -20,7 +26,7 @@ const GUIDE_SECTIONS = [
   },
   {
     id: "whats-included",
-    icon: FileText,
+    sticker: "medical-history",
     title: "What's included in your consultation fee",
     paragraphs: [
       "When you pay for a consultation through InstantMed, you're paying for a genuine clinical service - not a rubber stamp. Every request is reviewed by an AHPRA-registered doctor who assesses your symptoms, medical history, and the clinical appropriateness of your request. If something doesn't add up, the doctor will ask follow-up questions or decline the request entirely (with a full refund).",
@@ -30,7 +36,7 @@ const GUIDE_SECTIONS = [
   },
   {
     id: "pbs-medications",
-    icon: Pill,
+    sticker: "pill-bottle",
     title: "PBS subsidies and medication costs",
     paragraphs: [
       "Our consultation fee covers the doctor's assessment and eScript generation only. The actual cost of your medication is a separate expense, paid at the pharmacy when you collect your prescription. These are two distinct charges - our fee for the clinical service, and the pharmacy's charge for the medication itself.",
@@ -40,7 +46,7 @@ const GUIDE_SECTIONS = [
   },
   {
     id: "refund-policy",
-    icon: RotateCcw,
+    sticker: "synchronize",
     title: "Our refund policy",
     paragraphs: [
       "If a doctor reviews your request and determines that a certificate or prescription isn't clinically appropriate, you get a full refund. No questions, no paperwork, no awkward phone call. The refund is processed automatically and typically lands back in your account within 3-5 business days, depending on your bank.",
@@ -50,7 +56,7 @@ const GUIDE_SECTIONS = [
   },
   {
     id: "no-subscriptions",
-    icon: CalendarOff,
+    sticker: "checkmark",
     title: "Why we don't do subscriptions",
     paragraphs: [
       "Some telehealth platforms charge monthly memberships - $15 to $30 a month for the privilege of being able to book a consultation that you then also pay for. We don't do that. We don't charge you a monthly fee to have the privilege of paying us for an appointment. That business model is for gyms, not healthcare.",
@@ -58,7 +64,7 @@ const GUIDE_SECTIONS = [
       "This approach keeps things honest. We only earn revenue when we're actually providing a service - which means our incentive is to do a good job so you come back when you need us, not to make cancellation difficult so you forget to unsubscribe.",
     ],
   },
-] as const
+]
 
 // =============================================================================
 // COMPONENT
@@ -91,8 +97,8 @@ export function PricingGuideSection() {
           {GUIDE_SECTIONS.map((section, i) => (
             <Reveal key={section.id} delay={i * 0.05}>
               <div className="flex items-start gap-4">
-                <div className="shrink-0 mt-0.5 w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <section.icon className="w-4.5 h-4.5 text-primary" />
+                <div className="shrink-0 mt-0.5">
+                  <StickerIcon name={section.sticker} size={36} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="text-lg font-semibold text-foreground mb-3">

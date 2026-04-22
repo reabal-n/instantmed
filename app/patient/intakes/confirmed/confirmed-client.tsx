@@ -1,9 +1,10 @@
 "use client"
 
-import { ArrowRight,Check, Clock, Mail } from "lucide-react"
+import { ArrowRight, Check } from "lucide-react"
 import Link from "next/link"
 import { useEffect } from "react"
 
+import { StickerIcon } from "@/components/icons/stickers"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { LottieAnimation } from "@/components/ui/lottie-animation"
@@ -39,9 +40,7 @@ export function ConfirmedClient({ intakeId, email, serviceName: _serviceName }: 
 
       <div className="space-y-4 text-left bg-muted/30 rounded-xl p-4 mb-6">
         <div className="flex items-start gap-3">
-          <div className="shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-            <Mail className="w-4 h-4 text-primary" />
-          </div>
+          <StickerIcon name="email" size={32} className="shrink-0" />
           <div>
             <p className="font-medium text-sm">Check your email</p>
             <p className="text-sm text-muted-foreground">
@@ -55,9 +54,7 @@ export function ConfirmedClient({ intakeId, email, serviceName: _serviceName }: 
         </div>
 
         <div className="flex items-start gap-3">
-          <div className="shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-            <Clock className="w-4 h-4 text-primary" />
-          </div>
+          <StickerIcon name="clock" size={32} className="shrink-0" />
           <div>
             <p className="font-medium text-sm">Typical turnaround</p>
             <p className="text-sm text-muted-foreground">

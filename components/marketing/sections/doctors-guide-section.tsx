@@ -1,16 +1,22 @@
-import { BadgeCheck, ClipboardCheck, GitBranch, Monitor, Shield, Stethoscope } from "lucide-react"
+import { BadgeCheck } from "lucide-react"
 import Link from "next/link"
 
+import { StickerIcon, type StickerIconName } from "@/components/icons/stickers"
 import { Reveal } from "@/components/ui/reveal"
 
 // =============================================================================
 // DATA
 // =============================================================================
 
-const GUIDE_SECTIONS = [
+const GUIDE_SECTIONS: Array<{
+  id: string
+  sticker: StickerIconName
+  title: string
+  paragraphs: readonly string[]
+}> = [
   {
     id: "ahpra-registration",
-    icon: Shield,
+    sticker: "security-shield",
     title: "What AHPRA registration means",
     paragraphs: [
       "AHPRA - the Australian Health Practitioner Regulation Agency - is the national body that regulates all health practitioners in Australia. If a doctor isn't registered with AHPRA, they cannot legally practise medicine in this country. It's not optional, and there's no alternative pathway.",
@@ -20,7 +26,7 @@ const GUIDE_SECTIONS = [
   },
   {
     id: "credentialing-process",
-    icon: ClipboardCheck,
+    sticker: "checklist",
     title: "Our credentialing process",
     paragraphs: [
       "Before a doctor reviews a single request on InstantMed, they go through a credentialing process that mirrors what you'd expect from a quality general practice. We verify current AHPRA registration directly against the public register, confirm professional indemnity insurance, and check minimum clinical experience requirements. Background checks are completed before onboarding begins.",
@@ -30,7 +36,7 @@ const GUIDE_SECTIONS = [
   },
   {
     id: "telehealth-qualifications",
-    icon: Monitor,
+    sticker: "laptop",
     title: "Telehealth qualifications and training",
     paragraphs: [
       "Telehealth is a specific clinical skillset, not just general practice conducted over the internet. Remote assessment techniques differ from in-person consultations - doctors need to gather clinical information differently, ask more targeted questions, and make careful judgements about when a condition can be safely managed remotely versus when it requires a physical examination.",
@@ -40,7 +46,7 @@ const GUIDE_SECTIONS = [
   },
   {
     id: "clinical-governance",
-    icon: Stethoscope,
+    sticker: "stethoscope",
     title: "Clinical governance and oversight",
     paragraphs: [
       "Clinical governance isn't a buzzword we use to sound impressive - it's the framework that ensures consistent, safe clinical decisions across our consulting team. A Medical Director with RACGP Fellowship provides oversight of all clinical protocols and guidelines. Clinical protocols are reviewed quarterly and updated when evidence, regulations, or best practice changes.",
@@ -50,7 +56,7 @@ const GUIDE_SECTIONS = [
   },
   {
     id: "scope-and-referrals",
-    icon: GitBranch,
+    sticker: "medical-doctor",
     title: "Scope of practice and referrals",
     paragraphs: [
       "We're transparent about what our doctors can and can't do via telehealth. Conditions suitable for remote assessment include straightforward, self-limiting illnesses, repeat prescriptions for stable medications, and medical certificates for short-term absences. These are situations where the clinical decision is based primarily on patient-reported history - the same information available remotely as in person.",
@@ -58,7 +64,7 @@ const GUIDE_SECTIONS = [
       "We'd rather refer you to the right care than pretend we can handle everything. If a doctor reviews your request and determines it's not appropriate for telehealth, they'll let you know and suggest the right next step - whether that's your regular GP, an emergency department, or a specialist. You'll receive a full refund if your request can't be fulfilled. Getting it right matters more than getting the sale.",
     ],
   },
-] as const
+]
 
 // =============================================================================
 // COMPONENT
@@ -92,8 +98,8 @@ export function DoctorsGuideSection() {
           {GUIDE_SECTIONS.map((section, i) => (
             <Reveal key={section.id} delay={i * 0.05}>
               <div className="flex items-start gap-4">
-                <div className="shrink-0 mt-0.5 w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <section.icon className="w-4.5 h-4.5 text-primary" />
+                <div className="shrink-0 mt-0.5">
+                  <StickerIcon name={section.sticker} size={36} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="text-lg font-semibold text-foreground mb-3">

@@ -1,8 +1,10 @@
 "use client"
 
-import { Eye, EyeOff, Loader2,Lock } from "lucide-react"
+import { Eye, EyeOff, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
+
+import { StickerIcon } from "@/components/icons/stickers"
 import type React from "react"
 import { useState } from "react"
 import { toast } from "sonner"
@@ -79,8 +81,8 @@ export function ResetPasswordClient() {
         <div className="max-w-md mx-auto px-4">
           <div className="glass-card rounded-3xl p-8">
             <div className="text-center mb-8">
-              <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                <Lock className="w-8 h-8 text-primary" />
+              <div className="mx-auto w-16 h-16 flex items-center justify-center mb-4">
+                <StickerIcon name="lock" size={64} />
               </div>
               <h1 className="text-2xl font-semibold">Reset Your Password</h1>
               <p className="text-muted-foreground mt-2">Enter your new password below</p>

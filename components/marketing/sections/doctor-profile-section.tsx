@@ -1,5 +1,6 @@
-import { BadgeCheck, Users } from "lucide-react"
+import { BadgeCheck } from "lucide-react"
 
+import { StickerIcon } from "@/components/icons/stickers"
 import { Reveal } from "@/components/ui/reveal"
 
 // =============================================================================
@@ -15,9 +16,7 @@ export function DoctorProfileSection() {
           <div className="rounded-2xl bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06] dark:shadow-none p-6 sm:p-8 flex flex-col sm:flex-row items-center sm:items-start gap-6">
             {/* Icon */}
             <div className="shrink-0">
-              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-                <Users className="w-7 h-7 text-primary" />
-              </div>
+              <StickerIcon name="medical-doctor" size={64} />
             </div>
 
             {/* Details */}

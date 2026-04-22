@@ -1,8 +1,10 @@
 "use client"
 
-import { ArrowLeft,CheckCircle, Loader2, Mail } from "lucide-react"
+import { ArrowLeft, CheckCircle, Loader2 } from "lucide-react"
 import Link from "next/link"
 import type React from "react"
+
+import { StickerIcon } from "@/components/icons/stickers"
 import { useState } from "react"
 import { toast } from "sonner"
 
@@ -83,8 +85,8 @@ export function ForgotPasswordClient() {
             </Link>
 
             <div className="text-center mb-8">
-              <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                <Mail className="w-8 h-8 text-primary" />
+              <div className="mx-auto w-16 h-16 flex items-center justify-center mb-4">
+                <StickerIcon name="email" size={64} />
               </div>
               <h1 className="text-2xl font-semibold">Forgot Password?</h1>
               <p className="text-muted-foreground mt-2">No worries, we&apos;ll send you reset instructions.</p>

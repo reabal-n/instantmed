@@ -1,16 +1,22 @@
-import { BadgeCheck, Brain, Monitor, Scale, ShieldAlert, Stethoscope } from "lucide-react"
+import { BadgeCheck } from "lucide-react"
 import Link from "next/link"
 
+import { StickerIcon, type StickerIconName } from "@/components/icons/stickers"
 import { Reveal } from "@/components/ui/reveal"
 
 // =============================================================================
 // DATA
 // =============================================================================
 
-const GUIDE_SECTIONS = [
+const GUIDE_SECTIONS: Array<{
+  id: string
+  sticker: StickerIconName
+  title: string
+  paragraphs: readonly string[]
+}> = [
   {
     id: "understanding",
-    icon: Brain,
+    sticker: "brain",
     title: "Understanding weight management",
     paragraphs: [
       "Obesity is one of Australia's most significant health challenges - and one of the most misunderstood. According to the Australian Bureau of Statistics, around 67% of Australian adults are overweight or obese. That's not a lifestyle trend. It's a public health reality that affects more people than almost any other chronic condition, and pretending it's simply about willpower hasn't worked for anyone.",
@@ -20,7 +26,7 @@ const GUIDE_SECTIONS = [
   },
   {
     id: "treatments",
-    icon: Scale,
+    sticker: "scales",
     title: "Evidence-based treatment approaches",
     paragraphs: [
       "Medical weight management has advanced significantly in recent years, and several categories of TGA-approved treatments are now available in Australia. The most prominent category works by mimicking a natural gut hormone that regulates appetite and blood sugar. These injectable treatments are administered weekly or daily, depending on the specific approach, and work by slowing gastric emptying and signalling fullness to the brain. Clinical trials have demonstrated average weight loss of 10-15% of body weight, which is substantially more than lifestyle modification alone typically achieves.",
@@ -30,7 +36,7 @@ const GUIDE_SECTIONS = [
   },
   {
     id: "consultation",
-    icon: Stethoscope,
+    sticker: "stethoscope",
     title: "What happens during a weight management consultation",
     paragraphs: [
       "A weight management consultation starts with a thorough health assessment - not just your weight. Your doctor will review your complete medical history, including existing conditions like type 2 diabetes, high blood pressure, sleep apnoea, and cardiovascular disease. These aren't just relevant - they're often the reason treatment is medically indicated in the first place. You'll also be asked about previous weight loss attempts, family history, current medications, and your mental health. This isn't a formality. It directly determines what treatment options are safe and appropriate.",
@@ -40,7 +46,7 @@ const GUIDE_SECTIONS = [
   },
   {
     id: "safety",
-    icon: ShieldAlert,
+    sticker: "warning",
     title: "Safety and ongoing monitoring",
     paragraphs: [
       "Transparency about side effects is a feature, not a liability. Injectable treatments commonly cause gastrointestinal symptoms - nausea, diarrhoea, and constipation are the most frequently reported, particularly when starting treatment or increasing doses. These effects usually diminish over time as the body adjusts, and dose titration (starting low and increasing gradually) is standard practice specifically to minimise discomfort. Less commonly, some patients experience headaches, dizziness, or fatigue.",
@@ -50,7 +56,7 @@ const GUIDE_SECTIONS = [
   },
   {
     id: "telehealth",
-    icon: Monitor,
+    sticker: "laptop",
     title: "Why telehealth works for weight management",
     paragraphs: [
       "Weight management is one of the conditions most naturally suited to telehealth - and not just because it's convenient. The clinical assessment is primarily history-based: your medical background, BMI, current medications, and previous treatment attempts tell a doctor most of what they need to know. Physical examination adds relatively little for initial prescribing decisions, which is why telehealth consultations for weight management are supported by multiple clinical guidelines.",
@@ -58,7 +64,7 @@ const GUIDE_SECTIONS = [
       "There's also the stigma question, and it's worth being honest about. Weight is a sensitive topic, and many people delay seeking medical help because they find the prospect of discussing it face-to-face uncomfortable - or because they've had dismissive experiences with healthcare providers in the past. Online consultations remove that barrier. You complete a detailed health assessment privately, a doctor reviews everything without preconceptions, and treatment decisions are based on clinical criteria rather than a thirty-second visual impression. For a condition where delayed treatment means worse outcomes, reducing barriers to access isn't just convenient. It's clinically meaningful.",
     ],
   },
-] as const
+]
 
 // =============================================================================
 // COMPONENT
@@ -92,8 +98,8 @@ export function WeightLossGuideSection() {
           {GUIDE_SECTIONS.map((section, i) => (
             <Reveal key={section.id} delay={i * 0.05}>
               <div className="flex items-start gap-4">
-                <div className="shrink-0 mt-0.5 w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <section.icon className="w-4.5 h-4.5 text-primary" />
+                <div className="shrink-0 mt-0.5">
+                  <StickerIcon name={section.sticker} size={36} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="text-lg font-semibold text-foreground mb-3">

@@ -225,7 +225,7 @@ export function PricingClient() {
                   )}
 
                   <div className="flex justify-center mb-3">
-                    <ServiceIconTile iconKey={service.iconKey} color={service.colorToken} size="lg" />
+                    <ServiceIconTile iconKey={service.iconKey} color={service.colorToken} size="lg" variant="sticker" stickerLoading="eager" />
                   </div>
 
                   <div className="text-center mb-4">

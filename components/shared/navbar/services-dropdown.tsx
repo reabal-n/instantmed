@@ -91,7 +91,7 @@ export function ServicesDropdown({ isActivePath }: ServicesDropdownProps) {
                     >
                       {disabled ? (
                         <div className="flex items-center gap-3 px-3 py-2.5 w-full">
-                          <ServiceIconTile iconKey={service.iconKey} color={service.color} size="sm" />
+                          <ServiceIconTile iconKey={service.iconKey} color={service.color} size="sm" variant="sticker" stickerLoading="eager" />
                           <div>
                             <p className="text-sm font-medium text-muted-foreground">{service.title}</p>
                             <p className="text-xs text-muted-foreground">Temporarily unavailable</p>
@@ -102,7 +102,7 @@ export function ServicesDropdown({ isActivePath }: ServicesDropdownProps) {
                           href={service.href}
                           className="flex items-center gap-3 px-3 py-2.5 w-full"
                         >
-                          <ServiceIconTile iconKey={service.iconKey} color={service.color} size="sm" />
+                          <ServiceIconTile iconKey={service.iconKey} color={service.color} size="sm" variant="sticker" stickerLoading="eager" />
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2">
                               <p className="text-sm font-medium text-foreground">{service.title}</p>

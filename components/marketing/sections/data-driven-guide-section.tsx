@@ -1,47 +1,20 @@
-import {
-  BadgeCheck,
-  BookOpen,
-  Brain,
-  Building2,
-  Clock,
-  FileText,
-  FlaskConical,
-  Heart,
-  Landmark,
-  type LucideIcon,
-  Monitor,
-  Scale,
-  Shield,
-  ShieldAlert,
-  Stethoscope,
-  Users,
-} from "lucide-react"
+import { BadgeCheck } from "lucide-react"
 import Link from "next/link"
 
+import { StickerIcon, type StickerIconName } from "@/components/icons/stickers"
 import { Reveal } from "@/components/ui/reveal"
 
 // =============================================================================
-// ICON REGISTRY
+// DEFAULTS
 // =============================================================================
 
-const ICON_MAP: Record<string, LucideIcon> = {
-  Stethoscope,
-  Scale,
-  Shield,
-  Monitor,
-  Clock,
-  Brain,
-  FlaskConical,
-  ShieldAlert,
-  BookOpen,
-  Heart,
-  FileText,
-  Users,
-  Building2,
-  Landmark,
-}
-
-const DEFAULT_ICONS: LucideIcon[] = [Stethoscope, Scale, Shield, Monitor, Clock]
+const DEFAULT_STICKERS: StickerIconName[] = [
+  "stethoscope",
+  "checklist",
+  "security-shield",
+  "scales",
+  "clock",
+]
 
 // =============================================================================
 // TYPES
@@ -49,8 +22,8 @@ const DEFAULT_ICONS: LucideIcon[] = [Stethoscope, Scale, Shield, Monitor, Clock]
 
 export interface GuideSectionData {
   id: string
-  /** Icon name string (resolved internally) - e.g. "Stethoscope", "Shield" */
-  icon?: string
+  /** StickerIconName string - e.g. "stethoscope", "security-shield" */
+  icon?: StickerIconName
   title: string
   paragraphs: string[]
 }
@@ -110,11 +83,11 @@ export function DataDrivenGuideSection({
           {sections.map((section, i) => (
             <Reveal key={section.id} delay={i * 0.05}>
               <div className="flex items-start gap-4">
-                <div className="shrink-0 mt-0.5 w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
-                  {(() => {
-                    const Icon = (section.icon && ICON_MAP[section.icon]) || DEFAULT_ICONS[i % DEFAULT_ICONS.length]
-                    return <Icon className="w-4.5 h-4.5 text-primary" />
-                  })()}
+                <div className="shrink-0 mt-0.5">
+                  <StickerIcon
+                    name={section.icon ?? DEFAULT_STICKERS[i % DEFAULT_STICKERS.length]}
+                    size={36}
+                  />
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="text-lg font-semibold text-foreground mb-3">

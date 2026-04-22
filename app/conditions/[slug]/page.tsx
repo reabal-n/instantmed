@@ -15,6 +15,8 @@ import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 
+import { StickerIcon } from "@/components/icons/stickers"
+
 import { CenteredHero } from "@/components/heroes"
 import { MarketingFooter, MarketingPageShell } from "@/components/marketing"
 import { TestimonialsSection } from "@/components/marketing/sections"
@@ -289,8 +291,8 @@ export default async function ConditionPage({ params }: PageProps) {
                   />
                   <div className="mt-10 rounded-2xl bg-white dark:bg-card border border-border/50 dark:border-white/10 shadow-md shadow-primary/[0.06] dark:shadow-none p-8 lg:p-10">
                     <div className="flex gap-4">
-                      <div className="shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                        <Stethoscope className="w-5 h-5 text-primary" />
+                      <div className="shrink-0">
+                        <StickerIcon name="stethoscope" size={40} />
                       </div>
                       <div>
                         <p className="text-sm font-semibold text-foreground mb-0.5">InstantMed Clinical Team</p>

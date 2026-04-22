@@ -1,21 +1,11 @@
 "use client"
 
-import {
-  AlertTriangle,
-  BadgeCheck,
-  Brain,
-  CalendarClock,
-  FlaskConical,
-  Layers,
-  LineChart,
-  RefreshCw,
-  Repeat,
-  ShieldAlert,
-  Stethoscope,
-} from "lucide-react"
+import { AlertTriangle, BadgeCheck } from "lucide-react"
 import Link from "next/link"
 import type React from "react"
 import { useState } from "react"
+
+import { StickerIcon, type StickerIconName } from "@/components/icons/stickers"
 
 import {
   Accordion,
@@ -98,12 +88,12 @@ const TIMELINE_MILESTONES = [
 
 function GuideItem({
   value,
-  icon: Icon,
+  sticker,
   title,
   children,
 }: {
   value: string
-  icon: React.ElementType
+  sticker: StickerIconName
   title: string
   children: React.ReactNode
 }) {
@@ -114,14 +104,12 @@ function GuideItem({
     >
       <AccordionTrigger className="py-4 hover:no-underline gap-3">
         <div className="flex items-center gap-3">
-          <div className="shrink-0 w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-            <Icon className="w-4 h-4 text-primary" />
-          </div>
+          <StickerIcon name={sticker} size={28} loading="eager" />
           <span className="text-[15px] font-semibold text-foreground text-left">{title}</span>
         </div>
       </AccordionTrigger>
       <AccordionContent>
-        <div className="pl-11 pb-2">{children}</div>
+        <div className="pl-10 pb-2">{children}</div>
       </AccordionContent>
     </AccordionItem>
   )
@@ -212,7 +200,7 @@ export function HairLossGuideSection() {
         <Accordion type="multiple" defaultValue={["understanding"]} className="space-y-2">
 
           {/* 1. Understanding hair loss */}
-          <GuideItem value="understanding" icon={Brain} title="Understanding hair loss in Australia">
+          <GuideItem value="understanding" sticker="brain" title="Understanding hair loss in Australia">
             <div className="space-y-3 pt-1">
               <div className="grid grid-cols-2 gap-2.5">
                 <div className="rounded-lg bg-primary/5 border border-primary/15 p-3 text-center">
@@ -234,7 +222,7 @@ export function HairLossGuideSection() {
           </GuideItem>
 
           {/* 2. Types of hair loss */}
-          <GuideItem value="types" icon={Layers} title="Types of hair loss: what's treatable and what isn't">
+          <GuideItem value="types" sticker="checklist" title="Types of hair loss: what's treatable and what isn't">
             <div className="space-y-3 pt-1">
               <p className="text-sm text-muted-foreground">
                 Not every kind of hair loss responds the same way. A quick taxonomy so you know where yours fits.
@@ -273,7 +261,7 @@ export function HairLossGuideSection() {
           </GuideItem>
 
           {/* 3. Hair growth cycle */}
-          <GuideItem value="growth-cycle" icon={RefreshCw} title="The hair growth cycle, explained">
+          <GuideItem value="growth-cycle" sticker="synchronize" title="The hair growth cycle, explained">
             <div className="space-y-3 pt-1">
               <p className="text-sm text-muted-foreground">
                 Hair doesn't grow continuously. Each follicle cycles through three phases, and that's why treatment takes months to show results.
@@ -310,7 +298,7 @@ export function HairLossGuideSection() {
           </GuideItem>
 
           {/* 4. Treatment options */}
-          <GuideItem value="treatments" icon={FlaskConical} title="Evidence-based treatment options">
+          <GuideItem value="treatments" sticker="syringe" title="Evidence-based treatment options">
             <div className="space-y-3 pt-1">
               <div className="rounded-lg bg-primary/5 border border-primary/15 p-3 flex items-start gap-2.5">
                 <BadgeCheck className="h-4 w-4 text-primary shrink-0 mt-0.5" />
@@ -338,7 +326,7 @@ export function HairLossGuideSection() {
           </GuideItem>
 
           {/* 5. Treatment timeline */}
-          <GuideItem value="timeline" icon={CalendarClock} title="Typical treatment timeline">
+          <GuideItem value="timeline" sticker="clock" title="Typical treatment timeline">
             <div className="space-y-3 pt-1">
               <p className="text-sm text-muted-foreground">Month by month, what most patients experience on consistent treatment.</p>
               <div className="space-y-2">
@@ -361,7 +349,7 @@ export function HairLossGuideSection() {
           </GuideItem>
 
           {/* 6. Consultation */}
-          <GuideItem value="consultation" icon={Stethoscope} title="What happens during a hair loss consultation">
+          <GuideItem value="consultation" sticker="stethoscope" title="What happens during a hair loss consultation">
             <div className="space-y-3 pt-1">
               <div className="rounded-lg bg-muted/30 border border-border/50 p-3">
                 <p className="text-xs font-semibold text-foreground mb-2">Your doctor checks five things:</p>
@@ -390,7 +378,7 @@ export function HairLossGuideSection() {
           </GuideItem>
 
           {/* 7. Side effects */}
-          <GuideItem value="side-effects" icon={ShieldAlert} title="Side effects and safety">
+          <GuideItem value="side-effects" sticker="warning" title="Side effects and safety">
             <div className="space-y-3 pt-1">
               <div className="rounded-lg bg-destructive/5 border border-destructive/20 p-3 flex items-start gap-2.5">
                 <AlertTriangle className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
@@ -417,7 +405,7 @@ export function HairLossGuideSection() {
           </GuideItem>
 
           {/* 8. Ongoing treatment */}
-          <GuideItem value="ongoing" icon={Repeat} title="Ongoing treatment and repeat prescriptions">
+          <GuideItem value="ongoing" sticker="pill-bottle" title="Ongoing treatment and repeat prescriptions">
             <div className="space-y-3 pt-1">
               <Bullets items={[
                 "Hair loss treatment is maintenance, not a course, the improvement you achieve is preserved only as long as you keep taking it.",
@@ -443,7 +431,7 @@ export function HairLossGuideSection() {
           </GuideItem>
 
           {/* 9. Norwood stages */}
-          <GuideItem value="norwood" icon={LineChart} title="Norwood stages at a glance">
+          <GuideItem value="norwood" sticker="pulse" title="Norwood stages at a glance">
             <div className="space-y-3 pt-1">
               <p className="text-sm text-muted-foreground">
                 The Norwood scale classifies male pattern hair loss from minor temple recession through extensive loss. Tap a stage to see what it describes.

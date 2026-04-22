@@ -1,16 +1,22 @@
-import { BadgeCheck, FileCheck, Lock, Scale, ShieldCheck, Stethoscope } from "lucide-react"
+import { BadgeCheck } from "lucide-react"
 import Link from "next/link"
 
+import { StickerIcon, type StickerIconName } from "@/components/icons/stickers"
 import { Reveal } from "@/components/ui/reveal"
 
 // =============================================================================
 // DATA
 // =============================================================================
 
-const GUIDE_SECTIONS = [
+const GUIDE_SECTIONS: Array<{
+  id: string
+  sticker: StickerIconName
+  title: string
+  paragraphs: readonly string[]
+}> = [
   {
     id: "doctor-verification",
-    icon: ShieldCheck,
+    sticker: "security-shield",
     title: "How we verify our doctors",
     paragraphs: [
       "Every doctor practising on InstantMed holds current registration with the Australian Health Practitioner Regulation Agency (AHPRA). Before a doctor can review a single request, we verify their registration status, specialty endorsements, and any conditions or undertakings on their practice. This isn't a one-time check - we monitor registration status on an ongoing basis and are notified immediately if anything changes.",
@@ -20,7 +26,7 @@ const GUIDE_SECTIONS = [
   },
   {
     id: "data-protection",
-    icon: Lock,
+    sticker: "lock",
     title: "Protecting your health information",
     paragraphs: [
       "Your health information is encrypted with AES-256-GCM - the same encryption standard used by banks and government agencies. We encrypt your data with the same standard banks use, though your medical certificate is considerably less interesting to hackers than your bank account. This isn't just transport encryption (protecting data while it moves between your browser and our servers). We apply field-level encryption to your personal health information, meaning individual data fields are encrypted at rest in our database.",
@@ -30,7 +36,7 @@ const GUIDE_SECTIONS = [
   },
   {
     id: "clinical-governance",
-    icon: Stethoscope,
+    sticker: "stethoscope",
     title: "Our clinical governance framework",
     paragraphs: [
       "Clinical governance isn't a buzzword we put on our website and forget about. Our Medical Director oversees all clinical operations, reviews adverse events, and ensures that every doctor on the platform operates within evidence-based guidelines. Clinical decisions are audited regularly - not to second-guess doctors, but to maintain consistently high standards across every consultation.",
@@ -40,7 +46,7 @@ const GUIDE_SECTIONS = [
   },
   {
     id: "complaints-rights",
-    icon: Scale,
+    sticker: "scales",
     title: "Your rights and our complaints process",
     paragraphs: [
       "We respond to all complaints within 48 hours. Not 'up to 14 business days,' not 'we'll get back to you when we can.' If you're unhappy with any aspect of our service, email complaints@instantmed.com.au and a real person will respond within two working days. If we can't resolve your concern directly, we'll explain your options for escalation.",
@@ -50,7 +56,7 @@ const GUIDE_SECTIONS = [
   },
   {
     id: "regulatory-compliance",
-    icon: FileCheck,
+    sticker: "certificate",
     title: "Regulatory compliance and standards",
     paragraphs: [
       "Electronic prescriptions issued through InstantMed are generated via official PBS (Pharmaceutical Benefits Scheme) channels and comply with the Therapeutic Goods Act 1989. Our eScripts work at any Australian pharmacy - they're the same format used by every GP clinic that has adopted electronic prescribing, which is now the national standard. The days of losing a paper script in your back pocket are, mercifully, numbered.",
@@ -58,7 +64,7 @@ const GUIDE_SECTIONS = [
       "We operate under Australian telehealth regulations, which require that consultations be conducted by practitioners registered in Australia, that appropriate clinical records are maintained, and that patients are informed about the nature and limitations of telehealth. Medicare-eligible services are billed through proper Medicare channels where applicable. We don't cut corners on compliance because the consequences - for you and for us - aren't worth it.",
     ],
   },
-] as const
+]
 
 // =============================================================================
 // COMPONENT
@@ -92,8 +98,8 @@ export function TrustGuideSection() {
           {GUIDE_SECTIONS.map((section, i) => (
             <Reveal key={section.id} delay={i * 0.05}>
               <div className="flex items-start gap-4">
-                <div className="shrink-0 mt-0.5 w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <section.icon className="w-4.5 h-4.5 text-primary" />
+                <div className="shrink-0 mt-0.5">
+                  <StickerIcon name={section.sticker} size={36} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="text-lg font-semibold text-foreground mb-3">

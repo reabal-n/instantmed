@@ -1,16 +1,22 @@
-import { BadgeCheck, Brain, Calendar, HeartPulse, Stethoscope, Target } from "lucide-react"
+import { BadgeCheck } from "lucide-react"
 import Link from "next/link"
 
+import { StickerIcon, type StickerIconName } from "@/components/icons/stickers"
 import { Reveal } from "@/components/ui/reveal"
 
 // =============================================================================
 // DATA
 // =============================================================================
 
-const GUIDE_SECTIONS = [
+const GUIDE_SECTIONS: Array<{
+  id: string
+  sticker: StickerIconName
+  title: string
+  paragraphs: readonly string[]
+}> = [
   {
     id: "science",
-    icon: Brain,
+    sticker: "brain",
     title: "The science behind medical weight management",
     paragraphs: [
       "Your body doesn't want to lose weight. That's not a moral judgement - it's biology. Over millions of years, humans evolved sophisticated systems to defend against weight loss, because for most of our history, the bigger threat was starvation, not surplus. Understanding this is the starting point for understanding why medical treatment exists and why willpower alone has a poor track record.",
@@ -20,7 +26,7 @@ const GUIDE_SECTIONS = [
   },
   {
     id: "who-benefits",
-    icon: Target,
+    sticker: "checkmark",
     title: "Who benefits from medical weight management",
     paragraphs: [
       "Medical weight management isn't for everyone, and responsible doctors are selective about who they prescribe for. Current Australian guidelines generally recommend considering medical treatment for adults with a BMI of 30 or above, or a BMI of 27 or above when accompanied by weight-related health conditions such as type 2 diabetes, obstructive sleep apnoea, cardiovascular risk factors, or significant joint problems that limit mobility.",
@@ -30,7 +36,7 @@ const GUIDE_SECTIONS = [
   },
   {
     id: "treatment-approaches",
-    icon: Stethoscope,
+    sticker: "stethoscope",
     title: "Treatment approaches your doctor may recommend",
     paragraphs: [
       "There are several categories of TGA-approved treatments your doctor may consider, depending on your health profile. One class includes injectable treatments that work with your body's appetite-regulating hormones - they mimic natural signals that tell your brain you've eaten enough, leading to reduced hunger and earlier satiety. These are typically administered weekly and have shown significant results in clinical trials when combined with lifestyle changes.",
@@ -40,7 +46,7 @@ const GUIDE_SECTIONS = [
   },
   {
     id: "treatment-journey",
-    icon: Calendar,
+    sticker: "clock",
     title: "What to expect from your treatment journey",
     paragraphs: [
       "Set your expectations at three to six months minimum. Weight management medication isn't a two-week course of antibiotics - it's a sustained treatment that works gradually, and the first few weeks are about finding the right dose and letting your body adjust, not dramatic results. Most treatments start at a lower dose that's increased over several weeks, which helps minimise side effects and gives your doctor data on how you're responding.",
@@ -50,7 +56,7 @@ const GUIDE_SECTIONS = [
   },
   {
     id: "ongoing-support",
-    icon: HeartPulse,
+    sticker: "heart-with-pulse",
     title: "Ongoing support and monitoring",
     paragraphs: [
       "Weight management is a long game, and the support structure matters as much as the prescription. Monthly check-ins aren't a formality - they're where your doctor reviews your progress, asks about side effects, checks whether the treatment is still appropriate, and adjusts the plan. Some months you'll be losing weight steadily. Some months you won't. Both are normal, and both need clinical context to interpret correctly.",
@@ -58,7 +64,7 @@ const GUIDE_SECTIONS = [
       "When you've reached your treatment goals - or when it's clear that medication has done what it can - your doctor will work with you on a transition plan. This might mean gradually reducing medication, shifting to a lower maintenance dose, or discontinuing treatment while maintaining the habits you've built. The aim is always to reach a point where the lifestyle changes are doing the heavy lifting. Good medical weight management has an exit strategy built in from the start.",
     ],
   },
-] as const
+]
 
 // =============================================================================
 // COMPONENT
@@ -92,8 +98,8 @@ export function WeightManagementGuideSection() {
           {GUIDE_SECTIONS.map((section, i) => (
             <Reveal key={section.id} delay={i * 0.05}>
               <div className="flex items-start gap-4">
-                <div className="shrink-0 mt-0.5 w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <section.icon className="w-4.5 h-4.5 text-primary" />
+                <div className="shrink-0 mt-0.5">
+                  <StickerIcon name={section.sticker} size={36} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="text-lg font-semibold text-foreground mb-3">

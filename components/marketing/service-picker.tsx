@@ -154,7 +154,7 @@ export function ServicePicker() {
                       <div className="p-4 pb-3 flex-1 flex flex-col">
                         {/* Icon + title row */}
                         <div className="flex items-center gap-2.5 mb-2">
-                          <ServiceIconTile iconKey={service.icon} color={service.color} size="sm" />
+                          <ServiceIconTile iconKey={service.icon} color={service.color} size="sm" variant="sticker" />
                           <div>
                             <h3 className="text-base font-semibold text-foreground group-hover:text-primary transition-colors duration-300">
                               {service.title}

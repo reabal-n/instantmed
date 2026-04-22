@@ -94,7 +94,7 @@ export function ResourcesDropdown({ isActivePath }: ResourcesDropdownProps) {
                 {resourceLinks.map((link) => (
                   <DropdownMenuItem key={link.href} asChild className="rounded-xl p-0 focus:bg-primary/10 dark:focus:bg-primary/20">
                     <Link href={link.href} className="flex items-center gap-3 px-3 py-2.5 w-full">
-                      <StickerIcon name={link.sticker} size={32} />
+                      <StickerIcon name={link.sticker} size={32} loading="eager" />
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-foreground">{link.title}</p>
                         <p className="text-xs text-muted-foreground">{link.description}</p>
@@ -111,7 +111,7 @@ export function ResourcesDropdown({ isActivePath }: ResourcesDropdownProps) {
                 {companyLinks.map((link) => (
                   <DropdownMenuItem key={link.href} asChild className="rounded-xl p-0 focus:bg-primary/10 dark:focus:bg-primary/20">
                     <Link href={link.href} className="flex items-center gap-2.5 px-3 py-2 w-full">
-                      <StickerIcon name={link.sticker} size={24} />
+                      <StickerIcon name={link.sticker} size={24} loading="eager" />
                       <p className="text-sm text-muted-foreground hover:text-foreground">{link.title}</p>
                     </Link>
                   </DropdownMenuItem>

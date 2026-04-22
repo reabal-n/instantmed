@@ -1,16 +1,9 @@
 "use client"
 
-import {
-  AlertTriangle,
-  BookOpen,
-  ClipboardCheck,
-  ExternalLink,
-  RefreshCw,
-  Scale,
-  UserCheck,
-} from "lucide-react"
+import { ExternalLink } from "lucide-react"
 import Link from "next/link"
-import type { ReactNode } from "react"
+
+import { StickerIcon } from "@/components/icons/stickers"
 
 import { StatsHero } from "@/components/heroes"
 import { MarketingFooter } from "@/components/marketing"
@@ -61,47 +54,39 @@ const reviewProcess: TimelineStep[] = [
   },
 ]
 
-function TrustIcon({ icon }: { icon: ReactNode }) {
-  return (
-    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-      {icon}
-    </div>
-  )
-}
-
 const safeguards: FeatureItem[] = [
   {
-    icon: <TrustIcon icon={<UserCheck className="w-6 h-6 text-primary" />} />,
+    icon: <StickerIcon name="medical-doctor" size={44} />,
     title: "Clinical Leadership",
     description:
       "AHPRA-registered Medical Director maintains every clinical protocol with a documented review cycle and escalation pathway.",
   },
   {
-    icon: <TrustIcon icon={<Scale className="w-6 h-6 text-primary" />} />,
+    icon: <StickerIcon name="scales" size={44} />,
     title: "Scope of Practice",
     description:
       "Focused on low-complexity, high-frequency presentations. Complex or high-risk cases referred to in-person care.",
   },
   {
-    icon: <TrustIcon icon={<ClipboardCheck className="w-6 h-6 text-primary" />} />,
+    icon: <StickerIcon name="checklist" size={44} />,
     title: "Quality Assurance",
     description:
       "Structured self-audit, random sampling of approved and declined cases, incident reporting framework, and patient feedback integration.",
   },
   {
-    icon: <TrustIcon icon={<AlertTriangle className="w-6 h-6 text-primary" />} />,
+    icon: <StickerIcon name="warning" size={44} />,
     title: "Safety Boundaries",
     description:
       "No controlled substances (S8). No treatments requiring physical examination. Automatic escalation for red-flag symptoms.",
   },
   {
-    icon: <TrustIcon icon={<RefreshCw className="w-6 h-6 text-primary" />} />,
+    icon: <StickerIcon name="synchronize" size={44} />,
     title: "Continuous Improvement",
     description:
       "Quarterly protocol reviews, post-incident reviews, integration of new RACGP/TGA guidelines, and ongoing CPD.",
   },
   {
-    icon: <TrustIcon icon={<BookOpen className="w-6 h-6 text-primary" />} />,
+    icon: <StickerIcon name="medical-history" size={44} />,
     title: "Evidence-Based Protocols",
     description:
       "Clinical processes align with RACGP Standards, TGA regulations, PBS guidelines, and AHPRA Telehealth Guidelines.",
@@ -113,7 +98,7 @@ const safeguards: FeatureItem[] = [
 const guideSections: GuideSectionData[] = [
   {
     id: "what-clinical-governance-means",
-    icon: "Shield",
+    icon: "security-shield",
     title: "What clinical governance means in telehealth",
     paragraphs: [
       "Clinical governance is the framework that ensures healthcare organisations deliver safe, effective, and accountable care. In a traditional GP clinic, governance happens partly by proximity - doctors work alongside colleagues, practice managers observe workflows, and patients interact face-to-face with their care team. Telehealth removes that proximity, which means governance has to be more deliberate, more structured, and more transparent.",
@@ -123,7 +108,7 @@ const guideSections: GuideSectionData[] = [
   },
   {
     id: "how-doctor-decisions-are-reviewed",
-    icon: "Scale",
+    icon: "scales",
     title: "How doctor decisions are reviewed",
     paragraphs: [
       "Every clinical decision at InstantMed is traceable. When a doctor approves, declines, or escalates a patient request, that decision is recorded with the clinical reasoning, the information reviewed, and the outcome. This audit trail is not optional - it is built into the platform architecture and cannot be bypassed.",
@@ -134,7 +119,7 @@ const guideSections: GuideSectionData[] = [
   },
   {
     id: "prescribing-boundaries",
-    icon: "ShieldAlert",
+    icon: "warning",
     title: "Our prescribing boundaries",
     paragraphs: [
       "InstantMed maintains strict prescribing boundaries that go beyond minimum regulatory requirements. We do not prescribe Schedule 8 (controlled) substances under any circumstances. This is a hard boundary enforced at the platform level - our intake system will not accept requests for these medications, and the restriction cannot be clinician-overridden. There is no clinical scenario in which an asynchronous telehealth consultation is the appropriate channel for initiating or continuing controlled substance therapy.",
@@ -145,7 +130,7 @@ const guideSections: GuideSectionData[] = [
   },
   {
     id: "patient-safety-and-escalation",
-    icon: "Heart",
+    icon: "heart",
     title: "Patient safety and escalation",
     paragraphs: [
       "Patient safety in telehealth depends on knowing what you can and cannot assess remotely. Our intake forms are designed to identify red-flag symptoms - clinical indicators that suggest the patient needs in-person assessment rather than telehealth management. Chest pain, sudden neurological symptoms, signs of serious infection, and other emergency presentations are flagged automatically, and the patient is directed to call 000 or attend their nearest emergency department.",
@@ -156,7 +141,7 @@ const guideSections: GuideSectionData[] = [
   },
   {
     id: "regulatory-framework",
-    icon: "Landmark",
+    icon: "certificate",
     title: "Regulatory framework",
     paragraphs: [
       "InstantMed operates within the regulatory framework established by several Australian bodies. The Australian Health Practitioner Regulation Agency (AHPRA) registers and regulates all health practitioners in Australia - every doctor on our platform holds current, unrestricted AHPRA registration, which can be independently verified on the public register. AHPRA's codes of conduct and guidelines for technology-based consultations inform our clinical protocols directly.",

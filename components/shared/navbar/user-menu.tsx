@@ -125,7 +125,7 @@ export function UserMenu({
                   onClick={() => !disabled && router.push(service.href)}
                 >
                   <div className="flex items-center gap-2">
-                    <ServiceIconTile iconKey={service.iconKey} color={service.color} size="sm" />
+                    <ServiceIconTile iconKey={service.iconKey} color={service.color} size="sm" variant="sticker" stickerLoading="eager" />
                     <div>
                       <p className="text-sm font-medium">{service.title}</p>
                       <p className="text-xs text-muted-foreground">

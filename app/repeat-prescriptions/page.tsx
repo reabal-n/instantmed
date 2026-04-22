@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 
-import { RepeatRxGuideSection } from '@/components/marketing/sections'
+import { RepeatRxConditionsSection, RepeatRxGuideSection } from '@/components/marketing/sections'
 import { ServiceFunnelPage } from '@/components/marketing/service-funnel-page'
 import { BreadcrumbSchema, FAQSchema,MedicalServiceSchema } from '@/components/seo/healthcare-schema'
 import { PRICING_DISPLAY } from '@/lib/constants'
@@ -56,6 +56,7 @@ export default async function RepeatPrescriptionsPage() {
       />
       <FAQSchema faqs={repeatRxFaqs} />
       <ServiceFunnelPage config={repeatScriptFunnelConfig} isDisabled={flags.disable_repeat_scripts}>
+        <RepeatRxConditionsSection />
         <RepeatRxGuideSection />
       </ServiceFunnelPage>
     </>

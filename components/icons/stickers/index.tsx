@@ -36,14 +36,24 @@ export type StickerIconName =
   | 'user-check'
   | 'verified-badge'
   | 'warning'
+  | 'bandage'
+  | 'brain'
+  | 'diabetes'
+  | 'lungs'
+  | 'pill'
+  | 'syringe'
+  | 'thermometer'
+  | 'wallet'
+  | 'laptop'
 
 interface StickerIconProps {
   name: StickerIconName
   size?: number
   className?: string
+  loading?: 'lazy' | 'eager'
 }
 
-export function StickerIcon({ name, size = 48, className }: StickerIconProps) {
+export function StickerIcon({ name, size = 48, className, loading = 'lazy' }: StickerIconProps) {
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
@@ -53,7 +63,7 @@ export function StickerIcon({ name, size = 48, className }: StickerIconProps) {
       className={className}
       aria-hidden="true"
       alt=""
-      loading="lazy"
+      loading={loading}
     />
   )
 }

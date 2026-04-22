@@ -1,16 +1,22 @@
-import { BadgeCheck, Heart, Lock, MapPin, Monitor, ShieldCheck } from "lucide-react"
+import { BadgeCheck } from "lucide-react"
 import Link from "next/link"
 
+import { StickerIcon, type StickerIconName } from "@/components/icons/stickers"
 import { Reveal } from "@/components/ui/reveal"
 
 // =============================================================================
 // DATA
 // =============================================================================
 
-const GUIDE_SECTIONS = [
+const GUIDE_SECTIONS: Array<{
+  id: string
+  sticker: StickerIconName
+  title: string
+  paragraphs: readonly string[]
+}> = [
   {
     id: "why-we-built",
-    icon: Heart,
+    sticker: "heart",
     title: "Why we built InstantMed",
     paragraphs: [
       "Around 75% of Australians live in urban areas, but that hasn't translated into easy access to primary care. Average wait times for a non-urgent GP appointment sit at two to three weeks in most capital cities. Bulk billing has been declining for over a decade. And for many people, the experience of getting a simple medical certificate means taking a sick day to prove you need a sick day - which, if you think about it for more than a few seconds, is genuinely absurd.",
@@ -20,7 +26,7 @@ const GUIDE_SECTIONS = [
   },
   {
     id: "async-model",
-    icon: Monitor,
+    sticker: "laptop",
     title: "How our asynchronous model works",
     paragraphs: [
       "Most telehealth services in Australia use video or phone consultations - essentially replicating a GP waiting room, but on a screen. InstantMed takes a different approach. Our model is asynchronous: you fill in a structured clinical form at a time that suits you, and a doctor reviews your request and supporting information when they're ready to give it proper attention. No scheduling, no hold music, no awkward video calls from your car park.",
@@ -30,7 +36,7 @@ const GUIDE_SECTIONS = [
   },
   {
     id: "clinical-standards",
-    icon: ShieldCheck,
+    sticker: "security-shield",
     title: "Our commitment to clinical standards",
     paragraphs: [
       "Every doctor on InstantMed is registered with the Australian Health Practitioner Regulation Agency (AHPRA) and holds a current, unrestricted medical licence. Our clinical operations are overseen by a Medical Director with Fellowship of the Royal Australian College of General Practitioners (FRACGP), who is responsible for clinical governance, protocol development, and quality assurance.",
@@ -40,7 +46,7 @@ const GUIDE_SECTIONS = [
   },
   {
     id: "privacy",
-    icon: Lock,
+    sticker: "lock",
     title: "Privacy and data protection",
     paragraphs: [
       "Your health information is sensitive, and we treat it that way. InstantMed complies with the Privacy Act 1988 and all 13 Australian Privacy Principles (APPs). We collect only the information necessary to provide clinical care, and we're transparent about what that includes: your identity details, contact information, medical history, symptoms, and payment information.",
@@ -50,7 +56,7 @@ const GUIDE_SECTIONS = [
   },
   {
     id: "australian-healthcare",
-    icon: MapPin,
+    sticker: "map-pin",
     title: "Our place in Australian healthcare",
     paragraphs: [
       "Telehealth isn't new in Australia. Medicare has covered telehealth consultations permanently since 2020, and the practice has been part of Australian healthcare - particularly in rural and remote areas - for decades before that. What's relatively new is the recognition that for certain types of care, asynchronous telehealth can be just as effective as synchronous consultations, and more convenient for patients.",
@@ -58,7 +64,7 @@ const GUIDE_SECTIONS = [
       "We're not trying to disrupt anything. The Australian healthcare system, for all its challenges, is one of the best in the world. We're simply making a specific part of it more accessible - because getting straightforward healthcare shouldn't require rearranging your entire day.",
     ],
   },
-] as const
+]
 
 // =============================================================================
 // COMPONENT
@@ -92,8 +98,8 @@ export function AboutGuideSection() {
           {GUIDE_SECTIONS.map((section, i) => (
             <Reveal key={section.id} delay={i * 0.05}>
               <div className="flex items-start gap-4">
-                <div className="shrink-0 mt-0.5 w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <section.icon className="w-4.5 h-4.5 text-primary" />
+                <div className="shrink-0 mt-0.5">
+                  <StickerIcon name={section.sticker} size={36} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="text-lg font-semibold text-foreground mb-3">

@@ -110,19 +110,10 @@ export function Hero({ children }: { children?: React.ReactNode }) {
               <GuaranteeBadge size="md" />
             </div>
 
-            {/* Patient count */}
-            {patientCount > 0 && (
-              <p className="text-xs text-muted-foreground flex items-center justify-center lg:justify-start gap-1.5 mb-4 sm:mb-5 -mt-4">
-                <CheckCircle2 className="h-3.5 w-3.5 text-success shrink-0" aria-hidden="true" />
-                Trusted by {patientCount.toLocaleString()}+ Australians
-              </p>
-            )}
-
             {/* Trust signals */}
             <div className="hero-trust-enter flex flex-col items-center lg:items-start gap-1">
               <TrustBadgeRow
                 badges={[
-                  { id: 'social_proof', variant: 'styled' },
                   { id: 'no_call', variant: 'styled' },
                   'refund',
                 ]}

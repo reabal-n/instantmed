@@ -1,23 +1,22 @@
-import {
-  AlertTriangle,
-  BadgeCheck,
-  ClipboardCheck,
-  Eye,
-  Monitor,
-  ShieldAlert,
-} from "lucide-react"
+import { BadgeCheck } from "lucide-react"
 import Link from "next/link"
 
+import { StickerIcon, type StickerIconName } from "@/components/icons/stickers"
 import { Reveal } from "@/components/ui/reveal"
 
 // =============================================================================
 // DATA
 // =============================================================================
 
-const GUIDE_SECTIONS = [
+const GUIDE_SECTIONS: Array<{
+  id: string
+  sticker: StickerIconName
+  title: string
+  paragraphs: readonly string[]
+}> = [
   {
     id: "clinical-process",
-    icon: ClipboardCheck,
+    sticker: "checklist",
     title: "The clinical decision-making process",
     paragraphs: [
       "Every request submitted through InstantMed goes through a structured clinical assessment by an AHPRA-registered doctor. There are no automated approvals, no AI making clinical calls, and no shortcuts. The doctor reviews your reported symptoms, medical history, current medications, and the specific service you've requested - then applies clinical guidelines to determine whether your request is appropriate.",
@@ -27,7 +26,7 @@ const GUIDE_SECTIONS = [
   },
   {
     id: "telehealth-assessment",
-    icon: Monitor,
+    sticker: "laptop",
     title: "How telehealth assessment works",
     paragraphs: [
       "When a doctor reviews your request, they have access to everything you've provided: your questionnaire responses, medical history, current medications, previous consultations through our platform, and any additional information you've shared. For straightforward presentations - a cold that's kept you home, a medication you've been stable on for months - this information is sufficient for a sound clinical decision.",
@@ -37,7 +36,7 @@ const GUIDE_SECTIONS = [
   },
   {
     id: "declined-requests",
-    icon: ShieldAlert,
+    sticker: "synchronize",
     title: "When and why requests are declined",
     paragraphs: [
       "Requests are declined when the doctor determines that approving them wouldn't be clinically appropriate. Common reasons include: the condition requires a physical examination that can't be done remotely, the medication needs monitoring (blood tests, blood pressure checks) that we can't verify, the symptoms suggest something more serious that warrants urgent or in-person care, or the information provided is incomplete and the patient hasn't responded to follow-up.",
@@ -47,7 +46,7 @@ const GUIDE_SECTIONS = [
   },
   {
     id: "safety-protocols",
-    icon: AlertTriangle,
+    sticker: "warning",
     title: "Safety protocols and escalation",
     paragraphs: [
       "When a doctor identifies red flags during a review - symptoms that suggest something urgent, medication interactions that raise concerns, or patterns that warrant immediate attention - they don't just decline the request and move on. They escalate. If something looks wrong, the doctor picks up the phone. Speed matters less than safety.",
@@ -57,7 +56,7 @@ const GUIDE_SECTIONS = [
   },
   {
     id: "transparency",
-    icon: Eye,
+    sticker: "eye",
     title: "Transparency and accountability",
     paragraphs: [
       "Every clinical decision made on our platform is documented - who reviewed it, when, what information they had, and what they decided. This isn't just good practice; it's a requirement of operating a legitimate medical service. These records exist for the same reason they exist in any GP clinic: accountability, continuity of care, and the ability to learn from patterns over time.",
@@ -65,7 +64,7 @@ const GUIDE_SECTIONS = [
       "Our complaints process is real. If you have a concern about a clinical decision, you can contact us at complaints@instantmed.com.au and receive a response within 14 days. Complaints are reviewed by the Medical Director, not filtered through a customer service script. We'd rather explain why we said no than apologise for saying yes when we shouldn't have.",
     ],
   },
-] as const
+]
 
 // =============================================================================
 // COMPONENT
@@ -98,8 +97,8 @@ export function HowWeDecideGuideSection() {
           {GUIDE_SECTIONS.map((section, i) => (
             <Reveal key={section.id} delay={i * 0.05}>
               <div className="flex items-start gap-4">
-                <div className="shrink-0 mt-0.5 w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <section.icon className="w-4.5 h-4.5 text-primary" />
+                <div className="shrink-0 mt-0.5">
+                  <StickerIcon name={section.sticker} size={36} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="text-lg font-semibold text-foreground mb-3">

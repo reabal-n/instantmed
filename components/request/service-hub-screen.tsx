@@ -345,7 +345,7 @@ function CompactServiceRow({
       >
         <div className="flex items-center gap-3.5">
           {/* Service icon tile — canonical gradient-tile variant */}
-          <ServiceIconTile iconKey={iconKey} color={colorToken} size="md" className="shrink-0" />
+          <ServiceIconTile iconKey={iconKey} color={colorToken} size="md" className="shrink-0" variant="sticker" />
 
           {/* Content */}
           <div className="flex-1 min-w-0">

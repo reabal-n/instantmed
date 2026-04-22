@@ -62,7 +62,7 @@ function ServiceCard({ service, disabled }: ServiceCardProps) {
           ],
         )}>
           {/* Icon - compact, no glow */}
-          <ServiceIconTile iconKey={service.icon} color={service.color} size="md" className="mb-4" />
+          <ServiceIconTile iconKey={service.icon} color={service.color} size="lg" className="mb-4" variant="sticker" stickerLoading="eager" />
 
           {/* Title + Price */}
           <h3 className="text-base font-semibold text-foreground group-hover:text-primary transition-colors duration-200 mb-0.5">

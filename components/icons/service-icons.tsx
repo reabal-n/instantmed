@@ -41,6 +41,8 @@ const stickerMap: Record<string, StickerIconName> = {
   Lightning:   'lightning',
   Sparkles:    'hair-brush',
   Stethoscope: 'stethoscope',
+  Heart:       'heart-with-pulse',
+  Flame:       'thermometer',
 }
 
 // Service colour tokens. Pair with lib/services/service-catalog.ts `colorToken`.
@@ -72,9 +74,11 @@ interface ServiceIconTileProps {
    * - `sticker`: playful illustrated SVG. Marketing-only.
    */
   variant?: 'tile' | 'sticker'
+  /** Passed to the underlying <img> loading attribute when variant="sticker". */
+  stickerLoading?: 'lazy' | 'eager'
 }
 
-export function ServiceIconTile({ iconKey, color, size = 'md', className, variant = 'tile' }: ServiceIconTileProps) {
+export function ServiceIconTile({ iconKey, color, size = 'md', className, variant = 'tile', stickerLoading = 'lazy' }: ServiceIconTileProps) {
   const colors = serviceColorConfig[color] || serviceColorConfig.emerald
   const { tile, icon } = tileSizes[size]
   const stickerSize = size === 'sm' ? 32 : size === 'md' ? 40 : 48
@@ -84,7 +88,7 @@ export function ServiceIconTile({ iconKey, color, size = 'md', className, varian
     if (stickerName) {
       return (
         <div className={cn('flex items-center justify-center flex-shrink-0', className)}>
-          <StickerIcon name={stickerName} size={stickerSize} />
+          <StickerIcon name={stickerName} size={stickerSize} loading={stickerLoading} />
         </div>
       )
     }

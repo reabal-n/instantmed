@@ -1,6 +1,7 @@
-import { BadgeCheck, DollarSign, Pill, Smartphone, Stethoscope, UserCheck } from "lucide-react"
+import { BadgeCheck } from "lucide-react"
 import Link from "next/link"
 
+import { StickerIcon, type StickerIconName } from "@/components/icons/stickers"
 import { Reveal } from "@/components/ui/reveal"
 import { PRICING_DISPLAY } from "@/lib/constants"
 
@@ -8,10 +9,15 @@ import { PRICING_DISPLAY } from "@/lib/constants"
 // DATA
 // =============================================================================
 
-const GUIDE_SECTIONS = [
+const GUIDE_SECTIONS: Array<{
+  id: string
+  sticker: StickerIconName
+  title: string
+  paragraphs: readonly string[]
+}> = [
   {
     id: "what-is-escript",
-    icon: Smartphone,
+    sticker: "sent",
     title: "What is an eScript?",
     paragraphs: [
       "An electronic prescription - commonly called an eScript - is a digital version of the traditional paper prescription. Since 2020, eScripts have become the national standard for prescribing in Australia, replacing the handwritten scripts that spent decades getting lost in jacket pockets and car glove boxes.",
@@ -22,7 +28,7 @@ const GUIDE_SECTIONS = [
   },
   {
     id: "how-online-repeats-work",
-    icon: Stethoscope,
+    sticker: "stethoscope",
     title: "How repeat prescriptions work online",
     paragraphs: [
       "An online repeat prescription follows the same clinical process as a face-to-face consultation - the delivery method is different, but the medical standard is identical. You submit a request through our platform detailing the medication you're currently taking, how long you've been on it, and your medical history. A doctor then reviews your request.",
@@ -33,7 +39,7 @@ const GUIDE_SECTIONS = [
   },
   {
     id: "pbs-costs",
-    icon: DollarSign,
+    sticker: "wallet",
     title: "PBS subsidies and medication costs",
     paragraphs: [
       `The ${PRICING_DISPLAY.REPEAT_SCRIPT} consultation fee covers the doctor's clinical assessment and the issuing of your eScript. It does not include the cost of the medication itself - that's a separate transaction at your pharmacy, and PBS subsidies apply exactly as they would with any other prescription.`,
@@ -44,7 +50,7 @@ const GUIDE_SECTIONS = [
   },
   {
     id: "what-we-can-prescribe",
-    icon: Pill,
+    sticker: "pill-bottle",
     title: "Medications we can and can't prescribe online",
     paragraphs: [
       "Online repeat prescriptions work well for stable, ongoing medications where the treatment plan is established and the patient is responding well. Common categories include blood pressure medications (ACE inhibitors, ARBs, calcium channel blockers), cholesterol management (statins), oral contraceptives, thyroid hormone replacement, asthma preventers and relievers, reflux medications (proton pump inhibitors), and antidepressants where the patient is stable on their current dose.",
@@ -55,7 +61,7 @@ const GUIDE_SECTIONS = [
   },
   {
     id: "when-to-see-gp",
-    icon: UserCheck,
+    sticker: "user-check",
     title: "When to see your regular GP instead",
     paragraphs: [
       "Online repeat prescriptions solve a specific problem: getting a new script for a medication you're already taking, when getting to a GP clinic is inconvenient or impractical. But they don't replace the relationship you have - or should have - with a regular general practitioner.",
@@ -98,8 +104,8 @@ export function RepeatRxGuideSection() {
           {GUIDE_SECTIONS.map((section, i) => (
             <Reveal key={section.id} delay={i * 0.05}>
               <div className="flex items-start gap-4">
-                <div className="shrink-0 mt-0.5 w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <section.icon className="w-4.5 h-4.5 text-primary" />
+                <div className="shrink-0 mt-0.5">
+                  <StickerIcon name={section.sticker} size={36} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="text-lg font-semibold text-foreground mb-3">

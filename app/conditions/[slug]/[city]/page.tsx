@@ -6,12 +6,12 @@ import {
   FileText,
   MapPin,
   Shield,
-  Stethoscope,
 } from "lucide-react"
 import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 
+import { StickerIcon } from "@/components/icons/stickers"
 import { BreadcrumbSchema, FAQSchema, HealthArticleSchema, MedicalDisclaimer } from "@/components/seo"
 import { Footer,Navbar } from "@/components/shared"
 import { Button } from "@/components/ui/button"
@@ -241,7 +241,7 @@ export default async function ConditionLocationPage({ params }: PageProps) {
               <div className="grid md:grid-cols-2 gap-8">
                 <div>
                   <h2 className="text-xl font-semibold text-foreground mb-6 flex items-center gap-2">
-                    <Stethoscope className="w-5 h-5 text-primary" />
+                    <StickerIcon name="stethoscope" size={20} />
                     When to see a doctor
                   </h2>
                   <ul className="space-y-3">

@@ -1,19 +1,11 @@
 "use client"
 
-import {
-  Activity,
-  AlertTriangle,
-  BadgeCheck,
-  ClipboardCheck,
-  HeartPulse,
-  Lock,
-  Pill,
-  ShieldAlert,
-  Stethoscope,
-} from "lucide-react"
+import { AlertTriangle, BadgeCheck, HeartPulse, Pill } from "lucide-react"
 import Link from "next/link"
 import type React from "react"
 import { useRef } from "react"
+
+import { StickerIcon, type StickerIconName } from "@/components/icons/stickers"
 
 import { usePostHog } from "@/components/providers/posthog-provider"
 import {
@@ -30,12 +22,12 @@ import { Reveal } from "@/components/ui/reveal"
 
 function GuideItem({
   value,
-  icon: Icon,
+  sticker,
   title,
   children,
 }: {
   value: string
-  icon: React.ElementType
+  sticker: StickerIconName
   title: string
   children: React.ReactNode
 }) {
@@ -46,14 +38,12 @@ function GuideItem({
     >
       <AccordionTrigger className="py-4 hover:no-underline gap-3">
         <div className="flex items-center gap-3">
-          <div className="shrink-0 w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-            <Icon className="w-4 h-4 text-primary" />
-          </div>
+          <StickerIcon name={sticker} size={28} loading="eager" />
           <span className="text-[15px] font-semibold text-foreground text-left">{title}</span>
         </div>
       </AccordionTrigger>
       <AccordionContent>
-        <div className="pl-11 pb-2">{children}</div>
+        <div className="pl-10 pb-2">{children}</div>
       </AccordionContent>
     </AccordionItem>
   )
@@ -113,7 +103,7 @@ export function EDGuideSection() {
           onValueChange={handleAccordionChange}
         >
           {/* 1. Understanding ED */}
-          <GuideItem value="understanding" icon={HeartPulse} title="Understanding erectile dysfunction">
+          <GuideItem value="understanding" sticker="heart-with-pulse" title="Understanding erectile dysfunction">
             <div className="space-y-3 pt-1">
               <div className="rounded-lg bg-primary/5 border border-primary/15 p-3 flex items-start gap-2.5">
                 <HeartPulse className="h-4 w-4 text-primary shrink-0 mt-0.5" />
@@ -131,7 +121,7 @@ export function EDGuideSection() {
           </GuideItem>
 
           {/* 2. ED as a signal - card grid */}
-          <GuideItem value="signal" icon={Activity} title="When ED is a signal of something bigger">
+          <GuideItem value="signal" sticker="pulse" title="When ED is a signal of something bigger">
             <div className="space-y-3 pt-1">
               <p className="text-sm text-muted-foreground">
                 ED is one of the earliest signals the body gives for several underlying conditions. Catching it early can mean catching the underlying issue earlier too.
@@ -155,7 +145,7 @@ export function EDGuideSection() {
           </GuideItem>
 
           {/* 3. How the assessment works */}
-          <GuideItem value="assessment" icon={ClipboardCheck} title="How our assessment works">
+          <GuideItem value="assessment" sticker="checklist" title="How our assessment works">
             <div className="pt-1">
               <div className="space-y-4">
                 {[
@@ -181,7 +171,7 @@ export function EDGuideSection() {
           </GuideItem>
 
           {/* 4. Treatment options */}
-          <GuideItem value="treatments" icon={Pill} title="Treatment options">
+          <GuideItem value="treatments" sticker="pill" title="Treatment options">
             <div className="space-y-3 pt-1">
               <div className="rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-700/50 p-3 flex items-start gap-2.5">
                 <Pill className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
@@ -199,7 +189,7 @@ export function EDGuideSection() {
           </GuideItem>
 
           {/* 5. Safety */}
-          <GuideItem value="safety" icon={ShieldAlert} title="Safety and contraindications">
+          <GuideItem value="safety" sticker="warning" title="Safety and contraindications">
             <div className="space-y-3 pt-1">
               <div className="rounded-lg bg-destructive/5 border border-destructive/20 p-3 flex items-start gap-2.5">
                 <AlertTriangle className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
@@ -220,7 +210,7 @@ export function EDGuideSection() {
           </GuideItem>
 
           {/* 6. When to see in person */}
-          <GuideItem value="in-person" icon={Stethoscope} title="When to see a GP in person instead">
+          <GuideItem value="in-person" sticker="stethoscope" title="When to see a GP in person instead">
             <div className="pt-1">
               <p className="text-sm text-muted-foreground mb-3">Online assessment isn't right for every situation. See a GP in person if:</p>
               <Bullets items={[
@@ -233,7 +223,7 @@ export function EDGuideSection() {
           </GuideItem>
 
           {/* 7. Privacy */}
-          <GuideItem value="privacy" icon={Lock} title="Privacy: what stays private">
+          <GuideItem value="privacy" sticker="lock" title="Privacy: what stays private">
             <div className="space-y-2.5 pt-1">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                 {[

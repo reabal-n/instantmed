@@ -38,7 +38,7 @@ export function MobileMenuContent({ variant, onClose }: MobileMenuContentProps) 
               label: service.title,
               href: service.href,
               description: isServiceDisabled(service.serviceId) ? "Temporarily unavailable" : service.description,
-              icon: <ServiceIconTile iconKey={service.iconKey} color={service.color} size="sm" />,
+              icon: <ServiceIconTile iconKey={service.iconKey} color={service.color} size="sm" variant="sticker" />,
               disabled: isServiceDisabled(service.serviceId),
             }}
             index={index}
@@ -125,7 +125,7 @@ export function MobileMenuContent({ variant, onClose }: MobileMenuContentProps) 
               label: service.title,
               href: service.href,
               description: isServiceDisabled(service.serviceId) ? "Temporarily unavailable" : service.description,
-              icon: <ServiceIconTile iconKey={service.iconKey} color={service.color} size="sm" />,
+              icon: <ServiceIconTile iconKey={service.iconKey} color={service.color} size="sm" variant="sticker" />,
               disabled: isServiceDisabled(service.serviceId),
             }}
             index={index + 3}
