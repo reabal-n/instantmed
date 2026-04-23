@@ -166,29 +166,52 @@ export async function POST(request: Request) {
       return NextResponse.json({ received: true, warning: "Patient not found" })
     }
 
-    // Atomically claim the most recent awaiting_script intake for this patient.
-    // The WHERE status='awaiting_script' AND parchment_reference IS NULL prevents
-    // races between the webhook and a concurrent "Mark Sent Manually" click.
-    const { data: claimed, error: claimError } = await supabase
+    // PostgREST does not support UPDATE + ORDER BY + LIMIT, so we SELECT the
+    // target row first, then UPDATE by ID. Redis dedup + the parchment_reference
+    // IS NULL guard on the UPDATE prevent double-processing under concurrent retries.
+    const { data: candidate, error: selectError } = await supabase
       .from("intakes")
-      .update({
-        parchment_reference: scid,
-        updated_at: new Date().toISOString(),
-      })
+      .select("id")
       .eq("patient_id", patientProfileId)
       .eq("status", "awaiting_script")
       .is("parchment_reference", null)
       .order("created_at", { ascending: false })
       .limit(1)
-      .select("id, parchment_reference")
       .maybeSingle()
 
-    if (claimError) {
-      log.error("Failed to claim intake for webhook", { patientProfileId, scid }, new Error(String(claimError)))
-      Sentry.captureException(new Error(`Parchment webhook claim error: ${String(claimError)}`), {
+    if (selectError) {
+      const msg = selectError.message ?? JSON.stringify(selectError)
+      log.error("Failed to find claimable intake for webhook", { patientProfileId, scid }, new Error(msg))
+      Sentry.captureException(new Error(`Parchment webhook select error: ${msg}`), {
         extra: { patientProfileId, scid, eventId: payload.event_id },
       })
-      return NextResponse.json({ error: "Failed to claim intake" }, { status: 500 })
+      return NextResponse.json({ error: "Failed to find intake" }, { status: 500 })
+    }
+
+    let claimed: { id: string; parchment_reference: string | null } | null = null
+
+    if (candidate) {
+      const { data: claimedRow, error: claimError } = await supabase
+        .from("intakes")
+        .update({
+          parchment_reference: scid,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", candidate.id)
+        .is("parchment_reference", null)
+        .select("id, parchment_reference")
+        .maybeSingle()
+
+      if (claimError) {
+        const msg = claimError.message ?? JSON.stringify(claimError)
+        log.error("Failed to claim intake for webhook", { patientProfileId, scid }, new Error(msg))
+        Sentry.captureException(new Error(`Parchment webhook claim error: ${msg}`), {
+          extra: { patientProfileId, scid, eventId: payload.event_id },
+        })
+        return NextResponse.json({ error: "Failed to claim intake" }, { status: 500 })
+      }
+
+      claimed = claimedRow
     }
 
     // Include event_id in script_notes for webhook idempotency audit trail

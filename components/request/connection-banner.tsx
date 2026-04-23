@@ -33,7 +33,7 @@ export function ConnectionBanner({ className }: ConnectionBannerProps) {
         >
           <div className="flex items-center justify-between gap-3 px-4 py-2.5 bg-warning-light border-b border-warning-border">
             <div className="flex items-center gap-2">
-              <WifiOff className="w-4 h-4 text-amber-600" />
+              <WifiOff className="w-4 h-4 text-warning" />
               <span className="text-sm font-medium text-warning">
                 You&apos;re offline
               </span>
@@ -59,15 +59,15 @@ export function ConnectionBanner({ className }: ConnectionBannerProps) {
         >
           <div className="flex items-center justify-between gap-3 px-4 py-2.5 bg-info-light border-b border-info-border">
             <div className="flex items-center gap-2">
-              <CloudOff className="w-4 h-4 text-blue-600" />
-              <span className="text-sm font-medium text-blue-800 dark:text-blue-200">
+              <CloudOff className="w-4 h-4 text-info" />
+              <span className="text-sm font-medium text-info">
                 {pendingCount} pending change{pendingCount !== 1 ? 's' : ''}
               </span>
             </div>
             <Button
               size="sm"
               variant="ghost"
-              className="h-7 gap-1.5 text-blue-700 hover:text-blue-800 hover:bg-blue-100"
+              className="h-7 gap-1.5 text-info hover:text-info hover:bg-info-light"
               onClick={syncPending}
               disabled={isSyncing}
             >
@@ -103,18 +103,18 @@ export function ConnectionIndicator() {
   return (
     <div className="flex items-center gap-1.5">
       {!isOnline ? (
-        <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-amber-100 dark:bg-amber-500/20">
-          <WifiOff className="w-3 h-3 text-amber-600" />
+        <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-warning-light dark:bg-warning/20">
+          <WifiOff className="w-3 h-3 text-warning" />
           <span className="text-xs font-medium text-warning">Offline</span>
         </div>
       ) : isSyncing ? (
-        <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-blue-100 dark:bg-blue-500/20">
-          <RefreshCw className="w-3 h-3 text-blue-600 animate-spin" />
+        <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-info-light dark:bg-info/20">
+          <RefreshCw className="w-3 h-3 text-info motion-safe:animate-spin" />
           <span className="text-xs font-medium text-info">Syncing</span>
         </div>
       ) : pendingCount > 0 ? (
-        <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-blue-100 dark:bg-blue-500/20">
-          <CloudOff className="w-3 h-3 text-blue-600" />
+        <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-info-light dark:bg-info/20">
+          <CloudOff className="w-3 h-3 text-info" />
           <span className="text-xs font-medium text-info">{pendingCount}</span>
         </div>
       ) : null}

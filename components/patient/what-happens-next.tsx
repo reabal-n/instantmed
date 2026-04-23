@@ -106,7 +106,7 @@ export function WhatHappensNext({
             initial={prefersReducedMotion ? {} : { scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ type: "tween", ease: [0.22, 1, 0.36, 1], duration: 0.3, delay: prefersReducedMotion ? 0 : 0.2 }}
-            className="w-16 h-16 mx-auto mb-4 rounded-full bg-emerald-500 flex items-center justify-center"
+            className="w-16 h-16 mx-auto mb-4 rounded-full bg-success flex items-center justify-center"
           >
             <CheckCircle2 className="w-8 h-8 text-white" />
           </motion.div>
@@ -131,8 +131,8 @@ export function WhatHappensNext({
             className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-success-light border border-success-border"
           >
             <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+              <span className="motion-safe:animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-60" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-success" />
             </span>
             <span className="text-xs font-medium text-success">
               {isMedCert ? "Typically delivered in under 30 minutes" : "Doctors are reviewing requests now"}

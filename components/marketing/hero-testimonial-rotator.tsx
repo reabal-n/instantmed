@@ -56,12 +56,12 @@ export function HeroTestimonialRotator({ className }: HeroTestimonialRotatorProp
             ))}
           </div>
           {/* Quote */}
-          <p className="text-xs text-muted-foreground/70 italic leading-relaxed max-w-sm">
+          <p className="text-xs text-muted-foreground italic leading-relaxed max-w-sm">
             &ldquo;{current.quote}&rdquo;
           </p>
           {/* Attribution */}
-          <p className="text-[10px] text-muted-foreground/50 mt-1">
-            - {current.name}, {current.location}
+          <p className="text-[11px] text-muted-foreground mt-1">
+            {current.name}, {current.location}
           </p>
         </motion.div>
       </AnimatePresence>

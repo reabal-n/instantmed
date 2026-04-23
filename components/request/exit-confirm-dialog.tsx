@@ -1,9 +1,14 @@
 "use client"
 
-import { AnimatePresence,motion } from "framer-motion"
-
 import { Button } from "@/components/ui/button"
-import { useReducedMotion } from "@/components/ui/motion"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 
 interface ExitConfirmDialogProps {
   open: boolean
@@ -12,48 +17,32 @@ interface ExitConfirmDialogProps {
 }
 
 export function ExitConfirmDialog({ open, onClose, onConfirmExit }: ExitConfirmDialogProps) {
-  const prefersReducedMotion = useReducedMotion()
-
   return (
-    <AnimatePresence>
-      {open && (
-        <motion.div
-          initial={prefersReducedMotion ? {} : { opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
-          onClick={onClose}
-        >
-          <motion.div
-            initial={prefersReducedMotion ? {} : { scale: 0.95, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.95, opacity: 0 }}
-            onClick={(e) => e.stopPropagation()}
-            className="bg-background rounded-xl p-6 max-w-sm w-full shadow-xl"
+    <Dialog open={open} onOpenChange={(next) => { if (!next) onClose() }}>
+      <DialogContent className="max-w-sm">
+        <DialogHeader>
+          <DialogTitle>Leave this request?</DialogTitle>
+          <DialogDescription>
+            Your progress has been saved as a draft. You can continue later.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter className="flex gap-3 sm:gap-3 sm:justify-stretch">
+          <Button
+            variant="outline"
+            className="flex-1"
+            onClick={onClose}
           >
-            <h3 className="font-semibold text-lg mb-2">Leave this request?</h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              Your progress has been saved as a draft. You can continue later.
-            </p>
-            <div className="flex gap-3">
-              <Button
-                variant="outline"
-                className="flex-1"
-                onClick={onClose}
-              >
-                Keep editing
-              </Button>
-              <Button
-                variant="destructive"
-                className="flex-1"
-                onClick={onConfirmExit}
-              >
-                Leave
-              </Button>
-            </div>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+            Keep editing
+          </Button>
+          <Button
+            variant="destructive"
+            className="flex-1"
+            onClick={onConfirmExit}
+          >
+            Leave
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }

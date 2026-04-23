@@ -232,23 +232,23 @@ export async function updateScriptSent(
     return false
   }
 
-  // If marking script as sent, use proper lifecycle transition to approved
+  // If marking script as sent, transition to completed (awaiting_script → completed).
+  // Prescription flow terminal state: paid → in_review → awaiting_script → completed.
   if (scriptSent) {
     try {
-      const result = await updateIntakeStatus(intakeId, "approved", reviewedBy)
+      const result = await updateIntakeStatus(intakeId, "completed", reviewedBy)
       if (!result) {
         logger.warn("[updateScriptSent] Status update returned null, script fields already saved", { intakeId })
-        // Script fields saved, status update may have failed due to already being approved
         return true
       }
     } catch (error) {
-      // If already approved/completed, that's fine - script fields are saved
+      // If already completed, that's fine - script fields are saved
       if (error instanceof IntakeLifecycleError &&
           (error.code === "TERMINAL_STATE" || error.code === "INVALID_TRANSITION")) {
         logger.info("[updateScriptSent] Intake already in terminal state, script fields saved", { intakeId })
         return true
       }
-      logger.error("Error transitioning intake to approved", {}, toError(error))
+      logger.error("Error transitioning intake to completed", {}, toError(error))
       return false
     }
   }

@@ -1,84 +1,70 @@
 "use client"
 
-import {
-  ArrowRight,
-  CheckCircle2,
-  PhoneOff,
-} from "lucide-react"
-import Image from "next/image"
+import { motion } from "framer-motion"
+import { ArrowRight, PhoneOff } from "lucide-react"
 import Link from "next/link"
 
 import { MedCertHeroMockup } from "@/components/marketing/mockups/med-cert-hero-mockup"
 import { TrustBadgeRow } from "@/components/shared"
 import { Button } from "@/components/ui/button"
+import { useReducedMotion } from "@/components/ui/motion"
 import { PRICING } from "@/lib/constants"
-import { BADGE_REGISTRY } from "@/lib/marketing/trust-badges"
-import { getPatientCount, SOCIAL_PROOF_DISPLAY } from "@/lib/social-proof"
+import { stagger } from "@/lib/motion"
+import { SOCIAL_PROOF } from "@/lib/social-proof"
 
 export function MedCertHeroSection({
   ctaRef,
   onCTAClick,
-  patientCount,
 }: {
   ctaRef?: React.RefObject<HTMLDivElement>
   onCTAClick?: () => void
-  patientCount?: number
 }) {
-  const trustChips = [
-    BADGE_REGISTRY.legally_valid.label,
-    BADGE_REGISTRY.no_appointment.label,
-    patientCount && patientCount > 0
-      ? `Trusted by ${patientCount.toLocaleString()}+ Australians`
-      : `Trusted by ${getPatientCount().toLocaleString()}+ Australians`,
-    BADGE_REGISTRY.refund.label,
-  ]
+  const reduced = useReducedMotion()
+  const container = reduced ? {} : stagger.container
+  const item = reduced ? {} : stagger.item
 
   return (
-    <section data-track-section="hero" aria-label="Medical certificate service overview" className="relative overflow-hidden pt-6 pb-6 sm:pt-16 sm:pb-20 lg:pt-20 lg:pb-24">
+    <section
+      data-track-section="hero"
+      aria-label="Medical certificate service overview"
+      className="relative overflow-hidden pt-6 pb-6 sm:pt-16 sm:pb-20 lg:pt-20 lg:pb-24"
+    >
       <div className="mx-auto max-w-5xl px-6 sm:px-8 lg:px-10">
-        <div className="flex flex-col lg:flex-row items-center lg:gap-12 xl:gap-14">
-          {/* Text content */}
+        <motion.div
+          variants={container}
+          initial="initial"
+          animate="animate"
+          className="flex flex-col lg:flex-row items-center lg:gap-12 xl:gap-14"
+        >
           <div className="flex-1 min-w-0 text-center lg:text-left">
-            {/* No call required pill */}
-            <div className="flex justify-center lg:justify-start mb-4 sm:mb-8 hero-availability-enter">
-              <div className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium bg-green-50 border border-green-200 text-green-800 dark:bg-green-950/40 dark:border-green-800 dark:text-green-300">
+            <motion.div
+              variants={item}
+              className="flex justify-center lg:justify-start mb-4 sm:mb-8"
+            >
+              <div className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium bg-success-light text-success border border-success/20 dark:bg-success/15 dark:border-success/30">
                 <PhoneOff className="w-3.5 h-3.5" aria-hidden="true" />
                 No call required
               </div>
-            </div>
+            </motion.div>
 
-            {/* Headline */}
-            <h1
-              className="text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight mb-3 sm:mb-6 leading-[1.15] animate-hero-headline"
+            <motion.h1
+              variants={item}
+              className="text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight mb-3 sm:mb-5 leading-[1.1] text-balance"
             >
-              Sick today? Certificate in{" "}
-              <br className="hidden sm:block" />
-              <span className="text-premium-gradient">
-                your inbox in under 30 minutes.
-              </span>
-            </h1>
+              Sick today? A valid medical certificate in under 30 minutes.
+            </motion.h1>
 
-            {/* Subheadline */}
-            <p className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-3 sm:mb-4 leading-relaxed text-balance hero-subheadline-enter">
-              Valid for work, uni, or carer&apos;s leave. An AHPRA-registered GP
-              reviews your request and sends the certificate to your inbox, typically
-              within 30 minutes.
-            </p>
+            <motion.p
+              variants={item}
+              className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-6 sm:mb-7 leading-relaxed text-balance"
+            >
+              Fair Work compliant. Reviewed by an Australian-registered GP (AHPRA). Emailed straight to your inbox.
+            </motion.p>
 
-            {/* Static proof chips */}
-            <div className="flex flex-wrap justify-center lg:justify-start gap-x-4 gap-y-1.5 mb-6 hero-trust-enter">
-              {trustChips.map((label) => (
-                <span key={label} className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <CheckCircle2 className="h-3 w-3 shrink-0 text-emerald-600" aria-hidden="true" />
-                  {label}
-                </span>
-              ))}
-            </div>
-
-            {/* CTA */}
-            <div
+            <motion.div
+              variants={item}
               ref={ctaRef}
-              className="flex flex-col sm:flex-row items-center gap-3 justify-center lg:justify-start mb-4 sm:mb-6 hero-cta-enter"
+              className="flex flex-col items-center lg:items-start gap-3 mb-5 sm:mb-6"
             >
               <Button
                 asChild
@@ -87,51 +73,48 @@ export function MedCertHeroSection({
                 onClick={onCTAClick}
               >
                 <Link href="/request?service=med-cert">
-                  Get your certificate - ${PRICING.MED_CERT.toFixed(2)}
+                  Get your certificate &middot; ${PRICING.MED_CERT.toFixed(2)}
                   <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
                 </Link>
               </Button>
-              <p className="text-xs text-muted-foreground">
-                {SOCIAL_PROOF_DISPLAY.gpComparison} clinic
-              </p>
-            </div>
 
-            {/* 3 key trust badges — LegitScript + Google Pharmacy + No call */}
-            <TrustBadgeRow
-              badges={[
-                { id: "legitscript", variant: "styled" },
-                { id: "google_pharmacy", variant: "styled" },
-                { id: "ahpra", variant: "styled" },
-              ]}
-              className="mt-4 justify-center lg:justify-start gap-3"
-            />
+              <div className="flex flex-col items-center lg:items-start gap-1 text-center lg:text-left">
+                <span className="inline-flex items-center gap-1.5 text-xs font-medium text-foreground">
+                  <span className="relative inline-flex h-2 w-2" aria-hidden="true">
+                    <span className="absolute inline-flex h-full w-full rounded-full bg-success opacity-60 motion-safe:animate-ping" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-success" />
+                  </span>
+                  Doctor online &middot; reviewed in ~{SOCIAL_PROOF.certTurnaroundMinutes} min
+                </span>
+                <p className="text-xs text-muted-foreground">
+                  2 min form &middot; No Medicare needed &middot; Refund if we can&apos;t approve
+                </p>
+              </div>
+            </motion.div>
+
+            <motion.div
+              variants={item}
+              className="lg:hidden mb-5 w-full max-w-[280px] mx-auto"
+            >
+              <MedCertHeroMockup compact />
+            </motion.div>
+
+            <motion.div variants={item}>
+              <TrustBadgeRow
+                badges={[
+                  { id: "legitscript", variant: "styled" },
+                  { id: "google_pharmacy", variant: "styled" },
+                  { id: "ahpra", variant: "styled" },
+                ]}
+                className="mt-4 justify-center lg:justify-start gap-3"
+              />
+            </motion.div>
           </div>
 
-          {/* Hero product mockup - desktop only, mobile gets compact version below */}
           <div className="hidden lg:block relative shrink-0 mt-0">
             <MedCertHeroMockup />
           </div>
-
-          {/* Mobile mockup - compact, below text content */}
-          <div className="lg:hidden mt-4 w-full max-w-xs mx-auto">
-            <MedCertHeroMockup compact />
-          </div>
-        </div>
-
-        {/* Lifestyle photo — below the fold on mobile. No `priority`:
-            preloading this image competes with the h1 + subhead + CTAs for
-            LCP bandwidth on constrained 4G profiles. */}
-        <div className="mt-8 sm:mt-10 w-full relative aspect-[16/9] rounded-2xl overflow-hidden shadow-lg">
-          <Image
-            src="/images/medcert-2.webp"
-            alt="Medical certificate document on desk alongside laptop showing InstantMed"
-            fill
-            className="object-cover object-center"
-            loading="lazy"
-            quality={85}
-            sizes="(max-width: 640px) 100vw, (max-width: 1280px) 100vw, 1200px"
-          />
-        </div>
+        </motion.div>
       </div>
     </section>
   )

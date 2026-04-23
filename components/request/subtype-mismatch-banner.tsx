@@ -32,7 +32,7 @@ export function SubtypeMismatchBanner({
 
   return (
     <Alert className="mb-4 border-warning-border bg-warning-light">
-      <AlertTriangle className="w-4 h-4 text-amber-600" />
+      <AlertTriangle className="w-4 h-4 text-warning" />
       <AlertDescription className="flex flex-col gap-3">
         <span className="text-sm text-warning">
           You have an unfinished <strong>{draftLabel}</strong> consult.

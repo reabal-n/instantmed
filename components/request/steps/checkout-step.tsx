@@ -269,7 +269,7 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
           <p className="text-xs text-muted-foreground">
             {subscribeAndSave
               ? "First script processed immediately. Cancel anytime."
-              : "Pay after your request is created."}
+              : "One-time fee. Your doctor reviews right after."}
           </p>
         </div>
       </motion.div>
@@ -303,25 +303,25 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
       {/* Subscribe & Save toggle - repeat scripts only */}
       {isRepeatScript && (
         <motion.div variants={stagger.item}>
-          <div
+          <label
+            htmlFor="subscribe-save-toggle"
             className={`w-full p-3.5 rounded-xl border-2 text-left transition-all duration-200 flex items-start gap-3 cursor-pointer ${
               subscribeAndSave
                 ? "border-primary bg-primary/5"
                 : "border-border hover:border-primary/40"
             }`}
-            onClick={() => setSubscribeAndSave(!subscribeAndSave)}
           >
-            <span onClick={(e) => e.stopPropagation()} className="mt-1 shrink-0">
-              <Switch
-                checked={subscribeAndSave}
-                onCheckedChange={setSubscribeAndSave}
-                aria-label="Subscribe and save on repeat prescriptions"
-              />
-            </span>
+            <Switch
+              id="subscribe-save-toggle"
+              checked={subscribeAndSave}
+              onCheckedChange={setSubscribeAndSave}
+              className="mt-1 shrink-0"
+              aria-label="Subscribe and save on repeat prescriptions"
+            />
             <div className="flex-1">
               <div className="flex items-center gap-2">
                 <RefreshCw className="w-4 h-4 text-primary" />
-                <span className="text-sm font-medium">Subscribe & save</span>
+                <span className="text-sm font-medium">Subscribe &amp; save</span>
                 <Badge variant="secondary" className="text-xs font-semibold text-primary bg-primary/10">
                   Save ${(price - APP_PRICING.REPEAT_RX_MONTHLY).toFixed(2)}/mo
                 </Badge>
@@ -330,61 +330,57 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
                 ${APP_PRICING.REPEAT_RX_MONTHLY.toFixed(2)}/mo instead of ${price.toFixed(2)} per script. Includes 1 repeat per month. Cancel anytime.
               </p>
             </div>
-          </div>
+          </label>
         </motion.div>
       )}
 
       {/* Express review toggle - opt-in, understated */}
       <motion.div variants={stagger.item}>
-        <div
+        <label
+          htmlFor="express-review-toggle"
           className={`w-full px-3.5 py-3 rounded-xl border text-left transition-all duration-200 flex items-center gap-3 cursor-pointer ${
             isPriority
               ? "border-primary/30 bg-primary/[0.03]"
               : "border-border/40 hover:border-border/60"
           }`}
-          onClick={() => {
-            const next = !isPriority
-            setIsPriority(next)
-            if (next) posthog?.capture('express_review_opted_in', { service_type: serviceType })
-          }}
         >
-          <span onClick={(e) => e.stopPropagation()} className="shrink-0">
-            <Switch
-              checked={isPriority}
-              onCheckedChange={(val) => {
-                setIsPriority(val)
-                if (val) posthog?.capture('express_review_opted_in', { service_type: serviceType })
-              }}
-              aria-label="Enable express review"
-            />
-          </span>
+          <Switch
+            id="express-review-toggle"
+            checked={isPriority}
+            onCheckedChange={(val) => {
+              setIsPriority(val)
+              if (val) posthog?.capture('express_review_opted_in', { service_type: serviceType })
+            }}
+            className="shrink-0"
+            aria-label="Enable express review"
+          />
           <div className="flex-1 flex items-center justify-between gap-2">
             <span className="text-sm text-muted-foreground">
               Express Review
             </span>
             <span className="text-xs text-muted-foreground/70">+{PRICING_DISPLAY.PRIORITY_FEE}</span>
           </div>
-        </div>
+        </label>
       </motion.div>
 
       {/* Single combined consent - Checkbox (not Switch) for legal acknowledgment semantics */}
       <motion.div variants={stagger.item}>
-        <div
+        <label
+          htmlFor="consent-checkbox"
           className={`w-full p-3.5 rounded-xl border-2 text-left transition-all duration-200 flex items-start gap-3 cursor-pointer ${
             consentGiven
               ? "border-primary bg-primary/5"
               : "border-border hover:border-primary/40"
           }`}
-          onClick={() => handleConsentChange(!consentGiven)}
         >
-          <span onClick={(e) => e.stopPropagation()} className="mt-1 shrink-0">
-            <Checkbox
-              checked={consentGiven}
-              onCheckedChange={(checked) => handleConsentChange(checked === true)}
-              aria-label="Agree to Terms of Service and Privacy Policy"
-            />
-          </span>
-          <p className="text-sm leading-relaxed cursor-pointer">
+          <Checkbox
+            id="consent-checkbox"
+            checked={consentGiven}
+            onCheckedChange={(checked) => handleConsentChange(checked === true)}
+            className="mt-1 shrink-0"
+            aria-label="Agree to Terms of Service and Privacy Policy"
+          />
+          <span className="text-sm leading-relaxed">
             By paying, I confirm the information I&apos;ve provided is accurate and I agree to the{' '}
             <a href="/terms" className="text-primary underline" target="_blank" onClick={(e) => e.stopPropagation()}>
               Terms of Service
@@ -393,14 +389,14 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
             <a href="/privacy" className="text-primary underline" target="_blank" onClick={(e) => e.stopPropagation()}>
               Privacy Policy
             </a>
-          </p>
-        </div>
+          </span>
+        </label>
       </motion.div>
 
       {/* Inline trust strip */}
       <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 text-xs text-muted-foreground/70">
         <span className="flex items-center gap-1.5">
-          <ShieldCheck className="w-3 h-3 text-emerald-500" />
+          <ShieldCheck className="w-3 h-3 text-success" />
           AHPRA-registered doctors
         </span>
         <span className="flex items-center gap-1.5">
@@ -470,8 +466,8 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
           </div>
 
           {/* Stripe + payment method logos */}
-          <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground/60">
-            <Lock className="h-3 w-3 shrink-0" />
+          <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
+            <Lock className="h-3 w-3 shrink-0" aria-hidden="true" />
             <PaymentLogos />
           </div>
 

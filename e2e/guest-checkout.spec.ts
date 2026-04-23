@@ -16,7 +16,7 @@ import { cleanupTestIntake,getSupabaseClient, isDbAvailable } from "./helpers/db
 const GUEST_PROFILE_ID = "e2e00000-0000-0000-0000-guest0000001"
 const GUEST_EMAIL = "e2e-guest-test@example.com"
 const FAKE_AUTH_USER_ID = "e2e00000-0000-0000-0000-auth00000001"
-const E2E_SERVICE_ID = "e2e00000-0000-0000-0000-000000000021"
+const E2E_SERVICE_ID = "e2e00000-0000-0000-0000-000000000020"
 
 test.describe("Guest Checkout → Account Linking", () => {
   test.skip(!isDbAvailable(), "Skipping: DB not available")

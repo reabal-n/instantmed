@@ -238,10 +238,10 @@ function ContentSection({ section }: { section: ArticleSection }) {
         )
       }
       return (
-        <div className="mt-10 mb-5">
+        <div className="mt-12 mb-5">
           <h2
             id={slugify(section.content)}
-            className="text-xl font-semibold text-foreground border-l-4 border-primary pl-4 leading-snug scroll-mt-24"
+            className="text-2xl font-semibold text-foreground leading-snug scroll-mt-24 tracking-tight"
           >
             {section.content}
           </h2>

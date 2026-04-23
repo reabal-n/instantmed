@@ -564,9 +564,9 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
     <div className="space-y-3">
       {/* Compact header */}
       <div className="text-center mb-2">
-        <h2 className="text-lg font-semibold">Review your request</h2>
+        <h2 className="text-lg font-semibold">One last check</h2>
         <p className="text-xs text-muted-foreground mt-0.5">
-          Check the details below, then continue to payment
+          Make sure everything looks right. A doctor reviews as soon as you submit.
         </p>
       </div>
 
@@ -595,7 +595,7 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
           )
         })()}
 
-        <div ref={consentRef} className={`rounded-2xl border p-4 transition-colors duration-200 ${safetyConfirmed ? 'border-border/50 dark:border-white/10 bg-muted/30 dark:bg-white/5' : 'border-amber-200/60 dark:border-amber-800/40 bg-amber-50/40 dark:bg-amber-950/20'}`}>
+        <div ref={consentRef} className={`rounded-2xl border p-4 transition-colors duration-200 ${safetyConfirmed ? 'border-border/50 dark:border-white/10 bg-muted/30 dark:bg-white/5' : 'border-warning-border bg-warning-light/50 dark:bg-warning/10'}`}>
           <div className="flex items-start gap-3">
             <Checkbox
               id="safety-consent"
@@ -609,7 +609,7 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
             </Label>
           </div>
           {!safetyConfirmed && (
-            <p className="text-xs text-amber-600 dark:text-amber-400 mt-2 pl-7" aria-live="polite">
+            <p className="text-xs text-warning mt-2 pl-7" aria-live="polite">
               Tick the box to confirm and continue to payment
             </p>
           )}
@@ -622,12 +622,12 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
           </Button>
         </div>
 
-        <p className="text-center text-[11px] text-muted-foreground/60">
+        <p className="text-center text-[11px] text-muted-foreground">
           Express review available at checkout (+{PRICING_DISPLAY.PRIORITY_FEE})
         </p>
 
         <div className="flex flex-col items-center gap-3">
-          <div className="flex items-center gap-4 text-[11px] text-muted-foreground/70">
+          <div className="flex items-center gap-4 text-[11px] text-muted-foreground">
             <span className="flex items-center gap-1">
               <ShieldCheck className="w-3 h-3" />
               AHPRA-registered doctor

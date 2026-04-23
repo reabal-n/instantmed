@@ -44,7 +44,7 @@ export function AutoSaveIndicator({ lastSavedAt, hasUnsavedChanges }: AutoSaveIn
           initial={prefersReducedMotion ? {} : { opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
-          className="flex items-center gap-1.5 text-xs text-emerald-600"
+          className="flex items-center gap-1.5 text-xs text-success"
         >
           <Cloud className="w-3 h-3" />
           <span>Saved</span>

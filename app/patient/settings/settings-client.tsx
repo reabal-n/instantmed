@@ -676,7 +676,7 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
                       <AlertDialogAction
                         onClick={handleDeleteAccount}
                         disabled={isDeletingAccount}
-                        className="rounded-xl bg-red-600 hover:bg-red-700"
+                        className="rounded-xl bg-destructive hover:bg-destructive/90"
                       >
                         {isDeletingAccount ? (
                           <>

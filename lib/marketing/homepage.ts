@@ -36,7 +36,7 @@ export const heroRotatingTexts = [
 export const trustSignals = [
   {
     icon: "Clock",
-    text: "Most reviewed within 1–2 hours",
+    text: "Certs in ~20 min, scripts in 1–2 hrs",
     description: "Most requests sorted same day",
   },
   {

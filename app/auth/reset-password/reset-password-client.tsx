@@ -3,12 +3,11 @@
 import { Eye, EyeOff, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
-
-import { StickerIcon } from "@/components/icons/stickers"
 import type React from "react"
 import { useState } from "react"
 import { toast } from "sonner"
 
+import { StickerIcon } from "@/components/icons/stickers"
 import { Footer,Navbar } from "@/components/shared"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"

@@ -234,10 +234,10 @@ export function ServiceHubScreen({ onSelectService }: ServiceHubScreenProps) {
 
         {/* Trust signal badges */}
         <div className="flex items-center justify-center gap-3">
-          <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-emerald-700 dark:text-emerald-400">
+          <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-success">
             <span className="relative flex h-1.5 w-1.5">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
+              <span className="absolute inline-flex h-full w-full motion-safe:animate-ping rounded-full bg-success opacity-60" />
+              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-success" />
             </span>
             No phone call
           </span>

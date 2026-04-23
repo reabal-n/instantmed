@@ -3,12 +3,11 @@
 import { ArrowLeft, CheckCircle, Loader2 } from "lucide-react"
 import Link from "next/link"
 import type React from "react"
-
-import { StickerIcon } from "@/components/icons/stickers"
 import { useState } from "react"
 import { toast } from "sonner"
 
 import { requestPasswordReset } from "@/app/actions/account"
+import { StickerIcon } from "@/components/icons/stickers"
 import { Footer,Navbar } from "@/components/shared"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"

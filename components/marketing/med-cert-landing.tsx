@@ -13,6 +13,7 @@ import { useCallback } from "react"
 import { StripePaymentLogos } from "@/components/checkout/payment-logos"
 // Hero is above-fold - not lazy loaded
 import { MedCertHeroSection } from "@/components/marketing/heroes/med-cert-hero"
+import { IntakeResumeChip } from "@/components/marketing/intake-resume-chip"
 import { LiveWaitTime } from "@/components/marketing/live-wait-time"
 import {
   type LandingPageConfig,
@@ -32,7 +33,10 @@ const CertificateTypeSelector = dynamic(
   () => import("@/components/marketing/sections/certificate-type-selector").then((m) => m.CertificateTypeSelector),
   { loading: () => <div className="min-h-[400px]" /> },
 )
-import { HowItWorksInline } from "@/components/marketing/sections/how-it-works-inline"
+const HowItWorksInline = dynamic(
+  () => import("@/components/marketing/sections/how-it-works-inline").then((m) => m.HowItWorksInline),
+  { loading: () => <div className="min-h-[300px]" /> },
+)
 const SocialProofSection = dynamic(
   () => import("@/components/marketing/social-proof-section").then((m) => m.SocialProofSection),
   { loading: () => <div className="min-h-[400px]" /> },
@@ -86,7 +90,7 @@ const LANDING_CONFIG: LandingPageConfig = {
   serviceId: "med-cert",
   analyticsId: "med-cert",
   sticky: {
-    ctaText: `Get your certificate - $${PRICING.MED_CERT.toFixed(2)}`,
+    ctaText: `Get your certificate \u00b7 $${PRICING.MED_CERT.toFixed(2)}`,
     ctaHref: "/request?service=med-cert",
     mobileSummary: "Med certs 24/7 \u00b7 ~20 min review",
     desktopLabel: "Doctor available now \u00b7 Medical Certificate",
@@ -152,7 +156,7 @@ function EmployerCalloutStrip({ onEmployerClick, onVerifyClick }: { onEmployerCl
               <Building2 className="h-3.5 w-3.5" aria-hidden="true" />
               For Employers & HR
             </Link>
-            <span className="text-border dark:text-white/20">|</span>
+            <span className="h-3 w-px bg-border/60" aria-hidden="true" />
             <Link
               href="/verify"
               onClick={onVerifyClick}
@@ -168,15 +172,15 @@ function EmployerCalloutStrip({ onEmployerClick, onVerifyClick }: { onEmployerCl
   )
 }
 
-/** Data viz: certificate turnaround vs GP visit — compact */
+/** Data viz: certificate turnaround vs GP visit */
 function CertComparisonViz() {
   return (
-    <section aria-label="Time comparison" className="py-6 lg:py-8">
-      <div className="mx-auto max-w-lg px-4 sm:px-6">
-        <Reveal instant className="text-center mb-4">
-          <p className="text-xs font-semibold text-muted-foreground/50 uppercase tracking-[0.12em]">Your time is valuable</p>
+    <section aria-label="Time comparison" className="py-8 sm:py-12">
+      <div className="mx-auto max-w-2xl px-4 sm:px-6">
+        <Reveal instant className="text-center mb-5">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-[0.14em]">Your time is valuable</p>
         </Reveal>
-        <Reveal instant className="rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/10 shadow-sm p-4">
+        <Reveal instant className="rounded-2xl bg-white dark:bg-card border border-border/50 dark:border-white/10 shadow-md shadow-primary/[0.06] p-5 sm:p-6">
           <ComparisonBar
             us={{
               label: "InstantMed",
@@ -217,19 +221,23 @@ export function MedCertLanding() {
 
         return (
           <>
+            {/* Resume unfinished intake — shown above hero so returning visitors
+                see it immediately without scrolling past the value prop. */}
+            <IntakeResumeChip className="mx-4 mt-3 max-w-5xl sm:mx-auto" />
+
             {/* 1. Hero */}
-            <MedCertHeroSection ctaRef={heroCTARef} onCTAClick={handleHeroCTA} patientCount={patientCount} />
+            <MedCertHeroSection ctaRef={heroCTARef} onCTAClick={handleHeroCTA} />
 
             {/* Live wait time strip — mirrors peer landing pages (scripts/ed/hair-loss). */}
             <LiveWaitTime variant="strip" services={["med-cert"]} />
 
-            {/* 2. Certificate type selector — get intent before social proof */}
+            {/* 2. Employer acceptance — legitimacy before asking for a decision */}
+            <EmployerCalloutStrip onEmployerClick={handleEmployerClick} onVerifyClick={handleVerifyClick} />
+
+            {/* 3. Certificate type selector — now the "pick your option" moment */}
             <div data-track-section="selector">
               <CertificateTypeSelector />
             </div>
-
-            {/* 3. Employer acceptance — validates the selection just made */}
-            <EmployerCalloutStrip onEmployerClick={handleEmployerClick} onVerifyClick={handleVerifyClick} />
 
             {/* 4. How It Works */}
             <div data-track-section="how_it_works">
@@ -246,24 +254,7 @@ export function MedCertLanding() {
             {/* 6. Time comparison data viz */}
             <CertComparisonViz />
 
-            {/* 7. Refund guarantee + trust counter — combined */}
-            <section className="py-6 sm:py-8">
-              <div className="mx-auto max-w-lg px-4">
-                <div className="rounded-2xl bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06] p-5 flex items-center gap-4">
-                  <div className="shrink-0">
-                    <ShieldCheck className="h-9 w-9 text-success" aria-hidden="true" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold text-foreground">100% refund guarantee</p>
-                    <p className="text-xs text-muted-foreground leading-relaxed mt-0.5">
-                      If our doctor can&apos;t issue your certificate, you get a full refund. No questions asked.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            {/* 8. Social proof */}
+            {/* 7. Social proof */}
             <div data-track-section="social_proof">
               <SocialProofSection />
             </div>
@@ -286,37 +277,30 @@ export function MedCertLanding() {
 
             {/* Clinical references */}
             <div className="mx-auto max-w-3xl px-4 sm:px-6 py-4">
-              <p className="text-[10px] text-muted-foreground/50 text-center leading-relaxed">
+              <p className="text-[11px] text-muted-foreground text-center leading-relaxed">
                 Telehealth-issued medical certificates are accepted by Australian employers under the Fair Work Act 2009 (s 107). Telehealth consultations achieve equivalent clinical accuracy to in-person assessments for common presentations (Snoswell et al., <em>J Telemed Telecare</em>, 2023). All certificates are issued by AHPRA-registered practitioners.
               </p>
             </div>
 
-            {/* 12. Pre-CTA friction removal */}
-            <div className="py-6 sm:py-8">
-              <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
-                {[
-                  "No Medicare card needed",
-                  "No phone call required",
-                  "2-minute form",
-                  "Full refund if declined",
-                ].map((item) => (
-                  <span
-                    key={item}
-                    className="inline-flex items-center gap-1.5 text-xs text-muted-foreground px-3 py-1.5 rounded-full border border-border/40 bg-white dark:bg-card shadow-sm"
-                  >
-                    <CheckCircle2 className="h-3 w-3 text-success shrink-0" aria-hidden="true" />
-                    {item}
-                  </span>
-                ))}
+            {/* 12. Pre-CTA reassurance — refund first, then friction */}
+            <div className="pt-6 sm:pt-8 pb-4 sm:pb-5">
+              <div className="mx-auto max-w-2xl px-4 sm:px-6">
+                <div className="flex items-center gap-3 rounded-full border border-success/20 bg-success/[0.04] dark:bg-success/[0.08] px-4 py-2.5 text-center justify-center">
+                  <ShieldCheck className="h-4 w-4 shrink-0 text-success" aria-hidden="true" />
+                  <p className="text-xs sm:text-sm text-foreground">
+                    <span className="font-semibold">100% refund guarantee.</span>
+                    <span className="text-muted-foreground"> If our doctor can&apos;t issue your certificate, you pay nothing.</span>
+                  </p>
+                </div>
               </div>
             </div>
 
             {/* 13. Final CTA */}
             <div data-track-section="final_cta">
               <CTABanner
-                title="Let a doctor handle the paperwork"
-                subtitle={`Trusted by ${patientCount.toLocaleString()}+ Australians. Two minutes on your phone, a real doctor reviews it, and your certificate lands in your inbox.`}
-                ctaText={isDisabled ? "Contact us" : `Get your certificate - $${PRICING.MED_CERT.toFixed(2)}`}
+                title="Back to bed in two minutes."
+                subtitle={`Fill the form, a real GP reviews it, and your certificate lands in your inbox. Trusted by ${patientCount.toLocaleString()}+ Australians.`}
+                ctaText={isDisabled ? "Contact us" : `Get your certificate \u00b7 $${PRICING.MED_CERT.toFixed(2)}`}
                 ctaHref={isDisabled ? "/contact" : "/request?service=med-cert"}
               />
             </div>

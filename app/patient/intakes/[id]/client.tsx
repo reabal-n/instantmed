@@ -29,6 +29,14 @@ import { CrossSellCard, DocumentReadyReveal, EmailVerificationGate, IntakeStatus
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -160,11 +168,11 @@ function TimelineEntry({
   color?: string
 }) {
   return (
-    <div className="flex items-center gap-3 py-2 text-sm">
-      <Icon className={`h-4 w-4 shrink-0 ${color}`} />
+    <li className="flex items-center gap-3 py-2 text-sm">
+      <Icon className={`h-4 w-4 shrink-0 ${color}`} aria-hidden="true" />
       <span className="text-muted-foreground">{label}:</span>
-      <span>{new Date(date).toLocaleDateString("en-AU", DATE_FORMAT)}</span>
-    </div>
+      <time dateTime={date}>{new Date(date).toLocaleDateString("en-AU", DATE_FORMAT)}</time>
+    </li>
   )
 }
 
@@ -332,7 +340,7 @@ export function IntakeDetailClient({
         <CardContent className="space-y-6">
           {/* Pending Payment - Retry CTA */}
           {intake.status === "pending_payment" && (
-            <Card className="border-warning-border bg-linear-to-br from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/20">
+            <Card className="border-warning-border bg-warning-light/50 dark:bg-warning/10">
               <CardContent className="pt-6">
                 <div className="flex flex-col sm:flex-row items-start gap-4">
                   <div className="rounded-full bg-warning-light p-3 shrink-0">
@@ -340,15 +348,15 @@ export function IntakeDetailClient({
                   </div>
                   <div className="flex-1 space-y-3">
                     <div>
-                      <h3 className="text-base font-semibold text-amber-900">Payment Required</h3>
-                      <p className="text-sm text-warning">
+                      <h3 className="text-base font-semibold text-warning">Payment Required</h3>
+                      <p className="text-sm text-muted-foreground">
                         Your request is saved but hasn&apos;t been submitted yet. Complete payment to send it to a doctor for review.
                       </p>
                     </div>
                     <Button
                       onClick={handleRetryPayment}
                       disabled={isPending}
-                      className="w-full sm:w-auto bg-amber-600 hover:bg-amber-700"
+                      className="w-full sm:w-auto"
                     >
                       {isPending ? (
                         <>
@@ -369,7 +377,7 @@ export function IntakeDetailClient({
 
           {/* Checkout Failed - Retry CTA */}
           {intake.status === "checkout_failed" && (
-            <Card className="border-destructive/30 bg-linear-to-br from-red-50 to-orange-50 dark:from-red-950/30 dark:to-orange-950/20">
+            <Card className="border-destructive/30 bg-destructive/5">
               <CardContent className="pt-6">
                 <div className="flex flex-col sm:flex-row items-start gap-4">
                   <div className="rounded-full bg-destructive/10 p-3 shrink-0">
@@ -377,7 +385,7 @@ export function IntakeDetailClient({
                   </div>
                   <div className="flex-1 space-y-3">
                     <div>
-                      <h3 className="text-base font-semibold text-red-900 dark:text-red-200">Payment didn&apos;t go through</h3>
+                      <h3 className="text-base font-semibold text-destructive">Payment didn&apos;t go through</h3>
                       <p className="text-sm text-muted-foreground">
                         Your information has been saved. Try again with the same or a different card - no need to re-enter your details.
                       </p>
@@ -525,7 +533,7 @@ export function IntakeDetailClient({
               onResendVerification={resendVerificationEmail}
             >
               <DocumentReadyReveal intakeId={intake.id} approvedAt={intake.approved_at}>
-              <Card className="border-success-border bg-linear-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/20">
+              <Card className="border-success-border bg-success-light/50 dark:bg-success/10">
                 <CardContent className="pt-6">
                   <div className="flex items-start gap-4">
                     <div className="rounded-full bg-success-light p-3">
@@ -533,12 +541,12 @@ export function IntakeDetailClient({
                     </div>
                     <div className="flex-1 space-y-3">
                       <div>
-                        <h3 className="text-base font-semibold text-emerald-900">Your Document is Ready</h3>
-                        <p className="text-sm text-success">
+                        <h3 className="text-base font-semibold text-success">Your Document is Ready</h3>
+                        <p className="text-sm text-muted-foreground">
                           Download your {service?.short_name || service?.name || "document"} below.
                         </p>
                       </div>
-                      <Button asChild size="lg" className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700">
+                      <Button asChild size="lg" className="w-full sm:w-auto">
                         <a
                           href={document.pdf_url}
                           target="_blank"
@@ -591,7 +599,7 @@ export function IntakeDetailClient({
                           </Button>
                         )}
                         {correctionSubmitted && (
-                          <p className="text-xs text-amber-600 w-full">
+                          <p className="text-xs text-warning w-full">
                             Date correction submitted - your doctor will review and resend the updated certificate.
                           </p>
                         )}
@@ -681,14 +689,14 @@ export function IntakeDetailClient({
 
           {/* Timeline */}
           <div className="pt-2">
-            <h3 className="text-base font-medium mb-4">Timeline</h3>
-            <div className="space-y-4">
+            <h3 id="intake-timeline-heading" className="text-base font-medium mb-4">Timeline</h3>
+            <ol aria-labelledby="intake-timeline-heading" className="space-y-4">
               <TimelineEntry icon={Calendar} label="Submitted" date={intake.created_at} />
               {intake.paid_at && <TimelineEntry icon={CheckCircle} label="Payment received" date={intake.paid_at} color="text-success" />}
               {intake.approved_at && <TimelineEntry icon={CheckCircle} label="Approved" date={intake.approved_at} color="text-success" />}
               {intake.declined_at && <TimelineEntry icon={XCircle} label="Declined" date={intake.declined_at} color="text-destructive" />}
               {intake.cancelled_at && <TimelineEntry icon={Ban} label="Cancelled" date={intake.cancelled_at} />}
-            </div>
+            </ol>
           </div>
 
           {/* Reference */}
@@ -701,58 +709,59 @@ export function IntakeDetailClient({
       </Card>
 
       {/* Date Correction Dialog */}
-      {showDateCorrection && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <Card className="w-full max-w-md">
-            <CardHeader>
-              <CardTitle className="text-lg">Request Date Change</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm text-muted-foreground">
-                Submit your corrected dates below. Your doctor will review and resend an updated certificate.
-              </p>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label>Start Date</Label>
-                  <Input
-                    type="date"
-                    value={correctionStartDate}
-                    onChange={(e) => setCorrectionStartDate(e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Label>End Date</Label>
-                  <Input
-                    type="date"
-                    value={correctionEndDate}
-                    onChange={(e) => setCorrectionEndDate(e.target.value)}
-                  />
-                </div>
-              </div>
-              <div>
-                <Label>Reason for change</Label>
-                <Textarea
-                  placeholder="e.g. I need the certificate for different dates..."
-                  value={correctionReason}
-                  onChange={(e) => setCorrectionReason(e.target.value)}
-                  className="min-h-[60px]"
+      <Dialog open={showDateCorrection} onOpenChange={setShowDateCorrection}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Request Date Change</DialogTitle>
+            <DialogDescription>
+              Submit your corrected dates below. Your doctor will review and resend an updated certificate.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="correction-start-date">Start Date</Label>
+                <Input
+                  id="correction-start-date"
+                  type="date"
+                  value={correctionStartDate}
+                  onChange={(e) => setCorrectionStartDate(e.target.value)}
                 />
               </div>
-              <div className="flex gap-2 justify-end">
-                <Button variant="outline" onClick={() => setShowDateCorrection(false)}>
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleRequestDateCorrection}
-                  disabled={isPending || !correctionStartDate || !correctionEndDate || !correctionReason.trim()}
-                >
-                  {isPending ? "Submitting..." : "Submit Request"}
-                </Button>
+              <div className="space-y-1.5">
+                <Label htmlFor="correction-end-date">End Date</Label>
+                <Input
+                  id="correction-end-date"
+                  type="date"
+                  value={correctionEndDate}
+                  onChange={(e) => setCorrectionEndDate(e.target.value)}
+                />
               </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="correction-reason">Reason for change</Label>
+              <Textarea
+                id="correction-reason"
+                placeholder="e.g. I need the certificate for different dates..."
+                value={correctionReason}
+                onChange={(e) => setCorrectionReason(e.target.value)}
+                className="min-h-[60px]"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDateCorrection(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleRequestDateCorrection}
+              disabled={isPending || !correctionStartDate || !correctionEndDate || !correctionReason.trim()}
+            >
+              {isPending ? "Submitting..." : "Submit Request"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

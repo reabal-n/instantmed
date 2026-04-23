@@ -1,59 +1,36 @@
-import { ArrowRight, FileText, HelpCircle, Home, Pill, Zap } from "lucide-react"
+import { ArrowRight, FileText, HelpCircle, Home, Pill } from "lucide-react"
 import Link from "next/link"
 
 import { Button } from "@/components/ui/button"
 
-// Prevent static generation for dynamic auth
 export const dynamic = "force-dynamic"
 
 export default function NotFound() {
   return (
-    <main className="min-h-screen relative flex items-center justify-center px-4 overflow-hidden" role="main">
-      {/* Background gradient */}
-      <div className="absolute inset-0 bg-linear-to-br from-background via-background to-muted/30" />
-      
-      {/* Animated gradient orbs */}
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl animate-pulse" />
-      <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-info-light rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1s" }} />
-      
-      <div className="relative z-10 text-center max-w-lg">
-        {/* Animated 404 */}
-        <div className="relative mb-8">
-          <h1
-            className="text-[120px] sm:text-[180px] font-semibold leading-none select-none bg-clip-text text-transparent bg-linear-to-b from-muted-foreground/20 to-muted-foreground/5"
-            aria-label="Error 404"
-          >
-            404
-          </h1>
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div 
-              className="bg-white dark:bg-card rounded-3xl px-8 py-6 border border-border/50 shadow-md shadow-primary/[0.06]"
-            >
-              <div className="w-14 h-14 rounded-2xl bg-linear-to-br from-primary to-blue-600 flex items-center justify-center">
-                <Zap className="h-7 w-7 text-background" aria-hidden="true" />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <h2
-          className="text-2xl sm:text-3xl font-semibold mb-4 text-foreground"
-          style={{ fontFamily: "var(--font-display)" }}
+    <main className="min-h-screen flex items-center justify-center px-4 bg-background" role="main">
+      <div className="text-center max-w-lg">
+        <p
+          className="text-6xl sm:text-7xl font-semibold text-muted-foreground/25 tabular-nums tracking-tight mb-6 select-none"
+          aria-label="Error 404"
         >
+          404
+        </p>
+
+        <h1 className="text-2xl sm:text-3xl font-semibold mb-3 text-foreground tracking-tight">
           Page not found
-        </h2>
+        </h1>
         <p className="text-muted-foreground mb-8 leading-relaxed">
           Looks like this page took a sick day. Let&apos;s get you back on track.
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-          <Button asChild className="rounded-xl w-full sm:w-auto shadow-lg shadow-primary/25">
+          <Button asChild className="w-full sm:w-auto">
             <Link href="/">
               <Home className="mr-2 h-4 w-4" aria-hidden="true" />
               Back to Home
             </Link>
           </Button>
-          <Button variant="outline" asChild className="rounded-xl w-full sm:w-auto">
+          <Button variant="outline" asChild className="w-full sm:w-auto">
             <Link href="/contact">
               Get Help
               <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
@@ -61,7 +38,6 @@ export default function NotFound() {
           </Button>
         </div>
 
-        {/* Quick Links */}
         <nav
           className="mt-12 pt-8 border-t border-border/50"
           aria-label="Popular pages"
@@ -76,7 +52,7 @@ export default function NotFound() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="group flex items-center gap-2 px-4 py-2.5 rounded-xl bg-card border border-border/50 text-sm font-medium text-muted-foreground hover:text-foreground hover:border-primary/30 hover:shadow-md transition-all"
+                className="group flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white dark:bg-card border border-border/50 text-sm font-medium text-muted-foreground hover:text-foreground hover:border-primary/30 hover:shadow-md shadow-primary/[0.04] transition-all"
               >
                 <link.icon className="h-4 w-4 text-primary/70 group-hover:text-primary" />
                 {link.label}
