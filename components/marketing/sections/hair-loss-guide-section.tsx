@@ -6,7 +6,6 @@ import type React from "react"
 import { useState } from "react"
 
 import { StickerIcon, type StickerIconName } from "@/components/icons/stickers"
-
 import {
   Accordion,
   AccordionContent,
@@ -231,10 +230,10 @@ export function HairLossGuideSection() {
                 {HAIR_LOSS_TYPES.map((block) => {
                   const colors =
                     block.status === "treatable"
-                      ? "border-l-emerald-400 bg-emerald-50/60 dark:bg-emerald-950/20"
+                      ? "border-emerald-200/70 bg-emerald-50/60 dark:border-emerald-900/40 dark:bg-emerald-950/20"
                       : block.status === "resolves"
-                        ? "border-l-amber-400 bg-amber-50/60 dark:bg-amber-950/20"
-                        : "border-l-rose-400 bg-rose-50/60 dark:bg-rose-950/20"
+                        ? "border-amber-200/70 bg-amber-50/60 dark:border-amber-900/40 dark:bg-amber-950/20"
+                        : "border-rose-200/70 bg-rose-50/60 dark:border-rose-900/40 dark:bg-rose-950/20"
                   const badge =
                     block.status === "treatable"
                       ? { label: "Treatable online", cls: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400" }
@@ -242,7 +241,7 @@ export function HairLossGuideSection() {
                         ? { label: "Often self-resolving", cls: "bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-400" }
                         : { label: "Needs specialist", cls: "bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-400" }
                   return (
-                    <div key={block.heading} className={cn("rounded-lg border-l-4 border border-border/30 p-3.5", colors)}>
+                    <div key={block.heading} className={cn("rounded-lg border p-3.5", colors)}>
                       <div className="flex items-start justify-between gap-2 mb-1">
                         <p className="text-xs font-semibold text-foreground">{block.heading}</p>
                         <span className={cn("shrink-0 text-[10px] font-semibold px-1.5 py-0.5 rounded-full", badge.cls)}>

@@ -1,8 +1,7 @@
 "use client"
 
-import { StickerIcon } from "@/components/icons/stickers"
-
 import { CenteredHero } from "@/components/heroes"
+import { StickerIcon } from "@/components/icons/stickers"
 import { DoctorCredibility } from "@/components/marketing/doctor-credibility"
 import { RegulatoryPartners } from "@/components/marketing/media-mentions"
 import { DataDrivenGuideSection, type GuideSectionData } from "@/components/marketing/sections"

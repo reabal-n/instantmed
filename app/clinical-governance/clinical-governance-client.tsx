@@ -3,9 +3,8 @@
 import { ExternalLink } from "lucide-react"
 import Link from "next/link"
 
-import { StickerIcon } from "@/components/icons/stickers"
-
 import { StatsHero } from "@/components/heroes"
+import { StickerIcon } from "@/components/icons/stickers"
 import { MarketingFooter } from "@/components/marketing"
 import { DataDrivenGuideSection, type GuideSectionData } from "@/components/marketing/sections"
 import {

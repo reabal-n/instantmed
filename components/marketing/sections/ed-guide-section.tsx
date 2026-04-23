@@ -6,7 +6,6 @@ import type React from "react"
 import { useRef } from "react"
 
 import { StickerIcon, type StickerIconName } from "@/components/icons/stickers"
-
 import { usePostHog } from "@/components/providers/posthog-provider"
 import {
   Accordion,

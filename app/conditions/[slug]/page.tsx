@@ -15,9 +15,8 @@ import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 
-import { StickerIcon } from "@/components/icons/stickers"
-
 import { CenteredHero } from "@/components/heroes"
+import { StickerIcon } from "@/components/icons/stickers"
 import { MarketingFooter, MarketingPageShell } from "@/components/marketing"
 import { TestimonialsSection } from "@/components/marketing/sections"
 import type { ChecklistItem,StatItem } from "@/components/sections"
