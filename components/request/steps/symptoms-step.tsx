@@ -77,21 +77,24 @@ export default function SymptomsStep({ serviceType, onNext }: SymptomsStepProps)
     }
   }, [])
 
-  // Run emergency symptom check when symptom details change
+  // Run emergency symptom check when symptom details change (debounced 300ms)
   useEffect(() => {
-    if (symptomDetails.length >= 10) {
-      const result = checkEmergencySymptoms(symptomDetails)
-      setEmergencyWarning(result)
-      // Clear acknowledgment if emergency state changes to non-emergency
-      if (!result.isEmergency && emergencyWarningAcknowledged) {
-        setAnswer('emergencyWarningAcknowledged', undefined)
+    const timer = setTimeout(() => {
+      if (symptomDetails.length >= 10) {
+        const result = checkEmergencySymptoms(symptomDetails)
+        setEmergencyWarning(result)
+        // Clear acknowledgment if emergency state changes to non-emergency
+        if (!result.isEmergency && emergencyWarningAcknowledged) {
+          setAnswer('emergencyWarningAcknowledged', undefined)
+        }
+      } else {
+        if (emergencyWarning.isEmergency) {
+          setEmergencyWarning({ isEmergency: false, matchedKeywords: [] })
+          setAnswer('emergencyWarningAcknowledged', undefined)
+        }
       }
-    } else {
-      if (emergencyWarning.isEmergency) {
-        setEmergencyWarning({ isEmergency: false, matchedKeywords: [] })
-        setAnswer('emergencyWarningAcknowledged', undefined)
-      }
-    }
+    }, 300)
+    return () => clearTimeout(timer)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [symptomDetails])
 
@@ -158,7 +161,7 @@ export default function SymptomsStep({ serviceType, onNext }: SymptomsStepProps)
                 key={s}
                 onClick={() => toggleSymptom(s)}
                 aria-label={`Add ${s} symptom`}
-                className="text-xs px-2 py-2 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 outline-none"
+                className="text-xs px-3 min-h-[44px] rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 outline-none"
               >
                 + {s}
               </button>

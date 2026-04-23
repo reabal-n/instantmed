@@ -107,7 +107,7 @@ export function StickyCTABar() {
                 sessionStorage.setItem(SESSION_KEY, (current + 1).toString())
               }
             }}
-            className="p-2.5 text-muted-foreground hover:text-foreground transition-colors shrink-0"
+            className="min-h-[44px] min-w-[44px] flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors shrink-0"
             aria-label="Dismiss"
           >
             <X className="w-4 h-4" />

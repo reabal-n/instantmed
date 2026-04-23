@@ -269,16 +269,16 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
             </span>
             <div className="flex gap-2">
               <Button
-                size="sm"
+                size="default"
                 variant="ghost"
-                className="px-2 text-xs"
+                className="px-3 text-xs"
                 onClick={() => setShowAutofillBanner(false)}
               >
                 No thanks
               </Button>
               <Button
-                size="sm"
-                className="px-3 text-xs"
+                size="default"
+                className="px-4 text-xs"
                 onClick={handleAutofill}
               >
                 Autofill
