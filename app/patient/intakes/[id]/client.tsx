@@ -332,7 +332,7 @@ export function IntakeDetailClient({
         <CardContent className="space-y-6">
           {/* Pending Payment - Retry CTA */}
           {intake.status === "pending_payment" && (
-            <Card className="border-warning-border bg-linear-to-br from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/20">
+            <Card className="border-warning-border bg-warning-light/50 dark:bg-warning/10">
               <CardContent className="pt-6">
                 <div className="flex flex-col sm:flex-row items-start gap-4">
                   <div className="rounded-full bg-warning-light p-3 shrink-0">
@@ -340,15 +340,15 @@ export function IntakeDetailClient({
                   </div>
                   <div className="flex-1 space-y-3">
                     <div>
-                      <h3 className="text-base font-semibold text-amber-900">Payment Required</h3>
-                      <p className="text-sm text-warning">
+                      <h3 className="text-base font-semibold text-warning">Payment Required</h3>
+                      <p className="text-sm text-muted-foreground">
                         Your request is saved but hasn&apos;t been submitted yet. Complete payment to send it to a doctor for review.
                       </p>
                     </div>
                     <Button
                       onClick={handleRetryPayment}
                       disabled={isPending}
-                      className="w-full sm:w-auto bg-amber-600 hover:bg-amber-700"
+                      className="w-full sm:w-auto"
                     >
                       {isPending ? (
                         <>
@@ -369,7 +369,7 @@ export function IntakeDetailClient({
 
           {/* Checkout Failed - Retry CTA */}
           {intake.status === "checkout_failed" && (
-            <Card className="border-destructive/30 bg-linear-to-br from-red-50 to-orange-50 dark:from-red-950/30 dark:to-orange-950/20">
+            <Card className="border-destructive/30 bg-destructive/5">
               <CardContent className="pt-6">
                 <div className="flex flex-col sm:flex-row items-start gap-4">
                   <div className="rounded-full bg-destructive/10 p-3 shrink-0">
@@ -377,7 +377,7 @@ export function IntakeDetailClient({
                   </div>
                   <div className="flex-1 space-y-3">
                     <div>
-                      <h3 className="text-base font-semibold text-red-900 dark:text-red-200">Payment didn&apos;t go through</h3>
+                      <h3 className="text-base font-semibold text-destructive">Payment didn&apos;t go through</h3>
                       <p className="text-sm text-muted-foreground">
                         Your information has been saved. Try again with the same or a different card - no need to re-enter your details.
                       </p>
@@ -525,7 +525,7 @@ export function IntakeDetailClient({
               onResendVerification={resendVerificationEmail}
             >
               <DocumentReadyReveal intakeId={intake.id} approvedAt={intake.approved_at}>
-              <Card className="border-success-border bg-linear-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/20">
+              <Card className="border-success-border bg-success-light/50 dark:bg-success/10">
                 <CardContent className="pt-6">
                   <div className="flex items-start gap-4">
                     <div className="rounded-full bg-success-light p-3">
@@ -533,12 +533,12 @@ export function IntakeDetailClient({
                     </div>
                     <div className="flex-1 space-y-3">
                       <div>
-                        <h3 className="text-base font-semibold text-emerald-900">Your Document is Ready</h3>
-                        <p className="text-sm text-success">
+                        <h3 className="text-base font-semibold text-success">Your Document is Ready</h3>
+                        <p className="text-sm text-muted-foreground">
                           Download your {service?.short_name || service?.name || "document"} below.
                         </p>
                       </div>
-                      <Button asChild size="lg" className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700">
+                      <Button asChild size="lg" className="w-full sm:w-auto">
                         <a
                           href={document.pdf_url}
                           target="_blank"
@@ -591,7 +591,7 @@ export function IntakeDetailClient({
                           </Button>
                         )}
                         {correctionSubmitted && (
-                          <p className="text-xs text-amber-600 w-full">
+                          <p className="text-xs text-warning w-full">
                             Date correction submitted - your doctor will review and resend the updated certificate.
                           </p>
                         )}

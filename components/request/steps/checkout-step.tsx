@@ -269,7 +269,7 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
           <p className="text-xs text-muted-foreground">
             {subscribeAndSave
               ? "First script processed immediately. Cancel anytime."
-              : "Pay after your request is created."}
+              : "One-time fee. Your doctor reviews right after."}
           </p>
         </div>
       </motion.div>
@@ -400,7 +400,7 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
       {/* Inline trust strip */}
       <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 text-xs text-muted-foreground/70">
         <span className="flex items-center gap-1.5">
-          <ShieldCheck className="w-3 h-3 text-emerald-500" />
+          <ShieldCheck className="w-3 h-3 text-success" />
           AHPRA-registered doctors
         </span>
         <span className="flex items-center gap-1.5">

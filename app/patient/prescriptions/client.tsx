@@ -126,7 +126,7 @@ export function PrescriptionsClient({
                   </p>
                 </div>
                 <Link href="/request?service=prescription">
-                  <Button size="sm" className="bg-amber-600 hover:bg-amber-700">
+                  <Button size="sm">
                     Renew
                   </Button>
                 </Link>

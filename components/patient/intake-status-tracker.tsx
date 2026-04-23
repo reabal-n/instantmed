@@ -269,12 +269,12 @@ export function IntakeStatusTracker({
             </>
           ) : isDisconnected ? (
             <>
-              <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+              <span className="h-1.5 w-1.5 rounded-full bg-warning" />
               <span>Reconnecting...</span>
             </>
           ) : (
             <>
-              <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
+              <span className="h-1.5 w-1.5 rounded-full bg-success motion-safe:animate-pulse" />
               <span>Live</span>
             </>
           )}

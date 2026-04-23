@@ -7,7 +7,6 @@ import { useCallback, useEffect, useRef,useState } from "react"
 import { ReferralCard,WhatHappensNext } from "@/components/patient"
 import { usePostHog } from "@/components/providers/posthog-provider"
 import { Button } from "@/components/ui/button"
-import { LottieAnimation } from "@/components/ui/lottie-animation"
 import { useReducedMotion } from "@/components/ui/motion"
 import { PulseSpinner } from "@/components/ui/spinner"
 import { trackPurchase } from "@/lib/analytics/conversion-tracking"
@@ -230,12 +229,11 @@ export function SuccessClient({
         className="space-y-6"
       >
         <div className="text-center space-y-4">
-          <LottieAnimation name="error" size={80} loop={false} className="mx-auto" />
           <motion.div
             initial={prefersReducedMotion ? {} : { scale: 0 }}
             animate={{ scale: 1 }}
             transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.3, ease: "easeOut", delay: 0.1 }}
-            className="w-16 h-16 mx-auto rounded-full bg-warning-light/30 flex items-center justify-center"
+            className="w-16 h-16 mx-auto rounded-full bg-warning-light flex items-center justify-center"
           >
             <AlertTriangle className="w-8 h-8 text-warning" />
           </motion.div>
@@ -307,12 +305,11 @@ export function SuccessClient({
         transition={prefersReducedMotion ? { duration: 0 } : undefined}
         className="text-center space-y-4"
       >
-        <LottieAnimation name="success" size={80} loop={false} className="mx-auto" />
         <motion.div
           initial={prefersReducedMotion ? {} : { scale: 0 }}
           animate={{ scale: 1 }}
           transition={prefersReducedMotion ? { duration: 0 } : { type: "tween", ease: [0.22, 1, 0.36, 1], duration: 0.3, delay: 0.1 }}
-          className="w-16 h-16 mx-auto rounded-full bg-emerald-500 flex items-center justify-center"
+          className="w-16 h-16 mx-auto rounded-full bg-success flex items-center justify-center"
         >
           <Check className="w-8 h-8 text-white" strokeWidth={2.5} />
         </motion.div>
