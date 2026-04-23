@@ -35,6 +35,7 @@ import type {
   FlagActionProps,
   MaintenanceSectionProps,
   NotificationsSectionProps,
+  ParchmentSectionProps,
   SafetySymptomsSectionProps,
 } from "./use-feature-flags"
 
@@ -952,6 +953,57 @@ export function NotificationsSection({
               />
               <span className="text-sm text-muted-foreground">hours before patient delay email sends</span>
             </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+// ============================================================================
+// Parchment ePrescribing Section
+// ============================================================================
+
+export function ParchmentSection({
+  flags,
+  isSaving,
+  onExecuteToggle,
+}: ParchmentSectionProps) {
+  return (
+    <Card>
+      <CardHeader className="px-6 pt-6">
+        <CardTitle className="text-base flex items-center gap-2">
+          <Pill className="h-4 w-4" />
+          Parchment ePrescribing
+        </CardTitle>
+        <CardDescription>
+          Enables the embedded Parchment iframe in the doctor portal for writing eScripts directly inside InstantMed. When off, doctors use the manual &quot;Mark Sent&quot; workflow.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="px-6 pb-6">
+        <div className="flex items-center justify-between p-5 rounded-lg border">
+          <div className="flex items-center gap-3">
+            <div className={`p-2 rounded-lg ${flags.parchment_embedded_prescribing ? "bg-success-light" : "bg-muted"}`}>
+              <Pill className={`h-5 w-5 ${flags.parchment_embedded_prescribing ? "text-success" : "text-muted-foreground"}`} />
+            </div>
+            <div>
+              <p className="font-medium">Embedded Prescribing</p>
+              <p className="text-sm text-muted-foreground">
+                {flags.parchment_embedded_prescribing
+                  ? "Parchment iframe active — doctors prescribe inside InstantMed"
+                  : "Disabled — doctors use manual Mark Sent workflow"}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            {isSaving === FLAG_KEYS.PARCHMENT_EMBEDDED_PRESCRIBING && (
+              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+            )}
+            <Switch
+              checked={flags.parchment_embedded_prescribing}
+              onCheckedChange={() => onExecuteToggle(FLAG_KEYS.PARCHMENT_EMBEDDED_PRESCRIBING, flags.parchment_embedded_prescribing)}
+              disabled={isSaving === FLAG_KEYS.PARCHMENT_EMBEDDED_PRESCRIBING}
+            />
           </div>
         </div>
       </CardContent>

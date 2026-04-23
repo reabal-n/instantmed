@@ -11,6 +11,7 @@ import {
   MaintenanceModeSection,
   NotificationsSection,
   OperationalControlsSection,
+  ParchmentSection,
   SafetySymptomsSection,
   ServiceKillSwitchesSection,
 } from "./feature-flag-detail"
@@ -127,6 +128,16 @@ export function FeaturesList({
       />
 
       <NotificationsSection
+        flags={flags}
+        initialFlags={initialFlags}
+        isSaving={isSaving}
+        onSetFlags={onSetFlags}
+        onToggleFlag={onToggleFlag}
+        onExecuteToggle={onExecuteToggle}
+        onSaveFlag={onSaveFlag}
+      />
+
+      <ParchmentSection
         flags={flags}
         initialFlags={initialFlags}
         isSaving={isSaving}

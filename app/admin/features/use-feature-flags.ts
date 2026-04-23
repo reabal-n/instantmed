@@ -83,6 +83,9 @@ export interface AutoApproveSectionProps extends FlagActionProps {
 /** Props for the notifications section. */
 export type NotificationsSectionProps = FlagActionProps
 
+/** Props for the Parchment ePrescribing section. */
+export type ParchmentSectionProps = FlagActionProps
+
 /** Props for the audit log section. */
 export interface AuditLogSectionProps {
   auditLogs: AuditLogEntry[]
