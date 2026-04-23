@@ -21,6 +21,7 @@ import { SectionPill } from "@/components/ui/section-pill"
 import { PRICING_DISPLAY } from "@/lib/constants"
 import { getAllStateSlugs, statesData } from "@/lib/seo/data/states"
 import { safeJsonLd } from "@/lib/seo/safe-json-ld"
+import { SOCIAL_PROOF } from "@/lib/social-proof"
 
 // ============================================================================
 // METADATA - head-term pillar for "online doctor australia"
@@ -66,7 +67,7 @@ export const metadata: Metadata = {
 
 const STATS = [
   { value: "AHPRA", label: "Registered GPs", context: "Every review by an Australian-registered doctor" },
-  { value: "~30 min", label: "Med cert turnaround", context: "Typical same-day timing" },
+  { value: `~${SOCIAL_PROOF.certTurnaroundMinutes} min`, label: "Med cert turnaround", context: "Typical same-day timing" },
   { value: "24/7", label: "Med cert availability", context: "Rx + consults 8am–10pm AEST" },
   { value: `${PRICING_DISPLAY.MED_CERT}`, label: "From", context: "Full refund if we can't help" },
 ]

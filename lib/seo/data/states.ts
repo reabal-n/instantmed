@@ -17,6 +17,10 @@
  * of unique state-specific content + city grid + FAQs.
  */
 
+import { SOCIAL_PROOF } from "@/lib/social-proof"
+
+const CERT_TURNAROUND = `~${SOCIAL_PROOF.certTurnaroundMinutes} min`
+
 export type StateSlug = "nsw" | "vic" | "qld" | "wa" | "sa" | "tas" | "act" | "nt"
 
 export interface StateData {
@@ -55,12 +59,12 @@ export const statesData: Record<StateSlug, StateData> = {
     healthcareContext: [
       "New South Wales has the largest population and the widest healthcare-access gap of any Australian state. Metropolitan Sydney alone spans 12,000 km² with healthcare availability varying dramatically between suburbs - the Eastern Suburbs and Lower North Shore have high GP density but low bulk-billing, while Western and Southwestern Sydney have growing populations outpacing clinic capacity. Even when bulk-billing is available in the west, same-day appointments are often impossible, particularly on Mondays and Fridays when demand peaks.",
       "Beyond Sydney, regional NSW faces a different set of pressures. Towns like Dubbo, Orange, Wagga Wagga, and the Mid North Coast have fewer GPs per capita than the national average, and locum coverage is inconsistent. For residents of these areas, a 'quick trip to the doctor' for a straightforward med cert or repeat script can mean a half-day round trip. Telehealth removes the distance barrier entirely - the same AHPRA-registered doctor reviews your request whether you're in Mosman or Moree.",
-      "Sydney's shift-working population - hospitality, healthcare workers at RPA and Westmead, logistics staff in Western Sydney - rarely align with standard 9-5 clinic hours. After-hours medical centres exist but typically charge premium fees and have 2-3 hour waits. InstantMed's med-cert service runs 24/7 with ~30 minute turnarounds, and prescription/consultation reviews run 8am-10pm AEST, seven days a week.",
+      "Sydney's shift-working population - hospitality, healthcare workers at RPA and Westmead, logistics staff in Western Sydney - rarely align with standard 9-5 clinic hours. After-hours medical centres exist but typically charge premium fees and have 2-3 hour waits. InstantMed's med-cert service runs 24/7 with ~20 minute turnarounds, and prescription/consultation reviews run 8am-10pm AEST, seven days a week.",
     ],
     stats: [
       { label: "Population", value: "8.3M", context: "Largest Australian state" },
       { label: "Cities served", value: "13+", context: "Sydney to Wagga Wagga" },
-      { label: "Med cert turnaround", value: "~30 min", context: "24/7 availability" },
+      { label: "Med cert turnaround", value: CERT_TURNAROUND, context: "24/7 availability" },
       { label: "Bulk-billing rate", value: "~69%", context: "Below national average in metro Sydney" },
     ],
     localContext: [
@@ -126,7 +130,7 @@ export const statesData: Record<StateSlug, StateData> = {
       { label: "Population", value: "6.9M", context: "Second-largest Australian state" },
       { label: "Cities served", value: "6+", context: "Melbourne to Mildura" },
       { label: "Melbourne CBD bulk-billing", value: "~55%", context: "Among the lowest in Australia" },
-      { label: "Med cert turnaround", value: "~30 min", context: "24/7" },
+      { label: "Med cert turnaround", value: CERT_TURNAROUND, context: "24/7" },
     ],
     localContext: [
       {
@@ -177,7 +181,7 @@ export const statesData: Record<StateSlug, StateData> = {
       { label: "Population", value: "5.5M", context: "Third-largest Australian state" },
       { label: "Cities served", value: "12+", context: "Brisbane to Cairns" },
       { label: "Area covered", value: "1.85M km²", context: "Spread across coast, inland, FNQ" },
-      { label: "Med cert turnaround", value: "~30 min", context: "24/7" },
+      { label: "Med cert turnaround", value: CERT_TURNAROUND, context: "24/7" },
     ],
     localContext: [
       {
@@ -292,7 +296,7 @@ export const statesData: Record<StateSlug, StateData> = {
       { label: "Population", value: "1.8M", context: "75% in metro Adelaide" },
       { label: "Cities served", value: "3+", context: "Adelaide, Mt Gambier, Port Augusta" },
       { label: "Area covered", value: "984,000 km²", context: "Includes remote Outback communities" },
-      { label: "Med cert turnaround", value: "~30 min", context: "24/7" },
+      { label: "Med cert turnaround", value: CERT_TURNAROUND, context: "24/7" },
     ],
     localContext: [
       {
@@ -343,7 +347,7 @@ export const statesData: Record<StateSlug, StateData> = {
       { label: "Population", value: "570K", context: "Smallest mainland state" },
       { label: "Cities served", value: "2+", context: "Hobart, Launceston + regional" },
       { label: "New-patient GP wait", value: "6+ weeks", context: "Highest in Australia (2026)" },
-      { label: "Med cert turnaround", value: "~30 min", context: "24/7" },
+      { label: "Med cert turnaround", value: CERT_TURNAROUND, context: "24/7" },
     ],
     localContext: [
       {
@@ -394,7 +398,7 @@ export const statesData: Record<StateSlug, StateData> = {
       { label: "Population", value: "460K", context: "Smallest Australian state/territory" },
       { label: "Cities served", value: "1", context: "Canberra (ACT is one city-state)" },
       { label: "Bulk-billing rate", value: "~42%", context: "Among the lowest in Australia" },
-      { label: "Med cert turnaround", value: "~30 min", context: "24/7" },
+      { label: "Med cert turnaround", value: CERT_TURNAROUND, context: "24/7" },
     ],
     localContext: [
       {
@@ -445,7 +449,7 @@ export const statesData: Record<StateSlug, StateData> = {
       { label: "Population", value: "250K", context: "Smallest Australian jurisdiction" },
       { label: "Cities served", value: "2+", context: "Darwin, Alice Springs + remote" },
       { label: "Area covered", value: "1.4M km²", context: "Largest per-capita area" },
-      { label: "Med cert turnaround", value: "~30 min", context: "24/7" },
+      { label: "Med cert turnaround", value: CERT_TURNAROUND, context: "24/7" },
     ],
     localContext: [
       {

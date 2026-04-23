@@ -32,7 +32,7 @@ export function DoctorProfileSection() {
                 Every request is reviewed and approved by an experienced,
                 AHPRA-registered Australian doctor. No automated clinical decisions.
               </p>
-              <p className="mt-3 text-xs text-muted-foreground/70">
+              <p className="mt-3 text-xs text-muted-foreground">
                 Verify any doctor&apos;s registration on the{" "}
                 <a
                   href="https://www.ahpra.gov.au/Registration/Registers-of-Practitioners.aspx"

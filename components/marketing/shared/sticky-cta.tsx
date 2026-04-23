@@ -80,7 +80,7 @@ export function StickyCTA({
           <p className="text-xs text-muted-foreground text-center mb-2">
             {mobileSummary}
             {responseTime && (
-              <span className="text-muted-foreground/70"> &middot; {responseTime}</span>
+              <span className="text-muted-foreground"> &middot; {responseTime}</span>
             )}
           </p>
           <Button
@@ -129,7 +129,7 @@ export function StickyCTA({
                 </span>
               )}
               {responseTime && (
-                <span className="text-xs text-muted-foreground/70">
+                <span className="text-xs text-muted-foreground">
                   {responseTime}
                 </span>
               )}

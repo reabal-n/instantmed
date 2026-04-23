@@ -73,7 +73,7 @@ function ServiceCard({ service, disabled }: ServiceCardProps) {
           </p>
 
           {/* Description */}
-          <p className="text-sm text-muted-foreground/80 line-clamp-2 mb-3">
+          <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
             {service.description}
           </p>
 
@@ -113,7 +113,7 @@ function ServiceCard({ service, disabled }: ServiceCardProps) {
               <p className="text-[11px] text-muted-foreground italic leading-relaxed">
                 &ldquo;{service.testimonial.quote}&rdquo;
               </p>
-              <p className="text-[10px] text-muted-foreground/70 mt-1">
+              <p className="text-[10px] text-muted-foreground mt-1">
                 - {service.testimonial.author}
               </p>
             </div>
@@ -150,12 +150,12 @@ function ComingSoonCard({ service }: ComingSoonCardProps) {
         <h3 className="text-base font-semibold text-muted-foreground mb-0.5">
           {service.title}
         </h3>
-        <p className="text-sm text-muted-foreground/60 mb-2">
+        <p className="text-sm text-muted-foreground mb-2">
           From ${service.priceFrom.toFixed(2)}
         </p>
 
         {/* Description */}
-        <p className="text-sm text-muted-foreground/60 line-clamp-2 mb-3">
+        <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
           {service.description}
         </p>
 
@@ -164,7 +164,7 @@ function ComingSoonCard({ service }: ComingSoonCardProps) {
           <ul className="space-y-1.5 mb-4 flex-1">
             {service.benefits.map((benefit, idx) => (
               <li key={idx} className={cn(
-                "flex items-start gap-2 text-sm text-muted-foreground/50",
+                "flex items-start gap-2 text-sm text-muted-foreground",
                 idx >= 2 && "hidden sm:flex",
               )}>
                 <Check className="h-3.5 w-3.5 text-muted-foreground/30 mt-0.5 shrink-0" />
@@ -198,7 +198,7 @@ export function ServiceCards() {
           <p className="text-base text-muted-foreground max-w-2xl mx-auto mb-2">
             Pick a service. Pay a flat fee. No sign-up needed.
           </p>
-          <p className="hidden sm:block text-sm text-muted-foreground/70">
+          <p className="hidden sm:block text-sm text-muted-foreground">
             {serviceCategories.length} services &middot; {comingSoonServices.length} more coming
           </p>
         </Reveal>

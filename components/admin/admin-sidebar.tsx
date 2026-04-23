@@ -96,7 +96,7 @@ export function AdminSidebar({ userName, userRole = "Admin", pendingCount = 0 }:
 
   const renderNavSection = (title: string, items: NavItem[]) => (
     <div className="space-y-1">
-      <p className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground/70">
+      <p className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
         {title}
       </p>
       {items.map((item) => {
@@ -383,12 +383,12 @@ export function MobileAdminNav({ pendingCount = 0 }: { pendingCount?: number }) 
 
         <div className="flex-1 overflow-y-auto px-3 py-2 space-y-3">
           <div className="space-y-0.5">
-            <p className="px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground/60">Doctor Tools</p>
+            <p className="px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Doctor Tools</p>
             {doctorNavItems.map(renderMobileLink)}
           </div>
           <div className="border-t border-border/30" />
           <div className="space-y-0.5">
-            <p className="px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground/60">Configuration</p>
+            <p className="px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Configuration</p>
             {configNavItems.map(renderMobileLink)}
           </div>
           <div className="border-t border-border/30" />

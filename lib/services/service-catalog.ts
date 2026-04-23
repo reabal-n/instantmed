@@ -86,7 +86,7 @@ export const SERVICE_CATALOG: Record<CanonicalServiceId, ServiceDef> = {
   "med-cert": {
     id: "med-cert",
     title: "Medical certificate",
-    subtitle: "Doctor-reviewed, ready in ~30 min",
+    subtitle: "Doctor-reviewed, ready in ~20 min",
     slug: "medical-certificate",
     price: PRICING_DISPLAY.MED_CERT,
     pricePrefix: "From",

@@ -276,7 +276,7 @@ function TreatmentOptions() {
           </Button>
         </div>
 
-        <p className="text-[10px] text-muted-foreground/50 text-center mt-8 max-w-3xl mx-auto leading-relaxed">
+        <p className="text-[10px] text-muted-foreground text-center mt-8 max-w-3xl mx-auto leading-relaxed">
           Androgenetic alopecia is managed with TGA-approved oral and topical treatments where clinically appropriate. Individual outcomes vary and are determined by your treating doctor. Telehealth assessment of hair loss achieves comparable diagnostic accuracy to in-person consultation (Finnane et al., <em>Med J Aust</em>, 2017).
         </p>
       </div>

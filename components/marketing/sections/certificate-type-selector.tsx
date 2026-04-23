@@ -198,7 +198,7 @@ export function CertificateTypeSelector({
                   {cat.reasons.map((reason) => (
                     <span
                       key={reason}
-                      className="text-[10px] font-medium text-muted-foreground/70 px-2 py-0.5 rounded-full border border-border/40 bg-muted/30"
+                      className="text-[10px] font-medium text-muted-foreground px-2 py-0.5 rounded-full border border-border/40 bg-muted/30"
                     >
                       {reason}
                     </span>
@@ -402,7 +402,7 @@ function ComparisonTable() {
           </tbody>
         </table>
       </div>
-      <p className="mt-3 text-[11px] text-muted-foreground/60 text-center leading-relaxed">
+      <p className="mt-3 text-[11px] text-muted-foreground text-center leading-relaxed">
         GP cost estimated from MBS item 23 fee. Telehealth prices based on comparable services.
       </p>
     </motion.div>

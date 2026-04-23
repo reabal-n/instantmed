@@ -51,7 +51,7 @@ export function MedCertHeroSection({
               variants={item}
               className="text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight mb-3 sm:mb-5 leading-[1.1] text-balance"
             >
-              Sick today? A valid medical certificate in under 30 minutes.
+              Sick today? A valid medical certificate in about {SOCIAL_PROOF.certTurnaroundMinutes} minutes.
             </motion.h1>
 
             <motion.p
@@ -95,6 +95,7 @@ export function MedCertHeroSection({
             <motion.div
               variants={item}
               className="lg:hidden mb-5 w-full max-w-[280px] mx-auto"
+              aria-hidden="true"
             >
               <MedCertHeroMockup compact />
             </motion.div>
@@ -111,7 +112,7 @@ export function MedCertHeroSection({
             </motion.div>
           </div>
 
-          <div className="hidden lg:block relative shrink-0 mt-0">
+          <div className="hidden lg:block relative shrink-0 mt-0" aria-hidden="true">
             <MedCertHeroMockup />
           </div>
         </motion.div>

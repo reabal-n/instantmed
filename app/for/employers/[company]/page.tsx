@@ -245,7 +245,7 @@ export default async function EmployerCompanyPage({ params }: { params: Promise<
         {/* #4 - Cross-links to other employer pages */}
         <section className="py-12 border-t border-border/30">
           <div className="max-w-3xl mx-auto px-4">
-            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground/50 text-center mb-6">
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground text-center mb-6">
               Other organisations
             </p>
             <div className="flex flex-wrap justify-center gap-2">

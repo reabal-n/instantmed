@@ -96,7 +96,7 @@ export function EmployerLogoMarquee({ className, hideHeading }: EmployerLogoMarq
     return (
       <div ref={sectionRef} className={cn('py-8', className)}>
         {!hideHeading && (
-          <p className="text-center text-xs font-semibold uppercase tracking-widest text-muted-foreground/50 mb-6">
+          <p className="text-center text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-6">
             Accepted by employees at
           </p>
         )}
@@ -120,7 +120,7 @@ export function EmployerLogoMarquee({ className, hideHeading }: EmployerLogoMarq
   return (
     <div ref={sectionRef} className={cn('py-8', className)}>
       {!hideHeading && (
-        <p className="text-center text-xs font-semibold uppercase tracking-widest text-muted-foreground/50 mb-6">
+        <p className="text-center text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-6">
           Accepted by employees at
         </p>
       )}

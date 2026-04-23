@@ -95,7 +95,7 @@ export default async function Image() {
             marginTop: '48px',
           }}
         >
-          {['AHPRA Registered', '100% Online', 'Under 30 min'].map((badge) => (
+          {['AHPRA Registered', '100% Online', '~20 min'].map((badge) => (
             <div
               key={badge}
               style={{

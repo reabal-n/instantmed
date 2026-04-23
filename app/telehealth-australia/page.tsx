@@ -24,6 +24,7 @@ import { SectionPill } from "@/components/ui/section-pill"
 import { PRICING_DISPLAY } from "@/lib/constants"
 import { getAllStateSlugs, statesData } from "@/lib/seo/data/states"
 import { safeJsonLd } from "@/lib/seo/safe-json-ld"
+import { SOCIAL_PROOF } from "@/lib/social-proof"
 
 // ============================================================================
 // METADATA - head-term pillar for "telehealth australia" and related
@@ -69,7 +70,7 @@ export const metadata: Metadata = {
 
 const STATS = [
   { value: "2011", label: "Telehealth legal in AU", context: "Federally recognised since the MBS reform" },
-  { value: "~30 min", label: "Med cert turnaround", context: "Reviewed around the clock" },
+  { value: `~${SOCIAL_PROOF.certTurnaroundMinutes} min`, label: "Med cert turnaround", context: "Reviewed around the clock" },
   { value: "AHPRA", label: "Clinical governance", context: "RACGP-aligned standards" },
   { value: `${PRICING_DISPLAY.MED_CERT}`, label: "From", context: "Private fee, refund if declined" },
 ]
@@ -239,7 +240,7 @@ export default function TelehealthAustraliaPage() {
                 </span>
                 <span className="flex items-center gap-1.5">
                   <Clock className="w-4 h-4 text-primary" />
-                  ~30 min med cert turnaround
+                  ~{SOCIAL_PROOF.certTurnaroundMinutes} min med cert turnaround
                 </span>
                 <span className="flex items-center gap-1.5">
                   <Shield className="w-4 h-4 text-primary" />

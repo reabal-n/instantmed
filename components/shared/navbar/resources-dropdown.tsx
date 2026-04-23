@@ -105,7 +105,7 @@ export function ResourcesDropdown({ isActivePath }: ResourcesDropdownProps) {
 
                 <DropdownMenuSeparator className="my-1.5 bg-border/40" />
 
-                <p className="px-3 py-1 text-[10px] font-semibold text-muted-foreground/50 uppercase tracking-wider">
+                <p className="px-3 py-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
                   Company
                 </p>
                 {companyLinks.map((link) => (

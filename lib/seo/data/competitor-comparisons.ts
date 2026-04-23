@@ -76,7 +76,7 @@ const instantmedVsHubHealth: ComparisonEntry = {
     { feature: "Weight management", instantmed: PRICING_DISPLAY.WEIGHT_LOSS, competitor: "Subscription program", winner: "tie" },
     { feature: "Ongoing nurse/coach support", instantmed: "Doctor messaging per request", competitor: "Program care team", winner: "competitor" },
     { feature: "Commitment required", instantmed: "None - one-off", competitor: "Ongoing subscription", winner: "instantmed" },
-    { feature: "Median doctor response", instantmed: "~30 min for med certs", competitor: "Varies by program", winner: "instantmed" },
+    { feature: "Median doctor response", instantmed: "~20 min for med certs", competitor: "Varies by program", winner: "instantmed" },
     { feature: "Cancel anytime", instantmed: "No subscription to cancel", competitor: "Yes, via account", winner: "tie" },
     { feature: "AHPRA-registered doctors", instantmed: true, competitor: true, winner: "tie" },
     { feature: "Refund on declined request", instantmed: "100% on med cert/Rx, 50% on consults", competitor: "Varies by program", winner: "instantmed" },
@@ -85,7 +85,7 @@ const instantmedVsHubHealth: ComparisonEntry = {
     "You need a single service - a medical certificate, a repeat script, or a one-off consult",
     "You don't want another monthly subscription on your card",
     "You want an upfront, transparent price for the thing you need today",
-    "You need a medical certificate quickly (often under 30 minutes)",
+    "You need a medical certificate quickly (often in about 20 minutes)",
     "You prefer per-request care over an ongoing program structure",
   ],
   whenCompetitorBetter: [
@@ -123,7 +123,7 @@ const instantmedVsHubHealth: ComparisonEntry = {
     },
     {
       q: "Which service is faster for a medical certificate?",
-      a: "InstantMed is optimised for fast medical certificate turnaround - most requests are reviewed within about 30 minutes, 24/7. Hub Health isn't primarily built around same-day medical certificates, so InstantMed will usually be the faster option if that's what you need.",
+      a: "InstantMed is optimised for fast medical certificate turnaround - most requests are reviewed in about 20 minutes, 24/7. Hub Health isn't primarily built around same-day medical certificates, so InstantMed will usually be the faster option if that's what you need.",
     },
     {
       q: "Can I use a Medicare rebate on either service?",
@@ -237,7 +237,7 @@ const instantmedVsDoctorsOnDemand: ComparisonEntry = {
     },
     {
       q: "Which is faster: InstantMed or Doctors on Demand?",
-      a: "For medical certificates, InstantMed is usually faster - reviews typically happen in around 30 minutes and the service runs 24/7. For scheduled video consults, Doctors on Demand is fast once your slot comes up, but you may wait hours or days for the next available appointment depending on demand.",
+      a: "For medical certificates, InstantMed is usually faster - reviews typically happen in around 20 minutes and the service runs 24/7. For scheduled video consults, Doctors on Demand is fast once your slot comes up, but you may wait hours or days for the next available appointment depending on demand.",
     },
     {
       q: "Can both services prescribe the same medications?",
@@ -308,7 +308,7 @@ const instantmedVsCleanbill: ComparisonEntry = {
     { feature: "Care provided directly", instantmed: true, competitor: false, winner: "instantmed" },
     { feature: "Need to leave home", instantmed: "No", competitor: "Yes - book and attend clinic", winner: "instantmed" },
     { feature: "Medicare rebate", instantmed: "Private - no rebate", competitor: "Bulk billed = no out-of-pocket", winner: "competitor" },
-    { feature: "Medical certificate turnaround", instantmed: "~30 min, 24/7", competitor: "Depends on appointment availability", winner: "instantmed" },
+    { feature: "Medical certificate turnaround", instantmed: "~20 min, 24/7", competitor: "Depends on appointment availability", winner: "instantmed" },
     { feature: "Physical examination", instantmed: "Not available", competitor: "Available at the clinic", winner: "competitor" },
     { feature: "Works after hours", instantmed: true, competitor: "Limited to clinic hours", winner: "instantmed" },
     { feature: "Complex or ongoing care", instantmed: "Not the primary use case", competitor: "Regular GP is ideal for this", winner: "competitor" },
@@ -465,7 +465,7 @@ const instantmedVsQoctor: ComparisonEntry = {
     },
     {
       q: "Which service is faster for a medical certificate?",
-      a: "InstantMed targets around 30 minutes for most medical certificate reviews and runs 24/7. Qoctor's typical turnaround is similar during their operating hours. For out-of-hours requests, InstantMed's 24/7 availability is a tangible difference - if you submit at 2am, you'll get a response faster with a 24/7 service than one that's business-hours only.",
+      a: "InstantMed targets around 20 minutes for most medical certificate reviews and runs 24/7. Qoctor's typical turnaround is similar during their operating hours. For out-of-hours requests, InstantMed's 24/7 availability is a tangible difference - if you submit at 2am, you'll get a response faster with a 24/7 service than one that's business-hours only.",
     },
     {
       q: "Do both services let me message the doctor if they have questions?",

@@ -163,7 +163,29 @@ const eslintConfig = [
           message:
             "Motion canon violation (M6-B): type:'spring' not allowed in transitions. Use { duration: 0.2, ease: 'easeOut' }.",
         },
+        // A11y: Contrast violation — opacity-modified text-muted-foreground on body text.
+        // Detects `text-{xs|sm|base|[Npx]} ... text-muted-foreground/N` (forward) or the reverse order.
+        // Decorative icons (w-/h- without text-size) are unaffected.
+        {
+          selector:
+            "Literal[value=/\\btext-(xs|sm|base|\\[(?:9|10|11|12|13|14|15|16|17|18)px\\])\\b[^\"]*\\btext-muted-foreground\\/\\d+\\b/]",
+          message:
+            "Contrast violation: text-muted-foreground with opacity modifier on body text fails WCAG AA 4.5:1. Drop the /N modifier, or use a dedicated decorative token.",
+        },
+        {
+          selector:
+            "Literal[value=/\\btext-muted-foreground\\/\\d+\\b[^\"]*\\btext-(xs|sm|base|\\[(?:9|10|11|12|13|14|15|16|17|18)px\\])\\b/]",
+          message:
+            "Contrast violation: text-muted-foreground with opacity modifier on body text fails WCAG AA 4.5:1. Drop the /N modifier, or use a dedicated decorative token.",
+        },
       ],
+    },
+  },
+  // A11y rule exception: hero mockup decoration (parent is aria-hidden in hero variants).
+  {
+    files: ["components/marketing/mockups/**/*.tsx"],
+    rules: {
+      "no-restricted-syntax": "off",
     },
   },
   // Intentional spring-physics exceptions: mouse-tracking interactions and animated counters.

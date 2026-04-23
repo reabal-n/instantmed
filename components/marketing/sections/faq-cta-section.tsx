@@ -60,7 +60,7 @@ export function FaqCtaSection({
         </div>
 
         {/* Emergency note */}
-        <p className="mt-8 text-center text-xs text-muted-foreground/70">
+        <p className="mt-8 text-center text-xs text-muted-foreground">
           For emergencies, call 000. This service is for non-urgent conditions
           only.
         </p>

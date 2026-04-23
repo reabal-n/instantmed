@@ -50,7 +50,7 @@ export function DashboardHeader({ initialAvailable }: DashboardHeaderProps) {
               {available ? "Available" : "Unavailable"}
             </Label>
           </div>
-          <div className="hidden sm:flex items-center gap-1.5 text-xs text-muted-foreground/60 font-mono">
+          <div className="hidden sm:flex items-center gap-1.5 text-xs text-muted-foreground font-mono">
             <kbd className="px-1.5 py-0.5 rounded border border-border/40 bg-muted/40">j</kbd>
             <kbd className="px-1.5 py-0.5 rounded border border-border/40 bg-muted/40">k</kbd>
             <span className="text-muted-foreground/40">navigate</span>

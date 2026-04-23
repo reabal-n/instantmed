@@ -40,7 +40,7 @@ export default function PrivacyPage() {
 
                 {/* Table of contents */}
                 <nav aria-label="Contents" className="pb-8">
-                  <p className="text-xs font-semibold text-muted-foreground/60 uppercase tracking-wider mb-3">Contents</p>
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Contents</p>
                   <ol className="grid sm:grid-cols-2 gap-x-6 gap-y-1.5 list-none">
                     {[
                       [1, "Introduction"],
@@ -62,7 +62,7 @@ export default function PrivacyPage() {
                           href={`#section-${n}`}
                           className="flex items-baseline gap-2 text-sm text-muted-foreground hover:text-primary transition-colors group"
                         >
-                          <span className="text-[10px] font-mono text-muted-foreground/40 group-hover:text-primary/50 shrink-0 w-4">{n}.</span>
+                          <span className="text-[10px] font-mono text-muted-foreground group-hover:text-primary/50 shrink-0 w-4">{n}.</span>
                           {title}
                         </a>
                       </li>

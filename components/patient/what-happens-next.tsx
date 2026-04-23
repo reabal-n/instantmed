@@ -119,7 +119,7 @@ export function WhatHappensNext({
                 ? `Your ${serviceName.toLowerCase()} request is being reviewed by our doctors.`
                 : "Your request is being reviewed by our doctors."}
           </p>
-          <p className="text-xs text-muted-foreground/70 mt-2">
+          <p className="text-xs text-muted-foreground mt-2">
             Check your junk or spam folder if you don't see our email within a few minutes.
           </p>
 

@@ -479,7 +479,7 @@ export function PrescriptionsLanding() {
 
           {/* Clinical references */}
           <div className="mx-auto max-w-3xl px-4 sm:px-6 pb-4">
-            <p className="text-[10px] text-muted-foreground/50 text-center leading-relaxed">
+            <p className="text-[10px] text-muted-foreground text-center leading-relaxed">
               Electronic prescribing reduces dispensing errors by 48% compared to handwritten scripts (Westbrook et al., <em>PLoS Med</em>, 2012). Telehealth prescription management achieves equivalent clinical outcomes to face-to-face for stable chronic medications (Snoswell et al., <em>J Telemed Telecare</em>, 2023). All prescribers are AHPRA-registered and comply with TGA scheduling requirements.
             </p>
           </div>

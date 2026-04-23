@@ -28,7 +28,7 @@ export function RegulatorLogoMarquee({
   return (
     <div className={cn('py-8', className)}>
       {label && (
-        <p className="text-center text-xs font-semibold uppercase tracking-widest text-muted-foreground/50 mb-6">
+        <p className="text-center text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-6">
           {label}
         </p>
       )}

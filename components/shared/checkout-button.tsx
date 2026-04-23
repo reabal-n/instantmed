@@ -173,7 +173,7 @@ export function CheckoutSection({
       {showSecurityNote && (
         <div className="flex flex-col items-center gap-1">
           <StripePaymentLogos className="opacity-70" />
-          <p className="text-[10px] text-center text-muted-foreground/60 flex items-center gap-1">
+          <p className="text-[10px] text-center text-muted-foreground flex items-center gap-1">
             <Lock className="w-3 h-3 shrink-0" />
             Your payment details are encrypted
           </p>

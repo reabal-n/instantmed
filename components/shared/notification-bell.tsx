@@ -124,7 +124,7 @@ export function NotificationBell() {
               <div className="p-8 text-center">
                 <Bell aria-hidden="true" className="h-10 w-10 text-muted-foreground/60 mx-auto mb-3" />
                 <p className="text-sm text-muted-foreground">No notifications yet</p>
-                <p className="text-xs text-muted-foreground/70 mt-1">
+                <p className="text-xs text-muted-foreground mt-1">
                   We&apos;ll notify you when something happens
                 </p>
               </div>
@@ -158,7 +158,7 @@ export function NotificationBell() {
                           <p className="text-sm text-muted-foreground line-clamp-2 mt-0.5">
                             {notification.message}
                           </p>
-                          <p className="text-xs text-muted-foreground/70 mt-1">
+                          <p className="text-xs text-muted-foreground mt-1">
                             {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
                           </p>
                         </div>

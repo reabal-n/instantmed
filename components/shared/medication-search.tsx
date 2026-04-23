@@ -264,7 +264,7 @@ export function MedicationSearch({
           disabled={disabled}
           className={cn(
             "w-full h-12 pl-10 pr-10 rounded-xl border bg-background text-base",
-            "placeholder:text-muted-foreground/60 placeholder:text-sm",
+            "placeholder:text-muted-foreground placeholder:text-sm",
             "focus:outline-none focus:border-primary",
             "transition-all duration-200",
             hasSelection && "border-green-500/50 bg-green-50/30",
@@ -337,7 +337,7 @@ export function MedicationSearch({
                 </p>
               )}
               {option.form && (
-                <p className="text-xs text-muted-foreground/70 mt-0.5">
+                <p className="text-xs text-muted-foreground mt-0.5">
                   {option.form}
                 </p>
               )}

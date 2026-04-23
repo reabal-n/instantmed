@@ -352,7 +352,7 @@ export function MobileDashboardNav({
 
         {/* Nav items */}
         <div className="flex-1 overflow-y-auto px-3 py-3">
-          <p className="px-3 mb-1.5 text-xs font-medium text-muted-foreground/70 uppercase tracking-wider">Navigation</p>
+          <p className="px-3 mb-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider">Navigation</p>
           <div className="space-y-0.5">
             {navItems.map((item) => {
               const isActive = pathname === item.href || (item.href !== baseHref && pathname?.startsWith(item.href))

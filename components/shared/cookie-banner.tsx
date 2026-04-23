@@ -178,7 +178,7 @@ export function CookieBanner() {
               <button
                 onClick={dismiss}
                 aria-label="Dismiss"
-                className="shrink-0 text-muted-foreground/60 hover:text-foreground transition-colors -mt-0.5"
+                className="shrink-0 text-muted-foreground hover:text-foreground transition-colors -mt-0.5"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -211,7 +211,7 @@ export function CookieBanner() {
                   <p className="text-sm font-medium text-foreground">Essential</p>
                   <p className="text-xs text-muted-foreground">Required for the site to work</p>
                 </div>
-                <span className="text-xs text-muted-foreground/60">Always on</span>
+                <span className="text-xs text-muted-foreground">Always on</span>
               </div>
 
               <div className="flex items-center justify-between py-2 px-3 rounded-lg bg-muted dark:bg-white/5">

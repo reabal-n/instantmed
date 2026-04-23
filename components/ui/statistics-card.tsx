@@ -164,7 +164,7 @@ const BarChart = ({
           top rated
         </motion.div>
       </motion.div>
-      <p className="mx-auto mt-2 w-fit text-xs md:text-sm tracking-tight text-muted-foreground/80 truncate">
+      <p className="mx-auto mt-2 w-fit text-xs md:text-sm tracking-tight text-muted-foreground truncate">
         {label}
       </p>
     </div>

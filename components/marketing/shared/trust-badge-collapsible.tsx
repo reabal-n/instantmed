@@ -80,7 +80,7 @@ export function TrustBadgeCollapsible({
         {hasMore && (
           <button
             onClick={() => setExpanded(!expanded)}
-            className="inline-flex items-center gap-1 text-xs text-muted-foreground/60 hover:text-muted-foreground transition-colors px-2 py-1"
+            className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors px-2 py-1"
             aria-expanded={expanded}
             aria-label={expanded ? "Show fewer trust badges" : `Show ${hidden.length} more trust badges`}
           >

@@ -51,7 +51,7 @@ export const conditionPages: ConditionPage[] = [
     howWeHelp: [
       "Describe your symptoms and how long you've been unwell",
       "Our doctor assesses whether a medical certificate is appropriate",
-      "Certificate issued and emailed in under 30 minutes",
+      "Certificate issued and emailed in about 20 minutes",
     ],
     disclaimers: [
       "This is not a diagnosis. A medical certificate confirms you're unwell and unable to work - it's not treatment.",

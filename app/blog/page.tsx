@@ -116,7 +116,7 @@ export default function BlogPage() {
                   </div>
                 </Link>
                 <div className="flex items-center gap-1 mt-3 md:justify-end">
-                  <span className="text-xs text-muted-foreground/50 mr-1">Share</span>
+                  <span className="text-xs text-muted-foreground mr-1">Share</span>
                   <a
                     href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(`https://instantmed.com.au/blog/${featured.slug}`)}&text=${encodeURIComponent(featured.title)}`}
                     target="_blank"
@@ -169,7 +169,7 @@ export default function BlogPage() {
                               <span className="text-2xl font-semibold text-primary/30 tabular-nums leading-none">
                                 {i + 2}
                               </span>
-                              <span className="text-[10px] text-muted-foreground/60 mt-1 tabular-nums">
+                              <span className="text-[10px] text-muted-foreground mt-1 tabular-nums">
                                 {formatViewCount(article.viewCount)}
                               </span>
                             </div>
@@ -221,7 +221,7 @@ export default function BlogPage() {
                     <input
                       type="email"
                       placeholder="your@email.com"
-                      className="flex-1 px-4 py-2.5 rounded-xl text-sm bg-muted/50 dark:bg-white/5 border border-border/50 dark:border-white/10 placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30"
+                      className="flex-1 px-4 py-2.5 rounded-xl text-sm bg-muted/50 dark:bg-white/5 border border-border/50 dark:border-white/10 placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30"
                     />
                     <button className="shrink-0 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30 transition-all inline-flex items-center gap-1.5">
                       Subscribe

@@ -184,7 +184,7 @@ export function PatientsListClient({ patients, currentPage, totalPages, totalPat
                               {patient.phone}
                             </span>
                           ) : (
-                            <span className="text-sm text-muted-foreground/50">Not provided</span>
+                            <span className="text-sm text-muted-foreground">Not provided</span>
                           )}
                         </div>
                       </TableCell>
@@ -195,7 +195,7 @@ export function PatientsListClient({ patients, currentPage, totalPages, totalPat
                             {patient.suburb}, {patient.state}
                           </span>
                         ) : (
-                          <span className="text-sm text-muted-foreground/50">Not provided</span>
+                          <span className="text-sm text-muted-foreground">Not provided</span>
                         )}
                       </TableCell>
                       <TableCell>

@@ -111,7 +111,7 @@ export default function FAQPage() {
               <p className="text-muted-foreground mb-2">
                 Everything you need to know about InstantMed.
               </p>
-              <p className="text-xs text-muted-foreground/70 mb-8">
+              <p className="text-xs text-muted-foreground mb-8">
                 {TOTAL_QUESTIONS} questions across {CATEGORIES.length} topics
               </p>
 

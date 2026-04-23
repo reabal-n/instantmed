@@ -173,7 +173,7 @@ export function AboutClient() {
                   <ComparisonBar
                     us={{
                       label: "InstantMed",
-                      value: "~30 min",
+                      value: `~${SOCIAL_PROOF.certTurnaroundMinutes} min`,
                       subtext: "Average certificate delivery",
                     }}
                     them={{

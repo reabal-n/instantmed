@@ -20,7 +20,7 @@ export default function AdminSubError({ error, reset }: { error: Error & { diges
       <p className="text-sm text-muted-foreground max-w-sm text-center">
         This section encountered an error. Try refreshing or return to the admin dashboard.
       </p>
-      {error.digest && <p className="text-xs text-muted-foreground/60 font-mono">Ref: {error.digest}</p>}
+      {error.digest && <p className="text-xs text-muted-foreground font-mono">Ref: {error.digest}</p>}
       <Button onClick={reset} size="sm"><RefreshCw className="mr-2 h-4 w-4" />Try again</Button>
     </div>
   )

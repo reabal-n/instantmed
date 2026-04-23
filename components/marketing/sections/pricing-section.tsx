@@ -136,7 +136,7 @@ export function PricingSection({
 
           {/* Optional footnotes */}
           {(refundNote || medicareNote) && (
-            <div className="mt-6 space-y-2 text-xs text-muted-foreground/70">
+            <div className="mt-6 space-y-2 text-xs text-muted-foreground">
               {refundNote && (
                 <p className="flex items-center justify-center gap-1.5">
                   <RefreshCw className="w-3.5 h-3.5 shrink-0" />
@@ -199,7 +199,7 @@ function ComparisonTable() {
           </tbody>
         </table>
       </div>
-      <p className="mt-4 text-[11px] text-muted-foreground/70 text-center leading-relaxed px-2">
+      <p className="mt-4 text-[11px] text-muted-foreground text-center leading-relaxed px-2">
         * Average review time based on recent requests. Individual times vary.{" "}
         † GP cost estimated from MBS item 23 standard consultation fee. Out-of-pocket costs vary by clinic.
       </p>

@@ -51,7 +51,7 @@ export function Footer({ variant = "marketing" }: FooterProps) {
           {/* Link columns */}
           <div className="flex-1 grid grid-cols-2 gap-x-4 gap-y-5 md:gap-x-8">
             <nav aria-label="Services">
-              <p aria-hidden="true" className="uppercase text-[10px] text-muted-foreground/70 font-semibold tracking-wider mb-2">Services</p>
+              <p aria-hidden="true" className="uppercase text-[10px] text-muted-foreground font-semibold tracking-wider mb-2">Services</p>
               <div className="flex flex-col gap-1.5">
                 {footerLinks.services.map((link) => (
                   <Link key={link.href} className="text-sm text-muted-foreground hover:text-foreground transition-colors" href={link.href}>
@@ -62,7 +62,7 @@ export function Footer({ variant = "marketing" }: FooterProps) {
             </nav>
 
             <nav aria-label="Company">
-              <p aria-hidden="true" className="uppercase text-[10px] text-muted-foreground/70 font-semibold tracking-wider mb-2">Company</p>
+              <p aria-hidden="true" className="uppercase text-[10px] text-muted-foreground font-semibold tracking-wider mb-2">Company</p>
               <div className="flex flex-col gap-1.5">
                 {footerLinks.company.map((link) => (
                   <Link key={link.href} className="text-sm text-muted-foreground hover:text-foreground transition-colors" href={link.href}>
@@ -91,7 +91,7 @@ export function Footer({ variant = "marketing" }: FooterProps) {
 
       {/* Disclaimer (marketing only) */}
       {isMarketing && (
-        <div className="px-1 mb-3 text-[10px] text-muted-foreground/60">
+        <div className="px-1 mb-3 text-[10px] text-muted-foreground">
           <p>
             <strong className="text-muted-foreground/80">Important:</strong> Online assessment is not suitable for medical emergencies.
             If you are experiencing a medical emergency, call <strong className="text-muted-foreground">000</strong> immediately.
@@ -100,7 +100,7 @@ export function Footer({ variant = "marketing" }: FooterProps) {
       )}
 
       {/* Bottom bar */}
-      <div className="px-1 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1.5 text-[10px] text-muted-foreground/60">
+      <div className="px-1 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1.5 text-[10px] text-muted-foreground">
         <div className="flex flex-wrap gap-x-3 gap-y-1 items-center">
           <p className="whitespace-nowrap">
             &copy; {currentYear} {COMPANY_NAME}. All rights reserved.

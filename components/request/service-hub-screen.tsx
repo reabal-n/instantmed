@@ -288,7 +288,7 @@ export function ServiceHubScreen({ onSelectService }: ServiceHubScreenProps) {
                     <h4 className="text-sm font-medium text-muted-foreground">
                       {svc.title}
                     </h4>
-                    <p className="text-xs text-muted-foreground/60 mt-0.5">
+                    <p className="text-xs text-muted-foreground mt-0.5">
                       {svc.subtitle}
                     </p>
                   </div>

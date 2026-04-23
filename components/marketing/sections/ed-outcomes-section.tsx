@@ -123,7 +123,7 @@ export function EdOutcomesSection() {
         </div>
 
         {/* Clinical references */}
-        <p className="text-[10px] text-muted-foreground/50 text-center mt-8 max-w-3xl mx-auto leading-relaxed">
+        <p className="text-[10px] text-muted-foreground text-center mt-8 max-w-3xl mx-auto leading-relaxed">
           PDE5 inhibitors restore erectile function in 60-70% of men across all aetiologies (Hatzimouratidis et al., <em>Eur Urol</em>, 2010). Nitrate co-administration contraindication per TGA Product Information and ACC/AHA guidelines. Telehealth-delivered ED assessment shows equivalent prescribing accuracy to face-to-face consultation (Ellimoottil et al., <em>J Urol</em>, 2022).
         </p>
       </div>

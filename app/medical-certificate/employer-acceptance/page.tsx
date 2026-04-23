@@ -110,7 +110,7 @@ export default function EmployerAcceptancePage() {
           {/* Employer Logos */}
           <section className="px-4 py-12 border-b border-border/30 dark:border-white/10">
             <div className="mx-auto max-w-5xl">
-              <p className="text-xs font-medium text-muted-foreground/60 text-center mb-8 uppercase tracking-widest">
+              <p className="text-xs font-medium text-muted-foreground text-center mb-8 uppercase tracking-widest">
                 Accepted by Australia&apos;s leading employers
               </p>
               <div className="flex flex-wrap justify-center items-center gap-6 md:gap-10">

@@ -276,7 +276,7 @@ export function HairLossGuideSection() {
                       </p>
                     </div>
                     {i < GROWTH_PHASES.length - 1 && (
-                      <span className="text-muted-foreground/40 text-sm shrink-0">→</span>
+                      <span className="text-muted-foreground text-sm shrink-0">→</span>
                     )}
                   </div>
                 ))}

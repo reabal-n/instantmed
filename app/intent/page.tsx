@@ -21,7 +21,7 @@ export const metadata: Metadata = {
 }
 
 const intents = [
-  { slug: "same-day-medical-certificate", name: "Same Day Medical Certificate", description: "Get a valid certificate issued and emailed in under 30 minutes, 24/7" },
+  { slug: "same-day-medical-certificate", name: "Same Day Medical Certificate", description: "Get a valid certificate issued and emailed in about 20 minutes, 24/7" },
   { slug: "work-certificate-online", name: "Work Certificate Online", description: "Sick leave certificate accepted by all Australian employers" },
   { slug: "flu-certificate-online", name: "Cold & Flu Certificate", description: "Too sick to work? Get a certificate from your couch" },
   { slug: "uti-treatment-online", name: "UTI Treatment Online", description: "Doctor-assessed UTI treatment with same-day eScript" },
@@ -46,7 +46,7 @@ const intentFaqs = [
   },
   {
     question: "How long does it take to get a response?",
-    answer: "Medical certificates are typically issued in under 30 minutes, available 24/7. Prescriptions and consultations are reviewed within 1–2 hours during operating hours (8am–10pm AEST, 7 days).",
+    answer: "Medical certificates are typically issued in about 20 minutes, available 24/7. Prescriptions and consultations are reviewed within 1–2 hours during operating hours (8am–10pm AEST, 7 days).",
   },
   {
     question: "Is my information kept private?",

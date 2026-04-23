@@ -238,7 +238,7 @@ export function CertificatePreviewDialog({
                 Patient
               </div>
               {mode === "reissue" && (
-                <span className="flex items-center gap-1 text-[10px] text-muted-foreground/80">
+                <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
                   <PencilLine className="h-3 w-3" />
                   Editable
                 </span>
@@ -293,7 +293,7 @@ export function CertificatePreviewDialog({
                 <Calendar className="h-3 w-3" />
                 Certificate Period
               </div>
-              <span className="flex items-center gap-1 text-[10px] text-muted-foreground/80">
+              <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
                 <PencilLine className="h-3 w-3" />
                 Editable
               </span>

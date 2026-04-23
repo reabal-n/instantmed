@@ -142,7 +142,7 @@ export function ScrollingLogoMarquee({
     return (
       <div ref={sectionRef} className={cn("py-8", className)}>
         {showHeading && (
-          <p className="text-center text-xs font-semibold uppercase tracking-widest text-muted-foreground/50 mb-6">
+          <p className="text-center text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-6">
             {heading}
           </p>
         )}
@@ -172,7 +172,7 @@ export function ScrollingLogoMarquee({
   return (
     <div ref={sectionRef} className={cn("py-8", className)}>
       {showHeading && (
-        <p className="text-center text-xs font-semibold uppercase tracking-widest text-muted-foreground/50 mb-6">
+        <p className="text-center text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-6">
           {heading}
         </p>
       )}

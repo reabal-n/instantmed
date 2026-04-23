@@ -88,7 +88,7 @@ export function PaymentMethodIcons({
   return (
     <div className={cn("flex flex-col items-center gap-1.5", className)}>
       <PaymentLogos />
-      <p className="text-[10px] text-muted-foreground/60 flex items-center gap-1">
+      <p className="text-[10px] text-muted-foreground flex items-center gap-1">
         <Lock className="w-3 h-3" />
         Your payment details are encrypted
       </p>
@@ -228,7 +228,7 @@ export function DataSecurityStrip({
             <span>Never stored unencrypted</span>
           </div>
         </div>
-        <p className="text-xs text-muted-foreground/70 text-center">
+        <p className="text-xs text-muted-foreground text-center">
           Your Medicare details are protected under the Privacy Act 1988
         </p>
       </div>

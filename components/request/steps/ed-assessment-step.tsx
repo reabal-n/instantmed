@@ -369,7 +369,7 @@ export default function EdAssessmentStep({ onNext, onBack }: EdAssessmentStepPro
           These questions are from the{" "}
           <span className="font-medium text-foreground/70">IIEF-5</span>, a
           clinically validated assessment used by doctors in over 30 countries.
-          <span className="text-muted-foreground/60 ml-1">(Rosen et al., J Urology, 1999)</span>
+          <span className="text-muted-foreground ml-1">(Rosen et al., J Urology, 1999)</span>
         </p>
       </motion.div>
 
@@ -390,7 +390,7 @@ export default function EdAssessmentStep({ onNext, onBack }: EdAssessmentStepPro
           )}
         </Button>
         {allAnswered && (
-          <p className="text-[11px] text-muted-foreground/60 text-center hidden sm:block mt-2">
+          <p className="text-[11px] text-muted-foreground text-center hidden sm:block mt-2">
             Press Enter to continue
           </p>
         )}

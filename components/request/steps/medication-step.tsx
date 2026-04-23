@@ -315,7 +315,7 @@ export default function MedicationStep({ onNext }: MedicationStepProps) {
         )}
       </Button>
       {canContinue && (
-        <p className="text-[11px] text-muted-foreground/60 text-center hidden sm:block">
+        <p className="text-[11px] text-muted-foreground text-center hidden sm:block">
           Press Enter to continue
         </p>
       )}

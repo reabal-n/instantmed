@@ -63,7 +63,7 @@ export function RegulatoryPartners({ className, exclude = [] }: RegulatoryPartne
   return (
     <div className={cn('py-4 sm:py-6', className)}>
       {/* Label */}
-      <p className="text-[10px] font-semibold text-muted-foreground/40 text-center mb-3 uppercase tracking-[0.15em]">
+      <p className="text-[10px] font-semibold text-muted-foreground text-center mb-3 uppercase tracking-[0.15em]">
         Compliant with
       </p>
 

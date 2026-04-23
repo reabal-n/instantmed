@@ -148,7 +148,7 @@ export default function TrustPage() {
           imageAlt="Patient requesting a medical certificate from home"
         >
           <div className="flex flex-col gap-4">
-            <p className="inline-flex items-center gap-2 text-xs text-muted-foreground/80 tracking-wide uppercase">
+            <p className="inline-flex items-center gap-2 text-xs text-muted-foreground tracking-wide uppercase">
               <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500" />
               100% Australian-based · AHPRA registered · Privacy Act compliant
             </p>
@@ -514,7 +514,7 @@ function TestimonialCard({
             />
           ))}
         </div>
-        <span className="text-xs font-medium text-muted-foreground/70 bg-muted/50 dark:bg-muted/30 rounded-full px-2.5 py-0.5">
+        <span className="text-xs font-medium text-muted-foreground bg-muted/50 dark:bg-muted/30 rounded-full px-2.5 py-0.5">
           {t.service === "medical-certificate"
             ? "Med Cert"
             : t.service === "prescription"
