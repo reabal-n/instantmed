@@ -134,7 +134,6 @@ async function fillTextarea(page: Page, text: string) {
  * sites don't need to change; the safety consent checkbox is now handled
  * inside completeReviewStep().
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function completeSafetyStep(_page: Page) {
   // No-op: safety consent is part of the review step
 }

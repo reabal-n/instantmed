@@ -158,7 +158,7 @@ export default function SymptomsStep({ serviceType, onNext }: SymptomsStepProps)
                 key={s}
                 onClick={() => toggleSymptom(s)}
                 aria-label={`Add ${s} symptom`}
-                className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 outline-none"
+                className="text-xs px-2 py-2 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 outline-none"
               >
                 + {s}
               </button>
@@ -207,10 +207,10 @@ export default function SymptomsStep({ serviceType, onNext }: SymptomsStepProps)
         label={isCarer ? "How long have they had these symptoms?" : "How long have you had these symptoms?"}
         required
         error={touched.symptomDuration ? errors.symptomDuration : undefined}
-        hint="This helps assess whether the condition is acute or ongoing"
-        helpContent={{ 
-          title: "Why does duration matter?", 
-          content: "Symptom duration helps the doctor assess whether this is an acute illness or ongoing condition." 
+        hint="Helps your doctor understand how unwell you've been"
+        helpContent={{
+          title: "Why does duration matter?",
+          content: "Knowing how long you've been unwell helps the doctor write a more accurate certificate."
         }}
       >
         <div className="space-y-2 mt-2">
@@ -229,10 +229,10 @@ export default function SymptomsStep({ serviceType, onNext }: SymptomsStepProps)
           </div>
           {symptomDuration === "week_plus" && (
             <div className="rounded-lg border border-primary/20 bg-primary/5 px-3 py-2.5 space-y-1">
-              <p className="text-xs font-medium text-foreground">Ongoing for a week?</p>
+              <p className="text-xs font-medium text-foreground">Been unwell for a while?</p>
               <p className="text-xs text-muted-foreground">
-                For symptoms lasting more than a week, we recommend seeing your GP for a thorough
-                assessment. You can still continue with a certificate below.
+                Symptoms lasting more than a week may benefit from a face-to-face GP visit. You can still
+                continue with a certificate here.
               </p>
             </div>
           )}
@@ -307,7 +307,7 @@ export default function SymptomsStep({ serviceType, onNext }: SymptomsStepProps)
                 onCheckedChange={(checked) => setAnswer('emergencyWarningAcknowledged', checked)}
               />
               <Label htmlFor="emergency-ack" className="text-sm cursor-pointer leading-snug">
-                I understand this is not for emergencies. I wish to continue.
+                I understand this is not for emergencies and want to continue.
               </Label>
             </div>
           </AlertDescription>

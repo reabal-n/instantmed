@@ -81,7 +81,7 @@ export function StickyCTABar() {
         shouldShow ? "opacity-100 translate-y-0" : "opacity-0 translate-y-12 pointer-events-none",
       ].join(" ")}
     >
-      <div className="bg-card/95 dark:bg-white/10 backdrop-blur-xl border-t border-border/10 dark:border-white/10 px-4 py-3 safe-area-inset-bottom shadow-2xl dark:shadow-none">
+      <div className="bg-card dark:bg-card border-t border-border/10 dark:border-white/10 px-4 py-3 safe-area-inset-bottom shadow-2xl dark:shadow-none">
         <div className="flex items-center gap-3">
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-foreground flex items-center gap-1.5 truncate">
@@ -94,7 +94,7 @@ export function StickyCTABar() {
           </div>
           <Button
             asChild
-            size="sm"
+            size="default"
             className="rounded-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-5 shrink-0 shadow-lg shadow-primary/25"
           >
             <Link href={config.href}>Get started</Link>
@@ -107,7 +107,7 @@ export function StickyCTABar() {
                 sessionStorage.setItem(SESSION_KEY, (current + 1).toString())
               }
             }}
-            className="p-1.5 text-muted-foreground hover:text-foreground transition-colors shrink-0"
+            className="p-2.5 text-muted-foreground hover:text-foreground transition-colors shrink-0"
             aria-label="Dismiss"
           >
             <X className="w-4 h-4" />

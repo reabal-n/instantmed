@@ -165,7 +165,7 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
         error: err instanceof Error ? err.message : 'unknown',
         stage: 'exception',
       })
-      setError(err instanceof Error ? err.message : 'Something went wrong')
+      setError(err instanceof Error ? err.message : 'Something went wrong. Please try again or contact support.')
     } finally {
       setIsProcessing(false)
     }
@@ -297,8 +297,7 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
           </ul>
           <p className="text-xs text-muted-foreground pt-2 border-t border-border/50">
             Take your phone to any pharmacy - they&apos;ll scan your eScript QR code.
-            If your medication requires a new prescription or has never been prescribed to you before,
-            our doctor will contact you to arrange a consultation.
+            If the doctor needs more information before prescribing, they&apos;ll reach out directly.
           </p>
         </div>
       )}
@@ -408,7 +407,7 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
         </span>
         <span className="flex items-center gap-1.5">
           <RefreshCw className="w-3 h-3" />
-          Full refund if declined
+          Full refund if we can&apos;t help
         </span>
       </div>
 
@@ -441,7 +440,7 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
       <div className="h-36 sm:hidden" />
 
       {/* Checkout button - sticky on mobile, inline on desktop */}
-      <div className="fixed bottom-0 left-0 right-0 z-30 bg-background/95 backdrop-blur-md border-t px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:static sm:bg-transparent sm:backdrop-blur-none sm:border-0 sm:p-0 sm:z-auto">
+      <div className="fixed bottom-0 left-0 right-0 z-30 bg-background border-t px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:static sm:bg-transparent sm:border-0 sm:p-0 sm:z-auto">
         <div className="max-w-lg mx-auto space-y-2">
           {/* Time-bound guarantee - sits directly above the pay button */}
           <div className="flex justify-center pb-1">

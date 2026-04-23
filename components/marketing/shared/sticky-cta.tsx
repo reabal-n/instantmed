@@ -76,7 +76,7 @@ export function StickyCTA({
         // works in all evergreen browsers (Chrome 102+, Firefox 112+, Safari 15.5+).
         inert={!show ? "" : undefined}
       >
-        <div className="bg-white/90 dark:bg-card/90 backdrop-blur-lg border-t border-border/50 px-4 pt-2.5 pb-3 safe-area-pb">
+        <div className="bg-white dark:bg-card border-t border-border/50 px-4 pt-2.5 pb-3 safe-area-pb">
           <p className="text-xs text-muted-foreground text-center mb-2">
             {mobileSummary}
             {responseTime && (
@@ -115,7 +115,7 @@ export function StickyCTA({
         // @ts-expect-error -- see mobile sticky CTA above.
         inert={!show ? "" : undefined}
       >
-        <div className="bg-white/95 dark:bg-card/95 backdrop-blur-lg border-b border-border/50 shadow-sm">
+        <div className="bg-white dark:bg-card border-b border-border/50 shadow-sm">
           <div className="mx-auto max-w-5xl px-6 h-14 flex items-center justify-between gap-6">
             {desktopLabel && (
               <p className="text-sm text-muted-foreground hidden xl:block">

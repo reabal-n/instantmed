@@ -183,15 +183,35 @@ function CopyVerifyLinkButton({ verificationCode }: { verificationCode: string }
   const url = `${baseUrl}/verify?code=${encodeURIComponent(verificationCode)}`
 
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(url)
-    setCopied(true)
-    capture("verification_link_copied", { code: verificationCode })
-    setTimeout(() => setCopied(false), 2000)
+    try {
+      await navigator.clipboard.writeText(url)
+      setCopied(true)
+      capture("verification_link_copied", { code: verificationCode })
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      // Clipboard API unavailable (e.g. non-secure context) — select the URL from an input fallback
+      const input = document.createElement("input")
+      input.value = url
+      document.body.appendChild(input)
+      input.select()
+      document.execCommand("copy")
+      document.body.removeChild(input)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    }
   }
 
   return (
-    <Button variant="outline" size="sm" className="gap-2" onClick={handleCopy}>
-      {copied ? <Check className="h-4 w-4 text-success" /> : <Link2 className="h-4 w-4" />}
+    <Button
+      variant="outline"
+      size="default"
+      className="gap-2"
+      onClick={handleCopy}
+      aria-label={copied ? "Verification link copied to clipboard" : "Copy verification link to clipboard"}
+      aria-live="polite"
+      aria-atomic="true"
+    >
+      {copied ? <Check className="h-4 w-4 text-success" aria-hidden="true" /> : <Link2 className="h-4 w-4" aria-hidden="true" />}
       {copied ? "Copied!" : "Copy Verify Link"}
     </Button>
   )
@@ -493,15 +513,15 @@ export function IntakeDetailClient({
 
           {/* Action Error Display */}
           {actionError && (
-            <div className="p-3 rounded-xl bg-destructive-light border border-destructive-border text-sm text-destructive">
+            <div role="alert" className="p-3 rounded-xl bg-destructive-light border border-destructive-border text-sm text-destructive">
               {actionError}
             </div>
           )}
 
           {/* Resend Success Message */}
           {resendSuccess && (
-            <div className="p-3 rounded-xl bg-success-light/30 border border-success-border text-sm text-success flex items-center gap-2">
-              <CheckCircle className="h-4 w-4" />
+            <div role="status" aria-live="polite" className="p-3 rounded-xl bg-success-light/30 border border-success-border text-sm text-success flex items-center gap-2">
+              <CheckCircle className="h-4 w-4" aria-hidden="true" />
               Certificate has been resent to your email.
             </div>
           )}
@@ -576,9 +596,9 @@ export function IntakeDetailClient({
                       <div className="flex flex-wrap gap-2 mt-2">
                         {/* Resend Email Button */}
                         {canResend && (
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
+                          <Button
+                            variant="outline"
+                            size="default"
                             onClick={handleResendEmail}
                             disabled={isPending}
                           >
@@ -586,12 +606,12 @@ export function IntakeDetailClient({
                             {isPending ? "Sending..." : "Resend to email"}
                           </Button>
                         )}
-                        
+
                         {/* Request Date Change */}
                         {canRequestCorrection && (
                           <Button
                             variant="outline"
-                            size="sm"
+                            size="default"
                             onClick={() => setShowDateCorrection(true)}
                           >
                             <Calendar className="h-4 w-4 mr-2" />
@@ -610,7 +630,7 @@ export function IntakeDetailClient({
                             <SendToEmployerDialog
                               intakeId={intake.id}
                               trigger={
-                                <Button variant="outline" size="sm" className="gap-2">
+                                <Button variant="outline" size="default" className="gap-2">
                                   <Mail className="h-4 w-4" />
                                   Email to Employer
                                 </Button>

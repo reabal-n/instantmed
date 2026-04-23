@@ -145,12 +145,12 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
           const result = validateMedicareNumber(value)
           error = result.valid ? null : (result.error || 'Invalid Medicare number')
         } else if (needsPrescriptionDetails && !value) {
-          error = 'Medicare number is required for prescriptions'
+          error = 'Your Medicare number is needed to issue the prescription'
         }
         break
       case 'addressLine1':
         if (addressRequired && !value?.trim()) {
-          error = 'Address is required for prescriptions'
+          error = 'Your address is needed to issue the prescription'
         }
         break
     }
@@ -191,13 +191,13 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
 
     if (needsPrescriptionDetails) {
       if (!medicareNumber.trim()) {
-        newErrors.medicareNumber = 'Medicare number is required for prescriptions'
+        newErrors.medicareNumber = 'Your Medicare number is needed to issue the prescription'
       } else {
         const medicareResult = validateMedicareNumber(medicareNumber)
         if (!medicareResult.valid) newErrors.medicareNumber = medicareResult.error || 'Invalid Medicare number'
       }
       if (!addressLine1.trim()) {
-        newErrors.addressLine1 = 'Address is required for prescriptions'
+        newErrors.addressLine1 = 'Your address is needed to issue the prescription'
       }
     }
 
@@ -271,14 +271,14 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
               <Button
                 size="sm"
                 variant="ghost"
-                className="h-7 px-2 text-xs"
+                className="px-2 text-xs"
                 onClick={() => setShowAutofillBanner(false)}
               >
                 No thanks
               </Button>
               <Button
                 size="sm"
-                className="h-7 px-3 text-xs"
+                className="px-3 text-xs"
                 onClick={handleAutofill}
               >
                 Autofill
@@ -292,7 +292,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
       <Alert variant="default" className="border-primary/20 bg-primary/5">
         <User className="w-4 h-4" />
         <AlertDescription className="text-xs">
-          This information is required for your medical record and to deliver your result.
+          We need these details to create your medical record and send you your result.
         </AlertDescription>
       </Alert>
 
@@ -340,7 +340,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
         required
         error={touched.email ? errors.email : undefined}
         icon={Mail}
-        helpContent={{ title: "Why do we need your email?", content: "We'll send your certificate or confirmation here. Your email is kept private." }}
+        helpContent={{ title: "Why do we need your email?", content: "We'll send your certificate or prescription here. Your email is kept private." }}
       >
         <Input
           type="email"
@@ -410,7 +410,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
         required={needsPhone}
         error={touched.phone ? errors.phone : undefined}
         icon={Phone}
-        hint={needsPhone ? undefined : "Optional - we only contact you if there's an urgent issue"}
+        hint={needsPhone ? undefined : "Optional - we'll only call if your doctor needs to follow up"}
       >
         <Input
           type="tel"
@@ -427,7 +427,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
         {needsPhone && (
           <p className="text-xs text-muted-foreground mt-1.5 flex items-center gap-1.5">
             <span className="inline-block w-1 h-1 rounded-full bg-primary" />
-            Your eScript will be sent to this number via SMS
+            Your prescription will be sent to this number as a text message
           </p>
         )}
       </FormField>
@@ -439,7 +439,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
           required
           error={touched.medicareNumber ? errors.medicareNumber : undefined}
           icon={CreditCard}
-          helpContent={{ title: "Why do we need your Medicare number?", content: "Required by prescribing software to generate your eScript. Your Medicare details are encrypted and never shared." }}
+          helpContent={{ title: "Why do we need your Medicare number?", content: "Required to issue your prescription under your name. Your Medicare details are encrypted and never shared." }}
         >
           <Input
             type="text"
@@ -470,7 +470,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
           label="Address"
           required={addressRequired}
           error={touched.addressLine1 ? errors.addressLine1 : undefined}
-          hint={addressRequired ? undefined : "Optional - for prescription or referral delivery"}
+          hint={addressRequired ? undefined : "Optional - required if you need a prescription"}
           icon={MapPin}
         >
           <AddressAutocomplete

@@ -90,7 +90,7 @@ function ReviewSection({
       <div className="px-5 pt-4 pb-2.5 flex items-center justify-between">
         <h3 className="text-sm font-medium text-foreground">{title}</h3>
         {onEdit && (
-          <Button variant="ghost" size="sm" onClick={onEdit} className="h-7 px-2 text-xs gap-1 rounded-lg hover:bg-muted/50 dark:hover:bg-white/10" aria-label={`Edit ${title}`}>
+          <Button variant="ghost" size="sm" onClick={onEdit} className="px-2 text-xs gap-1 rounded-lg hover:bg-muted/50 dark:hover:bg-white/10" aria-label={`Edit ${title}`}>
             <Edit2 className="w-3 h-3" />
             Edit
           </Button>
@@ -605,12 +605,12 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
               aria-label="Confirm this is not a medical emergency"
             />
             <Label htmlFor="safety-consent" className="text-sm cursor-pointer leading-snug text-muted-foreground">
-              I confirm this is not a medical emergency. If I am experiencing an emergency, I will call 000.
+              I confirm this is not a medical emergency. In an emergency, I&apos;ll call 000.
             </Label>
           </div>
           {!safetyConfirmed && (
             <p id="safety-consent-warning" className="text-xs text-warning mt-2 pl-7" aria-live="polite">
-              Tick the box to confirm and continue to payment
+              Please confirm above to continue
             </p>
           )}
         </div>
