@@ -41,7 +41,7 @@ export function LastReviewedSignal({ className }: { className?: string }) {
   if (!mounted) return null
 
   return (
-    <p className={cn('flex items-center gap-1.5 text-xs text-muted-foreground/70', className)}>
+    <p className={cn('flex items-center gap-1.5 text-xs text-muted-foreground', className)}>
       <Clock className="w-3 h-3" />
       Last reviewed {minutes} min ago
     </p>
