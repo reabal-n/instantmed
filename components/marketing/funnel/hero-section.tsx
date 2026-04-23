@@ -52,21 +52,22 @@ export function HeroSection({ config, colors, isDisabled }: HeroSectionProps) {
           {/* Text content */}
           <div className={cn('flex-1 text-center', hasImages && 'lg:text-left')}>
             {/* Headline */}
-            <h1
-              className="text-[1.35rem] sm:text-2xl md:text-3xl lg:text-4xl font-semibold tracking-tight text-foreground mb-6 leading-[1.15] animate-hero-headline"
+            <motion.h1
+              initial={prefersReducedMotion ? {} : { opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+              className="text-[1.35rem] sm:text-2xl md:text-3xl lg:text-4xl font-semibold tracking-tight text-foreground mb-6 leading-[1.15] text-balance"
             >
               {config.hero.headlineGradient ? (
                 <>
                   {config.hero.headline}{' '}
                   <br className="hidden sm:block" />
-                  <span className="text-premium-gradient">
-                    {config.hero.headlineGradient}
-                  </span>
+                  {config.hero.headlineGradient}
                 </>
               ) : (
                 config.hero.headline
               )}
-            </h1>
+            </motion.h1>
 
             {/* Subheadline */}
             <motion.p

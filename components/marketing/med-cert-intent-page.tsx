@@ -132,9 +132,8 @@ export function MedCertIntentPage({ config }: MedCertIntentPageProps) {
 
               <div className="flex flex-col lg:flex-row items-center lg:gap-12">
                 <div className="text-center lg:text-left flex-1 max-w-2xl">
-                  {/* Plain h1 with CSS animation so LCP text is visible on first paint */}
                   <h1
-                    className="text-2xl sm:text-3xl md:text-4xl font-semibold tracking-tight text-foreground mb-6 leading-[1.15] animate-hero-headline"
+                    className="text-2xl sm:text-3xl md:text-4xl font-semibold tracking-tight text-foreground mb-6 leading-[1.15] text-balance"
                   >
                     {config.h1}
                   </h1>

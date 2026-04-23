@@ -1,5 +1,6 @@
 'use client'
 
+import { motion } from 'framer-motion'
 import { ArrowRight, CheckCircle2, FileText, Pill, Smartphone, Star } from 'lucide-react'
 import dynamic from 'next/dynamic'
 import Image from 'next/image'
@@ -10,8 +11,10 @@ import { GuaranteeBadge } from '@/components/marketing/guarantee-badge'
 import { LastReviewedSignal } from '@/components/marketing/last-reviewed-signal'
 import { TrustBadgeRow } from '@/components/shared/trust-badge'
 import { Button } from "@/components/ui/button"
+import { useReducedMotion } from '@/components/ui/motion'
 import { usePatientCount } from '@/lib/hooks/use-patient-count'
 import { WEDGE } from '@/lib/marketing/voice'
+import { stagger } from '@/lib/motion'
 import { SOCIAL_PROOF } from '@/lib/social-proof'
 
 // Desktop-only stacked card mockup — never the LCP element, safe for ssr:false
@@ -32,19 +35,28 @@ const LCP_CLASSES = "text-sm sm:text-base lg:text-lg text-muted-foreground max-w
 
 export function Hero({ children }: { children?: React.ReactNode }) {
   const patientCount = usePatientCount()
+  const reduced = useReducedMotion()
+  const container = reduced ? {} : stagger.container
+  const item = reduced ? {} : stagger.item
 
   return (
     <section className="relative overflow-hidden pt-6 pb-6 sm:pt-14 sm:pb-18 lg:pt-20 lg:pb-24">
       <div className="mx-auto max-w-5xl px-6 sm:px-8 lg:px-10">
-        <div className="flex flex-col lg:flex-row items-center lg:gap-12 xl:gap-14">
+        <motion.div
+          variants={container}
+          initial="initial"
+          animate="animate"
+          className="flex flex-col lg:flex-row items-center lg:gap-12 xl:gap-14"
+        >
           {/* Text content */}
           <div className="flex-1 min-w-0 text-center lg:text-left">
             {/* Social-proof pill — above the fold, above the H1. Four signals
                 in one compact row: rating · patient count · no-Medicare-friction
-                · live availability. Replaces the old availability-only pill.
-                Mobile shows the first three (Open-now is desktop-only to save
-                horizontal space). */}
-            <div className="hero-availability-enter flex justify-center lg:justify-start mb-5 sm:mb-8">
+                · live availability. */}
+            <motion.div
+              variants={item}
+              className="flex justify-center lg:justify-start mb-5 sm:mb-8"
+            >
               <div className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium bg-white dark:bg-card border border-border/60 shadow-sm shadow-primary/[0.04]">
                 <span className="inline-flex items-center gap-0.5 text-amber-500" aria-label={`${SOCIAL_PROOF.averageRating} out of 5 rating`}>
                   <Star className="w-3.5 h-3.5 fill-current" aria-hidden="true" />
@@ -66,23 +78,30 @@ export function Hero({ children }: { children?: React.ReactNode }) {
                   Open now
                 </span>
               </div>
-            </div>
+            </motion.div>
 
             {/* Headline - server-rendered static text for LCP */}
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight mb-5 sm:mb-8 leading-[1.15]">
-              Consults, certs, and treatment.{" "}
-              <span className="text-premium-gradient">From your bed.</span>
-            </h1>
+            <motion.h1
+              variants={item}
+              className="text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight mb-5 sm:mb-7 leading-[1.1] text-balance"
+            >
+              Consults, certs, and treatment. From your bed.
+            </motion.h1>
 
             {/* LCP slot - server-rendered when passed as children, else fallback */}
-            {children ?? (
-              <p className={LCP_CLASSES}>
-                Real Australian doctors review every request. {WEDGE} Fill in a quick form and a GP takes care of the rest. Reviewed within 1-2 hours, most days.
-              </p>
-            )}
+            <motion.div variants={item}>
+              {children ?? (
+                <p className={LCP_CLASSES}>
+                  Real Australian doctors review every request. {WEDGE} Fill in a quick form and a GP takes care of the rest. Reviewed within 1-2 hours, most days.
+                </p>
+              )}
+            </motion.div>
 
             {/* CTAs */}
-            <div className="hero-cta-enter flex flex-col sm:flex-row gap-3 justify-center lg:justify-start mb-3 sm:mb-4">
+            <motion.div
+              variants={item}
+              className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start mb-3 sm:mb-4"
+            >
               <Button
                 asChild
                 size="lg"
@@ -103,15 +122,21 @@ export function Hero({ children }: { children?: React.ReactNode }) {
                   How it works
                 </Link>
               </Button>
-            </div>
+            </motion.div>
 
             {/* Guarantee pill - sits directly under primary CTA */}
-            <div className="flex justify-center lg:justify-start mb-5 sm:mb-8">
+            <motion.div
+              variants={item}
+              className="flex justify-center lg:justify-start mb-5 sm:mb-8"
+            >
               <GuaranteeBadge size="md" />
-            </div>
+            </motion.div>
 
             {/* Trust signals */}
-            <div className="hero-trust-enter flex flex-col items-center lg:items-start gap-1">
+            <motion.div
+              variants={item}
+              className="flex flex-col items-center lg:items-start gap-1"
+            >
               <TrustBadgeRow
                 badges={[
                   { id: 'no_call', variant: 'styled' },
@@ -127,14 +152,17 @@ export function Hero({ children }: { children?: React.ReactNode }) {
               <LastReviewedSignal className="mt-3 justify-center lg:justify-start" />
               {/* Rotating testimonials */}
               <HeroTestimonialRotator className="mt-3 mx-auto lg:mx-0 text-center lg:text-left" />
-            </div>
+            </motion.div>
           </div>
 
           {/* Hero product mockup - full stack on desktop, compact card on mobile */}
           <div className="hidden lg:block relative shrink-0 mt-0">
             <HeroMultiServiceMockup />
           </div>
-          <div className="hero-mobile-mockup-enter lg:hidden flex justify-center mt-3">
+          <motion.div
+            variants={item}
+            className="lg:hidden flex justify-center mt-3"
+          >
             <div className="flex flex-col gap-2">
               {/* Med cert card */}
               <div className="inline-flex items-center gap-3 px-4 py-2.5 rounded-xl bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06]">
@@ -159,8 +187,8 @@ export function Hero({ children }: { children?: React.ReactNode }) {
                 <Smartphone className="w-4 h-4 text-cyan-500" />
               </div>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
 
         {/* Lifestyle photo — person at home using their phone for a doctor visit.
             Below-fold on mobile, so no `priority`: preloading this 46KB image was

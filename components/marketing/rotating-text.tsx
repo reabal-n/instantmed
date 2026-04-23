@@ -10,14 +10,12 @@ interface RotatingTextProps {
   texts: string[]
   interval?: number
   className?: string
-  gradient?: boolean
 }
 
 export function RotatingText({
   texts,
   interval = 3000,
   className,
-  gradient = true
 }: RotatingTextProps) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const prefersReducedMotion = useReducedMotion()
@@ -31,22 +29,11 @@ export function RotatingText({
     return () => clearInterval(timer)
   }, [interval, rotateText])
 
-  const gradientClasses = gradient
-    ? "bg-linear-to-r from-blue-600 via-blue-500 to-blue-400 dark:from-sky-400 dark:via-cyan-400 dark:to-teal-400 bg-clip-text"
-    : ""
-
-  const gradientStyle = gradient
-    ? { WebkitTextFillColor: 'transparent' } as React.CSSProperties
-    : undefined
-
   const currentText = texts[currentIndex]
 
   if (prefersReducedMotion) {
     return (
-      <span
-        className={cn("text-balance", gradientClasses, className)}
-        style={gradientStyle}
-      >
+      <span className={cn("text-balance text-primary", className)}>
         {currentText}
       </span>
     )
@@ -57,12 +44,11 @@ export function RotatingText({
       <AnimatePresence mode="wait" initial={false}>
         <motion.span
           key={currentIndex}
-          initial={{ y: 16, opacity: 0 }}
+          initial={{ y: 12, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          exit={{ y: -16, opacity: 0 }}
-          transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-          className={cn("inline-block text-balance", gradientClasses, className)}
-          style={gradientStyle}
+          exit={{ y: -12, opacity: 0 }}
+          transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+          className={cn("inline-block text-balance text-primary", className)}
         >
           {currentText}
         </motion.span>
