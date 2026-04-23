@@ -94,8 +94,12 @@ export default function CertificateStep({ onNext }: CertificateStepProps) {
   const posthog = usePostHog()
 
   const certType = answers.certType as CertType | undefined
-  const [selectedDays, setSelectedDays] = useState<Duration | null>(null)
-  const [startOffset, setStartOffset] = useState<number | null>(null)
+  // Default to 2 days - most common selection, pre-checked per UX intent.
+  // Restore effect below overrides this for users navigating back.
+  const [selectedDays, setSelectedDays] = useState<Duration | null>(2)
+  // Default start offset to 0 (today). Most patients start the same day.
+  // Restore effect overrides for users navigating back to this step.
+  const [startOffset, setStartOffset] = useState<number | null>(0)
 
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [touched, setTouched] = useState<Record<string, boolean>>({})
