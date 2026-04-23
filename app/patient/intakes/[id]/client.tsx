@@ -29,6 +29,14 @@ import { CrossSellCard, DocumentReadyReveal, EmailVerificationGate, IntakeStatus
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -701,58 +709,59 @@ export function IntakeDetailClient({
       </Card>
 
       {/* Date Correction Dialog */}
-      {showDateCorrection && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <Card className="w-full max-w-md">
-            <CardHeader>
-              <CardTitle className="text-lg">Request Date Change</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm text-muted-foreground">
-                Submit your corrected dates below. Your doctor will review and resend an updated certificate.
-              </p>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label>Start Date</Label>
-                  <Input
-                    type="date"
-                    value={correctionStartDate}
-                    onChange={(e) => setCorrectionStartDate(e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Label>End Date</Label>
-                  <Input
-                    type="date"
-                    value={correctionEndDate}
-                    onChange={(e) => setCorrectionEndDate(e.target.value)}
-                  />
-                </div>
-              </div>
-              <div>
-                <Label>Reason for change</Label>
-                <Textarea
-                  placeholder="e.g. I need the certificate for different dates..."
-                  value={correctionReason}
-                  onChange={(e) => setCorrectionReason(e.target.value)}
-                  className="min-h-[60px]"
+      <Dialog open={showDateCorrection} onOpenChange={setShowDateCorrection}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Request Date Change</DialogTitle>
+            <DialogDescription>
+              Submit your corrected dates below. Your doctor will review and resend an updated certificate.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="correction-start-date">Start Date</Label>
+                <Input
+                  id="correction-start-date"
+                  type="date"
+                  value={correctionStartDate}
+                  onChange={(e) => setCorrectionStartDate(e.target.value)}
                 />
               </div>
-              <div className="flex gap-2 justify-end">
-                <Button variant="outline" onClick={() => setShowDateCorrection(false)}>
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleRequestDateCorrection}
-                  disabled={isPending || !correctionStartDate || !correctionEndDate || !correctionReason.trim()}
-                >
-                  {isPending ? "Submitting..." : "Submit Request"}
-                </Button>
+              <div className="space-y-1.5">
+                <Label htmlFor="correction-end-date">End Date</Label>
+                <Input
+                  id="correction-end-date"
+                  type="date"
+                  value={correctionEndDate}
+                  onChange={(e) => setCorrectionEndDate(e.target.value)}
+                />
               </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="correction-reason">Reason for change</Label>
+              <Textarea
+                id="correction-reason"
+                placeholder="e.g. I need the certificate for different dates..."
+                value={correctionReason}
+                onChange={(e) => setCorrectionReason(e.target.value)}
+                className="min-h-[60px]"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDateCorrection(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleRequestDateCorrection}
+              disabled={isPending || !correctionStartDate || !correctionEndDate || !correctionReason.trim()}
+            >
+              {isPending ? "Submitting..." : "Submit Request"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

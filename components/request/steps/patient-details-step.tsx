@@ -305,6 +305,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
             onChange={(e) => setIdentity({ firstName: e.target.value })}
             onBlur={() => handleBlur('firstName', firstName)}
             placeholder="Jane"
+            autoComplete="given-name"
             aria-invalid={touched.firstName && !!errors.firstName}
             data-error={touched.firstName && errors.firstName ? "true" : undefined}
             className={cn("h-11", touched.firstName && errors.firstName && "border-destructive")}
@@ -321,6 +322,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
             onChange={(e) => setIdentity({ lastName: e.target.value })}
             onBlur={() => handleBlur('lastName', lastName)}
             placeholder="Smith"
+            autoComplete="family-name"
             aria-invalid={touched.lastName && !!errors.lastName}
             data-error={touched.lastName && errors.lastName ? "true" : undefined}
             className={cn("h-11", touched.lastName && errors.lastName && "border-destructive")}
@@ -342,6 +344,8 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
           onChange={(e) => setIdentity({ email: e.target.value })}
           onBlur={() => handleBlur('email', email)}
           placeholder="jane@example.com"
+          autoComplete="email"
+          inputMode="email"
           aria-invalid={touched.email && !!errors.email}
           data-error={touched.email && errors.email ? "true" : undefined}
           className={cn("h-11", touched.email && errors.email && "border-destructive")}
@@ -361,6 +365,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
           value={dob}
           onChange={(e) => setIdentity({ dob: e.target.value })}
           onBlur={() => handleBlur('dob', dob)}
+          autoComplete="bday"
           aria-invalid={touched.dob && !!errors.dob}
           data-error={touched.dob && errors.dob ? "true" : undefined}
           className={cn("h-11", touched.dob && errors.dob && "border-destructive")}
@@ -404,6 +409,8 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
           onChange={(e) => setIdentity({ phone: e.target.value })}
           onBlur={() => handleBlur('phone', phone)}
           placeholder="0412 345 678"
+          autoComplete="tel"
+          inputMode="tel"
           aria-invalid={touched.phone && !!errors.phone}
           data-error={touched.phone && errors.phone ? "true" : undefined}
           className={cn("h-11", touched.phone && errors.phone && "border-destructive")}
@@ -435,6 +442,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
             }}
             onBlur={() => handleBlur('medicareNumber', medicareNumber)}
             placeholder="1234 56789 0"
+            autoComplete="off"
             aria-invalid={touched.medicareNumber && !!errors.medicareNumber}
             data-error={touched.medicareNumber && errors.medicareNumber ? "true" : undefined}
             className={cn("h-11", touched.medicareNumber && errors.medicareNumber && "border-destructive")}
