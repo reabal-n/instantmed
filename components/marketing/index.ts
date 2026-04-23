@@ -44,7 +44,6 @@ export { TrustBadgeSlider } from "./trust-badge-slider"
 // ── Stats & signals ────────────────────────────────────────────────
 export { AnimatedStat } from "./animated-stat"
 export { ContextualMessage } from "./contextual-message"
-export { LastReviewedSignal } from "./last-reviewed-signal"
 export { LiveWaitTime, ServiceWaitBadge } from "./live-wait-time"
 export type { StatEntry } from "./total-patients-counter"
 export { StatsStrip,TotalPatientsCounter } from "./total-patients-counter"

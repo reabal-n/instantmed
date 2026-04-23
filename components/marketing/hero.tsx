@@ -8,7 +8,6 @@ import Link from 'next/link'
 import type React from "react"
 
 import { GuaranteeBadge } from '@/components/marketing/guarantee-badge'
-import { LastReviewedSignal } from '@/components/marketing/last-reviewed-signal'
 import { TrustBadgeRow } from '@/components/shared/trust-badge'
 import { Button } from "@/components/ui/button"
 import { useReducedMotion } from '@/components/ui/motion'
@@ -92,7 +91,7 @@ export function Hero({ children }: { children?: React.ReactNode }) {
             <motion.div variants={item}>
               {children ?? (
                 <p className={LCP_CLASSES}>
-                  Real Australian doctors review every request. {WEDGE} Fill in a quick form and a GP takes care of the rest. Reviewed within 1-2 hours, most days.
+                  Real Australian doctors review every request. {WEDGE} Fill in a quick form and a GP takes care of the rest.
                 </p>
               )}
             </motion.div>
@@ -132,26 +131,22 @@ export function Hero({ children }: { children?: React.ReactNode }) {
               <GuaranteeBadge size="md" />
             </motion.div>
 
-            {/* Trust signals */}
+            {/* Trust signals — one focused row (AHPRA + LegitScript) plus
+                rotating real-patient testimonials. Redundant no-call/refund
+                badges were folded into the GuaranteeBadge above; fake
+                "last reviewed N min ago" was removed for credibility. */}
             <motion.div
               variants={item}
-              className="flex flex-col items-center lg:items-start gap-1"
+              className="flex flex-col items-center lg:items-start gap-3"
             >
               <TrustBadgeRow
                 badges={[
-                  { id: 'no_call', variant: 'styled' },
-                  'refund',
+                  { id: 'ahpra', variant: 'styled' },
+                  { id: 'legitscript', variant: 'styled' },
                 ]}
                 className="mt-4 justify-center lg:justify-start"
               />
-              {/* Trust Ribbon: AHPRA + LegitScript + Privacy + SSL */}
-              <TrustBadgeRow
-                preset="trust_ribbon"
-                className="mt-2 justify-center lg:justify-start"
-              />
-              <LastReviewedSignal className="mt-3 justify-center lg:justify-start" />
-              {/* Rotating testimonials */}
-              <HeroTestimonialRotator className="mt-3 mx-auto lg:mx-0 text-center lg:text-left" />
+              <HeroTestimonialRotator className="mx-auto lg:mx-0 text-center lg:text-left" />
             </motion.div>
           </div>
 

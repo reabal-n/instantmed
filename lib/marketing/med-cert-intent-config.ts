@@ -101,7 +101,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
       {
         question: "How quickly will I receive it?",
         answer:
-          "Medical certificates are reviewed within 30 minutes, available 24/7. You'll get an email when the doctor starts reviewing.",
+          "Medical certificates are typically reviewed within 20 minutes, available 24/7. You'll get an email when the doctor starts reviewing.",
       },
       {
         question: "Can I get a certificate for a day I've already missed?",
@@ -261,7 +261,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
       {
         question: "How quickly can I get a sick leave certificate?",
         answer:
-          "Medical certificates are reviewed within 30 minutes, available 24/7. You'll get an email when the doctor starts reviewing.",
+          "Medical certificates are typically reviewed within 20 minutes, available 24/7. You'll get an email when the doctor starts reviewing.",
       },
       {
         question: "Do I need to see a doctor in person?",
