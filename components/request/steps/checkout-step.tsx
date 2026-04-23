@@ -478,6 +478,8 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
       {/* Checkmark overlay on successful checkout creation */}
       {showCheckmark && (
         <motion.div
+          role="status"
+          aria-label="Payment confirmed, redirecting to Stripe for secure payment"
           className="fixed inset-0 z-50 flex items-center justify-center bg-background/60 backdrop-blur-sm"
           initial={prefersReducedMotion ? {} : { opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -489,7 +491,7 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: prefersReducedMotion ? 0 : 0.4, ease: "easeOut" }}
           >
-            <Check className="w-8 h-8 text-primary" />
+            <Check className="w-8 h-8 text-primary" aria-hidden="true" />
           </motion.div>
         </motion.div>
       )}

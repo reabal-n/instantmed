@@ -185,8 +185,8 @@ export default function SymptomsStep({ serviceType, onNext }: SymptomsStepProps)
       >
         <div className="space-y-3 mt-2">
           {SYMPTOM_GROUPS.map((group) => (
-            <div key={group.label}>
-              <p className="text-xs font-medium text-muted-foreground mb-1.5">{group.label}</p>
+            <div key={group.label} role="group" aria-label={group.label}>
+              <p className="text-xs font-medium text-muted-foreground mb-1.5" aria-hidden="true">{group.label}</p>
               <div className="flex flex-wrap gap-2">
                 {group.items.map((symptom) => (
                   <EnhancedSelectionButton
@@ -217,7 +217,7 @@ export default function SymptomsStep({ serviceType, onNext }: SymptomsStepProps)
         }}
       >
         <div className="space-y-2 mt-2">
-          <div className="flex gap-2">
+          <div className="flex gap-2" role="group" aria-label="How long have you had these symptoms">
             {SYMPTOM_DURATION_OPTIONS.map((option) => (
               <EnhancedSelectionButton
                 key={option.value}
