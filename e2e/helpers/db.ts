@@ -269,7 +269,7 @@ export async function getIntakeById(id: string): Promise<Intake | null> {
   const supabase = getSupabaseClient()
   const { data, error } = await supabase
     .from("intakes")
-    .select("id, patient_id, service_id, status, reference_number, payment_status, claimed_by, claimed_at, created_at, updated_at")
+    .select("id, patient_id, service_id, status, reference_number, payment_status, claimed_by, claimed_at, parchment_reference, script_sent, created_at, updated_at")
     .eq("id", id)
     .single()
 
@@ -849,7 +849,7 @@ export async function seedTestIntake(options: SeedTestIntakeOptions = {}): Promi
     
     // Use E2E patient ID (from seed.ts)
     const E2E_PATIENT_ID = "e2e00000-0000-0000-0000-000000000001"
-    const E2E_SERVICE_ID = "e2e00000-0000-0000-0000-000000000021"
+    const E2E_SERVICE_ID = "e2e00000-0000-0000-0000-000000000020"
     
     // Check if patient exists
     const { data: patient, error: patientError } = await supabase
@@ -865,14 +865,14 @@ export async function seedTestIntake(options: SeedTestIntakeOptions = {}): Promi
     // Generate unique reference number
     const refNum = `E2E-${Date.now().toString(36).toUpperCase()}`
     
-    // Insert test intake
+    // Insert with valid initial state (trigger requires draft or pending_payment)
     const { data: intake, error: insertError } = await supabase
       .from("intakes")
       .insert({
         patient_id: E2E_PATIENT_ID,
         service_id: E2E_SERVICE_ID,
         reference_number: refNum,
-        status: options.status || "in_review",
+        status: "pending_payment",
         payment_status: options.payment_status || "paid",
         category: options.category || "medical_certificate",
         refund_status: options.refund_status || null,
@@ -882,11 +882,37 @@ export async function seedTestIntake(options: SeedTestIntakeOptions = {}): Promi
       })
       .select("id")
       .single()
-    
+
     if (insertError || !intake) {
       return { success: false, error: insertError?.message || "Failed to insert intake" }
     }
-    
+
+    const targetStatus = options.status || "in_review"
+
+    // Walk valid transitions: pending_payment → paid → target
+    // Both in_review and awaiting_script are directly reachable from paid per state machine.
+    if (targetStatus !== "pending_payment") {
+      const { error: paidErr } = await supabase
+        .from("intakes")
+        .update({ status: "paid", updated_at: new Date().toISOString() })
+        .eq("id", intake.id)
+      if (paidErr) {
+        await supabase.from("intakes").delete().eq("id", intake.id)
+        return { success: false, error: `Failed to transition to paid: ${paidErr.message}` }
+      }
+
+      if (targetStatus !== "paid") {
+        const { error: targetErr } = await supabase
+          .from("intakes")
+          .update({ status: targetStatus, updated_at: new Date().toISOString() })
+          .eq("id", intake.id)
+        if (targetErr) {
+          await supabase.from("intakes").delete().eq("id", intake.id)
+          return { success: false, error: `Failed to transition to ${targetStatus}: ${targetErr.message}` }
+        }
+      }
+    }
+
     return { success: true, intakeId: intake.id }
   } catch (err) {
     return { success: false, error: err instanceof Error ? err.message : "Unknown error" }

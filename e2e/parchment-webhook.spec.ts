@@ -180,7 +180,9 @@ test.describe("Parchment Webhook: Event Routing", () => {
   })
 })
 
-test.describe("Parchment Webhook: prescription.created", () => {
+// Run serially: all DB tests use the same E2E patient ID and would race each other
+// when run in parallel (one test's seeded intake gets claimed by another's webhook).
+test.describe.serial("Parchment Webhook: prescription.created", () => {
   const testIntakeIds: string[] = []
 
   test.afterAll(async () => {
@@ -197,7 +199,7 @@ test.describe("Parchment Webhook: prescription.created", () => {
 
     const payload = buildPrescriptionCreatedEvent({
       patientId: "nonexistent-parchment-patient",
-      partnerPatientId: "00000000-0000-0000-0000-000000000000",
+      partnerPatientId: randomUUID(), // random UUID guaranteed not in DB
     })
     const response = await postWebhook(request, payload)
 
