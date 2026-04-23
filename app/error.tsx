@@ -5,6 +5,7 @@ import Link from "next/link"
 import { useEffect, useState } from "react"
 
 import { Button } from "@/components/ui/button"
+import { ErrorRefChip } from "@/components/ui/error-ref-chip"
 import { createLogger } from "@/lib/observability/logger"
 import { sanitizeError, sanitizeUrl } from "@/lib/observability/sanitize-phi"
 // framer-motion removed - module factory race condition (same fix as Sentry above).
@@ -174,11 +175,7 @@ export default function Error({
           We hit an unexpected bump. Don&apos;t worry - your data is safe.
         </p>
 
-        {error.digest && (
-          <p className="text-xs text-muted-foreground/60 mb-8 font-mono bg-muted/30 rounded-lg px-3 py-1.5 inline-block">
-            Error ID: {error.digest}
-          </p>
-        )}
+        <ErrorRefChip digest={error.digest} className="mb-8" />
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
           <Button onClick={handleRetry} disabled={retryCount >= maxRetries} className="rounded-xl shadow-lg shadow-primary/25 w-full sm:w-auto min-h-[44px] touch-target">

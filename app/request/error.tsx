@@ -5,6 +5,7 @@ import Link from "next/link"
 import { useEffect } from "react"
 
 import { Button } from "@/components/ui/button"
+import { ErrorRefChip } from "@/components/ui/error-ref-chip"
 
 export default function RequestError({
   error,
@@ -39,11 +40,7 @@ export default function RequestError({
           We hit an unexpected error loading this step. Your progress may have been saved.
         </p>
 
-        {error.digest && (
-          <p className="text-xs text-muted-foreground/60 mb-6 font-mono bg-muted/50 px-3 py-1.5 rounded-xl inline-block">
-            Ref: {error.digest}
-          </p>
-        )}
+        <ErrorRefChip digest={error.digest} />
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
           <Button onClick={reset} className="w-full sm:w-auto">

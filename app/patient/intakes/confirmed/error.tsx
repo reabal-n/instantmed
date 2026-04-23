@@ -5,6 +5,7 @@ import Link from "next/link"
 import { useEffect, useRef, useState } from "react"
 
 import { Button } from "@/components/ui/button"
+import { ErrorRefChip } from "@/components/ui/error-ref-chip"
 
 export default function ConfirmedError({
   error,
@@ -49,11 +50,7 @@ export default function ConfirmedError({
           There was a display issue loading your confirmation. Your request is safe and a doctor will review it shortly.
         </p>
 
-        {error.digest && (
-          <p className="text-xs text-muted-foreground/60 mb-6 font-mono bg-muted/50 px-3 py-1.5 rounded-xl inline-block">
-            Ref: {error.digest}
-          </p>
-        )}
+        <ErrorRefChip digest={error.digest} />
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
           <Button

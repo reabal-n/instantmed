@@ -22,7 +22,6 @@ import { Switch } from "@/components/ui/switch"
 import { getAttribution } from "@/lib/analytics/attribution"
 import { trackFunnelStep } from "@/lib/analytics/conversion-tracking"
 import { PRICING as APP_PRICING, PRICING_DISPLAY } from "@/lib/constants"
-import { getQueueEstimate } from "@/lib/data/queue-availability"
 import { stagger } from "@/lib/motion"
 import { getDisplayPrice, getServiceDisplayLabel } from "@/lib/request/display-helpers"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
@@ -67,7 +66,6 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
   const prefersReducedMotion = useReducedMotion()
   const [isProcessing, setIsProcessing] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [_estimatedWait, setEstimatedWait] = useState(serviceType === 'med-cert' ? "~30 min" : "1–2 hours")
   const [showCheckmark, setShowCheckmark] = useState(false)
   const [consentGiven, setConsentGiven] = useState(false)
   // Express Review defaults OFF - patient opts in consciously
@@ -77,13 +75,6 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
 
   const duration = answers.duration as string | undefined
   const consultSubtype = answers.consultSubtype as string | undefined
-
-  // Fetch queue estimate on mount
-  useEffect(() => {
-    getQueueEstimate()
-      .then((est) => setEstimatedWait(est.estimatedWait))
-      .catch(() => setEstimatedWait("within hours"))
-  }, [])
 
   // Track checkout view once on mount
   useEffect(() => {
@@ -190,10 +181,22 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
       {/* Guest badge - only for unauthenticated users */}
       {!authContext.isAuthenticated && (
         <motion.div variants={stagger.item} className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-          <UserX className="w-4 h-4 text-primary" />
+          <UserX className="w-4 h-4 text-primary" aria-hidden="true" />
           <span>No account required - pay as a guest</span>
         </motion.div>
       )}
+
+      {/* Regulator badges - pinned to the top of checkout so they stay visible
+          when the sticky footer is compressed on small viewports. */}
+      <motion.div variants={stagger.item}>
+        <TrustBadgeRow
+          badges={[
+            { id: "ahpra", variant: "styled" },
+            { id: "legitscript", variant: "styled" },
+          ]}
+          className="justify-center gap-3"
+        />
+      </motion.div>
 
       {/* Summary card */}
       <motion.div variants={stagger.item} className="p-4 rounded-2xl border border-border/50 bg-white dark:bg-card shadow-md shadow-primary/[0.06] space-y-3">
@@ -358,7 +361,7 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
             <span className="text-sm text-muted-foreground">
               Express Review
             </span>
-            <span className="text-xs text-muted-foreground/70">+{PRICING_DISPLAY.PRIORITY_FEE}</span>
+            <span className="text-xs text-muted-foreground">+{PRICING_DISPLAY.PRIORITY_FEE}</span>
           </div>
         </label>
       </motion.div>
@@ -394,7 +397,7 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
       </motion.div>
 
       {/* Inline trust strip */}
-      <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 text-xs text-muted-foreground/70">
+      <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 text-xs text-muted-foreground">
         <span className="flex items-center gap-1.5">
           <ShieldCheck className="w-3 h-3 text-success" />
           AHPRA-registered doctors
@@ -470,15 +473,6 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
             <Lock className="h-3 w-3 shrink-0" aria-hidden="true" />
             <PaymentLogos />
           </div>
-
-          {/* AHPRA + LegitScript certification badges */}
-          <TrustBadgeRow
-            badges={[
-              { id: "ahpra", variant: "styled" },
-              { id: "legitscript", variant: "styled" },
-            ]}
-            className="mt-2 justify-center gap-3"
-          />
         </div>
       </div>
 

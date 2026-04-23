@@ -150,10 +150,16 @@ export function LiveWaitTime({
     const displayServices = service ? [service] : services
 
     return (
-      <div className={cn(
-        'flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-sm',
-        className
-      )}>
+      <div
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+        aria-label="Current doctor availability and review wait times"
+        className={cn(
+          'flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-sm',
+          className
+        )}
+      >
         {isOnline && (
           <div className="flex items-center gap-2 text-muted-foreground">
             <span className="relative flex h-2 w-2">
@@ -189,6 +195,10 @@ export function LiveWaitTime({
   if (variant === 'strip') {
     return (
       <motion.div
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+        aria-label="Current doctor availability and review wait times"
         initial={prefersReducedMotion ? {} : { y: -4 }}
         animate={{ y: 0 }}
         transition={{ duration: 0.3, ease: 'easeOut' }}
@@ -243,7 +253,7 @@ export function LiveWaitTime({
                       {serviceOnline ? config.waitLabel : 'Next business day'}
                     </span>
                     {serviceOnline && (
-                      <span className="hidden lg:inline text-xs text-muted-foreground/70">
+                      <span className="hidden lg:inline text-xs text-muted-foreground">
                         {config.subtext}
                       </span>
                     )}
@@ -260,6 +270,10 @@ export function LiveWaitTime({
   // Card variant - more prominent, grid layout
   return (
     <motion.div
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+      aria-label="Current doctor availability and review wait times"
       initial={prefersReducedMotion ? {} : { y: 8 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.35, ease: 'easeOut' }}

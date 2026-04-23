@@ -5,6 +5,7 @@ import Link from "next/link"
 import { useEffect } from "react"
 
 import { Button } from "@/components/ui/button"
+import { ErrorRefChip } from "@/components/ui/error-ref-chip"
 
 export default function MedicalCertificateError({
   error,
@@ -34,11 +35,7 @@ export default function MedicalCertificateError({
           We couldn&apos;t load your medical certificate request. This might be a temporary issue.
         </p>
 
-        {error.digest && (
-          <p className="text-xs text-muted-foreground/60 mb-6 font-mono bg-muted/50 px-3 py-1.5 rounded-xl inline-block">
-            Ref: {error.digest}
-          </p>
-        )}
+        <ErrorRefChip digest={error.digest} />
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
           <Button onClick={reset} className="w-full sm:w-auto">

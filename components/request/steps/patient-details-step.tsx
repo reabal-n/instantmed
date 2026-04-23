@@ -235,10 +235,14 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
       posthog?.capture('step_completed', { step: 'details', service_type: serviceType })
       onNext()
     } else {
-      // Scroll to first error field for better UX
+      // Move AT focus to the first invalid field so screen readers announce
+      // it and keyboard users don't have to re-tab. focus() scrolls into view
+      // by default, so no separate scroll call needed.
       requestAnimationFrame(() => {
-        const firstError = document.querySelector('[data-error="true"], .border-destructive, [aria-invalid="true"]')
-        firstError?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        const firstError = document.querySelector<HTMLElement>(
+          '[aria-invalid="true"], [data-error="true"]'
+        )
+        firstError?.focus({ preventScroll: false })
       })
     }
   }
@@ -379,10 +383,15 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
           label="Sex"
           required
           icon={Users}
+          id="sex-select-trigger"
           helpContent={{ title: "Why do we ask this?", content: "Required by Australian prescribing regulations for eScript generation. Select the option that matches your Medicare record." }}
         >
           <Select value={sex} onValueChange={(val) => setAnswer("sex", val)}>
-            <SelectTrigger className={cn("h-11", touched.sex && !sex && "border-destructive")}>
+            <SelectTrigger
+              id="sex-select-trigger"
+              aria-invalid={touched.sex && !sex ? true : undefined}
+              className={cn("h-11", touched.sex && !sex && "border-destructive")}
+            >
               <SelectValue placeholder="Select..." />
             </SelectTrigger>
             <SelectContent>

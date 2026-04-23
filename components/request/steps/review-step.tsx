@@ -609,18 +609,25 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
             </Label>
           </div>
           {!safetyConfirmed && (
-            <p className="text-xs text-warning mt-2 pl-7" aria-live="polite">
+            <p id="safety-consent-warning" className="text-xs text-warning mt-2 pl-7" aria-live="polite">
               Tick the box to confirm and continue to payment
             </p>
           )}
         </div>
 
-        {/* Wrapper captures click even when inner button is disabled - scrolls to consent */}
-        <div onClick={!safetyConfirmed ? handleDisabledClick : undefined} className="w-full">
-          <Button onClick={handleContinue} className="w-full h-12" disabled={!safetyConfirmed}>
-            Continue to payment
-          </Button>
-        </div>
+        {/*
+          Button stays focusable + clickable even when consent is missing so keyboard users get
+          the same "scroll to consent" affordance as mouse users. aria-disabled communicates the
+          state to screen readers; disabled={false} keeps the event handlers live.
+        */}
+        <Button
+          onClick={safetyConfirmed ? handleContinue : handleDisabledClick}
+          className={`w-full h-12 ${safetyConfirmed ? '' : 'opacity-60 hover:opacity-70'}`}
+          aria-disabled={!safetyConfirmed}
+          aria-describedby={!safetyConfirmed ? 'safety-consent-warning' : undefined}
+        >
+          Continue to payment
+        </Button>
 
         <p className="text-center text-[11px] text-muted-foreground">
           Express review available at checkout (+{PRICING_DISPLAY.PRIORITY_FEE})

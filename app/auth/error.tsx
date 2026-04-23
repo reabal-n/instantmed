@@ -6,6 +6,7 @@ import Link from "next/link"
 import { useEffect } from "react"
 
 import { Button } from "@/components/ui/button"
+import { ErrorRefChip } from "@/components/ui/error-ref-chip"
 
 export default function AuthError({
   error,
@@ -33,11 +34,7 @@ export default function AuthError({
           We had trouble signing you in. Please try again or use a different method.
         </p>
 
-        {error.digest && (
-          <p className="text-xs text-muted-foreground/60 mb-6 font-mono">
-            Reference: {error.digest}
-          </p>
-        )}
+        <ErrorRefChip digest={error.digest} />
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
           <Button onClick={reset} className="w-full sm:w-auto">

@@ -5,6 +5,7 @@ import { AlertTriangle, RefreshCw } from "lucide-react"
 import { useEffect } from "react"
 
 import { Button } from "@/components/ui/button"
+import { ErrorRefChip } from "@/components/ui/error-ref-chip"
 
 export default function HealthSummaryError({
   error,
@@ -21,9 +22,7 @@ export default function HealthSummaryError({
     <div className="flex flex-col items-center justify-center min-h-[40vh] p-6">
       <AlertTriangle className="h-8 w-8 text-warning mb-4" />
       <h2 className="text-lg font-semibold mb-2">Failed to load health summary</h2>
-      <p className="text-muted-foreground text-sm mb-4">
-        {error.digest && <span className="font-mono text-xs">Ref: {error.digest}</span>}
-      </p>
+      <ErrorRefChip digest={error.digest} />
       <Button onClick={reset} variant="outline" size="sm">
         <RefreshCw className="h-4 w-4 mr-2" />
         Retry

@@ -15,6 +15,7 @@ import { useRouter } from "next/navigation"
 import { useEffect, useRef,useState } from "react"
 
 import { Button } from "@/components/ui/button"
+import { ErrorRefChip } from "@/components/ui/error-ref-chip"
 import { CONTACT_EMAIL } from "@/lib/constants"
 
 // Detect error type for better messaging
@@ -97,11 +98,7 @@ export default function DoctorError({
           {errorInfo.description}
         </p>
 
-        {error.digest && (
-          <p className="text-xs text-muted-foreground/60 mb-6 font-mono bg-muted/50 px-3 py-1.5 rounded-xl inline-block">
-            Ref: {error.digest}
-          </p>
-        )}
+        <ErrorRefChip digest={error.digest} />
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
           {errorInfo.type === "auth" ? (
@@ -146,7 +143,7 @@ export default function DoctorError({
             </Link>
           </div>
 
-          <p className="text-xs text-muted-foreground/60">
+          <p className="text-xs text-muted-foreground">
             <Mail className="inline h-3 w-3 mr-1" />
             {CONTACT_EMAIL}
           </p>
