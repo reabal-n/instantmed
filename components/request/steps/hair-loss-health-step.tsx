@@ -361,15 +361,20 @@ export default function HairLossHealthStep({
                 contact with tablets. This applies even if you are not trying to
                 conceive yourself.
               </p>
-              <div className="flex flex-col gap-2">
+              <div
+                className="flex flex-col gap-2"
+                role="radiogroup"
+                aria-label="Partner pregnancy or conception status"
+              >
                 {REPRODUCTIVE_OPTIONS.map((option) => (
                   <button
                     key={option.value}
                     type="button"
+                    role="radio"
                     onClick={() =>
                       setAnswer("hairReproductive", option.value)
                     }
-                    aria-pressed={hairReproductive === option.value}
+                    aria-checked={hairReproductive === option.value}
                     className={cn(
                       "w-full px-4 py-3 text-sm rounded-xl border-2 transition-colors text-left",
                       "hover:bg-accent hover:text-accent-foreground",
@@ -621,7 +626,7 @@ export default function HairLossHealthStep({
         )}
       </Button>
       {canContinue && (
-        <p className="text-[11px] text-muted-foreground/60 text-center hidden sm:block">
+        <p className="text-[11px] text-muted-foreground text-center hidden sm:block">
           Press Enter to continue
         </p>
       )}

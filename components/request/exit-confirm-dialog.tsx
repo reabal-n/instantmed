@@ -21,9 +21,9 @@ export function ExitConfirmDialog({ open, onClose, onConfirmExit }: ExitConfirmD
     <Dialog open={open} onOpenChange={(next) => { if (!next) onClose() }}>
       <DialogContent className="max-w-sm">
         <DialogHeader>
-          <DialogTitle>Leave this request?</DialogTitle>
+          <DialogTitle>Save and finish later?</DialogTitle>
           <DialogDescription>
-            Your progress has been saved as a draft. You can continue later.
+            Your progress is saved automatically. You can pick up right where you left off any time. Nothing is lost.
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="flex gap-3 sm:gap-3 sm:justify-stretch">
@@ -32,14 +32,13 @@ export function ExitConfirmDialog({ open, onClose, onConfirmExit }: ExitConfirmD
             className="flex-1"
             onClick={onClose}
           >
-            Keep editing
+            Keep going
           </Button>
           <Button
-            variant="destructive"
             className="flex-1"
             onClick={onConfirmExit}
           >
-            Leave
+            Save &amp; exit
           </Button>
         </DialogFooter>
       </DialogContent>

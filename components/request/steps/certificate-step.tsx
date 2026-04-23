@@ -290,7 +290,11 @@ export default function CertificateStep({ onNext }: CertificateStepProps) {
               "Select the number of days you were unable to work or study. Certificates are capped at 3 days - for longer periods, please see your GP.",
           }}
         >
-          <div className="flex gap-2 mt-2">
+          <div
+            className="flex gap-2 mt-2"
+            role="radiogroup"
+            aria-label="Certificate duration in days"
+          >
             {DURATION_OPTIONS.map((days) => {
               const p = MED_CERT_DURATIONS.prices[days]
               const isSelected = selectedDays === days
@@ -298,7 +302,8 @@ export default function CertificateStep({ onNext }: CertificateStepProps) {
                 <button
                   key={days}
                   type="button"
-                  aria-pressed={isSelected}
+                  role="radio"
+                  aria-checked={isSelected}
                   onClick={() => handleDaysClick(days)}
                   className={cn(
                     "flex-1 flex flex-col items-center gap-0.5 py-3 rounded-xl text-sm font-medium border transition-all duration-150 touch-manipulation",
@@ -337,14 +342,19 @@ export default function CertificateStep({ onNext }: CertificateStepProps) {
               "Yes - if you're already unwell but need to cover tomorrow too, select today as the start date. A doctor reviews your dates based on your symptoms.",
           }}
         >
-          <div className="flex gap-1.5 mt-2">
+          <div
+            className="flex gap-1.5 mt-2"
+            role="radiogroup"
+            aria-label="Certificate start date"
+          >
             {START_OFFSETS.map((offset) => {
               const isSelected = startOffset === offset
               return (
                 <button
                   key={offset}
                   type="button"
-                  aria-pressed={isSelected}
+                  role="radio"
+                  aria-checked={isSelected}
                   onClick={() => handleStartOffsetClick(offset)}
                   className={cn(
                     "flex-1 py-2.5 text-xs font-medium rounded-xl border transition-all duration-150 touch-manipulation",
@@ -395,7 +405,7 @@ export default function CertificateStep({ onNext }: CertificateStepProps) {
         )}
       </Button>
       {canContinue && (
-        <p className="text-[11px] text-muted-foreground/60 text-center hidden sm:block">
+        <p className="text-[11px] text-muted-foreground text-center hidden sm:block">
           Press Enter to continue
         </p>
       )}

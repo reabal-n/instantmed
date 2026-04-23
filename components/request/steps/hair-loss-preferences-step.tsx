@@ -149,6 +149,8 @@ export default function HairLossPreferencesStep({
         variants={prefersReducedMotion ? undefined : stagger.container}
         initial="initial"
         animate="animate"
+        role="radiogroup"
+        aria-label="Treatment preference"
       >
         {PREFERENCE_OPTIONS.map((option) => {
           const Icon = option.icon
@@ -157,11 +159,12 @@ export default function HairLossPreferencesStep({
             <motion.button
               key={option.value}
               type="button"
+              role="radio"
               variants={prefersReducedMotion ? undefined : stagger.item}
               onClick={() =>
                 setAnswer("hairMedicationPreference", option.value)
               }
-              aria-pressed={isSelected}
+              aria-checked={isSelected}
               aria-label={`${option.label}: ${option.description}`}
               className={cn(
                 "w-full text-left p-4 rounded-2xl border cursor-pointer transition-all",
@@ -276,7 +279,7 @@ export default function HairLossPreferencesStep({
         )}
       </Button>
       {isComplete && (
-        <p className="text-[11px] text-muted-foreground/60 text-center hidden sm:block">
+        <p className="text-[11px] text-muted-foreground text-center hidden sm:block">
           Press Enter to continue
         </p>
       )}

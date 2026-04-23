@@ -204,7 +204,11 @@ export default function HairLossAssessmentStep({
           Which pattern best describes your hair loss?
           <span className="text-destructive ml-0.5">*</span>
         </Label>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        <div
+          className="grid grid-cols-2 sm:grid-cols-3 gap-3"
+          role="radiogroup"
+          aria-label="Hair loss pattern"
+        >
           {PATTERN_OPTIONS.map((option, idx) => {
             const Icon = option.icon
             const isSelected = hairPattern === option.value
@@ -212,10 +216,11 @@ export default function HairLossAssessmentStep({
               <motion.button
                 key={option.value}
                 type="button"
+                role="radio"
                 variants={itemVariants}
                 custom={idx}
                 onClick={() => setAnswer("hairPattern", option.value)}
-                aria-pressed={isSelected}
+                aria-checked={isSelected}
                 aria-label={`${option.label} - ${option.badge}`}
                 className={cn(
                   "flex flex-col items-center gap-2 p-3 rounded-xl border text-center cursor-pointer transition-all",
@@ -347,7 +352,7 @@ export default function HairLossAssessmentStep({
           )}
         </Button>
         {isComplete && (
-          <p className="text-[11px] text-muted-foreground/60 text-center hidden sm:block mt-2">
+          <p className="text-[11px] text-muted-foreground text-center hidden sm:block mt-2">
             Press Enter to continue
           </p>
         )}

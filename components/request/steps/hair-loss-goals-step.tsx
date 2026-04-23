@@ -88,6 +88,8 @@ export default function HairLossGoalsStep({ onNext }: HairLossGoalsStepProps) {
           variants={prefersReducedMotion ? undefined : stagger.container}
           initial="initial"
           animate="animate"
+          role="radiogroup"
+          aria-label="Hair loss goal"
         >
           {GOAL_OPTIONS.map((option) => {
             const Icon = option.icon
@@ -96,9 +98,10 @@ export default function HairLossGoalsStep({ onNext }: HairLossGoalsStepProps) {
               <motion.button
                 key={option.value}
                 type="button"
+                role="radio"
                 variants={prefersReducedMotion ? undefined : stagger.item}
                 onClick={() => setAnswer("hairGoal", option.value)}
-                aria-pressed={isSelected}
+                aria-checked={isSelected}
                 aria-label={option.label}
                 className={cn(
                   "flex items-center gap-2.5 p-3 rounded-xl border text-left cursor-pointer transition-all text-sm",
@@ -131,15 +134,20 @@ export default function HairLossGoalsStep({ onNext }: HairLossGoalsStepProps) {
           When did you first notice changes?
           <span className="text-destructive ml-0.5">*</span>
         </Label>
-        <div className="flex gap-1 p-1 rounded-full bg-muted/50">
+        <div
+          className="flex gap-1 p-1 rounded-full bg-muted/50"
+          role="radiogroup"
+          aria-label="When did you first notice changes"
+        >
           {ONSET_OPTIONS.map((option) => {
             const isSelected = hairOnset === option.value
             return (
               <button
                 key={option.value}
                 type="button"
+                role="radio"
                 onClick={() => setAnswer("hairOnset", option.value)}
-                aria-pressed={isSelected}
+                aria-checked={isSelected}
                 className={cn(
                   "flex-1 px-2 py-2 text-xs font-medium rounded-full text-center transition-all cursor-pointer",
                   isSelected
@@ -170,7 +178,7 @@ export default function HairLossGoalsStep({ onNext }: HairLossGoalsStepProps) {
         )}
       </Button>
       {isComplete && (
-        <p className="text-[11px] text-muted-foreground/60 text-center hidden sm:block">
+        <p className="text-[11px] text-muted-foreground text-center hidden sm:block">
           Press Enter to continue
         </p>
       )}
