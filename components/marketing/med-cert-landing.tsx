@@ -178,7 +178,7 @@ function CertComparisonViz() {
     <section aria-label="Time comparison" className="py-8 sm:py-12">
       <div className="mx-auto max-w-2xl px-4 sm:px-6">
         <Reveal instant className="text-center mb-5">
-          <p className="text-xs font-semibold text-muted-foreground/60 uppercase tracking-[0.14em]">Your time is valuable</p>
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-[0.14em]">Your time is valuable</p>
         </Reveal>
         <Reveal instant className="rounded-2xl bg-white dark:bg-card border border-border/50 dark:border-white/10 shadow-md shadow-primary/[0.06] p-5 sm:p-6">
           <ComparisonBar
@@ -277,7 +277,7 @@ export function MedCertLanding() {
 
             {/* Clinical references */}
             <div className="mx-auto max-w-3xl px-4 sm:px-6 py-4">
-              <p className="text-[11px] text-muted-foreground/70 text-center leading-relaxed">
+              <p className="text-[11px] text-muted-foreground text-center leading-relaxed">
                 Telehealth-issued medical certificates are accepted by Australian employers under the Fair Work Act 2009 (s 107). Telehealth consultations achieve equivalent clinical accuracy to in-person assessments for common presentations (Snoswell et al., <em>J Telemed Telecare</em>, 2023). All certificates are issued by AHPRA-registered practitioners.
               </p>
             </div>

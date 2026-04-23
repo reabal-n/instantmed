@@ -622,12 +622,12 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
           </Button>
         </div>
 
-        <p className="text-center text-[11px] text-muted-foreground/60">
+        <p className="text-center text-[11px] text-muted-foreground">
           Express review available at checkout (+{PRICING_DISPLAY.PRIORITY_FEE})
         </p>
 
         <div className="flex flex-col items-center gap-3">
-          <div className="flex items-center gap-4 text-[11px] text-muted-foreground/70">
+          <div className="flex items-center gap-4 text-[11px] text-muted-foreground">
             <span className="flex items-center gap-1">
               <ShieldCheck className="w-3 h-3" />
               AHPRA-registered doctor

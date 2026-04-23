@@ -168,11 +168,11 @@ function TimelineEntry({
   color?: string
 }) {
   return (
-    <div className="flex items-center gap-3 py-2 text-sm">
-      <Icon className={`h-4 w-4 shrink-0 ${color}`} />
+    <li className="flex items-center gap-3 py-2 text-sm">
+      <Icon className={`h-4 w-4 shrink-0 ${color}`} aria-hidden="true" />
       <span className="text-muted-foreground">{label}:</span>
-      <span>{new Date(date).toLocaleDateString("en-AU", DATE_FORMAT)}</span>
-    </div>
+      <time dateTime={date}>{new Date(date).toLocaleDateString("en-AU", DATE_FORMAT)}</time>
+    </li>
   )
 }
 
@@ -689,14 +689,14 @@ export function IntakeDetailClient({
 
           {/* Timeline */}
           <div className="pt-2">
-            <h3 className="text-base font-medium mb-4">Timeline</h3>
-            <div className="space-y-4">
+            <h3 id="intake-timeline-heading" className="text-base font-medium mb-4">Timeline</h3>
+            <ol aria-labelledby="intake-timeline-heading" className="space-y-4">
               <TimelineEntry icon={Calendar} label="Submitted" date={intake.created_at} />
               {intake.paid_at && <TimelineEntry icon={CheckCircle} label="Payment received" date={intake.paid_at} color="text-success" />}
               {intake.approved_at && <TimelineEntry icon={CheckCircle} label="Approved" date={intake.approved_at} color="text-success" />}
               {intake.declined_at && <TimelineEntry icon={XCircle} label="Declined" date={intake.declined_at} color="text-destructive" />}
               {intake.cancelled_at && <TimelineEntry icon={Ban} label="Cancelled" date={intake.cancelled_at} />}
-            </div>
+            </ol>
           </div>
 
           {/* Reference */}

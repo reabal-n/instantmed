@@ -466,8 +466,8 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
           </div>
 
           {/* Stripe + payment method logos */}
-          <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground/60">
-            <Lock className="h-3 w-3 shrink-0" />
+          <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
+            <Lock className="h-3 w-3 shrink-0" aria-hidden="true" />
             <PaymentLogos />
           </div>
 
