@@ -1,6 +1,6 @@
 'use client'
 
-import { type Variants, motion } from 'framer-motion'
+import { motion,type Variants } from 'framer-motion'
 import { ArrowRight, CheckCircle2, FileText, Pill, Smartphone, Star } from 'lucide-react'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'

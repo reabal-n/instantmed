@@ -260,8 +260,8 @@ function CertComparisonViz() {
                 "Travel to clinic",
                 "Waiting room + consult",
               ].map((step) => (
-                <p key={step} className="flex items-center gap-2 text-xs text-muted-foreground/70">
-                  <Clock className="h-3.5 w-3.5 shrink-0 text-muted-foreground/40" aria-hidden="true" />
+                <p key={step} className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Clock className="h-3.5 w-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
                   {step}
                 </p>
               ))}

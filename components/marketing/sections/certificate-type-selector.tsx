@@ -124,7 +124,7 @@ export function CertificateTypeSelector({
             Which certificate do you need?
           </h2>
           <p className="text-sm text-muted-foreground max-w-lg mx-auto">
-            Select your situation — we&apos;ll tailor the form to match.
+            Select your situation. We&apos;ll tailor the form to match.
           </p>
         </motion.div>
 

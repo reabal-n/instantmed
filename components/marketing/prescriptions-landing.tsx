@@ -10,12 +10,12 @@ import {
 } from "lucide-react"
 import dynamic from "next/dynamic"
 import Link from "next/link"
+import { useEffect, useRef, useState } from "react"
 
 import { StickerIcon } from "@/components/icons/stickers"
 // Hero is above-fold - not lazy loaded
 import { PrescriptionsHeroSection } from "@/components/marketing/heroes/prescriptions-hero"
 import { LiveWaitTime } from "@/components/marketing/live-wait-time"
-import { HowItWorksInline } from "@/components/marketing/sections/how-it-works-inline"
 import { ServiceFinalCTA } from "@/components/marketing/sections/service-final-cta"
 import {
   type LandingPageConfig,
@@ -25,12 +25,12 @@ import {
   type SocialProofStat,
   SocialProofStrip,
 } from "@/components/marketing/shared"
-import { ComparisonBar } from "@/components/marketing/shared/data-viz"
 import { RelatedArticles } from "@/components/marketing/shared/related-articles"
 import { TestimonialCard } from "@/components/marketing/shared/testimonial-card"
 import { ContentHubLinks } from "@/components/seo"
 import { Button } from "@/components/ui/button"
 import { FAQList } from "@/components/ui/faq-list"
+import { useReducedMotion } from "@/components/ui/motion"
 import { Reveal } from "@/components/ui/reveal"
 import { SectionPill } from "@/components/ui/section-pill"
 import { PRICING } from "@/lib/constants"
@@ -43,6 +43,10 @@ import { getPatientCount,SOCIAL_PROOF, SOCIAL_PROOF_DISPLAY } from "@/lib/social
 import { cn } from "@/lib/utils"
 
 // Below-fold lazy loads
+const HowItWorksInline = dynamic(
+  () => import("@/components/marketing/sections/how-it-works-inline").then((m) => m.HowItWorksInline),
+  { loading: () => <div className="min-h-[300px]" /> },
+)
 const TestimonialsSection = dynamic(
   () => import("@/components/marketing/sections/testimonials-section").then((m) => m.TestimonialsSection),
   { loading: () => <div className="min-h-[500px]" /> },
@@ -203,11 +207,6 @@ function ServiceComparisonSection({ isDisabled }: { isDisabled?: boolean }) {
                   : "bg-white dark:bg-card border-border/50 dark:border-white/15 shadow-md shadow-primary/[0.06] dark:shadow-none"
               )}
             >
-              {/* Accent strip on highlighted card */}
-              {service.highlight && (
-                <div className="h-1 w-full bg-linear-to-r from-primary/60 via-primary to-primary/60" />
-              )}
-
               <div className="p-6 flex flex-col flex-1">
                 {/* Sticker + badge row */}
                 <div className="flex items-start justify-between mb-4">
@@ -225,7 +224,7 @@ function ServiceComparisonSection({ isDisabled }: { isDisabled?: boolean }) {
 
                 {/* Price */}
                 <div className="mb-5">
-                  <span className="text-4xl font-bold tracking-tight text-foreground">
+                  <span className="text-4xl font-semibold tracking-tight text-foreground">
                     ${service.price.toFixed(2)}
                   </span>
                   <span className="text-sm text-muted-foreground ml-2">one-time</span>
@@ -318,30 +317,81 @@ function PrescriptionFAQSection({ onFAQOpen }: { onFAQOpen?: (question: string, 
 
 /** Data viz: prescription turnaround vs GP visit */
 function PrescriptionComparisonViz() {
+  const ref = useRef<HTMLDivElement>(null)
+  const [inView, setInView] = useState(false)
+  const prefersReducedMotion = useReducedMotion()
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setInView(true); observer.disconnect() } },
+      { threshold: 0.3 }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+
+  const active = inView || prefersReducedMotion
+
   return (
-    <section aria-label="Time comparison" className="py-12 lg:py-16">
-      <div className="mx-auto max-w-xl px-4 sm:px-6">
-        <Reveal className="text-center mb-8">
+    <section aria-label="Time comparison" className="py-10 sm:py-14">
+      <div className="mx-auto max-w-3xl px-4 sm:px-6">
+        <Reveal instant className="text-center mb-10">
           <SectionPill>Time saved</SectionPill>
-          <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground mt-4 mb-2">
-            Skip the waiting room
+          <h2 className="mt-3 text-2xl sm:text-3xl font-semibold tracking-tight text-balance">
+            Your medication. Without the appointment.
           </h2>
         </Reveal>
-        <Reveal className="rounded-2xl bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-md shadow-primary/[0.06] dark:shadow-none p-6" delay={0.1}>
-          <ComparisonBar
-            us={{
-              label: "InstantMed",
-              value: "~45 min",
-              subtext: "Average prescription turnaround",
-            }}
-            them={{
-              label: "GP visit",
-              value: "3+ hours",
-              subtext: "Travel + wait + consult + pharmacy",
-            }}
-            ratio={0.25}
-          />
-        </Reveal>
+
+        <div ref={ref} className="space-y-5">
+          <div className="flex items-end justify-between">
+            <div>
+              <p className="text-[11px] font-semibold text-primary uppercase tracking-wider mb-1.5">InstantMed</p>
+              <p className="text-4xl sm:text-5xl font-semibold tabular-nums text-foreground leading-none">
+                ~45
+                <span className="text-xl font-normal text-muted-foreground ml-1">min</span>
+              </p>
+            </div>
+            <div className="text-right">
+              <p className="text-[11px] font-semibold text-muted-foreground/50 uppercase tracking-wider mb-1.5">GP visit</p>
+              <p className="text-4xl sm:text-5xl font-semibold tabular-nums text-muted-foreground/60 leading-none">
+                3+
+                <span className="text-xl font-normal ml-1">hrs</span>
+              </p>
+            </div>
+          </div>
+
+          <div className="relative h-2 rounded-full bg-muted/30 overflow-hidden">
+            <div
+              className={prefersReducedMotion ? "absolute inset-y-0 left-0 bg-border/50 rounded-full" : "absolute inset-y-0 left-0 bg-border/50 rounded-full transition-[width] duration-[1000ms] ease-out"}
+              style={{ width: active ? '100%' : '0%', transitionDelay: active && !prefersReducedMotion ? '300ms' : '0ms' }}
+            />
+            <div
+              className={prefersReducedMotion ? "absolute inset-y-0 left-0 bg-primary rounded-full" : "absolute inset-y-0 left-0 bg-primary rounded-full transition-[width] duration-700 ease-out"}
+              style={{ width: active ? '25%' : '0%', transitionDelay: active && !prefersReducedMotion ? '80ms' : '0ms' }}
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-6 pt-1">
+            <div className="space-y-2">
+              {["5 min form", "GP reviews your request", "eScript sent to your phone"].map((step) => (
+                <p key={step} className="flex items-center gap-2 text-xs text-foreground">
+                  <CheckCircle2 className="h-3.5 w-3.5 text-primary shrink-0" aria-hidden="true" />
+                  {step}
+                </p>
+              ))}
+            </div>
+            <div className="space-y-2">
+              {["Call for appointment", "Travel to clinic", "Wait room + consult + pharmacy"].map((step) => (
+                <p key={step} className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Clock className="h-3.5 w-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
+                  {step}
+                </p>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   )
@@ -421,10 +471,13 @@ export function PrescriptionsLanding() {
           {/* Social proof stats */}
           <SocialProofStrip stats={SOCIAL_PROOF_STATS} />
 
-          {/* PBS callout strip */}
+          {/* 2. Service comparison — repeat vs new Rx, pricing up front */}
+          <ServiceComparisonSection isDisabled={isDisabled} />
+
+          {/* PBS callout strip — addresses pharmacy cost anxiety right after pricing */}
           <PBSCalloutStrip />
 
-          {/* 2. How It Works */}
+          {/* 3. How It Works */}
           <HowItWorksInline
             steps={HOW_IT_WORKS_STEPS}
             ctaHref="/request?service=prescription"
@@ -454,11 +507,8 @@ export function PrescriptionsLanding() {
           {/* Quick testimonials strip */}
           <QuickTestimonialStrip />
 
-          {/* Pre-qualify before pricing */}
+          {/* Pre-qualify */}
           <PrescriptionLimitationsSection />
-
-          {/* 5. Service comparison - repeat vs new Rx */}
-          <ServiceComparisonSection isDisabled={isDisabled} />
 
           {/* 6. Testimonials - muted bg for rhythm */}
           <div className="bg-muted/30 dark:bg-white/[0.02]">
@@ -479,7 +529,7 @@ export function PrescriptionsLanding() {
 
           {/* Clinical references */}
           <div className="mx-auto max-w-3xl px-4 sm:px-6 pb-4">
-            <p className="text-[10px] text-muted-foreground text-center leading-relaxed">
+            <p className="text-[11px] text-muted-foreground text-center leading-relaxed">
               Electronic prescribing reduces dispensing errors by 48% compared to handwritten scripts (Westbrook et al., <em>PLoS Med</em>, 2012). Telehealth prescription management achieves equivalent clinical outcomes to face-to-face for stable chronic medications (Snoswell et al., <em>J Telemed Telecare</em>, 2023). All prescribers are AHPRA-registered and comply with TGA scheduling requirements.
             </p>
           </div>

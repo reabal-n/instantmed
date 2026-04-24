@@ -1,6 +1,6 @@
 "use client"
 
-import { motion } from "framer-motion"
+import { motion,type Variants } from "framer-motion"
 import {
   ArrowRight,
   CheckCircle2,
@@ -11,6 +11,7 @@ import {
 import Image from "next/image"
 import Link from "next/link"
 
+import { LastReviewedSignal } from "@/components/marketing/last-reviewed-signal"
 import { EScriptHeroMockup } from "@/components/marketing/mockups/escript-hero-mockup"
 import { AvailabilityIndicator, TrustBadgeRow } from "@/components/shared"
 import { Button } from "@/components/ui/button"
@@ -36,6 +37,10 @@ export function PrescriptionsHeroSection({
   const reduced = useReducedMotion()
   const container = reduced ? {} : stagger.container
   const item = reduced ? {} : stagger.item
+  const headlineItem: Variants = reduced ? {} : {
+    initial: { opacity: 1, y: 8 },
+    animate: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.23, 1, 0.32, 1] } },
+  }
 
   return (
     <section aria-label="Prescription service overview" className="relative overflow-hidden pt-6 pb-6 sm:pt-16 sm:pb-20 lg:pt-20 lg:pb-24">
@@ -58,7 +63,7 @@ export function PrescriptionsHeroSection({
             </motion.div>
 
             <motion.h1
-              variants={item}
+              variants={headlineItem}
               className="text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight mb-3 sm:mb-5 leading-[1.1] text-balance"
             >
               Your prescription, without the waiting room.
@@ -99,7 +104,7 @@ export function PrescriptionsHeroSection({
               <Button
                 asChild
                 size="lg"
-                className="px-8 h-12 text-base font-semibold shadow-md shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 transition-all active:scale-[0.98]"
+                className="px-8 h-12 text-base font-semibold shadow-md shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 transition-[transform,box-shadow]"
                 onClick={onCTAClick}
                 disabled={isDisabled}
               >
@@ -144,7 +149,7 @@ export function PrescriptionsHeroSection({
               </span>
             </motion.div>
 
-            <motion.div variants={item}>
+            <motion.div variants={item} className="flex flex-col items-center lg:items-start gap-2">
               <TrustBadgeRow
                 badges={[
                   { id: "legitscript", variant: "styled" },
@@ -153,6 +158,7 @@ export function PrescriptionsHeroSection({
                 ]}
                 className="mt-2 justify-center lg:justify-start gap-3"
               />
+              <LastReviewedSignal className="justify-center lg:justify-start" />
             </motion.div>
           </div>
 
