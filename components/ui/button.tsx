@@ -14,7 +14,7 @@ const buttonVariants = cva(
     "select-none",
     "origin-center",
     "whitespace-nowrap",
-    "transition-all duration-200",
+    "transition-[transform,box-shadow,background-color,border-color,color,opacity] duration-200",
     "active:scale-[0.97]",
     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dawn-300 dark:focus-visible:ring-dawn-500/40 focus-visible:ring-offset-2",
     "disabled:pointer-events-none disabled:opacity-50",

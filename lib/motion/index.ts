@@ -40,10 +40,12 @@ export const staggerDelay = {
 // ONLY ease-out. No bounces. No springs.
 
 export const easing = {
-  default: [0, 0, 0.2, 1] as const,   // ease-out
-  in: [0.4, 0, 1, 1] as const,        // only if truly needed
-  out: [0, 0, 0.2, 1] as const,       // PRIMARY
-  inOut: [0.42, 0, 0.58, 1] as const, // fallback
+  default: [0, 0, 0.2, 1] as const,          // ease-out
+  in: [0.4, 0, 1, 1] as const,               // only if truly needed
+  out: [0, 0, 0.2, 1] as const,              // PRIMARY
+  inOut: [0.42, 0, 0.58, 1] as const,        // fallback
+  /** Strong ease-out — instant perceived responsiveness for scroll reveals */
+  strongOut: [0.23, 1, 0.32, 1] as const,
   /** Smooth confident curve used by panels/drawers/sheets */
   panel: [0.16, 1, 0.3, 1] as const,
   css: {
@@ -86,9 +88,9 @@ export const fadeIn: Variants = {
 
 /** Fade + slide up - most common entrance */
 export const fadeUp: Variants = {
-  initial: { opacity: 0, y: 16 },
-  animate: { opacity: 1, y: 0, transition: spring.smooth },
-  exit: { opacity: 0, y: -8, transition: transition.fast },
+  initial: { opacity: 0, y: 8 },
+  animate: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.23, 1, 0.32, 1] } },
+  exit: { opacity: 0, y: -6, transition: transition.fast },
 }
 
 /** Stagger container + item system */

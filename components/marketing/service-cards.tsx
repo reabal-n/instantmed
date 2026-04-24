@@ -1,6 +1,6 @@
 'use client'
 
-import { AlertCircle, ArrowRight, Check } from 'lucide-react'
+import { AlertCircle, ArrowRight, Check, Clock } from 'lucide-react'
 import Link from 'next/link'
 
 import { ServiceIconTile } from '@/components/icons/service-icons'
@@ -8,10 +8,9 @@ import { WaitlistForm } from '@/components/marketing/waitlist-form'
 import { type ServiceId, useServiceAvailability } from '@/components/providers/service-availability-provider'
 import { Button } from '@/components/ui/button'
 import { Reveal } from '@/components/ui/reveal'
+import { SectionPill } from '@/components/ui/section-pill'
 import { serviceCategories } from '@/lib/marketing/homepage'
 import { cn } from '@/lib/utils'
-
-// Clean card style - no gradients, no colored borders
 
 interface ServiceCardProps {
   service: (typeof serviceCategories)[number]
@@ -19,7 +18,6 @@ interface ServiceCardProps {
 }
 
 function ServiceCard({ service, disabled }: ServiceCardProps) {
-
   return (
     <Link
       href={service.href || `/${service.slug}/request`}
@@ -28,12 +26,13 @@ function ServiceCard({ service, disabled }: ServiceCardProps) {
         disabled && 'pointer-events-none',
       )}
       aria-disabled={disabled || undefined}
+      tabIndex={disabled ? -1 : undefined}
     >
       <div className="relative h-full">
         {/* Temporarily unavailable badge */}
         {disabled && (
           <div className="absolute -top-3 left-4 right-4 z-20">
-            <div className="flex items-center justify-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-100 dark:bg-amber-950/50 text-warning text-xs font-medium">
+            <div className="flex items-center justify-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-100 dark:bg-amber-950/50 text-warning text-xs font-medium">
               <AlertCircle className="h-3 w-3" />
               Temporarily unavailable
             </div>
@@ -43,7 +42,7 @@ function ServiceCard({ service, disabled }: ServiceCardProps) {
         {/* Most popular badge */}
         {service.popular && !disabled && (
           <div className="absolute -top-3 right-4 z-20">
-            <div className="px-2.5 py-1 rounded-md bg-primary text-primary-foreground text-xs font-semibold">
+            <div className="px-2.5 py-1 rounded-lg bg-primary text-primary-foreground text-xs font-semibold">
               Most popular
             </div>
           </div>
@@ -54,14 +53,14 @@ function ServiceCard({ service, disabled }: ServiceCardProps) {
           'bg-white dark:bg-card',
           'border border-border/50 dark:border-white/10',
           'shadow-sm',
-          'transition-all duration-200',
+          'transition-[transform,box-shadow,border-color] duration-200',
           disabled && 'opacity-60',
           !disabled && [
             'hover:shadow-lg hover:-translate-y-0.5 hover:border-border',
             service.popular && 'ring-1 ring-primary/20 shadow-md',
           ],
         )}>
-          {/* Icon - compact, no glow */}
+          {/* Icon */}
           <ServiceIconTile iconKey={service.icon} color={service.color} size="lg" className="mb-4" variant="sticker" stickerLoading="eager" />
 
           {/* Title + Price */}
@@ -110,10 +109,10 @@ function ServiceCard({ service, disabled }: ServiceCardProps) {
           {/* Testimonial snippet */}
           {!disabled && service.testimonial && (
             <div className="mt-3 pt-3 border-t border-border/30">
-              <p className="text-[11px] text-muted-foreground italic leading-relaxed">
+              <p className="text-xs text-muted-foreground italic leading-relaxed">
                 &ldquo;{service.testimonial.quote}&rdquo;
               </p>
-              <p className="text-[10px] text-muted-foreground mt-1">
+              <p className="text-[11px] text-muted-foreground mt-1">
                 - {service.testimonial.author}
               </p>
             </div>
@@ -133,7 +132,7 @@ function ComingSoonCard({ service }: ComingSoonCardProps) {
     <div className="relative h-full">
       {/* Coming Soon badge */}
       <div className="absolute -top-3 right-4 z-20">
-        <div className="px-2.5 py-1 rounded-md bg-muted text-muted-foreground text-xs font-semibold">
+        <div className="px-2.5 py-1 rounded-lg bg-muted text-muted-foreground text-xs font-semibold">
           Coming Soon
         </div>
       </div>
@@ -192,19 +191,26 @@ export function ServiceCards() {
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <Reveal instant className="text-center mb-8 sm:mb-10 lg:mb-12">
+          <div className="mb-4">
+            <SectionPill>Services &amp; pricing</SectionPill>
+          </div>
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-semibold text-foreground tracking-tight mb-3 sm:mb-4">
             What do you need?
           </h2>
-          <p className="text-base text-muted-foreground max-w-2xl mx-auto mb-2">
-            Pick a service. Pay a flat fee. No sign-up needed.
+          {/* Pricing anchor — answers "can I afford this?" before users click in */}
+          <p className="text-base text-muted-foreground max-w-2xl mx-auto mb-1">
+            From {' '}
+            <span className="font-semibold text-foreground">$19.95</span>
+            {' '}&middot; No Medicare needed &middot; Paid once, documents yours
           </p>
-          <p className="hidden sm:block text-sm text-muted-foreground">
-            {serviceCategories.length} services &middot; {comingSoonServices.length} more coming
+          <p className="flex items-center justify-center gap-1.5 text-sm text-muted-foreground">
+            <Clock className="w-3.5 h-3.5 text-primary" />
+            Med certs typically ready in under 20 minutes
           </p>
         </Reveal>
 
-        {/* Service Cards Grid */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        {/* Active Service Cards Grid */}
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-5">
           {activeServices.map((service, i) => {
             const disabled = isServiceDisabled(service.id as ServiceId)
             return (
@@ -213,18 +219,29 @@ export function ServiceCards() {
               </Reveal>
             )
           })}
-
-          {comingSoonServices.map((service, i) => (
-            <Reveal key={service.id} delay={(activeServices.length + i) * 0.05}>
-              <ComingSoonCard service={service} />
-            </Reveal>
-          ))}
         </div>
 
         {/* Note */}
-        <p className="text-center text-xs text-muted-foreground mt-8">
-          Private service - no Medicare rebate, but PBS subsidies may still apply at the pharmacy
+        <p className="text-center text-xs text-muted-foreground mb-10 sm:mb-14">
+          Private service &mdash; no Medicare rebate, but PBS subsidies may still apply at the pharmacy
         </p>
+
+        {/* Coming Soon — separated from active grid so they don't create dead zones */}
+        {comingSoonServices.length > 0 && (
+          <div className="border-t border-border/40 pt-10">
+            <Reveal instant className="text-center mb-6">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-[0.12em] mb-1">Launching soon</p>
+              <p className="text-sm text-muted-foreground">Join the waitlist and we'll let you know first.</p>
+            </Reveal>
+            <div className="grid sm:grid-cols-2 gap-5 max-w-2xl mx-auto">
+              {comingSoonServices.map((service, i) => (
+                <Reveal key={service.id} delay={i * 0.05}>
+                  <ComingSoonCard service={service} />
+                </Reveal>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </section>
   )

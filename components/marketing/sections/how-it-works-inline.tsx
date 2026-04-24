@@ -59,7 +59,7 @@ export function HowItWorksInline({
               <StickerIcon name={step.sticker} size={52} className="mx-auto mb-3" />
               <h3 className="text-base font-semibold text-foreground mb-2">{step.title}</h3>
               <p className="text-sm text-muted-foreground leading-relaxed mb-3">{step.description}</p>
-              <span className="inline-flex items-center gap-1 text-xs font-medium text-primary/70">
+              <span className="inline-flex items-center gap-1 text-xs font-semibold text-primary">
                 <Clock className="h-3 w-3" />
                 {step.time}
               </span>
@@ -71,7 +71,7 @@ export function HowItWorksInline({
           <Button
             asChild
             size="lg"
-            className="px-8 h-12 text-base font-semibold shadow-md shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 transition-all"
+            className="px-8 h-12 text-base font-semibold shadow-md shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 transition-[transform,box-shadow]"
             onClick={onCTAClick}
             disabled={isDisabled}
           >

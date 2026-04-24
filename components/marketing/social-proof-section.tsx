@@ -29,10 +29,10 @@ export function SocialProofSection() {
         {/* Header */}
         <motion.div
           className="text-center mb-8 sm:mb-10 lg:mb-12"
-          initial={prefersReducedMotion ? {} : { y: 20 }}
-          whileInView={{ y: 0 }}
+          initial={prefersReducedMotion ? {} : { opacity: 0, y: 8 }}
+          whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.3 }}
+          transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
         >
           <h2 className="text-2xl sm:text-3xl font-semibold text-foreground tracking-tight mb-3">
             Real patients. Real reviews.
@@ -45,15 +45,15 @@ export function SocialProofSection() {
         {/* Inline stat strip - clean typographic row */}
         <motion.div
           className="flex flex-wrap justify-center items-baseline gap-x-8 gap-y-4 sm:gap-x-12 mb-8 sm:mb-10 lg:mb-12"
-          initial={prefersReducedMotion ? {} : { y: 12 }}
-          whileInView={{ y: 0 }}
+          initial={prefersReducedMotion ? {} : { opacity: 0, y: 8 }}
+          whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.3, delay: 0.1 }}
+          transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1], delay: 0.08 }}
         >
           {inlineStats.map((stat, i) => (
             <div key={stat.label} className="flex items-baseline gap-x-8 sm:gap-x-12">
               <div className="text-center">
-                <p className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground leading-none">
+                <p className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground leading-none">
                   <AnimatedStat value={stat.value} suffix={stat.suffix} decimals={stat.decimals} />
                 </p>
                 <p className="text-xs text-muted-foreground mt-1.5">

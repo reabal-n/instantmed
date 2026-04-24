@@ -8,7 +8,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
-import { Suspense, useEffect, useRef,useState } from "react"
+import { Suspense, useEffect, useRef, useState } from "react"
 
 import { StickerIcon } from "@/components/icons/stickers"
 import { usePostHog } from "@/components/providers/posthog-provider"
@@ -28,14 +28,12 @@ import { cn } from "@/lib/utils"
 // DATA
 // =============================================================================
 
-/** Sticker icon map for category cards */
 const CATEGORY_STICKERS: Record<CertCategory, import("@/components/icons/stickers").StickerIconName> = {
   work:  "briefcase",
   study: "graduation-cap",
   carer: "heart-with-pulse",
 }
 
-/** Feature checkmarks shown in each card */
 const CATEGORY_FEATURES: Record<CertCategory, string[]> = {
   work: [
     "Accepted by Fair Work Act employers",
@@ -55,20 +53,15 @@ const CATEGORY_FEATURES: Record<CertCategory, string[]> = {
 }
 
 const CATEGORY_GRADIENTS: Record<CertCategory, { gradient: string; selectedGradient: string }> = {
-  work: { gradient: "from-emerald-50/50 to-white dark:from-emerald-950/10 dark:to-card", selectedGradient: "from-emerald-50 to-white dark:from-emerald-950/20 dark:to-card" },
-  study: { gradient: "from-sky-50/50 to-white dark:from-sky-950/10 dark:to-card", selectedGradient: "from-sky-50 to-white dark:from-sky-950/20 dark:to-card" },
-  carer: { gradient: "from-rose-50/50 to-white dark:from-rose-950/10 dark:to-card", selectedGradient: "from-rose-50 to-white dark:from-rose-950/20 dark:to-card" },
+  work:  { gradient: "from-emerald-50/50 to-white dark:from-emerald-950/10 dark:to-card",  selectedGradient: "from-emerald-50 to-white dark:from-emerald-950/20 dark:to-card" },
+  study: { gradient: "from-sky-50/50 to-white dark:from-sky-950/10 dark:to-card",          selectedGradient: "from-sky-50 to-white dark:from-sky-950/20 dark:to-card" },
+  carer: { gradient: "from-rose-50/50 to-white dark:from-rose-950/10 dark:to-card",        selectedGradient: "from-rose-50 to-white dark:from-rose-950/20 dark:to-card" },
 }
 
 // =============================================================================
 // COMPONENT
 // =============================================================================
 
-/**
- * Reads certType / utm_content from the URL and calls onAutoSelect once.
- * Isolated into its own component so it can be wrapped in <Suspense>,
- * allowing CertificateTypeSelector itself to render server-side.
- */
 function SearchParamsAutoSelect({
   onAutoSelect,
 }: {
@@ -80,17 +73,11 @@ function SearchParamsAutoSelect({
     if (certType && ["work", "study", "carer"].includes(certType)) {
       onAutoSelect(certType as CertCategory)
     }
-    // Run once on mount only
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
   return null
 }
 
-/**
- * Interactive certificate type selector — engagement hook for the med cert
- * landing page. Renders SSR; URL-param auto-select handled client-side via
- * an inner Suspense boundary to avoid the useSearchParams SSR bailout.
- */
 export function CertificateTypeSelector({
   className,
 }: {
@@ -120,7 +107,6 @@ export function CertificateTypeSelector({
       aria-label="Choose your certificate type"
       className={cn("py-12 lg:py-16 scroll-mt-20", className)}
     >
-      {/* Client-only URL param reader — Suspense prevents SSR bailout */}
       <Suspense fallback={null}>
         <SearchParamsAutoSelect onAutoSelect={handleAutoSelect} />
       </Suspense>
@@ -129,16 +115,16 @@ export function CertificateTypeSelector({
         {/* Header */}
         <motion.div
           className="text-center mb-8"
-          initial={animate ? { opacity: 0, y: 20 } : {}}
+          initial={animate ? { opacity: 0, y: 8 } : {}}
           whileInView={animate ? { opacity: 1, y: 0 } : undefined}
           viewport={{ once: true }}
-          transition={{ duration: 0.3 }}
+          transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
         >
           <h2 className="text-2xl sm:text-3xl font-semibold text-foreground tracking-tight mb-3">
             Which certificate do you need?
           </h2>
           <p className="text-sm text-muted-foreground max-w-lg mx-auto">
-            Select your situation - we&apos;ll tailor the form to match.
+            Select your situation — we&apos;ll tailor the form to match.
           </p>
         </motion.div>
 
@@ -153,17 +139,18 @@ export function CertificateTypeSelector({
                 type="button"
                 onClick={() => handleSelect(cat.id)}
                 className={cn(
-                  "relative rounded-2xl border p-5 text-left transition-all cursor-pointer",
+                  "relative rounded-2xl border p-5 text-left cursor-pointer",
                   "bg-gradient-to-br shadow-md shadow-primary/[0.06]",
+                  "transition-[transform,box-shadow,border-color,background-image] duration-200",
                   isSelected ? colors.selectedGradient : colors.gradient,
                   isSelected
                     ? "border-primary ring-2 ring-primary/20"
-                    : "border-border/50 hover:border-primary/30 hover:shadow-lg",
+                    : "border-border/50 hover:border-primary/30 hover:shadow-lg hover:-translate-y-0.5",
                 )}
-                initial={animate ? { y: 16 } : {}}
+                initial={animate ? { opacity: 0, y: 8 } : {}}
                 whileInView={animate ? { opacity: 1, y: 0 } : undefined}
                 viewport={{ once: true }}
-                transition={{ duration: 0.3, delay: i * 0.08 }}
+                transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1], delay: i * 0.07 }}
               >
                 {isSelected && (
                   <div className="absolute top-3 right-3">
@@ -171,7 +158,6 @@ export function CertificateTypeSelector({
                   </div>
                 )}
 
-                {/* Sticker icon */}
                 <div className="mb-3">
                   <StickerIcon name={CATEGORY_STICKERS[cat.id]} size={40} />
                 </div>
@@ -183,22 +169,20 @@ export function CertificateTypeSelector({
                   {cat.description}
                 </p>
 
-                {/* Feature checkmarks */}
                 <ul className="space-y-1.5 mb-3">
                   {CATEGORY_FEATURES[cat.id].map((feat) => (
                     <li key={feat} className="flex items-start gap-2">
                       <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0 mt-0.5" aria-hidden="true" />
-                      <span className="text-[11px] text-muted-foreground leading-tight">{feat}</span>
+                      <span className="text-xs text-muted-foreground leading-tight">{feat}</span>
                     </li>
                   ))}
                 </ul>
 
-                {/* Reason pills */}
                 <div className="flex flex-wrap gap-1.5">
                   {cat.reasons.map((reason) => (
                     <span
                       key={reason}
-                      className="text-[10px] font-medium text-muted-foreground px-2 py-0.5 rounded-full border border-border/40 bg-muted/30"
+                      className="text-[11px] font-medium text-muted-foreground px-2 py-0.5 rounded-full border border-border/40 bg-muted/30"
                     >
                       {reason}
                     </span>
@@ -209,19 +193,18 @@ export function CertificateTypeSelector({
           })}
         </div>
 
-        {/* Pricing ladder + CTA - visible once a category is selected */}
+        {/* Pricing ladder + CTA */}
         <motion.div
           className="mt-6 text-center"
-          initial={{}}
           animate={
             selected
               ? { opacity: 1, y: 0, height: "auto" }
               : { opacity: 0, y: 8, height: 0 }
           }
-          transition={{ duration: 0.3 }}
+          transition={{ duration: 0.35, ease: [0.23, 1, 0.32, 1] }}
           style={{ overflow: "hidden" }}
         >
-          {/* Interactive duration tiles */}
+          {/* Duration tiles */}
           <div className="inline-flex items-center gap-2 sm:gap-3 mb-5 p-1 rounded-xl bg-muted/40 border border-border/30">
             {MED_CERT_DURATIONS.options.map((days) => {
               const isActive = selectedDays === days
@@ -231,7 +214,8 @@ export function CertificateTypeSelector({
                   type="button"
                   onClick={() => setSelectedDays(days)}
                   className={cn(
-                    "relative px-4 py-2 rounded-lg text-center transition-all cursor-pointer min-w-[80px]",
+                    "relative px-4 py-2 rounded-lg text-center cursor-pointer min-w-[80px]",
+                    "transition-[transform,box-shadow,background-color,border-color] duration-150",
                     isActive
                       ? "bg-white dark:bg-card shadow-sm border border-border/50 ring-1 ring-primary/20"
                       : "hover:bg-white/60 dark:hover:bg-white/5",
@@ -251,7 +235,7 @@ export function CertificateTypeSelector({
             <Button
               asChild
               size="lg"
-              className="px-8 h-11 font-semibold shadow-md shadow-primary/20 hover:shadow-xl hover:shadow-primary/25 hover:-translate-y-0.5 transition-all"
+              className="px-8 h-11 font-semibold shadow-md shadow-primary/20 hover:shadow-xl hover:shadow-primary/25 hover:-translate-y-0.5"
             >
               <Link
                 href={`/request?service=med-cert${selected ? `&certType=${selected}` : ""}`}
@@ -267,7 +251,7 @@ export function CertificateTypeSelector({
           </div>
         </motion.div>
 
-        {/* Fallback CTA for users who don't want to pick */}
+        {/* Fallback CTA */}
         {!selected && (
           <div className="mt-6 text-center">
             <p className="text-sm text-muted-foreground mb-3">
@@ -281,16 +265,12 @@ export function CertificateTypeSelector({
             >
               <Link href="/request?service=med-cert">
                 I&apos;ll choose during the form
-                <ArrowRight
-                  className="ml-1.5 h-3.5 w-3.5"
-                  aria-hidden="true"
-                />
+                <ArrowRight className="ml-1.5 h-3.5 w-3.5" aria-hidden="true" />
               </Link>
             </Button>
           </div>
         )}
 
-        {/* Compact comparison table */}
         <ComparisonTable />
       </div>
     </section>
@@ -298,7 +278,7 @@ export function CertificateTypeSelector({
 }
 
 // ---------------------------------------------------------------------------
-// Comparison Table - InstantMed vs GP vs Other Telehealth
+// Comparison Table
 // ---------------------------------------------------------------------------
 
 const comparisonRows: Array<{
@@ -308,12 +288,12 @@ const comparisonRows: Array<{
   telehealth: string | boolean
   instantWins?: boolean
 }> = [
-  { label: 'Price', instant: `$${PRICING.MED_CERT.toFixed(2)}`, gp: SOCIAL_PROOF.gpPriceStandard, telehealth: '~$60', instantWins: true },
-  { label: 'Turnaround', instant: `~${SOCIAL_PROOF.certTurnaroundMinutes} min`, gp: 'Needs booking', telehealth: '1-2 hours', instantWins: true },
-  { label: 'Open 24/7', instant: true, gp: false, telehealth: 'Limited', instantWins: true },
-  { label: 'No appointment', instant: true, gp: false, telehealth: false, instantWins: true },
-  { label: 'Same-day certificate', instant: true, gp: false, telehealth: 'Often next day', instantWins: true },
-  { label: 'AHPRA doctor', instant: true, gp: true, telehealth: true },
+  { label: 'Price',              instant: `$${PRICING.MED_CERT.toFixed(2)}`,              gp: SOCIAL_PROOF.gpPriceStandard,  telehealth: '~$60',          instantWins: true },
+  { label: 'Turnaround',        instant: `~${SOCIAL_PROOF.certTurnaroundMinutes} min`,    gp: 'Needs booking',               telehealth: '1-2 hours',     instantWins: true },
+  { label: 'Open 24/7',         instant: true,                                            gp: false,                         telehealth: 'Limited',       instantWins: true },
+  { label: 'No appointment',    instant: true,                                            gp: false,                         telehealth: false,           instantWins: true },
+  { label: 'Same-day cert',     instant: true,                                            gp: false,                         telehealth: 'Often next day',instantWins: true },
+  { label: 'AHPRA doctor',      instant: true,                                            gp: true,                          telehealth: true },
 ]
 
 function renderCell(value: string | boolean, isInstant = false, wins = false) {
@@ -350,10 +330,10 @@ function ComparisonTable() {
     <motion.div
       ref={tableRef}
       className="mt-10"
-      initial={prefersReducedMotion ? {} : { y: 16 }}
-      whileInView={{ y: 0 }}
+      initial={prefersReducedMotion ? {} : { opacity: 0, y: 8 }}
+      whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
-      transition={{ duration: 0.3, delay: 0.1 }}
+      transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1], delay: 0.1 }}
     >
       <h3 className="text-base font-semibold text-foreground text-center mb-4">
         How we compare
@@ -365,10 +345,9 @@ function ComparisonTable() {
               <th scope="col" className="text-left py-3 px-4 text-muted-foreground font-medium text-xs w-[30%] bg-white dark:bg-card sticky left-0 z-10">
                 <span className="sr-only">Feature</span>
               </th>
-              {/* InstantMed — highlighted column */}
               <th scope="col" className="text-center py-0 px-4 w-[23%] bg-primary/5 dark:bg-primary/10">
                 <div className="flex flex-col items-center gap-1 py-3">
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary text-[9px] font-semibold text-white uppercase tracking-wider">
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary text-[10px] font-semibold text-white uppercase tracking-wider">
                     Best value
                   </span>
                   <span className="text-xs font-semibold text-primary">InstantMed</span>

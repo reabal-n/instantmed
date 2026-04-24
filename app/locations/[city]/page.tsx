@@ -1,14 +1,10 @@
-import { Activity,ArrowRight, CheckCircle2, Clock, HelpCircle, Shield, Star } from "lucide-react"
 import type { Metadata } from "next"
-import Link from "next/link"
 import { notFound } from "next/navigation"
 
+import { LocationPageContent } from "@/components/marketing/location-page-content"
 import { BreadcrumbSchema } from "@/components/seo"
-import { Footer,Navbar } from "@/components/shared"
-import { Button } from "@/components/ui/button"
-import { SectionPill } from "@/components/ui/section-pill"
+import { Footer, Navbar } from "@/components/shared"
 import { PRICING, PRICING_DISPLAY } from "@/lib/constants"
-import { autoLinkParagraph } from "@/lib/seo/auto-linker"
 import { DEEP_CITY_CONTENT } from "@/lib/seo/data/deep-city-content"
 import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 
@@ -413,11 +409,6 @@ const cities: Record<
   },
 }
 
-const services = [
-  { name: "Medical Certificates", href: "/medical-certificate", price: PRICING_DISPLAY.FROM_MED_CERT },
-  { name: "Prescriptions", href: "/prescriptions", price: PRICING_DISPLAY.FROM_SCRIPT },
-]
-
 interface PageProps {
   params: Promise<{ city: string }>
 }
@@ -533,295 +524,45 @@ export default async function CityPage({ params }: PageProps) {
     })),
   }
 
+  const otherCities = Object.values(cities)
+    .filter((c) => c.slug !== city)
+    .slice(0, 8)
+    .map((c) => ({ name: c.name, slug: c.slug }))
+
   return (
     <>
-      <script id="local-schema" type="application/ld+json"
-        suppressHydrationWarning dangerouslySetInnerHTML={{ __html: safeJsonLd(localSchema) }} />
-      <script id="faq-schema" type="application/ld+json"
-        suppressHydrationWarning dangerouslySetInnerHTML={{ __html: safeJsonLd(faqSchema) }} />
-      <BreadcrumbSchema items={[
-        { name: "Home", url: "https://instantmed.com.au" },
-        { name: "Locations", url: "https://instantmed.com.au/locations" },
-        { name: cityData.name, url: `https://instantmed.com.au/locations/${city}` },
-      ]} />
+      <script
+        id="local-schema"
+        type="application/ld+json"
+        suppressHydrationWarning
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(localSchema) }}
+      />
+      <script
+        id="faq-schema"
+        type="application/ld+json"
+        suppressHydrationWarning
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(faqSchema) }}
+      />
+      <BreadcrumbSchema
+        items={[
+          { name: "Home", url: "https://instantmed.com.au" },
+          { name: "Locations", url: "https://instantmed.com.au/locations" },
+          { name: cityData.name, url: `https://instantmed.com.au/locations/${city}` },
+        ]}
+      />
 
       <div className="flex min-h-screen flex-col">
         <Navbar variant="marketing" />
 
         <main className="flex-1 pt-20">
-          {/* Hero */}
-          <section className="px-4 py-12 sm:py-16 bg-linear-to-b from-primary/5 to-transparent">
-            <div className="mx-auto max-w-3xl text-center">
-              <div className="mb-6">
-                <SectionPill>Serving {cityData.name}, {cityData.state}</SectionPill>
-              </div>
-
-              <h1 className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl mb-4">
-                Online Doctor in {cityData.name}
-              </h1>
-              <p className="text-muted-foreground text-lg max-w-xl mx-auto mb-8">
-                Skip the waiting room. Get medical certificates and prescriptions online - reviewed by
-                Australian doctors, delivered to your phone.
-              </p>
-
-              <Link href="/request">
-                <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground text-base px-8">
-                  Get Started
-                  <ArrowRight className="h-4 w-4 ml-2" />
-                </Button>
-              </Link>
-
-              <div className="mt-8 flex flex-wrap justify-center gap-4 text-sm text-muted-foreground">
-                <div className="flex items-center gap-1.5">
-                  <Clock className="h-4 w-4 text-primary" />
-                  <span>Usually under 1 hour</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <Shield className="h-4 w-4 text-primary" />
-                  <span>AHPRA-registered</span>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* City-specific content */}
-          {cityContent && (
-            <section className="px-4 py-10">
-              <div className="mx-auto max-w-2xl">
-                <p className="text-muted-foreground leading-relaxed text-center">
-                  {cityContent}
-                </p>
-              </div>
-            </section>
-          )}
-
-          {/* Deep city content - health stats + editorial sections */}
-          {deepContent && (
-            <>
-              {/* Health Stats Strip */}
-              <section className="px-4 py-10 bg-muted/30">
-                <div className="mx-auto max-w-3xl">
-                  <div className="grid gap-4 grid-cols-2 sm:grid-cols-4">
-                    {deepContent.healthStats.map((stat) => (
-                      <div key={stat.label} className="text-center p-3 rounded-xl bg-background border">
-                        <div className="flex items-center justify-center gap-1.5 mb-1">
-                          <Activity className="h-3.5 w-3.5 text-primary" />
-                          <span className="text-xs font-medium text-muted-foreground">{stat.label}</span>
-                        </div>
-                        <p className="text-lg font-bold">{stat.value}</p>
-                        <p className="text-xs text-muted-foreground">{stat.context}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </section>
-
-              {/* Deep editorial sections */}
-              {deepContent.sections.map((section) => (
-                <section key={section.title} className="px-4 py-10">
-                  <div className="mx-auto max-w-2xl">
-                    <h2 className="text-xl font-bold mb-4">{section.title}</h2>
-                    {section.paragraphs.map((p, i) => (
-                      <p key={i} className="text-muted-foreground leading-relaxed mb-4 last:mb-0">{autoLinkParagraph(p)}</p>
-                    ))}
-                  </div>
-                </section>
-              ))}
-
-              {/* Pharmacy & eScript info */}
-              <section className="px-4 py-10 bg-muted/30">
-                <div className="mx-auto max-w-2xl">
-                  <h2 className="text-xl font-bold mb-4">{deepContent.pharmacyInfo.title}</h2>
-                  {deepContent.pharmacyInfo.paragraphs.map((p, i) => (
-                    <p key={i} className="text-muted-foreground leading-relaxed mb-4 last:mb-0">{p}</p>
-                  ))}
-                </div>
-              </section>
-
-              {/* Telehealth regulations */}
-              <section className="px-4 py-10">
-                <div className="mx-auto max-w-2xl">
-                  <h2 className="text-xl font-bold mb-4">{deepContent.telehealthRegulations.title}</h2>
-                  {deepContent.telehealthRegulations.paragraphs.map((p, i) => (
-                    <p key={i} className="text-muted-foreground leading-relaxed mb-4 last:mb-0">{p}</p>
-                  ))}
-                </div>
-              </section>
-            </>
-          )}
-
-          {/* Services */}
-          <section className="px-4 py-12">
-            <div className="mx-auto max-w-3xl">
-              <h2 className="text-xl font-bold mb-6 text-center">Services Available in {cityData.name}</h2>
-              <div className="grid gap-4 sm:grid-cols-2">
-                {services.map((service) => (
-                  <Link key={service.href} href={service.href}>
-                    <div className="p-5 rounded-xl border bg-card hover:border-primary transition-colors">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h3 className="font-semibold">{service.name}</h3>
-                          <p className="text-sm text-muted-foreground">{service.price}</p>
-                        </div>
-                        <ArrowRight className="h-5 w-5 text-muted-foreground" />
-                      </div>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          </section>
-
-          {/* Local Testimonial */}
-          {cityData.localTestimonial && (
-            <section className="px-4 py-12 bg-muted/30">
-              <div className="mx-auto max-w-2xl text-center">
-                <div className="flex justify-center gap-1 mb-4">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="h-5 w-5 fill-dawn-400 text-dawn-400" />
-                  ))}
-                </div>
-                <blockquote className="text-lg mb-4">&quot;{cityData.localTestimonial.quote}&quot;</blockquote>
-                <p className="text-sm text-muted-foreground">
-                  - {cityData.localTestimonial.name}, {cityData.name}
-                </p>
-              </div>
-            </section>
-          )}
-
-          {/* How It Works */}
-          <section className="px-4 py-12">
-            <div className="mx-auto max-w-3xl">
-              <h2 className="text-xl font-bold mb-6 text-center">How It Works for {cityData.name} Patients</h2>
-              <div className="grid gap-4 sm:grid-cols-3">
-                {[
-                  {
-                    step: "1",
-                    title: "Tell us what you need",
-                    desc: "Answer a few quick questions about your health concern",
-                  },
-                  {
-                    step: "2",
-                    title: "Doctor reviews",
-                    desc: "An Australian doctor reviews your request (usually within 1 hour)",
-                  },
-                  { step: "3", title: "Get your result", desc: "Certificate, script, or referral sent to your phone" },
-                ].map((item) => (
-                  <div key={item.step} className="text-center p-4">
-                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
-                      <span className="font-bold text-primary">{item.step}</span>
-                    </div>
-                    <h3 className="font-semibold mb-1">{item.title}</h3>
-                    <p className="text-sm text-muted-foreground">{item.desc}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
-
-          {/* Why Telehealth */}
-          <section className="px-4 py-12 bg-muted/30">
-            <div className="mx-auto max-w-3xl">
-              <h2 className="text-xl font-bold mb-6 text-center">Why {cityData.name} Residents Choose InstantMed</h2>
-              <div className="grid gap-4 sm:grid-cols-2">
-                {[
-                  "No need to leave home or work",
-                  "Skip the waiting room",
-                  "Same-day service, most requests",
-                  "eScripts sent to your phone",
-                  "Valid for all Australian employers",
-                  "Reviewed by real Australian doctors",
-                ].map((benefit, i) => (
-                  <div key={i} className="flex items-center gap-3 p-3 rounded-lg bg-background">
-                    <CheckCircle2 className="h-5 w-5 text-primary shrink-0" />
-                    <span className="text-sm">{benefit}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
-
-          {/* FAQ Section */}
-          <section className="px-4 py-12">
-            <div className="mx-auto max-w-2xl">
-              <h2 className="text-xl font-bold mb-6 text-center flex items-center justify-center gap-2">
-                <HelpCircle className="h-5 w-5 text-primary" />
-                Frequently Asked Questions - {cityData.name}
-              </h2>
-              <div className="space-y-4">
-                {faqs.map((faq, i) => (
-                  <div key={i} className="p-4 rounded-xl border bg-card">
-                    <h3 className="font-semibold text-sm mb-2">{faq.q}</h3>
-                    <p className="text-sm text-muted-foreground">{faq.a}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
-
-          {/* CTA */}
-          <section className="px-4 py-12 bg-muted/30">
-            <div className="mx-auto max-w-xl text-center">
-              <h2 className="text-2xl font-bold mb-4">Ready to Get Started?</h2>
-              <p className="text-muted-foreground mb-6">
-                Join hundreds of {cityData.name} residents who trust InstantMed for their telehealth needs.
-              </p>
-              <Link href="/request">
-                <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground">
-                  Get started
-                  <ArrowRight className="h-4 w-4 ml-2" />
-                </Button>
-              </Link>
-            </div>
-          </section>
-
-          {/* Related Blog Posts - internal linking */}
-          <section className="px-4 py-8">
-            <div className="mx-auto max-w-3xl">
-              <h3 className="text-sm font-semibold text-muted-foreground mb-3 text-center">Related Resources</h3>
-              <div className="flex flex-wrap justify-center gap-3 text-sm">
-                <Link href="/blog/how-to-get-medical-certificate-online-australia" className="text-primary hover:underline">
-                  How to Get a Med Cert Online
-                </Link>
-                <span className="text-muted-foreground">•</span>
-                <Link href="/blog/telehealth-vs-gp-when-to-use-each" className="text-primary hover:underline">
-                  Telehealth vs Doctor
-                </Link>
-                <span className="text-muted-foreground">•</span>
-                <Link href="/medical-certificate" className="text-primary hover:underline">
-                  Medical Certificates
-                </Link>
-                <span className="text-muted-foreground">•</span>
-                <Link href="/prescriptions" className="text-primary hover:underline">
-                  Prescriptions
-                </Link>
-              </div>
-            </div>
-          </section>
-
-          {/* Other Cities */}
-          <section className="px-4 py-8 border-t">
-            <div className="mx-auto max-w-3xl">
-              <p className="text-sm text-muted-foreground text-center">
-                Also serving:{" "}
-                {Object.values(cities)
-                  .filter((c) => c.slug !== city)
-                  .slice(0, 8)
-                  .map((c, i, arr) => (
-                    <span key={c.slug}>
-                      <Link href={`/locations/${c.slug}`} className="text-primary hover:underline">
-                        {c.name}
-                      </Link>
-                      {i < arr.length - 1 && " • "}
-                    </span>
-                  ))}
-                {" • "}
-                <Link href="/locations" className="text-primary hover:underline font-medium">
-                  View all locations
-                </Link>
-              </p>
-            </div>
-          </section>
+          <LocationPageContent
+            city={city}
+            cityData={cityData}
+            cityContent={cityContent}
+            deepContent={deepContent}
+            faqs={faqs}
+            otherCities={otherCities}
+          />
         </main>
 
         <Footer />

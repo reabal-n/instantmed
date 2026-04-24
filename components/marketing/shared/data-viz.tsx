@@ -70,7 +70,7 @@ export function AnimatedProgressBar({ items, showValues = true, className }: Ani
             <div className="h-2 rounded-full bg-muted/50 overflow-hidden">
               <div
                 className={cn(
-                  "h-full rounded-full transition-all ease-out",
+                  "h-full rounded-full transition-[width] ease-out",
                   prefersReducedMotion ? "duration-0" : "duration-700",
                   item.color ?? "bg-primary"
                 )}
@@ -193,7 +193,7 @@ export function ComparisonBar({
           <div
             className={cn(
               "h-full rounded-full bg-primary",
-              prefersReducedMotion ? "duration-0" : "transition-all duration-700 ease-out"
+              prefersReducedMotion ? "duration-0" : "transition-[width] duration-700 ease-out"
             )}
             style={{ width: inView || prefersReducedMotion ? `${ratio * 100}%` : "0%" }}
           />
@@ -211,7 +211,7 @@ export function ComparisonBar({
           <div
             className={cn(
               "h-full rounded-full bg-muted-foreground/20",
-              prefersReducedMotion ? "duration-0" : "transition-all duration-700 ease-out delay-200"
+              prefersReducedMotion ? "duration-0" : "transition-[width] duration-700 ease-out delay-200"
             )}
             style={{ width: inView || prefersReducedMotion ? "100%" : "0%" }}
           />

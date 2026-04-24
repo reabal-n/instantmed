@@ -183,13 +183,13 @@ className="bg-white dark:bg-card border border-border/50 dark:border-white/15
 className="bg-white dark:bg-card border border-border/50 dark:border-white/15
            shadow-md shadow-primary/[0.06] dark:shadow-none rounded-2xl
            hover:-translate-y-1 hover:shadow-lg hover:shadow-primary/[0.08]
-           transition-all duration-300"
+           transition-[transform,box-shadow,border-color] duration-300"
 
 // Tier 3: Highlighted card (popular/featured, with ring)
 className="bg-white dark:bg-card border border-border/50 dark:border-white/15
            ring-2 ring-primary shadow-lg shadow-primary/[0.1]
            hover:shadow-xl hover:shadow-primary/[0.15]
-           hover:-translate-y-1 transition-all duration-300 rounded-2xl"
+           hover:-translate-y-1 transition-[transform,box-shadow,border-color] duration-300 rounded-2xl"
 
 // Section background (subtle tinted region)
 className="bg-muted/50 dark:bg-white/[0.06]"
@@ -200,7 +200,7 @@ className="bg-muted/50 dark:bg-white/[0.06]"
 All marketing cards use a standard hover pattern:
 
 ```
-hover:shadow-lg hover:shadow-primary/[0.08] hover:-translate-y-0.5 transition-all duration-300
+hover:shadow-lg hover:shadow-primary/[0.08] hover:-translate-y-0.5 transition-[transform,box-shadow,border-color] duration-300
 ```
 
 ### Dark Mode Card Pattern
@@ -421,7 +421,7 @@ Colored chip badges indicating severity/risk level. Reusable across clinical ass
 // Primary
 className="bg-primary hover:bg-primary/90 text-primary-foreground
            shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30
-           active:scale-[0.98] transition-all"
+           active:scale-[0.98] transition-[transform,box-shadow,background-color,border-color,color,opacity] duration-200"
 
 // Secondary / Outline
 ```
@@ -477,6 +477,7 @@ Two curves. Use the right one:
 | Token | Value | Use |
 |-------|-------|-----|
 | `easing.out` | `[0, 0, 0.2, 1]` | PRIMARY. Entrances, page loads, elements appearing. |
+| `easing.strongOut` | `[0.23, 1, 0.32, 1]` | Scroll-reveal whileInView animations. Snappier perceived responsiveness. |
 | `easing.panel` | `[0.16, 1, 0.3, 1]` | Panels, drawers, sheets. Confident arrival. |
 | `easing.inOut` | `[0.42, 0, 0.58, 1]` | Fallback only. |
 
@@ -514,7 +515,7 @@ spring.smooth  // { duration: 0.2, ease: 'easeOut' }  - cards, containers, panel
 
 ### Framer Motion Patterns
 
-Prefer `lib/motion.ts` variants (`fadeUp`, `stagger`) over inline values. The canonical entrance is `fadeUp` (opacity 0 to 1, y 16 to 0).
+Prefer `lib/motion.ts` variants (`fadeUp`, `stagger`) over inline values. The canonical entrance is `fadeUp` (opacity 0 to 1, y 8 to 0, `easing.strongOut`).
 
 ```tsx
 import { fadeUp, stagger, spring, easing } from '@/lib/motion'

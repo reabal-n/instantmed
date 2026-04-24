@@ -4,6 +4,7 @@ import { ArrowRight, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 
 import { TrustBadgeRow } from "@/components/shared";
+import { Button } from "@/components/ui/button";
 import { Reveal } from "@/components/ui/reveal";
 import type { PresetEntry } from "@/lib/marketing/trust-badges";
 import { cn } from "@/lib/utils";
@@ -46,13 +47,16 @@ export function CTABanner({
           </p>
         )}
         <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
-          <Link
-            href={ctaHref}
-            className="inline-flex items-center gap-2 rounded-full bg-primary px-8 py-3 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 transition-all active:scale-[0.98]"
+          <Button
+            asChild
+            size="lg"
+            className="rounded-full px-8 shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5"
           >
-            {ctaText}
-            <ArrowRight className="h-4 w-4" />
-          </Link>
+            <Link href={ctaHref}>
+              {ctaText}
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
           {secondaryText && secondaryHref && (
             <Link
               href={secondaryHref}

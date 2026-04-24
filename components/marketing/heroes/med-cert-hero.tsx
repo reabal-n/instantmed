@@ -4,6 +4,7 @@ import { motion } from "framer-motion"
 import { ArrowRight, PhoneOff } from "lucide-react"
 import Link from "next/link"
 
+import { LastReviewedSignal } from "@/components/marketing/last-reviewed-signal"
 import { MedCertHeroMockup } from "@/components/marketing/mockups/med-cert-hero-mockup"
 import { TrustBadgeRow } from "@/components/shared"
 import { Button } from "@/components/ui/button"
@@ -58,7 +59,7 @@ export function MedCertHeroSection({
               variants={item}
               className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-6 sm:mb-7 leading-relaxed text-balance"
             >
-              Fair Work compliant. Reviewed by an Australian-registered GP (AHPRA). Emailed straight to your inbox.
+              Fair Work compliant. Reviewed by an AHPRA-registered GP. Emailed straight to your inbox.
             </motion.p>
 
             <motion.div
@@ -69,7 +70,7 @@ export function MedCertHeroSection({
               <Button
                 asChild
                 size="lg"
-                className="px-8 h-12 text-base font-semibold shadow-md shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 transition-all active:scale-[0.98]"
+                className="px-8 h-12 text-base font-semibold shadow-md shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5"
                 onClick={onCTAClick}
               >
                 <Link href="/request?service=med-cert">
@@ -81,7 +82,10 @@ export function MedCertHeroSection({
               <div className="flex flex-col items-center lg:items-start gap-1 text-center lg:text-left">
                 <span className="inline-flex items-center gap-1.5 text-xs font-medium text-foreground">
                   <span className="relative inline-flex h-2 w-2" aria-hidden="true">
-                    <span className="absolute inline-flex h-full w-full rounded-full bg-success opacity-60 motion-safe:animate-ping" />
+                    <span
+                      className="absolute inline-flex h-full w-full rounded-full bg-success opacity-60"
+                      style={{ animation: 'ping 2.5s ease-in-out infinite' }}
+                    />
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-success" />
                   </span>
                   Doctor online &middot; reviewed in ~{SOCIAL_PROOF.certTurnaroundMinutes} min
@@ -100,7 +104,7 @@ export function MedCertHeroSection({
               <MedCertHeroMockup compact />
             </motion.div>
 
-            <motion.div variants={item}>
+            <motion.div variants={item} className="flex flex-col items-center lg:items-start gap-3">
               <TrustBadgeRow
                 badges={[
                   { id: "legitscript", variant: "styled" },
@@ -109,6 +113,7 @@ export function MedCertHeroSection({
                 ]}
                 className="mt-4 justify-center lg:justify-start gap-3"
               />
+              <LastReviewedSignal className="justify-center lg:justify-start" />
             </motion.div>
           </div>
 

@@ -818,7 +818,7 @@ Models in `lib/ai/provider.ts`. Routed through Vercel AI Gateway in production (
 
 | Route | Purpose |
 |-------|---------|
-| `/` | Marketing homepage (hero, service picker, how-it-works, testimonials, FAQ). Homepage `ServicePicker` shows the four top-level services: med-cert, scripts, ED, hair loss. |
+| `/` | Marketing homepage. Section order: hero (with `RegulatoryPartners` + `LastReviewedSignal` inline, trust signals at highest-anxiety moment) → lifestyle photo strip → service cards (active services only) → coming-soon strip → how-it-works → social proof → FAQ → CTA banner. `RegulatoryPartners` moved from mid-page into the hero. Coming-soon cards (Women's Health, Weight Loss) separated below active grid to prevent dead zones. |
 | `/medical-certificate` | Premium landing for med certs — the gold-standard `MedCertLanding` pattern. |
 | `/prescriptions` | Repeat medication landing (eScript workflow, subscription upsell). |
 | `/erectile-dysfunction` | Bespoke ED specialty landing (`ErectileDysfunctionLanding`). Routes into `/request?service=consult&subtype=ed`. No call step. Short URL `/ed` 301s here. |

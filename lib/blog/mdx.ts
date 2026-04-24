@@ -30,6 +30,8 @@ interface MDXFrontmatter {
   relatedServices: RelatedService[]
   relatedArticles?: string[]
   series?: ArticleSeries
+  /** Override canonical URL. When set, blog page metadata uses this instead of the default /blog/[slug]. */
+  canonical?: string
   seo: {
     title: string
     description: string
@@ -248,6 +250,7 @@ function loadMDXArticle(filePath: string): Article | null {
       relatedServices: fm.relatedServices || [],
       relatedArticles: fm.relatedArticles,
       series: fm.series,
+      canonical: fm.canonical,
       seo: fm.seo,
     }
   } catch {

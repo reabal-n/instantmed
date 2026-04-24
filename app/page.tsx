@@ -1,22 +1,31 @@
 import type { Metadata } from 'next'
 import dynamic from 'next/dynamic'
+import Image from 'next/image'
 import { Suspense } from 'react'
 
-import {
-  Hero,
-  HowItWorks,
-  MarketingFooter,
-} from '@/components/marketing'
-import { ComplianceMarquee } from '@/components/marketing/compliance-marquee'
+import { Hero } from '@/components/marketing'
 import { IntakeResumeChip } from '@/components/marketing/intake-resume-chip'
 import { MarketingPageShell } from '@/components/marketing/marketing-page-shell'
-import { RegulatoryPartners } from '@/components/marketing/media-mentions'
-import { ServiceCards } from '@/components/marketing/service-cards'
+import { FAQSchema, MedicalBusinessSchema, SpeakableSchema } from '@/components/seo/healthcare-schema'
+import { HashScrollHandler } from '@/components/shared/hash-scroll-handler'
+import { Navbar } from '@/components/shared/navbar'
+import { ReturningPatientBanner } from '@/components/shared/returning-patient-banner'
+import { PRICING_DISPLAY } from '@/lib/constants'
+import { getFeatureFlags } from '@/lib/feature-flags'
+import { faqItems } from '@/lib/marketing/homepage'
+import { WEDGE } from '@/lib/marketing/voice'
 
-// Below-fold sections: all defer framer-motion out of the critical JS path.
-// SSR:true (default) keeps full HTML in the initial response for SEO + CLS.
-// The framer-motion chunk only loads after LCP, cutting ~162KB from the
-// critical bundle and dropping mobile TBT significantly.
+// All below-fold sections are lazy-loaded to keep framer-motion and client
+// component bundles out of the critical JS path. SSR:true (default) keeps
+// full HTML in the initial response for SEO and CLS stability.
+const ServiceCards = dynamic(
+  () => import('@/components/marketing/service-cards').then(m => ({ default: m.ServiceCards })),
+  { loading: () => <div className="min-h-[600px]" /> },
+)
+const HowItWorks = dynamic(
+  () => import('@/components/marketing/how-it-works').then(m => ({ default: m.HowItWorks })),
+  { loading: () => <div className="min-h-[500px]" /> },
+)
 const SocialProofSection = dynamic(
   () => import('@/components/marketing/social-proof-section').then(m => ({ default: m.SocialProofSection })),
   { loading: () => <div className="min-h-[400px]" /> },
@@ -27,14 +36,12 @@ const CTABanner = dynamic(
 const FAQSection = dynamic(
   () => import('@/components/sections/faq-section').then(m => ({ default: m.FAQSection })),
 )
-import { FAQSchema, MedicalBusinessSchema, SpeakableSchema } from '@/components/seo/healthcare-schema'
-import { HashScrollHandler } from '@/components/shared/hash-scroll-handler'
-import { Navbar } from '@/components/shared/navbar'
-import { ReturningPatientBanner } from '@/components/shared/returning-patient-banner'
-import { PRICING_DISPLAY } from '@/lib/constants'
-import { getFeatureFlags } from '@/lib/feature-flags'
-import { faqItems } from '@/lib/marketing/homepage'
-import { WEDGE } from '@/lib/marketing/voice'
+const ComplianceMarquee = dynamic(
+  () => import('@/components/marketing/compliance-marquee').then(m => ({ default: m.ComplianceMarquee })),
+)
+const MarketingFooter = dynamic(
+  () => import('@/components/marketing').then(m => ({ default: m.MarketingFooter })),
+)
 
 export const revalidate = 3600
 
@@ -131,16 +138,30 @@ export default async function HomePage() {
       <main className="relative">
         {/* 1. Hero with main value prop */}
         <Hero>
-          <p className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-8 leading-relaxed sm:leading-normal lg:leading-relaxed text-balance">
-            Real Australian doctors review every request. {WEDGE} Medical certificates from {PRICING_DISPLAY.MED_CERT}, repeat scripts, and discreet treatment for ED and hair loss.
+          <p className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-8 leading-relaxed text-balance">
+            A real Australian GP reviews every request. {WEDGE} No appointments, no waiting rooms.
           </p>
         </Hero>
 
+        {/* Lifestyle photo — full-width visual strip between hero and services.
+            Acts as a natural scroll break and grounds the above-fold promise
+            in a recognisable human moment. Below-fold on all viewports so
+            no priority — preloading competed with LCP previously. */}
+        <div className="mx-4 sm:mx-6 lg:mx-8 mb-10 sm:mb-14 lg:mb-16">
+          <div className="mx-auto max-w-5xl relative aspect-[16/7] sm:aspect-[16/6] rounded-2xl overflow-hidden shadow-lg shadow-primary/[0.06]">
+            <Image
+              src="/images/home-1.webp"
+              alt="Person relaxing at home using their phone to see a doctor online"
+              fill
+              className="object-cover object-top"
+              loading="lazy"
+              sizes="(max-width: 640px) calc(100vw - 2rem), (max-width: 1024px) calc(100vw - 3rem), 960px"
+            />
+          </div>
+        </div>
+
         {/* 2. Service cards - what we offer */}
         <ServiceCards />
-
-        {/* 2.5 Regulatory authority logos */}
-        <RegulatoryPartners />
 
         {/* 3. How it works - muted bg for rhythm */}
         <div className="bg-muted/30 dark:bg-white/[0.02]">

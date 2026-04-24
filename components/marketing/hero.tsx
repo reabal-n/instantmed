@@ -1,13 +1,14 @@
 'use client'
 
-import { motion } from 'framer-motion'
+import { type Variants, motion } from 'framer-motion'
 import { ArrowRight, CheckCircle2, FileText, Pill, Smartphone, Star } from 'lucide-react'
 import dynamic from 'next/dynamic'
-import Image from 'next/image'
 import Link from 'next/link'
 import type React from "react"
 
 import { GuaranteeBadge } from '@/components/marketing/guarantee-badge'
+import { LastReviewedSignal } from '@/components/marketing/last-reviewed-signal'
+import { RegulatoryPartners } from '@/components/marketing/media-mentions'
 import { TrustBadgeRow } from '@/components/shared/trust-badge'
 import { Button } from "@/components/ui/button"
 import { useReducedMotion } from '@/components/ui/motion'
@@ -37,6 +38,13 @@ export function Hero({ children }: { children?: React.ReactNode }) {
   const reduced = useReducedMotion()
   const container = reduced ? {} : stagger.container
   const item = reduced ? {} : stagger.item
+  // H1 is the LCP element. Keep opacity: 1 in initial so Chrome registers it
+  // from the SSR HTML — Framer Motion's opacity:0 initial would otherwise hide
+  // it during hydration and push LCP to the end of the animation.
+  const headlineItem: Variants = reduced ? {} : {
+    initial: { opacity: 1, y: 8 },
+    animate: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.23, 1, 0.32, 1] } },
+  }
 
   return (
     <section className="relative overflow-hidden pt-6 pb-6 sm:pt-14 sm:pb-18 lg:pt-20 lg:pb-24">
@@ -73,15 +81,20 @@ export function Hero({ children }: { children?: React.ReactNode }) {
                 <span className="text-muted-foreground">No Medicare needed</span>
                 <span className="text-border/70 hidden sm:inline" aria-hidden="true">·</span>
                 <span className="hidden sm:inline-flex items-center gap-1 text-green-700 dark:text-green-400">
-                  <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" aria-hidden="true" />
+                  <span
+                    className="w-1.5 h-1.5 rounded-full bg-green-500"
+                    style={{ animation: 'pulse 3s ease-in-out infinite' }}
+                    aria-hidden="true"
+                  />
                   Open now
                 </span>
               </div>
             </motion.div>
 
-            {/* Headline - server-rendered static text for LCP */}
+            {/* Headline - LCP element. Uses headlineItem (opacity:1 initial) so
+                Chrome measures it from SSR HTML, not after JS hydration. */}
             <motion.h1
-              variants={item}
+              variants={headlineItem}
               className="text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight mb-5 sm:mb-7 leading-[1.1] text-balance"
             >
               Consults, certs, and treatment. From your bed.
@@ -104,7 +117,7 @@ export function Hero({ children }: { children?: React.ReactNode }) {
               <Button
                 asChild
                 size="lg"
-                className="px-8 h-12 text-base font-semibold shadow-md shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 transition-all active:scale-[0.98]"
+                className="px-8 h-12 text-base font-semibold shadow-md shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5"
               >
                 <Link href="/request">
                   Get started
@@ -131,10 +144,7 @@ export function Hero({ children }: { children?: React.ReactNode }) {
               <GuaranteeBadge size="md" />
             </motion.div>
 
-            {/* Trust signals — one focused row (AHPRA + LegitScript) plus
-                rotating real-patient testimonials. Redundant no-call/refund
-                badges were folded into the GuaranteeBadge above; fake
-                "last reviewed N min ago" was removed for credibility. */}
+            {/* Trust signals + regulatory logos + live activity signal */}
             <motion.div
               variants={item}
               className="flex flex-col items-center lg:items-start gap-3"
@@ -146,6 +156,16 @@ export function Hero({ children }: { children?: React.ReactNode }) {
                 ]}
                 className="mt-4 justify-center lg:justify-start"
               />
+
+              {/* Regulatory partner logos — moved here from mid-page for max trust impact */}
+              <RegulatoryPartners
+                exclude={['Stripe', 'ADHA']}
+                className="py-1 w-full"
+              />
+
+              {/* Live activity signal */}
+              <LastReviewedSignal className="justify-center lg:justify-start" />
+
               <HeroTestimonialRotator className="mx-auto lg:mx-0 text-center lg:text-left" />
             </motion.div>
           </div>
@@ -170,34 +190,20 @@ export function Hero({ children }: { children?: React.ReactNode }) {
                 </div>
                 <CheckCircle2 className="w-4 h-4 text-emerald-500" />
               </div>
-              {/* eScript card */}
+              {/* eScript card — on-brand primary colors, not cyan */}
               <div className="inline-flex items-center gap-3 px-4 py-2.5 rounded-xl bg-white dark:bg-card border border-border/50 shadow-sm shadow-primary/[0.04]">
-                <div className="w-7 h-7 rounded-lg bg-cyan-100 dark:bg-cyan-950/40 flex items-center justify-center">
-                  <Pill className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400" />
+                <div className="w-7 h-7 rounded-lg bg-primary/10 dark:bg-primary/20 flex items-center justify-center">
+                  <Pill className="w-3.5 h-3.5 text-primary" />
                 </div>
                 <div className="flex-1">
                   <p className="text-xs font-semibold text-foreground leading-tight">eScript</p>
-                  <p className="text-[10px] text-cyan-600 dark:text-cyan-400 font-medium">Sent to phone</p>
+                  <p className="text-[10px] text-primary/70 font-medium">Sent to phone</p>
                 </div>
-                <Smartphone className="w-4 h-4 text-cyan-500" />
+                <Smartphone className="w-4 h-4 text-primary/60" />
               </div>
             </div>
           </motion.div>
         </motion.div>
-
-        {/* Lifestyle photo — person at home using their phone for a doctor visit.
-            Below-fold on mobile, so no `priority`: preloading this 46KB image was
-            competing with LCP (the h1 + subhead + CTAs) for bandwidth. */}
-        <div className="mt-8 sm:mt-10 w-full relative aspect-[16/9] rounded-2xl overflow-hidden shadow-lg">
-          <Image
-            src="/images/home-1.webp"
-            alt="Person relaxing at home using their phone to see a doctor online"
-            fill
-            className="object-cover object-top"
-            loading="lazy"
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 960px"
-          />
-        </div>
       </div>
     </section>
   )

@@ -62,6 +62,8 @@ export interface Article {
   relatedServices: RelatedService[]
   relatedArticles?: string[]
   series?: ArticleSeries
+  /** Override canonical URL. When set, the blog page metadata points here instead of the default /blog/[slug]. */
+  canonical?: string
   seo: {
     title: string
     description: string

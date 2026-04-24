@@ -50,7 +50,7 @@ function StepTwoMockup() {
         />
         <div>
           <p className="text-[10px] font-semibold text-foreground leading-tight">Your GP</p>
-          <p className="text-[8px] text-emerald-500">Reviewing</p>
+          <p className="text-[10px] text-emerald-500">Reviewing</p>
         </div>
       </div>
       {/* Checklist */}
@@ -81,7 +81,7 @@ function StepThreeMockup() {
         </div>
         <div>
           <p className="text-[10px] font-semibold text-foreground leading-tight">You&apos;re all sorted</p>
-          <p className="text-[8px] text-muted-foreground">InstantMed · Just now</p>
+          <p className="text-[10px] text-muted-foreground">InstantMed · Just now</p>
         </div>
       </div>
       {/* Documents */}
@@ -89,14 +89,14 @@ function StepThreeMockup() {
         <FileText className="w-4 h-4 text-emerald-500 shrink-0" />
         <div className="flex-1 min-w-0">
           <p className="text-[10px] font-medium text-foreground truncate">Certificate</p>
-          <p className="text-[8px] text-muted-foreground">PDF · Ready</p>
+          <p className="text-[10px] text-muted-foreground">PDF · Ready</p>
         </div>
       </div>
       <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/30 dark:bg-muted/10 border border-border/30">
         <FileText className="w-4 h-4 text-cyan-500 shrink-0" />
         <div className="flex-1 min-w-0">
           <p className="text-[10px] font-medium text-foreground truncate">eScript</p>
-          <p className="text-[8px] text-muted-foreground">Sent to phone</p>
+          <p className="text-[10px] text-muted-foreground">Sent to phone</p>
         </div>
       </div>
     </div>
@@ -127,7 +127,7 @@ export function HowItWorks() {
         {/* Timeline - horizontal on desktop, vertical on mobile */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-6 relative">
           {/* Desktop timeline connector */}
-          <div className="hidden lg:block absolute top-[2.5rem] left-[16%] right-[16%] border-t-2 border-dashed border-primary/20" />
+          <div className="hidden lg:block absolute top-[2.5rem] left-[16%] right-[16%] border-t border-border/60" />
 
           {steps.map((step, index) => {
             const Mockup = stepMockups[index]
@@ -148,10 +148,10 @@ export function HowItWorks() {
                   <h3 className="text-base font-semibold text-foreground mb-1">
                     {step.title}
                   </h3>
-                  <p className="text-xs text-muted-foreground leading-relaxed max-w-[200px] mx-auto">
+                  <p className="text-sm text-muted-foreground leading-relaxed max-w-[200px] mx-auto">
                     {step.description}
                   </p>
-                  <span className="inline-block mt-2 text-[10px] text-primary font-medium bg-primary/5 px-2 py-0.5 rounded-full">
+                  <span className="inline-block mt-2 text-xs text-primary font-semibold bg-primary/8 px-2.5 py-1 rounded-full">
                     {stepBadges[index]}
                   </span>
                 </div>

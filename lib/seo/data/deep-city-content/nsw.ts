@@ -604,6 +604,62 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
       { q: "Is InstantMed cheaper than a Dubbo GP?", a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT}. With Dubbo bulk-billing around 60% and typical gap fees of $40–$70, InstantMed is often more affordable for straightforward certificates and scripts.` },
     ],
   },
+  "albury-wodonga": {
+    healthStats: [
+      { label: "Population", value: "100K+", context: "Combined cross-border city of Albury (NSW) + Wodonga (VIC)" },
+      { label: "Avg GP wait", value: "5–9 days", context: "Persistent shortage on both sides of the border" },
+      { label: "Bulk-billing rate", value: "~62%", context: "Below NSW and VIC averages in the border corridor" },
+      { label: "Defence presence", value: "Significant", context: "Latchford Barracks, ADF Logistics, large civilian contractor workforce" },
+    ],
+    sections: [
+      {
+        title: "Healthcare Across the Murray Corridor",
+        paragraphs: [
+          "Albury-Wodonga straddles the Murray River and the NSW-Victoria state border, making it one of Australia's most unusual healthcare environments. Residents on the Albury side are covered by NSW Health and governed by NSW clinical regulations. Residents in Wodonga sit within the Victorian public health system. For practical day-to-day primary care this distinction matters less than people think - AHPRA registration is national, and a certificate or script from any AHPRA-registered doctor is valid on either side of the river. But the complexity adds enough friction that many residents simply delay routine healthcare rather than navigate it.",
+          "The Albury-Wodonga region has experienced strong population growth, with combined city population now exceeding 100,000. The healthcare workforce has not grown proportionately. GP wait times of 5–9 days are routine for non-urgent appointments, and several practices on both sides of the border have closed their books to new patients. The Albury Wodonga Health service operates acute care across two campuses, but hospital demand for primary care overflow is consistently high.",
+          "The Murray River corridor also serves a wider agricultural and pastoral catchment. Communities like Corowa, Jindera, Culcairn, Holbrook, and Tallangatta on the Victorian side all look to Albury-Wodonga as their main service hub. For these residents, telehealth removes not just the waiting room but the 30-60 minute drive each way for a routine certificate or repeat script.",
+        ],
+      },
+      {
+        title: "Defence Families and the Border Workforce",
+        paragraphs: [
+          "Latchford Barracks in Wodonga and the ADF Logistics and Training bases across the border corridor make Defence one of the region's largest employers. Soldiers, officers, and the substantial civilian contractor workforce attached to Defence operations are frequently posted to Albury-Wodonga from other parts of Australia and often arrive without an established local GP. Practices in the region have limited capacity for new patients, making telehealth a practical immediate solution for routine healthcare needs while a long-term GP relationship is established.",
+          "Defence families - partners and children of serving members - use civilian healthcare providers for their own needs. The base medical system handles duty-related healthcare for serving personnel, but family members navigate the same overstretched civilian GP system as everyone else in the region. For medical certificates and repeat scripts on stable medications, telehealth removes the queuing problem entirely.",
+          "Beyond Defence, Albury-Wodonga has a large cross-border commuter workforce - residents who live in Albury and work in Wodonga, or vice versa, crossing the Murray daily. These workers often don't have a clear sense of which state's GP system they should use, and the ambiguity adds a small but real barrier to routine care. Telehealth eliminates the cross-border complexity: it is a national service regulated under Australian law, not state law, and works the same way regardless of which bank of the Murray you happen to be standing on.",
+        ],
+      },
+      {
+        title: "Medical Certificates, State Borders, and NSW Law",
+        paragraphs: [
+          "The Fair Work Act 2009 is federal legislation and applies equally across NSW and Victoria. Medical certificates from AHPRA-registered doctors are valid for Fair Work purposes regardless of whether the patient lives in Albury or Wodonga, and regardless of whether the doctor is registered to practise in NSW or Victoria - AHPRA registration covers both. A telehealth certificate issued by an InstantMed doctor is valid for employers on both sides of the border.",
+          "For workers in the agricultural sector across the Murray corridor - grain growers, wool and beef producers, and the network of irrigation farms along the river - enterprise agreements and labour hire arrangements consistently require medical documentation for unplanned absences. These employers accept telehealth certificates under the same Fair Work framework as any other employer in Australia.",
+          "Charles Sturt University has a campus in Albury, and TAFE NSW operates in both cities. Both institutions accept medical certificates from AHPRA-registered doctors for special consideration, assignment extensions, and exam deferrals. The same applies to La Trobe University's Wodonga campus on the Victorian side. The consultation method is not a factor in acceptance at any of these institutions.",
+        ],
+      },
+    ],
+    pharmacyInfo: {
+      title: "Pharmacies and eScripts in Albury-Wodonga",
+      paragraphs: [
+        "Albury-Wodonga has good pharmacy coverage across both cities. On the Albury side, Chemist Warehouse and Priceline operate in Centro Albury, and independent pharmacies serve suburbs including Lavington, Hamilton Valley, and East Albury. Wodonga's Marketplace and High Street have Chemist Warehouse, TerryWhite Chemmart, and independent options. All accept eScripts - the QR code from an InstantMed prescription works at any pharmacy on either side of the border.",
+        "The national eScript system does not care which state a pharmacy is in. An eScript issued by an InstantMed doctor can be filled at a Chemist Warehouse in Albury or at an independent pharmacy in Wodonga - the QR code works identically. For the region's cross-border workers and families, this portability is a genuine convenience. Standard PBS co-payments apply regardless of which side of the Murray you collect your medication.",
+      ],
+    },
+    telehealthRegulations: {
+      title: "Telehealth Regulation in Albury-Wodonga",
+      paragraphs: [
+        "Telehealth in Australia is regulated nationally by AHPRA and the Medical Board of Australia. There is no state-by-state telehealth licence. An AHPRA-registered doctor can provide telehealth consultations to patients anywhere in Australia - including in NSW, Victoria, and the unique cross-border setting of Albury-Wodonga. InstantMed's doctors hold current AHPRA registration and comply with the Medical Board's telehealth guidelines.",
+        "Prescribing follows national TGA rules with some state-level overlays for controlled substances. PBS-listed medications can be prescribed via telehealth and dispensed via eScript at any Australian pharmacy. Schedule 8 controlled substances require state-level authority (NSW Ministry of Health on the NSW side, the Victorian Department of Health on the Victorian side) and in-person assessment, and are not prescribed through InstantMed.",
+        "For NSW residents on the Albury side, the NSW Health Care Complaints Commission (HCCC) handles complaints about health services including telehealth. For Victorian residents in Wodonga, the Health Complaints Commissioner Victoria has jurisdiction. InstantMed operates a formal complaints process at complaints@instantmed.com.au aligned with AHPRA requirements and both state frameworks, with a 14-day response SLA.",
+      ],
+    },
+    additionalFaqs: [
+      { q: "Does it matter whether I live in Albury or Wodonga?", a: "No. InstantMed is a national service. AHPRA registration and the Fair Work Act both apply across state borders. Your certificate is equally valid whether your employer is in Albury or Wodonga." },
+      { q: "Can Defence families at Latchford Barracks use InstantMed?", a: "Yes, for personal and family healthcare needs. Defence members should continue using the base medical system for duty-related healthcare, but civilian telehealth is appropriate for family members and for personal matters outside the duty system." },
+      { q: "Does my eScript work in both NSW and Victorian pharmacies?", a: "Yes. eScripts are a national system and work at any Australian pharmacy regardless of state. Whether you fill it at a Chemist Warehouse in Albury or a Priceline in Wodonga, the QR code works the same way." },
+      { q: "Can I use InstantMed for places like Corowa, Jindera, and Holbrook?", a: "Yes. Any town in the Murray corridor with internet access is covered - Corowa, Jindera, Culcairn, Holbrook, Tallangatta, and anywhere else in the region." },
+      { q: "How much does a medical certificate cost?", a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT}, with no gap fees. With Albury-Wodonga bulk-billing around 62% and gap fees of $40–$80 increasingly common at both-side clinics, InstantMed is often more affordable for straightforward certificates and scripts.` },
+    ],
+  },
   "bondi-beach": {
     healthStats: [
       { label: "Population", value: "12K+", context: "One of Australia's most iconic beach suburbs" },
