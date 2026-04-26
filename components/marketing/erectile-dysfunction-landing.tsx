@@ -1,10 +1,9 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
-
 import { ArrowRight, CheckCircle2, Clock } from "lucide-react"
 import dynamic from "next/dynamic"
 import Link from "next/link"
+import { useEffect, useRef, useState } from "react"
 
 import { StickerIcon } from "@/components/icons/stickers"
 // Hero is above-fold - not lazy loaded
@@ -166,10 +165,10 @@ function EDComparisonViz() {
               ))}
             </div>
             <div className="space-y-1.5">
-              <p className="text-[11px] font-semibold text-muted-foreground/50 uppercase tracking-wider">GP clinic</p>
+              <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">GP clinic</p>
               {["Book appointment", "Travel + wait in clinic", "Face-to-face consult"].map((s) => (
-                <p key={s} className="flex items-center gap-1.5 text-xs text-muted-foreground/60">
-                  <Clock className="h-3 w-3 shrink-0 text-muted-foreground/40" aria-hidden="true" />
+                <p key={s} className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <Clock className="h-3 w-3 shrink-0 text-muted-foreground" aria-hidden="true" />
                   {s}
                 </p>
               ))}
