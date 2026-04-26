@@ -97,7 +97,7 @@ export default function EmployerAcceptancePage() {
                 <SectionPill>Common Question</SectionPill>
               </div>
 
-              <h1 className="text-4xl font-bold tracking-tight sm:text-5xl mb-4">
+              <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl mb-4">
                 Yes, your employer will accept this
               </h1>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
@@ -134,7 +134,7 @@ export default function EmployerAcceptancePage() {
           {/* What Makes It Valid */}
           <section className="px-4 py-16 bg-card/50 dark:bg-white/5">
             <div className="mx-auto max-w-4xl">
-              <h2 className="text-2xl font-bold text-center mb-4">What makes a certificate legitimate</h2>
+              <h2 className="text-2xl font-semibold text-center mb-4">What makes a certificate legitimate</h2>
               <p className="text-center text-muted-foreground mb-10 max-w-2xl mx-auto">
                 Our certificates meet all legal requirements for Australian employers.
               </p>
@@ -194,7 +194,7 @@ export default function EmployerAcceptancePage() {
           {/* Fair Work Context */}
           <section className="px-4 py-16">
             <div className="mx-auto max-w-3xl">
-              <h2 className="text-2xl font-bold text-center mb-4">What the Fair Work Act says</h2>
+              <h2 className="text-2xl font-semibold text-center mb-4">What the Fair Work Act says</h2>
               <p className="text-center text-muted-foreground mb-10">
                 Australian workplace law supports the use of medical certificates from registered practitioners.
               </p>
@@ -225,7 +225,7 @@ export default function EmployerAcceptancePage() {
           {/* Certificate Preview */}
           <section className="px-4 py-16 bg-card/50 dark:bg-white/5">
             <div className="mx-auto max-w-3xl">
-              <h2 className="text-2xl font-bold text-center mb-4">What your certificate includes</h2>
+              <h2 className="text-2xl font-semibold text-center mb-4">What your certificate includes</h2>
               <p className="text-center text-muted-foreground mb-10">
                 Every certificate contains the information employers need.
               </p>
@@ -266,7 +266,7 @@ export default function EmployerAcceptancePage() {
           {/* What To Say */}
           <section className="px-4 py-16">
             <div className="mx-auto max-w-3xl">
-              <h2 className="text-2xl font-bold text-center mb-4">If your employer questions it</h2>
+              <h2 className="text-2xl font-semibold text-center mb-4">If your employer questions it</h2>
               <p className="text-center text-muted-foreground mb-10">
                 Most employers accept online certificates without issue. If questions arise, here&apos;s what to know.
               </p>
@@ -302,7 +302,7 @@ export default function EmployerAcceptancePage() {
           {/* FAQs */}
           <section className="px-4 py-16 bg-card/50 dark:bg-white/5">
             <div className="mx-auto max-w-3xl">
-              <h2 className="text-2xl font-bold text-center mb-10">Frequently asked questions</h2>
+              <h2 className="text-2xl font-semibold text-center mb-10">Frequently asked questions</h2>
 
               <div className="space-y-4">
                 {faqs.map((faq, i) => (
@@ -318,7 +318,7 @@ export default function EmployerAcceptancePage() {
           {/* Testimonials */}
           <section className="px-4 py-16">
             <div className="mx-auto max-w-4xl">
-              <h2 className="text-2xl font-bold text-center mb-2">Accepted without question</h2>
+              <h2 className="text-2xl font-semibold text-center mb-2">Accepted without question</h2>
               <p className="text-center text-muted-foreground text-sm mb-10">
                 What employees say after submitting their InstantMed certificate.
               </p>
@@ -349,7 +349,7 @@ export default function EmployerAcceptancePage() {
           {/* Final CTA */}
           <section className="px-4 py-16 bg-emerald-50 dark:bg-emerald-950/30">
             <div className="mx-auto max-w-2xl text-center">
-              <h2 className="text-2xl font-bold mb-4">Ready to get your certificate?</h2>
+              <h2 className="text-2xl font-semibold mb-4">Ready to get your certificate?</h2>
               <p className="text-muted-foreground mb-8">
                 Complete the questionnaire in about 2 minutes. A doctor reviews your request within an hour.
               </p>

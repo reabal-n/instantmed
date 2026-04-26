@@ -72,7 +72,7 @@ export default function ShiftWorkersPage() {
                     <SectionPill>For Shift Workers</SectionPill>
                   </div>
 
-                  <h1 className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl mb-3">
+                  <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl mb-3">
                     Medical Certificates When GPs Are Closed
                   </h1>
                   <p className="text-sm md:text-base text-muted-foreground max-w-xl mx-auto mb-4">
@@ -145,7 +145,7 @@ export default function ShiftWorkersPage() {
           <section className="px-4 py-12 sm:px-6">
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
-                <h2 className="text-xl sm:text-2xl font-bold mb-6 text-center">Popular with shift workers in</h2>
+                <h2 className="text-xl sm:text-2xl font-semibold mb-6 text-center">Popular with shift workers in</h2>
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   {[
                     { icon: Hospital, title: "Healthcare", examples: "Nurses, aged care, hospital staff" },
@@ -172,7 +172,7 @@ export default function ShiftWorkersPage() {
           <section className="px-4 py-12 sm:px-6">
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
-                <h2 className="text-xl sm:text-2xl font-bold mb-6 text-center">Why shift workers choose InstantMed</h2>
+                <h2 className="text-xl sm:text-2xl font-semibold mb-6 text-center">Why shift workers choose InstantMed</h2>
                 <div className="grid gap-4 sm:grid-cols-2">
                   {[
                     {
@@ -206,7 +206,7 @@ export default function ShiftWorkersPage() {
           <section className="px-4 py-12 sm:px-6">
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
-                <h2 className="text-xl sm:text-2xl font-bold text-center mb-6">What shift workers say</h2>
+                <h2 className="text-xl sm:text-2xl font-semibold text-center mb-6">What shift workers say</h2>
                 <div className="grid gap-4 sm:grid-cols-2">
                   {[
                     {
@@ -251,7 +251,7 @@ export default function ShiftWorkersPage() {
           <section className="px-4 py-12 sm:px-6">
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
-                <h2 className="text-xl sm:text-2xl font-bold mb-6 text-center">How it works</h2>
+                <h2 className="text-xl sm:text-2xl font-semibold mb-6 text-center">How it works</h2>
                 <div className="grid gap-4 sm:grid-cols-3">
                   {[
                     {
@@ -293,7 +293,7 @@ export default function ShiftWorkersPage() {
           <section className="px-4 py-12 sm:px-6">
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
-                <h2 className="text-xl sm:text-2xl font-bold text-center mb-6">Quick answers</h2>
+                <h2 className="text-xl sm:text-2xl font-semibold text-center mb-6">Quick answers</h2>
                 <div className="space-y-3 max-w-2xl mx-auto">
                   {[
                     {
@@ -332,7 +332,7 @@ export default function ShiftWorkersPage() {
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               <div className="max-w-xl mx-auto text-center">
                 <div className="glass-card rounded-3xl p-6 lg:p-8 relative overflow-hidden border-blue-500/20 bg-blue-50/30 dark:bg-blue-950/10">
-                  <h2 className="text-2xl font-bold mb-3">Get your certificate in 15 minutes</h2>
+                  <h2 className="text-2xl font-semibold mb-3">Get your certificate in 15 minutes</h2>
                   <p className="text-sm text-muted-foreground mb-6">
                     Works around your roster, not the other way around.
                   </p>

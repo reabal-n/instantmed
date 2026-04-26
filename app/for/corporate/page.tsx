@@ -72,7 +72,7 @@ export default function CorporatePage() {
                     <SectionPill>For Corporate Professionals</SectionPill>
                   </div>
 
-                  <h1 className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl mb-3">
+                  <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl mb-3">
                     Medical Certificate Before HR Asks
                   </h1>
                   <p className="text-sm md:text-base text-muted-foreground max-w-xl mx-auto mb-4">
@@ -116,15 +116,15 @@ export default function CorporatePage() {
                 <div className="max-w-4xl mx-auto">
                   <div className="grid gap-4 sm:grid-cols-3 text-center">
                     <div>
-                      <div className="text-2xl font-bold mb-1 text-muted-foreground">2 min</div>
+                      <div className="text-2xl font-semibold mb-1 text-muted-foreground">2 min</div>
                       <div className="text-xs text-muted-foreground">questionnaire</div>
                     </div>
                     <div>
-                      <div className="text-2xl font-bold mb-1 text-muted-foreground">15 min</div>
+                      <div className="text-2xl font-semibold mb-1 text-muted-foreground">15 min</div>
                       <div className="text-xs text-muted-foreground">doctor review</div>
                     </div>
                     <div>
-                      <div className="text-2xl font-bold mb-1 text-muted-foreground">Instant</div>
+                      <div className="text-2xl font-semibold mb-1 text-muted-foreground">Instant</div>
                       <div className="text-xs text-muted-foreground">email delivery</div>
                     </div>
                   </div>
@@ -137,7 +137,7 @@ export default function CorporatePage() {
           <section className="px-4 py-12 sm:px-6">
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
-                <h2 className="text-xl sm:text-2xl font-bold mb-6 text-center">Why professionals choose InstantMed</h2>
+                <h2 className="text-xl sm:text-2xl font-semibold mb-6 text-center">Why professionals choose InstantMed</h2>
                 <div className="grid gap-4 sm:grid-cols-2">
                   {[
                     {
@@ -178,7 +178,7 @@ export default function CorporatePage() {
           <section className="px-4 py-12 sm:px-6">
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
-                <h2 className="text-xl sm:text-2xl font-bold mb-6 text-center">Common scenarios we help with</h2>
+                <h2 className="text-xl sm:text-2xl font-semibold mb-6 text-center">Common scenarios we help with</h2>
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   {[
                     { title: "WFH sick day", desc: "Too unwell to work but not sick enough for A&E" },
@@ -202,7 +202,7 @@ export default function CorporatePage() {
           <section className="px-4 py-12 sm:px-6">
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
-                <h2 className="text-xl sm:text-2xl font-bold text-center mb-6">What professionals say</h2>
+                <h2 className="text-xl sm:text-2xl font-semibold text-center mb-6">What professionals say</h2>
                 <div className="grid gap-4 sm:grid-cols-2">
                   {[
                     {
@@ -247,7 +247,7 @@ export default function CorporatePage() {
           <section className="px-4 py-12 sm:px-6">
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
-                <h2 className="text-xl sm:text-2xl font-bold mb-6 text-center">Other services for busy professionals</h2>
+                <h2 className="text-xl sm:text-2xl font-semibold mb-6 text-center">Other services for busy professionals</h2>
                 <div className="grid gap-4 sm:grid-cols-3">
                   {[
                     { title: "Repeat Scripts", desc: "Blood pressure, reflux, contraceptive", price: PRICING_DISPLAY.FROM_SCRIPT, href: "/prescriptions" },
@@ -271,7 +271,7 @@ export default function CorporatePage() {
           <section className="px-4 py-12 sm:px-6">
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
-                <h2 className="text-xl sm:text-2xl font-bold text-center mb-6">Questions HR might ask (answered)</h2>
+                <h2 className="text-xl sm:text-2xl font-semibold text-center mb-6">Questions HR might ask (answered)</h2>
                 <div className="space-y-3 max-w-2xl mx-auto">
                   {[
                     {
@@ -310,7 +310,7 @@ export default function CorporatePage() {
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               <div className="max-w-xl mx-auto text-center">
                 <div className="glass-card rounded-3xl p-6 lg:p-8 relative overflow-hidden border-border bg-muted/30 dark:bg-white/5">
-                  <h2 className="text-2xl font-bold mb-3">Certificate in 15 minutes</h2>
+                  <h2 className="text-2xl font-semibold mb-3">Certificate in 15 minutes</h2>
                   <p className="text-sm text-muted-foreground mb-6">
                     Professional, discreet, and ready for HR. Get sorted now.
                   </p>

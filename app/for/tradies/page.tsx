@@ -71,7 +71,7 @@ export default function TradiesPage() {
                     <SectionPill>Built for Tradies</SectionPill>
                   </div>
 
-                  <h1 className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl mb-3">
+                  <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl mb-3">
                     Get Your Med Cert Without Leaving Site
                   </h1>
                   <p className="text-sm md:text-base text-muted-foreground max-w-xl mx-auto mb-4">
@@ -115,15 +115,15 @@ export default function TradiesPage() {
                 <div className="max-w-4xl mx-auto">
                   <div className="grid gap-4 sm:grid-cols-3 text-center">
                     <div>
-                      <div className="text-2xl font-bold mb-1 text-dawn-600">2 min</div>
+                      <div className="text-2xl font-semibold mb-1 text-dawn-600">2 min</div>
                       <div className="text-xs text-muted-foreground">to fill out</div>
                     </div>
                     <div>
-                      <div className="text-2xl font-bold mb-1 text-dawn-600">15 min</div>
+                      <div className="text-2xl font-semibold mb-1 text-dawn-600">15 min</div>
                       <div className="text-xs text-muted-foreground">doctor review</div>
                     </div>
                     <div>
-                      <div className="text-2xl font-bold mb-1 text-dawn-600">Email</div>
+                      <div className="text-2xl font-semibold mb-1 text-dawn-600">Email</div>
                       <div className="text-xs text-muted-foreground">straight to your inbox</div>
                     </div>
                   </div>
@@ -136,7 +136,7 @@ export default function TradiesPage() {
           <section className="px-4 py-12 sm:px-6">
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
-                <h2 className="text-xl sm:text-2xl font-bold mb-6 text-center">Why tradies use InstantMed</h2>
+                <h2 className="text-xl sm:text-2xl font-semibold mb-6 text-center">Why tradies use InstantMed</h2>
                 <div className="grid gap-4 sm:grid-cols-2">
                   {[
                     {
@@ -177,7 +177,7 @@ export default function TradiesPage() {
           <section className="px-4 py-12 sm:px-6">
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
-                <h2 className="text-xl sm:text-2xl font-bold text-center mb-6">What tradies say</h2>
+                <h2 className="text-xl sm:text-2xl font-semibold text-center mb-6">What tradies say</h2>
                 <div className="grid gap-4 sm:grid-cols-2">
                   {[
                     {
@@ -222,7 +222,7 @@ export default function TradiesPage() {
           <section className="px-4 py-12 sm:px-6">
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
-                <h2 className="text-xl sm:text-2xl font-bold mb-6 text-center">What you can get</h2>
+                <h2 className="text-xl sm:text-2xl font-semibold mb-6 text-center">What you can get</h2>
                 <div className="grid gap-4 sm:grid-cols-3">
                   {[
                     { title: "Sick Leave Cert", desc: "For when you&apos;re crook", price: PRICING_DISPLAY.FROM_MED_CERT },
@@ -245,7 +245,7 @@ export default function TradiesPage() {
           <section className="px-4 py-12 sm:px-6">
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
-                <h2 className="text-xl sm:text-2xl font-bold text-center mb-6">Quick answers</h2>
+                <h2 className="text-xl sm:text-2xl font-semibold text-center mb-6">Quick answers</h2>
                 <div className="space-y-3 max-w-2xl mx-auto">
                   {[
                     {
@@ -284,7 +284,7 @@ export default function TradiesPage() {
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               <div className="max-w-xl mx-auto text-center">
                 <div className="glass-card rounded-3xl p-6 lg:p-8 relative overflow-hidden border-dawn-500/20 bg-amber-50/30 dark:bg-amber-950/10">
-                  <h2 className="text-2xl font-bold mb-3">Sorted in 15 minutes</h2>
+                  <h2 className="text-2xl font-semibold mb-3">Sorted in 15 minutes</h2>
                   <p className="text-sm text-muted-foreground mb-6">
                     Get your cert on your phone. No stuffing around.
                   </p>

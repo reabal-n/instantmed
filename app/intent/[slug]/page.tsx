@@ -139,7 +139,7 @@ export default async function IntentPage({ params }: PageProps) {
                 </div>
               </div>
 
-              <h1 className="text-4xl sm:text-5xl font-bold text-center text-foreground mb-6 tracking-tight">
+              <h1 className="text-4xl sm:text-5xl font-semibold text-center text-foreground mb-6 tracking-tight">
                 {page.h1}
               </h1>
 
@@ -172,7 +172,7 @@ export default async function IntentPage({ params }: PageProps) {
           {/* Content blocks */}
           <section className="px-4 py-16 bg-white dark:bg-card">
             <div className="mx-auto max-w-4xl">
-              <h2 className="text-2xl font-bold text-foreground mb-8 text-center">
+              <h2 className="text-2xl font-semibold text-foreground mb-8 text-center">
                 What You Need to Know
               </h2>
 
@@ -192,7 +192,7 @@ export default async function IntentPage({ params }: PageProps) {
           {/* FAQ */}
           <section className="px-4 py-16">
             <div className="mx-auto max-w-3xl">
-              <h2 className="text-2xl font-bold text-foreground mb-8 text-center">
+              <h2 className="text-2xl font-semibold text-foreground mb-8 text-center">
                 Frequently Asked Questions
               </h2>
 
@@ -214,7 +214,7 @@ export default async function IntentPage({ params }: PageProps) {
           {page.links.related.length > 0 && (
             <section className="px-4 py-12 bg-muted/30">
               <div className="mx-auto max-w-4xl">
-                <h2 className="text-xl font-bold text-foreground mb-6 text-center">
+                <h2 className="text-xl font-semibold text-foreground mb-6 text-center">
                   Related Resources
                 </h2>
                 <div className="flex flex-wrap justify-center gap-4">
@@ -252,7 +252,7 @@ export default async function IntentPage({ params }: PageProps) {
           {/* Final CTA */}
           <section className="px-4 py-20 bg-linear-to-b from-primary/5 to-transparent">
             <div className="mx-auto max-w-2xl text-center">
-              <h2 className="text-3xl font-bold text-foreground mb-4">
+              <h2 className="text-3xl font-semibold text-foreground mb-4">
                 Ready to get started?
               </h2>
               <p className="text-lg text-muted-foreground mb-8">

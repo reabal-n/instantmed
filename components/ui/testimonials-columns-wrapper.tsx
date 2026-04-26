@@ -59,7 +59,7 @@ export function TestimonialsColumnsWrapper({
             )}
 
             {title && (
-              <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold tracking-tighter mt-4 text-center text-foreground">
+              <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-semibold tracking-tighter mt-4 text-center text-foreground">
                 {title}
               </h2>
             )}

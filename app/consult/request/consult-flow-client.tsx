@@ -127,7 +127,7 @@ function SafetyKnockout() {
         <div className="w-20 h-20 mx-auto rounded-full bg-red-100 flex items-center justify-center">
           <AlertTriangle className="w-10 h-10 text-red-600" />
         </div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-red-900">Please Seek Immediate Help</h1>
+        <h1 className="text-2xl sm:text-3xl font-semibold text-red-900">Please Seek Immediate Help</h1>
         <p className="text-red-700 text-base">
           Based on your responses, this service is not appropriate for your current situation.
         </p>
@@ -755,7 +755,7 @@ export function ConsultFlowClient({
               <div className="p-4 rounded-2xl border border-border/50 bg-white dark:bg-card shadow-md shadow-primary/[0.06] space-y-4">
                 <div className="flex justify-between items-center">
                   <span className="font-medium">Total</span>
-                  <span className="text-2xl font-bold">$49.95</span>
+                  <span className="text-2xl font-semibold">$49.95</span>
                 </div>
                 <hr className="border-border/40" />
                 <ul className="space-y-2">
