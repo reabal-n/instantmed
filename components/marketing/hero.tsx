@@ -1,6 +1,5 @@
 'use client'
 
-import { motion,type Variants } from 'framer-motion'
 import { ArrowRight, CheckCircle2, FileText, Pill, Smartphone, Star } from 'lucide-react'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
@@ -11,10 +10,8 @@ import { LastReviewedSignal } from '@/components/marketing/last-reviewed-signal'
 import { RegulatoryPartners } from '@/components/marketing/media-mentions'
 import { TrustBadgeRow } from '@/components/shared/trust-badge'
 import { Button } from "@/components/ui/button"
-import { useReducedMotion } from '@/components/ui/motion'
 import { usePatientCount } from '@/lib/hooks/use-patient-count'
 import { WEDGE } from '@/lib/marketing/voice'
-import { stagger } from '@/lib/motion'
 import { SOCIAL_PROOF } from '@/lib/social-proof'
 
 // Desktop-only stacked card mockup — never the LCP element, safe for ssr:false
@@ -35,35 +32,17 @@ const LCP_CLASSES = "text-sm sm:text-base lg:text-lg text-muted-foreground max-w
 
 export function Hero({ children }: { children?: React.ReactNode }) {
   const patientCount = usePatientCount()
-  const reduced = useReducedMotion()
-  const container = reduced ? {} : stagger.container
-  const item = reduced ? {} : stagger.item
-  // H1 is the LCP element. Keep opacity: 1 in initial so Chrome registers it
-  // from the SSR HTML — Framer Motion's opacity:0 initial would otherwise hide
-  // it during hydration and push LCP to the end of the animation.
-  const headlineItem: Variants = reduced ? {} : {
-    initial: { opacity: 1, y: 8 },
-    animate: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.23, 1, 0.32, 1] } },
-  }
 
   return (
     <section className="relative overflow-hidden pt-6 pb-6 sm:pt-14 sm:pb-18 lg:pt-20 lg:pb-24">
       <div className="mx-auto max-w-5xl px-6 sm:px-8 lg:px-10">
-        <motion.div
-          variants={container}
-          initial="initial"
-          animate="animate"
-          className="flex flex-col lg:flex-row items-center lg:gap-12 xl:gap-14"
-        >
+        <div className="flex flex-col lg:flex-row items-center lg:gap-12 xl:gap-14">
           {/* Text content */}
           <div className="flex-1 min-w-0 text-center lg:text-left">
             {/* Social-proof pill — above the fold, above the H1. Four signals
                 in one compact row: rating · patient count · no-Medicare-friction
-                · live availability. */}
-            <motion.div
-              variants={item}
-              className="flex justify-center lg:justify-start mb-5 sm:mb-8"
-            >
+                · live availability. CSS animation: no JS hydration needed. */}
+            <div className="hero-availability-enter flex justify-center lg:justify-start mb-5 sm:mb-8">
               <div className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium bg-white dark:bg-card border border-border/60 shadow-sm shadow-primary/[0.04]">
                 <span className="inline-flex items-center gap-0.5 text-amber-500" aria-label={`${SOCIAL_PROOF.averageRating} out of 5 rating`}>
                   <Star className="w-3.5 h-3.5 fill-current" aria-hidden="true" />
@@ -89,31 +68,25 @@ export function Hero({ children }: { children?: React.ReactNode }) {
                   Open now
                 </span>
               </div>
-            </motion.div>
+            </div>
 
-            {/* Headline - LCP element. Uses headlineItem (opacity:1 initial) so
-                Chrome measures it from SSR HTML, not after JS hydration. */}
-            <motion.h1
-              variants={headlineItem}
-              className="text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight mb-5 sm:mb-7 leading-[1.1] text-balance"
-            >
+            {/* Headline — LCP element. Plain h1, no animation, no opacity delay.
+                Chrome measures LCP from SSR HTML. Keep it immediately visible. */}
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight mb-5 sm:mb-7 leading-[1.1] text-balance">
               Consults, certs, and treatment. From your bed.
-            </motion.h1>
+            </h1>
 
             {/* LCP slot - server-rendered when passed as children, else fallback */}
-            <motion.div variants={item}>
+            <div className="hero-subheadline-enter">
               {children ?? (
                 <p className={LCP_CLASSES}>
                   Real Australian doctors review every request. {WEDGE} Fill in a quick form and a GP takes care of the rest.
                 </p>
               )}
-            </motion.div>
+            </div>
 
             {/* CTAs */}
-            <motion.div
-              variants={item}
-              className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start mb-3 sm:mb-4"
-            >
+            <div className="hero-cta-enter flex flex-col sm:flex-row gap-3 justify-center lg:justify-start mb-3 sm:mb-4">
               <Button
                 asChild
                 size="lg"
@@ -134,21 +107,15 @@ export function Hero({ children }: { children?: React.ReactNode }) {
                   How it works
                 </Link>
               </Button>
-            </motion.div>
+            </div>
 
             {/* Guarantee pill - sits directly under primary CTA */}
-            <motion.div
-              variants={item}
-              className="flex justify-center lg:justify-start mb-5 sm:mb-8"
-            >
+            <div className="hero-cta-enter flex justify-center lg:justify-start mb-5 sm:mb-8">
               <GuaranteeBadge size="md" />
-            </motion.div>
+            </div>
 
             {/* Trust signals + regulatory logos + live activity signal */}
-            <motion.div
-              variants={item}
-              className="flex flex-col items-center lg:items-start gap-3"
-            >
+            <div className="hero-trust-enter flex flex-col items-center lg:items-start gap-3">
               <TrustBadgeRow
                 badges={[
                   { id: 'ahpra', variant: 'styled' },
@@ -167,17 +134,14 @@ export function Hero({ children }: { children?: React.ReactNode }) {
               <LastReviewedSignal className="justify-center lg:justify-start" />
 
               <HeroTestimonialRotator className="mx-auto lg:mx-0 text-center lg:text-left" />
-            </motion.div>
+            </div>
           </div>
 
           {/* Hero product mockup - full stack on desktop, compact card on mobile */}
           <div className="hidden lg:block relative shrink-0 mt-0">
             <HeroMultiServiceMockup />
           </div>
-          <motion.div
-            variants={item}
-            className="lg:hidden flex justify-center mt-3"
-          >
+          <div className="hero-mobile-mockup-enter lg:hidden flex justify-center mt-3">
             <div className="flex flex-col gap-2">
               {/* Med cert card */}
               <div className="inline-flex items-center gap-3 px-4 py-2.5 rounded-xl bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06]">
@@ -202,8 +166,8 @@ export function Hero({ children }: { children?: React.ReactNode }) {
                 <Smartphone className="w-4 h-4 text-primary/60" />
               </div>
             </div>
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
       </div>
     </section>
   )
