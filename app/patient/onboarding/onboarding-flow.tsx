@@ -320,7 +320,7 @@ export function OnboardingFlow({ profileId, fullName, redirectTo }: OnboardingFl
                       type="button"
                       onClick={() => setState(s)}
                       className={cn(
-                        "py-2.5 px-3 rounded-xl text-sm font-medium transition-all duration-300",
+                        "py-2.5 px-3 rounded-xl text-sm font-medium transition-[transform,box-shadow] duration-300",
                         state === s
                           ? "bg-primary text-primary-foreground shadow-lg shadow-primary/30"
                           : "bg-white dark:bg-card text-foreground hover:bg-muted/50 border border-border/50 hover:shadow-md hover:shadow-primary/10 hover:-translate-y-0.5"
@@ -356,7 +356,7 @@ export function OnboardingFlow({ profileId, fullName, redirectTo }: OnboardingFl
             <FormActions>
               <Button 
                 onClick={handleNext} 
-                className="w-full sm:flex-1 h-12 rounded-xl text-base font-medium shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+                className="w-full sm:flex-1 h-12 rounded-xl text-base font-medium shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 hover:scale-[1.02] active:scale-[0.98] transition-[transform,box-shadow] duration-200"
                 size="lg"
               >
                 Next
@@ -450,7 +450,7 @@ export function OnboardingFlow({ profileId, fullName, redirectTo }: OnboardingFl
                       type="button"
                       onClick={() => setIrn(n)}
                       className={cn(
-                        "w-12 h-12 rounded-xl text-base font-semibold transition-all duration-300",
+                        "w-12 h-12 rounded-xl text-base font-semibold transition-[transform,box-shadow] duration-300",
                         irn === n
                           ? "bg-primary text-primary-foreground shadow-lg shadow-primary/30"
                           : "bg-white dark:bg-card text-foreground hover:bg-muted/50 border border-border/50 hover:shadow-md hover:shadow-primary/10 hover:-translate-y-0.5"
@@ -477,7 +477,7 @@ export function OnboardingFlow({ profileId, fullName, redirectTo }: OnboardingFl
                         type="button"
                         onClick={() => setExpiryMonth(m.value)}
                         className={cn(
-                          "py-2 rounded-lg text-xs font-medium transition-all duration-300",
+                          "py-2 rounded-lg text-xs font-medium transition-[transform,box-shadow] duration-300",
                           expiryMonth === m.value
                             ? "bg-primary text-primary-foreground shadow-md shadow-primary/25"
                             : "bg-white dark:bg-card text-foreground hover:bg-muted/50 border border-border/50"
@@ -495,7 +495,7 @@ export function OnboardingFlow({ profileId, fullName, redirectTo }: OnboardingFl
                         type="button"
                         onClick={() => setExpiryYear(y)}
                         className={cn(
-                          "py-2 px-3 rounded-lg text-xs font-medium whitespace-nowrap transition-all duration-300 shrink-0",
+                          "py-2 px-3 rounded-lg text-xs font-medium whitespace-nowrap transition-[transform,box-shadow] duration-300 shrink-0",
                           expiryYear === y
                             ? "bg-primary text-primary-foreground shadow-md shadow-primary/25"
                             : "bg-white dark:bg-card text-foreground hover:bg-muted/50 border border-border/50"
@@ -525,7 +525,7 @@ export function OnboardingFlow({ profileId, fullName, redirectTo }: OnboardingFl
                   type="button"
                   onClick={() => setConsentMyhr(!consentMyhr)}
                   className={cn(
-                    "relative w-14 h-8 rounded-full transition-all duration-300 shrink-0",
+                    "relative w-14 h-8 rounded-full transition-[transform,box-shadow] duration-300 shrink-0",
                     consentMyhr
                       ? "bg-primary shadow-lg shadow-primary/30"
                       : "bg-muted/80 dark:bg-muted/60 border-2 border-border dark:border-white/20"
@@ -554,7 +554,7 @@ export function OnboardingFlow({ profileId, fullName, redirectTo }: OnboardingFl
               <Button
                 onClick={handleSubmit}
                 disabled={isSubmitting}
-                className="sm:flex-1 h-12 rounded-xl text-base font-medium shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+                className="sm:flex-1 h-12 rounded-xl text-base font-medium shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 hover:scale-[1.02] active:scale-[0.98] transition-[transform,box-shadow] duration-200"
                 size="lg"
               >
                 {isSubmitting ? (

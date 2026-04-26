@@ -52,7 +52,7 @@ export function SpecializedServicesSection({ config, colors }: SpecializedServic
               >
                 <Link
                   href={service.href}
-                  className="block h-full rounded-2xl p-6 bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-md shadow-primary/[0.06] dark:shadow-none hover:shadow-lg hover:shadow-primary/[0.08] hover:border-primary/20 hover:-translate-y-0.5 transition-all duration-300 group"
+                  className="block h-full rounded-2xl p-6 bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-md shadow-primary/[0.06] dark:shadow-none hover:shadow-lg hover:shadow-primary/[0.08] hover:border-primary/20 hover:-translate-y-0.5 transition-[transform,box-shadow] duration-300 group"
                 >
                   <div className="flex items-start gap-4">
                     {stickerName ? (
@@ -72,7 +72,7 @@ export function SpecializedServicesSection({ config, colors }: SpecializedServic
                         </span>
                       </div>
                       <p className="text-sm text-muted-foreground leading-relaxed">{service.description}</p>
-                      <span className="inline-flex items-center gap-1 mt-3 text-sm font-medium text-primary group-hover:gap-2 transition-all">
+                      <span className="inline-flex items-center gap-1 mt-3 text-sm font-medium text-primary group-hover:gap-2 transition-[gap]">
                         Get started <ArrowRight className="w-3.5 h-3.5" />
                       </span>
                     </div>

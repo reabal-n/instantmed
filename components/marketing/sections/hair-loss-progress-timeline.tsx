@@ -307,7 +307,7 @@ export function HairLossProgressTimeline({
                       <div
                         key={m.month}
                         className={cn(
-                          "absolute -translate-x-1/2 -translate-y-full whitespace-nowrap rounded-full px-2 py-0.5 text-xs transition-all duration-300",
+                          "absolute -translate-x-1/2 -translate-y-full whitespace-nowrap rounded-full px-2 py-0.5 text-xs transition-[opacity,background-color,box-shadow] duration-300",
                           isActive
                             ? "bg-primary/15 text-foreground font-medium ring-1 ring-primary/30"
                             : "bg-muted text-muted-foreground opacity-60",

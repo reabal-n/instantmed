@@ -317,7 +317,7 @@ export function PrescriptionFormStep({ subtype, title, flow }: PrescriptionFormS
                 <button
                   type="button"
                   onClick={() => flow.handleRedFlagChange(rf.id, false)}
-                  className={`px-4 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                  className={`px-4 py-1.5 rounded-lg text-xs font-medium transition-[background-color,color,border-color] ${
                     flow.redFlagValues[rf.id] === false
                       ? "bg-emerald-500 text-white shadow-md"
                       : "bg-muted text-muted-foreground hover:bg-muted/50"
@@ -328,7 +328,7 @@ export function PrescriptionFormStep({ subtype, title, flow }: PrescriptionFormS
                 <button
                   type="button"
                   onClick={() => flow.handleRedFlagChange(rf.id, true)}
-                  className={`px-4 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                  className={`px-4 py-1.5 rounded-lg text-xs font-medium transition-[background-color,color,border-color] ${
                     flow.redFlagValues[rf.id] === true
                       ? "bg-red-500 text-white shadow-md"
                       : "bg-muted text-muted-foreground hover:bg-muted/50"

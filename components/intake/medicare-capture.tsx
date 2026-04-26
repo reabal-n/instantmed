@@ -180,7 +180,7 @@ export function MedicareCapture({ value, onChange, savedMedicare, onUseSaved }: 
                 type="button"
                 onClick={() => onChange({ ...value, irn: n })}
                 className={cn(
-                  "w-8 h-10 rounded-lg text-sm font-medium transition-all",
+                  "w-8 h-10 rounded-lg text-sm font-medium transition-[background-color,border-color,color]",
                   value.irn === n ? "bg-primary text-primary-foreground" : "bg-muted hover:bg-muted/80",
                 )}
               >

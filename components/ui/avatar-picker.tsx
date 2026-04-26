@@ -421,7 +421,7 @@ export function AvatarPicker({ selectedAvatarId = 1, onSelect, userName = "Me" }
                   onClick={() => handleAvatarSelect(avatar)}
                   className={cn(
                     "relative w-11 h-11 rounded-full overflow-hidden border-2",
-                    "transition-all duration-300",
+                    "transition-[transform,box-shadow] duration-300",
                     selectedAvatar.id === avatar.id
                       ? "border-primary"
                       : "border-transparent hover:border-muted-foreground/30"

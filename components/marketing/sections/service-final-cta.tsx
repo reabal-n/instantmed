@@ -39,7 +39,7 @@ export function ServiceFinalCTA({
           <Button
             asChild
             size="lg"
-            className="px-10 h-14 text-lg font-semibold shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 transition-all"
+            className="px-10 h-14 text-lg font-semibold shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 transition-[transform,box-shadow]"
             onClick={onCTAClick}
             disabled={isDisabled}
           >

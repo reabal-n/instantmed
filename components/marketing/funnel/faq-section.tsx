@@ -33,7 +33,7 @@ export function FaqSection({ config }: FaqSectionProps) {
             <SectionPill>FAQ</SectionPill>
           </div>
 
-          <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-4 tracking-tight">
+          <h2 className="text-2xl sm:text-3xl font-semibold text-foreground mb-4 tracking-tight">
             {config.faq.title}
           </h2>
           <p className="text-muted-foreground max-w-lg mx-auto text-sm">

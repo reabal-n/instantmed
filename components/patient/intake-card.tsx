@@ -31,7 +31,7 @@ export function IntakeCard({
     <button
       onClick={onClick}
       aria-label={`View ${serviceName}, ${config.label}`}
-      className="w-full bg-card rounded-xl border border-border p-5 hover:border-primary/60 hover:shadow-lg transition-all text-left group hover-lift"
+      className="w-full bg-card rounded-xl border border-border p-5 hover:border-primary/60 hover:shadow-lg transition-[border-color,box-shadow] text-left group hover-lift"
     >
       <div className="flex items-center justify-between">
           <div className="flex items-center gap-4 flex-1">

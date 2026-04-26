@@ -295,7 +295,7 @@ export function EmailPreviewReactClient() {
           </div>
 
           <div
-            className={`border rounded-lg overflow-hidden bg-muted mx-auto transition-all ${
+            className={`border rounded-lg overflow-hidden bg-muted mx-auto transition-[width,max-width] ${
               previewMode === "mobile" ? "max-w-[375px]" : "max-w-full"
             }`}
           >

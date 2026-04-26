@@ -173,7 +173,7 @@ export function AnalyticsFunnelTab({ analytics }: { analytics: AnalyticsData }) 
                       </div>
                       <div className="mt-1 h-1.5 bg-muted rounded-full overflow-hidden">
                         <div
-                          className="h-full rounded-full transition-all"
+                          className="h-full rounded-full transition-[width]"
                           style={{
                             width: `${Math.max(percentage, 2)}%`,
                             backgroundColor: COLORS[index % COLORS.length],
@@ -218,7 +218,7 @@ function ConversionStep({
       </div>
       <div className="h-2 bg-muted/30 rounded-full overflow-hidden">
         <div
-          className="h-full rounded-full transition-all duration-500"
+          className="h-full rounded-full transition-[width] duration-500"
           style={{ width: `${Math.max(rate, 1)}%`, backgroundColor: color }}
         />
       </div>

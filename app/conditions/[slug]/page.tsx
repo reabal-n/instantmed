@@ -161,7 +161,7 @@ export default async function ConditionPage({ params }: PageProps) {
                 <Button
                   asChild
                   size="lg"
-                  className="h-14 px-8 text-base font-semibold rounded-full shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all"
+                  className="h-14 px-8 text-base font-semibold rounded-full shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-[transform,box-shadow]"
                 >
                   <Link href={condition.ctaHref}>
                     {condition.ctaText}

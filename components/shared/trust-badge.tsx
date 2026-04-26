@@ -243,7 +243,7 @@ function FromYourPhoneBadge({ config, className }: { config: BadgeConfig; classN
         className,
       )}
     >
-      <div className="transition-all duration-200 hover:brightness-110">
+      <div className="transition-[filter] duration-200 hover:brightness-110">
         <Icon className={cn('w-3.5 h-3.5 shrink-0', config.iconColor)} aria-hidden="true" />
       </div>
       <span>{config.label}</span>
@@ -561,7 +561,7 @@ function InstantPdfBadge({ config, className }: { config: BadgeConfig; className
       )}
     >
       <Icon
-        className={cn('w-3.5 h-3.5 shrink-0 transition-all duration-200 group-hover:translate-x-1 group-hover:opacity-0', config.iconColor)}
+        className={cn('w-3.5 h-3.5 shrink-0 transition-[transform,opacity] duration-200 group-hover:translate-x-1 group-hover:opacity-0', config.iconColor)}
         aria-hidden="true"
       />
       <span>{config.label}</span>
@@ -701,7 +701,7 @@ export function TrustBadgeGrid({ preset, badges, className }: TrustBadgeGridProp
           return (
             <Tooltip key={id}>
               <TooltipTrigger asChild>
-                <div className="flex items-center gap-3 p-4 rounded-xl bg-white dark:bg-card border border-border/30 shadow-md shadow-primary/[0.06] hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 cursor-help">
+                <div className="flex items-center gap-3 p-4 rounded-xl bg-white dark:bg-card border border-border/30 shadow-md shadow-primary/[0.06] hover:shadow-lg hover:-translate-y-0.5 transition-[transform,box-shadow] duration-300 cursor-help">
                   <div className={cn('w-10 h-10 rounded-lg flex items-center justify-center shrink-0',
                     config.pillClass ? config.pillClass.split(' ').slice(0, 2).join(' ') : 'bg-muted'
                   )}>

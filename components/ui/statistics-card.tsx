@@ -139,7 +139,7 @@ const BarChart = ({
         >
           <div
             className={cn(
-              "absolute -bottom-9 left-1/2 size-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-background bg-muted-foreground transition-all duration-300 ease-in-out",
+              "absolute -bottom-9 left-1/2 size-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-background bg-muted-foreground transition-[transform,box-shadow] duration-300 ease-in-out",
               className,
             )}
           />

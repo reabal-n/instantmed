@@ -83,13 +83,13 @@ export default function LocationsPage() {
                   <Link
                     key={slug}
                     href={`/locations/state/${slug}`}
-                    className="group flex flex-col p-5 rounded-2xl bg-white dark:bg-card border border-border/50 dark:border-white/10 shadow-md shadow-primary/[0.06] dark:shadow-none hover:shadow-lg hover:shadow-primary/[0.08] hover:-translate-y-0.5 transition-all duration-300"
+                    className="group flex flex-col p-5 rounded-2xl bg-white dark:bg-card border border-border/50 dark:border-white/10 shadow-md shadow-primary/[0.06] dark:shadow-none hover:shadow-lg hover:shadow-primary/[0.08] hover:-translate-y-0.5 transition-[transform,box-shadow] duration-300"
                   >
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-xs uppercase tracking-wide font-semibold text-primary">
                         {state.shortName}
                       </span>
-                      <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
+                      <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-[transform,color]" />
                     </div>
                     <p className="font-semibold text-foreground group-hover:text-primary transition-colors">
                       {state.fullName}

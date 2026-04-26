@@ -34,7 +34,7 @@ export function ProgressBar({ steps, currentIndex, onStepClick }: ProgressBarPro
             {/* Progress bar segment -- taller on mobile for better touch targets */}
             <div className="relative">
               <div
-                className={`h-2 sm:h-1.5 rounded-full transition-all duration-300 ${
+                className={`h-2 sm:h-1.5 rounded-full transition-[width] duration-300 ${
                   i <= currentIndex ? "bg-primary" : "bg-muted"
                 } ${isClickable && !isCurrent ? "group-hover:bg-primary/70" : ""}`}
               />

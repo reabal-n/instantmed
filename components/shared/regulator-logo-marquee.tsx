@@ -50,7 +50,7 @@ export function RegulatorLogoMarquee({
                   alt={logo.name}
                   width={logo.width}
                   height={logo.height}
-                  className="object-contain h-8 w-auto opacity-50 grayscale hover:opacity-80 hover:grayscale-0 hover:scale-110 transition-all duration-300"
+                  className="object-contain h-8 w-auto opacity-50 grayscale hover:opacity-80 hover:grayscale-0 hover:scale-110 transition-[opacity,filter,transform] duration-300"
                 />
               </div>
             ))}

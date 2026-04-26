@@ -129,7 +129,7 @@ export function ScriptsClient({ initialTasks, initialCounts, initialTotal }: Scr
                 setFilter(newFilter)
                 fetchPage(1, newFilter)
               }}
-              className={`flex items-center gap-4 rounded-xl border border-border/50 p-5 transition-all duration-200 ${
+              className={`flex items-center gap-4 rounded-xl border border-border/50 p-5 transition-[background-color,border-color] duration-200 ${
                 filter === status
                   ? "border-sky-300 bg-sky-50/50 dark:border-sky-700 dark:bg-sky-950/30"
                   : "border-border/50 bg-card hover:border-border"

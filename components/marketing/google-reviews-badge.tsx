@@ -26,7 +26,7 @@ export function GoogleReviewsBadge({ className }: { className?: string }) {
       href={GOOGLE_REVIEWS.reviewsUrl}
       target="_blank"
       rel="noopener noreferrer"
-      className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white dark:bg-card border border-border/50 shadow-sm hover:shadow-md hover:border-border transition-all duration-200 text-sm no-underline ${className ?? ''}`}
+      className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white dark:bg-card border border-border/50 shadow-sm hover:shadow-md hover:border-border transition-[box-shadow,border-color] duration-200 text-sm no-underline ${className ?? ''}`}
     >
       <span className="sr-only">Read our Google reviews - </span>
       {/* Google G mark */}

@@ -52,7 +52,7 @@ export default function NotFound() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="group flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white dark:bg-card border border-border/50 text-sm font-medium text-muted-foreground hover:text-foreground hover:border-primary/30 hover:shadow-md shadow-primary/[0.04] transition-all"
+                className="group flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white dark:bg-card border border-border/50 text-sm font-medium text-muted-foreground hover:text-foreground hover:border-primary/30 hover:shadow-md shadow-primary/[0.04] transition-[transform,box-shadow]"
               >
                 <link.icon className="h-4 w-4 text-primary/70 group-hover:text-primary" />
                 {link.label}

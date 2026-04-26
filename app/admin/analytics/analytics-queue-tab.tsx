@@ -219,7 +219,7 @@ function SlaIndicator({
       </div>
       <div className="h-2 bg-muted/30 rounded-full overflow-hidden">
         <div
-          className={cn("h-full rounded-full transition-all duration-500", config.color)}
+          className={cn("h-full rounded-full transition-[width] duration-500", config.color)}
           style={{ width: `${Math.max(percentage, 2)}%` }}
         />
       </div>

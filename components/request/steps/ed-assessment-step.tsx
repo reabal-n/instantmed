@@ -168,7 +168,7 @@ function ScalePicker({
                 aria-label={`${n} out of 5`}
                 onClick={() => onChange(n)}
                 className={cn(
-                  "w-11 h-11 rounded-full border-2 flex items-center justify-center text-sm font-semibold transition-all shrink-0",
+                  "w-11 h-11 rounded-full border-2 flex items-center justify-center text-sm font-semibold transition-[background-color,border-color,color] shrink-0",
                   "focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 outline-none",
                   isSelected
                     ? "border-primary bg-primary text-primary-foreground scale-110"

@@ -122,7 +122,7 @@ export default function ConditionsIndexPage() {
                   <Link
                     key={condition.slug}
                     href={`/conditions/${condition.slug}`}
-                    className="group bg-white dark:bg-card rounded-2xl border border-border/50 shadow-md shadow-primary/[0.06] p-6 hover:shadow-lg hover:shadow-primary/[0.08] hover:-translate-y-0.5 transition-all duration-300 flex flex-col"
+                    className="group bg-white dark:bg-card rounded-2xl border border-border/50 shadow-md shadow-primary/[0.06] p-6 hover:shadow-lg hover:shadow-primary/[0.08] hover:-translate-y-0.5 transition-[transform,box-shadow] duration-300 flex flex-col"
                   >
                     <h2 className="text-lg font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
                       {condition.name}

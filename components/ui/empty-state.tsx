@@ -185,7 +185,7 @@ export function EmptyState({
               <button
                 key={index}
                 onClick={example.onClick}
-                className="p-4 text-left rounded-xl border border-border/50 bg-background/50 hover:bg-background hover:border-primary/50 transition-all cursor-pointer min-h-[44px] touch-target"
+                className="p-4 text-left rounded-xl border border-border/50 bg-background/50 hover:bg-background hover:border-primary/50 transition-[background-color,border-color] cursor-pointer min-h-[44px] touch-target"
               >
                 <h4 className="font-medium text-sm text-foreground mb-1">{example.title}</h4>
                 <p className="text-xs text-muted-foreground">{example.description}</p>

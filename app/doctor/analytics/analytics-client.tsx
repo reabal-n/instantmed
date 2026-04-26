@@ -338,7 +338,7 @@ export function AnalyticsClient({ analytics, doctorName }: AnalyticsClientProps)
                     </div>
                     <div className="h-2 bg-muted/30 rounded-full overflow-hidden">
                       <div
-                        className="h-full rounded-full transition-all duration-500"
+                        className="h-full rounded-full transition-[width] duration-500"
                         style={{ width: `${percentage}%`, backgroundColor: service.fill }}
                       />
                     </div>

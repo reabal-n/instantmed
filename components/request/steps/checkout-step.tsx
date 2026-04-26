@@ -307,7 +307,7 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
         <motion.div variants={stagger.item}>
           <label
             htmlFor="subscribe-save-toggle"
-            className={`w-full p-3.5 rounded-xl border-2 text-left transition-all duration-200 flex items-start gap-3 cursor-pointer ${
+            className={`w-full p-3.5 rounded-xl border-2 text-left transition-[background-color,border-color] duration-200 flex items-start gap-3 cursor-pointer ${
               subscribeAndSave
                 ? "border-primary bg-primary/5"
                 : "border-border hover:border-primary/40"
@@ -340,7 +340,7 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
       <motion.div variants={stagger.item}>
         <label
           htmlFor="express-review-toggle"
-          className={`w-full px-3.5 py-3 rounded-xl border text-left transition-all duration-200 flex items-center gap-3 cursor-pointer ${
+          className={`w-full px-3.5 py-3 rounded-xl border text-left transition-[background-color,border-color] duration-200 flex items-center gap-3 cursor-pointer ${
             isPriority
               ? "border-primary/30 bg-primary/[0.03]"
               : "border-border/40 hover:border-border/60"
@@ -369,7 +369,7 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
       <motion.div variants={stagger.item}>
         <label
           htmlFor="consent-checkbox"
-          className={`w-full p-3.5 rounded-xl border-2 text-left transition-all duration-200 flex items-start gap-3 cursor-pointer ${
+          className={`w-full p-3.5 rounded-xl border-2 text-left transition-[background-color,border-color] duration-200 flex items-start gap-3 cursor-pointer ${
             consentGiven
               ? "border-primary bg-primary/5"
               : "border-border hover:border-primary/40"

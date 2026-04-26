@@ -81,7 +81,7 @@ export default function CompareIndexPage() {
                   <Link
                     key={comparison.slug}
                     href={`/compare/${comparison.slug}`}
-                    className="group bg-white dark:bg-card rounded-2xl border border-border/50 shadow-md shadow-primary/[0.06] p-6 hover:shadow-lg hover:shadow-primary/[0.08] hover:-translate-y-0.5 transition-all duration-300"
+                    className="group bg-white dark:bg-card rounded-2xl border border-border/50 shadow-md shadow-primary/[0.06] p-6 hover:shadow-lg hover:shadow-primary/[0.08] hover:-translate-y-0.5 transition-[transform,box-shadow] duration-300"
                   >
                     <div className="flex items-start gap-4">
                       <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
@@ -105,7 +105,7 @@ export default function CompareIndexPage() {
                           ))}
                         </div>
                       </div>
-                      <ArrowRight className="w-5 h-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all shrink-0" />
+                      <ArrowRight className="w-5 h-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-[transform,color] shrink-0" />
                     </div>
                   </Link>
                 ))}
@@ -122,7 +122,7 @@ export default function CompareIndexPage() {
               <p className="text-muted-foreground mb-8">
                 See why Australians choose InstantMed for quick, convenient healthcare.
               </p>
-              <Button asChild size="lg" className="rounded-full shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all">
+              <Button asChild size="lg" className="rounded-full shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-[transform,box-shadow]">
                 <Link href="/request">
                   Get started
                   <ArrowRight className="ml-2 w-4 h-4" />

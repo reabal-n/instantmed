@@ -91,7 +91,7 @@ export function AccordionSection({
                   <MotionAccordionItem
                     key={item.question}
                     value={`${gi}-${ii}`}
-                    className="rounded-xl border border-border/30 dark:border-border/50 bg-white dark:bg-card px-5 transition-all hover:shadow-sm hover:shadow-primary/[0.04]"
+                    className="rounded-xl border border-border/30 dark:border-border/50 bg-white dark:bg-card px-5 transition-[box-shadow] hover:shadow-sm hover:shadow-primary/[0.04]"
                     initial={prefersReducedMotion ? {} : { y: 8 }}
                     animate={
                       prefersReducedMotion

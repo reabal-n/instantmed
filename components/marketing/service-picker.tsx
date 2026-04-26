@@ -137,7 +137,7 @@ export function ServicePicker() {
                       "bg-white dark:bg-card",
                       "border border-border/50 dark:border-white/15",
                       "shadow-lg shadow-primary/[0.06] dark:shadow-none",
-                      "transition-all duration-300",
+                      "transition-[transform,box-shadow] duration-300",
                       disabled && "opacity-60",
                       !disabled && [
                         "hover:shadow-xl hover:shadow-primary/[0.1] hover:-translate-y-1",

@@ -886,7 +886,7 @@ export default async function ComparisonPage({ params }: PageProps) {
               <p className="text-muted-foreground mb-8">
                 See why Australians choose InstantMed for their healthcare needs.
               </p>
-              <Button asChild size="lg" className="h-14 px-10 rounded-full shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all">
+              <Button asChild size="lg" className="h-14 px-10 rounded-full shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-[transform,box-shadow]">
                 <Link href="/request">
                   Get started
                   <ArrowRight className="ml-2 w-5 h-5" />

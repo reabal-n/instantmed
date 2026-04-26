@@ -42,7 +42,7 @@ interface FAQListProps {
 // ─────────────────────────────────────────────────────────────────────────────
 
 const itemClassName =
-  "rounded-xl bg-white dark:bg-card border border-border/30 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none hover:border-primary/20 hover:shadow-md hover:shadow-primary/[0.06] transition-all duration-300 px-5"
+  "rounded-xl bg-white dark:bg-card border border-border/30 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none hover:border-primary/20 hover:shadow-md hover:shadow-primary/[0.06] transition-[transform,box-shadow] duration-300 px-5"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Component

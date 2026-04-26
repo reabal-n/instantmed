@@ -365,7 +365,7 @@ export function PanelDashboard({
               .map((rx) => (
                 <div
                   key={rx.id}
-                  className="dashboard-card rounded-xl p-5 hover:border-primary/50 transition-all"
+                  className="dashboard-card rounded-xl p-5 hover:border-primary/50 transition-[border-color,box-shadow]"
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">

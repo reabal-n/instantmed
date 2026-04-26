@@ -118,7 +118,7 @@ export default function EdGoalsStep({ onNext }: EdGoalsStepProps) {
                 variants={prefersReducedMotion ? undefined : stagger.item}
                 onClick={() => setAnswer("edGoal", option.value)}
                 className={cn(
-                  "flex items-center gap-2.5 p-3 rounded-xl border text-left cursor-pointer transition-all text-sm",
+                  "flex items-center gap-2.5 p-3 rounded-xl border text-left cursor-pointer transition-[background-color,border-color] text-sm",
                   "focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 outline-none",
                   isSelected
                     ? "border-primary bg-primary/5 ring-1 ring-primary/30"
@@ -164,7 +164,7 @@ export default function EdGoalsStep({ onNext }: EdGoalsStepProps) {
                 aria-label={option.label}
                 onClick={() => setAnswer("edDuration", option.value)}
                 className={cn(
-                  "flex-1 px-2 py-2 text-xs font-medium rounded-full text-center transition-all cursor-pointer",
+                  "flex-1 px-2 py-2 text-xs font-medium rounded-full text-center transition-[background-color,color] cursor-pointer",
                   isSelected
                     ? "bg-primary text-primary-foreground shadow-sm"
                     : "text-muted-foreground hover:text-foreground"

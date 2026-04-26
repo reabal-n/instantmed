@@ -264,7 +264,7 @@ export default async function GuidePage({ params }: PageProps) {
                       <Link
                         key={g.slug}
                         href={`/guides/${g.slug}`}
-                        className="group bg-white dark:bg-card rounded-xl p-5 border border-border/50 dark:border-white/15 shadow-md shadow-primary/[0.06] dark:shadow-none hover:shadow-lg hover:border-primary/30 transition-all"
+                        className="group bg-white dark:bg-card rounded-xl p-5 border border-border/50 dark:border-white/15 shadow-md shadow-primary/[0.06] dark:shadow-none hover:shadow-lg hover:border-primary/30 transition-[border-color,box-shadow]"
                       >
                         <span className="text-xs font-medium text-primary/70 mb-1 block">{g.category}</span>
                         <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors text-sm leading-snug mb-1">
@@ -311,7 +311,7 @@ export default async function GuidePage({ params }: PageProps) {
               <p className="text-muted-foreground mb-8">
                 {guide.cta.subtext}
               </p>
-              <Button asChild size="lg" className="h-14 px-10 rounded-full shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all">
+              <Button asChild size="lg" className="h-14 px-10 rounded-full shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-[transform,box-shadow]">
                 <Link href={guide.cta.href}>
                   {guide.cta.text}
                   <ArrowRight className="ml-2 w-5 h-5" />

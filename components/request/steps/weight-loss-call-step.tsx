@@ -82,7 +82,7 @@ export default function WeightLossCallStep({ onNext }: WeightLossCallStepProps) 
               aria-checked={preferredTimeSlot === slot.value}
               onClick={() => setAnswer("preferredTimeSlot", slot.value)}
               className={cn(
-                "w-full flex items-center gap-3 p-3 rounded-xl border text-left transition-all",
+                "w-full flex items-center gap-3 p-3 rounded-xl border text-left transition-[background-color,border-color]",
                 preferredTimeSlot === slot.value
                   ? "border-primary bg-primary/5 ring-1 ring-primary"
                   : "border-border hover:border-primary/50"

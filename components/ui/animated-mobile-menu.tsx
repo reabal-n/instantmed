@@ -233,7 +233,7 @@ const MenuItem = ({ item, index, onClose }: MenuItemProps) => {
         onClick={handleClick}
         className={cn(
           "flex items-center gap-4 px-4 py-3.5 rounded-2xl",
-          "transition-all duration-300",
+          "transition-[transform,box-shadow] duration-300",
           // Glass hover effect
           "hover:bg-card/70 dark:hover:bg-white/15",
           "hover:shadow-md hover:shadow-primary/10",

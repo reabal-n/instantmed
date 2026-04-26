@@ -29,7 +29,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
           toast: 'group toast group-[.toaster]:bg-white dark:group-[.toaster]:bg-card group-[.toaster]:text-foreground group-[.toaster]:border-border/50 dark:group-[.toaster]:border-white/15 group-[.toaster]:shadow-md group-[.toaster]:shadow-primary/[0.06] dark:group-[.toaster]:shadow-none group-[.toaster]:rounded-2xl group-[.toaster]:border group-[.toaster]:animate-in group-[.toaster]:slide-in-from-top group-[.toaster]:duration-300',
           description: 'group-[.toast]:text-muted-foreground',
           // Action button with pill shape and glow
-          actionButton: 'group-[.toast]:bg-primary group-[.toast]:text-primary-foreground group-[.toast]:rounded-full group-[.toast]:font-medium group-[.toast]:shadow-lg group-[.toast]:shadow-primary/30 group-[.toast]:hover:shadow-xl group-[.toast]:hover:shadow-primary/40 group-[.toast]:transition-all',
+          actionButton: 'group-[.toast]:bg-primary group-[.toast]:text-primary-foreground group-[.toast]:rounded-full group-[.toast]:font-medium group-[.toast]:shadow-lg group-[.toast]:shadow-primary/30 group-[.toast]:hover:shadow-xl group-[.toast]:hover:shadow-primary/40 group-[.toast]:transition-[box-shadow]',
           cancelButton: 'group-[.toast]:bg-muted group-[.toast]:text-muted-foreground group-[.toast]:rounded-full group-[.toast]:hover:bg-muted/80',
           closeButton: 'group-[.toast]:bg-card group-[.toast]:border-border/50 dark:group-[.toast]:border-white/15 group-[.toast]:text-foreground group-[.toast]:hover:bg-muted group-[.toast]:rounded-full',
           // Success - Emerald glow

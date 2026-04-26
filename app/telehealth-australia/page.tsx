@@ -510,7 +510,7 @@ export default function TelehealthAustraliaPage() {
               <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <Link
                   href="/medical-certificate"
-                  className="group bg-white dark:bg-card rounded-2xl border border-border/50 dark:border-white/10 shadow-md shadow-primary/[0.06] dark:shadow-none p-5 hover:shadow-lg hover:shadow-primary/[0.08] hover:-translate-y-0.5 transition-all duration-300"
+                  className="group bg-white dark:bg-card rounded-2xl border border-border/50 dark:border-white/10 shadow-md shadow-primary/[0.06] dark:shadow-none p-5 hover:shadow-lg hover:shadow-primary/[0.08] hover:-translate-y-0.5 transition-[transform,box-shadow] duration-300"
                 >
                   <FileText className="w-5 h-5 text-primary mb-2" />
                   <div className="font-medium text-foreground group-hover:text-primary transition-colors">
@@ -522,7 +522,7 @@ export default function TelehealthAustraliaPage() {
                 </Link>
                 <Link
                   href="/prescriptions"
-                  className="group bg-white dark:bg-card rounded-2xl border border-border/50 dark:border-white/10 shadow-md shadow-primary/[0.06] dark:shadow-none p-5 hover:shadow-lg hover:shadow-primary/[0.08] hover:-translate-y-0.5 transition-all duration-300"
+                  className="group bg-white dark:bg-card rounded-2xl border border-border/50 dark:border-white/10 shadow-md shadow-primary/[0.06] dark:shadow-none p-5 hover:shadow-lg hover:shadow-primary/[0.08] hover:-translate-y-0.5 transition-[transform,box-shadow] duration-300"
                 >
                   <Pill className="w-5 h-5 text-primary mb-2" />
                   <div className="font-medium text-foreground group-hover:text-primary transition-colors">
@@ -534,7 +534,7 @@ export default function TelehealthAustraliaPage() {
                 </Link>
                 <Link
                   href="/consult"
-                  className="group bg-white dark:bg-card rounded-2xl border border-border/50 dark:border-white/10 shadow-md shadow-primary/[0.06] dark:shadow-none p-5 hover:shadow-lg hover:shadow-primary/[0.08] hover:-translate-y-0.5 transition-all duration-300"
+                  className="group bg-white dark:bg-card rounded-2xl border border-border/50 dark:border-white/10 shadow-md shadow-primary/[0.06] dark:shadow-none p-5 hover:shadow-lg hover:shadow-primary/[0.08] hover:-translate-y-0.5 transition-[transform,box-shadow] duration-300"
                 >
                   <Stethoscope className="w-5 h-5 text-primary mb-2" />
                   <div className="font-medium text-foreground group-hover:text-primary transition-colors">
@@ -546,7 +546,7 @@ export default function TelehealthAustraliaPage() {
                 </Link>
                 <Link
                   href="/conditions"
-                  className="group bg-white dark:bg-card rounded-2xl border border-border/50 dark:border-white/10 shadow-md shadow-primary/[0.06] dark:shadow-none p-5 hover:shadow-lg hover:shadow-primary/[0.08] hover:-translate-y-0.5 transition-all duration-300"
+                  className="group bg-white dark:bg-card rounded-2xl border border-border/50 dark:border-white/10 shadow-md shadow-primary/[0.06] dark:shadow-none p-5 hover:shadow-lg hover:shadow-primary/[0.08] hover:-translate-y-0.5 transition-[transform,box-shadow] duration-300"
                 >
                   <BookOpen className="w-5 h-5 text-primary mb-2" />
                   <div className="font-medium text-foreground group-hover:text-primary transition-colors">
@@ -579,7 +579,7 @@ export default function TelehealthAustraliaPage() {
                     <Link
                       key={slug}
                       href={`/locations/state/${slug}`}
-                      className="group bg-white dark:bg-card rounded-2xl border border-border/50 dark:border-white/10 shadow-md shadow-primary/[0.06] dark:shadow-none p-5 hover:shadow-lg hover:shadow-primary/[0.08] hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-between"
+                      className="group bg-white dark:bg-card rounded-2xl border border-border/50 dark:border-white/10 shadow-md shadow-primary/[0.06] dark:shadow-none p-5 hover:shadow-lg hover:shadow-primary/[0.08] hover:-translate-y-0.5 transition-[transform,box-shadow] duration-300 flex items-center justify-between"
                     >
                       <div className="flex items-center gap-3">
                         <MapPin className="w-5 h-5 text-primary shrink-0" />
@@ -592,7 +592,7 @@ export default function TelehealthAustraliaPage() {
                           </div>
                         </div>
                       </div>
-                      <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
+                      <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-[transform,color]" />
                     </Link>
                   )
                 })}

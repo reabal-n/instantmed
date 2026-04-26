@@ -219,7 +219,7 @@ export function MiniStepper({ total, current, className }: MiniStepperProps) {
         <motion.div
           key={index}
           className={cn(
-            'h-1 rounded-full transition-all duration-300',
+            'h-1 rounded-full transition-[transform,box-shadow] duration-300',
             index === current
               ? 'w-6 bg-primary'
               : index < current

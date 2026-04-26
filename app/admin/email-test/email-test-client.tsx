@@ -483,7 +483,7 @@ export function EmailTestClient() {
               ) : viewMode === "preview" ? (
                 <div className="border border-border/50 rounded-lg overflow-hidden bg-muted/30">
                   <div
-                    className="transition-all duration-200 mx-auto"
+                    className="transition-[width] duration-200 mx-auto"
                     style={{
                       maxWidth: previewMode === "mobile" ? "375px" : "100%",
                     }}

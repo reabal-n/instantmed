@@ -40,7 +40,7 @@ export function ProgressiveSection({
   return (
     <div
       className={cn(
-        "transition-all duration-300",
+        "transition-[transform,box-shadow] duration-300",
         bordered && "border border-border rounded-xl overflow-hidden",
         className
       )}

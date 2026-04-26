@@ -43,7 +43,7 @@ export function TrustSection({ config, colors }: TrustSectionProps) {
                 whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.3, delay: i * 0.1 }}
-                className="text-center p-6 bg-white dark:bg-card rounded-xl border border-border/50 dark:border-white/15 shadow-md shadow-primary/[0.06] dark:shadow-none hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/[0.08] transition-all duration-300"
+                className="text-center p-6 bg-white dark:bg-card rounded-xl border border-border/50 dark:border-white/15 shadow-md shadow-primary/[0.06] dark:shadow-none hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/[0.08] transition-[transform,box-shadow] duration-300"
               >
                 {stickerName ? (
                   <div className="flex items-center justify-center mx-auto mb-4">

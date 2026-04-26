@@ -50,7 +50,7 @@ export function Stepper({
               <div className="flex flex-col items-center">
                 <div
                   className={cn(
-                    "flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium transition-all duration-300",
+                    "flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium transition-[transform,box-shadow] duration-300",
                     isCompleted && "bg-primary text-primary-foreground",
                     isCurrent && "bg-primary text-primary-foreground ring-4 ring-primary/20",
                     isPending && "bg-default-100 border border-default-200 text-muted-foreground"
@@ -108,7 +108,7 @@ export function Stepper({
 
           {/* Animated progress line */}
           <div
-            className="absolute top-4 left-4 h-0.5 bg-primary rounded-full transition-all duration-500 ease-out"
+            className="absolute top-4 left-4 h-0.5 bg-primary rounded-full transition-[width] duration-500 ease-out"
             style={{ width: `calc(${progress}% - 16px)` }}
           />
 
@@ -125,7 +125,7 @@ export function Stepper({
                 {/* Step circle */}
                 <div
                   className={cn(
-                    "flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium transition-all duration-300",
+                    "flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium transition-[transform,box-shadow] duration-300",
                     isCompleted && "bg-primary text-primary-foreground",
                     isCurrent && "bg-primary text-primary-foreground ring-4 ring-primary/20 scale-[1.02]",
                     isPending && "bg-background border-2 border-default-200 text-muted-foreground"
@@ -185,7 +185,7 @@ export function Stepper({
             <div
               key={index}
               className={cn(
-                "w-1.5 h-1.5 rounded-full transition-all duration-300",
+                "w-1.5 h-1.5 rounded-full transition-[transform,box-shadow] duration-300",
                 index <= currentStep ? "bg-primary" : "bg-default-200",
                 index === currentStep && "scale-[1.02]"
               )}
@@ -213,7 +213,7 @@ export function CompactStepper({ total, current, className }: CompactStepperProp
         <div
           key={index}
           className={cn(
-            "h-1 rounded-full transition-all duration-300",
+            "h-1 rounded-full transition-[transform,box-shadow] duration-300",
             index === current
               ? "w-6 bg-primary"
               : index < current

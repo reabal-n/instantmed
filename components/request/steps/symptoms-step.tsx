@@ -266,7 +266,7 @@ export default function SymptomsStep({ serviceType, onNext }: SymptomsStepProps)
         <div className="flex items-center justify-between mt-1.5 gap-2">
           <div className="flex-1 h-1 rounded-full bg-muted overflow-hidden">
             <div
-              className={`h-full rounded-full transition-all duration-300 ${
+              className={`h-full rounded-full transition-[width] duration-300 ${
                 detailsQuality.valid ? 'bg-primary' : 'bg-primary/50'
               }`}
               style={{ width: `${Math.min((detailsWordCount / WORD_TARGET) * 100, 100)}%` }}

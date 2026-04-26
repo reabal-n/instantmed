@@ -53,7 +53,7 @@ function LogoRow({ logos, className }: { logos: typeof EMPLOYER_LOGOS; className
                   alt={logo.name}
                   width={96}
                   height={32}
-                  className="object-contain h-6 w-auto opacity-40 grayscale hover:opacity-70 hover:grayscale-0 transition-all duration-300 dark:brightness-150 dark:contrast-75"
+                  className="object-contain h-6 w-auto opacity-40 grayscale hover:opacity-70 hover:grayscale-0 transition-[opacity,filter] duration-300 dark:brightness-150 dark:contrast-75"
                 />
               </div>
             </TooltipTrigger>

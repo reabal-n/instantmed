@@ -106,7 +106,7 @@ export function AdminSidebar({ userName, userRole = "Admin", pendingCount = 0 }:
             key={item.href}
             href={item.href}
             className={cn(
-              "group flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
+              "group flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-[background-color,color] duration-200",
               active
                 ? "bg-primary/10 text-primary"
                 : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
@@ -168,7 +168,7 @@ export function AdminSidebar({ userName, userRole = "Admin", pendingCount = 0 }:
           <Link
             href="/admin"
             className={cn(
-              "flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200",
+              "flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition-[background-color,color] duration-200",
               pathname === "/admin"
                 ? "bg-primary/10 text-primary"
                 : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
@@ -214,7 +214,7 @@ export function AdminSidebar({ userName, userRole = "Admin", pendingCount = 0 }:
                       key={item.href}
                       href={item.href}
                       className={cn(
-                        "flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200",
+                        "flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-[background-color,color] duration-200",
                         active ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
                       )}
                     >
@@ -244,7 +244,7 @@ export function AdminSidebar({ userName, userRole = "Admin", pendingCount = 0 }:
                       key={item.href}
                       href={item.href}
                       className={cn(
-                        "flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200",
+                        "flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-[background-color,color] duration-200",
                         active ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
                       )}
                     >
@@ -302,7 +302,7 @@ export function MobileAdminNav({ pendingCount = 0 }: { pendingCount?: number }) 
         href={item.href}
         onClick={() => setOpen(false)}
         className={cn(
-          "flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200",
+          "flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition-[background-color,color] duration-200",
           active ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
         )}
       >
@@ -365,7 +365,7 @@ export function MobileAdminNav({ pendingCount = 0 }: { pendingCount?: number }) 
             href="/admin"
             onClick={() => setOpen(false)}
             className={cn(
-              "flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200",
+              "flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition-[background-color,color] duration-200",
               pathname === "/admin" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
             )}
           >

@@ -153,7 +153,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                 {isLoaded && user ? (
                   <Button
                     variant="outline"
-                    className="w-full rounded-xl bg-white dark:bg-card hover:bg-muted/50 dark:hover:bg-white/10 border-border/40 transition-all flex items-center justify-center gap-2"
+                    className="w-full rounded-xl bg-white dark:bg-card hover:bg-muted/50 dark:hover:bg-white/10 border-border/40 transition-colors flex items-center justify-center gap-2"
                     onClick={() => {
                       setMobileMenuOpen(false)
                       router.push("/dashboard")
@@ -164,7 +164,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                   </Button>
                 ) : (
                   <AppSignInButton>
-                    <Button variant="outline" className="w-full rounded-xl bg-white dark:bg-card hover:bg-muted/50 dark:hover:bg-white/10 border-border/40 transition-all flex items-center justify-center">
+                    <Button variant="outline" className="w-full rounded-xl bg-white dark:bg-card hover:bg-muted/50 dark:hover:bg-white/10 border-border/40 transition-colors flex items-center justify-center">
                       Log in
                     </Button>
                   </AppSignInButton>
@@ -186,7 +186,7 @@ export function Navbar({ variant = "marketing", userName }: NavbarProps) {
                   handleSignOut()
                 }}
                 disabled={isLoggingOut}
-                className="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-xl bg-destructive-light hover:bg-destructive-light text-destructive transition-all"
+                className="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-xl bg-destructive-light hover:bg-destructive-light text-destructive transition-colors"
               >
                 <LogOut className="h-4 w-4" />
                 <span className="text-sm font-medium">{isLoggingOut ? "Signing out..." : "Sign out"}</span>

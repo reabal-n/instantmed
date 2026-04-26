@@ -39,13 +39,13 @@ export function CompetitorLinksSection({ slugs, className }: CompetitorLinksSect
             <Link
               key={entry.slug}
               href={`/compare/${entry.slug}`}
-              className="group flex items-center gap-3 rounded-xl border border-border/50 bg-white dark:bg-card p-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
+              className="group flex items-center gap-3 rounded-xl border border-border/50 bg-white dark:bg-card p-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-[transform,box-shadow] duration-200"
             >
               <Scale className="w-4 h-4 text-primary shrink-0" />
               <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors flex-1">
                 vs {entry.competitor.name}
               </span>
-              <ArrowRight className="w-3.5 h-3.5 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-all shrink-0" />
+              <ArrowRight className="w-3.5 h-3.5 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-transform shrink-0" />
             </Link>
           ))}
         </div>

@@ -60,7 +60,7 @@ export default function GuidesIndexPage() {
                   <Link
                     key={guide.slug}
                     href={`/guides/${guide.slug}`}
-                    className="group block bg-white dark:bg-card rounded-2xl border border-border/50 shadow-md shadow-primary/[0.06] p-6 hover:shadow-lg hover:shadow-primary/[0.08] hover:-translate-y-0.5 transition-all duration-300"
+                    className="group block bg-white dark:bg-card rounded-2xl border border-border/50 shadow-md shadow-primary/[0.06] p-6 hover:shadow-lg hover:shadow-primary/[0.08] hover:-translate-y-0.5 transition-[transform,box-shadow] duration-300"
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1">
@@ -80,7 +80,7 @@ export default function GuidesIndexPage() {
                           </div>
                         </div>
                       </div>
-                      <ArrowRight className="w-5 h-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all shrink-0 mt-2" />
+                      <ArrowRight className="w-5 h-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-[transform,color] shrink-0 mt-2" />
                     </div>
                   </Link>
                 ))}
@@ -97,7 +97,7 @@ export default function GuidesIndexPage() {
               <p className="text-muted-foreground mb-8">
                 Skip the reading - an AHPRA-registered doctor can help you in under an hour.
               </p>
-              <Button asChild size="lg" className="rounded-full shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all">
+              <Button asChild size="lg" className="rounded-full shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-[transform,box-shadow]">
                 <Link href="/request">
                   Start a request
                   <ArrowRight className="ml-2 w-4 h-4" />

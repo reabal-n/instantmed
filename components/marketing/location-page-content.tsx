@@ -135,7 +135,7 @@ export function LocationPageContent({
 
           <motion.h1
             {...fu(0.06)}
-            className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl mb-4"
+            className="text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl mb-4"
           >
             Online Doctor in {cityData.name}
           </motion.h1>
@@ -213,7 +213,7 @@ export function LocationPageContent({
                       <TrendingUp className="h-3.5 w-3.5 text-primary" />
                       <span className="text-xs font-medium text-muted-foreground">{stat.label}</span>
                     </div>
-                    <p className="text-2xl font-bold text-foreground mb-0.5">{stat.value}</p>
+                    <p className="text-2xl font-semibold text-foreground mb-0.5">{stat.value}</p>
                     <p className="text-xs text-muted-foreground leading-tight">{stat.context}</p>
                   </motion.div>
                 ))}
@@ -268,7 +268,7 @@ export function LocationPageContent({
       {/* Services */}
       <section className="px-4 py-12">
         <div className="mx-auto max-w-3xl">
-          <motion.h2 {...fu(0)} className="text-2xl font-bold mb-2 text-center">
+          <motion.h2 {...fu(0)} className="text-2xl font-semibold mb-2 text-center">
             Services Available in {cityData.name}
           </motion.h2>
           <motion.p
@@ -285,7 +285,7 @@ export function LocationPageContent({
             {SERVICES.map((service) => (
               <motion.div key={service.href} {...itemProps}>
                 <Link href={service.href} className="block group h-full">
-                  <div className="h-full p-5 rounded-xl bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06] group-hover:border-primary/30 group-hover:shadow-lg group-hover:shadow-primary/[0.08] transition-all duration-200">
+                  <div className="h-full p-5 rounded-xl bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06] group-hover:border-primary/30 group-hover:shadow-lg group-hover:shadow-primary/[0.08] transition-[box-shadow,border-color] duration-200">
                     <service.Icon className="h-5 w-5 text-primary mb-3" />
                     <h3 className="font-semibold text-foreground mb-1">{service.name}</h3>
                     <p className="text-xs text-muted-foreground mb-4 leading-relaxed">
@@ -293,7 +293,7 @@ export function LocationPageContent({
                     </p>
                     <div className="flex items-center justify-between mt-auto">
                       <span className="text-sm font-medium text-primary">{service.price}</span>
-                      <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-all duration-150" />
+                      <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-transform duration-150" />
                     </div>
                   </div>
                 </Link>
@@ -325,7 +325,7 @@ export function LocationPageContent({
       {/* How It Works */}
       <section className="px-4 py-12">
         <div className="mx-auto max-w-3xl">
-          <motion.h2 {...fu(0)} className="text-2xl font-bold mb-8 text-center">
+          <motion.h2 {...fu(0)} className="text-2xl font-semibold mb-8 text-center">
             How It Works for {cityData.name} Patients
           </motion.h2>
           <motion.div
@@ -355,7 +355,7 @@ export function LocationPageContent({
                 className="text-center p-5 rounded-xl bg-white dark:bg-card border border-border/50 shadow-sm shadow-primary/[0.04]"
               >
                 <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
-                  <span className="font-bold text-primary text-sm">{item.step}</span>
+                  <span className="font-semibold text-primary text-sm">{item.step}</span>
                 </div>
                 <h3 className="font-semibold mb-2 text-sm">{item.title}</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">{item.desc}</p>
@@ -368,7 +368,7 @@ export function LocationPageContent({
       {/* Why Choose */}
       <section className="px-4 py-12 bg-muted/30">
         <div className="mx-auto max-w-3xl">
-          <motion.h2 {...fu(0)} className="text-2xl font-bold mb-8 text-center">
+          <motion.h2 {...fu(0)} className="text-2xl font-semibold mb-8 text-center">
             Why {cityData.name} Residents Choose InstantMed
           </motion.h2>
           <motion.div
@@ -401,7 +401,7 @@ export function LocationPageContent({
         <div className="mx-auto max-w-2xl">
           <motion.h2
             {...fu(0)}
-            className="text-2xl font-bold mb-8 text-center flex items-center justify-center gap-2"
+            className="text-2xl font-semibold mb-8 text-center flex items-center justify-center gap-2"
           >
             <HelpCircle className="h-5 w-5 text-primary" />
             Frequently Asked Questions
@@ -430,7 +430,7 @@ export function LocationPageContent({
       {/* CTA */}
       <section className="px-4 py-12 bg-muted/30">
         <motion.div {...fu(0)} className="mx-auto max-w-xl text-center">
-          <h2 className="text-2xl font-bold mb-4">Ready to Get Started?</h2>
+          <h2 className="text-2xl font-semibold mb-4">Ready to Get Started?</h2>
           <p className="text-muted-foreground mb-6">
             Join thousands of {cityData.name} residents who trust InstantMed for their telehealth
             needs.
@@ -463,7 +463,7 @@ export function LocationPageContent({
             {RELATED.map((resource) => (
               <motion.div key={resource.href} {...itemProps}>
                 <Link href={resource.href} className="block group">
-                  <div className="flex items-start gap-3 p-4 rounded-xl border border-border/50 hover:border-primary/20 hover:bg-muted/30 transition-all duration-200">
+                  <div className="flex items-start gap-3 p-4 rounded-xl border border-border/50 hover:border-primary/20 hover:bg-muted/30 transition-[background-color,border-color] duration-200">
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">
                         {resource.title}
@@ -472,7 +472,7 @@ export function LocationPageContent({
                         {resource.desc}
                       </p>
                     </div>
-                    <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary shrink-0 mt-0.5 group-hover:translate-x-0.5 transition-all duration-150" />
+                    <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary shrink-0 mt-0.5 group-hover:translate-x-0.5 transition-transform duration-150" />
                   </div>
                 </Link>
               </motion.div>

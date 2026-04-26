@@ -211,7 +211,7 @@ export function PricingClient() {
                 <div
                   key={service.name}
                   className={cn(
-                    "rounded-2xl border border-border/50 dark:border-white/15 bg-white dark:bg-card p-5 lg:p-6 relative hover:-translate-y-1 transition-all duration-300",
+                    "rounded-2xl border border-border/50 dark:border-white/15 bg-white dark:bg-card p-5 lg:p-6 relative hover:-translate-y-1 transition-[transform,box-shadow] duration-300",
                     service.popular
                       ? "ring-2 ring-primary shadow-lg shadow-primary/[0.1] hover:shadow-xl hover:shadow-primary/[0.15]"
                       : "shadow-md shadow-primary/[0.06] dark:shadow-none hover:shadow-lg hover:shadow-primary/[0.08]"

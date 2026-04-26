@@ -70,7 +70,7 @@ export function FeatureGrid({
               ease: [0.25, 0.1, 0.25, 1],
             }}
           >
-            <div className="h-full rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-md shadow-primary/[0.06] dark:shadow-none p-6 hover:-translate-y-1 hover:shadow-lg hover:shadow-primary/[0.1] transition-all duration-300">
+            <div className="h-full rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-md shadow-primary/[0.06] dark:shadow-none p-6 hover:-translate-y-1 hover:shadow-lg hover:shadow-primary/[0.1] transition-[transform,box-shadow] duration-300">
               <div className="mb-4 inline-flex rounded-xl bg-primary/5 p-3 text-primary">
                 {feature.icon}
               </div>

@@ -173,7 +173,7 @@ export function HowItWorks() {
             asChild
             variant="default"
             size="lg"
-            className="px-8 h-11 font-semibold shadow-lg shadow-primary/25 dark:shadow-primary/15 hover:shadow-xl hover:shadow-primary/35 dark:hover:shadow-primary/25 hover:-translate-y-0.5 transition-all"
+            className="px-8 h-11 font-semibold shadow-lg shadow-primary/25 dark:shadow-primary/15 hover:shadow-xl hover:shadow-primary/35 dark:hover:shadow-primary/25 hover:-translate-y-0.5 transition-[transform,box-shadow]"
           >
             <Link href="/request">
               Get started <ArrowRight className="h-4 w-4" />

@@ -62,7 +62,7 @@ function Switch({
           "data-[state=checked]:bg-success",
           "data-[state=checked]:border-success/40",
           // Gentle transition
-          "transition-all duration-300 ease-out",
+          "transition-[transform,box-shadow] duration-300 ease-out",
           // Focus
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2",
           // Disabled
@@ -79,7 +79,7 @@ function Switch({
             // Slide animation
             "translate-x-0.5 data-[state=checked]:translate-x-[22px]",
             // Gentle transition
-            "transition-all duration-300 ease-out",
+            "transition-[transform,box-shadow] duration-300 ease-out",
             // Vertical centering
             "mt-[2px]"
           )}

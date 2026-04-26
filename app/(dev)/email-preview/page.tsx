@@ -260,7 +260,7 @@ export default function EmailPreviewIndex() {
                 <Link
                   key={template.slug}
                   href={`/email-preview/${template.slug}`}
-                  className="block p-5 bg-white rounded-xl border border-gray-200 hover:border-primary/30 hover:shadow-md transition-all"
+                  className="block p-5 bg-white rounded-xl border border-gray-200 hover:border-primary/30 hover:shadow-md transition-[border-color,box-shadow]"
                 >
                   <h3 className="text-base font-semibold text-gray-900">{template.name}</h3>
                   <p className="mt-1 text-sm text-gray-500">{template.description}</p>

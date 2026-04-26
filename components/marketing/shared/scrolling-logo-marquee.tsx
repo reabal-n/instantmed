@@ -77,7 +77,7 @@ function LogoRow({
                   width={96}
                   height={32}
                   className={cn(
-                    "object-contain h-6 w-auto transition-all duration-300",
+                    "object-contain h-6 w-auto transition-[opacity,filter] duration-300",
                     colored
                       ? "opacity-60 hover:opacity-90"
                       : "opacity-40 grayscale hover:opacity-70 hover:grayscale-0 dark:brightness-150 dark:contrast-75",

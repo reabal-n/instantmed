@@ -124,7 +124,7 @@ export function SupportedMedicationsSection() {
                   "rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/15 border-t-2",
                   cat.accent,
                   "shadow-sm shadow-primary/[0.04] dark:shadow-none p-4",
-                  "hover:shadow-md hover:shadow-primary/[0.08] hover:-translate-y-0.5 transition-all duration-300"
+                  "hover:shadow-md hover:shadow-primary/[0.08] hover:-translate-y-0.5 transition-[transform,box-shadow] duration-300"
                 )}
               >
                 <div

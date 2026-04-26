@@ -1,10 +1,11 @@
 "use client"
 
-import { motion } from "framer-motion"
+import { motion, type Variants } from "framer-motion"
 import { ArrowRight } from "lucide-react"
 import Link from "next/link"
 
 import { GuaranteeBadge } from "@/components/marketing/guarantee-badge"
+import { LastReviewedSignal } from "@/components/marketing/last-reviewed-signal"
 import { HairLossHeroMockup } from "@/components/marketing/mockups/hair-loss-hero-mockup"
 import { AvailabilityIndicator } from "@/components/shared/availability-indicator"
 import { TrustBadgeRow } from "@/components/shared/trust-badge"
@@ -23,6 +24,10 @@ export function HairLossHeroSection({
   const reduced = useReducedMotion()
   const container = reduced ? {} : stagger.container
   const item = reduced ? {} : stagger.item
+  const headlineItem: Variants = reduced ? {} : {
+    initial: { opacity: 1, y: 8 },
+    animate: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.23, 1, 0.32, 1] } },
+  }
 
   return (
     <section aria-label="Hair loss treatment service overview" className="relative overflow-hidden pt-6 pb-6 sm:pt-16 sm:pb-20 lg:pt-20 lg:pb-24">
@@ -35,7 +40,7 @@ export function HairLossHeroSection({
         >
           <div className="flex-1 min-w-0 text-center lg:text-left">
             <motion.h1
-              variants={item}
+              variants={headlineItem}
               className="text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight mb-4 sm:mb-5 leading-[1.1] text-balance"
             >
               Stop putting off hair loss treatment.
@@ -64,7 +69,7 @@ export function HairLossHeroSection({
               <Button
                 asChild
                 size="lg"
-                className="px-8 h-12 text-base font-semibold shadow-md shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 transition-all active:scale-[0.98]"
+                className="px-8 h-12 text-base font-semibold shadow-md shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 transition-[transform,box-shadow] active:scale-[0.98]"
                 onClick={onCTAClick}
               >
                 <Link href="/request?service=consult&subtype=hair_loss">
@@ -88,11 +93,12 @@ export function HairLossHeroSection({
               <GuaranteeBadge size="md" />
             </motion.div>
 
-            <motion.div variants={item}>
+            <motion.div variants={item} className="flex flex-col items-center lg:items-start gap-2">
               <TrustBadgeRow
                 preset="trust_ribbon"
                 className="justify-center lg:justify-start"
               />
+              <LastReviewedSignal className="justify-center lg:justify-start" />
             </motion.div>
           </div>
 

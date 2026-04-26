@@ -67,7 +67,7 @@ const SelectTrigger = React.forwardRef<
       "bg-card/95 dark:bg-white/10 backdrop-blur-xl",
       "border border-border",
       "ring-offset-background",
-      "transition-all duration-200",
+      "transition-[border-color,box-shadow] duration-200",
       // Hover state
       "hover:border-border",
       // Focus state - clean ring

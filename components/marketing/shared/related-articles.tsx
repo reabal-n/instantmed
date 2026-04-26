@@ -24,7 +24,7 @@ export function RelatedArticles({ articles }: RelatedArticlesProps) {
             <Link
               key={article.href}
               href={article.href}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white dark:bg-card border border-border/30 dark:border-white/15 text-sm text-foreground hover:border-primary/30 hover:shadow-sm transition-all"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white dark:bg-card border border-border/30 dark:border-white/15 text-sm text-foreground hover:border-primary/30 hover:shadow-sm transition-[box-shadow,border-color]"
             >
               {article.title}
               <ArrowRight className="h-3 w-3 text-muted-foreground" aria-hidden="true" />

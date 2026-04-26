@@ -159,7 +159,7 @@ export function AnimatedSelect({
           disabled={disabled}
           className={cn(
             "w-full flex items-center justify-between px-4 h-12 rounded-xl text-sm font-medium",
-            "transition-all duration-200 ease-out",
+            "transition-[background-color,color,border-color] duration-200 ease-out",
             "focus:outline-none focus:ring-2 focus:ring-offset-2",
             // Light mode
             "bg-white dark:bg-popover border border-border/60",

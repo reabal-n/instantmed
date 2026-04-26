@@ -177,7 +177,7 @@ function MobileTOC({ content }: { content: ArticleSection[] }) {
               href={`#${slugify(h.content)}`}
               className="flex items-center gap-2.5 text-sm text-muted-foreground hover:text-primary transition-colors py-1"
             >
-              <span className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary shrink-0">{i + 1}</span>
+              <span className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-semibold text-primary shrink-0">{i + 1}</span>
               <span>{h.content}</span>
             </a>
           ))}
@@ -274,7 +274,7 @@ function ContentSection({ section }: { section: ArticleSection }) {
             <li key={i} className="flex gap-4">
               {/* Step indicator with connecting line */}
               <div className="flex flex-col items-center">
-                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary flex items-center justify-center text-xs font-bold text-white shadow-sm">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary flex items-center justify-center text-xs font-semibold text-white shadow-sm">
                   {i + 1}
                 </div>
                 {i < arr.length - 1 && (
@@ -405,7 +405,7 @@ export function ArticleTemplate({ article, relatedArticles, allArticles = [] }: 
       {/* Reading progress bar */}
       <div className="fixed top-0 left-0 right-0 z-50 h-0.5 bg-border/30">
         <div
-          className="h-full bg-primary transition-all duration-100 ease-out"
+          className="h-full bg-primary transition-[width] duration-100 ease-out"
           style={{ width: `${readingProgress}%` }}
         />
       </div>
@@ -501,7 +501,7 @@ export function ArticleTemplate({ article, relatedArticles, allArticles = [] }: 
             <ul className="space-y-2">
               {h2s.map((s, i) => (
                 <li key={i} className="flex items-start gap-2.5 text-sm text-foreground">
-                  <span className="w-5 h-5 rounded-full bg-primary/15 flex items-center justify-center text-[10px] font-bold text-primary shrink-0 mt-0.5">{i + 1}</span>
+                  <span className="w-5 h-5 rounded-full bg-primary/15 flex items-center justify-center text-[10px] font-semibold text-primary shrink-0 mt-0.5">{i + 1}</span>
                   <span>{s.content}</span>
                 </li>
               ))}
@@ -562,7 +562,7 @@ export function ArticleTemplate({ article, relatedArticles, allArticles = [] }: 
               <Link
                 key={i}
                 href={service.href}
-                className="group flex items-start gap-4 p-4 rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/10 hover:border-primary/30 dark:hover:border-primary/40 transition-all"
+                className="group flex items-start gap-4 p-4 rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/10 hover:border-primary/30 dark:hover:border-primary/40 transition-[box-shadow,border-color]"
               >
                 <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                   <ServiceIcon icon={service.icon} />
@@ -575,7 +575,7 @@ export function ArticleTemplate({ article, relatedArticles, allArticles = [] }: 
                     {service.description}
                   </p>
                 </div>
-                <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all shrink-0 mt-3" />
+                <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-transform shrink-0 mt-3" />
               </Link>
             ))}
           </div>

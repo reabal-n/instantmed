@@ -444,7 +444,7 @@ function ContactFormCard({
                     aria-checked={selectedReason === reason.id}
                     onClick={() => setSelectedReason(reason.id)}
                     className={cn(
-                      "flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200",
+                      "flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-medium transition-[background-color,color] duration-200",
                       selectedReason === reason.id
                         ? "bg-primary text-primary-foreground shadow-lg"
                         : "bg-foreground/5 text-muted-foreground hover:bg-foreground/10"

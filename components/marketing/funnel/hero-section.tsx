@@ -53,9 +53,9 @@ export function HeroSection({ config, colors, isDisabled }: HeroSectionProps) {
           <div className={cn('flex-1 text-center', hasImages && 'lg:text-left')}>
             {/* Headline */}
             <motion.h1
-              initial={prefersReducedMotion ? {} : { opacity: 0, y: 12 }}
+              initial={prefersReducedMotion ? {} : { opacity: 1, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
+              transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
               className="text-[1.35rem] sm:text-2xl md:text-3xl lg:text-4xl font-semibold tracking-tight text-foreground mb-6 leading-[1.15] text-balance"
             >
               {config.hero.headlineGradient ? (
@@ -136,7 +136,7 @@ export function HeroSection({ config, colors, isDisabled }: HeroSectionProps) {
                 <Button
                   asChild
                   size="lg"
-                  className="px-8 h-12 text-base font-semibold shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all active:scale-[0.98]"
+                  className="px-8 h-12 text-base font-semibold shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-[transform,box-shadow] active:scale-[0.98]"
                 >
                   <Link href={config.hero.ctaHref}>
                     {config.hero.ctaText}
@@ -148,7 +148,7 @@ export function HeroSection({ config, colors, isDisabled }: HeroSectionProps) {
               {/* Glowing highlight badge */}
               {config.hero.highlightBadge && (
                 <div className={cn(
-                  'relative inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all',
+                  'relative inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-colors',
                   colors.light, colors.text, colors.border
                 )}>
                   <span className="relative flex h-2 w-2">

@@ -99,7 +99,7 @@ export function RepeatRxListClient({ initialRequests, counts }: RepeatRxListClie
             return (
               <Card
                 key={req.id}
-                className={`rounded-xl border-border/50 transition-all duration-200 ${
+                className={`rounded-xl border-border/50 transition-[background-color,border-color] duration-200 ${
                   isActionable ? "hover:border-primary/30" : ""
                 }`}
               >

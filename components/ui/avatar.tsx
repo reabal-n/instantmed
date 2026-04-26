@@ -41,7 +41,7 @@ function Avatar({
         sizeClasses[size],
         "ring-2 ring-white/50 dark:ring-white/20",
         "hover:ring-primary/50 hover:shadow-lg hover:shadow-primary/30",
-        "transition-all duration-300",
+        "transition-[transform,box-shadow] duration-300",
         className
       )}
       {...props}

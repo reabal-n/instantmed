@@ -230,7 +230,7 @@ export function MobileNav({ items = defaultItems, moreMenuItems = moreItems, cla
                 className={cn(
                   "flex flex-col items-center gap-1 px-3 py-2 rounded-xl",
                   "min-w-[60px] relative",
-                  "transition-all duration-200",
+                  "transition-[background-color,color] duration-200",
                   "tap-bounce",
                   isActive
                     ? "text-primary bg-primary/10"

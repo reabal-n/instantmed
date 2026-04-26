@@ -247,7 +247,7 @@ export function NotificationsClient({ notifications: initialNotifications, patie
                   const content = (
                     <div
                       className={cn(
-                        "glass-card rounded-xl p-4 transition-all hover:shadow-md cursor-pointer",
+                        "glass-card rounded-xl p-4 transition-[box-shadow] hover:shadow-md cursor-pointer",
                         !notification.read && "ring-2 ring-primary/20 bg-primary/5"
                       )}
                       onClick={() => !notification.read && markAsRead(notification.id)}

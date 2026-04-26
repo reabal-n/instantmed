@@ -154,7 +154,7 @@ export function EDGuideSection() {
                 ].map((step, i, arr) => (
                   <div key={step.n} className="flex gap-3">
                     <div className="flex flex-col items-center">
-                      <div className="w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold shrink-0">
+                      <div className="w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-semibold shrink-0">
                         {step.n}
                       </div>
                       {i < arr.length - 1 && <div className="w-px flex-1 bg-primary/20 my-1" />}

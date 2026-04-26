@@ -249,7 +249,7 @@ export function EdMechanismExplainer({ className }: EdMechanismExplainerProps) {
           <Button
             asChild
             size="lg"
-            className="px-8 h-12 text-base font-semibold shadow-md shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 transition-all active:scale-[0.98]"
+            className="px-8 h-12 text-base font-semibold shadow-md shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 transition-[transform,box-shadow] active:scale-[0.98]"
             onClick={handleCtaClick}
           >
             <Link href="/request?service=consult&subtype=ed">

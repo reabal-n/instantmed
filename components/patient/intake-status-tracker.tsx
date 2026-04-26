@@ -349,7 +349,7 @@ export function IntakeStatusTracker({
                 {/* Icon */}
                 <div
                   className={cn(
-                    "relative z-10 h-8 w-8 rounded-full flex items-center justify-center border-2 transition-all duration-300",
+                    "relative z-10 h-8 w-8 rounded-full flex items-center justify-center border-2 transition-[transform,box-shadow] duration-300",
                     isComplete && "bg-primary border-primary text-primary-foreground",
                     isActive && "bg-primary/10 border-primary text-primary animate-pulse",
                     isPending && "bg-muted border-muted-foreground/20 text-muted-foreground"

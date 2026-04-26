@@ -42,7 +42,7 @@ export function RepeatRxConditionsSection() {
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
           {CONDITIONS.map((condition, i) => (
             <Reveal key={condition.title} delay={Math.min(i, 4) * 0.05}>
-              <div className="group flex flex-col items-center text-center rounded-2xl border border-border/50 bg-white dark:bg-card p-4 shadow-sm shadow-primary/[0.04] hover:shadow-md hover:shadow-primary/[0.07] hover:-translate-y-0.5 transition-all duration-200">
+              <div className="group flex flex-col items-center text-center rounded-2xl border border-border/50 bg-white dark:bg-card p-4 shadow-sm shadow-primary/[0.04] hover:shadow-md hover:shadow-primary/[0.07] hover:-translate-y-0.5 transition-[transform,box-shadow] duration-200">
                 <StickerIcon name={condition.sticker} size={44} className="mb-3" />
                 <p className="text-sm font-semibold text-foreground leading-tight mb-1">
                   {condition.title}

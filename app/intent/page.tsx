@@ -100,7 +100,7 @@ export default function IntentPage() {
                   <Link
                     key={intent.slug}
                     href={`/intent/${intent.slug}`}
-                    className="group p-5 rounded-xl border border-border/50 dark:border-white/15 bg-white dark:bg-card shadow-md shadow-primary/[0.06] dark:shadow-none hover:border-primary/30 transition-all"
+                    className="group p-5 rounded-xl border border-border/50 dark:border-white/15 bg-white dark:bg-card shadow-md shadow-primary/[0.06] dark:shadow-none hover:border-primary/30 transition-[border-color,box-shadow]"
                   >
                     <h2 className="font-semibold text-foreground group-hover:text-primary transition-colors mb-1">
                       {intent.name}

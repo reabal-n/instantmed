@@ -27,7 +27,7 @@ function Progress({
     >
       <ProgressPrimitive.Indicator
         className={cn(
-          "h-full w-full flex-1 rounded-full transition-all duration-300",
+          "h-full w-full flex-1 rounded-full transition-[transform,box-shadow] duration-300",
           // Gradient indicator with glow
           "bg-gradient-to-r from-primary via-primary to-blue-500",
           "shadow-lg shadow-primary/40"

@@ -302,7 +302,7 @@ export function BusinessKPIClient({ data }: { data: KPIData }) {
                     <span className="w-12 text-muted-foreground shrink-0">{label}</span>
                     <div className="flex-1 bg-secondary rounded-full h-3">
                       <div
-                        className="h-3 rounded-full bg-emerald-500 transition-all"
+                        className="h-3 rounded-full bg-emerald-500 transition-[width]"
                         style={{ width: `${Math.max(pct, 1)}%` }}
                       />
                     </div>
@@ -351,7 +351,7 @@ export function BusinessKPIClient({ data }: { data: KPIData }) {
                     </div>
                     <div className="w-full bg-secondary rounded-full h-3">
                       <div
-                        className="h-3 rounded-full bg-blue-500 transition-all"
+                        className="h-3 rounded-full bg-blue-500 transition-[width]"
                         style={{ width: `${Math.max(pct, 2)}%` }}
                       />
                     </div>

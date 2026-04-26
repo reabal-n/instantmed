@@ -29,7 +29,7 @@ export function RelatedArticles({ articles, currentSlug }: RelatedArticlesProps)
             href={`/blog/${article.slug}`}
             className="group"
           >
-            <article className="bg-white dark:bg-card rounded-xl overflow-hidden h-full border border-border/50 dark:border-white/10 hover:border-primary/50 transition-all hover:shadow-lg">
+            <article className="bg-white dark:bg-card rounded-xl overflow-hidden h-full border border-border/50 dark:border-white/10 hover:border-primary/50 transition-[box-shadow,border-color] hover:shadow-lg">
               <div className="relative h-32 bg-card/40 dark:bg-white/10">
                 <Image
                   src={article.heroImage}

@@ -115,7 +115,7 @@ export default function EdPreferencesStep({ onNext }: EdPreferencesStepProps) {
               variants={prefersReducedMotion ? undefined : stagger.item}
               onClick={() => setAnswer("edPreference", option.value)}
               className={cn(
-                "w-full text-left p-4 rounded-2xl border cursor-pointer transition-all",
+                "w-full text-left p-4 rounded-2xl border cursor-pointer transition-[background-color,border-color]",
                 "focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 outline-none",
                 isSelected
                   ? "border-primary ring-2 ring-primary shadow-lg shadow-primary/[0.1] bg-white dark:bg-card"

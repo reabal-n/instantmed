@@ -223,7 +223,7 @@ export default function HairLossAssessmentStep({
                 aria-checked={isSelected}
                 aria-label={`${option.label} - ${option.badge}`}
                 className={cn(
-                  "flex flex-col items-center gap-2 p-3 rounded-xl border text-center cursor-pointer transition-all",
+                  "flex flex-col items-center gap-2 p-3 rounded-xl border text-center cursor-pointer transition-[background-color,border-color]",
                   "focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 outline-none",
                   isSelected
                     ? "border-primary bg-primary/5 ring-1 ring-primary/30"
@@ -288,7 +288,7 @@ export default function HairLossAssessmentStep({
               <label
                 key={option.value}
                 className={cn(
-                  "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all",
+                  "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-[background-color,border-color]",
                   hairFamilyHistory === option.value
                     ? "border-primary bg-primary/5"
                     : "border-border hover:border-primary/50"

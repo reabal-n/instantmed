@@ -472,7 +472,7 @@ export function ConsultFlowClient({
         <div className="max-w-lg mx-auto px-4 h-14 flex items-center justify-between">
           <button
             onClick={stepIndex > 0 ? goBack : () => router.push("/consult")}
-            className="p-2 -ml-2 hover:bg-muted rounded-full transition-all duration-200"
+            className="p-2 -ml-2 hover:bg-muted rounded-full transition-[background-color] duration-200"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
@@ -496,7 +496,7 @@ export function ConsultFlowClient({
       {/* Content */}
       <main className="max-w-lg mx-auto px-4 pb-36">
         <div
-          className={`transition-all duration-150 ${
+          className={`transition-[opacity,transform] duration-150 ${
             isTransitioning ? "opacity-0 translate-y-2" : "opacity-100 translate-y-0"
           }`}
         >
@@ -525,7 +525,7 @@ export function ConsultFlowClient({
                       setConsultReason(reason.id)
                       setTimeout(goNext, 150)
                     }}
-                    className={`w-full p-5 rounded-2xl border-2 text-left transition-all duration-300 ${
+                    className={`w-full p-5 rounded-2xl border-2 text-left transition-[transform,box-shadow] duration-300 ${
                       consultReason === reason.id
                         ? "border-primary/50 bg-primary/10 dark:bg-primary/20 shadow-md shadow-primary/15"
                         : "bg-white dark:bg-card border-border/50 hover:border-primary/40 hover:bg-muted/50 hover:-translate-y-0.5 hover:shadow-md hover:shadow-primary/10"
@@ -623,7 +623,7 @@ export function ConsultFlowClient({
                       <button
                         key={n}
                         onClick={() => setIrn(n)}
-                        className={`flex-1 h-12 rounded-xl bg-white dark:bg-card border-border/30 dark:border-white/10 text-lg font-medium transition-all duration-200 ${
+                        className={`flex-1 h-12 rounded-xl bg-white dark:bg-card border-border/30 dark:border-white/10 text-lg font-medium transition-[background-color,border-color,color] duration-200 ${
                           irn === n
                             ? "border-primary bg-primary/5 text-primary"
                             : "border-border/60 hover:border-border"
@@ -692,7 +692,7 @@ export function ConsultFlowClient({
                   </div>
 
                   <Button
-                    className="w-full h-11 rounded-full bg-primary hover:bg-primary/90 text-white shadow-md shadow-primary/20 transition-all duration-300"
+                    className="w-full h-11 rounded-full bg-primary hover:bg-primary/90 text-white shadow-md shadow-primary/20 transition-[transform,box-shadow] duration-300"
                     onClick={() => router.push(`/sign-in?redirect=${encodeURIComponent(window.location.href)}`)}
                   >
                     Sign in with email
@@ -721,7 +721,7 @@ export function ConsultFlowClient({
                       {CONSULT_REASONS.find((r) => r.id === consultReason)?.label}
                     </p>
                   </div>
-                  <button onClick={() => goTo("reason")} className="p-1 hover:bg-muted rounded-xl transition-all duration-200">
+                  <button onClick={() => goTo("reason")} className="p-1 hover:bg-muted rounded-xl transition-[background-color] duration-200">
                     <Pencil className="w-3 h-3 text-muted-foreground" />
                   </button>
                 </div>
@@ -793,7 +793,7 @@ export function ConsultFlowClient({
         <div className="max-w-lg mx-auto">
           {step === "payment" ? (
             <Button
-              className="w-full h-12 rounded-full text-base bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+              className="w-full h-12 rounded-full text-base bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 hover:scale-[1.02] active:scale-[0.98] transition-[transform,box-shadow] duration-200"
               disabled={isSubmitting}
               onClick={handleSubmit}
             >
@@ -808,7 +808,7 @@ export function ConsultFlowClient({
             </Button>
           ) : step !== "signup" || !showEmailConfirm ? (
             <Button
-              className="w-full h-12 rounded-full text-base bg-primary hover:bg-primary/90 text-white shadow-md shadow-primary/20 transition-all duration-300"
+              className="w-full h-12 rounded-full text-base bg-primary hover:bg-primary/90 text-white shadow-md shadow-primary/20 transition-[transform,box-shadow] duration-300"
               disabled={!canContinue()}
               onClick={() => {
                 if (step === "safety" && checkSafetyKnockout()) {

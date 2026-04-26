@@ -46,7 +46,7 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
           "text-card-foreground",
           craftCardStyles[glass],
           "rounded-xl",
-          "transition-all duration-200",
+          "transition-[box-shadow] duration-200",
           hoverable && "hover:shadow-md hover:border-border/80",
           pressable && "active:scale-[0.99]",
           className

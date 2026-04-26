@@ -47,8 +47,7 @@ export function CertificateShowcaseMockup() {
         whileInView="visible"
         viewport={{ once: true, margin: "-60px" }}
       >
-        {/* Top accent bar */}
-        <div className="h-1 w-full bg-gradient-to-r from-primary/40 via-primary/60 to-primary/40" />
+        <div className="h-1 w-full bg-primary/50" />
 
         {/*
           Force light-mode colors inside the document.

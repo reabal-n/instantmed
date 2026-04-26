@@ -85,7 +85,7 @@ function NavLink({ item, isActive, badgeCount }: { item: NavItem; isActive: bool
       prefetch={true}
       onMouseEnter={handleMouseEnter}
       className={cn(
-        "group flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200",
+        "group flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition-[background-color,color] duration-200",
         isActive
           ? "bg-primary/10 text-primary"
           : "text-muted-foreground hover:text-foreground hover:bg-muted/60",
@@ -365,7 +365,7 @@ export function MobileDashboardNav({
                   href={item.href}
                   onClick={() => setOpen(false)}
                   className={cn(
-                    "group flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200",
+                    "group flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition-[background-color,color] duration-200",
                     isActive
                       ? "bg-primary/10 text-primary"
                       : "text-muted-foreground hover:text-foreground hover:bg-muted/60"

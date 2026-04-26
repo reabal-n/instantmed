@@ -263,7 +263,7 @@ export default function CertificateStep({ onNext }: CertificateStepProps) {
                 aria-checked={isSelected}
                 onClick={() => handleCertTypeClick(type.id)}
                 className={cn(
-                  "relative flex-1 flex flex-col items-center gap-1 py-3 rounded-lg text-sm font-medium transition-all duration-200 touch-manipulation",
+                  "relative flex-1 flex flex-col items-center gap-1 py-3 rounded-lg text-sm font-medium transition-[background-color,color] duration-200 touch-manipulation",
                   isSelected
                     ? "bg-white dark:bg-white/10 text-foreground shadow-sm"
                     : "text-muted-foreground hover:text-foreground"
@@ -310,7 +310,7 @@ export default function CertificateStep({ onNext }: CertificateStepProps) {
                   aria-checked={isSelected}
                   onClick={() => handleDaysClick(days)}
                   className={cn(
-                    "flex-1 flex flex-col items-center gap-0.5 py-3 rounded-xl text-sm font-medium border transition-all duration-150 touch-manipulation",
+                    "flex-1 flex flex-col items-center gap-0.5 py-3 rounded-xl text-sm font-medium border transition-[background-color,border-color,color] duration-150 touch-manipulation",
                     isSelected
                       ? "bg-primary text-primary-foreground border-primary"
                       : "bg-background text-foreground border-border/60 hover:border-primary/50 hover:bg-primary/5"
@@ -361,7 +361,7 @@ export default function CertificateStep({ onNext }: CertificateStepProps) {
                   aria-checked={isSelected}
                   onClick={() => handleStartOffsetClick(offset)}
                   className={cn(
-                    "flex-1 py-2.5 text-xs font-medium rounded-xl border transition-all duration-150 touch-manipulation",
+                    "flex-1 py-2.5 text-xs font-medium rounded-xl border transition-[background-color,border-color,color] duration-150 touch-manipulation",
                     isSelected
                       ? "bg-primary text-primary-foreground border-primary"
                       : "bg-background text-foreground border-border/60 hover:border-primary/50 hover:bg-primary/5"

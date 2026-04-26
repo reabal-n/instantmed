@@ -80,7 +80,7 @@ export default function BlogPage() {
                   <SectionPill>Featured</SectionPill>
                 </div>
                 <Link href={`/blog/${featured.slug}`} className="group block">
-                  <div className="rounded-2xl border border-border/50 dark:border-white/15 bg-white dark:bg-card shadow-md shadow-primary/[0.06] dark:shadow-none overflow-hidden hover:shadow-lg hover:shadow-primary/[0.08] transition-all duration-300">
+                  <div className="rounded-2xl border border-border/50 dark:border-white/15 bg-white dark:bg-card shadow-md shadow-primary/[0.06] dark:shadow-none overflow-hidden hover:shadow-lg hover:shadow-primary/[0.08] transition-[transform,box-shadow] duration-300">
                     <div className="grid md:grid-cols-2">
                       <div className="relative h-48 md:h-full min-h-[240px]">
                         <Image
@@ -163,7 +163,7 @@ export default function BlogPage() {
                   <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                     {trending.map((article, i) => (
                       <Link key={article.slug} href={`/blog/${article.slug}`} className="group">
-                        <div className="rounded-xl border border-border/50 dark:border-white/15 bg-white dark:bg-card shadow-sm shadow-primary/[0.04] dark:shadow-none p-4 hover:-translate-y-0.5 hover:shadow-md hover:shadow-primary/[0.06] transition-all duration-300 h-full">
+                        <div className="rounded-xl border border-border/50 dark:border-white/15 bg-white dark:bg-card shadow-sm shadow-primary/[0.04] dark:shadow-none p-4 hover:-translate-y-0.5 hover:shadow-md hover:shadow-primary/[0.06] transition-[transform,box-shadow] duration-300 h-full">
                           <div className="flex items-start gap-3">
                             <div className="flex flex-col items-center shrink-0">
                               <span className="text-2xl font-semibold text-primary/30 tabular-nums leading-none">
@@ -223,7 +223,7 @@ export default function BlogPage() {
                       placeholder="your@email.com"
                       className="flex-1 px-4 py-2.5 rounded-xl text-sm bg-muted/50 dark:bg-white/5 border border-border/50 dark:border-white/10 placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30"
                     />
-                    <button className="shrink-0 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30 transition-all inline-flex items-center gap-1.5">
+                    <button className="shrink-0 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30 transition-[transform,box-shadow] inline-flex items-center gap-1.5">
                       Subscribe
                       <ArrowRight className="w-3.5 h-3.5" />
                     </button>

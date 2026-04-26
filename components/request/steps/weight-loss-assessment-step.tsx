@@ -221,7 +221,7 @@ export default function WeightLossAssessmentStep({ onNext }: WeightLossAssessmen
             <label
               key={option.value}
               className={cn(
-                "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all",
+                "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-[background-color,border-color]",
                 previousAttempts === option.value
                   ? "border-primary bg-primary/5"
                   : "border-border hover:border-primary/50"
@@ -252,7 +252,7 @@ export default function WeightLossAssessmentStep({ onNext }: WeightLossAssessmen
             type="button"
             onClick={() => setAnswer("weightLossMedPreference", "glp1")}
             className={cn(
-              "flex flex-col items-start gap-3 p-4 rounded-xl border text-left cursor-pointer transition-all",
+              "flex flex-col items-start gap-3 p-4 rounded-xl border text-left cursor-pointer transition-[background-color,border-color]",
               weightLossMedPreference === "glp1"
                 ? "border-primary bg-primary/5 ring-1 ring-primary/30"
                 : "border-border hover:border-primary/50"
@@ -279,7 +279,7 @@ export default function WeightLossAssessmentStep({ onNext }: WeightLossAssessmen
             type="button"
             onClick={() => setAnswer("weightLossMedPreference", "duromine")}
             className={cn(
-              "flex flex-col items-start gap-3 p-4 rounded-xl border text-left cursor-pointer transition-all",
+              "flex flex-col items-start gap-3 p-4 rounded-xl border text-left cursor-pointer transition-[background-color,border-color]",
               weightLossMedPreference === "duromine"
                 ? "border-primary bg-primary/5 ring-1 ring-primary/30"
                 : "border-border hover:border-primary/50"
@@ -337,7 +337,7 @@ export default function WeightLossAssessmentStep({ onNext }: WeightLossAssessmen
         >
           <label
             className={cn(
-              "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all",
+              "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-[background-color,border-color]",
               eatingDisorderHistory === 'yes'
                 ? "border-primary bg-primary/5"
                 : "border-border hover:border-primary/50"
@@ -348,7 +348,7 @@ export default function WeightLossAssessmentStep({ onNext }: WeightLossAssessmen
           </label>
           <label
             className={cn(
-              "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all",
+              "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-[background-color,border-color]",
               eatingDisorderHistory === 'no'
                 ? "border-primary bg-primary/5"
                 : "border-border hover:border-primary/50"
@@ -389,7 +389,7 @@ export default function WeightLossAssessmentStep({ onNext }: WeightLossAssessmen
         >
           <label
             className={cn(
-              "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all",
+              "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-[background-color,border-color]",
               wlAdverseReactions === 'yes'
                 ? "border-primary bg-primary/5"
                 : "border-border hover:border-primary/50"
@@ -400,7 +400,7 @@ export default function WeightLossAssessmentStep({ onNext }: WeightLossAssessmen
           </label>
           <label
             className={cn(
-              "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all",
+              "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-[background-color,border-color]",
               wlAdverseReactions === 'no'
                 ? "border-primary bg-primary/5"
                 : "border-border hover:border-primary/50"

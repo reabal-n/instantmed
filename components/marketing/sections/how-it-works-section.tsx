@@ -130,7 +130,7 @@ export function HowItWorksSection({
           <Button
             asChild
             size="lg"
-            className="px-8 h-11 font-semibold shadow-lg shadow-primary/25 dark:shadow-primary/15 hover:shadow-xl hover:shadow-primary/35 hover:-translate-y-0.5 transition-all"
+            className="px-8 h-11 font-semibold shadow-lg shadow-primary/25 dark:shadow-primary/15 hover:shadow-xl hover:shadow-primary/35 hover:-translate-y-0.5 transition-[transform,box-shadow]"
             onClick={onCTAClick}
           >
             <Link href={ctaHref}>

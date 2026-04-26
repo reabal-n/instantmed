@@ -53,7 +53,7 @@ export function AnalyticsDashboardClient({ analytics }: AnalyticsDashboardClient
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
               className={cn(
-                "px-4 py-2 rounded-md text-sm font-medium transition-all",
+                "px-4 py-2 rounded-md text-sm font-medium transition-[background-color,color]",
                 activeTab === tab.key
                   ? "bg-background text-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground"

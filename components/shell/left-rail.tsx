@@ -71,7 +71,7 @@ export function LeftRail({ userName, userAvatar, userRole }: LeftRailProps) {
   return (
     <aside
       className={cn(
-        "fixed left-0 top-0 h-screen bg-background border-r border-border transition-all duration-300 z-40 hidden lg:flex flex-col",
+        "fixed left-0 top-0 h-screen bg-background border-r border-border transition-[transform,box-shadow] duration-300 z-40 hidden lg:flex flex-col",
         isExpanded ? "w-60" : "w-16",
       )}
     >

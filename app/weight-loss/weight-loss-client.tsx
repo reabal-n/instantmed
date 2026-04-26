@@ -180,7 +180,7 @@ export function WeightLossClient() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3 justify-center mb-6">
-              <Button asChild size="lg" className="px-6 h-11 font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 transition-all">
+              <Button asChild size="lg" className="px-6 h-11 font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 transition-[transform,box-shadow]">
                 <Link href="/request?service=consult&subtype=weight_loss">
                   Start Consultation
                   <ArrowRight className="h-4 w-4 ml-2" />
@@ -243,7 +243,7 @@ export function WeightLossClient() {
                   {treatments.map((treatment) => (
                     <div
                       key={treatment.id}
-                      className="bg-white dark:bg-card rounded-xl p-4 border border-border/50 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none hover:-translate-y-0.5 hover:shadow-md hover:shadow-primary/[0.08] transition-all duration-300"
+                      className="bg-white dark:bg-card rounded-xl p-4 border border-border/50 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none hover:-translate-y-0.5 hover:shadow-md hover:shadow-primary/[0.08] transition-[transform,box-shadow] duration-300"
                     >
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex-1">

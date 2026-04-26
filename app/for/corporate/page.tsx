@@ -255,7 +255,7 @@ export default function CorporatePage() {
                     { title: "Weight Loss", desc: "Doctor-guided programs", price: `From ${PRICING_DISPLAY.WEIGHT_LOSS}`, href: "/weight-loss" },
                   ].map((item) => (
                     <Link key={item.title} href={item.href}>
-                      <div className="glass-card rounded-xl p-4 h-full hover:border-border transition-all">
+                      <div className="glass-card rounded-xl p-4 h-full hover:border-border transition-[border-color]">
                         <h3 className="text-sm font-semibold mb-1">{item.title}</h3>
                         <p className="text-xs text-muted-foreground mb-2">{item.desc}</p>
                         <span className="text-xs text-muted-foreground font-medium">{item.price}</span>

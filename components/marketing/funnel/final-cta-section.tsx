@@ -37,7 +37,7 @@ export function FinalCtaSection({ config, colors, isDisabled }: FinalCtaSectionP
             asChild
             size="lg"
             variant="secondary"
-            className="px-10 h-14 text-lg font-semibold shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all"
+            className="px-10 h-14 text-lg font-semibold shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-[transform,box-shadow]"
           >
             <Link href={isDisabled ? "/contact" : config.hero.ctaHref}>
               {isDisabled ? "Contact us" : config.finalCta.ctaText}

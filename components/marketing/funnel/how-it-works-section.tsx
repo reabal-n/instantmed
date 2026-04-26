@@ -29,7 +29,7 @@ export function HowItWorksSection({ config, colors }: HowItWorksSectionProps) {
           viewport={{ once: true }}
           className="text-center mb-12"
         >
-          <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
+          <h2 className="text-3xl sm:text-4xl font-semibold text-foreground mb-4">
             {config.howItWorks.title}
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
@@ -55,9 +55,9 @@ export function HowItWorksSection({ config, colors }: HowItWorksSectionProps) {
                   <div className="hidden md:block absolute top-12 left-1/2 w-full h-0.5 bg-border" />
                 )}
 
-                <div className="relative bg-white dark:bg-card rounded-2xl p-6 border border-border/50 dark:border-white/15 shadow-md shadow-primary/[0.06] dark:shadow-none hover:shadow-lg hover:shadow-primary/[0.08] hover:border-primary/20 hover:-translate-y-0.5 transition-all duration-300 text-center">
+                <div className="relative bg-white dark:bg-card rounded-2xl p-6 border border-border/50 dark:border-white/15 shadow-md shadow-primary/[0.06] dark:shadow-none hover:shadow-lg hover:shadow-primary/[0.08] hover:border-primary/20 hover:-translate-y-0.5 transition-[transform,box-shadow,border-color] duration-300 text-center">
                   {/* Step number */}
-                  <div className={cn('w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-4 text-white font-bold', colors.button)}>
+                  <div className={cn('w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-4 text-white font-semibold', colors.button)}>
                     {step.number}
                   </div>
 
@@ -96,7 +96,7 @@ export function HowItWorksSection({ config, colors }: HowItWorksSectionProps) {
           <Button
             asChild
             size="lg"
-            className="px-8 h-12 font-semibold shadow-lg shadow-primary/20 dark:shadow-primary/15 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 transition-all"
+            className="px-8 h-12 font-semibold shadow-lg shadow-primary/20 dark:shadow-primary/15 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 transition-[transform,box-shadow]"
           >
             <Link href={config.hero.ctaHref}>
               {config.hero.ctaText}

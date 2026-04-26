@@ -74,7 +74,7 @@ export function SpecialisedConsultsSection() {
             <Reveal key={consult.title} delay={i * 0.05}>
               <Link
                 href={consult.href}
-                className="group flex flex-col h-full rounded-2xl bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-md shadow-primary/[0.06] dark:shadow-none hover:shadow-lg hover:-translate-y-0.5 transition-all"
+                className="group flex flex-col h-full rounded-2xl bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-md shadow-primary/[0.06] dark:shadow-none hover:shadow-lg hover:-translate-y-0.5 transition-[transform,box-shadow]"
               >
                 <div className="flex-1 p-5">
                   <div className="mb-3">
@@ -87,7 +87,7 @@ export function SpecialisedConsultsSection() {
                 </div>
                 <div className="flex items-center justify-between border-t border-border/50 dark:border-white/10 px-5 py-3">
                   <span className="text-sm font-semibold text-foreground">{consult.price}</span>
-                  <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
+                  <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-transform" />
                 </div>
               </Link>
             </Reveal>

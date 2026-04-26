@@ -266,7 +266,7 @@ export function MedicationSearch({
             "w-full h-12 pl-10 pr-10 rounded-xl border bg-background text-base",
             "placeholder:text-muted-foreground placeholder:text-sm",
             "focus:outline-none focus:border-primary",
-            "transition-all duration-200",
+            "transition-[border-color,background-color] duration-200",
             hasSelection && "border-green-500/50 bg-green-50/30",
             disabled && "opacity-50 cursor-not-allowed"
           )}

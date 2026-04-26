@@ -117,7 +117,7 @@ function ContraceptionAssessment({ onNext, answers, setAnswer, errors, setErrors
             { value: 'continue', label: 'Continue / repeat my current contraception' },
             { value: 'switch', label: 'Switch to a different type' },
           ].map((opt) => (
-            <label key={opt.value} className={cn("flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all", contraceptionType === opt.value ? "border-primary bg-primary/5" : "border-border hover:border-primary/50")}>
+            <label key={opt.value} className={cn("flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-[background-color,border-color]", contraceptionType === opt.value ? "border-primary bg-primary/5" : "border-border hover:border-primary/50")}>
               <RadioGroupItem value={opt.value} />
               <span className="text-sm">{opt.label}</span>
             </label>
@@ -137,7 +137,7 @@ function ContraceptionAssessment({ onNext, answers, setAnswer, errors, setErrors
             { value: 'other', label: 'Yes, other method' },
             { value: 'none', label: 'No' },
           ].map((opt) => (
-            <label key={opt.value} className={cn("flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all", contraceptionCurrent === opt.value ? "border-primary bg-primary/5" : "border-border hover:border-primary/50")}>
+            <label key={opt.value} className={cn("flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-[background-color,border-color]", contraceptionCurrent === opt.value ? "border-primary bg-primary/5" : "border-border hover:border-primary/50")}>
               <RadioGroupItem value={opt.value} />
               <span className="text-sm">{opt.label}</span>
             </label>
@@ -157,7 +157,7 @@ function ContraceptionAssessment({ onNext, answers, setAnswer, errors, setErrors
             { value: 'not_sure', label: 'Not sure' },
             { value: 'yes', label: 'Yes' },
           ].map((opt) => (
-            <label key={opt.value} className={cn("flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all", pregnancyStatus === opt.value ? "border-primary bg-primary/5" : "border-border hover:border-primary/50")}>
+            <label key={opt.value} className={cn("flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-[background-color,border-color]", pregnancyStatus === opt.value ? "border-primary bg-primary/5" : "border-border hover:border-primary/50")}>
               <RadioGroupItem value={opt.value} />
               <span className="text-sm">{opt.label}</span>
             </label>
@@ -270,7 +270,7 @@ function MorningAfterAssessment({ onNext, onBack, answers, setAnswer, errors, se
             { value: '72_to_120', label: '72-120 hours (3-5 days)', note: 'Ulipristal (EllaOne) may still be effective' },
             { value: 'over_120', label: 'More than 120 hours (5+ days)' },
           ].map((opt) => (
-            <label key={opt.value} className={cn("flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all", hoursSinceIntercourse === opt.value ? "border-primary bg-primary/5" : "border-border hover:border-primary/50")}>
+            <label key={opt.value} className={cn("flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-[background-color,border-color]", hoursSinceIntercourse === opt.value ? "border-primary bg-primary/5" : "border-border hover:border-primary/50")}>
               <RadioGroupItem value={opt.value} />
               <div>
                 <span className="text-sm">{opt.label}</span>
@@ -414,11 +414,11 @@ function UTIAssessment({ onNext, onBack, answers, setAnswer, errors, setErrors, 
           Do you have any of these symptoms: fever, back/flank pain, feeling very unwell, vomiting?<span className="text-destructive ml-0.5">*</span>
         </Label>
         <RadioGroup value={utiRedFlags} onValueChange={handleRedFlagsChange} className="space-y-2" aria-label="Do you have red flag symptoms">
-          <label className={cn("flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all", utiRedFlags === 'yes' ? "border-primary bg-primary/5" : "border-border hover:border-primary/50")}>
+          <label className={cn("flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-[background-color,border-color]", utiRedFlags === 'yes' ? "border-primary bg-primary/5" : "border-border hover:border-primary/50")}>
             <RadioGroupItem value="yes" />
             <span className="text-sm">Yes</span>
           </label>
-          <label className={cn("flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all", utiRedFlags === 'no' ? "border-primary bg-primary/5" : "border-border hover:border-primary/50")}>
+          <label className={cn("flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-[background-color,border-color]", utiRedFlags === 'no' ? "border-primary bg-primary/5" : "border-border hover:border-primary/50")}>
             <RadioGroupItem value="no" />
             <span className="text-sm">No</span>
           </label>
@@ -437,7 +437,7 @@ function UTIAssessment({ onNext, onBack, answers, setAnswer, errors, setErrors, 
             { value: 'not_sure', label: 'Not sure' },
             { value: 'yes', label: 'Yes' },
           ].map((opt) => (
-            <label key={opt.value} className={cn("flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all", utiPregnant === opt.value ? "border-primary bg-primary/5" : "border-border hover:border-primary/50")}>
+            <label key={opt.value} className={cn("flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-[background-color,border-color]", utiPregnant === opt.value ? "border-primary bg-primary/5" : "border-border hover:border-primary/50")}>
               <RadioGroupItem value={opt.value} />
               <span className="text-sm">{opt.label}</span>
             </label>
@@ -523,7 +523,7 @@ function PeriodPainAssessment({ onNext, answers, setAnswer, errors, setErrors }:
             { value: 'severe', label: 'Severe', description: 'Strong medication needed, significant limitation' },
             { value: 'debilitating', label: 'Debilitating', description: 'Unable to function normally, may miss work or school' },
           ].map((opt) => (
-            <label key={opt.value} className={cn("flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all", periodPainSeverity === opt.value ? "border-primary bg-primary/5" : "border-border hover:border-primary/50")}>
+            <label key={opt.value} className={cn("flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-[background-color,border-color]", periodPainSeverity === opt.value ? "border-primary bg-primary/5" : "border-border hover:border-primary/50")}>
               <RadioGroupItem value={opt.value} className="mt-0.5" />
               <div>
                 <span className="text-sm font-medium">{opt.label}</span>
@@ -547,7 +547,7 @@ function PeriodPainAssessment({ onNext, answers, setAnswer, errors, setErrors }:
             { value: 'day2_3', label: 'Day 2–3 of my period' },
             { value: 'throughout', label: 'Throughout most of my period' },
           ].map((opt) => (
-            <label key={opt.value} className={cn("flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all", periodPainTiming === opt.value ? "border-primary bg-primary/5" : "border-border hover:border-primary/50")}>
+            <label key={opt.value} className={cn("flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-[background-color,border-color]", periodPainTiming === opt.value ? "border-primary bg-primary/5" : "border-border hover:border-primary/50")}>
               <RadioGroupItem value={opt.value} />
               <span className="text-sm">{opt.label}</span>
             </label>
@@ -586,7 +586,7 @@ function PeriodPainAssessment({ onNext, answers, setAnswer, errors, setErrors }:
             { value: 'stops_activities', label: 'Stops some activities - rest or light duties only' },
             { value: 'cannot_function', label: 'I can\'t function - miss work, school, or social plans' },
           ].map((opt) => (
-            <label key={opt.value} className={cn("flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all", periodPainImpact === opt.value ? "border-primary bg-primary/5" : "border-border hover:border-primary/50")}>
+            <label key={opt.value} className={cn("flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-[background-color,border-color]", periodPainImpact === opt.value ? "border-primary bg-primary/5" : "border-border hover:border-primary/50")}>
               <RadioGroupItem value={opt.value} />
               <span className="text-sm">{opt.label}</span>
             </label>

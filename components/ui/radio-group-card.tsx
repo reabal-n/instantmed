@@ -28,7 +28,7 @@ const RadioCard = React.forwardRef<
   <RadioGroupPrimitive.Item
     ref={ref}
     className={cn(
-      "relative flex flex-col items-start gap-2 rounded-xl border p-4 text-left transition-all duration-300",
+      "relative flex flex-col items-start gap-2 rounded-xl border p-4 text-left transition-[transform,box-shadow] duration-300",
       // Calm glass surface
       "bg-white dark:bg-card",
       "border-border/50 dark:border-white/10",

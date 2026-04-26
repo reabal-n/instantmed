@@ -34,7 +34,7 @@ export function RequestCard({
 
   return (
     <Link href={href}>
-      <Card className="hover:border-primary/50 hover:shadow-md transition-all cursor-pointer group">
+      <Card className="hover:border-primary/50 hover:shadow-md transition-[border-color,box-shadow] cursor-pointer group">
         <CardContent className="p-5 sm:p-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4 flex-1">

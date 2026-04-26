@@ -65,7 +65,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             "bg-card",
             "border border-border",
             "shadow-none outline-none",
-            "transition-all duration-200",
+            "transition-[border-color,box-shadow] duration-200",
             "hover:border-border",
             "focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20",
             "min-h-[48px] md:min-h-0",

@@ -115,7 +115,7 @@ export function EmergencyGate({
         onClick={handleAcknowledge}
         disabled={acknowledged}
         className={cn(
-          "w-full p-3.5 rounded-xl border-2 text-left transition-all duration-200",
+          "w-full p-3.5 rounded-xl border-2 text-left transition-[background-color,border-color,box-shadow] duration-200",
           "flex items-center gap-3",
           acknowledged
             ? "border-emerald-500 bg-success-light"

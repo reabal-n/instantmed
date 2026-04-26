@@ -268,7 +268,7 @@ export function AddressDrawerContent({ profileData }: AddressDrawerProps) {
                 if (errors.state) setErrors((prev) => ({ ...prev, state: "" }))
               }}
               className={cn(
-                "py-2.5 px-3 rounded-lg text-sm font-medium transition-all",
+                "py-2.5 px-3 rounded-lg text-sm font-medium transition-[background-color,color]",
                 state === s ? pillActive : pillInactive,
               )}
             >
@@ -500,7 +500,7 @@ export function MedicareDrawerContent({ profileData }: MedicareDrawerProps) {
               type="button"
               onClick={() => setIrn(n)}
               className={cn(
-                "w-12 h-12 rounded-lg text-base font-semibold transition-all",
+                "w-12 h-12 rounded-lg text-base font-semibold transition-[background-color,color,border-color]",
                 irn === n ? pillActive : pillInactive,
               )}
             >
@@ -524,7 +524,7 @@ export function MedicareDrawerContent({ profileData }: MedicareDrawerProps) {
                 type="button"
                 onClick={() => setExpiryMonth(m.value)}
                 className={cn(
-                  "py-2 rounded-lg text-xs font-medium transition-all",
+                  "py-2 rounded-lg text-xs font-medium transition-[background-color,color]",
                   expiryMonth === m.value ? pillActive : pillInactive,
                 )}
               >
@@ -539,7 +539,7 @@ export function MedicareDrawerContent({ profileData }: MedicareDrawerProps) {
                 type="button"
                 onClick={() => setExpiryYear(y)}
                 className={cn(
-                  "py-2 px-3 rounded-lg text-xs font-medium whitespace-nowrap transition-all shrink-0",
+                  "py-2 px-3 rounded-lg text-xs font-medium whitespace-nowrap transition-[background-color,color,border-color] shrink-0",
                   expiryYear === y ? pillActive : pillInactive,
                 )}
               >

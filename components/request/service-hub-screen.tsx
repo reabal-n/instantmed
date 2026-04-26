@@ -354,7 +354,7 @@ function CompactServiceRow({
                 {title}
               </h3>
               {popular && (
-                <span className="inline-flex items-center text-[9px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/30 border border-amber-200/60 dark:border-amber-700/40 rounded-full px-1.5 py-0.5 leading-none whitespace-nowrap">
+                <span className="inline-flex items-center text-[9px] font-semibold uppercase tracking-wider text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/30 border border-amber-200/60 dark:border-amber-700/40 rounded-full px-1.5 py-0.5 leading-none whitespace-nowrap">
                   Popular
                 </span>
               )}
@@ -381,7 +381,7 @@ function CompactServiceRow({
             <ChevronRight
               className={cn(
                 "w-4 h-4 text-muted-foreground/40",
-                "transition-all duration-150",
+                "transition-[transform,color] duration-150",
                 "group-hover:text-muted-foreground group-hover:translate-x-0.5",
               )}
             />

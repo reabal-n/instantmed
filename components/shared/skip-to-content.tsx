@@ -29,7 +29,7 @@ export function SkipToContent({
         "focus:shadow-2xl focus:shadow-primary/25",
         "focus:outline-none focus:ring-4 focus:ring-primary/30",
         "focus:animate-in focus:fade-in focus:slide-in-from-top-2",
-        "transition-all duration-200",
+        "transition-[transform,opacity] duration-200",
         className
       )}
     >

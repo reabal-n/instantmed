@@ -96,7 +96,7 @@ export function DocumentsClient({ documents, error }: DocumentsClientProps) {
                   </Card>
                 ) : (
                   certificates.map((cert) => (
-                    <Card key={cert.id} className="rounded-xl border-border/50 hover:border-primary/50 hover:shadow-sm transition-all">
+                    <Card key={cert.id} className="rounded-xl border-border/50 hover:border-primary/50 hover:shadow-sm transition-[border-color,box-shadow]">
                       <CardContent className="flex items-center justify-between p-3">
                         <div className="flex items-center gap-4">
                           <div className="w-10 h-10 rounded-xl bg-info-light flex items-center justify-center shrink-0">
@@ -135,7 +135,7 @@ export function DocumentsClient({ documents, error }: DocumentsClientProps) {
                   </Card>
                 ) : (
                   receipts.map((receipt) => (
-                    <Card key={receipt.id} className="rounded-xl border-border/50 hover:border-primary/50 hover:shadow-sm transition-all">
+                    <Card key={receipt.id} className="rounded-xl border-border/50 hover:border-primary/50 hover:shadow-sm transition-[border-color,box-shadow]">
                       <CardContent className="flex items-center justify-between p-4">
                         <div className="flex items-center gap-4">
                           <div className="w-10 h-10 rounded-xl bg-success-light/40 flex items-center justify-center shrink-0">

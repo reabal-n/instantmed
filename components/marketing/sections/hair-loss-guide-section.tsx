@@ -203,11 +203,11 @@ export function HairLossGuideSection() {
             <div className="space-y-3 pt-1">
               <div className="grid grid-cols-2 gap-2.5">
                 <div className="rounded-lg bg-primary/5 border border-primary/15 p-3 text-center">
-                  <p className="text-2xl font-bold text-primary">50%</p>
+                  <p className="text-2xl font-semibold text-primary">50%</p>
                   <p className="text-xs text-muted-foreground mt-0.5">of men over 50 affected</p>
                 </div>
                 <div className="rounded-lg bg-primary/5 border border-primary/15 p-3 text-center">
-                  <p className="text-2xl font-bold text-primary">40%</p>
+                  <p className="text-2xl font-semibold text-primary">40%</p>
                   <p className="text-xs text-muted-foreground mt-0.5">of women by menopause</p>
                 </div>
               </div>
@@ -269,7 +269,7 @@ export function HairLossGuideSection() {
                 {GROWTH_PHASES.map((phase, i) => (
                   <div key={phase.name} className="flex items-center gap-1.5 flex-1 min-w-0">
                     <div className={cn("flex-1 rounded-xl border p-3 text-center", phase.color)}>
-                      <p className={cn("text-sm font-bold mb-0.5", phase.label_color)}>{phase.name}</p>
+                      <p className={cn("text-sm font-semibold mb-0.5", phase.label_color)}>{phase.name}</p>
                       <p className="text-[10px] font-medium text-muted-foreground">{phase.duration}</p>
                       <p className="text-[10px] text-muted-foreground mt-1.5 leading-snug hidden sm:block">
                         {phase.description}
@@ -332,8 +332,8 @@ export function HairLossGuideSection() {
                 {TIMELINE_MILESTONES.map((m, i) => (
                   <div key={m.label} className="flex items-start gap-3">
                     <div className={cn("shrink-0 w-10 h-10 rounded-xl border flex flex-col items-center justify-center mt-0.5", m.color)}>
-                      <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-wide leading-none">mo</span>
-                      <span className="text-base font-bold text-foreground leading-tight">{i + 1 <= 2 ? i + 1 : m.label.replace("M", "")}</span>
+                      <span className="text-[9px] font-semibold text-muted-foreground uppercase tracking-wide leading-none">mo</span>
+                      <span className="text-base font-semibold text-foreground leading-tight">{i + 1 <= 2 ? i + 1 : m.label.replace("M", "")}</span>
                     </div>
                     <div className="flex-1 min-w-0 pt-1">
                       <p className="text-sm font-semibold text-foreground">{m.heading}</p>

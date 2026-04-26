@@ -53,7 +53,7 @@ export const CheckoutButton = forwardRef<HTMLButtonElement, CheckoutButtonProps>
           onClick={onClick}
           disabled={isDisabled}
           className={cn(
-            "w-full h-12 rounded-xl font-semibold transition-all duration-200",
+            "w-full h-12 rounded-xl font-semibold transition-[transform,box-shadow,background-color] duration-200",
             "bg-primary hover:bg-primary/90 text-primary-foreground",
             "disabled:opacity-50 disabled:cursor-not-allowed",
             className
@@ -87,7 +87,7 @@ export const CheckoutButton = forwardRef<HTMLButtonElement, CheckoutButtonProps>
             "w-full group relative overflow-hidden rounded-2xl p-[2px]",
             "bg-linear-to-r from-primary via-primary/80 to-primary",
             "hover:shadow-lg hover:shadow-primary/30",
-            "transition-all duration-300",
+            "transition-[transform,box-shadow] duration-300",
             "disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none",
             className
           )}
@@ -123,7 +123,7 @@ export const CheckoutButton = forwardRef<HTMLButtonElement, CheckoutButtonProps>
         disabled={isDisabled}
         size="lg"
         className={cn(
-          "w-full h-14 rounded-xl font-semibold text-base transition-all duration-200",
+          "w-full h-14 rounded-xl font-semibold text-base transition-[transform,box-shadow,background-color] duration-200",
           "bg-primary hover:bg-primary/90 text-primary-foreground",
           "shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0",
           "disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-lg disabled:hover:translate-y-0",

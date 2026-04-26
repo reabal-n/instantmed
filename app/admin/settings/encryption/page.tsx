@@ -111,7 +111,7 @@ export default async function EncryptionDashboardPage() {
             </div>
             <div className="h-2 w-full rounded-full bg-muted" role="progressbar" aria-valuenow={stat.percentage} aria-valuemin={0} aria-valuemax={100} aria-label={`${stat.label} encryption progress`}>
               <div
-                className={`h-2 rounded-full transition-all ${
+                className={`h-2 rounded-full transition-[width] ${
                   stat.percentage === 100 ? "bg-emerald-500" : stat.percentage > 50 ? "bg-sky-500" : "bg-amber-500"
                 }`}
                 style={{ width: `${stat.percentage}%` }}

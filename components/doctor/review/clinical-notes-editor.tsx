@@ -202,7 +202,7 @@ export function ClinicalNotesEditor() {
                     <div className="w-20 h-1.5 rounded-full bg-muted overflow-hidden">
                       <div
                         className={cn(
-                          "h-full rounded-full transition-all duration-300",
+                          "h-full rounded-full transition-[width] duration-300",
                           doctorNotes.trim().length === 0
                             ? "w-0"
                             : doctorNotes.trim().length < MIN_CLINICAL_NOTES_LENGTH * 0.5

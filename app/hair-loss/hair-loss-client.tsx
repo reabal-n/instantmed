@@ -204,7 +204,7 @@ function TreatmentOptions() {
         {treatments.map((treatment, i) => (
           <motion.div
             key={treatment.id}
-            className="rounded-2xl border border-border/50 dark:border-white/15 bg-white dark:bg-card shadow-md shadow-primary/[0.06] dark:shadow-none p-5 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/[0.08] transition-all duration-300"
+            className="rounded-2xl border border-border/50 dark:border-white/15 bg-white dark:bg-card shadow-md shadow-primary/[0.06] dark:shadow-none p-5 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/[0.08] transition-[transform,box-shadow] duration-300"
             initial={prefersReducedMotion ? {} : { y: 16 }}
             animate={
               prefersReducedMotion
@@ -267,7 +267,7 @@ function TreatmentOptions() {
           <Button
             asChild
             size="lg"
-            className="shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 transition-all"
+            className="shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 transition-[transform,box-shadow]"
           >
             <Link href="/request?service=consult&subtype=hair_loss">
               Start Consultation
@@ -317,7 +317,7 @@ export function HairLossClient({ faqSchema }: HairLossClientProps) {
               <Button
                 asChild
                 size="lg"
-                className="px-6 h-11 font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 transition-all"
+                className="px-6 h-11 font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 transition-[transform,box-shadow]"
               >
                 <Link href="/request?service=consult&subtype=hair_loss">
                   Start Consultation

@@ -111,7 +111,7 @@ export function GlassRadioGroup({
 
         {/* Glider */}
         <div
-          className="absolute top-0 bottom-0 rounded-2xl z-0 transition-all duration-500 ease-out"
+          className="absolute top-0 bottom-0 rounded-2xl z-0 transition-[transform,width] duration-500 ease-out"
           style={{
             width: `${100 / options.length}%`,
             transform: getGliderTransform(),

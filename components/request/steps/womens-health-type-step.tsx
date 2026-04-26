@@ -88,7 +88,7 @@ export default function WomensHealthTypeStep({ onNext }: WomensHealthTypeStepPro
               type="button"
               onClick={() => handleSelect(option.value)}
               className={cn(
-                "w-full text-left p-4 rounded-xl border transition-all",
+                "w-full text-left p-4 rounded-xl border transition-[background-color,border-color] duration-150",
                 womensHealthOption === option.value
                   ? "border-primary bg-primary/5 ring-1 ring-primary"
                   : "border-border hover:border-primary/50"
