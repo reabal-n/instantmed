@@ -5,7 +5,7 @@ import { ContentPageTracker } from "@/components/analytics/content-page-tracker"
 import { ArticleTemplate } from "@/components/blog/article-template"
 import { ReadingProgress } from "@/components/blog/reading-progress"
 import { MarketingFooter } from "@/components/marketing"
-import { BreadcrumbSchema, FAQSchema, HowToSchema } from "@/components/seo"
+import { BreadcrumbSchema, HowToSchema } from "@/components/seo"
 import { Navbar } from "@/components/shared"
 import { PageBreadcrumbs } from "@/components/uix"
 import { allArticles, getAllArticleSlugs, getArticleBySlug, getRelatedArticles } from "@/lib/blog/articles"
@@ -96,9 +96,10 @@ export default async function BlogPostPage({ params }: PageProps) {
   const heroImageUrl = article.heroImage.startsWith('http')
     ? article.heroImage
     : `https://instantmed.com.au${article.heroImage}`
+  const hasFaqs = faqSchemaData.length > 0
   const articleSchema = {
     "@context": "https://schema.org",
-    "@type": ["MedicalWebPage", "BlogPosting"],
+    "@type": hasFaqs ? ["MedicalWebPage", "BlogPosting", "FAQPage"] : ["MedicalWebPage", "BlogPosting"],
     headline: article.title,
     description: article.excerpt,
     image: [heroImageUrl],
@@ -132,7 +133,17 @@ export default async function BlogPostPage({ params }: PageProps) {
       "@id": `https://instantmed.com.au/blog/${slug}`
     },
     inLanguage: "en-AU",
-    isAccessibleForFree: true
+    isAccessibleForFree: true,
+    ...(hasFaqs && {
+      mainEntity: faqSchemaData.map(faq => ({
+        "@type": "Question",
+        name: faq.question,
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: faq.answer
+        }
+      }))
+    })
   }
 
   return (
@@ -145,7 +156,6 @@ export default async function BlogPostPage({ params }: PageProps) {
           { name: article.title, url: `https://instantmed.com.au/blog/${slug}` }
         ]}
       />
-      {faqSchemaData.length > 0 && <FAQSchema faqs={faqSchemaData} />}
       {isHowToArticle && (
         <HowToSchema
           name={article.title}
