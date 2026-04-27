@@ -694,26 +694,28 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
       // 5c: Telegram notification to doctor
       // Intentionally outside the patientProfile?.email guard — doctor must be notified
       // on every paid order regardless of whether the patient profile fetch succeeded.
-      // Wrapped in after() so Vercel doesn't kill the outbound fetch before it completes.
-      after(async () => {
-        try {
-          const { notifyNewIntakeViaTelegram } = await import("@/lib/notifications/telegram")
-          const serviceSlug = session.metadata?.service_slug ?? ""
-          await notifyNewIntakeViaTelegram({
-            intakeId,
-            patientName: patientProfile?.full_name || "Patient",
-            serviceName: getServiceDisplayName({
-              serviceSlug,
-              category: session.metadata?.category,
-              subtype: session.metadata?.subtype,
-            }),
-            amount: `$${(session.amount_total! / 100).toFixed(2)}`,
+      // Synchronous (not after()) — Telegram is a fast HTTP call (<100ms) and the
+      // webhook has maxDuration=300. after() was causing silent failures: errors from
+      // deferred callbacks are not captured by Vercel's log indexer, making diagnosis
+      // impossible. Sentry.captureException ensures any failure is always visible.
+      try {
+        const { notifyNewIntakeViaTelegram } = await import("@/lib/notifications/telegram")
+        const serviceSlug = session.metadata?.service_slug ?? ""
+        await notifyNewIntakeViaTelegram({
+          intakeId,
+          patientName: patientProfile?.full_name || "Patient",
+          serviceName: getServiceDisplayName({
             serviceSlug,
-          })
-        } catch (err) {
-          log.error("Telegram notification error (non-fatal)", { intakeId }, err)
-        }
-      })
+            category: session.metadata?.category,
+            subtype: session.metadata?.subtype,
+          }),
+          amount: `$${(session.amount_total! / 100).toFixed(2)}`,
+          serviceSlug,
+        })
+      } catch (err) {
+        log.error("Telegram notification error (non-fatal)", { intakeId }, err)
+        Sentry.captureException(err, { tags: { source: "telegram-notification" }, extra: { intakeId } })
+      }
     }
 
     // STEP 6: Generate AI drafts + attempt auto-approval (background)

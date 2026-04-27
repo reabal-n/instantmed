@@ -1195,15 +1195,6 @@ body {
   .hero-mobile-mockup-enter { animation: none; }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .hero-availability-enter,
-  .hero-cta-enter,
-  .hero-trust-enter,
-  .hero-mobile-mockup-enter {
-    animation: none;
-  }
-}
-
 /* ============================================================
    SCROLL REVEAL — replaces framer-motion whileInView
    Used by <Reveal> in components/ui/reveal.tsx

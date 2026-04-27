@@ -1,4 +1,5 @@
-import { after,NextResponse } from "next/server"
+import * as Sentry from "@sentry/nextjs"
+import { after, NextResponse } from "next/server"
 import type Stripe from "stripe"
 
 import { sendGuestCompleteAccountEmail } from "@/lib/email/template-sender"
@@ -158,34 +159,35 @@ export async function handleAsyncPaymentSucceeded(ctx: WebhookContext): Promise<
 
     // Telegram notification to doctor — separate from email so it always fires
     // even if the patient profile fetch later fails.
-    after(async () => {
-      try {
-        const { notifyNewIntakeViaTelegram } = await import("@/lib/notifications/telegram")
-        const serviceSlug = session.metadata?.service_slug ?? ""
-        const serviceName = serviceSlug
-          .replace(/-/g, " ")
-          .replace(/\b\w/g, (c: string) => c.toUpperCase()) || "Medical Request"
-        // Best-effort name lookup — fall back to "Patient" if unavailable
-        let patientName = "Patient"
-        if (patientId) {
-          const { data: profile } = await supabase
-            .from("profiles")
-            .select("full_name")
-            .eq("id", patientId)
-            .maybeSingle()
-          if (profile?.full_name) patientName = profile.full_name
-        }
-        await notifyNewIntakeViaTelegram({
-          intakeId,
-          patientName,
-          serviceName,
-          amount: `$${((session.amount_total ?? 0) / 100).toFixed(2)}`,
-          serviceSlug,
-        })
-      } catch (err) {
-        log.error("Telegram notification error (non-fatal)", { intakeId }, err)
+    // Synchronous (not after()) — fast HTTP call, maxDuration=300 gives plenty of headroom.
+    // after() was causing silent failures: deferred callback errors aren't indexed by Vercel logs.
+    try {
+      const { notifyNewIntakeViaTelegram } = await import("@/lib/notifications/telegram")
+      const serviceSlug = session.metadata?.service_slug ?? ""
+      const serviceName = serviceSlug
+        .replace(/-/g, " ")
+        .replace(/\b\w/g, (c: string) => c.toUpperCase()) || "Medical Request"
+      // Best-effort name lookup — fall back to "Patient" if unavailable
+      let patientName = "Patient"
+      if (patientId) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("full_name")
+          .eq("id", patientId)
+          .maybeSingle()
+        if (profile?.full_name) patientName = profile.full_name
       }
-    })
+      await notifyNewIntakeViaTelegram({
+        intakeId,
+        patientName,
+        serviceName,
+        amount: `$${((session.amount_total ?? 0) / 100).toFixed(2)}`,
+        serviceSlug,
+      })
+    } catch (err) {
+      log.error("Telegram notification error (non-fatal)", { intakeId }, err)
+      Sentry.captureException(err, { tags: { source: "telegram-notification-async" }, extra: { intakeId } })
+    }
 
     log.info("Async payment confirmed - intake marked as paid", { intakeId, paymentIntentId })
   } catch (error) {
