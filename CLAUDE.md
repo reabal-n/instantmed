@@ -322,3 +322,5 @@ If in doubt, tier up. "Make it better" / "fix this" without a clear definition o
 **Modes:** Advisor (strategic questions → recommendation + rationale, no code unless asked) · Executor (build/fix → read first, let the diff speak).
 
 **Anti-patterns:** Don't paraphrase the task as a question. Don't present equally valid options when you prefer one. Don't start coding while planning to ask. Don't hedge without giving an actual recommendation.
+
+**Proactive recommendations:** While executing a task, surface anything you would do differently or better as a separate `**I recommend:**` bullet at the end of the response. This includes adjacent code that looks wrong, naming you'd change, abstractions that should collapse, missing tests, brittle patterns, or a simpler approach you noticed mid-task. State the recommendation, the reason, and the cost. Do not silently act on it; the user decides whether to fold it in. If you notice unrelated dead code (unused imports, dead branches, orphaned files), mention it as an `**I recommend:**` bullet — never delete pre-existing dead code unless explicitly asked.
