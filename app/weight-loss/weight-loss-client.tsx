@@ -27,6 +27,7 @@ import { Navbar } from "@/components/shared"
 import { AvailabilityIndicator } from "@/components/shared"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Heading } from "@/components/ui/heading"
 import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 
 const treatments = [
@@ -232,7 +233,7 @@ export function WeightLossClient() {
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               <div className="rounded-3xl border border-border/50 dark:border-white/15 bg-white dark:bg-card shadow-lg shadow-primary/[0.06] dark:shadow-none p-4 lg:p-6 relative overflow-hidden">
                 <div className="text-center mb-8">
-                  <h2 className="text-2xl sm:text-3xl font-semibold mb-2">Treatment Options</h2>
+                  <Heading level="h2" className="mb-2">Treatment Options</Heading>
                   <p className="text-sm text-muted-foreground max-w-xl mx-auto">
                     The reviewing doctor can recommend TGA-approved treatment options based on your health assessment
                   </p>
@@ -247,7 +248,7 @@ export function WeightLossClient() {
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 flex-wrap mb-1">
-                            <h3 className="text-lg font-semibold">{treatment.name}</h3>
+                            <Heading level="h3">{treatment.name}</Heading>
                             {treatment.popular && (
                               <Badge className="bg-primary/10 text-primary hover:bg-primary/10 text-xs">
                                 Most Popular
@@ -312,7 +313,7 @@ export function WeightLossClient() {
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               <div className="rounded-3xl border border-border/50 dark:border-white/15 bg-white dark:bg-card shadow-lg shadow-primary/[0.06] dark:shadow-none p-4 lg:p-6 relative overflow-hidden">
                 <div className="text-center mb-8">
-                  <h2 className="text-2xl sm:text-3xl font-semibold mb-2">Who Can Use This Service?</h2>
+                  <Heading level="h2" className="mb-2">Who Can Use This Service?</Heading>
                   <p className="text-sm text-muted-foreground">
                     Weight management treatments are suitable for adults who meet certain criteria
                   </p>

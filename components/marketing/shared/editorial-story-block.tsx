@@ -1,3 +1,4 @@
+import { Heading } from "@/components/ui/heading"
 import { Reveal } from "@/components/ui/reveal"
 import { SectionPill } from "@/components/ui/section-pill"
 import { cn } from "@/lib/utils"
@@ -77,9 +78,9 @@ export function EditorialStoryBlock({
           </div>
         )}
 
-        <h2 className="text-2xl sm:text-3xl font-semibold text-foreground tracking-tight mb-3">
+        <Heading level="h2" className="mb-3">
           {title}
-        </h2>
+        </Heading>
 
         {subtitle && (
           <p className="text-sm text-muted-foreground mb-8 max-w-lg">{subtitle}</p>
