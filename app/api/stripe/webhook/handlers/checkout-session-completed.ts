@@ -353,9 +353,32 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
     // Fetch attribution data stored on the intake at checkout time
     const { data: intakeAttribution } = await supabase
       .from("intakes")
-      .select("utm_source, utm_medium, utm_campaign, category, subtype")
+      .select("utm_source, utm_medium, utm_campaign, category, subtype, gclid, gbraid, wbraid, amount_cents")
       .eq("id", intakeId)
       .maybeSingle()
+
+    // Server-side Google Ads Conversion API. Recovers attribution lost to
+    // iOS Safari ITP. Browser-side gtag also fires from /patient/intakes/success
+    // - Google deduplicates on orderId (intakeId) so duplicates are safe.
+    // No-ops cleanly when env vars or click ids are missing.
+    if (intakeId && intakeAttribution && (intakeAttribution.gclid || intakeAttribution.gbraid || intakeAttribution.wbraid)) {
+      after(async () => {
+        try {
+          const { fireGoogleAdsPurchaseConversion } = await import("@/lib/analytics/google-ads-conversion-api")
+          await fireGoogleAdsPurchaseConversion({
+            orderId: intakeId,
+            gclid: intakeAttribution.gclid as string | null,
+            gbraid: intakeAttribution.gbraid as string | null,
+            wbraid: intakeAttribution.wbraid as string | null,
+            value: typeof session.amount_total === "number" ? session.amount_total / 100 : (intakeAttribution.amount_cents as number) / 100,
+          })
+        } catch (err) {
+          log.warn("Server-side Google Ads conversion fire failed", {
+            error: err instanceof Error ? err.message : String(err),
+          })
+        }
+      })
+    }
 
     // Use auth_user_id as primary distinctId (matches client-side posthog.identify)
     // Fall back to patientId for guest checkouts without authenticated accounts

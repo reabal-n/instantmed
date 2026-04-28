@@ -441,6 +441,12 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
         utm_source: input.attribution?.utm_source || null,
         utm_medium: input.attribution?.utm_medium || null,
         utm_campaign: input.attribution?.utm_campaign || null,
+        // Google Ads click identifiers - used by the server-side Conversion API
+        // to attribute purchases back to the originating ad click. Recovers
+        // ~30% of attribution lost to iOS Safari ITP.
+        gclid: input.attribution?.gclid || null,
+        gbraid: input.attribution?.gbraid || null,
+        wbraid: input.attribution?.wbraid || null,
       })
       .select("id")
       .single()

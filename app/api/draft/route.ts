@@ -12,9 +12,13 @@
  *   - Intake submit flow: deletes the draft once the intake is realised
  */
 
+import * as Sentry from "@sentry/nextjs"
 import { type NextRequest,NextResponse } from "next/server"
 
+import { createLogger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
+
+const logger = createLogger("api-draft")
 
 const VALID_SERVICE_TYPES = ["med-cert", "prescription", "consult"] as const
 type ValidServiceType = (typeof VALID_SERVICE_TYPES)[number]
@@ -89,10 +93,13 @@ export async function POST(req: NextRequest) {
     .single()
 
   if (error || !data) {
-    return NextResponse.json(
-      { error: error?.message || "Failed to save draft" },
-      { status: 500 },
-    )
+    const message = error?.message || "Failed to save draft"
+    logger.error("Failed to upsert intake draft", { error: message })
+    Sentry.captureException(error || new Error(message), {
+      tags: { route: "api/draft", method: "POST" },
+      extra: { serviceType: body.serviceType },
+    })
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 
   return NextResponse.json({
@@ -122,6 +129,10 @@ export async function GET(req: NextRequest) {
     .maybeSingle()
 
   if (error) {
+    logger.error("Failed to fetch intake draft", { error: error.message })
+    Sentry.captureException(error, {
+      tags: { route: "api/draft", method: "GET" },
+    })
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
@@ -162,6 +173,10 @@ export async function DELETE(req: NextRequest) {
   const { error } = await supabase.from("intake_drafts").delete().eq("session_id", sessionId)
 
   if (error) {
+    logger.error("Failed to delete intake draft", { error: error.message })
+    Sentry.captureException(error, {
+      tags: { route: "api/draft", method: "DELETE" },
+    })
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
