@@ -19,6 +19,12 @@ import { Badge } from "@/components/ui/badge"
 import { CONTACT_EMAIL } from "@/lib/constants"
 import { getCertificateByRef } from "@/lib/data/issued-certificates"
 import { formatDateLong } from "@/lib/format"
+import {
+  formatCertificateType,
+  formatDoctorName,
+  maskPatientName,
+  verifyOutcome,
+} from "@/lib/verify/certificate"
 
 interface Props {
   params: Promise<{ certificate_ref: string }>
@@ -33,33 +39,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-function formatCertificateType(type: string | null): string {
-  switch (type) {
-    case "work": return "Medical Certificate (Work)"
-    case "study": return "Medical Certificate (Study)"
-    case "carer": return "Carer's Leave Certificate"
-    default: return "Medical Certificate"
-  }
-}
-
-function maskName(fullName: string | null): string {
-  if (!fullName) return "Patient"
-  const parts = fullName.trim().split(/\s+/)
-  if (parts.length === 0) return "Patient"
-  if (parts.length === 1) return parts[0]!
-  const firstName = parts[0]
-  const lastInitial = parts[parts.length - 1]![0]?.toUpperCase() || ""
-  return lastInitial ? `${firstName} ${lastInitial}.` : firstName!
-}
-
-function formatDoctorName(name: string | null, nominals: string | null): string {
-  if (!name) return "InstantMed Doctor"
-  const trimmed = name.trim()
-  const withTitle = /^dr\.?\s/i.test(trimmed) ? trimmed : `Dr. ${trimmed}`
-  if (!nominals) return withTitle
-  return `${withTitle}, ${nominals}`
-}
-
 export default async function VerifyCertificateRefPage({ params }: Props) {
   const { certificate_ref } = await params
 
@@ -70,10 +49,11 @@ export default async function VerifyCertificateRefPage({ params }: Props) {
   }
 
   const cert = await getCertificateByRef(certificate_ref.toUpperCase())
+  const outcome = verifyOutcome(cert)
 
-  const isRevoked = cert?.status === "revoked"
-  const isSuperseded = cert?.status === "superseded"
-  const isValid = cert?.status === "valid"
+  const isAuthentic = outcome.kind === "authentic"
+  const isRevoked = outcome.kind === "revoked"
+  const isSuperseded = outcome.kind === "superseded"
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -96,7 +76,7 @@ export default async function VerifyCertificateRefPage({ params }: Props) {
           </div>
 
           {/* Result */}
-          {isValid && cert ? (
+          {isAuthentic && cert ? (
             <div className="glass-card rounded-2xl p-6 md:p-8 border border-success-border">
               <div className="space-y-6">
                 <div className="flex items-center gap-4">
@@ -125,7 +105,7 @@ export default async function VerifyCertificateRefPage({ params }: Props) {
                     <div className="flex items-center gap-3">
                       <User className="h-4 w-4 text-muted-foreground shrink-0" />
                       <span className="text-muted-foreground">Patient:</span>
-                      <span className="font-medium text-foreground">{maskName(cert.patient_name)}</span>
+                      <span className="font-medium text-foreground">{maskPatientName(cert.patient_name)}</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <Building className="h-4 w-4 text-muted-foreground shrink-0" />

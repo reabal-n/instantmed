@@ -5,6 +5,7 @@ import {
   ArrowRight,
   Check,
   CheckCircle2,
+  Sparkles,
 } from "lucide-react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
@@ -24,9 +25,9 @@ import {
 import { SOCIAL_PROOF } from "@/lib/social-proof"
 import { cn } from "@/lib/utils"
 
-// =============================================================================
+// ---------------------------------------------------------------------------
 // DATA
-// =============================================================================
+// ---------------------------------------------------------------------------
 
 const CATEGORY_STICKERS: Record<CertCategory, import("@/components/icons/stickers").StickerIconName> = {
   work:  "briefcase",
@@ -36,31 +37,25 @@ const CATEGORY_STICKERS: Record<CertCategory, import("@/components/icons/sticker
 
 const CATEGORY_FEATURES: Record<CertCategory, string[]> = {
   work: [
-    "Accepted by Fair Work Act employers",
+    "Recognised under the Fair Work Act",
     "Same-day PDF to your inbox",
     "AHPRA doctor on every certificate",
   ],
   study: [
-    "Accepted by all Australian universities",
-    "Supports exam deferral & special consideration",
-    "Delivered before submission deadlines",
+    "For uni and TAFE absences",
+    "Same-day PDF to your inbox",
+    "AHPRA doctor on every certificate",
   ],
   carer: [
-    "Valid under Fair Work Act s 107",
+    "Recognised under Fair Work Act s 107",
     "Covers any immediate family member",
-    "Full refund if we can't help",
+    "Full refund if we cannot help",
   ],
 }
 
-const CATEGORY_GRADIENTS: Record<CertCategory, { gradient: string; selectedGradient: string }> = {
-  work:  { gradient: "from-emerald-50/50 to-white dark:from-emerald-950/10 dark:to-card",  selectedGradient: "from-emerald-50 to-white dark:from-emerald-950/20 dark:to-card" },
-  study: { gradient: "from-sky-50/50 to-white dark:from-sky-950/10 dark:to-card",          selectedGradient: "from-sky-50 to-white dark:from-sky-950/20 dark:to-card" },
-  carer: { gradient: "from-rose-50/50 to-white dark:from-rose-950/10 dark:to-card",        selectedGradient: "from-rose-50 to-white dark:from-rose-950/20 dark:to-card" },
-}
-
-// =============================================================================
-// COMPONENT
-// =============================================================================
+// ---------------------------------------------------------------------------
+// SearchParam auto-select
+// ---------------------------------------------------------------------------
 
 function SearchParamsAutoSelect({
   onAutoSelect,
@@ -77,6 +72,10 @@ function SearchParamsAutoSelect({
   }, [])
   return null
 }
+
+// ---------------------------------------------------------------------------
+// COMPONENT
+// ---------------------------------------------------------------------------
 
 export function CertificateTypeSelector({
   className,
@@ -124,37 +123,51 @@ export function CertificateTypeSelector({
             Which certificate do you need?
           </h2>
           <p className="text-sm text-muted-foreground max-w-lg mx-auto">
-            Select your situation. We&apos;ll tailor the form to match.
+            Pick a category to tailor the form, or skip ahead and choose during the intake.
           </p>
         </motion.div>
 
-        {/* Category cards */}
+        {/* Category cards - solid white surfaces, no gradients */}
         <div className="grid sm:grid-cols-3 gap-4">
           {CERT_CATEGORIES.map((cat, i) => {
             const isSelected = selected === cat.id
-            const colors = CATEGORY_GRADIENTS[cat.id]
+            const isMostChosen = cat.id === "work"
             return (
               <motion.button
                 key={cat.id}
                 type="button"
                 onClick={() => handleSelect(cat.id)}
+                aria-pressed={isSelected}
                 className={cn(
-                  "relative rounded-2xl border p-5 text-left cursor-pointer",
-                  "bg-gradient-to-br shadow-md shadow-primary/[0.06]",
-                  "transition-[transform,box-shadow,border-color,background-image] duration-200",
-                  isSelected ? colors.selectedGradient : colors.gradient,
+                  "group relative rounded-2xl border p-5 text-left cursor-pointer",
+                  "bg-white dark:bg-card",
+                  "shadow-sm shadow-primary/[0.04]",
+                  "transition-[transform,box-shadow,border-color] duration-200",
                   isSelected
-                    ? "border-primary ring-2 ring-primary/20"
-                    : "border-border/50 hover:border-primary/30 hover:shadow-lg hover:-translate-y-0.5",
+                    ? "border-primary ring-2 ring-primary/20 shadow-md shadow-primary/[0.08]"
+                    : "border-border/60 hover:border-primary/40 hover:shadow-md hover:shadow-primary/[0.08] hover:-translate-y-0.5",
                 )}
                 initial={animate ? { opacity: 0, y: 8 } : {}}
                 whileInView={animate ? { opacity: 1, y: 0 } : undefined}
                 viewport={{ once: true }}
                 transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1], delay: i * 0.07 }}
               >
+                {/* Most chosen badge - real-data positioning signal */}
+                {isMostChosen && !isSelected && (
+                  <div className="absolute -top-2 left-4">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 border border-primary/25 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                      <Sparkles className="w-2.5 h-2.5" aria-hidden="true" />
+                      Most chosen
+                    </span>
+                  </div>
+                )}
+
+                {/* Selected check */}
                 {isSelected && (
                   <div className="absolute top-3 right-3">
-                    <Check className="h-4 w-4 text-primary" aria-hidden="true" />
+                    <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
+                      <Check className="h-3 w-3 text-white" strokeWidth={3} aria-hidden="true" />
+                    </div>
                   </div>
                 )}
 
@@ -172,7 +185,7 @@ export function CertificateTypeSelector({
                 <ul className="space-y-1.5 mb-3">
                   {CATEGORY_FEATURES[cat.id].map((feat) => (
                     <li key={feat} className="flex items-start gap-2">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0 mt-0.5" aria-hidden="true" />
+                      <CheckCircle2 className="w-3.5 h-3.5 text-success shrink-0 mt-0.5" aria-hidden="true" />
                       <span className="text-xs text-muted-foreground leading-tight">{feat}</span>
                     </li>
                   ))}
@@ -193,7 +206,7 @@ export function CertificateTypeSelector({
           })}
         </div>
 
-        {/* Pricing ladder + CTA */}
+        {/* Pricing ladder + CTA - shown after a selection */}
         <motion.div
           className="mt-6 text-center"
           animate={
@@ -246,54 +259,59 @@ export function CertificateTypeSelector({
               </Link>
             </Button>
             <p className="text-xs text-muted-foreground mt-2">
-              Takes about 2 minutes &middot; Full refund if we can&apos;t help
+              Takes about 2 minutes. Full refund if we cannot help.
             </p>
           </div>
         </motion.div>
 
-        {/* Fallback CTA */}
+        {/* Secondary action - only when nothing selected.
+            Promoted from a near-invisible ghost link to a proper outline button
+            so users who don't want to pre-select have a real path. */}
         {!selected && (
-          <div className="mt-6 text-center">
-            <p className="text-sm text-muted-foreground mb-3">
-              From <span className="font-semibold text-foreground">${PRICING.MED_CERT.toFixed(2)}</span>
-            </p>
+          <div className="mt-7 flex flex-col items-center gap-2">
             <Button
               asChild
-              variant="ghost"
-              size="sm"
-              className="text-muted-foreground hover:text-foreground"
+              variant="outline"
+              size="lg"
+              className="px-7 h-11 font-medium border-border/70 hover:border-primary/40 hover:bg-primary/[0.03]"
             >
-              <Link href="/request?service=med-cert">
-                I&apos;ll choose during the form
-                <ArrowRight className="ml-1.5 h-3.5 w-3.5" aria-hidden="true" />
+              <Link
+                href="/request?service=med-cert"
+                onClick={() => posthog?.capture("cta_clicked", { location: "cert_selector_skip", cert_type: null })}
+              >
+                Skip ahead, choose during the form
+                <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
               </Link>
             </Button>
+            <p className="text-xs text-muted-foreground">
+              From <span className="font-semibold text-foreground">${PRICING.MED_CERT.toFixed(2)}</span> &middot; Most patients finish in under 2 minutes
+            </p>
           </div>
         )}
-
-        <ComparisonTable />
       </div>
     </section>
   )
 }
 
 // ---------------------------------------------------------------------------
-// Comparison Table
+// Comparison Table - exported standalone so the landing page can place it in
+// its own section (after social proof) instead of inside the selector. Drops
+// the "Other Telehealth" column because anchoring competitor prices in the
+// patient's mental model hurts more than it helps.
 // ---------------------------------------------------------------------------
 
 const comparisonRows: Array<{
   label: string
   instant: string | boolean
   gp: string | boolean
-  telehealth: string | boolean
   instantWins?: boolean
 }> = [
-  { label: 'Price',              instant: `$${PRICING.MED_CERT.toFixed(2)}`,              gp: SOCIAL_PROOF.gpPriceStandard,  telehealth: '~$60',          instantWins: true },
-  { label: 'Turnaround',        instant: `~${SOCIAL_PROOF.certTurnaroundMinutes} min`,    gp: 'Needs booking',               telehealth: '1-2 hours',     instantWins: true },
-  { label: 'Open 24/7',         instant: true,                                            gp: false,                         telehealth: 'Limited',       instantWins: true },
-  { label: 'No appointment',    instant: true,                                            gp: false,                         telehealth: false,           instantWins: true },
-  { label: 'Same-day cert',     instant: true,                                            gp: false,                         telehealth: 'Often next day',instantWins: true },
-  { label: 'AHPRA doctor',      instant: true,                                            gp: true,                          telehealth: true },
+  { label: 'Price',           instant: `$${PRICING.MED_CERT.toFixed(2)}`,           gp: SOCIAL_PROOF.gpPriceStandard, instantWins: true },
+  { label: 'Turnaround',      instant: `~${SOCIAL_PROOF.certTurnaroundMinutes} min`, gp: 'Hours of waiting',           instantWins: true },
+  { label: 'Open 24/7',       instant: true,                                         gp: false,                        instantWins: true },
+  { label: 'No appointment',  instant: true,                                         gp: false,                        instantWins: true },
+  { label: 'Same-day cert',   instant: true,                                         gp: false,                        instantWins: true },
+  { label: 'AHPRA doctor',    instant: true,                                         gp: true },
 ]
 
 function renderCell(value: string | boolean, isInstant = false, wins = false) {
@@ -304,7 +322,7 @@ function renderCell(value: string | boolean, isInstant = false, wins = false) {
   return <span className={cn(isInstant && wins ? "font-semibold text-foreground" : "")}>{value}</span>
 }
 
-function ComparisonTable() {
+export function MedCertComparisonTable({ className }: { className?: string }) {
   const prefersReducedMotion = useReducedMotion()
   const tableRef = useRef<HTMLDivElement>(null)
   const posthog = usePostHog()
@@ -327,63 +345,70 @@ function ComparisonTable() {
   }, [posthog])
 
   return (
-    <motion.div
-      ref={tableRef}
-      className="mt-10"
-      initial={prefersReducedMotion ? {} : { opacity: 0, y: 8 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1], delay: 0.1 }}
+    <section
+      aria-label="How online medical certificates compare to a GP visit"
+      className={cn("py-10 sm:py-14", className)}
     >
-      <h3 className="text-base font-semibold text-foreground text-center mb-4">
-        How we compare
-      </h3>
-      <div className="overflow-x-auto rounded-xl border border-border/50 dark:border-white/10 shadow-md shadow-primary/[0.06] dark:shadow-none">
-        <table className="w-full text-sm border-collapse bg-white dark:bg-card rounded-xl overflow-hidden">
-          <thead>
-            <tr className="border-b border-border/40">
-              <th scope="col" className="text-left py-3 px-4 text-muted-foreground font-medium text-xs w-[30%] bg-white dark:bg-card sticky left-0 z-10">
-                <span className="sr-only">Feature</span>
-              </th>
-              <th scope="col" className="text-center py-0 px-4 w-[23%] bg-primary/5 dark:bg-primary/10">
-                <div className="flex flex-col items-center gap-1 py-3">
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary text-[10px] font-semibold text-white uppercase tracking-wider">
-                    Best value
-                  </span>
-                  <span className="text-xs font-semibold text-primary">InstantMed</span>
-                </div>
-              </th>
-              <th scope="col" className="text-center py-3 px-4 text-muted-foreground font-medium text-xs w-[23%]">
-                GP Clinic
-              </th>
-              <th scope="col" className="text-center py-3 px-4 text-muted-foreground font-medium text-xs w-[23%]">
-                Other Telehealth
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border/25">
-            {comparisonRows.map((row, i) => (
-              <tr key={i} className="hover:bg-muted/20 transition-colors">
-                <th scope="row" className="py-2.5 px-4 text-left text-muted-foreground font-medium text-xs bg-white dark:bg-card sticky left-0 z-10">
-                  {row.label}
-                </th>
-                <td className="py-2.5 px-4 text-center text-xs bg-primary/5 dark:bg-primary/10">
-                  {renderCell(row.instant, true, row.instantWins)}
-                </td>
-                <td className="py-2.5 px-4 text-center text-xs text-muted-foreground">
-                  {renderCell(row.gp)}
-                </td>
-                <td className="py-2.5 px-4 text-center text-xs text-muted-foreground">
-                  {renderCell(row.telehealth)}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="mx-auto max-w-3xl px-4 sm:px-6">
+        <motion.div
+          ref={tableRef}
+          initial={prefersReducedMotion ? {} : { opacity: 0, y: 8 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
+        >
+          <div className="text-center mb-6">
+            <h2 className="text-xl sm:text-2xl font-semibold text-foreground tracking-tight">
+              Online vs in-person GP
+            </h2>
+            <p className="text-sm text-muted-foreground mt-2">
+              Same legal weight under the Fair Work Act. Different experience.
+            </p>
+          </div>
+
+          <div className="overflow-x-auto rounded-xl border border-border/50 dark:border-white/10 shadow-md shadow-primary/[0.06] dark:shadow-none">
+            <table className="w-full text-sm border-collapse bg-white dark:bg-card rounded-xl overflow-hidden">
+              <thead>
+                <tr className="border-b border-border/40">
+                  <th scope="col" className="text-left py-3 px-4 text-muted-foreground font-medium text-xs w-[40%] bg-white dark:bg-card sticky left-0 z-10">
+                    <span className="sr-only">Feature</span>
+                  </th>
+                  <th scope="col" className="text-center py-0 px-4 w-[30%] bg-primary/5 dark:bg-primary/10">
+                    <div className="flex flex-col items-center gap-0.5 py-3">
+                      <span className="text-xs font-semibold text-primary">InstantMed</span>
+                      <span className="text-[10px] text-muted-foreground">Online</span>
+                    </div>
+                  </th>
+                  <th scope="col" className="text-center py-3 px-4 text-muted-foreground font-medium text-xs w-[30%]">
+                    <div className="flex flex-col items-center gap-0.5">
+                      <span className="text-xs font-semibold">GP Clinic</span>
+                      <span className="text-[10px] text-muted-foreground/70">In-person</span>
+                    </div>
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/25">
+                {comparisonRows.map((row, i) => (
+                  <tr key={i} className="hover:bg-muted/20 transition-colors">
+                    <th scope="row" className="py-2.5 px-4 text-left text-muted-foreground font-medium text-xs bg-white dark:bg-card sticky left-0 z-10">
+                      {row.label}
+                    </th>
+                    <td className="py-2.5 px-4 text-center text-xs bg-primary/5 dark:bg-primary/10">
+                      {renderCell(row.instant, true, row.instantWins)}
+                    </td>
+                    <td className="py-2.5 px-4 text-center text-xs text-muted-foreground">
+                      {renderCell(row.gp)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="mt-3 text-[11px] text-muted-foreground text-center leading-relaxed">
+            GP cost estimated from MBS item 23 fee. Both certificate types are equally valid under Fair Work Act s 107.
+          </p>
+        </motion.div>
       </div>
-      <p className="mt-3 text-[11px] text-muted-foreground text-center leading-relaxed">
-        GP cost estimated from MBS item 23 fee. Telehealth prices based on comparable services.
-      </p>
-    </motion.div>
+    </section>
   )
 }

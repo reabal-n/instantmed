@@ -17,6 +17,12 @@ import { createLogger } from "@/lib/observability/logger"
 import { getClientIdentifier } from "@/lib/rate-limit/redis"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { normalizeVerificationCode } from "@/lib/utils/code-normalization"
+import {
+  formatCertificateType,
+  formatDoctorName,
+  maskPatientName,
+  verifyOutcome,
+} from "@/lib/verify/certificate"
 
 // ---- Inline rate limit types & helpers (self-contained for this public endpoint) ----
 
@@ -238,23 +244,22 @@ export async function GET(request: Request) {
     }
 
     if (issuedCert) {
-      // P1 FIX: Provide transparency on certificate status for verifiers
-      // Revoked certificates should explicitly indicate revocation for trust
-      if (issuedCert.status === "revoked") {
+      // The cast is safe — verifyOutcome only reads .status and .id.
+      const outcome = verifyOutcome(issuedCert as never)
+
+      if (outcome.kind === "revoked") {
         await checkRateLimit(`verify-fail:${clientIp}`, RATE_LIMITS.verificationStrict, true)
         return NextResponse.json(
-          { 
-            valid: false, 
+          {
+            valid: false,
             status: "revoked",
-            message: "This certificate has been revoked and is no longer valid."
+            message: "This certificate has been revoked and is no longer valid.",
           },
           { headers: createRateLimitHeaders(rateLimit) }
         )
       }
-      
-      // Superseded means a replacement certificate exists - don't confirm authenticity
-      // of the outdated record; verifier should request the current one.
-      if (issuedCert.status === "superseded") {
+
+      if (outcome.kind === "superseded") {
         await checkRateLimit(`verify-fail:${clientIp}`, RATE_LIMITS.verificationStrict, true)
         return NextResponse.json(
           {
@@ -272,7 +277,6 @@ export async function GET(request: Request) {
         user_agent: request.headers.get("user-agent"),
       })
 
-      // Get clinic name from snapshot
       const clinicSnapshot = issuedCert.clinic_identity_snapshot as {
         clinic_name?: string
         trading_name?: string
@@ -287,7 +291,7 @@ export async function GET(request: Request) {
           issueDate: issuedCert.issue_date,
           validFrom: issuedCert.start_date,
           validTo: issuedCert.end_date,
-          patientName: maskName(issuedCert.patient_name),
+          patientName: maskPatientName(issuedCert.patient_name),
           issuingDoctor: formatDoctorName(issuedCert.doctor_name, issuedCert.doctor_nominals),
           issuingClinic: clinicName,
         },
@@ -365,7 +369,7 @@ async function checkLegacyTables(
         issueDate: legacyCert.created_at?.split("T")[0],
         validFrom: legacyCert.date_from,
         validTo: legacyCert.date_to,
-        patientName: maskName(legacyCert.patient_name),
+        patientName: maskPatientName(legacyCert.patient_name),
         issuingDoctor: formatDoctorName(legacyCert.doctor_name, null),
         issuingClinic: "InstantMed",
       },
@@ -426,7 +430,7 @@ async function checkLegacyTables(
         certificateNumber: intakeDoc.certificate_number,
         type: formatCertificateType(certType),
         issueDate: intakeDoc.created_at?.split("T")[0],
-        patientName: maskName(patientData?.full_name || "Patient"),
+        patientName: maskPatientName(patientData?.full_name || "Patient"),
         issuingDoctor: doctorName,
         issuingClinic: "InstantMed",
       },
@@ -434,44 +438,4 @@ async function checkLegacyTables(
   }
 
   return null
-}
-
-/**
- * Mask patient name for privacy (first name + last initial only)
- */
-function maskName(fullName: string | null): string {
-  if (!fullName) return "Patient"
-  
-  const parts = fullName.trim().split(/\s+/)
-  if (parts.length === 0) return "Patient"
-  if (parts.length === 1) return parts[0]
-  
-  const firstName = parts[0]
-  const lastInitial = parts[parts.length - 1][0]?.toUpperCase() || ""
-  
-  return lastInitial ? `${firstName} ${lastInitial}.` : firstName
-}
-
-/**
- * Format certificate type for display
- */
-function formatCertificateType(type: string | null): string {
-  switch (type) {
-    case "work": return "Medical Certificate (Work)"
-    case "study": return "Medical Certificate (Study)"
-    case "carer": return "Carer's Leave Certificate"
-    default: return "Medical Certificate"
-  }
-}
-
-/**
- * Format doctor name as "Dr. {Name}, {Nominals}".
- * Idempotent — adding "Dr." to a name that already starts with "Dr." is skipped.
- */
-function formatDoctorName(name: string | null, nominals: string | null): string {
-  if (!name) return "InstantMed Doctor"
-  const trimmed = name.trim()
-  const withTitle = /^dr\.?\s/i.test(trimmed) ? trimmed : `Dr. ${trimmed}`
-  if (!nominals) return withTitle
-  return `${withTitle}, ${nominals}`
 }

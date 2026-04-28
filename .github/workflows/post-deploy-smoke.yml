@@ -1,0 +1,59 @@
+name: Post-deploy smoke test
+
+on:
+  deployment_status:
+
+jobs:
+  smoke:
+    if: |
+      github.event.deployment_status.state == 'success' &&
+      github.event.deployment.environment == 'Production'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Smoke test critical public surfaces
+        env:
+          # A canary cert that must always exist in prod and always verify.
+          # If you rotate it, update the secret too. Picked from migration
+          # 20260428000001 era — Samaara M's IM-STUDY cert.
+          CANARY_CERT_REF: IM-STUDY-20260426-06236622
+          BASE: https://instantmed.com.au
+        run: |
+          set -e
+
+          fail() { echo "::error::$*"; exit 1; }
+          ok()   { echo "✓ $*"; }
+
+          # 1. Public verify endpoint must validate a known-good cert.
+          body=$(curl -fsS "$BASE/api/verify?code=$CANARY_CERT_REF")
+          echo "$body" | grep -q '"valid":true' || fail "verify API did not return valid:true for canary cert. Body: $body"
+          echo "$body" | grep -q '"issuingDoctor":"Dr\.' || fail "verify API doctor name is missing 'Dr.' prefix. Body: $body"
+          ok "verify API returns valid + Dr. prefix"
+
+          # 2. Verify ref page renders (server-rendered, separate codepath).
+          status=$(curl -s -o /dev/null -w '%{http_code}' "$BASE/verify/$CANARY_CERT_REF")
+          [ "$status" = "200" ] || fail "/verify/$CANARY_CERT_REF returned $status"
+          ok "/verify/[ref] page returns 200"
+
+          # 3. Sign-in page must render (sign-out target).
+          status=$(curl -s -o /dev/null -w '%{http_code}' "$BASE/sign-in")
+          [ "$status" = "200" ] || fail "/sign-in returned $status"
+          ok "/sign-in renders"
+
+          # 4. /api/auth/sign-out must accept a POST and clear the cookie.
+          response=$(curl -s -i -X POST "$BASE/api/auth/sign-out")
+          echo "$response" | grep -qi 'set-cookie:.*profile_linked=' || fail "sign-out endpoint did not clear profile_linked cookie. Response: $response"
+          ok "/api/auth/sign-out clears profile_linked"
+
+          # 5. /patient must redirect or 401 when not signed in.
+          status=$(curl -s -o /dev/null -w '%{http_code}' "$BASE/patient")
+          [ "$status" = "302" ] || [ "$status" = "307" ] || fail "/patient should redirect when unauthenticated, got $status"
+          ok "/patient gates auth"
+
+          echo "All smoke tests passed."
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "::error::Post-deploy smoke test failed for ${{ github.event.deployment_status.target_url }}"
+          echo "::error::Commit: ${{ github.sha }}"

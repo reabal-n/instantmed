@@ -148,26 +148,34 @@ function getBodyText(input: TemplatePdfInput): string {
     ? `${displayName} (DOB: ${input.patientDateOfBirth})`
     : displayName
   const datePart = getDatePhrase(input)
+  // Language follows RACGP guidance for asynchronous telehealth consultations:
+  // statement of the consultation and the patient's reported condition, not an
+  // absolute clinical declaration of unfitness from a non-physical exam.
   switch (input.certificateType) {
     case "work":
-      return `This is to certify that ${nameWithDob} has been reviewed and assessed on ${input.consultationDate}. In my clinical opinion, they are medically unfit to attend work or fulfil their usual occupational duties ${datePart}.`
+      return `This is to certify that ${nameWithDob} consulted me on ${input.consultationDate} and reported being unwell with symptoms that, on the information provided, are consistent with a need to be absent from their usual occupational duties ${datePart}.`
     case "study":
-      return `This is to certify that ${nameWithDob} has been reviewed and assessed on ${input.consultationDate}. In my clinical opinion, they are medically unfit to attend classes, sit examinations, or complete academic assessments ${datePart}.`
+      return `This is to certify that ${nameWithDob} consulted me on ${input.consultationDate} and reported being unwell with symptoms that, on the information provided, are consistent with a need to be absent from their usual academic activities ${datePart}.`
     case "carer":
-      return `This is to certify that ${nameWithDob} has been reviewed and assessed on ${input.consultationDate}. They are required to provide full-time care for a dependent family member who is currently unwell and are therefore unable to attend work or fulfil their usual duties ${datePart}.`
+      return `This is to certify that ${nameWithDob} consulted me on ${input.consultationDate} and indicated they are required to provide care for an immediate family or household member who is unwell, and on that basis are unable to attend their usual duties ${datePart}.`
   }
 }
 
 function getReturnText(input: TemplatePdfInput): string {
   const isSingleDay = input.startDate === input.endDate
   const periodRef = isSingleDay ? "this date" : "this period"
+  // Conservative, non-absolute language. We do NOT volunteer support for
+  // exam deferrals, special consideration, court matters, fitness-to-drive
+  // or similar high-stakes determinations — those require a face-to-face
+  // assessment and the institution should arrange one if needed.
+  const asyncDisclosure = " This certificate is issued following an asynchronous telehealth consultation based on the information provided by the patient."
   switch (input.certificateType) {
     case "work":
-      return `They are advised to rest and recover and may return to work once ${periodRef} has concluded, or earlier if symptoms resolve.`
+      return `Rest and recovery is advised, with a return to usual duties expected once ${periodRef} has concluded or earlier if symptoms resolve.${asyncDisclosure}`
     case "study":
-      return `They require rest and recovery and may resume study once ${periodRef} has concluded, or earlier if symptoms resolve. I would support an application for special consideration or exam deferral if required by their institution.`
+      return `Rest and recovery is advised, with a return to usual academic activities expected once ${periodRef} has concluded or earlier if symptoms resolve.${asyncDisclosure}`
     case "carer":
-      return `They may return to work once ${periodRef} has concluded, subject to the dependent's recovery.`
+      return `A return to usual duties is expected once ${periodRef} has concluded, subject to the dependent's recovery.${asyncDisclosure}`
   }
 }
 
