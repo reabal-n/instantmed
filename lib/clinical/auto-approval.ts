@@ -105,6 +105,29 @@ const PREGNANCY_KEYWORDS = [
   "trimester", "maternity",
 ]
 
+// High-stakes use cases that must NEVER auto-approve. These require a doctor
+// to read the request, decide whether the cert is appropriate, and reject if
+// not. They are also the categories that produce verification phone calls and
+// AHPRA complaints when a third party (uni, court, employer's insurer, RTA,
+// firearms registry, family lawyer) follows up. We do not make fitness-for-X
+// determinations from a structured form.
+const HIGH_STAKES_USE_CASE_KEYWORDS = [
+  // Academic high-stakes
+  "exam", "examination", "exams", "deferral", "defer", "deferred",
+  "special consideration", "extension", "supplementary",
+  "fail", "failed", "failing",
+  // Legal / court
+  "court", "hearing", "tribunal", "summons", "subpoena", "jury",
+  "custody", "family law", "avo", "intervention order",
+  // Driving / transport / firearms — fitness-to-X determinations
+  "driving", "drive", "license", "licence", "rta", "service nsw",
+  "firearm", "gun licence", "gun license", "shooting",
+  "fitness to fly", "flight", "airline",
+  // Workers comp / insurance / claim
+  "insurance claim", "ndis", "tac",
+  // (note: "workers comp" / "workcover" / "work injury" already in INJURY_KEYWORDS)
+]
+
 // ============================================================================
 // SOFT-BLOCK KEYWORD LISTS
 // Only block when the keyword is the patient's sole symptom (no co-symptoms).
@@ -389,6 +412,13 @@ export function evaluateAutoApprovalEligibility(
   const pregnancyMatches = containsKeywords(symptomText, PREGNANCY_KEYWORDS)
   if (pregnancyMatches.length > 0) {
     flags.push(`pregnancy: ${pregnancyMatches.join(", ")}`)
+  }
+
+  // 8b. High-stakes use cases — exam deferral, court, fitness-to-drive,
+  // firearms, custody, insurance claims. Doctor must review; never auto-approve.
+  const highStakesMatches = containsKeywords(symptomText, HIGH_STAKES_USE_CASE_KEYWORDS)
+  if (highStakesMatches.length > 0) {
+    flags.push(`high_stakes_use_case: ${highStakesMatches.join(", ")}`)
   }
 
   // 9. Duration check (1-N days, configurable via admin dashboard, hard-capped at 3)

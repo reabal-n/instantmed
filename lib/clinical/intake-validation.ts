@@ -66,6 +66,43 @@ export const EMERGENCY_SYMPTOM_PATTERNS = [
 // ============================================================================
 
 /**
+ * Hard cap on med-cert duration for any non-in-person consultation.
+ * Anything longer must be issued in person — this is the policy ceiling,
+ * not a per-patient ceiling that can be raised via flags.
+ */
+export const MAX_MED_CERT_DURATION_DAYS = 3
+
+/**
+ * High-stakes use cases that warrant a hard block at intake time, not just
+ * a non-auto-approve flag. Mirrors HIGH_STAKES_USE_CASE_KEYWORDS in
+ * auto-approval.ts but is also surfaced to the client for early UX feedback.
+ */
+const HIGH_STAKES_PATTERNS: ReadonlyArray<{ pattern: RegExp; reason: string }> = [
+  { pattern: /\b(exam|examination|deferral|defer|deferred|special\s+consideration|supplementary)\b/i, reason: "Exam deferrals and special consideration require a face-to-face assessment your university or institution can arrange." },
+  { pattern: /\b(court|hearing|tribunal|summons|subpoena|jury)\b/i, reason: "Certificates for court matters require an in-person assessment." },
+  { pattern: /\b(custody|family\s+law|intervention\s+order|avo)\b/i, reason: "Family law matters require an in-person assessment." },
+  { pattern: /\b(driving|drive|licence|license|rta|firearm|gun\s+licence|gun\s+license|shooting|fitness\s+to\s+fly)\b/i, reason: "Fitness-for-driving, firearm or aviation determinations require an in-person assessment by an accredited assessor." },
+  { pattern: /\b(workers?\s*comp|workcover|insurance\s+claim|ndis|tac)\b/i, reason: "Certificates for workers' compensation or insurance claims require an in-person assessment." },
+]
+
+export interface HighStakesCheck {
+  isHighStakes: boolean
+  reason?: string
+  matched?: string
+}
+
+export function checkHighStakesUseCase(text: string | null | undefined): HighStakesCheck {
+  if (!text) return { isHighStakes: false }
+  for (const { pattern, reason } of HIGH_STAKES_PATTERNS) {
+    const match = text.match(pattern)
+    if (match) {
+      return { isHighStakes: true, reason, matched: match[0] }
+    }
+  }
+  return { isHighStakes: false }
+}
+
+/**
  * Quick client-side emergency check
  * Use this for real-time validation in intake forms
  */
@@ -125,6 +162,22 @@ export function validateIntake(input: {
       redirectionCategory: autoRejectCheck.category,
       redirectionMessage: rule.userMessage,
       redirectionAdvice: rule.redirectAdvice,
+      warnings: [],
+      flags,
+    }
+  }
+
+  // High-stakes use cases (exam deferral, court, fitness-to-drive, firearms,
+  // workers comp, etc.) — block at intake. We do not issue certificates for
+  // these via async telehealth; refer the patient to in-person assessment.
+  const highStakes = checkHighStakesUseCase(freeTextSymptoms)
+  if (highStakes.isHighStakes) {
+    return {
+      canProceed: false,
+      requiresRedirection: true,
+      redirectionCategory: "outside_gp_scope",
+      redirectionMessage: highStakes.reason,
+      redirectionAdvice: "Please book an in-person appointment with your regular GP or the relevant assessor. We're happy to help with general illness-based certificates if your situation changes.",
       warnings: [],
       flags,
     }

@@ -168,14 +168,13 @@ function getReturnText(input: TemplatePdfInput): string {
   // exam deferrals, special consideration, court matters, fitness-to-drive
   // or similar high-stakes determinations — those require a face-to-face
   // assessment and the institution should arrange one if needed.
-  const asyncDisclosure = " This certificate is issued following an asynchronous telehealth consultation based on the information provided by the patient."
   switch (input.certificateType) {
     case "work":
-      return `Rest and recovery is advised, with a return to usual duties expected once ${periodRef} has concluded or earlier if symptoms resolve.${asyncDisclosure}`
+      return `Rest and recovery is advised, with a return to usual duties expected once ${periodRef} has concluded or earlier if symptoms resolve.`
     case "study":
-      return `Rest and recovery is advised, with a return to usual academic activities expected once ${periodRef} has concluded or earlier if symptoms resolve.${asyncDisclosure}`
+      return `Rest and recovery is advised, with a return to usual academic activities expected once ${periodRef} has concluded or earlier if symptoms resolve.`
     case "carer":
-      return `A return to usual duties is expected once ${periodRef} has concluded, subject to the dependent's recovery.${asyncDisclosure}`
+      return `A return to usual duties is expected once ${periodRef} has concluded, subject to the dependent's recovery.`
   }
 }
 
