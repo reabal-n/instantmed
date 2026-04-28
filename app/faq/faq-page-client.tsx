@@ -8,6 +8,7 @@ import { LiveWaitTime } from "@/components/marketing"
 import { InformationalPageShell, RelatedArticles } from "@/components/marketing/shared"
 import { AccordionSection, CTABanner } from "@/components/sections"
 import { FAQSchema } from "@/components/seo"
+import { Heading } from "@/components/ui/heading"
 import { GENERAL_FAQ } from "@/lib/data/general-faq"
 import { getPatientCount } from "@/lib/social-proof"
 import { cn } from "@/lib/utils"
@@ -105,9 +106,9 @@ export default function FAQPage() {
               <p className="inline-flex items-center rounded-full border border-border/60 bg-background px-4 py-1.5 text-xs font-medium text-foreground/70 shadow-sm shadow-primary/[0.04] mb-6">
                 Help Centre
               </p>
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight text-foreground mb-4">
+              <Heading level="display" className="mb-4">
                 Got questions? We&apos;ve got answers.
-              </h1>
+              </Heading>
               <p className="text-muted-foreground mb-2">
                 Everything you need to know about InstantMed.
               </p>

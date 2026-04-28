@@ -14,6 +14,7 @@ import { ComparisonTable, CTABanner,FAQSection } from "@/components/sections"
 import { FAQSchema } from "@/components/seo"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Heading } from "@/components/ui/heading"
 import { useReducedMotion } from "@/components/ui/motion"
 import { SectionPill } from "@/components/ui/section-pill"
 import { PRICING, PRICING_DISPLAY } from "@/lib/constants"
@@ -226,9 +227,9 @@ export function PricingClient() {
                   </div>
 
                   <div className="text-center mb-4">
-                    <h3 className="text-lg font-semibold">
+                    <Heading level="h3">
                       {service.name}
-                    </h3>
+                    </Heading>
                     <p className="text-xs text-muted-foreground mt-1">
                       {service.description}
                     </p>

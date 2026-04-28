@@ -21,6 +21,7 @@ import {
   Timeline,
 } from "@/components/sections"
 import { Navbar } from "@/components/shared"
+import { Heading } from "@/components/ui/heading"
 import { usePatientCount } from "@/lib/hooks/use-patient-count"
 import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 import { SOCIAL_PROOF } from "@/lib/social-proof"
@@ -265,9 +266,9 @@ export default function TrustPage() {
         {/* ── Accountability ───────────────────────────────── */}
         <section className="py-20 px-4">
           <div className="mx-auto max-w-3xl text-center lg:text-left">
-            <h2 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+            <Heading level="h1" as="h2">
               Clear process. <span className="text-primary">No automated</span> approvals.
-            </h2>
+            </Heading>
             <p className="mt-4 text-muted-foreground leading-relaxed">
               Every request is reviewed by a human doctor who reads your full medical history and makes an independent clinical decision. If something doesn&apos;t look right, they&apos;ll contact you directly.
             </p>

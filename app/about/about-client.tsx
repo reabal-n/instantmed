@@ -6,6 +6,7 @@ import { AnimatedDonutChart, ComparisonBar, EditorialStoryBlock, InformationalPa
 import { CTABanner, FAQSection, FeatureGrid } from "@/components/sections"
 import { FAQSchema } from "@/components/seo"
 import { TrustBadgeRow } from "@/components/shared"
+import { Heading } from "@/components/ui/heading"
 import { usePatientCount } from "@/lib/hooks/use-patient-count"
 import { SOCIAL_PROOF } from "@/lib/social-proof"
 
@@ -108,9 +109,9 @@ export function AboutClient() {
               <p className="inline-flex items-center rounded-full border border-border/60 bg-background px-4 py-1.5 text-xs font-medium text-foreground/70 shadow-sm shadow-primary/[0.04] mb-6">
                 About InstantMed
               </p>
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight text-foreground mb-4">
+              <Heading level="display" className="mb-4">
                 Healthcare shouldn&apos;t require rearranging your day.
-              </h1>
+              </Heading>
               <p className="text-muted-foreground text-balance max-w-lg mx-auto">
                 We connect Australians with AHPRA-registered doctors for
                 medical certificates, prescriptions, and consultations.
