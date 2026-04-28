@@ -1,0 +1,7 @@
+-- Placeholder for a migration already present in the linked Supabase project.
+--
+-- Supabase migration history shows version 20260428030240 as applied remotely,
+-- but the corresponding SQL file was missing from this repository. Keep this
+-- placeholder so local migration history matches production and future
+-- `supabase db push --include-all` runs can reason about genuinely pending
+-- migrations without treating this remote version as drift.
