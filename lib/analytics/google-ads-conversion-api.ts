@@ -18,9 +18,9 @@ const logger = createLogger("google-ads-conversion-api")
  * Required env vars (all must be present for the call to fire):
  *   GOOGLE_ADS_CUSTOMER_ID            - 10-digit customer id, no dashes
  *   GOOGLE_ADS_DEVELOPER_TOKEN        - the developer token from API Center
- *   GOOGLE_ADS_OAUTH_CLIENT_ID        - OAuth 2.0 client id from GCP console
- *   GOOGLE_ADS_OAUTH_CLIENT_SECRET    - OAuth 2.0 client secret
- *   GOOGLE_ADS_OAUTH_REFRESH_TOKEN    - long-lived refresh token (one-time
+ *   GOOGLE_ADS_CLIENT_ID        - OAuth 2.0 client id from GCP console
+ *   GOOGLE_ADS_CLIENT_SECRET    - OAuth 2.0 client secret
+ *   GOOGLE_ADS_REFRESH_TOKEN    - long-lived refresh token (one-time
  *                                       OAuth grant; persist securely)
  *   GOOGLE_ADS_LOGIN_CUSTOMER_ID      - optional MCC id when the customer is
  *                                       under a manager account
@@ -56,9 +56,9 @@ interface AccessTokenCache {
 let tokenCache: AccessTokenCache | null = null
 
 async function fetchAccessToken(): Promise<string | null> {
-  const clientId = process.env.GOOGLE_ADS_OAUTH_CLIENT_ID
-  const clientSecret = process.env.GOOGLE_ADS_OAUTH_CLIENT_SECRET
-  const refreshToken = process.env.GOOGLE_ADS_OAUTH_REFRESH_TOKEN
+  const clientId = process.env.GOOGLE_ADS_CLIENT_ID
+  const clientSecret = process.env.GOOGLE_ADS_CLIENT_SECRET
+  const refreshToken = process.env.GOOGLE_ADS_REFRESH_TOKEN
 
   if (!clientId || !clientSecret || !refreshToken) return null
 
