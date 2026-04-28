@@ -366,7 +366,7 @@ async function checkLegacyTables(
         validFrom: legacyCert.date_from,
         validTo: legacyCert.date_to,
         patientName: maskName(legacyCert.patient_name),
-        issuingDoctor: legacyCert.doctor_name || "InstantMed Doctor",
+        issuingDoctor: formatDoctorName(legacyCert.doctor_name, null),
         issuingClinic: "InstantMed",
       },
     }
@@ -410,7 +410,7 @@ async function checkLegacyTables(
         .eq("id", intake.reviewed_by)
         .maybeSingle()
       if (doctor?.full_name) {
-        doctorName = doctor.full_name
+        doctorName = formatDoctorName(doctor.full_name, null)
       }
     }
 
@@ -465,10 +465,13 @@ function formatCertificateType(type: string | null): string {
 }
 
 /**
- * Format doctor name with nominals
+ * Format doctor name as "Dr. {Name}, {Nominals}".
+ * Idempotent — adding "Dr." to a name that already starts with "Dr." is skipped.
  */
 function formatDoctorName(name: string | null, nominals: string | null): string {
   if (!name) return "InstantMed Doctor"
-  if (!nominals) return name
-  return `${name}, ${nominals}`
+  const trimmed = name.trim()
+  const withTitle = /^dr\.?\s/i.test(trimmed) ? trimmed : `Dr. ${trimmed}`
+  if (!nominals) return withTitle
+  return `${withTitle}, ${nominals}`
 }

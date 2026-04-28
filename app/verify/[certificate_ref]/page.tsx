@@ -52,6 +52,14 @@ function maskName(fullName: string | null): string {
   return lastInitial ? `${firstName} ${lastInitial}.` : firstName!
 }
 
+function formatDoctorName(name: string | null, nominals: string | null): string {
+  if (!name) return "InstantMed Doctor"
+  const trimmed = name.trim()
+  const withTitle = /^dr\.?\s/i.test(trimmed) ? trimmed : `Dr. ${trimmed}`
+  if (!nominals) return withTitle
+  return `${withTitle}, ${nominals}`
+}
+
 export default async function VerifyCertificateRefPage({ params }: Props) {
   const { certificate_ref } = await params
 
@@ -123,8 +131,7 @@ export default async function VerifyCertificateRefPage({ params }: Props) {
                       <Building className="h-4 w-4 text-muted-foreground shrink-0" />
                       <span className="text-muted-foreground">Issued by:</span>
                       <span className="font-medium text-foreground">
-                        {cert.doctor_name}
-                        {cert.doctor_nominals ? `, ${cert.doctor_nominals}` : ""}
+                        {formatDoctorName(cert.doctor_name, cert.doctor_nominals)}
                       </span>
                     </div>
                     <div className="flex items-center gap-3">
