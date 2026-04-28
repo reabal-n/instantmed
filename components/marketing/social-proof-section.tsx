@@ -9,8 +9,6 @@ import { AnimatedStat } from '@/components/marketing/animated-stat'
 import { GoogleReviewsBadge } from '@/components/marketing/google-reviews-badge'
 import { Heading } from '@/components/ui/heading'
 import { useReducedMotion } from '@/components/ui/motion'
-import { TestimonialsColumnsWrapper } from '@/components/ui/testimonials-columns-wrapper'
-import { getHomepageTestimonials } from '@/lib/data/testimonials'
 import { SOCIAL_PROOF } from '@/lib/social-proof'
 import { getPatientCount } from '@/lib/social-proof'
 
@@ -32,7 +30,6 @@ interface SocialProofSectionProps {
 
 export function SocialProofSection({ lifestyleImage }: SocialProofSectionProps = {}) {
   const prefersReducedMotion = useReducedMotion()
-  const reviews = getHomepageTestimonials()
 
   return (
     <section className="py-10 sm:py-16 lg:py-24">
@@ -125,18 +122,6 @@ export function SocialProofSection({ lifestyleImage }: SocialProofSectionProps =
           </Link>
         </div>
 
-        {/* Testimonials */}
-        <TestimonialsColumnsWrapper
-          testimonials={reviews}
-          title=""
-          subtitle=""
-          badgeText=""
-          className="py-0 my-0"
-        />
-
-        <p className="text-xs text-muted-foreground text-center mt-6">
-          Individual experiences may vary. All requests are subject to doctor assessment.
-        </p>
         <p className="text-[11px] text-muted-foreground text-center mt-2 max-w-2xl mx-auto leading-relaxed">
           Telehealth consultations achieve equivalent clinical outcomes to in-person visits for common presentations (Snoswell et al., <em>J Telemed Telecare</em>, 2023). Australian telehealth consultations are regulated under the Health Practitioner Regulation National Law Act 2009.
         </p>
