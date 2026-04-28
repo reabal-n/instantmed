@@ -5,6 +5,7 @@ import Link from "next/link"
 import { useCallback,useMemo, useRef, useState } from "react"
 
 import { LiveWaitTime } from "@/components/marketing"
+import { ServiceClaimSection } from "@/components/marketing/sections/service-claim-section"
 import { InformationalPageShell, RelatedArticles } from "@/components/marketing/shared"
 import { AccordionSection, CTABanner } from "@/components/sections"
 import { FAQSchema } from "@/components/seo"
@@ -182,6 +183,20 @@ export default function FAQPage() {
               ))}
             </div>
           </div>
+
+          {/* Page superpower — anchors the "we answer everything in plain
+              English" promise above the popular-questions list. */}
+          {!searchQuery && !activeCategory && (
+            <ServiceClaimSection
+              eyebrow="Plain English, no fine print"
+              headline={
+                <>
+                  Every question, <span className="text-primary">straight answer</span>.
+                </>
+              }
+              body="No marketing weasel words. If we can do something, we say so. If we can't, we tell you upfront. The same voice you'd hear from a GP who wasn't running late."
+            />
+          )}
 
           {/* Most popular questions - default view only */}
           {!searchQuery && !activeCategory && POPULAR_QUESTIONS.length > 0 && (

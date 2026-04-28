@@ -22,6 +22,7 @@ import { useRef } from "react"
 import { submitContactForm } from "@/app/actions/contact-form"
 import { CenteredHero } from "@/components/heroes"
 import { DoctorCredibility,LiveWaitTime } from "@/components/marketing"
+import { ServiceClaimSection } from "@/components/marketing/sections/service-claim-section"
 import { AnimatedDonutChart, InformationalPageShell } from "@/components/marketing/shared"
 import { CTABanner } from "@/components/sections"
 import { Button } from "@/components/ui/button"
@@ -140,6 +141,17 @@ export function ContactClient() {
           highlightWords={["here to help."]}
           subtitle="Real people who read and reply to every message. Usually within a few hours, always within 24."
           className="pt-32 pb-16"
+        />
+
+        {/* Page superpower — anchors the response-quality promise */}
+        <ServiceClaimSection
+          eyebrow="No bots, no ticket queues"
+          headline={
+            <>
+              Real <span className="text-primary">humans</span> read every message.
+            </>
+          }
+          body="No chatbot wall, no auto-responder loop. Every contact-form message lands in a real inbox and gets a written reply, usually within a few hours and always within 24."
         />
 
         {/* Response Stats */}

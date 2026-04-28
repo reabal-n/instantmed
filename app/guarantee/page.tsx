@@ -3,6 +3,7 @@ import type { Metadata } from "next"
 import { CenteredHero } from "@/components/heroes"
 import { StickerIcon } from "@/components/icons/stickers"
 import { GuaranteeBadge, MarketingFooter } from "@/components/marketing"
+import { ServiceClaimSection } from "@/components/marketing/sections/service-claim-section"
 import type { ChecklistItem, FeatureItem } from "@/components/sections"
 import {
   AccordionSection,
@@ -184,6 +185,19 @@ export default function GuaranteePage() {
               <GuaranteeBadge size="lg" linked={false} />
             </div>
           </CenteredHero>
+
+          {/* Page superpower — anchors the auto-refund mechanism that
+              differentiates this guarantee from competitor "money-back"
+              promises requiring email + ticket + 30-day waits. */}
+          <ServiceClaimSection
+            eyebrow="No email, no ticket, no wait"
+            headline={
+              <>
+                Refunds fire <span className="text-primary">automatically</span>.
+              </>
+            }
+            body="When the doctor records a decline, the system processes the refund the same instant. The email lands within minutes. You don't have to ask, escalate, or send a request ID. Built that way on purpose."
+          />
 
           <FeatureGrid
             title="What the guarantee covers"

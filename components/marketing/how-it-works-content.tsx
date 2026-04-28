@@ -5,6 +5,7 @@ import { StickerIcon } from "@/components/icons/stickers"
 import { DoctorCredibility } from "@/components/marketing/doctor-credibility"
 import { RegulatoryPartners } from "@/components/marketing/media-mentions"
 import { DataDrivenGuideSection, type GuideSectionData } from "@/components/marketing/sections"
+import { ServiceClaimSection } from "@/components/marketing/sections/service-claim-section"
 import { InformationalPageShell } from "@/components/marketing/shared/informational-page-shell"
 import { CTABanner,FAQSection, FeatureGrid, Timeline } from "@/components/sections"
 import { getPatientCount } from "@/lib/social-proof"
@@ -137,6 +138,19 @@ export function HowItWorksContent() {
           title="Healthcare that fits your life"
           highlightWords={["your life"]}
           subtitle="Submit your request online. A real Australian doctor reviews it and determines the best way to help you. Convenient, but still thorough."
+        />
+
+        {/* Page superpower — the asynchronous-but-not-automated promise.
+            "Convenient" reads like a hedge in the subhead; this anchors the
+            two beats that actually matter: it's fast AND a real GP. */}
+        <ServiceClaimSection
+          eyebrow="Convenient, not automated"
+          headline={
+            <>
+              <span className="text-primary">Async</span>, but never algorithmic.
+            </>
+          }
+          body="A real AHPRA-registered Australian GP reviews every request. They read your full history. They make the call. The only thing the software does is move the request from your screen to theirs and back."
         />
 
         {/* Process Steps */}

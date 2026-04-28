@@ -2,6 +2,7 @@
 
 import { StickerIcon } from "@/components/icons/stickers"
 import { AboutGuideSection } from "@/components/marketing/sections"
+import { ServiceClaimSection } from "@/components/marketing/sections/service-claim-section"
 import { AnimatedDonutChart, ComparisonBar, EditorialStoryBlock, InformationalPageShell, ScrollingLogoMarquee } from "@/components/marketing/shared"
 import { CTABanner, FAQSection, FeatureGrid } from "@/components/sections"
 import { FAQSchema } from "@/components/seo"
@@ -156,6 +157,17 @@ export function AboutClient() {
                   "We're not trying to reinvent healthcare. We're just pointing out that you shouldn't need to take a sick day to prove you need a sick day.",
               },
             ]}
+          />
+
+          {/* Page superpower — the platform mission anchored in one sentence */}
+          <ServiceClaimSection
+            eyebrow="What we actually are"
+            headline={
+              <>
+                A doctor, <span className="text-primary">without the wait</span>.
+              </>
+            }
+            body="Not a wellness brand. Not an app. A real Australian medical practice that operates online. AHPRA-registered doctors, real prescriptions, real medical certificates, real clinical accountability."
           />
 
           {/* Data viz section */}

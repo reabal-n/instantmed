@@ -9,6 +9,7 @@ import { StatsHero } from "@/components/heroes"
 import { ServiceIconTile } from "@/components/icons/service-icons"
 import { DoctorCredibility, RegulatoryPartners } from "@/components/marketing"
 import { CompetitorLinksSection, PricingGuideSection } from "@/components/marketing/sections"
+import { ServiceClaimSection } from "@/components/marketing/sections/service-claim-section"
 import { ComparisonBar, InformationalPageShell } from "@/components/marketing/shared"
 import { ComparisonTable, CTABanner,FAQSection } from "@/components/sections"
 import { FAQSchema } from "@/components/seo"
@@ -199,6 +200,19 @@ export function PricingClient() {
             { value: 0, prefix: "$", label: "Hidden fees" },
             { value: SOCIAL_PROOF.operatingDays, label: "Days a week" },
           ]}
+        />
+
+        {/* Page superpower — transparent flat-fee positioning anchored against
+            the typical $80-$120 GP gap fee. Same Morning Canvas elevation
+            pattern as the service-page claim sections. */}
+        <ServiceClaimSection
+          eyebrow="No surprises at the counter"
+          headline={
+            <>
+              <span className="text-primary">One flat fee</span>, only when we can help.
+            </>
+          }
+          body="No subscription. No gap fee. No surprise add-ons. If our doctor can't issue what you asked for, the system refunds you automatically. The same care a clinic GP would deliver, priced like software."
         />
 
         {/* Pricing Cards */}

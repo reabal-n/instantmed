@@ -12,6 +12,7 @@ import { SplitHero } from "@/components/heroes"
 import { StickerIcon } from "@/components/icons/stickers"
 import { GoogleAdsCert,LegitScriptSeal, MarketingFooter } from "@/components/marketing"
 import { TrustGuideSection } from "@/components/marketing/sections"
+import { ServiceClaimSection } from "@/components/marketing/sections/service-claim-section"
 import {
   CTABanner,
   FAQSection,
@@ -138,6 +139,18 @@ export default function TrustPage() {
             </div>
           </div>
         </SplitHero>
+
+        {/* Page superpower — anchors human-decision accountability above the
+            stats so the stats reinforce the claim rather than carry it alone. */}
+        <ServiceClaimSection
+          eyebrow="No algorithm at the wheel"
+          headline={
+            <>
+              Every decision, <span className="text-primary">a real doctor</span>.
+            </>
+          }
+          body="No AI prescribes. No algorithm declines. An AHPRA-registered Australian GP reads your full request and makes the call, with full clinical accountability and a name on every certificate."
+        />
 
         {/* ── Stats Counter Strip ───────────────────────────── */}
         <StatStrip

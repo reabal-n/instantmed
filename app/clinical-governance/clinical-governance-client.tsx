@@ -7,6 +7,7 @@ import { StatsHero } from "@/components/heroes"
 import { StickerIcon } from "@/components/icons/stickers"
 import { MarketingFooter } from "@/components/marketing"
 import { DataDrivenGuideSection, type GuideSectionData } from "@/components/marketing/sections"
+import { ServiceClaimSection } from "@/components/marketing/sections/service-claim-section"
 import {
   AccordionSection,
   CTABanner,
@@ -220,6 +221,18 @@ export default function ClinicalGovernanceClient() {
           highlightWords={["governance"]}
           subtitle="Our clinical processes are designed by practising GPs and reviewed regularly to ensure every patient interaction meets Australian standards."
           stats={heroStats}
+        />
+
+        {/* Page superpower — clinical-governance pages live or die on the
+            "doctor-led, accountable" framing. Pull it forward as a claim. */}
+        <ServiceClaimSection
+          eyebrow="Doctor-led, doctor-accountable"
+          headline={
+            <>
+              <span className="text-primary">Clinical decisions</span> stay with the clinician.
+            </>
+          }
+          body="An AHPRA-registered Medical Director sets the protocols and reviews the edge cases. No business team overrides a clinical decline. The named, registered doctor on every certificate is the one accountable for it."
         />
 
         {/* Standards we follow */}
