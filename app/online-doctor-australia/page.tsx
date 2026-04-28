@@ -17,6 +17,7 @@ import Link from "next/link"
 import { BreadcrumbSchema, FAQSchema } from "@/components/seo"
 import { Footer,Navbar } from "@/components/shared"
 import { Button } from "@/components/ui/button"
+import { Heading } from "@/components/ui/heading"
 import { SectionPill } from "@/components/ui/section-pill"
 import { PRICING_DISPLAY } from "@/lib/constants"
 import { getAllStateSlugs, statesData } from "@/lib/seo/data/states"
@@ -214,9 +215,9 @@ export default function OnlineDoctorAustraliaPage() {
               <div className="mb-6">
                 <SectionPill>Australia-wide · AHPRA registered</SectionPill>
               </div>
-              <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl mb-4">
+              <Heading level="display" className="mb-4">
                 Online doctor in Australia - reviewed by AHPRA-registered GPs
-              </h1>
+              </Heading>
               <p className="text-muted-foreground text-lg max-w-2xl mx-auto mb-8">
                 Medical certificates, repeat prescriptions, and consultations reviewed by
                 Australian-registered doctors. No appointments, no waiting rooms, no phone
@@ -282,9 +283,9 @@ export default function OnlineDoctorAustraliaPage() {
           {/* ─────────────── What is an online doctor ─────────────── */}
           <section className="px-4 py-16">
             <div className="mx-auto max-w-3xl">
-              <h2 className="text-2xl sm:text-3xl font-semibold text-foreground mb-6">
+              <Heading level="h2" className="mb-6">
                 What an Australian online doctor actually does
-              </h2>
+              </Heading>
               <div className="space-y-5 text-muted-foreground leading-relaxed">
                 <p>
                   An online doctor in Australia is, for every clinical purpose, the same
@@ -323,9 +324,9 @@ export default function OnlineDoctorAustraliaPage() {
           <section className="px-4 py-16 bg-muted/30 dark:bg-white/[0.02] border-y border-border/40 dark:border-white/10">
             <div className="mx-auto max-w-5xl">
               <div className="text-center mb-10">
-                <h2 className="text-2xl sm:text-3xl font-semibold text-foreground mb-3">
+                <Heading level="h2" className="mb-3">
                   What you can see an online doctor for
-                </h2>
+                </Heading>
                 <p className="text-muted-foreground max-w-2xl mx-auto">
                   Three services cover most of what Australians actually need a GP for. Every one is
                   reviewed by a real doctor, not an algorithm.
@@ -371,9 +372,9 @@ export default function OnlineDoctorAustraliaPage() {
           {/* ─────────────── How it works ─────────────── */}
           <section className="px-4 py-16">
             <div className="mx-auto max-w-3xl">
-              <h2 className="text-2xl sm:text-3xl font-semibold text-foreground mb-6">
+              <Heading level="h2" className="mb-6">
                 How seeing a doctor online actually works
-              </h2>
+              </Heading>
               <div className="space-y-5 text-muted-foreground leading-relaxed">
                 <p>
                   The whole process is designed to replace the 90-minute round trip to a GP clinic
@@ -414,9 +415,9 @@ export default function OnlineDoctorAustraliaPage() {
           <section className="px-4 py-16 bg-muted/30 dark:bg-white/[0.02] border-y border-border/40 dark:border-white/10">
             <div className="mx-auto max-w-5xl">
               <div className="text-center mb-10">
-                <h2 className="text-2xl sm:text-3xl font-semibold text-foreground mb-3">
+                <Heading level="h2" className="mb-3">
                   When an online doctor is the right call - and when it isn&apos;t
-                </h2>
+                </Heading>
                 <p className="text-muted-foreground max-w-2xl mx-auto">
                   Telehealth has real clinical limits. We would rather tell you upfront than take a
                   fee for something we can&apos;t safely handle.
@@ -462,9 +463,9 @@ export default function OnlineDoctorAustraliaPage() {
           {/* ─────────────── Regulatory / AHPRA context ─────────────── */}
           <section className="px-4 py-16">
             <div className="mx-auto max-w-3xl">
-              <h2 className="text-2xl sm:text-3xl font-semibold text-foreground mb-6">
+              <Heading level="h2" className="mb-6">
                 The regulatory ground under Australian online doctors
-              </h2>
+              </Heading>
               <div className="space-y-5 text-muted-foreground leading-relaxed">
                 <p>
                   Australian online doctors operate under the same legal and professional framework
@@ -508,9 +509,9 @@ export default function OnlineDoctorAustraliaPage() {
           <section className="px-4 py-16 bg-muted/30 dark:bg-white/[0.02] border-y border-border/40 dark:border-white/10">
             <div className="mx-auto max-w-5xl">
               <div className="text-center mb-10">
-                <h2 className="text-2xl sm:text-3xl font-semibold text-foreground mb-3">
+                <Heading level="h2" className="mb-3">
                   Explore the rest of the service
-                </h2>
+                </Heading>
                 <p className="text-muted-foreground max-w-2xl mx-auto">
                   Head to any of these hubs to see the specific conditions, medications, and
                   locations we cover.
@@ -573,9 +574,9 @@ export default function OnlineDoctorAustraliaPage() {
           <section className="px-4 py-16">
             <div className="mx-auto max-w-5xl">
               <div className="text-center mb-10">
-                <h2 className="text-2xl sm:text-3xl font-semibold text-foreground mb-3">
+                <Heading level="h2" className="mb-3">
                   Online doctors in every Australian state
-                </h2>
+                </Heading>
                 <p className="text-muted-foreground max-w-2xl mx-auto">
                   Dedicated guides for each state and territory. Same doctors, same turnaround -
                   different local context.
@@ -612,9 +613,9 @@ export default function OnlineDoctorAustraliaPage() {
           {/* ─────────────── FAQs ─────────────── */}
           <section className="px-4 py-16 bg-muted/30 dark:bg-white/[0.02] border-y border-border/40 dark:border-white/10">
             <div className="mx-auto max-w-3xl">
-              <h2 className="text-2xl sm:text-3xl font-semibold text-foreground text-center mb-10">
+              <Heading level="h2" className="text-center mb-10">
                 Online doctor Australia - FAQs
-              </h2>
+              </Heading>
               <div className="space-y-4">
                 {FAQS.map((faq, i) => (
                   <div
@@ -632,9 +633,9 @@ export default function OnlineDoctorAustraliaPage() {
           {/* ─────────────── Final CTA ─────────────── */}
           <section className="px-4 py-16 bg-primary/5">
             <div className="mx-auto max-w-2xl text-center">
-              <h2 className="text-2xl sm:text-3xl font-semibold text-foreground mb-4">
+              <Heading level="h2" className="mb-4">
                 Ready to see an Australian online doctor?
-              </h2>
+              </Heading>
               <p className="text-muted-foreground mb-8">
                 Fill in the form, a doctor reviews it, your certificate or prescription is on the
                 way. Refund if we can&apos;t help.

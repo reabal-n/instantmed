@@ -20,6 +20,7 @@ import Link from "next/link"
 import { BreadcrumbSchema, FAQSchema } from "@/components/seo"
 import { Footer,Navbar } from "@/components/shared"
 import { Button } from "@/components/ui/button"
+import { Heading } from "@/components/ui/heading"
 import { SectionPill } from "@/components/ui/section-pill"
 import { PRICING_DISPLAY } from "@/lib/constants"
 import { getAllStateSlugs, statesData } from "@/lib/seo/data/states"
@@ -207,9 +208,9 @@ export default function TelehealthAustraliaPage() {
               <div className="mb-6">
                 <SectionPill>Nationwide · AHPRA-governed</SectionPill>
               </div>
-              <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl mb-4">
+              <Heading level="display" className="mb-4">
                 Telehealth in Australia - how virtual care actually works
-              </h1>
+              </Heading>
               <p className="text-muted-foreground text-lg max-w-2xl mx-auto mb-8">
                 A plain-English guide to telehealth in Australia: the regulation, the cost, the
                 rules around Medicare and PBS, and the conditions it&apos;s genuinely suitable for.
@@ -275,9 +276,9 @@ export default function TelehealthAustraliaPage() {
           {/* ─────────────── What telehealth actually is ─────────────── */}
           <section className="px-4 py-16">
             <div className="mx-auto max-w-3xl">
-              <h2 className="text-2xl sm:text-3xl font-semibold text-foreground mb-6">
+              <Heading level="h2" className="mb-6">
                 What telehealth actually is - and isn&apos;t
-              </h2>
+              </Heading>
               <div className="space-y-5 text-muted-foreground leading-relaxed">
                 <p>
                   Telehealth is a delivery model, not a separate kind of medicine. In Australia, the
@@ -319,9 +320,9 @@ export default function TelehealthAustraliaPage() {
           <section className="px-4 py-16 bg-muted/30 dark:bg-white/[0.02] border-y border-border/40 dark:border-white/10">
             <div className="mx-auto max-w-5xl">
               <div className="text-center mb-10">
-                <h2 className="text-2xl sm:text-3xl font-semibold text-foreground mb-3">
+                <Heading level="h2" className="mb-3">
                   The three telehealth modalities used in Australia
-                </h2>
+                </Heading>
                 <p className="text-muted-foreground max-w-2xl mx-auto">
                   Different tools for different clinical situations. InstantMed leans heavily on
                   asynchronous review - but hybrid follow-up is always available.
@@ -360,9 +361,9 @@ export default function TelehealthAustraliaPage() {
                   Regulatory landscape
                 </span>
               </div>
-              <h2 className="text-2xl sm:text-3xl font-semibold text-foreground mb-6">
+              <Heading level="h2" className="mb-6">
                 Medicare, the PBS, and the rules that govern Australian telehealth
-              </h2>
+              </Heading>
               <div className="space-y-5 text-muted-foreground leading-relaxed">
                 <p>
                   Australian telehealth sits on top of three overlapping regulatory layers, and
@@ -407,9 +408,9 @@ export default function TelehealthAustraliaPage() {
           <section className="px-4 py-16 bg-muted/30 dark:bg-white/[0.02] border-y border-border/40 dark:border-white/10">
             <div className="mx-auto max-w-5xl">
               <div className="text-center mb-10">
-                <h2 className="text-2xl sm:text-3xl font-semibold text-foreground mb-3">
+                <Heading level="h2" className="mb-3">
                   Which conditions are suitable for telehealth - and which aren&apos;t
-                </h2>
+                </Heading>
                 <p className="text-muted-foreground max-w-2xl mx-auto">
                   The honest list. If a condition needs a physical exam or an emergency response,
                   telehealth isn&apos;t the right tool.
@@ -455,9 +456,9 @@ export default function TelehealthAustraliaPage() {
           {/* ─────────────── Who telehealth is for ─────────────── */}
           <section className="px-4 py-16">
             <div className="mx-auto max-w-3xl">
-              <h2 className="text-2xl sm:text-3xl font-semibold text-foreground mb-6">
+              <Heading level="h2" className="mb-6">
                 Who benefits most from Australian telehealth
-              </h2>
+              </Heading>
               <div className="space-y-5 text-muted-foreground leading-relaxed">
                 <p>
                   The population that gains the most from telehealth in Australia is anyone for
@@ -500,9 +501,9 @@ export default function TelehealthAustraliaPage() {
           <section className="px-4 py-16 bg-muted/30 dark:bg-white/[0.02] border-y border-border/40 dark:border-white/10">
             <div className="mx-auto max-w-5xl">
               <div className="text-center mb-10">
-                <h2 className="text-2xl sm:text-3xl font-semibold text-foreground mb-3">
+                <Heading level="h2" className="mb-3">
                   Explore InstantMed&apos;s telehealth services
-                </h2>
+                </Heading>
                 <p className="text-muted-foreground max-w-2xl mx-auto">
                   Specific pages for each service type, plus condition guides and location coverage.
                 </p>
@@ -564,9 +565,9 @@ export default function TelehealthAustraliaPage() {
           <section className="px-4 py-16">
             <div className="mx-auto max-w-5xl">
               <div className="text-center mb-10">
-                <h2 className="text-2xl sm:text-3xl font-semibold text-foreground mb-3">
+                <Heading level="h2" className="mb-3">
                   Telehealth coverage in every Australian state
-                </h2>
+                </Heading>
                 <p className="text-muted-foreground max-w-2xl mx-auto">
                   Each state page has local context on access pressure, Medicare rules, and
                   accepted documentation by universities and employers.
@@ -603,9 +604,9 @@ export default function TelehealthAustraliaPage() {
           {/* ─────────────── FAQs ─────────────── */}
           <section className="px-4 py-16 bg-muted/30 dark:bg-white/[0.02] border-y border-border/40 dark:border-white/10">
             <div className="mx-auto max-w-3xl">
-              <h2 className="text-2xl sm:text-3xl font-semibold text-foreground text-center mb-10">
+              <Heading level="h2" className="text-center mb-10">
                 Telehealth Australia - FAQs
-              </h2>
+              </Heading>
               <div className="space-y-4">
                 {FAQS.map((faq, i) => (
                   <div
@@ -623,9 +624,9 @@ export default function TelehealthAustraliaPage() {
           {/* ─────────────── Final CTA ─────────────── */}
           <section className="px-4 py-16 bg-primary/5">
             <div className="mx-auto max-w-2xl text-center">
-              <h2 className="text-2xl sm:text-3xl font-semibold text-foreground mb-4">
+              <Heading level="h2" className="mb-4">
                 Use telehealth the way it&apos;s meant to work
-              </h2>
+              </Heading>
               <p className="text-muted-foreground mb-8">
                 Fill in a form, an AHPRA-registered doctor reviews it, certificate or eScript
                 arrives the same day. Refund if it&apos;s not the right fit.
