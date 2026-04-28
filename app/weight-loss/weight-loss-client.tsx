@@ -17,6 +17,7 @@ import { CenteredHero } from "@/components/heroes"
 import { StickerIcon } from "@/components/icons/stickers"
 import { DoctorCredibility,MarketingFooter, RegulatoryPartners } from "@/components/marketing"
 import { WeightLossGuideSection } from "@/components/marketing/sections"
+import { ServiceClaimSection } from "@/components/marketing/sections/service-claim-section"
 import {
   CTABanner,
   FAQSection,
@@ -213,6 +214,19 @@ export function WeightLossClient() {
               </div>
             </div>
           </CenteredHero>
+
+          {/* Page superpower — clinical-supervision framing distinguishes
+              this from cosmetic / wellness weight-loss programs that don't
+              involve a doctor. Anchors TGA-approved + ongoing-monitoring. */}
+          <ServiceClaimSection
+            eyebrow="Clinical, not cosmetic"
+            headline={
+              <>
+                <span className="text-primary">Doctor-supervised</span> weight management.
+              </>
+            }
+            body="Not a meal-plan subscription. Not a wellness program. Doctor-prescribed treatment options for adults with BMI 30+ (or 27+ with related conditions), with regular check-ins and TGA-approved medications. The clinical framing matters. Your doctor follows up, adjusts dosage, and watches for side effects."
+          />
 
           {/* Hero image */}
           <section className="px-4 pb-12">

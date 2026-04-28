@@ -17,6 +17,7 @@ import {
 import type { Metadata } from "next"
 import Link from "next/link"
 
+import { ServiceClaimSection } from "@/components/marketing/sections/service-claim-section"
 import { BreadcrumbSchema, FAQSchema } from "@/components/seo"
 import { Footer,Navbar } from "@/components/shared"
 import { Button } from "@/components/ui/button"
@@ -250,6 +251,19 @@ export default function TelehealthAustraliaPage() {
               </div>
             </div>
           </section>
+
+          {/* Page superpower — anchors the "regulated, governed, doctor-led"
+              positioning that distinguishes legitimate AU telehealth from
+              cross-border fly-by-night operators. */}
+          <ServiceClaimSection
+            eyebrow="Regulated, governed, accountable"
+            headline={
+              <>
+                <span className="text-primary">AHPRA-registered</span> doctors. <span className="text-primary">TGA-compliant</span> prescribing.
+              </>
+            }
+            body="Australian regulatory oversight at every layer. Every prescriber is current on the AHPRA register. Every prescription is governed by TGA rules. Every patient is covered by the Health Practitioner Regulation National Law Act 2009."
+          />
 
           {/* ─────────────── Stats ─────────────── */}
           <section className="px-4 py-10 bg-white dark:bg-white/[0.02] border-y border-border/40 dark:border-white/10">

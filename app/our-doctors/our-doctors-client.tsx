@@ -15,6 +15,7 @@ import { CenteredHero } from "@/components/heroes"
 import { StickerIcon } from "@/components/icons/stickers"
 import { MarketingFooter } from "@/components/marketing"
 import { DoctorsGuideSection } from "@/components/marketing/sections"
+import { ServiceClaimSection } from "@/components/marketing/sections/service-claim-section"
 import { AccordionSection, CTABanner,FeatureGrid, IconChecklist } from "@/components/sections"
 import type { ChecklistItem,FeatureItem } from "@/components/sections/types"
 import { FAQSchema } from "@/components/seo"
@@ -195,6 +196,21 @@ export default function OurDoctorsClient({ verifiedDoctorCount }: OurDoctorsClie
             </Badge>
           </div>
         </CenteredHero>
+
+        {/* Page superpower — distinguishes from "telehealth platforms staffed
+            by anonymous overseas doctors" by anchoring the named-AHPRA-doctor
+            promise that this page is built to make. Per CLAUDE.md identity
+            constraint, we do NOT name the individual doctor; the verifiable
+            registration is the claim. */}
+        <ServiceClaimSection
+          eyebrow="Named, registered, verifiable"
+          headline={
+            <>
+              The doctor reviewing your case is <span className="text-primary">on the AHPRA register</span>.
+            </>
+          }
+          body="Their name appears on every certificate and prescription we issue. You can independently verify their registration on ahpra.gov.au at any time. No anonymous reviewers, no offshore prescribers, no AI standing in for clinical judgment."
+        />
 
         {/* Credentials Grid */}
         <FeatureGrid

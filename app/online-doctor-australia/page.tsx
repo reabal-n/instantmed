@@ -14,6 +14,7 @@ import {
 import type { Metadata } from "next"
 import Link from "next/link"
 
+import { ServiceClaimSection } from "@/components/marketing/sections/service-claim-section"
 import { BreadcrumbSchema, FAQSchema } from "@/components/seo"
 import { Footer,Navbar } from "@/components/shared"
 import { Button } from "@/components/ui/button"
@@ -257,6 +258,18 @@ export default function OnlineDoctorAustraliaPage() {
               </div>
             </div>
           </section>
+
+          {/* Page superpower — anchors the "AHPRA-registered, no algorithm"
+              promise above the stats so the stats reinforce the claim. */}
+          <ServiceClaimSection
+            eyebrow="Real GPs, not chatbots"
+            headline={
+              <>
+                Every request reviewed by an <span className="text-primary">AHPRA-registered Australian GP</span>.
+              </>
+            }
+            body="No AI prescribes. No algorithm declines. The clinical decision is always made by a human Australian doctor whose registration you can verify on ahpra.gov.au."
+          />
 
           {/* ─────────────── Stats ─────────────── */}
           <section className="px-4 py-10 bg-white dark:bg-white/[0.02] border-y border-border/40 dark:border-white/10">
