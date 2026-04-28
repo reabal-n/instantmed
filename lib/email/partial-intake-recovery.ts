@@ -102,7 +102,17 @@ export async function processPartialIntakeRecoveries(): Promise<{
 
   for (const draft of drafts) {
     const serviceName = SERVICE_NAMES[draft.service_type] ?? "request"
-    const resumeUrl = `${appUrl}/request?service=${encodeURIComponent(draft.service_type)}&d=${encodeURIComponent(draft.session_id)}`
+    // UTM attribution so PostHog/GA can credit recoveries that complete to
+    // purchase. captureAttribution() in lib/analytics/attribution.ts persists
+    // these to sessionStorage on landing, then the success page surfaces them
+    // back into the purchase_completed event.
+    const utmParams = [
+      "utm_source=recovery_email",
+      "utm_medium=email",
+      "utm_campaign=partial_intake_recovery",
+      `utm_content=${encodeURIComponent(draft.service_type)}`,
+    ].join("&")
+    const resumeUrl = `${appUrl}/request?service=${encodeURIComponent(draft.service_type)}&d=${encodeURIComponent(draft.session_id)}&${utmParams}`
 
     try {
       const result = await sendEmail({

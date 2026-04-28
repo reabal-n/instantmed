@@ -194,12 +194,44 @@ export function SuccessClient({
     })
 
     // PostHog purchase event - completes the funnel: step_viewed → step_completed → purchase_completed
+    // Surface persisted attribution (UTMs + gclid) onto the event so we can
+    // attribute purchases back to recovery emails, ad campaigns, referrers.
+    let attribution: Record<string, unknown> = {}
+    try {
+      // Lazy-loaded so the success page doesn't pull this into the SSR bundle
+      const stored = sessionStorage.getItem('instantmed_attribution')
+      attribution = stored ? JSON.parse(stored) : {}
+    } catch {
+      // sessionStorage blocked - skip enrichment
+    }
+
+    const cameFromRecoveryEmail = attribution.utm_source === 'recovery_email'
+
     posthog?.capture('purchase_completed', {
       intake_id: intakeId,
       service: serviceName || "unknown",
       value: valueDollars,
       currency: 'AUD',
+      came_from_recovery_email: cameFromRecoveryEmail,
+      utm_source: attribution.utm_source,
+      utm_medium: attribution.utm_medium,
+      utm_campaign: attribution.utm_campaign,
+      utm_content: attribution.utm_content,
+      gclid: attribution.gclid,
+      landing_page: attribution.landing_page,
     })
+
+    // Dedicated event for the recovery-email funnel measurement. Keeps the
+    // PostHog "purchases by hero variant" insight clean while enabling a
+    // separate "purchases that came from recovery emails" insight.
+    if (cameFromRecoveryEmail) {
+      posthog?.capture('purchase_came_from_recovery_email', {
+        intake_id: intakeId,
+        service: serviceName || "unknown",
+        value: valueDollars,
+        currency: 'AUD',
+      })
+    }
   }, [intakeId, serviceName, amountCents, patientEmail, posthog, isNewCustomer])
 
   // Show loading state while verifying payment
