@@ -51,7 +51,7 @@ async function findEligibleDrafts(): Promise<PartialDraft[]> {
   const tooOld = new Date(Date.now() - MAX_IDLE_HOURS * 60 * 60 * 1000).toISOString()
 
   const { data, error } = await supabase
-    .from("intake_drafts")
+    .from("partial_intakes")
     .select("session_id, service_type, email, first_name, updated_at")
     .not("email", "is", null)
     .is("converted_to_intake_id", null)
@@ -72,7 +72,7 @@ async function findEligibleDrafts(): Promise<PartialDraft[]> {
 async function markRecoverySent(sessionId: string): Promise<void> {
   const supabase = createServiceRoleClient()
   const { error } = await supabase
-    .from("intake_drafts")
+    .from("partial_intakes")
     .update({ recovery_email_sent_at: new Date().toISOString() })
     .eq("session_id", sessionId)
 

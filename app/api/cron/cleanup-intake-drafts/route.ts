@@ -12,9 +12,9 @@ const logger = createLogger("cron-cleanup-intake-drafts")
 export const maxDuration = 60
 
 /**
- * Daily cleanup of expired intake_drafts rows. Calls the
- * cleanup_expired_intake_drafts() Postgres function created by the
- * 20260427000001_intake_drafts.sql migration.
+ * Daily cleanup of expired partial_intakes rows. Calls the
+ * cleanup_expired_partial_intakes() Postgres function created by the
+ * 20260428000002_partial_intakes.sql migration.
  *
  * Without this cron the table grows unbounded. The function deletes any
  * row past its expires_at (default: created_at + 7 days).
@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const supabase = createServiceRoleClient()
-    const { data, error } = await supabase.rpc("cleanup_expired_intake_drafts")
+    const { data, error } = await supabase.rpc("cleanup_expired_partial_intakes")
 
     if (error) {
       throw new Error(`Postgres rpc failed: ${error.message}`)

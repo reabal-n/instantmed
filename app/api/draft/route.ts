@@ -2,7 +2,7 @@
  * Server-side intake draft persistence.
  *
  * Anonymous (no auth required). The session_id is the authorization token -
- * anyone holding it can read/write the draft. The /intake_drafts table is
+ * anyone holding it can read/write the draft. The partial_intakes table is
  * RLS-locked, so all access goes through this service-role route.
  *
  * Used by:
@@ -87,7 +87,7 @@ export async function POST(req: NextRequest) {
   }
 
   const { data, error } = await supabase
-    .from("intake_drafts")
+    .from("partial_intakes")
     .upsert(row, { onConflict: "session_id" })
     .select("session_id, expires_at, updated_at")
     .single()
@@ -121,7 +121,7 @@ export async function GET(req: NextRequest) {
 
   const supabase = createServiceRoleClient()
   const { data, error } = await supabase
-    .from("intake_drafts")
+    .from("partial_intakes")
     .select("session_id, service_type, current_step_id, answers, email, first_name, last_name, phone, updated_at, expires_at, converted_to_intake_id")
     .eq("session_id", sessionId)
     .gt("expires_at", new Date().toISOString())
@@ -170,7 +170,7 @@ export async function DELETE(req: NextRequest) {
   }
 
   const supabase = createServiceRoleClient()
-  const { error } = await supabase.from("intake_drafts").delete().eq("session_id", sessionId)
+  const { error } = await supabase.from("partial_intakes").delete().eq("session_id", sessionId)
 
   if (error) {
     logger.error("Failed to delete intake draft", { error: error.message })
