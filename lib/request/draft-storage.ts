@@ -127,10 +127,15 @@ export function getDraft(service: CanonicalServiceType): DraftData | null {
 /**
  * Save draft for a specific service type.
  * Only modifies the draft for the specified service.
+ *
+ * Also fire-and-forget mirrors the draft to the server (debounced) so the
+ * intake can be resumed on another device and so the recovery cron can
+ * find stale drafts by email. Server failures are silent - localStorage
+ * remains the source of truth for the active session.
  */
 export function saveDraft(service: CanonicalServiceType, data: Omit<DraftData, 'serviceType' | 'lastSavedAt'>): void {
   if (!isStorageAvailable()) return
-  
+
   try {
     const key = getStorageKey(service)
     const draft: DraftData = {
@@ -142,20 +147,50 @@ export function saveDraft(service: CanonicalServiceType, data: Omit<DraftData, '
   } catch {
     // Silently fail if localStorage unavailable
   }
+
+  // Fire-and-forget server mirror. Lazy-loaded so server-only contexts that
+  // never reach this branch don't pull the fetch wrapper into their bundles.
+  if (typeof window !== 'undefined') {
+    void import('./server-draft').then(({ saveServerDraftDebounced }) => {
+      saveServerDraftDebounced({
+        serviceType: service,
+        currentStepId: data.currentStepId,
+        answers: data.answers,
+        identity: {
+          email: data.email,
+          firstName: data.firstName,
+          lastName: data.lastName,
+          phone: data.phone,
+        },
+      })
+    }).catch(() => {
+      // Module load failure - localStorage save still succeeded.
+    })
+  }
 }
 
 /**
  * Clear draft for a specific service type.
- * Only clears the draft for the specified service.
+ * Only clears the draft for the specified service. Also deletes the server
+ * mirror (fire-and-forget) so the recovery cron does not email a user whose
+ * intake has actually been completed or explicitly abandoned.
  */
 export function clearDraft(service: CanonicalServiceType): void {
   if (!isStorageAvailable()) return
-  
+
   try {
     const key = getStorageKey(service)
     localStorage.removeItem(key)
   } catch {
     // Silently fail
+  }
+
+  if (typeof window !== 'undefined') {
+    void import('./server-draft').then(({ deleteServerDraft }) => {
+      void deleteServerDraft(service)
+    }).catch(() => {
+      // ignore - row will eventually expire server-side anyway
+    })
   }
 }
 

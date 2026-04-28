@@ -10,6 +10,7 @@ import { Check, Clock, Lock, MessageSquare, RefreshCw,ShieldCheck, Smartphone, U
 import { useEffect,useState } from "react"
 
 import { createCheckoutFromUnifiedFlow } from "@/app/actions/unified-checkout"
+import { CertPreviewCard } from "@/components/checkout/cert-preview-card"
 import { PaymentLogos } from "@/components/checkout/payment-logos"
 import { GuaranteeBadge } from "@/components/marketing/guarantee-badge"
 import { usePostHog } from "@/components/providers/posthog-provider"
@@ -277,6 +278,19 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
         </div>
       </motion.div>
 
+
+      {/* Live cert preview - med-cert specific. Closes the "is this what I'm
+          paying for?" trust loop right at checkout, with the patient's real
+          name pre-filled in a clearly-marked PREVIEW document. */}
+      {serviceType === 'med-cert' && (
+        <motion.div variants={stagger.item}>
+          <CertPreviewCard
+            patientName={getIdentity().fullName}
+            certType={typeof answers.certType === 'string' ? answers.certType : undefined}
+            durationDays={duration}
+          />
+        </motion.div>
+      )}
 
       {/* What you'll get - prescription specific */}
       {(serviceType === 'prescription' || serviceType === 'repeat-script') && (
