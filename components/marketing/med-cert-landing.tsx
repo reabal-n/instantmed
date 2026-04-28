@@ -5,21 +5,21 @@ import {
   CheckCircle2,
   Clock,
   Search,
-  ShieldCheck,
 } from "lucide-react"
 import dynamic from "next/dynamic"
 import Link from "next/link"
 import { useCallback, useEffect, useRef, useState } from "react"
 
 import { StripePaymentLogos } from "@/components/checkout/payment-logos"
-// Hero is above-fold - not lazy loaded
-import { MedCertHeroSection } from "@/components/marketing/heroes/med-cert-hero"
+import { Hero } from "@/components/marketing/hero"
 import { IntakeResumeChip } from "@/components/marketing/intake-resume-chip"
+import { MedCertHeroMockup } from "@/components/marketing/mockups/med-cert-hero-mockup"
 import {
   type LandingPageConfig,
   LandingPageShell,
 } from "@/components/marketing/shared"
 import { type LogoItem, ScrollingLogoMarquee } from "@/components/marketing/shared/scrolling-logo-marquee"
+import { Heading } from "@/components/ui/heading"
 import { useReducedMotion } from "@/components/ui/motion"
 import { Reveal } from "@/components/ui/reveal"
 import { SectionPill } from "@/components/ui/section-pill"
@@ -133,27 +133,61 @@ const EMPLOYER_LOGOS: LogoItem[] = [
 // UNIQUE SECTIONS
 // =============================================================================
 
-/** Employer acceptance - scrolling logo marquee + verify/employer links */
+/**
+ * Employer acceptance — the page's superpower.
+ *
+ * Pass 3 elevation:
+ *   - /colorize: Morning Canvas warmth tint on the section background
+ *     (peach/champagne radial) so the section reads as a warm anchor
+ *     rather than another generic card.
+ *   - /bolder: percentage moment is bumped to display-weight typography
+ *     and headlined as the section's claim. Marquee gets more breathing
+ *     room. Footer links separated from the claim with a hairline.
+ */
 function EmployerCalloutStrip({ onEmployerClick, onVerifyClick }: { onEmployerClick?: () => void; onVerifyClick?: () => void }) {
   return (
-    <section data-track-section="employer" className="py-8 sm:py-10">
+    <section
+      data-track-section="employer"
+      className="relative py-10 sm:py-14 lg:py-16 overflow-hidden"
+    >
+      {/* Morning Canvas warmth — soft peach radial that fades into ivory.
+          Anchors the section as a warm trust moment without competing with
+          the colored employer logos inside the card. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 -z-10 dark:opacity-30"
+        style={{
+          background:
+            "radial-gradient(ellipse 70% 60% at 50% 30%, rgba(245, 198, 160, 0.18) 0%, rgba(245, 198, 160, 0.06) 40%, transparent 70%)",
+        }}
+      />
+
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-        <div className="rounded-2xl bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06] p-6 sm:p-8">
-          <p className="text-center text-sm text-success font-medium flex items-center justify-center gap-2 mb-4">
-            <CheckCircle2 className="h-4 w-4 shrink-0" aria-hidden="true" />
-            Accepted by {SOCIAL_PROOF.employerAcceptancePercent}% of Australian employers and universities
-          </p>
-          <p className="text-center text-xs text-muted-foreground mt-1">
-            Legally valid under the Fair Work Act 2009 (Cth), s 107. Same legal weight as a GP certificate.
-          </p>
+        <div className="rounded-3xl bg-white dark:bg-card border border-border/50 shadow-lg shadow-primary/[0.08] dark:shadow-none p-7 sm:p-10 lg:p-12">
+          {/* Headline claim — the page's strongest trust signal, given
+              display-tier prominence. */}
+          <div className="text-center mb-6 sm:mb-8">
+            <p className="inline-flex items-center gap-2 text-xs font-semibold text-success uppercase tracking-[0.12em] mb-3">
+              <CheckCircle2 className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+              Accepted everywhere it counts
+            </p>
+            <p className="text-2xl sm:text-3xl lg:text-4xl font-semibold tracking-[-0.02em] text-foreground leading-[1.15] text-balance">
+              <span className="text-primary tabular-nums">{SOCIAL_PROOF.employerAcceptancePercent}%</span> of Australian employers and universities accept it.
+            </p>
+            <p className="mt-3 text-sm text-muted-foreground max-w-xl mx-auto leading-relaxed">
+              Legally valid under the Fair Work Act 2009 (Cth), s 107. Same legal weight as a GP certificate.
+            </p>
+          </div>
+
           <ScrollingLogoMarquee
             logos={EMPLOYER_LOGOS}
             colored
             tooltipPrefix="Accepted by"
             analyticsEvent="employer_marquee_view"
-            className="py-4"
+            className="py-2 sm:py-3"
           />
-          <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
+
+          <div className="mt-6 sm:mt-8 pt-5 border-t border-border/30 flex items-center justify-center gap-4 text-xs text-muted-foreground">
             <Link
               href="/for/employers"
               onClick={onEmployerClick}
@@ -202,9 +236,9 @@ function CertComparisonViz() {
       <div className="mx-auto max-w-3xl px-4 sm:px-6">
         <Reveal instant className="text-center mb-10">
           <SectionPill>Time saved</SectionPill>
-          <h2 className="mt-3 text-2xl sm:text-3xl font-semibold tracking-tight text-balance">
+          <Heading level="h2" className="mt-3">
             Back on the couch in minutes. Not hours.
-          </h2>
+          </Heading>
         </Reveal>
 
         <div ref={ref} className="space-y-5">
@@ -300,8 +334,33 @@ export function MedCertLanding() {
                 see it immediately without scrolling past the value prop. */}
             <IntakeResumeChip className="mx-4 mt-3 max-w-5xl sm:mx-auto" />
 
-            {/* 1. Hero */}
-            <MedCertHeroSection ctaRef={heroCTARef} onCTAClick={handleHeroCTA} />
+            {/* 1. Hero — canonical <Hero> with med-cert-specific title, CTA,
+                employer-acceptance reassurance line, and the document-realism
+                cert mockup. Bespoke MedCertHeroSection retired in Pass 2. */}
+            <Hero
+              title="Medical certificate. From your bed."
+              primaryCta={{
+                text: `Get your certificate · $${PRICING.MED_CERT.toFixed(2)}`,
+                href: "/request?service=med-cert",
+                onClick: handleHeroCTA,
+                ref: heroCTARef,
+              }}
+              secondaryCta={null}
+              beforeCta={
+                <p className="inline-flex items-start sm:items-center gap-2 text-[13px] text-foreground max-w-xl mx-auto lg:mx-0 leading-snug text-left sm:text-center lg:text-left">
+                  <CheckCircle2 className="w-4 h-4 text-success shrink-0 mt-px sm:mt-0" aria-hidden="true" />
+                  <span>
+                    Accepted by Woolworths, CBA, Telstra, and {SOCIAL_PROOF.employerAcceptancePercent}% of Australian employers.
+                    <span className="text-muted-foreground"> Legally valid under Fair Work Act s 107.</span>
+                  </span>
+                </p>
+              }
+              mockup={<MedCertHeroMockup />}
+            >
+              <p className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-6 sm:mb-7 leading-relaxed text-balance">
+                AHPRA-registered Australian GP reviews every request. PDF in your inbox, ready to forward.
+              </p>
+            </Hero>
 
             {/* 2. Employer acceptance - scrolling logos plus Fair Work citation */}
             <EmployerCalloutStrip onEmployerClick={handleEmployerClick} onVerifyClick={handleVerifyClick} />
@@ -360,20 +419,9 @@ export function MedCertLanding() {
               </p>
             </div>
 
-            {/* 10. Pre-CTA reassurance - refund first, then friction */}
-            <div className="pt-6 sm:pt-8 pb-4 sm:pb-5">
-              <div className="mx-auto max-w-2xl px-4 sm:px-6">
-                <div className="flex items-center gap-3 rounded-full border border-success/20 bg-success/[0.04] dark:bg-success/[0.08] px-4 py-2.5 text-center justify-center">
-                  <ShieldCheck className="h-4 w-4 shrink-0 text-success" aria-hidden="true" />
-                  <p className="text-xs sm:text-sm text-foreground">
-                    <span className="font-semibold">100% refund guarantee.</span>
-                    <span className="text-muted-foreground"> If our doctor cannot issue your certificate, you pay nothing.</span>
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* 11. Final CTA */}
+            {/* 10. Final CTA — refund pre-pill removed in Pass 2; the
+                CTABanner auto-renders the canonical GUARANTEE line below the
+                CTA, so the dueling pre-CTA pill was redundant trust signal. */}
             <div data-track-section="final_cta">
               <CTABanner
                 title="Back to bed in two minutes."

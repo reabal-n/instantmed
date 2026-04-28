@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Heading } from "@/components/ui/heading";
 import { Reveal } from "@/components/ui/reveal";
 import type { PresetEntry } from "@/lib/marketing/trust-badges";
+import { GUARANTEE } from "@/lib/marketing/voice";
 import { cn } from "@/lib/utils";
 
 import type { SectionProps } from "./types";
@@ -68,10 +69,11 @@ export function CTABanner({
           )}
         </div>
 
-        {/* Refund reassurance */}
+        {/* Refund reassurance — sourced from GUARANTEE in lib/marketing/voice.ts
+            so every CTA banner stays in lockstep with the brand voice canon. */}
         <p className="mt-4 text-xs text-muted-foreground flex items-center justify-center gap-1.5">
           <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
-          Full refund if we can&apos;t help - no questions asked
+          {GUARANTEE}
         </p>
 
         {/* Optional trust badge row */}

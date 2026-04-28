@@ -22,16 +22,16 @@ import { GUARANTEE } from "@/lib/marketing/voice"
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://instantmed.com.au"
 
 export const metadata: Metadata = {
-  title: "Our Guarantee | 2-Hour Review or We Waive the Fee",
+  title: "Our Guarantee | Full Refund If We Can't Help",
   description:
-    "Doctor reviews in 2 hours or we waive the fee. Here is exactly how the guarantee works, what qualifies, and how refunds are processed.",
+    "Full refund if our doctor can't help. No fine print. Here is exactly what counts, what does not, and how the refund works.",
   alternates: {
     canonical: "/guarantee",
   },
   openGraph: {
     title: "Our Guarantee | InstantMed",
     description:
-      "Doctor reviews in 2 hours or we waive the fee. Plain English. No fine print.",
+      "Full refund if our doctor can't help. Plain English. No fine print.",
     url: `${SITE_URL}/guarantee`,
     siteName: "InstantMed",
     type: "website",
@@ -40,7 +40,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Our Guarantee | InstantMed",
-    description: "Doctor reviews in 2 hours or we waive the fee.",
+    description: "Full refund if our doctor can't help.",
   },
 }
 
@@ -50,44 +50,44 @@ export const metadata: Metadata = {
 
 const guaranteeFaqs = [
   {
-    question: "What counts as the start of the 2-hour window?",
+    question: "What does 'we can't help' mean exactly?",
     answer:
-      "The clock starts the moment your payment is confirmed and your request hits the doctor queue. You will see a confirmation page and receive an email with a time stamp. That time stamp is the reference.",
+      "Two cases. (1) Our doctor reviews your request and decides they cannot safely issue what you asked for, given your symptoms or history. That is a clinical decline. (2) Our doctor needs you to see someone in person instead, and tells you so. Either way, you pay nothing.",
   },
   {
-    question: "What happens if a doctor has not reviewed within 2 hours?",
+    question: "How long until I know if a doctor can help me?",
     answer:
-      "Email support@instantmed.com.au with your request ID and we will process a full refund to the original payment method within one business day. No call, no form, no argument. Your clinical request stays in the queue if you still want it reviewed.",
+      "Medical certificates: usually under 30 minutes, 24/7. Prescriptions and consultations: typically reviewed within 1 to 2 hours during operating hours (8am to 10pm AEST, 7 days). You will get email updates. We do not guarantee a specific time, only the outcome.",
   },
   {
-    question: "Does the guarantee apply overnight?",
+    question: "What if the doctor needs more information from me?",
     answer:
-      "Medical certificates are 24/7 and covered around the clock. Prescription and consult requests are reviewed 8am to 10pm AEST, 7 days. If you submit outside those hours, the 2-hour window starts at 8am AEST the next day. You will see this clearly on the confirmation page before you pay.",
+      "If the doctor messages you with a follow-up question, the request stays open until you reply. The guarantee still applies. The only thing that ends the request without a refund is the doctor approving and issuing what you asked for.",
   },
   {
-    question: "What if the doctor declines my request?",
+    question: "What about partial outcomes? Can I get a partial refund?",
     answer:
-      "A decline is a clinical decision, not a service failure, so the 2-hour guarantee does not apply. But every declined request is automatically refunded in full. You only pay when a doctor can actually help.",
+      "If the doctor issues part of what you asked for and declines part of it (rare, but possible on consults with multiple medications), you keep the issued part and get a full refund on the rest. No bookkeeping on your end.",
   },
   {
-    question: "What if the doctor needs more information?",
+    question: "What about the priority fee?",
     answer:
-      "If the doctor contacts you with a follow-up question, the 2-hour clock pauses until you respond. This protects the guarantee for requests that take longer because of a back-and-forth, not because of us.",
+      "The $9.95 Express Review fee is fully refunded alongside the consult fee whenever the guarantee triggers.",
   },
   {
-    question: "How do I claim the refund?",
+    question: "Does the guarantee apply if I change my mind?",
     answer:
-      "Email support@instantmed.com.au with your request ID. Refunds are processed to the original payment method within one business day. Stripe typically shows the reversal on your statement within 5 to 10 business days depending on your bank.",
+      "If a doctor has not yet reviewed your request, yes. Email support@instantmed.com.au and we will cancel and refund. Once a doctor has reviewed and issued, the clinical work is complete and standard refund terms apply, not this guarantee.",
   },
   {
-    question: "Does the guarantee include the priority fee?",
+    question: "How is the refund paid back?",
     answer:
-      "Yes. If you paid the $9.95 Express Review fee and we miss the 2-hour mark, that add-on is refunded alongside the consult fee.",
+      "To the original payment method, processed within one business day on our end. Stripe typically shows the reversal on your statement within 5 to 10 business days depending on your bank.",
   },
   {
-    question: "Can I get a refund if I change my mind?",
+    question: "Do I need to ask for the refund?",
     answer:
-      "If a doctor has not yet reviewed your request, yes. Email support@instantmed.com.au and we will cancel and refund. Once a doctor has reviewed and approved the request, the clinical work is complete and standard refund terms apply, not the 2-hour guarantee.",
+      "No. Declines and 'see someone in person' outcomes are auto-refunded the moment the doctor records the decision. The refund email comes within minutes. If you believe a refund is missing, email support@instantmed.com.au with your request ID and we will sort it.",
   },
 ]
 
@@ -97,66 +97,66 @@ const guaranteeFaqs = [
 
 const qualifyingFeatures: FeatureItem[] = [
   {
-    icon: <StickerIcon name="clock" size={48} />,
-    title: "2 hours, from payment to review",
-    description:
-      "Timed from the moment your request hits the doctor queue. Miss the window, the fee is waived.",
-  },
-  {
     icon: <StickerIcon name="user-check" size={48} />,
     title: "Real AHPRA-registered doctors",
     description:
-      "Every review is a human clinical decision, not an algorithm. That is the whole point of the guarantee.",
+      "Every review is a human clinical decision, not an algorithm. That is what makes the outcome promise possible.",
   },
   {
     icon: <StickerIcon name="security-shield" size={48} />,
-    title: "Full refund, same payment method",
+    title: "Full refund, original payment method",
     description:
-      "No restocking fee, no partial refund, no hoops. Original payment method, one business day, done.",
+      "No restocking fee, no partial refund, no hoops. Original payment method, one business day on our end.",
   },
   {
     icon: <StickerIcon name="speech-bubble" size={48} />,
-    title: "No argument, no form",
+    title: "Auto-refunded, no email needed",
     description:
-      "One email to support@instantmed.com.au with your request ID. We check the time stamp and refund it.",
+      "Declines refund automatically the moment the doctor records the decision. You will see the email within minutes.",
+  },
+  {
+    icon: <StickerIcon name="clock" size={48} />,
+    title: "Time updates, not time promises",
+    description:
+      "We will tell you when a doctor is reviewing and update you as things move. We do not promise a specific minute.",
   },
 ]
 
 const whatYouGet: ChecklistItem[] = [
   {
-    text: "A doctor reviews your request within 2 hours of payment",
+    text: "If our doctor can't issue what you asked for, full refund",
     subtext:
-      "Measured from the time stamp on your confirmation email, not from when you hit submit.",
+      "Clinical declines, 'see someone in person' outcomes, and partial-issue cases all trigger the full refund automatically.",
   },
   {
-    text: "If we miss the window, you get a full refund",
+    text: "Refund hits your statement same way you paid",
     subtext:
-      "Consult fee, priority fee, the lot. Refunded to the original payment method within one business day.",
+      "Card, Apple Pay, Google Pay, all original method. Processed within one business day on our end.",
   },
   {
-    text: "Your clinical request stays active if you still want it",
+    text: "You only pay when a doctor can actually help",
     subtext:
-      "Getting a refund does not mean cancelling the review. A doctor can still approve and deliver the script or certificate if you want to keep going.",
+      "This is the whole point. Money does not stay with us unless our clinical work meets your need.",
   },
   {
-    text: "Every declined request is automatically refunded",
+    text: "No phone calls, no forms, no friction to claim it",
     subtext:
-      "This is separate from the 2-hour guarantee and applies to all declines, full stop. You only pay when a doctor can actually help you.",
+      "Auto-refunded by default. If anything looks wrong, one email to support@instantmed.com.au with your request ID and we sort it.",
   },
 ]
 
 const refundSteps = [
   {
     number: 1,
-    title: "Email support with your request ID",
+    title: "Doctor reviews your request",
     description:
-      "Send a short email to support@instantmed.com.au. Include the request ID from your confirmation email so we can pull the timestamps.",
+      "An AHPRA-registered GP looks at your symptoms, history, and what you have asked for. Outcome is one of three: issue, decline, or follow-up question.",
   },
   {
     number: 2,
-    title: "We check the time stamp",
+    title: "Decline triggers an automatic refund",
     description:
-      "Usually takes under an hour during business hours. If the 2-hour window was missed, refund approved automatically.",
+      "If the doctor declines or recommends in-person care, the system fires the refund the moment the decision is recorded. No human in the loop on your end.",
   },
   {
     number: 3,
@@ -177,8 +177,8 @@ export default function GuaranteePage() {
           <CenteredHero
             pill="Our Guarantee"
             title={GUARANTEE}
-            highlightWords={["2 hours", "waive the fee."]}
-            subtitle="No fine print, no asterisks. If a doctor has not reviewed your request within 2 hours of payment, we refund the whole thing. You still get the review if you want it."
+            highlightWords={["doctor can't help."]}
+            subtitle="No fine print, no asterisks. If our doctor cannot safely issue what you asked for, you pay nothing. Refunds are automatic."
           >
             <div className="mt-8 flex justify-center">
               <GuaranteeBadge size="lg" linked={false} />
@@ -200,19 +200,19 @@ export default function GuaranteePage() {
 
           <ProcessSteps
             title="How the refund works"
-            subtitle="Three steps, one email, one business day on our end."
+            subtitle="Three steps. Most refunds fire automatically with no action from you."
             steps={refundSteps}
           />
 
           <AccordionSection
             title="Guarantee FAQ"
-            subtitle="Straight answers on timing, overnight requests, declines, and refunds."
+            subtitle="Straight answers on declines, partial outcomes, and refund timing."
             groups={[{ items: guaranteeFaqs }]}
           />
 
           <CTABanner
             title="Ready to see a doctor?"
-            subtitle="Start a request now. A doctor reviews it within 2 hours or we waive the fee."
+            subtitle="Start a request. If our doctor can't help, you pay nothing."
             ctaText="Start a request"
             ctaHref="/request"
             secondaryText="Read the full terms"

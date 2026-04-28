@@ -4,6 +4,7 @@ import Link from "next/link"
 import type { StickerIconName } from "@/components/icons/stickers"
 import { StickerIcon } from "@/components/icons/stickers"
 import { Button } from "@/components/ui/button"
+import { Heading } from "@/components/ui/heading"
 import { Reveal } from "@/components/ui/reveal"
 
 export interface HowItWorksStep {
@@ -37,9 +38,9 @@ export function HowItWorksInline({
     <section id="how-it-works" aria-label="How it works" className="py-16 lg:py-20">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <Reveal instant className="text-center mb-12">
-          <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground mb-3">
+          <Heading level="h2" className="mb-3">
             {heading}
-          </h2>
+          </Heading>
           <p className="text-muted-foreground max-w-xl mx-auto text-balance">
             {subheading}
           </p>
@@ -57,7 +58,7 @@ export function HowItWorksInline({
                 {step.step}
               </div>
               <StickerIcon name={step.sticker} size={52} className="mx-auto mb-3" />
-              <h3 className="text-base font-semibold text-foreground mb-2">{step.title}</h3>
+              <Heading level="h3" className="mb-2">{step.title}</Heading>
               <p className="text-sm text-muted-foreground leading-relaxed mb-3">{step.description}</p>
               <span className="inline-flex items-center gap-1 text-xs font-semibold text-primary">
                 <Clock className="h-3 w-3" />
