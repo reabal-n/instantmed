@@ -22,6 +22,7 @@ import { Navbar } from "@/components/shared"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import type { FAQGroup } from "@/components/ui/faq-list"
+import { Heading } from "@/components/ui/heading"
 
 /* ────────────────────────────── Data ────────────────────────────── */
 
@@ -209,9 +210,9 @@ export default function OurDoctorsClient({ verifiedDoctorCount }: OurDoctorsClie
         {verifiedDoctorCount > 0 && (
           <section className="py-20 px-4 bg-muted/30">
             <div className="mx-auto max-w-3xl text-center">
-              <h2 className="text-2xl font-semibold text-foreground sm:text-3xl mb-4">
+              <Heading level="h2" className="mb-4">
                 Our clinical team
-              </h2>
+              </Heading>
               <p className="text-muted-foreground mb-8">
                 InstantMed currently operates with an AHPRA-registered
                 Australian GP who serves as both the treating practitioner and
@@ -271,9 +272,9 @@ export default function OurDoctorsClient({ verifiedDoctorCount }: OurDoctorsClie
         {/* AHPRA Verification */}
         <section className="py-20 px-4 bg-muted/30">
           <div className="mx-auto max-w-2xl text-center">
-            <h2 className="text-2xl font-semibold text-foreground mb-4">
+            <Heading level="h2" className="mb-4">
               Verify the registration yourself
-            </h2>
+            </Heading>
             <p className="text-muted-foreground mb-6">
               The treating doctor&apos;s registration can be independently
               verified on the AHPRA public register. Their name appears on

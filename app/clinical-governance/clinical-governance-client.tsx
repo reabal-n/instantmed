@@ -18,6 +18,7 @@ import type { ChecklistItem, FeatureItem, StatItem, TimelineStep } from "@/compo
 import { FAQSchema } from "@/components/seo"
 import { Navbar } from "@/components/shared"
 import { Button } from "@/components/ui/button"
+import { Heading } from "@/components/ui/heading"
 
 /* ────────────────────────────── Data ────────────────────────────── */
 
@@ -260,9 +261,9 @@ export default function ClinicalGovernanceClient() {
         {/* External verification - keep as custom since it has external links */}
         <section className="py-16 px-4">
           <div className="mx-auto max-w-2xl text-center">
-            <h2 className="text-2xl font-semibold text-foreground mb-4">
+            <Heading level="h2" className="mb-4">
               Independent verification
-            </h2>
+            </Heading>
             <p className="text-muted-foreground mb-6">
               Our Medical Director&apos;s registration can be independently verified on
               the AHPRA public register. Our clinical standards align with RACGP
