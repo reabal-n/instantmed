@@ -2,10 +2,12 @@
 
 import { motion } from 'framer-motion'
 import { ArrowRight } from 'lucide-react'
+import Image from 'next/image'
 import Link from 'next/link'
 
 import { AnimatedStat } from '@/components/marketing/animated-stat'
 import { GoogleReviewsBadge } from '@/components/marketing/google-reviews-badge'
+import { Heading } from '@/components/ui/heading'
 import { useReducedMotion } from '@/components/ui/motion'
 import { TestimonialsColumnsWrapper } from '@/components/ui/testimonials-columns-wrapper'
 import { getHomepageTestimonials } from '@/lib/data/testimonials'
@@ -19,28 +21,71 @@ const inlineStats = [
   { value: 100, suffix: '%', label: 'AHPRA-registered doctors', decimals: 0 },
 ]
 
-export function SocialProofSection() {
+interface SocialProofSectionProps {
+  /**
+   * Optional photographic accent. When provided, renders alongside the section
+   * header at a constrained size — replaces the previous full-bleed 16:7
+   * scroll-break that lived between hero and services on the home page.
+   */
+  lifestyleImage?: { src: string; alt: string }
+}
+
+export function SocialProofSection({ lifestyleImage }: SocialProofSectionProps = {}) {
   const prefersReducedMotion = useReducedMotion()
   const reviews = getHomepageTestimonials()
 
   return (
     <section className="py-10 sm:py-16 lg:py-24">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <motion.div
-          className="text-center mb-8 sm:mb-10 lg:mb-12"
-          initial={prefersReducedMotion ? {} : { opacity: 0, y: 8 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
-        >
-          <h2 className="text-2xl sm:text-3xl font-semibold text-foreground tracking-tight mb-3">
-            Real patients. Real reviews.
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            Don&apos;t take our word for it.
-          </p>
-        </motion.div>
+        {/* Header — split with optional lifestyle image accent on the right.
+            Without an image: header centers as before. With an image: 7/5 grid
+            on lg, stacked on mobile with the image rendered first as a small
+            framed banner. */}
+        {lifestyleImage ? (
+          <div className="grid lg:grid-cols-12 lg:gap-10 items-center mb-10 sm:mb-12">
+            <div className="lg:col-span-7 order-2 lg:order-1 text-center lg:text-left mt-6 lg:mt-0">
+              <Heading level="h2" className="mb-3">
+                Real patients. Real reviews.
+              </Heading>
+              <p className="text-sm text-muted-foreground">
+                Don&apos;t take our word for it.
+              </p>
+            </div>
+            <motion.div
+              className="lg:col-span-5 order-1 lg:order-2"
+              initial={prefersReducedMotion ? {} : { opacity: 0, y: 12 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
+            >
+              <div className="relative aspect-[4/3] sm:aspect-[5/4] rounded-2xl overflow-hidden border border-border/40 shadow-lg shadow-primary/[0.06] dark:shadow-none mx-auto max-w-md lg:max-w-none">
+                <Image
+                  src={lifestyleImage.src}
+                  alt={lifestyleImage.alt}
+                  fill
+                  className="object-cover object-top"
+                  loading="lazy"
+                  sizes="(max-width: 1023px) calc(100vw - 4rem), 400px"
+                />
+              </div>
+            </motion.div>
+          </div>
+        ) : (
+          <motion.div
+            className="text-center mb-8 sm:mb-10 lg:mb-12"
+            initial={prefersReducedMotion ? {} : { opacity: 0, y: 8 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
+          >
+            <Heading level="h2" className="mb-3">
+              Real patients. Real reviews.
+            </Heading>
+            <p className="text-sm text-muted-foreground">
+              Don&apos;t take our word for it.
+            </p>
+          </motion.div>
+        )}
 
         {/* Inline stat strip - clean typographic row */}
         <motion.div
@@ -67,7 +112,8 @@ export function SocialProofSection() {
           ))}
         </motion.div>
 
-        {/* Google Reviews badge */}
+        {/* Google Reviews badge — stars-only (numeric and review count
+            stripped per Pass 2; reading "4.8 (3)" undersells the trust). */}
         <div className="flex flex-col items-center gap-2 mb-6 sm:mb-8 lg:mb-10">
           <GoogleReviewsBadge />
           <Link

@@ -2,6 +2,32 @@
 
 > Tracks breaking and notable changes to the InstantMed design system. Pin against `DESIGN_SYSTEM_VERSION` in `lib/design-system/version.ts`.
 
+## [1.1.0] — 2026-04-28
+
+> Home-page Pass 2. Resolves the AI_ONBOARDING.md §1.5 TBD on the `<Heading>` primitive and rationalises hero composition. No breaking token changes.
+
+### Added
+- `components/ui/heading.tsx` — `<Heading level>` primitive with baked-in typography scale (display / h1 / h2 / h3). Replaces hand-rolled `<h1 className="text-[48px] font-light tracking-[-0.03em]">` patterns. Accepts `as` prop to decouple visual hierarchy from semantic element. Resolves AI_ONBOARDING §1.5.
+- `components/marketing/hero-doctor-review-mockup.tsx` — replaces `hero-multi-service-mockup.tsx`. Single primary "doctor reviewing" card + four floating service-output cards (cert, eScript, repeat Rx, treatment plan). Anti-cert-mill positioning: doctor is the hero, platform breadth visible, no real doctor name exposed.
+- `MockupSlot` slot prop on `<Hero>` so service pages can swap their own mockup without touching the hero shell.
+
+### Changed
+- Display scale extended to 60px on `lg+` (`text-6xl`) for hero impact. 48px remains the canonical `sm+` target. Locks the hero h1 at the previously-spec'd 48px on tablet and steps up to 60px on desktop, matching premium peers.
+- Home-page hero composition rationalised: GuaranteeBadge, AHPRA TrustBadgeRow pill, HeroTestimonialRotator, and the inflated patient counter removed from the hero pill. `GoogleAdsCert` (now "Telehealth Certified") + LegitScript pair retained as the trust anchor with a repositioned `LastReviewedSignal`.
+- `GoogleAdsCert` label: `Pharmacy Certified` → `Telehealth Certified`. Reflects positioning — InstantMed is a doctor-led telehealth service, not a pharmacy.
+- `GoogleReviewsBadge` simplified to stars-only display. Drops the numeric rating + review count; the badge now reads as a Google trust marker without leading with a small N. Used only inside `SocialProofSection`.
+- `lib/social-proof/index.ts` patient-count anchors recalibrated: ANCHOR_COUNT 3,000 → 500 (April 11 launch), TARGET_COUNT 8,000 → 2,500 (Dec 31). Defensible given current GBP review base.
+- `serviceCards` distilled: per-card testimonial removed; benefit list capped at 2 visible (3 → 2); 5-element card pattern locked.
+- Lifestyle photo relocated from full-bleed hero/services scroll-break into a 5/2 accent inside `SocialProofSection` at constrained width.
+- `RegulatoryPartners` demoted from hero to a thin standalone trust strip between hero and ServiceCards.
+
+### Fixed
+- Hero mockup `overflow-visible` parent so the bottom-right notification card no longer clips at tablet breakpoints.
+- Home-page typography drift: hero h1 was rendering at `font-semibold tracking-tight` instead of the spec'd display weight 300 / tracking -0.03em. Now flows through `<Heading level="display">`.
+
+### Deprecated
+- `HeroMultiServiceMockup` — replaced by `HeroDoctorReviewMockup`. Old file retained as `.deprecated` shim for any service page still importing it; remove in 1.2.0.
+
 ## [1.0.0] — 2026-04-20
 
 ### Added

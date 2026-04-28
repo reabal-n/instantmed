@@ -7,10 +7,15 @@ import { ServiceIconTile } from '@/components/icons/service-icons'
 import { WaitlistForm } from '@/components/marketing/waitlist-form'
 import { type ServiceId, useServiceAvailability } from '@/components/providers/service-availability-provider'
 import { Button } from '@/components/ui/button'
+import { Heading } from '@/components/ui/heading'
 import { Reveal } from '@/components/ui/reveal'
 import { SectionPill } from '@/components/ui/section-pill'
 import { serviceCategories } from '@/lib/marketing/homepage'
 import { cn } from '@/lib/utils'
+
+/** Cap visible benefit lines per service card. Keeps card density predictable
+ *  and stops one service "winning" because it has more bullet copy. */
+const VISIBLE_BENEFITS = 2
 
 interface ServiceCardProps {
   service: (typeof serviceCategories)[number]
@@ -76,14 +81,16 @@ function ServiceCard({ service, disabled }: ServiceCardProps) {
             {service.description}
           </p>
 
-          {/* Feature checkmarks */}
+          {/* Feature checkmarks — capped to VISIBLE_BENEFITS (2). Per-card
+              testimonials removed in Pass 2; SocialProofSection carries that
+              weight already. Distilled to the canonical 5-element card. */}
           {service.benefits && (
             <ul className="space-y-1.5 mb-4 flex-1">
-              {service.benefits.map((benefit, idx) => (
-                <li key={idx} className={cn(
-                  "flex items-start gap-2 text-sm text-muted-foreground",
-                  idx >= 2 && "hidden sm:flex",
-                )}>
+              {service.benefits.slice(0, VISIBLE_BENEFITS).map((benefit, idx) => (
+                <li
+                  key={idx}
+                  className="flex items-start gap-2 text-sm text-muted-foreground"
+                >
                   <Check className="h-3.5 w-3.5 text-emerald-500 dark:text-emerald-400 mt-0.5 shrink-0" />
                   <span>{benefit}</span>
                 </li>
@@ -104,18 +111,6 @@ function ServiceCard({ service, disabled }: ServiceCardProps) {
               {service.cta || 'Get started'}
               <ArrowRight className="h-3 w-3" />
             </Button>
-          )}
-
-          {/* Testimonial snippet */}
-          {!disabled && service.testimonial && (
-            <div className="mt-3 pt-3 border-t border-border/30">
-              <p className="text-xs text-muted-foreground italic leading-relaxed">
-                &ldquo;{service.testimonial.quote}&rdquo;
-              </p>
-              <p className="text-[11px] text-muted-foreground mt-1">
-                - {service.testimonial.author}
-              </p>
-            </div>
           )}
         </div>
       </div>
@@ -158,14 +153,15 @@ function ComingSoonCard({ service }: ComingSoonCardProps) {
           {service.description}
         </p>
 
-        {/* Feature checkmarks (muted for coming soon) */}
+        {/* Feature checkmarks (muted for coming soon) — same 2-cap as active
+            cards so coming-soon doesn't visually outweigh shippable services. */}
         {service.benefits && (
           <ul className="space-y-1.5 mb-4 flex-1">
-            {service.benefits.map((benefit, idx) => (
-              <li key={idx} className={cn(
-                "flex items-start gap-2 text-sm text-muted-foreground",
-                idx >= 2 && "hidden sm:flex",
-              )}>
+            {service.benefits.slice(0, VISIBLE_BENEFITS).map((benefit, idx) => (
+              <li
+                key={idx}
+                className="flex items-start gap-2 text-sm text-muted-foreground"
+              >
                 <Check className="h-3.5 w-3.5 text-muted-foreground/30 mt-0.5 shrink-0" />
                 <span>{benefit}</span>
               </li>
@@ -194,9 +190,9 @@ export function ServiceCards() {
           <div className="mb-4">
             <SectionPill>Services &amp; pricing</SectionPill>
           </div>
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-semibold text-foreground tracking-tight mb-3 sm:mb-4">
+          <Heading level="h1" as="h2" className="mb-3 sm:mb-4">
             What do you need?
-          </h2>
+          </Heading>
           {/* Pricing anchor — answers "can I afford this?" before users click in */}
           <p className="text-base text-muted-foreground max-w-2xl mx-auto mb-1">
             From {' '}

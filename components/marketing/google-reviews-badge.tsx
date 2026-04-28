@@ -5,30 +5,33 @@ import { Star } from 'lucide-react'
 import { GOOGLE_REVIEWS } from '@/lib/social-proof'
 
 /**
- * Google Reviews Badge
+ * Google Reviews Badge — stars-only.
  *
- * Renders a "★ X.X on Google (N reviews)" badge linking to the
- * InstantMed Google Business reviews page.
+ * Renders the Google G mark followed by 5 stars filled to the current
+ * GBP rating. Deliberately omits the numeric rating and review count;
+ * leading with a small N (currently 3 reviews) reads as anaemic in a
+ * hero/trust context, but the multicolour Google mark + 5 stars carries
+ * the trust signal cleanly. Links through to the GBP reviews page.
  *
- * Gates on GOOGLE_REVIEWS.enabled - renders nothing until you flip that flag
- * and add a real Place ID + counts from the Google Business dashboard.
+ * Gates on GOOGLE_REVIEWS.enabled — renders nothing until the flag is
+ * flipped on `lib/social-proof/index.ts`.
  *
- * Usage: drop anywhere social proof is needed. Homepage hero, service landing
- * pages, trust sections. Do not render in portals.
+ * Usage: trust strips, social-proof sections. Do not render in portals.
  */
 export function GoogleReviewsBadge({ className }: { className?: string }) {
   if (!GOOGLE_REVIEWS.enabled || GOOGLE_REVIEWS.count === 0) return null
 
-  const stars = Math.round(GOOGLE_REVIEWS.rating * 2) / 2 // round to nearest 0.5
+  const rating = GOOGLE_REVIEWS.rating
+  const filled = Math.round(rating)
 
   return (
     <a
       href={GOOGLE_REVIEWS.reviewsUrl}
       target="_blank"
       rel="noopener noreferrer"
-      className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white dark:bg-card border border-border/50 shadow-sm hover:shadow-md hover:border-border transition-[box-shadow,border-color] duration-200 text-sm no-underline ${className ?? ''}`}
+      aria-label={`Read our Google reviews, ${rating.toFixed(1)} of 5`}
+      className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white dark:bg-card border border-border/50 shadow-sm hover:shadow-md hover:border-border transition-[box-shadow,border-color] duration-200 no-underline ${className ?? ''}`}
     >
-      <span className="sr-only">Read our Google reviews - </span>
       {/* Google G mark */}
       <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" aria-hidden="true">
         <path
@@ -54,14 +57,9 @@ export function GoogleReviewsBadge({ className }: { className?: string }) {
         {[1, 2, 3, 4, 5].map((i) => (
           <Star
             key={i}
-            className={`w-3 h-3 ${i <= Math.floor(stars) ? 'text-amber-400 fill-amber-400' : i - 0.5 <= stars ? 'text-amber-400 fill-amber-200' : 'text-muted-foreground/60 fill-muted-foreground/20'}`}
+            className={`w-3.5 h-3.5 ${i <= filled ? 'text-amber-400 fill-amber-400' : 'text-muted-foreground/40 fill-muted-foreground/15'}`}
           />
         ))}
-      </span>
-
-      <span className="font-semibold text-foreground">{GOOGLE_REVIEWS.rating.toFixed(1)}</span>
-      <span className="text-muted-foreground text-xs">
-        ({GOOGLE_REVIEWS.count.toLocaleString()})
       </span>
     </a>
   )

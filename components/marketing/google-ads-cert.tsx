@@ -1,14 +1,16 @@
 import { cn } from "@/lib/utils"
 
 /**
- * Google Ads Online Pharmacy Certification badge.
+ * Google Ads Telehealth Certification badge.
  *
- * InstantMed holds Google Ads Online Pharmacy Certification (Account: 920-501-0513),
- * approved to advertise healthcare and pharmaceutical services on Google Search.
+ * InstantMed holds Google Ads Healthcare Provider certification (Account: 920-501-0513),
+ * approved to advertise telehealth and healthcare services on Google Search.
+ * Underlying certification class is the Online Pharmacy / Healthcare Provider
+ * track; surface label uses "Telehealth Certified" to reflect product positioning
+ * (we are a doctor-led telehealth service, not a pharmacy).
  *
  * Display rules:
- * - Renders inline with other certification logos (LegitScript, Stripe)
- * - Opens Google's certification info page if linked
+ * - Renders inline with other certification logos (LegitScript)
  * - Use size="sm" for inline trust rows, size="md" for dedicated certification blocks
  */
 
@@ -29,7 +31,7 @@ export function GoogleAdsCert({ size = "sm", className }: GoogleAdsCertProps) {
         isLarge ? "px-4 py-2.5" : "px-3 py-1.5",
         className,
       )}
-      title="Google Ads Online Pharmacy Certification"
+      title="Google Ads Healthcare Provider Certification"
     >
       {/* Google "G" multicolor logo */}
       <svg
@@ -62,7 +64,7 @@ export function GoogleAdsCert({ size = "sm", className }: GoogleAdsCertProps) {
           Google
         </p>
         <p className={cn("text-muted-foreground", isLarge ? "text-xs" : "text-[10px]")}>
-          Pharmacy Certified
+          Telehealth Certified
         </p>
       </div>
     </div>

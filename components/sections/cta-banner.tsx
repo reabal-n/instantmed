@@ -5,6 +5,7 @@ import Link from "next/link";
 
 import { TrustBadgeRow } from "@/components/shared";
 import { Button } from "@/components/ui/button";
+import { Heading } from "@/components/ui/heading";
 import { Reveal } from "@/components/ui/reveal";
 import type { PresetEntry } from "@/lib/marketing/trust-badges";
 import { cn } from "@/lib/utils";
@@ -38,9 +39,9 @@ export function CTABanner({
   return (
     <section id={id} className={cn("py-8 sm:py-10 lg:py-16 px-4", className)}>
       <Reveal className="mx-auto max-w-4xl rounded-3xl bg-white dark:bg-card border border-border/50 shadow-lg shadow-primary/[0.06] p-6 sm:p-8 lg:p-16 text-center relative overflow-hidden">
-        <h2 className="text-3xl lg:text-4xl font-semibold text-foreground tracking-tight">
+        <Heading level="h1" as="h2">
           {title}
-        </h2>
+        </Heading>
         {subtitle && (
           <p className="mt-3 text-muted-foreground max-w-xl mx-auto leading-relaxed">
             {subtitle}
