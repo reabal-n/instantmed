@@ -85,17 +85,6 @@ export interface ServiceFunnelConfig {
     }>
   }
 
-  // Testimonials
-  testimonials: {
-    title: string
-    subtitle: string
-    reviews: Array<{
-      text: string
-      author: string
-      location: string
-      rating: number
-    }>
-  }
 
   // FAQ
   faq?: {

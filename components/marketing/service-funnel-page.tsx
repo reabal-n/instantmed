@@ -15,13 +15,11 @@ import { TrustSection } from '@/components/marketing/funnel/trust-section'
 import { WhoItsForSection } from '@/components/marketing/funnel/who-its-for-section'
 import { MarketingPageShell } from '@/components/marketing/marketing-page-shell'
 import { PricingSection as StandalonePricingSection } from '@/components/marketing/sections/pricing-section'
-import { TestimonialsSection } from '@/components/marketing/sections/testimonials-section'
 import { ImageTextSplit } from '@/components/sections'
 import { EmergencyDisclaimer } from '@/components/shared/emergency-disclaimer'
 import { Navbar } from '@/components/shared/navbar'
 import { ReturningPatientBanner } from '@/components/shared/returning-patient-banner'
 import { CONTACT_EMAIL } from '@/lib/constants'
-import { getTestimonialsByService, getTestimonialsForColumns } from '@/lib/data/testimonials'
 import { cn } from '@/lib/utils'
 
 import { MarketingFooter } from './footer'
@@ -45,18 +43,6 @@ interface ServiceFunnelPageProps {
 
 export function ServiceFunnelPage({ config, isDisabled, children }: ServiceFunnelPageProps) {
   const colors = colorClasses[config.accentColor]
-
-  // Get testimonials for scrolling columns (filtered by service)
-  const serviceFilter = config.serviceId === 'med-cert' ? 'medical-certificate' as const : config.serviceId === 'repeat-script' ? 'prescription' as const : 'consultation' as const
-  const serviceTestimonials = getTestimonialsByService(serviceFilter)
-  const columnsData = serviceTestimonials.slice(0, 9).map(t => ({
-    text: t.text,
-    image: t.image || `https://api.dicebear.com/7.x/notionists/svg?seed=${t.name.replace(/\s/g, '')}`,
-    name: `${t.name}${t.age ? `, ${t.age}` : ''}`,
-    role: `${t.location}${t.role ? ` · ${t.role}` : ''}`,
-  }))
-  // Fallback to generic testimonials if service-specific ones are thin
-  const testimonialsForColumns = columnsData.length >= 6 ? columnsData : getTestimonialsForColumns().slice(0, 9)
 
   return (
     <MarketingPageShell>
@@ -159,13 +145,6 @@ export function ServiceFunnelPage({ config, isDisabled, children }: ServiceFunne
           <EmergencyDisclaimer />
         </div>
       </section>
-
-      {/* Section 7: Social Proof - scrolling columns like homepage */}
-      <TestimonialsSection
-        testimonials={testimonialsForColumns}
-        title={config.testimonials.title}
-        subtitle={config.testimonials.subtitle}
-      />
 
       {/* Stats + Media Mentions */}
       <StatsStrip className="bg-muted/20 dark:bg-muted/10 border-y border-border/30" />

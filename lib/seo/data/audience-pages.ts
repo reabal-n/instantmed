@@ -29,7 +29,6 @@ export interface AudiencePageConfig {
   }
   faqs: Array<{ q: string; a: string }>
   whyChoose: Array<{ title: string; desc: string }>
-  testimonials: Array<{ name: string; role: string; quote: string }>
   /** Industry-specific context - 2-3 paragraphs of workplace health insight */
   industryContext?: string[]
   /** Common conditions for this workforce */
@@ -117,10 +116,6 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
         title: "Employers you know accept it",
         desc: "Hospitals, aged care, agencies - they all accept AHPRA-registered doctor certificates.",
       },
-    ],
-    testimonials: [
-      { name: "Sarah M.", role: "Melbourne", quote: "Night shift then sick - got my cert at 7am before I even went to sleep." },
-      { name: "James L.", role: "Brisbane", quote: "Couldn't get to a clinic between shifts. Did it on my phone instead." },
     ],
     industryContext: [
       "Nursing and healthcare work involves 12-hour shifts, rotating rosters, and exposure to infectious patients - making nurses among the most likely workers to need medical certificates. Yet standard GP clinics are closed during many of the hours nurses actually work. Telehealth fills this gap by providing doctor access at 8am when you come off a night shift, or at 9pm before an early start.",
@@ -221,10 +216,6 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
         desc: "Wake up unwell? Get your cert before school starts or during your first free period.",
       },
     ],
-    testimonials: [
-      { name: "Emma T.", role: "Sydney", quote: "Did it during lunch. Had my cert before afternoon class." },
-      { name: "David K.", role: "Perth", quote: "School accepted it no problem. Didn't have to take a half-day off." },
-    ],
     industryContext: [
       "Teachers are frequently exposed to every virus circulating in the community - classrooms are enclosed spaces with limited ventilation and dozens of children who don't always cover their coughs. Most teachers report catching 3-5 illnesses per year, significantly more than the average adult. Despite this, getting a same-day GP appointment can mean missing a full day of school and disrupting lesson plans.",
       "The teaching profession also carries significant mental health demands. The Australian Principal Association reports that over 40% of school leaders experience burnout, and classroom teachers face similar pressures from workload, behaviour management, and administrative demands. A mental health day is a legitimate use of personal leave, and our certificates support this without requiring you to disclose your specific condition.",
@@ -324,10 +315,6 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
         desc: "Restaurants, hotels, pubs, events - all accept AHPRA-registered certificates.",
       },
     ],
-    testimonials: [
-      { name: "Marcus P.", role: "Melbourne", quote: "My hours don't line up with clinic hours at all. This actually works around my roster." },
-      { name: "Sophie R.", role: "Brisbane", quote: "Got sick on a Saturday. Had my cert before my Sunday shift." },
-    ],
     industryContext: [
       "Hospitality workers face a unique combination of irregular hours, food safety obligations, and high physical demands. Shifts that start at 5am for breakfast service or end at 2am after closing mean GP clinics are rarely accessible during your free time. Telehealth fits around the hours that hospitality actually works.",
       "Food safety legislation in all Australian states requires food handlers to not attend work while experiencing vomiting, diarrhoea, or other symptoms of foodborne illness. The 48-hour exclusion rule applies strictly - and your employer may require documented evidence. A medical certificate from InstantMed satisfies this requirement.",
@@ -421,10 +408,6 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
         desc: "Coles, Woolworths, independents, warehouses - no exceptions.",
       },
     ],
-    testimonials: [
-      { name: "Emma T.", role: "Brisbane", quote: "Got sick on a Sunday. Had my cert to HR before Monday morning." },
-      { name: "Liam S.", role: "Sydney", quote: "Early shifts meant I could never make it to a clinic. Did it from my phone instead." },
-    ],
     industryContext: [
       "Retail is Australia's second-largest employer, with over 1.3 million workers - many of whom are casuals without paid sick leave. For these workers, an absence without documentation can mean lost shifts, damaged relationships with managers, or worse. A medical certificate protects your position even when you're not entitled to paid leave.",
       "Retail shifts often start early (5-6am for stock or opening) or run late (closing at 9-10pm), making standard GP hours impractical. Weekend work is the norm, not the exception. Telehealth provides certificate access during the hours retail workers actually need it - including weekends and evenings.",
@@ -517,10 +500,6 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
         title: "Fits your schedule",
         desc: "Lunch break, before work, after work - whenever you have 2 minutes.",
       },
-    ],
-    testimonials: [
-      { name: "Sarah L.", role: "Melbourne", quote: "Did it from my desk at lunch. HR accepted it straight away." },
-      { name: "Tom W.", role: "Canberra", quote: "Employer accepted it, no questions. Didn't have to take time off to get it." },
     ],
     industryContext: [
       "For the millions of Australians who work in offices, getting sick often means a choice: drag yourself to work and infect your colleagues, or take a half-day off just to sit in a GP waiting room. Neither is a good option. Telehealth eliminates the paradox - get your certificate from your couch and email it to HR before your team even notices you're absent.",
@@ -624,10 +603,6 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
         desc: "Child woke up sick? Get your cert before you need to call work or the school.",
       },
     ],
-    testimonials: [
-      { name: "Jessica M.", role: "Sydney", quote: "Kid was too sick for school. Got the cert without dragging her to a clinic." },
-      { name: "Chris D.", role: "Adelaide", quote: "Needed carer's leave for work. Sorted it online, HR accepted it." },
-    ],
     industryContext: [
       "Carer's leave is one of the most underused workplace entitlements in Australia. Under the Fair Work Act, employees are entitled to use their personal leave to care for an immediate family member or household member who is unwell. This means you don't need separate 'carer's leave' - it comes from the same 10-day personal leave balance. Many parents don't realise a medical certificate for their child's illness also supports their own leave application.",
       "When your child wakes up sick, you're juggling three things simultaneously: caring for them, notifying their school, and telling your employer. Dragging a sick child to a GP waiting room adds a fourth. Telehealth lets you get a certificate from home while your child rests - often before you even need to call the school office.",
@@ -725,10 +700,6 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
         title: "Same validity",
         desc: "Online certificates have the same legal standing as in-person. Employers accept them.",
       },
-    ],
-    testimonials: [
-      { name: "Rachel K.", role: "Byron Bay", quote: "Couldn't get a local appointment for ages. Did it online from home." },
-      { name: "Alex T.", role: "Melbourne", quote: "Sick and needed a cert. Did it from bed without getting up." },
     ],
     industryContext: [
       "Remote work has permanently changed healthcare access patterns. When your office is your spare room, 'popping out to the GP' means either a 30-minute drive or disrupting your entire day. And when you're working from a regional area or travelling, local GP availability may be limited. Telehealth is the natural healthcare model for remote workers - you're already online.",
@@ -830,10 +801,6 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
         title: "Quick when you need it",
         desc: "Sick today? Get your cert today. No waiting for an appointment.",
       },
-    ],
-    testimonials: [
-      { name: "Jake M.", role: "Sydney", quote: "Couldn't work for 2 days. Got my cert and sent it through. Sorted." },
-      { name: "Mia L.", role: "Brisbane", quote: "No sick leave so I needed documentation. Simple process, doctor was thorough." },
     ],
     industryContext: [
       "Gig workers - delivery drivers, rideshare operators, freelancers, and independent contractors - make up a growing segment of the Australian workforce, but they lack the safety net of paid sick leave. When you get sick, you don't earn. A medical certificate might seem pointless without paid leave, but it serves several important purposes: documenting absences for platform compliance, supporting insurance claims (if you have income protection), and providing evidence for Centrelink if illness prevents you from meeting mutual obligation requirements.",

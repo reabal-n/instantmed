@@ -31,9 +31,7 @@ import { EmergencyDisclaimer } from '@/components/shared/emergency-disclaimer'
 import { Navbar } from '@/components/shared/navbar'
 import { Button } from '@/components/ui/button'
 import { useReducedMotion } from '@/components/ui/motion'
-import { TestimonialsColumnsWrapper } from '@/components/ui/testimonials-columns-wrapper'
 import { CONTACT_EMAIL, PRICING } from '@/lib/constants'
-import { getTestimonialsByService } from '@/lib/data/testimonials'
 import { getDailyStats } from '@/lib/marketing/daily-stats'
 import type { MedCertIntentConfig } from '@/lib/marketing/med-cert-intent-config'
 import { cn } from '@/lib/utils'
@@ -91,13 +89,6 @@ export function MedCertIntentPage({ config }: MedCertIntentPageProps) {
   const prefersReducedMotion = useReducedMotion()
   const isDisabled = useServiceAvailability().isServiceDisabled('med-cert')
   const liveStats = getDailyStats()
-  const medCertTestimonials = getTestimonialsByService('medical-certificate')
-  const testimonials = medCertTestimonials.slice(0, 6).map((t) => ({
-    text: `"${t.text}"`,
-    image: '',
-    name: `${t.name}${t.age ? `, ${t.age}` : ''}`,
-    role: `${t.location} • Verified ✓`,
-  }))
 
   const ctaHref = isDisabled ? '/contact' : '/request?service=med-cert'
 
@@ -423,16 +414,6 @@ export function MedCertIntentPage({ config }: MedCertIntentPageProps) {
                 <EmergencyDisclaimer variant="inline" />
               </motion.div>
             </div>
-          </section>
-
-          {/* Testimonials */}
-          <section className="py-8 overflow-hidden">
-            <TestimonialsColumnsWrapper
-              testimonials={testimonials}
-              title="What our patients say"
-              subtitle="Real feedback from people who've been where you are."
-              className="py-0 my-0"
-            />
           </section>
 
           {/* FAQ */}

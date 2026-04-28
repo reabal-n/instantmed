@@ -1,4 +1,4 @@
-import { ArrowRight, Clock, Shield, Star,Zap } from "lucide-react"
+import { ArrowRight, Clock, Shield, Zap } from "lucide-react"
 import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
@@ -132,35 +132,6 @@ export default async function AudiencePage({ params }: PageProps) {
                     >
                       <h3 className="text-sm font-semibold mb-1.5">{item.title}</h3>
                       <p className="text-xs text-muted-foreground">{item.desc}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* Testimonials */}
-          <section className="px-4 py-12 sm:px-6">
-            <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-              <div className="bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-3xl p-4 lg:p-6 relative overflow-hidden">
-                <h2 className="text-xl sm:text-2xl font-semibold text-center mb-6">
-                  What people say
-                </h2>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  {config.testimonials.map((item) => (
-                    <div
-                      key={item.name}
-                      className="p-4 rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/15"
-                    >
-                      <div className="flex gap-1 mb-2">
-                        {[...Array(5)].map((_, i) => (
-                          <Star key={i} className="h-3.5 w-3.5 fill-dawn-400 text-dawn-400" />
-                        ))}
-                      </div>
-                      <p className="text-xs mb-2">&quot;{item.quote}&quot;</p>
-                      <p className="text-xs text-muted-foreground">
-                        - {item.name}, {item.role}
-                      </p>
                     </div>
                   ))}
                 </div>

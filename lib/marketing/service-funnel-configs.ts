@@ -173,31 +173,6 @@ export const repeatScriptFunnelConfig: ServiceFunnelConfig = {
     ],
   },
   
-  testimonials: {
-    title: 'What patients say',
-    subtitle: 'Real reviews from Australians who\'ve used our service',
-    reviews: [
-      {
-        text: 'Needed my regular medication renewed. Sorted in about 20 minutes. Got the eScript on my phone and picked it up same day.',
-        author: 'David R.',
-        location: 'Gold Coast',
-        rating: 5,
-      },
-      {
-        text: 'Got my ongoing script renewed without the usual appointment runaround. Doctor asked good questions and I felt confident in the process.',
-        author: 'Jessica W.',
-        location: 'Adelaide',
-        rating: 5,
-      },
-      {
-        text: 'Living remote, nearest doctor is 2 hours away. Really convenient for renewing my regular medications.',
-        author: 'Ryan P.',
-        location: 'Darwin',
-        rating: 5,
-      },
-    ],
-  },
-  
   faq: {
     title: 'Common questions',
     subtitle: 'Everything you need to know about renewing your medication.',
@@ -420,31 +395,6 @@ export const generalConsultFunnelConfig: ServiceFunnelConfig = {
         icon: 'Shield',
         title: 'Clinical Standards',
         description: 'Same standard of care as in-person doctor visits',
-      },
-    ],
-  },
-
-  testimonials: {
-    title: 'What patients say',
-    subtitle: 'Real reviews from Australians who\'ve used our service',
-    reviews: [
-      {
-        text: 'Had a weird rash I was worried about. The doctor called, asked me to send photos, and diagnosed it quickly. Got my medication sorted and it cleared up.',
-        author: 'Michael T.',
-        location: 'Perth',
-        rating: 5,
-      },
-      {
-        text: 'Needed advice about ongoing headaches. The doctor was thorough, asked good questions, and referred me for tests. Felt properly looked after.',
-        author: 'Sophie H.',
-        location: 'Canberra',
-        rating: 5,
-      },
-      {
-        text: 'Much better than I expected from online healthcare. The doctor actually called and spent time understanding my symptoms.',
-        author: 'Chris B.',
-        location: 'Newcastle',
-        rating: 5,
       },
     ],
   },

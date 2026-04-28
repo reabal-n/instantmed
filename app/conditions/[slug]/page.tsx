@@ -18,7 +18,6 @@ import { notFound } from "next/navigation"
 import { CenteredHero } from "@/components/heroes"
 import { StickerIcon } from "@/components/icons/stickers"
 import { MarketingFooter, MarketingPageShell } from "@/components/marketing"
-import { TestimonialsSection } from "@/components/marketing/sections"
 import type { ChecklistItem,StatItem } from "@/components/sections"
 import {
   AccordionSection,
@@ -32,7 +31,6 @@ import { Navbar } from "@/components/shared"
 import { Button } from "@/components/ui/button"
 import { PageBreadcrumbs } from "@/components/uix"
 import { PRICING_DISPLAY } from "@/lib/constants"
-import { getTestimonialsForColumns } from "@/lib/data/testimonials"
 import { conditionsData } from "@/lib/seo/data/conditions"
 import { SOCIAL_PROOF } from "@/lib/social-proof"
 
@@ -87,8 +85,6 @@ export default async function ConditionPage({ params }: PageProps) {
   const condition = conditions[slug]
 
   if (!condition) notFound()
-
-  const testimonials = getTestimonialsForColumns().slice(0, 9)
 
   const faqSchemaData = condition.commonQuestions.map(faq => ({
     question: faq.q,
@@ -487,14 +483,6 @@ export default async function ConditionPage({ params }: PageProps) {
               title={`Common questions about ${condition.name}`}
               subtitle="Answers to the most common questions from patients."
               groups={faqGroups}
-            />
-
-            {/* Testimonials */}
-            <TestimonialsSection
-              testimonials={testimonials}
-              title="What patients say"
-              subtitle="Real experiences from Australians who've used InstantMed"
-              className="bg-muted/30 dark:bg-white/[0.04]"
             />
 
             {/* CTA Banner */}
