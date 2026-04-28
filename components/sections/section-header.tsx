@@ -14,6 +14,18 @@ interface SectionHeaderProps {
   titleAs?: "h1" | "h2" | "h3";
 }
 
+/**
+ * Section header used by FeatureGrid, ProcessSteps, FAQSection, and other
+ * shared section primitives. Pairs a SectionPill eyebrow with a
+ * WordReveal-animated title.
+ *
+ * Title typography mirrors the canonical <Heading level="h1"> spec
+ * (text-3xl sm:text-4xl font-semibold tracking-[-0.025em] leading-[1.15])
+ * for visual impact on top-of-section moments. We can't consume <Heading>
+ * directly because WordReveal renders animated word spans rather than
+ * plain text, but the className tokens are kept in lockstep with the
+ * primitive so any spec change propagates through both surfaces.
+ */
 export function SectionHeader({
   pill,
   title,
@@ -42,7 +54,7 @@ export function SectionHeader({
         as={titleAs}
         highlightWords={highlightWords}
         className={cn(
-          "text-3xl font-semibold tracking-tight text-foreground sm:text-4xl",
+          "text-3xl sm:text-4xl font-semibold tracking-[-0.025em] leading-[1.15] text-foreground text-balance",
           align === "center" && "justify-center"
         )}
       />
