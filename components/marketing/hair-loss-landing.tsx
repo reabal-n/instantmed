@@ -24,20 +24,12 @@ import { Reveal } from "@/components/ui/reveal"
 import { SectionPill } from "@/components/ui/section-pill"
 import { PRICING } from "@/lib/constants"
 import { HAIR_LOSS_FAQ } from "@/lib/data/hair-loss-faq"
-import {
-  getTestimonialsByService,
-  getTestimonialsForColumns,
-} from "@/lib/data/testimonials"
 import { SOCIAL_PROOF } from "@/lib/social-proof"
 
 // Below-fold lazy loads
 const HowItWorksInline = dynamic(
   () => import("@/components/marketing/sections/how-it-works-inline").then((m) => m.HowItWorksInline),
   { loading: () => <div className="min-h-[400px]" /> },
-)
-const TestimonialsSection = dynamic(
-  () => import("@/components/marketing/sections/testimonials-section").then((m) => m.TestimonialsSection),
-  { loading: () => <div className="min-h-[500px]" /> },
 )
 const DoctorProfileSection = dynamic(
   () => import("@/components/marketing/sections/doctor-profile-section").then((m) => m.DoctorProfileSection),
@@ -376,20 +368,6 @@ function HairLossFAQSection({ onFAQOpen }: { onFAQOpen?: (question: string, inde
 // =============================================================================
 
 export function HairLossLanding() {
-  const serviceTestimonials = getTestimonialsByService("consultation")
-  const columnsData = serviceTestimonials.slice(0, 9).map((t) => ({
-    text: t.text,
-    image:
-      t.image ||
-      `https://api.dicebear.com/7.x/notionists/svg?seed=${t.name.replace(/\s/g, "")}`,
-    name: `${t.name}${t.age ? `, ${t.age}` : ""}`,
-    role: `${t.location}${t.role ? ` \u00b7 ${t.role}` : ""}`,
-  }))
-  const testimonialsForColumns =
-    columnsData.length >= 6
-      ? columnsData
-      : getTestimonialsForColumns().slice(0, 9)
-
   return (
     <LandingPageShell
       config={LANDING_CONFIG}
@@ -422,15 +400,6 @@ export function HairLossLanding() {
 
           {/* 6. Pricing */}
           <HairLossPricingSection isDisabled={isDisabled} />
-
-          {/* 7. Testimonials */}
-          <div className="bg-muted/30 dark:bg-white/[0.02]">
-            <TestimonialsSection
-              testimonials={testimonialsForColumns}
-              title="What patients say"
-              subtitle="Real reviews from Australians who've used our service"
-            />
-          </div>
 
           {/* Regulatory Partners */}
           <RegulatoryPartners className="py-12" />

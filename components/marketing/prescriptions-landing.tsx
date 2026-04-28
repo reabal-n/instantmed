@@ -26,7 +26,6 @@ import {
   SocialProofStrip,
 } from "@/components/marketing/shared"
 import { RelatedArticles } from "@/components/marketing/shared/related-articles"
-import { TestimonialCard } from "@/components/marketing/shared/testimonial-card"
 import { ContentHubLinks } from "@/components/seo"
 import { Button } from "@/components/ui/button"
 import { FAQList } from "@/components/ui/faq-list"
@@ -35,10 +34,6 @@ import { Reveal } from "@/components/ui/reveal"
 import { SectionPill } from "@/components/ui/section-pill"
 import { PRICING } from "@/lib/constants"
 import { PRESCRIPTION_FAQ } from "@/lib/data/prescription-faq"
-import {
-  getTestimonialsByService,
-  getTestimonialsForColumns,
-} from "@/lib/data/testimonials"
 import { getPatientCount,SOCIAL_PROOF, SOCIAL_PROOF_DISPLAY } from "@/lib/social-proof"
 import { cn } from "@/lib/utils"
 
@@ -46,10 +41,6 @@ import { cn } from "@/lib/utils"
 const HowItWorksInline = dynamic(
   () => import("@/components/marketing/sections/how-it-works-inline").then((m) => m.HowItWorksInline),
   { loading: () => <div className="min-h-[300px]" /> },
-)
-const TestimonialsSection = dynamic(
-  () => import("@/components/marketing/sections/testimonials-section").then((m) => m.TestimonialsSection),
-  { loading: () => <div className="min-h-[500px]" /> },
 )
 const PBSCalloutStrip = dynamic(
   () => import("@/components/marketing/sections/pbs-callout-strip").then((m) => m.PBSCalloutStrip),
@@ -397,53 +388,11 @@ function PrescriptionComparisonViz() {
   )
 }
 
-/** Compact testimonial strip - 3 cards for visual rhythm breaks */
-function QuickTestimonialStrip() {
-  const testimonials = getTestimonialsByService("prescription").slice(0, 3)
-  if (testimonials.length === 0) return null
-
-  return (
-    <section aria-label="Patient experiences" className="py-8 lg:py-12">
-      <div className="mx-auto max-w-5xl px-4 sm:px-6">
-        <div className="grid md:grid-cols-3 gap-4">
-          {testimonials.map((t) => (
-            <TestimonialCard
-              key={t.name}
-              variant="compact"
-              testimonial={{
-                name: `${t.name}${t.age ? `, ${t.age}` : ""}`,
-                quote: t.text,
-                rating: t.rating,
-                location: t.location,
-              }}
-            />
-          ))}
-        </div>
-      </div>
-    </section>
-  )
-}
-
 // =============================================================================
 // MAIN PAGE COMPONENT
 // =============================================================================
 
 export function PrescriptionsLanding() {
-  // Testimonials data - service-specific with fallback
-  const serviceTestimonials = getTestimonialsByService("prescription")
-  const columnsData = serviceTestimonials.slice(0, 9).map((t) => ({
-    text: t.text,
-    image:
-      t.image ||
-      `https://api.dicebear.com/7.x/notionists/svg?seed=${t.name.replace(/\s/g, "")}`,
-    name: `${t.name}${t.age ? `, ${t.age}` : ""}`,
-    role: `${t.location}${t.role ? ` \u00b7 ${t.role}` : ""}`,
-  }))
-  const testimonialsForColumns =
-    columnsData.length >= 6
-      ? columnsData
-      : getTestimonialsForColumns().slice(0, 9)
-
   return (
     <LandingPageShell
       config={LANDING_CONFIG}
@@ -504,20 +453,8 @@ export function PrescriptionsLanding() {
           {/* Doctor profile */}
           <DoctorProfileSection />
 
-          {/* Quick testimonials strip */}
-          <QuickTestimonialStrip />
-
           {/* Pre-qualify */}
           <PrescriptionLimitationsSection />
-
-          {/* 6. Testimonials - muted bg for rhythm */}
-          <div className="bg-muted/30 dark:bg-white/[0.02]">
-            <TestimonialsSection
-              testimonials={testimonialsForColumns}
-              title="What patients say"
-              subtitle="Real reviews from Australians who've used our service"
-            />
-          </div>
 
           {/* Regulatory Partners - Medicare excluded */}
           <RegulatoryPartners className="py-12" exclude={["Medicare"]} />

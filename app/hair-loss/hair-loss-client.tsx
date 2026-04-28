@@ -12,7 +12,7 @@ import { useRef } from "react";
 import { CenteredHero } from "@/components/heroes";
 import { StickerIcon } from "@/components/icons/stickers";
 import { DoctorCredibility,MarketingFooter, MarketingPageShell, RegulatoryPartners } from "@/components/marketing";
-import { HairLossGuideSection, TestimonialsSection } from "@/components/marketing/sections";
+import { HairLossGuideSection } from "@/components/marketing/sections";
 import {
   AccordionSection,
   CTABanner,
@@ -25,7 +25,6 @@ import { AvailabilityIndicator,Navbar } from "@/components/shared";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { scrollRevealConfig, useReducedMotion } from "@/components/ui/motion";
-import { getTestimonialsByService, getTestimonialsForColumns } from "@/lib/data/testimonials"
 import { safeJsonLd } from "@/lib/seo/safe-json-ld";
 
 /* ------------------------------------------------------------------ */
@@ -382,19 +381,6 @@ export function HairLossClient({ faqSchema }: HairLossClientProps) {
           <div className="max-w-4xl mx-auto px-4">
             <DoctorCredibility variant="inline" stats={['experience', 'approval', 'sameDay']} />
           </div>
-
-          {/* Patient testimonials */}
-          <TestimonialsSection
-            testimonials={(() => {
-              const serviceTestimonials = getTestimonialsByService('consultation')
-                .filter(t => t.rating >= 4)
-              return serviceTestimonials.length >= 6
-                ? serviceTestimonials.map(t => ({ text: t.text, image: t.image || '', name: t.name, role: t.location }))
-                : getTestimonialsForColumns()
-            })()}
-            title="What our patients say"
-            subtitle="Real reviews from Australians"
-          />
 
           <HairLossGuideSection />
 

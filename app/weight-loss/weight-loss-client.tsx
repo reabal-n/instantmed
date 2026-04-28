@@ -16,7 +16,7 @@ import Script from "next/script"
 import { CenteredHero } from "@/components/heroes"
 import { StickerIcon } from "@/components/icons/stickers"
 import { DoctorCredibility,MarketingFooter, RegulatoryPartners } from "@/components/marketing"
-import { TestimonialsSection, WeightLossGuideSection } from "@/components/marketing/sections"
+import { WeightLossGuideSection } from "@/components/marketing/sections"
 import {
   CTABanner,
   FAQSection,
@@ -27,7 +27,6 @@ import { Navbar } from "@/components/shared"
 import { AvailabilityIndicator } from "@/components/shared"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { getTestimonialsByService, getTestimonialsForColumns } from "@/lib/data/testimonials"
 import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 
 const treatments = [
@@ -376,19 +375,6 @@ export function WeightLossClient() {
           <div className="max-w-4xl mx-auto px-4">
             <DoctorCredibility variant="inline" stats={['experience', 'approval', 'sameDay']} />
           </div>
-
-          {/* Patient testimonials */}
-          <TestimonialsSection
-            testimonials={(() => {
-              const serviceTestimonials = getTestimonialsByService('consultation')
-                .filter(t => t.rating >= 4)
-              return serviceTestimonials.length >= 6
-                ? serviceTestimonials.map(t => ({ text: t.text, image: t.image || '', name: t.name, role: t.location }))
-                : getTestimonialsForColumns()
-            })()}
-            title="What our patients say"
-            subtitle="Real reviews from Australians"
-          />
 
           {/* E-E-A-T Guide */}
           <WeightLossGuideSection />
