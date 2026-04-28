@@ -228,4 +228,40 @@ describe('voice guard — marketing surfaces', () => {
 
     expect(hits).toEqual([])
   })
+
+  // HTML entities `&mdash;` / `&#8212;` / `&#x2014;` all render as em-dashes
+  // in the DOM. They sneak past the U+2014 literal scan because the source
+  // contains ASCII characters. Catch them on JSX surfaces too.
+  it('contains no em-dash HTML entities (&mdash; / &#8212; / &#x2014;)', () => {
+    const hits: Array<{ file: string; line: number; snippet: string }> = []
+    const PATTERNS = [/&mdash;/i, /&#8212;/i, /&#x2014;/i]
+
+    for (const file of files) {
+      const raw = readFileSync(file, 'utf8')
+      const scrubbed = stripComments(raw)
+      const lines = scrubbed.split('\n')
+
+      for (let i = 0; i < lines.length; i++) {
+        if (PATTERNS.some(p => p.test(lines[i]))) {
+          hits.push({
+            file: path.relative(ROOT, file),
+            line: i + 1,
+            snippet: lines[i].trim().slice(0, 120),
+          })
+        }
+      }
+    }
+
+    if (hits.length > 0) {
+      const report = hits
+        .map(h => `  ${h.file}:${h.line}  ${h.snippet}`)
+        .join('\n')
+      throw new Error(
+        `Voice guard failed: em-dash HTML entity found in ${hits.length} place(s). ` +
+          `Replace with commas, periods, colons, or parens.\n${report}`,
+      )
+    }
+
+    expect(hits).toEqual([])
+  })
 })

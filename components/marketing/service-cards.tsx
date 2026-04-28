@@ -219,7 +219,7 @@ export function ServiceCards() {
 
         {/* Note */}
         <p className="text-center text-xs text-muted-foreground mb-10 sm:mb-14">
-          Private service &mdash; no Medicare rebate, but PBS subsidies may still apply at the pharmacy
+          Private service. No Medicare rebate, but PBS subsidies may still apply at the pharmacy.
         </p>
 
         {/* Coming Soon — separated from active grid so they don't create dead zones */}
