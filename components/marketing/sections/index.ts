@@ -1,8 +1,6 @@
-// ── Pricing & testimonials ────────────────────────────────────────
+// ── Pricing ───────────────────────────────────────────────────────
 export type { PricingSectionColors,PricingSectionProps } from './pricing-section'
 export { PricingSection } from './pricing-section'
-export type { TestimonialItem,TestimonialsSectionProps } from './testimonials-section'
-export { TestimonialsSection } from './testimonials-section'
 
 // ── How it works & process ────────────────────────────────────────
 export { FaqCtaSection } from './faq-cta-section'

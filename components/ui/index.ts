@@ -184,12 +184,10 @@ export { LottieAnimation } from "./lottie-animation"
 export { scrollRevealConfig, useReducedMotion,useScrollReveal } from "./motion"
 
 // -----------------------------------------------------------------------------
-// Marketing -- testimonials, FAQ
+// Marketing -- FAQ
 // -----------------------------------------------------------------------------
 export type { FAQGroup,FAQItem } from "./faq-list"
 export { FAQList } from "./faq-list"
-export { TestimonialsColumn } from "./testimonials-columns-1"
-export { TestimonialsColumnsWrapper } from "./testimonials-columns-wrapper"
 
 // -----------------------------------------------------------------------------
 // Specialized -- address autocomplete

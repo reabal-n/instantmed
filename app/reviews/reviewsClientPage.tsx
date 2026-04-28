@@ -8,7 +8,7 @@ import { AnimatedDonutChart, InformationalPageShell } from "@/components/marketi
 import { CTABanner, LogoBadgeStrip } from "@/components/sections"
 import { SectionPill } from "@/components/ui/section-pill"
 import { GOOGLE_REVIEW_URL } from "@/lib/constants"
-import { GOOGLE_REVIEWS, getPatientCount, SOCIAL_PROOF } from "@/lib/social-proof"
+import { getPatientCount, GOOGLE_REVIEWS, SOCIAL_PROOF } from "@/lib/social-proof"
 
 const REVIEWS_CONFIG = {
   analyticsId: "reviews" as const,

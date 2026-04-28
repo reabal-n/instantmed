@@ -22,7 +22,6 @@ export { ServicePicker } from "./service-picker"
 export { DottedGrid } from "./dotted-grid"
 export { FloatingCard } from "./floating-card"
 export { HeroDoctorReviewMockup } from "./hero-doctor-review-mockup"
-export { HeroTestimonialRotator } from "./hero-testimonial-rotator"
 export { RotatingText } from "./rotating-text"
 
 // ── How it works ───────────────────────────────────────────────────
