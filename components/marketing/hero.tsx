@@ -81,6 +81,13 @@ interface HeroProps {
    * (rare — usually a service has its own mockup).
    */
   mockup?: ReactNode | null
+  /**
+   * Optional trust-row override. Defaults to GoogleAdsCert + LegitScript +
+   * LastReviewedSignal. Pass `null` to suppress entirely — used by the
+   * ServiceFunnelPage shell since it has its own dedicated TrustBadgeSlider
+   * directly below the hero.
+   */
+  trustRow?: ReactNode | null
 }
 
 const DEFAULT_PILL = (
@@ -111,6 +118,14 @@ const DEFAULT_TITLE = 'Consults, certs, and treatment. From your bed.'
 const DEFAULT_PRIMARY: CtaConfig = { text: 'Get started', href: '/request' }
 const DEFAULT_SECONDARY: SecondaryCtaConfig = { text: 'How it works', href: '#how-it-works' }
 
+const DEFAULT_TRUST_ROW = (
+  <>
+    <GoogleAdsCert size="sm" />
+    <LegitScriptSeal size="sm" />
+    <LastReviewedSignal className="ml-1" />
+  </>
+)
+
 export function Hero({
   title = DEFAULT_TITLE,
   pill,
@@ -119,10 +134,12 @@ export function Hero({
   secondaryCta,
   beforeCta,
   mockup,
+  trustRow,
 }: HeroProps) {
   const resolvedPill = pill === undefined ? DEFAULT_PILL : pill
   const resolvedSecondary = secondaryCta === undefined ? DEFAULT_SECONDARY : secondaryCta
   const resolvedMockup = mockup === undefined ? <HeroDoctorReviewMockup /> : mockup
+  const resolvedTrustRow = trustRow === undefined ? DEFAULT_TRUST_ROW : trustRow
 
   return (
     // overflow-x-clip (not overflow-hidden) so the mockup's floating cards
@@ -186,12 +203,14 @@ export function Hero({
             </div>
 
             {/* Trust row — Google + LegitScript + live counter. Constant
-                across pages so users learn the pattern. */}
-            <div className="hero-trust-enter flex flex-wrap items-center justify-center lg:justify-start gap-x-3 gap-y-2 pt-1">
-              <GoogleAdsCert size="sm" />
-              <LegitScriptSeal size="sm" />
-              <LastReviewedSignal className="ml-1" />
-            </div>
+                across pages so users learn the pattern. ServiceFunnelPage
+                consumers pass `trustRow={null}` since they render their
+                own TrustBadgeSlider below the hero. */}
+            {resolvedTrustRow && (
+              <div className="hero-trust-enter flex flex-wrap items-center justify-center lg:justify-start gap-x-3 gap-y-2 pt-1">
+                {resolvedTrustRow}
+              </div>
+            )}
           </div>
 
           {/* ── Mockup column ─────────────────────────────────────── */}

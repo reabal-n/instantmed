@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion'
 import { HelpCircle } from 'lucide-react'
 
+import { Heading } from '@/components/ui/heading'
 import { useReducedMotion } from '@/components/ui/motion'
 import { cn } from '@/lib/utils'
 
@@ -26,9 +27,9 @@ export function WhoItsForSection({ config, colors }: WhoItsForSectionProps) {
           viewport={{ once: true }}
           className="text-center mb-12"
         >
-          <h2 className="text-3xl sm:text-4xl font-semibold text-foreground mb-4">
+          <Heading level="h2" className="mb-4">
             {config.whoItsFor.title}
-          </h2>
+          </Heading>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             {config.whoItsFor.subtitle}
           </p>

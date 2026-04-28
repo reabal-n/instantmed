@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion'
 
 import { FAQList } from '@/components/ui/faq-list'
+import { Heading } from '@/components/ui/heading'
 import { useReducedMotion } from '@/components/ui/motion'
 import { SectionPill } from '@/components/ui/section-pill'
 import { CONTACT_EMAIL } from '@/lib/constants'
@@ -33,9 +34,9 @@ export function FaqSection({ config }: FaqSectionProps) {
             <SectionPill>FAQ</SectionPill>
           </div>
 
-          <h2 className="text-2xl sm:text-3xl font-semibold text-foreground mb-4 tracking-tight">
+          <Heading level="h2" className="mb-4">
             {config.faq.title}
-          </h2>
+          </Heading>
           <p className="text-muted-foreground max-w-lg mx-auto text-sm">
             {config.faq.subtitle}
           </p>

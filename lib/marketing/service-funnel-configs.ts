@@ -11,22 +11,12 @@ export const repeatScriptFunnelConfig: ServiceFunnelConfig = {
 
   hero: {
     badge: 'Prescribed by Australian GPs',
-    headline: 'Repeat medication.',
-    headlineGradient: 'Any pharmacy, same day.',
-    headlineRotatingWords: ['Reviewed by Australian GPs.', 'Sent to your phone.', 'Any pharmacy, same day.'],
+    headline: 'Repeat medication. Any pharmacy, same day.',
     subheadline: `For medications you already take. A doctor reviews your request and sends an eScript straight to your phone.`,
-    reassurances: [
-      'AHPRA-registered doctors · Works at any pharmacy · Full refund if we can\'t help',
-      'No account required · eScript delivered to your phone via SMS',
-    ],
-    ctaText: `Renew your medication - ${PRICING_DISPLAY.REPEAT_SCRIPT}`,
+    ctaText: `Renew your medication · ${PRICING_DISPLAY.REPEAT_SCRIPT}`,
     ctaHref: '/request?service=prescription',
     images: {
       primary: '/images/rx-1.webp',
-    },
-    highlightBadge: {
-      text: 'Sent via SMS',
-      glow: true,
     },
   },
   
@@ -219,20 +209,10 @@ export const generalConsultFunnelConfig: ServiceFunnelConfig = {
 
   hero: {
     badge: 'Australian GP consultations',
-    headline: 'See a doctor today.',
-    headlineGradient: 'From your phone.',
-    headlineRotatingWords: ['No waiting rooms.', 'Medication if needed.', 'From your phone.'],
+    headline: 'See a doctor today. From your phone.',
     subheadline: `Talk to an AHPRA-registered GP about health concerns, treatment options, or anything you'd normally see a doctor for. Medication may be prescribed by your doctor if clinically appropriate.`,
-    reassurances: [
-      'AHPRA-registered doctors · Medication & referrals if needed · Full refund if we can\'t help',
-      'No account required · eScript sent to any Australian pharmacy',
-    ],
-    ctaText: `Start your consult - ${PRICING_DISPLAY.CONSULT}`,
+    ctaText: `Start your consult · ${PRICING_DISPLAY.CONSULT}`,
     ctaHref: '/request?service=consult',
-    highlightBadge: {
-      text: 'Medication if clinically appropriate',
-      glow: true,
-    },
   },
 
   specializedServices: {

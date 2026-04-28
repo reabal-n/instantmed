@@ -6,6 +6,7 @@ import Link from 'next/link'
 
 import { StripePaymentLogos } from '@/components/checkout/payment-logos'
 import { Button } from '@/components/ui/button'
+import { Heading } from '@/components/ui/heading'
 import { useReducedMotion } from '@/components/ui/motion'
 import { PRICING } from '@/lib/constants'
 import { SOCIAL_PROOF } from '@/lib/social-proof'
@@ -77,9 +78,9 @@ export function PricingSection({
           viewport={{ once: true }}
           className="text-center mb-10"
         >
-          <h2 className="text-3xl sm:text-4xl font-semibold text-foreground mb-4">
+          <Heading level="h2" className="mb-4">
             {title}
-          </h2>
+          </Heading>
           <p className="text-lg text-muted-foreground">
             {subtitle}
           </p>

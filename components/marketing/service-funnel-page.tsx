@@ -39,9 +39,27 @@ interface ServiceFunnelPageProps {
   config: ServiceFunnelConfig
   isDisabled?: boolean
   children?: React.ReactNode
+  /**
+   * Optional hero mockup override. Pass a React node (e.g. <ConsultChatMockup />)
+   * to replace the default config-image-driven photo. Useful when a service
+   * has a richer product mockup than a single photograph.
+   */
+  heroMockup?: React.ReactNode
+  /**
+   * Optional service-page "claim" section, rendered between AfterSubmit
+   * and Pricing. Pass a <ServiceClaimSection> node (or a wrapper around it)
+   * to anchor the page's strongest trust signal in a Morning Canvas card.
+   */
+  claimSection?: React.ReactNode
 }
 
-export function ServiceFunnelPage({ config, isDisabled, children }: ServiceFunnelPageProps) {
+export function ServiceFunnelPage({
+  config,
+  isDisabled,
+  children,
+  heroMockup,
+  claimSection,
+}: ServiceFunnelPageProps) {
   const colors = colorClasses[config.accentColor]
 
   return (
@@ -73,7 +91,7 @@ export function ServiceFunnelPage({ config, isDisabled, children }: ServiceFunne
       <Navbar variant="marketing" />
 
       {/* Section 1: Hero */}
-      <HeroSection config={config} colors={colors} isDisabled={isDisabled} />
+      <HeroSection config={config} colors={colors} isDisabled={isDisabled} mockupOverride={heroMockup} />
 
       {/* Live wait time strip - right below hero like homepage */}
       <LiveWaitTime variant="strip" services={[config.serviceId === 'repeat-script' ? 'scripts' : config.serviceId === 'consult' ? 'consult' : 'med-cert']} />
@@ -121,6 +139,11 @@ export function ServiceFunnelPage({ config, isDisabled, children }: ServiceFunne
         </ImageTextSplit>
       )}
 
+      {/* Optional service-page claim section — anchors the page's
+          strongest trust signal in a Morning Canvas warm card before the
+          pricing breakdown. */}
+      {claimSection}
+
       {/* Section 5: Pricing */}
       <StandalonePricingSection
         title={config.pricing.title}
@@ -159,7 +182,7 @@ export function ServiceFunnelPage({ config, isDisabled, children }: ServiceFunne
       )}
 
       {/* Final CTA */}
-      <FinalCtaSection config={config} colors={colors} isDisabled={isDisabled} />
+      <FinalCtaSection config={config} isDisabled={isDisabled} />
 
       <MarketingFooter />
     </div>

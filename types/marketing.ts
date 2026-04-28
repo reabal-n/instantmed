@@ -8,23 +8,21 @@ export interface ServiceFunnelConfig {
   serviceName: string
   serviceSlug: string
 
-  // Hero Section
+  // Hero Section.
+  // Note: `headlineGradient`, `headlineRotatingWords`, `reassurances`, and
+  // `highlightBadge` were removed in 2026-04-28 when the funnel hero
+  // migrated to wrap the canonical <Hero> primitive. The funnel page's
+  // dedicated TrustBadgeSlider + StatsStrip surfaces below the hero now
+  // carry the trust weight that those fields used to.
   hero: {
     badge: string
     headline: string
-    headlineGradient?: string
-    headlineRotatingWords?: string[]
     subheadline: string
-    reassurances: string[]
     ctaText: string
     ctaHref: string
     images?: {
       primary: string
       secondary?: string
-    }
-    highlightBadge?: {
-      text: string
-      glow?: boolean
     }
   }
 

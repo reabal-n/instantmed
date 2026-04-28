@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 
+import { ConsultChatMockup } from '@/components/marketing/mockups/consult-chat-mockup'
 import { ConsultGuideSection } from '@/components/marketing/sections'
+import { ServiceClaimSection } from '@/components/marketing/sections/service-claim-section'
 import { ServiceFunnelPage } from '@/components/marketing/service-funnel-page'
 import { BreadcrumbSchema, FAQSchema, HealthArticleSchema,HowToSchema, MedicalServiceSchema } from '@/components/seo/healthcare-schema'
 import { PRICING, PRICING_DISPLAY } from '@/lib/constants'
@@ -100,7 +102,22 @@ export default async function ConsultPage({ searchParams }: ConsultPageProps) {
       />
       {/* Show contextual banner for med cert redirects */}
       {isFromMedCert && <MedCertRedirectBanner />}
-      <ServiceFunnelPage config={generalConsultFunnelConfig} isDisabled={flags.disable_consults}>
+      <ServiceFunnelPage
+        config={generalConsultFunnelConfig}
+        isDisabled={flags.disable_consults}
+        heroMockup={<ConsultChatMockup />}
+        claimSection={
+          <ServiceClaimSection
+            eyebrow="Same care, less of your wallet"
+            headline={
+              <>
+                <span className="text-primary tabular-nums">${PRICING.CONSULT.toFixed(2)}</span> GP consult. Typically $120+ at a clinic.
+              </>
+            }
+            body="Australian GP, AHPRA-registered, full clinical assessment. The only thing missing is the waiting room and the gap fee."
+          />
+        }
+      >
         <ConsultGuideSection />
       </ServiceFunnelPage>
     </>
