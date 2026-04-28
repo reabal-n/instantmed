@@ -6,6 +6,7 @@ import Link from 'next/link'
 
 import { FloatingCard } from '@/components/marketing/floating-card'
 import { Button } from '@/components/ui/button'
+import { Heading } from '@/components/ui/heading'
 import { Reveal } from '@/components/ui/reveal'
 import { SectionPill } from '@/components/ui/section-pill'
 
@@ -116,9 +117,9 @@ export function HowItWorks() {
           <div className="mb-4">
             <SectionPill>How it works</SectionPill>
           </div>
-          <h2 className="text-2xl sm:text-3xl font-semibold text-foreground mb-2 tracking-tight">
+          <Heading level="h2" className="mb-2">
             Three steps. No waiting room.
-          </h2>
+          </Heading>
           <p className="text-sm text-muted-foreground">
             No appointments. No phone calls. No admin.
           </p>
@@ -145,9 +146,9 @@ export function HowItWorks() {
 
                 {/* Step text - above mockup on mobile, below on desktop */}
                 <div className="text-center mb-4 lg:mb-0 lg:mt-4 order-2 lg:order-3">
-                  <h3 className="text-base font-semibold text-foreground mb-1">
+                  <Heading level="h3" className="mb-1">
                     {step.title}
-                  </h3>
+                  </Heading>
                   <p className="text-sm text-muted-foreground leading-relaxed max-w-[200px] mx-auto">
                     {step.description}
                   </p>

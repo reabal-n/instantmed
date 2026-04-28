@@ -108,18 +108,20 @@ No serif. No decorative fonts. Never Inter, Roboto, Arial.
 
 ### Scale
 
-| Class | Size | Weight | Tracking | Use |
-|-------|------|--------|----------|-----|
-| display | 48px | 300 | -0.03em | Hero headlines |
-| h1 | 36px | 600 | -0.025em | Page titles |
-| h2 | 24px | 600 | -0.02em | Section headings |
-| h3 | 18px | 600 | -0.01em | Card titles |
-| body | 16px | 400 | — | Body text (non-negotiable minimum on patient flows) |
-| small | 14px | 400 | — | Secondary text |
-| label | 13px | 500 | — | Form labels |
-| caption | 12px | 400 | — | Captions, fine print |
-| overline | 11px | 600 | 0.10em | Section pills, uppercase only |
-| mono | 13px | 400 | 0.04em | JetBrains Mono — codes, IDs |
+| Class | Mobile | sm+ | lg+ | Weight | Tracking | Use |
+|-------|--------|-----|-----|--------|----------|-----|
+| display | 36px | 48px | 60px | 300 | -0.03em | Hero headlines |
+| h1 | 30px | 36px | 36px | 600 | -0.025em | Page titles |
+| h2 | 24px | 30px | 30px | 600 | -0.02em | Section headings |
+| h3 | 18px | 18px | 18px | 600 | -0.01em | Card titles |
+| body | 16px | 16px | 16px | 400 | (default) | Body text (non-negotiable minimum on patient flows) |
+| small | 14px | 14px | 14px | 400 | (default) | Secondary text |
+| label | 13px | 13px | 13px | 500 | (default) | Form labels |
+| caption | 12px | 12px | 12px | 400 | (default) | Captions, fine print |
+| overline | 11px | 11px | 11px | 600 | 0.10em | Section pills, uppercase only |
+| mono | 13px | 13px | 13px | 400 | 0.04em | JetBrains Mono. Codes, IDs |
+
+> Use `<Heading level="display|h1|h2|h3">` from `components/ui/heading.tsx` for all heading text. The primitive bakes in the responsive scale, weight, tracking, and line-height. Accepts `as` to decouple visual hierarchy from semantic order. Display steps to 60px on lg+ for hero impact (added in DS 1.1.0); 48px remains the canonical sm+ target.
 
 ### Rules
 

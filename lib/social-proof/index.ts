@@ -1,16 +1,20 @@
 /**
  * Centralized Social Proof - Single Source of Truth
  *
- * Patient counter uses linear interpolation:
- *   Anchor: April 11, 2026 → 3,000 patients (launch)
- *   Target: December 31, 2026 → 8,000 patients
- *   Rate: ~19 patients/day (realistic for early AU telehealth growth)
+ * Patient counter uses linear interpolation. Anchors recalibrated 2026-04-28
+ * to a defensible early-stage range — previous 3,000 → 8,000 read inflated
+ * against a 3-review GBP base. Update both anchors when real Supabase counts
+ * exceed the floor; the DB query in ./server.ts returns Math.max(real, interpolated).
+ *
+ *   Anchor: April 11, 2026 → 500 patients (launch baseline)
+ *   Target: December 31, 2026 → 2,500 patients
+ *   Rate: ~7-8 patients/day (defensible for early AU telehealth growth)
  *
  *   Approx display values:
- *     April 11 launch: ~3,000
- *     June:            ~3,700
- *     September:       ~5,200
- *     December 31:     ~8,000
+ *     April 11 launch: ~500
+ *     June:            ~860
+ *     September:       ~1,540
+ *     December 31:     ~2,500
  *
  * To recalibrate: update ANCHOR_COUNT to actual Supabase count,
  * set ANCHOR_DATE to today, and adjust TARGET_COUNT if needed.
@@ -25,11 +29,11 @@
 
 /** AEST (UTC+10) anchor date - recalibrated April 11 2026 */
 const ANCHOR_DATE = new Date("2026-04-11T00:00:00+10:00")
-export const ANCHOR_COUNT = 3_000
+export const ANCHOR_COUNT = 500
 
 /** AEST (UTC+11) target date */
 const TARGET_DATE = new Date("2026-12-31T23:59:59+11:00")
-const TARGET_COUNT = 8_000
+const TARGET_COUNT = 2_500
 
 const TOTAL_GROWTH = TARGET_COUNT - ANCHOR_COUNT
 const TOTAL_MS = TARGET_DATE.getTime() - ANCHOR_DATE.getTime()

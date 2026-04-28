@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
 import dynamic from 'next/dynamic'
-import Image from 'next/image'
 import { Suspense } from 'react'
 
 import { Hero } from '@/components/marketing'
@@ -41,6 +40,12 @@ const ComplianceMarquee = dynamic(
 )
 const MarketingFooter = dynamic(
   () => import('@/components/marketing').then(m => ({ default: m.MarketingFooter })),
+)
+// Quiet trust strip between hero and services. Demoted from inside the hero
+// composition (was crowding above-the-fold). Renders the four regulatory
+// logos (AHPRA, TGA, Medicare, RACGP) as a single subdued line.
+const RegulatoryPartners = dynamic(
+  () => import('@/components/marketing/media-mentions').then(m => ({ default: m.RegulatoryPartners })),
 )
 
 export const revalidate = 3600
@@ -139,26 +144,14 @@ export default async function HomePage() {
         {/* 1. Hero with main value prop */}
         <Hero>
           <p className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-8 leading-relaxed text-balance">
-            A real Australian GP reviews every request. {WEDGE} No appointments, no waiting rooms.
+            AHPRA-registered Australian doctors. Reviewed in minutes. {WEDGE}
           </p>
         </Hero>
 
-        {/* Lifestyle photo — full-width visual strip between hero and services.
-            Acts as a natural scroll break and grounds the above-fold promise
-            in a recognisable human moment. Below-fold on all viewports so
-            no priority — preloading competed with LCP previously. */}
-        <div className="mx-4 sm:mx-6 lg:mx-8 mb-10 sm:mb-14 lg:mb-16">
-          <div className="mx-auto max-w-5xl relative aspect-[16/7] sm:aspect-[16/6] rounded-2xl overflow-hidden shadow-lg shadow-primary/[0.06]">
-            <Image
-              src="/images/home-1.webp"
-              alt="Person relaxing at home using their phone to see a doctor online"
-              fill
-              className="object-cover object-top"
-              loading="lazy"
-              sizes="(max-width: 640px) calc(100vw - 2rem), (max-width: 1024px) calc(100vw - 3rem), 960px"
-            />
-          </div>
-        </div>
+        {/* Quiet regulatory strip — demoted from hero. One subtle line,
+            grayscale logos, low visual weight. Honest signal without crowding
+            the above-fold composition. */}
+        <RegulatoryPartners className="border-t border-b border-border/30 bg-muted/20 dark:bg-white/[0.02]" />
 
         {/* 2. Service cards - what we offer */}
         <ServiceCards />
@@ -168,8 +161,15 @@ export default async function HomePage() {
           <HowItWorks />
         </div>
 
-        {/* 4. Social proof */}
-        <SocialProofSection />
+        {/* 4. Social proof — lifestyle photo lives inside this section now,
+            framed at a calmer scale next to the testimonials rather than as a
+            16:7 scroll-break. */}
+        <SocialProofSection
+          lifestyleImage={{
+            src: '/images/home-1.webp',
+            alt: 'Person relaxing at home using their phone to see an Australian doctor online',
+          }}
+        />
 
         {/* 5. FAQs */}
         <FAQSection

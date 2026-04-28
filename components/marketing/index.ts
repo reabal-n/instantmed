@@ -21,7 +21,7 @@ export { ServicePicker } from "./service-picker"
 // ── Hero elements ──────────────────────────────────────────────────
 export { DottedGrid } from "./dotted-grid"
 export { FloatingCard } from "./floating-card"
-export { HeroMultiServiceMockup } from "./hero-multi-service-mockup"
+export { HeroDoctorReviewMockup } from "./hero-doctor-review-mockup"
 export { HeroTestimonialRotator } from "./hero-testimonial-rotator"
 export { RotatingText } from "./rotating-text"
 
