@@ -369,6 +369,7 @@ export const footerLinks = {
     { label: "Pricing", href: "/pricing" },
     { label: "Reviews", href: "/reviews" },
     { label: "Health Guides", href: "/blog" },
+    { label: "Your Options", href: "/alternatives" },
     { label: "Contact", href: "/contact" },
   ],
 }
