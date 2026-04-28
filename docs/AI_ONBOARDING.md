@@ -2,17 +2,23 @@
 
 > **If you're an AI assistant (Claude, Cursor, Copilot) about to touch UI in this codebase, read this first.** ~5 min read. Saves hours of drift.
 
-## The 5 files that embody this design system
+## The canonical primitives (use these, don't hand-roll alternatives)
 
 Read (or re-read) these before touching any `.tsx` / `.css` in `app/` or `components/`. They're the **law**.
 
-1. **`docs/DESIGN_SYSTEM.md`** — colour tokens, typography scale, spacing, elevation (solid depth, sky-toned shadows), hero variants, motion canon, voice, do/don't. This is the single source of truth.
+1. **`docs/DESIGN_SYSTEM.md`** — colour tokens, typography scale, spacing, elevation (solid depth, sky-toned shadows), hero variants, motion canon, voice, do/don't. Single source of truth.
 2. **`lib/motion/index.ts`** — timing, easing, variants (`fadeUp`, `stagger`). No spring physics. 200ms default. Never `initial={false}` — use `initial={{}}` for reduced motion.
 3. **`lib/services/service-catalog.ts`** — canonical service definitions (title, subtitle, price, `iconKey`, `colorToken`, route). Every service surface reads from here. Do not inline definitions in consumer components.
-4. **`components/icons/service-icons.tsx`** — `ServiceIconTile` primitive. Renders the canonical gradient-tile pattern. Default `variant="tile"`. Use `variant="sticker"` ONLY for playful marketing contexts.
-5. **`components/ui/heading.tsx`** (Phase 1, TBD) — `<Heading level>` primitive with baked-in typography scale. Avoid hand-rolling `<h1 className="text-[48px] font-light tracking-[-0.03em]">`.
+4. **`components/icons/service-icons.tsx`** — `ServiceIconTile` primitive. Default `variant="tile"`. Use `variant="sticker"` ONLY for playful marketing contexts.
+5. **`components/ui/heading.tsx`** — `<Heading level>` primitive with baked-in typography scale (display / h1 / h2 / h3). **Mandatory** for every section heading. Hand-rolled `text-3xl font-semibold tracking-tight` is design drift. Accepts `as` prop to decouple visual hierarchy from semantic element.
+6. **`components/marketing/hero.tsx`** — `<Hero>` primitive with slot props (title, pill, primaryCta, secondaryCta, beforeCta, mockup, trustRow). All marketing-page heroes use this; bespoke hero files were retired in the 2026-04-28 sweep.
+7. **`components/sections/cta-banner.tsx`** — `<CTABanner>` final-CTA primitive. Refund line auto-renders from `GUARANTEE` constant (`lib/marketing/voice.ts`). Optional `price`, `microcopy`, `onCtaClick`, `isDisabled` props for service pages.
+8. **`components/sections/faq-section.tsx`** — `<FAQSection>` shared FAQ pattern. Bespoke `EDFAQSection` / `HairLossFAQSection` / `PrescriptionFAQSection` etc. were retired in the same sweep.
+9. **`components/marketing/sections/time-comparison-viz.tsx`** — `<TimeComparisonViz>` race-track primitive (us-vs-GP-clinic time saved). Used by every service page that has a time-comparison moment.
+10. **`components/marketing/sections/service-claim-section.tsx`** — `<ServiceClaimSection>` "page superpower" anchor (Morning Canvas warmth + display-tier headline + supporting body). Used by /medical-certificate (employer 98%), /prescriptions (PBS), /consult ($49.95 vs $120), /erectile-dysfunction (discretion), /hair-loss (TGA clinical legitimacy).
+11. **`components/sections/section-header.tsx`** — `SectionHeader` (title + pill + animated WordReveal entrance). Title className is kept in lockstep with Heading h1 spec. Used by FeatureGrid / ProcessSteps / FAQSection / IconChecklist / Timeline / ComparisonTable / AccordionSection — and through them, most marketing pages.
 
-Bonus: **`lib/design-system/version.ts`** — current `DESIGN_SYSTEM_VERSION`. If you're adding something breaking, bump it and update `docs/DESIGN_SYSTEM_CHANGELOG.md`.
+Bonus: **`lib/design-system/version.ts`** — current `DESIGN_SYSTEM_VERSION` (1.1.0 as of 2026-04-28). Bump and update `docs/DESIGN_SYSTEM_CHANGELOG.md` on breaking changes.
 
 ## Top 10 rules of thumb
 
@@ -29,11 +35,16 @@ Bonus: **`lib/design-system/version.ts`** — current `DESIGN_SYSTEM_VERSION`. I
 
 ## Common gotchas (already-tripped mines)
 
-- **`GlassCard` is a misnomer.** Despite the name, it's NOT glass — it uses solid backgrounds. Renaming to `SolidCard` is tracked in Phase 2. For now, use the primary solid-depth className pattern (rule 5) directly instead.
+- **`GlassCard` is a misnomer.** Despite the name, it's NOT glass — it uses solid backgrounds. Use the primary solid-depth className pattern (rule 5) directly.
 - **ServiceIconTile with `iconKey: "FileText"`** renders a tile by default — not a sticker — since v1.0.0. To get a sticker, explicitly pass `variant="sticker"`.
-- **`/request` renders client-side** and had a visible empty-white-card flash during hydration. A skeleton was added in Phase 1 (if implemented by the time you're reading this). If not, add one.
-- **Custom shadow arbitraries in legacy files** (`onboarding-flow.tsx`, `consult-flow-client.tsx`, several `components/ui/*`) are being swept in Phase 2. Don't copy their pattern.
-- **The /consult hero trust row** had duplicate "Full refund if we can't help" copy — fixed in v1.0.0. If you see it again, it regressed.
+- **All marketing-page heroes use the canonical `<Hero>` primitive** (rule 6). Bespoke hero files (`med-cert-hero.tsx`, `prescriptions-hero.tsx`, `ed-hero.tsx`, `hair-loss-hero.tsx`) were retired in the 2026-04-28 sweep. Don't create new ones — extend `<Hero>` slot props instead.
+- **All marketing-page final CTAs use `<CTABanner>`** (rule 7). Bespoke `ServiceFinalCTA` was retired. Refund line auto-renders from `GUARANTEE` constant — don't hardcode "Full refund if we can't help" text inline.
+- **All race-track time-comparison sections use `<TimeComparisonViz>`** (rule 9). Bespoke `CertComparisonViz` / `PrescriptionComparisonViz` / `EDComparisonViz` / `HairLossComparisonViz` were retired.
+- **All FAQ sections on marketing pages use `<FAQSection>`** (rule 8). Bespoke `EDFAQSection` / `HairLossFAQSection` / `PrescriptionFAQSection` were retired.
+- **`GUARANTEE` is outcome-only** ("Full refund if our doctor can't help."), not time-bound. The previous "Doctor reviews in 2 hours or we waive the fee" version was retired 2026-04-28 because it created operational risk on slow days. Don't reintroduce time-bound refund language.
+- **Brand-surfaces smoke spec** (`e2e/brand-surfaces.smoke.spec.ts`) verifies `GUARANTEE` literal renders on every brand surface. If you change voice canon, update the test's `GUARANTEE_LITERAL` constant in the same commit.
+- **Em-dashes (U+2014) are banned from marketing surfaces.** `voice-guard.test.ts` enforces three layers: literal U+2014, JS escape, and HTML entities (`&mdash;` / `&#8212;` / `&#x2014;`). Use commas, periods, colons, or parens.
+- **Patient counter is honest, not inflated.** `lib/social-proof/index.ts` ANCHOR_COUNT recalibrated 3,000 → 500 (April 11 launch), TARGET_COUNT 8,000 → 2,500 (Dec 31). Defensible against the current 3-review GBP base. Don't bump unless real Supabase data exceeds the floor.
 
 ## When you're in doubt
 
@@ -64,4 +75,4 @@ Bonus: **`lib/design-system/version.ts`** — current `DESIGN_SYSTEM_VERSION`. I
 
 ---
 
-**Last updated:** 2026-04-20 (design system v1.0.0 pin). Updates should be co-commited with any meaningful design-system change.
+**Last updated:** 2026-04-28 (design system v1.1.0 + marketing-page sweep complete). Updates should be co-commited with any meaningful design-system change.
