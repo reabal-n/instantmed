@@ -3,26 +3,22 @@
 import {
   Building2,
   CheckCircle2,
-  Clock,
   Search,
 } from "lucide-react"
 import dynamic from "next/dynamic"
 import Link from "next/link"
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback } from "react"
 
 import { StripePaymentLogos } from "@/components/checkout/payment-logos"
 import { Hero } from "@/components/marketing/hero"
 import { IntakeResumeChip } from "@/components/marketing/intake-resume-chip"
 import { MedCertHeroMockup } from "@/components/marketing/mockups/med-cert-hero-mockup"
+import { TimeComparisonViz } from "@/components/marketing/sections/time-comparison-viz"
 import {
   type LandingPageConfig,
   LandingPageShell,
 } from "@/components/marketing/shared"
 import { type LogoItem, ScrollingLogoMarquee } from "@/components/marketing/shared/scrolling-logo-marquee"
-import { Heading } from "@/components/ui/heading"
-import { useReducedMotion } from "@/components/ui/motion"
-import { Reveal } from "@/components/ui/reveal"
-import { SectionPill } from "@/components/ui/section-pill"
 import { PRICING } from "@/lib/constants"
 import { MED_CERT_FAQ } from "@/lib/data/med-cert-faq"
 import { usePatientCount } from "@/lib/hooks/use-patient-count"
@@ -212,102 +208,19 @@ function EmployerCalloutStrip({ onEmployerClick, onVerifyClick }: { onEmployerCl
   )
 }
 
-/** Data viz: certificate turnaround vs GP visit */
+/** Data viz: certificate turnaround vs GP visit. Thin wrapper around the
+ *  shared TimeComparisonViz primitive — same pattern is used on prescriptions
+ *  with different copy + numbers. */
 function CertComparisonViz() {
-  const ref = useRef<HTMLDivElement>(null)
-  const [inView, setInView] = useState(false)
-  const prefersReducedMotion = useReducedMotion()
-
-  useEffect(() => {
-    const el = ref.current
-    if (!el) return
-    const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) { setInView(true); observer.disconnect() } },
-      { threshold: 0.3 }
-    )
-    observer.observe(el)
-    return () => observer.disconnect()
-  }, [])
-
-  const active = inView || prefersReducedMotion
-
   return (
-    <section aria-label="Time comparison" className="py-10 sm:py-14">
-      <div className="mx-auto max-w-3xl px-4 sm:px-6">
-        <Reveal instant className="text-center mb-10">
-          <SectionPill>Time saved</SectionPill>
-          <Heading level="h2" className="mt-3">
-            Back on the couch in minutes. Not hours.
-          </Heading>
-        </Reveal>
-
-        <div ref={ref} className="space-y-5">
-          {/* Labels + times */}
-          <div className="flex items-end justify-between">
-            <div>
-              <p className="text-[11px] font-semibold text-primary uppercase tracking-wider mb-1.5">InstantMed</p>
-              <p className="text-4xl sm:text-5xl font-semibold tabular-nums text-foreground leading-none">
-                ~{SOCIAL_PROOF.certTurnaroundMinutes}
-                <span className="text-xl font-normal text-muted-foreground ml-1">min</span>
-              </p>
-            </div>
-            <div className="text-right">
-              <p className="text-[11px] font-semibold text-muted-foreground/50 uppercase tracking-wider mb-1.5">GP clinic</p>
-              <p className="text-4xl sm:text-5xl font-semibold tabular-nums text-muted-foreground/60 leading-none">
-                2+
-                <span className="text-xl font-normal ml-1">hrs</span>
-              </p>
-            </div>
-          </div>
-
-          {/* Race track */}
-          <div className="relative h-2 rounded-full bg-muted/30 overflow-hidden">
-            <div
-              className={prefersReducedMotion ? "absolute inset-y-0 left-0 bg-border/50 rounded-full" : "absolute inset-y-0 left-0 bg-border/50 rounded-full transition-[width] duration-[1000ms] ease-out"}
-              style={{
-                width: active ? '100%' : '0%',
-                transitionDelay: active && !prefersReducedMotion ? '300ms' : '0ms',
-              }}
-            />
-            <div
-              className={prefersReducedMotion ? "absolute inset-y-0 left-0 bg-primary rounded-full" : "absolute inset-y-0 left-0 bg-primary rounded-full transition-[width] duration-700 ease-out"}
-              style={{
-                width: active ? '18%' : '0%',
-                transitionDelay: active && !prefersReducedMotion ? '80ms' : '0ms',
-              }}
-            />
-          </div>
-
-          {/* Step breakdown */}
-          <div className="grid grid-cols-2 gap-6 pt-1">
-            <div className="space-y-2">
-              {[
-                "2 min form",
-                "GP reviews your request",
-                "Certificate in your inbox",
-              ].map((step) => (
-                <p key={step} className="flex items-center gap-2 text-xs text-foreground">
-                  <CheckCircle2 className="h-3.5 w-3.5 text-primary shrink-0" aria-hidden="true" />
-                  {step}
-                </p>
-              ))}
-            </div>
-            <div className="space-y-2">
-              {[
-                "Call to book appointment",
-                "Travel to clinic",
-                "Waiting room and consult",
-              ].map((step) => (
-                <p key={step} className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <Clock className="h-3.5 w-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
-                  {step}
-                </p>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
+    <TimeComparisonViz
+      heading="Back on the couch in minutes. Not hours."
+      ours={{ label: "InstantMed", value: `~${SOCIAL_PROOF.certTurnaroundMinutes}`, unit: "min" }}
+      theirs={{ label: "GP clinic", value: "2", valueSuffix: "+", unit: "hrs" }}
+      ourSteps={["2 min form", "GP reviews your request", "Certificate in your inbox"]}
+      theirSteps={["Call to book appointment", "Travel to clinic", "Waiting room and consult"]}
+      primaryFillPercent={18}
+    />
   )
 }
 
