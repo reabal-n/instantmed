@@ -117,7 +117,8 @@ const HIGH_STAKES_USE_CASE_KEYWORDS = [
   "special consideration", "extension", "supplementary",
   "fail", "failed", "failing",
   // Legal / court
-  "court", "hearing", "tribunal", "summons", "subpoena", "jury",
+  // "jury" alone matches "injury" via substring; use "jury duty" instead.
+  "court", "hearing", "tribunal", "summons", "subpoena", "jury duty",
   "custody", "family law", "avo", "intervention order",
   // Driving / transport / firearms — fitness-to-X determinations
   "driving", "drive", "license", "licence", "rta", "service nsw",

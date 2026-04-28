@@ -20,24 +20,34 @@ export default async function CompleteAccountPage({
   searchParams: Promise<{ request_id?: string; intake_id?: string; email?: string; session_id?: string }>
 }) {
   const params = await searchParams
-  // Support both intake_id (guest checkout) and request_id (legacy) 
+  // Support both intake_id (guest checkout) and request_id (legacy)
   const intakeId = params.intake_id || params.request_id
-  
-  // Fetch email from intake server-side (more secure than URL param)
-  let email = params.email // Fallback to URL param for backwards compatibility
-  if (intakeId && !email) {
+
+  // Fetch email + amount + service so the form can fire trackPurchase on mount.
+  // Guest checkouts land here (not /patient/intakes/success), so without firing
+  // the gtag conversion here we lose browser-side attribution for ~all guests.
+  let email = params.email
+  let amountCents: number | undefined
+  let serviceSlug: string | undefined
+  let serviceName: string | undefined
+  if (intakeId) {
     try {
       const supabase = createServiceRoleClient()
       const { data: intake } = await supabase
         .from("intakes")
-        .select("patient:profiles!patient_id(email)")
+        .select("amount_cents, patient:profiles!patient_id(email), service:services!service_id(slug, name)")
         .eq("id", intakeId)
+        .eq("payment_status", "paid")
         .single()
-      
+
       const patient = intake?.patient as { email?: string } | null
-      email = patient?.email || undefined
+      const service = intake?.service as { slug?: string; name?: string } | null
+      if (!email) email = patient?.email || undefined
+      amountCents = (intake?.amount_cents as number | undefined) ?? undefined
+      serviceSlug = service?.slug
+      serviceName = service?.name
     } catch {
-      // Silently fail - email display is optional
+      // Silently fail - tracking is best-effort
     }
   }
 
@@ -55,7 +65,13 @@ export default async function CompleteAccountPage({
               <Skeleton className="h-12 w-full rounded-full" />
             </div>
           }>
-            <CompleteAccountForm intakeId={intakeId} email={email} />
+            <CompleteAccountForm
+              intakeId={intakeId}
+              email={email}
+              amountCents={amountCents}
+              serviceSlug={serviceSlug}
+              serviceName={serviceName}
+            />
           </Suspense>
         </div>
       </main>

@@ -3,23 +3,51 @@
 import { Check, Loader2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import type React from "react"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 
 import { Button } from "@/components/ui/button"
 import { Confetti } from "@/components/ui/confetti"
+import { trackPurchase } from "@/lib/analytics/conversion-tracking"
 import { useAuth } from "@/lib/supabase/auth-provider"
 
 export function CompleteAccountForm({
   intakeId,
   email,
+  amountCents,
+  serviceSlug,
+  serviceName,
 }: {
   intakeId?: string
   email?: string
+  amountCents?: number
+  serviceSlug?: string
+  serviceName?: string
 }) {
   const router = useRouter()
   const { isSignedIn, isLoaded } = useAuth()
 
   const [showConfetti, setShowConfetti] = useState(false)
+  const purchaseTrackedRef = useRef(false)
+
+  // Fire Google Ads PURCHASE conversion as soon as the guest lands here.
+  // Stripe only redirects to this page after a successful payment, so it is
+  // safe to fire unconditionally. Without this fire, guest checkouts (most
+  // pre-launch users) miss browser-side gtag attribution entirely because
+  // they never reach /patient/intakes/success. The server-side CAPI fires
+  // separately from the Stripe webhook; Google deduplicates on transactionId.
+  useEffect(() => {
+    if (!intakeId || purchaseTrackedRef.current) return
+    purchaseTrackedRef.current = true
+    const valueDollars = amountCents != null ? amountCents / 100 : 1
+    void trackPurchase({
+      transactionId: intakeId,
+      value: valueDollars,
+      service: serviceSlug || "unknown",
+      serviceName: serviceName || "Request",
+      email,
+      isNewCustomer: true,
+    })
+  }, [intakeId, amountCents, serviceSlug, serviceName, email])
 
   useEffect(() => {
     // If already signed in, redirect through post-signin to ensure profile is linked
