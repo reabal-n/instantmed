@@ -82,7 +82,7 @@ export default function EmployersPage() {
     {
       question: "Can I reject an online medical certificate?",
       answer:
-        "Under the Fair Work Act, employers must accept 'reasonable evidence' of illness. A certificate from an AHPRA-registered doctor meets this standard. Rejecting a valid certificate could constitute a breach.",
+        "Under the Fair Work Act, employers can request 'reasonable evidence' of illness. A certificate from an AHPRA-registered doctor meets this standard. Rejecting a valid certificate could constitute a breach.",
     },
     {
       question: "How do I verify an InstantMed certificate?",
@@ -445,7 +445,7 @@ export default function EmployersPage() {
                     Employers can request a medical certificate for any period of personal/carer&apos;s leave. However, this must be applied consistently - you cannot require certificates from some employees and not others for the same absence duration. Policies that single out individuals or apply different thresholds may constitute adverse action.
                   </p>
                   <p>
-                    You must accept certificates from any registered medical practitioner, not just a specific clinic or your preferred provider. You cannot require the employee to disclose their diagnosis - the certificate confirms unfitness for work, and that is the extent of the information you are entitled to receive. Sick leave policies should be clearly communicated to all employees in advance, ideally in writing.
+                    Assess certificates from registered medical practitioners, not just a specific clinic or your preferred provider. You cannot require the employee to disclose their diagnosis - the certificate confirms unfitness for work, and that is the extent of the information you are entitled to receive. Sick leave policies should be clearly communicated to all employees in advance, ideally in writing.
                   </p>
                 </div>
               </div>

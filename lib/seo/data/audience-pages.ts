@@ -43,13 +43,13 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
     badgeLabel: "For Nurses & Healthcare Workers",
     h1: "Medical Certificates for Nurses",
     heroSubtext:
-      "Hospital shifts don't match GP hours. Get your medical certificate online - available 24/7. Accepted by all healthcare employers.",
-    heroTagline: "Works around your roster • Hospitals accept • AHPRA doctors",
+      "Hospital shifts don't match GP hours. Get your medical certificate online - available 24/7. Healthcare employer policies may vary.",
+    heroTagline: "Works around your roster • Doctor-issued • AHPRA doctors",
     icon: Stethoscope,
     metadata: {
       title: "Medical Certificates for Nurses | Online",
       description:
-        "Nurses and healthcare workers: get a medical certificate without leaving home. Doctor-reviewed, available 24/7. Accepted by hospitals and aged care.",
+        "Nurses and healthcare workers: get a medical certificate without leaving home. Doctor-reviewed, available 24/7. Built for hospital and aged care documentation.",
       keywords: [
         "medical certificate nurses",
         "nurse sick certificate",
@@ -60,7 +60,7 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
     faqs: [
       {
         q: "Do hospitals accept online medical certificates?",
-        a: "Yes. Our certificates are issued by AHPRA-registered doctors and are valid for all Australian employers, including public and private hospitals, aged care, and healthcare agencies.",
+        a: "Yes. Our certificates are issued by AHPRA-registered doctors and include standard workplace evidence details for public and private hospitals, aged care, and healthcare agencies.",
       },
       {
         q: "Can I get a certificate between shifts?",
@@ -142,13 +142,13 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
     badgeLabel: "For Teachers & Education Staff",
     h1: "Medical Certificates for Teachers",
     heroSubtext:
-      "School hours = GP hours. Get your medical certificate online without leaving work. Accepted by DET, Catholic, and independent schools.",
+      "School hours = GP hours. Get your medical certificate online without leaving work. Built for DET, Catholic, and independent school documentation.",
     heroTagline: "No relief needed to see a doctor • All schools accept • Usually under 1 hour",
     icon: GraduationCap,
     metadata: {
       title: "Medical Certificates for Teachers | Online",
       description:
-        "Teachers: get a medical certificate without taking time off. Doctor-reviewed, usually under 1 hour. Accepted by all Australian schools. Complete during lunch or after school.",
+        "Teachers: get a medical certificate without taking time off. Doctor-reviewed, usually under 1 hour. School policies vary. Complete during lunch or after school.",
       keywords: [
         "medical certificate teachers",
         "teacher sick certificate",
@@ -167,7 +167,7 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
       },
       {
         q: "What about casual relief teachers?",
-        a: "Same process. Get your certificate, forward to your agency or school. Valid for all employers.",
+        a: "Same process. Get your certificate, forward to your agency or school. Employer policies vary.",
       },
       {
         q: "How much does a certificate cost?",
@@ -258,7 +258,7 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
     faqs: [
       {
         q: "Will my restaurant/hotel accept it?",
-        a: "Yes. Our certificates are from AHPRA-registered doctors and are valid for all Australian employers.",
+        a: "Yes. Our certificates are from AHPRA-registered doctors and employer policies may vary.",
       },
       {
         q: "I work weekends - can I get a cert then?",
@@ -355,7 +355,7 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
     faqs: [
       {
         q: "Will my store accept an online certificate?",
-        a: "Yes. Certificates from AHPRA-registered doctors are valid for all Australian employers, including major retailers.",
+        a: "Yes. Certificates from AHPRA-registered doctors are employer policies may vary, including major retailers.",
       },
       {
         q: "I work irregular hours - when can I get one?",
@@ -404,7 +404,7 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
         desc: "2-minute form, doctor review. Certificate to your email.",
       },
       {
-        title: "All employers accept",
+        title: "Employer policies vary",
         desc: "Coles, Woolworths, independents, warehouses - no exceptions.",
       },
     ],
@@ -431,13 +431,13 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
     badgeLabel: "For Office Workers",
     h1: "Medical Certificates for Office Workers",
     heroSubtext:
-      "Desk job doesn't mean you have time for a GP visit. Get your medical certificate online from your desk or home. Accepted by all employers.",
-    heroTagline: "From your desk or home • Usually under 1 hour • All employers accept",
+      "Desk job doesn't mean you have time for a GP visit. Get your medical certificate online from your desk or home. Employer policies may vary.",
+    heroTagline: "From your desk or home • Usually under 1 hour • Employer policies vary",
     icon: Briefcase,
     metadata: {
       title: "Medical Certificates for Office Workers",
       description:
-        "Office workers: get a medical certificate without leaving work or home. Doctor-reviewed, usually under 1 hour. Accepted by corporate and government employers.",
+        "Office workers: get a medical certificate without leaving work or home. Doctor-reviewed, usually under 1 hour. Built for corporate and government workplace documentation.",
       keywords: [
         "medical certificate office workers",
         "corporate sick certificate",
@@ -448,7 +448,7 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
     faqs: [
       {
         q: "Will my corporate employer accept it?",
-        a: "Yes. AHPRA-registered doctor certificates are valid for all Australian employers, including ASX-listed companies and government.",
+        a: "Yes. AHPRA-registered doctor certificates are employer policies may vary, including ASX-listed companies and government.",
       },
       {
         q: "Can I do this from work?",
@@ -467,8 +467,8 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
         a: "Yes. Mental health is covered under personal leave - the same entitlement as physical illness. Your certificate will not specify the nature of your condition.",
       },
       {
-        q: "Are these certificates accepted by government employers?",
-        a: "Yes. Commonwealth, state, and local government employers all accept certificates from AHPRA-registered doctors. Telehealth certificates carry the same legal weight as in-person ones.",
+        q: "Can government employers use these certificates as evidence?",
+        a: "Yes. Commonwealth, state, and local government employers all set their own policies for certificates from AHPRA-registered doctors. Telehealth certificates carry the same legal weight as in-person ones.",
       },
       {
         q: "Can I get a carer's leave certificate?",
@@ -578,11 +578,11 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
       },
       {
         q: "What if the school requires a certificate for absences near holidays?",
-        a: "Some schools request medical documentation for absences immediately before or after school holidays. Our certificates satisfy this requirement.",
+        a: "Some schools request medical documentation for absences immediately before or after school holidays. Our certificates include standard doctor-issued details; school policies may vary.",
       },
       {
-        q: "Are online certificates accepted by daycare centres?",
-        a: "Yes. Childcare centres, daycare, and early learning centres all accept certificates from AHPRA-registered doctors. The format is the same as any GP certificate.",
+        q: "Can daycare centres use online certificates as documentation?",
+        a: "Yes. Childcare centres, daycare, and early learning centres all set their own policies for certificates from AHPRA-registered doctors. The format is the same as any GP certificate.",
       },
       {
         q: "What happens if the doctor declines the request?",
@@ -606,7 +606,7 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
     industryContext: [
       "Carer's leave is one of the most underused workplace entitlements in Australia. Under the Fair Work Act, employees are entitled to use their personal leave to care for an immediate family member or household member who is unwell. This means you don't need separate 'carer's leave' - it comes from the same 10-day personal leave balance. Many parents don't realise a medical certificate for their child's illness also supports their own leave application.",
       "When your child wakes up sick, you're juggling three things simultaneously: caring for them, notifying their school, and telling your employer. Dragging a sick child to a GP waiting room adds a fourth. Telehealth lets you get a certificate from home while your child rests - often before you even need to call the school office.",
-      "For parents of school-aged children, some schools require medical certificates for absences of 3+ days or for absences around school holidays. Our certificates cover the child's dates of illness and are accepted by all Australian schools. For your employer, the same certificate supports your carer's leave application.",
+      "For parents of school-aged children, some schools require medical certificates for absences of 3+ days or for absences around school holidays. Our certificates cover the child's dates of illness and are school policies may vary. For your employer, the same certificate supports your carer's leave application.",
     ],
     commonConditions: [
       { name: "Cold & Flu", slug: "cold-and-flu", why: "Children bring home every virus from school and daycare - and pass it to parents" },
@@ -627,8 +627,8 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
     badgeLabel: "For Remote Workers",
     h1: "Medical Certificates for Remote Workers",
     heroSubtext:
-      "Work from home? Live regionally? Get your medical certificate without leaving the house. Doctor-reviewed, usually under 1 hour. Accepted by all employers.",
-    heroTagline: "From anywhere • No commute • All employers accept",
+      "Work from home? Live regionally? Get your medical certificate without leaving the house. Doctor-reviewed, usually under 1 hour. Employer policies may vary.",
+    heroTagline: "From anywhere • No commute • Employer policies vary",
     icon: Laptop,
     metadata: {
       title: "Medical Certificates for Remote Workers",
@@ -652,7 +652,7 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
       },
       {
         q: "Will my employer accept it?",
-        a: "Yes. Certificates from registered doctors are valid for all Australian employers, regardless of where you work from.",
+        a: "Yes. Certificates from registered doctors are employer policies may vary, regardless of where you work from.",
       },
       {
         q: "How much does a certificate cost?",

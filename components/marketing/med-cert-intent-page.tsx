@@ -397,7 +397,7 @@ export function MedCertIntentPage({ config }: MedCertIntentPageProps) {
           <ProcessSteps
             id="how-it-works"
             title="How it works"
-            subtitle="No appointments. No phone calls. Just results."
+            subtitle="No appointments. Doctor-reviewed certificate requests."
             steps={steps}
             className="scroll-mt-20"
           />

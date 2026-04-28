@@ -60,8 +60,8 @@ export const conditionPages: ConditionPage[] = [
     ],
     faqs: [
       {
-        q: "Will a medical certificate from InstantMed be accepted by my employer?",
-        a: "Yes. Our certificates are issued by AHPRA-registered Australian doctors and are legally valid. Employers must accept them.",
+        q: "Will a medical certificate from InstantMed be usable by my employer as evidence?",
+        a: "Yes. Our certificates are issued by AHPRA-registered Australian doctors and are legally valid. Employers can assess them under workplace policy.",
       },
       {
         q: "Can I get a certificate if I'm not actually sick?",
@@ -890,7 +890,7 @@ export const certificatePages: CertificatePage[] = [
     name: "Work Medical Certificate",
     title: "Work Medical Certificate Online | Australia | InstantMed",
     description:
-      "Get a medical certificate for work in under an hour. Valid for all employers. No waiting rooms.",
+      "Get a doctor-reviewed medical certificate for work in under an hour. Employer policies may vary. No waiting rooms.",
     h1: "Medical certificate for work - fast and valid",
     heroText:
       "Unwell and need to tell your boss? Get a legitimate medical certificate issued by an AHPRA-registered Australian doctor.",
@@ -916,7 +916,7 @@ export const certificatePages: CertificatePage[] = [
     faqs: [
       {
         q: "Will my employer accept an InstantMed certificate?",
-        a: "Yes, absolutely. Our certificates are issued by registered Australian doctors and are legally valid. Employers must accept them.",
+        a: "Our certificates are issued by registered Australian doctors and include standard sick-leave evidence details. Employer policies can vary, so check your workplace requirements.",
       },
       {
         q: "What information is on the certificate?",
@@ -942,15 +942,15 @@ export const certificatePages: CertificatePage[] = [
     name: "Study/School Medical Certificate",
     title: "Medical Certificate for Uni & School | InstantMed",
     description:
-      "Get a medical certificate for university or school. Special consideration, exam absences, assignment extensions.",
+      "Get a medical certificate for university or school study absence documentation.",
     h1: "Medical certificate for study - university and school",
     heroText:
-      "Sick during exams or assessments? Get a medical certificate for special consideration or extension.",
+      "Too unwell for class, placement, or study? Get a medical certificate for supporting documentation.",
     useCases: [
-      "You're ill during an exam and need to reschedule",
-      "You need special consideration for assignments",
+      "You're ill during study commitments and need documentation",
+      "You need supporting evidence for your institution",
       "You missed classes and need documentation",
-      "You're requesting an extension on deadlines",
+      "You need to document the dates you were unfit",
     ],
     howToUse: [
       "Complete our online form",
@@ -959,10 +959,10 @@ export const certificatePages: CertificatePage[] = [
       "Submit to your university/school",
     ],
     backdatingInfo:
-      "We can backdate certificates for the day(s) you were unwell. Example: if you missed Tuesday's exam because you were sick, we can issue a certificate for Tuesday.",
+      "We can issue certificates for recent day(s) you were unwell if clinically appropriate. Example: if you were unwell on Tuesday, the doctor can assess whether a certificate covering Tuesday is appropriate.",
     disclaimers: [
       "Universities and schools have their own policies on medical certificates - check yours.",
-      "A certificate is proof of illness, not a guarantee of special consideration - your institution decides.",
+      "A certificate is supporting evidence, not a guarantee of an academic outcome - your institution decides.",
       "Provide your certificate as soon as possible after missing an assessment.",
     ],
     faqs: [
@@ -971,8 +971,8 @@ export const certificatePages: CertificatePage[] = [
         a: "Most do. Check your university's policy on online medical certificates. If uncertain, ask your student services.",
       },
       {
-        q: "Can I get special consideration without a certificate?",
-        a: "Varies by institution. Many require a certificate for exam postponement or deadline extension.",
+        q: "Can I submit academic documentation without a certificate?",
+        a: "Varies by institution. Many require supporting documentation for missed study commitments or deadline-related requests.",
       },
       {
         q: "How long does the certificate take?",
@@ -990,7 +990,7 @@ export const certificatePages: CertificatePage[] = [
     name: "Carer's Leave Medical Certificate",
     title: "Carer's Leave Medical Certificate | InstantMed",
     description:
-      "Medical certificate for carer's leave. Care for family member or dependant. Valid for all Australian employers.",
+      "Medical certificate for carer's leave. Care for family member or dependant. Employer policies may vary.",
     h1: "Medical certificate for carer's leave",
     heroText:
       "Need to care for a sick family member? Get a medical certificate to document carer's leave from work.",
@@ -1060,7 +1060,7 @@ export const benefitPages: BenefitPage[] = [
       {
         title: "Legitimacy",
         content:
-          "Our doctors are AHPRA-registered. Certificates are legally valid. Employers must accept them - same as a GP's.",
+          "Our doctors are AHPRA-registered. Certificates are legally valid. They include standard details employers can use as evidence; employer policies may vary.",
       },
       {
         title: "Affordability",
@@ -1076,7 +1076,7 @@ export const benefitPages: BenefitPage[] = [
     faqs: [
       {
         q: "Is an online medical certificate as valid as one from my GP?",
-        a: "Completely. It's issued by a registered doctor and has the same legal standing. Employers must accept it.",
+        a: "Completely. It's issued by a registered doctor and has the same legal standing. Employers can assess it under workplace policy.",
       },
       {
         q: "Will my GP know I used an online service?",

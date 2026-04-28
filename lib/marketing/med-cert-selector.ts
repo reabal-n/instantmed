@@ -48,12 +48,12 @@ export const CERT_CATEGORIES: readonly CertCategoryDef[] = [
     id: "study",
     label: "Uni / TAFE",
     description:
-      "Special consideration, missed exam, or assignment extension.",
+      "Study absence documentation for your education provider.",
     reasons: [
-      "Exam deferral",
-      "Assignment extension",
+      "Missed class",
+      "Study documentation",
       "Missed classes",
-      "Special consideration",
+      "Study absence",
     ],
   },
   {

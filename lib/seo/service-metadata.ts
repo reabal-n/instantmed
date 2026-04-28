@@ -37,7 +37,7 @@ export const serviceSEO: Record<string, ServiceSEO> = {
       {
         question: "Do I need to make a phone call?",
         answer:
-          "No phone call is needed for most requests. You submit your information online and a doctor reviews it. The doctor may contact you if they need more information.",
+          "You submit your information online and a doctor reviews it. The doctor may contact you if they need more information.",
       },
       {
         question: "What does it cost?",
@@ -76,7 +76,7 @@ export const serviceSEO: Record<string, ServiceSEO> = {
       {
         question: "Do I need to speak to a doctor?",
         answer:
-          "Most requests are handled online without a phone call. The doctor may contact you if they need more information to make a clinical decision.",
+          "You start with a secure online form. The doctor may contact you if they need more information to make a clinical decision.",
       },
     ],
   },

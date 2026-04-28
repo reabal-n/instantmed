@@ -239,7 +239,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!data) return {}
 
   const title = `Medical Certificate Online ${data.name}`
-  const description = `Get a medical certificate online in ${data.name}, ${data.stateShort}. Reviewed by AHPRA-registered Australian doctors. Valid for all employers. ${PRICING_DISPLAY.FROM_MED_CERT}.`
+  const description = `Get a medical certificate online in ${data.name}, ${data.stateShort}. Reviewed by AHPRA-registered Australian doctors. Employer policies vary. ${PRICING_DISPLAY.FROM_MED_CERT}.`
 
   return {
     title,
@@ -292,7 +292,7 @@ export default async function SuburbMedCertPage({ params }: PageProps) {
         name: "Will my employer accept an online medical certificate?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Absolutely. Our certificates are issued by AHPRA-registered Australian doctors and are legally valid for all employers in Australia, including those in " + data.name + ".",
+          text: "Absolutely. Our certificates are issued by AHPRA-registered Australian doctors and include standard workplace evidence details; employer policies may vary in Australia, including those in " + data.name + ".",
         },
       },
       {
@@ -369,7 +369,7 @@ export default async function SuburbMedCertPage({ params }: PageProps) {
                 </div>
                 <div className="flex items-center gap-1.5 bg-background/80 px-3 py-1.5 rounded-full">
                   <CheckCircle2 className="h-4 w-4 text-primary" />
-                  <span>Employer accepted</span>
+                  <span>Employer policies vary</span>
                 </div>
               </div>
             </div>
@@ -402,7 +402,7 @@ export default async function SuburbMedCertPage({ params }: PageProps) {
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 {[
                   { icon: HardHat, label: "Tradies", desc: "No time off site" },
-                  { icon: GraduationCap, label: "Students", desc: "Uni & TAFE accepted" },
+                  { icon: GraduationCap, label: "Students", desc: "Study documentation" },
                   { icon: Building2, label: "Office workers", desc: "Before your boss asks" },
                   { icon: Clock, label: "Shift workers", desc: "24/7 availability" },
                 ].map((item) => (
@@ -454,7 +454,7 @@ export default async function SuburbMedCertPage({ params }: PageProps) {
                   {
                     step: "3",
                     title: "Certificate delivered",
-                    desc: "Secure PDF sent to your email. Valid for all employers.",
+                    desc: "Secure PDF sent to your email. Employer policies vary.",
                     time: "Instant",
                   },
                 ].map((item) => (
@@ -487,7 +487,7 @@ export default async function SuburbMedCertPage({ params }: PageProps) {
                   },
                   {
                     q: "Will my employer accept this certificate?",
-                    a: `Absolutely. Our certificates are issued by AHPRA-registered Australian doctors and are legally valid for all employers, including those in ${data.name}. Each certificate includes the doctor's name, provider number, and signature.`,
+                    a: `Our certificates are issued by AHPRA-registered Australian doctors and include standard workplace evidence details for ${data.name}. Employer policies may vary. Each certificate includes the doctor's name, provider number, and signature.`,
                   },
                   {
                     q: "How fast can I get my certificate?",
@@ -524,7 +524,7 @@ export default async function SuburbMedCertPage({ params }: PageProps) {
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
               </Link>
-              <p className="mt-4 text-xs text-muted-foreground">{PRICING_DISPLAY.FROM_MED_CERT} • Valid for all employers</p>
+              <p className="mt-4 text-xs text-muted-foreground">{PRICING_DISPLAY.FROM_MED_CERT} • Employer policies vary</p>
             </div>
           </section>
 

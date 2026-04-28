@@ -140,7 +140,7 @@ const whatYouGet: ChecklistItem[] = [
       "This is the whole point. Money does not stay with us unless our clinical work meets your need.",
   },
   {
-    text: "No phone calls, no forms, no friction to claim it",
+    text: "No chasing, no paperwork, no friction to claim it",
     subtext:
       "Auto-refunded by default. If anything looks wrong, one email to support@instantmed.com.au with your request ID and we sort it.",
   },

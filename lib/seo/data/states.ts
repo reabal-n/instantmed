@@ -74,7 +74,7 @@ export const statesData: Record<StateSlug, StateData> = {
       },
       {
         title: "University & TAFE certificates",
-        body: "Major NSW institutions - UNSW, USYD, UTS, Macquarie, Newcastle, Wollongong, Western Sydney, Charles Sturt - all accept telehealth medical certificates for assessment extensions and absence documentation. The certificate covers the medical condition and affected dates without disclosing diagnosis details unless the student requests disclosure.",
+        body: "Major NSW institutions - UNSW, USYD, UTS, Macquarie, Newcastle, Wollongong, Western Sydney, Charles Sturt - all assess telehealth medical certificates under their own policies for academic support requests and absence documentation. The certificate covers the medical condition and affected dates without disclosing diagnosis details unless the student requests disclosure.",
       },
       {
         title: "Regional NSW access gaps",
@@ -102,8 +102,8 @@ export const statesData: Record<StateSlug, StateData> = {
         a: "Yes. Our service covers every NSW postcode with no geographic restrictions. Whether you're in Sydney, the Central Coast, Newcastle, or out in Dubbo, Orange, or Wagga Wagga, you can access AHPRA-registered doctors at the same cost and with the same turnaround time.",
       },
       {
-        q: "Are NSW medical certificates accepted by all employers and universities?",
-        a: "Yes. NSW medical certificates from AHPRA-registered telehealth doctors meet Fair Work Act requirements and are accepted by all NSW employers, NSW public service, NSW Health, and all major NSW universities (UNSW, USYD, UTS, Macquarie, Newcastle, Wollongong).",
+        q: "Are NSW medical certificates subject to employer and institution policy?",
+        a: "Yes. NSW medical certificates from AHPRA-registered telehealth doctors meet Fair Work Act requirements and are reviewed under NSW employer, public-sector, health-service, and university policies.",
       },
       {
         q: "Do you offer NSW-specific prescriptions or state-based scripts?",
@@ -135,11 +135,11 @@ export const statesData: Record<StateSlug, StateData> = {
     localContext: [
       {
         title: "Victoria employment & sick leave law",
-        body: "Victoria follows the national Fair Work Act for employer-side sick leave documentation. Telehealth certificates from AHPRA-registered doctors are accepted by Victorian Public Sector, Victoria Police (for non-injury matters), and all private-sector Victorian employers. For WorkCover matters, an in-person assessment is required - InstantMed does not issue WorkCover certificates.",
+        body: "Victoria follows the national Fair Work Act for employer-side sick leave documentation. Telehealth certificates from AHPRA-registered doctors are reviewed under Victorian public-sector and private employer policies. For WorkCover matters, an in-person assessment is required - InstantMed does not issue WorkCover certificates.",
       },
       {
         title: "University of Melbourne & Monash acceptance",
-        body: "The University of Melbourne, Monash, RMIT, Deakin, La Trobe, Swinburne, and Victoria University all accept telehealth medical certificates for assessment extensions, special consideration applications, and absence documentation. The certificate meets their requirement for a 'medical practitioner' - no distinction is made between telehealth and in-person certificates.",
+        body: "The University of Melbourne, Monash, RMIT, Deakin, La Trobe, Swinburne, and Victoria University all assess telehealth medical certificates under their own policies for academic support requests, academic support requests, and absence documentation. The certificate meets their requirement for a 'medical practitioner' - no distinction is made between telehealth and in-person certificates.",
       },
       {
         title: "Regional Victoria locum gaps",
@@ -157,8 +157,8 @@ export const statesData: Record<StateSlug, StateData> = {
         a: "Yes. Telehealth certificates from AHPRA-registered doctors meet Services Australia requirements for Centrelink medical evidence, including JobSeeker, DSP, and Carer Payment reporting. The certificate will include the doctor's name, provider number, and clinical assessment.",
       },
       {
-        q: "Can I use InstantMed for my Monash or UniMelb assessment extension?",
-        a: "Yes. Monash, the University of Melbourne, and all other major Victorian universities accept telehealth medical certificates. When you request your certificate, let us know the reason is 'study / university' and we'll format it appropriately for academic use.",
+        q: "Can I use InstantMed for my Monash or UniMelb academic support request?",
+        a: "Yes. Monash, the University of Melbourne, and all other major Victorian universities assess telehealth medical certificates under their own policies. When you request your certificate, let us know the reason is 'study / university' and we'll format it appropriately for academic use.",
       },
     ],
   },
@@ -186,11 +186,11 @@ export const statesData: Record<StateSlug, StateData> = {
     localContext: [
       {
         title: "Queensland employment documentation",
-        body: "QLD follows federal Fair Work Act rules for sick leave evidence. Telehealth certificates from AHPRA-registered doctors are accepted by Queensland Health, Queensland Public Service, major mining employers (BHP, Rio Tinto, Glencore - for fitness-to-work documentation), and private-sector employers across the state. WorkCover Queensland requires in-person assessment - we do not issue WorkCover certificates.",
+        body: "QLD follows federal Fair Work Act rules for sick leave evidence. Telehealth certificates from AHPRA-registered doctors are reviewed under Queensland public-sector, mining, and private employer policies. WorkCover Queensland requires in-person assessment - we do not issue WorkCover certificates.",
       },
       {
         title: "University of Queensland, QUT, Griffith acceptance",
-        body: "UQ, QUT, Griffith, James Cook University, CQU, USC, and Bond University all accept telehealth medical certificates for assessment extensions and absence documentation. James Cook and CQU have explicit telehealth-friendly policies for students in rural and remote placements across North Queensland.",
+        body: "UQ, QUT, Griffith, James Cook University, CQU, USC, and Bond University all assess telehealth medical certificates under their own policies for academic support requests and absence documentation. James Cook and CQU have explicit telehealth-friendly policies for students in rural and remote placements across North Queensland.",
       },
       {
         title: "FIFO, DIDO & mining industry context",
@@ -301,11 +301,11 @@ export const statesData: Record<StateSlug, StateData> = {
     localContext: [
       {
         title: "SA employment sick leave documentation",
-        body: "South Australia follows federal Fair Work Act requirements for sick leave evidence. Telehealth certificates from AHPRA-registered doctors are accepted by SA Health, the SA Public Service, and all private-sector SA employers. Certificates include doctor name, provider number, dates of illness, and signature - meeting the same evidentiary standard as in-person consultations.",
+        body: "South Australia follows federal Fair Work Act requirements for sick leave evidence. Telehealth certificates from AHPRA-registered doctors are reviewed under SA public-sector and private employer policies. Certificates include doctor name, provider number, dates of illness, and signature - meeting the same evidentiary standard as in-person consultations.",
       },
       {
         title: "University of Adelaide, Flinders, UniSA acceptance",
-        body: "The University of Adelaide, Flinders University, UniSA, and Torrens University all accept telehealth medical certificates for assessment extensions, special consideration applications, and absence documentation. No distinction is made between telehealth and in-person practitioners.",
+        body: "The University of Adelaide, Flinders University, UniSA, and Torrens University all assess telehealth medical certificates under their own policies for academic support requests, academic support requests, and absence documentation. No distinction is made between telehealth and in-person practitioners.",
       },
       {
         title: "Outback SA & Eyre Peninsula",
@@ -319,8 +319,8 @@ export const statesData: Record<StateSlug, StateData> = {
         a: "Yes. Every SA postcode has access with no geographic restrictions. Remote communities on the Eyre Peninsula, in the Far North, and Limestone Coast can access AHPRA-registered doctors for the same price and with the same turnaround as Adelaide residents.",
       },
       {
-        q: "Is a telehealth cert valid for a Flinders or UniAdelaide assessment extension?",
-        a: "Yes. All major SA universities accept telehealth medical certificates from AHPRA-registered doctors. When requesting your certificate, mention the reason is 'study / university' so we can format it appropriately.",
+        q: "Is a telehealth cert valid for a Flinders or UniAdelaide academic support request?",
+        a: "Yes. All major SA universities assess telehealth medical certificates under their own policies from AHPRA-registered doctors. When requesting your certificate, mention the reason is 'study / university' so we can format it appropriately.",
       },
       {
         q: "Can I get an SA prescription filled at any pharmacy?",
@@ -355,8 +355,8 @@ export const statesData: Record<StateSlug, StateData> = {
         body: "Tasmania has the lowest GP density in Australia per 2023 AIHW workforce data. Several bulk-billing practices in Hobart and Launceston have closed their books to new patients. This makes telehealth a particularly valuable option for Tasmanians who can't secure a GP appointment locally for straightforward needs.",
       },
       {
-        title: "University of Tasmania acceptance",
-        body: "The University of Tasmania (UTAS) accepts telehealth medical certificates for assessment extensions and absence documentation. This includes the Hobart, Launceston (Newnham), and Burnie (Cradle Coast) campuses. Certificates from AHPRA-registered telehealth doctors meet the same standard as in-person certificates under UTAS academic policy.",
+        title: "University of Tasmania documentation",
+        body: "The University of Tasmania (UTAS) sets its own policy for medical certificates used in academic support requests and absence documentation. Students should check the relevant campus or faculty requirements before submitting a certificate.",
       },
       {
         title: "West Coast & Bass Strait islands",
@@ -370,8 +370,8 @@ export const statesData: Record<StateSlug, StateData> = {
         a: "Yes - it's specifically helpful in Tasmania because of the GP shortage. Our service isn't a replacement for a regular GP relationship for complex conditions, but for straightforward med certs and repeat scripts, it removes the wait time entirely.",
       },
       {
-        q: "Are telehealth certificates accepted by the Tasmanian State Service and private employers?",
-        a: "Yes. Telehealth certificates from AHPRA-registered doctors meet Fair Work Act requirements and are accepted by the Tasmanian State Service, Tasmania Police (for non-injury matters), Tasmanian Health Service, and private-sector Tasmanian employers.",
+        q: "Can Tasmanian employers use telehealth certificates as evidence?",
+        a: "Yes. Telehealth certificates from AHPRA-registered doctors meet Fair Work Act requirements and are reviewed under Tasmanian public-sector and private employer policies.",
       },
       {
         q: "Can I use the service from King Island or Flinders Island?",
@@ -391,7 +391,7 @@ export const statesData: Record<StateSlug, StateData> = {
       "Telehealth medical certificates, prescriptions, and consultations for Canberra and the ACT. Reviewed by AHPRA-registered doctors - faster than waiting for a bulk-billing appointment at your local clinic.",
     healthcareContext: [
       "The Australian Capital Territory has one of the best-educated populations in Australia and correspondingly high expectations of healthcare. Canberra's GP supply has historically been stable, but the post-2020 period has seen a sharp decline in bulk-billing availability - the ACT now has one of the lowest bulk-billing rates in the country, with most GP visits in Canberra carrying a $35-90 gap fee. For straightforward med certs and repeat scripts, many Canberrans find the total cost of a traditional GP visit (time off work + gap fee) higher than a $19.95 telehealth certificate.",
-      "The ACT's workforce is heavily weighted toward APS (Australian Public Service) roles, which have specific sick-leave documentation requirements that telehealth certificates meet. Universities - ANU, UC, ACU Canberra campus - all accept telehealth medical certificates for assessment extensions. For Canberrans juggling APS work schedules, university commitments, or family life in a city with minimal public transport, the scheduling flexibility of telehealth is the key advantage.",
+      "The ACT's workforce is heavily weighted toward APS (Australian Public Service) roles, which have specific sick-leave documentation requirements that telehealth certificates meet. Universities - ANU, UC, ACU Canberra campus - all assess telehealth medical certificates under their own policies for academic support requests. For Canberrans juggling APS work schedules, university commitments, or family life in a city with minimal public transport, the scheduling flexibility of telehealth is the key advantage.",
       "ACT residents occasionally use NSW GPs for appointments when local availability is tight, particularly in Queanbeyan and Southern Highlands regions. InstantMed works the same way whether you're in Belconnen, Tuggeranong, Gungahlin, or the town centre - same doctors, same turnaround, valid across both ACT and NSW jurisdictions.",
     ],
     stats: [
@@ -403,11 +403,11 @@ export const statesData: Record<StateSlug, StateData> = {
     localContext: [
       {
         title: "APS (Australian Public Service) sick leave",
-        body: "APS employees across all Commonwealth departments accept telehealth medical certificates from AHPRA-registered doctors. The APS Commission recognises telehealth consultations under the Public Service Act for sick leave evidence purposes. ADF (Defence) personnel have separate medical documentation requirements and should consult their medical chain of command.",
+        body: "APS employees across all Commonwealth departments assess telehealth medical certificates under their own policies from AHPRA-registered doctors. The APS Commission recognises telehealth consultations under the Public Service Act for sick leave evidence purposes. ADF (Defence) personnel have separate medical documentation requirements and should consult their medical chain of command.",
       },
       {
         title: "ANU, UC, ACU acceptance",
-        body: "The Australian National University (ANU), University of Canberra (UC), and Australian Catholic University Canberra campus all accept telehealth medical certificates for assessment extensions, special consideration, and absence documentation. No distinction is made between telehealth and in-person medical practitioners under ANU/UC academic policy.",
+        body: "The Australian National University (ANU), University of Canberra (UC), and Australian Catholic University Canberra campus all assess telehealth medical certificates under their own policies for academic support requests, academic support, and absence documentation. No distinction is made between telehealth and in-person medical practitioners under ANU/UC academic policy.",
       },
       {
         title: "ACT/NSW border & cross-jurisdiction",
@@ -418,11 +418,11 @@ export const statesData: Record<StateSlug, StateData> = {
     faqs: [
       {
         q: "Is my APS employer likely to accept a telehealth medical certificate?",
-        a: "Yes. APS employers across all Commonwealth departments accept telehealth certificates from AHPRA-registered doctors. The Public Service Act and the APS Commission's leave evidence requirements explicitly recognise telehealth consultations. Our certificates include the doctor's name, provider number, dates of illness, and signature - all required fields.",
+        a: "Yes. APS employers across Commonwealth departments set their own evidence policies for telehealth certificates from AHPRA-registered doctors. The Public Service Act and the APS Commission's leave evidence requirements explicitly recognise telehealth consultations. Our certificates include the doctor's name, provider number, dates of illness, and signature - all required fields.",
       },
       {
-        q: "Can I use this service for an ANU assessment extension?",
-        a: "Yes. ANU accepts telehealth medical certificates for assessment extensions and special consideration. When requesting your certificate, let us know it's for university use and we'll format it appropriately. The certificate meets ANU's 'medical practitioner' requirement.",
+        q: "Can I use this service for an ANU academic support request?",
+        a: "Yes. ANU sets its own policy for telehealth medical certificates used in academic support requests. When requesting your certificate, let us know it's for university use and we'll format it appropriately. The certificate meets ANU's 'medical practitioner' requirement.",
       },
       {
         q: "Does the service cover both ACT and nearby NSW (Queanbeyan, Yass)?",
@@ -458,7 +458,7 @@ export const statesData: Record<StateSlug, StateData> = {
       },
       {
         title: "Charles Darwin University acceptance",
-        body: "Charles Darwin University (CDU) and CDU's Batchelor Institute partners accept telehealth medical certificates for assessment extensions and absence documentation. CDU has campuses across the NT including Darwin, Casuarina, Palmerston, Alice Springs, and Katherine - telehealth is particularly relevant for students at the smaller regional campuses.",
+        body: "Charles Darwin University (CDU) and CDU's Batchelor Institute partners assess telehealth medical certificates under their own policies for academic support requests and absence documentation. CDU has campuses across the NT including Darwin, Casuarina, Palmerston, Alice Springs, and Katherine - telehealth is particularly relevant for students at the smaller regional campuses.",
       },
       {
         title: "Top End & Red Centre access",
@@ -477,7 +477,7 @@ export const statesData: Record<StateSlug, StateData> = {
       },
       {
         q: "Will my NT employer accept a telehealth medical certificate?",
-        a: "Yes. Certificates from AHPRA-registered doctors meet Fair Work Act requirements and are accepted by the NT Public Service, NT Police (for non-injury matters), NT Health, and private-sector NT employers. They meet the same standard as in-person certificates.",
+        a: "Yes. Certificates from AHPRA-registered doctors meet Fair Work Act requirements and are reviewed under NT public-sector and private employer policies. They meet the same standard as in-person certificates.",
       },
     ],
   },

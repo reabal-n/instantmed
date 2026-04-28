@@ -6,17 +6,16 @@ import {
   FAQSchema,
   HealthArticleSchema,
   MedicalServiceSchema,
-  ReviewAggregateSchema,
   SpeakableSchema,
 } from "@/components/seo"
-import { PRICING, REVIEW_AGGREGATE } from "@/lib/constants"
+import { PRICING } from "@/lib/constants"
 import { ED_FAQ } from "@/lib/data/ed-faq"
 
 export const revalidate = 86400
 
 export const metadata: Metadata = {
-  title: { absolute: "ED Treatment | Private, No Call, No Clinic | InstantMed" },
-  description: `Discreet ED treatment from an Australian doctor. Fill out a form, no call, no face-to-face appointment. Reviewed within 1-2 hours. From $${PRICING.MENS_HEALTH.toFixed(2)}.`,
+  title: { absolute: "ED Assessment | Private, No Waiting Room | InstantMed" },
+  description: `Discreet ED assessment from an Australian doctor. Fill out a secure form, no booked appointment or waiting room. Reviewed within 1-2 hours. From $${PRICING.MENS_HEALTH.toFixed(2)}.`,
   keywords: [
     "ed treatment online australia",
     "erectile dysfunction treatment online",
@@ -26,8 +25,8 @@ export const metadata: Metadata = {
     "discreet ed treatment",
   ],
   openGraph: {
-    title: "ED Treatment | Private, No Call, No Clinic | InstantMed",
-    description: "Discreet ED treatment online. Fill out a form, no call, no face-to-face appointment. Reviewed by an Australian doctor.",
+    title: "ED Assessment | Private, No Waiting Room | InstantMed",
+    description: "Discreet ED assessment online. Fill out a secure form, no booked appointment or waiting room. Reviewed by an Australian doctor.",
     url: "https://instantmed.com.au/erectile-dysfunction",
     type: "website",
     locale: "en_AU",
@@ -35,8 +34,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "ED Treatment | Private, No Call, No Clinic | InstantMed",
-    description: "Discreet ED treatment online. Just a form, no call, no face-to-face.",
+    title: "ED Assessment Online Australia | InstantMed",
+    description: "Discreet ED assessment online. Secure form-first doctor review.",
   },
   alternates: {
     canonical: "https://instantmed.com.au/erectile-dysfunction",
@@ -48,7 +47,7 @@ export default function Page() {
     <>
       <SpeakableSchema
         name="ED Treatment Online Australia"
-        description={`Discreet, doctor-reviewed ED treatment from an AHPRA-registered Australian doctor. From $${PRICING.MENS_HEALTH.toFixed(2)}. No call needed.`}
+        description={`Discreet, doctor-reviewed ED assessment from an AHPRA-registered Australian doctor. From $${PRICING.MENS_HEALTH.toFixed(2)}. The doctor contacts you if clinically needed.`}
         url="/erectile-dysfunction"
       />
       <FAQSchema faqs={[...ED_FAQ]} />
@@ -60,13 +59,12 @@ export default function Page() {
       />
       <MedicalServiceSchema
         name="Online ED Treatment"
-        description="Discreet erectile dysfunction assessment and treatment from an AHPRA-registered Australian doctor. No call needed."
+        description="Discreet erectile dysfunction assessment from an AHPRA-registered Australian doctor. Prescription only if clinically appropriate."
         price={PRICING.MENS_HEALTH.toFixed(2)}
       />
-      <ReviewAggregateSchema ratingValue={REVIEW_AGGREGATE.ratingValue} reviewCount={REVIEW_AGGREGATE.reviewCount} />
       <HealthArticleSchema
         title="ED Treatment Online Australia"
-        description={`Discreet ED treatment from an AHPRA-registered Australian doctor. No call needed. Reviewed within 1-2 hours. From $${PRICING.MENS_HEALTH.toFixed(2)}.`}
+        description={`Discreet ED assessment from an AHPRA-registered Australian doctor. Reviewed within 1-2 hours. From $${PRICING.MENS_HEALTH.toFixed(2)}.`}
         url="/erectile-dysfunction"
       />
       <ErectileDysfunctionLanding />

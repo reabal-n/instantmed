@@ -1,4 +1,4 @@
-import { ArrowRight, BookOpen, Calendar,Clock, FileText, GraduationCap, Shield, Smartphone, Star, Zap } from "lucide-react"
+import { ArrowRight, BookOpen, Calendar, Clock, FileText, GraduationCap, Shield, Smartphone, Zap } from "lucide-react"
 import type { Metadata } from "next"
 import Link from "next/link"
 
@@ -9,19 +9,19 @@ import { PRICING_DISPLAY } from "@/lib/constants"
 import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 
 export const metadata: Metadata = {
-  title: "Medical Certificates for Uni Students | Special Consideration",
-  description: "Get a medical certificate for university special consideration or missed exams. 15-minute turnaround. Accepted by all Australian universities. No GP wait times.",
+  title: "Medical Certificates for Uni Students | InstantMed",
+  description: "Get a doctor-reviewed medical certificate for study absence documentation. 15-minute turnaround. Institution policies vary.",
   keywords: [
     "medical certificate uni student",
-    "special consideration medical certificate",
+    "student medical certificate",
     "university medical certificate online",
-    "missed exam medical certificate",
+    "study absence medical certificate",
     "TAFE medical certificate",
     "student sick certificate online",
   ],
   openGraph: {
     title: "Medical Certificates for Uni Students | InstantMed",
-    description: "Get your medical certificate for special consideration in 15 minutes. Accepted by all Australian unis.",
+    description: "Get a doctor-reviewed medical certificate for study absence documentation in 15 minutes.",
     url: "https://instantmed.com.au/for/students",
   },
   alternates: {
@@ -36,10 +36,10 @@ export default function StudentsPage() {
     mainEntity: [
       {
         "@type": "Question",
-        name: "Will my university accept an online medical certificate?",
+        name: "Can I use this certificate for study absence documentation?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Yes. Our certificates are issued by AHPRA-registered Australian doctors and are accepted by all Australian universities for special consideration, deferred exams, and assignment extensions.",
+          text: "Our certificates are issued by AHPRA-registered Australian doctors and include standard details such as the doctor, dates of unfitness, and verification code. Your institution decides how it assesses supporting documents.",
         },
       },
       {
@@ -47,7 +47,7 @@ export default function StudentsPage() {
         name: "Can I use this for a missed exam?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Yes. The certificate states the dates you were unfit to attend class or sit exams. This is what universities require for deferred exam applications.",
+          text: "The certificate can state the dates you were clinically assessed as unfit, if the doctor considers it appropriate. Check your institution's policy and submit it through the required channel.",
         },
       },
     ],
@@ -72,13 +72,13 @@ export default function StudentsPage() {
                   </div>
 
                   <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl mb-3">
-                    Medical Certificates for Special Consideration
+                    Medical Certificates for Students
                   </h1>
                   <p className="text-sm md:text-base text-muted-foreground max-w-xl mx-auto mb-4">
-                    Too sick for that exam or assignment? Get your medical certificate in <strong>15 minutes</strong>. Accepted by all Australian universities and TAFEs.
+                    Too unwell for class or study? Get your medical certificate in <strong>15 minutes</strong>. Institution policies vary.
                   </p>
                   <p className="text-xs text-muted-foreground mb-6">
-                    Valid for special consideration • Deferred exams • Assignment extensions
+                    Study absence documentation • Doctor-reviewed • Verification code included
                   </p>
 
                   <Link href="/request?service=med-cert">
@@ -96,7 +96,7 @@ export default function StudentsPage() {
                     </div>
                     <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border/50">
                       <GraduationCap className="h-3.5 w-3.5 text-primary" />
-                      <span className="font-medium text-muted-foreground">All unis accept</span>
+                      <span className="font-medium text-muted-foreground">Institution-ready details</span>
                     </div>
                     <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border/50">
                       <Shield className="h-3.5 w-3.5 text-primary" />
@@ -137,9 +137,9 @@ export default function StudentsPage() {
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
                 <div className="max-w-3xl mx-auto text-center">
-                  <h2 className="text-xl sm:text-2xl font-semibold mb-3">Accepted by all Australian universities</h2>
+                  <h2 className="text-xl sm:text-2xl font-semibold mb-3">Built for student documentation</h2>
                   <p className="text-sm text-muted-foreground mb-6">
-                    Our certificates meet the requirements for special consideration at every Australian university and TAFE.
+                    Certificates include standard doctor, date, and verification details. Your school, TAFE, or university decides how it applies its policy.
                   </p>
                   <div className="flex flex-wrap justify-center gap-2 text-xs">
                     {[
@@ -153,7 +153,7 @@ export default function StudentsPage() {
                       "RMIT",
                       "UTS",
                       "QUT",
-                      "All TAFEs",
+                      "TAFE",
                     ].map((uni) => (
                       <span key={uni} className="px-2.5 py-1 bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-800 rounded-full text-blue-700 dark:text-blue-300">
                         {uni}
@@ -169,23 +169,23 @@ export default function StudentsPage() {
           <section className="px-4 py-12 sm:px-6">
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
-                <h2 className="text-xl sm:text-2xl font-semibold mb-6 text-center">What you can use it for</h2>
+                <h2 className="text-xl sm:text-2xl font-semibold mb-6 text-center">Common student situations</h2>
                 <div className="grid gap-4 sm:grid-cols-3">
                   {[
                     {
                       icon: FileText,
-                      title: "Special Consideration",
-                      desc: "When illness messes with exams, assignments, or attendance",
+                      title: "Study Absence",
+                      desc: "When illness affects classes, placement, or study commitments",
                     },
                     {
                       icon: Calendar,
-                      title: "Deferred Exams",
-                      desc: "Documentation for deferred exams and supplementary assessments",
+                      title: "Missed Assessment",
+                      desc: "Documentation for the dates you were clinically unfit",
                     },
                     {
                       icon: BookOpen,
-                      title: "Assignment Extensions",
-                      desc: "So you can submit late without getting penalised",
+                      title: "Coursework Absence",
+                      desc: "Supporting evidence for your institution to assess",
                     },
                   ].map((item) => (
                     <div key={item.title} className="glass-card rounded-xl p-4 text-center">
@@ -214,7 +214,7 @@ export default function StudentsPage() {
                     {
                       icon: Zap,
                       title: "Before the deadline",
-                      desc: "Special consideration deadlines are tight. We get you sorted same-day.",
+                      desc: "Student documentation deadlines can be tight. We help you submit promptly.",
                     },
                     {
                       icon: Smartphone,
@@ -224,7 +224,7 @@ export default function StudentsPage() {
                     {
                       icon: Shield,
                       title: "Legit certificate",
-                      desc: "AHPRA-registered doctors. Includes provider number. Universities accept it.",
+                      desc: "AHPRA-registered doctors. Includes doctor details and a verification code.",
                     },
                   ].map((item) => (
                     <div key={item.title} className="flex gap-3 p-4 rounded-xl bg-card/60 dark:bg-white/5 backdrop-blur-sm border border-border/50">
@@ -240,51 +240,6 @@ export default function StudentsPage() {
             </div>
           </section>
 
-          {/* Testimonials */}
-          <section className="px-4 py-12 sm:px-6">
-            <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-              <div className="glass-card rounded-3xl p-4 lg:p-6 relative overflow-hidden">
-                <h2 className="text-xl sm:text-2xl font-semibold text-center mb-6">What students say</h2>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  {[
-                    {
-                      name: "Sophie L.",
-                      uni: "UNSW",
-                      quote: "Had a migraine on exam day. Got my cert submitted to special con before 5pm cutoff.",
-                    },
-                    {
-                      name: "James W.",
-                      uni: "University of Melbourne",
-                      quote: "Way better than waiting 3 weeks for a GP. My assignment extension was approved same day.",
-                    },
-                    {
-                      name: "Priya K.",
-                      uni: "UQ",
-                      quote: "Was too sick to leave bed. Did the whole thing on my phone. Lifesaver.",
-                    },
-                    {
-                      name: "Marcus T.",
-                      uni: "UTS",
-                      quote: "Uni accepted it no questions asked. Doctor's name and provider number all there.",
-                    },
-                  ].map((item) => (
-                    <div key={item.name} className="p-4 rounded-xl bg-card/60 dark:bg-white/5 backdrop-blur-sm border border-border/50">
-                      <div className="flex gap-1 mb-2">
-                        {[...Array(5)].map((_, i) => (
-                          <Star key={i} className="h-3.5 w-3.5 fill-dawn-400 text-dawn-400" />
-                        ))}
-                      </div>
-                      <p className="text-xs mb-2">&quot;{item.quote}&quot;</p>
-                      <p className="text-xs text-muted-foreground">
-                        - {item.name}, {item.uni}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </section>
-
           {/* FAQs */}
           <section className="px-4 py-12 sm:px-6">
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
@@ -293,8 +248,8 @@ export default function StudentsPage() {
                 <div className="space-y-3 max-w-2xl mx-auto">
                   {[
                     {
-                      q: "Will my uni actually accept this?",
-                      a: "Yes. Issued by AHPRA-registered doctors with all the details unis want: doctor's name, provider number, dates of illness, signature. Every Australian uni accepts them.",
+                      q: "Will my uni accept this?",
+                      a: "Most institutions assess certificates from AHPRA-registered doctors, but each institution sets its own policy. Submit it through your required portal and check your deadlines.",
                     },
                     {
                       q: "Can I get a certificate for an exam I already missed?",
@@ -330,7 +285,7 @@ export default function StudentsPage() {
                 <div className="glass-card rounded-3xl p-6 lg:p-8 relative overflow-hidden border-primary/20 bg-blue-50/30 dark:bg-blue-950/10">
                   <h2 className="text-2xl font-semibold mb-3">Get your certificate in 15 minutes</h2>
                   <p className="text-sm text-muted-foreground mb-6">
-                    Don&apos;t miss your special consideration deadline. Get sorted now.
+                    Get your certificate before your documentation deadline.
                   </p>
                   <Link href="/request?service=med-cert">
                     <Button size="lg" className="bg-primary hover:bg-primary/90 text-background text-sm h-12 px-8">
@@ -338,7 +293,7 @@ export default function StudentsPage() {
                       <ArrowRight className="h-4 w-4 ml-2" />
                     </Button>
                   </Link>
-                  <p className="mt-4 text-xs text-muted-foreground">{PRICING_DISPLAY.FROM_MED_CERT} • Accepted by all unis</p>
+                  <p className="mt-4 text-xs text-muted-foreground">{PRICING_DISPLAY.FROM_MED_CERT} • Institution policies vary</p>
                 </div>
               </div>
             </div>

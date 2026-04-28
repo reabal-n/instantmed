@@ -168,7 +168,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const data = suburbs[slug]
   if (data) {
     const title = `Medical Certificate Online ${data.name}`
-    const description = `Get a medical certificate online in ${data.name}, ${data.stateShort}. Reviewed by AHPRA-registered Australian doctors. Valid for all employers. ${PRICING_DISPLAY.FROM_MED_CERT}.`
+    const description = `Get a medical certificate online in ${data.name}, ${data.stateShort}. Reviewed by AHPRA-registered Australian doctors. Employer policies vary. ${PRICING_DISPLAY.FROM_MED_CERT}.`
     return {
       title,
       description,
@@ -260,7 +260,7 @@ export default async function MedCertSlugPage({ params }: PageProps) {
         name: "Will my employer accept an online medical certificate?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: `Absolutely. Our certificates are issued by AHPRA-registered Australian doctors and are legally valid for all employers in Australia, including those in ${data.name}.`,
+          text: `Our certificates are issued by AHPRA-registered Australian doctors and include standard workplace evidence details for ${data.name}. Employer policies may vary.`,
         },
       },
     ],
@@ -306,7 +306,7 @@ export default async function MedCertSlugPage({ params }: PageProps) {
                 </div>
                 <div className="flex items-center gap-2 text-sm text-background/70">
                   <CheckCircle2 className="h-4 w-4 text-primary" />
-                  Valid for all employers
+                  Employer policies vary
                 </div>
               </div>
 

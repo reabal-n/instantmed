@@ -136,7 +136,7 @@ export function EDHeroMockup({ compact = false }: EDHeroMockupProps) {
         <div className="flex items-center gap-1.5">
           <Lock className="w-3 h-3 text-muted-foreground shrink-0" aria-hidden="true" />
           <p className="text-[10px] text-muted-foreground">
-            Private &amp; discreet &middot; No call required
+            Private &amp; discreet &middot; Form-first review
           </p>
         </div>
       </div>

@@ -11,7 +11,7 @@ import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 
 export const metadata: Metadata = {
   title: "Medical Certificates for Shift Workers | 24/7 Available",
-  description: "Get a medical certificate any time of day or night. 15-minute turnaround. Perfect for nurses, hospitality, retail, and anyone working outside 9-5. Valid for all employers.",
+  description: "Get a medical certificate any time of day or night. 15-minute turnaround. Perfect for nurses, hospitality, retail, and anyone working outside 9-5. Employer policies vary.",
   keywords: [
     "medical certificate shift workers",
     "night shift sick certificate",
@@ -48,7 +48,7 @@ export default function ShiftWorkersPage() {
         name: "Will my employer accept an online medical certificate?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Yes. Our certificates are issued by AHPRA-registered Australian doctors and are legally valid for all employers, including hospitals, retail, hospitality, and warehouses.",
+          text: "Yes. Our certificates are issued by AHPRA-registered Australian doctors and include standard workplace evidence details for hospitals, retail, hospitality, and warehouses; employer policies may vary.",
         },
       },
     ],
@@ -79,7 +79,7 @@ export default function ShiftWorkersPage() {
                     Night shift? Early start? Weekend roster? Get your medical certificate in <strong>15 minutes</strong>, 24 hours a day, 7 days a week.
                   </p>
                   <p className="text-xs text-muted-foreground mb-6">
-                    Works around your roster • All employers accept • AHPRA doctors
+                    Works around your roster • Employer policies vary • AHPRA doctors
                   </p>
 
                   <Link href="/request?service=med-cert">
@@ -188,7 +188,7 @@ export default function ShiftWorkersPage() {
                       desc: "Need documentation before your manager schedules the next shift? Get sorted same-day.",
                     },
                     {
-                      title: "Any employer accepts it",
+                      title: "Employer policies vary",
                       desc: "Hospitals, retail chains, agencies - they all accept our certificates. AHPRA-registered, legally valid.",
                     },
                   ].map((item) => (
@@ -306,7 +306,7 @@ export default function ShiftWorkersPage() {
                     },
                     {
                       q: "Will my employer accept this?",
-                      a: "Yes. Our certificates are issued by AHPRA-registered doctors and are legally valid for all employers - hospitals, retail chains, agencies, everyone.",
+                      a: "Yes. Our certificates are issued by AHPRA-registered doctors and include standard workplace evidence details for hospitals, retail chains, agencies, everyone; employer policies may vary.",
                     },
                     {
                       q: "Can I get a cert for a shift I already missed?",

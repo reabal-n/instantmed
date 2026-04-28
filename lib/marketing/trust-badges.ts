@@ -101,14 +101,14 @@ export const BADGE_REGISTRY: Record<BadgeId, BadgeConfig> = {
     iconColor: 'text-green-600',
     pillClass: 'bg-green-50 border-green-200 text-green-800 dark:bg-green-950/40 dark:border-green-800 dark:text-green-300',
     hasStyledTier: true,
-    tooltip: 'No phone call or video call - 100% async review',
+    tooltip: 'Med-cert requests can be reviewed without a call when clinically appropriate',
   },
   no_speaking: {
-    id: 'no_speaking', label: 'No need to speak to anyone', icon: MessageSquareOff,
+    id: 'no_speaking', label: 'Contact only if needed', icon: MessageSquareOff,
     iconColor: 'text-green-600',
     pillClass: 'bg-green-50 border-green-200 text-green-800 dark:bg-green-950/40 dark:border-green-800 dark:text-green-300',
     hasStyledTier: true,
-    tooltip: 'Fully asynchronous - the doctor reviews your form, no conversation needed',
+    tooltip: 'Form-first review - the doctor contacts you if more information is clinically needed',
   },
   form_only: {
     id: 'form_only', label: 'Just fill out a form', icon: FileText,
@@ -162,7 +162,7 @@ export const BADGE_REGISTRY: Record<BadgeId, BadgeConfig> = {
     iconColor: 'text-indigo-600',
     pillClass: 'bg-indigo-50 border-indigo-200 text-indigo-800 dark:bg-indigo-950/40 dark:border-indigo-800 dark:text-indigo-300',
     hasStyledTier: true,
-    tooltip: 'Valid under the Fair Work Act - accepted by all Australian employers',
+    tooltip: 'Issued by an AHPRA-registered doctor. Employer policies may vary',
   },
   no_medicare: {
     id: 'no_medicare', label: 'No Medicare required', icon: CreditCard,
@@ -232,19 +232,19 @@ export const BADGE_PRESETS: Record<string, PresetEntry[]> = {
   ],
   hero_rx: [
     { id: 'social_proof', variant: 'styled' },
-    { id: 'no_call', variant: 'styled' },
+    { id: 'no_appointment', variant: 'styled' },
     'refund',
     'ahpra',
   ],
   hero_consult: [
     { id: 'social_proof', variant: 'styled' },
-    { id: 'no_speaking', variant: 'styled' },
+    { id: 'form_only', variant: 'styled' },
     'refund',
     'no_face_to_face',
   ],
   hero_generic: [
     { id: 'social_proof', variant: 'styled' },
-    { id: 'no_call', variant: 'styled' },
+    { id: 'no_waiting_room', variant: 'styled' },
     'refund',
     'ahpra',
   ],
@@ -258,7 +258,7 @@ export const BADGE_PRESETS: Record<string, PresetEntry[]> = {
   // Pre-CTA - friction removal
   pre_cta: [
     { id: 'no_appointment', variant: 'styled' },
-    'no_speaking',
+    'form_only',
     'from_your_phone',
   ],
 
@@ -305,7 +305,7 @@ export const BADGE_PRESETS: Record<string, PresetEntry[]> = {
 
   // Sticky float sidebar
   float: [
-    { id: 'no_call', variant: 'styled' },
+    { id: 'no_appointment', variant: 'styled' },
     'ahpra',
   ],
 }

@@ -43,8 +43,8 @@ const audienceFaqs = [
     answer: "The core service is the same for everyone - doctor-reviewed medical certificates, prescriptions, and consultations. What differs is how it fits into your work life. A shift worker and a university student have different schedules and requirements, so we explain what's relevant for each.",
   },
   {
-    question: "Are certificates accepted by all employers?",
-    answer: "Our medical certificates are issued by AHPRA-registered doctors and are legally valid under the Fair Work Act. They're accepted by employers across all industries, just like a certificate from your local GP.",
+    question: "Can employers use these certificates as sick-leave evidence?",
+    answer: "Our medical certificates are issued by AHPRA-registered doctors and include the usual details employers look for. Employer policies can vary, so check your workplace requirements.",
   },
   {
     question: "Is there a discount for students?",

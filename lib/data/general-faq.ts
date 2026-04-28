@@ -104,9 +104,9 @@ export const GENERAL_FAQ: FAQGroup[] = [
     category: 'Medical Certificates',
     items: [
       {
-        question: 'Will my employer actually accept this?',
+        question: 'Can my employer use this as evidence?',
         answer:
-          "Yes \u2014 our certificates are issued by registered Australian doctors and are legally valid for all workplaces, universities, and Centrelink. They carry the same weight as a certificate from an in-person visit.",
+          "Our certificates are issued by registered Australian doctors and include standard workplace evidence details. Employer, institution, and agency policies may vary.",
       },
       {
         question: 'Can I get a backdated certificate?',
@@ -131,7 +131,7 @@ export const GENERAL_FAQ: FAQGroup[] = [
       {
         question: 'Do universities accept online medical certificates?',
         answer:
-          "They do. Our certificates are issued by AHPRA-registered doctors and meet the same standard as any GP-issued certificate. Australian universities accept them for special consideration applications, deferred exams, and extension requests. We\u2019ve seen thousands used for exactly this.",
+          "Our certificates are issued by AHPRA-registered doctors and include the details education providers usually review. Policies vary by institution, so check your school, TAFE, or university requirements before submitting evidence.",
       },
     ],
   },

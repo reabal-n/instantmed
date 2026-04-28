@@ -1,4 +1,3 @@
-import { Star } from "lucide-react"
 import {
   BadgeCheck,
   BookOpen,
@@ -20,9 +19,8 @@ import {
 import type { Metadata } from "next"
 import Link from "next/link"
 
-import { LiveWaitTime, MarketingFooter, MediaMentions, SampleCertificate,StatsStrip } from "@/components/marketing"
+import { LiveWaitTime, MarketingFooter, MediaMentions, SampleCertificate, StatsStrip } from "@/components/marketing"
 import { Navbar } from "@/components/shared"
-import { EmployerLogoMarquee } from "@/components/shared"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { CONTACT_EMAIL } from "@/lib/constants"
@@ -31,7 +29,7 @@ import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 export const metadata: Metadata = {
   title: "For Universities | Verify Medical Certificates",
   description:
-    "Information for universities and educational institutions on verifying InstantMed medical certificates for special consideration, deferred exams, and assessment extensions.",
+    "Information for universities and educational institutions on verifying InstantMed medical certificates for study absence documentation.",
   openGraph: {
     title: "For Universities | InstantMed",
     description:
@@ -42,27 +40,6 @@ export const metadata: Metadata = {
     canonical: "https://instantmed.com.au/for/universities",
   },
 }
-
-const studentTestimonials = [
-  {
-    name: "Emily T.",
-    location: "Randwick, NSW",
-    text: "Had a migraine the morning of my final. Got a medical certificate within an hour and submitted my special consideration application the same day. Uni approved it no questions asked.",
-    rating: 5,
-  },
-  {
-    name: "James W.",
-    location: "Clayton, VIC",
-    text: "Needed a cert for a deferred exam after a stomach bug. The doctor was thorough and the certificate had everything my faculty required. Way easier than trying to get a same-day GP appointment during exam week.",
-    rating: 5,
-  },
-  {
-    name: "Priya K.",
-    location: "St Lucia, QLD",
-    text: "Got sick during my nursing placement week and needed documentation fast. Certificate was professional, had the AHPRA number, and my placement coordinator accepted it immediately.",
-    rating: 5,
-  },
-]
 
 export default function UniversitiesPage() {
   const certificateFeatures = [
@@ -77,9 +54,9 @@ export default function UniversitiesPage() {
 
   const faqs = [
     {
-      question: "Are online medical certificates valid for special consideration?",
+      question: "Can online medical certificates support study absence documentation?",
       answer:
-        "Yes. Certificates issued by AHPRA-registered doctors via telehealth carry the same validity as those from in-person GP visits. The Medical Board of Australia recognises telehealth as a legitimate healthcare delivery method, and universities across Australia accept telehealth-issued certificates for special consideration applications.",
+        "Certificates issued by AHPRA-registered doctors via telehealth can provide supporting evidence of a student's period of unfitness. Each institution decides how it assesses supporting documents under its own policy.",
     },
     {
       question: "Can students get backdated certificates?",
@@ -89,7 +66,7 @@ export default function UniversitiesPage() {
     {
       question: "What information is on the certificate?",
       answer:
-        "Doctor's full name, AHPRA registration number, date of consultation, patient's name and DOB, period of unfitness, unique verification ID, doctor's signature, and practice details. This includes all elements typically required by university special consideration policies.",
+        "Doctor's full name, AHPRA registration number, date of consultation, patient's name and DOB, period of unfitness, unique verification ID, doctor's signature, and practice details.",
     },
     {
       question: "How do we verify a certificate?",
@@ -99,12 +76,12 @@ export default function UniversitiesPage() {
     {
       question: "Do certificates meet university requirements?",
       answer:
-        "Yes. Our certificates contain all elements required by Australian universities for special consideration: registered practitioner details, AHPRA registration number, dates of unfitness, practitioner signature, and practice details. They align with TEQSA's expectations for supporting documentation in academic integrity processes.",
+        "Our certificates contain standard supporting-documentation details: registered practitioner information, AHPRA registration number, dates of unfitness, practitioner signature, and practice details. Institutions should assess each certificate under their own policy.",
     },
     {
       question: "Can we set up an institutional arrangement?",
       answer:
-        `Contact us at ${CONTACT_EMAIL} to discuss institutional arrangements, bulk verification workflows, or integration with your special consideration systems.`,
+        `Contact us at ${CONTACT_EMAIL} to discuss institutional arrangements, bulk verification workflows, or certificate verification processes.`,
     },
   ]
 
@@ -142,8 +119,7 @@ export default function UniversitiesPage() {
               </h1>
               <p className="text-lg text-muted-foreground mb-8">
                 Everything you need to know about verifying medical certificates
-                submitted for special consideration, deferred exams, and
-                assessment extensions.
+                submitted as study absence documentation.
               </p>
               <Button asChild size="lg" className="rounded-full">
                 <Link href="/verify">
@@ -152,11 +128,6 @@ export default function UniversitiesPage() {
                 </Link>
               </Button>
           </div>
-        </section>
-
-        {/* Logo Marquee */}
-        <section className="border-b border-border/30 dark:border-white/10">
-          <EmployerLogoMarquee />
         </section>
 
         {/* About InstantMed */}
@@ -250,7 +221,7 @@ export default function UniversitiesPage() {
                     <p className="text-sm text-muted-foreground">
                       If valid, you&apos;ll see the certificate details including the student&apos;s name,
                       dates, and issuing doctor. Compare these with the document submitted for
-                      special consideration.
+                      academic documentation.
                     </p>
                   </div>
                 </div>
@@ -375,7 +346,7 @@ export default function UniversitiesPage() {
                     Since the expansion of telehealth during 2020, the Medical Board of Australia has formally recognised telehealth as a legitimate healthcare delivery method. Certificates issued via telehealth by AHPRA-registered practitioners carry identical legal and clinical weight to those from in-person consultations.
                   </p>
                   <p>
-                    TEQSA&apos;s Higher Education Standards Framework requires institutions to have fair and transparent processes for managing student grievances, including illness-related academic adjustments. Telehealth-issued certificates from registered practitioners meet the evidentiary standard expected for special consideration, deferred examinations, and assessment extensions.
+                    TEQSA&apos;s Higher Education Standards Framework requires institutions to have fair and transparent processes for managing student grievances, including illness-related academic adjustments. Telehealth-issued certificates from registered practitioners can form part of the supporting documentation assessed under institutional policy.
                   </p>
                   <p>
                     For university administrators, this means a medical certificate from InstantMed should be treated identically to one from any other registered medical practice in Australia.
@@ -408,20 +379,20 @@ export default function UniversitiesPage() {
                 </div>
               </div>
 
-              {/* 3. Special consideration processes */}
+              {/* 3. Academic documentation processes */}
               <div className="bg-card rounded-2xl border p-6 md:p-8">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                     <BadgeCheck className="w-5 h-5 text-primary" />
                   </div>
-                  <h3 className="text-lg font-semibold text-foreground">Special consideration and deferred assessments</h3>
+                  <h3 className="text-lg font-semibold text-foreground">Study absence and academic documentation</h3>
                 </div>
                 <div className="space-y-3 text-sm text-muted-foreground">
                   <p>
                     Most Australian universities require students to submit a medical certificate within 3-5 business days of a missed assessment. InstantMed certificates are typically issued within 30 minutes, available 24/7 - meaning students can obtain documentation promptly, even on weekends, public holidays, or during after-hours exam periods when GP clinics are closed.
                   </p>
                   <p>
-                    Our certificates contain all elements typically required by university special consideration policies: practitioner details, AHPRA registration, consultation date, period of unfitness, and the practitioner&apos;s signature. Faculties should assess the certificate on its merits, applying the same standards as any certificate from a registered medical practice.
+                    Our certificates contain the standard elements expected in study absence documentation: practitioner details, AHPRA registration, consultation date, period of unfitness, and the practitioner&apos;s signature. Faculties should assess the certificate on its merits, applying the same standards as any certificate from a registered medical practice.
                   </p>
                 </div>
               </div>
@@ -482,34 +453,6 @@ export default function UniversitiesPage() {
                 <FileText className="w-3.5 h-3.5" />
                 View our clinical governance framework
               </Link>
-            </div>
-          </div>
-        </section>
-
-        {/* Student testimonials */}
-        <section className="py-16">
-          <div className="max-w-4xl mx-auto px-4">
-            <h2 className="text-2xl md:text-3xl font-semibold text-foreground mb-2 text-center">
-              What students say
-            </h2>
-            <p className="text-center text-muted-foreground text-sm mb-10">
-              Real reviews from students whose certificates were accepted for special consideration.
-            </p>
-            <div className="grid md:grid-cols-3 gap-5">
-              {studentTestimonials.map((t) => (
-                <div key={t.name} className="bg-card rounded-2xl border p-5 space-y-3">
-                  <div className="flex gap-0.5">
-                    {Array.from({ length: t.rating }).map((_, i) => (
-                      <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                    ))}
-                  </div>
-                  <p className="text-sm text-muted-foreground leading-relaxed">&ldquo;{t.text}&rdquo;</p>
-                  <div>
-                    <p className="text-sm font-medium text-foreground">{t.name}</p>
-                    <p className="text-xs text-muted-foreground">{t.location}</p>
-                  </div>
-                </div>
-              ))}
             </div>
           </div>
         </section>

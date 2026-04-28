@@ -67,7 +67,7 @@ export const intentPages: IntentPage[] = [
         {
           id: 'employer-acceptance',
           type: 'text',
-          content: 'Under the Fair Work Act 2009, employers must accept medical certificates as evidence of illness or injury for personal/carer\'s leave. There is no legal distinction between a certificate issued via telehealth and one from a walk-in clinic - both carry the same legal weight when issued by an AHPRA-registered medical practitioner. The Fair Work Ombudsman has confirmed that telehealth certificates meet the definition of "medical certificate" under section 107 of the Act. If your employer refuses a valid telehealth certificate, they may be in breach of their obligations.',
+          content: 'Under the Fair Work Act 2009, employers can request medical certificates as evidence of illness or injury for personal/carer\'s leave. There is no legal distinction between a certificate issued via telehealth and one from a walk-in clinic - both carry the same legal weight when issued by an AHPRA-registered medical practitioner. The Fair Work Ombudsman has confirmed that telehealth certificates meet the definition of "medical certificate" under section 107 of the Act. If your employer refuses a valid telehealth certificate, they may be in breach of their obligations.',
         },
         {
           id: 'what-doctors-assess',
@@ -488,7 +488,7 @@ export const intentPages: IntentPage[] = [
     slug: 'work-certificate-online',
     type: 'intent',
     title: 'Work Certificate Online Australia | Sick Leave',
-    description: 'Need a work certificate for sick leave? Get one online within hours from Australian doctors. Employer-accepted. From $19.95.',
+    description: 'Need a work certificate for sick leave? Get one online within hours from Australian doctors. Employer-ready. From $19.95.',
     h1: 'Work Certificate Online - Valid for Sick Leave',
     content: {
       intro: 'Feeling too unwell to work? Get a medical certificate for sick leave without visiting a clinic. Our certificates are issued by AHPRA-registered doctors and meet Fair Work requirements.',
@@ -496,7 +496,7 @@ export const intentPages: IntentPage[] = [
         {
           id: 'fair-work-compliant',
           type: 'text',
-          content: 'Under Fair Work regulations, medical certificates from telehealth doctors are just as valid as certificates from physical clinics. Our certificates include all required information: your name, dates of absence, doctor\'s details with AHPRA registration number, and medical practice information. Employers must accept them.',
+          content: 'Under Fair Work regulations, medical certificates from telehealth doctors are just as valid as certificates from physical clinics. Our certificates include all required information: your name, dates of absence, doctor\'s details with AHPRA registration number, and medical practice information. Employers can assess them under workplace policy.',
         },
         {
           id: 'common-reasons',
@@ -529,7 +529,7 @@ export const intentPages: IntentPage[] = [
           id: 'employer-obligations',
           type: 'list',
           content: [
-            'Employers must accept medical certificates from any AHPRA-registered medical practitioner - they cannot insist you visit a specific clinic',
+            'Employers can assess medical certificates from AHPRA-registered medical practitioners under their workplace evidence policy',
             'Employers cannot contact your doctor for more information without your written consent (Privacy Act 1988, Australian Privacy Principle 3)',
             'Employers must provide paid personal/carer\'s leave - 10 days per year for full-time employees under the National Employment Standards',
             'Employers can request "reasonable evidence" for leave but cannot unreasonably refuse a valid medical certificate',
@@ -815,7 +815,7 @@ export const intentPages: IntentPage[] = [
     slug: 'flu-certificate-online',
     type: 'intent',
     title: 'Flu Certificate Online Australia | Medical Certificate',
-    description: 'Need a medical certificate for flu or cold? Get one online in under 30 minutes, 24/7. Australian doctors. Employer-accepted. From $19.95.',
+    description: 'Need a medical certificate for flu or cold? Get one online in under 30 minutes, 24/7. Australian doctors. Employer-ready. From $19.95.',
     h1: 'Flu & Cold Certificate Online - Too Sick to Work',
     content: {
       intro: 'Got the flu or a bad cold and need to stay home? Get a medical certificate online without dragging yourself to a clinic. Our AHPRA-registered doctors issue valid certificates for work or uni, delivered straight to your email.',
@@ -888,7 +888,7 @@ export const intentPages: IntentPage[] = [
       faqs: [
         {
           question: 'Can I get a certificate if I just have a cold?',
-          answer: 'Yes - if you\'re too unwell to work, you can get a certificate for a cold. Most employers accept certificates for any illness that prevents you from working safely.',
+          answer: 'Yes - if you\'re too unwell to work, you can get a certificate for a cold. Many employers request certificates when illness prevents you from working safely.',
         },
         {
           question: 'How many days can I get certified off for flu?',

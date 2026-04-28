@@ -12,7 +12,6 @@ export const MED_CERT_INTENT_SLUGS = [
   "school",
   "return-to-work",
   "centrelink",
-  "jury-duty",
   // Condition-based pages
   "anxiety",
   "flu",
@@ -68,7 +67,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
       "Certificates meet Fair Work Act requirements and are legally equivalent to those issued by in-person GPs. Some employers may have their own documentation requirements. Check with yours.",
     recognitionBadges: [
       { label: "Fair Work compliant", sub: "Legally valid" },
-      { label: "Large & small businesses", sub: "Commonly accepted" },
+      { label: "Large & small businesses", sub: "Commonly used" },
       { label: "Full-time & casual", sub: "All employment types" },
     ],
     ctaTitle: "Ready when you are",
@@ -120,16 +119,16 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     slug: "study",
     h1: "Medical certificate for study.",
     heroSubheadline:
-      "Extensions, deferred exams, or special consideration. A doctor reviews your request, typically sorted in under an hour. From $19.95.",
+      "Study absence documentation. A doctor reviews your request, typically sorted in under an hour. From $19.95.",
     explainerTitle: "When students need documentation",
-    explainerSubtitle: "Universities and TAFEs often require medical evidence for special consideration.",
+    explainerSubtitle: "Universities and TAFEs often require medical evidence for study absences.",
     explainerParagraphs: [
-      "If illness or caring responsibilities have affected your studies, you may need a medical certificate to support an application for extensions, deferred exams, or special consideration. Our certificates are issued by AHPRA-registered doctors and include the details most institutions need.",
+      "If illness or caring responsibilities have affected your studies, you may need a medical certificate as supporting evidence for your education provider. Our certificates are issued by AHPRA-registered doctors and include the details most institutions review.",
       "Policies vary by institution; some specify exactly what they require. Check yours before applying. You fill in a quick form, a doctor reviews it, and if appropriate, your certificate lands in your inbox.",
     ],
-    recognitionTitle: "Commonly accepted by education providers",
+    recognitionTitle: "Evidence for education providers",
     recognitionSubtitle:
-      "Certificates are commonly accepted for special consideration, extensions, and deferred assessments. Institutional policies vary. Check yours before applying.",
+      "Institutional policies vary. Check your provider's evidence requirements before applying.",
     recognitionBadges: [
       { label: "Universities", sub: "Go8, ATN, IRU & more" },
       { label: "TAFE & RTOs", sub: "Vocational education" },
@@ -142,12 +141,12 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     metadata: {
       title: "Medical Certificate for Study | Uni & TAFE $19.95",
       description:
-        "Medical certificate for special consideration, extensions, or deferred exams. AHPRA-registered doctors review your request. From $19.95. Commonly accepted by Australian universities and TAFEs.",
+        "Medical certificate for study absences. AHPRA-registered doctors review your request. From $19.95. Education provider policies vary.",
       keywords: [
         "medical certificate for study",
         "uni medical certificate",
-        "special consideration certificate",
-        "deferred exam medical certificate",
+        "study medical certificate",
+        "student absence medical certificate",
         "tafe medical certificate",
       ],
     },
@@ -155,17 +154,17 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
       {
         question: "Will my university or TAFE accept this?",
         answer:
-          "Our certificates are issued by AHPRA-registered doctors and are commonly accepted by Australian universities and TAFEs for special consideration, extensions, and deferred exams. Policies vary. Check your institution's requirements before applying.",
+          "Our certificates are issued by AHPRA-registered doctors and include standard doctor, date, and absence details. Policies vary. Check your institution's requirements before applying.",
       },
       {
-        question: "Can I use this for an assignment extension?",
+        question: "Can I use this as study documentation?",
         answer:
-          "Often yes. Universities typically accept medical certificates as evidence for extension requests. Your institution's policy will specify what they need and any deadlines.",
+          "You can submit it as supporting documentation where your institution allows medical certificates. Your institution's policy will specify what they need and any deadlines.",
       },
       {
-        question: "What if I need it for a deferred exam?",
+        question: "What if my institution has extra requirements?",
         answer:
-          "Yes. Many students use our certificates to support deferred exam applications. Include the exam date and relevant context when completing the form. Submit well before your institution's deadline.",
+          "Check the policy before submitting. Some institutions require extra forms or an in-person assessment, and those requests may be outside InstantMed's online scope.",
       },
     ],
   },
@@ -183,7 +182,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     ],
     recognitionTitle: "Valid for carer's leave",
     recognitionSubtitle:
-      "Certificates meet Fair Work Act requirements for carer's leave. Commonly accepted by Australian employers. Some may have their own documentation requirements.",
+      "Certificates meet Fair Work Act requirements for carer's leave. Commonly used for workplace documentation. Some may have their own documentation requirements.",
     recognitionBadges: [
       { label: "Fair Work compliant", sub: "Carer's leave" },
       { label: "Family & dependants", sub: "Sick child, elderly parent" },
@@ -218,7 +217,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
       {
         question: "Will my employer accept it?",
         answer:
-          "Our carer's leave certificates are issued by AHPRA-registered doctors and meet Fair Work Act requirements. They're commonly accepted by Australian employers. Some may have their own requirements. Check with yours.",
+          "Our carer's leave certificates are issued by AHPRA-registered doctors and meet Fair Work Act requirements. They're commonly used for workplace documentation. Some may have their own requirements. Check with yours.",
       },
     ],
   },
@@ -280,16 +279,16 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     slug: "university",
     h1: "Medical certificate for university.",
     heroSubheadline:
-      "Special consideration, extensions, or deferred exams. A doctor reviews your request, typically under an hour. From $19.95.",
+      "Study absence documentation. A doctor reviews your request, typically under an hour. From $19.95.",
     explainerTitle: "When uni requires medical evidence",
-    explainerSubtitle: "Universities often need a medical certificate to support special consideration applications.",
+    explainerSubtitle: "Universities often need a medical certificate to support absence documentation.",
     explainerParagraphs: [
       "If illness has affected your ability to complete assignments or sit exams, your university may require a medical certificate. Our certificates are issued by AHPRA-registered doctors and include the standard details: doctor's name, provider number, dates, and attestation of unfitness.",
       "Policies vary by institution; some specify exactly what they need. Check yours before applying. You fill in a quick form, a doctor reviews it, and if appropriate, your certificate lands in your inbox.",
     ],
-    recognitionTitle: "Commonly accepted by universities",
+    recognitionTitle: "Evidence for universities",
     recognitionSubtitle:
-      "Commonly accepted for special consideration, extensions, and deferred exams. Institutional policies vary. Check yours before applying.",
+      "Institutional policies vary. Check your university's evidence requirements before applying.",
     recognitionBadges: [
       { label: "Go8 universities", sub: "Group of Eight" },
       { label: "ATN & IRU", sub: "University networks" },
@@ -300,13 +299,13 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
       "Quick form, real doctor review. Certificate to your inbox, usually within the hour.",
     ctaButtonText: "Get your certificate",
     metadata: {
-      title: "Medical Certificate for University | Special Consideration $19.95",
+      title: "Medical Certificate for University | Student Absence $19.95",
       description:
-        "Medical certificate for university special consideration, extensions, or deferred exams. AHPRA-registered doctors review your request. From $19.95. Commonly accepted by Australian universities.",
+        "Medical certificate for university absences. AHPRA-registered doctors review your request. From $19.95. University policies vary.",
       keywords: [
         "medical certificate for university",
-        "uni special consideration certificate",
-        "deferred exam medical certificate",
+        "uni medical certificate",
+        "student absence medical certificate",
         "university medical certificate australia",
       ],
     },
@@ -314,17 +313,17 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
       {
         question: "Do universities accept online certificates?",
         answer:
-          "Our certificates are issued by AHPRA-registered doctors and are commonly accepted by Australian universities for special consideration. Policies vary. Check your institution's requirements before applying.",
+          "Our certificates are issued by AHPRA-registered doctors and include standard doctor, date, and absence details. Policies vary. Check your institution's requirements before applying.",
       },
       {
-        question: "Can I use this for an assignment extension?",
+        question: "Can I use this as study documentation?",
         answer:
-          "Often yes. Universities typically accept medical certificates as evidence for extension requests. Your institution's policy will specify what they need and any deadlines.",
+          "You can submit it as supporting documentation where your university allows medical certificates. Your institution's policy will specify what they need and any deadlines.",
       },
       {
-        question: "What if I need it for a deferred exam?",
+        question: "What if my university needs extra documentation?",
         answer:
-          "Yes. Many students use our certificates to support deferred exam applications. Include the exam date and relevant context when completing the form. Submit well before your institution's deadline.",
+          "Check your university's policy before submitting. Some requests require extra forms or an in-person assessment, and those may be outside InstantMed's online scope.",
       },
       {
         question: "How quickly can I get it?",
@@ -345,9 +344,9 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
       "If your child has been unwell and missed school, the school may request a medical certificate. Our certificates are issued by AHPRA-registered doctors and document the period of unfitness.",
       "You complete a form describing your child's illness. A doctor reviews it. For children, we may need a brief call to confirm details. The certificate is then sent to your inbox. Some schools have their own documentation requirements, so check yours.",
     ],
-    recognitionTitle: "Commonly accepted by schools",
+    recognitionTitle: "School documentation",
     recognitionSubtitle:
-      "Certificates are commonly accepted by Australian schools. School attendance policies vary; some may require additional documentation. Check yours before submitting.",
+      "Certificates are often used for school documentation. School attendance policies vary; some may require additional documentation. Check yours before submitting.",
     recognitionBadges: [
       { label: "Primary & secondary", sub: "Public & private" },
       { label: "AHPRA doctors", sub: "Legally valid" },
@@ -377,7 +376,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
       {
         question: "Will the school accept it?",
         answer:
-          "Our certificates are issued by AHPRA-registered doctors and are commonly accepted by Australian schools. School policies vary; some may have specific requirements. Check your school's attendance policy before submitting.",
+          "Our certificates are issued by AHPRA-registered doctors and are often used for school documentation. School policies vary; some may have specific requirements. Check your school's attendance policy before submitting.",
       },
       {
         question: "Do I need to be the child's parent?",
@@ -440,7 +439,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
       {
         question: "Will my employer accept it?",
         answer:
-          "Our certificates are issued by AHPRA-registered doctors. Employer policies vary; some accept telehealth certificates, others may have specific requirements or require in-person assessment for certain roles. Check with your employer.",
+          "Our certificates are issued by AHPRA-registered doctors. Employer policies vary; some assess telehealth certificates under their own policies, others may have specific requirements or require in-person assessment for certain roles. Check with your employer.",
       },
     ],
   },
@@ -458,7 +457,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     ],
     recognitionTitle: "Commonly used for Centrelink claims",
     recognitionSubtitle:
-      "Standard medical certificates are accepted for many Centrelink purposes. For claims requiring specific Centrelink forms (e.g. SU684), check with Centrelink or your GP.",
+      "Standard medical certificates are used for some Centrelink documentation purposes. For claims requiring specific Centrelink forms (e.g. SU684), check with Centrelink or your GP.",
     recognitionBadges: [
       { label: "Sickness Allowance", sub: "Medical evidence" },
       { label: "Mutual obligation exemptions", sub: "When unfit" },
@@ -483,7 +482,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
       {
         question: "Will Centrelink accept an online medical certificate?",
         answer:
-          "Our certificates are issued by AHPRA-registered doctors and are commonly accepted for Centrelink purposes. Some claims require specific Centrelink forms (e.g. SU684). Check Centrelink's requirements for your claim.",
+          "Our certificates are issued by AHPRA-registered doctors and are often used for Centrelink documentation purposes. Some claims require specific Centrelink forms (e.g. SU684). Check Centrelink's requirements for your claim.",
       },
       {
         question: "What if Centrelink needs a specific form?",
@@ -497,60 +496,6 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
       },
     ],
   },
-
-  "jury-duty": {
-    slug: "jury-duty",
-    h1: "Medical certificate for jury duty exemption.",
-    heroSubheadline:
-      "Unable to serve on jury duty? A doctor reviews your request, typically sorted in under an hour. From $19.95.",
-    explainerTitle: "When you need to be excused from jury duty",
-    explainerSubtitle: "If you're unable to serve due to illness or other medical reasons, you may need a medical certificate.",
-    explainerParagraphs: [
-      "If you've been summoned for jury duty but are unable to serve due to illness, caring responsibilities, or medical reasons, you may need to provide a medical certificate. Our certificates are issued by AHPRA-registered doctors and document your unfitness to serve.",
-      "Each court has its own process. Check your jury summons for instructions. You typically need to submit your exemption request and supporting documentation before the summons date. We can issue a certificate that documents your situation.",
-    ],
-    recognitionTitle: "Commonly accepted by courts",
-    recognitionSubtitle:
-      "Certificates meet the requirements of most Australian courts for jury duty exemption. Court processes vary. Check your summons for instructions.",
-    recognitionBadges: [
-      { label: "State & federal courts", sub: "NSW, VIC, QLD & more" },
-      { label: "AHPRA doctors", sub: "Legally valid" },
-      { label: "Illness or caring", sub: "Medical exemption" },
-    ],
-    ctaTitle: "Documentation for jury duty exemption",
-    ctaSubtitle:
-      "Quick form, doctor review. Certificate to your inbox, usually within the hour.",
-    ctaButtonText: "Get your certificate",
-    metadata: {
-      title: "Medical Certificate for Jury Duty Exemption | $19.95",
-      description:
-        "Medical certificate for jury duty exemption. AHPRA-registered doctors review your request. From $19.95. Commonly accepted by Australian courts.",
-      keywords: [
-        "medical certificate jury duty",
-        "jury duty exemption medical certificate",
-        "excused from jury duty medical certificate",
-        "jury duty sick certificate australia",
-      ],
-    },
-    faqs: [
-      {
-        question: "Will the court accept an online medical certificate?",
-        answer:
-          "Our certificates are issued by AHPRA-registered doctors and are commonly accepted by Australian courts for jury duty exemption. Court processes vary. Check your jury summons for instructions.",
-      },
-      {
-        question: "When do I need to submit the certificate?",
-        answer:
-          "Check your jury summons. It will specify the deadline and process for exemption requests. Submit your certificate and exemption request before the summons date.",
-      },
-      {
-        question: "What if I need to care for someone else?",
-        answer:
-          "Carer's leave certificates can also support jury duty exemption when you need to care for a sick family member. Select carer's leave when completing the form.",
-      },
-    ],
-  },
-
   anxiety: {
     slug: "anxiety",
     h1: "Medical certificate for anxiety.",
@@ -623,7 +568,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     ],
     recognitionTitle: "Fair Work compliant",
     recognitionSubtitle:
-      "Flu certificates meet Fair Work Act requirements and are accepted by all Australian employers. Identical to what you'd receive from an in-person GP.",
+      "Flu certificates include standard doctor and absence details. Employer policies may vary.",
     recognitionBadges: [
       { label: "All employers", sub: "Legally valid" },
       { label: "Fair Work compliant", sub: "Same as in-person cert" },
@@ -713,7 +658,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
       {
         question: "Will my employer accept this?",
         answer:
-          "Our certificates are issued by AHPRA-registered doctors. Employer WFH policies vary; some accept telehealth documentation, others may have specific requirements. Check your employer's policy before submitting.",
+          "Our certificates are issued by AHPRA-registered doctors. Employer WFH policies vary; some assess telehealth documentation under their own policies, others may have specific requirements. Check your employer's policy before submitting.",
       },
       {
         question: "What conditions qualify for a WFH certificate?",
@@ -795,7 +740,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     ],
     recognitionTitle: "Fair Work compliant",
     recognitionSubtitle:
-      "Gastro certificates meet Fair Work Act requirements. Commonly accepted by all Australian employers.",
+      "Gastro certificates include standard doctor and absence details. Employer policies may vary.",
     recognitionBadges: [
       { label: "All employers", sub: "Legally valid" },
       { label: "Highly contagious", sub: "Medical reason to stay home" },
@@ -906,9 +851,9 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
       "While mandatory isolation periods are no longer legally required in most of Australia, many employers still ask for documentation when staff test positive for COVID-19. Our AHPRA-registered doctors can issue a medical certificate documenting your illness and the period of unfitness.",
       "You describe your test result, symptoms, and how long you've been unwell. The doctor reviews and issues a certificate if appropriate. No need to visit a clinic while infectious.",
     ],
-    recognitionTitle: "Employer accepted",
+    recognitionTitle: "Employer policies vary",
     recognitionSubtitle:
-      "COVID certificates are issued by AHPRA-registered doctors and accepted by Australian employers. Mandatory isolation rules vary by state. Check your state health authority for current requirements.",
+      "COVID certificates are issued by AHPRA-registered doctors and used for workplace documentation. Mandatory isolation rules vary by state. Check your state health authority for current requirements.",
     recognitionBadges: [
       { label: "All employers", sub: "Legally valid" },
       { label: "Stay isolated", sub: "No clinic visit needed" },

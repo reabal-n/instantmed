@@ -34,7 +34,7 @@ export const GUIDE_INDEX: GuideIndexEntry[] = [
   {
     slug: "how-to-get-sick-note-for-uni",
     title: "How to Get a Sick Note for University",
-    description: "Need a medical certificate for a missed exam, assignment extension, or university absence? Here's how to get one quickly.",
+    description: "Need a medical certificate for study absence documentation? Here's how to get one quickly.",
     readTime: "5 min read",
     category: "Medical Certificates",
   },

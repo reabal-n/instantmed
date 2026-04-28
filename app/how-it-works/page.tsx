@@ -7,8 +7,8 @@ export const revalidate = 86400 // 24h ISR for marketing page
 
 const howItWorksFaqs = [
   { question: "Is this a real doctor?", answer: "Yes. Every request is reviewed by an AHPRA-registered Australian GP. They're real doctors with real medical degrees and current registration - the same doctors who work in clinics and hospitals." },
-  { question: "How long does it take?", answer: "Medical certificates are typically issued in under 30 minutes, 24/7. Prescriptions and consultations are reviewed within 1–2 hours - all async, no phone call required. Prescriptions and consultations are available 8am–10pm AEST, 7 days." },
-  { question: "Will my employer accept an online medical certificate?", answer: "Yes. Certificates from AHPRA-registered doctors are legally valid under the Fair Work Act. They carry the same weight as certificates from in-person GP visits." },
+  { question: "How long does it take?", answer: "Medical certificates are typically issued in under 30 minutes, 24/7. Prescriptions and consultations are reviewed within 1–2 hours through a secure form-first workflow. The doctor contacts you if more information is clinically needed. Prescriptions and consultations are available 8am–10pm AEST, 7 days." },
+  { question: "Can my employer use an online medical certificate as evidence?", answer: "Certificates from AHPRA-registered doctors can support workplace evidence requirements. Employer policies may vary." },
   { question: "Do I need a Medicare card?", answer: "For medical certificates - no. For prescriptions and consultations - Medicare details are requested so the doctor can verify your identity, but this is a private service and no Medicare rebate is claimed." },
   { question: "What if the doctor can't help me?", answer: "You get a full refund. If your situation requires in-person care or falls outside what telehealth can safely manage, the doctor will recommend appropriate next steps." },
   { question: "Is my information private?", answer: "Completely. Your health data is encrypted with bank-level security and never shared with employers, insurers, or anyone else without your consent." },

@@ -56,8 +56,8 @@ export function ExitIntentSocialProofEmail({
       </Text>
 
       <Text muted small>
-        No phone call required for most requests. No appointment to book. Just a
-        straightforward online process.
+        No appointment to book. Start with a secure form; the doctor follows up
+        if clinically needed.
       </Text>
 
       <Button href={ctaUrl}>Get your {service.toLowerCase()}, {price}</Button>

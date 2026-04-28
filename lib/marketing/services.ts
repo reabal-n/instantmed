@@ -102,7 +102,7 @@ export const medicalCertificatesConfig: ServiceConfig = {
     {
       step: 3,
       title: 'Receive your certificate',
-      description: 'If approved, your medical certificate is sent to your email as a secure PDF. It includes the doctor\'s details and is valid for all employers.',
+      description: 'If approved, your medical certificate is sent to your email as a secure PDF. It includes the doctor\'s details and employer policies may vary.',
       icon: 'FileCheck',
     },
   ],
@@ -138,7 +138,7 @@ export const medicalCertificatesConfig: ServiceConfig = {
   faqs: [
     {
       question: 'Is this certificate valid for my employer?',
-      answer: 'Yes. Our medical certificates are issued by AHPRA-registered Australian doctors and are legally valid for all Australian employers, universities, and institutions. Each certificate includes the doctor\'s name, provider number, and digital signature.',
+      answer: 'Yes. Our medical certificates are issued by AHPRA-registered Australian doctors and include standard workplace evidence details; employer policies may vary, universities, and institutions. Each certificate includes the doctor\'s name, provider number, and digital signature.',
     },
     {
       question: 'Can I get a certificate for yesterday or earlier?',
@@ -159,7 +159,7 @@ export const medicalCertificatesConfig: ServiceConfig = {
   ],
   
   metaTitle: 'Online Medical Certificates | Same-Day Delivery | InstantMed',
-  metaDescription: 'Get a valid medical certificate from an Australian doctor in under an hour. Accepted by all employers. Secure, private, and delivered to your email.',
+  metaDescription: 'Get a medical certificate from an Australian doctor in under an hour. Employer policies may vary. Secure, private, and delivered to your email.',
   
   accentColor: 'emerald',
   icon: 'FileText',

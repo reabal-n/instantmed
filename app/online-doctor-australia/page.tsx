@@ -221,8 +221,8 @@ export default function OnlineDoctorAustraliaPage() {
               </Heading>
               <p className="text-muted-foreground text-lg max-w-2xl mx-auto mb-8">
                 Medical certificates, repeat prescriptions, and consultations reviewed by
-                Australian-registered doctors. No appointments, no waiting rooms, no phone
-                tag. Every request goes to a real GP - not an algorithm.
+                Australian-registered doctors. No appointments, no waiting rooms. Every
+                request goes to a real GP - not an algorithm.
               </p>
 
               <div className="flex flex-wrap justify-center gap-3 mb-8">

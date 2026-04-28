@@ -11,7 +11,7 @@ import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 
 export const metadata: Metadata = {
   title: "Medical Certificates for Corporate Workers | 15 Min",
-  description: "Get a medical certificate before HR asks. 15-minute turnaround, delivered to your inbox. Professional, discreet, valid for all employers. No time off work needed.",
+  description: "Get a medical certificate before HR asks. 15-minute turnaround, delivered to your inbox. Professional, discreet, employer policies may vary. No time off work needed.",
   keywords: [
     "medical certificate corporate",
     "office worker sick certificate",
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: "Medical Certificates for Corporate Workers | InstantMed",
-    description: "Get your medical certificate in 15 minutes. Professional, discreet, HR-approved.",
+    description: "Get your medical certificate in 15 minutes. Professional, discreet, HR-ready.",
     url: "https://instantmed.com.au/for/corporate",
   },
   alternates: {
@@ -40,7 +40,7 @@ export default function CorporatePage() {
         name: "Will HR accept an online medical certificate?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Yes. Our certificates are issued by AHPRA-registered Australian doctors and are legally valid for all employers, including corporate offices, banks, consulting firms, and government agencies.",
+          text: "Yes. Our certificates are issued by AHPRA-registered Australian doctors and include standard workplace evidence details for corporate offices, banks, consulting firms, and government agencies; employer policies may vary.",
         },
       },
       {
@@ -79,7 +79,7 @@ export default function CorporatePage() {
                     Unwell and working from home? Get your medical certificate in <strong>15 minutes</strong>. Professional PDF delivered to your inbox - ready to forward to HR.
                   </p>
                   <p className="text-xs text-muted-foreground mb-6">
-                    All employers accept • Discreet • No time off work needed
+                    Employer policies vary • Discreet • No time off work needed
                   </p>
 
                   <Link href="/request?service=med-cert">
@@ -101,7 +101,7 @@ export default function CorporatePage() {
                     </div>
                     <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border/50">
                       <Shield className="h-3.5 w-3.5 text-muted-foreground" />
-                      <span className="font-medium text-muted-foreground">HR-approved</span>
+                      <span className="font-medium text-muted-foreground">HR-ready</span>
                     </div>
                   </div>
                 </div>
@@ -320,7 +320,7 @@ export default function CorporatePage() {
                       <ArrowRight className="h-4 w-4 ml-2" />
                     </Button>
                   </Link>
-                  <p className="mt-4 text-xs text-muted-foreground">{PRICING_DISPLAY.FROM_MED_CERT} • Valid for all employers</p>
+                  <p className="mt-4 text-xs text-muted-foreground">{PRICING_DISPLAY.FROM_MED_CERT} • Employer policies vary</p>
                 </div>
               </div>
             </div>

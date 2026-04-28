@@ -43,7 +43,7 @@ export function AbandonedCheckoutFollowupEmail({
       <Box>
         <Text style={{ margin: 0, fontSize: "14px", color: colors.textBody }}>
           <strong>1,200+ Australians</strong> used InstantMed this month for fast,
-          hassle-free medical documents. No phone call, no waiting room.
+          hassle-free medical documents. Form-first review, no waiting room.
         </Text>
       </Box>
 

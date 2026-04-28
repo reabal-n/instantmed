@@ -1,6 +1,7 @@
 # Google Ads Policy Audit — InstantMed
 
 **Date:** March 2025  
+**Updated:** 2026-04-28  
 **Purpose:** Ensure platform compliance with Google Ads policies after ad rejections.
 
 ---
@@ -14,16 +15,16 @@
 **Action required (account-level):**
 - [x] Apply for Google Ads healthcare certification for telemedicine
 - [x] LegitScript Healthcare Merchant Certification approved (2026-04-08, Cert ID 48400566)
-- [ ] Submit application at child account level with Google Ads customer ID and certified domain
+- [x] Google Ads account 920-501-0513 approved for Online Pharmacy Certification / healthcare promotion (support ticket 4-3698000041178)
 - [x] Ensure website is fully functional and globally accessible
 
-**Code changes:** None — certification is an operational/account process.
+**Code changes:** None — certification is an operational/account process. See `docs/ADVERTISING_COMPLIANCE.md` for the current source of truth.
 
 ---
 
 ### 2. Healthcare and medicines: Restricted drug terms
 
-**Policy (Australia):** For campaigns targeting Australia (outside Canada, NZ, US), you may **not** use prescription drug terms in ads or landing pages. Non-promotional use (regulatory, legal, public health) is permitted.
+**Policy (Australia):** Certification allows eligible healthcare advertising, but ad copy and paid destinations still need conservative restricted-drug handling. Do not use prescription drug terms in ad copy or paid landing pages. Non-promotional organic education is handled separately in `docs/SEO_CONTENT_POLICY.md`.
 
 **Restricted terms:** "prescription", "script", "scripts", "Rx", "meds", medication names, drug classes when used promotionally.
 
@@ -89,11 +90,11 @@
 
 ## Post-Audit Checklist
 
-1. [ ] Apply for Google Ads healthcare certification (telemedicine)
+1. [x] Apply for Google Ads healthcare certification (telemedicine)
 2. [ ] Remove advertiser-curated audiences from health campaign targeting
 3. [ ] Deploy code changes
-4. [ ] Re-submit ads for review or appeal existing rejections
-5. [ ] Ensure ad copy (in Google Ads UI) also avoids prescription drug terms and emojis
+4. [ ] Re-submit ads for review or appeal existing rejections using ticket 4-3698000041178 if needed
+5. [ ] Ensure ad copy, paid destinations, metadata, and schema avoid prescription drug terms and emojis
 
 ---
 

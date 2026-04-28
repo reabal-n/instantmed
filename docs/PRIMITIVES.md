@@ -4,7 +4,7 @@
 
 ---
 
-## 1. Social Proof — `lib/social-proof.ts`
+## 1. Social Proof — `lib/social-proof/index.ts`
 
 Single source of truth for all platform metrics shown on marketing pages.
 
@@ -19,7 +19,7 @@ Single source of truth for all platform metrics shown on marketing pages.
 
 ---
 
-## 2. Trust Badges — `lib/trust-badges.ts`
+## 2. Trust Badges — `lib/marketing/trust-badges.ts`
 
 Centralized badge definitions with icon, color, tooltip, and styled/plain tiers.
 
@@ -32,6 +32,8 @@ Centralized badge definitions with icon, color, tooltip, and styled/plain tiers.
 **Certification badges:** `legitscript` and `google_pharmacy` have styled tiers that render actual logos (LegitScript seal image, Google "G" multicolor SVG). Use `<TrustBadgeRow preset="trust_certifications" />` for an inline row, or the standalone components `LegitScriptSeal` (`components/marketing/legitscript-seal.tsx`) and `GoogleAdsCert` (`components/marketing/google-ads-cert.tsx`) for larger dedicated displays (e.g. footer logo row, trust page hero).
 
 **Rule:** Max 2 styled badges per row. Never put `no_call` + `no_speaking` together (redundant). Use `BADGE_PRESETS` for standard placements; compose custom sets from `BADGE_REGISTRY` for page-specific needs.
+
+**Clinical/advertising rule:** `no_call` and `no_speaking` are med-cert-only unless a clinician explicitly approves the context. Prescription, ED, hair loss, women's health, and weight-loss surfaces use `form_only`, `no_appointment`, `no_waiting_room`, or form-first copy instead.
 
 ---
 
@@ -50,14 +52,31 @@ Service-specific stat configurations for social proof strips.
 
 ---
 
-## 4. Pricing — `lib/constants.ts`
+## 4. Pricing — `lib/constants/index.ts`
 
 | Export | Type | What it provides |
 |--------|------|-----------------|
-| `PRICING` | `const object` | Raw prices: `MED_CERT` ($19.95), `MED_CERT_2DAY` ($29.95), `MED_CERT_3DAY` ($39.95), `REPEAT_SCRIPT` ($29.95), `NEW_SCRIPT` ($49.95), `CONSULT` ($49.95), `MENS_HEALTH` ($49.95), `WOMENS_HEALTH` ($59.95), `HAIR_LOSS` ($49.95), `WEIGHT_LOSS` ($89.95), `REFERRAL` ($29.95), `PATHOLOGY` ($29.95), `PRIORITY_FEE` ($9.95). |
+| `PRICING` | `const object` | Raw prices: `MED_CERT` ($19.95), `MED_CERT_2DAY` ($29.95), `MED_CERT_3DAY` ($39.95), `REPEAT_SCRIPT` ($29.95), `NEW_SCRIPT` ($49.95), `CONSULT` ($49.95), `MENS_HEALTH` ($49.95), `WOMENS_HEALTH` ($59.95), `HAIR_LOSS` ($49.95), `WEIGHT_LOSS` ($89.95), `REFERRAL` ($29.95), `PATHOLOGY` ($29.95), `PRIORITY_FEE` ($9.95), `REPEAT_RX_MONTHLY` ($19.95). |
 | `PRICING_DISPLAY` | `const object` | Formatted strings: `MED_CERT` ("$19.95"), `FROM_MED_CERT` ("From $19.95"), `RANGE` ("$19.95 - $49.95"), etc. |
 
 **Rule:** Never hardcode a price. Stripe price IDs are mapped separately in `lib/stripe/price-mapping.ts`.
+
+**Business rule:** `REPEAT_RX_MONTHLY` is dormant/future strategy. Do not market subscriptions until `docs/BUSINESS_PLAN.md` and `docs/REVENUE_MODEL.md` are updated to reactivate them.
+
+---
+
+## 4a. Voice — `lib/marketing/voice.ts`
+
+| Export | Type | What it provides |
+|--------|------|-----------------|
+| `TAGLINE` | `string` | Logo-adjacent promise: "A doctor without the wait." |
+| `WEDGE` | `string` | Default platform wedge: no appointment, no waiting room, secure clinical form. |
+| `MED_CERT_WEDGE` | `string` | Med-cert-only wedge: "No video. No call. No appointment." |
+| `FORM_FIRST_WEDGE` | `string` | Prescribing/specialty wedge: doctor contacts the patient only if clinically needed. |
+| `GUARANTEE` | `string` | Outcome guarantee: "Full refund if our doctor can't help." |
+| `BANNED_PHRASES` | `readonly string[]` | Brand voice banned phrases enforced by tests. |
+
+**Rule:** Marketing surfaces must import voice constants instead of hardcoding wedge/guarantee copy. Healthcare advertising rules live in `docs/ADVERTISING_COMPLIANCE.md`; SEO rules live in `docs/SEO_CONTENT_POLICY.md`.
 
 ---
 
@@ -110,13 +129,16 @@ Type: `ServiceFunnelConfig` (from `components/marketing/funnel/funnel-types.ts`)
 
 | "I need to change..." | Edit this file |
 |------------------------|---------------|
-| A social proof number (rating, approval %, turnaround) | `lib/social-proof.ts` |
-| A price | `lib/constants.ts` |
-| A trust badge label, icon, or tooltip | `lib/trust-badges.ts` |
-| Which badges appear on a page | `lib/trust-badges.ts` → `BADGE_PRESETS` |
+| A social proof number (rating, approval %, turnaround) | `lib/social-proof/index.ts` |
+| A price | `lib/constants/index.ts` |
+| A tagline, wedge, or guarantee | `lib/marketing/voice.ts` |
+| A trust badge label, icon, or tooltip | `lib/marketing/trust-badges.ts` |
+| Which badges appear on a page | `lib/marketing/trust-badges.ts` → `BADGE_PRESETS` |
 | FAQ content for a service | `lib/data/<service>-faq.ts` |
 | General FAQ content (/faq page) | `lib/data/general-faq.ts` |
 | Wait time display | `components/marketing/live-wait-time.tsx` → `SERVICE_CONFIG` |
 | Stat strip metrics for a service | `components/marketing/total-patients-counter.tsx` → `STAT_PRESETS` |
-| Google Reviews config | `lib/social-proof.ts` → `GOOGLE_REVIEWS` |
-| Patient counter growth model | `lib/social-proof.ts` → anchor/target constants |
+| Google Reviews config | `lib/social-proof/index.ts` → `GOOGLE_REVIEWS` |
+| Patient counter growth model | `lib/social-proof/index.ts` → anchor/target constants |
+| Paid ads or acquisition copy | `docs/ADVERTISING_COMPLIANCE.md` |
+| Educational prescription/medicine SEO content | `docs/SEO_CONTENT_POLICY.md` |

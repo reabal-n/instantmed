@@ -132,7 +132,7 @@ export async function sendRefillReminder(reminder: RefillReminder): Promise<bool
       type: "refill_reminder",
       title,
       message,
-      actionUrl: `/prescriptions/request?refill=${requestId}&medication=${encodeURIComponent(medicationName)}`,
+      actionUrl: `/prescriptions/request?refill=${requestId}`,
       metadata: {
         originalRequestId: requestId,
         medicationName,
@@ -223,7 +223,7 @@ export async function getUpcomingRefillsForPatient(patientId: string): Promise<{
         upcomingRefills.push({
           medication: medicationName,
           daysRemaining,
-          refillUrl: `/prescriptions/request?refill=${rx.id}&medication=${encodeURIComponent(medicationName)}`,
+          refillUrl: `/prescriptions/request?refill=${rx.id}`,
         })
       }
     }

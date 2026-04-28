@@ -19,7 +19,6 @@ import {
   type LandingPageConfig,
   LandingPageShell,
 } from "@/components/marketing/shared"
-import { type LogoItem, ScrollingLogoMarquee } from "@/components/marketing/shared/scrolling-logo-marquee"
 import { PRICING } from "@/lib/constants"
 import { MED_CERT_FAQ } from "@/lib/data/med-cert-faq"
 import { usePatientCount } from "@/lib/hooks/use-patient-count"
@@ -94,8 +93,7 @@ const LANDING_CONFIG: LandingPageConfig = {
   sticky: {
     ctaText: `Get your certificate · $${PRICING.MED_CERT.toFixed(2)}`,
     ctaHref: "/request?service=med-cert",
-    // Mobile sticky now leads with the legitimacy claim, not wait time.
-    mobileSummary: `Accepted by ${SOCIAL_PROOF.employerAcceptancePercent}% of AU employers · Fair Work Act`,
+    mobileSummary: "Doctor-issued certificate · Employer policies vary",
     desktopLabel: "Doctor available now · Medical Certificate",
     priceLabel: `From $${PRICING.MED_CERT.toFixed(2)}`,
     desktopCtaText: "Get your certificate",
@@ -105,58 +103,30 @@ const LANDING_CONFIG: LandingPageConfig = {
   },
 }
 
-const EMPLOYER_LOGOS: LogoItem[] = [
-  { name: "Woolworths", src: "/logos/woolworths.png" },
-  { name: "Coles", src: "/logos/coles.png" },
-  { name: "Commonwealth Bank", src: "/logos/commonwealthbank.png" },
-  { name: "ANZ", src: "/logos/ANZ.png" },
-  { name: "NAB", src: "/logos/nab.png" },
-  { name: "Westpac", src: "/logos/westpac.png" },
-  { name: "BHP", src: "/logos/BHP.png" },
-  { name: "Telstra", src: "/logos/telstra.png" },
-  { name: "JB Hi-Fi", src: "/logos/jbhifi.png" },
-  { name: "McDonald's", src: "/logos/mcdonalds.png" },
-  { name: "Sonic Healthcare", src: "/logos/sonichealthcare.png" },
-  { name: "Bunnings", src: "/logos/bunnings.png" },
-  { name: "Amazon", src: "/logos/amazon.png" },
-  { name: "Qantas", src: "/logos/qantas.svg" },
-  { name: "Deloitte", src: "/logos/deloitte.svg" },
-  { name: "PwC", src: "/logos/pwc.svg" },
-  { name: "KPMG", src: "/logos/kpmg.svg" },
-  { name: "Bupa", src: "/logos/bupa.svg" },
-]
-
 // =============================================================================
 // UNIQUE SECTIONS
 // =============================================================================
 
 /**
- * Employer acceptance — the med-cert page's superpower claim.
+ * Workplace evidence — explains verification without implying employer
+ * endorsement, partnership, or guaranteed acceptance.
  *
  * Wraps the shared <ServiceClaimSection> primitive with med-cert-specific
- * extras (employer-logo marquee + footer links to /for/employers and /verify).
+ * footer links to /for/employers and /verify.
  */
 function EmployerCalloutStrip({ onEmployerClick, onVerifyClick }: { onEmployerClick?: () => void; onVerifyClick?: () => void }) {
   return (
     <div data-track-section="employer">
       <ServiceClaimSection
-        eyebrow="Accepted everywhere it counts"
+        eyebrow="Workplace documentation"
         headline={
           <>
-            <span className="text-primary tabular-nums">{SOCIAL_PROOF.employerAcceptancePercent}%</span> of Australian employers and universities accept it.
+            Doctor-issued certificate with verification built in.
           </>
         }
-        body="Legally valid under the Fair Work Act 2009 (Cth), s 107. Same legal weight as a GP certificate."
+        body="Issued by AHPRA-registered Australian doctors with standard sick-leave evidence details. Employer and institution policies may vary."
       >
-        <ScrollingLogoMarquee
-          logos={EMPLOYER_LOGOS}
-          colored
-          tooltipPrefix="Accepted by"
-          analyticsEvent="employer_marquee_view"
-          className="py-2 sm:py-3"
-        />
-
-        <div className="mt-6 sm:mt-8 pt-5 border-t border-border/30 flex items-center justify-center gap-4 text-xs text-muted-foreground">
+        <div className="pt-1 flex items-center justify-center gap-4 text-xs text-muted-foreground">
           <Link
             href="/for/employers"
             onClick={onEmployerClick}
@@ -235,8 +205,8 @@ export function MedCertLanding() {
                 <p className="inline-flex items-start sm:items-center gap-2 text-[13px] text-foreground max-w-xl mx-auto lg:mx-0 leading-snug text-left sm:text-center lg:text-left">
                   <CheckCircle2 className="w-4 h-4 text-success shrink-0 mt-px sm:mt-0" aria-hidden="true" />
                   <span>
-                    Accepted by Woolworths, CBA, Telstra, and {SOCIAL_PROOF.employerAcceptancePercent}% of Australian employers.
-                    <span className="text-muted-foreground"> Legally valid under Fair Work Act s 107.</span>
+                    Issued by AHPRA-registered Australian doctors.
+                    <span className="text-muted-foreground"> Employer and institution policies may vary.</span>
                   </span>
                 </p>
               }
@@ -300,7 +270,7 @@ export function MedCertLanding() {
             {/* Clinical references */}
             <div className="mx-auto max-w-3xl px-4 sm:px-6 py-4">
               <p className="text-[11px] text-muted-foreground text-center leading-relaxed">
-                Telehealth-issued medical certificates are accepted by Australian employers under the Fair Work Act 2009 (s 107). Telehealth consultations achieve equivalent clinical accuracy to in-person assessments for common presentations (Snoswell et al., <em>J Telemed Telecare</em>, 2023). All certificates are issued by AHPRA-registered practitioners.
+                The Fair Work Act 2009 (Cth), s 107 allows employers to request medical evidence for personal leave. Telehealth consultations achieve equivalent clinical accuracy to in-person assessments for common presentations (Snoswell et al., <em>J Telemed Telecare</em>, 2023). All certificates are issued by AHPRA-registered practitioners.
               </p>
             </div>
 

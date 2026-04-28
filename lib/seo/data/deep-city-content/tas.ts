@@ -28,7 +28,7 @@ export const TAS_CITIES: Record<string, DeepCityContent> = {
         title: "Who Benefits in Hobart",
         paragraphs: [
           "Hobart's growing tourism and hospitality sector - fuelled by MONA, the city's restaurant scene, and Tasmania's broader appeal - employs thousands of workers with irregular schedules. When a hospitality worker in Salamanca or the waterfront calls in sick, getting a same-day GP appointment can be difficult. Telehealth provides documentation without the wait.",
-          "University of Tasmania (UTAS) students at the Sandy Bay and Inveresk campuses need certificates for special consideration during exam periods. The UTAS medical service is stretched, and external GP availability near campus is limited. TasTAFE students face similar challenges across their Hobart and Launceston campuses.",
+          "University of Tasmania (UTAS) students at the Sandy Bay and Inveresk campuses need certificates for academic support during exam periods. The UTAS medical service is stretched, and external GP availability near campus is limited. TasTAFE students face similar challenges across their Hobart and Launceston campuses.",
           "Tasmania's public service - the state's largest employer - requires medical certificates for sick leave in line with the Tasmanian State Service Award. Telehealth certificates from AHPRA-registered doctors meet these requirements. The same applies to federal public servants working in Tasmania's Commonwealth agencies.",
         ],
       },
@@ -37,7 +37,7 @@ export const TAS_CITIES: Record<string, DeepCityContent> = {
         paragraphs: [
           "Tasmanian employers follow the Fair Work Act 2009 for medical certificate requirements. There is no Tasmanian legislation that differentiates between telehealth and in-person certificates. The Tasmanian State Service Award accepts certificates from registered medical practitioners without specifying consultation method.",
           "For hospitality and tourism workers under the Hospitality Industry General Award, medical certificates are commonly required for absences of more than one day. Telehealth certificates meet this requirement. For workers in aquaculture, forestry, and agriculture - key Tasmanian industries - the same Fair Work protections apply.",
-          "UTAS accepts certificates from any AHPRA-registered doctor for special consideration. This includes telehealth consultations. The university's policy focuses on the legitimacy of the practitioner, not the consultation format.",
+          "UTAS accepts certificates from any AHPRA-registered doctor for academic support. This includes telehealth consultations. The university's policy focuses on the legitimacy of the practitioner, not the consultation format.",
         ],
       },
     ],
@@ -57,9 +57,9 @@ export const TAS_CITIES: Record<string, DeepCityContent> = {
       ],
     },
     additionalFaqs: [
-      { q: "Can UTAS students use InstantMed?", a: "Yes. The University of Tasmania accepts medical certificates from AHPRA-registered doctors for special consideration, exam deferrals, and assignment extensions." },
+      { q: "Can UTAS students use InstantMed?", a: "Yes. The University of Tasmania sets its own policy for medical certificates from AHPRA-registered doctors for academic support, missed assessment documentation, and coursework documentation." },
       { q: "Is telehealth available across all of Tasmania?", a: "Yes. InstantMed works anywhere in Tasmania with internet access - Hobart, Launceston, Devonport, Burnie, the East Coast, or the West Coast. Pricing is identical statewide." },
-      { q: "Do Tasmanian state government employers accept telehealth certificates?", a: "Yes. The Tasmanian State Service Award requires certificates from registered medical practitioners. Telehealth doctors with AHPRA registration meet this requirement." },
+      { q: "Do Tasmanian state government employers assess telehealth certificates under their own policies?", a: "Yes. The Tasmanian State Service Award requires certificates from registered medical practitioners. Telehealth doctors with AHPRA registration meet this requirement." },
       { q: "Can I use InstantMed in Launceston or the North-West?", a: "Yes. While this page focuses on Hobart, InstantMed serves all of Tasmania. Launceston, Devonport, Burnie, and everywhere in between." },
       { q: "Is InstantMed cheaper than a GP in Hobart?", a: `With Hobart's bulk-billing rate around 55% and gap fees of $40–$80 common, InstantMed is often more affordable for straightforward needs. Medical certificates start from ${PRICING_DISPLAY.MED_CERT}.` },
     ],
@@ -83,7 +83,7 @@ export const TAS_CITIES: Record<string, DeepCityContent> = {
       {
         title: "Students and Workers in Northern Tasmania",
         paragraphs: [
-          "The University of Tasmania's Launceston campus (Newnham and Inveresk) serves thousands of students. UTAS accepts telehealth medical certificates for all academic support applications. Given the difficulty of finding a GP in Launceston, telehealth is increasingly the practical choice for students needing timely documentation.",
+          "The University of Tasmania's Launceston campus (Newnham and Inveresk) serves thousands of students. UTAS sets its own policy for telehealth medical certificates for all academic support applications. Given the difficulty of finding a GP in Launceston, telehealth is increasingly the practical choice for students needing timely documentation.",
           "Launceston's economy is anchored by healthcare (Launceston General Hospital), education, agriculture, and tourism. The growing wine and food tourism sector in the Tamar Valley adds seasonal employment demand. Workers across all these sectors benefit from telehealth access when GP appointments are scarce.",
         ],
       },
@@ -104,7 +104,7 @@ export const TAS_CITIES: Record<string, DeepCityContent> = {
     additionalFaqs: [
       { q: "Can I use InstantMed if I can't find a GP in Launceston?", a: "Yes. InstantMed is ideal for routine healthcare needs when GP availability is limited. For ongoing conditions, we still recommend establishing a GP relationship - but for medical certificates and straightforward prescriptions, we can help right now." },
       { q: "Does InstantMed serve Devonport and Burnie?", a: "Yes. We serve all of Tasmania - Launceston, Devonport, Burnie, the North-East, and the North-West Coast." },
-      { q: "Are certificates accepted by Tasmanian employers?", a: "Yes. All Australian employers, including Tasmanian government agencies, accept certificates from AHPRA-registered doctors regardless of consultation method." },
+      { q: "Are certificates suitable for Tasmanian workplace evidence?", a: "Yes. All Australian employers, including Tasmanian government agencies, set their own policies for certificates from AHPRA-registered doctors regardless of consultation method." },
     ],
   },
 }

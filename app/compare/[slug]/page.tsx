@@ -116,7 +116,7 @@ const builtInComparisons: Record<string, ComparisonEntry> = {
       },
       {
         q: "Is a medical certificate from telehealth valid for work?",
-        a: "Yes. A medical certificate issued by an AHPRA-registered doctor through telehealth is legally identical to one from an in-person visit. The Fair Work Act doesn't distinguish between the two. Your employer must accept it."
+        a: "A medical certificate issued by an AHPRA-registered doctor through telehealth can be used as workplace evidence. The Fair Work Act does not require the consultation to be in person, but employer policies may vary."
       }
     ],
     guideContent: {
@@ -368,7 +368,7 @@ const builtInComparisons: Record<string, ComparisonEntry> = {
       },
       {
         q: "What technology do I need for a telehealth consultation?",
-        a: "For asynchronous telehealth services like InstantMed, you just need a device with a web browser and an internet connection. No special software, no video calls, no app downloads. You fill in a form, a doctor reviews it, and you get your result. Simpler than most people expect."
+        a: "For asynchronous telehealth services like InstantMed, you just need a device with a web browser and an internet connection. You fill in a secure form, a doctor reviews it, and they contact you if more information is clinically needed. Simpler than most people expect."
       },
       {
         q: "Is telehealth covered by private health insurance?",

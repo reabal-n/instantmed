@@ -15,8 +15,29 @@
 /** Logo-adjacent promise. Every hero, every LP, every email header. */
 export const TAGLINE = "A doctor without the wait."
 
-/** Category mechanism. Triple-negation wedge vs every competitor form-factor. */
-export const WEDGE = "No video. No call. No appointment."
+/**
+ * Category mechanism. Default platform wedge for broad surfaces.
+ *
+ * Use this on homepage, request hub, pricing, and generic paid landing pages.
+ * It preserves the moat: patients avoid booking friction and start with a
+ * secure clinical form. It does not promise that prescription pathways never
+ * need doctor contact.
+ */
+export const WEDGE = "No appointment. No waiting room. Start with a secure clinical form."
+
+/**
+ * Med-cert-specific wedge. Safe to use only on medical certificate surfaces
+ * where the clinical protocol supports no-call completion for suitable
+ * administrative documentation requests.
+ */
+export const MED_CERT_WEDGE = "No video. No call. No appointment."
+
+/**
+ * Prescribing and specialty-service wedge. Use for repeat prescriptions, ED,
+ * hair loss, women's health, and weight management.
+ */
+export const FORM_FIRST_WEDGE =
+  "Complete a secure clinical form. A doctor contacts you only if more information is clinically needed."
 
 /** Aspirational campaign sign-off. Ad end-frames, email footers, press leads. */
 export const PROP_PHRASE = "A GP, the way it should've been."
@@ -46,6 +67,8 @@ export const GUARANTEE = "Full refund if our doctor can't help."
 export const OWNED_PHRASES = [
   TAGLINE,
   WEDGE,
+  MED_CERT_WEDGE,
+  FORM_FIRST_WEDGE,
   PROP_PHRASE,
   ICONIC_HOOK,
   GUARANTEE,

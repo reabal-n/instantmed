@@ -47,8 +47,8 @@ export function ExitIntentReminderEmail({
       <Button href={ctaUrl}>Get your {service.toLowerCase()}, {price}</Button>
 
       <Text muted small>
-        From {price}. Full refund if we can&apos;t help. No appointment or phone
-        call required for most requests.
+        From {price}. Full refund if we can&apos;t help. No appointment to book;
+        the doctor follows up if clinically needed.
       </Text>
     </BaseEmail>
   )

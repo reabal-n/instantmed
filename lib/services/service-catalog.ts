@@ -86,7 +86,7 @@ export const SERVICE_CATALOG: Record<CanonicalServiceId, ServiceDef> = {
   "med-cert": {
     id: "med-cert",
     title: "Medical certificate",
-    subtitle: "Doctor-reviewed, ready in ~20 min",
+    subtitle: "No call for suitable requests",
     slug: "medical-certificate",
     price: PRICING_DISPLAY.MED_CERT,
     pricePrefix: "From",
@@ -100,7 +100,7 @@ export const SERVICE_CATALOG: Record<CanonicalServiceId, ServiceDef> = {
   "repeat-rx": {
     id: "repeat-rx",
     title: "Refill a prescription",
-    subtitle: "Renew an existing medication online",
+    subtitle: "Form-first medication review",
     slug: "prescriptions",
     price: PRICING_DISPLAY.REPEAT_SCRIPT,
     priceFrom: 29.95,
@@ -112,7 +112,7 @@ export const SERVICE_CATALOG: Record<CanonicalServiceId, ServiceDef> = {
   ed: {
     id: "ed",
     title: "Erectile dysfunction",
-    subtitle: "Discreet assessment, no phone call",
+    subtitle: "Discreet form-first assessment",
     slug: "erectile-dysfunction",
     price: PRICING_DISPLAY.MENS_HEALTH,
     priceFrom: 49.95,
@@ -125,7 +125,7 @@ export const SERVICE_CATALOG: Record<CanonicalServiceId, ServiceDef> = {
   "hair-loss": {
     id: "hair-loss",
     title: "Hair loss treatment",
-    subtitle: "Doctor-assessed treatment plan",
+    subtitle: "Private form-first assessment",
     slug: "hair-loss",
     price: PRICING_DISPLAY.HAIR_LOSS,
     priceFrom: 49.95,
@@ -138,7 +138,7 @@ export const SERVICE_CATALOG: Record<CanonicalServiceId, ServiceDef> = {
   "general-consult": {
     id: "general-consult",
     title: "General consultation",
-    subtitle: "Speak with a doctor about anything",
+    subtitle: "Manual review for other concerns",
     slug: "consult",
     price: PRICING_DISPLAY.CONSULT,
     priceFrom: 49.95,

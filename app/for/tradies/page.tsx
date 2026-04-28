@@ -10,7 +10,7 @@ import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 
 export const metadata: Metadata = {
   title: "Medical Certificates for Tradies | 15 Min Script",
-  description: "Get your medical certificate without leaving the job site. 15-minute turnaround. Valid for all employers. No appointments, no waiting rooms. Built for tradies.",
+  description: "Get your medical certificate without leaving the job site. 15-minute turnaround. Employer policies vary. No appointments, no waiting rooms. Built for tradies.",
   keywords: [
     "medical certificate tradies",
     "tradie sick certificate",
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: "Medical Certificates for Tradies | 15 Min | InstantMed",
-    description: "Get your med cert without leaving the site. 15-minute turnaround. Valid for all employers.",
+    description: "Get your med cert without leaving the site. 15-minute turnaround. Employer policies vary.",
     url: "https://instantmed.com.au/for/tradies",
   },
   alternates: {
@@ -47,7 +47,7 @@ export default function TradiesPage() {
         name: "Will my boss accept an online medical certificate?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Yes. Our certificates are issued by AHPRA-registered Australian doctors and are legally valid for all employers, including construction companies, contractors, and agencies.",
+          text: "Yes. Our certificates are issued by AHPRA-registered Australian doctors and include standard workplace evidence details for construction companies, contractors, and agencies; employer policies may vary.",
         },
       },
     ],
@@ -78,7 +78,7 @@ export default function TradiesPage() {
                     Woke up crook? Get your medical certificate on your phone in <strong>15 minutes</strong>. No doctor visits, no time off site, no stuffing around.
                   </p>
                   <p className="text-xs text-muted-foreground mb-6">
-                    Valid for all employers • AHPRA doctors • Done from your phone
+                    Employer policies vary • AHPRA doctors • Done from your phone
                   </p>
 
                   <Link href="/request?service=med-cert">
@@ -151,7 +151,7 @@ export default function TradiesPage() {
                     },
                     {
                       icon: Building,
-                      title: "All employers accept it",
+                      title: "Employer policies vary it",
                       desc: "Valid for builders, contractors, agencies - anyone. Legally legit.",
                     },
                     {
@@ -250,7 +250,7 @@ export default function TradiesPage() {
                   {[
                     {
                       q: "Will my boss accept this?",
-                      a: "Yes. It's a real medical certificate from a real AHPRA-registered doctor. Legally valid for all employers - builders, contractors, agencies, the lot.",
+                      a: "Yes. It's a real medical certificate from a real AHPRA-registered doctor. Legally employer policies may vary - builders, contractors, agencies, the lot.",
                     },
                     {
                       q: "How fast is it?",
@@ -294,7 +294,7 @@ export default function TradiesPage() {
                       <ArrowRight className="h-4 w-4 ml-2" />
                     </Button>
                   </Link>
-                  <p className="mt-4 text-xs text-muted-foreground">{PRICING_DISPLAY.FROM_MED_CERT} • Valid for all employers</p>
+                  <p className="mt-4 text-xs text-muted-foreground">{PRICING_DISPLAY.FROM_MED_CERT} • Employer policies vary</p>
                 </div>
               </div>
             </div>

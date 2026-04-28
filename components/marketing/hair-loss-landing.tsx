@@ -80,12 +80,11 @@ const HOW_IT_WORKS_STEPS = [
 ]
 
 const PRICING_BULLETS = [
-  "Includes a 30-day follow-up check-in with your doctor",
   "AHPRA-registered Australian doctor reviews your form",
   "eScript sent to your phone via SMS",
   "Collect from any Australian pharmacy",
-  "Discreet packaging, nothing on the outside",
-  "Full refund if we can’t help",
+  "Doctor contacts you if more information is needed",
+  "Full refund if we can't help",
 ]
 
 const TREATMENT_OPTIONS = [
@@ -133,7 +132,7 @@ const LANDING_CONFIG: LandingPageConfig = {
   sticky: {
     ctaText: `Start assessment · $${PRICING.HAIR_LOSS.toFixed(2)}`,
     ctaHref: "/request?service=consult&subtype=hair_loss",
-    mobileSummary: "2-min form · Doctor-reviewed · No call needed",
+    mobileSummary: "2-min form · Doctor-reviewed · No waiting room",
     desktopLabel: "Hair loss treatment · Doctor-reviewed",
     priceLabel: `From $${PRICING.HAIR_LOSS.toFixed(2)}`,
     desktopCtaText: "Start assessment",
@@ -152,10 +151,10 @@ function TreatmentOptions() {
         <Reveal className="text-center mb-8">
           <SectionPill>Treatment options</SectionPill>
           <Heading level="h2" className="mt-4 mb-2">
-            Clinically-proven approaches
+            Doctor-assessed options
           </Heading>
           <p className="text-sm text-muted-foreground">
-            Your doctor recommends the best TGA-approved option for your assessment.
+            Your doctor reviews your assessment and decides what is clinically appropriate.
           </p>
         </Reveal>
 
@@ -255,7 +254,7 @@ function HairLossPricingSection({ isDisabled }: { isDisabled?: boolean }) {
                 <span className="text-4xl font-semibold tracking-tight text-foreground">
                   ${PRICING.HAIR_LOSS.toFixed(2)}
                 </span>
-                <span className="text-sm text-muted-foreground ml-2">consult + 30-day follow-up</span>
+                <span className="text-sm text-muted-foreground ml-2">one-off doctor review</span>
               </div>
 
               <ul className="space-y-2 mb-6 flex-1">
@@ -314,15 +313,15 @@ export function HairLossLanding() {
               <p className="inline-flex items-start sm:items-center gap-2 text-[13px] text-foreground max-w-xl mx-auto lg:mx-0 leading-snug text-left sm:text-center lg:text-left">
                 <Sparkles className="w-4 h-4 text-success shrink-0 mt-px sm:mt-0" aria-hidden="true" />
                 <span>
-                  Evidence-based, TGA-approved treatments.
-                  <span className="text-muted-foreground"> Same medications a clinic GP would prescribe.</span>
+                  Evidence-based assessment.
+                  <span className="text-muted-foreground"> Your doctor decides what is clinically appropriate.</span>
                 </span>
               </p>
             }
             mockup={<HairLossHeroMockup />}
           >
             <p className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-6 sm:mb-7 leading-relaxed text-balance">
-              Fill a short health form. A doctor reviews it privately and recommends a clinically-proven treatment plan.
+              Fill a short health form. A doctor reviews it privately and contacts you only if more information is clinically needed.
             </p>
           </Hero>
 
@@ -336,10 +335,10 @@ export function HairLossLanding() {
             eyebrow="Clinical, not cosmetic"
             headline={
               <>
-                <span className="text-primary">TGA-approved</span> treatments. Doctor-reviewed for you.
+                Clinical hair loss assessment. <span className="text-primary">Reviewed by a doctor.</span>
               </>
             }
-            body="Real prescriptions, not over-the-counter shampoo theories. The same medications an Australian GP would prescribe in person, reviewed by an AHPRA-registered doctor and sent to any pharmacy."
+            body="A structured doctor review for hair loss concerns. If prescription treatment is clinically appropriate, your eScript is sent by SMS and can be used at any Australian pharmacy."
           />
 
           {/* 2. How It Works */}
@@ -389,8 +388,8 @@ export function HairLossLanding() {
               last consumer of ServiceFinalCTA, the bespoke component can
               now be deleted. */}
           <CTABanner
-            title="Start treating hair loss today."
-            subtitle="A doctor reviews your assessment and recommends the right plan. eScript sent same day."
+            title="Start a hair loss assessment."
+            subtitle="A doctor reviews your assessment and prescribes only if clinically appropriate."
             ctaText="Start assessment"
             ctaHref="/request?service=consult&subtype=hair_loss"
             onCtaClick={handleFinalCTA}

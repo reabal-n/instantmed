@@ -8,7 +8,7 @@
 
 | Layer | Framework | Location | Count |
 |-------|-----------|----------|-------|
-| Unit tests | Vitest | `lib/__tests__/**/*.test.ts` | **987** passing (35 files) |
+| Unit tests | Vitest | `lib/__tests__/**/*.test.ts` | **1,521** passing (55 files, local 2026-04-28) |
 | E2E tests | Playwright | `e2e/**/*.spec.ts` | 46 specs — **full suite runs in CI** |
 
 **Coverage threshold:** 80% statements / 70% branches / 80% functions / 80% lines (enforced by Vitest config, scoped to `lib/clinical/` and `lib/security/`). **Note:** `lib/state-machine/` was removed from the include list 2026-04-08 because the directory no longer exists — the state-machine logic was consolidated into `lib/clinical/auto-approval-state.ts`.

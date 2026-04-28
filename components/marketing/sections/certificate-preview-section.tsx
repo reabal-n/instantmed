@@ -14,7 +14,7 @@ import { Reveal } from "@/components/ui/reveal"
 const CERTIFICATE_FEATURES = [
   "AHPRA-registered doctor\u2019s name and provider number",
   "Unique certificate ID with online verification",
-  "Accepted by all Australian employers and universities",
+  "Standard details for employer or study documentation",
   "Secure PDF delivered directly to your email",
 ]
 

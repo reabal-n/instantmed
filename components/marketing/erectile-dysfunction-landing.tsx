@@ -79,12 +79,11 @@ const HOW_IT_WORKS_STEPS = [
 ]
 
 const PRICING_BULLETS = [
-  "Includes a 30-day follow-up check-in with your doctor",
   "AHPRA-registered Australian doctor reviews your form",
   "eScript sent to your phone via SMS",
   "Collect from any Australian pharmacy",
-  "Discreet packaging, nothing on the outside",
-  "Full refund if we can’t help",
+  "Doctor contacts you if more information is needed",
+  "Full refund if we can't help",
 ]
 
 const LANDING_CONFIG: LandingPageConfig = {
@@ -93,7 +92,7 @@ const LANDING_CONFIG: LandingPageConfig = {
   sticky: {
     ctaText: `Start assessment · $${PRICING.MENS_HEALTH.toFixed(2)}`,
     ctaHref: "/request?service=consult&subtype=ed",
-    mobileSummary: "2-min form · Doctor-reviewed · No call needed",
+    mobileSummary: "2-min form · Doctor-reviewed · No waiting room",
     desktopLabel: "ED Treatment · Discreet & doctor-reviewed",
     priceLabel: `From $${PRICING.MENS_HEALTH.toFixed(2)}`,
     desktopCtaText: "Start assessment",
@@ -153,7 +152,7 @@ function EDPricingSection({ isDisabled }: { isDisabled?: boolean }) {
                 <span className="text-4xl font-semibold tracking-tight text-foreground">
                   ${PRICING.MENS_HEALTH.toFixed(2)}
                 </span>
-                <span className="text-sm text-muted-foreground ml-2">consult + 30-day follow-up</span>
+                <span className="text-sm text-muted-foreground ml-2">one-off doctor review</span>
               </div>
 
               <ul className="space-y-2 mb-6 flex-1">
@@ -212,14 +211,14 @@ export function ErectileDysfunctionLanding() {
                 <Lock className="w-4 h-4 text-success shrink-0 mt-px sm:mt-0" aria-hidden="true" />
                 <span>
                   Private and discreet.
-                  <span className="text-muted-foreground"> Nothing about treatment appears on the outside of your package.</span>
+                  <span className="text-muted-foreground"> Your request is reviewed securely by an Australian doctor.</span>
                 </span>
               </p>
             }
             mockup={<EDHeroMockup />}
           >
             <p className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-6 sm:mb-7 leading-relaxed text-balance">
-              Fill a short health form. A doctor reviews it privately and sends your prescription by SMS. No call, no waiting room.
+              Fill a short health form. A doctor reviews it privately and contacts you only if more information is clinically needed.
             </p>
           </Hero>
 
@@ -232,10 +231,10 @@ export function ErectileDysfunctionLanding() {
             eyebrow="Private and clinical"
             headline={
               <>
-                The same medication. <span className="text-primary">Without the awkward conversation.</span>
+                Private ED assessment. <span className="text-primary">Without the waiting room.</span>
               </>
             }
-            body="Doctor-reviewed online consult. eScript by SMS. Treatment from any Australian pharmacy in discreet packaging. The clinical pathway you'd get at a clinic, minus the in-person consult."
+            body="Doctor-reviewed online assessment. If prescription treatment is clinically appropriate, your eScript is sent by SMS and can be used at any Australian pharmacy."
           />
 
           {/* 2. How It Works */}
@@ -244,7 +243,7 @@ export function ErectileDysfunctionLanding() {
             ctaHref="/request?service=consult&subtype=ed"
             onCTAClick={handleHowItWorksCTA}
             isDisabled={isDisabled}
-            subheading="No call, no face-to-face appointment. Your assessment stays between you and the doctor."
+            subheading="No booked appointment or waiting room. The doctor contacts you if more information is clinically needed."
           />
 
           {/* 3. Time comparison */}
@@ -281,8 +280,8 @@ export function ErectileDysfunctionLanding() {
           {/* 8. Final CTA — shared <CTABanner> primitive (was bespoke
               ServiceFinalCTA, retired in Pass 2). */}
           <CTABanner
-            title="Discreet ED treatment, reviewed by a real doctor."
-            subtitle="Fill a short form. A doctor reviews it privately. Treatment in your hands the same day."
+            title="Discreet ED assessment, reviewed by a real doctor."
+            subtitle="Fill a short form. A doctor reviews it privately and prescribes only if clinically appropriate."
             ctaText="Start assessment"
             ctaHref="/request?service=consult&subtype=ed"
             onCtaClick={handleFinalCTA}

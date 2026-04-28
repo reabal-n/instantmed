@@ -36,7 +36,7 @@ const services = [
     description: "Work, uni, or carer's leave",
     features: [
       "Same-day delivery",
-      "Accepted by all employers",
+      "Standard workplace evidence",
       "AHPRA-registered doctor",
       "PDF via email",
     ],
@@ -93,7 +93,7 @@ const comparisonItems = [
   { label: "Same-day turnaround", us: true, them: false },
   { label: "Full refund if declined", us: true, them: false },
   { label: "No lock-in contracts", us: true, them: false },
-  { label: "Accepted by all employers", us: true, them: true },
+  { label: "Standard workplace evidence", us: true, them: true },
   { label: "E-scripts to any pharmacy", us: true, them: false },
 ]
 

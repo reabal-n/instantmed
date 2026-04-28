@@ -70,7 +70,7 @@ const VALUES = [
     icon: <StickerIcon name="accessibility" size={48} />,
     title: "Accessible care",
     description:
-      "24/7 medical certificates. No phone calls or video chats for most requests. Healthcare that fits around your life.",
+      "24/7 medical certificates, plus form-first specialty services where a doctor contacts you only if clinically needed.",
   },
   {
     icon: <StickerIcon name="eye" size={48} />,

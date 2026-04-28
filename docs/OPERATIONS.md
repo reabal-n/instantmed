@@ -75,6 +75,43 @@ PLAYWRIGHT=1 STRIPE_WEBHOOK_SECRET=whsec_test_... pnpm e2e e2e/stripe-webhook.sp
 5. Scheduled maintenance: cron runs every 5 min; if window passed but banner still on, manually set `maintenance_mode` = false in feature_flags
 6. Doctor availability: paused doctors (`doctor_available = false`) see empty queue; toggle at `/doctor/settings/identity`
 
+### Solo-Doctor Operating Model
+
+**Current phase:** one AHPRA-registered GP operates as treating doctor and Medical Director. The platform must protect clinical quality and doctor capacity before it optimises volume.
+
+**Service priority order:**
+
+| Priority | Service | Operating rule |
+|----------|---------|----------------|
+| 1 | Medical certificates | Primary volume engine. Suitable low-risk requests may use doctor-owned protocol automation with QA sampling. |
+| 2 | Repeat prescriptions | One-off eScript review for existing stable medications. Escalate unclear or higher-risk cases. |
+| 3 | Hair loss | One-off specialist assessment. No subscription, no pharmacy fulfilment. |
+| 4 | ED | One-off specialist assessment with strict contraindication checks. |
+| 5 | Women's health | Narrow scope only. Escalate complexity. |
+| 6 | Weight loss | Manual/high-risk review. Do not automate in the solo-doctor phase. |
+
+**Capacity guardrails:**
+
+- Admin/support should be hired before a second doctor if support becomes the bottleneck.
+- First support hire trigger: 30-50 orders/day or 10+ support tickets/day.
+- Second doctor trigger: queue P95 above 2 hours during operating hours, QA falling behind, or sustained $60k-$80k/month gross revenue.
+- Subscriptions, monthly prescribing, pharmacy fulfilment, and ongoing check-in programs remain dormant until staffing exists.
+
+**Escalation rule:** For prescription and specialty requests, the operational default is form-first doctor review. The doctor may call or message directly when more information is clinically needed. Marketing and product copy must not hard-promise "no call needed" for prescribing pathways.
+
+**Weekly operating dashboard:**
+
+| Metric | Target |
+|--------|--------|
+| Refund rate | Below 8-10% |
+| Chargeback rate | Below 0.5% |
+| Support tickets | Below 5 per 100 orders |
+| Median med-cert turnaround | Below 30 minutes |
+| Doctor queue P95 | Below 2 hours during operating hours |
+| Doctor minutes/order | Trending down without complaint increase |
+| Auto/manual med-cert split | Stable and explainable |
+| QA sample backlog | Current |
+
 ### Security Incident
 
 > Classification levels: SECURITY.md → Security Incident Classification

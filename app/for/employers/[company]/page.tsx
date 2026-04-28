@@ -52,7 +52,7 @@ export async function generateMetadata({ params }: { params: Promise<{ company: 
 
   return {
     title: `Verify Medical Certificates | ${employer.name} Employees`,
-    description: `${employer.name} employees and HR teams can verify InstantMed medical certificates instantly. AHPRA-registered doctors, accepted by all Australian employers.`,
+    description: `${employer.name} employees and HR teams can verify InstantMed medical certificates instantly. Issued by AHPRA-registered doctors; employer policies may vary.`,
     openGraph: {
       title: `Verify Medical Certificates | ${employer.name}`,
       description: `How ${employer.name} HR teams verify InstantMed medical certificates.`,
@@ -66,8 +66,8 @@ export async function generateMetadata({ params }: { params: Promise<{ company: 
 function getFaqs(name: string) {
   return [
     {
-      question: `Does ${name} accept online medical certificates?`,
-      answer: `Yes. ${name}, like all Australian employers, must accept medical certificates from AHPRA-registered doctors under the Fair Work Act. InstantMed certificates meet all legal requirements.`,
+      question: `Can ${name} employees submit online medical certificates?`,
+      answer: `InstantMed certificates are issued by AHPRA-registered doctors and include standard workplace documentation details. ${name} applies its own workplace policies, so employees should check the relevant HR requirements.`,
     },
     {
       question: `How do I verify an InstantMed certificate from a ${name} employee?`,
@@ -152,8 +152,8 @@ export default async function EmployerCompanyPage({ params }: { params: Promise<
               <span className="text-primary">for {employer.name}</span>
             </h1>
             <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-              InstantMed medical certificates are accepted by {employer.name} and all Australian employers.
-              Verify any certificate instantly using our secure portal.
+              InstantMed medical certificates include doctor details and a unique verification code.
+              {employer.name} HR teams can verify certificate authenticity using our secure portal.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Button asChild size="lg" className="rounded-full">
@@ -182,9 +182,9 @@ export default async function EmployerCompanyPage({ params }: { params: Promise<
                 <div className="w-12 h-12 rounded-full bg-success-light flex items-center justify-center mx-auto mb-3">
                   <Shield className="w-6 h-6 text-success" />
                 </div>
-                <h3 className="font-semibold text-foreground mb-1 text-sm">Legally Valid</h3>
+                <h3 className="font-semibold text-foreground mb-1 text-sm">Doctor-Issued</h3>
                 <p className="text-xs text-muted-foreground">
-                  Issued by AHPRA-registered doctors. Same legal standing as in-person GP certificates under the Fair Work Act.
+                  Issued by AHPRA-registered doctors with standard sick-leave evidence details. Employer policies may vary.
                 </p>
               </div>
               <div className="bg-card rounded-2xl border p-6 text-center">
@@ -235,7 +235,7 @@ export default async function EmployerCompanyPage({ params }: { params: Promise<
             </p>
             <Button asChild variant="outline" className="rounded-full bg-transparent">
               <Link href="/medical-certificate">
-                Get a Certificate Accepted by {employer.name}
+                Get a Workplace Certificate
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Link>
             </Button>

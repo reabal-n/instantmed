@@ -36,7 +36,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
   return {
     title: `${med.name} (${med.brandNames[0]}) | Online Consultation Australia`,
-    description: `Learn about ${med.name} (${med.brandNames[0]}). ${med.simpleDescription} Consult an AHPRA-registered Australian doctor online. From $${med.price}.`,
+    description: `Learn about ${med.name} (${med.brandNames[0]}), including general uses and safety considerations. Prescription decisions require doctor assessment.`,
     keywords: [
       `${med.name.toLowerCase()} online consultation`,
       `${med.name.toLowerCase()} australia`,
@@ -145,17 +145,17 @@ export default async function MedicationPage({ params }: { params: Promise<{ slu
               <div className="lg:w-80 shrink-0">
                 <div className="sticky top-24 p-6 rounded-2xl border bg-card shadow-lg">
                   <div className="text-center mb-4">
-                    <p className="text-sm text-muted-foreground">From</p>
-                    <p className="text-4xl font-semibold">${med.price}</p>
+                    <p className="text-sm text-muted-foreground">Doctor review</p>
+                    <p className="text-2xl font-semibold">Prescription support</p>
                   </div>
                   <Button asChild className="w-full h-12 text-base" size="lg">
-                    <Link href={`/request?service=prescription&medication=${med.slug}`}>
-                      Start a consultation
+                    <Link href="/request?service=prescription">
+                      Start a prescription request
                       <ArrowRight className="ml-2 h-4 w-4" />
                     </Link>
                   </Button>
                   <p className="text-xs text-center text-muted-foreground mt-3">
-                    A doctor will assess if this medication is appropriate for you
+                    Medication details are collected securely inside the intake
                   </p>
                 </div>
               </div>
@@ -251,13 +251,13 @@ export default async function MedicationPage({ params }: { params: Promise<{ slu
         {/* Bottom CTA */}
         <section className="px-4 py-12 bg-muted/30">
           <div className="mx-auto max-w-xl text-center">
-            <h2 className="text-2xl font-semibold mb-4">Interested in {med.name}?</h2>
+            <h2 className="text-2xl font-semibold mb-4">Need medication advice?</h2>
             <p className="text-muted-foreground mb-6">
-              A doctor will assess whether this medication is right for you. Fill out a short questionnaire, and an AHPRA-registered GP reviews your request.
+              A doctor can review your existing medication history and decide what is clinically appropriate. Medication details are collected inside the secure request form.
             </p>
             <Button asChild size="lg" className="h-12 px-8">
-              <Link href={`/request?service=prescription&medication=${med.slug}`}>
-                Start a consultation
+              <Link href="/request?service=prescription">
+                Start a prescription request
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>

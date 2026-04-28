@@ -28,14 +28,14 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
         title: "Medical Certificates for Queensland Workers",
         paragraphs: [
           "Queensland's economy has a significant proportion of shift workers, FIFO (fly-in, fly-out) workers, and casual employees. Mining, construction, hospitality, and healthcare are all major employers - and all involve work schedules that don't align with standard GP clinic hours. Getting a medical certificate shouldn't require taking an additional day off.",
-          "Under the Fair Work Act, Queensland employees have the same leave entitlements as workers in other states. Employers can request a medical certificate for any personal/carer's leave absence, and certificates from AHPRA-registered doctors via telehealth are legally valid. Queensland government departments, local councils, and all major employers accept telehealth-issued certificates.",
-          "For FIFO workers based in Brisbane but working in remote Queensland, telehealth is particularly valuable. If you're on R&R in Brisbane and fall ill, you need a certificate that your employer (often based in Perth or elsewhere) will accept. InstantMed certificates are nationally valid - issued by AHPRA-registered doctors and accepted by every employer in Australia.",
+          "Under the Fair Work Act, Queensland employees have the same leave entitlements as workers in other states. Employers can request a medical certificate for any personal/carer's leave absence, and certificates from AHPRA-registered doctors via telehealth are legally valid. Queensland government departments, local councils, and all major employers assess telehealth-issued certificates under their own policies.",
+          "For FIFO workers based in Brisbane but working in remote Queensland, telehealth is particularly valuable. If you're on R&R in Brisbane and fall ill, you may need documentation for an employer based in Perth or elsewhere. InstantMed certificates are issued by AHPRA-registered doctors and employer policies may vary across Australia.",
         ],
       },
       {
         title: "Students and Young Workers in Brisbane",
         paragraphs: [
-          "Brisbane's universities - UQ, QUT, Griffith, JCU (Townsville campus with Brisbane presence) - collectively serve over 200,000 students. University health services exist but are often oversubscribed, with wait times of several days during semester. For special consideration applications and assessment extensions, students need timely medical certificates - something telehealth delivers reliably.",
+          "Brisbane's universities - UQ, QUT, Griffith, JCU (Townsville campus with Brisbane presence) - collectively serve over 200,000 students. University health services exist but are often oversubscribed, with wait times of several days during semester. For academic support requests, students need timely medical certificates - something telehealth delivers reliably.",
           "Brisbane also has a large casual and gig economy workforce. Uber drivers, Menulog riders, hospitality staff, and retail workers often lack traditional sick leave entitlements. While they may not need a certificate for their employer, having medical documentation is important for their own records and for accessing Centrelink's sickness allowance if needed. InstantMed provides this documentation at a fraction of the cost of a private GP consultation in Brisbane.",
         ],
       },
@@ -57,10 +57,10 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
     },
     additionalFaqs: [
       { q: "Does InstantMed cover the Gold Coast and Sunshine Coast?", a: "Yes. InstantMed covers all of South-East Queensland, including Brisbane, Gold Coast, Sunshine Coast, Ipswich, Logan, Redlands, and Moreton Bay. It's an online service - your location doesn't matter as long as you have internet access." },
-      { q: "Are telehealth certificates accepted by Queensland government employers?", a: "Yes. Queensland government departments, local councils, and statutory bodies all accept medical certificates from AHPRA-registered doctors, including those issued via telehealth. The method of consultation doesn't affect the certificate's legal validity." },
+      { q: "Are telehealth certificates suitable for Queensland government employer documentation?", a: "Yes. Queensland government departments, local councils, and statutory bodies all set their own policies for medical certificates from AHPRA-registered doctors, including those issued via telehealth. The method of consultation doesn't affect the certificate's legal validity." },
       { q: "Can I get a medical certificate for heat-related illness in Brisbane?", a: "Yes. Heat exhaustion, heat-related fatigue, and dehydration are valid reasons for a medical certificate. Our doctors assess whether your symptoms are appropriate for telehealth management. If you're experiencing severe symptoms (confusion, loss of consciousness), call 000 - that's an emergency." },
       { q: "Is InstantMed available during Queensland school holidays?", a: "Yes. We operate 8am–10pm AEST, 7 days a week, including all public holidays and school holiday periods. Demand for GP appointments typically increases during school holidays - telehealth avoids the queue." },
-      { q: "Can FIFO workers use InstantMed?", a: "Yes. FIFO workers are some of our most common users. Whether you're on site in the Bowen Basin or on R&R in Brisbane, our doctors can provide medical certificates and prescriptions. Certificates are nationally valid and accepted by all employers." },
+      { q: "Can FIFO workers use InstantMed?", a: "Yes. FIFO workers are some of our most common users. Whether you're on site in the Bowen Basin or on R&R in Brisbane, our doctors can provide medical certificates and prescriptions. Certificates are issued by AHPRA-registered doctors and employer policies may vary." },
     ],
   },
   "gold-coast": {
@@ -83,15 +83,15 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
         title: "Who Uses Telehealth on the Gold Coast",
         paragraphs: [
           "The Gold Coast's economy runs on tourism, hospitality, construction, and healthcare - industries with irregular hours and physical demands. Hospitality staff at Surfers Paradise or Broadbeach who call in sick at 6am can't easily get to a GP at 9am when they're supposed to be sleeping between shifts. Telehealth removes the scheduling barrier.",
-          "Gold Coast students - at Bond University, Griffith University Gold Coast campus, and Southern Cross University - regularly need medical certificates for special consideration. During exam periods, same-day GP appointments can be near-impossible. Telehealth certificates are accepted by all three institutions.",
+          "Gold Coast students - at Bond University, Griffith University Gold Coast campus, and Southern Cross University - regularly need medical certificates for academic support. During exam periods, same-day GP appointments can be near-impossible. Telehealth certificates are handled according to each institution's policy.",
           "Visitors and temporary residents present a unique challenge. If you're from Sydney and fall ill while visiting the Gold Coast, you may not have a local GP. Telehealth provides access to an Australian doctor regardless of where your regular GP is based. Certificates issued are valid for your employer back home.",
         ],
       },
       {
         title: "Medical Certificates in Queensland",
         paragraphs: [
-          "Under the Fair Work Act 2009, Gold Coast employers must accept medical certificates from AHPRA-registered doctors, regardless of the consultation method. Queensland-specific industrial instruments - including the QLD Public Service enterprise agreement - do not require certificates to come from face-to-face consultations.",
-          "For Gold Coast students, Bond University accepts telehealth-issued certificates for all academic considerations. Griffith University Gold Coast campus follows the same acceptance policy as their Brisbane campuses. Southern Cross University's Coolangatta campus accepts certificates from any registered practitioner.",
+          "Under the Fair Work Act 2009, Gold Coast employers must set their own policies for medical certificates from AHPRA-registered doctors, regardless of the consultation method. Queensland-specific industrial instruments - including the QLD Public Service enterprise agreement - do not require certificates to come from face-to-face consultations.",
+          "For Gold Coast students, Bond University sets its own policy for telehealth-issued certificates for all academic considerations. Griffith University Gold Coast campus follows the same documentation policy as their Brisbane campuses. Southern Cross University's Coolangatta campus accepts certificates from any registered practitioner.",
           "Theme park employees (Dreamworld, Sea World, Movie World, Wet'n'Wild), surf lifesavers, and hospitality workers often need certificates at short notice. Telehealth accommodates this - submit your request when you wake up feeling unwell, and most certificates are issued in under 30 minutes, available 24/7.",
         ],
       },
@@ -113,8 +113,8 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
     },
     additionalFaqs: [
       { q: "Can tourists use InstantMed on the Gold Coast?", a: "Yes. If you're 18+, in Australia, and can provide your details, you can use InstantMed. Certificates are valid for any Australian employer. International visitors should check their home country's requirements for medical documentation." },
-      { q: "Are certificates accepted by Gold Coast theme park employers?", a: "Yes. All Australian employers - including theme parks, hospitality venues, and entertainment companies - must accept certificates from AHPRA-registered doctors under the Fair Work Act." },
-      { q: "Can Bond University students use InstantMed?", a: "Yes. Bond University accepts medical certificates from AHPRA-registered doctors for special consideration applications, exam deferrals, and assignment extensions." },
+      { q: "Are certificates suitable for Gold Coast theme park employer documentation?", a: "Yes. All Australian employers - including theme parks, hospitality venues, and entertainment companies - must set their own policies for certificates from AHPRA-registered doctors under the Fair Work Act." },
+      { q: "Can Bond University students use InstantMed?", a: "Yes. Bond University sets its own policy for medical certificates from AHPRA-registered doctors for academic support requests, missed assessment documentation, and coursework documentation." },
       { q: "Is InstantMed available in the Gold Coast hinterland?", a: "Yes. Telehealth works anywhere with internet access - Tamborine Mountain, Springbrook, Currumbin Valley, or anywhere in the hinterland. The service and pricing are identical." },
       { q: "What if I'm visiting from interstate and need a certificate?", a: `You can use InstantMed from anywhere in Australia. The certificate is valid for your employer regardless of which state you're normally based in. Medical certificates start from ${PRICING_DISPLAY.MED_CERT}.` },
     ],
@@ -158,7 +158,7 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
     },
     additionalFaqs: [
       { q: "Does InstantMed serve the Sunshine Coast hinterland?", a: "Yes. We serve all Sunshine Coast areas including Maleny, Montville, Nambour, Eumundi, and the Glass House Mountains." },
-      { q: "Can USC students use InstantMed?", a: "Yes. The University of the Sunshine Coast accepts medical certificates from AHPRA-registered doctors for academic consideration and deferrals." },
+      { q: "Can USC students use InstantMed?", a: "Yes. The University of the Sunshine Coast sets its own policy for medical certificates from AHPRA-registered doctors for academic consideration and deferrals." },
       { q: "Is InstantMed available during school holidays?", a: `Yes - we're available 8am–10pm AEST, 7 days a week, including school holidays when local clinics are at their busiest. Certificates from ${PRICING_DISPLAY.MED_CERT}.` },
     ],
   },
@@ -200,9 +200,9 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
       ],
     },
     additionalFaqs: [
-      { q: "Can JCU students use InstantMed?", a: "Yes. James Cook University accepts medical certificates from AHPRA-registered doctors for special consideration, exam deferrals, and assignment extensions." },
+      { q: "Can JCU students use InstantMed?", a: "Yes. James Cook University sets its own policy for medical certificates from AHPRA-registered doctors for academic support, missed assessment documentation, and coursework documentation." },
       { q: "Does InstantMed work during cyclone season?", a: "Yes - as long as you have internet access (including mobile data), InstantMed works regardless of weather conditions. It's especially useful when travel to a clinic is unsafe." },
-      { q: "Can defence families use InstantMed?", a: "Yes. Defence families can use InstantMed for civilian healthcare needs. Certificates are issued by AHPRA-registered doctors and are valid for all employers." },
+      { q: "Can defence families use InstantMed?", a: "Yes. Defence families can use InstantMed for civilian healthcare needs. Certificates are issued by AHPRA-registered doctors and employer policies may vary." },
       { q: "Does InstantMed serve Magnetic Island?", a: `Yes. InstantMed serves anywhere with internet access, including Magnetic Island. No need to catch the ferry for a medical certificate. From ${PRICING_DISPLAY.MED_CERT}.` },
     ],
   },
@@ -268,7 +268,7 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
       {
         title: "Students and Workers in Toowoomba",
         paragraphs: [
-          "The University of Southern Queensland's Toowoomba campus is a major regional university, and TAFE Queensland's Toowoomba campus serves vocational students from across the Downs. Both accept telehealth-issued medical certificates for academic support applications.",
+          "The University of Southern Queensland's Toowoomba campus is a major regional university, and TAFE Queensland's Toowoomba campus serves vocational students from across the Downs. Both assess telehealth-issued medical certificates under their own policies for academic support applications.",
           "Toowoomba's economy relies on agriculture, education, healthcare (with Toowoomba Hospital a major employer), and a growing logistics sector. Many workers in these industries have irregular hours or work in locations distant from clinics. InstantMed provides flexible access to medical certificates and prescriptions on their schedule.",
         ],
       },
@@ -289,7 +289,7 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
     additionalFaqs: [
       { q: "Can I use InstantMed from a farm on the Downs?", a: "Yes - anywhere with internet access. Many farming properties have mobile coverage or satellite internet, both of which work with InstantMed." },
       { q: "Does InstantMed serve Dalby, Warwick, and Gatton?", a: "Yes. We serve all of the Darling Downs and Southern Downs - your location doesn't matter as long as you have internet." },
-      { q: "Are certificates accepted by agricultural employers?", a: "Yes. Our certificates are issued by AHPRA-registered doctors and accepted by all Australian employers, including farming operations, feedlots, and agribusiness companies." },
+      { q: "Are certificates suitable for agricultural employer documentation?", a: "Yes. Our certificates are issued by AHPRA-registered doctors and employer policies may vary, including farming operations, feedlots, and agribusiness companies." },
     ],
   },
   ipswich: {
@@ -312,7 +312,7 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
         title: "Ipswich's Workforce",
         paragraphs: [
           "Ipswich's economy spans defence (RAAF Base Amberley), logistics (Swanbank and Ebenezer industrial areas), healthcare, retail, and construction. Many of these workers have shift-based or physically demanding roles where GP clinic hours don't align with their schedule.",
-          "The University of Southern Queensland has an Ipswich campus, and TAFE Queensland's Ipswich and Springfield campuses serve vocational students. All accept telehealth-issued medical certificates. For students and workers in Ipswich, telehealth means one less obstacle in managing health and employment.",
+          "The University of Southern Queensland has an Ipswich campus, and TAFE Queensland's Ipswich and Springfield campuses serve vocational students. All assess telehealth-issued medical certificates under their own policies. For students and workers in Ipswich, telehealth means one less obstacle in managing health and employment.",
         ],
       },
     ],
@@ -364,7 +364,7 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
         paragraphs: [
           "North and Central Queensland's cyclone season (November to April) brings genuine healthcare continuity issues. When roads flood, power goes down, and local clinics close, getting to a doctor becomes difficult or impossible. Telehealth keeps working as long as the mobile network is up - which it usually is even during and after significant weather events. For a resident in Proserpine, Airlie Beach, or Sarina dealing with a standard winter flu while the Bruce Highway is closed, a telehealth certificate is the only realistic option.",
           "Distance is the other Central Queensland reality. The Bowen Basin mining towns are hours from Mackay by road. Residents of Moranbah and Dysart may see a GP only a few times a year and often coordinate visits around shopping trips into the city. InstantMed operates anywhere with internet - no town is too small and no mine site camp too remote, as long as there's coverage.",
-          "The James Cook University Mackay clinical school and CQUniversity's local presence mean Mackay also has a meaningful student population alongside its FIFO and resident workforce. JCU students rotate through Mackay Base Hospital and surrounding rural placements, often without an established local GP. For special consideration applications, exam deferrals, and assignment extensions, JCU and all other Australian universities accept medical certificates from AHPRA-registered doctors regardless of consultation method.",
+          "The James Cook University Mackay clinical school and CQUniversity's local presence mean Mackay also has a meaningful student population alongside its FIFO and resident workforce. JCU students rotate through Mackay Base Hospital and surrounding rural placements, often without an established local GP. For academic support requests, missed assessment documentation, and coursework documentation, JCU and all other Australian universities set their own policies for medical certificates from AHPRA-registered doctors regardless of consultation method.",
         ],
       },
       {
@@ -393,7 +393,7 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
       ],
     },
     additionalFaqs: [
-      { q: "Do Bowen Basin mining companies accept telehealth certificates?", a: "Yes. Mining companies operating in Australia are bound by the Fair Work Act and accept certificates from AHPRA-registered doctors regardless of consultation method. Our certificates include all the details - AHPRA number, consultation date, recommended period of absence - that mining HR and site medics need for fitness-for-duty documentation." },
+      { q: "Do Bowen Basin mining companies assess telehealth certificates under their own policies?", a: "Yes. Mining companies operating in Australia are bound by the Fair Work Act and set their own policies for certificates from AHPRA-registered doctors regardless of consultation method. Our certificates include all the details - AHPRA number, consultation date, recommended period of absence - that mining HR and site medics need for fitness-for-duty documentation." },
       { q: "Can I use InstantMed from a mine camp in Moranbah or Dysart?", a: "Yes, as long as you have internet or mobile data. Many camps have WiFi, and those that don't usually have mobile coverage. You can start and finish the intake from site, and receive your certificate or eScript while still on your swing." },
       { q: "Does InstantMed work during cyclone season in Mackay?", a: "Yes. Telehealth is actually more useful during severe weather - when clinics close, roads flood, or you simply cannot safely drive into town. As long as the mobile network is operational, InstantMed works." },
       { q: "Is InstantMed available in the Whitsundays?", a: `Yes. Airlie Beach, Proserpine, Cannonvale, Bowen - anywhere in the Whitsundays with internet access. Pricing is identical regardless of location. Medical certificates start from ${PRICING_DISPLAY.MED_CERT}.` },
@@ -420,7 +420,7 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
         paragraphs: [
           "Central Queensland's economy is built on beef (Rockhampton bills itself as the 'beef capital of Australia'), mining - particularly the coalfields around Blackwater, Moranbah, and Moura - and the transport and port infrastructure connecting them to global markets. Each of these industries is heavily shift-based. Feedlot operations, abattoirs, meatworks, port logistics, and coal haulage all run around the clock, and their workers need medical documentation that fits around rotating rosters, not 9-to-5 clinic hours.",
           "For workers at JBS Rockhampton, Teys Australia, or any of the regional abattoirs, a medical certificate is often a requirement for any unplanned absence. Same-day clinic visits are difficult in a city where GP wait times stretch to a week. Telehealth can issue the certificate within hours, typically 30 minutes or less during business hours, and the result is emailed to you as a PDF you can forward directly to your shift supervisor.",
-          "Central Queensland University's main campus is in Rockhampton, and both CQU and TAFE Queensland Central Queensland serve thousands of local and regional students. All Australian universities, including CQU, accept certificates from AHPRA-registered doctors for special consideration, exam deferrals, and assignment extensions. The delivery method - telehealth or face-to-face - does not affect acceptance.",
+          "Central Queensland University's main campus is in Rockhampton, and both CQU and TAFE Queensland Central Queensland serve thousands of local and regional students. Australian universities, including CQU, set their own policies for medical certificates used as academic support documentation. The delivery method - telehealth or face-to-face - does not affect acceptance.",
         ],
       },
       {
@@ -465,7 +465,7 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
     },
     additionalFaqs: [
       { q: "Does InstantMed cover the Capricorn Coast and Central Highlands?", a: "Yes. Yeppoon, Emu Park, Keppel Sands, Gracemere, Mount Morgan, Biloela, Emerald, Blackwater - anywhere in Central Queensland with internet access. Same service, same pricing." },
-      { q: "Can CQU students use InstantMed for special consideration?", a: "Yes. Central Queensland University, like all Australian universities, accepts medical certificates from AHPRA-registered doctors for special consideration, exam deferrals, and assignment extensions." },
+      { q: "Can CQU students use InstantMed for academic support?", a: "Yes. Central Queensland University, like all Australian universities, sets its own policy for medical certificates from AHPRA-registered doctors for academic support, missed assessment documentation, and coursework documentation." },
       { q: "Can I use InstantMed during Rockhampton flooding?", a: "Yes. Telehealth works as long as you have mobile or internet access. It's one of the few healthcare pathways that keeps functioning when roads are cut and clinics are inaccessible." },
       { q: "Is InstantMed cheaper than a Rockhampton GP?", a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT} with no gap fees. With many Rockhampton GPs now charging $30–$60 out of pocket, InstantMed is often more affordable for straightforward certificates and scripts.` },
     ],
@@ -491,7 +491,7 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
         paragraphs: [
           "Bundaberg's economy runs on agriculture - sugarcane, macadamias, avocados, tomatoes, and the region's famous small crops. Harvest season brings a large influx of working-holiday visa holders and seasonal workers, and it intersects with the permanent workforce at the sugar mills, packing sheds, and processing facilities (Bundaberg Rum is only the most visible example). All of these are heavily shift-based industries where a 9-to-5 GP clinic visit doesn't fit the roster.",
           "Medical certificates are a routine requirement for any unplanned absence from harvest, packing, or mill work. Telehealth can issue the certificate within hours, available as a PDF that workers can forward to their supervisor or labour hire provider. For working-holiday visa holders who don't have an established GP in the region, telehealth provides a consistent pathway that doesn't depend on finding a local clinic that can fit them in.",
-          "Central Queensland University has a Bundaberg campus, and TAFE Queensland's Wide Bay institutes serve thousands of vocational students. Both accept medical certificates from AHPRA-registered doctors for special consideration and academic support. The consultation method is not a factor in acceptance.",
+          "Central Queensland University has a Bundaberg campus, and TAFE Queensland's Wide Bay institutes serve thousands of vocational students. Both set their own policies for medical certificates from AHPRA-registered doctors for academic support and academic support. The consultation method is not a factor in documentation review.",
         ],
       },
       {
@@ -537,7 +537,7 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
     },
     additionalFaqs: [
       { q: "Does InstantMed cover the Burnett and Wide Bay regions?", a: "Yes. Childers, Gin Gin, Gayndah, Mundubbera, Monto, Bargara, Moore Park - anywhere in the Bundaberg LGA and broader Wide Bay–Burnett region with internet access is covered." },
-      { q: "Can working-holiday visa holders use InstantMed during harvest?", a: "Yes. As long as you are 18+ and in Australia, you can use InstantMed regardless of visa status. Certificates are valid for all Australian employers and labour hire providers." },
+      { q: "Can working-holiday visa holders use InstantMed during harvest?", a: "Yes. As long as you are 18+ and in Australia, you can use InstantMed regardless of visa status. Certificates are subject to employer and labour-hire provider policies." },
       { q: "Is InstantMed cheaper than a Bundaberg GP?", a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT} with no gap fees. With Queensland's bulk-billing rate declining, many GPs in the region now charge out-of-pocket fees - InstantMed's flat pricing is often more predictable.` },
       { q: "Can I use InstantMed from Agnes Water or the Town of 1770?", a: "Yes. Agnes Water and the Town of 1770 are just outside the Bundaberg LGA, but telehealth works anywhere in Australia with internet access - including these coastal towns. Same service, same pricing." },
     ],
@@ -569,8 +569,8 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
       {
         title: "Medical Certificates and Queensland Law",
         paragraphs: [
-          "Hervey Bay and Fraser Coast employers operate under the Fair Work Act 2009 or, for state government workers, the relevant Queensland industrial instruments. Both frameworks accept medical certificates from AHPRA-registered practitioners and do not distinguish between telehealth and face-to-face consultations. Queensland government departments, Fraser Coast Regional Council, Hervey Bay Hospital, tourism operators, and local businesses all accept telehealth certificates.",
-          "University of the Sunshine Coast's Fraser Coast campus in Hervey Bay serves regional students. USC accepts medical certificates from AHPRA-registered doctors for special consideration applications, exam deferrals, and assignment extensions - the same rule that applies at every Australian university.",
+          "Hervey Bay and Fraser Coast employers operate under the Fair Work Act 2009 or, for state government workers, the relevant Queensland industrial instruments. Both frameworks accept medical certificates from AHPRA-registered practitioners and do not distinguish between telehealth and face-to-face consultations. Queensland government departments, Fraser Coast Regional Council, Hervey Bay Hospital, tourism operators, and local businesses all assess telehealth certificates under their own policies.",
+          "University of the Sunshine Coast's Fraser Coast campus in Hervey Bay serves regional students. USC sets its own policy for medical certificates from AHPRA-registered doctors for academic support requests, missed assessment documentation, and coursework documentation - the same rule that applies at every Australian university.",
           "Repeat prescription needs are particularly common in the Hervey Bay demographic. Rather than wait a week for a GP appointment simply to renew a stable medication, telehealth can handle the renewal in 20–30 minutes with an eScript sent directly to your phone for collection at any local pharmacy.",
         ],
       },
@@ -611,7 +611,7 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
       { q: "Can retirees in Hervey Bay use InstantMed?", a: "Yes. InstantMed is available to any Australian resident 18+. The intake is designed to be straightforward, and telehealth is particularly useful for repeat scripts of stable chronic medications - no need to attend a clinic in person just to renew a prescription you have been on for years." },
       { q: "Does InstantMed cover Maryborough and K'gari?", a: "Yes. Hervey Bay, Maryborough, Burrum Heads, Tin Can Bay, and K'gari (Fraser Island) - anywhere on the Fraser Coast with internet access is covered." },
       { q: "Can whale watching season workers get certificates quickly?", a: `Yes. Most certificates are reviewed within an hour during business hours. From ${PRICING_DISPLAY.MED_CERT}, regardless of whether it is peak season or off-season.` },
-      { q: "Are certificates accepted by Fraser Coast Regional Council and Hervey Bay Hospital?", a: "Yes. All Australian employers, including local councils and public hospitals, must accept certificates from AHPRA-registered doctors under the Fair Work Act. The consultation method does not affect validity." },
+      { q: "Are certificates suitable for Fraser Coast Regional Council and Hervey Bay Hospital documentation?", a: "Yes. All Australian employers, including local councils and public hospitals, must set their own policies for certificates from AHPRA-registered doctors under the Fair Work Act. The consultation method does not affect validity." },
     ],
   },
   gladstone: {
@@ -635,15 +635,15 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
         paragraphs: [
           "Gladstone's industrial employers - Santos, Origin Energy, ConocoPhillips, Rio Tinto (QAL and Boyne Smelters), GPC - typically require medical certificates for any absence, often as part of fitness-for-duty protocols. These are large, safety-critical operations where unplanned absences affect shift coverage and production. Workers need certificates quickly to maintain their standing with supervisors and HR.",
           "Many Gladstone workers are employed through labour hire companies (Programmed, Chandler Macleod, Hays) or on contractor arrangements. These workers often face stricter documentation requirements than permanent employees - a missing certificate can mean losing future shifts. Telehealth's same-day turnaround is particularly valuable for this workforce.",
-          "FIFO and DIDO (drive-in, drive-out) workers who commute to Gladstone from Rockhampton, Bundaberg, or further afield face additional challenges. If they fall ill during their swing, they may not have a local GP. Telehealth provides access to a doctor regardless of where the worker's home base is located. Certificates are nationally valid and accepted by all industrial employers.",
+          "FIFO and DIDO (drive-in, drive-out) workers who commute to Gladstone from Rockhampton, Bundaberg, or further afield face additional challenges. If they fall ill during their swing, they may not have a local GP. Telehealth provides access to a doctor regardless of where the worker's home base is located. Certificates are nationally valid and industrial employer policies may vary.",
         ],
       },
       {
         title: "Beyond Industry: Gladstone's Broader Community",
         paragraphs: [
           "Gladstone is more than its industrial base. The city serves as a service hub for the surrounding Gladstone Regional Council area, including Calliope, Tannum Sands, Boyne Island, Agnes Water, and the Town of 1770. These coastal and semi-rural communities have limited local healthcare, and residents often travel to Gladstone for GP appointments.",
-          "CQUniversity's Gladstone campus and TAFE Queensland's Gladstone campus serve local and regional students. Both accept medical certificates from AHPRA-registered doctors for special consideration applications and assessment extensions. The consultation method is not a factor in acceptance.",
-          "Under the Fair Work Act 2009, all Gladstone employers must accept certificates from AHPRA-registered doctors. Queensland-specific industrial instruments, including resources sector enterprise agreements, do not distinguish between telehealth and face-to-face certificates. The certificate must include the doctor's AHPRA registration, consultation date, and recommended absence period - all of which InstantMed certificates provide.",
+          "CQUniversity's Gladstone campus and TAFE Queensland's Gladstone campus serve local and regional students. Both set their own policies for medical certificates from AHPRA-registered doctors for academic support requests. The consultation method is not a factor in documentation review.",
+          "Under the Fair Work Act 2009, all Gladstone employers must set their own policies for certificates from AHPRA-registered doctors. Queensland-specific industrial instruments, including resources sector enterprise agreements, do not distinguish between telehealth and face-to-face certificates. The certificate must include the doctor's AHPRA registration, consultation date, and recommended absence period - all of which InstantMed certificates provide.",
         ],
       },
     ],
@@ -659,13 +659,13 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
       paragraphs: [
         "Queensland follows national AHPRA and Medical Board of Australia guidelines for telehealth. Queensland Health has been a strong advocate for telehealth expansion, driven by the state's geographic spread and the healthcare access challenges faced by regional and industrial communities like Gladstone.",
         "Prescribing via telehealth in Queensland follows national TGA regulations. PBS-listed medications can be prescribed electronically, with eScripts accepted at all Queensland pharmacies. Schedule 8 controlled substances require Queensland Health authority and typically an in-person assessment. InstantMed does not prescribe Schedule 8 medications.",
-        "Medical certificates from telehealth consultations carry the same legal weight as face-to-face certificates in Queensland. Resources sector enterprise agreements, state government employment conditions, and the Fair Work Act all accept certificates from AHPRA-registered doctors regardless of consultation method.",
+        "Medical certificates from telehealth consultations carry the same legal weight as face-to-face certificates in Queensland. Resources sector enterprise agreements, state government employment conditions, and the Fair Work Act all set their own policies for certificates from AHPRA-registered doctors regardless of consultation method.",
       ],
     },
     additionalFaqs: [
-      { q: "Can LNG and alumina workers use InstantMed?", a: "Yes. Industrial workers across Gladstone's LNG plants, QAL, Boyne Smelters, and the port can get medical certificates via telehealth. Certificates are valid for all employers including those under resources sector enterprise agreements." },
+      { q: "Can LNG and alumina workers use InstantMed?", a: "Yes. Industrial workers across Gladstone's LNG plants, QAL, Boyne Smelters, and the port can get medical certificates via telehealth. Certificates are subject to employer policies, including those under resources sector enterprise agreements." },
       { q: "Does InstantMed cover Tannum Sands and Agnes Water?", a: "Yes. Tannum Sands, Boyne Island, Calliope, Agnes Water, Town of 1770, and all surrounding communities are covered. Anywhere with internet access in the Gladstone region." },
-      { q: "Can labour hire workers use InstantMed?", a: "Yes. Medical certificates from AHPRA-registered doctors are accepted by all labour hire companies operating in Australia. The certificate meets documentation requirements for Programmed, Chandler Macleod, Hays, and all other agencies." },
+      { q: "Can labour hire workers use InstantMed?", a: "Yes. Medical certificates from AHPRA-registered doctors are subject to labour-hire company policies. The certificate meets documentation requirements for Programmed, Chandler Macleod, Hays, and all other agencies." },
       { q: "Is InstantMed cheaper than a Gladstone GP?", a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT}. With Gladstone bulk-billing around 60% and typical gap fees of $40–$60, InstantMed is often more affordable for straightforward certificates.` },
     ],
   },

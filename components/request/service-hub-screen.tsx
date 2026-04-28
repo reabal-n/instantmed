@@ -239,12 +239,12 @@ export function ServiceHubScreen({ onSelectService }: ServiceHubScreenProps) {
               <span className="absolute inline-flex h-full w-full motion-safe:animate-ping rounded-full bg-success opacity-60" />
               <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-success" />
             </span>
-            No phone call
+            Form-first
           </span>
           <span className="text-border-em">·</span>
           <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
             <MessageSquare className="w-3 h-3 text-muted-foreground/70" />
-            Simple intake form
+            Doctor reviewed
             <span className="inline-block w-[1px] h-3 bg-muted-foreground/40 animate-pulse" />
           </span>
         </div>

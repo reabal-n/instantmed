@@ -36,8 +36,8 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
         title: "Understanding Medical Certificates in NSW",
         paragraphs: [
           "Under the Fair Work Act 2009, Australian employees are entitled to personal/carer's leave (10 days per year for full-time workers). Employers can request evidence for absences, but the Act doesn't specify that a certificate must come from a face-to-face consultation. A certificate from an AHPRA-registered doctor via telehealth carries the same legal weight as one from your local clinic.",
-          "NSW employers, including state government agencies, accept telehealth-issued medical certificates. The certificate must include the doctor's name and AHPRA registration, the date of consultation, and the recommended period of absence. InstantMed certificates include all required elements and are formatted identically to what you'd receive from a GP clinic.",
-          "For university students in Sydney - whether at USYD, UNSW, UTS, Macquarie, or WSU - our certificates are accepted for special consideration applications, assignment extensions, and exam deferrals. Each university has slightly different requirements, but all accept certificates from AHPRA-registered doctors regardless of consultation method.",
+          "NSW employers, including state government agencies, assess telehealth-issued medical certificates under their own policies. The certificate must include the doctor's name and AHPRA registration, the date of consultation, and the recommended period of absence. InstantMed certificates include all required elements and are formatted identically to what you'd receive from a GP clinic.",
+          "For university students in Sydney - whether at USYD, UNSW, UTS, Macquarie, or WSU - our certificates are used as supporting documentation for academic support requests, coursework documentation, and missed assessment documentation. Each university has slightly different requirements, but all set their own policies for certificates from AHPRA-registered doctors regardless of consultation method.",
         ],
       },
     ],
@@ -59,7 +59,7 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
     additionalFaqs: [
       { q: "Do I need a Medicare card to use InstantMed in Sydney?", a: "No. InstantMed is a private service with flat-fee pricing. Medicare is not required for medical certificates. For prescriptions, having a Medicare card allows PBS pricing at the pharmacy, but it's not required to receive the prescription itself." },
       { q: "Can I get a medical certificate for a mental health day?", a: "Yes. Mental health is a valid reason for a medical certificate. Our doctors assess mental health-related requests with the same clinical rigour as physical illness. You don't need to disclose the specific nature of your condition to your employer - the certificate simply states you were unfit for work." },
-      { q: "Is a telehealth medical certificate legal in NSW?", a: "Yes. There is no legal requirement for medical certificates to be issued in person. The Fair Work Act requires a certificate from a registered health practitioner - our AHPRA-registered doctors meet this requirement. NSW government employers, universities, and private employers all accept telehealth-issued certificates." },
+      { q: "Is a telehealth medical certificate legal in NSW?", a: "Yes. There is no legal requirement for medical certificates to be issued in person. The Fair Work Act requires a certificate from a registered health practitioner - our AHPRA-registered doctors meet this requirement. NSW government employers, universities, and private employers all assess telehealth-issued certificates under their own policies." },
       { q: "What suburbs does InstantMed cover in Sydney?", a: "InstantMed is available everywhere in Greater Sydney and NSW - from the Northern Beaches to Campbelltown, Penrith to the Eastern Suburbs. It's an online service, so your location doesn't matter as long as you have internet access." },
       { q: "Can I use InstantMed if I'm visiting Sydney?", a: "Yes. You don't need to be a Sydney resident. If you're visiting for work or travel and need a medical certificate, our doctors can help. You don't need a local address or a GP in the area." },
     ],
@@ -77,7 +77,7 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
         paragraphs: [
           "Greater Newcastle and the Hunter Valley comprise one of Australia's largest regional populations - over 750,000 people spread from the coast at Merewether to the vineyards of Cessnock and the farming communities of Muswellbrook. Healthcare access varies dramatically across this area. Inner Newcastle (Hamilton, Merewether, Cooks Hill) has reasonable GP availability, but wait times stretch to a week or more in suburbs like Cessnock, Raymond Terrace, and Maitland.",
           "The Hunter's economy relies heavily on mining, energy, defence, and healthcare - industries with high rates of shift work. BHP, Yancoal, Glencore, and dozens of smaller mining operations run 24/7 rosters. Workers who fall ill on a night shift can't see a GP until the clinic opens the next morning - by which time they've missed their next shift and need documentation for their employer.",
-          "Newcastle's university population adds another dimension. The University of Newcastle (UoN) has over 35,000 students across Callaghan and city campuses. TAFE Hunter campuses serve thousands more. During exam periods, same-day GP appointments near campus are scarce, and students need certificates quickly for special consideration deadlines.",
+          "Newcastle's university population adds another dimension. The University of Newcastle (UoN) has over 35,000 students across Callaghan and city campuses. TAFE Hunter campuses serve thousands more. During exam periods, same-day GP appointments near campus are scarce, and students need certificates quickly for academic documentation deadlines.",
         ],
       },
       {
@@ -92,7 +92,7 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
         title: "Medical Certificates in NSW",
         paragraphs: [
           "Newcastle employers - from BHP to the University of Newcastle, from Hunter New England Health to local cafes in Darby Street - all fall under the Fair Work Act 2009. Certificates from AHPRA-registered doctors are valid regardless of consultation method. The mining sector, which often has stricter internal policies, is bound by the same legal framework.",
-          "NSW education institutions accept telehealth certificates universally. UoN's special consideration policy requires documentation from a 'registered health practitioner' - which includes doctors providing telehealth consultations. Hunter TAFE follows the same approach.",
+          "NSW education institutions provide channels for medical documentation. UoN's academic support policy requires documentation from a 'registered health practitioner' - which includes doctors providing telehealth consultations. Hunter TAFE follows the same approach.",
           "For workers in the Hunter coal industry, enterprise agreements typically require medical certificates for absences of more than one day. These certificates must come from a registered practitioner but do not specify that the consultation must be in person. Telehealth certificates meet these requirements.",
         ],
       },
@@ -113,8 +113,8 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
       ],
     },
     additionalFaqs: [
-      { q: "Do mining companies accept telehealth certificates?", a: "Yes. Mining companies in the Hunter are bound by the Fair Work Act, which requires acceptance of certificates from AHPRA-registered doctors. The consultation method doesn't affect validity. We've never had a certificate rejected by a Hunter mining company." },
-      { q: "Can UoN students use InstantMed?", a: "Yes. The University of Newcastle accepts medical certificates from AHPRA-registered doctors for special consideration. This applies to both Callaghan and city campus students." },
+      { q: "Do mining companies assess telehealth certificates under their own policies?", a: "Yes. Mining companies in the Hunter are bound by the Fair Work Act, which requires acceptance of certificates from AHPRA-registered doctors. The consultation method doesn't affect validity. We've never had a certificate rejected by a Hunter mining company." },
+      { q: "Can UoN students use InstantMed?", a: "Yes. The University of Newcastle sets its own policy for medical certificates from AHPRA-registered doctors for academic support. This applies to both Callaghan and city campus students." },
       { q: "Does InstantMed work in the Upper Hunter?", a: "Yes. Telehealth works anywhere with internet access - Muswellbrook, Singleton, Scone, Denman, or anywhere in the Upper Hunter. Same service, same pricing." },
       { q: "Is InstantMed available for RAAF Williamtown personnel?", a: "InstantMed is available to all Australians aged 18+. Defence dependants and civilian contractors can use the service for medical certificates and prescriptions." },
       { q: "Can I get a certificate for a mining roster?", a: `Yes. Our certificates document the dates you're unfit for work - whether that's a standard Mon–Fri schedule or a mining roster pattern. Medical certificates start from ${PRICING_DISPLAY.MED_CERT}.` },
@@ -139,7 +139,7 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
       {
         title: "University and Student Healthcare",
         paragraphs: [
-          "The University of Wollongong (UOW) has over 30,000 students, including a large international student cohort. UOW's campus medical service handles high volumes, particularly during assessment periods. Wait times for on-campus GP appointments can stretch to several days during exam season - exactly when students most need certificates for special consideration.",
+          "The University of Wollongong (UOW) has over 30,000 students, including a large international student cohort. UOW's campus medical service handles high volumes, particularly during assessment periods. Wait times for on-campus GP appointments can stretch to several days during exam season - exactly when students most need certificates for academic support.",
           "TAFE Illawarra campuses serve additional students who need medical documentation for course requirements. For students living in share houses across Fairy Meadow, Gwynneville, and Keiraville, getting to a GP when you're unwell can mean a bus trip or asking a housemate for a ride. Telehealth removes the transport barrier.",
           "International students face particular challenges - they may be unfamiliar with the Australian healthcare system, lack an established GP relationship, and be uncertain about certificate requirements for their university. Telehealth provides a straightforward path to a valid medical certificate without navigating a system they may not understand.",
         ],
@@ -156,13 +156,13 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
       title: "Telehealth Regulation in the Illawarra",
       paragraphs: [
         "Wollongong and the Illawarra fall under NSW state regulations and national AHPRA standards for telehealth. The Illawarra Shoalhaven Local Health District has embraced telehealth as part of its service delivery model, recognising its value in reducing pressure on local hospital emergency departments.",
-        "Prescribing and certification requirements follow the same national framework as the rest of NSW. Medical certificates from AHPRA-registered telehealth doctors carry identical legal weight to those from in-person consultations. All Illawarra employers must accept them under the Fair Work Act.",
+        "Prescribing and certification requirements follow the same national framework as the rest of NSW. Medical certificates from AHPRA-registered telehealth doctors carry identical legal weight to those from in-person consultations. All Illawarra employers can assess them under workplace policy under the Fair Work Act.",
       ],
     },
     additionalFaqs: [
-      { q: "Can UOW students use InstantMed?", a: "Yes. The University of Wollongong accepts medical certificates from AHPRA-registered doctors for special consideration, exam deferrals, and assignment extensions. The consultation method doesn't affect acceptance." },
+      { q: "Can UOW students use InstantMed?", a: "Yes. The University of Wollongong sets its own policy for medical certificates from AHPRA-registered doctors for academic support, missed assessment documentation, and coursework documentation. The consultation method doesn't affect acceptance." },
       { q: "Does InstantMed work in Shellharbour and Kiama?", a: "Yes. Telehealth works anywhere in the Illawarra - Wollongong, Shellharbour, Kiama, Berry, Nowra, and everywhere in between." },
-      { q: "Are certificates accepted by BlueScope and industrial employers?", a: "Yes. All Australian employers, including industrial and manufacturing companies, accept certificates from AHPRA-registered doctors under the Fair Work Act." },
+      { q: "Are certificates suitable for BlueScope and industrial workplace evidence?", a: "Yes. All Australian employers, including industrial and manufacturing companies, set their own policies for certificates from AHPRA-registered doctors under the Fair Work Act." },
       { q: "Can Sydney commuters from Wollongong use telehealth?", a: `Absolutely. Get a certificate from home before your commute - or from your phone on the train. Certificates start from ${PRICING_DISPLAY.MED_CERT} and are valid for employers anywhere in Australia.` },
     ],
   },
@@ -186,7 +186,7 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
         title: "Central Coast Workers and Students",
         paragraphs: [
           "The Central Coast has a significant retail, hospitality, and aged care workforce, alongside the large Sydney commuter population. Shift workers at facilities like Wyong Hospital, aged care homes across the region, and hospitality venues along the coast face the same scheduling challenges as anywhere - GP clinic hours don't align with irregular rosters.",
-          "University of Newcastle's Central Coast campus in Ourimbah and TAFE NSW's Gosford and Wyong campuses serve thousands of students. All accept medical certificates from AHPRA-registered doctors for special consideration and assessment extensions. For students juggling study and part-time work, telehealth provides a practical alternative to competing for limited clinic appointments.",
+          "University of Newcastle's Central Coast campus in Ourimbah and TAFE NSW's Gosford and Wyong campuses serve thousands of students. All set their own policies for medical certificates from AHPRA-registered doctors for academic support and academic support requests. For students juggling study and part-time work, telehealth provides a practical alternative to competing for limited clinic appointments.",
         ],
       },
     ],
@@ -207,7 +207,7 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
     additionalFaqs: [
       { q: "Does InstantMed cover the whole Central Coast?", a: "Yes - Gosford, Wyong, Tuggerah, Erina, The Entrance, Terrigal, Woy Woy, Avoca, and everywhere in between. It's an online service, so your exact location doesn't matter." },
       { q: "Can I get a certificate on the train to Sydney?", a: "Yes. Many Central Coast commuters complete the form during their commute. Your certificate is emailed as a PDF you can forward to your employer." },
-      { q: "Are certificates accepted by Central Coast employers?", a: "Yes. Our certificates are issued by AHPRA-registered doctors and are valid for all Australian employers - local, Sydney-based, or anywhere else." },
+      { q: "Are certificates suitable for Central Coast workplace evidence?", a: "Yes. Our certificates are issued by AHPRA-registered doctors and are employer policies may vary - local, Sydney-based, or anywhere else." },
     ],
   },
   parramatta: {
@@ -230,7 +230,7 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
         title: "Western Sydney's Workforce",
         paragraphs: [
           "Western Sydney's economy is built on logistics, healthcare, education, and construction. Workers at Westmead Hospital, the Parramatta justice precinct, the growing Aerotropolis, and the countless warehouses across the region work shifts and irregular hours. The standard GP model - book an appointment 4 days out, show up during business hours - doesn't serve this workforce.",
-          "Western Sydney University's Parramatta campuses serve tens of thousands of students, many of whom are first-in-family university students balancing study with work and family obligations. Telehealth medical certificates for special consideration applications mean one less barrier between them and their degree.",
+          "Western Sydney University's Parramatta campuses serve tens of thousands of students, many of whom are first-in-family university students balancing study with work and family obligations. Telehealth medical certificates for academic support requests mean one less barrier between them and their degree.",
         ],
       },
     ],
@@ -251,7 +251,7 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
     additionalFaqs: [
       { q: "Can I use InstantMed from my office in Parramatta?", a: "Yes. Complete the form from anywhere - your office, the train, or home. The certificate is emailed as a PDF." },
       { q: "Is InstantMed faster than a Western Sydney GP?", a: `Most certificates are reviewed within 1 hour. Compared to a 4–7 day GP wait in Western Sydney, that's a significant improvement. From ${PRICING_DISPLAY.MED_CERT}.` },
-      { q: "Do Westmead Hospital and other employers accept these?", a: "Yes. All Australian employers - including NSW Health, hospitals, universities, and private companies - accept certificates from AHPRA-registered doctors." },
+      { q: "Do Westmead Hospital and other employers accept these?", a: "Yes. All Australian employers - including NSW Health, hospitals, universities, and private companies - set their own policies for certificates from AHPRA-registered doctors." },
     ],
   },
   penrith: {
@@ -275,7 +275,7 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
         paragraphs: [
           "A significant share of Penrith's working-age population commutes east on the T1 Western Line - to Parramatta, North Sydney, and the Sydney CBD - with door-to-door journey times of 60–90 minutes each way. For these commuters, losing a morning to a GP visit on top of a full workday is often simply not viable. Many of them complete their InstantMed intake on the train itself, have the certificate in their inbox by the time they reach Central, and skip the clinic entirely.",
           "Penrith also has a large blue-collar workforce across logistics (the M4/M7 corridor is a major warehousing hub), construction, manufacturing, and trades - industries with early starts, long shifts, and little flexibility to sit in a waiting room. The growing Western Sydney International Airport and the surrounding Aerotropolis will only add to this workforce in the coming years. Telehealth is one of the few healthcare models that actually flexes around shift work and early-morning starts.",
-          "Western Sydney University's Kingswood and Penrith campuses, together with TAFE NSW Nirimba, serve tens of thousands of students, many of whom are first-in-family university students juggling study, part-time work, and family obligations. For special consideration applications, exam deferrals, and assignment extensions, all Western Sydney University campuses accept medical certificates from AHPRA-registered doctors - the consultation method does not affect validity.",
+          "Western Sydney University's Kingswood and Penrith campuses, together with TAFE NSW Nirimba, serve tens of thousands of students, many of whom are first-in-family university students juggling study, part-time work, and family obligations. For academic support requests, missed assessment documentation, and coursework documentation, all Western Sydney University campuses set their own policies for medical certificates from AHPRA-registered doctors - the consultation method does not affect validity.",
         ],
       },
       {
@@ -313,7 +313,7 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
     additionalFaqs: [
       { q: "Does InstantMed cover all of the Penrith LGA?", a: "Yes. Penrith, St Marys, Kingswood, Glenmore Park, Cranebrook, Jordan Springs, Werrington, Caddens, Orchard Hills - and everywhere else in the Nepean. Telehealth is an online service, so your exact suburb does not matter as long as you have internet access." },
       { q: "Can I use InstantMed on my commute into Parramatta or the CBD?", a: "Yes - many of our Western Sydney users submit their intake on the T1 Western Line. By the time you arrive at your destination, the certificate is typically already in your inbox as a PDF you can forward to your employer." },
-      { q: "Are InstantMed certificates accepted at Nepean Hospital and Western Sydney University?", a: "Yes. Nepean Hospital and all Western Sydney University campuses accept medical certificates from AHPRA-registered doctors for sick leave and academic consideration. The consultation method is not a factor in acceptance." },
+      { q: "Are InstantMed certificates accepted at Nepean Hospital and Western Sydney University?", a: "Yes. Nepean Hospital and all Western Sydney University campuses set their own policies for medical certificates from AHPRA-registered doctors for sick leave and academic consideration. The consultation method is not a factor in documentation review." },
       { q: "Is InstantMed cheaper than seeing a Penrith GP?", a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT}, with no gap fees or hidden charges. With many Penrith GPs now charging $30–$60 out of pocket after Medicare rebate, InstantMed is often the more affordable option for straightforward certificates and scripts.` },
     ],
   },
@@ -338,14 +338,14 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
         paragraphs: [
           "The Mid North Coast has one of the largest retiree populations per capita in NSW. Older residents typically use GP services more frequently, which further pressures same-day availability for everyone else. For the growing cohort of remote workers who have relocated from Sydney during and after the pandemic, the healthcare access gap is often a nasty surprise - they arrive expecting metropolitan-style convenience and find a week-long wait for a routine appointment.",
           "The city's hospitality, retail, and tourism workforce relies heavily on medical certificates for absences during peak season. Getting a certificate the day you need it is critical - a delayed certificate often means a lost shift. Telehealth's same-day turnaround is the entire point: submit the intake in the morning, have the certificate in the inbox within an hour or two during business hours.",
-          "Southern Cross University's Coffs Harbour campus and TAFE NSW North Coast institutes serve thousands of students across the region. All accept medical certificates from AHPRA-registered doctors for special consideration applications, exam deferrals, and assignment extensions. The consultation method does not affect validity or acceptance.",
+          "Southern Cross University's Coffs Harbour campus and TAFE NSW North Coast institutes serve thousands of students across the region. All set their own policies for medical certificates from AHPRA-registered doctors for academic support requests, missed assessment documentation, and coursework documentation. The consultation method does not affect validity or acceptance.",
         ],
       },
       {
         title: "Medical Certificates Under NSW Law",
         paragraphs: [
-          "NSW employers - from local councils and NSW Health facilities to the banana and blueberry farms that anchor the Coffs Harbour agricultural sector - operate under the Fair Work Act 2009 and the relevant NSW industrial instruments. Both frameworks accept certificates from AHPRA-registered practitioners and do not distinguish between telehealth and face-to-face consultations.",
-          "Agricultural employers in the Coffs region - particularly the berry and banana growers - employ seasonal workers, working-holiday visa holders, and local permanent staff. Medical certificates are often required for any unplanned absence, and these employers accept telehealth certificates the same way any other employer does under the Fair Work Act.",
+          "NSW employers - from local councils and NSW Health facilities to the banana and blueberry farms that anchor the Coffs Harbour agricultural sector - operate under the Fair Work Act 2009 and the relevant NSW industrial instruments. Both frameworks allow employers to assess certificates from AHPRA-registered practitioners and do not distinguish between telehealth and face-to-face consultations.",
+          "Agricultural employers in the Coffs region - particularly the berry and banana growers - employ seasonal workers, working-holiday visa holders, and local permanent staff. Medical certificates are often required for any unplanned absence, and these employers assess telehealth certificates under their workplace evidence policies.",
           "We never issue a certificate when the clinical situation is not appropriate for telehealth. If your symptoms need a physical examination - suspected chest infection requiring auscultation, injury requiring imaging, suspicious skin lesion - the doctor will refer you to in-person care and you will not be charged.",
         ],
       },
@@ -384,8 +384,8 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
     },
     additionalFaqs: [
       { q: "Does InstantMed cover Bellingen, Dorrigo, and Nambucca Heads?", a: "Yes. Bellingen, Dorrigo, Urunga, Sawtell, Woolgoolga, Nambucca Heads, Grafton - anywhere on the Mid North Coast with internet access is covered." },
-      { q: "Can Southern Cross University students use InstantMed for special consideration?", a: "Yes. SCU's Coffs Harbour campus accepts medical certificates from AHPRA-registered doctors for special consideration, exam deferrals, and assignment extensions - the same as all Australian universities." },
-      { q: "Are certificates accepted by Coffs banana and berry growers?", a: "Yes. All Australian employers, including agricultural businesses, must accept certificates from AHPRA-registered doctors under the Fair Work Act. The consultation method does not affect validity." },
+      { q: "Can Southern Cross University students use InstantMed for academic support?", a: "Yes. SCU's Coffs Harbour campus sets its own policy for medical certificates from AHPRA-registered doctors for academic support, missed assessment documentation, and coursework documentation - the same as all Australian universities." },
+      { q: "Are certificates suitable for Coffs banana and berry grower documentation?", a: "Yes. All Australian employers, including agricultural businesses, must set their own policies for certificates from AHPRA-registered doctors under the Fair Work Act. The consultation method does not affect validity." },
       { q: "How fast can I get a certificate during school holidays?", a: `Most certificates are reviewed within an hour during business hours, even during peak tourist periods. From ${PRICING_DISPLAY.MED_CERT} - and there's no seasonal pricing.` },
     ],
   },
@@ -410,13 +410,13 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
         paragraphs: [
           "Wagga hosts two of the ADF's major training bases - RAAF Base Wagga (Forest Hill) and the Army Recruit Training Centre at Kapooka. Defence families, civilian contractors, and Defence-adjacent workers make up a substantial portion of the local population. Many are relocated from interstate and do not have an established GP relationship, which makes telehealth particularly practical for routine needs that don't require accessing the base medical system.",
           "Beyond Defence, the Riverina economy runs on agriculture - wheat, canola, rice, cotton, beef, lamb, and increasingly wine in the foothills around Tumbarumba. Seasonal labour demands intersect with permanent shift work at regional processors like Teys Australia, JBS, and SunRice. Medical certificates for unplanned absences are a routine requirement, and telehealth delivers them faster than a regional GP clinic can book you in.",
-          "Charles Sturt University's main campus is in Wagga Wagga, making it one of the largest regional universities in Australia. CSU, along with TAFE NSW Riverina, serves thousands of students across the region. Both accept medical certificates from AHPRA-registered doctors for special consideration applications, exam deferrals, and assignment extensions.",
+          "Charles Sturt University's main campus is in Wagga Wagga, making it one of the largest regional universities in Australia. CSU, along with TAFE NSW Riverina, serves thousands of students across the region. Both set their own policies for medical certificates from AHPRA-registered doctors for academic support requests, missed assessment documentation, and coursework documentation.",
         ],
       },
       {
         title: "Medical Certificates Under NSW Law",
         paragraphs: [
-          "Wagga Wagga employers - from the Wagga Wagga City Council and NSW Health facilities, through to agricultural businesses, Defence contractors, and local retailers - all operate under the Fair Work Act 2009 and the relevant NSW industrial instruments. Both accept certificates from AHPRA-registered practitioners without distinguishing between telehealth and face-to-face consultations.",
+          "Wagga Wagga employers - from the Wagga Wagga City Council and NSW Health facilities, through to agricultural businesses, Defence contractors, and local retailers - all operate under the Fair Work Act 2009 and the relevant NSW industrial instruments. Both allow employers to assess certificates from AHPRA-registered practitioners without distinguishing between telehealth and face-to-face consultations.",
           "For Defence families in Wagga, civilian medical certificates from AHPRA-registered doctors are valid for civilian employment and for family members. The base medical system handles serving personnel's duty-related healthcare, but partners, children, and personal matters outside duty are free to use civilian telehealth providers just like any other Australian resident.",
           "We never issue a certificate when the clinical situation needs a physical examination or face-to-face care. If that applies, the doctor will refer you to in-person care - including, where relevant, Wagga Wagga Base Hospital - and you will not be charged for the telehealth consultation.",
         ],
@@ -457,7 +457,7 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
     additionalFaqs: [
       { q: "Does InstantMed cover the broader Riverina?", a: "Yes. Junee, Lockhart, Narrandera, Leeton, Gundagai, Tumut, Cootamundra, Tumbarumba - anywhere in the Riverina with internet access is covered. Same service, same pricing." },
       { q: "Can Defence families at Kapooka or RAAF Wagga use InstantMed?", a: "Yes, for civilian healthcare needs and family members. Defence members should continue using the base medical system for duty-related healthcare, but civilian telehealth is appropriate for personal and family medical certificates and scripts." },
-      { q: "Can Charles Sturt University students use InstantMed?", a: "Yes. CSU accepts medical certificates from AHPRA-registered doctors for special consideration applications, exam deferrals, and assignment extensions - the same as all Australian universities." },
+      { q: "Can Charles Sturt University students use InstantMed?", a: "Yes. CSU sets its own policy for medical certificates from AHPRA-registered doctors for academic support requests, missed assessment documentation, and coursework documentation - the same as all Australian universities." },
       { q: "Is InstantMed cheaper than a Wagga GP?", a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT}. With Wagga bulk-billing declining and gap fees of $30–$60 increasingly common, InstantMed is often more affordable for straightforward certificates and scripts.` },
     ],
   },
@@ -488,8 +488,8 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
       {
         title: "Medical Certificates and NSW Law",
         paragraphs: [
-          "Port Macquarie-Hastings employers operate under the Fair Work Act 2009 or NSW-specific industrial instruments. Both accept medical certificates from AHPRA-registered practitioners and do not distinguish between telehealth and face-to-face consultations. Local councils, NSW Health facilities, tourism operators, retailers, and private businesses all accept telehealth certificates.",
-          "Charles Sturt University's Port Macquarie campus serves regional students. CSU accepts medical certificates from AHPRA-registered doctors for special consideration applications, exam deferrals, and assignment extensions - the same rule that applies at every Australian university.",
+          "Port Macquarie-Hastings employers operate under the Fair Work Act 2009 or NSW-specific industrial instruments. Both allow employers to assess medical certificates from AHPRA-registered practitioners and do not distinguish between telehealth and face-to-face consultations. Local councils, NSW Health facilities, tourism operators, retailers, and private businesses all assess telehealth certificates under their own policies.",
+          "Charles Sturt University's Port Macquarie campus serves regional students. CSU sets its own policy for medical certificates from AHPRA-registered doctors for academic support requests, missed assessment documentation, and coursework documentation - the same rule that applies at every Australian university.",
           "We never issue a certificate when the clinical situation is inappropriate for telehealth. If your symptoms suggest a physical examination is required, the doctor refers you to in-person care and you are not charged. The clinical filter is identical regardless of the patient's age or location.",
         ],
       },
@@ -529,7 +529,7 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
     additionalFaqs: [
       { q: "Does InstantMed cover Wauchope, Laurieton, and Camden Haven?", a: "Yes. Wauchope, Laurieton, Camden Haven, Kempsey, and all the surrounding Hastings communities. Anywhere on the Mid North Coast with internet access is covered." },
       { q: "Is InstantMed suitable for retirees?", a: "Yes. The intake is designed to be straightforward, and telehealth is particularly useful for repeat scripts of stable chronic medications - no need to attend a clinic in person just to renew a long-standing prescription." },
-      { q: "Can Charles Sturt University Port Macquarie students use InstantMed?", a: "Yes. CSU, like all Australian universities, accepts medical certificates from AHPRA-registered doctors for special consideration applications, exam deferrals, and assignment extensions." },
+      { q: "Can Charles Sturt University Port Macquarie students use InstantMed?", a: "Yes. CSU, like all Australian universities, sets its own policy for medical certificates from AHPRA-registered doctors for academic support requests, missed assessment documentation, and coursework documentation." },
       { q: "Is InstantMed cheaper than a Port Macquarie GP?", a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT}. With Port Macquarie bulk-billing around 65% and increasing gap fees, InstantMed is often more affordable for straightforward certificates and scripts.` },
     ],
   },
@@ -554,14 +554,14 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
         paragraphs: [
           "The Orana economy runs on agriculture - wheat, cotton, sheep, and cattle across the Western Plains - together with mining services (Cobar copper and zinc, and the gold mines at Peak Hill and surrounds), transport, and regional healthcare. These industries are heavily shift-based, remote-work heavy, and often operate in locations where the nearest GP is hours away. Telehealth is not a convenience for this workforce - it is often the only practical way to get a medical certificate or repeat script without losing a full day of work.",
           "The Orana region has significant Aboriginal and Torres Strait Islander populations, particularly in Dubbo, Wellington, and the northern communities. The Western NSW Primary Health Network works with Aboriginal Community Controlled Health Services across the region, and telehealth is recognised as a complementary pathway for routine healthcare needs. InstantMed is not a substitute for ACCHS care - those services provide culturally safe, comprehensive primary care - but for the specific use cases of medical certificates and straightforward scripts, telehealth can complement existing healthcare relationships.",
-          "Charles Sturt University's Dubbo campus and TAFE NSW's Dubbo campus serve thousands of regional students. Both accept medical certificates from AHPRA-registered doctors for special consideration applications, exam deferrals, and assignment extensions. The consultation method is not a factor in acceptance.",
+          "Charles Sturt University's Dubbo campus and TAFE NSW's Dubbo campus serve thousands of regional students. Both set their own policies for medical certificates from AHPRA-registered doctors for academic support requests, missed assessment documentation, and coursework documentation. The consultation method is not a factor in documentation review.",
         ],
       },
       {
         title: "Distance, Weather, and the Case for Telehealth in Western NSW",
         paragraphs: [
           "The Orana's geography is defining. Distances between towns are measured in hours, not kilometres. Wet-weather events can cut roads for days at a time, and drought years strain every service including healthcare delivery. Telehealth continues to work as long as the mobile network is up, which it usually is even during significant weather disruptions. For a farmer on a property north of Dubbo dealing with a standard winter flu while the roads are cut, a telehealth certificate is often the only realistic option.",
-          "Dubbo employers - from the Dubbo Regional Council and NSW Health facilities, through to agricultural businesses, mining services companies, and local retailers - all operate under the Fair Work Act 2009 or NSW-specific industrial instruments. Both accept certificates from AHPRA-registered doctors regardless of consultation method. There is no legislation that creates a telehealth versus face-to-face distinction.",
+          "Dubbo employers - from the Dubbo Regional Council and NSW Health facilities, through to agricultural businesses, mining services companies, and local retailers - all operate under the Fair Work Act 2009 or NSW-specific industrial instruments. Both set their own policies for certificates from AHPRA-registered doctors regardless of consultation method. There is no legislation that creates a telehealth versus face-to-face distinction.",
           "Dubbo's role as a regional service hub also means it has a substantial commuter and visitor population on any given weekday. Workers who travel in from smaller Orana towns for shift work, contractors, agribusiness representatives, and visitors handling family or property business all benefit from the same telehealth pathway as residents. Certificates and scripts work the same way regardless of where you sleep at night.",
         ],
       },
@@ -600,7 +600,7 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
     additionalFaqs: [
       { q: "Does InstantMed cover the broader Orana region?", a: "Yes. Wellington, Narromine, Nyngan, Coonamble, Cobar, Warren, Walgett, Parkes, Forbes, Mudgee - anywhere in the Orana and Western Plains with internet access is covered." },
       { q: "Can farmers on remote properties use InstantMed?", a: "Yes, as long as you have mobile or internet access. Many Orana properties have Starlink, NBN fixed wireless, or mobile coverage - all of which work with InstantMed. You can complete the intake from the homestead without driving into town." },
-      { q: "Can Charles Sturt University Dubbo students use InstantMed?", a: "Yes. CSU and all Australian universities accept medical certificates from AHPRA-registered doctors for special consideration applications, exam deferrals, and assignment extensions." },
+      { q: "Can Charles Sturt University Dubbo students use InstantMed?", a: "Yes. CSU and Australian universities set their own policies for medical certificates issued by AHPRA-registered doctors for academic support requests, missed assessment documentation, and coursework documentation." },
       { q: "Is InstantMed cheaper than a Dubbo GP?", a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT}. With Dubbo bulk-billing around 60% and typical gap fees of $40–$70, InstantMed is often more affordable for straightforward certificates and scripts.` },
     ],
   },
@@ -632,8 +632,8 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
         title: "Medical Certificates, State Borders, and NSW Law",
         paragraphs: [
           "The Fair Work Act 2009 is federal legislation and applies equally across NSW and Victoria. Medical certificates from AHPRA-registered doctors are valid for Fair Work purposes regardless of whether the patient lives in Albury or Wodonga, and regardless of whether the doctor is registered to practise in NSW or Victoria - AHPRA registration covers both. A telehealth certificate issued by an InstantMed doctor is valid for employers on both sides of the border.",
-          "For workers in the agricultural sector across the Murray corridor - grain growers, wool and beef producers, and the network of irrigation farms along the river - enterprise agreements and labour hire arrangements consistently require medical documentation for unplanned absences. These employers accept telehealth certificates under the same Fair Work framework as any other employer in Australia.",
-          "Charles Sturt University has a campus in Albury, and TAFE NSW operates in both cities. Both institutions accept medical certificates from AHPRA-registered doctors for special consideration, assignment extensions, and exam deferrals. The same applies to La Trobe University's Wodonga campus on the Victorian side. The consultation method is not a factor in acceptance at any of these institutions.",
+          "For workers in the agricultural sector across the Murray corridor - grain growers, wool and beef producers, and the network of irrigation farms along the river - enterprise agreements and labour hire arrangements consistently require medical documentation for unplanned absences. These employers assess telehealth certificates under their workplace evidence policies.",
+          "Charles Sturt University has a campus in Albury, and TAFE NSW operates in both cities. Both institutions set their own policies for medical certificates from AHPRA-registered doctors for academic support, coursework documentation, and missed assessment documentation. The same applies to La Trobe University's Wodonga campus on the Victorian side. The consultation method is not a factor in documentation review at any of these institutions.",
         ],
       },
     ],
@@ -681,13 +681,13 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
         paragraphs: [
           "Bondi's hospitality and retail workforce is substantial. Cafes, restaurants, bars, and surf shops along Campbell Parade and Hall Street employ hundreds of casual and part-time workers. These workers often have irregular hours, limited sick leave, and can't easily visit a GP during standard business hours. When you wake up unwell before a 6am cafe shift, telehealth gets you a certificate before the morning rush.",
           "The Eastern Suburbs also has a large fitness and wellness community - personal trainers, yoga instructors, surf coaches, and gym staff. These workers are often self-employed or casual, and a day off sick means lost income with no safety net. A medical certificate from InstantMed documents the absence affordably and quickly, protecting their professional reputation with clients and venues.",
-          "UNSW Kensington is a short bus ride from Bondi, and thousands of students live across the Eastern Suburbs. For special consideration applications and assignment extensions, a telehealth certificate from an AHPRA-registered doctor is accepted by UNSW and all other Australian universities. During exam periods, when campus health services are overwhelmed, telehealth is often the fastest path to documentation.",
+          "UNSW Kensington is a short bus ride from Bondi, and thousands of students live across the Eastern Suburbs. For academic support requests and coursework documentation, a telehealth certificate from an AHPRA-registered doctor is assessed under UNSW and other university policies. During exam periods, when campus health services are overwhelmed, telehealth is often the fastest path to documentation.",
         ],
       },
       {
         title: "Medical Certificates for Eastern Suburbs Workers",
         paragraphs: [
-          "Under the Fair Work Act 2009, all Australian employers must accept medical certificates from AHPRA-registered doctors. There is no requirement that the certificate come from a face-to-face consultation. This applies equally to the Bondi RSL, a Campbell Parade cafe, Westfield Bondi Junction retailers, and any other Eastern Suburbs employer.",
+          "Under the Fair Work Act 2009, all Australian employers must set their own policies for medical certificates from AHPRA-registered doctors. There is no requirement that the certificate come from a face-to-face consultation. This applies equally to the Bondi RSL, a Campbell Parade cafe, Westfield Bondi Junction retailers, and any other Eastern Suburbs employer.",
           "For casual workers - a large portion of Bondi's workforce - a medical certificate serves as professional documentation even when formal sick leave doesn't apply. It demonstrates good faith to your employer, protects your shift arrangements, and provides a record if any dispute arises about the absence.",
           "Bondi's international workforce (working holiday makers, student visa holders) sometimes face confusion about Australian medical certificate requirements. The rules are straightforward: any certificate from an AHPRA-registered doctor is valid. Your visa status doesn't affect the certificate's validity. Telehealth certificates carry the same legal weight as those from a walk-in clinic.",
         ],
@@ -711,7 +711,7 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
     additionalFaqs: [
       { q: "Can backpackers use InstantMed in Bondi?", a: "Yes. You don't need to be an Australian citizen or permanent resident. Working holiday makers, international students, and visitors can all use InstantMed. You don't need a Medicare card for medical certificates." },
       { q: "Are Bondi GP clinics really that expensive?", a: "The Eastern Suburbs have some of the lowest bulk-billing rates in Sydney. Gap fees of $60–$100 are common for a standard consultation. For a straightforward medical certificate, InstantMed is significantly more affordable." },
-      { q: "Can UNSW students use InstantMed for special consideration?", a: "Yes. UNSW accepts medical certificates from AHPRA-registered doctors for special consideration applications, assignment extensions, and exam deferrals. The consultation method doesn't affect validity." },
+      { q: "Can UNSW students use InstantMed for academic support?", a: "Yes. UNSW sets its own policy for medical certificates from AHPRA-registered doctors for academic support requests, coursework documentation, and missed assessment documentation. The consultation method doesn't affect validity." },
       { q: "Is InstantMed available across the whole Eastern Suburbs?", a: "Yes. Bondi Beach, Bondi Junction, Bronte, Coogee, Randwick, Waverley, Tamarama, Double Bay - anywhere with internet access. It's an online service with no geographic restrictions within Australia." },
     ],
   },
@@ -736,15 +736,15 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
         paragraphs: [
           "The Central West economy runs on agriculture (wine, stone fruit, cherries, grazing), mining (Cadia-Ridgeway gold/copper mine is one of Australia's largest), healthcare, education, and government services. Many of these industries involve shift work, seasonal employment, or remote locations where getting to a GP clinic during business hours is impractical.",
           "Cadia mine alone employs over 1,800 workers, many of whom commute from Orange, Bathurst, and surrounding towns. Mining rosters mean days off rarely coincide with available GP appointments. For a straightforward medical certificate, telehealth eliminates the scheduling conflict entirely - submit the request between shifts and receive the certificate via email.",
-          "Agricultural workers across the Central West face similar access challenges, particularly during harvest and shearing seasons when taking time off to visit a GP is not practical. Telehealth provides documentation for legitimate illness without disrupting farm operations. Certificates from AHPRA-registered doctors are accepted by all agricultural employers and labour hire companies.",
+          "Agricultural workers across the Central West face similar access challenges, particularly during harvest and shearing seasons when taking time off to visit a GP is not practical. Telehealth provides documentation for legitimate illness without disrupting farm operations. Certificates from AHPRA-registered doctors are subject to agricultural employer and labour-hire company policies.",
         ],
       },
       {
         title: "Students and Medical Certificates in the Central West",
         paragraphs: [
-          "Charles Sturt University's Orange campus is the main tertiary institution in the region, alongside TAFE NSW Western. Both accept medical certificates from AHPRA-registered doctors for special consideration applications, exam deferrals, and assignment extensions. During exam periods, when campus health services are stretched, telehealth is often the fastest path to documentation.",
+          "Charles Sturt University's Orange campus is the main tertiary institution in the region, alongside TAFE NSW Western. Both set their own policies for medical certificates from AHPRA-registered doctors for academic support requests, missed assessment documentation, and coursework documentation. During exam periods, when campus health services are stretched, telehealth is often the fastest path to documentation.",
           "Orange's high schools and their boarding student populations also generate certificate demand. Parents in smaller Central West towns whose children board in Orange sometimes need certificates issued quickly when a child falls ill. Telehealth allows the parent to manage the process remotely, with the certificate emailed directly.",
-          "Under the Fair Work Act 2009, all Central West employers must accept certificates from AHPRA-registered doctors regardless of consultation method. Orange City Council, the Western NSW Local Health District, mining companies, agricultural businesses, and local retailers all accept telehealth-issued certificates. There is no legislative distinction between telehealth and face-to-face certificates.",
+          "Under the Fair Work Act 2009, all Central West employers must set their own policies for certificates from AHPRA-registered doctors regardless of consultation method. Orange City Council, the Western NSW Local Health District, mining companies, agricultural businesses, and local retailers all assess telehealth-issued certificates under their own policies. There is no legislative distinction between telehealth and face-to-face certificates.",
         ],
       },
     ],
@@ -765,8 +765,8 @@ export const NSW_CITIES: Record<string, DeepCityContent> = {
     },
     additionalFaqs: [
       { q: "Does InstantMed cover Bathurst, Mudgee, and the wider Central West?", a: "Yes. Orange, Bathurst, Mudgee, Parkes, Forbes, Cowra, Blayney, Millthorpe, Molong, Canowindra - anywhere in the Central West with internet access is covered." },
-      { q: "Can Cadia mine workers use InstantMed?", a: "Yes. Mining workers can get medical certificates via telehealth. Certificates from AHPRA-registered doctors are accepted by all mining companies and labour hire firms operating in the Central West." },
-      { q: "Can Charles Sturt University Orange students use InstantMed?", a: "Yes. CSU accepts medical certificates from AHPRA-registered doctors for special consideration, exam deferrals, and assignment extensions at all campuses including Orange." },
+      { q: "Can Cadia mine workers use InstantMed?", a: "Yes. Mining workers can get medical certificates via telehealth. Certificates from AHPRA-registered doctors are subject to mining employer and labour-hire firm policies operating in the Central West." },
+      { q: "Can Charles Sturt University Orange students use InstantMed?", a: "Yes. CSU sets its own policy for medical certificates from AHPRA-registered doctors for academic support, missed assessment documentation, and coursework documentation at all campuses including Orange." },
       { q: "Is InstantMed cheaper than a GP in Orange?", a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT}. With Orange bulk-billing around 55% and typical gap fees of $40–$70, InstantMed is often more affordable for straightforward certificates and scripts.` },
     ],
   },

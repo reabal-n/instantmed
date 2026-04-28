@@ -27,7 +27,7 @@ const SERVICE_CONFIG = {
   },
   consult: {
     title: "Need to see a doctor?",
-    description: "General consults reviewed by AHPRA-registered GPs. No video call required.",
+    description: "General consults reviewed by AHPRA-registered GPs. Form-first, with follow-up if clinically needed.",
     href: "/consult",
     price: PRICING.CONSULT,
     buttonText: "Start your consult",

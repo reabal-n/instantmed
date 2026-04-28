@@ -12,7 +12,7 @@ import { generalConsultFunnelConfig } from '@/lib/marketing/service-funnel-confi
 import { MedCertRedirectBanner } from './med-cert-redirect-banner'
 
 const consultFaqs = [
-  { question: "Will the doctor call me?", answer: "No - this is an async service. The doctor reviews your questionnaire and responds in writing with advice, a prescription, or a referral. If they need more information they'll message you through the platform. No phone call required." },
+  { question: "Will the doctor call me?", answer: "This is a form-first service. The doctor reviews your questionnaire and responds in writing with advice, a prescription, or a referral. If they need more information, they'll message you or contact you directly when clinically needed." },
   { question: "Can I get a prescription from a consult?", answer: "Yes. If the doctor determines medication is clinically appropriate, they'll send an eScript to your phone. You can collect it at any pharmacy." },
   { question: "What about referrals and pathology?", answer: "The doctor can provide referral letters and pathology requests if they believe further investigation is needed. These are included in your consultation fee." },
   { question: "How is this different from a GP visit?", answer: "You get the same quality of care from an AHPRA-registered GP - just without the waiting room. The main limitation is the doctor can't physically examine you, so some conditions may still need an in-person visit." },

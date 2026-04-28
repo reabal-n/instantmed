@@ -52,7 +52,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const servicePages = [
     "/consult",
-    "/repeat-prescriptions",
     "/weight-loss",
     "/medical-certificate/work",
     "/medical-certificate/study",
@@ -63,7 +62,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/medical-certificate/return-to-work",
     "/medical-certificate/employer-acceptance",
     "/medical-certificate/centrelink",
-    "/medical-certificate/jury-duty",
   ]
 
   // Audience-specific landing pages

@@ -29,7 +29,7 @@ const CONTEXTUAL_MESSAGES: Record<ContextualMessageService, MessageSet> = {
     sundayEvening: "Get it sorted tonight - reviewed before Monday.",
     weeknightLate: "Too late for a GP? We're reviewing now.",
     weekendDay: "Weekend and your GP is closed? We're open right now.",
-    fallback: "No calls, no waiting rooms - just a structured form reviewed by an Australian doctor.",
+    fallback: "No waiting room - just a structured form reviewed by an Australian doctor.",
   },
   "hair-loss": {
     januaryAny: "Starting fresh this year? Month 3 is usually when patients notice the difference.",

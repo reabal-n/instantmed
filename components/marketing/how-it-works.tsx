@@ -121,7 +121,7 @@ export function HowItWorks() {
             Three steps. No waiting room.
           </Heading>
           <p className="text-sm text-muted-foreground">
-            No appointments. No phone calls. No admin.
+            No appointments. Start with a secure clinical form.
           </p>
         </Reveal>
 

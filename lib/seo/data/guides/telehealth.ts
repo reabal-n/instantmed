@@ -77,7 +77,7 @@ export const telehealthGuides: Record<string, GuideData> = {
       },
       {
         q: "Can I get a medical certificate through telehealth?",
-        a: "Yes. Medical certificates from telehealth consultations are legally valid and accepted by all Australian employers and universities."
+        a: "Yes. Medical certificates from telehealth consultations can be valid supporting evidence when issued after an appropriate clinical assessment. Employer and institution policies may vary."
       },
       {
         q: "What about Medicare and bulk billing?",

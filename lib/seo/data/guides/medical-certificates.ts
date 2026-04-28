@@ -48,17 +48,17 @@ export const medCertGuides: Record<string, GuideData> = {
         content: "If the doctor agrees you're unfit for work, they'll issue a medical certificate. This will include the dates you're certified as unfit, the doctor's details, and usually a general statement about your fitness for work (without revealing your diagnosis). For telehealth services, the certificate is typically emailed as a PDF that you can forward directly to your employer.",
         tips: [
           "Medical certificates don't usually include your specific diagnosis",
-          "PDF certificates are accepted by all Australian employers",
+          "PDF certificates are usually suitable for workplace evidence; employer policies may vary",
           "Keep a copy for your own records"
         ]
       },
       {
         title: "Submit to your employer",
-        content: "Most employers accept certificates via email. Simply forward the PDF or attach it to your leave request in your HR system. Some employers may want the original for their files - you can print the PDF or ask if a digital copy is acceptable. The certificate is a legal medical document, so treat it accordingly."
+        content: "Many employers accept certificates via email, but workplace processes vary. Simply forward the PDF or attach it to your leave request in your HR system. Some employers may want the original for their files - you can print the PDF or ask if a digital copy is acceptable. The certificate is a legal medical document, so treat it accordingly."
       }
     ],
     importantNotes: [
-      "Medical certificates from telehealth services are legally valid and accepted by all Australian employers",
+      "Medical certificates from telehealth services can be valid workplace evidence when issued after an appropriate clinical assessment",
       "Doctors cannot backdate certificates for days they didn't assess you (though they may certify recent days if clinically appropriate)",
       "Faking illness or providing false information to obtain a certificate is fraud and grounds for dismissal",
       "You have the right to privacy - your employer can request a certificate but cannot demand to know your diagnosis"
@@ -66,7 +66,7 @@ export const medCertGuides: Record<string, GuideData> = {
     faqs: [
       {
         q: "Will my employer accept an online medical certificate?",
-        a: "Yes. Medical certificates from telehealth services are issued by AHPRA-registered doctors and are legally valid. They're accepted by all Australian employers, universities, and government bodies."
+        a: "Medical certificates from telehealth services are issued by AHPRA-registered doctors after clinical assessment. Employers and institutions apply their own evidence policies, so check the specific requirements if unsure."
       },
       {
         q: "Can I get a certificate for a mental health day?",
@@ -94,16 +94,16 @@ export const medCertGuides: Record<string, GuideData> = {
   "how-to-get-sick-note-for-uni": {
     title: "How to Get a Sick Note for University in Australia",
     slug: "how-to-get-sick-note-for-uni",
-    description: "Need a medical certificate for a missed exam, assignment extension, or university absence? Here's how to get one quickly and what your university will accept.",
+    description: "Need a medical certificate for study absence documentation? Here's how to get one quickly and check your university's requirements.",
     lastUpdated: "April 2026",
     readTime: "5 min read",
-    intro: "Whether you've missed an exam, need an assignment extension, or have been too unwell to attend classes, most Australian universities require a medical certificate as supporting documentation. This guide explains how to get one and what universities typically accept.",
+    intro: "Whether illness has affected exams, coursework, placement, or classes, many Australian universities request medical documentation as supporting evidence. This guide explains how to get a certificate and how to check your institution's requirements.",
     steps: [
       {
         title: "Check your university's requirements",
-        content: "Each university has its own policies for medical documentation. Most require certificates for missed exams (special consideration), assignment extensions beyond a few days, and prolonged absences. Check your university's special consideration or academic support pages for specific requirements.",
+        content: "Each university has its own policies for medical documentation. Many require certificates for missed study commitments, coursework issues, and prolonged absences. Check your university's academic support or student administration pages for specific requirements.",
         tips: [
-          "Most unis have online portals for special consideration applications",
+          "Most unis have online portals for academic support requests",
           "Deadlines for applications vary - some require submission within days",
           "Some universities have their own medical certificate forms"
         ]
@@ -119,7 +119,7 @@ export const medCertGuides: Record<string, GuideData> = {
       },
       {
         title: "Submit your application",
-        content: "Most universities have online systems for submitting special consideration requests or extension applications. You'll typically need to upload your medical certificate, explain how your illness affected your studies, and submit within the specified timeframe. Keep copies of everything you submit.",
+        content: "Most universities have online systems for submitting academic support or study absence documentation. You'll typically need to upload your medical certificate, explain how your illness affected your studies, and submit within the specified timeframe. Keep copies of everything you submit.",
         tips: [
           "Submit as early as possible - deadlines are often strict",
           "Include a brief explanation of how your illness impacted your work",
@@ -128,27 +128,27 @@ export const medCertGuides: Record<string, GuideData> = {
       },
       {
         title: "Follow up if needed",
-        content: "After submitting, you should receive confirmation. If your application is approved, you'll be informed of the outcome - this might be a deferred exam, extension, or other arrangement. If there are any issues with your documentation, the university will usually contact you to request more information."
+        content: "After submitting, you should receive confirmation. If your request is accepted, you'll be informed of the outcome. If there are any issues with your documentation, the university will usually contact you to request more information."
       }
     ],
     importantNotes: [
       "Universities accept medical certificates from telehealth services - they're issued by registered doctors",
-      "Apply for special consideration as soon as possible, even if you're still unwell",
+      "Submit your academic support request as soon as possible, even if you're still unwell",
       "Keep records of all your submissions and communications",
       "If you're experiencing ongoing health issues affecting your studies, talk to your university's student support services"
     ],
     faqs: [
       {
         q: "Will my university accept an online medical certificate?",
-        a: "Yes. Australian universities accept certificates from any AHPRA-registered doctor, including those practicing via telehealth. The certificate needs to be legitimate and include the doctor's registration details."
+        a: "Yes. Australian universities set their own policies for certificates from AHPRA-registered doctors, including those practicing via telehealth. The certificate needs to be legitimate and include the doctor's registration details."
       },
       {
         q: "What if I was too sick to see a doctor on the day?",
-        a: "See a doctor as soon as you can. If you're still unwell, the doctor can often certify that you've been unfit for recent days. Explain your situation to both the doctor and in your special consideration application."
+        a: "See a doctor as soon as you can. If you're still unwell, the doctor can often certify that you've been unfit for recent days if clinically appropriate. Explain your situation to both the doctor and in your institution's application."
       },
       {
         q: "Can I get a certificate for mental health reasons?",
-        a: "Absolutely. Mental health conditions are legitimate medical reasons for special consideration. You don't need to disclose your specific diagnosis - the certificate just needs to confirm you were unfit for study."
+        a: "Yes. Mental health conditions can be legitimate medical reasons for study absence documentation. You don't need to disclose your specific diagnosis - the certificate generally confirms you were unfit for study."
       },
       {
         q: "How specific does the certificate need to be?",
@@ -158,7 +158,7 @@ export const medCertGuides: Record<string, GuideData> = {
     cta: {
       text: "Get your certificate now",
       href: "/request?service=med-cert",
-      subtext: `${PRICING_DISPLAY.FROM_MED_CERT} · Perfect for special consideration applications`
+      subtext: `${PRICING_DISPLAY.FROM_MED_CERT} · Study absence documentation`
     }
   },
   "medical-certificate-centrelink": {
@@ -328,7 +328,7 @@ export const medCertGuides: Record<string, GuideData> = {
     ],
     importantNotes: [
       "A medical certificate confirms unfitness - it doesn't need diagnosis details",
-      "Employers must accept valid certificates from registered doctors",
+      "Employers can request reasonable evidence and assess certificates under workplace policy",
       "You have a right to medical privacy"
     ],
     faqs: [
@@ -336,7 +336,7 @@ export const medCertGuides: Record<string, GuideData> = {
       { q: "Do I have to tell my employer why I'm sick?", a: "No. You only need to provide a certificate stating you were unfit. The certificate doesn't need to specify your condition." },
       { q: "Can they ask for a certificate from day one?", a: "Employers can have policies requiring certificates from the first day. Check your employment contract or workplace policy." }
     ],
-    cta: { text: "Get a medical certificate", href: "/request?service=med-cert", subtext: `${PRICING_DISPLAY.FROM_MED_CERT} · Valid for all employers` }
+    cta: { text: "Get a medical certificate", href: "/request?service=med-cert", subtext: `${PRICING_DISPLAY.FROM_MED_CERT} · Employer policies may vary` }
   },
   "mental-health-certificate-australia": {
     title: "How to Get a Medical Certificate for a Mental Health Day",
@@ -369,7 +369,7 @@ export const medCertGuides: Record<string, GuideData> = {
       "In crisis? Call Lifeline 13 11 14 or Beyond Blue 1300 22 4636"
     ],
     faqs: [
-      { q: "Can my employer refuse a mental health day?", a: "No. If you have available personal leave, your employer must accept a valid medical certificate regardless of the type of illness." },
+      { q: "Can my employer refuse a mental health day?", a: "No. If you have available personal leave, your employer can assess a valid medical certificate under workplace policy regardless of the type of illness." },
       { q: "Will the certificate say it's for mental health?", a: "No. Medical certificates state that you were unfit for work on specific dates. No diagnosis or reason is included." },
       { q: "How often can I take mental health days?", a: "As often as needed, within your leave balance. If you're frequently needing time off, consider discussing ongoing support with a GP." },
       { q: "Do I need to see a psychologist to get a mental health certificate?", a: "No. A GP (including via telehealth) can issue a medical certificate for a mental health day. You don't need a specialist." }
@@ -404,7 +404,7 @@ export const medCertGuides: Record<string, GuideData> = {
       "Your surgeon should provide initial recovery documentation",
       "If recovery takes longer than expected, telehealth can help with extended certificates",
       "Don't rush back to work - returning too early can cause setbacks",
-      "Check your entitlements: personal leave, workers comp (if work-related), or income protection"
+      "Check your entitlements: personal leave, work injury cover if applicable, or income protection"
     ],
     faqs: [
       { q: "How long can I get a medical certificate for after surgery?", a: "This depends on the surgery. Minor procedures may need days. Major surgery can require weeks or months. Your surgeon and GP will advise." },
@@ -487,6 +487,6 @@ export const medCertGuides: Record<string, GuideData> = {
       { q: "Can a casual worker get unpaid sick leave?", a: "There's no 'unpaid sick leave' entitlement, but you can simply not work. Having documentation helps protect your position with your employer." },
       { q: "What if my employer pressures me to work while sick?", a: "You're never obligated to work while genuinely unwell. If pressured, document the conversation and contact Fair Work if necessary." }
     ],
-    cta: { text: "Get a certificate", href: "/request?service=med-cert", subtext: `${PRICING_DISPLAY.FROM_MED_CERT}. Valid for all Australian employers.` }
+    cta: { text: "Get a certificate", href: "/request?service=med-cert", subtext: `${PRICING_DISPLAY.FROM_MED_CERT}. Employer policies may vary.` }
   },
 }

@@ -28,7 +28,7 @@ export const VIC_CITIES: Record<string, DeepCityContent> = {
         title: "Who Uses Telehealth in Melbourne",
         paragraphs: [
           "Melbourne's telehealth adoption rate is among the highest in Australia, driven by the city's experience with extended lockdowns and a tech-savvy population. Telehealth usage for non-urgent consultations increased significantly from 2020 onwards and has remained elevated, particularly among 18–44 year olds - the demographic most likely to need medical certificates for work or study.",
-          "University students are heavy telehealth users. Melbourne is home to the University of Melbourne, Monash, RMIT, Deakin, La Trobe, Swinburne, and VU - collectively serving hundreds of thousands of students. For special consideration applications and assignment extensions, a medical certificate from an AHPRA-registered doctor via telehealth is accepted by all Victorian universities.",
+          "University students are heavy telehealth users. Melbourne is home to the University of Melbourne, Monash, RMIT, Deakin, La Trobe, Swinburne, and VU - collectively serving hundreds of thousands of students. For academic support requests and coursework documentation, a medical certificate from an AHPRA-registered doctor via telehealth is assessed under Victorian university policies.",
           "Melbourne's hospitality and retail workforce - a significant portion of the city's employment - particularly benefits from telehealth. These workers often have irregular hours, limited sick leave, and can't easily take time off during business hours to sit in a clinic. Telehealth lets them get the certificate they're entitled to without losing additional income.",
         ],
       },
@@ -36,7 +36,7 @@ export const VIC_CITIES: Record<string, DeepCityContent> = {
         title: "Medical Certificates and Victorian Employment Law",
         paragraphs: [
           "Victoria follows the national Fair Work Act for leave entitlements, but also has additional state-level protections. Full-time employees get 10 days of personal/carer's leave per year, and employers can request a medical certificate for any absence. There's no legal requirement that the certificate come from a face-to-face consultation.",
-          "Victorian public sector employees (VPS) have their own enterprise agreements, all of which accept certificates from AHPRA-registered doctors. The same applies to all major Victorian employers - from Coles and Woolworths (both headquartered in Melbourne) to the major banks, universities, and healthcare systems.",
+          "Victorian public sector employees (VPS) have their own enterprise agreements, all of which set their own policies for certificates from AHPRA-registered doctors. The same applies to all major Victorian employers - from Coles and Woolworths (both headquartered in Melbourne) to the major banks, universities, and healthcare systems.",
           "For casual workers in Melbourne, medical certificates serve a different but equally important purpose. While casuals don't accrue sick leave (unless they're long-term regular casuals), a medical certificate can protect your shift arrangements and demonstrate good faith to your employer. The certificate shows you were genuinely unwell, not just no-showing.",
         ],
       },
@@ -57,10 +57,10 @@ export const VIC_CITIES: Record<string, DeepCityContent> = {
       ],
     },
     additionalFaqs: [
-      { q: "Do Melbourne employers accept telehealth medical certificates?", a: "Yes. All Australian employers must accept medical certificates from AHPRA-registered doctors, regardless of whether the consultation was in-person or via telehealth. This includes Victorian government, Coles, Woolworths, the major banks, universities, and all Fair Work-covered employers." },
+      { q: "Do Melbourne employers assess telehealth medical certificates under their own policies?", a: "Yes. All Australian employers must set their own policies for medical certificates from AHPRA-registered doctors, regardless of whether the consultation was in-person or via telehealth. This includes Victorian government, Coles, Woolworths, the major banks, universities, and all Fair Work-covered employers." },
       { q: "Can I get a medical certificate for a mental health day in Melbourne?", a: "Yes. Mental health is a valid reason for a sick day and a medical certificate. Our doctors assess these requests with clinical rigour. Your employer is not entitled to know the specific nature of your condition - the certificate simply states you were unfit for work." },
       { q: "Is InstantMed cheaper than seeing a GP in Melbourne?", a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT}. With Melbourne's declining bulk-billing rates, a standard GP visit can cost $40–$80 out of pocket (gap fee after Medicare rebate). For a straightforward certificate, InstantMed is often the more affordable option.` },
-      { q: "Can Monash or UniMelb students use InstantMed?", a: "Yes. All Victorian universities accept medical certificates from AHPRA-registered doctors for special consideration applications, assignment extensions, and exam deferrals. The consultation method (in-person vs telehealth) doesn't affect the certificate's validity." },
+      { q: "Can Monash or UniMelb students use InstantMed?", a: "Yes. Victorian universities set their own policies for medical certificates from AHPRA-registered doctors for academic support requests, coursework documentation, and missed assessment documentation. The consultation method (in-person vs telehealth) doesn't affect the certificate's validity." },
       { q: "What if the doctor decides I need an in-person visit?", a: "If your symptoms or situation require a physical examination, the doctor will let you know and recommend you see a GP in person. You won't be charged for the consultation. We never issue a certificate if the clinical situation isn't appropriate for telehealth assessment." },
     ],
   },
@@ -102,7 +102,7 @@ export const VIC_CITIES: Record<string, DeepCityContent> = {
       ],
     },
     additionalFaqs: [
-      { q: "Can Deakin University students use InstantMed?", a: "Yes. Deakin accepts medical certificates from AHPRA-registered doctors for special consideration, exam deferrals, and extension requests." },
+      { q: "Can Deakin University students use InstantMed?", a: "Yes. Deakin sets its own policy for medical certificates from AHPRA-registered doctors for academic support, missed assessment documentation, and extension requests." },
       { q: "Does InstantMed serve the Surf Coast?", a: "Yes. We serve all of Greater Geelong including Torquay, Anglesea, Lorne, Ocean Grove, and the Bellarine Peninsula." },
       { q: "Is InstantMed cheaper than a Geelong GP?", a: `With bulk-billing declining in Geelong (gap fees of $40–$70 are common), InstantMed is often more affordable for straightforward needs. Medical certificates from ${PRICING_DISPLAY.MED_CERT}.` },
     ],
@@ -126,7 +126,7 @@ export const VIC_CITIES: Record<string, DeepCityContent> = {
       {
         title: "Workers and Students",
         paragraphs: [
-          "Federation University's Ballarat campus is the city's major university, supplemented by TAFE and a growing education sector. All Victorian universities accept telehealth medical certificates for special consideration applications.",
+          "Federation University's Ballarat campus is the city's major university, supplemented by TAFE and a growing education sector. All Victorian universities assess telehealth medical certificates under their own policies for academic support requests.",
           "Ballarat's economy spans manufacturing, healthcare, retail, and a significant public sector presence (including CFA and local government). Workers across these sectors benefit from telehealth when GP access is limited - particularly shift workers and those in remote-start roles.",
         ],
       },
@@ -170,7 +170,7 @@ export const VIC_CITIES: Record<string, DeepCityContent> = {
         title: "Bendigo's Workforce",
         paragraphs: [
           "Bendigo's economy is anchored by healthcare (Bendigo Health is the largest employer), education (La Trobe University Bendigo), retail, agriculture, and a growing creative sector. Shift workers at the hospital and aged care facilities, university staff, and agricultural workers all benefit from telehealth when clinic schedules don't align with work rosters.",
-          "La Trobe University Bendigo serves thousands of students from across regional Victoria. Medical certificates from AHPRA-registered doctors are accepted for all academic support applications. For students juggling study, part-time work, and the realities of regional living, telehealth provides a practical solution.",
+          "La Trobe University Bendigo serves thousands of students from across regional Victoria. Medical certificates from AHPRA-registered doctors are used as supporting documentation for academic support applications. For students juggling study, part-time work, and the realities of regional living, telehealth provides a practical solution.",
         ],
       },
     ],
@@ -190,7 +190,7 @@ export const VIC_CITIES: Record<string, DeepCityContent> = {
     additionalFaqs: [
       { q: "Does InstantMed serve Castlemaine and Kyneton?", a: "Yes. We serve all of regional Victoria - Castlemaine, Kyneton, Heathcote, Echuca, and everywhere in between." },
       { q: "Is telehealth adequate for a medical certificate?", a: "For straightforward illnesses (cold, flu, gastro, migraine), yes. Telehealth medical certificates have the same legal validity as in-person ones. If physical examination is needed, we'll recommend an in-person visit - and you won't be charged." },
-      { q: "Can La Trobe Bendigo students use InstantMed?", a: "Yes. La Trobe and all Victorian universities accept certificates from AHPRA-registered doctors for special consideration and assessment extensions." },
+      { q: "Can La Trobe Bendigo students use InstantMed?", a: "Yes. La Trobe and Victorian universities set their own policies for certificates from AHPRA-registered doctors for academic support and academic support requests." },
     ],
   },
   shepparton: {
@@ -220,7 +220,7 @@ export const VIC_CITIES: Record<string, DeepCityContent> = {
       {
         title: "Students, Universities, and Workers Under Victorian Law",
         paragraphs: [
-          "La Trobe University's Shepparton campus, together with GOTAFE Goulburn Ovens, serves thousands of regional students. Both accept medical certificates from AHPRA-registered doctors for special consideration applications, exam deferrals, and assignment extensions. The consultation method does not affect validity - the same rule that applies at every other Victorian university.",
+          "La Trobe University's Shepparton campus, together with GOTAFE Goulburn Ovens, serves thousands of regional students. Both set their own policies for medical certificates from AHPRA-registered doctors for academic support requests, missed assessment documentation, and coursework documentation. The consultation method does not affect validity - the same rule that applies at every other Victorian university.",
           "Shepparton employers - from the Greater Shepparton City Council and Goulburn Valley Health, through to SPC, Campbell's, and the dairy processors - all operate under the Fair Work Act 2009 or Victorian-specific industrial instruments. Medical certificates from AHPRA-registered doctors via telehealth are fully valid for leave purposes under all of them.",
           "We never issue a certificate when the clinical situation needs a physical examination or face-to-face care. If your symptoms suggest a physical exam is required, the doctor will refer you to in-person care and you will not be charged for the telehealth consultation.",
         ],
@@ -260,8 +260,8 @@ export const VIC_CITIES: Record<string, DeepCityContent> = {
     },
     additionalFaqs: [
       { q: "Does InstantMed cover the Goulburn Valley?", a: "Yes. Mooroopna, Tatura, Kyabram, Numurkah, Cobram, Seymour, Benalla - anywhere in the Goulburn Valley with internet access is covered." },
-      { q: "Can working-holiday visa holders use InstantMed during harvest?", a: "Yes. Any resident 18+ currently in Australia can use InstantMed regardless of visa status. Certificates are valid for all Australian employers and labour hire providers." },
-      { q: "Can La Trobe Shepparton students use InstantMed?", a: "Yes. La Trobe and all Victorian universities accept medical certificates from AHPRA-registered doctors for special consideration applications, exam deferrals, and assignment extensions." },
+      { q: "Can working-holiday visa holders use InstantMed during harvest?", a: "Yes. Any resident 18+ currently in Australia can use InstantMed regardless of visa status. Certificates are subject to employer and labour-hire provider policies." },
+      { q: "Can La Trobe Shepparton students use InstantMed?", a: "Yes. La Trobe and Victorian universities set their own policies for medical certificates from AHPRA-registered doctors for academic support requests, missed assessment documentation, and coursework documentation." },
       { q: "Is InstantMed cheaper than a Shepparton GP?", a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT}. With Shepparton bulk-billing around 62% and gap fees of $40–$70 common, InstantMed is often more affordable for straightforward certificates and scripts.` },
     ],
   },
@@ -292,8 +292,8 @@ export const VIC_CITIES: Record<string, DeepCityContent> = {
       {
         title: "Students and Workers Under Victorian Law",
         paragraphs: [
-          "La Trobe University's Mildura campus, Latrobe Rural Clinical School, and SuniTAFE serve thousands of regional students. All accept medical certificates from AHPRA-registered doctors for special consideration applications, exam deferrals, and assignment extensions. The consultation method does not affect validity - the same rule that applies at every Australian university.",
-          "Mildura employers - from the Mildura Rural City Council and Mildura Base Hospital, through to the major horticultural operations, wineries, and processors - operate under the Fair Work Act 2009 or Victorian-specific industrial instruments. Both frameworks accept certificates from AHPRA-registered practitioners without distinguishing between telehealth and face-to-face consultations.",
+          "La Trobe University's Mildura campus, Latrobe Rural Clinical School, and SuniTAFE serve thousands of regional students. All set their own policies for medical certificates from AHPRA-registered doctors for academic support requests, missed assessment documentation, and coursework documentation. The consultation method does not affect validity - the same rule that applies at every Australian university.",
+          "Mildura employers - from the Mildura Rural City Council and Mildura Base Hospital, through to the major horticultural operations, wineries, and processors - operate under the Fair Work Act 2009 or Victorian-specific industrial instruments. Both frameworks allow employers to assess certificates from AHPRA-registered practitioners without distinguishing between telehealth and face-to-face consultations.",
           "We never issue a certificate when the clinical situation is inappropriate for telehealth. If a physical examination is required, the doctor refers you to in-person care and you are not charged for the telehealth consultation. The filter applies identically in Mildura, Melbourne, and every other location we serve.",
         ],
       },
@@ -332,8 +332,8 @@ export const VIC_CITIES: Record<string, DeepCityContent> = {
     },
     additionalFaqs: [
       { q: "Does InstantMed cover Wentworth, Robinvale, and the Riverland?", a: "Yes. Wentworth (NSW), Robinvale, Red Cliffs, Ouyen, Swan Hill, and the SA Riverland - anywhere in Sunraysia and the Murray-Mallee with internet access is covered. Certificates are valid across state borders." },
-      { q: "Can PALM scheme and working-holiday visa holders use InstantMed?", a: "Yes. Any resident 18+ currently in Australia can use InstantMed regardless of visa status. Certificates are valid for all Australian employers and labour hire providers." },
-      { q: "Can La Trobe Mildura students use InstantMed?", a: "Yes. La Trobe and all Victorian universities accept medical certificates from AHPRA-registered doctors for special consideration applications, exam deferrals, and assignment extensions." },
+      { q: "Can PALM scheme and working-holiday visa holders use InstantMed?", a: "Yes. Any resident 18+ currently in Australia can use InstantMed regardless of visa status. Certificates are subject to employer and labour-hire provider policies." },
+      { q: "Can La Trobe Mildura students use InstantMed?", a: "Yes. La Trobe and Victorian universities set their own policies for medical certificates from AHPRA-registered doctors for academic support requests, missed assessment documentation, and coursework documentation." },
       { q: "Is InstantMed cheaper than a Mildura GP?", a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT}. With Mildura bulk-billing rates around 60% and typical gap fees of $40–$70, InstantMed is often more affordable for straightforward certificates and scripts.` },
     ],
   },

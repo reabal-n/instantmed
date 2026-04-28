@@ -11,7 +11,7 @@ export const MED_CERT_FAQ = [
   {
     question: "Will my employer accept this?",
     answer:
-      "Yes. Our certificates are issued by AHPRA-registered doctors and are legally valid for all employers. Same as what you\u2019d get from a clinic.",
+      "Our certificates are issued by AHPRA-registered doctors and include standard workplace evidence details. Employer policies may vary.",
   },
   {
     question: "Can I use this for uni or TAFE?",
@@ -61,7 +61,7 @@ export const MED_CERT_FAQ = [
   {
     question: "Is a telehealth medical certificate legal?",
     answer:
-      "Yes. The Fair Work Act requires a certificate from a registered health practitioner - it does not require an in-person consultation. Certificates from AHPRA-registered doctors via telehealth are legally valid for all employers and universities in Australia.",
+      "Yes. The Fair Work Act refers to evidence from registered health practitioners and does not require an in-person consultation. Employer and institution policies may vary.",
   },
   {
     question: "What if I need more than 3 days off?",
@@ -71,7 +71,7 @@ export const MED_CERT_FAQ = [
   {
     question: "Can my employer reject this certificate?",
     answer:
-      "No. Under the Fair Work Act, employers must accept medical certificates from AHPRA-registered doctors. The method of consultation - in-person or telehealth - does not affect the certificate\u2019s legal validity.",
+      "Employers can assess certificates under their workplace evidence policy. Our certificates include AHPRA doctor details, dates of unfitness, and verification details to support that review.",
   },
   {
     question: "How is my information protected?",

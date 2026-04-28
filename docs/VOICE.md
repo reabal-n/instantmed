@@ -22,15 +22,17 @@ Four strings, four jobs. Do not mix them up.
 | Layer | Line | Job | Where it lives |
 |---|---|---|---|
 | **Tagline** | *A doctor without the wait.* | Logo-adjacent promise. Always paired with the wordmark. | Hero headline, LP headers, email headers, OG images. |
-| **Wedge** | *No video. No call. No appointment.* | Category mechanism. Triple-negation that rules out every competitor form-factor in one breath. | Under hero, service cards, ad body, meta descriptions. |
+| **Wedge** | *No appointment. No waiting room. Start with a secure clinical form.* | Default platform mechanism. Removes booking friction without promising that prescribing requests never need doctor contact. | Homepage, request hub, pricing, generic service pages, paid landing pages. |
+| **Med-cert wedge** | *No video. No call. No appointment.* | Med-cert-specific mechanism for suitable administrative documentation requests. | Medical certificate surfaces only. |
+| **Form-first wedge** | *Complete a secure clinical form. A doctor contacts you only if more information is clinically needed.* | Prescribing and specialty-service mechanism. Keeps the moat while preserving clinical discretion. | Prescriptions, ED, hair loss, women's health, weight loss. |
 | **Prop phrase** | *A GP, the way it should've been.* | Aspirational campaign sign-off. The line that sits under the logo on the last frame of an ad. | Ad end-frames, email footers, press pull-quotes, about page lede. |
 | **Iconic hook** | *The doctor is in.* | Optional opener. Disarming, a little cheeky, drops the reader into the universe. | Select ad creatives, social copy openers, hero eyebrow on campaign landings. |
 
 **Plus one guarantee, always visible at conversion points:**
 
-> *Doctor approves in 2 hours or your money back.*
+> *Full refund if our doctor can't help.*
 
-This is the merchandised promise. It lives above every checkout CTA, inline on hero CTAs, and on a dedicated `/guarantee` surface if we ever build one. It is not a tagline, not a wedge — it is the proof.
+This is the merchandised promise. It lives above checkout CTAs, inline on hero CTAs, and on `/guarantee`. It is not a tagline, not a wedge, and not a time guarantee.
 
 ---
 
@@ -38,7 +40,7 @@ This is the merchandised promise. It lives above every checkout CTA, inline on h
 
 1. **Short sentences. Full stops.** Three full stops beat one comma every time. *Fill it out. Get on with it.*
 2. **Name the wait, then remove it.** *You used to wait three weeks for a GP. Not anymore.*
-3. **Use negation as a weapon.** *No video. No call. No appointment.* Negation is more vivid than positive claims.
+3. **Use negation carefully.** *No appointment. No waiting room.* is broadly safe. *No call* is med-cert-specific unless a clinician has explicitly approved the service context.
 4. **Lead with the human.** A real Australian doctor reviews your request. Say that. Don't hide behind "our platform."
 5. **Price in the first breath, not the footer.** Numbers are trust signals. *Medical certificate, $19.95. Reviewed in under 30 minutes.*
 
@@ -55,15 +57,17 @@ This is the merchandised promise. It lives above every checkout CTA, inline on h
 ## Phrases you own (use freely)
 
 1. *A doctor without the wait.*
-2. *No video. No call. No appointment.*
-3. *A GP, the way it should've been.*
-4. *The doctor is in.*
-5. *Doctor approves in 2 hours or your money back.*
-6. *Real doctors. No runaround.*
-7. *A doctor, not a queue.*
-8. *AHPRA doctors. Every single time.*
-9. *Reviewed, not robo-approved.*
-10. *Fill it out. Get on with it.*
+2. *No appointment. No waiting room. Start with a secure clinical form.*
+3. *No video. No call. No appointment.*
+4. *Complete a secure clinical form. A doctor contacts you only if more information is clinically needed.*
+5. *A GP, the way it should've been.*
+6. *The doctor is in.*
+7. *Full refund if our doctor can't help.*
+8. *Real doctors. No runaround.*
+9. *A doctor, not a queue.*
+10. *AHPRA doctors. Every single time.*
+11. *Reviewed, not robo-approved.*
+12. *Fill it out. Get on with it.*
 
 ## Phrases banned from every marketing surface
 
@@ -81,6 +85,20 @@ This is the merchandised promise. It lives above every checkout CTA, inline on h
 
 If any of these appear inside `components/marketing/**` or `lib/marketing/**`, the voice-guard Vitest run fails the build. To add or remove a banned phrase, edit `BANNED_PHRASES` in `lib/marketing/voice.ts`. Do not edit the test to work around a failure.
 
+## Healthcare compliance copy rules
+
+These rules sit above normal brand voice.
+
+| Context | Approved copy | Avoid |
+|---|---|---|
+| Medical certificates | No video. No call. No appointment. | Accepted by all employers, 98% accepted, special consideration, deferred exam. |
+| Prescription services | Complete a secure clinical form. A doctor contacts you only if more information is clinically needed. | No call needed, guaranteed prescription, get [drug] online. |
+| ED / hair loss | Private form-first assessment. Doctor contact only if clinically needed. | No call needed, drug names in ads, outcome guarantees. |
+| Weight loss | Doctor review for weight management options. Extra information or a call may be required for safety. | Weight loss injections, guaranteed weight loss, before/after claims. |
+| Paid ads | Service-level, no drug terms, no testimonials. | Drug names, prescription-only medicine prices, remarketing to health audiences. |
+
+Deeper rules: `docs/ADVERTISING_COMPLIANCE.md` and `docs/SEO_CONTENT_POLICY.md`.
+
 ---
 
 ## Where each layer renders
@@ -88,12 +106,13 @@ If any of these appear inside `components/marketing/**` or `lib/marketing/**`, t
 | Surface | Uses |
 |---|---|
 | Homepage hero | `TAGLINE` + `WEDGE` in body copy, `GUARANTEE` on CTA |
-| `/medical-certificate` | `TAGLINE` in H1, `WEDGE` in sub, `GUARANTEE` above CTA |
-| `/prescriptions` | `TAGLINE` in H1, `WEDGE` in sub, `GUARANTEE` above CTA |
-| `/erectile-dysfunction` | `TAGLINE` in H1, subtype-specific sub, `GUARANTEE` above CTA |
-| `/hair-loss` | `TAGLINE` in H1, subtype-specific sub, `GUARANTEE` above CTA |
+| `/medical-certificate` | `TAGLINE` + `MED_CERT_WEDGE`, `GUARANTEE` above CTA |
+| `/prescriptions` | `TAGLINE` + `FORM_FIRST_WEDGE`, `GUARANTEE` above CTA |
+| `/erectile-dysfunction` | subtype-specific form-first copy, `GUARANTEE` above CTA |
+| `/hair-loss` | subtype-specific form-first copy, `GUARANTEE` above CTA |
+| `/weight-loss` | manual-review safety copy, no drug names, no outcome guarantee |
 | Checkout | `GUARANTEE` above pay button, re-consent line below |
-| Ad creatives | `ICONIC_HOOK` as opener, `WEDGE` as body, `PROP_PHRASE` on end-frame |
+| Ad creatives | `ICONIC_HOOK` as opener, service-safe wedge as body, `PROP_PHRASE` on end-frame |
 | Email header | `TAGLINE` |
 | Email footer | `PROP_PHRASE` |
 | OG image | `TAGLINE` |

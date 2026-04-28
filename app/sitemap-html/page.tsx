@@ -58,11 +58,12 @@ function buildSections(): SitemapSection[] {
   const services: SitemapSection = {
     title: "Services",
     links: [
-      { label: "Weight Loss", href: "/weight-loss" },
+      { label: "Medical Certificates", href: "/medical-certificate" },
+      { label: "Prescriptions", href: "/prescriptions" },
+      { label: "Erectile Dysfunction", href: "/erectile-dysfunction" },
       { label: "Weight Loss", href: "/weight-loss" },
       { label: "Hair Loss", href: "/hair-loss" },
       { label: "Consult", href: "/consult" },
-      { label: "Repeat Prescriptions", href: "/repeat-prescriptions" },
     ],
   };
 

@@ -48,10 +48,12 @@ describe("CERT_CATEGORIES", () => {
     expect(work.reasons).toContain("Mental health")
   })
 
-  it("study category includes exam-related reasons", () => {
+  it("study category avoids high-stakes exam and special consideration reasons", () => {
     const study = CERT_CATEGORIES.find((c) => c.id === "study")!
-    expect(study.reasons).toContain("Exam deferral")
-    expect(study.reasons).toContain("Special consideration")
+    expect(study.reasons).toContain("Missed class")
+    expect(study.reasons).toContain("Study absence")
+    expect(study.reasons).not.toContain("Exam deferral")
+    expect(study.reasons).not.toContain("Special consideration")
   })
 
   it("carer category includes dependent-care reasons", () => {

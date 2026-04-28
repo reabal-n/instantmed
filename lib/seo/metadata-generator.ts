@@ -101,7 +101,7 @@ const DESCRIPTION_TEMPLATES: Record<PageType, (page: SEOPage) => string> = {
   },
   
   audience: (page) => {
-    return `Medical certificates and prescriptions online for ${page.slug.replace(/-/g, ' ')}. Fast, convenient, and employer-accepted. From ${PRICING_DISPLAY.MED_CERT}.`
+    return `Medical certificates and prescriptions online for ${page.slug.replace(/-/g, ' ')}. Fast, convenient, and employer-ready. From ${PRICING_DISPLAY.MED_CERT}.`
   },
   
   symptom: (page) => {

@@ -611,7 +611,7 @@ See `TESTING.md` for full testing strategy, conventions, E2E patterns, auth bypa
 **Quick reference:**
 - Unit tests: Vitest, Node environment, `lib/__tests__/`, 80/70/80/80 coverage thresholds (scoped to `lib/clinical/` and `lib/security/` — `lib/state-machine/` was removed from the include list in 2026-04-08 since the directory no longer exists)
 - E2E tests: Playwright, `e2e/`, auth bypass via `PLAYWRIGHT=1` + `__e2e_auth_user_id` cookie. **Full suite runs in CI** as of commit `ae1c80822` (previously only 4 of 47 specs ran). Requires `STRIPE_WEBHOOK_SECRET` (test-mode) in GitHub repo secrets or webhook tests silently skip.
-- Current test count: **987 passing** (942 before the 2026-04-08 audit sweep). New test files: `lib/__tests__/stripe-refunds.test.ts` (26 tests), `lib/__tests__/decline-intake.test.ts` (19 tests).
+- Current local test count: **1,521 passing** across 55 test files as of 2026-04-28. Earlier 987-test references are stale.
 - Commands: `pnpm test` · `pnpm test:coverage` · `pnpm e2e:chromium`
 
 ---
@@ -820,9 +820,9 @@ Models in `lib/ai/provider.ts`. Routed through Vercel AI Gateway in production (
 |-------|---------|
 | `/` | Marketing homepage. Section order: hero (with `RegulatoryPartners` + `LastReviewedSignal` inline, trust signals at highest-anxiety moment) → lifestyle photo strip → service cards (active services only) → coming-soon strip → how-it-works → social proof → FAQ → CTA banner. `RegulatoryPartners` moved from mid-page into the hero. Coming-soon cards (Women's Health, Weight Loss) separated below active grid to prevent dead zones. |
 | `/medical-certificate` | Premium landing for med certs — the gold-standard `MedCertLanding` pattern. |
-| `/prescriptions` | Repeat medication landing (eScript workflow, subscription upsell). |
-| `/erectile-dysfunction` | Bespoke ED specialty landing (`ErectileDysfunctionLanding`). Routes into `/request?service=consult&subtype=ed`. No call step. Short URL `/ed` 301s here. |
-| `/hair-loss` | Bespoke hair loss specialty landing (`HairLossLanding`). Routes into `/request?service=consult&subtype=hair_loss`. No call step. |
+| `/prescriptions` | Repeat medication landing (one-off eScript review workflow). Subscription language is dormant/future strategy unless reactivated in `docs/BUSINESS_PLAN.md`. |
+| `/erectile-dysfunction` | Bespoke ED specialty landing (`ErectileDysfunctionLanding`). Routes into `/request?service=consult&subtype=ed`. Form-first doctor review; doctor may call/message if clinically needed. Short URL `/ed` 301s here. |
+| `/hair-loss` | Bespoke hair loss specialty landing (`HairLossLanding`). Routes into `/request?service=consult&subtype=hair_loss`. Form-first doctor review; doctor may call/message if clinically needed. |
 | `/consult` | Canonical generic doctor-consult funnel (`ServiceFunnelPage` + 12 FAQs + HowToSchema). The `/general-consult` URL was retired in commit `542ae8119` as an SEO cannibalization fix and now 301s here. |
 | `/blog` | Doctor-reviewed health articles (12h ISR revalidation) |
 | `/faq` | 34 FAQs across 7 categories |

@@ -380,7 +380,7 @@ export function LocationPageContent({
               "Skip the waiting room",
               "Same-day service, most requests",
               "eScripts sent to your phone",
-              "Valid for all Australian employers",
+              "Employer policies may vary",
               "Reviewed by real Australian doctors",
             ].map((benefit) => (
               <motion.div

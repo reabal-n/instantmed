@@ -7,7 +7,7 @@
 
 ### Model
 
-Field-level **envelope encryption** using **AES-256-GCM** with unique IV per operation. Base64 encoding for storage. `ENCRYPTION_KEY` (simpler module) verified at startup via `verifyEncryptionSetup()` in `instrumentation.ts`. `PHI_MASTER_KEY` is validated at startup in production via `productionRequirements` in `lib/env.ts` (requires min 32 chars). If misconfigured, the server throws at startup before serving any requests — fail-fast, not fail-at-first-use.
+Field-level **envelope encryption** using **AES-256-GCM** with unique IV per operation. Base64 encoding for storage. `ENCRYPTION_KEY` (simpler module) is verified by `verifyEncryptionSetup()` in `instrumentation.ts`. `PHI_MASTER_KEY` is included in production requirements in `lib/config/env.ts` and server-only getters throw at point of use if required production secrets are missing. Module-load production validation warns instead of throwing because Next build evaluates modules during static generation. Treat missing production encryption env vars as a release blocker even when the build itself succeeds.
 
 1. Generate a per-record data key
 2. Encrypt PHI with the data key (AES-256-GCM)
@@ -221,7 +221,7 @@ upgrade-insecure-requests;
 
 1. **General API** (`lib/rate-limit/redis.ts`): Upstash Redis. Fallback: **fail-open** (allow request) when Redis unavailable — intentional for serverless (in-memory Maps don't persist across invocations).
 
-2. **Doctor actions** (`lib/rate-limit/doctor.ts`): DB-backed sliding window (queries `audit_logs`). Fallback: in-memory `Map` with **half limits** when DB unavailable (per-instance, not shared). Note: `lib/security/rate-limit.ts` is an unused duplicate — the active module is `lib/rate-limit/doctor.ts`.
+2. **Doctor actions** (`lib/rate-limit/doctor.ts`): DB-backed sliding window (queries `audit_logs`). Fallback: in-memory `Map` with **half limits** when DB unavailable (per-instance, not shared).
 
 | Endpoint Category | Limit | Window | Module |
 |-------------------|-------|--------|--------|
@@ -231,9 +231,9 @@ upgrade-insecure-requests;
 | File uploads | 30 requests | 1 hour | redis |
 | AI endpoints | 30 requests | 1 minute | redis |
 | Webhooks | 1000 requests | 1 minute | redis |
-| Doctor approval | 20 requests | 1 hour | security/rate-limit |
-| Doctor decline | 100 requests | 1 hour | security/rate-limit |
-| Certificate issue | 30 requests | 1 hour | security/rate-limit |
+| Doctor approval | 20 requests | 1 hour | `lib/rate-limit/doctor.ts` |
+| Doctor decline | 100 requests | 1 hour | `lib/rate-limit/doctor.ts` |
+| Certificate issue | 30 requests | 1 hour | `lib/rate-limit/doctor.ts` |
 
 Response headers: `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset`.
 
@@ -245,7 +245,7 @@ All webhooks use signature verification (not CSRF).
 
 | Provider | Handler | Verification |
 |----------|---------|-------------|
-| **Stripe** | `app/api/stripe/webhook/route.ts` | `stripe.webhooks.constructEvent(body, sig, secret)` — raw body via `request.text()` before any parsing. `STRIPE_WEBHOOK_SECRET` read from validated `env` object (throws at startup if missing in production). |
+| **Stripe** | `app/api/stripe/webhook/route.ts` | `stripe.webhooks.constructEvent(body, sig, secret)` — raw body via `request.text()` before any parsing. `STRIPE_WEBHOOK_SECRET` is server-only and must be present in production; point-of-use access fails if it is missing. |
 | **Resend** | `app/api/webhooks/resend/route.ts` | Svix: `new Webhook(RESEND_WEBHOOK_SECRET).verify(payload, headers)` |
 | **Parchment** | `app/api/webhooks/parchment/route.ts` | HMAC-SHA256: `X-Webhook-Signature: t=timestamp,v1=signature`. Signed payload: `{timestamp}.{rawBody}`. 5-min replay window. Timing-safe comparison via `crypto.timingSafeEqual`. `PARCHMENT_WEBHOOK_SECRET` from env. |
 

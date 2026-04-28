@@ -7,16 +7,19 @@
 Read (or re-read) these before touching any `.tsx` / `.css` in `app/` or `components/`. They're the **law**.
 
 1. **`docs/DESIGN_SYSTEM.md`** — colour tokens, typography scale, spacing, elevation (solid depth, sky-toned shadows), hero variants, motion canon, voice, do/don't. Single source of truth.
-2. **`lib/motion/index.ts`** — timing, easing, variants (`fadeUp`, `stagger`). No spring physics. 200ms default. Never `initial={false}` — use `initial={{}}` for reduced motion.
-3. **`lib/services/service-catalog.ts`** — canonical service definitions (title, subtitle, price, `iconKey`, `colorToken`, route). Every service surface reads from here. Do not inline definitions in consumer components.
-4. **`components/icons/service-icons.tsx`** — `ServiceIconTile` primitive. Default `variant="tile"`. Use `variant="sticker"` ONLY for playful marketing contexts.
-5. **`components/ui/heading.tsx`** — `<Heading level>` primitive with baked-in typography scale (display / h1 / h2 / h3). **Mandatory** for every section heading. Hand-rolled `text-3xl font-semibold tracking-tight` is design drift. Accepts `as` prop to decouple visual hierarchy from semantic element.
-6. **`components/marketing/hero.tsx`** — `<Hero>` primitive with slot props (title, pill, primaryCta, secondaryCta, beforeCta, mockup, trustRow). All marketing-page heroes use this; bespoke hero files were retired in the 2026-04-28 sweep.
-7. **`components/sections/cta-banner.tsx`** — `<CTABanner>` final-CTA primitive. Refund line auto-renders from `GUARANTEE` constant (`lib/marketing/voice.ts`). Optional `price`, `microcopy`, `onCtaClick`, `isDisabled` props for service pages.
-8. **`components/sections/faq-section.tsx`** — `<FAQSection>` shared FAQ pattern. Bespoke `EDFAQSection` / `HairLossFAQSection` / `PrescriptionFAQSection` etc. were retired in the same sweep.
-9. **`components/marketing/sections/time-comparison-viz.tsx`** — `<TimeComparisonViz>` race-track primitive (us-vs-GP-clinic time saved). Used by every service page that has a time-comparison moment.
-10. **`components/marketing/sections/service-claim-section.tsx`** — `<ServiceClaimSection>` "page superpower" anchor (Morning Canvas warmth + display-tier headline + supporting body). Used by /medical-certificate (employer 98%), /prescriptions (PBS), /consult ($49.95 vs $120), /erectile-dysfunction (discretion), /hair-loss (TGA clinical legitimacy).
-11. **`components/sections/section-header.tsx`** — `SectionHeader` (title + pill + animated WordReveal entrance). Title className is kept in lockstep with Heading h1 spec. Used by FeatureGrid / ProcessSteps / FAQSection / IconChecklist / Timeline / ComparisonTable / AccordionSection — and through them, most marketing pages.
+2. **`docs/BUSINESS_PLAN.md`** — current business strategy: specialised one-off services, solo-doctor scale, no pharmacy fulfilment, no subscriptions in this phase.
+3. **`docs/ADVERTISING_COMPLIANCE.md`** — Google/AHPRA/TGA acquisition rules. Required before editing ads, landing-page copy, metadata, schema, or service claims.
+4. **`docs/SEO_CONTENT_POLICY.md`** — organic educational content rules, especially for prescription/medicine pages.
+5. **`lib/motion/index.ts`** — timing, easing, variants (`fadeUp`, `stagger`). No spring physics. 200ms default. Never `initial={false}` — use `initial={{}}` for reduced motion.
+6. **`lib/services/service-catalog.ts`** — canonical service definitions (title, subtitle, price, `iconKey`, `colorToken`, route). Every service surface reads from here. Do not inline definitions in consumer components.
+7. **`components/icons/service-icons.tsx`** — `ServiceIconTile` primitive. Default `variant="tile"`. Use `variant="sticker"` ONLY for playful marketing contexts.
+8. **`components/ui/heading.tsx`** — `<Heading level>` primitive with baked-in typography scale (display / h1 / h2 / h3). **Mandatory** for every section heading. Hand-rolled `text-3xl font-semibold tracking-tight` is design drift. Accepts `as` prop to decouple visual hierarchy from semantic element.
+9. **`components/marketing/hero.tsx`** — `<Hero>` primitive with slot props (title, pill, primaryCta, secondaryCta, beforeCta, mockup, trustRow). All marketing-page heroes use this; bespoke hero files were retired in the 2026-04-28 sweep.
+10. **`components/sections/cta-banner.tsx`** — `<CTABanner>` final-CTA primitive. Refund line auto-renders from `GUARANTEE` constant (`lib/marketing/voice.ts`). Optional `price`, `microcopy`, `onCtaClick`, `isDisabled` props for service pages.
+11. **`components/sections/faq-section.tsx`** — `<FAQSection>` shared FAQ pattern. Bespoke `EDFAQSection` / `HairLossFAQSection` / `PrescriptionFAQSection` etc. were retired in the same sweep.
+12. **`components/marketing/sections/time-comparison-viz.tsx`** — `<TimeComparisonViz>` race-track primitive (us-vs-GP-clinic time saved). Used by every service page that has a time-comparison moment.
+13. **`components/marketing/sections/service-claim-section.tsx`** — `<ServiceClaimSection>` page claim anchor. Claims must be evidence-backed and compliant with `docs/ADVERTISING_COMPLIANCE.md`.
+14. **`components/sections/section-header.tsx`** — `SectionHeader` (title + pill + animated WordReveal entrance). Title className is kept in lockstep with Heading h1 spec. Used by FeatureGrid / ProcessSteps / FAQSection / IconChecklist / Timeline / ComparisonTable / AccordionSection — and through them, most marketing pages.
 
 Bonus: **`lib/design-system/version.ts`** — current `DESIGN_SYSTEM_VERSION` (1.1.0 as of 2026-04-28). Bump and update `docs/DESIGN_SYSTEM_CHANGELOG.md` on breaking changes.
 
@@ -42,6 +45,9 @@ Bonus: **`lib/design-system/version.ts`** — current `DESIGN_SYSTEM_VERSION` (1
 - **All race-track time-comparison sections use `<TimeComparisonViz>`** (rule 9). Bespoke `CertComparisonViz` / `PrescriptionComparisonViz` / `EDComparisonViz` / `HairLossComparisonViz` were retired.
 - **All FAQ sections on marketing pages use `<FAQSection>`** (rule 8). Bespoke `EDFAQSection` / `HairLossFAQSection` / `PrescriptionFAQSection` were retired.
 - **`GUARANTEE` is outcome-only** ("Full refund if our doctor can't help."), not time-bound. The previous "Doctor reviews in 2 hours or we waive the fee" version was retired 2026-04-28 because it created operational risk on slow days. Don't reintroduce time-bound refund language.
+- **Voice wedge is now service-specific.** Default `WEDGE` is form-first/no-waiting-room. `MED_CERT_WEDGE` is the only approved "No video. No call. No appointment." phrase, and only for medical certificate surfaces. Prescription and specialty services use form-first copy.
+- **InstantMed is specialised services, not broad online GP.** Do not make homepage or nav copy drift into "speak with a doctor about anything" as the brand promise. General consult is a fallback pathway.
+- **Do not use prescription drug pages as paid destinations.** Educational prescription SEO pages can exist, but paid ads route to service-level pages only.
 - **Brand-surfaces smoke spec** (`e2e/brand-surfaces.smoke.spec.ts`) verifies `GUARANTEE` literal renders on every brand surface. If you change voice canon, update the test's `GUARANTEE_LITERAL` constant in the same commit.
 - **Em-dashes (U+2014) are banned from marketing surfaces.** `voice-guard.test.ts` enforces three layers: literal U+2014, JS escape, and HTML entities (`&mdash;` / `&#8212;` / `&#x2014;`). Use commas, periods, colons, or parens.
 - **Patient counter is honest, not inflated.** `lib/social-proof/index.ts` ANCHOR_COUNT recalibrated 3,000 → 500 (April 11 launch), TARGET_COUNT 8,000 → 2,500 (Dec 31). Defensible against the current 3-review GBP base. Don't bump unless real Supabase data exceeds the floor.
@@ -70,6 +76,8 @@ Bonus: **`lib/design-system/version.ts`** — current `DESIGN_SYSTEM_VERSION` (1
 - [ ] `pnpm test` passes
 - [ ] Visual check in BOTH light and dark mode at desktop AND mobile
 - [ ] Reduced-motion toggle exercised on any new motion
+- [ ] `docs/ADVERTISING_COMPLIANCE.md` checked for any public acquisition copy, metadata, schema, or SEO change
+- [ ] `docs/SEO_CONTENT_POLICY.md` checked for prescription, medicine, symptom, or condition pages
 - [ ] `docs/DESIGN_SYSTEM_CHANGELOG.md` updated if a token or surface pattern changed
 - [ ] `CLAUDE.md` satellite-doc table updated if a new domain doc was added
 

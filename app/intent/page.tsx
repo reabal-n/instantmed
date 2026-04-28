@@ -22,7 +22,7 @@ export const metadata: Metadata = {
 
 const intents = [
   { slug: "same-day-medical-certificate", name: "Same Day Medical Certificate", description: "Get a valid certificate issued and emailed in about 20 minutes, 24/7" },
-  { slug: "work-certificate-online", name: "Work Certificate Online", description: "Sick leave certificate accepted by all Australian employers" },
+  { slug: "work-certificate-online", name: "Work Certificate Online", description: "Doctor-issued sick leave certificate for workplace evidence" },
   { slug: "flu-certificate-online", name: "Cold & Flu Certificate", description: "Too sick to work? Get a certificate from your couch" },
   { slug: "uti-treatment-online", name: "UTI Treatment Online", description: "Doctor-assessed UTI treatment with same-day eScript" },
   { slug: "repeat-prescription-online", name: "Medication Review Online", description: "Ongoing medication management without a clinic visit" },

@@ -148,7 +148,7 @@ export function EDGuideSection() {
             <div className="pt-1">
               <div className="space-y-4">
                 {[
-                  { n: "1", title: "Short health form (~2 min)", text: "Questions about your symptoms, medical history, and current medications, the same ones a GP would ask. No video call required." },
+                  { n: "1", title: "Short health form (~2 min)", text: "Questions about your symptoms, medical history, and current medications, the same ones a GP would ask. Doctor contact only if clinically needed." },
                   { n: "2", title: "Doctor review (typically 1–2 hours)", text: "An AHPRA-registered Australian doctor reviews your submission. If they need clarification, they'll message you. If appropriate, they approve and prescribe." },
                   { n: "3", title: "eScript to your phone", text: "Prescription sent by SMS. Take it to any Australian pharmacy. If treatment isn't appropriate, we tell you directly and refund in full." },
                 ].map((step, i, arr) => (

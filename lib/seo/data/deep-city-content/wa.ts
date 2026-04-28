@@ -57,10 +57,10 @@ export const WA_CITIES: Record<string, DeepCityContent> = {
     },
     additionalFaqs: [
       { q: "Does InstantMed work on WA time?", a: "InstantMed operates 8am–10pm AEST, which is approximately 6am–8pm AWST (or 5am–7pm during eastern daylight saving). This covers standard working hours and evening for Perth residents. Requests submitted in the evening may be reviewed the following morning." },
-      { q: "Can FIFO workers use InstantMed from site?", a: "Yes, as long as you have internet access. Many mine sites and remote camps have wifi or mobile coverage. If you need a medical certificate while on site, you can submit your request and receive the certificate via email. It's valid for all employers, including mining companies." },
+      { q: "Can FIFO workers use InstantMed from site?", a: "Yes, as long as you have internet access. Many mine sites and remote camps have wifi or mobile coverage. If you need a medical certificate while on site, you can submit your request and receive the certificate via email. Employer policies may vary, including at mining companies." },
       { q: "Are Perth GPs really that expensive?", a: "Perth has some of the lowest bulk-billing rates in Australia. Many GPs charge gap fees of $50–$100 per standard consultation. For a straightforward medical certificate, InstantMed offers a more affordable flat-fee alternative without compromising on clinical quality." },
       { q: "Can I use InstantMed in regional WA?", a: "Yes. InstantMed works anywhere in Western Australia with an internet connection - Perth, Geraldton, Kalgoorlie, Karratha, Broome, or anywhere in between. The service and pricing are the same regardless of your location." },
-      { q: "Do WA mining companies accept telehealth certificates?", a: "Yes. Mining companies operating in Australia accept medical certificates from AHPRA-registered doctors. The method of consultation (in-person vs telehealth) doesn't affect the certificate's validity. Our certificates include all required details for fitness-for-duty documentation." },
+      { q: "Do WA mining companies assess telehealth certificates under their own policies?", a: "Yes. Mining companies operating in Australia set their own policies for medical certificates from AHPRA-registered doctors. The method of consultation (in-person vs telehealth) doesn't affect the certificate's validity. Our certificates include all required details for fitness-for-duty documentation." },
     ],
   },
   bunbury: {
@@ -83,7 +83,7 @@ export const WA_CITIES: Record<string, DeepCityContent> = {
         title: "South-West Workers, Wine Region Tourism, and Students",
         paragraphs: [
           "The South-West's economy spans alumina refining and mining (Alcoa Wagerup, South32 Worsley), forestry and timber, dairy and beef, and one of Australia's most developed wine tourism regions. Each of these industries employs significant numbers of shift workers, seasonal staff, and people whose schedules simply don't align with traditional 9-to-5 GP clinic hours. Hospitality staff in Margaret River's cellar doors and restaurants, vineyard workers during vintage, and alumina refinery crews all benefit from telehealth's evening availability.",
-          "Edith Cowan University's South West campus in Bunbury and South Regional TAFE serve thousands of students across the region. Both accept medical certificates from AHPRA-registered doctors for all academic support applications - special consideration, exam deferrals, and assignment extensions. The consultation method does not affect validity.",
+          "Edith Cowan University's South West campus in Bunbury and South Regional TAFE serve thousands of students across the region. Both set their own policies for medical certificates from AHPRA-registered doctors for all academic support applications - academic support, missed assessment documentation, and coursework documentation. The consultation method does not affect validity.",
           "For the growing remote-work population in the region - people who moved from Perth for lifestyle reasons and kept their city jobs - telehealth provides the same convenience they were used to in the metro area. There is no penalty for living in the South-West: same doctors, same pricing, same turnaround.",
         ],
       },
@@ -130,7 +130,7 @@ export const WA_CITIES: Record<string, DeepCityContent> = {
     additionalFaqs: [
       { q: "Does InstantMed cover Busselton, Margaret River, and the Capes?", a: "Yes. Busselton, Dunsborough, Yallingup, Margaret River, Augusta, and all the smaller Capes-region communities. Any location in the South-West with internet access is covered." },
       { q: "Does InstantMed operate on WA time?", a: "Our operating window is 8am–10pm AEST, which is 6am–8pm AWST - so most of the Western Australian working day is covered. Submissions made early in the WA morning are typically reviewed almost immediately." },
-      { q: "Can Alcoa Wagerup and South32 workers use InstantMed?", a: "Yes. Our certificates are valid for all Australian employers under the Fair Work Act and include the AHPRA registration details needed for fitness-for-duty documentation." },
+      { q: "Can Alcoa Wagerup and South32 workers use InstantMed?", a: "Yes. Our certificates include AHPRA registration details for workplace documentation and include the AHPRA registration details needed for fitness-for-duty documentation." },
       { q: "Is InstantMed cheaper than seeing a GP in Bunbury?", a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT}. With Bunbury's bulk-billing rate around 62% and typical gap fees of $40–$80, InstantMed is often more affordable for straightforward certificates and scripts.` },
     ],
   },
@@ -163,7 +163,7 @@ export const WA_CITIES: Record<string, DeepCityContent> = {
         paragraphs: [
           "Western Australian workers are covered by either the federal Fair Work Act or the WA Industrial Relations Act, depending on their employer. Under both systems, medical certificates from AHPRA-registered doctors are legally valid evidence for leave purposes. The consultation method - telehealth or face-to-face - is not a factor.",
           "WA's time zone (AWST, UTC+8) means Fremantle is 2-3 hours behind the eastern states. InstantMed operates 8am-10pm AEST, which translates to approximately 6am-8pm AWST. For Fremantle residents, this covers the entire working day and evening. Requests submitted in the late WA evening may be reviewed the following morning.",
-          "Notre Dame University Fremantle and Murdoch University both accept telehealth-issued medical certificates from AHPRA-registered doctors for special consideration, assignment extensions, and exam deferrals. The same applies to South Metropolitan TAFE and all other educational institutions in the Fremantle area.",
+          "Notre Dame University Fremantle and Murdoch University both assess telehealth-issued medical certificates under their own policies from AHPRA-registered doctors for academic support, coursework documentation, and missed assessment documentation. The same applies to South Metropolitan TAFE and all other educational institutions in the Fremantle area.",
         ],
       },
     ],
@@ -179,13 +179,13 @@ export const WA_CITIES: Record<string, DeepCityContent> = {
       paragraphs: [
         "Western Australia follows national AHPRA and Medical Board of Australia guidelines for telehealth. The WA Department of Health has supported telehealth expansion as part of its digital health strategy, recognising the state's unique geographic challenges. All telehealth consultations must be provided by AHPRA-registered practitioners.",
         "Prescribing via telehealth in WA follows national TGA regulations. PBS-listed medications can be prescribed electronically, with the eScript system fully operational across all Western Australian pharmacies. Schedule 8 controlled substances require WA Department of Health authority and in-person assessment.",
-        "Medical certificates issued via telehealth carry the same legal weight in Western Australia as those from in-person consultations. WA employers are legally required to accept certificates from AHPRA-registered doctors under both the Fair Work Act and the WA Industrial Relations Act.",
+        "Medical certificates issued via telehealth carry the same legal weight in Western Australia as those from in-person consultations. WA employers are legally required to set their own policies for certificates from AHPRA-registered doctors under both the Fair Work Act and the WA Industrial Relations Act.",
       ],
     },
     additionalFaqs: [
-      { q: "Can Fremantle port workers use InstantMed?", a: "Yes. Port workers, logistics staff, and maritime workers can get medical certificates via telehealth. Certificates are valid for all employers, including those under maritime enterprise agreements." },
+      { q: "Can Fremantle port workers use InstantMed?", a: "Yes. Port workers, logistics staff, and maritime workers can get medical certificates via telehealth. Certificates are subject to employer policies, including those under maritime enterprise agreements." },
       { q: "Does InstantMed cover South Fremantle and Cockburn?", a: "Yes. InstantMed covers all of Fremantle, Cockburn, Melville, Hamilton Hill, East Fremantle, and the entire Perth metropolitan area. It works anywhere in WA with internet access." },
-      { q: "Can Notre Dame Fremantle students use InstantMed?", a: "Yes. Notre Dame University accepts medical certificates from AHPRA-registered doctors for special consideration, extensions, and exam deferrals. The consultation method doesn't affect validity." },
+      { q: "Can Notre Dame Fremantle students use InstantMed?", a: "Yes. Notre Dame University sets its own policy for medical certificates from AHPRA-registered doctors for academic support, extensions, and missed assessment documentation. The consultation method doesn't affect validity." },
       { q: "Is InstantMed cheaper than a Fremantle GP?", a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT}. With Fremantle bulk-billing rates around 55% and gap fees of $50–$90 at many practices, InstantMed is often the more affordable option for straightforward certificates.` },
     ],
   },

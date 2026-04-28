@@ -6,10 +6,8 @@ import {
   FileCheck,
   Scale,
   Shield,
-  Star,
 } from 'lucide-react'
 import type { Metadata } from 'next'
-import Image from 'next/image'
 import Link from 'next/link'
 
 import { MarketingFooter } from '@/components/marketing/footer'
@@ -21,25 +19,9 @@ import { PRICING_DISPLAY } from '@/lib/constants'
 
 const baseUrl = 'https://instantmed.com.au'
 
-const employerLogos = [
-  { name: 'Woolworths', src: '/logos/woolworths.png', width: 90, maxWidth: 90 },
-  { name: 'Coles', src: '/logos/coles.png', width: 70, maxWidth: 70 },
-  { name: 'Telstra', src: '/logos/telstra.png', width: 80, maxWidth: 80 },
-  { name: 'Commonwealth Bank', src: '/logos/commonwealthbank.png', width: 50, maxWidth: 50 },
-  { name: 'ANZ', src: '/logos/ANZ.png', width: 60, maxWidth: 60 },
-  { name: 'Westpac', src: '/logos/westpac.png', width: 80, maxWidth: 80 },
-  { name: 'NAB', src: '/logos/nab.png', width: 60, maxWidth: 60 },
-  { name: 'Amazon', src: '/logos/amazon.png', width: 90, maxWidth: 90 },
-  { name: 'BHP', src: '/logos/BHP.png', width: 60, maxWidth: 60 },
-  { name: 'Bunnings', src: '/logos/bunnings.png', width: 90, maxWidth: 90 },
-  { name: 'JB Hi-Fi', src: '/logos/jbhifi.png', width: 70, maxWidth: 70 },
-  { name: "McDonald's", src: '/logos/mcdonalds.png', width: 40, maxWidth: 40 },
-  { name: 'Sonic Healthcare', src: '/logos/sonichealthcare.png', width: 110, maxWidth: 110 },
-]
-
 export const metadata: Metadata = {
   title: "Are Online Medical Certificates Valid? | Employer Acceptance",
-  description: "Yes, online medical certificates from AHPRA-registered doctors are legally valid and accepted by all Australian employers. Learn what makes a certificate legitimate.",
+  description: "Learn how Australian employers assess online medical certificates from AHPRA-registered doctors, and what makes a certificate legitimate.",
   openGraph: {
     title: "Are Online Medical Certificates Valid? | InstantMed",
     description: "Online medical certificates from registered doctors are legally valid for Australian employers.",
@@ -62,7 +44,7 @@ const faqs = [
   },
   {
     question: "Can my employer refuse an online medical certificate?",
-    answer: "Under the Fair Work Act, employers must accept reasonable evidence of illness. A certificate from an AHPRA-registered doctor meets this standard. If an employer has specific policies, they must communicate these in advance.",
+    answer: "Under Fair Work guidance, employers can ask for evidence that would satisfy a reasonable person. A certificate from an AHPRA-registered doctor is commonly used for this purpose, but specific workplace policies may vary.",
   },
   {
     question: "What if my employer questions the certificate?",
@@ -98,36 +80,26 @@ export default function EmployerAcceptancePage() {
               </div>
 
               <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl mb-4">
-                Yes, your employer will accept this
+                How employer certificate evidence works
               </h1>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
-                Online medical certificates from AHPRA-registered doctors are legally valid
-                and accepted by all Australian employers. Here&apos;s why.
+                Online medical certificates from AHPRA-registered doctors can be used as
+                evidence for sick or carer&apos;s leave. Employer policies may vary.
               </p>
             </div>
           </section>
 
-          {/* Employer Logos */}
+          {/* Employer Evidence Context */}
           <section className="px-4 py-12 border-b border-border/30 dark:border-white/10">
-            <div className="mx-auto max-w-5xl">
-              <p className="text-xs font-medium text-muted-foreground text-center mb-8 uppercase tracking-widest">
-                Accepted by Australia&apos;s leading employers
+            <div className="mx-auto max-w-3xl text-center">
+              <p className="text-xs font-medium text-muted-foreground mb-3 uppercase tracking-widest">
+                Evidence, not promises
               </p>
-              <div className="flex flex-wrap justify-center items-center gap-6 md:gap-10">
-                {employerLogos.map((logo) => (
-                  <div key={logo.name} className="flex items-center justify-center rounded-lg bg-white dark:bg-white/90 border border-border/30 dark:border-transparent px-3 py-2 shadow-sm">
-                    <Image
-                      src={logo.src}
-                      alt={logo.name}
-                      width={logo.width}
-                      height={32}
-
-                      style={{ maxWidth: logo.maxWidth }}
-                      className="h-7 w-auto object-contain"
-                    />
-                  </div>
-                ))}
-              </div>
+              <p className="text-sm text-muted-foreground">
+                Employers can ask for evidence that would satisfy a reasonable person.
+                InstantMed certificates include the doctor details, dates, signature, and
+                verification information an employer can review.
+              </p>
             </div>
           </section>
 
@@ -205,13 +177,13 @@ export default function EmployerAcceptancePage() {
                   <div className="space-y-4">
                     <p className="text-sm">
                       Under the <strong>Fair Work Act 2009</strong>, employees are entitled to paid personal/carer&apos;s leave.
-                      Employers may request evidence of illness, but must accept &quot;reasonable evidence&quot; such as a
-                      medical certificate from a registered health practitioner.
+                      Employers may request evidence of illness. Fair Work guidance refers to evidence that would
+                      satisfy a reasonable person, such as a medical certificate from a registered health practitioner.
                     </p>
                     <p className="text-sm">
                       A certificate from an AHPRA-registered doctor - whether issued in-person or via telehealth -
-                      meets this standard. The <strong>Medical Board of Australia</strong> recognises telehealth as a
-                      legitimate mode of healthcare delivery.
+                      can be used for this purpose. The <strong>Medical Board of Australia</strong> recognises telehealth as a
+                      legitimate mode of healthcare delivery when clinically appropriate.
                     </p>
                     <p className="text-xs text-muted-foreground">
                       Note: This is general information, not legal advice. Specific workplace policies may vary.
@@ -309,37 +281,6 @@ export default function EmployerAcceptancePage() {
                   <div key={i} className="p-5 rounded-xl bg-card/80 dark:bg-white/5 backdrop-blur-xl border border-border/50 dark:border-white/10">
                     <h3 className="font-semibold mb-2">{faq.question}</h3>
                     <p className="text-sm text-muted-foreground">{faq.answer}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
-
-          {/* Testimonials */}
-          <section className="px-4 py-16">
-            <div className="mx-auto max-w-4xl">
-              <h2 className="text-2xl font-semibold text-center mb-2">Accepted without question</h2>
-              <p className="text-center text-muted-foreground text-sm mb-10">
-                What employees say after submitting their InstantMed certificate.
-              </p>
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                {[
-                  { name: "Sarah M.", location: "Bondi, NSW", text: "Woke up with gastro at 6am, had my cert by 8:30. HR didn't question it.", rating: 5 },
-                  { name: "Tom H.", location: "Carlton, VIC", text: "The doctor asked follow-up questions which made it feel legit. Uni accepted it for special consideration straight away.", rating: 5 },
-                  { name: "Nick B.", location: "Pyrmont, NSW", text: "Cert in my inbox by 7am, submitted to work by 7:15. No back and forth, no issues.", rating: 5 },
-                  { name: "Michelle T.", location: "Paddington, QLD", text: "Half expected a rubber stamp. It wasn't - the form asked proper questions and my employer accepted it immediately.", rating: 5 },
-                ].map((t) => (
-                  <div key={t.name} className="p-5 rounded-xl bg-card/80 dark:bg-white/5 backdrop-blur-xl border border-border/50 dark:border-white/10 space-y-3">
-                    <div className="flex gap-0.5">
-                      {Array.from({ length: t.rating }).map((_, i) => (
-                        <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                      ))}
-                    </div>
-                    <p className="text-sm text-muted-foreground leading-relaxed">&ldquo;{t.text}&rdquo;</p>
-                    <div>
-                      <p className="text-sm font-medium">{t.name}</p>
-                      <p className="text-xs text-muted-foreground">{t.location}</p>
-                    </div>
                   </div>
                 ))}
               </div>

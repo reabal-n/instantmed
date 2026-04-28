@@ -43,8 +43,8 @@ export const CONDITION_LOCATION_COMBOS: ConditionLocationCombo[] = [
         a: "Victoria's flu season typically runs May to October, with peak activity in July–August. If you're unwell and need a medical certificate, InstantMed can assess you from home.",
       },
       {
-        q: "Are InstantMed certificates accepted by Melbourne employers?",
-        a: "Yes. Our certificates are issued by AHPRA-registered doctors and are valid for all Australian employers, including those in Victoria.",
+        q: "Are InstantMed certificates suitable for Melbourne workplace evidence?",
+        a: "Yes. Our certificates are issued by AHPRA-registered doctors and include standard workplace evidence details for those in Victoria.",
       },
     ],
   },
@@ -84,7 +84,7 @@ export const CONDITION_LOCATION_COMBOS: ConditionLocationCombo[] = [
     conditionSlug: "gastro",
     citySlug: "sydney",
     localIntro:
-      "Sydney's hot summers and outdoor dining increase the risk of food poisoning. If you've been hit with gastro and need a medical certificate without leaving the bathroom, InstantMed can help. Same-day assessment from home - no trip to a clinic when you're already unwell. Certificate to your inbox, valid for all employers.",
+      "Sydney's hot summers and outdoor dining increase the risk of food poisoning. If you've been hit with gastro and need a medical certificate without leaving the bathroom, InstantMed can help. Same-day assessment from home - no trip to a clinic when you're already unwell. Certificate to your inbox, employer policies may vary.",
     localFaqs: [
       {
         q: "Can I get a gastro certificate in Sydney without going to a clinic?",
@@ -124,7 +124,7 @@ export const CONDITION_LOCATION_COMBOS: ConditionLocationCombo[] = [
       },
       {
         q: "Will Sydney employers accept an online migraine certificate?",
-        a: "Yes. Our certificates are issued by AHPRA-registered doctors and are valid for all Australian employers, including NSW government and corporate.",
+        a: "Yes. Our certificates are issued by AHPRA-registered doctors and include standard workplace evidence details for NSW government and corporate.",
       },
     ],
   },
@@ -139,8 +139,8 @@ export const CONDITION_LOCATION_COMBOS: ConditionLocationCombo[] = [
         a: "Yes. InstantMed assesses migraine cases online. Describe your symptoms, get reviewed by an AHPRA-registered doctor, and receive your certificate via email.",
       },
       {
-        q: "Do Melbourne employers accept telehealth certificates?",
-        a: "Yes. Our certificates are issued by AHPRA-registered doctors and meet Fair Work Act requirements. They're valid for all Australian employers.",
+        q: "Do Melbourne employers assess telehealth certificates under their own policies?",
+        a: "Yes. Our certificates are issued by AHPRA-registered doctors and meet Fair Work Act requirements. They're employer policies may vary.",
       },
     ],
   },
@@ -168,11 +168,11 @@ export const CONDITION_LOCATION_COMBOS: ConditionLocationCombo[] = [
     localFaqs: [
       {
         q: "Can I get an anxiety certificate in Sydney confidentially?",
-        a: "Yes. InstantMed assessments are completed via an online form - no video call required unless the doctor needs to clarify something. Your information is confidential and encrypted.",
+        a: "Yes. InstantMed assessments start with a secure online form. A doctor contacts you only if more information is clinically needed, and your information is confidential and encrypted.",
       },
       {
         q: "Will Sydney employers accept a stress leave certificate?",
-        a: "Yes. Our certificates document that you're unfit for work. They're issued by AHPRA-registered doctors and are valid for all Australian employers. Mental health is a legitimate reason for leave.",
+        a: "Yes. Our certificates document that you're unfit for work. They're issued by AHPRA-registered doctors and employer policies may vary. Mental health is a legitimate reason for leave.",
       },
     ],
   },

@@ -28,7 +28,7 @@ export const ACT_CITIES: Record<string, DeepCityContent> = {
         title: "Who Benefits Most in Canberra",
         paragraphs: [
           "Canberra's workforce is dominated by the Australian Public Service. APS enterprise agreements recognise medical certificates from AHPRA-registered doctors, including those issued via telehealth. Whether you work at Parliament House, the ATO in Symonston, Defence in Russell, or any of the dozens of Commonwealth agencies across Canberra - a telehealth certificate meets your leave requirements.",
-          "University students at ANU, University of Canberra, ACU, and UNSW Canberra face similar access challenges. The ANU Health Service handles high volumes, particularly during exam periods. UC's Bruce campus has limited on-site medical facilities. For special consideration applications and assignment extensions, telehealth certificates are accepted by all four institutions.",
+          "University students at ANU, University of Canberra, ACU, and UNSW Canberra face similar access challenges. The ANU Health Service handles high volumes, particularly during exam periods. UC's Bruce campus has limited on-site medical facilities. For academic support requests and coursework documentation, telehealth certificates are handled according to each institution's policy.",
           "Canberra's diplomatic community - embassy staff, international organisations, and their families - often lack established GP relationships. Telehealth provides immediate access to an Australian doctor without needing a referral or existing patient relationship. This is also relevant for temporary residents working in Canberra on secondment.",
         ],
       },
@@ -57,8 +57,8 @@ export const ACT_CITIES: Record<string, DeepCityContent> = {
       ],
     },
     additionalFaqs: [
-      { q: "Do APS agencies accept telehealth certificates?", a: "Yes. All APS enterprise agreements accept medical certificates from AHPRA-registered doctors. The consultation method is not relevant - what matters is that the doctor holds current registration. We've never had a certificate rejected by a Commonwealth employer." },
-      { q: "Can ANU students use InstantMed?", a: "Yes. ANU accepts medical certificates from any AHPRA-registered doctor for special consideration applications. The same applies to UC, ACU, and UNSW Canberra." },
+      { q: "Do APS agencies assess telehealth certificates under their own policies?", a: "Yes. All APS enterprise agreements set their own policies for medical certificates from AHPRA-registered doctors. The consultation method is not relevant - what matters is that the doctor holds current registration. We've never had a certificate rejected by a Commonwealth employer." },
+      { q: "Can ANU students use InstantMed?", a: "Yes. ANU accepts medical certificates from any AHPRA-registered doctor for academic support requests. The same applies to UC, ACU, and UNSW Canberra." },
       { q: "Is InstantMed cheaper than a GP in Canberra?", a: `With Canberra's bulk-billing rate around 47% and typical gap fees of $50–$100, InstantMed is often more affordable for straightforward needs. Medical certificates start from ${PRICING_DISPLAY.MED_CERT} with no hidden costs.` },
       { q: "Can I use InstantMed in Queanbeyan?", a: "Yes. While Queanbeyan is technically in NSW, InstantMed works anywhere in Australia. Same service, same pricing, same certificates." },
       { q: "What about ACT public servants specifically?", a: "ACT Government employees follow the ACT Public Sector Enterprise Agreement, which accepts certificates from registered medical practitioners. Telehealth certificates meet this requirement." },

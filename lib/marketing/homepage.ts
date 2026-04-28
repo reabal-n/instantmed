@@ -63,7 +63,7 @@ export const serviceCategories = [
     title: "Medical Certificates",
     shortTitle: "Med Certs",
     benefitQuestion: "Too sick to see a doctor in person?",
-    description: "Get a valid certificate for work, uni, or carer's leave, without leaving bed",
+    description: "Get a certificate for work, study, or carer's leave, without leaving bed",
     icon: "FileText",
     color: "emerald",
     priceFrom: 19.95,
@@ -71,12 +71,12 @@ export const serviceCategories = [
     popular: true,
     cta: "Get your certificate",
     benefits: [
-      "Accepted by all Australian employers",
+      "Issued if clinically appropriate",
       "Delivered to your inbox same-day",
       "AHPRA-registered doctor on every cert",
     ],
     testimonial: {
-      quote: "Got my cert in 20 mins. Employer accepted it no questions asked.",
+      quote: "Doctor-reviewed certificate request, no waiting room.",
       author: "Sarah, Sydney"
     },
   },
@@ -132,7 +132,7 @@ export const serviceCategories = [
     title: "ED Treatment",
     shortTitle: "ED",
     benefitQuestion: "Need discreet ED treatment?",
-    description: "Prescription ED treatment reviewed by an Australian doctor. No call, no waiting room.",
+    description: "Private ED assessment reviewed by an Australian doctor. No booked appointment or waiting room.",
     icon: "Lightning",
     color: "blue",
     priceFrom: 49.95,
@@ -140,12 +140,12 @@ export const serviceCategories = [
     popular: false,
     cta: "Start assessment",
     benefits: [
-      "No call needed - doctor reviews your form",
-      "Discreet packaging, sent to any pharmacy",
-      "Only pay if doctor approves",
+      "Form-first doctor review",
+      "eScript sent if approved",
+      "Prescription only if appropriate",
     ],
     testimonial: {
-      quote: "Discreet and straightforward. No awkward conversation, just results.",
+      quote: "Private, structured assessment reviewed by a doctor.",
       author: "James, Brisbane"
     },
   },
@@ -155,7 +155,7 @@ export const serviceCategories = [
     title: "Hair Loss Treatment",
     shortTitle: "Hair Loss",
     benefitQuestion: "Noticed your hairline changing?",
-    description: "Doctor-led assessment for hair loss treatment. Discreet, no call required.",
+    description: "Doctor-led assessment for hair loss concerns. Private form-first review.",
     icon: "Sparkles",
     color: "amber", // was "violet" — fixed per DESIGN_SYSTEM.md §1 prohibition + audit C1/C2
     priceFrom: 49.95,
@@ -163,12 +163,12 @@ export const serviceCategories = [
     popular: false,
     cta: "Start assessment",
     benefits: [
-      "Evidence-based treatments",
-      "No waiting room, no call needed",
+      "Doctor-assessed options",
+      "No waiting room",
       "eScript sent straight to your phone",
     ],
     testimonial: {
-      quote: "Wish I'd done this sooner. Easy process and the treatment is working.",
+      quote: "Private assessment with doctor review.",
       author: "Mark, Perth"
     },
   },
@@ -188,7 +188,7 @@ export const serviceCategories = [
     cta: "Notify me",
     benefits: [
       "Contraception and hormonal health",
-      "Doctor-reviewed, no call needed",
+      "Doctor-reviewed form",
       "eScript sent to your phone",
     ],
   },
@@ -261,7 +261,7 @@ export const howItWorks = [
 export const featuredServices = [
   {
     title: "Medical Certificates",
-    description: "Feeling too sick to visit a GP? Get a valid, employer-accepted certificate from an AHPRA-registered doctor, without leaving bed.",
+    description: "Feeling too sick to visit a GP? Get a valid, employer-ready certificate from an AHPRA-registered doctor, without leaving bed.",
     priceFrom: 19.95,
     href: "/request?service=med-cert",
     features: ["Sick leave", "Carer's leave", "Uni extensions", "Same-day delivery"],
@@ -275,17 +275,17 @@ export const featuredServices = [
   },
   {
     title: "ED Treatment",
-    description: "Discreet doctor-led assessment for ED. Our doctors review your form and issue treatment if appropriate. No call required, no waiting room.",
+    description: "Discreet doctor-led assessment for ED. A doctor reviews your form and prescribes only if clinically appropriate. No waiting room.",
     priceFrom: 49.95,
     href: "/erectile-dysfunction",
-    features: ["No call needed", "Discreet packaging", "Any Australian pharmacy", "Doctor-reviewed"],
+    features: ["Form-first review", "Private assessment", "Any Australian pharmacy", "Doctor-reviewed"],
   },
   {
     title: "Hair Loss Treatment",
     description: "Doctor-led hair loss assessment and treatment plan. Evidence-based options, reviewed by an Australian doctor, sent straight to your phone.",
     priceFrom: 49.95,
     href: "/hair-loss",
-    features: ["Oral and topical options", "Doctor-reviewed", "eScript delivered", "No call required"],
+    features: ["Doctor-assessed options", "Doctor-reviewed", "eScript if approved", "No waiting room"],
   },
   {
     title: "Women's Health",
@@ -301,7 +301,7 @@ export const featuredServices = [
     priceFrom: 89.95,
     href: "/weight-loss",
     comingSoon: true,
-    features: ["Evidence-based plans", "Doctor-reviewed", "Ongoing support", "No call required"],
+    features: ["Manual review", "Doctor-reviewed", "Safety screening", "No waiting room"],
   },
 ]
 
@@ -328,7 +328,7 @@ export const faqItems = [
   },
   {
     question: "What services does InstantMed offer?",
-    answer: "Medical certificates for sick leave, carer's leave, and uni extensions. Repeat prescriptions for your regular medication. Discreet doctor-reviewed treatment for ED and hair loss. No call required. All requests reviewed by an AHPRA-registered Australian doctor.",
+    answer: "Medical certificates for sick leave and carer's leave. Repeat prescriptions for regular medication. Discreet doctor-reviewed assessments for ED and hair loss. All requests are reviewed by an AHPRA-registered Australian doctor.",
   },
   {
     question: "Is there a subscription or ongoing fees?",

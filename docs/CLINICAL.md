@@ -7,7 +7,18 @@
 
 ## Platform Role
 
-InstantMed is **not a prescribing system**. It is an intake, triage, and documentation platform that supports clinician decision-making. All prescribing decisions occur outside the platform.
+InstantMed is **not a broad online GP clinic** and **not a prescribing system**. It is a specialised-service intake, triage, and documentation platform that supports clinician decision-making. All prescribing decisions occur outside the platform.
+
+**Current service scope (2026-04-28):**
+
+- medical certificates
+- repeat prescriptions
+- hair loss
+- erectile dysfunction
+- women's health
+- weight loss
+
+General consults are a fallback pathway, not the primary business positioning.
 
 **Audit narrative (must always remain true):**
 
@@ -17,6 +28,21 @@ InstantMed is **not a prescribing system**. It is an intake, triage, and documen
 - A clinician reviews every request
 - Prescribing (if any) occurs entirely in Parchment (external)
 - The clinician remains fully responsible for clinical outcomes
+
+## Form-First Doctor Review Model
+
+InstantMed's commercial moat is no booked appointment, no waiting room, and a secure form-first clinical intake. The moat is **not** "no doctor" and the product must not be framed that way.
+
+**Approved patient-facing model:**
+
+- Patient starts with a secure clinical form
+- Doctor reviews the submitted information
+- Doctor contacts the patient only if more information is clinically needed
+- Prescription, certificate, decline, refund, or redirection happens only after doctor review or approved med-cert protocol automation
+
+**Regulatory risk posture:** Medical Board telehealth guidance states that prescribing or providing healthcare for a patient without a real-time direct consultation, where the practitioner has never spoken with the patient, is not good practice and is not supported. If a doctor prescribes after an asynchronous form-first assessment, the doctor must be able to explain why that assessment and management were appropriate and necessary in the circumstances.
+
+**Engineering implication:** prescription and specialty pathways must support call/message escalation, complete audit trails, and doctor rationale capture. They must not hard-promise "no call needed."
 
 ---
 
@@ -55,18 +81,22 @@ Every request must end in exactly one clinician-selected outcome. No defaults. N
 **Never asynchronous (always require synchronous contact):**
 
 - New diagnoses
-- New long-term medications
 - Symptom escalation
 - Ambiguous or conflicting histories
 - Any clinician discomfort
+- Any red flag or safety uncertainty
+- Any request where identity, medication history, contraindication screening, or patient understanding is incomplete
 
 **May be asynchronous (clinician discretion):**
 
 - Administrative documentation
 - Repeat treatment requests with reported stability
 - Low-risk, clearly defined presentations
+- Protocol-supported specialist requests where the doctor records why form-first assessment was clinically adequate
 
 **Rule: Efficiency never overrides safety. Speed is never a clinical justification.**
+
+**Prescribing-specific rule:** If there has been no prior real-time consultation with the patient, asynchronous prescribing is a higher-risk exception. It requires complete intake answers, service-specific safety screening, no red flags, no contradictory history, and a documented doctor rationale for why no call was clinically needed.
 
 ### Deterministic Rules Engine
 
@@ -130,6 +160,18 @@ User-facing language must:
 
 Prescribing is framed as: "a possible outcome of clinician review, occurring separately."
 
+### Service-Specific Prescribing Risk
+
+| Service | Current posture |
+|---------|-----------------|
+| Repeat prescriptions | One-off eScript review for existing, stable medication only. Call/message if stability, medication history, monitoring, contraindications, or usual-prescriber context is unclear. |
+| Hair loss | One-off form-first doctor assessment. No subscription or outcome guarantee. Avoid drug names in acquisition copy. |
+| Erectile dysfunction | One-off form-first doctor assessment with strict contraindication screening. Cardiac history, nitrate/alpha-blocker use, uncertain medication history, or clinical discomfort requires contact or decline. |
+| Women's health | Narrow, protocol-led service only. Complex symptoms, pregnancy risk, STI risk, pelvic pain, heavy bleeding, or safety concerns require contact or in-person redirection. |
+| Weight loss | Manual review only in the solo-doctor phase. No automated approval. No ongoing monitoring promise unless operational capacity exists. |
+
+Subscriptions, monthly prescribing, pharmacy fulfilment, and ongoing check-in programs are not part of the current operating model.
+
 ---
 
 ## AI Boundary Rules
@@ -162,7 +204,7 @@ These must remain human-only regardless of future AI capabilities:
 4. **Decline reason determination** -- requires clinical reasoning
 5. **Emergency escalation decisions** -- life safety (handled by deterministic rules)
 
-**Exception — Med cert auto-approval:** Simple med cert requests (1-3 day, no red flags, all deterministic checks pass) can be auto-approved via `lib/clinical/auto-approval-pipeline.ts`. This is feature-flagged (`ai_auto_approve_enabled`), rate-limited, logged to `ai_audit_log`, and subject to doctor batch review. Only med certs — prescriptions and consults always require human review. See ARCHITECTURE.md → Auto-Approval Pipeline.
+**Exception -- doctor-owned med cert protocol automation:** Simple med cert requests (1-3 day, no red flags, all deterministic checks pass) can be auto-approved via `lib/clinical/auto-approval-pipeline.ts`. This is feature-flagged (`ai_auto_approve_enabled`), rate-limited, logged to `ai_audit_log`, and subject to doctor batch review. Only med certs. Prescriptions and consults always require human doctor review. See ARCHITECTURE.md -> Auto-Approval Pipeline.
 
 ### Architecture Enforcement
 
@@ -388,13 +430,12 @@ When litigation or investigation is anticipated: legal places hold on specific r
 | Authority | Reference | Relevance |
 |-----------|-----------|-----------|
 | **AHPRA / Medical Board** | Good Medical Practice 3.2 | Adequate assessment required before treatment/documentation |
-| **AHPRA** | Telehealth Guidelines | Informed consent, identity verification, appropriate record keeping |
-| **AHPRA** | Advertising Guidelines | No guarantees of outcomes |
+| **AHPRA / Medical Board** | Telehealth consultations with patients | Informed consent, identity verification, appropriate record keeping, and defensible form-first care |
+| **AHPRA / Medical Board** | Advertising regulated health services | No misleading claims, testimonials, unreasonable expectations, or encouragement of unnecessary use |
 | **TGA** | Poisons Standard | S8 exclusions; no therapeutic claims in platform |
-| **TGA** | Therapeutic Goods Act | No therapeutic claims permitted |
+| **TGA** | Health service advertising guidance | Health-service ads must not directly or indirectly promote prescription-only medicines |
 | **PBS** | PBS reference data | Advisory only; no prescribing authority implied |
-| **Fair Work Act** | Section 107 | Medical certificate must state employee is unfit for work |
-| **Fair Work Act** | Regulation 3.01 | Certificate requirements |
+| **Fair Work Ombudsman** | Notice and evidence rules | Employers can ask for evidence that would satisfy a reasonable person; do not overclaim universal acceptance |
 | **Privacy Act 1988 (Cth)** | Australian Privacy Principles | Security, use/disclosure, access, correction |
 | **My Health Records Act 2012** | Data handling | Health record obligations |
 | **Health Records Act 2001 (Vic)** | State-level | Additional Victorian obligations where applicable |
