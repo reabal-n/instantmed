@@ -1,15 +1,15 @@
 "use client"
 
-import { ArrowRight, CheckCircle2, Clock } from "lucide-react"
+import { ArrowRight, CheckCircle2, Lock } from "lucide-react"
 import dynamic from "next/dynamic"
 import Link from "next/link"
-import { useEffect, useRef, useState } from "react"
 
 import { StickerIcon } from "@/components/icons/stickers"
-// Hero is above-fold - not lazy loaded
-import { EDHeroSection } from "@/components/marketing/heroes/ed-hero"
+import { Hero } from "@/components/marketing/hero"
 import { LiveWaitTime } from "@/components/marketing/live-wait-time"
-import { ServiceFinalCTA } from "@/components/marketing/sections/service-final-cta"
+import { EDHeroMockup } from "@/components/marketing/mockups/ed-hero-mockup"
+import { ServiceClaimSection } from "@/components/marketing/sections/service-claim-section"
+import { TimeComparisonViz } from "@/components/marketing/sections/time-comparison-viz"
 import {
   type LandingPageConfig,
   LandingPageShell,
@@ -17,13 +17,12 @@ import {
 } from "@/components/marketing/shared"
 import { ContentHubLinks } from "@/components/seo"
 import { Button } from "@/components/ui/button"
-import { FAQList } from "@/components/ui/faq-list"
-import { useReducedMotion } from "@/components/ui/motion"
+import { Heading } from "@/components/ui/heading"
 import { Reveal } from "@/components/ui/reveal"
 import { SectionPill } from "@/components/ui/section-pill"
 import { PRICING } from "@/lib/constants"
 import { ED_FAQ } from "@/lib/data/ed-faq"
-import { SOCIAL_PROOF, SOCIAL_PROOF_DISPLAY } from "@/lib/social-proof"
+import { SOCIAL_PROOF_DISPLAY } from "@/lib/social-proof"
 
 // Below-fold lazy loads
 const HowItWorksInline = dynamic(
@@ -42,6 +41,14 @@ const EDGuideSection = dynamic(
   () => import("@/components/marketing/sections/ed-guide-section").then((m) => m.EDGuideSection),
   { loading: () => <div className="min-h-[400px]" /> },
 )
+const FAQSection = dynamic(
+  () => import("@/components/sections").then((m) => ({ default: m.FAQSection })),
+  { loading: () => <div className="min-h-[400px]" /> },
+)
+const CTABanner = dynamic(
+  () => import("@/components/sections").then((m) => ({ default: m.CTABanner })),
+  { loading: () => <div className="min-h-[300px]" /> },
+)
 
 // =============================================================================
 // DATA
@@ -59,8 +66,8 @@ const HOW_IT_WORKS_STEPS = [
     sticker: "stethoscope" as const,
     step: 2,
     title: "A real GP reviews it",
-    description: "An AHPRA-registered doctor reviews your assessment - same standards as in-person.",
-    time: `~${SOCIAL_PROOF.averageResponseMinutes} min`,
+    description: "An AHPRA-registered doctor reviews your assessment, same standards as in-person.",
+    time: "Within 1 hour",
   },
   {
     sticker: "sent" as const,
@@ -77,17 +84,17 @@ const PRICING_BULLETS = [
   "eScript sent to your phone via SMS",
   "Collect from any Australian pharmacy",
   "Discreet packaging, nothing on the outside",
-  "Full refund if we can\u2019t help",
+  "Full refund if we can’t help",
 ]
 
 const LANDING_CONFIG: LandingPageConfig = {
   serviceId: "ed",
   analyticsId: "ed",
   sticky: {
-    ctaText: `Start assessment - $${PRICING.MENS_HEALTH.toFixed(2)}`,
+    ctaText: `Start assessment · $${PRICING.MENS_HEALTH.toFixed(2)}`,
     ctaHref: "/request?service=consult&subtype=ed",
-    mobileSummary: "2-min form \u00b7 Doctor-reviewed \u00b7 No call needed",
-    desktopLabel: "ED Treatment \u00b7 Discreet & doctor-reviewed",
+    mobileSummary: "2-min form · Doctor-reviewed · No call needed",
+    desktopLabel: "ED Treatment · Discreet & doctor-reviewed",
     priceLabel: `From $${PRICING.MENS_HEALTH.toFixed(2)}`,
     desktopCtaText: "Start assessment",
     responseTime: `Avg response: ${SOCIAL_PROOF_DISPLAY.responseTime}`,
@@ -98,77 +105,20 @@ const LANDING_CONFIG: LandingPageConfig = {
 // UNIQUE SECTIONS
 // =============================================================================
 
+/** Time comparison — thin wrapper around the shared TimeComparisonViz primitive. */
 function EDComparisonViz() {
-  const ref = useRef<HTMLDivElement>(null)
-  const [inView, setInView] = useState(false)
-  const prefersReducedMotion = useReducedMotion()
-  useEffect(() => {
-    const el = ref.current; if (!el) return
-    const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) { setInView(true); observer.disconnect() } },
-      { threshold: 0.3 }
-    )
-    observer.observe(el); return () => observer.disconnect()
-  }, [])
-  const active = inView || prefersReducedMotion
   return (
-    <section aria-label="Time comparison" className="py-10 sm:py-14 bg-muted/30 dark:bg-white/[0.02]">
-      <div className="mx-auto max-w-3xl px-4 sm:px-6">
-        <Reveal instant className="text-center mb-10">
-          <SectionPill>Why go online?</SectionPill>
-          <h2 className="mt-3 text-2xl sm:text-3xl font-semibold tracking-tight text-balance">
-            Doctor-reviewed in under an hour.
-          </h2>
-        </Reveal>
-        <div ref={ref} className="space-y-5">
-          <div className="flex items-end justify-between">
-            <div>
-              <p className="text-[11px] font-semibold text-primary uppercase tracking-wider mb-1.5">InstantMed</p>
-              <p className="text-4xl sm:text-5xl font-semibold tabular-nums text-foreground leading-none">
-                ~1<span className="text-xl font-normal text-muted-foreground ml-1">hr</span>
-              </p>
-            </div>
-            <div className="text-right">
-              <p className="text-[11px] font-semibold text-muted-foreground/50 uppercase tracking-wider mb-1.5">GP clinic</p>
-              <p className="text-4xl sm:text-5xl font-semibold tabular-nums text-muted-foreground/60 leading-none">
-                2+<span className="text-xl font-normal ml-1">hrs</span>
-              </p>
-            </div>
-          </div>
-          <div className="relative h-2 rounded-full bg-muted/30 overflow-hidden">
-            <div className="absolute inset-y-0 left-0 rounded-full bg-muted/50 dark:bg-muted/30" style={{ width: '100%' }} />
-            <div
-              className="absolute inset-y-0 left-0 rounded-full bg-primary"
-              style={{
-                width: active ? '30%' : '0%',
-                transition: prefersReducedMotion ? 'none' : 'width 800ms cubic-bezier(0.23, 1, 0.32, 1)',
-                transitionDelay: active && !prefersReducedMotion ? '300ms' : '0ms',
-              }}
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-6 pt-1">
-            <div className="space-y-1.5">
-              <p className="text-[11px] font-semibold text-primary uppercase tracking-wider">Online</p>
-              {["2-min health form", "Doctor reviews privately", "eScript sent by SMS"].map((s) => (
-                <p key={s} className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <CheckCircle2 className="h-3 w-3 shrink-0 text-primary" aria-hidden="true" />
-                  {s}
-                </p>
-              ))}
-            </div>
-            <div className="space-y-1.5">
-              <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">GP clinic</p>
-              {["Book appointment", "Travel + wait in clinic", "Face-to-face consult"].map((s) => (
-                <p key={s} className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <Clock className="h-3 w-3 shrink-0 text-muted-foreground" aria-hidden="true" />
-                  {s}
-                </p>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
+    <div className="bg-muted/30 dark:bg-white/[0.02]">
+      <TimeComparisonViz
+        pill="Why go online?"
+        heading="Doctor-reviewed in under an hour."
+        ours={{ label: "InstantMed", value: "~1", unit: "hr" }}
+        theirs={{ label: "GP clinic", value: "2", valueSuffix: "+", unit: "hrs" }}
+        ourSteps={["2-min health form", "Doctor reviews privately", "eScript sent by SMS"]}
+        theirSteps={["Book appointment", "Travel + wait in clinic", "Face-to-face consult"]}
+        primaryFillPercent={30}
+      />
+    </div>
   )
 }
 
@@ -178,9 +128,9 @@ function EDPricingSection({ isDisabled }: { isDisabled?: boolean }) {
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
         <Reveal className="text-center mb-10">
           <SectionPill>Pricing</SectionPill>
-          <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground mt-4 mb-3">
+          <Heading level="h2" className="mt-4 mb-3">
             One flat fee. No hidden costs.
-          </h2>
+          </Heading>
           <p className="text-muted-foreground max-w-xl mx-auto text-balance">
             You only pay if the doctor approves treatment.
           </p>
@@ -196,7 +146,7 @@ function EDPricingSection({ isDisabled }: { isDisabled?: boolean }) {
                 </span>
               </div>
 
-              <h3 className="text-lg font-semibold text-foreground mb-1">ED Assessment</h3>
+              <Heading level="h3" className="mb-1">ED Assessment</Heading>
               <p className="text-sm text-muted-foreground mb-5">Private online consult + eScript if approved</p>
 
               <div className="mb-5">
@@ -234,33 +184,6 @@ function EDPricingSection({ isDisabled }: { isDisabled?: boolean }) {
   )
 }
 
-function EDFAQSection({ onFAQOpen }: { onFAQOpen?: (question: string, index: number) => void }) {
-  return (
-    <section aria-label="Frequently asked questions" className="py-16 lg:py-20">
-      <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-        <Reveal className="text-center mb-10">
-          <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground mb-3">
-            Frequently asked questions
-          </h2>
-          <p className="text-muted-foreground text-balance">
-            Everything you need to know about ED treatment online
-          </p>
-        </Reveal>
-        <FAQList
-          items={ED_FAQ}
-          type="single"
-          onValueChange={(value: string) => {
-            if (onFAQOpen && value) {
-              const idx = ED_FAQ.findIndex((f) => f.question === value)
-              if (idx !== -1) onFAQOpen(value, idx)
-            }
-          }}
-        />
-      </div>
-    </section>
-  )
-}
-
 // =============================================================================
 // MAIN PAGE COMPONENT
 // =============================================================================
@@ -273,11 +196,47 @@ export function ErectileDysfunctionLanding() {
     >
       {({ isDisabled, heroCTARef, handleHeroCTA, handleHowItWorksCTA, handleFinalCTA, handleFAQOpen }) => (
         <>
-          {/* 1. Hero */}
-          <EDHeroSection ctaRef={heroCTARef} onCTAClick={handleHeroCTA} />
+          {/* 1. Hero — canonical <Hero> with ED-specific title, CTA, and the
+              discreet ED hero mockup. Bespoke EDHeroSection retired in Pass 2. */}
+          <Hero
+            title="ED medication, without the GP visit."
+            primaryCta={{
+              text: `Start assessment · $${PRICING.MENS_HEALTH.toFixed(2)}`,
+              href: "/request?service=consult&subtype=ed",
+              onClick: handleHeroCTA,
+              ref: heroCTARef,
+            }}
+            secondaryCta={null}
+            beforeCta={
+              <p className="inline-flex items-start sm:items-center gap-2 text-[13px] text-foreground max-w-xl mx-auto lg:mx-0 leading-snug text-left sm:text-center lg:text-left">
+                <Lock className="w-4 h-4 text-success shrink-0 mt-px sm:mt-0" aria-hidden="true" />
+                <span>
+                  Private and discreet.
+                  <span className="text-muted-foreground"> Nothing about treatment appears on the outside of your package.</span>
+                </span>
+              </p>
+            }
+            mockup={<EDHeroMockup />}
+          >
+            <p className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-6 sm:mb-7 leading-relaxed text-balance">
+              Fill a short health form. A doctor reviews it privately and sends your prescription by SMS. No call, no waiting room.
+            </p>
+          </Hero>
 
           {/* Live wait time */}
           <LiveWaitTime variant="strip" services={["consult-ed"]} />
+
+          {/* Service claim — ED's superpower is discretion + clinical legitimacy.
+              Mirrors EmployerCalloutStrip / PBSCalloutStrip elevation pattern. */}
+          <ServiceClaimSection
+            eyebrow="Private and clinical"
+            headline={
+              <>
+                The same medication. <span className="text-primary">Without the awkward conversation.</span>
+              </>
+            }
+            body="Doctor-reviewed online consult. eScript by SMS. Treatment from any Australian pharmacy in discreet packaging. The clinical pathway you'd get at a clinic, minus the in-person consult."
+          />
 
           {/* 2. How It Works */}
           <HowItWorksInline
@@ -300,10 +259,18 @@ export function ErectileDysfunctionLanding() {
           {/* Regulatory Partners */}
           <RegulatoryPartners className="py-12" />
 
-          {/* 7. FAQ */}
-          <div className="bg-muted/30 dark:bg-white/[0.02]">
-            <EDFAQSection onFAQOpen={handleFAQOpen} />
-          </div>
+          {/* 7. FAQ — shared <FAQSection> primitive (was bespoke EDFAQSection,
+              retired in Pass 2). */}
+          <FAQSection
+            pill="FAQ"
+            title="Frequently asked questions"
+            subtitle="Everything you need to know about ED treatment online."
+            items={ED_FAQ}
+            initialCount={4}
+            onFAQOpen={handleFAQOpen}
+            viewAllHref="/faq"
+            className="bg-muted/30 dark:bg-white/[0.02]"
+          />
 
           {/* Guide - deep E-E-A-T content for organic search */}
           <EDGuideSection />
@@ -311,13 +278,17 @@ export function ErectileDysfunctionLanding() {
           {/* Referral strip */}
           <ReferralStrip contextText="dealing with ED" />
 
-          {/* 8. Final CTA */}
-          <ServiceFinalCTA
+          {/* 8. Final CTA — shared <CTABanner> primitive (was bespoke
+              ServiceFinalCTA, retired in Pass 2). */}
+          <CTABanner
             title="Discreet ED treatment, reviewed by a real doctor."
+            subtitle="Fill a short form. A doctor reviews it privately. Treatment in your hands the same day."
+            ctaText="Start assessment"
             ctaHref="/request?service=consult&subtype=ed"
-            price={PRICING.MENS_HEALTH}
-            onCTAClick={handleFinalCTA}
+            onCtaClick={handleFinalCTA}
             isDisabled={isDisabled}
+            price={PRICING.MENS_HEALTH}
+            microcopy="Takes about 2 minutes."
           />
         </>
       )}
