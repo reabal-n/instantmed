@@ -1,6 +1,7 @@
 import { AlertCircle,CheckCircle2 } from "lucide-react"
 import Link from "next/link"
 
+import { Heading } from "@/components/ui/heading"
 import { CONTACT_EMAIL } from "@/lib/constants"
 
 // =============================================================================
@@ -42,9 +43,9 @@ export function LimitationsSection() {
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-8">
-          <h2 className="text-2xl sm:text-3xl font-semibold text-foreground tracking-tight mb-3">
+          <Heading level="h2" className="mb-3">
             What we can help with
-          </h2>
+          </Heading>
           <p className="text-sm text-muted-foreground max-w-lg mx-auto">
             We cover most common short-term conditions. For anything outside
             our scope, we&apos;ll tell you upfront.

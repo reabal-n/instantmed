@@ -21,6 +21,7 @@ import { EmergencyDisclaimer } from '@/components/shared/emergency-disclaimer'
 import { Navbar } from '@/components/shared/navbar'
 import { ReturningPatientBanner } from '@/components/shared/returning-patient-banner'
 import { CONTACT_EMAIL } from '@/lib/constants'
+import { getTestimonialsByService, getTestimonialsForColumns } from '@/lib/data/testimonials'
 import { cn } from '@/lib/utils'
 
 import { MarketingFooter } from './footer'

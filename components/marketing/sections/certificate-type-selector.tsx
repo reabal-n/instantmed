@@ -14,6 +14,7 @@ import { Suspense, useEffect, useRef, useState } from "react"
 import { StickerIcon } from "@/components/icons/stickers"
 import { usePostHog } from "@/components/providers/posthog-provider"
 import { Button } from "@/components/ui/button"
+import { Heading } from "@/components/ui/heading"
 import { useReducedMotion } from "@/components/ui/motion"
 import { MED_CERT_DURATIONS, PRICING } from "@/lib/constants"
 import {
@@ -119,9 +120,9 @@ export function CertificateTypeSelector({
           viewport={{ once: true }}
           transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
         >
-          <h2 className="text-2xl sm:text-3xl font-semibold text-foreground tracking-tight mb-3">
+          <Heading level="h2" className="mb-3">
             Which certificate do you need?
-          </h2>
+          </Heading>
           <p className="text-sm text-muted-foreground max-w-lg mx-auto">
             Pick a category to tailor the form, or skip ahead and choose during the intake.
           </p>
@@ -175,9 +176,9 @@ export function CertificateTypeSelector({
                   <StickerIcon name={CATEGORY_STICKERS[cat.id]} size={40} />
                 </div>
 
-                <h3 className="text-base font-semibold text-foreground mb-1">
+                <Heading level="h3" className="mb-1">
                   {cat.label}
-                </h3>
+                </Heading>
                 <p className="text-xs text-muted-foreground leading-relaxed mb-3">
                   {cat.description}
                 </p>
@@ -358,11 +359,11 @@ export function MedCertComparisonTable({ className }: { className?: string }) {
           transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
         >
           <div className="text-center mb-6">
-            <h2 className="text-xl sm:text-2xl font-semibold text-foreground tracking-tight">
-              Online vs in-person GP
-            </h2>
+            <Heading level="h2">
+              Online vs in-person GP, side by side
+            </Heading>
             <p className="text-sm text-muted-foreground mt-2">
-              Same legal weight under the Fair Work Act. Different experience.
+              Same Fair Work Act validity. Different experience, price, and turnaround. The race-track above shows the time gap; this table shows what else differs.
             </p>
           </div>
 
