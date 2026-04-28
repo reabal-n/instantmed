@@ -1,8 +1,11 @@
 import { Check } from "lucide-react"
+import Image from "next/image"
 
 import { InteractiveProductMockup } from "@/components/marketing/shared/interactive-product-mockup"
+import { Heading } from "@/components/ui/heading"
 import { Reveal } from "@/components/ui/reveal"
 import { SectionPill } from "@/components/ui/section-pill"
+import { cn } from "@/lib/utils"
 
 // =============================================================================
 // DATA
@@ -20,17 +23,28 @@ const KEY_FACTS = [
 // COMPONENT
 // =============================================================================
 
+interface EScriptExplainerSectionProps {
+  /**
+   * Optional photographic accent rendered as a framed banner BELOW the
+   * mockup + facts split. Used by /prescriptions to relocate its hero
+   * lifestyle photo (rx-1.webp) into a contextual content moment instead
+   * of a 16:9 scroll-break.
+   */
+  accentImage?: { src: string; alt: string }
+  className?: string
+}
+
 /** eScript explainer - split layout with interactive phone mockup + key facts */
-export function EScriptExplainerSection() {
+export function EScriptExplainerSection({ accentImage, className }: EScriptExplainerSectionProps = {}) {
   return (
-    <section aria-label="What is an eScript" className="py-16 lg:py-24">
+    <section aria-label="What is an eScript" className={cn("py-16 lg:py-24", className)}>
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <Reveal className="text-center mb-12">
           <SectionPill>Digital prescriptions</SectionPill>
-          <h2 className="text-2xl sm:text-3xl font-semibold text-foreground mt-4 mb-3 tracking-tight">
+          <Heading level="h2" className="mt-4 mb-3">
             What is an eScript?
-          </h2>
+          </Heading>
           <p className="text-sm text-muted-foreground max-w-xl mx-auto">
             eScripts are digital prescriptions. The national standard in
             Australia since 2020. No paper needed, works everywhere.
@@ -102,6 +116,24 @@ export function EScriptExplainerSection() {
             </p>
           </Reveal>
         </div>
+
+        {/* Optional photographic accent — small, framed, contextual.
+            Used by /prescriptions for its lifestyle photo. */}
+        {accentImage && (
+          <Reveal className="mt-12 lg:mt-16">
+            <div className="relative aspect-[16/7] sm:aspect-[16/6] lg:aspect-[16/5] max-w-3xl mx-auto rounded-2xl overflow-hidden border border-border/40 shadow-lg shadow-primary/[0.06] dark:shadow-none">
+              <Image
+                src={accentImage.src}
+                alt={accentImage.alt}
+                fill
+                className="object-cover object-center"
+                loading="lazy"
+                quality={85}
+                sizes="(max-width: 1024px) calc(100vw - 4rem), 768px"
+              />
+            </div>
+          </Reveal>
+        )}
       </div>
     </section>
   )

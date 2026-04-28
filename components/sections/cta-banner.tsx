@@ -23,6 +23,17 @@ interface CTABannerProps extends SectionProps {
   /** Optional trust badge row below CTA (preset name or badge entries) */
   trustBadgePreset?: string;
   trustBadges?: PresetEntry[];
+  /** Optional click handler on the primary CTA. */
+  onCtaClick?: () => void;
+  /** Optional disabled state — flips the CTA into a "Contact us" link. */
+  isDisabled?: boolean;
+  /** When provided, renders a price line below the CTA. e.g. `29.95`. */
+  price?: number;
+  /**
+   * Optional small line under the price/refund row. e.g. "Takes about 2 minutes"
+   * — service-specific reassurance used by service-page final CTAs.
+   */
+  microcopy?: string;
 }
 
 export function CTABanner({
@@ -34,9 +45,15 @@ export function CTABanner({
   secondaryHref,
   trustBadgePreset,
   trustBadges,
+  onCtaClick,
+  isDisabled,
+  price,
+  microcopy,
   className,
   id,
 }: CTABannerProps) {
+  const resolvedHref = isDisabled ? "/contact" : ctaHref;
+  const resolvedCtaText = isDisabled ? "Contact us" : ctaText;
   return (
     <section id={id} className={cn("py-8 sm:py-10 lg:py-16 px-4", className)}>
       <Reveal className="mx-auto max-w-4xl rounded-3xl bg-white dark:bg-card border border-border/50 shadow-lg shadow-primary/[0.06] p-6 sm:p-8 lg:p-16 text-center relative overflow-hidden">
@@ -53,9 +70,10 @@ export function CTABanner({
             asChild
             size="lg"
             className="rounded-full px-8 shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5"
+            onClick={onCtaClick}
           >
-            <Link href={ctaHref}>
-              {ctaText}
+            <Link href={resolvedHref}>
+              {resolvedCtaText}
               <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
@@ -69,12 +87,29 @@ export function CTABanner({
           )}
         </div>
 
+        {/* Optional price line — service-page CTAs surface the headline price
+            here so users see it at the conversion moment without re-scrolling. */}
+        {price !== undefined && (
+          <p className="mt-4 text-sm font-medium text-foreground">
+            ${price.toFixed(2)}
+            <span className="text-muted-foreground font-normal"> &middot; No account required</span>
+          </p>
+        )}
+
         {/* Refund reassurance — sourced from GUARANTEE in lib/marketing/voice.ts
             so every CTA banner stays in lockstep with the brand voice canon. */}
-        <p className="mt-4 text-xs text-muted-foreground flex items-center justify-center gap-1.5">
+        <p className={cn(
+          "text-xs text-muted-foreground flex items-center justify-center gap-1.5",
+          price !== undefined ? "mt-2" : "mt-4",
+        )}>
           <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
           {GUARANTEE}
         </p>
+
+        {/* Optional service-specific microcopy line. */}
+        {microcopy && (
+          <p className="mt-1 text-xs text-muted-foreground">{microcopy}</p>
+        )}
 
         {/* Optional trust badge row */}
         {(trustBadgePreset || trustBadges) && (

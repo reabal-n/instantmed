@@ -10,13 +10,12 @@ import {
 } from "lucide-react"
 import dynamic from "next/dynamic"
 import Link from "next/link"
-import { useEffect, useRef, useState } from "react"
 
 import { StickerIcon } from "@/components/icons/stickers"
-// Hero is above-fold - not lazy loaded
-import { PrescriptionsHeroSection } from "@/components/marketing/heroes/prescriptions-hero"
+import { Hero } from "@/components/marketing/hero"
 import { LiveWaitTime } from "@/components/marketing/live-wait-time"
-import { ServiceFinalCTA } from "@/components/marketing/sections/service-final-cta"
+import { EScriptHeroMockup } from "@/components/marketing/mockups/escript-hero-mockup"
+import { TimeComparisonViz } from "@/components/marketing/sections/time-comparison-viz"
 import {
   type LandingPageConfig,
   LandingPageShell,
@@ -28,13 +27,12 @@ import {
 import { RelatedArticles } from "@/components/marketing/shared/related-articles"
 import { ContentHubLinks } from "@/components/seo"
 import { Button } from "@/components/ui/button"
-import { FAQList } from "@/components/ui/faq-list"
-import { useReducedMotion } from "@/components/ui/motion"
+import { Heading } from "@/components/ui/heading"
 import { Reveal } from "@/components/ui/reveal"
 import { SectionPill } from "@/components/ui/section-pill"
 import { PRICING } from "@/lib/constants"
 import { PRESCRIPTION_FAQ } from "@/lib/data/prescription-faq"
-import { getPatientCount,SOCIAL_PROOF, SOCIAL_PROOF_DISPLAY } from "@/lib/social-proof"
+import { SOCIAL_PROOF, SOCIAL_PROOF_DISPLAY } from "@/lib/social-proof"
 import { cn } from "@/lib/utils"
 
 // Below-fold lazy loads
@@ -65,6 +63,14 @@ const PrescriptionLimitationsSection = dynamic(
 const RegulatoryPartners = dynamic(
   () => import("@/components/marketing/media-mentions").then((m) => m.RegulatoryPartners),
   { loading: () => <div className="min-h-[120px]" /> },
+)
+const FAQSection = dynamic(
+  () => import("@/components/sections").then((m) => ({ default: m.FAQSection })),
+  { loading: () => <div className="min-h-[400px]" /> },
+)
+const CTABanner = dynamic(
+  () => import("@/components/sections").then((m) => ({ default: m.CTABanner })),
+  { loading: () => <div className="min-h-[300px]" /> },
 )
 
 // =============================================================================
@@ -123,10 +129,10 @@ const LANDING_CONFIG: LandingPageConfig = {
   serviceId: "scripts",
   analyticsId: "prescription",
   sticky: {
-    ctaText: `Renew your medication \u00b7 $${PRICING.REPEAT_SCRIPT.toFixed(2)}`,
+    ctaText: `Renew your medication · $${PRICING.REPEAT_SCRIPT.toFixed(2)}`,
     ctaHref: "/request?service=prescription",
     mobileSummary: `Need your medication? Open ${SOCIAL_PROOF_DISPLAY.operatingHours} AEST.`,
-    desktopLabel: `Repeat Medication \u00b7 Open ${SOCIAL_PROOF_DISPLAY.operatingHours} AEST \u00b7 7 days`,
+    desktopLabel: `Repeat Medication · Open ${SOCIAL_PROOF_DISPLAY.operatingHours} AEST · 7 days`,
     priceLabel: `From $${PRICING.REPEAT_SCRIPT.toFixed(2)}`,
     desktopCtaText: "Renew your medication",
     responseTime: `Avg response: ${SOCIAL_PROOF_DISPLAY.responseTime}`,
@@ -167,7 +173,7 @@ function ServiceComparisonSection({ isDisabled }: { isDisabled?: boolean }) {
       bullets: [
         "Doctor assessment included",
         "eScript sent to your phone",
-        "Full refund if we can\u2019t help",
+        "Full refund if we can’t help",
       ],
       ctaText: "New prescription",
     },
@@ -178,9 +184,9 @@ function ServiceComparisonSection({ isDisabled }: { isDisabled?: boolean }) {
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
         <Reveal className="text-center mb-10">
           <SectionPill>Pricing</SectionPill>
-          <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground mt-4 mb-3">
-            Repeat or new - one flat fee.
-          </h2>
+          <Heading level="h2" className="mt-4 mb-3">
+            Two paths, both flat-fee.
+          </Heading>
           <p className="text-muted-foreground max-w-xl mx-auto text-balance">
             No hidden costs. Full refund if we can&apos;t help.
           </p>
@@ -204,13 +210,18 @@ function ServiceComparisonSection({ isDisabled }: { isDisabled?: boolean }) {
                   <StickerIcon name={service.sticker} size={56} />
                   {service.badge && (
                     <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold bg-primary/10 text-primary border border-primary/20">
+                      <span
+                        className="w-1.5 h-1.5 rounded-full bg-primary mr-1.5"
+                        style={{ animation: "pulse 3s ease-in-out infinite" }}
+                        aria-hidden="true"
+                      />
                       {service.badge}
                     </span>
                   )}
                 </div>
 
                 {/* Title + subtitle */}
-                <h3 className="text-lg font-semibold text-foreground mb-1">{service.title}</h3>
+                <Heading level="h3" className="mb-1">{service.title}</Heading>
                 <p className="text-sm text-muted-foreground mb-5">{service.subtitle}</p>
 
                 {/* Price */}
@@ -260,7 +271,7 @@ function ServiceComparisonSection({ isDisabled }: { isDisabled?: boolean }) {
                 Need repeat scripts every month?
               </p>
               <p className="text-sm text-muted-foreground">
-                Subscribe &amp; Save for <span className="font-medium text-foreground">${PRICING.REPEAT_RX_MONTHLY}/mo</span> - your repeat script auto-renews with no forms to fill out. The option appears at checkout.
+                Subscribe &amp; Save for <span className="font-medium text-foreground">${PRICING.REPEAT_RX_MONTHLY}/mo</span>. Your repeat script auto-renews with no forms to fill out. The option appears at checkout.
               </p>
             </div>
           </div>
@@ -277,114 +288,18 @@ function ServiceComparisonSection({ isDisabled }: { isDisabled?: boolean }) {
   )
 }
 
-/** FAQ section - prescription-specific */
-function PrescriptionFAQSection({ onFAQOpen }: { onFAQOpen?: (question: string, index: number) => void }) {
-  return (
-    <section aria-label="Frequently asked questions" className="py-16 lg:py-20">
-      <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-        <Reveal className="text-center mb-10">
-          <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground mb-3">
-            Frequently asked questions
-          </h2>
-          <p className="text-muted-foreground text-balance">
-            Everything you need to know about renewing your medication
-          </p>
-        </Reveal>
-        <FAQList
-          items={PRESCRIPTION_FAQ}
-          type="single"
-          onValueChange={(value: string) => {
-            if (onFAQOpen && value) {
-              const idx = PRESCRIPTION_FAQ.findIndex((f) => f.question === value)
-              if (idx !== -1) onFAQOpen(value, idx)
-            }
-          }}
-        />
-      </div>
-    </section>
-  )
-}
-
-
-/** Data viz: prescription turnaround vs GP visit */
+/** Data viz: prescription turnaround vs GP visit. Thin wrapper around the
+ *  shared TimeComparisonViz primitive. */
 function PrescriptionComparisonViz() {
-  const ref = useRef<HTMLDivElement>(null)
-  const [inView, setInView] = useState(false)
-  const prefersReducedMotion = useReducedMotion()
-
-  useEffect(() => {
-    const el = ref.current
-    if (!el) return
-    const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) { setInView(true); observer.disconnect() } },
-      { threshold: 0.3 }
-    )
-    observer.observe(el)
-    return () => observer.disconnect()
-  }, [])
-
-  const active = inView || prefersReducedMotion
-
   return (
-    <section aria-label="Time comparison" className="py-10 sm:py-14">
-      <div className="mx-auto max-w-3xl px-4 sm:px-6">
-        <Reveal instant className="text-center mb-10">
-          <SectionPill>Time saved</SectionPill>
-          <h2 className="mt-3 text-2xl sm:text-3xl font-semibold tracking-tight text-balance">
-            Your medication. Without the appointment.
-          </h2>
-        </Reveal>
-
-        <div ref={ref} className="space-y-5">
-          <div className="flex items-end justify-between">
-            <div>
-              <p className="text-[11px] font-semibold text-primary uppercase tracking-wider mb-1.5">InstantMed</p>
-              <p className="text-4xl sm:text-5xl font-semibold tabular-nums text-foreground leading-none">
-                ~45
-                <span className="text-xl font-normal text-muted-foreground ml-1">min</span>
-              </p>
-            </div>
-            <div className="text-right">
-              <p className="text-[11px] font-semibold text-muted-foreground/50 uppercase tracking-wider mb-1.5">GP visit</p>
-              <p className="text-4xl sm:text-5xl font-semibold tabular-nums text-muted-foreground/60 leading-none">
-                3+
-                <span className="text-xl font-normal ml-1">hrs</span>
-              </p>
-            </div>
-          </div>
-
-          <div className="relative h-2 rounded-full bg-muted/30 overflow-hidden">
-            <div
-              className={prefersReducedMotion ? "absolute inset-y-0 left-0 bg-border/50 rounded-full" : "absolute inset-y-0 left-0 bg-border/50 rounded-full transition-[width] duration-[1000ms] ease-out"}
-              style={{ width: active ? '100%' : '0%', transitionDelay: active && !prefersReducedMotion ? '300ms' : '0ms' }}
-            />
-            <div
-              className={prefersReducedMotion ? "absolute inset-y-0 left-0 bg-primary rounded-full" : "absolute inset-y-0 left-0 bg-primary rounded-full transition-[width] duration-700 ease-out"}
-              style={{ width: active ? '25%' : '0%', transitionDelay: active && !prefersReducedMotion ? '80ms' : '0ms' }}
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-6 pt-1">
-            <div className="space-y-2">
-              {["5 min form", "GP reviews your request", "eScript sent to your phone"].map((step) => (
-                <p key={step} className="flex items-center gap-2 text-xs text-foreground">
-                  <CheckCircle2 className="h-3.5 w-3.5 text-primary shrink-0" aria-hidden="true" />
-                  {step}
-                </p>
-              ))}
-            </div>
-            <div className="space-y-2">
-              {["Call for appointment", "Travel to clinic", "Wait room + consult + pharmacy"].map((step) => (
-                <p key={step} className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <Clock className="h-3.5 w-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
-                  {step}
-                </p>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
+    <TimeComparisonViz
+      heading="Your medication. Without the appointment."
+      ours={{ label: "InstantMed", value: "~45", unit: "min" }}
+      theirs={{ label: "GP visit", value: "3", valueSuffix: "+", unit: "hrs" }}
+      ourSteps={["5 min form", "GP reviews your request", "eScript sent to your phone"]}
+      theirSteps={["Call for appointment", "Travel to clinic", "Wait room + consult + pharmacy"]}
+      primaryFillPercent={25}
+    />
   )
 }
 
@@ -405,8 +320,29 @@ export function PrescriptionsLanding() {
     >
       {({ isDisabled, heroCTARef, handleHeroCTA, handleHowItWorksCTA, handleFinalCTA, handleFAQOpen }) => (
         <>
-          {/* 1. Hero */}
-          <PrescriptionsHeroSection ctaRef={heroCTARef} onCTAClick={handleHeroCTA} isDisabled={isDisabled} />
+          {/* 1. Hero — canonical <Hero> with prescription-specific CTAs and
+              the eScript hero mockup. Bespoke PrescriptionsHeroSection retired
+              in Pass 2; lifestyle photo relocated to EScriptExplainerSection. */}
+          <Hero
+            title="Your prescription, without the waiting room."
+            primaryCta={{
+              text: isDisabled
+                ? "Contact us"
+                : `Renew medication · $${PRICING.REPEAT_SCRIPT.toFixed(2)}`,
+              href: isDisabled ? "/contact" : "/request?service=prescription",
+              onClick: handleHeroCTA,
+              ref: heroCTARef,
+            }}
+            secondaryCta={{
+              text: "New prescription",
+              href: isDisabled ? "/contact" : "/request?service=consult",
+            }}
+            mockup={<EScriptHeroMockup />}
+          >
+            <p className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-6 sm:mb-7 leading-relaxed text-balance">
+              An AHPRA-registered GP reviews your request and sends an eScript to your phone. Any pharmacy in Australia, same day.
+            </p>
+          </Hero>
 
           {/* Live wait time */}
           <LiveWaitTime variant="strip" services={["scripts"]} />
@@ -434,12 +370,19 @@ export function PrescriptionsLanding() {
             onCTAClick={handleHowItWorksCTA}
             isDisabled={isDisabled}
             heading="Three steps. No waiting room."
-            subheading="From your couch to your pharmacy - most scripts are sent same day."
+            subheading="From your couch to your pharmacy. Most scripts are sent same day."
           />
 
-          {/* 3. eScript explainer - muted bg for rhythm */}
+          {/* 3. eScript explainer — muted bg for rhythm.
+              Lifestyle photo relocated here from the hero (was a 16:7 scroll-
+              break). Renders as a framed banner below the mockup + facts split. */}
           <div className="bg-muted/30 dark:bg-white/[0.02]">
-            <EScriptExplainerSection />
+            <EScriptExplainerSection
+              accentImage={{
+                src: "/images/rx-1.webp",
+                alt: "Picking up a prescription at a pharmacy counter",
+              }}
+            />
           </div>
 
           {/* 4. Supported medications */}
@@ -459,10 +402,18 @@ export function PrescriptionsLanding() {
           {/* Regulatory Partners - Medicare excluded */}
           <RegulatoryPartners className="py-12" exclude={["Medicare"]} />
 
-          {/* 7. FAQ - muted bg for rhythm */}
-          <div className="bg-muted/30 dark:bg-white/[0.02]">
-            <PrescriptionFAQSection onFAQOpen={handleFAQOpen} />
-          </div>
+          {/* FAQ — shared <FAQSection> primitive (was bespoke
+              PrescriptionFAQSection, retired in Pass 2). */}
+          <FAQSection
+            pill="FAQ"
+            title="Before you start"
+            subtitle="Everything you need to know about renewing your medication."
+            items={PRESCRIPTION_FAQ}
+            initialCount={4}
+            onFAQOpen={handleFAQOpen}
+            viewAllHref="/faq"
+            className="bg-muted/30 dark:bg-white/[0.02]"
+          />
 
           {/* Clinical references */}
           <div className="mx-auto max-w-3xl px-4 sm:px-6 pb-4">
@@ -474,15 +425,17 @@ export function PrescriptionsLanding() {
           {/* Referral strip */}
           <ReferralStrip contextText="who needs their medication renewed" />
 
-          {/* 8. Final CTA */}
-          <ServiceFinalCTA
+          {/* Final CTA — shared <CTABanner> with extended price + microcopy
+              props (was bespoke ServiceFinalCTA, retired in Pass 2). */}
+          <CTABanner
             title="Your regular medication, renewed from home."
-            ctaHref="/request?service=prescription"
-            price={PRICING.REPEAT_SCRIPT}
+            subtitle="Answer a few questions, a doctor reviews it, and your script is sent same day."
             ctaText="Renew your medication"
-            onCTAClick={handleFinalCTA}
+            ctaHref="/request?service=prescription"
+            onCtaClick={handleFinalCTA}
             isDisabled={isDisabled}
-            subtitle={`Join ${getPatientCount().toLocaleString()}+ Australians who trust InstantMed. Answer a few questions, a doctor reviews it, and your script is sent same day.`}
+            price={PRICING.REPEAT_SCRIPT}
+            microcopy="Takes about 5 minutes."
           />
         </>
       )}
