@@ -15,7 +15,6 @@ import { StripePaymentLogos } from "@/components/checkout/payment-logos"
 // Hero is above-fold - not lazy loaded
 import { MedCertHeroSection } from "@/components/marketing/heroes/med-cert-hero"
 import { IntakeResumeChip } from "@/components/marketing/intake-resume-chip"
-import { LiveWaitTime } from "@/components/marketing/live-wait-time"
 import {
   type LandingPageConfig,
   LandingPageShell,
@@ -34,6 +33,10 @@ import { SOCIAL_PROOF, SOCIAL_PROOF_DISPLAY } from "@/lib/social-proof"
 const CertificateTypeSelector = dynamic(
   () => import("@/components/marketing/sections/certificate-type-selector").then((m) => m.CertificateTypeSelector),
   { loading: () => <div className="min-h-[400px]" /> },
+)
+const MedCertComparisonTable = dynamic(
+  () => import("@/components/marketing/sections/certificate-type-selector").then((m) => m.MedCertComparisonTable),
+  { loading: () => <div className="min-h-[300px]" /> },
 )
 const HowItWorksInline = dynamic(
   () => import("@/components/marketing/sections/how-it-works-inline").then((m) => m.HowItWorksInline),
@@ -69,7 +72,7 @@ const HOW_IT_WORKS_STEPS = [
     sticker: "medical-history" as const,
     step: 1,
     title: "Fill a short health form",
-    description: "Tell us about your symptoms and how long you've been unwell. Takes about 2 minutes.",
+    description: "Tell us about your symptoms and how long you have been unwell. Takes about 2 minutes.",
     time: "~2 minutes",
   },
   {
@@ -92,10 +95,11 @@ const LANDING_CONFIG: LandingPageConfig = {
   serviceId: "med-cert",
   analyticsId: "med-cert",
   sticky: {
-    ctaText: `Get your certificate \u00b7 $${PRICING.MED_CERT.toFixed(2)}`,
+    ctaText: `Get your certificate · $${PRICING.MED_CERT.toFixed(2)}`,
     ctaHref: "/request?service=med-cert",
-    mobileSummary: "Med certs 24/7 \u00b7 ~20 min review",
-    desktopLabel: "Doctor available now \u00b7 Medical Certificate",
+    // Mobile sticky now leads with the legitimacy claim, not wait time.
+    mobileSummary: `Accepted by ${SOCIAL_PROOF.employerAcceptancePercent}% of AU employers · Fair Work Act`,
+    desktopLabel: "Doctor available now · Medical Certificate",
     priceLabel: `From $${PRICING.MED_CERT.toFixed(2)}`,
     desktopCtaText: "Get your certificate",
     pricingScrollTarget: "certificate-type",
@@ -140,7 +144,7 @@ function EmployerCalloutStrip({ onEmployerClick, onVerifyClick }: { onEmployerCl
             Accepted by {SOCIAL_PROOF.employerAcceptancePercent}% of Australian employers and universities
           </p>
           <p className="text-center text-xs text-muted-foreground mt-1">
-            Legally valid under the Fair Work Act 2009 (Cth), s 107 - same as a GP certificate
+            Legally valid under the Fair Work Act 2009 (Cth), s 107. Same legal weight as a GP certificate.
           </p>
           <ScrollingLogoMarquee
             logos={EMPLOYER_LOGOS}
@@ -156,7 +160,7 @@ function EmployerCalloutStrip({ onEmployerClick, onVerifyClick }: { onEmployerCl
               className="inline-flex items-center gap-1.5 font-medium text-primary hover:text-primary/80 transition-colors"
             >
               <Building2 className="h-3.5 w-3.5" aria-hidden="true" />
-              For Employers & HR
+              For Employers and HR
             </Link>
             <span className="h-3 w-px bg-border/60" aria-hidden="true" />
             <Link
@@ -258,7 +262,7 @@ function CertComparisonViz() {
               {[
                 "Call to book appointment",
                 "Travel to clinic",
-                "Waiting room + consult",
+                "Waiting room and consult",
               ].map((step) => (
                 <p key={step} className="flex items-center gap-2 text-xs text-muted-foreground">
                   <Clock className="h-3.5 w-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
@@ -272,8 +276,6 @@ function CertComparisonViz() {
     </section>
   )
 }
-
-/** Outcome preview - what the approved certificate looks like */
 
 // =============================================================================
 // MAIN PAGE COMPONENT
@@ -294,25 +296,22 @@ export function MedCertLanding() {
 
         return (
           <>
-            {/* Resume unfinished intake — shown above hero so returning visitors
+            {/* Resume unfinished intake - shown above hero so returning visitors
                 see it immediately without scrolling past the value prop. */}
             <IntakeResumeChip className="mx-4 mt-3 max-w-5xl sm:mx-auto" />
 
             {/* 1. Hero */}
             <MedCertHeroSection ctaRef={heroCTARef} onCTAClick={handleHeroCTA} />
 
-            {/* Live wait time strip — mirrors peer landing pages (scripts/ed/hair-loss). */}
-            <LiveWaitTime variant="strip" services={["med-cert"]} />
-
-            {/* 2. Employer acceptance — legitimacy before asking for a decision */}
+            {/* 2. Employer acceptance - scrolling logos plus Fair Work citation */}
             <EmployerCalloutStrip onEmployerClick={handleEmployerClick} onVerifyClick={handleVerifyClick} />
 
-            {/* 3. Certificate type selector — now the "pick your option" moment */}
+            {/* 3. Certificate type selector - cleaner version, no embedded comparison */}
             <div data-track-section="selector">
               <CertificateTypeSelector />
             </div>
 
-            {/* 4. Time comparison — anchors the value prop before explaining the process */}
+            {/* 4. Time comparison - anchors the value prop before explaining the process */}
             <CertComparisonViz />
 
             {/* 5. How It Works */}
@@ -320,22 +319,28 @@ export function MedCertLanding() {
               <HowItWorksInline
                 steps={HOW_IT_WORKS_STEPS}
                 ctaHref="/request?service=med-cert"
-                ctaText={`Get your certificate \u00b7 $${PRICING.MED_CERT.toFixed(2)}`}
+                ctaText={`Get your certificate · $${PRICING.MED_CERT.toFixed(2)}`}
                 onCTAClick={handleHowItWorksCTA}
                 heading="How it works"
                 subheading="No appointment, no waiting room. Fill a form, a doctor reviews it, and your certificate lands in your inbox."
               />
             </div>
 
-            {/* 7. Social proof */}
+            {/* 6. Social proof - testimonials and stats */}
             <div data-track-section="social_proof">
               <SocialProofSection />
             </div>
 
-            {/* 10. What we cover / limitations */}
+            {/* 7. Online vs in-person GP comparison - moved out of the selector,
+                framed as category comparison (not against named competitors). */}
+            <div data-track-section="comparison">
+              <MedCertComparisonTable />
+            </div>
+
+            {/* 8. What we cover / limitations */}
             <LimitationsSection />
 
-            {/* 11. FAQ */}
+            {/* 9. FAQ */}
             <div data-track-section="faq">
               <FAQSection
                 pill="FAQ"
@@ -355,30 +360,30 @@ export function MedCertLanding() {
               </p>
             </div>
 
-            {/* 12. Pre-CTA reassurance — refund first, then friction */}
+            {/* 10. Pre-CTA reassurance - refund first, then friction */}
             <div className="pt-6 sm:pt-8 pb-4 sm:pb-5">
               <div className="mx-auto max-w-2xl px-4 sm:px-6">
                 <div className="flex items-center gap-3 rounded-full border border-success/20 bg-success/[0.04] dark:bg-success/[0.08] px-4 py-2.5 text-center justify-center">
                   <ShieldCheck className="h-4 w-4 shrink-0 text-success" aria-hidden="true" />
                   <p className="text-xs sm:text-sm text-foreground">
                     <span className="font-semibold">100% refund guarantee.</span>
-                    <span className="text-muted-foreground"> If our doctor can&apos;t issue your certificate, you pay nothing.</span>
+                    <span className="text-muted-foreground"> If our doctor cannot issue your certificate, you pay nothing.</span>
                   </p>
                 </div>
               </div>
             </div>
 
-            {/* 13. Final CTA */}
+            {/* 11. Final CTA */}
             <div data-track-section="final_cta">
               <CTABanner
                 title="Back to bed in two minutes."
                 subtitle={`Fill the form, a real GP reviews it, and your certificate lands in your inbox. Trusted by ${patientCount.toLocaleString()}+ Australians.`}
-                ctaText={isDisabled ? "Contact us" : `Get your certificate \u00b7 $${PRICING.MED_CERT.toFixed(2)}`}
+                ctaText={isDisabled ? "Contact us" : `Get your certificate · $${PRICING.MED_CERT.toFixed(2)}`}
                 ctaHref={isDisabled ? "/contact" : "/request?service=med-cert"}
               />
             </div>
 
-            {/* 14. Compliant with — regulatory logos footer closer */}
+            {/* 12. Compliant with - regulatory logos footer closer */}
             <RegulatoryPartners />
           </>
         )
