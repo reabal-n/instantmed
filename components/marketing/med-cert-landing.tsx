@@ -13,6 +13,7 @@ import { StripePaymentLogos } from "@/components/checkout/payment-logos"
 import { Hero } from "@/components/marketing/hero"
 import { IntakeResumeChip } from "@/components/marketing/intake-resume-chip"
 import { MedCertHeroMockup } from "@/components/marketing/mockups/med-cert-hero-mockup"
+import { ServiceClaimSection } from "@/components/marketing/sections/service-claim-section"
 import { TimeComparisonViz } from "@/components/marketing/sections/time-comparison-viz"
 import {
   type LandingPageConfig,
@@ -130,81 +131,52 @@ const EMPLOYER_LOGOS: LogoItem[] = [
 // =============================================================================
 
 /**
- * Employer acceptance — the page's superpower.
+ * Employer acceptance — the med-cert page's superpower claim.
  *
- * Pass 3 elevation:
- *   - /colorize: Morning Canvas warmth tint on the section background
- *     (peach/champagne radial) so the section reads as a warm anchor
- *     rather than another generic card.
- *   - /bolder: percentage moment is bumped to display-weight typography
- *     and headlined as the section's claim. Marquee gets more breathing
- *     room. Footer links separated from the claim with a hairline.
+ * Wraps the shared <ServiceClaimSection> primitive with med-cert-specific
+ * extras (employer-logo marquee + footer links to /for/employers and /verify).
  */
 function EmployerCalloutStrip({ onEmployerClick, onVerifyClick }: { onEmployerClick?: () => void; onVerifyClick?: () => void }) {
   return (
-    <section
-      data-track-section="employer"
-      className="relative py-10 sm:py-14 lg:py-16 overflow-hidden"
-    >
-      {/* Morning Canvas warmth — soft peach radial that fades into ivory.
-          Anchors the section as a warm trust moment without competing with
-          the colored employer logos inside the card. */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 -z-10 dark:opacity-30"
-        style={{
-          background:
-            "radial-gradient(ellipse 70% 60% at 50% 30%, rgba(245, 198, 160, 0.18) 0%, rgba(245, 198, 160, 0.06) 40%, transparent 70%)",
-        }}
-      />
+    <div data-track-section="employer">
+      <ServiceClaimSection
+        eyebrow="Accepted everywhere it counts"
+        headline={
+          <>
+            <span className="text-primary tabular-nums">{SOCIAL_PROOF.employerAcceptancePercent}%</span> of Australian employers and universities accept it.
+          </>
+        }
+        body="Legally valid under the Fair Work Act 2009 (Cth), s 107. Same legal weight as a GP certificate."
+      >
+        <ScrollingLogoMarquee
+          logos={EMPLOYER_LOGOS}
+          colored
+          tooltipPrefix="Accepted by"
+          analyticsEvent="employer_marquee_view"
+          className="py-2 sm:py-3"
+        />
 
-      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-        <div className="rounded-3xl bg-white dark:bg-card border border-border/50 shadow-lg shadow-primary/[0.08] dark:shadow-none p-7 sm:p-10 lg:p-12">
-          {/* Headline claim — the page's strongest trust signal, given
-              display-tier prominence. */}
-          <div className="text-center mb-6 sm:mb-8">
-            <p className="inline-flex items-center gap-2 text-xs font-semibold text-success uppercase tracking-[0.12em] mb-3">
-              <CheckCircle2 className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-              Accepted everywhere it counts
-            </p>
-            <p className="text-2xl sm:text-3xl lg:text-4xl font-semibold tracking-[-0.02em] text-foreground leading-[1.15] text-balance">
-              <span className="text-primary tabular-nums">{SOCIAL_PROOF.employerAcceptancePercent}%</span> of Australian employers and universities accept it.
-            </p>
-            <p className="mt-3 text-sm text-muted-foreground max-w-xl mx-auto leading-relaxed">
-              Legally valid under the Fair Work Act 2009 (Cth), s 107. Same legal weight as a GP certificate.
-            </p>
-          </div>
-
-          <ScrollingLogoMarquee
-            logos={EMPLOYER_LOGOS}
-            colored
-            tooltipPrefix="Accepted by"
-            analyticsEvent="employer_marquee_view"
-            className="py-2 sm:py-3"
-          />
-
-          <div className="mt-6 sm:mt-8 pt-5 border-t border-border/30 flex items-center justify-center gap-4 text-xs text-muted-foreground">
-            <Link
-              href="/for/employers"
-              onClick={onEmployerClick}
-              className="inline-flex items-center gap-1.5 font-medium text-primary hover:text-primary/80 transition-colors"
-            >
-              <Building2 className="h-3.5 w-3.5" aria-hidden="true" />
-              For Employers and HR
-            </Link>
-            <span className="h-3 w-px bg-border/60" aria-hidden="true" />
-            <Link
-              href="/verify"
-              onClick={onVerifyClick}
-              className="inline-flex items-center gap-1.5 font-medium text-primary hover:text-primary/80 transition-colors"
-            >
-              <Search className="h-3.5 w-3.5" aria-hidden="true" />
-              Verify a Certificate
-            </Link>
-          </div>
+        <div className="mt-6 sm:mt-8 pt-5 border-t border-border/30 flex items-center justify-center gap-4 text-xs text-muted-foreground">
+          <Link
+            href="/for/employers"
+            onClick={onEmployerClick}
+            className="inline-flex items-center gap-1.5 font-medium text-primary hover:text-primary/80 transition-colors"
+          >
+            <Building2 className="h-3.5 w-3.5" aria-hidden="true" />
+            For Employers and HR
+          </Link>
+          <span className="h-3 w-px bg-border/60" aria-hidden="true" />
+          <Link
+            href="/verify"
+            onClick={onVerifyClick}
+            className="inline-flex items-center gap-1.5 font-medium text-primary hover:text-primary/80 transition-colors"
+          >
+            <Search className="h-3.5 w-3.5" aria-hidden="true" />
+            Verify a Certificate
+          </Link>
         </div>
-      </div>
-    </section>
+      </ServiceClaimSection>
+    </div>
   )
 }
 
