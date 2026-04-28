@@ -24,8 +24,22 @@ export const PROP_PHRASE = "A GP, the way it should've been."
 /** Iconic hook. Optional use in specific ad creatives and social copy. */
 export const ICONIC_HOOK = "The doctor is in."
 
-/** Time-bound guarantee. Above checkout CTA, inline on heros, on /guarantee. */
-export const GUARANTEE = "Doctor reviews in 2 hours or we waive the fee."
+/**
+ * Outcome guarantee. Above checkout CTA, inline on heros, on /guarantee.
+ *
+ * Recalibrated 2026-04-28 from the prior time-bound version
+ * ("Doctor reviews in 2 hours or we waive the fee.") because:
+ *   1. Time guarantees create operational risk on slow days when clinical
+ *      follow-up legitimately exceeds 2 hours. The promise then breaks.
+ *   2. Outcome guarantees are clinically defensible without time pressure.
+ *   3. Multiple competing refund copies (this constant + inline microcopy +
+ *      pre-CTA pill) used to render different promises on the same page.
+ *      A single canonical outcome promise eliminates the contradiction.
+ *
+ * Service-agnostic phrasing — applies to certificates, scripts, consults
+ * and specialty pathways alike.
+ */
+export const GUARANTEE = "Full refund if our doctor can't help."
 
 // ── Phrases you own (use freely) ──────────────────────────────────────
 
