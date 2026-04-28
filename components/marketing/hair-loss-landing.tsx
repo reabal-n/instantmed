@@ -1,15 +1,15 @@
 "use client"
 
-import { ArrowRight, CheckCircle2, Clock, Pill } from "lucide-react"
+import { ArrowRight, CheckCircle2, Pill, Sparkles } from "lucide-react"
 import dynamic from "next/dynamic"
 import Link from "next/link"
-import { useEffect, useRef, useState } from "react"
 
 import { StickerIcon } from "@/components/icons/stickers"
-// Hero is above-fold - not lazy loaded
-import { HairLossHeroSection } from "@/components/marketing/heroes/hair-loss-hero"
+import { Hero } from "@/components/marketing/hero"
 import { LiveWaitTime } from "@/components/marketing/live-wait-time"
-import { ServiceFinalCTA } from "@/components/marketing/sections/service-final-cta"
+import { HairLossHeroMockup } from "@/components/marketing/mockups/hair-loss-hero-mockup"
+import { ServiceClaimSection } from "@/components/marketing/sections/service-claim-section"
+import { TimeComparisonViz } from "@/components/marketing/sections/time-comparison-viz"
 import {
   type LandingPageConfig,
   LandingPageShell,
@@ -18,8 +18,7 @@ import {
 import { ContentHubLinks } from "@/components/seo"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { FAQList } from "@/components/ui/faq-list"
-import { useReducedMotion } from "@/components/ui/motion"
+import { Heading } from "@/components/ui/heading"
 import { Reveal } from "@/components/ui/reveal"
 import { SectionPill } from "@/components/ui/section-pill"
 import { PRICING } from "@/lib/constants"
@@ -42,6 +41,14 @@ const RegulatoryPartners = dynamic(
 const HairLossGuideSection = dynamic(
   () => import("@/components/marketing/sections/hair-loss-guide-section").then((m) => m.HairLossGuideSection),
   { loading: () => <div className="min-h-[400px]" /> },
+)
+const FAQSection = dynamic(
+  () => import("@/components/sections").then((m) => ({ default: m.FAQSection })),
+  { loading: () => <div className="min-h-[400px]" /> },
+)
+const CTABanner = dynamic(
+  () => import("@/components/sections").then((m) => ({ default: m.CTABanner })),
+  { loading: () => <div className="min-h-[300px]" /> },
 )
 
 // =============================================================================
@@ -78,7 +85,7 @@ const PRICING_BULLETS = [
   "eScript sent to your phone via SMS",
   "Collect from any Australian pharmacy",
   "Discreet packaging, nothing on the outside",
-  "Full refund if we can\u2019t help",
+  "Full refund if we can’t help",
 ]
 
 const TREATMENT_OPTIONS = [
@@ -124,10 +131,10 @@ const LANDING_CONFIG: LandingPageConfig = {
   serviceId: "hair-loss",
   analyticsId: "hair-loss",
   sticky: {
-    ctaText: `Start assessment - $${PRICING.HAIR_LOSS.toFixed(2)}`,
+    ctaText: `Start assessment · $${PRICING.HAIR_LOSS.toFixed(2)}`,
     ctaHref: "/request?service=consult&subtype=hair_loss",
-    mobileSummary: "2-min form \u00b7 Doctor-reviewed \u00b7 No call needed",
-    desktopLabel: "Hair loss treatment \u00b7 Doctor-reviewed",
+    mobileSummary: "2-min form · Doctor-reviewed · No call needed",
+    desktopLabel: "Hair loss treatment · Doctor-reviewed",
     priceLabel: `From $${PRICING.HAIR_LOSS.toFixed(2)}`,
     desktopCtaText: "Start assessment",
     responseTime: `Avg response: ${SOCIAL_PROOF.averageResponseMinutes} min`,
@@ -144,9 +151,9 @@ function TreatmentOptions() {
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
         <Reveal className="text-center mb-8">
           <SectionPill>Treatment options</SectionPill>
-          <h2 className="text-2xl sm:text-3xl font-semibold text-foreground tracking-tight mt-4 mb-2">
+          <Heading level="h2" className="mt-4 mb-2">
             Clinically-proven approaches
-          </h2>
+          </Heading>
           <p className="text-sm text-muted-foreground">
             Your doctor recommends the best TGA-approved option for your assessment.
           </p>
@@ -162,7 +169,7 @@ function TreatmentOptions() {
               <div className="flex items-start justify-between mb-3">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 flex-wrap mb-1">
-                    <h3 className="text-lg font-semibold text-foreground">{treatment.name}</h3>
+                    <Heading level="h3">{treatment.name}</Heading>
                     {treatment.popular && (
                       <Badge className="bg-primary/10 text-primary hover:bg-primary/10 text-xs border-0">
                         Popular
@@ -200,77 +207,20 @@ function TreatmentOptions() {
   )
 }
 
+/** Time comparison — thin wrapper around the shared TimeComparisonViz primitive. */
 function HairLossComparisonViz() {
-  const ref = useRef<HTMLDivElement>(null)
-  const [inView, setInView] = useState(false)
-  const prefersReducedMotion = useReducedMotion()
-  useEffect(() => {
-    const el = ref.current; if (!el) return
-    const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) { setInView(true); observer.disconnect() } },
-      { threshold: 0.3 }
-    )
-    observer.observe(el); return () => observer.disconnect()
-  }, [])
-  const active = inView || prefersReducedMotion
   return (
-    <section aria-label="Time comparison" className="py-10 sm:py-14 bg-muted/30 dark:bg-white/[0.02]">
-      <div className="mx-auto max-w-3xl px-4 sm:px-6">
-        <Reveal instant className="text-center mb-10">
-          <SectionPill>Why go online?</SectionPill>
-          <h2 className="mt-3 text-2xl sm:text-3xl font-semibold tracking-tight text-balance">
-            Start treatment the same day.
-          </h2>
-        </Reveal>
-        <div ref={ref} className="space-y-5">
-          <div className="flex items-end justify-between">
-            <div>
-              <p className="text-[11px] font-semibold text-primary uppercase tracking-wider mb-1.5">InstantMed</p>
-              <p className="text-4xl sm:text-5xl font-semibold tabular-nums text-foreground leading-none">
-                ~1<span className="text-xl font-normal text-muted-foreground ml-1">hr</span>
-              </p>
-            </div>
-            <div className="text-right">
-              <p className="text-[11px] font-semibold text-muted-foreground/50 uppercase tracking-wider mb-1.5">GP clinic</p>
-              <p className="text-4xl sm:text-5xl font-semibold tabular-nums text-muted-foreground/60 leading-none">
-                2+<span className="text-xl font-normal ml-1">hrs</span>
-              </p>
-            </div>
-          </div>
-          <div className="relative h-2 rounded-full bg-muted/30 overflow-hidden">
-            <div className="absolute inset-y-0 left-0 rounded-full bg-muted/50 dark:bg-muted/30" style={{ width: '100%' }} />
-            <div
-              className="absolute inset-y-0 left-0 rounded-full bg-primary"
-              style={{
-                width: active ? '30%' : '0%',
-                transition: prefersReducedMotion ? 'none' : 'width 800ms cubic-bezier(0.23, 1, 0.32, 1)',
-                transitionDelay: active && !prefersReducedMotion ? '300ms' : '0ms',
-              }}
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-6 pt-1">
-            <div className="space-y-1.5">
-              <p className="text-[11px] font-semibold text-primary uppercase tracking-wider">Online</p>
-              {["2-min health form", "Doctor reviews same day", "Treatment plan by SMS"].map((s) => (
-                <p key={s} className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <CheckCircle2 className="h-3 w-3 shrink-0 text-primary" aria-hidden="true" />
-                  {s}
-                </p>
-              ))}
-            </div>
-            <div className="space-y-1.5">
-              <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">GP clinic</p>
-              {["Book appointment", "Travel + wait in clinic", "Face-to-face consult"].map((s) => (
-                <p key={s} className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <Clock className="h-3 w-3 shrink-0 text-muted-foreground" aria-hidden="true" />
-                  {s}
-                </p>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
+    <div className="bg-muted/30 dark:bg-white/[0.02]">
+      <TimeComparisonViz
+        pill="Why go online?"
+        heading="Start treatment the same day."
+        ours={{ label: "InstantMed", value: "~1", unit: "hr" }}
+        theirs={{ label: "GP clinic", value: "2", valueSuffix: "+", unit: "hrs" }}
+        ourSteps={["2-min health form", "Doctor reviews same day", "Treatment plan by SMS"]}
+        theirSteps={["Book appointment", "Travel + wait in clinic", "Face-to-face consult"]}
+        primaryFillPercent={30}
+      />
+    </div>
   )
 }
 
@@ -280,9 +230,9 @@ function HairLossPricingSection({ isDisabled }: { isDisabled?: boolean }) {
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
         <Reveal className="text-center mb-10">
           <SectionPill>Pricing</SectionPill>
-          <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground mt-4 mb-3">
+          <Heading level="h2" className="mt-4 mb-3">
             One flat fee. No hidden costs.
-          </h2>
+          </Heading>
           <p className="text-muted-foreground max-w-xl mx-auto text-balance">
             You only pay if the doctor approves treatment.
           </p>
@@ -298,7 +248,7 @@ function HairLossPricingSection({ isDisabled }: { isDisabled?: boolean }) {
                 </span>
               </div>
 
-              <h3 className="text-lg font-semibold text-foreground mb-1">Hair Loss Assessment</h3>
+              <Heading level="h3" className="mb-1">Hair Loss Assessment</Heading>
               <p className="text-sm text-muted-foreground mb-5">Private online consult + eScript if approved</p>
 
               <div className="mb-5">
@@ -336,33 +286,6 @@ function HairLossPricingSection({ isDisabled }: { isDisabled?: boolean }) {
   )
 }
 
-function HairLossFAQSection({ onFAQOpen }: { onFAQOpen?: (question: string, index: number) => void }) {
-  return (
-    <section aria-label="Frequently asked questions" className="py-16 lg:py-20">
-      <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-        <Reveal className="text-center mb-10">
-          <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground mb-3">
-            Frequently asked questions
-          </h2>
-          <p className="text-muted-foreground text-balance">
-            Everything you need to know about hair loss treatment online
-          </p>
-        </Reveal>
-        <FAQList
-          items={HAIR_LOSS_FAQ}
-          type="single"
-          onValueChange={(value: string) => {
-            if (onFAQOpen && value) {
-              const idx = HAIR_LOSS_FAQ.findIndex((f) => f.question === value)
-              if (idx !== -1) onFAQOpen(value, idx)
-            }
-          }}
-        />
-      </div>
-    </section>
-  )
-}
-
 // =============================================================================
 // MAIN PAGE COMPONENT
 // =============================================================================
@@ -375,11 +298,49 @@ export function HairLossLanding() {
     >
       {({ isDisabled, heroCTARef, handleHeroCTA, handleHowItWorksCTA, handleFinalCTA, handleFAQOpen }) => (
         <>
-          {/* 1. Hero */}
-          <HairLossHeroSection ctaRef={heroCTARef} onCTAClick={handleHeroCTA} />
+          {/* 1. Hero — canonical <Hero> with hair-loss-specific title, CTA,
+              evidence-based reassurance line, and the hair-loss product mockup.
+              Bespoke HairLossHeroSection retired in Pass 2. */}
+          <Hero
+            title="Hair loss treatment, doctor-reviewed."
+            primaryCta={{
+              text: `Start assessment · $${PRICING.HAIR_LOSS.toFixed(2)}`,
+              href: "/request?service=consult&subtype=hair_loss",
+              onClick: handleHeroCTA,
+              ref: heroCTARef,
+            }}
+            secondaryCta={null}
+            beforeCta={
+              <p className="inline-flex items-start sm:items-center gap-2 text-[13px] text-foreground max-w-xl mx-auto lg:mx-0 leading-snug text-left sm:text-center lg:text-left">
+                <Sparkles className="w-4 h-4 text-success shrink-0 mt-px sm:mt-0" aria-hidden="true" />
+                <span>
+                  Evidence-based, TGA-approved treatments.
+                  <span className="text-muted-foreground"> Same medications a clinic GP would prescribe.</span>
+                </span>
+              </p>
+            }
+            mockup={<HairLossHeroMockup />}
+          >
+            <p className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-6 sm:mb-7 leading-relaxed text-balance">
+              Fill a short health form. A doctor reviews it privately and recommends a clinically-proven treatment plan.
+            </p>
+          </Hero>
 
           {/* Live wait time */}
           <LiveWaitTime variant="strip" services={["consult-hair-loss"]} />
+
+          {/* Service claim — hair-loss superpower is clinical legitimacy
+              (TGA-approved, same as a GP would prescribe). Mirrors ED page's
+              discretion claim and other service-page elevation patterns. */}
+          <ServiceClaimSection
+            eyebrow="Clinical, not cosmetic"
+            headline={
+              <>
+                <span className="text-primary">TGA-approved</span> treatments. Doctor-reviewed for you.
+              </>
+            }
+            body="Real prescriptions, not over-the-counter shampoo theories. The same medications an Australian GP would prescribe in person, reviewed by an AHPRA-registered doctor and sent to any pharmacy."
+          />
 
           {/* 2. How It Works */}
           <HowItWorksInline
@@ -404,10 +365,18 @@ export function HairLossLanding() {
           {/* Regulatory Partners */}
           <RegulatoryPartners className="py-12" />
 
-          {/* 8. FAQ */}
-          <div className="bg-muted/30 dark:bg-white/[0.02]">
-            <HairLossFAQSection onFAQOpen={handleFAQOpen} />
-          </div>
+          {/* 7. FAQ — shared <FAQSection> primitive (was bespoke
+              HairLossFAQSection, retired in Pass 2). */}
+          <FAQSection
+            pill="FAQ"
+            title="Frequently asked questions"
+            subtitle="Everything you need to know about hair loss treatment online."
+            items={HAIR_LOSS_FAQ}
+            initialCount={4}
+            onFAQOpen={handleFAQOpen}
+            viewAllHref="/faq"
+            className="bg-muted/30 dark:bg-white/[0.02]"
+          />
 
           {/* Guide - deep E-E-A-T content for organic search */}
           <HairLossGuideSection />
@@ -415,13 +384,19 @@ export function HairLossLanding() {
           {/* Referral strip */}
           <ReferralStrip contextText="dealing with hair loss" />
 
-          {/* 9. Final CTA */}
-          <ServiceFinalCTA
+          {/* 8. Final CTA — shared <CTABanner> primitive (was bespoke
+              ServiceFinalCTA, retired in Pass 2). With hair-loss being the
+              last consumer of ServiceFinalCTA, the bespoke component can
+              now be deleted. */}
+          <CTABanner
             title="Start treating hair loss today."
+            subtitle="A doctor reviews your assessment and recommends the right plan. eScript sent same day."
+            ctaText="Start assessment"
             ctaHref="/request?service=consult&subtype=hair_loss"
-            price={PRICING.HAIR_LOSS}
-            onCTAClick={handleFinalCTA}
+            onCtaClick={handleFinalCTA}
             isDisabled={isDisabled}
+            price={PRICING.HAIR_LOSS}
+            microcopy="Takes about 2 minutes."
           />
         </>
       )}
