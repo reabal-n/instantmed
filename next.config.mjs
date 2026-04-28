@@ -164,6 +164,19 @@ const nextConfig = {
         destination: "/prescriptions/:path*",
         permanent: true
       },
+      // /repeat-prescriptions was a duplicate of /prescriptions — same intent,
+      // different shell architecture (funnel vs bespoke landing). Consolidated
+      // 2026-04-28 to send all repeat-Rx traffic to the richer canonical page.
+      {
+        source: "/repeat-prescriptions",
+        destination: "/prescriptions",
+        permanent: true
+      },
+      {
+        source: "/repeat-prescriptions/:path*",
+        destination: "/prescriptions/:path*",
+        permanent: true
+      },
       // Admin redirect consolidation — replaced redirect-only page.tsx files
       {
         source: "/admin/email-outbox",

@@ -94,12 +94,6 @@ export interface ServiceFunnelConfig {
     }>
   }
 
-  // Optional daily live stats
-  liveStats?: {
-    reviewedToday: number
-    avgReviewTime: number
-  }
-
   // Optional mid-page image + text section
   imageSection?: {
     title: string
