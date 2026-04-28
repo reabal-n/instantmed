@@ -3,6 +3,7 @@
 import { motion } from "framer-motion"
 import { ArrowRight, CheckCircle2, PhoneOff } from "lucide-react"
 import Link from "next/link"
+import { useFeatureFlagEnabled } from "posthog-js/react"
 
 import { CredentialCard } from "@/components/marketing/credential-card"
 import { LastReviewedSignal } from "@/components/marketing/last-reviewed-signal"
@@ -14,6 +15,21 @@ import { PRICING } from "@/lib/constants"
 import { stagger } from "@/lib/motion"
 import { SOCIAL_PROOF } from "@/lib/social-proof"
 
+/**
+ * A/B flag for the hero conversion overhaul.
+ * - default true: ship-it-and-measure path. Flag flip lets us roll back the
+ *   employer-proof line + premium credential card + mobile trust reorder
+ *   without a code revert.
+ * - PostHog flag name: `med_cert_hero_v2`
+ *   Set to false in PostHog to serve the legacy elements.
+ *   undefined while loading is treated as true so first-paint matches the new
+ *   design (avoid layout shift for the majority case).
+ */
+function useNewHero(): boolean {
+  const enabled = useFeatureFlagEnabled("med_cert_hero_v2")
+  return enabled !== false // default true on undefined or true
+}
+
 export function MedCertHeroSection({
   ctaRef,
   onCTAClick,
@@ -24,6 +40,7 @@ export function MedCertHeroSection({
   const reduced = useReducedMotion()
   const container = reduced ? {} : stagger.container
   const item = reduced ? {} : stagger.item
+  const showNewHero = useNewHero()
 
   return (
     <section
@@ -99,33 +116,39 @@ export function MedCertHeroSection({
               </div>
             </motion.div>
 
-            {/* Employer-proof line - resolves the #1 anxiety above the fold */}
-            <motion.div
-              variants={item}
-              className="mb-6 sm:mb-7"
-            >
-              <p className="inline-flex items-start sm:items-center gap-2 text-[13px] text-foreground max-w-xl mx-auto lg:mx-0 leading-snug text-left sm:text-center lg:text-left">
-                <CheckCircle2 className="w-4 h-4 text-success shrink-0 mt-px sm:mt-0" aria-hidden="true" />
-                <span>
-                  Accepted by Woolworths, CBA, Telstra, and {SOCIAL_PROOF.employerAcceptancePercent}% of Australian employers.
-                  <span className="text-muted-foreground"> Legally valid under Fair Work Act s 107.</span>
-                </span>
-              </p>
-            </motion.div>
+            {/* Employer-proof line - resolves the #1 anxiety above the fold.
+                A/B gated so we can roll back via PostHog flag without a deploy. */}
+            {showNewHero && (
+              <motion.div
+                variants={item}
+                className="mb-6 sm:mb-7"
+              >
+                <p className="inline-flex items-start sm:items-center gap-2 text-[13px] text-foreground max-w-xl mx-auto lg:mx-0 leading-snug text-left sm:text-center lg:text-left">
+                  <CheckCircle2 className="w-4 h-4 text-success shrink-0 mt-px sm:mt-0" aria-hidden="true" />
+                  <span>
+                    Accepted by Woolworths, CBA, Telstra, and {SOCIAL_PROOF.employerAcceptancePercent}% of Australian employers.
+                    <span className="text-muted-foreground"> Legally valid under Fair Work Act s 107.</span>
+                  </span>
+                </p>
+              </motion.div>
+            )}
 
             {/* Mobile-only: trust badges ABOVE the mockup so LegitScript + AHPRA
                 are visible above the fold for first-time ad traffic. Desktop
-                layout pushes badges below since the mockup sits in the right column. */}
-            <motion.div variants={item} className="lg:hidden mb-5 flex flex-col items-center gap-3">
-              <TrustBadgeRow
-                badges={[
-                  { id: "legitscript", variant: "styled" },
-                  { id: "google_pharmacy", variant: "styled" },
-                ]}
-                className="justify-center gap-3"
-              />
-              <CredentialCard compact />
-            </motion.div>
+                layout pushes badges below since the mockup sits in the right column.
+                A/B gated - legacy variant defers badges until below the mockup. */}
+            {showNewHero && (
+              <motion.div variants={item} className="lg:hidden mb-5 flex flex-col items-center gap-3">
+                <TrustBadgeRow
+                  badges={[
+                    { id: "legitscript", variant: "styled" },
+                    { id: "google_pharmacy", variant: "styled" },
+                  ]}
+                  className="justify-center gap-3"
+                />
+                <CredentialCard compact />
+              </motion.div>
+            )}
 
             {/* Mobile cert mockup */}
             <motion.div
@@ -136,17 +159,41 @@ export function MedCertHeroSection({
               <MedCertHeroMockup compact />
             </motion.div>
 
-            {/* Desktop trust signals (below CTA, above the LastReviewed line) */}
+            {/* Desktop trust signals (below CTA, above the LastReviewed line).
+                Legacy variant uses simple AHPRA badge; new variant uses the
+                premium CredentialCard with a verifiable AHPRA.gov.au link. */}
             <motion.div variants={item} className="hidden lg:flex flex-col items-start gap-3">
               <TrustBadgeRow
-                badges={[
-                  { id: "legitscript", variant: "styled" },
-                  { id: "google_pharmacy", variant: "styled" },
-                ]}
+                badges={
+                  showNewHero
+                    ? [
+                        { id: "legitscript", variant: "styled" },
+                        { id: "google_pharmacy", variant: "styled" },
+                      ]
+                    : [
+                        { id: "legitscript", variant: "styled" },
+                        { id: "google_pharmacy", variant: "styled" },
+                        { id: "ahpra", variant: "styled" },
+                      ]
+                }
                 className="gap-3"
               />
-              <CredentialCard />
+              {showNewHero && <CredentialCard />}
             </motion.div>
+
+            {/* Legacy mobile trust badges (only when new hero is OFF) */}
+            {!showNewHero && (
+              <motion.div variants={item} className="lg:hidden mt-3 flex justify-center">
+                <TrustBadgeRow
+                  badges={[
+                    { id: "legitscript", variant: "styled" },
+                    { id: "google_pharmacy", variant: "styled" },
+                    { id: "ahpra", variant: "styled" },
+                  ]}
+                  className="justify-center gap-3"
+                />
+              </motion.div>
+            )}
 
             <motion.div variants={item} className="mt-3 lg:mt-4">
               <LastReviewedSignal className="justify-center lg:justify-start" />
