@@ -44,11 +44,14 @@ interface LeftRailProps {
 
 export function LeftRail({ userName, userAvatar, userRole }: LeftRailProps) {
   const [isExpanded, setIsExpanded] = useState(true)
+  const [isSigningOut, setIsSigningOut] = useState(false)
   const pathname = usePathname()
   const router = useRouter()
   const { signOut } = useAuth()
 
   const handleSignOut = async () => {
+    if (isSigningOut) return
+    setIsSigningOut(true)
     await signOut()
   }
 
@@ -196,14 +199,15 @@ export function LeftRail({ userName, userAvatar, userRole }: LeftRailProps) {
         </a>
         <button
           onClick={handleSignOut}
+          disabled={isSigningOut}
           className={cn(
-            "flex items-center gap-2 text-xs text-muted-foreground hover:text-destructive transition-colors w-full",
+            "flex items-center gap-2 text-xs text-muted-foreground hover:text-destructive transition-colors w-full disabled:opacity-50 disabled:cursor-not-allowed",
             isExpanded ? "mb-3" : "justify-center mb-2",
           )}
           title="Sign out"
         >
           <LogOut className="w-3.5 h-3.5 shrink-0" />
-          {isExpanded && "Sign out"}
+          {isExpanded && (isSigningOut ? "Signing out…" : "Sign out")}
         </button>
         {isExpanded && (
           <p className="text-xs text-muted-foreground text-center">

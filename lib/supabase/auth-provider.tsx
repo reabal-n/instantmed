@@ -75,9 +75,27 @@ export function SupabaseAuthProvider({ children }: SupabaseAuthProviderProps) {
   }, [supabase, router])
 
   const signOut = useCallback(async () => {
-    await supabase.auth.signOut()
-    router.push('/')
-    router.refresh()
+    // Always clear local state and navigate, even if the network revoke fails.
+    // - scope: 'local' clears this device only and skips the revoke RPC, so an
+    //   expired/invalid refresh token can't 401 us into a stuck UI.
+    // - The /api/auth/sign-out POST clears the httpOnly `profile_linked` cookie
+    //   so the next sign-in's profile-linking safety net runs again.
+    // - window.location.assign performs a full document load: kills any race
+    //   with onAuthStateChange's router.refresh() that would otherwise trip
+    //   middleware into redirecting to /sign-in?redirect=/patient.
+    try {
+      await Promise.allSettled([
+        supabase.auth.signOut({ scope: 'local' }),
+        fetch('/api/auth/sign-out', { method: 'POST', credentials: 'same-origin' }),
+      ])
+    } finally {
+      if (typeof window !== 'undefined') {
+        window.location.assign('/')
+      } else {
+        router.push('/')
+        router.refresh()
+      }
+    }
   }, [supabase, router])
 
   const value = useMemo<AuthContext>(() => ({

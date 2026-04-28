@@ -126,7 +126,7 @@ export async function findExistingCertificate(
     .from("issued_certificates")
     .select("id, intake_id, certificate_number, verification_code, idempotency_key, certificate_type, status, issue_date, start_date, end_date, patient_id, patient_name, patient_name_enc, patient_dob, doctor_id, doctor_name, doctor_nominals, doctor_provider_number, doctor_ahpra_number, template_id, template_version, template_config_snapshot, clinic_identity_snapshot, storage_path, pdf_hash, file_size_bytes, email_sent_at, email_delivery_id, email_failed_at, email_failure_reason, email_retry_count, email_opened_at, resend_count, revoked_at, revoked_by, revocation_reason, certificate_ref, created_at, updated_at")
     .eq("intake_id", intakeId)
-    .in("status", ["valid", "expired"])
+    .neq("status", "revoked")
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle()
@@ -719,14 +719,13 @@ export async function getCertificateForIntake(
 ): Promise<IssuedCertificate | null> {
   const supabase = createServiceRoleClient()
 
-  // Include both valid and expired certificates -- patients should always be able
-  // to download their certificate even after the absence period ends.
-  // Only revoked certificates are excluded.
+  // Medical certificates do not expire — only revoked ones are excluded.
+  // Patients keep access to their certificate forever.
   const { data, error } = await supabase
     .from("issued_certificates")
     .select("id, intake_id, certificate_number, verification_code, idempotency_key, certificate_type, status, issue_date, start_date, end_date, patient_id, patient_name, patient_name_enc, patient_dob, doctor_id, doctor_name, doctor_nominals, doctor_provider_number, doctor_ahpra_number, template_id, template_version, template_config_snapshot, clinic_identity_snapshot, storage_path, pdf_hash, file_size_bytes, email_sent_at, email_delivery_id, email_failed_at, email_failure_reason, email_retry_count, email_opened_at, resend_count, revoked_at, revoked_by, revocation_reason, certificate_ref, created_at, updated_at")
     .eq("intake_id", intakeId)
-    .in("status", ["valid", "expired"])
+    .neq("status", "revoked")
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle()
@@ -1154,7 +1153,7 @@ export async function getCertDeliveryStatus(intakeId: string): Promise<CertDeliv
     .from("issued_certificates")
     .select("email_sent_at, email_failed_at, email_failure_reason, email_opened_at, resend_count")
     .eq("intake_id", intakeId)
-    .in("status", ["valid", "expired"])
+    .neq("status", "revoked")
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle()

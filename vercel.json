@@ -6,6 +6,10 @@
       "schedule": "0 * * * *"
     },
     {
+      "path": "/api/cron/recover-partial-intakes",
+      "schedule": "0 * * * *"
+    },
+    {
       "path": "/api/cron/dlq-monitor",
       "schedule": "0 9 * * *"
     },
@@ -28,10 +32,6 @@
     {
       "path": "/api/cron/health-check",
       "schedule": "*/5 * * * *"
-    },
-    {
-      "path": "/api/cron/expire-certificates",
-      "schedule": "0 1 * * *"
     },
     {
       "path": "/api/cron/cleanup-orphaned-storage",

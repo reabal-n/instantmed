@@ -266,7 +266,6 @@ All crons use `verifyCronRequest()` from `lib/api/cron-auth.ts` for authenticati
 | Abandoned Checkouts | `/api/cron/abandoned-checkouts` | Hourly | Send recovery emails for abandoned checkout sessions |
 | Emergency Flags | `/api/cron/emergency-flags` | Hourly | SMS emergency resources to patients who abandoned intakes with red flags |
 | Scheduled Maintenance | `/api/cron/scheduled-maintenance` | Every 5 min | Sync `maintenance_mode` with `maintenance_scheduled_start`/`end` window; auto-enable/disable banner |
-| Expire Certificates | `/api/cron/expire-certificates` | Daily (1 AM UTC) | Mark certificates past their `end_date` as expired |
 | AHPRA Re-verification | `/api/cron/ahpra-reverification` | Daily (6 AM AEST) | Flag overdue AHPRA verifications; disable approval for 30+ days overdue |
 | Daily Reconciliation | `/api/cron/daily-reconciliation` | Daily (7 AM AEST) | Identify mismatches: paid without delivery, failed refunds, failed deliveries |
 | Repeat Rx Reminders | `/api/cron/repeat-rx-reminders` | Daily (8 AM AEST) | Enqueue reminder emails for repeat scripts completed ~30 days ago |

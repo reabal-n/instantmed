@@ -122,8 +122,11 @@ export function MobileNav({ items = defaultItems, moreMenuItems = moreItems, cla
   const router = useRouter()
   const { signOut } = useAuth()
   const [moreOpen, setMoreOpen] = useState(false)
+  const [isSigningOut, setIsSigningOut] = useState(false)
 
   const handleSignOut = async () => {
+    if (isSigningOut) return
+    setIsSigningOut(true)
     setMoreOpen(false)
     await signOut()
   }
@@ -182,10 +185,11 @@ export function MobileNav({ items = defaultItems, moreMenuItems = moreItems, cla
               })}
               <button
                 onClick={handleSignOut}
-                className="flex items-center gap-3 w-full px-4 py-3 rounded-xl transition-colors text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                disabled={isSigningOut}
+                className="flex items-center gap-3 w-full px-4 py-3 rounded-xl transition-colors text-muted-foreground hover:bg-destructive/10 hover:text-destructive disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <LogOut className="w-5 h-5" />
-                <span className="text-sm">Sign out</span>
+                <span className="text-sm">{isSigningOut ? "Signing out…" : "Sign out"}</span>
               </button>
             </nav>
           </div>

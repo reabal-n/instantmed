@@ -252,11 +252,16 @@ export async function GET(request: Request) {
         )
       }
       
-      // Other invalid statuses (superseded, etc) - don't reveal specific reason
-      if (issuedCert.status !== "valid") {
+      // Superseded means a replacement certificate exists - don't confirm authenticity
+      // of the outdated record; verifier should request the current one.
+      if (issuedCert.status === "superseded") {
         await checkRateLimit(`verify-fail:${clientIp}`, RATE_LIMITS.verificationStrict, true)
         return NextResponse.json(
-          { valid: false },
+          {
+            valid: false,
+            status: "superseded",
+            message: "This certificate has been replaced by an updated version. Please request the current certificate from the patient.",
+          },
           { headers: createRateLimitHeaders(rateLimit) }
         )
       }
@@ -268,9 +273,9 @@ export async function GET(request: Request) {
       })
 
       // Get clinic name from snapshot
-      const clinicSnapshot = issuedCert.clinic_identity_snapshot as { 
+      const clinicSnapshot = issuedCert.clinic_identity_snapshot as {
         clinic_name?: string
-        trading_name?: string 
+        trading_name?: string
       } | null
       const clinicName = clinicSnapshot?.trading_name || clinicSnapshot?.clinic_name || "InstantMed"
 
