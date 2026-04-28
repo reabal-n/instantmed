@@ -4,6 +4,7 @@ import Link from "next/link"
 
 import { BreadcrumbSchema } from "@/components/seo"
 import { Footer,Navbar } from "@/components/shared"
+import { Heading } from "@/components/ui/heading"
 import { getAllStateSlugs,statesData } from "@/lib/seo/data/states"
 
 export const metadata: Metadata = {
@@ -68,14 +69,14 @@ export default function LocationsPage() {
       <main className="flex-1 pt-20">
         <section className="px-4 py-12 sm:py-16">
           <div className="mx-auto max-w-4xl">
-            <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl text-center mb-4">Serving All of Australia</h1>
+            <Heading level="h1" className="text-center mb-4">Serving All of Australia</Heading>
             <p className="text-muted-foreground text-center max-w-xl mx-auto mb-12">
               InstantMed is available in every Australian state and territory. Browse by state for regional
               context, or jump straight to your closest city.
             </p>
 
             {/* ─────────── Browse by state (primary hub entry) ─────────── */}
-            <h2 className="text-xl font-semibold text-foreground mb-5">Browse by state</h2>
+            <Heading level="h2" className="mb-5">Browse by state</Heading>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-14">
               {stateSlugs.map((slug) => {
                 const state = statesData[slug]
@@ -103,7 +104,7 @@ export default function LocationsPage() {
             </div>
 
             {/* ─────────── Browse by city ─────────── */}
-            <h2 className="text-xl font-semibold text-foreground mb-5">Or browse by city</h2>
+            <Heading level="h2" className="mb-5">Or browse by city</Heading>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {cities.map((city) => (
                 <Link

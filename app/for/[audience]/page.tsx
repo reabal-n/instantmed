@@ -7,6 +7,7 @@ import { LiveWaitTime, MarketingFooter, MediaMentions,StatsStrip } from "@/compo
 import { BreadcrumbSchema,FAQSchema } from "@/components/seo"
 import { Navbar } from "@/components/shared"
 import { Button } from "@/components/ui/button"
+import { Heading } from "@/components/ui/heading"
 import { SectionPill } from "@/components/ui/section-pill"
 import { PRICING_DISPLAY } from "@/lib/constants"
 import { getAllAudiencePageSlugs,getAudiencePageConfig } from "@/lib/seo/data/audience-pages"
@@ -80,9 +81,9 @@ export default async function AudiencePage({ params }: PageProps) {
                     <SectionPill>{config.badgeLabel}</SectionPill>
                   </div>
 
-                  <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl mb-3">
+                  <Heading level="display" className="mb-3">
                     {config.h1}
-                  </h1>
+                  </Heading>
                   <p className="text-sm md:text-base text-muted-foreground max-w-xl mx-auto mb-4">
                     {config.heroSubtext}
                   </p>
@@ -121,9 +122,9 @@ export default async function AudiencePage({ params }: PageProps) {
           <section className="px-4 py-12 sm:px-6">
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               <div className="bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-3xl p-4 lg:p-6 relative overflow-hidden">
-                <h2 className="text-xl sm:text-2xl font-semibold mb-6 text-center">
+                <Heading level="h2" className="mb-6 text-center">
                   Why {config.badgeLabel.replace("For ", "").toLowerCase()} choose InstantMed
-                </h2>
+                </Heading>
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   {config.whyChoose.map((item) => (
                     <div
@@ -143,9 +144,9 @@ export default async function AudiencePage({ params }: PageProps) {
           <section className="px-4 py-12 sm:px-6">
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               <div className="bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-3xl p-4 lg:p-6 relative overflow-hidden">
-                <h2 className="text-xl sm:text-2xl font-semibold mb-6 text-center">
+                <Heading level="h2" className="mb-6 text-center">
                   How it works
-                </h2>
+                </Heading>
                 <div className="grid gap-4 sm:grid-cols-3">
                   {[
                     {
@@ -187,9 +188,9 @@ export default async function AudiencePage({ params }: PageProps) {
           <section className="px-4 py-12 sm:px-6">
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               <div className="bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-3xl p-4 lg:p-6 relative overflow-hidden">
-                <h2 className="text-xl sm:text-2xl font-semibold text-center mb-6">
+                <Heading level="h2" className="text-center mb-6">
                   Quick answers
-                </h2>
+                </Heading>
                 <div className="space-y-3 max-w-2xl mx-auto">
                   {config.faqs.map((faq, i) => (
                     <div
@@ -217,7 +218,7 @@ export default async function AudiencePage({ params }: PageProps) {
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               <div className="max-w-xl mx-auto text-center">
                 <div className="bg-primary/5 dark:bg-card border border-primary/20 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-3xl p-6 lg:p-8 relative overflow-hidden">
-                  <h2 className="text-2xl font-semibold mb-3">Get your certificate in 15 minutes</h2>
+                  <Heading level="h2" className="mb-3">Get your certificate in 15 minutes</Heading>
                   <p className="text-sm text-muted-foreground mb-6">
                     No appointments. No waiting rooms. Just results.
                   </p>
