@@ -1,11 +1,8 @@
 'use client'
 
-import NumberFlow from "@number-flow/react"
-import { motion } from "framer-motion"
 import {
   ArrowRight,
   CheckCircle2,
-  Star,
 } from "lucide-react"
 import Link from "next/link"
 import { useSyncExternalStore } from "react"
@@ -24,12 +21,9 @@ import {
   Timeline,
 } from "@/components/sections"
 import { Navbar } from "@/components/shared"
-import { useReducedMotion } from "@/components/ui/motion"
-import { getFeaturedTestimonials } from "@/lib/data/testimonials"
 import { usePatientCount } from "@/lib/hooks/use-patient-count"
 import { safeJsonLd } from "@/lib/seo/safe-json-ld"
 import { SOCIAL_PROOF } from "@/lib/social-proof"
-import { cn } from "@/lib/utils"
 
 // ─── Hydration helper ──────────────────────────────────────────────
 
@@ -93,21 +87,6 @@ const trustFAQs = [
     answer: "Yes. Australian universities accept medical certificates from any AHPRA-registered doctor, regardless of whether the consultation was conducted in person or via telehealth. Our certificates include all the information universities require: the doctor's name and registration number, date of assessment, and the certified period of unfitness. Many universities also accept our online verification system as additional proof of authenticity.",
   },
 ]
-
-// Rotate which 6 of 8 featured testimonials are shown, based on day-of-week.
-const allFeatured = getFeaturedTestimonials()
-const dayOffset = new Date().getDay() % Math.max(allFeatured.length - 5, 1)
-const testimonials = [
-  ...allFeatured.slice(dayOffset),
-  ...allFeatured.slice(0, dayOffset),
-].slice(0, 6)
-
-// ─── Animation variants ────────────────────────────────────────────
-
-const fadeUp = {
-  hidden: { y: 24 },
-  visible: { opacity: 1, y: 0 },
-}
 
 // ─── Page ──────────────────────────────────────────────────────────
 
@@ -356,9 +335,6 @@ export default function TrustPage() {
           className="bg-muted/30 dark:bg-muted/10"
         />
 
-        {/* ── Testimonials ──────────────────────────────────── */}
-        <TestimonialSection patientCount={patientCount} mounted={mounted} />
-
         {/* ── E-E-A-T Guide ─────────────────────────────────── */}
         <TrustGuideSection />
 
@@ -387,164 +363,3 @@ export default function TrustPage() {
   )
 }
 
-// ─── Testimonial Section ──────────────────────────────────────────
-
-function TestimonialSection({ patientCount, mounted: _mounted }: { patientCount: number; mounted: boolean }) {
-  const shouldReduce = useReducedMotion()
-
-  return (
-    <section aria-label="Patient reviews" className="py-16 sm:py-24">
-      <div className="mx-auto max-w-5xl px-6">
-        <motion.div
-          initial={shouldReduce ? undefined : "hidden"}
-          whileInView="visible"
-          viewport={{ once: true, margin: "-80px" }}
-          variants={{ visible: { transition: { staggerChildren: 0.08 } } }}
-          className="text-center mb-14"
-        >
-          <motion.div
-            variants={fadeUp}
-            transition={{ duration: 0.3, ease: "easeOut" }}
-            className="flex items-center justify-center gap-1 mb-4"
-          >
-            {[...Array(5)].map((_, i) => (
-              <Star
-                key={i}
-                className="w-5 h-5 fill-amber-400 text-amber-400"
-              />
-            ))}
-          </motion.div>
-          <motion.h2
-            variants={fadeUp}
-            transition={{ duration: 0.3, ease: "easeOut" }}
-            className="text-3xl sm:text-4xl font-semibold tracking-tight text-foreground"
-          >
-            What patients say
-          </motion.h2>
-          <motion.p
-            variants={fadeUp}
-            transition={{ duration: 0.3, ease: "easeOut" }}
-            className="mt-4 text-muted-foreground text-lg"
-          >
-            Real feedback from{" "}
-            <NumberFlow
-              value={patientCount}
-              format={{ notation: "compact", maximumFractionDigits: 1 }}
-              className="font-medium text-foreground"
-            />
-            + patients across Australia.
-          </motion.p>
-        </motion.div>
-
-        <TestimonialGrid />
-
-        <motion.div
-          initial={shouldReduce ? undefined : {}}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.3, delay: 0.3 }}
-          className="mt-10 text-center"
-        >
-          <Link
-            href="/reviews"
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline underline-offset-4"
-          >
-            View all reviews
-            <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
-        </motion.div>
-      </div>
-    </section>
-  )
-}
-
-// ─── Testimonial Grid (staggered) ──────────────────────────────────
-
-function TestimonialGrid() {
-  const shouldReduce = useReducedMotion()
-
-  const leftCol = testimonials.filter((_, i) => i % 2 === 0)
-  const rightCol = testimonials.filter((_, i) => i % 2 !== 0)
-
-  return (
-    <motion.div
-      initial={shouldReduce ? undefined : "hidden"}
-      whileInView="visible"
-      viewport={{ once: true, margin: "-60px" }}
-      variants={{ visible: { transition: { staggerChildren: 0.08 } } }}
-      className="grid md:grid-cols-2 gap-5"
-    >
-      <div className="space-y-5">
-        {leftCol.map((t) => (
-          <TestimonialCard key={t.id} testimonial={t} />
-        ))}
-      </div>
-      <div className="space-y-5 md:pt-10">
-        {rightCol.map((t) => (
-          <TestimonialCard key={t.id} testimonial={t} />
-        ))}
-      </div>
-    </motion.div>
-  )
-}
-
-function TestimonialCard({
-  testimonial: t,
-}: {
-  testimonial: ReturnType<typeof getFeaturedTestimonials>[number]
-}) {
-  return (
-    <motion.div
-      variants={fadeUp}
-      whileHover={{ y: -2, transition: { duration: 0.25, ease: "easeOut" } }}
-      transition={{ duration: 0.3, ease: "easeOut" }}
-      className={cn(
-        "rounded-2xl p-6 sm:p-7",
-        "bg-card border border-border/50",
-        "hover:border-border hover:shadow-md hover:shadow-primary/5",
-        "transition-[border-color,box-shadow] duration-200",
-      )}
-    >
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex gap-0.5">
-          {[...Array(t.rating)].map((_, i) => (
-            <Star
-              key={i}
-              className="w-3.5 h-3.5 fill-amber-400 text-amber-400"
-            />
-          ))}
-        </div>
-        <span className="text-xs font-medium text-muted-foreground bg-muted/50 dark:bg-muted/30 rounded-full px-2.5 py-0.5">
-          {t.service === "medical-certificate"
-            ? "Med Cert"
-            : t.service === "prescription"
-              ? "Prescription"
-              : "Consultation"}
-        </span>
-      </div>
-
-      <p className="text-foreground/90 leading-relaxed">&ldquo;{t.text}&rdquo;</p>
-
-      <div className="mt-5 flex items-center gap-3">
-        {t.image && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={t.image}
-            alt={t.name}
-            width={36}
-            height={36}
-            loading="lazy"
-            className="w-9 h-9 rounded-full bg-muted"
-          />
-        )}
-        <div>
-          <p className="text-sm font-medium text-foreground">{t.name}</p>
-          <p className="text-xs text-muted-foreground">
-            {t.location}
-            {t.role && ` · ${t.role}`}
-          </p>
-        </div>
-      </div>
-    </motion.div>
-  )
-}

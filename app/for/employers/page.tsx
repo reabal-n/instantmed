@@ -20,7 +20,7 @@ import type { Metadata } from "next"
 import Link from "next/link"
 
 import { LiveWaitTime, MarketingFooter, MediaMentions, SampleCertificate,StatsStrip } from "@/components/marketing"
-import { ScrollingLogoMarquee, TestimonialCard } from "@/components/marketing/shared"
+import { ScrollingLogoMarquee } from "@/components/marketing/shared"
 import { Navbar } from "@/components/shared"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -60,27 +60,6 @@ const employerLogos = [
   { name: 'PwC', src: '/logos/pwc.svg', width: 50, maxWidth: 50 },
   { name: 'KPMG', src: '/logos/kpmg.svg', width: 60, maxWidth: 60 },
   { name: 'Bupa', src: '/logos/bupa.svg', width: 60, maxWidth: 60 },
-]
-
-const employeeTestimonials = [
-  {
-    name: "Sarah M.",
-    location: "Bondi, NSW",
-    text: "Woke up with gastro at 6am, had my cert by 8:30. HR didn't question it.",
-    rating: 5,
-  },
-  {
-    name: "Tom H.",
-    location: "Carlton, VIC",
-    text: "Missed an exam and needed a cert for special consideration. Done before my next lecture. The doctor asked follow-up questions too which made it feel legit.",
-    rating: 5,
-  },
-  {
-    name: "Nick B.",
-    location: "Pyrmont, NSW",
-    text: "Gastro the night before a big work thing. Cert was in my inbox by 7am. Exactly what I needed.",
-    rating: 5,
-  },
 ]
 
 export default function EmployersPage() {
@@ -531,32 +510,6 @@ export default function EmployersPage() {
                 <FileText className="w-3.5 h-3.5" />
                 View our clinical governance framework
               </Link>
-            </div>
-          </div>
-        </section>
-
-        {/* Employee testimonials */}
-        <section className="py-16">
-          <div className="max-w-4xl mx-auto px-4">
-            <h2 className="text-2xl md:text-3xl font-semibold text-foreground mb-2 text-center">
-              What employees say
-            </h2>
-            <p className="text-center text-muted-foreground text-sm mb-10">
-              Real reviews from employees whose certificates were accepted without issue.
-            </p>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-5">
-              {employeeTestimonials.map((t) => (
-                <TestimonialCard
-                  key={t.name}
-                  variant="compact"
-                  testimonial={{
-                    name: t.name,
-                    quote: t.text,
-                    rating: t.rating,
-                    location: t.location,
-                  }}
-                />
-              ))}
             </div>
           </div>
         </section>

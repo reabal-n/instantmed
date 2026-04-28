@@ -9,7 +9,7 @@ import { StatsHero } from "@/components/heroes"
 import { ServiceIconTile } from "@/components/icons/service-icons"
 import { DoctorCredibility, RegulatoryPartners } from "@/components/marketing"
 import { CompetitorLinksSection, PricingGuideSection } from "@/components/marketing/sections"
-import { ComparisonBar, InformationalPageShell, TestimonialCard } from "@/components/marketing/shared"
+import { ComparisonBar, InformationalPageShell } from "@/components/marketing/shared"
 import { ComparisonTable, CTABanner,FAQSection } from "@/components/sections"
 import { FAQSchema } from "@/components/seo"
 import { Badge } from "@/components/ui/badge"
@@ -17,7 +17,6 @@ import { Button } from "@/components/ui/button"
 import { useReducedMotion } from "@/components/ui/motion"
 import { SectionPill } from "@/components/ui/section-pill"
 import { PRICING, PRICING_DISPLAY } from "@/lib/constants"
-import { getFeaturedTestimonials } from "@/lib/data/testimonials"
 import { getPatientCount,SOCIAL_PROOF } from "@/lib/social-proof"
 import { cn } from "@/lib/utils"
 
@@ -158,8 +157,6 @@ const pricingFaqs = [
           "Each request must be submitted by, or on behalf of, the individual patient. You can submit a request for a dependent (such as a child with parental consent), but each person needs their own profile. You can\u2019t use a single account to get certificates for multiple adults.",
       },
 ]
-
-const pricingTestimonials = getFeaturedTestimonials().slice(0, 3)
 
 const PRICING_CONFIG = {
   analyticsId: "pricing" as const,
@@ -354,32 +351,6 @@ export function PricingClient() {
             </div>
           </section>
         </div>
-
-        {/* Testimonial Strip */}
-        <section className="py-12 px-4 sm:px-6">
-          <div className="mx-auto max-w-5xl">
-            <div className="text-center mb-8">
-              <SectionPill>Patient feedback</SectionPill>
-              <h2 className="text-xl sm:text-2xl font-semibold tracking-tight mt-3">
-                What patients say about our pricing
-              </h2>
-            </div>
-            <div className="grid gap-4 sm:grid-cols-3">
-              {pricingTestimonials.map((t) => (
-                <TestimonialCard
-                  key={t.id}
-                  variant="compact"
-                  testimonial={{
-                    name: t.name,
-                    quote: t.text,
-                    rating: t.rating,
-                    location: t.location,
-                  }}
-                />
-              ))}
-            </div>
-          </div>
-        </section>
 
         {/* Comparison Table */}
         <div className="bg-muted/30 dark:bg-white/[0.02]">

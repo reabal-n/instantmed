@@ -22,7 +22,7 @@ import { useRef } from "react"
 import { submitContactForm } from "@/app/actions/contact-form"
 import { CenteredHero } from "@/components/heroes"
 import { DoctorCredibility,LiveWaitTime } from "@/components/marketing"
-import { AnimatedDonutChart, InformationalPageShell, TestimonialCard } from "@/components/marketing/shared"
+import { AnimatedDonutChart, InformationalPageShell } from "@/components/marketing/shared"
 import { CTABanner } from "@/components/sections"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -39,27 +39,6 @@ const CONTACT_CONFIG = {
   analyticsId: "contact" as const,
   sticky: false as const,
 }
-
-const SUPPORT_TESTIMONIALS = [
-  {
-    name: "Sarah M.",
-    quote: "Got a reply within 20 minutes. Way better than any clinic phone queue.",
-    rating: 5 as const,
-    location: "Brisbane, QLD",
-  },
-  {
-    name: "James T.",
-    quote: "Had a question about my certificate and support sorted it out same day.",
-    rating: 5 as const,
-    location: "Melbourne, VIC",
-  },
-  {
-    name: "Priya K.",
-    quote: "Really impressed with how quickly the team responded. Felt like they actually read my message.",
-    rating: 5 as const,
-    location: "Perth, WA",
-  },
-]
 
 const contactReasons = [
   { id: "general", label: "General Inquiry", icon: MessageSquare },
@@ -215,27 +194,6 @@ export function ContactClient() {
                 handleSubmit={handleSubmit}
                 prefersReducedMotion={prefersReducedMotion}
               />
-          </div>
-        </section>
-
-        {/* Support Testimonials */}
-        <section className="py-12 px-4 sm:px-6">
-          <div className="mx-auto max-w-5xl">
-            <div className="text-center mb-8">
-              <SectionPill>Support feedback</SectionPill>
-              <h2 className="text-xl sm:text-2xl font-semibold tracking-tight mt-3">
-                What patients say about our support
-              </h2>
-            </div>
-            <div className="grid gap-4 sm:grid-cols-3">
-              {SUPPORT_TESTIMONIALS.map((t) => (
-                <TestimonialCard
-                  key={t.name}
-                  variant="compact"
-                  testimonial={t}
-                />
-              ))}
-            </div>
           </div>
         </section>
 

@@ -2,7 +2,7 @@
 
 import { StickerIcon } from "@/components/icons/stickers"
 import { AboutGuideSection } from "@/components/marketing/sections"
-import { AnimatedDonutChart, ComparisonBar, EditorialStoryBlock, InformationalPageShell, ScrollingLogoMarquee, TestimonialCard } from "@/components/marketing/shared"
+import { AnimatedDonutChart, ComparisonBar, EditorialStoryBlock, InformationalPageShell, ScrollingLogoMarquee } from "@/components/marketing/shared"
 import { CTABanner, FAQSection, FeatureGrid } from "@/components/sections"
 import { FAQSchema } from "@/components/seo"
 import { TrustBadgeRow } from "@/components/shared"
@@ -196,23 +196,6 @@ export function AboutClient() {
             features={VALUES}
             columns={2}
           />
-
-          {/* Doctor quote - editorial testimonial card */}
-          <section className="px-4 py-8 sm:py-12">
-            <div className="mx-auto max-w-2xl">
-              <TestimonialCard
-                variant="editorial"
-                testimonial={{
-                  name: "Our Medical Director",
-                  quote:
-                    "I review every request as if the patient were sitting in front of me. Just because it's online doesn't mean the standard of care is any different. If I have concerns or questions, I follow up. Patient safety always comes first.",
-                  avatar:
-                    "https://api.dicebear.com/7.x/notionists/svg?seed=MedDirector",
-                  location: "AHPRA-registered GP",
-                }}
-              />
-            </div>
-          </section>
 
           {/* Regulatory logos */}
           <div className="bg-muted/30 dark:bg-white/[0.02]">
