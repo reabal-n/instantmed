@@ -5,6 +5,6 @@
  */
 import { Footer } from "@/components/shared"
 
-export async function MarketingFooter() {
+export function MarketingFooter() {
   return <Footer variant="marketing" />
 }

@@ -1,13 +1,14 @@
 "use client"
 
 import { AlertTriangle, RefreshCw } from "lucide-react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { useCallback,useEffect, useMemo, useRef, useState, useTransition } from "react"
 import { toast } from "sonner"
 
 import { IntakeReviewPanel } from "@/components/doctor"
 import { usePanel } from "@/components/panels/panel-provider"
 import { Button } from "@/components/ui/button"
+import { DOCTOR_DASHBOARD_HREF, parseQueueStatusFilter, type QueueStatusFilter } from "@/lib/dashboard/routes"
 import { calculateSlaCountdown,calculateWaitTime, getWaitTimeSeverity } from "@/lib/doctor/queue-utils"
 import { SERVICE_TYPES } from "@/lib/doctor/service-types"
 import { useQueueRealtime } from "@/lib/doctor/use-queue-realtime"
@@ -29,9 +30,13 @@ export function QueueClient({
   aiApprovedIntakes = [],
   recentlyCompleted = [],
   todayEarnings,
+  initialStatusFilter = "all",
+  hasExplicitStatusFilter = false,
 }: QueueClientProps) {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { openPanel, activePanel } = usePanel()
+  const explicitStatusFilterRef = useRef(hasExplicitStatusFilter)
 
   const openIntakeId = activePanel?.id.startsWith("intake-review-")
     ? activePanel.id.replace("intake-review-", "")
@@ -68,11 +73,11 @@ export function QueueClient({
 
   const [searchQuery, setSearchQuery] = useState("")
   const debouncedSearch = useDebounce(searchQuery, 200)
-  const [statusFilter, setStatusFilter] = useState<"all" | "review" | "pending_info" | "scripts">("all")
+  const [statusFilter, setStatusFilter] = useState<QueueStatusFilter>(initialStatusFilter)
   const [priorityModeActive, setPriorityModeActive] = useState(false)
   const [isApprovePending, startTransition] = useTransition()
   const dialogs = useQueueDialogs({ intakes, setIntakes })
-  const [, setTick] = useState(0) // Forces re-render for live wait time ticking
+  const [clockNow, setClockNow] = useState<Date | null>(null)
   const [soundMuted, setSoundMuted] = useState(() => {
     if (typeof window !== "undefined") {
       return localStorage.getItem("instantmed:queue-sound-muted") === "true"
@@ -80,13 +85,35 @@ export function QueueClient({
     return false
   })
 
+  useEffect(() => {
+    const nextStatus = parseQueueStatusFilter(searchParams.get("status"))
+    explicitStatusFilterRef.current = searchParams.has("status") && nextStatus !== "all"
+    setStatusFilter(nextStatus)
+  }, [searchParams])
+
+  const handleStatusFilterChange = useCallback((value: QueueStatusFilter) => {
+    setStatusFilter(value)
+    explicitStatusFilterRef.current = value !== "all"
+
+    const params = new URLSearchParams(searchParams.toString())
+    if (value === "all") {
+      params.delete("status")
+    } else {
+      params.set("status", value)
+    }
+    params.delete("page")
+
+    const query = params.toString()
+    router.replace(query ? `${DOCTOR_DASHBOARD_HREF}?${query}` : DOCTOR_DASHBOARD_HREF, { scroll: false })
+  }, [router, searchParams])
+
   // Auto-activate priority mode when SLA-breached cases exist
   useEffect(() => {
     const now = Date.now()
     const hasSlaBreaches = intakes.some(
       (r) => r.sla_deadline && new Date(r.sla_deadline).getTime() < now && ["paid", "in_review"].includes(r.status)
     )
-    if (hasSlaBreaches && !priorityModeActive) {
+    if (hasSlaBreaches && !priorityModeActive && !explicitStatusFilterRef.current) {
       setPriorityModeActive(true)
       setStatusFilter("review")
     } else if (!hasSlaBreaches && priorityModeActive) {
@@ -98,11 +125,27 @@ export function QueueClient({
 
   // Tick every 30s to update wait time displays live
   useEffect(() => {
+    setClockNow(new Date())
     const tickInterval = setInterval(() => {
-      setTick((t) => t + 1)
+      setClockNow(new Date())
     }, 30000)
     return () => clearInterval(tickInterval)
   }, [])
+
+  const calculateStableWaitTime = useCallback((createdAt: string) => {
+    if (!clockNow) return "..."
+    return calculateWaitTime(createdAt, clockNow)
+  }, [clockNow])
+
+  const getStableWaitTimeSeverity = useCallback((createdAt: string, slaDeadline?: string | null) => {
+    if (!clockNow) return "normal"
+    return getWaitTimeSeverity(createdAt, slaDeadline, clockNow)
+  }, [clockNow])
+
+  const calculateStableSlaCountdown = useCallback((slaDeadline: string | null | undefined) => {
+    if (!clockNow) return null
+    return calculateSlaCountdown(slaDeadline, clockNow)
+  }, [clockNow])
 
   // Play a subtle notification sound when a new intake arrives
   const playNotificationSound = useCallback(() => {
@@ -382,7 +425,7 @@ export function QueueClient({
             <span>
               <span className="font-medium text-foreground tabular-nums">{reviewedToday}</span>{" "}reviewed today
               {approvalRate !== null && (
-                <span className="ml-1 text-muted-foreground/70">({approvalRate}%)</span>
+                <span className="ml-1 text-muted-foreground">({approvalRate}%)</span>
               )}
             </span>
           )}
@@ -454,7 +497,7 @@ export function QueueClient({
           }}
           onRefresh={() => router.refresh()}
           statusFilter={statusFilter}
-          onStatusFilterChange={setStatusFilter}
+          onStatusFilterChange={handleStatusFilterChange}
           intakes={intakes}
           filteredCount={filteredIntakes.length}
           isStale={isStale}
@@ -473,9 +516,9 @@ export function QueueClient({
         identityComplete={identityComplete}
         onApprove={handleApprove}
         hasRedFlags={hasRedFlags}
-        calculateWaitTime={calculateWaitTime}
-        getWaitTimeSeverity={getWaitTimeSeverity}
-        calculateSlaCountdown={calculateSlaCountdown}
+        calculateWaitTime={calculateStableWaitTime}
+        getWaitTimeSeverity={getStableWaitTimeSeverity}
+        calculateSlaCountdown={calculateStableSlaCountdown}
         openReviewPanel={openReviewPanel}
         dialogs={dialogs}
         aiApprovedIntakes={aiApprovedIntakes}

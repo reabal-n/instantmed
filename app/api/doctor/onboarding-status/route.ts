@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 
 import { requireApiRole } from "@/lib/auth/helpers"
+import { DOCTOR_QUEUE_REVIEW_HREF } from "@/lib/dashboard/routes"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -34,7 +35,10 @@ export async function GET(request: NextRequest) {
 
     const authResult = await requireApiRole(["doctor", "admin"])
     if (!authResult) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      // This endpoint powers a passive banner. During route changes/sign-out the
+      // client can race a stale fetch; return no content instead of creating a
+      // browser console error for a non-critical background request.
+      return new NextResponse(null, { status: 204 })
     }
 
     const { profile: authProfile } = authResult
@@ -109,7 +113,7 @@ export async function GET(request: NextRequest) {
         label: "Review your first request",
         description: "Familiarise yourself with the review workflow by reviewing a patient request",
         completed: hasReviewedIntake,
-        href: "/doctor/queue",
+        href: DOCTOR_QUEUE_REVIEW_HREF,
         required: false,
       },
     ]

@@ -43,7 +43,7 @@ function PatientShellContent({ children, patientId }: { children: ReactNode; pat
     <>
       <GlobalIntakeNotifications patientId={patientId} />
       {/* Session timeout warning removed - Supabase Auth handles session refresh automatically */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 pb-24 lg:pb-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 pb-[calc(7rem+env(safe-area-inset-bottom))] lg:pb-8">
         <AnimatePresence initial={false} mode="wait">
           <motion.div
             key={pathname}

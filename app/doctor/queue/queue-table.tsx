@@ -168,7 +168,9 @@ export function QueueTable({
       {/* Queue List — flat rows, single click opens review panel */}
       {filteredIntakes.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 px-6 text-center rounded-xl border border-dashed border-border/60 bg-muted/20">
-          <div className="text-4xl mb-3" aria-hidden="true">🎉</div>
+          <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl border border-success-border bg-success-light">
+            <CheckCircle className="h-5 w-5 text-success" aria-hidden="true" />
+          </div>
           <h3 className="text-base font-semibold text-foreground mb-1">Queue is clear!</h3>
           <p className="text-sm text-muted-foreground max-w-xs">
             All caught up. New requests will appear here automatically.
@@ -190,9 +192,6 @@ export function QueueTable({
             return (
               <div
                 key={intake.id}
-                role="button"
-                tabIndex={0}
-                aria-label={`Open case for ${intake.patient.full_name} — ${service?.short_name || formatServiceType(service?.type || "")}`}
                 className={cn(
                   "group grid cursor-pointer grid-cols-[minmax(0,1fr)_auto] items-start gap-x-3 gap-y-2 px-3 py-3 transition-colors sm:grid-cols-[minmax(0,auto)_minmax(0,1fr)_auto_auto_auto] sm:items-center sm:px-4",
                   "hover:bg-muted/40",
@@ -208,12 +207,6 @@ export function QueueTable({
                   })
                   onToggleExpand(intake.id)
                   openReviewPanel(intake.id)
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault()
-                    openReviewPanel(intake.id)
-                  }
                 }}
               >
                 {/* Patient */}
@@ -325,6 +318,7 @@ export function QueueTable({
                       variant="ghost"
                       size="icon"
                       className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                      aria-label={`Request more information for ${intake.patient.full_name}`}
                       onClick={(e) => {
                         e.stopPropagation()
                         setInfoDialog(intake.id)
@@ -337,6 +331,7 @@ export function QueueTable({
                       variant="ghost"
                       size="icon"
                       className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                      aria-label={`Open patient profile for ${intake.patient.full_name}`}
                       onClick={(e) => {
                         e.stopPropagation()
                         router.push(patientSnapshot.profileHref)
@@ -350,7 +345,11 @@ export function QueueTable({
 
                 {/* Unread dot */}
                 {!isRead && (
-                  <span className="col-start-1 row-start-3 h-2 w-2 shrink-0 rounded-full bg-primary sm:col-start-4 sm:row-start-1" aria-label="Unread" />
+                  <span
+                    className="col-start-1 row-start-3 h-2 w-2 shrink-0 rounded-full bg-primary sm:col-start-4 sm:row-start-1"
+                    role="img"
+                    aria-label="Unread case"
+                  />
                 )}
 
                 {/* Wait time */}
@@ -400,18 +399,9 @@ export function QueueTable({
               return (
                 <div
                   key={intake.id}
-                  role="button"
-                  tabIndex={0}
-                  aria-label={`Review AI-approved case for ${intake.patient.full_name}`}
                   className="flex cursor-pointer flex-col justify-between gap-2 rounded-lg border border-border/40 bg-muted/20 p-2.5 transition-colors hover:bg-muted/45 sm:flex-row sm:items-center sm:gap-3"
                   onMouseEnter={() => prefetchReviewData(intake.id)}
                   onClick={() => openReviewPanel(intake.id)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault()
-                      openReviewPanel(intake.id)
-                    }
-                  }}
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <UserCard name={intake.patient.full_name} size="sm" className="shrink-0" />

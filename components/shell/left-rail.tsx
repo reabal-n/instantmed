@@ -6,6 +6,7 @@ import {
   ChevronLeft,
   ChevronRight,
   ClipboardList,
+  CreditCard,
   ExternalLink,
   FileText,
   FolderOpen,
@@ -24,6 +25,8 @@ import { BrandLogo } from '@/components/shared/brand-logo'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/lib/supabase/auth-provider'
 import { cn } from '@/lib/utils'
+
+const ACTIVE_NAV_LINK = "bg-primary/5 text-blue-700 dark:bg-primary/20 dark:text-blue-200"
 
 /**
  * LeftRail - Persistent navigation for authenticated areas
@@ -45,10 +48,21 @@ interface LeftRailProps {
    * when > 0. Wiring is up to the caller; LeftRail just paints.
    */
   unreadNotifications?: number
+  isExpanded?: boolean
+  onExpandedChange?: (expanded: boolean) => void
 }
 
-export function LeftRail({ userName, userAvatar, userRole, unreadNotifications = 0 }: LeftRailProps) {
-  const [isExpanded, setIsExpanded] = useState(true)
+export function LeftRail({
+  userName,
+  userAvatar,
+  userRole,
+  unreadNotifications = 0,
+  isExpanded: controlledExpanded,
+  onExpandedChange,
+}: LeftRailProps) {
+  const [uncontrolledExpanded, setUncontrolledExpanded] = useState(true)
+  const isExpanded = controlledExpanded ?? uncontrolledExpanded
+  const setIsExpanded = onExpandedChange ?? setUncontrolledExpanded
   const [isSigningOut, setIsSigningOut] = useState(false)
   const pathname = usePathname()
   const router = useRouter()
@@ -70,6 +84,7 @@ export function LeftRail({ userName, userAvatar, userRole, unreadNotifications =
     { icon: Activity, label: 'Health summary', href: '/patient/health-summary' },
     { icon: FolderOpen, label: 'Documents', href: '/patient/documents' },
     { icon: MessageSquare, label: 'Messages', href: '/patient/messages' },
+    { icon: CreditCard, label: 'Payments', href: '/patient/payment-history' },
     { icon: Settings, label: 'Settings', href: '/patient/settings' },
   ]
 
@@ -190,7 +205,7 @@ export function LeftRail({ userName, userAvatar, userRole, unreadNotifications =
                 "flex items-center gap-3 px-3 py-3 rounded-lg mb-1.5 transition-colors",
                 "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",
                 isActive
-                  ? "bg-primary/10 text-primary font-medium"
+                  ? `${ACTIVE_NAV_LINK} font-medium`
                   : "text-muted-foreground hover:bg-muted"
               )}
               title={!isExpanded ? item.label : undefined}

@@ -8,8 +8,7 @@ import {
   Sparkles,
 } from "lucide-react"
 import Link from "next/link"
-import { useSearchParams } from "next/navigation"
-import { Suspense, useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 
 import { StickerIcon } from "@/components/icons/stickers"
 import { usePostHog } from "@/components/providers/posthog-provider"
@@ -63,8 +62,8 @@ function SearchParamsAutoSelect({
 }: {
   onAutoSelect: (cat: CertCategory) => void
 }) {
-  const searchParams = useSearchParams()
   useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search)
     const certType = searchParams.get("certType") || searchParams.get("utm_content")
     if (certType && ["work", "study", "carer"].includes(certType)) {
       onAutoSelect(certType as CertCategory)
@@ -107,9 +106,7 @@ export function CertificateTypeSelector({
       aria-label="Choose your certificate type"
       className={cn("py-12 lg:py-16 scroll-mt-20", className)}
     >
-      <Suspense fallback={null}>
-        <SearchParamsAutoSelect onAutoSelect={handleAutoSelect} />
-      </Suspense>
+      <SearchParamsAutoSelect onAutoSelect={handleAutoSelect} />
 
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
         {/* Header */}

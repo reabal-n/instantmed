@@ -68,7 +68,7 @@ export default async function DoctorLayout({
             isAdmin={isAdmin}
           />
         </Suspense>
-        <main className="flex-1 min-w-0 lg:border-l border-border/40 py-6 px-4 sm:px-6 lg:px-8 pb-24 lg:pb-6" data-testid="doctor-main">
+        <main className="flex-1 min-w-0 lg:border-l border-border/40 py-6 px-4 sm:px-6 lg:px-8 pb-[calc(7rem+env(safe-area-inset-bottom))] lg:pb-6" data-testid="doctor-main">
           <div className="mx-auto max-w-5xl" data-testid="dashboard-container">
             <DoctorOnboardingBanner />
             {children}

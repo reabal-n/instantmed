@@ -1,3 +1,4 @@
+import { readDashboardQuery } from "@/lib/data/dashboard-read-model"
 import { createLogger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
@@ -35,27 +36,31 @@ export async function getScriptTasks(filters?: {
   const from = (page - 1) * pageSize
   const to = from + pageSize - 1
 
-  let query = supabase
-    .from("script_tasks")
-    .select("id, intake_id, repeat_rx_request_id, doctor_id, patient_name, patient_email, medication_name, medication_strength, medication_form, status, notes, sent_at, confirmed_at, created_at, updated_at", { count: "exact" })
-    .order("created_at", { ascending: false })
-    .range(from, to)
+  return readDashboardQuery({
+    label: "script tasks",
+    fallback: { tasks: [], total: 0 },
+    context: { surface: "doctor-scripts", status: filters?.status, hasDoctorId: Boolean(filters?.doctorId) },
+    operation: async () => {
+      let query = supabase
+        .from("script_tasks")
+        .select("id, intake_id, repeat_rx_request_id, doctor_id, patient_name, patient_email, medication_name, medication_strength, medication_form, status, notes, sent_at, confirmed_at, created_at, updated_at", { count: "exact" })
+        .order("created_at", { ascending: false })
+        .range(from, to)
 
-  if (filters?.status) {
-    query = query.eq("status", filters.status)
-  }
-  if (filters?.doctorId) {
-    query = query.eq("doctor_id", filters.doctorId)
-  }
+      if (filters?.status) {
+        query = query.eq("status", filters.status)
+      }
+      if (filters?.doctorId) {
+        query = query.eq("doctor_id", filters.doctorId)
+      }
 
-  const { data, error, count } = await query
-
-  if (error) {
-    log.error("Failed to fetch script tasks", { error: error.message })
-    return { tasks: [], total: 0 }
-  }
-
-  return { tasks: (data || []) as ScriptTask[], total: count ?? 0 }
+      const { data, error, count } = await query
+      return {
+        data: error ? null : { tasks: (data || []) as ScriptTask[], total: count ?? 0 },
+        error,
+      }
+    },
+  })
 }
 
 export async function getScriptTaskCounts(): Promise<{
@@ -65,14 +70,14 @@ export async function getScriptTaskCounts(): Promise<{
   total: number
 }> {
   const supabase = createServiceRoleClient()
-  const { data, error } = await supabase
-    .from("script_tasks")
-    .select("status")
-
-  if (error) {
-    log.error("Failed to fetch script task counts", { error: error.message })
-    return { pending_send: 0, sent: 0, confirmed: 0, total: 0 }
-  }
+  const data = await readDashboardQuery({
+    label: "script task counts",
+    fallback: [] as Array<{ status: ScriptTaskStatus }>,
+    context: { surface: "doctor-scripts" },
+    operation: async () => await supabase
+      .from("script_tasks")
+      .select("status"),
+  })
 
   const counts = {
     pending_send: 0,
@@ -81,7 +86,7 @@ export async function getScriptTaskCounts(): Promise<{
     total: data?.length || 0,
   }
 
-  for (const task of data || []) {
+  for (const task of data) {
     if (task.status in counts) {
       counts[task.status as keyof typeof counts]++
     }

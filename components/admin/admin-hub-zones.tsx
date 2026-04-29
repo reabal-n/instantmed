@@ -9,6 +9,7 @@ import Link from "next/link"
 import type { ComponentType } from "react"
 
 import { DashboardCard } from "@/components/dashboard"
+import { DOCTOR_QUEUE_REVIEW_HREF } from "@/lib/dashboard/routes"
 import { cn } from "@/lib/utils"
 
 interface ZoneStat {
@@ -71,7 +72,7 @@ export function AdminHubZones({
       subtitle: "Operational pulse",
       icon: Activity,
       stats: [
-        { label: "In queue", value: inQueue, href: "/doctor/queue" },
+        { label: "In queue", value: inQueue, href: DOCTOR_QUEUE_REVIEW_HREF },
         {
           label: "Scripts pending",
           value: scriptsPending,

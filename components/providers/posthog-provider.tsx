@@ -1,10 +1,9 @@
 "use client"
 
-import { usePathname, useSearchParams } from "next/navigation"
+import { usePathname } from "next/navigation"
 import type { PostHog } from "posthog-js"
 import {
   type ReactNode,
-  Suspense,
   useEffect,
   useRef,
   useState,
@@ -45,14 +44,12 @@ export { usePostHog }
  */
 function PostHogPageView() {
   const pathname = usePathname()
-  const searchParams = useSearchParams()
   const posthog = usePostHog()
   const aiReferralTracked = useRef(false)
 
   useEffect(() => {
     if (!pathname || !posthog) return
-    let url = window.origin + pathname
-    if (searchParams.toString()) url += "?" + searchParams.toString()
+    const url = window.location.origin + pathname + window.location.search
     posthog.capture("$pageview", { $current_url: url })
 
     // Track AI referral once per session (first pageview only)
@@ -60,7 +57,7 @@ function PostHogPageView() {
       aiReferralTracked.current = true
       trackAIReferral()
     }
-  }, [pathname, searchParams, posthog])
+  }, [pathname, posthog])
 
   return null
 }
@@ -114,9 +111,7 @@ export function PostHogProvider({ children }: { children: ReactNode }) {
 
   return (
     <PostHogContext.Provider value={client}>
-      <Suspense fallback={null}>
-        <PostHogPageView />
-      </Suspense>
+      <PostHogPageView />
       <PostHogIdentify />
       {children}
     </PostHogContext.Provider>

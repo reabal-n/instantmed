@@ -2,6 +2,7 @@ import { ArrowRight,LayoutDashboard } from "lucide-react"
 import Link from "next/link"
 
 import { Button } from "@/components/ui/button"
+import { DOCTOR_QUEUE_REVIEW_HREF } from "@/lib/dashboard/routes"
 
 export default function DoctorNotFound() {
   return (
@@ -21,7 +22,7 @@ export default function DoctorNotFound() {
           </Link>
         </Button>
         <Button variant="outline" asChild className="rounded-xl">
-          <Link href="/doctor/queue">
+          <Link href={DOCTOR_QUEUE_REVIEW_HREF}>
             Review queue
             <ArrowRight className="ml-2 h-4 w-4" />
           </Link>

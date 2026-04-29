@@ -1,6 +1,7 @@
 'use client'
 
 import { type ReactNode } from 'react'
+import { useState } from 'react'
 
 import { PanelProvider } from '@/components/panels'
 import { cn } from '@/lib/utils'
@@ -37,6 +38,8 @@ export function AuthenticatedShell({
   className,
   unreadNotifications,
 }: AuthenticatedShellProps) {
+  const [isRailExpanded, setIsRailExpanded] = useState(true)
+
   return (
     <PanelProvider>
       <div className="min-h-screen bg-background">
@@ -46,12 +49,15 @@ export function AuthenticatedShell({
           userAvatar={userAvatar}
           userRole={userRole}
           unreadNotifications={unreadNotifications}
+          isExpanded={isRailExpanded}
+          onExpandedChange={setIsRailExpanded}
         />
 
         {/* Main Content Area - Offset by rail width */}
         <main
           className={cn(
-            "ml-0 lg:ml-60 transition-[transform,box-shadow] duration-300",
+            "ml-0 transition-[margin-left,transform,box-shadow] duration-300",
+            isRailExpanded ? "lg:ml-60" : "lg:ml-16",
             className
           )}
         >

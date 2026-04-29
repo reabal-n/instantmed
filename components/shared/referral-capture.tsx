@@ -1,6 +1,5 @@
 "use client"
 
-import { useSearchParams } from "next/navigation"
 import { useEffect } from "react"
 
 import { capture } from "@/lib/analytics/capture"
@@ -15,10 +14,8 @@ function setCookie(name: string, value: string, days: number) {
 }
 
 export function ReferralCapture() {
-  const searchParams = useSearchParams()
-  const ref = searchParams.get("ref")
-
   useEffect(() => {
+    const ref = new URLSearchParams(window.location.search).get("ref")
     if (!ref || typeof document === "undefined") return
 
     // Store for 30 days - persists across pages until checkout
@@ -29,7 +26,7 @@ export function ReferralCapture() {
       referral_code: ref,
       source: "url_param",
     })
-  }, [ref])
+  }, [])
 
   return null
 }

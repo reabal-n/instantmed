@@ -4,6 +4,7 @@ import { AlertCircle, ArrowRight } from "lucide-react"
 import Link from "next/link"
 
 import { Button } from "@/components/ui/button"
+import { DOCTOR_QUEUE_REVIEW_HREF } from "@/lib/dashboard/routes"
 
 interface SlaBreachHeroProps {
   breached: number
@@ -46,7 +47,7 @@ export function SlaBreachHero({ breached, approaching }: SlaBreachHeroProps) {
               variant="outline"
               className="mt-3 border-destructive/30 text-destructive hover:bg-destructive/15 hover:text-destructive"
             >
-              <Link href="/doctor/queue?status=review">
+              <Link href={DOCTOR_QUEUE_REVIEW_HREF}>
                 Review priority cases
                 <ArrowRight className="ml-1.5 h-4 w-4" />
               </Link>
@@ -74,7 +75,7 @@ export function SlaBreachHero({ breached, approaching }: SlaBreachHeroProps) {
           size="sm"
           className="h-7 px-2 text-xs text-warning hover:bg-warning-light hover:text-warning"
         >
-          <Link href="/doctor/queue?status=review">Review</Link>
+          <Link href={DOCTOR_QUEUE_REVIEW_HREF}>Review</Link>
         </Button>
       </div>
     )

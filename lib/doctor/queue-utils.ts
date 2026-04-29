@@ -6,9 +6,8 @@
 export type WaitTimeSeverity = "normal" | "warning" | "critical"
 
 /** Human-readable wait time from a created_at timestamp. */
-export function calculateWaitTime(createdAt: string): string {
+export function calculateWaitTime(createdAt: string, now = new Date()): string {
   const created = new Date(createdAt)
-  const now = new Date()
   const diffMs = now.getTime() - created.getTime()
   const diffMins = Math.floor(diffMs / (1000 * 60))
   const diffHours = Math.floor(diffMins / 60)
@@ -20,10 +19,10 @@ export function calculateWaitTime(createdAt: string): string {
 export function getWaitTimeSeverity(
   createdAt: string,
   slaDeadline?: string | null,
+  now = new Date(),
 ): WaitTimeSeverity {
   if (slaDeadline) {
     const deadline = new Date(slaDeadline)
-    const now = new Date()
     const diffMins = Math.floor(
       (deadline.getTime() - now.getTime()) / (1000 * 60),
     )
@@ -32,7 +31,6 @@ export function getWaitTimeSeverity(
     return "normal"
   }
   const created = new Date(createdAt)
-  const now = new Date()
   const diffMins = Math.floor(
     (now.getTime() - created.getTime()) / (1000 * 60),
   )
@@ -44,10 +42,10 @@ export function getWaitTimeSeverity(
 /** SLA countdown string (e.g. "2h 15m left" or "10m overdue"). */
 export function calculateSlaCountdown(
   slaDeadline: string | null | undefined,
+  now = new Date(),
 ): string | null {
   if (!slaDeadline) return null
   const deadline = new Date(slaDeadline)
-  const now = new Date()
   const diffMs = deadline.getTime() - now.getTime()
   const diffMins = Math.floor(diffMs / (1000 * 60))
   if (diffMins < 0) {

@@ -11,39 +11,66 @@
  * Do NOT add a second AnimatePresence here - it causes ghost renders.
  */
 
-import { lazy, Suspense, useMemo } from "react"
+import type { ComponentType } from "react"
+import { useMemo } from "react"
 
-import { SkeletonForm } from "@/components/ui/skeleton"
 import type { UnifiedServiceType, UnifiedStepId } from "@/lib/request/step-registry"
 
 import { StepErrorBoundary } from "./step-error-boundary"
+import CertificateStep from "./steps/certificate-step"
+import CheckoutStep from "./steps/checkout-step"
+import ConsultReasonStep from "./steps/consult-reason-step"
+import EdAssessmentStep from "./steps/ed-assessment-step"
+import EdGoalsStep from "./steps/ed-goals-step"
+import EdHealthStep from "./steps/ed-health-step"
+import EdPreferencesStep from "./steps/ed-preferences-step"
+import HairLossAssessmentStep from "./steps/hair-loss-assessment-step"
+import HairLossGoalsStep from "./steps/hair-loss-goals-step"
+import HairLossHealthStep from "./steps/hair-loss-health-step"
+import HairLossPreferencesStep from "./steps/hair-loss-preferences-step"
+import MedicalHistoryStep from "./steps/medical-history-step"
+import MedicationHistoryStep from "./steps/medication-history-step"
+import MedicationStep from "./steps/medication-step"
+import PatientDetailsStep from "./steps/patient-details-step"
+import ReviewStep from "./steps/review-step"
+import SymptomsStep from "./steps/symptoms-step"
+import WeightLossAssessmentStep from "./steps/weight-loss-assessment-step"
+import WeightLossCallStep from "./steps/weight-loss-call-step"
+import WomensHealthAssessmentStep from "./steps/womens-health-assessment-step"
+import WomensHealthTypeStep from "./steps/womens-health-type-step"
 
-// Lazy load step components
+interface StepComponentProps {
+  serviceType: UnifiedServiceType
+  onNext: () => void
+  onBack: () => void
+  onComplete: () => void
+}
+
 const stepComponents = {
-  'certificate-step': lazy(() => import('./steps/certificate-step')),
-  'symptoms-step': lazy(() => import('./steps/symptoms-step')),
-  'medication-step': lazy(() => import('./steps/medication-step')),
-  'medication-history-step': lazy(() => import('./steps/medication-history-step')),
-  'medical-history-step': lazy(() => import('./steps/medical-history-step')),
-  'consult-reason-step': lazy(() => import('./steps/consult-reason-step')),
-  'patient-details-step': lazy(() => import('./steps/patient-details-step')),
-  'review-step': lazy(() => import('./steps/review-step')),
-  'checkout-step': lazy(() => import('./steps/checkout-step')),
+  'certificate-step': CertificateStep,
+  'symptoms-step': SymptomsStep,
+  'medication-step': MedicationStep,
+  'medication-history-step': MedicationHistoryStep,
+  'medical-history-step': MedicalHistoryStep,
+  'consult-reason-step': ConsultReasonStep,
+  'patient-details-step': PatientDetailsStep,
+  'review-step': ReviewStep,
+  'checkout-step': CheckoutStep,
   // Consult subtype-specific steps - ED
-  'ed-goals-step': lazy(() => import('./steps/ed-goals-step')),
-  'ed-assessment-step': lazy(() => import('./steps/ed-assessment-step')),
-  'ed-health-step': lazy(() => import('./steps/ed-health-step')),
-  'ed-preferences-step': lazy(() => import('./steps/ed-preferences-step')),
+  'ed-goals-step': EdGoalsStep,
+  'ed-assessment-step': EdAssessmentStep,
+  'ed-health-step': EdHealthStep,
+  'ed-preferences-step': EdPreferencesStep,
   // Consult subtype-specific steps - Hair loss
-  'hair-loss-goals-step': lazy(() => import('./steps/hair-loss-goals-step')),
-  'hair-loss-assessment-step': lazy(() => import('./steps/hair-loss-assessment-step')),
-  'hair-loss-health-step': lazy(() => import('./steps/hair-loss-health-step')),
-  'hair-loss-preferences-step': lazy(() => import('./steps/hair-loss-preferences-step')),
-  'womens-health-type-step': lazy(() => import('./steps/womens-health-type-step')),
-  'womens-health-assessment-step': lazy(() => import('./steps/womens-health-assessment-step')),
-  'weight-loss-assessment-step': lazy(() => import('./steps/weight-loss-assessment-step')),
-  'weight-loss-call-step': lazy(() => import('./steps/weight-loss-call-step')),
-} as const
+  'hair-loss-goals-step': HairLossGoalsStep,
+  'hair-loss-assessment-step': HairLossAssessmentStep,
+  'hair-loss-health-step': HairLossHealthStep,
+  'hair-loss-preferences-step': HairLossPreferencesStep,
+  'womens-health-type-step': WomensHealthTypeStep,
+  'womens-health-assessment-step': WomensHealthAssessmentStep,
+  'weight-loss-assessment-step': WeightLossAssessmentStep,
+  'weight-loss-call-step': WeightLossCallStep,
+} satisfies Record<string, ComponentType<StepComponentProps>>
 
 type StepComponentKey = keyof typeof stepComponents
 
@@ -54,10 +81,6 @@ export interface StepRouterProps {
   onNext: () => void
   onBack: () => void
   onComplete: () => void
-}
-
-function StepLoadingFallback() {
-  return <SkeletonForm />
 }
 
 function StepNotFound({ componentPath }: { componentPath: string }) {
@@ -89,14 +112,12 @@ export function StepRouter({
 
   return (
     <StepErrorBoundary stepId={currentStepId}>
-      <Suspense fallback={<StepLoadingFallback />}>
-        <StepComponent
-          serviceType={serviceType}
-          onNext={onNext}
-          onBack={onBack}
-          onComplete={onComplete}
-        />
-      </Suspense>
+      <StepComponent
+        serviceType={serviceType}
+        onNext={onNext}
+        onBack={onBack}
+        onComplete={onComplete}
+      />
     </StepErrorBoundary>
   )
 }

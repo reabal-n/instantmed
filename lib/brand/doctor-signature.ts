@@ -37,7 +37,7 @@ export interface DoctorSignatureData {
   signatureAssetHeight: number
 }
 
-const MEDICAL_DIRECTOR: DoctorSignatureData = {
+export const MEDICAL_DIRECTOR_SIGNATURE: DoctorSignatureData = {
   id: "medical-director",
   fullName: "Medical Director",
   credentials: "AHPRA-registered",
@@ -56,5 +56,5 @@ const MEDICAL_DIRECTOR: DoctorSignatureData = {
 export async function getDoctorSignature(
   _doctorId?: string,
 ): Promise<DoctorSignatureData> {
-  return MEDICAL_DIRECTOR
+  return MEDICAL_DIRECTOR_SIGNATURE
 }

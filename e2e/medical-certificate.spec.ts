@@ -1,4 +1,4 @@
-import { expect,test } from "@playwright/test"
+import { expect, type Page, test } from "@playwright/test"
 
 import { generateTestAddress as _generateTestAddress,generateTestMedicare as _generateTestMedicare, generateTestPhone as _generateTestPhone, waitForPageLoad } from "./helpers/test-utils"
 
@@ -15,6 +15,13 @@ import { generateTestAddress as _generateTestAddress,generateTestMedicare as _ge
  * 7. Confirmation
  */
 
+function getHeroCertificateCta(page: Page) {
+  return page
+    .getByRole("main")
+    .getByRole("link", { name: /get your certificate/i })
+    .first()
+}
+
 test.describe("Medical Certificate Flow", () => {
   test.beforeEach(async ({ page }) => {
     // Start from the medical certificate landing page
@@ -27,11 +34,8 @@ test.describe("Medical Certificate Flow", () => {
     await expect(page).toHaveTitle(/Medical Certificate/i)
     
     // Check main CTA is visible (use main content area to avoid nav buttons)
-    const mainContent = page.getByRole("main")
-    const startButton = mainContent.getByRole("button", { name: /get started/i }).or(
-      mainContent.getByRole("link", { name: /get started/i })
-    ).first()
-    await expect(startButton).toBeVisible()
+    const startButton = getHeroCertificateCta(page)
+    await expect(startButton).toBeVisible({ timeout: 10000 })
     
     // Check key trust elements are present
     await expect(page.getByText(/AHPRA|Australian doctor|doctor/i).first()).toBeVisible()
@@ -39,11 +43,7 @@ test.describe("Medical Certificate Flow", () => {
 
   test("can navigate to intake flow", async ({ page }) => {
     // Click main CTA in content area
-    const mainContent = page.getByRole("main")
-    const startButton = mainContent.getByRole("button", { name: /get started/i }).or(
-      mainContent.getByRole("link", { name: /get started/i })
-    ).first()
-    await startButton.click()
+    await getHeroCertificateCta(page).click()
     
     // Should navigate to intake or show first step
     await expect(page).toHaveURL(/request|medical-certificate/i)
@@ -93,8 +93,8 @@ test.describe("Medical Certificate - Guest Flow", () => {
     await waitForPageLoad(page)
     
     // Should be able to start without signing in
-    const startButton = page.getByRole("button", { name: /get started|start|continue as guest/i }).first()
-    await expect(startButton).toBeVisible()
+    const startButton = getHeroCertificateCta(page)
+    await expect(startButton).toBeVisible({ timeout: 10000 })
     await expect(startButton).toBeEnabled()
   })
 })
@@ -137,6 +137,46 @@ test.describe("Medical Certificate - certType URL Pre-seeding", () => {
     const count = await radios.count()
     // At least one radio should exist (the cert type selector rendered)
     expect(count).toBeGreaterThanOrEqual(3)
+  })
+})
+
+test.describe("Medical Certificate - Scroll Stability", () => {
+  test("landing and request pages scroll without runtime errors", async ({ page }) => {
+    const errors: string[] = []
+    const benignConsoleErrors = [
+      /favicon/i,
+      /third-party cookie/i,
+    ]
+
+    page.on("console", (msg) => {
+      if (msg.type() === "error" && !benignConsoleErrors.some((pattern) => pattern.test(msg.text()))) {
+        errors.push(msg.text())
+      }
+    })
+    page.on("pageerror", (error) => {
+      errors.push(error.message)
+    })
+
+    for (const path of ["/medical-certificate", "/medical-certificate/work", "/request?service=med-cert"]) {
+      await page.goto(path, { waitUntil: "domcontentloaded" })
+      await waitForPageLoad(page)
+      await page.mouse.wheel(0, 1800)
+      await page.waitForTimeout(250)
+      await page.mouse.wheel(0, 1800)
+      await page.waitForTimeout(250)
+      await page.mouse.wheel(0, -1200)
+      await page.waitForTimeout(250)
+    }
+
+    expect(errors).toEqual([])
+  })
+
+  test("CSP allows Google AU conversion telemetry used on med-cert request", async ({ request }) => {
+    const response = await request.get("/request?service=med-cert")
+    const csp = response.headers()["content-security-policy"] || ""
+
+    expect(csp).toContain("connect-src")
+    expect(csp).toContain("https://*.google.com.au")
   })
 })
 

@@ -96,6 +96,9 @@ const systemNavItems: NavItem[] = [
 const isInSection = (items: NavItem[], path: string | null) =>
   path && items.some((i) => path === i.href || path.startsWith(i.href + "/"))
 
+const ACTIVE_NAV_LINK = "bg-primary/5 text-blue-700 dark:bg-primary/20 dark:text-blue-200"
+const ACTIVE_NAV_ICON = "text-blue-700 dark:text-blue-200"
+
 export function AdminSidebar({ userName, userRole = "Admin", pendingCount = 0 }: AdminSidebarProps) {
   const pathname = usePathname()
 
@@ -120,14 +123,14 @@ export function AdminSidebar({ userName, userRole = "Admin", pendingCount = 0 }:
             className={cn(
               "group flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-[background-color,color] duration-200",
               active
-                ? "bg-primary/10 text-primary"
+                ? ACTIVE_NAV_LINK
                 : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
             )}
           >
             <span className="flex items-center gap-2.5">
               <item.icon className={cn(
                 "w-[18px] h-[18px]",
-                active ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
+                active ? ACTIVE_NAV_ICON : "text-muted-foreground group-hover:text-foreground"
               )} />
               {item.label}
             </span>
@@ -182,14 +185,14 @@ export function AdminSidebar({ userName, userRole = "Admin", pendingCount = 0 }:
             className={cn(
               "flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition-[background-color,color] duration-200",
               pathname === "/admin"
-                ? "bg-primary/10 text-primary"
+                ? ACTIVE_NAV_LINK
                 : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
             )}
           >
             <span className="flex items-center gap-2.5">
               <LayoutDashboard className={cn(
                 "w-[18px] h-[18px]",
-                pathname === "/admin" ? "text-primary" : "text-muted-foreground"
+                pathname === "/admin" ? ACTIVE_NAV_ICON : "text-muted-foreground"
               )} />
               Dashboard
             </span>
@@ -227,7 +230,7 @@ export function AdminSidebar({ userName, userRole = "Admin", pendingCount = 0 }:
                       href={item.href}
                       className={cn(
                         "flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-[background-color,color] duration-200",
-                        active ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                        active ? ACTIVE_NAV_LINK : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
                       )}
                     >
                       <item.icon className="h-4 w-4 shrink-0" />
@@ -258,7 +261,7 @@ export function AdminSidebar({ userName, userRole = "Admin", pendingCount = 0 }:
                       href={item.href}
                       className={cn(
                         "flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-[background-color,color] duration-200",
-                        active ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                        active ? ACTIVE_NAV_LINK : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
                       )}
                     >
                       <item.icon className="h-4 w-4 shrink-0" />
@@ -288,7 +291,7 @@ export function AdminSidebar({ userName, userRole = "Admin", pendingCount = 0 }:
                       href={item.href}
                       className={cn(
                         "flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-[background-color,color] duration-200",
-                        active ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                        active ? ACTIVE_NAV_LINK : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
                       )}
                     >
                       <item.icon className="h-4 w-4 shrink-0" />
@@ -346,11 +349,11 @@ export function MobileAdminNav({ pendingCount = 0 }: { pendingCount?: number }) 
         onClick={() => setOpen(false)}
         className={cn(
           "flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition-[background-color,color] duration-200",
-          active ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
+          active ? ACTIVE_NAV_LINK : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
         )}
       >
         <span className="flex items-center gap-2.5">
-          <item.icon className={cn("w-[18px] h-[18px]", active ? "text-primary" : "text-muted-foreground")} />
+          <item.icon className={cn("w-[18px] h-[18px]", active ? ACTIVE_NAV_ICON : "text-muted-foreground")} />
           {item.label}
         </span>
         {active && <ChevronRight className="w-3.5 h-3.5 text-primary/50" />}
@@ -409,11 +412,11 @@ export function MobileAdminNav({ pendingCount = 0 }: { pendingCount?: number }) 
             onClick={() => setOpen(false)}
             className={cn(
               "flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition-[background-color,color] duration-200",
-              pathname === "/admin" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
+              pathname === "/admin" ? ACTIVE_NAV_LINK : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
             )}
           >
             <span className="flex items-center gap-2.5">
-              <LayoutDashboard className={cn("w-[18px] h-[18px]", pathname === "/admin" ? "text-primary" : "text-muted-foreground")} />
+              <LayoutDashboard className={cn("w-[18px] h-[18px]", pathname === "/admin" ? ACTIVE_NAV_ICON : "text-muted-foreground")} />
               Dashboard
             </span>
             {pendingCount > 0 && (

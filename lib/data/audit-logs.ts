@@ -5,6 +5,7 @@
 
 import "server-only"
 
+import { readDashboardQuery } from "@/lib/data/dashboard-read-model"
 import { createLogger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
@@ -68,14 +69,30 @@ export async function getAuditLogs(
   const to = from + pageSize - 1
   query = query.range(from, to)
 
-  const { data, error, count } = await query
+  const result = await readDashboardQuery({
+    label: "audit-logs",
+    fallback: { rows: [] as AuditLog[], total: 0 },
+    context: {
+      actorType: filters.actorType,
+      eventType: filters.eventType,
+      hasSearch: Boolean(filters.search),
+      page,
+      pageSize,
+    },
+    operation: async () => {
+      const { data, error, count } = await query
 
-  if (error) {
-    log.error("Failed to fetch audit logs", {}, error)
-    return { data: [], total: 0 }
-  }
+      return {
+        data: {
+          rows: (data || []) as AuditLog[],
+          total: count || 0,
+        },
+        error,
+      }
+    },
+  })
 
-  const rows = (data || []) as AuditLog[]
+  const rows = result.rows
   const actorIds = [
     ...new Set(rows.map((row) => row.actor_id).filter((id): id is string => Boolean(id))),
   ]
@@ -83,7 +100,7 @@ export async function getAuditLogs(
   if (actorIds.length === 0) {
     return {
       data: rows,
-      total: count || 0,
+      total: result.total,
     }
   }
 
@@ -107,7 +124,7 @@ export async function getAuditLogs(
       ...row,
       actor: row.actor_id ? actorById.get(row.actor_id) : undefined,
     })),
-    total: count || 0,
+    total: result.total,
   }
 }
 

@@ -415,7 +415,7 @@ export function DashboardHero({
       return (
         <HeroShell
           pill={{ icon: <CheckCircle2 className="h-3 w-3" />, label: "Welcome", tone: "primary" }}
-          title={`Pick a service, ${firstName}. 👋`}
+          title={`Pick a service, ${firstName}.`}
           subtitle="A doctor reviews your request, and we email you the result. No call, no waiting room."
         >
           <div className="pt-2">
@@ -430,7 +430,7 @@ export function DashboardHero({
         <HeroShell
           pill={{ icon: <CheckCircle2 className="h-3 w-3" />, label: "All caught up", tone: "success" }}
           title={`Anything you need today, ${firstName}?`}
-          subtitle="Pick a service to start. A doctor reviews and we email the result. 👇"
+          subtitle="Pick a service to start. A doctor reviews and we email the result."
         >
           <div className="pt-2">
             <ServiceGrid compact />

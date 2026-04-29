@@ -72,9 +72,7 @@ export function StickyCTA({
           : { y: show ? 0 : 100 }
         }
         transition={{ duration: 0.3, ease: "easeOut" }}
-        // @ts-expect-error -- React 18 typings predate `inert` HTML attribute;
-        // works in all evergreen browsers (Chrome 102+, Firefox 112+, Safari 15.5+).
-        inert={!show ? "" : undefined}
+        inert={!show ? true : undefined}
       >
         <div className="bg-white dark:bg-card border-t border-border/50 px-4 pt-2.5 pb-3 safe-area-pb">
           <p className="text-xs text-muted-foreground text-center mb-2">
@@ -112,8 +110,7 @@ export function StickyCTA({
           : { y: show ? 0 : -80, opacity: show ? 1 : 0 }
         }
         transition={{ duration: 0.3, ease: "easeOut" }}
-        // @ts-expect-error -- see mobile sticky CTA above.
-        inert={!show ? "" : undefined}
+        inert={!show ? true : undefined}
       >
         <div className="bg-white dark:bg-card border-b border-border/50 shadow-sm">
           <div className="mx-auto max-w-5xl px-6 h-14 flex items-center justify-between gap-6">

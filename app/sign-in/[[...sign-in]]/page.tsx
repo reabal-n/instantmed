@@ -9,6 +9,7 @@ import { Suspense, useCallback,useState } from "react"
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { PATIENT_DASHBOARD_HREF } from '@/lib/dashboard/routes'
 import { getPatientCount } from '@/lib/social-proof'
 import { createClient } from '@/lib/supabase/client'
 
@@ -93,7 +94,7 @@ function SignInForm() {
     }
 
     // Redirect on success
-    const next = redirectUrl || '/patient/dashboard'
+    const next = redirectUrl || PATIENT_DASHBOARD_HREF
     window.location.href = next
   }, [email, password, redirectUrl, supabase.auth])
 

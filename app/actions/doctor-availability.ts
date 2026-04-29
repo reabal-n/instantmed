@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache"
 
 import { withServerAction } from "@/lib/actions/with-server-action"
 import { requireRole } from "@/lib/auth/helpers"
+import { DOCTOR_DASHBOARD_HREF } from "@/lib/dashboard/routes"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import type { ActionResult } from "@/types/shared"
 
@@ -17,7 +18,7 @@ export const setDoctorAvailabilityAction = withServerAction<boolean>(
 
     if (error) return { success: false, error: error.message }
     revalidatePath("/doctor")
-    revalidatePath("/doctor/queue")
+    revalidatePath(DOCTOR_DASHBOARD_HREF)
     revalidatePath("/doctor/settings")
     return { success: true }
   }

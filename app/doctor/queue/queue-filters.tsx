@@ -7,6 +7,7 @@ import { KeyboardShortcutsModal } from "@/components/doctor/keyboard-shortcuts-m
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import type { QueueStatusFilter } from "@/lib/dashboard/routes"
 import { cn } from "@/lib/utils"
 import type { IntakeWithPatient } from "@/types/db"
 
@@ -16,8 +17,8 @@ export interface QueueFiltersProps {
   soundMuted: boolean
   onToggleSound: () => void
   onRefresh: () => void
-  statusFilter: "all" | "review" | "pending_info" | "scripts"
-  onStatusFilterChange: (value: "all" | "review" | "pending_info" | "scripts") => void
+  statusFilter: QueueStatusFilter
+  onStatusFilterChange: (value: QueueStatusFilter) => void
   intakes: IntakeWithPatient[]
   filteredCount: number
   isStale: boolean
@@ -164,6 +165,8 @@ export function QueueFilters({
           return (
             <button
               key={tab.key}
+              type="button"
+              aria-pressed={statusFilter === tab.key}
               onClick={() => onStatusFilterChange(tab.key)}
               className={cn(
                 "px-3 py-1.5 text-xs font-medium rounded-md transition-colors",

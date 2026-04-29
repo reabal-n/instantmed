@@ -52,13 +52,13 @@ export function DashboardHeader({ initialAvailable }: DashboardHeaderProps) {
             <div className="hidden sm:flex items-center gap-1.5 text-xs text-muted-foreground font-mono">
               <kbd className="px-1.5 py-0.5 rounded border border-border/40 bg-muted/40">j</kbd>
               <kbd className="px-1.5 py-0.5 rounded border border-border/40 bg-muted/40">k</kbd>
-              <span className="text-muted-foreground/70">navigate</span>
+              <span className="text-muted-foreground">navigate</span>
               <span className="mx-1 text-muted-foreground/40">·</span>
               <kbd className="px-1.5 py-0.5 rounded border border-border/40 bg-muted/40">a</kbd>
-              <span className="text-muted-foreground/70">approve</span>
+              <span className="text-muted-foreground">approve</span>
               <span className="mx-1 text-muted-foreground/40">·</span>
               <kbd className="px-1.5 py-0.5 rounded border border-border/40 bg-muted/40">d</kbd>
-              <span className="text-muted-foreground/70">decline</span>
+              <span className="text-muted-foreground">decline</span>
             </div>
           </>
         }

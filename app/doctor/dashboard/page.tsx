@@ -5,6 +5,7 @@ import { IdentityIncompleteBanner,IntakeMonitor, SlaBreachHero } from "@/compone
 import { DashboardErrorBoundary } from "@/components/doctor/dashboard-error-boundary"
 import { Skeleton } from "@/components/ui/skeleton"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
+import { parseQueueStatusFilter, type QueueStatusFilter } from "@/lib/dashboard/routes"
 import { type DoctorIdentity,getDoctorIdentity, isDoctorIdentityComplete } from "@/lib/data/doctor-identity"
 import { getAIApprovedIntakes, getAutoApprovalMetrics, getDoctorQueue, getIntakeMonitoringStats, getRecentlyCompletedIntakes, getSlaBreachIntakes, getTodayEarnings } from "@/lib/data/intakes"
 import { createLogger } from "@/lib/observability/logger"
@@ -90,12 +91,16 @@ async function DoctorQueueSection({
   profileId,
   page,
   pageSize,
+  initialStatusFilter,
+  hasExplicitStatusFilter,
   doctorIdentity,
   todayEarnings,
 }: {
   profileId: string
   page: number
   pageSize: number
+  initialStatusFilter: QueueStatusFilter
+  hasExplicitStatusFilter: boolean
   doctorIdentity: DoctorIdentity | null
   todayEarnings: number
 }) {
@@ -137,6 +142,8 @@ async function DoctorQueueSection({
         aiApprovedIntakes={aiApprovedIntakes}
         recentlyCompleted={recentlyCompleted}
         todayEarnings={todayEarnings}
+        initialStatusFilter={initialStatusFilter}
+        hasExplicitStatusFilter={hasExplicitStatusFilter}
       />
     </DashboardErrorBoundary>
   )
@@ -207,7 +214,7 @@ function QueueSkeleton() {
 export default async function DoctorDashboardPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string; pageSize?: string }>
+  searchParams: Promise<{ page?: string; pageSize?: string; status?: string | string[] }>
 }) {
   const auth = await getAuthenticatedUserWithProfile()
   if (!auth) redirect("/sign-in?next=/doctor/dashboard")
@@ -216,6 +223,8 @@ export default async function DoctorDashboardPage({
   const params = await searchParams
   const page = Math.max(1, parseInt(params.page || "1", 10))
   const pageSize = Math.min(100, Math.max(10, parseInt(params.pageSize || "50", 10)))
+  const initialStatusFilter = parseQueueStatusFilter(params.status)
+  const hasExplicitStatusFilter = typeof params.status !== "undefined"
 
   // Fetch shared data once - deduplicates the 2 redundant DB calls that were in both sections
   const [identityResult, earningsResult, availabilityResult] = await Promise.allSettled([
@@ -245,7 +254,15 @@ export default async function DoctorDashboardPage({
 
       {/* Queue - streams in independently */}
       <Suspense fallback={<QueueSkeleton />}>
-        <DoctorQueueSection profileId={profile.id} page={page} pageSize={pageSize} doctorIdentity={doctorIdentity} todayEarnings={todayEarnings} />
+        <DoctorQueueSection
+          profileId={profile.id}
+          page={page}
+          pageSize={pageSize}
+          initialStatusFilter={initialStatusFilter}
+          hasExplicitStatusFilter={hasExplicitStatusFilter}
+          doctorIdentity={doctorIdentity}
+          todayEarnings={todayEarnings}
+        />
       </Suspense>
     </div>
   )

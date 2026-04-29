@@ -6,6 +6,7 @@
  * @/lib/data/doctor-identity.shared instead.
  */
 
+import { toError } from "@/lib/errors"
 import { createLogger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
@@ -54,7 +55,7 @@ export async function getDoctorIdentity(profileId: string): Promise<DoctorIdenti
     .single()
 
   if (error) {
-    log.error("Failed to fetch doctor identity", { profileId }, error)
+    log.warn("Failed to fetch doctor identity; treating identity as incomplete", { profileId }, toError(error))
     return null
   }
 

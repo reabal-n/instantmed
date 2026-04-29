@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server"
 
 import { trackBusinessMetric } from "@/lib/analytics/posthog-server"
 import { verifyCronRequest } from "@/lib/api/cron-auth"
+import { DOCTOR_QUEUE_REVIEW_HREF } from "@/lib/dashboard/routes"
 import { getFeatureFlags } from "@/lib/feature-flags"
 import { recordCronHeartbeat } from "@/lib/monitoring/cron-heartbeat"
 import { escapeMarkdown,sendTelegramAlert } from "@/lib/notifications/telegram"
@@ -101,7 +102,7 @@ export async function GET(request: NextRequest) {
         }).join("\n")
 
         const count = staleDoctorAlerts.length
-        const msg = `⏰ *${count} request${count > 1 ? "s" : ""} waiting ${doctorAlertThresholdHours}h\\+*\n\n${lines}\n\n[Open queue →](${appUrl}/doctor/queue)`
+        const msg = `⏰ *${count} request${count > 1 ? "s" : ""} waiting ${doctorAlertThresholdHours}h\\+*\n\n${lines}\n\n[Open queue →](${appUrl}${DOCTOR_QUEUE_REVIEW_HREF})`
         // Stuck-queue reminder is workload pressure, not an outage. Sentry
         // captures it for trend analysis; daily digest surfaces the count.
         // Override with TELEGRAM_ALL_LEVELS=1 if you want the live pings back.

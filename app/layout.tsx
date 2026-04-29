@@ -6,7 +6,6 @@ import { JetBrains_Mono, Plus_Jakarta_Sans, Source_Sans_3 } from "next/font/goog
 // SkyBackground, NightSkyBackground, ScrollProgress moved to marketing pages only (perf)
 import { ThemeProvider } from "next-themes"
 import type React from "react"
-import { Suspense } from "react"
 
 import { GoogleTags } from "@/components/providers/google-tags"
 import { MotionProvider } from "@/components/providers/motion-provider"
@@ -196,9 +195,7 @@ export default function RootLayout({
                   <WebVitalsReporter />
                   <ServiceWorkerRegistration />
                 </DeferredMount>
-                <Suspense fallback={null}>
-                  <ReferralCapture />
-                </Suspense>
+                <ReferralCapture />
                 <DeferredMount timeout={3000}>
                   <CookieBanner />
                 </DeferredMount>

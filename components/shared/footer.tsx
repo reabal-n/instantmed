@@ -2,11 +2,12 @@ import { Mail, Phone } from "lucide-react"
 import Link from "next/link"
 
 import { StripeBadge } from "@/components/checkout/trust-badges"
-import { DoctorSignature } from "@/components/marketing/doctor-signature"
+import { DoctorSignatureView } from "@/components/marketing/doctor-signature"
 import { GoogleAdsCert } from "@/components/marketing/google-ads-cert"
 import { LegitScriptSeal } from "@/components/marketing/legitscript-seal"
 import { BrandLogo } from "@/components/shared/brand-logo"
 import { TrustBadgeRow } from '@/components/shared/trust-badge'
+import { MEDICAL_DIRECTOR_SIGNATURE } from "@/lib/brand/doctor-signature"
 import { ABN, COMPANY_NAME, CONTACT_EMAIL, CONTACT_PHONE } from "@/lib/constants"
 import { footerLinks } from "@/lib/marketing/homepage"
 
@@ -14,7 +15,7 @@ interface FooterProps {
   variant?: "marketing" | "minimal"
 }
 
-export async function Footer({ variant = "marketing" }: FooterProps) {
+export function Footer({ variant = "marketing" }: FooterProps) {
   const currentYear = new Date().getFullYear()
   const isMarketing = variant === "marketing"
 
@@ -52,7 +53,7 @@ export async function Footer({ variant = "marketing" }: FooterProps) {
                 doctor names on marketing pages). Logo-adjacent placement. */}
             {isMarketing && (
               <div className="mt-5 pt-4 border-t border-border/40">
-                <DoctorSignature variant="mark" size="sm" />
+                <DoctorSignatureView data={MEDICAL_DIRECTOR_SIGNATURE} variant="mark" size="sm" />
                 <p className="mt-1.5 text-[10px] text-muted-foreground/80 italic leading-snug">
                   Reviewed by your InstantMed doctor.
                 </p>

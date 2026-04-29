@@ -1,3 +1,4 @@
+import type { QueueStatusFilter } from "@/lib/dashboard/routes"
 import type { IntakeWithPatient } from "@/types/db"
 import type { PaginationInfo } from "@/types/shared"
 
@@ -11,4 +12,6 @@ export interface QueueClientProps {
   aiApprovedIntakes?: IntakeWithPatient[]
   recentlyCompleted?: IntakeWithPatient[]
   todayEarnings?: number
+  initialStatusFilter?: QueueStatusFilter
+  hasExplicitStatusFilter?: boolean
 }

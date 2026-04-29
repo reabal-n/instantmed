@@ -137,7 +137,7 @@ export function AdminDashboardClient({
               />
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full md:w-[160px]">
+              <SelectTrigger className="w-full md:w-[160px]" aria-label="Filter intakes by status">
                 <SelectValue placeholder="All Statuses" />
               </SelectTrigger>
               <SelectContent>
@@ -151,7 +151,7 @@ export function AdminDashboardClient({
               </SelectContent>
             </Select>
             <Select value={serviceFilter} onValueChange={setServiceFilter}>
-              <SelectTrigger className="w-full md:w-[180px]">
+              <SelectTrigger className="w-full md:w-[180px]" aria-label="Filter intakes by service">
                 <SelectValue placeholder="All Services" />
               </SelectTrigger>
               <SelectContent>

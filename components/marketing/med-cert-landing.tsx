@@ -5,59 +5,30 @@ import {
   CheckCircle2,
   Search,
 } from "lucide-react"
-import dynamic from "next/dynamic"
 import Link from "next/link"
 import { useCallback } from "react"
 
 import { StripePaymentLogos } from "@/components/checkout/payment-logos"
 import { Hero } from "@/components/marketing/hero"
 import { IntakeResumeChip } from "@/components/marketing/intake-resume-chip"
+import { RegulatoryPartners } from "@/components/marketing/media-mentions"
 import { MedCertHeroMockup } from "@/components/marketing/mockups/med-cert-hero-mockup"
+import { CertificateTypeSelector, MedCertComparisonTable } from "@/components/marketing/sections/certificate-type-selector"
+import { HowItWorksInline } from "@/components/marketing/sections/how-it-works-inline"
+import { LimitationsSection } from "@/components/marketing/sections/limitations-section"
 import { ServiceClaimSection } from "@/components/marketing/sections/service-claim-section"
 import { TimeComparisonViz } from "@/components/marketing/sections/time-comparison-viz"
 import {
   type LandingPageConfig,
   LandingPageShell,
 } from "@/components/marketing/shared"
+import { SocialProofSection } from "@/components/marketing/social-proof-section"
+import { CTABanner, FAQSection } from "@/components/sections"
 import { PRICING } from "@/lib/constants"
 import { MED_CERT_FAQ } from "@/lib/data/med-cert-faq"
 import { usePatientCount } from "@/lib/hooks/use-patient-count"
 import { useSectionVisibilityFunnel } from "@/lib/hooks/use-section-visibility-funnel"
 import { SOCIAL_PROOF, SOCIAL_PROOF_DISPLAY } from "@/lib/social-proof"
-
-// Below-fold lazy loads
-const CertificateTypeSelector = dynamic(
-  () => import("@/components/marketing/sections/certificate-type-selector").then((m) => m.CertificateTypeSelector),
-  { loading: () => <div className="min-h-[400px]" /> },
-)
-const MedCertComparisonTable = dynamic(
-  () => import("@/components/marketing/sections/certificate-type-selector").then((m) => m.MedCertComparisonTable),
-  { loading: () => <div className="min-h-[300px]" /> },
-)
-const HowItWorksInline = dynamic(
-  () => import("@/components/marketing/sections/how-it-works-inline").then((m) => m.HowItWorksInline),
-  { loading: () => <div className="min-h-[300px]" /> },
-)
-const SocialProofSection = dynamic(
-  () => import("@/components/marketing/social-proof-section").then((m) => m.SocialProofSection),
-  { loading: () => <div className="min-h-[400px]" /> },
-)
-const RegulatoryPartners = dynamic(
-  () => import("@/components/marketing/media-mentions").then((m) => m.RegulatoryPartners),
-  { loading: () => <div className="min-h-[120px]" /> },
-)
-const LimitationsSection = dynamic(
-  () => import("@/components/marketing/sections/limitations-section").then((m) => m.LimitationsSection),
-  { loading: () => <div className="min-h-[150px]" /> },
-)
-const FAQSection = dynamic(
-  () => import("@/components/sections").then((m) => ({ default: m.FAQSection })),
-  { loading: () => <div className="min-h-[400px]" /> },
-)
-const CTABanner = dynamic(
-  () => import("@/components/sections").then((m) => ({ default: m.CTABanner })),
-  { loading: () => <div className="min-h-[300px]" /> },
-)
 
 // =============================================================================
 // DATA

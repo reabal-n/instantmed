@@ -15,6 +15,7 @@ import { useEffect, useRef,useState } from "react"
 import { Button } from "@/components/ui/button"
 import { ErrorRefChip } from "@/components/ui/error-ref-chip"
 import { CONTACT_EMAIL } from "@/lib/constants"
+import { PATIENT_DASHBOARD_HREF } from "@/lib/dashboard/routes"
 
 function getErrorInfo(error: Error & { digest?: string }) {
   const message = error.message?.toLowerCase() || ""
@@ -112,7 +113,7 @@ export default function TrackIntakeError({
             </Button>
           )}
           <Button variant="outline" asChild className="w-full sm:w-auto">
-            <Link href="/patient/dashboard">
+            <Link href={PATIENT_DASHBOARD_HREF}>
               <LayoutDashboard className="mr-2 h-4 w-4" />
               Dashboard
             </Link>

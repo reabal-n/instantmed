@@ -170,7 +170,9 @@ export function ScriptsClient({ initialTasks, initialCounts, initialTotal }: Scr
       <div className="space-y-2">
         {filteredTasks.length === 0 && !isPending ? (
           <div className="flex flex-col items-center justify-center py-16 px-6 text-center rounded-xl border border-dashed border-border/60 bg-muted/20">
-            <div className="text-4xl mb-3" aria-hidden="true">🎉</div>
+            <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl border border-success-border bg-success-light">
+              <CheckCircle2 className="h-5 w-5 text-success" aria-hidden="true" />
+            </div>
             <h3 className="text-base font-semibold text-foreground mb-1">All caught up!</h3>
             <p className="text-sm text-muted-foreground max-w-xs">
               No pending script tasks right now. New tasks will appear here as patients request scripts.

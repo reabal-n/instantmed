@@ -3,6 +3,7 @@
 import { ChevronRight,FileText, Pill } from "lucide-react"
 
 import { type Intake, resolveStatusConfig } from "@/components/patient/intake-types"
+import { Badge } from "@/components/ui/badge"
 import { formatDate } from "@/lib/format"
 import { cn } from "@/lib/utils"
 
@@ -61,10 +62,14 @@ export function IntakeCard({
           </div>
         </div>
         <div className="flex items-center justify-between gap-3 border-t border-border/50 pt-3 sm:border-0 sm:pt-0">
-          <div className={cn("flex shrink-0 items-center gap-1.5 text-xs font-medium", config.color)}>
-            <Icon className="w-3 h-3" />
+          <Badge
+            shape="pill"
+            size="sm"
+            className={cn("shrink-0 border-current/15 px-2.5 py-1", config.color)}
+          >
+            <Icon className="w-3 h-3" aria-hidden="true" />
             {config.label}
-          </div>
+          </Badge>
           <span className="text-sm text-muted-foreground group-hover:text-primary transition-colors">
             {isReady ? "View & download" : "View"}
           </span>

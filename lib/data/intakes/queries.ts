@@ -2,6 +2,7 @@ import "server-only"
 
 import { unstable_cache } from "next/cache"
 
+import { readDashboardQuery } from "@/lib/data/dashboard-read-model"
 import { toError } from "@/lib/errors"
 import { createLogger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -269,16 +270,22 @@ export async function getDoctorQueue(
     }
   }
 
-  // Get total count first
-  const { count, error: countError } = await supabase
-    .from("intakes")
-    .select("id", { count: "exact", head: true })
-    .in("status", ["paid", "in_review", "pending_info"])
+  // Get total count first. If this count path fails, still fetch the queue
+  // data; a count problem should not blank the doctor dashboard.
+  const countResult = await readDashboardQuery({
+    label: "doctor queue count",
+    fallback: { count: 0, degraded: true },
+    context: { surface: "doctor-dashboard" },
+    operation: async () => {
+      const { count, error } = await supabase
+        .from("intakes")
+        .select("id", { count: "exact", head: true })
+        .in("status", ["paid", "in_review", "pending_info"])
 
-  if (countError) {
-    logger.error("Error fetching queue count", {}, countError instanceof Error ? countError : new Error(String(countError)))
-    return { data: [], total: 0, page, pageSize }
-  }
+      return { data: error ? null : { count: count ?? 0, degraded: false }, error }
+    },
+  })
+  const countFallback = countResult.degraded
 
   // Fetch paginated data with only necessary fields for queue view
   const { data, error } = await supabase
@@ -314,7 +321,7 @@ export async function getDoctorQueue(
 
   if (error) {
     logger.error("Error fetching doctor queue", {}, toError(error))
-    return { data: [], total: count ?? 0, page, pageSize }
+    return { data: [], total: countResult.count, page, pageSize }
   }
 
   const unwrapped = (data || []).map(row => ({
@@ -325,7 +332,7 @@ export async function getDoctorQueue(
   const validData = unwrapped.filter((r) => r.patient !== null)
   return {
     data: validData as unknown as IntakeWithPatient[],
-    total: count ?? 0,
+    total: countFallback ? validData.length : countResult.count,
     page,
     pageSize,
   }
@@ -414,49 +421,66 @@ export async function getAIApprovedIntakes(
   const supabase = createServiceRoleClient()
   const limit = options?.limit ?? 20
 
-  const { data, error } = await supabase
-    .from("intakes")
-    .select(`
-      id,
-      patient_id,
-      service_id,
-      category,
-      subtype,
-      status,
-      payment_status,
-      is_priority,
-      sla_deadline,
-      created_at,
-      updated_at,
-      ai_approved,
-      ai_approved_at,
-      ai_approval_reason,
-      patient:profiles!patient_id (id, full_name, email, date_of_birth),
-      service:services!service_id (id, name, short_name, type, slug)
-    `)
-    .eq("ai_approved", true)
-    .in("status", ["approved", "completed"])
-    .order("ai_approved_at", { ascending: false })
-    .limit(limit)
+  try {
+    const data = await readDashboardQuery({
+      label: "AI-approved intakes",
+      fallback: [] as Array<Record<string, unknown>>,
+      context: { surface: "doctor-dashboard", limit },
+      operation: async () => {
+        const { data, error } = await supabase
+          .from("intakes")
+          .select(`
+            id,
+            patient_id,
+            service_id,
+            category,
+            subtype,
+            status,
+            payment_status,
+            is_priority,
+            sla_deadline,
+            created_at,
+            updated_at,
+            ai_approved,
+            ai_approved_at,
+            ai_approval_reason,
+            patient:profiles!patient_id (id, full_name, email, date_of_birth),
+            service:services!service_id (id, name, short_name, type, slug)
+          `)
+          .eq("ai_approved", true)
+          .in("status", ["approved", "completed"])
+          .order("ai_approved_at", { ascending: false })
+          .limit(limit)
 
-  if (error) {
-    logger.error("Error fetching AI-approved intakes", {}, toError(error))
-    return []
-  }
+        return { data: error ? null : (data || []) as Array<Record<string, unknown>>, error }
+      },
+    })
 
-  // Fetch soft flags from audit log for these intakes
-  const intakeIds = (data || []).map(r => r.id)
-  const softFlagsMap: Record<string, string[]> = {}
-  if (intakeIds.length > 0) {
-    const { data: auditRows } = await supabase
-      .from("ai_audit_log")
-      .select("intake_id, metadata")
-      .in("intake_id", intakeIds)
-      .eq("action", "auto_approve")
-      .not("metadata->softFlags", "is", null)
-      .order("created_at", { ascending: false })
+    // Fetch soft flags from audit log for these intakes. This metadata is useful
+    // but non-critical, so it must not take down the queue surface.
+    const intakeIds = (data || []).map(r => r.id)
+    const softFlagsMap: Record<string, string[]> = {}
+    if (intakeIds.length > 0) {
+      const auditRows = await readDashboardQuery({
+        label: "AI-approved audit flags",
+        fallback: [] as Array<{ intake_id: string; metadata: { softFlags?: string[] } | null }>,
+        context: { surface: "doctor-dashboard", intakeCount: intakeIds.length },
+        operation: async () => {
+          const { data, error } = await supabase
+            .from("ai_audit_log")
+            .select("intake_id, metadata")
+            .in("intake_id", intakeIds)
+            .eq("action", "auto_approve")
+            .not("metadata->softFlags", "is", null)
+            .order("created_at", { ascending: false })
 
-    if (auditRows) {
+          return {
+            data: error ? null : (data || []) as Array<{ intake_id: string; metadata: { softFlags?: string[] } | null }>,
+            error,
+          }
+        },
+      })
+
       for (const row of auditRows) {
         const meta = row.metadata as { softFlags?: string[] } | null
         if (meta?.softFlags?.length && !softFlagsMap[row.intake_id]) {
@@ -464,15 +488,21 @@ export async function getAIApprovedIntakes(
         }
       }
     }
-  }
 
-  const unwrapped = (data || []).map(row => ({
-    ...row,
-    patient: Array.isArray(row.patient) ? row.patient[0] : row.patient,
-    service: Array.isArray(row.service) ? row.service[0] : row.service,
-    soft_flags: softFlagsMap[row.id] || null,
-  }))
-  return unwrapped.filter((r) => r.patient !== null) as unknown as IntakeWithPatient[]
+    const unwrapped = (data || []).map(row => {
+      const rowId = typeof row.id === "string" ? row.id : ""
+      return {
+        ...row,
+        patient: Array.isArray(row.patient) ? row.patient[0] : row.patient,
+        service: Array.isArray(row.service) ? row.service[0] : row.service,
+        soft_flags: softFlagsMap[rowId] || null,
+      }
+    })
+    return unwrapped.filter((r) => r.patient !== null) as unknown as IntakeWithPatient[]
+  } catch (err) {
+    logger.warn("AI-approved intakes failed after fallback", { error: toError(err).message })
+    return []
+  }
 }
 
 /**

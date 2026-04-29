@@ -73,6 +73,9 @@ const adminNavItems: NavItem[] = [
   { href: "/doctor/email-suppression", label: "Email Suppression", icon: ShieldAlert },
 ]
 
+const ACTIVE_NAV_LINK = "bg-primary/5 text-blue-700 dark:bg-primary/20 dark:text-blue-200"
+const ACTIVE_NAV_ICON = "text-blue-700 dark:text-blue-200"
+
 function NavLink({ item, isActive, badgeCount }: { item: NavItem; isActive: boolean; badgeCount?: number }) {
   const router = useRouter()
   const handleMouseEnter = useCallback(() => {
@@ -87,14 +90,14 @@ function NavLink({ item, isActive, badgeCount }: { item: NavItem; isActive: bool
       className={cn(
         "group flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition-[background-color,color] duration-200",
         isActive
-          ? "bg-primary/10 text-primary"
+          ? ACTIVE_NAV_LINK
           : "text-muted-foreground hover:text-foreground hover:bg-muted/60",
       )}
     >
       <span className="flex items-center gap-2.5">
         <item.icon className={cn(
           "w-[18px] h-[18px]",
-          isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
+          isActive ? ACTIVE_NAV_ICON : "text-muted-foreground group-hover:text-foreground"
         )} />
         {item.label}
       </span>

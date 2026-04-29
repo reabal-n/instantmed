@@ -58,6 +58,12 @@ describe("unified intake regressions", () => {
       hairPattern: "temples",
       hairFamilyHistory: "yes",
       hairReproductive: "no",
+      scalpNone: true,
+      hairLowBP: false,
+      hairHeartConditions: false,
+      has_allergies: "no",
+      has_conditions: "no",
+      takes_medications: "no",
       hairMedicationPreference: "doctor_recommendation",
       ...sharedMedicalHistory,
     }

@@ -7,7 +7,8 @@
  * Run with: PLAYWRIGHT=1 pnpm e2e --grep "dashboard-audit"
  */
 
-import { expect,test } from "@playwright/test"
+import AxeBuilder from "@axe-core/playwright"
+import { expect, type Page, test } from "@playwright/test"
 
 import { loginAsDoctor, loginAsOperator, loginAsPatient, logoutTestUser } from "./helpers/auth"
 import { waitForPageLoad } from "./helpers/test-utils"
@@ -70,6 +71,29 @@ const PATIENT_PAGES = [
   "/patient/notifications",
 ]
 
+const DASHBOARD_ROUTE_CONTRACTS = [
+  {
+    from: "/doctor/queue?status=review",
+    to: /\/doctor\/dashboard\?status=review$/,
+  },
+  {
+    from: "/doctor/queue?status=review&page=2&pageSize=25",
+    to: /\/doctor\/dashboard\?status=review&page=2&pageSize=25$/,
+  },
+]
+
+const DASHBOARD_A11Y_TARGETS = [
+  { name: "admin", path: "/admin", login: loginAsOperator },
+  { name: "doctor", path: "/doctor/dashboard", login: loginAsOperator },
+  { name: "patient", path: "/patient", login: loginAsPatient },
+]
+
+const MOBILE_SCREENSHOT_TARGETS = [
+  { title: "admin dashboard mobile screenshot", path: "/admin", login: loginAsOperator, snapshot: "admin-dashboard-mobile.png" },
+  { title: "doctor dashboard mobile screenshot", path: "/doctor/dashboard", login: loginAsOperator, snapshot: "doctor-dashboard-mobile.png" },
+  { title: "patient dashboard mobile screenshot", path: "/patient", login: loginAsPatient, snapshot: "patient-dashboard-mobile.png" },
+]
+
 const BENIGN_CONSOLE_PATTERNS = [
   /Download the React DevTools/i,
   /hydration/i,
@@ -85,7 +109,7 @@ function createConsoleErrorTracker() {
   const errors: string[] = []
   return {
     errors,
-    attach(page: import("@playwright/test").Page) {
+    attach(page: Page) {
       page.on("console", (msg) => {
         if (msg.type() === "error" && !BENIGN_CONSOLE_PATTERNS.some((p) => p.test(msg.text()))) {
           errors.push(`[console.error] ${msg.text()}`)
@@ -103,7 +127,7 @@ function createConsoleErrorTracker() {
   }
 }
 
-async function assertPageLoads(page: import("@playwright/test").Page, path: string) {
+async function assertPageLoads(page: Page, path: string) {
   const response = await page.goto(path)
   await waitForPageLoad(page)
 
@@ -113,6 +137,42 @@ async function assertPageLoads(page: import("@playwright/test").Page, path: stri
 
   expect(has404, `${path} should not show 404`).toBe(false)
   expect(hasError, `${path} should not show error state`).toBe(false)
+}
+
+async function assertDashboardA11y(page: Page, name: string) {
+  const results = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
+    .exclude("[data-nextjs-dialog]")
+    .exclude("#intercom-container")
+    .analyze()
+
+  const serious = results.violations.filter(
+    (violation) => violation.impact === "critical" || violation.impact === "serious"
+  )
+
+  expect(
+    serious,
+    `${name} dashboard has serious a11y violations:\n` +
+      serious
+        .map((violation) => `- [${violation.impact}] ${violation.id}: ${violation.description} (${violation.nodes.length} nodes)`)
+        .join("\n")
+  ).toHaveLength(0)
+}
+
+function routePattern(href: string): RegExp {
+  const escaped = href.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+  return new RegExp(`${escaped}(?:$|[?#])`)
+}
+
+async function clickDashboardLink(page: Page, href: string) {
+  const link = page.locator(`a[href="${href}"]`).first()
+  await expect(link).toBeVisible()
+
+  await Promise.all([
+    page.waitForURL(routePattern(href), { timeout: 20_000 }),
+    link.click(),
+  ])
+  await waitForPageLoad(page)
 }
 
 test.describe("Dashboard Audit - Admin", () => {
@@ -214,6 +274,53 @@ test.describe("Dashboard Audit - Doctor-only user", () => {
   })
 })
 
+test.describe("Dashboard Audit - Accessibility", () => {
+  for (const target of DASHBOARD_A11Y_TARGETS) {
+    test(`${target.name} dashboard axe audit`, async ({ page }) => {
+      const login = await target.login(page)
+      if (!login.success) {
+        test.skip(true, `E2E login failed: ${login.error}`)
+      }
+
+      const tracker = createConsoleErrorTracker()
+      tracker.attach(page)
+
+      await assertPageLoads(page, target.path)
+      await assertDashboardA11y(page, target.name)
+
+      tracker.assertNoErrors()
+      await logoutTestUser(page)
+    })
+  }
+})
+
+test.describe("Dashboard Audit - Mobile screenshots", () => {
+  for (const target of MOBILE_SCREENSHOT_TARGETS) {
+    test(target.title, async ({ page }) => {
+      await page.setViewportSize({ width: 390, height: 844 })
+
+      const login = await target.login(page)
+      if (!login.success) {
+        test.skip(true, `E2E login failed: ${login.error}`)
+      }
+
+      const tracker = createConsoleErrorTracker()
+      tracker.attach(page)
+
+      await assertPageLoads(page, target.path)
+      await expect(page).toHaveScreenshot(target.snapshot, {
+        animations: "disabled",
+        caret: "hide",
+        fullPage: false,
+        maxDiffPixelRatio: 0.01,
+      })
+
+      tracker.assertNoErrors()
+      await logoutTestUser(page)
+    })
+  }
+})
+
 test.describe("Dashboard Audit - Link navigation", () => {
   test.beforeEach(async ({ page }) => {
     const result = await loginAsOperator(page)
@@ -248,9 +355,7 @@ test.describe("Dashboard Audit - Link navigation", () => {
         await page.getByRole("button", { name: section }).first().click()
         await expect(link).toBeVisible()
       }
-      await page.locator(`a[href="${href}"]`).first().click()
-      await expect(page).toHaveURL(new RegExp(`${href}(?:$|[?#])`))
-      await waitForPageLoad(page)
+      await clickDashboardLink(page, href)
     }
 
     tracker.assertNoErrors()
@@ -271,9 +376,7 @@ test.describe("Dashboard Audit - Link navigation", () => {
 
     for (const { href, label } of links) {
       await expect(page.getByRole("link", { name: label }).first()).toBeVisible()
-      await page.locator(`a[href="${href}"]`).first().click()
-      await expect(page).toHaveURL(new RegExp(`${href}(?:$|[?#])`))
-      await waitForPageLoad(page)
+      await clickDashboardLink(page, href)
     }
 
     tracker.assertNoErrors()
@@ -295,16 +398,42 @@ test.describe("Dashboard Audit - Link navigation", () => {
       { href: "/patient/intakes", label: /requests/i },
       { href: "/patient/prescriptions", label: /prescriptions/i },
       { href: "/patient/documents", label: /documents/i },
+      { href: "/patient/notifications", label: /notifications/i },
+      { href: "/patient/payment-history", label: /payments/i },
     ]
 
     for (const { href, label } of links) {
       await expect(page.getByRole("link", { name: label }).first()).toBeVisible()
-      await page.locator(`a[href="${href}"]`).first().click()
-      await expect(page).toHaveURL(new RegExp(`${href}(?:$|[?#])`))
-      await waitForPageLoad(page)
+      await clickDashboardLink(page, href)
     }
 
     tracker.assertNoErrors()
     await logoutTestUser(page)
+  })
+
+  test("legacy doctor queue route preserves review intent", async ({ page }) => {
+    const tracker = createConsoleErrorTracker()
+    tracker.attach(page)
+
+    for (const contract of DASHBOARD_ROUTE_CONTRACTS) {
+      await page.goto(contract.from)
+      await waitForPageLoad(page)
+      await expect(page).toHaveURL(contract.to)
+    }
+
+    tracker.assertNoErrors()
+  })
+
+  test("doctor dashboard applies status query filters", async ({ page }) => {
+    const tracker = createConsoleErrorTracker()
+    tracker.attach(page)
+
+    await page.goto("/doctor/dashboard?status=review")
+    await waitForPageLoad(page)
+
+    await expect(page.getByRole("button", { name: /Needs Review/i })).toHaveAttribute("aria-pressed", "true")
+    await expect(page.getByRole("button", { name: /^All/i })).toHaveAttribute("aria-pressed", "false")
+
+    tracker.assertNoErrors()
   })
 })

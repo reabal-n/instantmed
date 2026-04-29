@@ -1,11 +1,13 @@
 "use client"
 
-import { Activity, BarChart3, ClipboardList, FileCheck,FileText, FolderOpen, Home, LogOut, MessageSquare, MoreHorizontal, Settings, User, X } from "lucide-react"
+import { Activity, BarChart3, Bell, ClipboardList, CreditCard, FileCheck,FileText, FolderOpen, Home, LogOut, MessageSquare, MoreHorizontal, Settings, User, X } from "lucide-react"
 import { usePathname, useRouter } from "next/navigation"
 import { useState } from "react"
 
 import { useAuth } from "@/lib/supabase/auth-provider"
 import { cn } from "@/lib/utils"
+
+const ACTIVE_MOBILE_NAV = "bg-primary/5 text-blue-700 dark:bg-primary/20 dark:text-blue-200"
 
 interface NavItem {
   label: string
@@ -58,6 +60,16 @@ const moreItems: NavItem[] = [
     label: "Messages",
     icon: MessageSquare,
     href: "/patient/messages",
+  },
+  {
+    label: "Notifications",
+    icon: Bell,
+    href: "/patient/notifications",
+  },
+  {
+    label: "Payments",
+    icon: CreditCard,
+    href: "/patient/payment-history",
   },
   {
     label: "Account",
@@ -148,7 +160,7 @@ export function MobileNav({ items = defaultItems, moreMenuItems = moreItems, cla
           <div
             role="dialog"
             aria-label="More navigation options"
-            className="absolute bottom-0 left-0 right-0 bg-background rounded-t-2xl border-t border-border safe-area-pb animate-in slide-in-from-bottom duration-200"
+            className="absolute bottom-0 left-0 right-0 bg-background rounded-t-2xl border-t border-border safe-area-pb"
           >
             <div className="flex items-center justify-between px-5 pt-4 pb-2">
               <p className="text-sm font-semibold text-foreground">More</p>
@@ -174,7 +186,7 @@ export function MobileNav({ items = defaultItems, moreMenuItems = moreItems, cla
                     className={cn(
                       "flex items-center gap-3 w-full px-4 py-3 rounded-xl transition-colors",
                       isActive
-                        ? "bg-primary/10 text-primary font-medium"
+                        ? `${ACTIVE_MOBILE_NAV} font-medium`
                         : "text-muted-foreground hover:bg-muted/50"
                     )}
                   >
@@ -235,16 +247,15 @@ export function MobileNav({ items = defaultItems, moreMenuItems = moreItems, cla
                   "flex flex-col items-center gap-1 px-3 py-2 rounded-xl",
                   "min-w-[60px] relative",
                   "transition-[background-color,color] duration-200",
-                  "tap-bounce",
                   isActive
-                    ? "text-primary bg-primary/10"
+                    ? ACTIVE_MOBILE_NAV
                     : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
                 )}
               >
                 <div className="relative">
-                  <Icon className={cn("w-5 h-5", isActive && "animate-scale-in")} />
+                  <Icon className="w-5 h-5" />
                   {item.badge && item.badge > 0 && (
-                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 dark:bg-red-600 text-white text-xs font-semibold rounded-full flex items-center justify-center animate-pulse">
+                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 dark:bg-red-600 text-white text-xs font-semibold rounded-full flex items-center justify-center">
                       {item.badge > 9 ? "9+" : item.badge}
                     </span>
                   )}
@@ -260,4 +271,3 @@ export function MobileNav({ items = defaultItems, moreMenuItems = moreItems, cla
     </>
   )
 }
-
