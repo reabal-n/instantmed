@@ -58,7 +58,17 @@ const configNavItems: NavItem[] = [
   { href: "/admin/doctors", label: "Doctors", icon: Stethoscope },
   { href: "/admin/services", label: "Services", icon: Cog },
   { href: "/admin/features", label: "Feature Flags", icon: ToggleLeft },
-  { href: "/admin/emails", label: "Email Templates", icon: Mail },
+]
+
+// ── Email surfaces (collapsible) ─────────────────────────────
+// Grouped under a single "Emails" header in Phase 3 doctor + admin
+// rebuild — was previously split between Configuration ("Email
+// Templates") and System ("Email Hub"), forcing the operator to
+// remember which menu the surface lived in.
+const emailNavItems: NavItem[] = [
+  { href: "/admin/email-hub", label: "Hub", icon: Mailbox },
+  { href: "/admin/emails", label: "Templates", icon: Mail },
+  { href: "/admin/emails/analytics", label: "Analytics", icon: BarChart3 },
 ]
 
 // ── Analytics (collapsible) ───────────────────────────────────
@@ -77,7 +87,6 @@ const systemNavItems: NavItem[] = [
   { href: "/admin/errors", label: "Errors", icon: Bug },
   { href: "/admin/webhooks", label: "Webhooks", icon: Webhook },
   { href: "/admin/content", label: "Content", icon: PenTool },
-  { href: "/admin/email-hub", label: "Email Hub", icon: Mailbox },
   { href: "/admin/settings", label: "Settings", icon: Settings },
 ]
 
@@ -195,6 +204,37 @@ export function AdminSidebar({ userName, userRole = "Admin", pendingCount = 0 }:
 
           <div className="mx-3 border-t border-border/30" />
           {renderNavSection("Configuration", configNavItems)}
+
+          <div className="mx-3 border-t border-border/30" />
+          <Collapsible defaultOpen={!!isInSection(emailNavItems, pathname)}>
+            <CollapsibleTrigger className="group flex w-full items-center justify-between px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors">
+              <span className="flex items-center gap-2">
+                <Mail className="h-4 w-4" />
+                Emails
+              </span>
+              <ChevronDown className="h-4 w-4 shrink-0 transition-transform group-data-[state=open]:rotate-180" />
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <div className="mt-1 space-y-0.5 pl-1">
+                {emailNavItems.map((item) => {
+                  const active = isActive(item.href)
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={cn(
+                        "flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-[background-color,color] duration-200",
+                        active ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                      )}
+                    >
+                      <item.icon className="h-4 w-4 shrink-0" />
+                      {item.label}
+                    </Link>
+                  )
+                })}
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
 
           <div className="mx-3 border-t border-border/30" />
           <Collapsible defaultOpen={!!isInSection(analyticsNavItems, pathname)}>
@@ -391,6 +431,16 @@ export function MobileAdminNav({ pendingCount = 0 }: { pendingCount?: number }) 
             <p className="px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Configuration</p>
             {configNavItems.map(renderMobileLink)}
           </div>
+          <div className="border-t border-border/30" />
+          <Collapsible defaultOpen={!!isInSection(emailNavItems, pathname)}>
+            <CollapsibleTrigger className="group flex w-full items-center justify-between px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors">
+              <span className="flex items-center gap-2">Emails</span>
+              <ChevronDown className="h-4 w-4 shrink-0 transition-transform group-data-[state=open]:rotate-180" />
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <div className="mt-1 space-y-0.5 pl-1">{emailNavItems.map(renderMobileLink)}</div>
+            </CollapsibleContent>
+          </Collapsible>
           <div className="border-t border-border/30" />
           <Collapsible defaultOpen={!!isInSection(analyticsNavItems, pathname)}>
             <CollapsibleTrigger className="group flex w-full items-center justify-between px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors">

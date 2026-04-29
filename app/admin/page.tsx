@@ -1,6 +1,7 @@
 import { Suspense } from "react"
 
 import { AdminDashboardClient } from "@/app/admin/admin-dashboard-client"
+import { AdminHubZones } from "@/components/admin/admin-hub-zones"
 import { YesterdayWidget } from "@/components/admin/yesterday-widget"
 import { Card, CardContent } from "@/components/ui/card"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
@@ -42,12 +43,22 @@ export default async function AdminPage({
       }>
         <YesterdayWidget window={digestWindow} />
       </Suspense>
-      <AdminDashboardClient
-        allIntakes={intakesResult.data || []}
-        totalIntakes={intakesResult.total || 0}
-        stats={stats}
-        doctorName={profile.full_name}
+
+      <AdminHubZones
+        inQueue={stats.in_queue}
+        scriptsPending={stats.scripts_pending}
+        totalIntakes={stats.total}
+        pendingInfo={stats.pending_info}
       />
+
+      <div id="intakes">
+        <AdminDashboardClient
+          allIntakes={intakesResult.data || []}
+          totalIntakes={intakesResult.total || 0}
+          stats={stats}
+          doctorName={profile.full_name}
+        />
+      </div>
     </div>
   )
 }
