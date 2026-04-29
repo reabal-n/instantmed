@@ -17,8 +17,9 @@ const eslintConfig = [
       "next-env.d.ts",
       "node_modules/**",
       "dist/**",
-      "*.config.js",
-      "*.config.mjs",
+      "next.config.mjs",
+      "postcss.config.mjs",
+      "tailwind.config.js",
       "**/*.d.ts",
       "public/sw.js",
       "playwright-report/**",
@@ -32,6 +33,17 @@ const eslintConfig = [
   js.configs.recommended,
   // TypeScript recommended
   ...tseslint.configs.recommended,
+  // Expose the Next plugin at the flat-config root so `next build` can detect it
+  // when it inspects eslint.config.mjs directly.
+  {
+    plugins: {
+      "@next/next": nextPlugin,
+    },
+    rules: {
+      ...nextPlugin.configs.recommended.rules,
+      ...nextPlugin.configs["core-web-vitals"].rules,
+    },
+  },
   // React and Next.js rules
   {
     files: ["**/*.{js,jsx,ts,tsx}"],
