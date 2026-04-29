@@ -40,6 +40,21 @@ export async function loginAsTestUser(
       }
     }
 
+    const state = await page.request.storageState()
+    await page.context().clearCookies()
+    await page.context().addCookies(state.cookies)
+
+    const browserCookies = await page.context().cookies(BASE_URL)
+    const hasE2ECookie = browserCookies.some(
+      (cookie) => cookie.name === "__e2e_auth_user_id"
+    )
+    if (!hasE2ECookie) {
+      return {
+        success: false,
+        error: "E2E login response succeeded but auth cookie was not installed in the browser context",
+      }
+    }
+
     return { success: true }
   } catch (error) {
     return { 
@@ -58,6 +73,7 @@ export async function logoutTestUser(page: Page): Promise<void> {
       "X-E2E-SECRET": E2E_SECRET,
     },
   }).catch(() => {})
+  await page.context().clearCookies()
 }
 
 /**

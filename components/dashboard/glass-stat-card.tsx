@@ -6,7 +6,7 @@ import { type ReactNode } from "react"
 import { cn } from "@/lib/utils"
 
 /**
- * StatCard status. Canonical 5-step palette aligned with `docs/DESIGN_SYSTEM.md`
+ * StatCard status. Canonical 5-step palette aligned with `DESIGN.md`
  * §1 (semantic colors) and §10 (severity badges). Replaces the legacy
  * `dashboard-stat-*` inset-glow shadows from `app/dashboard-styles.css`.
  */
@@ -38,7 +38,7 @@ const iconBgClasses: Record<StatCardStatus, string> = {
 /**
  * StatCard (formerly GlassStatCard)
  *
- * Canonical KPI tile. Solid depth from `docs/DESIGN_SYSTEM.md` §5; status
+ * Canonical KPI tile. Solid depth from `DESIGN.md` §5; status
  * communicated through the icon tint, NOT a colored ring or glow. Replaces
  * the legacy 21st.dev `dashboard-stat`/`dashboard-stat-*` inset-glow stack.
  */

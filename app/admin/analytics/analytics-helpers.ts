@@ -48,7 +48,7 @@ export interface AnalyticsData {
  * Chart palette. Tracks the design-system semantic + service tokens.
  *
  * Order: primary blue, success emerald, warning amber, destructive red,
- * teal accent (replaces banned violet #8b5cf6 — DESIGN_SYSTEM.md §1
+ * teal accent (replaces banned violet #8b5cf6 — DESIGN.md §1
  * forbids purple/violet outside `--service-referral`), service-pink.
  *
  * Phase 1 of the doctor-admin rebuild swept #8b5cf6 in 5 chart files

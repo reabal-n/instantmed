@@ -174,7 +174,7 @@ export default function HairLossHealthStep({
   )
 
   const bpComplete = useMemo(
-    () => hairLowBP !== undefined || hairHeartConditions !== undefined,
+    () => hairLowBP !== undefined && hairHeartConditions !== undefined,
     [hairLowBP, hairHeartConditions]
   )
 
@@ -216,8 +216,13 @@ export default function HairLossHealthStep({
   // ---------------------------------------------------------------------------
 
   const canContinue = useMemo(
-    () => reproductiveComplete && !isBlocked,
-    [reproductiveComplete, isBlocked]
+    () =>
+      reproductiveComplete &&
+      scalpComplete &&
+      bpComplete &&
+      medicalComplete &&
+      !isBlocked,
+    [reproductiveComplete, scalpComplete, bpComplete, medicalComplete, isBlocked]
   )
 
   const handleNext = useCallback(() => {

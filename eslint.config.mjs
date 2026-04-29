@@ -141,7 +141,7 @@ const eslintConfig = [
         {
           selector: "Literal[value=/(?<![dD]rop-)shadow-\\[0_/]",
           message:
-            "Design token violation (M2): replace shadow-[0_...] with shadow-{sm|md|lg|xl} shadow-{color}/{opacity}. See docs/DESIGN_SYSTEM.md §5.",
+            "Design token violation (M2): replace shadow-[0_...] with shadow-{sm|md|lg|xl} shadow-{color}/{opacity}. See DESIGN.md §5.",
         },
         // M6-A: initial={false} on motion elements — must be initial={{}}.
         // AnimatePresence initial={false} is a valid boolean API prop — excluded here.

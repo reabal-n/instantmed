@@ -1,3 +1,4 @@
+import { decryptProfilePhi } from "@/lib/data/profiles"
 import { createLogger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { asProfile } from "@/types/db"
@@ -18,7 +19,9 @@ async function getPatients(page: number) {
     .from("profiles")
     .select(`
       id, auth_user_id, email, full_name, first_name, last_name,
-      date_of_birth, role, phone, address_line1, suburb, state, postcode,
+      date_of_birth, date_of_birth_encrypted, role, phone, phone_encrypted,
+      address_line1, suburb, state, postcode,
+      medicare_number, medicare_number_encrypted, medicare_irn, medicare_expiry,
       onboarding_completed,
       email_verified, email_verified_at,
       avatar_url, stripe_customer_id, created_at, updated_at
@@ -33,7 +36,7 @@ async function getPatients(page: number) {
   }
 
   return {
-    patients: (data || []).map(row => asProfile(row as Record<string, unknown>)),
+    patients: (data || []).map(row => asProfile(decryptProfilePhi(row as Record<string, unknown>))),
     total: count ?? 0,
   }
 }

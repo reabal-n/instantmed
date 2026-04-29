@@ -66,24 +66,27 @@ export async function getStuckIntakes(
     const { data, error } = await query
 
     if (error) {
+      // The operational view can drift ahead of a sandbox database migration.
+      // Fall back to the direct query so the admin dashboard stays usable.
+      const fallback = await getStuckIntakesDirect(filters, { captureWarnings: false })
+      if (!fallback.error) {
+        logger.warn("[IntakeOps] Falling back to direct stuck-intakes query", {
+          error: error.message,
+          filters,
+        })
+        return fallback
+      }
+
       logger.error("[IntakeOps] Failed to fetch stuck intakes", {
         error: error.message,
+        fallbackError: fallback.error,
         filters,
       })
-      
-      // Check if it's because the view doesn't exist yet
-      if (error.message.includes("v_stuck_intakes")) {
-        return {
-          data: [],
-          counts: { paid_no_review: 0, review_timeout: 0, delivery_pending: 0, delivery_failed: 0, total: 0 },
-          error: "View not yet created. Run migration first.",
-        }
-      }
-      
+
       return {
         data: [],
         counts: { paid_no_review: 0, review_timeout: 0, delivery_pending: 0, delivery_failed: 0, total: 0 },
-        error: error.message,
+        error: fallback.error || error.message,
       }
     }
 
@@ -127,7 +130,8 @@ export async function getStuckIntakes(
  * Used if the view hasn't been created yet.
  */
 export async function getStuckIntakesDirect(
-  filters: StuckIntakesFilters = {}
+  filters: StuckIntakesFilters = {},
+  options: { captureWarnings?: boolean } = {}
 ): Promise<StuckIntakesResult> {
   try {
     const supabase = createServiceRoleClient()
@@ -269,7 +273,9 @@ export async function getStuckIntakesDirect(
     }
 
     // Capture Sentry warnings
-    await captureStuckIntakeWarnings(stuckIntakes)
+    if (options.captureWarnings !== false) {
+      await captureStuckIntakeWarnings(stuckIntakes)
+    }
 
     return {
       data: stuckIntakes,

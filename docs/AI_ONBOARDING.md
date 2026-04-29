@@ -6,7 +6,7 @@
 
 Read (or re-read) these before touching any `.tsx` / `.css` in `app/` or `components/`. They're the **law**.
 
-1. **`docs/DESIGN_SYSTEM.md`** — colour tokens, typography scale, spacing, elevation (solid depth, sky-toned shadows), hero variants, motion canon, voice, do/don't. Single source of truth.
+1. **`DESIGN.md`** — colour tokens, typography scale, spacing, elevation (solid depth, sky-toned shadows), hero variants, motion canon, voice, do/don't. Single source of truth.
 2. **`docs/BUSINESS_PLAN.md`** — current business strategy: specialised one-off services, solo-doctor scale, no pharmacy fulfilment, no subscriptions in this phase.
 3. **`docs/ADVERTISING_COMPLIANCE.md`** — Google/AHPRA/TGA acquisition rules. Required before editing ads, landing-page copy, metadata, schema, or service claims.
 4. **`docs/SEO_CONTENT_POLICY.md`** — organic educational content rules, especially for prescription/medicine pages.
@@ -54,7 +54,7 @@ Bonus: **`lib/design-system/version.ts`** — current `DESIGN_SYSTEM_VERSION` (1
 
 ## When you're in doubt
 
-1. Can I find this in `docs/DESIGN_SYSTEM.md`? Do that.
+1. Can I find this in `DESIGN.md`? Do that.
 2. Is there an existing primitive (`Button`, `Card`, `ServiceIconTile`, `SectionPill`, `RadioGroupCard`)? Use it.
 3. Is a Tailwind arbitrary (`shadow-[...]`, `text-[12px]`, etc.) tempting? Pause. 90% of the time there's a canonical class that does it.
 4. Is the change touching motion? Read `lib/motion/index.ts` — never hardcode durations/easings.

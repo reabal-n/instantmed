@@ -23,7 +23,11 @@ import {
   saveDoctorIdentityAction,
   uploadSignatureAction,
 } from "@/app/actions/doctor-identity"
-import { linkParchmentUserAction,listParchmentUsersAction } from "@/app/actions/parchment"
+import {
+  linkParchmentUserAction,
+  listParchmentUsersAction,
+  validateParchmentIntegrationAction,
+} from "@/app/actions/parchment"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -73,6 +77,8 @@ export function IdentitySettingsClient({ initialData, parchmentUserId: initialPa
   const [parchmentUsers, setParchmentUsers] = useState<Array<{ user_id: string; full_name: string }>>([])
   const [parchmentLoading, setParchmentLoading] = useState(false)
   const [parchmentLinking, setParchmentLinking] = useState(false)
+  const [parchmentValidating, setParchmentValidating] = useState(false)
+  const [parchmentValidated, setParchmentValidated] = useState(false)
   const [selectedParchmentUser, setSelectedParchmentUser] = useState("")
 
   // Track changes
@@ -173,8 +179,12 @@ export function IdentitySettingsClient({ initialData, parchmentUserId: initialPa
     setParchmentLoading(false)
     if (result.success && result.users) {
       setParchmentUsers(result.users)
+      setMessage({ type: "success", text: "Parchment users loaded" })
     } else {
-      setMessage({ type: "error", text: result.error || "Failed to load Parchment users" })
+      setMessage({
+        type: "error",
+        text: `${result.error || "Failed to load Parchment users"}. Paste the Parchment user ID below instead.`,
+      })
     }
   }, [])
 
@@ -192,6 +202,25 @@ export function IdentitySettingsClient({ initialData, parchmentUserId: initialPa
       setMessage({ type: "error", text: result.error || "Failed to link account" })
     }
   }, [selectedParchmentUser])
+
+  const handleValidateParchment = useCallback(async () => {
+    setParchmentValidating(true)
+    setParchmentValidated(false)
+    const result = await validateParchmentIntegrationAction()
+    setParchmentValidating(false)
+    if (result.success) {
+      setParchmentValidated(true)
+      setMessage({
+        type: "success",
+        text: result.requestId
+          ? `Parchment integration validated (${result.requestId})`
+          : result.message || "Parchment integration validated",
+      })
+      setTimeout(() => setMessage(null), 5000)
+    } else {
+      setMessage({ type: "error", text: result.error || "Parchment validation failed" })
+    }
+  }, [])
 
   const handleAvailabilityChange = useCallback(async (checked: boolean) => {
     setDoctorAvailable(checked)
@@ -441,11 +470,30 @@ export function IdentitySettingsClient({ initialData, parchmentUserId: initialPa
                   <Link2 className="h-3 w-3 mr-1" />
                   Connected
                 </Badge>
+                {parchmentValidated && (
+                  <Badge variant="outline" className="text-success border-success-border bg-success-light/40">
+                    <CheckCircle className="h-3 w-3 mr-1" />
+                    Validated
+                  </Badge>
+                )}
               </div>
               <div className="space-y-1">
                 <Label className="text-muted-foreground text-xs">Parchment User ID</Label>
                 <p className="text-sm font-mono">{parchmentUserId}</p>
               </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleValidateParchment}
+                disabled={parchmentValidating}
+              >
+                {parchmentValidating ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                )}
+                Validate Sandbox Integration
+              </Button>
             </div>
           ) : (
             <div className="space-y-3">
@@ -457,7 +505,45 @@ export function IdentitySettingsClient({ initialData, parchmentUserId: initialPa
               <p className="text-sm text-muted-foreground">
                 Link your account to prescribe directly from the intake review panel.
               </p>
-              {parchmentUsers.length === 0 ? (
+              <div className="space-y-2">
+                <Label>Parchment User ID</Label>
+                <Input
+                  value={selectedParchmentUser}
+                  onChange={(event) => setSelectedParchmentUser(event.target.value)}
+                  placeholder="Paste user_id from Parchment"
+                  className="font-mono"
+                />
+              </div>
+              {parchmentUsers.length > 0 && (
+                <div className="space-y-2">
+                  <Label>Or select a Parchment user</Label>
+                  <Select value={selectedParchmentUser} onValueChange={setSelectedParchmentUser}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a user..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {parchmentUsers.map((u) => (
+                        <SelectItem key={u.user_id} value={u.user_id}>
+                          {u.full_name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  size="sm"
+                  onClick={handleLinkParchment}
+                  disabled={!selectedParchmentUser.trim() || parchmentLinking}
+                >
+                  {parchmentLinking ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Link2 className="h-4 w-4 mr-2" />
+                  )}
+                  Confirm Link
+                </Button>
                 <Button
                   variant="outline"
                   size="sm"
@@ -469,39 +555,9 @@ export function IdentitySettingsClient({ initialData, parchmentUserId: initialPa
                   ) : (
                     <Link2 className="h-4 w-4 mr-2" />
                   )}
-                  Link Parchment Account
+                  Load Users
                 </Button>
-              ) : (
-                <div className="space-y-3">
-                  <div className="space-y-2">
-                    <Label>Select your Parchment user</Label>
-                    <Select value={selectedParchmentUser} onValueChange={setSelectedParchmentUser}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a user…" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {parchmentUsers.map((u) => (
-                          <SelectItem key={u.user_id} value={u.user_id}>
-                            {u.full_name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <Button
-                    size="sm"
-                    onClick={handleLinkParchment}
-                    disabled={!selectedParchmentUser || parchmentLinking}
-                  >
-                    {parchmentLinking ? (
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    ) : (
-                      <Link2 className="h-4 w-4 mr-2" />
-                    )}
-                    Confirm Link
-                  </Button>
-                </div>
-              )}
+              </div>
             </div>
           )}
         </CardContent>

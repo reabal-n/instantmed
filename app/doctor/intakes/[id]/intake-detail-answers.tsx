@@ -1,6 +1,7 @@
 "use client"
 
 import {
+  AlertTriangle,
   CheckCircle,
   Clock,
   CreditCard,
@@ -12,9 +13,10 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 
-import { ClinicalSummary } from "@/components/doctor"
+import { ClinicalCaseReview } from "@/components/doctor"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { buildPatientSnapshot } from "@/lib/doctor/patient-snapshot"
 import { formatDate,formatDateLong } from "@/lib/format"
 import { formatIntakeStatus, formatServiceType } from "@/lib/format/intake"
 import type { IntakeWithDetails, IntakeWithPatient } from "@/types/db"
@@ -42,14 +44,15 @@ interface IntakeDetailAnswersProps {
 
 export function IntakeDetailAnswers({
   intake,
-  patientAge,
-  maskedMedicare,
+  patientAge: _patientAge,
+  maskedMedicare: _maskedMedicare,
   previousIntakes,
   hasRedFlags,
   redFlagDetails,
 }: IntakeDetailAnswersProps) {
   const service = intake.service as { name?: string; type?: string; short_name?: string } | undefined
   const answers = intake.answers?.answers || {}
+  const snapshot = buildPatientSnapshot(intake.patient)
 
   return (
     <>
@@ -59,44 +62,58 @@ export function IntakeDetailAnswers({
           forced the doctor's eye to parse each tile independently. */}
       <Card>
         <CardContent className="px-5 py-4">
-          <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-            <h2 className="text-xl font-semibold leading-tight text-foreground">
-              {intake.patient.full_name}
-            </h2>
-            {(patientAge != null || intake.patient.date_of_birth) && (
-              <span className="text-sm text-muted-foreground">
-                {patientAge != null ? `${patientAge}y` : null}
-                {patientAge != null && intake.patient.date_of_birth ? " · " : null}
-                {intake.patient.date_of_birth ? formatDate(intake.patient.date_of_birth) : null}
-              </span>
-            )}
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                <h2 className="text-xl font-semibold leading-tight text-foreground">
+                  {snapshot.name}
+                </h2>
+                <span className="text-sm text-muted-foreground">{snapshot.ageDobLabel}</span>
+              </div>
+              <div className="mt-2 flex flex-wrap gap-2">
+                <Badge
+                  variant={snapshot.completenessTone === "complete" ? "success" : snapshot.completenessTone === "partial" ? "warning" : "destructive"}
+                  size="sm"
+                >
+                  {snapshot.completenessTone === "complete" ? "Details complete" : snapshot.completenessLabel}
+                </Badge>
+              </div>
+            </div>
+            <Link
+              href={snapshot.profileHref}
+              className="inline-flex h-9 shrink-0 items-center justify-center rounded-md border border-border bg-white px-3 text-xs font-semibold text-foreground transition-colors hover:bg-muted/50 dark:bg-card"
+            >
+              Patient profile
+            </Link>
           </div>
+
+          {snapshot.missingCriticalFields.length > 0 && (
+            <div className="mt-3 rounded-lg border border-warning-border bg-warning-light px-3 py-2 text-sm text-warning">
+              <div className="flex items-start gap-2">
+                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                <span>{snapshot.completenessLabel}. Confirm before approving if clinically required.</span>
+              </div>
+            </div>
+          )}
 
           <div className="mt-3 pt-3 border-t border-border/60 flex items-center gap-2">
             <CreditCard className="h-4 w-4 text-muted-foreground shrink-0" />
             <span className="text-xs uppercase tracking-wide text-muted-foreground">Medicare</span>
-            <span className="font-mono text-sm text-foreground">{maskedMedicare}</span>
+            <span className="font-mono text-sm text-foreground">{snapshot.medicare.label}</span>
           </div>
 
           <div className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-y-1.5 gap-x-6 text-sm">
             <div className="flex items-center gap-2 min-w-0 text-muted-foreground">
               <Mail className="h-3.5 w-3.5 shrink-0" />
-              <span className="truncate">{intake.patient.email || "—"}</span>
+              <span className="truncate">{snapshot.email.label}</span>
             </div>
             <div className="flex items-center gap-2 min-w-0 text-muted-foreground">
               <Phone className="h-3.5 w-3.5 shrink-0" />
-              <span className="truncate">{intake.patient.phone || "—"}</span>
+              <span className="truncate">{snapshot.phone.label}</span>
             </div>
             <div className="flex items-center gap-2 min-w-0 text-muted-foreground">
               <MapPin className="h-3.5 w-3.5 shrink-0" />
-              <span className="truncate">
-                {[
-                  intake.patient.address_line1,
-                  intake.patient.suburb,
-                  intake.patient.state,
-                  intake.patient.postcode,
-                ].filter(Boolean).join(", ") || "—"}
-              </span>
+              <span className="truncate">{snapshot.address.label}</span>
             </div>
           </div>
         </CardContent>
@@ -132,9 +149,14 @@ export function IntakeDetailAnswers({
 
           {/* P1 DOCTOR_WORKLOAD_AUDIT: Structured clinical summary instead of raw JSON */}
           {Object.keys(answers).length > 0 && (
-            <ClinicalSummary
-              answers={answers}
-              consultSubtype={intake.category === 'consult' && intake.subtype ? intake.subtype : undefined}
+            <ClinicalCaseReview
+              answers={answers as Record<string, unknown>}
+              category={intake.category}
+              subtype={intake.subtype}
+              serviceType={service?.type}
+              patientName={intake.patient.full_name}
+              riskTier={intake.risk_tier}
+              requiresLiveConsult={intake.requires_live_consult}
               className="border-0 shadow-none p-0"
             />
           )}

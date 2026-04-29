@@ -23,14 +23,15 @@
  */
 
 import { timingSafeEqual } from "crypto"
-import { cookies } from "next/headers"
 import { NextRequest, NextResponse } from "next/server"
 
-// Test user auth IDs (must match seed.ts)
+// Test user profile IDs (must match seed.ts).
+// E2E bypass resolves these directly against profiles.id; do not use fake
+// auth_user_id strings because auth_user_id is a uuid column in production DBs.
 const TEST_USERS = {
-  operator: "e2e00000-auth-0000-0000-000000000001",  // admin + doctor
-  doctor: "e2e00000-auth-0000-0000-000000000003",    // doctor only (not admin)
-  patient: "e2e00000-auth-0000-0000-000000000002",
+  operator: "e2e00000-0000-0000-0000-000000000001",  // admin + doctor
+  doctor: "e2e00000-0000-0000-0000-000000000003",    // doctor only (not admin)
+  patient: "e2e00000-0000-0000-0000-000000000002",
 } as const
 
 type TestUserType = keyof typeof TEST_USERS
@@ -139,13 +140,21 @@ export async function POST(request: NextRequest) {
   }
 
   const authUserId = TEST_USERS[userType]
+  const role = userType === "patient" ? "patient" : "doctor"
+  const isAdmin = userType === "operator"
+  const e2eRunId = process.env.E2E_RUN_ID || body.e2eRunId
 
-  // Set a test session cookie that our auth helpers can recognize
-  // This is a simplified auth bypass for E2E testing only
-  const cookieStore = await cookies()
+  const response = NextResponse.json({
+    success: true,
+    userType,
+    authUserId,
+    role,
+    e2eRunId: e2eRunId || null,
+    message: `E2E session created for ${userType} user`,
+  })
 
   // Set a custom e2e auth cookie that we'll check in our auth helpers
-  cookieStore.set("__e2e_auth_user_id", authUserId, {
+  response.cookies.set("__e2e_auth_user_id", authUserId, {
     httpOnly: true,
     secure: false, // Allow in development
     sameSite: "lax",
@@ -154,7 +163,7 @@ export async function POST(request: NextRequest) {
   })
 
   // Also set user type for role checks
-  cookieStore.set("__e2e_auth_user_type", userType, {
+  response.cookies.set("__e2e_auth_user_type", userType, {
     httpOnly: true,
     secure: false,
     sameSite: "lax",
@@ -164,9 +173,7 @@ export async function POST(request: NextRequest) {
 
   // Set role cookie for Sentry context (maps userType to role)
   // operator = admin+doctor, doctor = doctor only, patient = patient
-  const role = userType === "patient" ? "patient" : "doctor"
-  const isAdmin = userType === "operator"
-  cookieStore.set("__e2e_auth_role", role, {
+  response.cookies.set("__e2e_auth_role", role, {
     httpOnly: false, // Readable by client JS for Sentry context
     secure: false,
     sameSite: "lax",
@@ -175,7 +182,7 @@ export async function POST(request: NextRequest) {
   })
 
   // Set admin flag cookie for role-based UI checks
-  cookieStore.set("__e2e_auth_is_admin", isAdmin ? "true" : "false", {
+  response.cookies.set("__e2e_auth_is_admin", isAdmin ? "true" : "false", {
     httpOnly: false,
     secure: false,
     sameSite: "lax",
@@ -184,9 +191,8 @@ export async function POST(request: NextRequest) {
   })
 
   // Set E2E run ID if provided in environment or request
-  const e2eRunId = process.env.E2E_RUN_ID || body.e2eRunId
   if (e2eRunId) {
-    cookieStore.set("__e2e_run_id", e2eRunId, {
+    response.cookies.set("__e2e_run_id", e2eRunId, {
       httpOnly: false, // Readable by client JS for Sentry context
       secure: false,
       sameSite: "lax",
@@ -195,14 +201,7 @@ export async function POST(request: NextRequest) {
     })
   }
 
-  return NextResponse.json({
-    success: true,
-    userType,
-    authUserId,
-    role,
-    e2eRunId: e2eRunId || null,
-    message: `E2E session created for ${userType} user`,
-  })
+  return response
 }
 
 export async function DELETE(request: NextRequest) {
@@ -222,15 +221,16 @@ export async function DELETE(request: NextRequest) {
     )
   }
 
-  // Clear E2E auth cookies
-  const cookieStore = await cookies()
-  cookieStore.delete("__e2e_auth_user_id")
-  cookieStore.delete("__e2e_auth_user_type")
-  cookieStore.delete("__e2e_auth_role")
-  cookieStore.delete("__e2e_run_id")
-
-  return NextResponse.json({
+  const response = NextResponse.json({
     success: true,
     message: "E2E session cleared",
   })
+
+  response.cookies.delete("__e2e_auth_user_id")
+  response.cookies.delete("__e2e_auth_user_type")
+  response.cookies.delete("__e2e_auth_role")
+  response.cookies.delete("__e2e_auth_is_admin")
+  response.cookies.delete("__e2e_run_id")
+
+  return response
 }

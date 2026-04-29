@@ -27,10 +27,10 @@
 | `docs/REVENUE_MODEL.md` | $1M/year one-off revenue model, service mix, unit economics, hiring triggers | Pricing, growth plans, dashboards, business-model changes |
 | `docs/ADVERTISING_COMPLIANCE.md` | Google Ads, LegitScript, AHPRA/Medical Board, TGA, paid landing page, and audience rules | Ads, landing pages, acquisition copy, metadata, schema |
 | `docs/SEO_CONTENT_POLICY.md` | Organic educational content rules, prescription-page guardrails, CTA and URL rules | SEO pages, medicine pages, condition/symptom content |
-| `docs/BRAND.md` | Brand thesis, patient archetype, voice/personality, tagline system, signature devices (live wait counter, doctor signature, "what we won't do" page, name-first emails, "while you wait" specificity), brand stretch rules. Pinned at v1.0.0. | **Every brand or marketing session.** Load before any tagline, headline, copy sweep, hero, or brand-creative work. Umbrella that points to VOICE / DESIGN_SYSTEM / PHOTOGRAPHY_BRIEF for deeper layers. |
+| `docs/BRAND.md` | Brand thesis, patient archetype, voice/personality, tagline system, signature devices (live wait counter, doctor signature, "what we won't do" page, name-first emails, "while you wait" specificity), brand stretch rules. Pinned at v1.0.0. | **Every brand or marketing session.** Load before any tagline, headline, copy sweep, hero, or brand-creative work. Umbrella that points to VOICE / DESIGN / PHOTOGRAPHY_BRIEF for deeper layers. |
 | `docs/VOICE.md` | 4-layer brand-string system, dos/don'ts, banned phrases, voice-by-surface rendering, healthcare compliance copy. Code source of truth in `lib/marketing/voice.ts`. CI-enforced. | Any copy work, headline, microcopy, ad creative, or voice review. Pair with BRAND.md. |
 | `docs/PHOTOGRAPHY_BRIEF.md` | 8-shot launch list, acceptance criteria, GPT prompt scaffold, cost benchmarks, no-stock-photo rules. | Generating, commissioning, or replacing imagery on marketing pages. |
-| `docs/DESIGN_SYSTEM.md` | Color, typography (Source Sans 3 body + Plus Jakarta Sans display), spacing, components, elevation, layout, motion, animation. Pinned at v1.0.0. | **Every UI session.** Load before any UI/frontend/marketing work. The design system is law. |
+| `DESIGN.md` | Color, typography (Source Sans 3 body + Plus Jakarta Sans display), spacing, components, elevation, layout, motion, animation. Pinned at v1.0.0. | **Every UI session.** Load before any UI/frontend/marketing work. The design system is law. |
 | `docs/DESIGN_SYSTEM_CHANGELOG.md` | Breaking + notable design-system changes with version history | Bumping `DESIGN_SYSTEM_VERSION` or auditing drift |
 | `docs/ARCHITECTURE.md` | System design, data flows, portals, DB schema, API routes, directory index, tech stack, key pages, AI config | Building features, understanding flows, navigating the codebase |
 | `docs/CLINICAL.md` | Clinical boundaries, prescribing rules, AI limits, consent, privacy (APP 1-13) | Any clinical logic, AI prompts, compliance work |
@@ -138,7 +138,7 @@ If you are an AI and the user asks you to upgrade something on this list, **stop
 - **Loading states**: `SkeletonCard`, `SkeletonForm`, `SkeletonList`, `SkeletonDashboard` from `@/components/ui/skeleton`
 - **Toasts**: `toast` from `sonner` (success, error, promise variants)
 - **Error handling**: `ErrorRecovery` from `@/components/ui/error-recovery`; flow-specific: `StepErrorBoundary` (`components/request/`), `DashboardErrorBoundary` (`components/doctor/`)
-- **Card surfaces**: Solid depth pattern — `bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06]`. See docs/DESIGN_SYSTEM.md §5
+- **Card surfaces**: Solid depth pattern — `bg-white dark:bg-card border border-border/50 shadow-md shadow-primary/[0.06]`. See DESIGN.md §5
 
 ## Design Tooling — Impeccable + Emil
 

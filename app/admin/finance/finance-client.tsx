@@ -81,7 +81,7 @@ interface FinanceDashboardClientProps {
 }
 
 // Tracks lib palette in `app/admin/analytics/analytics-helpers.ts`.
-// #8b5cf6 (violet) replaced with #5db8c9 (teal) per DESIGN_SYSTEM.md §1 — no violet outside --service-referral.
+// #8b5cf6 (violet) replaced with #5db8c9 (teal) per DESIGN.md §1 — no violet outside --service-referral.
 const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#f87171", "#5db8c9"]
 
 function formatServiceType(type: string): string {

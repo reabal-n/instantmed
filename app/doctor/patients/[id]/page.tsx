@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation"
 
+import { decryptProfilePhi } from "@/lib/data/profiles"
 import { logger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { asProfile } from "@/types/db"
@@ -18,8 +19,9 @@ async function getPatientWithHistory(patientId: string) {
     .from("profiles")
     .select(`
       id, auth_user_id, auth_user_id, email, full_name, first_name, last_name,
-      date_of_birth, role, phone, address_line1, suburb, state, postcode,
-      medicare_number, medicare_irn, medicare_expiry,
+      date_of_birth, date_of_birth_encrypted, role, phone, phone_encrypted,
+      address_line1, suburb, state, postcode,
+      medicare_number, medicare_number_encrypted, medicare_irn, medicare_expiry,
       ahpra_number, ahpra_verified, ahpra_verified_at, ahpra_verified_by,
       provider_number, consent_myhr, onboarding_completed,
       email_verified, email_verified_at,
@@ -103,7 +105,7 @@ async function getPatientWithHistory(patientId: string) {
   }))
 
   return {
-    patient: asProfile(patient as Record<string, unknown>),
+    patient: asProfile(decryptProfilePhi(patient as Record<string, unknown>)),
     intakes: transformedIntakes,
     emailLogs: emailLogs || [],
     patientNotes: patientNotes || [],

@@ -3,7 +3,7 @@
 import { CheckCircle, ChevronDown, Clock, FileText } from "lucide-react"
 import { useState } from "react"
 
-import { ClinicalSummary } from "@/components/doctor/clinical-summary"
+import { ClinicalCaseReview } from "@/components/doctor/clinical-case-review"
 import { useIntakeReview } from "@/components/doctor/review/intake-review-context"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { formatServiceType } from "@/lib/format/intake"
@@ -40,15 +40,15 @@ export function RequestInfoCard() {
             )}
           </div>
 
-          {Object.keys(answers).length > 0 && (
-            <ClinicalSummary
-              answers={answers}
-              consultSubtype={
-                intake.category === "consult" && intake.subtype ? intake.subtype : undefined
-              }
-              inline
-            />
-          )}
+          <ClinicalCaseReview
+            answers={answers}
+            category={intake.category}
+            subtype={intake.subtype}
+            serviceType={service?.type}
+            patientName={intake.patient.full_name}
+            riskTier={intake.risk_tier}
+            requiresLiveConsult={intake.requires_live_consult}
+          />
         </CardContent>
       )}
     </Card>

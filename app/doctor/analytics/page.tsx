@@ -1,3 +1,5 @@
+import { redirect } from "next/navigation"
+
 import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
@@ -224,8 +226,9 @@ interface PageProps {
 }
 
 export default async function AnalyticsPage({ searchParams }: PageProps) {
-  // Layout enforces doctor/admin role - use cached profile
-  const { profile } = (await getAuthenticatedUserWithProfile())!
+  const auth = await getAuthenticatedUserWithProfile()
+  if (!auth) redirect("/sign-in?next=/doctor/analytics")
+  const { profile } = auth
   const params = await searchParams
 
   const analytics = await getAnalytics(params)

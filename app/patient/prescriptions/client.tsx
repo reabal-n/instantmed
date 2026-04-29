@@ -90,13 +90,13 @@ export function PrescriptionsClient({
   return (
     <div className="space-y-4">
       <DashboardPageHeader
-        title="My Prescriptions"
+        title="My prescriptions"
         description="View your prescription history and manage renewals"
         actions={
           <Link href="/request?service=prescription">
             <Button>
               <Plus className="w-4 h-4 mr-2" />
-              Request Prescription
+              Request prescription
             </Button>
           </Link>
         }
@@ -138,7 +138,7 @@ export function PrescriptionsClient({
       <StatGrid
         className="mb-6"
         items={[
-          { value: prescriptionIntakes.length, label: "Total Requests" },
+          { value: prescriptionIntakes.length, label: "Total requests" },
           { value: completedIntakes.length, label: "Approved", color: "text-success" },
           { value: pendingIntakes.length, label: "Pending", color: "text-info" },
         ]}
@@ -175,7 +175,7 @@ export function PrescriptionsClient({
                   ? "You haven't made any prescription requests yet."
                   : `No ${activeTab} prescription requests.`
               }
-              action={activeTab === "all" ? { label: "Request a Prescription", href: "/request?service=prescription" } : undefined}
+              action={activeTab === "all" ? { label: "Request a prescription", href: "/request?service=prescription" } : undefined}
             />
           ) : (
             <div className="space-y-3">
@@ -204,4 +204,3 @@ export function PrescriptionsClient({
     </div>
   )
 }
-

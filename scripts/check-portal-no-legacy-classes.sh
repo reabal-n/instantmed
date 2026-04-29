@@ -3,7 +3,7 @@
 #
 # Asserts that the patient portal source tree (`app/patient/**` and
 # `components/patient/**`) contains zero references to legacy classes
-# and patterns that contradict Morning Canvas (docs/DESIGN_SYSTEM.md):
+# and patterns that contradict Morning Canvas (DESIGN.md):
 #
 #   - glass-card                     (legacy 21st.dev glass-forward shim, banned)
 #   - dashboard-card / dashboard-bg  (raw className use; route through <DashboardCard>)
@@ -116,7 +116,7 @@ done
 if [[ $failures -gt 0 ]]; then
   echo ""
   echo "Found $failures legacy-class violation(s) in portal source (patient + doctor + admin)."
-  echo "See docs/DESIGN_SYSTEM.md and the design-system v2.0.0 migration table."
+  echo "See DESIGN.md and the design-system v2.0.0 migration table."
   exit 1
 fi
 

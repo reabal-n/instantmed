@@ -974,7 +974,7 @@ pnpm build
 
 ### 8. Frontend Quality
 
-- Load `DESIGN_SYSTEM.md` (includes motion and animation specs).
+- Load `DESIGN.md` (includes motion and animation specs).
 - Design system violations: wrong card surfaces, prohibited colors, wrong fonts, glass on content.
 - Dark mode works on new/changed components (`dark:` variants present).
 - `useReducedMotion()` respected in all Framer Motion animations.

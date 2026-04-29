@@ -41,11 +41,11 @@ export function DashboardPageHeader({
   return (
     <header
       className={cn(
-        "flex items-start justify-between gap-4 mb-8 flex-wrap",
+        "mb-8 space-y-4 sm:flex sm:items-start sm:justify-between sm:gap-4 sm:space-y-0",
         className,
       )}
     >
-      <div className="space-y-2 min-w-0 flex-1">
+      <div className="space-y-2 min-w-0 sm:flex-1">
         {backHref && (
           <Link
             href={backHref}
@@ -64,7 +64,11 @@ export function DashboardPageHeader({
         )}
       </div>
       {actions && (
-        <div className="flex items-center gap-2 shrink-0 flex-wrap">{actions}</div>
+        <div
+          className="flex w-full items-center justify-end gap-2 sm:w-auto sm:shrink-0"
+        >
+          {actions}
+        </div>
       )}
     </header>
   )

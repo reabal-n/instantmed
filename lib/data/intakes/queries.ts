@@ -303,7 +303,7 @@ export async function getDoctorQueue(
       ai_draft_status,
       ai_approved,
       ai_approved_at,
-      patient:profiles!patient_id (id, full_name, email, date_of_birth, medicare_number, suburb, state),
+      patient:profiles!patient_id (id, full_name, email, date_of_birth, medicare_number, phone, address_line1, suburb, state, postcode),
       service:services!service_id (id, name, short_name, type, slug)
     `)
     .in("status", ["paid", "in_review", "pending_info"])
@@ -749,9 +749,14 @@ export const getDoctorDashboardStats = unstable_cache(
 
     // Log any errors but don't fail completely
     const results = [totalResult, inQueueResult, approvedResult, declinedResult, pendingInfoResult, scriptsPendingResult]
+    const statLabels = ["total", "in_queue", "approved", "declined", "pending_info", "scripts_pending"]
     results.forEach((r, i) => {
       if (r.error) {
-        logger.error(`Error fetching dashboard stat ${i}`, {}, r.error instanceof Error ? r.error : new Error(String(r.error)))
+        logger.warn("Dashboard stat unavailable", {
+          stat: statLabels[i],
+          error: r.error.message,
+          code: r.error.code,
+        })
       }
     })
 

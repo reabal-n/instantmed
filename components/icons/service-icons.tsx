@@ -18,7 +18,7 @@ import { cn } from "@/lib/utils"
 // Service tiles render as colored soft-bg + outlined Lucide icon (default)
 // or as playful illustrated sticker via `variant="sticker"`.
 //
-// Canon: DESIGN_SYSTEM.md §7 — "White-filled SVG icons on a per-service
+// Canon: DESIGN.md §7 — "White-filled SVG icons on a per-service
 // gradient tile, or illustrated sticker in marketing contexts only."
 //
 // Consumers should import this via `@/lib/services/service-catalog`; this
@@ -46,7 +46,7 @@ const stickerMap: Record<string, StickerIconName> = {
 }
 
 // Service colour tokens. Pair with lib/services/service-catalog.ts `colorToken`.
-// violet is intentionally absent — prohibited per DESIGN_SYSTEM.md §1 C1 sweep.
+// violet is intentionally absent — prohibited per DESIGN.md §1 C1 sweep.
 export const serviceColorConfig: Record<string, { bg: string; text: string; from: string; to: string; shadow: string }> = {
   emerald: { bg: 'bg-emerald-50 dark:bg-emerald-950/30', text: 'text-emerald-600 dark:text-emerald-400', from: '#10B981', to: '#059669', shadow: 'rgba(5,150,105,0.28)' },
   cyan:    { bg: 'bg-sky-50 dark:bg-sky-950/30',         text: 'text-sky-600 dark:text-sky-400',         from: '#0EA5E9', to: '#0284C7', shadow: 'rgba(2,132,199,0.28)' },

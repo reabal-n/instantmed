@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation"
 import { Suspense } from "react"
 
 import { IdentityIncompleteBanner,IntakeMonitor, SlaBreachHero } from "@/components/doctor"
@@ -208,8 +209,9 @@ export default async function DoctorDashboardPage({
 }: {
   searchParams: Promise<{ page?: string; pageSize?: string }>
 }) {
-  // Layout enforces doctor/admin role - use cached profile
-  const { profile } = (await getAuthenticatedUserWithProfile())!
+  const auth = await getAuthenticatedUserWithProfile()
+  if (!auth) redirect("/sign-in?next=/doctor/dashboard")
+  const { profile } = auth
 
   const params = await searchParams
   const page = Math.max(1, parseInt(params.page || "1", 10))

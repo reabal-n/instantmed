@@ -175,7 +175,7 @@ body {
   /* ================================
      SHADOW SYSTEM - 3 semantic levels
      resting (sm), hover (md), elevated/modals (lg)
-     Sky-tinted per DESIGN_SYSTEM.md §5 — never black on marketing
+     Sky-tinted per DESIGN.md §5 — never black on marketing
      surfaces. Base hue is the primary blue (#3B82F6 / rgb 59 130 246).
      Slightly higher alpha than black equivalents to preserve perceived
      depth despite the warmer tint.
@@ -283,7 +283,7 @@ body {
   --background: #0B1120;
   --foreground: #E8EEF4;
   
-  /* Card surfaces — solid per DESIGN_SYSTEM.md §5 ("solid depth, not
+  /* Card surfaces — solid per DESIGN.md §5 ("solid depth, not
      frosted glass"). Previously translucent rgba which created an
      unintended glass effect on every card in dark mode. */
   --card: #111827;

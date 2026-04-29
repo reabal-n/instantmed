@@ -4,7 +4,6 @@ import { motion } from "framer-motion"
 import { Lightbulb, LucideIcon, Plus, Sparkles } from "lucide-react"
 import Link from "next/link"
 
-import { LottieAnimation } from "@/components/ui/lottie-animation"
 import { useReducedMotion } from "@/components/ui/motion"
 import { fadeIn, fadeUp as slideUp } from "@/lib/motion"
 import { cn } from "@/lib/utils"
@@ -57,23 +56,20 @@ export function EmptyState({
       initial={prefersReducedMotion ? false : "initial"}
       animate="animate"
       variants={fadeIn}
-      className={cn("text-center py-16 px-4 max-w-2xl mx-auto", className)}
+      className={cn("text-center py-12 sm:py-16 px-4 max-w-2xl mx-auto", className)}
     >
       {/* Illustration or Icon */}
       <motion.div
         initial={prefersReducedMotion ? false : { scale: 0.8, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={prefersReducedMotion ? { duration: 0 } : { delay: 0.1, type: "tween", ease: [0.22, 1, 0.36, 1], duration: 0.3 }}
-        className="mb-8"
+        className="mb-6"
       >
         {illustration ? (
           <div className="w-32 h-32 mx-auto">{illustration}</div>
         ) : (
-          <div className="flex flex-col items-center gap-2">
-            <LottieAnimation name="empty-state" size={100} loop={false} />
-            <div className="w-14 h-14 rounded-2xl bg-linear-to-br from-primary/10 to-secondary/10 flex items-center justify-center">
-              <Icon className="w-7 h-7 text-primary" />
-            </div>
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-primary/15 bg-primary/10">
+            <Icon className="h-7 w-7 text-primary" />
           </div>
         )}
       </motion.div>

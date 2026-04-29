@@ -8,14 +8,17 @@
  * All server-side auth flows go through Supabase Auth (supabase.auth.getUser()).
  */
 
+import type { SupabaseClient } from "@supabase/supabase-js"
 import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
-import { cache } from "react"
 
+import { createLogger } from "@/lib/observability/logger"
 import { createClient } from "@/lib/supabase/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import type { Profile } from "@/types/db"
 import { asProfile } from "@/types/db"
+
+const log = createLogger("auth")
 
 /** Escape ILIKE special characters to prevent wildcard injection */
 function escapeIlike(input: string): string {
@@ -38,6 +41,52 @@ const PROFILE_COLUMNS = `
   avatar_url, stripe_customer_id, certificate_identity_complete,
   signature_storage_path, created_at, updated_at
 ` as const
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+const AUTH_PROFILE_RETRY_DELAYS_MS = [150, 400]
+
+async function wait(ms: number): Promise<void> {
+  await new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+async function fetchProfileByColumn(
+  supabase: SupabaseClient,
+  column: "id" | "auth_user_id",
+  value: string,
+  source: string,
+): Promise<Record<string, unknown> | null> {
+  for (let attempt = 0; attempt <= AUTH_PROFILE_RETRY_DELAYS_MS.length; attempt += 1) {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select(PROFILE_COLUMNS)
+      .eq(column, value)
+      .maybeSingle()
+
+    if (!error) {
+      return data as Record<string, unknown> | null
+    }
+
+    if (attempt === AUTH_PROFILE_RETRY_DELAYS_MS.length) {
+      log.error("Failed to fetch authenticated profile", {
+        column,
+        source,
+        attempts: attempt + 1,
+        code: error.code,
+      }, error)
+      return null
+    }
+
+    log.warn("Retrying authenticated profile fetch", {
+      column,
+      source,
+      attempt: attempt + 1,
+      code: error.code,
+    }, error)
+    await wait(AUTH_PROFILE_RETRY_DELAYS_MS[attempt])
+  }
+
+  return null
+}
 
 // ============================================================================
 // E2E TEST AUTH BYPASS (test mode only)
@@ -98,23 +147,34 @@ export interface AuthenticatedUser {
 /**
  * Get the authenticated user and their profile.
  * Returns null if not authenticated or profile doesn't exist.
- *
- * Wrapped with React cache() to deduplicate calls within the same
- * server render pass (e.g. layout + page both calling requireRole).
  */
-export const getAuthenticatedUserWithProfile = cache(async (): Promise<AuthenticatedUser | null> => {
+export async function getAuthenticatedUserWithProfile(): Promise<AuthenticatedUser | null> {
   // Check for E2E test auth first (non-production only)
   const e2eAuth = await getE2EAuthUser()
   if (e2eAuth) {
     const supabase = createServiceRoleClient()
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select(PROFILE_COLUMNS)
-      .eq("auth_user_id", e2eAuth.userId)
-      .single()
+    let profile: Record<string, unknown> | null = null
+
+    if (UUID_RE.test(e2eAuth.userId)) {
+      profile = await fetchProfileByColumn(
+        supabase,
+        "id",
+        e2eAuth.userId,
+        "e2e_profile_id",
+      )
+
+      if (!profile) {
+        profile = await fetchProfileByColumn(
+          supabase,
+          "auth_user_id",
+          e2eAuth.userId,
+          "e2e_auth_user_id",
+        )
+      }
+    }
 
     if (profile) {
-      const typedProfile = asProfile(profile as Record<string, unknown>)
+      const typedProfile = asProfile(profile)
       return {
         user: {
           id: e2eAuth.userId,
@@ -140,17 +200,18 @@ export const getAuthenticatedUserWithProfile = cache(async (): Promise<Authentic
   const supabase = createServiceRoleClient()
 
   // Find profile by auth_user_id (Supabase Auth UUID)
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select(PROFILE_COLUMNS)
-    .eq("auth_user_id", user.id)
-    .single()
+  const profile = await fetchProfileByColumn(
+    supabase,
+    "auth_user_id",
+    user.id,
+    "supabase_auth",
+  )
 
   if (!profile) {
     return null
   }
 
-  const typedProfile = asProfile(profile as Record<string, unknown>)
+  const typedProfile = asProfile(profile)
   return {
     user: {
       id: user.id,
@@ -162,7 +223,7 @@ export const getAuthenticatedUserWithProfile = cache(async (): Promise<Authentic
     },
     profile: typedProfile,
   }
-})
+}
 
 /**
  * Get authenticated user, creating a profile if one doesn't exist.
@@ -476,17 +537,33 @@ export async function getApiAuth(): Promise<{ userId: string; profile: Profile }
   }
 
   const supabase = createServiceRoleClient()
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select(PROFILE_COLUMNS)
-    .eq("auth_user_id", userId)
-    .single()
+  let profile: Record<string, unknown> | null = null
+
+  if (e2eAuth && UUID_RE.test(userId)) {
+    const byProfileId = await supabase
+      .from("profiles")
+      .select(PROFILE_COLUMNS)
+      .eq("id", userId)
+      .maybeSingle()
+
+    profile = byProfileId.data as Record<string, unknown> | null
+  }
+
+  if (!profile) {
+    const byAuthId = await supabase
+      .from("profiles")
+      .select(PROFILE_COLUMNS)
+      .eq("auth_user_id", userId)
+      .maybeSingle()
+
+    profile = byAuthId.data as Record<string, unknown> | null
+  }
 
   if (!profile) {
     return null
   }
 
-  return { userId, profile: asProfile(profile as Record<string, unknown>) }
+  return { userId, profile: asProfile(profile) }
 }
 
 /**

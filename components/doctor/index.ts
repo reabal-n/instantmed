@@ -1,5 +1,6 @@
 export type { CertificatePreviewData } from "./certificate-preview-dialog"
 export { CertificatePreviewDialog } from "./certificate-preview-dialog"
+export { ClinicalCaseReview } from "./clinical-case-review"
 export { ClinicalSummary } from "./clinical-summary"
 export { withDashboardErrorBoundary } from "./dashboard-error-boundary"
 export { ClinicalNoteDiffView, DraftContent,formatDraftType, getStatusBadge, ValidationWarnings } from "./draft-review-content"

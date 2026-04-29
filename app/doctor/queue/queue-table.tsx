@@ -5,6 +5,7 @@ import {
   CheckCircle,
   ChevronDown,
   Clock,
+  ExternalLink,
   Eye,
   Loader2,
   MessageSquare,
@@ -38,6 +39,7 @@ import {
 import { Textarea } from "@/components/ui/textarea"
 import { Pagination,UserCard } from "@/components/uix"
 import { capture } from "@/lib/analytics/capture"
+import { buildPatientSnapshot } from "@/lib/doctor/patient-snapshot"
 import { prefetchReviewData } from "@/lib/doctor/review-data-cache"
 import { SERVICE_TYPES } from "@/lib/doctor/service-types"
 import { calculateAge } from "@/lib/format"
@@ -153,6 +155,7 @@ export function QueueTable({
   const router = useRouter()
   const [, startTransition] = useTransition()
   const [completedExpanded, setCompletedExpanded] = useState(false)
+  const [aiExpanded, setAiExpanded] = useState(false)
 
   const totalPages = pagination ? Math.ceil(pagination.total / pagination.pageSize) : 1
   const currentPage = pagination?.page ?? 1
@@ -172,10 +175,11 @@ export function QueueTable({
           </p>
         </div>
       ) : (
-        <div className="rounded-xl border border-border overflow-hidden">
+        <div className="overflow-hidden rounded-xl border border-border/60 bg-card shadow-sm shadow-primary/[0.03]">
           {filteredIntakes.map((intake, index) => {
             const isFocused = expandedId === intake.id
             const waitSeverity = getWaitTimeSeverity(intake.created_at, intake.sla_deadline)
+            const patientSnapshot = buildPatientSnapshot(intake.patient)
             const patientAge = calculateAge(intake.patient.date_of_birth)
             const service = intake.service as { name?: string; type?: string; short_name?: string } | undefined
 
@@ -190,7 +194,7 @@ export function QueueTable({
                 tabIndex={0}
                 aria-label={`Open case for ${intake.patient.full_name} — ${service?.short_name || formatServiceType(service?.type || "")}`}
                 className={cn(
-                  "group flex items-center gap-3 px-4 py-3.5 cursor-pointer transition-colors",
+                  "group grid cursor-pointer grid-cols-[minmax(0,1fr)_auto] items-start gap-x-3 gap-y-2 px-3 py-3 transition-colors sm:grid-cols-[minmax(0,auto)_minmax(0,1fr)_auto_auto_auto] sm:items-center sm:px-4",
                   "hover:bg-muted/40",
                   index < filteredIntakes.length - 1 && "border-b border-border/40",
                   isFocused && "bg-primary/[0.04] ring-1 ring-inset ring-primary/20",
@@ -213,10 +217,10 @@ export function QueueTable({
                 }}
               >
                 {/* Patient */}
-                <div className="shrink-0 min-w-0">
+                <div className="col-start-1 row-start-1 min-w-0 sm:shrink-0">
                   <UserCard
-                    name={intake.patient.full_name}
-                    description={patientAge != null ? `${patientAge}y` : ""}
+                    name={patientSnapshot.name}
+                    description={patientAge != null ? `${patientAge}y` : "DOB missing"}
                     size="sm"
                   />
                   {chiefComplaint && (
@@ -227,7 +231,7 @@ export function QueueTable({
                 </div>
 
                 {/* Badges */}
-                <div className="min-w-0 flex items-center gap-1.5 flex-wrap flex-1">
+                <div className="col-span-2 col-start-1 row-start-2 flex min-w-0 flex-wrap items-center gap-1.5 sm:col-span-1 sm:col-start-2 sm:row-start-1">
                   <Badge variant="outline" className="text-xs">
                     {service?.short_name || formatServiceType(service?.type || "")}
                   </Badge>
@@ -262,6 +266,15 @@ export function QueueTable({
                       Returning
                     </Badge>
                   )}
+                  {patientSnapshot.completenessTone !== "complete" && (
+                    <Badge
+                      variant={patientSnapshot.completenessTone === "partial" ? "warning" : "destructive"}
+                      className="text-xs"
+                    >
+                      <AlertTriangle className="h-3 w-3" />
+                      {patientSnapshot.missingCriticalFields.slice(0, 2).join(", ")} missing
+                    </Badge>
+                  )}
                   {isOpen && (
                     <Badge className="bg-primary/10 text-primary border-primary/20 text-xs">
                       Open
@@ -269,60 +282,87 @@ export function QueueTable({
                   )}
                 </div>
 
-                {/* Hover quick-action buttons */}
-                <div className={cn(
-                  "items-center gap-1 shrink-0",
-                  "hidden group-hover:flex",
-                  isFocused && "flex"
-                )}>
+                {/* Quick actions */}
+                <div className="col-start-2 row-start-1 flex shrink-0 items-center justify-end gap-1 sm:col-start-3">
                   <Button
+                    variant="outline"
                     size="sm"
-                    className="h-7 px-2.5 text-xs bg-emerald-600 hover:bg-emerald-700 text-white"
-                    onClick={(e) => { e.stopPropagation(); onApprove(intake.id, service?.type) }}
-                    disabled={isPending || !identityComplete}
-                    title={!identityComplete ? "Complete your Certificate Identity in Settings first" : undefined}
-                  >
-                    {isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <CheckCircle className="h-3 w-3 mr-1" />}
-                    {service?.type === SERVICE_TYPES.MED_CERTS ? "Review" : service?.type === SERVICE_TYPES.COMMON_SCRIPTS ? "Script" : "Approve"}
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 px-2.5 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
-                    onClick={(e) => { e.stopPropagation(); setDeclineDialog(intake.id) }}
-                    disabled={isPending}
-                  >
-                    Decline
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                    className="h-8 px-3 text-xs"
                     onClick={(e) => {
                       e.stopPropagation()
-                      setInfoDialog(intake.id)
+                      openReviewPanel(intake.id)
                     }}
-                    title="Request more info"
+                    disabled={isPending}
                   >
-                    <MessageSquare className="h-3.5 w-3.5" />
+                    <Eye className="h-3.5 w-3.5 mr-1" />
+                    Open
                   </Button>
+                  <div className={cn(
+                    "items-center gap-1",
+                    "hidden group-hover:flex group-focus-within:flex",
+                    isFocused && "flex"
+                  )}>
+                    <Button
+                      size="sm"
+                      className="h-8 px-2.5 text-xs bg-emerald-600 hover:bg-emerald-700 text-white"
+                      onClick={(e) => { e.stopPropagation(); onApprove(intake.id, service?.type) }}
+                      disabled={isPending || !identityComplete}
+                      title={!identityComplete ? "Complete your Certificate Identity in Settings first" : undefined}
+                    >
+                      {isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <CheckCircle className="h-3 w-3 mr-1" />}
+                      {service?.type === SERVICE_TYPES.MED_CERTS ? "Review" : service?.type === SERVICE_TYPES.COMMON_SCRIPTS ? "Script" : "Approve"}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 px-2.5 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
+                      onClick={(e) => { e.stopPropagation(); setDeclineDialog(intake.id) }}
+                      disabled={isPending}
+                    >
+                      Decline
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setInfoDialog(intake.id)
+                      }}
+                      title="Request more info"
+                    >
+                      <MessageSquare className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        router.push(patientSnapshot.profileHref)
+                      }}
+                      title="Open patient profile"
+                    >
+                      <ExternalLink className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
                 </div>
 
                 {/* Unread dot */}
                 {!isRead && (
-                  <span className="h-2 w-2 rounded-full bg-primary shrink-0" aria-label="Unread" />
+                  <span className="col-start-1 row-start-3 h-2 w-2 shrink-0 rounded-full bg-primary sm:col-start-4 sm:row-start-1" aria-label="Unread" />
                 )}
 
                 {/* Wait time */}
                 <div className={cn(
-                  "flex items-center gap-1 text-xs font-medium tabular-nums shrink-0",
+                  "col-start-2 row-start-3 flex shrink-0 items-center justify-end gap-1 text-xs font-medium tabular-nums sm:col-start-5 sm:row-start-1",
                   waitSeverity === "critical" ? "text-destructive" : waitSeverity === "warning" ? "text-warning" : "text-muted-foreground"
                 )}>
                   <Clock className="h-3.5 w-3.5" />
                   <span>{intake.sla_deadline ? calculateSlaCountdown(intake.sla_deadline) : calculateWaitTime(intake.created_at)}</span>
                 </div>
                 {waitSeverity === "critical" && (
-                  <AlertTriangle className="h-3.5 w-3.5 text-destructive shrink-0" aria-label="Critical" />
+                  <AlertTriangle className="col-start-2 row-start-3 h-3.5 w-3.5 shrink-0 justify-self-end text-destructive sm:col-start-5 sm:row-start-1" aria-label="Critical" />
                 )}
               </div>
             )
@@ -332,17 +372,29 @@ export function QueueTable({
 
       {/* AI-Approved Review Section - above pagination so doctors always see it */}
       {aiApprovedIntakes.length > 0 && (
-        <Card className="border-teal-200/50 dark:border-teal-500/20">
-          <CardHeader className="pb-3">
-            <div className="flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-teal-600 dark:text-teal-400" />
-              <h3 className="text-sm font-semibold text-foreground">
-                AI-Approved Certificates ({aiApprovedIntakes.length})
-              </h3>
-            </div>
-            <p className="text-xs text-muted-foreground">AI-reviewed. Please verify and revoke if needed.</p>
+        <Card className="overflow-hidden rounded-xl border-teal-200/60 bg-card/90 shadow-sm shadow-primary/[0.025] dark:border-teal-500/20">
+          <CardHeader className="p-0">
+            <button
+              type="button"
+              className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/35"
+              onClick={() => setAiExpanded((v) => !v)}
+              aria-expanded={aiExpanded}
+            >
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-teal-600 dark:text-teal-400" />
+                  <h3 className="text-sm font-semibold text-foreground">
+                    AI-approved certificates ({aiApprovedIntakes.length})
+                  </h3>
+                </div>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  Batch review queue. Expand when spot-checking or revoking.
+                </p>
+              </div>
+              <ChevronDown className={cn("h-4 w-4 shrink-0 text-muted-foreground transition-transform", aiExpanded && "rotate-180")} />
+            </button>
           </CardHeader>
-          <CardContent className="pt-0 space-y-2">
+          {aiExpanded && <CardContent className="space-y-1.5 border-t border-border/40 px-3 py-3">
             {aiApprovedIntakes.map((intake) => {
               const aiService = intake.service as { short_name?: string; type?: string } | undefined
               return (
@@ -351,7 +403,7 @@ export function QueueTable({
                   role="button"
                   tabIndex={0}
                   aria-label={`Review AI-approved case for ${intake.patient.full_name}`}
-                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 p-3 rounded-lg border border-border/40 bg-muted/30 hover:bg-muted/60 transition-colors cursor-pointer"
+                  className="flex cursor-pointer flex-col justify-between gap-2 rounded-lg border border-border/40 bg-muted/20 p-2.5 transition-colors hover:bg-muted/45 sm:flex-row sm:items-center sm:gap-3"
                   onMouseEnter={() => prefetchReviewData(intake.id)}
                   onClick={() => openReviewPanel(intake.id)}
                   onKeyDown={(e) => {
@@ -437,16 +489,16 @@ export function QueueTable({
                 </div>
               )
             })}
-          </CardContent>
+          </CardContent>}
         </Card>
       )}
 
       {/* Recently Completed Today */}
       {recentlyCompleted.length > 0 && (
-        <Card className="border-border/50">
-          <CardHeader className="pb-3">
+        <Card className="overflow-hidden rounded-xl border-border/50 bg-card/90 shadow-none">
+          <CardHeader className="p-0">
             <button
-              className="flex items-center justify-between w-full text-left"
+              className="flex w-full items-center justify-between px-4 py-3 text-left transition-colors hover:bg-muted/35"
               onClick={() => setCompletedExpanded((v) => !v)}
               aria-expanded={completedExpanded}
             >
@@ -460,7 +512,7 @@ export function QueueTable({
             </button>
           </CardHeader>
           {completedExpanded && (
-          <CardContent className="pt-0 space-y-1.5">
+          <CardContent className="space-y-1.5 border-t border-border/40 px-3 py-3">
             {recentlyCompleted.slice(0, 5).map((intake) => {
               const svc = intake.service as { short_name?: string; type?: string } | undefined
               return (
@@ -469,7 +521,7 @@ export function QueueTable({
                   role="button"
                   tabIndex={0}
                   aria-label={`View completed case for ${intake.patient.full_name}`}
-                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 p-2.5 rounded-lg border border-border/40 bg-muted/30 hover:bg-muted/60 transition-colors cursor-pointer"
+                  className="flex cursor-pointer flex-col justify-between gap-2 rounded-lg border border-border/40 bg-muted/20 p-2.5 transition-colors hover:bg-muted/45 sm:flex-row sm:items-center sm:gap-3"
                   onClick={() => router.push(`/doctor/intakes/${intake.id}`)}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" || e.key === " ") {
@@ -512,7 +564,7 @@ export function QueueTable({
 
       {/* Pagination */}
       {pagination && totalPages > 1 && (
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-2 py-5 px-2 border-t">
+        <div className="flex flex-col items-center justify-between gap-2 border-t px-2 py-4 sm:flex-row">
           <div className="text-sm text-muted-foreground">
             {(currentPage - 1) * pagination.pageSize + 1} –{" "}
             {Math.min(currentPage * pagination.pageSize, pagination.total)} of {pagination.total}

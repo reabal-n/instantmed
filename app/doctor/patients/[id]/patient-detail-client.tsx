@@ -2,6 +2,7 @@
 
 import {
   Activity,
+  AlertTriangle,
   ArrowLeft,
   Calendar,
   CheckCircle,
@@ -29,7 +30,8 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
 import { INTAKE_STATUS, type IntakeStatus } from "@/lib/data/status"
-import { calculateAge,formatDate, formatDateLong, formatDateTime } from "@/lib/format"
+import { buildPatientSnapshot } from "@/lib/doctor/patient-snapshot"
+import { formatDate, formatDateLong, formatDateTime } from "@/lib/format"
 import { formatIntakeStatus } from "@/lib/format/intake"
 import type { Profile } from "@/types/db"
 
@@ -97,7 +99,7 @@ export function PatientDetailClient({ patient, intakes, stats, emailLogs, patien
     })
   }
 
-  const age = calculateAge(patient.date_of_birth)
+  const snapshot = buildPatientSnapshot(patient)
 
   const getStatusColor = (status: string) => {
     return INTAKE_STATUS[status as IntakeStatus]?.color ?? "bg-muted text-muted-foreground"
@@ -129,45 +131,47 @@ export function PatientDetailClient({ patient, intakes, stats, emailLogs, patien
       {/* Patient Profile Card */}
       <Card className="rounded-xl border-border/50">
         <CardHeader className="py-3 px-4">
-          <CardTitle className="flex items-center gap-2 text-base">
+          <CardTitle className="flex flex-wrap items-center gap-2 text-base">
             <User className="h-4 w-4" />
             Patient Profile
+            <Badge
+              variant={snapshot.completenessTone === "complete" ? "success" : snapshot.completenessTone === "partial" ? "warning" : "destructive"}
+              size="sm"
+            >
+              {snapshot.completenessTone === "complete" ? "Details complete" : snapshot.completenessLabel}
+            </Badge>
           </CardTitle>
         </CardHeader>
         <CardContent className="px-4 py-3">
+          {snapshot.missingCriticalFields.length > 0 && (
+            <div className="mb-4 rounded-lg border border-warning-border bg-warning-light px-3 py-2 text-sm text-warning">
+              <div className="flex items-start gap-2">
+                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                <span>{snapshot.completenessLabel}. Check the active intake before relying on this profile.</span>
+              </div>
+            </div>
+          )}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Left column - Basic info */}
             <div className="space-y-4">
               <div>
-                <h2 className="text-2xl font-semibold">{patient.full_name}</h2>
-                {age !== null && (
-                  <p className="text-muted-foreground">{age} years old</p>
-                )}
+                <h2 className="text-2xl font-semibold">{snapshot.name}</h2>
+                <p className="text-muted-foreground">{snapshot.ageDobLabel}</p>
               </div>
 
               <div className="space-y-3">
-                {patient.email && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <Mail className="h-4 w-4 text-muted-foreground" />
-                    <span>{patient.email}</span>
-                  </div>
-                )}
-                {patient.phone && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <Phone className="h-4 w-4 text-muted-foreground" />
-                    <span>{patient.phone}</span>
-                  </div>
-                )}
-                {(patient.suburb || patient.state) && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <MapPin className="h-4 w-4 text-muted-foreground" />
-                    <span>
-                      {[patient.address_line1, patient.suburb, patient.state, patient.postcode]
-                        .filter(Boolean)
-                        .join(", ")}
-                    </span>
-                  </div>
-                )}
+                <div className="flex items-center gap-2 text-sm">
+                  <Mail className="h-4 w-4 text-muted-foreground" />
+                  <span>{snapshot.email.label}</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <Phone className="h-4 w-4 text-muted-foreground" />
+                  <span>{snapshot.phone.label}</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <MapPin className="h-4 w-4 text-muted-foreground" />
+                  <span>{snapshot.address.label}</span>
+                </div>
               </div>
             </div>
 
@@ -182,7 +186,7 @@ export function PatientDetailClient({ patient, intakes, stats, emailLogs, patien
                   <p className="font-medium">
                     {patient.date_of_birth
                       ? formatDateLong(patient.date_of_birth)
-                      : "Not provided"}
+                      : "DOB not collected"}
                   </p>
                 </div>
                 <div className="p-3 bg-muted/50 rounded-lg">
@@ -191,9 +195,7 @@ export function PatientDetailClient({ patient, intakes, stats, emailLogs, patien
                     Medicare
                   </div>
                   <p className="font-medium font-mono">
-                    {patient.medicare_number
-                      ? `****${patient.medicare_number.slice(-4)}`
-                      : "Not provided"}
+                    {snapshot.medicare.present ? snapshot.medicare.label : "Medicare not collected"}
                   </p>
                 </div>
               </div>

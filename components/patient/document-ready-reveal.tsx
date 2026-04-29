@@ -20,7 +20,7 @@ interface DocumentReadyRevealProps {
  * a patient lands on the page within 90s of approval.
  *
  * Phase 3 additions:
- *   - Spring entrance with one ring pulse (per DESIGN_SYSTEM.md §12 success
+ *   - Spring entrance with one ring pulse (per DESIGN.md §12 success
  *     spring spec).
  *   - Confetti Lottie overlay on the patient's first-ever document only,
  *     gated by localStorage so subsequent docs don't get the celebratory
@@ -128,7 +128,7 @@ export function DocumentReadyReveal({ intakeId, approvedAt, children }: Document
             exit={{ opacity: 0 }}
           >
             <motion.div
-              // portal-shim:allow — sanctioned shimmer sweep per DESIGN_SYSTEM.md §12
+              // portal-shim:allow — sanctioned shimmer sweep per DESIGN.md §12
               className="absolute inset-y-0 -left-1/3 w-1/3 bg-linear-to-r from-transparent via-white/50 to-transparent dark:via-white/15"
               initial={{ x: 0 }}
               animate={{ x: "400%" }}

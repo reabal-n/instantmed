@@ -442,7 +442,7 @@ export function QueueClient({
         </div>
       )}
 
-      <div className="sticky top-0 z-10 bg-background -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 pb-4 shadow-[inset_0_-1px_0_0_hsl(var(--border)/0.4)]">
+      <div className="-mx-4 bg-background px-4 pb-3 pt-1 sm:-mx-6 sm:px-6 lg:sticky lg:top-0 lg:z-10 lg:-mx-8 lg:px-8 lg:shadow-[inset_0_-1px_0_0_hsl(var(--border)/0.4)]">
         <QueueFilters
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}

@@ -25,6 +25,13 @@ import {
   parchmentSsoResponseSchema,
   parchmentTokenResponseSchema,
   type ParchmentUser,
+  type PatientPrescriptionsResponse,
+  patientPrescriptionsResponseSchema,
+  type UpdatePatientRequest,
+  type UpdatePatientResponse,
+  updatePatientResponseSchema,
+  type ValidateIntegrationResponse,
+  validateIntegrationResponseSchema,
 } from "./types"
 
 const log = createLogger("parchment")
@@ -121,6 +128,56 @@ export function clearTokenCache(userId?: string): void {
 }
 
 // ============================================================================
+// INTEGRATION VALIDATION
+// ============================================================================
+
+/**
+ * Validate the current organization integration with a token generated for the
+ * logged-in Parchment user. Parchment uses this call during conformance to
+ * confirm the /token + /validate setup is wired correctly.
+ */
+export async function validateIntegration(
+  userId: string,
+): Promise<ValidateIntegrationResponse["data"] & { message?: string; requestId?: string }> {
+  const config = getConfig()
+  const token = await getToken(userId, [
+    PARCHMENT_SCOPES.CREATE_PATIENT,
+    PARCHMENT_SCOPES.READ_PATIENT,
+  ])
+
+  const res = await fetch(`${config.apiUrl}/v1/organizations/${config.organizationId}/validate`, {
+    method: "GET",
+    headers: {
+      "Authorization": `Bearer ${token}`,
+      "x-organization-secret": config.organizationSecret,
+    },
+  })
+
+  if (!res.ok) {
+    const body = await res.text().catch(() => "")
+    const err = new Error(`Parchment integration validation failed: ${res.status} ${body}`)
+    log.error("Integration validation failed", { status: res.status, userId }, err)
+    Sentry.captureException(err, { extra: { status: res.status, body } })
+    throw err
+  }
+
+  const json = await res.json()
+  const parsed = validateIntegrationResponseSchema.parse(json)
+
+  log.info("Integration validated", {
+    userId,
+    validated: parsed.data.validated,
+    requestId: parsed.requestId,
+  })
+
+  return {
+    ...parsed.data,
+    message: parsed.message,
+    requestId: parsed.requestId,
+  }
+}
+
+// ============================================================================
 // PATIENTS
 // ============================================================================
 
@@ -168,6 +225,112 @@ export async function createPatient(
   })
 
   return parsed.data
+}
+
+/**
+ * Update an existing patient in Parchment.
+ * Uses the prescriber's user_id in the URL path as required by the API.
+ */
+export async function updatePatient(
+  userId: string,
+  patientId: string,
+  patient: UpdatePatientRequest,
+): Promise<UpdatePatientResponse["data"] & { requestId?: string }> {
+  const config = getConfig()
+  const token = await getToken(userId, [
+    PARCHMENT_SCOPES.UPDATE_PATIENT,
+    PARCHMENT_SCOPES.READ_PATIENT,
+  ])
+
+  const url = `${config.apiUrl}/v1/organizations/${config.organizationId}/users/${userId}/patients/${patientId}`
+
+  const res = await fetch(url, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`,
+      "x-organization-secret": config.organizationSecret,
+    },
+    body: JSON.stringify(patient),
+  })
+
+  if (!res.ok) {
+    if (res.status === 401) clearTokenCache(userId)
+    const body = await res.text().catch(() => "")
+    const err = new Error(`Parchment update patient failed: ${res.status} ${body}`)
+    log.error("Update patient failed", { status: res.status, patientId }, err)
+    Sentry.captureException(err, { extra: { status: res.status, body, patientId } })
+    throw err
+  }
+
+  const json = await res.json()
+  const parsed = updatePatientResponseSchema.parse(json)
+
+  log.info("Patient updated in Parchment", {
+    parchmentPatientId: patientId,
+    requestId: parsed.requestId,
+  })
+
+  return {
+    ...parsed.data,
+    requestId: parsed.requestId,
+  }
+}
+
+// ============================================================================
+// PRESCRIPTIONS
+// ============================================================================
+
+export async function getPatientPrescriptions({
+  userId,
+  patientId,
+  limit = 20,
+  lastKey,
+}: {
+  userId: string
+  patientId: string
+  limit?: number
+  lastKey?: string | null
+}): Promise<PatientPrescriptionsResponse["data"] & { pagination?: PatientPrescriptionsResponse["pagination"]; requestId?: string }> {
+  const config = getConfig()
+  const token = await getToken(userId, [PARCHMENT_SCOPES.READ_PATIENT_PRESCRIPTION])
+  const params = new URLSearchParams({ limit: String(Math.min(Math.max(limit, 1), 50)) })
+  if (lastKey) params.set("lastKey", lastKey)
+
+  const url = `${config.apiUrl}/v1/organizations/${config.organizationId}/users/${userId}/patients/${patientId}/prescriptions?${params.toString()}`
+
+  const res = await fetch(url, {
+    method: "GET",
+    headers: {
+      "Authorization": `Bearer ${token}`,
+      "x-organization-secret": config.organizationSecret,
+    },
+  })
+
+  if (!res.ok) {
+    if (res.status === 401) clearTokenCache(userId)
+    const body = await res.text().catch(() => "")
+    const err = new Error(`Parchment get patient prescriptions failed: ${res.status} ${body}`)
+    log.error("Get patient prescriptions failed", { status: res.status, patientId }, err)
+    Sentry.captureException(err, { extra: { status: res.status, body, patientId } })
+    throw err
+  }
+
+  const json = await res.json()
+  const parsed = patientPrescriptionsResponseSchema.parse(json)
+
+  log.info("Patient prescriptions retrieved from Parchment", {
+    userId,
+    patientId,
+    count: parsed.data.prescriptions.length,
+    requestId: parsed.requestId,
+  })
+
+  return {
+    ...parsed.data,
+    pagination: parsed.pagination,
+    requestId: parsed.requestId,
+  }
 }
 
 // ============================================================================

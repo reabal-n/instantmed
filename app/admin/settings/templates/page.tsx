@@ -10,6 +10,8 @@ export const metadata = {
   description: "Configure medical certificate templates",
 }
 
+export const dynamic = "force-dynamic"
+
 async function TemplateStudioLoader() {
   const result = await loadTemplateStudioData()
 

@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation"
+import { notFound, redirect } from "next/navigation"
 
 import { getAIDraftsForIntake } from "@/app/actions/drafts/draft-retrieval"
 import { getPendingDateCorrection } from "@/app/actions/request-date-correction"
@@ -29,8 +29,9 @@ export default async function DoctorIntakeDetailPage({
   const { id } = await params
   const { action } = await searchParams
 
-  // Layout enforces doctor/admin role - use cached profile
-  const { profile } = (await getAuthenticatedUserWithProfile())!
+  const auth = await getAuthenticatedUserWithProfile()
+  if (!auth) redirect(`/sign-in?next=/doctor/intakes/${id}`)
+  const { profile } = auth
 
   const intake = await getIntakeWithDetails(id)
 

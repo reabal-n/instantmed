@@ -151,9 +151,9 @@ export async function YesterdayWidget({
   ]
 
   return (
-    <Card className="rounded-xl border-border/50 bg-card">
-      <CardContent className="p-6">
-        <div className="flex items-center justify-between mb-5">
+    <Card className="rounded-xl border-border/60 bg-card shadow-sm shadow-primary/[0.03]">
+      <CardContent className="p-4">
+        <div className="mb-4 flex items-center justify-between">
           <div>
             <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">
               {windowLabel}
@@ -177,11 +177,11 @@ export async function YesterdayWidget({
           </div>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        <div className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-border/40 bg-border/40 sm:grid-cols-3 lg:grid-cols-6">
           {cells.map(({ icon: Icon, label, value, tone = "default" }) => (
             <div
               key={label}
-              className="flex flex-col gap-1 p-3 rounded-lg bg-card border border-border/40"
+              className="flex min-h-[74px] flex-col justify-center gap-1 bg-card px-3 py-2.5"
             >
               <div className="flex items-center gap-1.5 text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
                 <Icon className="h-3 w-3" aria-hidden="true" />

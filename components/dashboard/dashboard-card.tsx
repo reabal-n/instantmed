@@ -5,7 +5,7 @@ import { forwardRef, type HTMLAttributes, type ReactNode } from "react"
 import { cn } from "@/lib/utils"
 
 /**
- * Card tiers from docs/DESIGN_SYSTEM.md §5 (solid depth, dub.co pattern).
+ * Card tiers from DESIGN.md §5 (solid depth, dub.co pattern).
  *
  * - standard:    most common surface. Sky-toned shadow at 4% alpha.
  * - elevated:    feature cards, pricing, status panels. Sky-toned shadow at 6%, lifts on hover when interactive.

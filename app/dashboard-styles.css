@@ -10,7 +10,7 @@
  * glass-forward" tokens and decorative effects (cursor spotlight,
  * inset-glow stat cards, neon glow badges, violet radial backgrounds,
  * frosted-glass surfaces) that contradicted the Morning Canvas
- * design system (`docs/DESIGN_SYSTEM.md` §5: "Solid depth, NOT
+ * design system (`DESIGN.md` §5: "Solid depth, NOT
  * frosted glass"; §1: no neon accents). Phase 1 of the portal
  * rebuild (2026-04-29, design system v2.0.0) reduced it to this
  * thin compatibility shim that keeps the legacy class names
@@ -32,7 +32,7 @@
 
 /* ================================
    PORTAL CARD SHIM
-   Canonical solid-depth (docs/DESIGN_SYSTEM.md §5).
+   Canonical solid-depth (DESIGN.md §5).
    Sky-toned shadow at 4% alpha, never black.
    ================================ */
 

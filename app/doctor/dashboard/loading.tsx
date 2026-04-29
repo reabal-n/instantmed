@@ -12,19 +12,19 @@ export default function DoctorLoading() {
       {/* Page header skeleton */}
       <Skeleton className="h-8 w-36" />
 
-      {/* IntakeMonitor skeleton - single Card with 4-cell stat grid inside */}
+      {/* IntakeMonitor skeleton - single surface with 4 separated stat cells */}
       <div className="rounded-xl border border-border/50 bg-card animate-pulse">
         {/* CardHeader */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border/40">
+        <div className="flex items-center justify-between border-b border-border/40 px-4 py-3">
           <Skeleton className="h-5 w-28" animated={false} />
-          <Skeleton className="h-8 w-8 rounded-md" animated={false} />
+          <Skeleton className="h-6 w-20 rounded-md" animated={false} />
         </div>
         {/* CardContent */}
-        <div className="px-6 py-4 space-y-4">
+        <div className="space-y-3 px-4 py-3">
           {/* 4-cell stat grid: grid-cols-2 sm:grid-cols-4 */}
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-border/40 bg-border/40 sm:grid-cols-4">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="space-y-2">
+              <div key={i} className="space-y-2 bg-card px-3 py-3">
                 <Skeleton className="h-3 w-14" animated={false} />
                 <Skeleton className="h-7 w-10" animated={false} />
               </div>

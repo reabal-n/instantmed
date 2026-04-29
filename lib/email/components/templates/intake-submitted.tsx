@@ -14,8 +14,8 @@ import {
   DetailRow,
   Heading,
   List,
-  StatusBanner,
   NameFirstGreeting,
+  StatusBanner,
   Text,
 } from "../base-email"
 

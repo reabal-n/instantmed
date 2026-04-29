@@ -16,7 +16,7 @@ export interface StatusBadgeProps {
 }
 
 /**
- * Canonical status-pill palette from `docs/DESIGN_SYSTEM.md` §10. Replaces
+ * Canonical status-pill palette from `DESIGN.md` §10. Replaces
  * the legacy `glow-badge-*` neon `box-shadow` glows from
  * `app/dashboard-styles.css` (which violated the §1 ban on neon accents
  * and the design-system §1 "no glow on UI surfaces" rule).

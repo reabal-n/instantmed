@@ -6,7 +6,7 @@ import { getPatientIntakes } from "@/lib/data/intakes"
 import { IntakesClient } from "./intakes-client"
 
 export const metadata: Metadata = {
-  title: "My Requests",
+  title: "My requests",
   description: "View and manage all your medical requests.",
 }
 

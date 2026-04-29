@@ -6,7 +6,7 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { DocumentsClient } from "./documents-client"
 
 export const metadata: Metadata = {
-  title: "My Documents",
+  title: "My documents",
   description: "View and download your medical certificates and receipts.",
 }
 

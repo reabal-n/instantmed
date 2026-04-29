@@ -37,10 +37,7 @@ export async function getAuditLogs(
 
   let query = supabase
     .from("audit_logs")
-    .select(`
-      *,
-      actor:profiles!actor_id (full_name, email)
-    `, { count: "exact" })
+    .select("*", { count: "exact" })
     .order("created_at", { ascending: false })
 
   // Apply filters
@@ -78,8 +75,38 @@ export async function getAuditLogs(
     return { data: [], total: 0 }
   }
 
+  const rows = (data || []) as AuditLog[]
+  const actorIds = [
+    ...new Set(rows.map((row) => row.actor_id).filter((id): id is string => Boolean(id))),
+  ]
+
+  if (actorIds.length === 0) {
+    return {
+      data: rows,
+      total: count || 0,
+    }
+  }
+
+  const { data: actors } = await supabase
+    .from("profiles")
+    .select("id, full_name, email")
+    .in("id", actorIds)
+
+  const actorById = new Map(
+    (actors || []).map((actor) => [
+      actor.id as string,
+      {
+        full_name: (actor.full_name as string | null) || "Unknown",
+        email: (actor.email as string | null) || "",
+      },
+    ]),
+  )
+
   return {
-    data: data as AuditLog[],
+    data: rows.map((row) => ({
+      ...row,
+      actor: row.actor_id ? actorById.get(row.actor_id) : undefined,
+    })),
     total: count || 0,
   }
 }
@@ -92,10 +119,7 @@ export async function getAuditLogsForIntake(intakeId: string): Promise<AuditLog[
 
   const { data, error } = await supabase
     .from("audit_logs")
-    .select(`
-      *,
-      actor:profiles!actor_id (full_name, email)
-    `)
+    .select("*")
     .eq("intake_id", intakeId)
     .order("created_at", { ascending: true })
 

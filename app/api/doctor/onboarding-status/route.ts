@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { userId } = authResult
+    const { profile: authProfile } = authResult
 
     const supabase = createServiceRoleClient()
     const { data: profile, error } = await supabase
@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
         signature_storage_path,
         onboarding_completed
       `)
-      .eq("auth_user_id", userId)
+      .eq("id", authProfile.id)
       .single()
 
     if (error || !profile) {

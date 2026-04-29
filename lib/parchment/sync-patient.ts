@@ -14,10 +14,12 @@ import { createLogger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import type { AustralianState } from "@/types/db"
 
-import { createPatient } from "./client"
-import type { CreatePatientRequest } from "./types"
+import { createPatient, updatePatient } from "./client"
+import type { CreatePatientRequest, UpdatePatientRequest } from "./types"
 
 const log = createLogger("parchment-sync")
+
+type PatientProfile = NonNullable<Awaited<ReturnType<typeof getProfileById>>>
 
 /** Throws - used as a never-returning expression in object literals where IIFE syntax fails */
 function throwMissingDob(profileId: string): never {
@@ -29,6 +31,28 @@ function mapState(state: AustralianState | string | null): string | undefined {
   if (!state) return undefined
   // Parchment uses the same AU state abbreviations
   return state.toUpperCase()
+}
+
+function normalizePhone(phone: string | null): string | undefined {
+  if (!phone) return undefined
+  const normalized = phone.replace(/[\s()-]/g, "")
+  return normalized || undefined
+}
+
+function normalizeDigits(value: string | number | null | undefined): string | undefined {
+  if (value === null || value === undefined) return undefined
+  const normalized = String(value).replace(/\s/g, "")
+  return normalized || undefined
+}
+
+function mapSex(rawSex: unknown): "M" | "F" | "N" | "I" {
+  if (!rawSex) return "N"
+  const value = String(rawSex).trim().toLowerCase()
+  if (["m", "male"].includes(value)) return "M"
+  if (["f", "female"].includes(value)) return "F"
+  if (["i", "indeterminate", "intersex"].includes(value)) return "I"
+  if (["n", "not_stated", "not stated", "prefer_not_to_say", "prefer not to say"].includes(value)) return "N"
+  return "N"
 }
 
 /**
@@ -88,10 +112,89 @@ function parseStreetAddress(addressLine1: string | null): {
   return { street_name: trimmed }
 }
 
+function buildCompleteAddress(profile: PatientProfile) {
+  const parsed = parseStreetAddress(profile.address_line1)
+  const suburb = profile.suburb?.trim()
+  const state = mapState(profile.state)
+  const postcode = profile.postcode?.trim()
+
+  if (!parsed.street_number || !parsed.street_name || !suburb || !state || !postcode) {
+    return undefined
+  }
+
+  return {
+    street_number: parsed.street_number,
+    street_name: parsed.street_name,
+    suburb,
+    state,
+    postcode,
+  }
+}
+
+function splitFullName(fullName: string): { givenName: string; familyName: string } {
+  const nameParts = fullName.trim().split(/\s+/).filter(Boolean)
+  return {
+    givenName: nameParts[0] || "Unknown",
+    familyName: nameParts.length > 1 ? nameParts.slice(1).join(" ") : "Unknown",
+  }
+}
+
+function resolveParchmentSex(
+  profile: PatientProfile,
+  intakeAnswers?: Record<string, unknown>,
+): "M" | "F" | "N" | "I" {
+  return mapSex(profile.sex || intakeAnswers?.sex || intakeAnswers?.gender)
+}
+
+function buildCreatePatientRequest(
+  profile: PatientProfile,
+  patientProfileId: string,
+  intakeAnswers?: Record<string, unknown>,
+): CreatePatientRequest {
+  const { givenName, familyName } = splitFullName(profile.full_name)
+  const address = buildCompleteAddress(profile)
+
+  return {
+    family_name: familyName,
+    given_name: givenName,
+    date_of_birth: profile.date_of_birth ?? throwMissingDob(patientProfileId),
+    sex: resolveParchmentSex(profile, intakeAnswers),
+    partner_patient_id: patientProfileId, // Our profile.id - used for webhook matching
+    ...(profile.email ? { email: profile.email } : {}),
+    ...(normalizePhone(profile.phone) ? { phone: normalizePhone(profile.phone) } : {}),
+    ...(normalizeDigits(profile.medicare_number) ? { medicare_card_number: normalizeDigits(profile.medicare_number) } : {}),
+    ...(normalizeDigits(profile.medicare_irn) ? { medicare_irn: normalizeDigits(profile.medicare_irn) } : {}),
+    ...(profile.medicare_expiry ? { medicare_valid_to: profile.medicare_expiry } : {}),
+    ...(address ? { australian_street_address: address } : {}),
+  }
+}
+
+function buildUpdatePatientRequest(
+  profile: PatientProfile,
+  intakeAnswers?: Record<string, unknown>,
+): UpdatePatientRequest {
+  const { givenName, familyName } = splitFullName(profile.full_name)
+  const address = buildCompleteAddress(profile)
+
+  return {
+    family_name: familyName,
+    given_name: givenName,
+    ...(profile.date_of_birth ? { date_of_birth: profile.date_of_birth } : {}),
+    sex: resolveParchmentSex(profile, intakeAnswers),
+    ...(profile.email ? { email: profile.email } : {}),
+    ...(normalizePhone(profile.phone) ? { phone: normalizePhone(profile.phone) } : {}),
+    ...(normalizeDigits(profile.medicare_number) ? { medicare_card_number: normalizeDigits(profile.medicare_number) } : {}),
+    ...(normalizeDigits(profile.medicare_irn) ? { medicare_irn: normalizeDigits(profile.medicare_irn) } : {}),
+    ...(profile.medicare_expiry ? { medicare_valid_to: profile.medicare_expiry } : {}),
+    ...(address ? { australian_address: address } : {}),
+  }
+}
+
 /**
  * Ensure a patient exists in Parchment. Returns the parchment_patient_id.
  *
- * - If the patient already has a `parchment_patient_id`, returns it immediately.
+ * - If the patient already has a `parchment_patient_id`, refreshes the
+ *   demographics/contact details in Parchment, then returns it.
  * - Otherwise, creates the patient via the Parchment API using the prescriber's user_id,
  *   saves the returned ID on the profile, and returns it.
  *
@@ -106,71 +209,58 @@ export async function syncPatientToParchment(
 ): Promise<string> {
   const supabase = createServiceRoleClient()
 
-  // Check if already synced (fast path)
+  // Check if already synced.
   const { data: existing } = await supabase
     .from("profiles")
     .select("parchment_patient_id")
     .eq("id", patientProfileId)
     .single()
 
-  if (existing?.parchment_patient_id) {
-    log.info("Patient already synced to Parchment", {
-      patientProfileId,
-      parchmentPatientId: existing.parchment_patient_id,
-    })
-    return existing.parchment_patient_id
-  }
-
-  // Fetch full profile for Parchment patient creation
   const profile = await getProfileById(patientProfileId)
   if (!profile) {
     throw new Error(`Patient profile not found: ${patientProfileId}`)
   }
 
-  // Split full_name into given/family names
-  const nameParts = profile.full_name.trim().split(/\s+/)
-  const givenName = nameParts[0] || "Unknown"
-  const familyName = nameParts.length > 1 ? nameParts.slice(1).join(" ") : "Unknown"
-
-  // Map sex from profile (M/F/N/I) - fall back to intake answers, then "N" (not stated)
-  const sexFromProfile = profile.sex
-  const sexFromAnswers = intakeAnswers?.sex as string | undefined
-  const rawSex = sexFromProfile || sexFromAnswers
-  const parchmentSex = (rawSex && ["M", "F", "N", "I"].includes(rawSex))
-    ? rawSex as "M" | "F" | "N" | "I"
-    : "N"
-
-  // If we got sex from answers but it's missing from profile, save it
-  if (!sexFromProfile && sexFromAnswers && ["M", "F", "N", "I"].includes(sexFromAnswers)) {
+  const sexFromAnswers = mapSex(intakeAnswers?.sex || intakeAnswers?.gender)
+  if (!profile.sex && sexFromAnswers !== "N") {
     await supabase
       .from("profiles")
       .update({ sex: sexFromAnswers, updated_at: new Date().toISOString() })
       .eq("id", patientProfileId)
   }
 
-  // Build Parchment patient request
-  const patientData: CreatePatientRequest = {
-    family_name: familyName,
-    given_name: givenName,
-    date_of_birth: profile.date_of_birth ?? throwMissingDob(patientProfileId),
-    sex: parchmentSex,
-    partner_patient_id: patientProfileId, // Our profile.id - used for webhook matching
-    // Optional fields
-    ...(profile.email ? { email: profile.email } : {}),
-    ...(profile.phone ? { phone: profile.phone } : {}),
-    ...(profile.medicare_number ? { medicare_card_number: profile.medicare_number } : {}),
-    ...(profile.medicare_irn ? { medicare_irn: String(profile.medicare_irn) } : {}),
-    ...(profile.medicare_expiry ? { medicare_valid_to: profile.medicare_expiry } : {}),
-    // Address - Parchment requires street_number + street_name as separate fields
-    ...((profile.address_line1 || profile.suburb) ? {
-      australian_street_address: {
-        ...parseStreetAddress(profile.address_line1),
-        suburb: profile.suburb || undefined,
-        state: mapState(profile.state),
-        postcode: profile.postcode || undefined,
-      },
-    } : {}),
+  if (existing?.parchment_patient_id) {
+    try {
+      await updatePatient(
+        prescriberParchmentUserId,
+        existing.parchment_patient_id,
+        buildUpdatePatientRequest(profile, intakeAnswers),
+      )
+    } catch (error) {
+      // Do not block prescribing if Parchment's demographic/HSD validation is
+      // temporarily unavailable. The doctor will still land on the existing
+      // Parchment patient and can verify details before prescribing.
+      log.warn("Patient refresh in Parchment failed; continuing with existing record", {
+        patientProfileId,
+        parchmentPatientId: existing.parchment_patient_id,
+      })
+      Sentry.captureException(error, {
+        extra: {
+          patientProfileId,
+          parchmentPatientId: existing.parchment_patient_id,
+          context: "parchment_patient_refresh",
+        },
+      })
+    }
+
+    log.info("Patient already synced to Parchment; using existing record", {
+      patientProfileId,
+      parchmentPatientId: existing.parchment_patient_id,
+    })
+    return existing.parchment_patient_id
   }
+
+  const patientData = buildCreatePatientRequest(profile, patientProfileId, intakeAnswers)
 
   try {
     const result = await createPatient(prescriberParchmentUserId, patientData)

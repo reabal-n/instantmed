@@ -78,8 +78,8 @@ export function QueueFilters({
             </span>
           )}
         </div>
-        <div className="flex items-center gap-2">
-          <div className="relative flex items-center">
+        <div className="flex w-full items-center gap-2 sm:w-auto">
+          <div className="relative flex flex-1 items-center sm:flex-none">
             <Input
               ref={searchRef}
               placeholder="Search… or / to focus"
@@ -146,7 +146,7 @@ export function QueueFilters({
       </div>
 
       {/* Status Filter Tabs */}
-      <div className="flex flex-wrap gap-1 p-1 bg-muted/50 rounded-lg w-fit">
+      <div className="flex w-full gap-1 overflow-x-auto rounded-lg bg-muted/50 p-1 sm:w-fit sm:flex-wrap">
         {([
           { key: "all", label: "All" },
           { key: "review", label: "Needs Review" },

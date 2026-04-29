@@ -157,7 +157,7 @@ export const serviceCategories = [
     benefitQuestion: "Noticed your hairline changing?",
     description: "Doctor-led assessment for hair loss concerns. Private form-first review.",
     icon: "Sparkles",
-    color: "amber", // was "violet" — fixed per DESIGN_SYSTEM.md §1 prohibition + audit C1/C2
+    color: "amber", // was "violet" — fixed per DESIGN.md §1 prohibition + audit C1/C2
     priceFrom: 49.95,
     href: "/hair-loss",
     popular: false,

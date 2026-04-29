@@ -3,7 +3,7 @@ import { type ElementType, forwardRef, type HTMLAttributes, type ReactNode } fro
 import { cn } from "@/lib/utils"
 
 /**
- * Canonical typography scale. Pinned against docs/DESIGN_SYSTEM.md §2.
+ * Canonical typography scale. Pinned against DESIGN.md §2.
  *
  * - display → hero headlines (48px @ sm+, scales to 60px on lg for premium impact)
  * - h1 → page titles
@@ -18,7 +18,7 @@ import { cn } from "@/lib/utils"
 export type HeadingLevel = "display" | "h1" | "h2" | "h3"
 
 const levelStyles: Record<HeadingLevel, string> = {
-  // 36 → 48 → 60. Matches docs/DESIGN_SYSTEM.md §2 (display = 48px) and steps
+  // 36 → 48 → 60. Matches DESIGN.md §2 (display = 48px) and steps
   // up to 60px on lg for premium hero impact.
   display:
     "text-4xl sm:text-5xl lg:text-6xl font-light tracking-[-0.03em] leading-[1.05]",

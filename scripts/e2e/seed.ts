@@ -51,16 +51,21 @@ export const E2E_RUN_ID = process.env.E2E_RUN_ID || "e2e-test-run-001"
 // Deterministic IDs for test data (allows idempotent seeding)
 // These use a fixed prefix to ensure consistent lookups across runs
 export const OPERATOR_PROFILE_ID = "e2e00000-0000-0000-0000-000000000001"
-export const OPERATOR_AUTH_USER_ID = "e2e00000-auth-0000-0000-000000000001"
+// These IDs are used by the local E2E auth cookie as profile IDs.
+// Do not write them to profiles.auth_user_id; that column references auth.users.
+export const OPERATOR_AUTH_USER_ID = OPERATOR_PROFILE_ID
 export const DOCTOR_PROFILE_ID = "e2e00000-0000-0000-0000-000000000003"
-export const DOCTOR_AUTH_USER_ID = "e2e00000-auth-0000-0000-000000000003"
+export const DOCTOR_AUTH_USER_ID = DOCTOR_PROFILE_ID
 export const PATIENT_PROFILE_ID = "e2e00000-0000-0000-0000-000000000002"
-export const PATIENT_AUTH_USER_ID = "e2e00000-auth-0000-0000-000000000002"
+export const PATIENT_AUTH_USER_ID = PATIENT_PROFILE_ID
 export const INTAKE_ID = "e2e00000-0000-0000-0000-000000000010"
 export const SERVICE_ID = "e2e00000-0000-0000-0000-000000000020"
 export const CLINIC_IDENTITY_ID = "e2e00000-0000-0000-0000-000000000030"
 export const DRAFT_ID = "e2e00000-0000-0000-0000-000000000040"
 export const TEMPLATE_ID = "e2e00000-0000-0000-0000-000000000051"
+
+const TERMINAL_INTAKE_STATUSES = new Set(["approved", "completed", "declined", "cancelled"])
+const E2E_CLINICAL_NOTE = "E2E baseline clinical note. Patient history reviewed. Medical certificate request requires doctor review before approval."
 
 // Valid template config that matches TypeScript types
 const E2E_TEMPLATE_CONFIG = {
@@ -111,7 +116,7 @@ async function seedOperatorProfile() {
     .from("profiles")
     .upsert({
       id: OPERATOR_PROFILE_ID,
-      auth_user_id: OPERATOR_AUTH_USER_ID,
+      auth_user_id: null,
       email: "e2e-operator@test.instantmed.com.au",
       full_name: "Dr. E2E Operator",
       date_of_birth: "1980-01-15",
@@ -162,7 +167,7 @@ async function seedDoctorProfile() {
     .from("profiles")
     .upsert({
       id: DOCTOR_PROFILE_ID,
-      auth_user_id: DOCTOR_AUTH_USER_ID,
+      auth_user_id: null,
       email: "e2e-doctor@test.instantmed.com.au",
       full_name: "Dr. E2E Doctor",
       date_of_birth: "1985-03-20",
@@ -200,20 +205,38 @@ async function seedPatientProfile() {
   // Check if already exists
   const { data: existing } = await supabase
     .from("profiles")
-    .select("id, auth_user_id, email, full_name, date_of_birth, role, onboarding_completed, email_verified, email_verified_at, address_line1, suburb, state, postcode, phone, created_at, updated_at")
+    .select("id, auth_user_id, email, full_name, date_of_birth, role, onboarding_completed, email_verified, email_verified_at, address_line1, suburb, state, postcode, phone, medicare_number, medicare_irn, medicare_expiry, created_at, updated_at")
     .eq("id", PATIENT_PROFILE_ID)
     .single()
 
   if (existing) {
     console.log("   ↳ Reusing existing patient profile")
-    return existing
+    const { data: updated } = await supabase
+      .from("profiles")
+      .update({
+        date_of_birth: "1990-06-20",
+        phone: "0498765432",
+        address_line1: "456 Patient Street",
+        suburb: "Melbourne",
+        state: "VIC",
+        postcode: "3000",
+        medicare_number: "2123456701",
+        medicare_irn: 1,
+        medicare_expiry: "2028-12-01",
+        onboarding_completed: true,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", PATIENT_PROFILE_ID)
+      .select()
+      .single()
+    return updated || existing
   }
   
   const { data, error } = await supabase
     .from("profiles")
     .upsert({
       id: PATIENT_PROFILE_ID,
-      auth_user_id: PATIENT_AUTH_USER_ID,
+      auth_user_id: null,
       email: "e2e-patient@test.instantmed.com.au",
       full_name: "E2E Test Patient",
       date_of_birth: "1990-06-20",
@@ -226,6 +249,9 @@ async function seedPatientProfile() {
       state: "VIC",
       postcode: "3000",
       phone: "0498765432",
+      medicare_number: "2123456701",
+      medicare_irn: 1,
+      medicare_expiry: "2028-12-01",
     }, { onConflict: "id" })
     .select()
     .single()
@@ -428,6 +454,16 @@ async function seedCertificateTemplate() {
 
 async function seedPaidIntake(serviceId: string) {
   console.log("🔧 Seeding paid med_certs intake...")
+
+  const cleanupExistingIntake = async () => {
+    await supabase.from("issued_certificates").delete().eq("intake_id", INTAKE_ID)
+    await supabase.from("intake_documents").delete().eq("intake_id", INTAKE_ID)
+    await supabase.from("document_drafts").delete().eq("intake_id", INTAKE_ID)
+    await supabase.from("document_drafts").delete().eq("request_id", INTAKE_ID)
+    await supabase.from("intake_answers").delete().eq("intake_id", INTAKE_ID)
+    await supabase.from("intake_events").delete().eq("intake_id", INTAKE_ID)
+    await supabase.from("intakes").delete().eq("id", INTAKE_ID)
+  }
   
   // Check if already exists
   const { data: existing } = await supabase
@@ -437,22 +473,53 @@ async function seedPaidIntake(serviceId: string) {
     .single()
 
   if (existing) {
+    if (TERMINAL_INTAKE_STATUSES.has(existing.status)) {
+      console.log(`   ↳ Existing intake is terminal (${existing.status}); recreating`)
+      await cleanupExistingIntake()
+    } else {
     // Reset to paid status for test reuse
-    if (existing.status !== "paid") {
-      console.log("   ↳ Resetting intake status to 'paid'")
-      await supabase
+      if (existing.status !== "paid") {
+        console.log("   ↳ Resetting intake status to 'paid'")
+        const { error } = await supabase
+          .from("intakes")
+          .update({ 
+            status: "paid", 
+            payment_status: "paid",
+            claimed_by: null, 
+            claimed_at: null,
+            decision: null,
+            decline_reason: null,
+            decline_reason_code: null,
+            decline_reason_note: null,
+            decided_at: null,
+            reviewed_by: null,
+            reviewed_at: null,
+            doctor_notes: E2E_CLINICAL_NOTE,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", INTAKE_ID)
+
+        if (error) {
+          console.log("   ↳ Reset failed; recreating intake:", error.message)
+          await cleanupExistingIntake()
+        } else {
+          return { ...existing, status: "paid", payment_status: "paid", claimed_by: null, claimed_at: null }
+        }
+      } else {
+        console.log("   ↳ Reusing existing intake (already paid)")
+        const { error } = await supabase
         .from("intakes")
         .update({ 
-          status: "paid", 
           claimed_by: null, 
           claimed_at: null,
+          doctor_notes: E2E_CLINICAL_NOTE,
           updated_at: new Date().toISOString(),
         })
         .eq("id", INTAKE_ID)
-    } else {
-      console.log("   ↳ Reusing existing intake (already paid)")
+        if (error) console.log("   ⚠️ Could not clear claim:", error.message)
+        return existing
+      }
     }
-    return existing
   }
   
   const referenceNumber = `E2E-${Date.now().toString(36).toUpperCase()}`
@@ -501,6 +568,7 @@ async function seedPaidIntake(serviceId: string) {
       payment_status: "paid",
       payment_id: `pi_e2e_${randomUUID().slice(0, 8)}`,
       paid_at: new Date().toISOString(),
+      doctor_notes: E2E_CLINICAL_NOTE,
       updated_at: new Date().toISOString(),
     })
     .eq("id", INTAKE_ID)
@@ -530,6 +598,18 @@ async function seedDocumentDraft() {
     console.log("   ↳ Reusing existing document draft")
     return existing
   }
+
+  const { data: existingForIntake } = await supabase
+    .from("document_drafts")
+    .select("id, intake_id, status, created_at, updated_at")
+    .eq("intake_id", INTAKE_ID)
+    .eq("type", "med_cert")
+    .maybeSingle()
+
+  if (existingForIntake) {
+    console.log("   ↳ Reusing existing med_cert document draft")
+    return existingForIntake
+  }
   
   // Document drafts are optional for E2E tests - the doctor can create them
   // Try to seed but don't fail if schema doesn't match
@@ -539,7 +619,16 @@ async function seedDocumentDraft() {
       .insert({
         id: DRAFT_ID,
         intake_id: INTAKE_ID,
-        status: "draft",
+        request_id: INTAKE_ID,
+        type: "med_cert",
+        subtype: "work",
+        data: {
+          patient_name: "E2E Test Patient",
+          reason: "E2E seed validation draft",
+        },
+        content: {},
+        is_ai_generated: false,
+        status: "pending",
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       })
@@ -663,12 +752,13 @@ async function validateSeededData(): Promise<ValidationResult[]> {
     .select(`
       id, 
       status, 
-      service:services!inner(service_type)
+      service:services!inner(type)
     `)
     .eq("id", INTAKE_ID)
     .single()
 
-  const serviceType = (intake?.service as { service_type?: string })?.service_type
+  const service = Array.isArray(intake?.service) ? intake?.service[0] : intake?.service
+  const serviceType = (service as { type?: string } | undefined)?.type
 
   results.push({
     name: "Intake exists with status=paid",
@@ -686,8 +776,10 @@ async function validateSeededData(): Promise<ValidationResult[]> {
   const { data: draft } = await supabase
     .from("document_drafts")
     .select("id, intake_id")
-    .eq("id", DRAFT_ID)
-    .single()
+    .eq("intake_id", INTAKE_ID)
+    .eq("type", "med_cert")
+    .limit(1)
+    .maybeSingle()
 
   results.push({
     name: "Document draft exists for intake",
@@ -722,21 +814,21 @@ function printSeedSummary() {
   console.log(`
 ┌─ Operator User (admin+doctor) ─────────────────────────────
 │  Profile ID:    ${OPERATOR_PROFILE_ID}
-│  Auth User ID:  ${OPERATOR_AUTH_USER_ID}
+│  E2E Cookie ID: ${OPERATOR_AUTH_USER_ID}
 │  Role:          admin (has doctor access)
 │  Provider #:    1234567A
 │  AHPRA #:       MED0001234567
 │
 ├─ Doctor User (doctor only, NOT admin) ─────────────────────
 │  Profile ID:    ${DOCTOR_PROFILE_ID}
-│  Auth User ID:  ${DOCTOR_AUTH_USER_ID}
+│  E2E Cookie ID: ${DOCTOR_AUTH_USER_ID}
 │  Role:          doctor (no admin access)
 │  Provider #:    7654321B
 │  AHPRA #:       MED0007654321
 │
 ├─ Patient User ──────────────────────────────────────────────
 │  Profile ID:    ${PATIENT_PROFILE_ID}
-│  Auth User ID:  ${PATIENT_AUTH_USER_ID}
+│  E2E Cookie ID: ${PATIENT_AUTH_USER_ID}
 │  Role:          patient
 │
 ├─ Paid Intake ───────────────────────────────────────────────

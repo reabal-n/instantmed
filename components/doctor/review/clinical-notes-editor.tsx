@@ -112,7 +112,7 @@ export function ClinicalNotesEditor() {
           <>
             {isAiPrefilled && (
               <p className="text-xs text-muted-foreground">
-                AI draft — auto-saves as you type.
+                Draft loaded. Save or approve to persist it.
               </p>
             )}
 

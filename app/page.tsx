@@ -9,9 +9,9 @@ import { FAQSchema, MedicalBusinessSchema, SpeakableSchema } from '@/components/
 import { HashScrollHandler } from '@/components/shared/hash-scroll-handler'
 import { Navbar } from '@/components/shared/navbar'
 import { ReturningPatientBanner } from '@/components/shared/returning-patient-banner'
+import { getWaitState } from '@/lib/brand/wait-counter'
 import { PRICING_DISPLAY } from '@/lib/constants'
 import { getFeatureFlags } from '@/lib/feature-flags'
-import { getWaitState } from '@/lib/brand/wait-counter'
 import { faqItems } from '@/lib/marketing/homepage'
 import { ICONIC_HOOK, PROP_PHRASE, TAGLINE, WEDGE } from '@/lib/marketing/voice'
 

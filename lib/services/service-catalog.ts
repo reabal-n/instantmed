@@ -11,7 +11,7 @@
  * Adding/changing a service? Update this file, not the consumers.
  *
  * See: docs/plans/2026-04-20-design-system-95-sprint.md (Task 1.2)
- * See: docs/DESIGN_SYSTEM.md §1 (colour tokens), §7 (service icon tiles)
+ * See: DESIGN.md §1 (colour tokens), §7 (service icon tiles)
  */
 import { PRICING_DISPLAY } from "@/lib/constants"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
@@ -38,7 +38,7 @@ export type ServiceIconKey =
   | "Flame"
 
 // Canonical colour token. Maps into serviceColorConfig.
-// Hair loss uses 'amber' per DESIGN_SYSTEM.md §1 (--service-hair: #F59E0B).
+// Hair loss uses 'amber' per DESIGN.md §1 (--service-hair: #F59E0B).
 // NOTE: legacy `violet` token is preserved only for opt-in uses (none today).
 export type ServiceColorToken =
   | "emerald"  // medical certificates

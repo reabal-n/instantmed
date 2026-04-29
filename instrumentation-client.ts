@@ -41,8 +41,8 @@ function getClientSentryRelease(): string | undefined {
 const sentryDsn = process.env.NEXT_PUBLIC_SENTRY_DSN
 const sentryEnvironment = getClientSentryEnvironment()
 const sentryRelease = getClientSentryRelease()
-const sentryEnabled = sentryEnvironment === "production" || sentryEnvironment === "preview" || sentryEnvironment === "e2e"
 const isPlaywrightMode = sentryEnvironment === "e2e"
+const sentryEnabled = !isPlaywrightMode && (sentryEnvironment === "production" || sentryEnvironment === "preview")
 
 if (!sentryDsn && sentryEnabled) {
   // eslint-disable-next-line no-console
@@ -140,7 +140,7 @@ onFirstInteraction(() => loadAndInitSentry());
 
 // PostHog Analytics initialization (single source of truth - do not duplicate in provider)
 // Dynamic import to avoid module-level crash when posthog-js can't initialize
-if (process.env.NEXT_PUBLIC_POSTHOG_KEY) {
+if (!isPlaywrightMode && process.env.NEXT_PUBLIC_POSTHOG_KEY) {
   const posthogKey = process.env.NEXT_PUBLIC_POSTHOG_KEY;
   onFirstInteraction(() => {
   import("posthog-js").then(({ default: posthog }) => {

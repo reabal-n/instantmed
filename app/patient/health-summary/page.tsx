@@ -6,7 +6,7 @@ import { getPatientHealthSummary } from "@/lib/data/health-summary"
 import { HealthSummaryClient } from "./client"
 
 export const metadata: Metadata = {
-  title: "Health Summary",
+  title: "Health summary",
   description: "View your complete health history and medical records on InstantMed.",
 }
 

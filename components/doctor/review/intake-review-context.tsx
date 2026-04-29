@@ -3,7 +3,7 @@
 import { createContext, type RefObject,useContext } from "react"
 
 import type { AIDraft } from "@/app/actions/draft-approval"
-import type { DeclineReasonCode,IntakeStatus, IntakeWithDetails } from "@/types/db"
+import type { DeclineReasonCode,IntakeStatus, IntakeWithDetails, IntakeWithPatient } from "@/types/db"
 
 export interface ReviewData {
   intake: IntakeWithDetails
@@ -11,6 +11,8 @@ export interface ReviewData {
   maskedMedicare: string
   aiDrafts: AIDraft[]
   nextIntakeId: string | null
+  previousIntakes?: IntakeWithPatient[]
+  previousIntakeCount?: number
   draftId: string | null
   certificate?: {
     id: string
@@ -55,6 +57,8 @@ export interface IntakeReviewContextValue {
   handleDecline: () => Promise<void>
   handleSaveNotes: () => Promise<void>
   handleGenerateOrRegenerateNote: () => Promise<void>
+  handleOpenParchmentPrescribe: () => void
+  handleApproveAndOpenParchment: () => Promise<void>
 
   // Decline dialog
   showDeclineDialog: boolean

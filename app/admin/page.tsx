@@ -1,8 +1,10 @@
+import { redirect } from "next/navigation"
 import { Suspense } from "react"
 
 import { AdminDashboardClient } from "@/app/admin/admin-dashboard-client"
 import { AdminHubZones } from "@/components/admin/admin-hub-zones"
 import { YesterdayWidget } from "@/components/admin/yesterday-widget"
+import { DashboardPageHeader } from "@/components/dashboard"
 import { Card, CardContent } from "@/components/ui/card"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
 import { getAllIntakesForAdmin, getDoctorDashboardStats } from "@/lib/data/intakes"
@@ -15,7 +17,8 @@ export default async function AdminPage({
 }: {
   searchParams?: Promise<{ window?: string }>
 }) {
-  const { profile } = (await getAuthenticatedUserWithProfile())!
+  const auth = await getAuthenticatedUserWithProfile()
+  if (!auth) redirect("/sign-in?next=/admin")
   const params = (await searchParams) ?? {}
   const digestWindow = params.window === "today" ? "today" : "yesterday"
 
@@ -32,7 +35,13 @@ export default async function AdminPage({
     : { total: 0, in_queue: 0, approved: 0, declined: 0, pending_info: 0, scripts_pending: 0 }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
+      <DashboardPageHeader
+        title="Admin Dashboard"
+        description="Operational control for intakes, patients, finance, and exception handling."
+        className="mb-0"
+      />
+
       {/* Mirrors the 8am AEST digest email — so the admin view is never
           out of sync with the inbox summary. Streamed via Suspense so the
           rest of the dashboard paints before Stripe/Supabase complete. */}
@@ -56,7 +65,6 @@ export default async function AdminPage({
           allIntakes={intakesResult.data || []}
           totalIntakes={intakesResult.total || 0}
           stats={stats}
-          doctorName={profile.full_name}
         />
       </div>
     </div>

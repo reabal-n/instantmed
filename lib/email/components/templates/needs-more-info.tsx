@@ -8,8 +8,8 @@ import {
   BaseEmail,
   Box,
   Button,
-  StatusBanner,
   NameFirstGreeting,
+  StatusBanner,
   Text,
 } from "../base-email"
 

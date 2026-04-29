@@ -56,7 +56,7 @@ export function DocumentsClient({ documents, error }: DocumentsClientProps) {
   return (
       <div className="space-y-4">
           <DashboardPageHeader
-            title="My Documents"
+            title="My documents"
             description={`${totalDocs} document${totalDocs !== 1 ? "s" : ""} available`}
           />
 

@@ -17,6 +17,28 @@ import { waitForPageLoad } from "./helpers/test-utils"
 
 const SEEDED_PATIENT_NAME = "E2E Test Patient"
 
+async function openSeededReviewPanel(page: import("@playwright/test").Page) {
+  await resetIntakeForRetest(INTAKE_ID)
+
+  await page.goto("/doctor/dashboard")
+  await waitForPageLoad(page)
+
+  await expect(
+    page.getByRole("heading", { name: /review queue/i })
+  ).toBeVisible({ timeout: 15000 })
+
+  const patientRow = page.getByRole("button", { name: new RegExp(`Open case for ${SEEDED_PATIENT_NAME}`, "i") })
+  await expect(patientRow).toBeVisible({ timeout: 15000 })
+  await patientRow.click()
+
+  const panel = page.getByRole("dialog")
+  await expect(panel).toBeVisible({ timeout: 10000 })
+  await expect(panel.getByRole("heading", { name: SEEDED_PATIENT_NAME })).toBeVisible({ timeout: 15000 })
+  await expect(panel.getByText(/patient profile/i)).toBeVisible()
+  await expect(panel.getByText(/full case/i)).toBeVisible()
+  return panel
+}
+
 test.describe("Doctor Review Panel", () => {
   test.beforeEach(async ({ page }) => {
     const result = await loginAsOperator(page)
@@ -30,69 +52,19 @@ test.describe("Doctor Review Panel", () => {
   test("review case link opens slide-over panel with patient info", async ({ page }) => {
     test.skip(!isDbAvailable(), "DB credentials required")
 
-    await resetIntakeForRetest(INTAKE_ID)
-
-    await page.goto("/doctor/dashboard")
-    await waitForPageLoad(page)
-
-    await expect(
-      page.getByRole("heading", { name: /review queue/i })
-    ).toBeVisible({ timeout: 15000 })
-
-    // Find and click the seeded patient row to expand
-    const patientRow = page.getByText(SEEDED_PATIENT_NAME).first()
-    await expect(patientRow).toBeVisible({ timeout: 10000 })
-    await patientRow.click()
-    await page.waitForTimeout(500)
-
-    // Click "Review case" link to open panel
-    const reviewLink = page.getByText("Review case").first()
-    if (!(await reviewLink.isVisible({ timeout: 5000 }).catch(() => false))) {
-      test.skip(true, "Review case link not visible after expanding card")
-      return
-    }
-    await reviewLink.click()
-
-    // Panel should open as a dialog/sheet
-    const panel = page.getByRole("dialog")
-    await expect(panel).toBeVisible({ timeout: 10000 })
+    const panel = await openSeededReviewPanel(page)
 
     // Panel should show patient name
-    await expect(panel.getByText(SEEDED_PATIENT_NAME)).toBeVisible({ timeout: 5000 })
+    await expect(panel.getByRole("heading", { name: SEEDED_PATIENT_NAME })).toBeVisible()
 
-    // Panel should show a status badge
-    const statusBadge = panel.locator('[class*="badge"], [class*="Badge"]').first()
-    const hasBadge = await statusBadge.isVisible().catch(() => false)
-    expect(hasBadge).toBe(true)
+    // Panel should show current workflow status
+    await expect(panel.getByText(/in queue/i).first()).toBeVisible()
   })
 
   test("panel close button dismisses the panel", async ({ page }) => {
     test.skip(!isDbAvailable(), "DB credentials required")
 
-    await resetIntakeForRetest(INTAKE_ID)
-
-    await page.goto("/doctor/dashboard")
-    await waitForPageLoad(page)
-
-    await expect(
-      page.getByRole("heading", { name: /review queue/i })
-    ).toBeVisible({ timeout: 15000 })
-
-    // Expand and open panel
-    const patientRow = page.getByText(SEEDED_PATIENT_NAME).first()
-    await expect(patientRow).toBeVisible({ timeout: 10000 })
-    await patientRow.click()
-    await page.waitForTimeout(500)
-
-    const reviewLink = page.getByText("Review case").first()
-    if (!(await reviewLink.isVisible({ timeout: 5000 }).catch(() => false))) {
-      test.skip(true, "Review case link not visible")
-      return
-    }
-    await reviewLink.click()
-
-    const panel = page.getByRole("dialog")
-    await expect(panel).toBeVisible({ timeout: 10000 })
+    const panel = await openSeededReviewPanel(page)
 
     // Click close button (X icon with aria-label)
     const closeButton = panel.getByRole("button", { name: /close/i }).first()
@@ -108,70 +80,49 @@ test.describe("Doctor Review Panel", () => {
   test("panel shows clinical notes editor", async ({ page }) => {
     test.skip(!isDbAvailable(), "DB credentials required")
 
-    await resetIntakeForRetest(INTAKE_ID)
-
-    await page.goto("/doctor/dashboard")
-    await waitForPageLoad(page)
-
-    await expect(
-      page.getByRole("heading", { name: /review queue/i })
-    ).toBeVisible({ timeout: 15000 })
-
-    // Expand and open panel
-    const patientRow = page.getByText(SEEDED_PATIENT_NAME).first()
-    await expect(patientRow).toBeVisible({ timeout: 10000 })
-    await patientRow.click()
-    await page.waitForTimeout(500)
-
-    const reviewLink = page.getByText("Review case").first()
-    if (!(await reviewLink.isVisible({ timeout: 5000 }).catch(() => false))) {
-      test.skip(true, "Review case link not visible")
-      return
-    }
-    await reviewLink.click()
-
-    const panel = page.getByRole("dialog")
-    await expect(panel).toBeVisible({ timeout: 10000 })
+    const panel = await openSeededReviewPanel(page)
 
     // Should have a textarea or notes area for clinical notes
     const notesArea = panel.locator("textarea").first()
+    await notesArea.scrollIntoViewIfNeeded()
     const hasNotes = await notesArea.isVisible({ timeout: 5000 }).catch(() => false)
 
-    // Also check for the "Open full page" link
-    const fullPageLink = panel.getByText(/open full page/i)
+    // Also check for the "Full case" link
+    const fullPageLink = panel.getByText(/full case/i)
     const hasFullPageLink = await fullPageLink.isVisible().catch(() => false)
 
     // At least one of these should be present in the panel
     expect(hasNotes || hasFullPageLink).toBe(true)
   })
 
+  test("panel shows clinical summary, recommended plan, and draft note", async ({ page }) => {
+    test.skip(!isDbAvailable(), "DB credentials required")
+
+    const panel = await openSeededReviewPanel(page)
+
+    await expect(panel.getByText(/patient story/i)).toBeVisible({ timeout: 10000 })
+    await expect(panel.getByText(/recommended plan/i)).toBeVisible()
+    await expect(panel.getByText(/draft note/i)).toBeVisible()
+    await expect(panel.getByText(/full answers/i)).toBeVisible()
+  })
+
+  test("panel exposes patient snapshot, profile navigation, and identifier completeness", async ({ page }) => {
+    test.skip(!isDbAvailable(), "DB credentials required")
+
+    const panel = await openSeededReviewPanel(page)
+
+    await expect(panel.getByText(/patient snapshot/i)).toBeVisible()
+    await expect(panel.getByText(/details complete/i).first()).toBeVisible()
+    await expect(panel.getByText(/2123456701/i)).toBeVisible()
+
+    const profileLink = panel.getByRole("link", { name: /patient profile/i })
+    await expect(profileLink).toHaveAttribute("href", "/doctor/patients/e2e00000-0000-0000-0000-000000000002")
+  })
+
   test("escape key dismisses the panel", async ({ page }) => {
     test.skip(!isDbAvailable(), "DB credentials required")
 
-    await resetIntakeForRetest(INTAKE_ID)
-
-    await page.goto("/doctor/dashboard")
-    await waitForPageLoad(page)
-
-    await expect(
-      page.getByRole("heading", { name: /review queue/i })
-    ).toBeVisible({ timeout: 15000 })
-
-    // Expand and open panel
-    const patientRow = page.getByText(SEEDED_PATIENT_NAME).first()
-    await expect(patientRow).toBeVisible({ timeout: 10000 })
-    await patientRow.click()
-    await page.waitForTimeout(500)
-
-    const reviewLink = page.getByText("Review case").first()
-    if (!(await reviewLink.isVisible({ timeout: 5000 }).catch(() => false))) {
-      test.skip(true, "Review case link not visible")
-      return
-    }
-    await reviewLink.click()
-
-    const panel = page.getByRole("dialog")
-    await expect(panel).toBeVisible({ timeout: 10000 })
+    const panel = await openSeededReviewPanel(page)
 
     // Press Escape
     await page.keyboard.press("Escape")

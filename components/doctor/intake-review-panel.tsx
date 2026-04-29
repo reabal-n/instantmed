@@ -1,6 +1,6 @@
 "use client"
 
-import { ExternalLink, FileText,Loader2, RefreshCw } from "lucide-react"
+import { ArrowDown, ArrowUp, ExternalLink, FileText,Loader2, RefreshCw, User } from "lucide-react"
 import Link from "next/link"
 import { useCallback,useEffect, useRef, useState } from "react"
 
@@ -137,7 +137,8 @@ export function IntakeReviewPanel({ intakeId, onActionComplete, onNextCase, onPr
   // Pre-fill clinical notes when data first loads.
   // setInitialNotes(notes, dbNotes) sets the baseline so auto-save only fires
   // for content that differs from what's already in the DB.
-  // AI drafts pass dbNotes="" so auto-save persists them after 2.5 s.
+  // AI drafts use themselves as the baseline so they are visible but not
+  // persisted until the doctor edits, saves, or approves.
   useEffect(() => {
     if (!data) return
     const existingNotes = data.intake.doctor_notes || ""
@@ -146,8 +147,7 @@ export function IntakeReviewPanel({ intakeId, onActionComplete, onNextCase, onPr
       const clinicalDraft = findClinicalNoteDraft(data.aiDrafts)
       if (clinicalDraft) {
         const formatted = formatClinicalNoteContent(clinicalDraft.content)
-        // dbNotes="" → auto-save will persist the draft after 2.5 s inactivity
-        actions.setInitialNotes(formatted || "", "")
+        actions.setInitialNotes(formatted || "", formatted || "")
       } else {
         actions.setInitialNotes("", "")
         // Auto-generate AI draft if none exists and case is reviewable (only once per panel open)
@@ -187,7 +187,7 @@ export function IntakeReviewPanel({ intakeId, onActionComplete, onNextCase, onPr
     return (
       <SheetPanel
         title="Loading case..."
-        width={720}
+        width={860}
         onClose={handlePanelClose}
       >
         <div className="space-y-5">
@@ -203,7 +203,7 @@ export function IntakeReviewPanel({ intakeId, onActionComplete, onNextCase, onPr
   // Error state
   if (error || !intake) {
     return (
-      <SheetPanel title="Error" width={720} onClose={handlePanelClose}>
+      <SheetPanel title="Error" width={860} onClose={handlePanelClose}>
         <div className="text-center py-12">
           <p className="text-destructive font-medium">{error || "Intake not found"}</p>
           <Button variant="outline" className="mt-4" onClick={closePanel}>
@@ -240,6 +240,8 @@ export function IntakeReviewPanel({ intakeId, onActionComplete, onNextCase, onPr
     handleDecline: actions.handleDecline,
     handleSaveNotes: actions.handleSaveNotes,
     handleGenerateOrRegenerateNote: actions.handleGenerateOrRegenerateNote,
+    handleOpenParchmentPrescribe: actions.handleOpenParchmentPrescribe,
+    handleApproveAndOpenParchment: actions.handleApproveAndOpenParchment,
     showDeclineDialog: actions.showDeclineDialog,
     setShowDeclineDialog: actions.setShowDeclineDialog,
     declineReason: actions.declineReason,
@@ -260,24 +262,57 @@ export function IntakeReviewPanel({ intakeId, onActionComplete, onNextCase, onPr
           formatIntakeStatus(intake.status),
           caseIndex != null && totalCases != null ? `Case ${caseIndex + 1} of ${totalCases}` : null,
         ].filter(Boolean).join(" · ")}
-        width={720}
+        width={860}
         onClose={handlePanelClose}
       >
         <IntakeReviewProvider value={contextValue}>
           <div className="space-y-5">
-            {/* Top bar: status + open full page */}
-            <div className="flex items-center justify-between">
-              <Badge className={getStatusColor(intake.status)}>
-                {formatIntakeStatus(intake.status)}
-              </Badge>
-              <Link
-                href={`/doctor/intakes/${intake.id}`}
-                className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                onClick={() => closePanel()}
-              >
-                <ExternalLink className="h-3 w-3" />
-                Open full page
-              </Link>
+            {/* Top bar: status, case navigation, and profile links */}
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge className={getStatusColor(intake.status)}>
+                  {formatIntakeStatus(intake.status)}
+                </Badge>
+                {caseIndex != null && totalCases != null && (
+                  <Badge variant="outline" size="sm">Case {caseIndex + 1} of {totalCases}</Badge>
+                )}
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                {(onPrevCase || onNextCase) && (
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="outline"
+                      size="icon-sm"
+                      aria-label="Previous case"
+                      disabled={!onPrevCase || caseIndex === 0}
+                      onClick={onPrevCase}
+                    >
+                      <ArrowUp className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="icon-sm"
+                      aria-label="Next case"
+                      disabled={!onNextCase || (caseIndex != null && totalCases != null && caseIndex >= totalCases - 1)}
+                      onClick={onNextCase}
+                    >
+                      <ArrowDown className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                )}
+                <Button asChild variant="outline" size="sm">
+                  <Link href={`/doctor/patients/${intake.patient.id}`} onClick={() => closePanel()}>
+                    <User className="h-3.5 w-3.5" />
+                    Patient profile
+                  </Link>
+                </Button>
+                <Button asChild variant="ghost" size="sm">
+                  <Link href={`/doctor/intakes/${intake.id}`} onClick={() => closePanel()}>
+                    <ExternalLink className="h-3.5 w-3.5" />
+                    Full case
+                  </Link>
+                </Button>
+              </div>
             </div>
 
             {/* Lock warning */}

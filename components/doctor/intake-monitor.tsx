@@ -60,7 +60,7 @@ function StatCell({ label, value, icon: Icon, variant = "default" }: {
   }
 
   return (
-    <div className="flex flex-col gap-1.5 p-3 rounded-xl bg-card border border-border/50 shadow-sm" aria-label={`${label}: ${value}`}>
+    <div className="flex min-h-[72px] flex-col justify-center gap-1.5 bg-card px-3 py-2.5" aria-label={`${label}: ${value}`}>
       <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider">
         <Icon className="h-3.5 w-3.5" />
         {label}
@@ -75,8 +75,13 @@ function StatCell({ label, value, icon: Icon, variant = "default" }: {
 export function IntakeMonitor({ initialStats, refreshInterval = 30000 }: IntakeMonitorProps) {
   const [stats, setStats] = useState<IntakeMonitorStats>(initialStats)
   const [isRefreshing, setIsRefreshing] = useState(false)
-  const [lastUpdated, setLastUpdated] = useState<Date>(new Date())
+  const [lastUpdated, setLastUpdated] = useState<string | null>(null)
   const [showDetails, setShowDetails] = useState(false)
+
+  const formatLastUpdated = useCallback(
+    () => new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+    [],
+  )
 
   const fetchStats = useCallback(async () => {
     try {
@@ -85,14 +90,18 @@ export function IntakeMonitor({ initialStats, refreshInterval = 30000 }: IntakeM
       if (response.ok) {
         const data = await response.json()
         setStats(data)
-        setLastUpdated(new Date())
+        setLastUpdated(formatLastUpdated())
       }
     } catch {
       // Silently fail - keep showing last known stats
     } finally {
       setIsRefreshing(false)
     }
-  }, [])
+  }, [formatLastUpdated])
+
+  useEffect(() => {
+    setLastUpdated(formatLastUpdated())
+  }, [formatLastUpdated])
 
   useEffect(() => {
     const interval = setInterval(fetchStats, refreshInterval)
@@ -120,8 +129,8 @@ export function IntakeMonitor({ initialStats, refreshInterval = 30000 }: IntakeM
         : "default"
 
   return (
-    <Card className="border-border rounded-xl">
-      <CardHeader className="pb-3">
+    <Card className="rounded-xl border-border/60 shadow-sm shadow-primary/[0.03]">
+      <CardHeader className="border-b border-border/40 px-4 py-3">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-sm font-medium text-foreground">
             <Activity className="h-4 w-4 text-primary" />
@@ -129,7 +138,7 @@ export function IntakeMonitor({ initialStats, refreshInterval = 30000 }: IntakeM
           </CardTitle>
           <div className="flex items-center gap-2">
             <span className="text-xs text-muted-foreground tabular-nums">
-              {lastUpdated.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+              {lastUpdated ?? "--:--"}
             </span>
             <Button
               variant="ghost"
@@ -144,9 +153,9 @@ export function IntakeMonitor({ initialStats, refreshInterval = 30000 }: IntakeM
           </div>
         </div>
       </CardHeader>
-      <CardContent className="space-y-4 pb-4">
+      <CardContent className="space-y-3 px-4 py-3">
         {/* Primary Metrics */}
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <div className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-border/40 bg-border/40 sm:grid-cols-4">
           <StatCell
             label="Today"
             value={stats.todaySubmissions}
@@ -177,7 +186,7 @@ export function IntakeMonitor({ initialStats, refreshInterval = 30000 }: IntakeM
             stats grid and can't be missed. Phase 2 doctor portal rebuild. */}
 
         {/* Secondary Row — collapsed by default */}
-        <div className="pt-2 border-t border-border/40">
+        <div className="border-t border-border/40 pt-2">
           <button
             onClick={() => setShowDetails((v) => !v)}
             className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors w-full"

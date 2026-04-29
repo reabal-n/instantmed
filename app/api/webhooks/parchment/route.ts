@@ -161,7 +161,7 @@ export async function POST(request: Request) {
     }
 
     if (!patientProfileId) {
-      log.error("Patient not found for webhook", { patientId: patient_id, partnerPatientId: partner_patient_id })
+      log.warn("Patient not found for webhook", { patientId: patient_id, partnerPatientId: partner_patient_id })
       // Return 200 to prevent retries - patient genuinely doesn't exist in our system
       return NextResponse.json({ received: true, warning: "Patient not found" })
     }

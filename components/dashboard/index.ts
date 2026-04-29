@@ -2,7 +2,7 @@
  * Dashboard Component Library
  *
  * Canonical Morning Canvas portal primitives. Solid depth, sky-toned shadows,
- * no glass / glow / spotlight. See `docs/DESIGN_SYSTEM.md` §5 + §10 + §12.
+ * no glass / glow / spotlight. See `DESIGN.md` §5 + §10 + §12.
  *
  * Migration from the legacy 21st.dev stack (Phase 1, design system v2.0.0):
  *   GlassStatCard → StatCard

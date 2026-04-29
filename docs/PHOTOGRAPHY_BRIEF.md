@@ -8,7 +8,7 @@ Stock-style imagery currently caps the visual at ~9.0 on every page that uses it
 
 ## Brand context (read this before generating)
 
-- **Brand essence:** "Clarity emerging." Calm authority. Morning light. Good judgment. Read more in `docs/DESIGN_SYSTEM.md`.
+- **Brand essence:** "Clarity emerging." Calm authority. Morning light. Good judgment. Read more in `DESIGN.md`.
 - **Voice:** Calm, experienced GP explaining their service. Dry wit. Never stiff, never slangy.
 - **Anti-patterns to AVOID:**
   - Crypto / SaaS / wellness influencer aesthetic
@@ -82,7 +82,7 @@ Each shot should be deliverable in two crops: **16:9 (1920×1080)** for hero/ban
 
 ## Color & light direction
 
-- **Palette:** Morning Canvas (warm ivory, soft sky blue, dawn peach, champagne) per `docs/DESIGN_SYSTEM.md` §1
+- **Palette:** Morning Canvas (warm ivory, soft sky blue, dawn peach, champagne) per `DESIGN.md` §1
 - **Color temperature:** 5200K–5800K. Warm but not orange.
 - **Avoid:** Green-tinted fluorescent, cold blue mid-day, golden-hour saturation
 - **Whites:** Should read as warm-white not cool-white. Pure white = wrong era of photography.

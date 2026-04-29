@@ -24,9 +24,10 @@ import { defineConfig, devices } from "@playwright/test"
  * @see https://playwright.dev/docs/test-configuration
  */
 
-// Fixed port for E2E - ensures no conflict with dev server
-const E2E_PORT = 3001
-const E2E_BASE_URL = `http://localhost:${E2E_PORT}`
+// Fixed by default, overridable locally when another dev server owns 3001.
+const E2E_PORT = Number(process.env.PLAYWRIGHT_PORT || process.env.E2E_PORT || 3001)
+const E2E_BASE_URL = process.env.PLAYWRIGHT_BASE_URL || `http://localhost:${E2E_PORT}`
+process.env.PLAYWRIGHT_BASE_URL = E2E_BASE_URL
 
 export default defineConfig({
   testDir: "./e2e",

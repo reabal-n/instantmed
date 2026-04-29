@@ -123,7 +123,7 @@ echo ""
 if [[ $errors -gt 0 ]]; then
   echo "✖ $errors design token violation(s) found."
   echo ""
-  echo "See docs/DESIGN_SYSTEM.md for canonical patterns."
+  echo "See DESIGN.md for canonical patterns."
   echo "Run: grep -rn 'shadow-\\[0_' components/ app/ for shadows"
   echo "     grep -rn 'initial={false}' components/ app/ | grep -v AnimatePresence for motion"
   exit 1

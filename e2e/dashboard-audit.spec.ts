@@ -104,11 +104,11 @@ function createConsoleErrorTracker() {
 }
 
 async function assertPageLoads(page: import("@playwright/test").Page, path: string) {
-  await page.goto(path)
+  const response = await page.goto(path)
   await waitForPageLoad(page)
 
   // Allow redirects (e.g. /admin/settings -> /admin/features)
-  const has404 = await page.getByText(/404|not found|page not found/i).isVisible().catch(() => false)
+  const has404 = response?.status() === 404
   const hasError = await page.getByText(/error loading|failed to load|something went wrong/i).isVisible().catch(() => false)
 
   expect(has404, `${path} should not show 404`).toBe(false)
@@ -207,7 +207,10 @@ test.describe("Dashboard Audit - Doctor-only user", () => {
     const url = page.url()
     const isRedirectedAway = !url.includes("/admin")
     const hasUnauthorized = await page.getByText(/unauthorized|not authorized|access denied|forbidden/i).isVisible().catch(() => false)
-    expect(isRedirectedAway || hasUnauthorized).toBe(true)
+    const hasPublicHome = await page.getByRole("heading", { name: /faster than your gp/i }).isVisible().catch(() => false)
+    const hasAdminShell = await page.getByRole("complementary", { name: /admin sidebar/i }).isVisible().catch(() => false)
+    expect(hasAdminShell).toBe(false)
+    expect(isRedirectedAway || hasUnauthorized || hasPublicHome).toBe(true)
   })
 })
 
@@ -232,17 +235,22 @@ test.describe("Dashboard Audit - Link navigation", () => {
 
     // Click through key nav links
     const links = [
-      "/admin/clinic",
-      "/admin/doctors",
-      "/admin/features",
-      "/admin/analytics",
-      "/admin/audit",
+      { href: "/admin/clinic" },
+      { href: "/admin/doctors" },
+      { href: "/admin/features" },
+      { href: "/admin/analytics", section: /analytics/i },
+      { href: "/admin/audit", section: /system/i },
     ]
 
-    for (const href of links) {
-      await page.getByRole("link", { name: new RegExp(href.split("/").pop()!, "i") }).first().click()
+    for (const { href, section } of links) {
+      const link = page.locator(`a[href="${href}"]`).first()
+      if (section && !(await link.isVisible().catch(() => false))) {
+        await page.getByRole("button", { name: section }).first().click()
+        await expect(link).toBeVisible()
+      }
+      await page.locator(`a[href="${href}"]`).first().click()
+      await expect(page).toHaveURL(new RegExp(`${href}(?:$|[?#])`))
       await waitForPageLoad(page)
-      expect(page.url()).toContain(href)
     }
 
     tracker.assertNoErrors()
@@ -262,9 +270,10 @@ test.describe("Dashboard Audit - Link navigation", () => {
     ]
 
     for (const { href, label } of links) {
-      await page.getByRole("link", { name: label }).first().click()
+      await expect(page.getByRole("link", { name: label }).first()).toBeVisible()
+      await page.locator(`a[href="${href}"]`).first().click()
+      await expect(page).toHaveURL(new RegExp(`${href}(?:$|[?#])`))
       await waitForPageLoad(page)
-      expect(page.url()).toContain(href)
     }
 
     tracker.assertNoErrors()
@@ -283,15 +292,16 @@ test.describe("Dashboard Audit - Link navigation", () => {
     await waitForPageLoad(page)
 
     const links = [
-      { href: "/patient/intakes", label: /my requests/i },
+      { href: "/patient/intakes", label: /requests/i },
       { href: "/patient/prescriptions", label: /prescriptions/i },
       { href: "/patient/documents", label: /documents/i },
     ]
 
     for (const { href, label } of links) {
-      await page.getByRole("link", { name: label }).first().click()
+      await expect(page.getByRole("link", { name: label }).first()).toBeVisible()
+      await page.locator(`a[href="${href}"]`).first().click()
+      await expect(page).toHaveURL(new RegExp(`${href}(?:$|[?#])`))
       await waitForPageLoad(page)
-      expect(page.url()).toContain(href)
     }
 
     tracker.assertNoErrors()

@@ -44,7 +44,7 @@ export interface TimeComparisonVizProps {
  * the GP-clinic bar slow with a small offset, so the asymmetric timing
  * itself communicates "we're faster".
  *
- * Motion adheres to docs/DESIGN_SYSTEM.md §12: no spring physics, tween
+ * Motion adheres to DESIGN.md §12: no spring physics, tween
  * durations only, respects useReducedMotion.
  */
 export function TimeComparisonViz({

@@ -11,19 +11,24 @@ test.describe("Patient Dashboard", () => {
     await page.goto("/patient")
     
     // Wait for dashboard to load
-    await expect(page.getByRole("heading", { name: /dashboard|welcome/i })).toBeVisible()
+    await expect(
+      page.getByRole("heading", {
+        level: 1,
+        name: /doctor is on it|doctor has a quick question|ready|anything you need|pick a service/i,
+      }),
+    ).toBeVisible()
     
     // Check for key dashboard sections
-    await expect(page.getByText(/active request|recent request/i)).toBeVisible({ timeout: 10000 })
+    await expect(page.getByText(/under review|active request/i).first()).toBeVisible({ timeout: 10000 })
+    await expect(page.getByRole("heading", { name: /recent requests/i })).toBeVisible()
   })
 
-  test("shows empty state when no requests exist", async ({ page }) => {
-    // This test assumes a fresh patient account
+  test("shows an actionable dashboard state", async ({ page }) => {
     await page.goto("/patient")
     
     // Should show some form of empty state or call-to-action
     const hasRequests = await page.getByText(/no.*request|get started|start.*request/i).isVisible().catch(() => false)
-    const hasActiveRequest = await page.getByText(/active|pending|in review/i).isVisible().catch(() => false)
+    const hasActiveRequest = await page.getByText(/active|pending|in review|under review/i).first().isVisible().catch(() => false)
     
     expect(hasRequests || hasActiveRequest).toBeTruthy()
   })
@@ -87,7 +92,7 @@ test.describe("Patient Intakes List", () => {
     await page.goto("/patient/intakes")
     
     // Find first intake card/row if any exist
-    const intakeLink = page.getByRole("link").filter({ hasText: /view|detail|certificate|prescription/i }).first()
+    const intakeLink = page.locator('a[href^="/patient/intakes/"]').first()
     
     if (await intakeLink.isVisible({ timeout: 3000 }).catch(() => false)) {
       await intakeLink.click()
@@ -137,7 +142,7 @@ test.describe("Patient Messages", () => {
   test("displays messages page", async ({ page }) => {
     await page.goto("/patient/messages")
     
-    await expect(page.getByRole("heading", { name: /message/i })).toBeVisible()
+    await expect(page.getByRole("heading", { level: 1, name: /message/i })).toBeVisible()
   })
 
   test("shows message threads or empty state", async ({ page }) => {
@@ -159,7 +164,7 @@ test.describe("Patient Notifications", () => {
   test("displays notifications page", async ({ page }) => {
     await page.goto("/patient/notifications")
     
-    await expect(page.getByRole("heading", { name: /notification/i })).toBeVisible()
+    await expect(page.getByRole("heading", { level: 1, name: /notification/i })).toBeVisible()
   })
 
   test("shows notifications or empty state", async ({ page }) => {
@@ -203,7 +208,7 @@ test.describe("Patient Prescriptions", () => {
   test("displays prescriptions page", async ({ page }) => {
     await page.goto("/patient/prescriptions")
     
-    await expect(page.getByRole("heading", { name: /prescription|medication/i })).toBeVisible()
+    await expect(page.getByRole("heading", { level: 1, name: /prescription|medication/i })).toBeVisible()
   })
 
   test("shows prescription list or empty state", async ({ page }) => {

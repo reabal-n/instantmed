@@ -104,7 +104,7 @@ function RequestRow({ request }: { request: RecentRequest }) {
 }
 
 function formatDateOrDash(dateStr?: string): string {
-  if (!dateStr) return "—"
+  if (!dateStr) return "-"
   return formatDate(dateStr)
 }
 
@@ -118,7 +118,7 @@ function MedCertCard({ cert }: { cert: MedicalDocument }) {
               <FileText className="w-4 h-4 text-success" />
             </div>
             <div>
-              <p className="font-medium text-sm">Medical Certificate</p>
+              <p className="font-medium text-sm">Medical certificate</p>
               <p className="text-xs text-muted-foreground">
                 {formatDateOrDash(cert.start_date)} – {formatDateOrDash(cert.end_date)}
               </p>
@@ -155,7 +155,7 @@ function PrescriptionCard({ prescription }: { prescription: PrescriptionRecord }
             </div>
             <div>
               <p className="font-medium text-sm">
-                {prescription.medication_name || "Prescription Request"}
+                {prescription.medication_name || "Prescription request"}
               </p>
               <p className="text-xs text-muted-foreground">
                 {formatDate(prescription.created_at)}
@@ -182,7 +182,7 @@ export function HealthSummaryClient({ summary }: HealthSummaryClientProps) {
   return (
     <div className="space-y-6">
       <DashboardPageHeader
-        title="Health Summary"
+        title="Health summary"
         description="Your complete medical history with InstantMed"
       />
       <div className="flex items-center gap-4 -mt-4 text-sm text-muted-foreground">
@@ -199,7 +199,7 @@ export function HealthSummaryClient({ summary }: HealthSummaryClientProps) {
       {/* Stats Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         <StatCard 
-          title="Total Requests" 
+          title="Total requests" 
           value={summary.stats.totalRequests} 
           icon={Activity}
           description="All time"
@@ -211,7 +211,7 @@ export function HealthSummaryClient({ summary }: HealthSummaryClientProps) {
           description="Successfully processed"
         />
         <StatCard 
-          title="Medical Certs" 
+          title="Medical certs" 
           value={summary.stats.medicalCertificates} 
           icon={FileText}
         />
@@ -240,7 +240,7 @@ export function HealthSummaryClient({ summary }: HealthSummaryClientProps) {
               </div>
               <Link href="/patient/intakes">
                 <Button variant="outline" size="sm" className="border-warning-border hover:bg-warning-light">
-                  View All
+                  View all
                 </Button>
               </Link>
             </div>
@@ -251,8 +251,8 @@ export function HealthSummaryClient({ summary }: HealthSummaryClientProps) {
       {/* Tabbed Content */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="grid w-full grid-cols-3 lg:w-auto lg:inline-flex">
-          <TabsTrigger value="overview">Recent Activity</TabsTrigger>
-          <TabsTrigger value="certificates">Medical Certificates</TabsTrigger>
+          <TabsTrigger value="overview">Recent activity</TabsTrigger>
+          <TabsTrigger value="certificates">Medical certificates</TabsTrigger>
           <TabsTrigger value="prescriptions">Prescriptions</TabsTrigger>
         </TabsList>
         
@@ -260,7 +260,7 @@ export function HealthSummaryClient({ summary }: HealthSummaryClientProps) {
         <TabsContent value="overview">
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Recent Requests</CardTitle>
+              <CardTitle className="text-lg">Recent requests</CardTitle>
               <CardDescription>Your last 10 requests</CardDescription>
             </CardHeader>
             <CardContent>
@@ -287,7 +287,7 @@ export function HealthSummaryClient({ summary }: HealthSummaryClientProps) {
         <TabsContent value="certificates">
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Medical Certificates</CardTitle>
+              <CardTitle className="text-lg">Medical certificates</CardTitle>
               <CardDescription>All your approved medical certificates</CardDescription>
             </CardHeader>
             <CardContent>
@@ -314,7 +314,7 @@ export function HealthSummaryClient({ summary }: HealthSummaryClientProps) {
         <TabsContent value="prescriptions">
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Prescription History</CardTitle>
+              <CardTitle className="text-lg">Prescription history</CardTitle>
               <CardDescription>Your prescription requests</CardDescription>
             </CardHeader>
             <CardContent>
@@ -340,7 +340,7 @@ export function HealthSummaryClient({ summary }: HealthSummaryClientProps) {
       
       {/* Quick Actions */}
       <div className="mt-8 pt-8 border-t">
-        <h2 className="text-lg font-semibold mb-4">Quick Actions</h2>
+        <h2 className="text-lg font-semibold mb-4">Quick actions</h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <Link href="/request?service=med-cert">
             <Card className="hover:border-primary/50 transition-colors cursor-pointer h-full">
@@ -349,7 +349,7 @@ export function HealthSummaryClient({ summary }: HealthSummaryClientProps) {
                   <FileText className="w-5 h-5 text-success" />
                 </div>
                 <div>
-                  <p className="font-medium">Medical Certificate</p>
+                  <p className="font-medium">Medical certificate</p>
                   <p className="text-sm text-muted-foreground">Get a sick note</p>
                 </div>
               </CardContent>
@@ -363,7 +363,7 @@ export function HealthSummaryClient({ summary }: HealthSummaryClientProps) {
                   <Pill className="w-5 h-5 text-info" />
                 </div>
                 <div>
-                  <p className="font-medium">Repeat Prescription</p>
+                  <p className="font-medium">Repeat prescription</p>
                   <p className="text-sm text-muted-foreground">Renew your medication</p>
                 </div>
               </CardContent>
@@ -377,7 +377,7 @@ export function HealthSummaryClient({ summary }: HealthSummaryClientProps) {
                   <Shield className="w-5 h-5 text-info" />
                 </div>
                 <div>
-                  <p className="font-medium">Account Settings</p>
+                  <p className="font-medium">Account settings</p>
                   <p className="text-sm text-muted-foreground">Manage your profile</p>
                 </div>
               </CardContent>

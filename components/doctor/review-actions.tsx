@@ -13,6 +13,7 @@ import {
 import { declineIntakeAction,saveDoctorNotesAction } from "@/app/doctor/queue/actions"
 import { updateStatusAction } from "@/app/doctor/queue/actions"
 import type { CertificatePreviewData } from "@/components/doctor/certificate-preview-dialog"
+import { ParchmentPrescribePanel } from "@/components/doctor/parchment-prescribe-panel"
 import type { ReviewData } from "@/components/doctor/review/intake-review-context"
 import {
   findClinicalNoteDraft,
@@ -70,6 +71,8 @@ export interface ReviewActionsState {
   handleDecline: () => Promise<void>
   handleSaveNotes: () => Promise<void>
   handleGenerateOrRegenerateNote: () => Promise<void>
+  handleOpenParchmentPrescribe: () => void
+  handleApproveAndOpenParchment: () => Promise<void>
   handleResend: () => Promise<void>
   handleViewCertificate: () => Promise<void>
 }
@@ -94,7 +97,7 @@ export function useReviewActions({
   onActionComplete,
 }: UseReviewActionsOptions): ReviewActionsState {
   const router = useRouter()
-  const { closePanel } = usePanel()
+  const { closePanel, openPanel } = usePanel()
   const [isPending, startTransition] = useTransition()
 
   // Doctor notes
@@ -107,7 +110,7 @@ export function useReviewActions({
   const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Load notes from server without triggering auto-save for unchanged content.
-  // Pass dbNotes="" for AI-draft prefills (not yet in DB → auto-save will persist them).
+  // Generated drafts should stay draft-only until a doctor edits, saves, or approves.
   const setInitialNotes = useCallback((notes: string, dbNotes: string) => {
     setDoctorNotes(notes)
     lastSavedNotesRef.current = dbNotes
@@ -162,6 +165,20 @@ export function useReviewActions({
     onActionComplete?.()
     router.refresh()
   }, [closePanel, onActionComplete, router])
+
+  const openParchmentPanel = useCallback(() => {
+    if (!intake) return
+    openPanel({
+      id: `parchment-prescribe-${intake.id}`,
+      type: "sheet",
+      component: (
+        <ParchmentPrescribePanel
+          intakeId={intake.id}
+          patientName={intake.patient?.full_name || "Patient"}
+        />
+      ),
+    })
+  }, [intake, openPanel])
 
   const handleDeclineReasonCodeChange = (code: DeclineReasonCode) => {
     setDeclineReasonCode(code)
@@ -256,6 +273,45 @@ export function useReviewActions({
     })
   }
 
+  const handleOpenParchmentPrescribe = () => {
+    openParchmentPanel()
+  }
+
+  const handleApproveAndOpenParchment = async () => {
+    if (!intake || !data) return
+
+    if (hasRedFlags && !redFlagsAcknowledged) {
+      toast.error("Review and acknowledge safety flags before approving.")
+      return
+    }
+    if (doctorNotes.trim().length < MIN_CLINICAL_NOTES_LENGTH) {
+      toast.error(`Clinical notes required (min ${MIN_CLINICAL_NOTES_LENGTH} chars).`)
+      notesRef.current?.focus()
+      return
+    }
+
+    startTransition(async () => {
+      await saveDoctorNotesAction(intake.id, doctorNotes)
+      const result = await updateStatusAction(intake.id, "awaiting_script")
+      if (result.success) {
+        setData({
+          ...data,
+          intake: {
+            ...data.intake,
+            status: "awaiting_script",
+            doctor_notes: doctorNotes,
+          },
+        })
+        playApprovalSound()
+        toast.success("Approved. Opening Parchment.")
+        router.refresh()
+        openParchmentPanel()
+      } else {
+        toast.error(result.error || "Failed to approve script")
+      }
+    })
+  }
+
   const handleDecline = async () => {
     if (!intake || !declineReason.trim()) return
     startTransition(async () => {
@@ -284,8 +340,9 @@ export function useReviewActions({
           if (clinicalDraft) {
             const formatted = formatClinicalNoteContent(clinicalDraft.content)
             if (formatted) {
-              setDoctorNotes(formatted)
+              setInitialNotes(formatted, formatted)
               setIsAiPrefilled(true)
+              setNoteSaved(false)
               toast.success(hasClinicalDraft ? "AI note regenerated" : "AI draft generated")
             } else {
               toast.error("AI draft could not be formatted. Please try again.")
@@ -412,6 +469,8 @@ export function useReviewActions({
     handleDecline,
     handleSaveNotes,
     handleGenerateOrRegenerateNote,
+    handleOpenParchmentPrescribe,
+    handleApproveAndOpenParchment,
     handleResend,
     handleViewCertificate,
   }

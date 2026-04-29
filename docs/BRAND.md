@@ -66,7 +66,7 @@ H2 and voice signature share the same line on purpose. Saying it twice across th
 | **Illustration** | 12-piece soft hand-drawn line-and-fill spot system. Used at empty states, confirmation pages, section breaks. To be commissioned/generated in the brand-rehaul sprint. |
 | **Motion** | One signature: ivory-to-dawn gradient sweep on page enter + 300ms ease-out lift on primary CTA hover. Respect `useReducedMotion()`. |
 
-Deeper rules — full token list, spacing, radius, shadow, hero variants, motion presets — live in [`docs/DESIGN_SYSTEM.md`](DESIGN_SYSTEM.md). The design system is law; this brand doc complements it, doesn't override it.
+Deeper rules — full token list, spacing, radius, shadow, hero variants, motion presets — live in [`DESIGN.md`](../DESIGN.md). The design system is law; this brand doc complements it, doesn't override it.
 
 ## 6. Signature brand devices
 
@@ -176,7 +176,7 @@ Deeper compliance rules in [`docs/ADVERTISING_COMPLIANCE.md`](ADVERTISING_COMPLI
 |---|---|
 | The tagline / prop phrase / iconic hook / brand thesis / paid-safe variant | `lib/marketing/voice.ts` (one place, every surface re-renders next deploy) |
 | The voice rules, banned phrases, voice-by-surface rendering | `docs/VOICE.md` + `lib/marketing/voice.ts` (BANNED_PHRASES list) |
-| The visual system (colour, type, spacing, motion) | `docs/DESIGN_SYSTEM.md` + `app/globals.css` |
+| The visual system (colour, type, spacing, motion) | `DESIGN.md` + `app/globals.css` |
 | Photography brief / shot list / generative prompts | `docs/PHOTOGRAPHY_BRIEF.md` |
 | The brand thesis, archetype, signature devices, brand-stretch rules | this doc (`docs/BRAND.md`) |
 

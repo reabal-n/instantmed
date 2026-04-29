@@ -138,7 +138,7 @@ export function AdminHubZones({
           Jump straight into the surface you need
         </p>
       </div>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {zones.map((zone) => (
           <Zone key={zone.title} {...zone} />
         ))}
@@ -149,10 +149,10 @@ export function AdminHubZones({
 
 function Zone({ title, subtitle, icon: Icon, stats, links }: ZoneProps) {
   return (
-    <DashboardCard tier="standard" padding="md">
+    <DashboardCard tier="standard" padding="sm">
       <div className="flex items-start gap-3">
         <div
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary"
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary"
           aria-hidden
         >
           <Icon className="h-4 w-4" />
@@ -166,7 +166,7 @@ function Zone({ title, subtitle, icon: Icon, stats, links }: ZoneProps) {
       </div>
 
       {stats && stats.length > 0 && (
-        <div className="mt-4 grid grid-cols-2 gap-3">
+        <div className="mt-3 grid grid-cols-2 gap-2">
           {stats.map((stat) => {
             const isAttention =
               stat.attentionWhenNonZero && stat.value > 0
@@ -175,7 +175,7 @@ function Zone({ title, subtitle, icon: Icon, stats, links }: ZoneProps) {
                 key={stat.label}
                 href={stat.href}
                 className={cn(
-                  "group flex flex-col gap-0.5 rounded-lg border p-3 transition-[border-color,background-color]",
+                  "group flex flex-col gap-0.5 rounded-lg border p-2.5 transition-[border-color,background-color]",
                   "border-border/40 hover:border-primary/40 hover:bg-muted/40",
                 )}
               >
@@ -196,7 +196,7 @@ function Zone({ title, subtitle, icon: Icon, stats, links }: ZoneProps) {
         </div>
       )}
 
-      <ul className="mt-4 space-y-1">
+      <ul className="mt-3 space-y-1">
         {links.map((link) => (
           <li key={link.href}>
             <Link

@@ -6,7 +6,7 @@ import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
 
 export const dynamic = "force-dynamic"
 export const metadata = {
-  title: "Payment History",
+  title: "Payment history",
   description: "View your payment history and invoices",
 }
 
@@ -17,7 +17,7 @@ export default async function PaymentHistoryPage() {
   return (
     <div>
       <DashboardPageHeader
-        title="Payment History"
+        title="Payment history"
         backHref="/patient"
         backLabel="Back to dashboard"
       />

@@ -150,19 +150,19 @@ export function PaymentHistoryContent(_props: PaymentHistoryContentProps) {
         className="grid grid-cols-1 md:grid-cols-3 gap-4"
       >
         <StatCard
-          title="Total Paid"
+          title="Total paid"
           value={formatCurrency(totalPaid)}
           icon={CheckCircle}
           color="green"
         />
         <StatCard
-          title="Pending Payment"
+          title="Pending payment"
           value={formatCurrency(pendingAmount)}
           icon={Clock}
           color="yellow"
         />
         <StatCard
-          title="Failed Payments"
+          title="Failed payments"
           value={failedCount.toString()}
           icon={AlertCircle}
           color="red"
@@ -190,7 +190,7 @@ export function PaymentHistoryContent(_props: PaymentHistoryContentProps) {
             }
             className="px-4 py-2 border rounded-xl bg-card hover:bg-muted transition-colors"
           >
-            <option value="all">All Statuses</option>
+            <option value="all">All statuses</option>
             <option value="paid">Paid</option>
             <option value="pending">Pending</option>
             <option value="failed">Failed</option>

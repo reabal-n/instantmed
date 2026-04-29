@@ -1,6 +1,6 @@
 "use client"
 
-import { Calendar, CheckCircle, ChevronLeft,ChevronRight, MapPin, Phone, Search, Users, XCircle } from "lucide-react"
+import { AlertTriangle, Calendar, CheckCircle, ChevronLeft,ChevronRight, MapPin, Phone, Search, Users, XCircle } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useMemo,useState } from "react"
@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { UserCard } from "@/components/uix"
+import { findPotentialDuplicatePatients } from "@/lib/doctor/patient-snapshot"
 import { calculateAge,formatDate } from "@/lib/format"
 import type { Profile } from "@/types/db"
 
@@ -33,6 +34,7 @@ export function PatientsListClient({ patients, currentPage, totalPages, totalPat
     return patients.filter((patient) => {
       const matchesSearch =
         patient.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        patient.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         patient.suburb?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         patient.phone?.includes(searchQuery)
 
@@ -50,6 +52,12 @@ export function PatientsListClient({ patients, currentPage, totalPages, totalPat
 
 
   const states = ["ACT", "NSW", "NT", "QLD", "SA", "TAS", "VIC", "WA"]
+  const duplicateGroups = useMemo(() => findPotentialDuplicatePatients(patients), [patients])
+  const duplicatePatientIds = useMemo(() => {
+    const ids = new Set<string>()
+    duplicateGroups.forEach((group) => group.patientIds.forEach((id) => ids.add(id)))
+    return ids
+  }, [duplicateGroups])
 
   return (
     <div className="space-y-6">
@@ -142,6 +150,22 @@ export function PatientsListClient({ patients, currentPage, totalPages, totalPat
         </CardContent>
       </Card>
 
+      {duplicateGroups.length > 0 && (
+        <div className="rounded-lg border border-warning-border bg-warning-light px-4 py-3 text-sm text-warning">
+          <div className="flex items-start gap-2">
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+            <div>
+              <p className="font-medium">
+                {duplicateGroups.length} possible duplicate patient {duplicateGroups.length === 1 ? "group" : "groups"} on this page
+              </p>
+              <p className="mt-0.5 text-xs">
+                Match source: {duplicateGroups.map((group) => group.reason.replace("_", " + ")).join(", ")}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Table */}
       <Card className="rounded-xl border-border/50 overflow-hidden">
         <CardContent className="p-0 overflow-hidden">
@@ -174,6 +198,12 @@ export function PatientsListClient({ patients, currentPage, totalPages, totalPat
                             description={age !== null ? `${age} years old` : "Age N/A"}
                             size="sm"
                           />
+                          {duplicatePatientIds.has(patient.id) && (
+                            <Badge variant="warning" size="sm" className="mt-1">
+                              <AlertTriangle className="h-3 w-3" />
+                              Possible duplicate
+                            </Badge>
+                          )}
                         </Link>
                       </TableCell>
                       <TableCell>

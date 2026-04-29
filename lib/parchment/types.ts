@@ -14,15 +14,15 @@ import { z } from "zod"
 export const parchmentTokenResponseSchema = z.object({
   success: z.literal(true),
   statusCode: z.number(),
-  message: z.string(),
+  message: z.string().optional(),
   data: z.object({
     accessToken: z.string(),
     expiresIn: z.number(),
-    tokenType: z.literal("Bearer"),
-    scope: z.array(z.string()),
+    tokenType: z.literal("Bearer").optional(),
+    scope: z.array(z.string()).optional(),
   }),
-  timestamp: z.string(),
-  requestId: z.string(),
+  timestamp: z.string().optional(),
+  requestId: z.string().optional(),
 })
 
 export type ParchmentTokenResponse = z.infer<typeof parchmentTokenResponseSchema>
@@ -45,6 +45,19 @@ export const parchmentSsoResponseSchema = z.object({
 })
 
 export type ParchmentSsoResponse = z.infer<typeof parchmentSsoResponseSchema>
+
+export const validateIntegrationResponseSchema = z.object({
+  success: z.literal(true),
+  statusCode: z.number(),
+  data: z.object({
+    validated: z.boolean(),
+  }),
+  message: z.string().optional(),
+  timestamp: z.string().optional(),
+  requestId: z.string().optional(),
+})
+
+export type ValidateIntegrationResponse = z.infer<typeof validateIntegrationResponseSchema>
 
 // ============================================================================
 // PATIENTS
@@ -100,6 +113,42 @@ export const createPatientResponseSchema = z.object({
 
 export type CreatePatientResponse = z.infer<typeof createPatientResponseSchema>
 
+export const updatePatientRequestSchema = z.object({
+  family_name: z.string().min(1).max(255).optional(),
+  given_name: z.string().min(1).max(255).optional(),
+  date_of_birth: z.string().optional(),
+  sex: z.enum(["M", "F", "N", "I"]).optional(),
+  title: z.string().optional(),
+  medicare_card_number: z.string().nullable().optional(),
+  medicare_irn: z.string().nullable().optional(),
+  medicare_valid_to: z.string().nullable().optional(),
+  email: z.string().email().optional(),
+  phone: z.string().optional(),
+  dva_file_number: z.string().nullable().optional(),
+  dva_card_color: z.enum(["W", "O", "G"]).nullable().optional(),
+  concession_pension_number: z.string().nullable().optional(),
+  entitlement_number: z.string().nullable().optional(),
+  racf_id: z.string().nullable().optional(),
+  ctg_eligible: z.boolean().optional(),
+  indigenous_type: z.string().optional(),
+  ihi_number: z.string().optional(),
+  is_inpatient: z.boolean().optional(),
+  australian_address: australianAddressSchema.optional(),
+})
+
+export type UpdatePatientRequest = z.infer<typeof updatePatientRequestSchema>
+
+export const updatePatientResponseSchema = z.object({
+  success: z.literal(true),
+  statusCode: z.number(),
+  message: z.string().optional(),
+  data: z.record(z.string(), z.unknown()),
+  timestamp: z.string().optional(),
+  requestId: z.string().optional(),
+})
+
+export type UpdatePatientResponse = z.infer<typeof updatePatientResponseSchema>
+
 // ============================================================================
 // USERS (Doctors/Prescribers)
 // ============================================================================
@@ -137,12 +186,46 @@ export type ListUsersResponse = z.infer<typeof listUsersResponseSchema>
 
 export const parchmentPrescriptionSchema = z.object({
   scid: z.string(),
-  patient_id: z.string(),
-  user_id: z.string(),
-  created_at: z.string(),
+  prescription_type: z.string().optional(),
+  url: z.string().optional(),
+  status: z.string().optional(),
+  created_date: z.string().optional(),
+  item_name: z.string().optional(),
+  quantity: z.string().optional(),
+  number_of_repeats_authorised: z.string().optional(),
+  repeat_intervals: z.string().optional(),
+  pbs_code: z.string().optional(),
+  item_strength: z.string().optional(),
+  item_form: z.string().optional(),
+  route_administration: z.string().optional(),
+  schedule_number: z.string().optional(),
+  patient_instructions: z.string().optional(),
+  doctor_notes: z.string().optional(),
 }).passthrough() // Allow additional fields from API
 
 export type ParchmentPrescription = z.infer<typeof parchmentPrescriptionSchema>
+
+export const patientPrescriptionsResponseSchema = z.object({
+  success: z.literal(true),
+  statusCode: z.number(),
+  message: z.string().optional(),
+  data: z.object({
+    patient: z.record(z.string(), z.unknown()).optional(),
+    prescriber: z.record(z.string(), z.unknown()).optional(),
+    prescriptions: z.array(parchmentPrescriptionSchema),
+  }),
+  timestamp: z.string().optional(),
+  requestId: z.string().optional(),
+  pagination: z.object({
+    count: z.number().optional(),
+    hasNext: z.boolean().optional(),
+    limit: z.number().optional(),
+    offset: z.number().optional(),
+    lastKey: z.string().nullable().optional(),
+  }).optional(),
+})
+
+export type PatientPrescriptionsResponse = z.infer<typeof patientPrescriptionsResponseSchema>
 
 // ============================================================================
 // WEBHOOKS

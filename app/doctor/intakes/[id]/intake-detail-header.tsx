@@ -122,6 +122,7 @@ export function IntakeDetailHeader({
   certDelivery,
 }: IntakeDetailHeaderProps) {
   const service = intake.service as { type?: string } | undefined
+  const isPrescribingConsult = intake.category === "consult" && ["ed", "hair_loss"].includes(intake.subtype || "")
 
   const getStatusColor = (status: string) => {
     return INTAKE_STATUS[status as StatusType]?.color ?? "bg-primary/10 text-primary"
@@ -281,6 +282,13 @@ export function IntakeDetailHeader({
                   Mark Sent Manually
                 </Button>
               </>
+            )}
+
+            {isPrescribingConsult && ["paid", "in_review"].includes(intake.status) && onOpenParchmentPrescribe && (
+              <Button onClick={onOpenParchmentPrescribe} variant="outline" disabled={isPending}>
+                <Send className="h-4 w-4 mr-2" />
+                Prescribe
+              </Button>
             )}
 
             {/* For consults - approve after call with notes */}

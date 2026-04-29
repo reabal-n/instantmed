@@ -160,7 +160,7 @@ export function IntakesClient({ intakes: initialIntakes, patientId, pagination }
   return (
     <div className="space-y-4">
       <DashboardPageHeader
-        title="My Requests"
+        title="My requests"
         description="View and manage all your medical requests"
         actions={
           <>
@@ -176,7 +176,7 @@ export function IntakesClient({ intakes: initialIntakes, patientId, pagination }
             <Link href="/request">
               <Button>
                 <Plus className="w-4 h-4 mr-2" />
-                New Request
+                New request
               </Button>
             </Link>
           </>
@@ -231,7 +231,7 @@ export function IntakesClient({ intakes: initialIntakes, patientId, pagination }
                   ? "Your completed requests will appear here."
                   : "No declined requests."
               }
-              action={activeTab === "all" ? { label: "Get Started", href: "/request" } : undefined}
+              action={activeTab === "all" ? { label: "Start a request", href: "/request" } : undefined}
               secondaryAction={activeTab === "all" ? { label: "Learn how it works", href: "/how-it-works" } : undefined}
               tips={
                 activeTab === "all"
@@ -295,4 +295,3 @@ export function IntakesClient({ intakes: initialIntakes, patientId, pagination }
     </div>
   )
 }
-

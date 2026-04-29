@@ -34,6 +34,7 @@ const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3001"
 const PARCHMENT_WEBHOOK_SECRET = process.env.PARCHMENT_WEBHOOK_SECRET || ""
 const PARCHMENT_ORGANIZATION_ID = process.env.PARCHMENT_ORGANIZATION_ID || "test-org-id"
 const PARCHMENT_PARTNER_ID = process.env.PARCHMENT_PARTNER_ID || "test-partner-id"
+const E2E_PATIENT_ID = "e2e00000-0000-0000-0000-000000000002"
 
 // ============================================================================
 // PARCHMENT SIGNATURE HELPERS
@@ -225,8 +226,6 @@ test.describe.serial("Parchment Webhook: prescription.created", () => {
     testIntakeIds.push(seed.intakeId!)
 
     const scid = `SCID-E2E-${Date.now().toString(36).toUpperCase()}`
-    const E2E_PATIENT_ID = "e2e00000-0000-0000-0000-000000000001"
-
     const payload = buildPrescriptionCreatedEvent({
       partnerPatientId: E2E_PATIENT_ID,
       scid,
@@ -258,8 +257,6 @@ test.describe.serial("Parchment Webhook: prescription.created", () => {
     expect(seed.success, `Seed should succeed: ${seed.error}`).toBe(true)
     testIntakeIds.push(seed.intakeId!)
 
-    const E2E_PATIENT_ID = "e2e00000-0000-0000-0000-000000000001"
-
     const payload = buildPrescriptionCreatedEvent({
       partnerPatientId: E2E_PATIENT_ID,
       scid: `SCID-NOMATCH-${randomUUID().slice(0, 8)}`,
@@ -285,8 +282,6 @@ test.describe.serial("Parchment Webhook: prescription.created", () => {
     testIntakeIds.push(seed.intakeId!)
 
     const scid = `SCID-DEDUP-${Date.now().toString(36).toUpperCase()}`
-    const E2E_PATIENT_ID = "e2e00000-0000-0000-0000-000000000001"
-
     const payload = buildPrescriptionCreatedEvent({
       partnerPatientId: E2E_PATIENT_ID,
       scid,

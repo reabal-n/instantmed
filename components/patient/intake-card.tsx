@@ -34,13 +34,13 @@ export function IntakeCard({
       className={cn(
         "w-full text-left group cursor-pointer",
         "bg-white dark:bg-card border border-border/50 dark:border-white/15",
-        "shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl p-5",
+        "shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl p-4 sm:p-5",
         "transition-[transform,box-shadow,border-color] duration-300",
         "hover:border-primary/40 hover:shadow-md hover:shadow-primary/[0.06] hover:-translate-y-0.5",
       )}
     >
-      <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4 flex-1">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-3 sm:items-center sm:gap-4 sm:flex-1">
             <div className={cn(
               "w-11 h-11 rounded-xl flex items-center justify-center shrink-0",
               intake.service?.type === "common_scripts" ? "bg-info-light" : "bg-primary/10"
@@ -52,16 +52,16 @@ export function IntakeCard({
             )}
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-foreground mb-1">
+            <h3 className="font-semibold text-foreground sm:truncate">
               {serviceName}
             </h3>
-            <p className="text-sm text-muted-foreground">
+            <p className="mt-1 text-sm text-muted-foreground">
               {formatDate(intake.created_at)}
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          <div className={cn("flex items-center gap-1.5 text-xs font-medium", config.color)}>
+        <div className="flex items-center justify-between gap-3 border-t border-border/50 pt-3 sm:border-0 sm:pt-0">
+          <div className={cn("flex shrink-0 items-center gap-1.5 text-xs font-medium", config.color)}>
             <Icon className="w-3 h-3" />
             {config.label}
           </div>

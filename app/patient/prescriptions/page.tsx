@@ -6,7 +6,7 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { PrescriptionsClient } from "./client"
 
 export const metadata: Metadata = {
-  title: "My Prescriptions",
+  title: "My prescriptions",
   description: "View your prescription history and manage repeat prescriptions.",
 }
 

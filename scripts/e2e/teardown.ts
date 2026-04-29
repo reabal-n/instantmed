@@ -49,11 +49,23 @@ const TEMPLATE_ID = "e2e00000-0000-0000-0000-000000000051"
 
 async function deleteDocumentDrafts() {
   console.log("🗑️  Deleting document drafts...")
-  
-  const { error } = await supabase
+
+  const byId = await supabase
     .from("document_drafts")
     .delete()
     .eq("id", DRAFT_ID)
+
+  const byIntake = await supabase
+    .from("document_drafts")
+    .delete()
+    .eq("intake_id", INTAKE_ID)
+
+  const byRequest = await supabase
+    .from("document_drafts")
+    .delete()
+    .eq("request_id", INTAKE_ID)
+
+  const error = byId.error || byIntake.error || byRequest.error
 
   if (error && !error.message.includes("0 rows")) {
     console.warn("⚠️  Failed to delete document drafts:", error.message)
@@ -192,11 +204,23 @@ async function deleteProfiles() {
 
 async function deleteClinicIdentity() {
   console.log("🗑️  Deleting clinic identity...")
-  
-  const { error } = await supabase
+
+  const byId = await supabase
     .from("clinic_identity")
     .delete()
     .eq("id", CLINIC_IDENTITY_ID)
+
+  const byCreator = await supabase
+    .from("clinic_identity")
+    .delete()
+    .in("created_by", [OPERATOR_PROFILE_ID, PATIENT_PROFILE_ID])
+
+  const byUpdater = await supabase
+    .from("clinic_identity")
+    .delete()
+    .in("updated_by", [OPERATOR_PROFILE_ID, PATIENT_PROFILE_ID])
+
+  const error = byId.error || byCreator.error || byUpdater.error
 
   if (error && !error.message.includes("0 rows")) {
     console.warn("⚠️  Failed to delete clinic identity:", error.message)
@@ -223,11 +247,23 @@ async function deleteService() {
 
 async function deleteCertificateTemplates() {
   console.log("🗑️  Deleting e2e certificate templates (if seeded)...")
-  
-  const { error } = await supabase
+
+  const byId = await supabase
     .from("certificate_templates")
     .delete()
     .eq("id", TEMPLATE_ID)
+
+  const byCreator = await supabase
+    .from("certificate_templates")
+    .delete()
+    .in("created_by", [OPERATOR_PROFILE_ID, PATIENT_PROFILE_ID])
+
+  const byActivator = await supabase
+    .from("certificate_templates")
+    .delete()
+    .in("activated_by", [OPERATOR_PROFILE_ID, PATIENT_PROFILE_ID])
+
+  const error = byId.error || byCreator.error || byActivator.error
 
   if (error && !error.message.includes("0 rows")) {
     console.warn("⚠️  Failed to delete certificate templates:", error.message)

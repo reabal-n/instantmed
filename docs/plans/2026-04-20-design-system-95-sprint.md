@@ -32,7 +32,7 @@
 ### Task 1.1: Pin design-system version
 
 **Files:**
-- Modify: `docs/DESIGN_SYSTEM.md:1-5`
+- Modify: `DESIGN.md:1-5`
 - Modify: `lib/motion/index.ts:1-15`
 - Create: `lib/design-system/version.ts`
 
@@ -48,7 +48,7 @@
 export const DESIGN_SYSTEM_VERSION = "1.0.0" as const
 ```
 
-**Step 2:** Add version header to `docs/DESIGN_SYSTEM.md` line 3:
+**Step 2:** Add version header to `DESIGN.md` line 3:
 
 ```markdown
 > **Version: 1.0.0** · Updated 2026-04-20 · [Changelog](/docs/DESIGN_SYSTEM_CHANGELOG.md)
@@ -270,7 +270,7 @@ export function Heading({ level = 1, as, className, children }: ...) { ... }
 - Create: `docs/AI_ONBOARDING.md`
 
 **Step 1:** Write a concise doc (~200 lines max) listing the 5 canonical files an AI must read before touching UI:
-1. `docs/DESIGN_SYSTEM.md`
+1. `DESIGN.md`
 2. `lib/motion/index.ts`
 3. `lib/services/service-catalog.ts`
 4. `components/ui/heading.tsx`
@@ -377,7 +377,7 @@ Tasks:
 - **Portal live-audit** — fix cookie routing in preview browsers (httpOnly issue); then visually audit patient dashboard + intake detail + doctor queue + intake document.
 - **Full hex audit** — `rg "#[0-9A-F]{6}" components/ app/ --type tsx` → audit each, replace non-token uses.
 - **Pre-launch freeze policy** — add `.github/CODEOWNERS` entry for design system files + PR template checkbox "Verified in both light + dark mode? Checked reduced motion?"
-- **DESIGN_SYSTEM.md §1 vs §7 docs resolution** — explicit exception block added to §1 for service-icon gradient palette.
+- **DESIGN.md §1 vs §7 docs resolution** — explicit exception block added to §1 for service-icon gradient palette.
 - **Trusted by 3,184+** dedupe on home hero (appears 3 times).
 - **"Compliant with" logo bar** polish (unified height, monochrome grayscale, hover bounce).
 

@@ -12,8 +12,8 @@ import {
   Box,
   Button,
   colors,
-  StatusBanner,
   NameFirstGreeting,
+  StatusBanner,
   Text,
 } from "../base-email"
 

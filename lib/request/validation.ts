@@ -271,6 +271,13 @@ export const hairLossAssessmentStepSchema = z.object({
 export const hairLossHealthStepSchema = z
   .object({
     hairReproductive: nonEmptyString("Please answer this safety question"),
+    scalpDandruff: z.boolean().optional(),
+    scalpPsoriasis: z.boolean().optional(),
+    scalpItching: z.boolean().optional(),
+    scalpFolliculitis: z.boolean().optional(),
+    scalpNone: z.boolean().optional(),
+    hairLowBP: z.boolean().optional(),
+    hairHeartConditions: z.boolean().optional(),
     has_allergies: z.union([z.literal("yes"), z.literal("no")]).optional(),
     known_allergies: z.string().optional(),
     has_conditions: z.union([z.literal("yes"), z.literal("no")]).optional(),
@@ -286,6 +293,35 @@ export const hairLossHealthStepSchema = z
         path: ["hairReproductive"],
         message: "Hair loss medication cannot be prescribed when a partner is pregnant or trying to conceive",
       })
+    }
+    const scalpComplete =
+      data.scalpDandruff === true ||
+      data.scalpPsoriasis === true ||
+      data.scalpItching === true ||
+      data.scalpFolliculitis === true ||
+      data.scalpNone === true
+    if (!scalpComplete) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["scalp"],
+        message: "Please complete the scalp health screen",
+      })
+    }
+    if (data.hairLowBP === undefined || data.hairHeartConditions === undefined) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["bloodPressureAndHeart"],
+        message: "Please complete the blood pressure and heart screen",
+      })
+    }
+    if (data.takes_medications === undefined) {
+      ctx.addIssue({ code: "custom", path: ["takes_medications"], message: "Please answer medication question" })
+    }
+    if (data.has_allergies === undefined) {
+      ctx.addIssue({ code: "custom", path: ["has_allergies"], message: "Please answer allergies question" })
+    }
+    if (data.has_conditions === undefined) {
+      ctx.addIssue({ code: "custom", path: ["has_conditions"], message: "Please answer conditions question" })
     }
     if (data.has_allergies === "yes" && !data.known_allergies?.trim()) {
       ctx.addIssue({ code: "custom", path: ["known_allergies"], message: "Please list your allergies" })

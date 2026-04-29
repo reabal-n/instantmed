@@ -1,15 +1,8 @@
 "use client"
 
 import {
-  CheckCircle,
-  Clock,
   Eye,
-  FileText,
   Search,
-  Send,
-  TrendingUp,
-  Users,
-  XCircle,
 } from "lucide-react"
 import Link from "next/link"
 import { useMemo,useState } from "react"
@@ -23,6 +16,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { UserCard } from "@/components/uix"
 import { INTAKE_STATUS, type IntakeStatus } from "@/lib/data/status"
 import { formatDate } from "@/lib/format"
+import { cn } from "@/lib/utils"
 import type { IntakeWithPatient } from "@/types/db"
 
 // Format functions (inline to avoid server-only import)
@@ -40,6 +34,17 @@ function formatIntakeStatus(status: string): string {
   return labels[status] || status
 }
 
+const STATUS_PRIORITY: Record<string, number> = {
+  awaiting_script: 0,
+  pending_info: 1,
+  paid: 2,
+  in_review: 3,
+  pending_payment: 4,
+  declined: 5,
+  approved: 6,
+  completed: 7,
+}
+
 interface AdminDashboardClientProps {
   allIntakes: IntakeWithPatient[]
   totalIntakes?: number
@@ -51,137 +56,79 @@ interface AdminDashboardClientProps {
     pending_info: number
     scripts_pending: number
   }
-  doctorName: string
 }
 
 export function AdminDashboardClient({
   allIntakes,
   stats,
-  doctorName,
 }: AdminDashboardClientProps) {
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState<string>("all")
   const [serviceFilter, setServiceFilter] = useState<string>("all")
 
-  // Filter intakes
   const filteredIntakes = useMemo(() => {
-    return allIntakes.filter((intake) => {
-      const patient = intake.patient as { full_name?: string; suburb?: string } | undefined
-      const service = intake.service as { type?: string } | undefined
-      
-      // Search filter
-      const matchesSearch =
-        patient?.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        patient?.suburb?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        intake.id.toLowerCase().includes(searchQuery.toLowerCase())
+    const query = searchQuery.trim().toLowerCase()
+    return allIntakes
+      .filter((intake) => {
+        const patient = intake.patient as { full_name?: string; suburb?: string } | undefined
+        const service = intake.service as { type?: string } | undefined
 
-      // Status filter
-      const matchesStatus = statusFilter === "all" || intake.status === statusFilter
+        const matchesSearch =
+          !query ||
+          patient?.full_name?.toLowerCase().includes(query) ||
+          patient?.suburb?.toLowerCase().includes(query) ||
+          intake.id.toLowerCase().includes(query)
 
-      // Service filter
-      const matchesService = serviceFilter === "all" || service?.type === serviceFilter
+        const matchesStatus = statusFilter === "all" || intake.status === statusFilter
+        const matchesService = serviceFilter === "all" || service?.type === serviceFilter
 
-      return matchesSearch && matchesStatus && matchesService
-    })
+        return matchesSearch && matchesStatus && matchesService
+      })
+      .sort((a, b) => {
+        const priorityDelta =
+          (STATUS_PRIORITY[a.status] ?? 99) - (STATUS_PRIORITY[b.status] ?? 99)
+        if (priorityDelta !== 0) return priorityDelta
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      })
   }, [allIntakes, searchQuery, statusFilter, serviceFilter])
 
   const getStatusBadge = (status: string) => {
     return INTAKE_STATUS[status as IntakeStatus]?.color ?? "bg-muted text-foreground"
   }
 
+  const summary = [
+    { label: "Total", value: stats.total },
+    { label: "In queue", value: stats.in_queue },
+    { label: "Scripts", value: stats.scripts_pending },
+    { label: "Needs info", value: stats.pending_info },
+    { label: "Approved", value: stats.approved },
+    { label: "Declined", value: stats.declined },
+  ]
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground font-sans">Admin Dashboard</h1>
-        <p className="text-base text-muted-foreground mt-2">
-          <span className="mr-1.5" aria-hidden>👋</span>
-          Welcome back, Dr. {doctorName} · Complete overview of all intakes
-        </p>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-5">
-        <Card className="rounded-xl border-border/50">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-3">
-              <FileText className="h-5 w-5 text-muted-foreground shrink-0" />
-              <div className="min-w-0">
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Total</p>
-                <p className="text-2xl font-semibold tabular-nums mt-0.5">{stats.total}</p>
-              </div>
+    <div>
+      <Card className="overflow-hidden rounded-xl border-border/60 shadow-sm shadow-primary/[0.03]">
+        <CardHeader className="border-b border-border/40 px-4 py-3">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <CardTitle className="text-base font-semibold tracking-tight">
+              Intake ledger ({filteredIntakes.length})
+            </CardTitle>
+            <div className="flex flex-wrap gap-1.5">
+              {summary.map((item) => (
+                <span
+                  key={item.label}
+                  className="inline-flex items-center gap-1.5 rounded-md border border-border/50 bg-muted/25 px-2 py-1 text-xs text-muted-foreground"
+                >
+                  <span className="font-semibold tabular-nums text-foreground">{item.value}</span>
+                  {item.label}
+                </span>
+              ))}
             </div>
-          </CardContent>
-        </Card>
-        <Card className="rounded-xl border-border/50">
-          <CardContent className="p-5">
-            <div className="flex items-center gap-3">
-              <Clock className="h-5 w-5 text-info shrink-0" />
-              <div className="min-w-0">
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">In Queue</p>
-                <p className="text-2xl font-semibold tabular-nums mt-0.5">{stats.in_queue}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="rounded-xl border-border/50">
-          <CardContent className="p-5">
-            <div className="flex items-center gap-3">
-              <CheckCircle className="h-5 w-5 text-success shrink-0" />
-              <div className="min-w-0">
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Approved</p>
-                <p className="text-2xl font-semibold tabular-nums mt-0.5">{stats.approved}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="rounded-xl border-border/50">
-          <CardContent className="p-5">
-            <div className="flex items-center gap-3">
-              <XCircle className="h-5 w-5 text-destructive shrink-0" />
-              <div className="min-w-0">
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Declined</p>
-                <p className="text-2xl font-semibold tabular-nums mt-0.5">{stats.declined}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="rounded-xl border-border/50">
-          <CardContent className="p-5">
-            <div className="flex items-center gap-3">
-              <Send className="h-5 w-5 text-warning shrink-0" />
-              <div className="min-w-0">
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Scripts Pending</p>
-                <p className="text-2xl font-semibold tabular-nums mt-0.5">{stats.scripts_pending}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="rounded-xl border-border/50">
-          <CardContent className="p-5">
-            <div className="flex items-center gap-3">
-              <TrendingUp className="h-5 w-5 text-warning shrink-0" />
-              <div className="min-w-0">
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Needs Info</p>
-                <p className="text-2xl font-semibold tabular-nums mt-0.5">{stats.pending_info}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Filters */}
-      <Card className="rounded-xl border-border/50">
-        <CardHeader className="px-6 py-6">
-          <CardTitle className="text-lg font-semibold flex items-center gap-2.5">
-            <Users className="h-5 w-5" />
-            All Intakes ({filteredIntakes.length})
-          </CardTitle>
+          </div>
         </CardHeader>
-        <CardContent className="px-6 pb-6 pt-0">
-          <div className="flex flex-wrap gap-4 mb-5">
-            <div className="flex-1 min-w-[200px]">
+        <CardContent className="px-4 py-4">
+          <div className="mb-4 grid gap-3 md:flex md:flex-wrap">
+            <div className="min-w-0 md:min-w-[200px] md:flex-1">
               <Input
                 placeholder="Search by name, suburb, or ID..."
                 value={searchQuery}
@@ -190,7 +137,7 @@ export function AdminDashboardClient({
               />
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[160px]">
+              <SelectTrigger className="w-full md:w-[160px]">
                 <SelectValue placeholder="All Statuses" />
               </SelectTrigger>
               <SelectContent>
@@ -204,7 +151,7 @@ export function AdminDashboardClient({
               </SelectContent>
             </Select>
             <Select value={serviceFilter} onValueChange={setServiceFilter}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-full md:w-[180px]">
                 <SelectValue placeholder="All Services" />
               </SelectTrigger>
               <SelectContent>
@@ -216,8 +163,60 @@ export function AdminDashboardClient({
             </Select>
           </div>
 
-          {/* Table */}
-          <div className="rounded-xl border border-border/50 overflow-hidden">
+          <div className="overflow-hidden rounded-lg border border-border/50 md:hidden">
+            {filteredIntakes.length > 0 ? (
+              <div className="divide-y divide-border/50">
+                {filteredIntakes.map((intake) => {
+                  const patient = intake.patient as { full_name?: string; suburb?: string; state?: string } | undefined
+                  const service = intake.service as { name?: string; short_name?: string } | undefined
+
+                  return (
+                    <Link
+                      key={intake.id}
+                      href={`/doctor/intakes/${intake.id}`}
+                      className="block bg-card p-3 transition-colors hover:bg-muted/35"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <UserCard
+                          name={patient?.full_name || "Unknown"}
+                          description={`${patient?.suburb || ""}${patient?.state ? `, ${patient.state}` : ""}`}
+                          size="sm"
+                          className="min-w-0"
+                        />
+                        <Badge className={cn("shrink-0 text-xs", getStatusBadge(intake.status))}>
+                          {formatIntakeStatus(intake.status)}
+                        </Badge>
+                      </div>
+                      <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
+                        <div>
+                          <p className="text-muted-foreground">Service</p>
+                          <p className="mt-0.5 font-medium text-foreground">
+                            {service?.short_name || service?.name || "—"}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-muted-foreground">Date</p>
+                          <p className="mt-0.5 font-medium text-foreground">
+                            {formatDate(intake.created_at)}
+                          </p>
+                        </div>
+                      </div>
+                    </Link>
+                  )
+                })}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center gap-2 px-4 py-10 text-center text-muted-foreground">
+                <Search className="h-5 w-5" aria-hidden />
+                <p className="text-sm">No intakes match these filters</p>
+                <p className="text-xs">
+                  Try clearing the search or switching the status to All
+                </p>
+              </div>
+            )}
+          </div>
+
+          <div className="hidden overflow-hidden rounded-lg border border-border/50 md:block">
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/50">
@@ -271,7 +270,7 @@ export function AdminDashboardClient({
                   <TableRow>
                     <TableCell colSpan={5} className="text-center py-10">
                       <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                        <span className="text-2xl" aria-hidden>🔎</span>
+                        <Search className="h-5 w-5" aria-hidden />
                         <p className="text-sm">No intakes match these filters</p>
                         <p className="text-xs">
                           Try clearing the search or switching the status to All

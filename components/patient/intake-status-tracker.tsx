@@ -271,7 +271,7 @@ export function IntakeStatusTracker({
       </div>
 
       {/* Special status alert.
-          Animate opacity + transform only (DESIGN_SYSTEM.md §12 forbids
+          Animate opacity + transform only (DESIGN.md §12 forbids
           animating layout properties like height). The previous
           height: 0 → "auto" violated the perf budget. */}
       <AnimatePresence>

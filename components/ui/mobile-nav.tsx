@@ -50,7 +50,7 @@ const moreItems: NavItem[] = [
     href: "/patient/prescriptions",
   },
   {
-    label: "Health Summary",
+    label: "Health summary",
     icon: Activity,
     href: "/patient/health-summary",
   },
@@ -260,5 +260,4 @@ export function MobileNav({ items = defaultItems, moreMenuItems = moreItems, cla
     </>
   )
 }
-
 

@@ -2,7 +2,7 @@
 # Any PR touching these paths must be approved by @rey.
 
 # Design system source of truth
-docs/DESIGN_SYSTEM.md @rey
+DESIGN.md @rey
 docs/DESIGN_SYSTEM_CHANGELOG.md @rey
 lib/design-system/ @rey
 

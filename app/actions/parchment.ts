@@ -5,8 +5,9 @@ import * as Sentry from "@sentry/nextjs"
 import { requireRoleOrNull } from "@/lib/auth/helpers"
 import { getFeatureFlags } from "@/lib/feature-flags"
 import { createLogger } from "@/lib/observability/logger"
-import { getSsoUrl, listUsers } from "@/lib/parchment/client"
+import { getSsoUrl, listUsers, validateIntegration } from "@/lib/parchment/client"
 import { syncPatientToParchment } from "@/lib/parchment/sync-patient"
+import { readAnswers } from "@/lib/security/phi-field-wrappers"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
@@ -57,10 +58,10 @@ export async function getParchmentPrescribeUrlAction(
       }
     }
 
-    // Get patient_id and answers from the intake (verify doctor owns it)
+    // Get patient_id from the intake (verify doctor owns it)
     const { data: intake } = await supabase
       .from("intakes")
-      .select("patient_id, answers, claimed_by")
+      .select("patient_id, claimed_by")
       .eq("id", intakeId)
       .single()
 
@@ -78,8 +79,19 @@ export async function getParchmentPrescribeUrlAction(
       return { success: false, error: "You must claim this intake before prescribing" }
     }
 
-    // Extract answers for sex field fallback
-    const answers = (intake.answers as { answers?: Record<string, unknown> })?.answers
+    const { data: answerRow } = await supabase
+      .from("intake_answers")
+      .select("answers, answers_encrypted")
+      .eq("intake_id", intakeId)
+      .maybeSingle()
+
+    // Extract answers for sex field fallback.
+    const answers = answerRow
+      ? (await readAnswers({
+          answers: answerRow.answers as Record<string, unknown> | null,
+          answers_enc: answerRow.answers_encrypted as never,
+        })) ?? undefined
+      : undefined
 
     // Sync patient to Parchment (idempotent - returns existing ID if already synced)
     const parchmentPatientId = await syncPatientToParchment(
@@ -157,19 +169,18 @@ export async function linkParchmentUserAction(
   }
 
   try {
-    // Validate the user ID exists in Parchment before saving
-    const usersData = await listUsers()
-    const validUser = usersData.users.find((u) => u.user_id === parchmentUserId.trim())
-    if (!validUser) {
-      return { success: false, error: "Parchment user ID not found. Check the ID and try again." }
-    }
+    // Validate the pasted user ID by generating a user-scoped token and calling
+    // /validate. This avoids making account linking depend on read:users, which
+    // is non-essential and can be disabled in some Parchment sandbox tenants.
+    const trimmedUserId = parchmentUserId.trim()
+    await validateIntegration(trimmedUserId)
 
     const supabase = createServiceRoleClient()
 
     const { error } = await supabase
       .from("profiles")
       .update({
-        parchment_user_id: parchmentUserId.trim(),
+        parchment_user_id: trimmedUserId,
         updated_at: new Date().toISOString(),
       })
       .eq("id", authResult.profile.id)
@@ -180,8 +191,7 @@ export async function linkParchmentUserAction(
 
     log.info("Parchment account linked", {
       doctorId: authResult.profile.id,
-      parchmentUserId,
-      parchmentUserName: validUser.full_name,
+      parchmentUserId: trimmedUserId,
     })
 
     return { success: true }
@@ -189,5 +199,54 @@ export async function linkParchmentUserAction(
     log.error("Failed to link Parchment account", {}, error instanceof Error ? error : new Error(String(error)))
     Sentry.captureException(error)
     return { success: false, error: "Failed to save Parchment user link" }
+  }
+}
+
+// ============================================================================
+// VALIDATION - Conformance evidence for sandbox / production approval
+// ============================================================================
+
+/**
+ * Validate the linked Parchment integration for the currently logged-in doctor.
+ *
+ * This deliberately generates the token for the linked Parchment user before
+ * calling /validate, matching Parchment's conformance requirement.
+ */
+export async function validateParchmentIntegrationAction(): Promise<{
+  success: boolean
+  error?: string
+  message?: string
+  requestId?: string
+}> {
+  const authResult = await requireRoleOrNull(["doctor", "admin"])
+  if (!authResult) {
+    return { success: false, error: "Unauthorized" }
+  }
+
+  try {
+    const supabase = createServiceRoleClient()
+    const { data: doctorProfile } = await supabase
+      .from("profiles")
+      .select("parchment_user_id")
+      .eq("id", authResult.profile.id)
+      .single()
+
+    if (!doctorProfile?.parchment_user_id) {
+      return {
+        success: false,
+        error: "Parchment account not linked. Link your user before validating the integration.",
+      }
+    }
+
+    const data = await validateIntegration(doctorProfile.parchment_user_id)
+    return {
+      success: data.validated,
+      message: data.message || (data.validated ? "Parchment integration validated" : "Validation failed"),
+      requestId: data.requestId,
+    }
+  } catch (error) {
+    log.error("Failed to validate Parchment integration", {}, error instanceof Error ? error : new Error(String(error)))
+    Sentry.captureException(error)
+    return { success: false, error: "Failed to validate Parchment integration" }
   }
 }

@@ -163,6 +163,6 @@ Completed same day as 1.0.0 pin. All phases shipped on `main`.
 - Hex audit: `AHPRALogo` `#4F46E5` → `#0284C7`, `TGALogo` `#7C3AED` → `#0F766E`, confetti `#4f46e5` → `#0EA5E9`.
 - `med-cert-hero.tsx`: removed hardcoded `"Trusted by 3,000+"` fallback, now uses `getPatientCount()`.
 - `regulator-logo-marquee.tsx`: `hover:scale-110` bounce on logo hover.
-- `DESIGN_SYSTEM.md §7`: removed stale `violet` row, added `amber`/`sky`, added service-icon exception block for `blue` token.
+- `DESIGN.md §7`: removed stale `violet` row, added `amber`/`sky`, added service-icon exception block for `blue` token.
 
 See `docs/plans/2026-04-20-design-system-95-sprint.md` for full audit rubric and success criteria.

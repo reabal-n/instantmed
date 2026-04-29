@@ -208,6 +208,9 @@ export async function updateClinicIdentity(
 
 // Seeded intake ID from scripts/e2e/seed.ts
 export const INTAKE_ID = "e2e00000-0000-0000-0000-000000000010"
+const E2E_PATIENT_ID = "e2e00000-0000-0000-0000-000000000002"
+const E2E_SERVICE_ID = "e2e00000-0000-0000-0000-000000000020"
+const E2E_CLINICAL_NOTE = "E2E baseline clinical note. Patient history reviewed. Medical certificate request requires doctor review before approval."
 
 /**
  * Intake type definition
@@ -355,16 +358,89 @@ export async function resetIntakeForRetest(intakeId: string): Promise<void> {
     .from("intake_documents")
     .delete()
     .eq("intake_id", intakeId)
+
+  await supabase
+    .from("document_drafts")
+    .delete()
+    .eq("intake_id", intakeId)
+
+  await supabase
+    .from("document_drafts")
+    .delete()
+    .eq("request_id", intakeId)
+
+  await supabase
+    .from("intake_events")
+    .delete()
+    .eq("intake_id", intakeId)
   
   // Reset intake status to paid
-  await supabase
+  const { error } = await supabase
     .from("intakes")
     .update({ 
       status: "paid",
+      payment_status: "paid",
       claimed_by: null,
       claimed_at: null,
+      decision: null,
+      decline_reason: null,
+      decline_reason_code: null,
+      decline_reason_note: null,
+      decided_at: null,
+      reviewed_by: null,
+      reviewed_at: null,
+      doctor_notes: E2E_CLINICAL_NOTE,
+      updated_at: new Date().toISOString(),
     })
     .eq("id", intakeId)
+
+  if (!error) return
+
+  if (!error.message.includes("terminal state") || intakeId !== INTAKE_ID) {
+    console.error("Error resetting intake:", error.message)
+    return
+  }
+
+  await supabase.from("intakes").delete().eq("id", intakeId)
+
+  const referenceNumber = `E2E-${Date.now().toString(36).toUpperCase()}`
+  const { error: insertError } = await supabase.from("intakes").insert({
+    id: INTAKE_ID,
+    patient_id: E2E_PATIENT_ID,
+    service_id: E2E_SERVICE_ID,
+    reference_number: referenceNumber,
+    status: "draft",
+    payment_status: "unpaid",
+    amount_cents: 2500,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  })
+
+  if (insertError) {
+    console.error("Error recreating intake:", insertError.message)
+    return
+  }
+
+  await supabase
+    .from("intakes")
+    .update({
+      status: "pending_payment",
+      submitted_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", INTAKE_ID)
+
+  await supabase
+    .from("intakes")
+    .update({
+      status: "paid",
+      payment_status: "paid",
+      payment_id: `pi_e2e_${Date.now().toString(36)}`,
+      paid_at: new Date().toISOString(),
+      doctor_notes: E2E_CLINICAL_NOTE,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", INTAKE_ID)
 }
 
 /**
@@ -848,7 +924,7 @@ export async function seedTestIntake(options: SeedTestIntakeOptions = {}): Promi
     const supabase = getSupabaseClient()
     
     // Use E2E patient ID (from seed.ts)
-    const E2E_PATIENT_ID = "e2e00000-0000-0000-0000-000000000001"
+    const E2E_PATIENT_ID = "e2e00000-0000-0000-0000-000000000002"
     const E2E_SERVICE_ID = "e2e00000-0000-0000-0000-000000000020"
     
     // Check if patient exists
