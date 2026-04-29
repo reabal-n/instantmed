@@ -62,12 +62,11 @@ const configNavItems: NavItem[] = [
 
 // ── Email surfaces (collapsible) ─────────────────────────────
 // Grouped under a single "Emails" header in Phase 3 doctor + admin
-// rebuild — was previously split between Configuration ("Email
-// Templates") and System ("Email Hub"), forcing the operator to
-// remember which menu the surface lived in.
+// rebuild. Phase 6 lifted /admin/email-hub under /admin/emails/hub
+// so all three surfaces share a tab nav — sidebar entries follow.
 const emailNavItems: NavItem[] = [
-  { href: "/admin/email-hub", label: "Hub", icon: Mailbox },
   { href: "/admin/emails", label: "Templates", icon: Mail },
+  { href: "/admin/emails/hub", label: "Hub", icon: Mailbox },
   { href: "/admin/emails/analytics", label: "Analytics", icon: BarChart3 },
 ]
 

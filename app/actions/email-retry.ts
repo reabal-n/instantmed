@@ -109,7 +109,7 @@ export async function retryEmail(certificateId: string): Promise<RetryResult> {
 
       log.info("Email retry successful via outbox", { certificateId, outboxId: emailResult.outboxId })
 
-      revalidatePath("/admin/email-hub")
+      revalidatePath("/admin/emails/hub")
       return { success: true }
     } else {
       await updateEmailStatus(certificateId, "failed", {
@@ -235,7 +235,7 @@ export async function retryOutboxEmail(
       
       const result = await sendFromOutboxRow(claim.row as OutboxRow)
       
-      revalidatePath("/admin/email-hub")
+      revalidatePath("/admin/emails/hub")
 
       if (result.success) {
         return { success: true }
@@ -259,7 +259,7 @@ export async function retryOutboxEmail(
 
       log.info("Email reset to pending for dispatcher", { outboxId })
 
-      revalidatePath("/admin/email-hub")
+      revalidatePath("/admin/emails/hub")
 
       return { success: true }
     }
@@ -311,7 +311,7 @@ export async function markEmailResolved(
 
     log.info("Email marked as resolved", { certificateId, adminId: adminProfile.id, resolution })
 
-    revalidatePath("/admin/email-hub")
+    revalidatePath("/admin/emails/hub")
     return { success: true }
   } catch (error) {
     log.error("Mark resolved error", {}, error instanceof Error ? error : undefined)

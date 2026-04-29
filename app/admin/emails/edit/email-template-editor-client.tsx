@@ -254,11 +254,11 @@ export function EmailTemplateEditorClient({ initialTemplates }: EmailTemplateEdi
             </Link>
           </Button>
           <div>
-            <Heading level="h1" className="!text-2xl flex items-center gap-2">
-              <Mail className="h-6 w-6 text-primary" />
-              Email Templates
+            <Heading level="h2" className="!text-xl flex items-center gap-2">
+              <Mail className="h-5 w-5 text-primary" />
+              Edit template
             </Heading>
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="mt-1 text-sm text-muted-foreground">
               Edit and preview email templates
             </p>
           </div>

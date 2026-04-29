@@ -221,9 +221,9 @@ export function EmailTemplatesClient({ initialTemplates }: EmailTemplatesClientP
             </Link>
           </Button>
           <div>
-            <Heading level="h1" className="!text-2xl flex items-center gap-2">
-              <Mail className="h-6 w-6 text-primary" />
-              Email Templates
+            <Heading level="h2" className="!text-xl flex items-center gap-2">
+              <Mail className="h-5 w-5 text-primary" />
+              Templates
             </Heading>
             <p className="text-sm text-muted-foreground mt-1">
               Customize transactional email content

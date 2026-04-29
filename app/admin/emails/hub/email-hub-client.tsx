@@ -90,12 +90,12 @@ export function EmailHubClient({ initialStats, initialActivity, templateCounts, 
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <Heading level="h1" className="!text-2xl flex items-center gap-2">
-            <Mail className="h-6 w-6 text-primary" />
-            Email Hub
+          <Heading level="h2" className="!text-xl flex items-center gap-2">
+            <Mail className="h-5 w-5 text-primary" />
+            Hub
           </Heading>
-          <p className="text-sm text-muted-foreground mt-1">
-            Central management for all email templates, sending, and analytics
+          <p className="mt-1 text-sm text-muted-foreground">
+            Operational dashboard for email volume, delivery, and recent activity
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -222,7 +222,7 @@ export function EmailHubClient({ initialStats, initialActivity, templateCounts, 
             </Card>
 
             <Card className="hover:shadow-md transition-shadow cursor-pointer">
-              <Link href="/admin/email-hub">
+              <Link href="/admin/emails/hub">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Database className="h-5 w-5" />
@@ -266,7 +266,7 @@ export function EmailHubClient({ initialStats, initialActivity, templateCounts, 
             </Card>
 
             <Card className="hover:shadow-md transition-shadow cursor-pointer">
-              <Link href="/admin/email-hub">
+              <Link href="/admin/emails/hub">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <MailOpen className="h-5 w-5" />
@@ -374,7 +374,7 @@ export function EmailHubClient({ initialStats, initialActivity, templateCounts, 
                 )}
               </div>
               <div className="mt-4 pt-4 border-t">
-                <Link href="/admin/email-hub">
+                <Link href="/admin/emails/hub">
                   <Button variant="outline" size="sm" className="w-full">
                     View All Activity
                   </Button>
@@ -502,13 +502,13 @@ export function EmailHubClient({ initialStats, initialActivity, templateCounts, 
 
           {/* Links to detailed views */}
           <div className="flex gap-3">
-            <Link href="/admin/email-hub">
+            <Link href="/admin/emails/hub">
               <Button variant="outline">
                 <Clock className="h-4 w-4 mr-2" />
                 Failed Certificate Queue
               </Button>
             </Link>
-            <Link href="/admin/email-hub">
+            <Link href="/admin/emails/hub">
               <Button variant="outline">
                 <MailOpen className="h-4 w-4 mr-2" />
                 Full Email Outbox
