@@ -24,6 +24,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { Heading } from "@/components/ui/heading"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
@@ -145,10 +146,10 @@ export function AuditLogClient({ initialLogs, initialTotal, stats }: AuditLogCli
             </Link>
           </Button>
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
+            <Heading level="h1" className="!text-2xl flex items-center gap-2">
               <ScrollText className="h-6 w-6 text-primary" />
               Audit Log
-            </h1>
+            </Heading>
             <p className="text-sm text-muted-foreground mt-1">
               Compliance and security event history
             </p>

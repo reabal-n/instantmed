@@ -36,6 +36,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { Heading } from "@/components/ui/heading"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { SafeHtml } from "@/components/ui/safe-html"
@@ -253,10 +254,10 @@ export function EmailTemplateEditorClient({ initialTemplates }: EmailTemplateEdi
             </Link>
           </Button>
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
+            <Heading level="h1" className="!text-2xl flex items-center gap-2">
               <Mail className="h-6 w-6 text-primary" />
               Email Templates
-            </h1>
+            </Heading>
             <p className="text-sm text-muted-foreground mt-1">
               Edit and preview email templates
             </p>
@@ -415,7 +416,7 @@ export function EmailTemplateEditorClient({ initialTemplates }: EmailTemplateEdi
                     id="body_html"
                     value={formData.body_html}
                     onChange={(e) => setFormData(prev => ({ ...prev, body_html: e.target.value }))}
-                    placeholder="<h1>Hello {{patient_name}}</h1>..."
+                    placeholder="<h1>Hello {{patient_name}}</Heading>..."
                     className="min-h-[300px] font-mono text-sm"
                   />
                 </div>

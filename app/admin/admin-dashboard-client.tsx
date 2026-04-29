@@ -96,7 +96,8 @@ export function AdminDashboardClient({
       <div>
         <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground font-sans">Admin Dashboard</h1>
         <p className="text-base text-muted-foreground mt-2">
-          Complete overview of all intakes • Dr. {doctorName}
+          <span className="mr-1.5" aria-hidden>👋</span>
+          Welcome back, Dr. {doctorName} · Complete overview of all intakes
         </p>
       </div>
 
@@ -268,8 +269,14 @@ export function AdminDashboardClient({
                   })
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                      No intakes found matching your filters
+                    <TableCell colSpan={5} className="text-center py-10">
+                      <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                        <span className="text-2xl" aria-hidden>🔎</span>
+                        <p className="text-sm">No intakes match these filters</p>
+                        <p className="text-xs">
+                          Try clearing the search or switching the status to All
+                        </p>
+                      </div>
                     </TableCell>
                   </TableRow>
                 )}

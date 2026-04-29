@@ -172,23 +172,9 @@ export function IntakeMonitor({ initialStats, refreshInterval = 30000 }: IntakeM
           />
         </div>
 
-        {/* SLA Alerts */}
-        {(stats.slaBreached ?? 0) > 0 && (
-          <div className="flex items-center gap-2 p-2.5 rounded-lg bg-destructive/10 border border-destructive/20">
-            <AlertCircle className="h-3.5 w-3.5 text-destructive shrink-0" />
-            <span className="text-sm font-medium text-destructive">
-              {stats.slaBreached} case{stats.slaBreached !== 1 ? "s" : ""} past SLA deadline
-            </span>
-          </div>
-        )}
-        {(stats.slaApproaching ?? 0) > 0 && (stats.slaBreached ?? 0) === 0 && (
-          <div className="flex items-center gap-2 p-2.5 rounded-lg bg-warning-light border border-warning-border">
-            <Clock className="h-3.5 w-3.5 text-warning shrink-0" />
-            <span className="text-sm font-medium text-warning">
-              {stats.slaApproaching} case{stats.slaApproaching !== 1 ? "s" : ""} approaching deadline
-            </span>
-          </div>
-        )}
+        {/* SLA breach + approaching alerts now render at dashboard level
+            (components/doctor/sla-breach-hero.tsx) so they appear above the
+            stats grid and can't be missed. Phase 2 doctor portal rebuild. */}
 
         {/* Secondary Row — collapsed by default */}
         <div className="pt-2 border-t border-border/40">

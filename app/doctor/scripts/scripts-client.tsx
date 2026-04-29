@@ -6,7 +6,6 @@ import { toast } from "sonner"
 
 import { DashboardPageHeader } from "@/components/dashboard"
 import { Button } from "@/components/ui/button"
-import { EmptyState } from "@/components/ui/empty-state"
 import { Pagination } from "@/components/uix"
 import { capture } from "@/lib/analytics/capture"
 import type { ScriptTask, ScriptTaskStatus } from "@/lib/data/script-tasks"
@@ -170,11 +169,13 @@ export function ScriptsClient({ initialTasks, initialCounts, initialTotal }: Scr
       {/* Task list */}
       <div className="space-y-2">
         {filteredTasks.length === 0 && !isPending ? (
-          <EmptyState
-            icon={CheckCircle2}
-            title="All caught up!"
-            description="No pending script tasks right now."
-          />
+          <div className="flex flex-col items-center justify-center py-16 px-6 text-center rounded-xl border border-dashed border-border/60 bg-muted/20">
+            <div className="text-4xl mb-3" aria-hidden="true">🎉</div>
+            <h3 className="text-base font-semibold text-foreground mb-1">All caught up!</h3>
+            <p className="text-sm text-muted-foreground max-w-xs">
+              No pending script tasks right now. New tasks will appear here as patients request scripts.
+            </p>
+          </div>
         ) : (
           filteredTasks.map((task) => {
             const config = STATUS_CONFIG[task.status]

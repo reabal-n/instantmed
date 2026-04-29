@@ -21,6 +21,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Heading } from "@/components/ui/heading"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
@@ -155,10 +156,10 @@ export function ClinicIdentityClient({ initialData, logoUrl }: ClinicIdentityCli
             </Link>
           </Button>
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
+            <Heading level="h1" className="!text-2xl flex items-center gap-2">
               <Building2 className="h-6 w-6 text-primary" />
               Clinic Identity
-            </h1>
+            </Heading>
             <p className="text-sm text-muted-foreground mt-1">
               Configure clinic branding for certificates and documents
             </p>

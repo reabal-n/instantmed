@@ -30,6 +30,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { Heading } from "@/components/ui/heading"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
@@ -189,10 +190,10 @@ export function ContentBlocksClient({ initialBlocks }: ContentBlocksClientProps)
             </Link>
           </Button>
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
+            <Heading level="h1" className="!text-2xl flex items-center gap-2">
               <FileText className="h-6 w-6 text-primary" />
               Content Editor
-            </h1>
+            </Heading>
             <p className="text-sm text-muted-foreground mt-1">
               Manage microcopy and content snippets
             </p>

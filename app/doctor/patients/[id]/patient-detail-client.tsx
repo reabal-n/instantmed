@@ -282,8 +282,8 @@ export function PatientDetailClient({ patient, intakes, stats, emailLogs, patien
             </div>
           ) : (
             <div className="text-center py-8 text-muted-foreground">
-              <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
-              <p>No requests yet</p>
+              <span className="text-2xl block mb-2" aria-hidden>🗂️</span>
+              <p className="text-sm">No requests from this patient yet</p>
             </div>
           )}
         </CardContent>

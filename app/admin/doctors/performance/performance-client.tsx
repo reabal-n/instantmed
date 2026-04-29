@@ -23,6 +23,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription,CardHeader, CardTitle } from "@/components/ui/card"
+import { Heading } from "@/components/ui/heading"
 import {
   Table,
   TableBody,
@@ -87,7 +88,7 @@ export function DoctorPerformanceClient({ doctors }: DoctorPerformanceClientProp
             </Link>
           </Button>
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight">Doctor Performance</h1>
+            <Heading level="h1" className="!text-2xl">Doctor Performance</Heading>
             <p className="text-sm text-muted-foreground">Review metrics and workload distribution</p>
           </div>
         </div>

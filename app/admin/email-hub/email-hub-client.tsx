@@ -26,6 +26,7 @@ import type { EmailStats, RecentEmailActivity } from "@/app/actions/email-stats"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Heading } from "@/components/ui/heading"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { formatTimeAgo } from "@/lib/format"
 
@@ -89,10 +90,10 @@ export function EmailHubClient({ initialStats, initialActivity, templateCounts, 
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
+          <Heading level="h1" className="!text-2xl flex items-center gap-2">
             <Mail className="h-6 w-6 text-primary" />
             Email Hub
-          </h1>
+          </Heading>
           <p className="text-sm text-muted-foreground mt-1">
             Central management for all email templates, sending, and analytics
           </p>

@@ -23,6 +23,7 @@ import { useTransition } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Heading } from "@/components/ui/heading"
 import { formatAUD, formatMinutes } from "@/lib/format"
 
 // ============================================================================
@@ -119,7 +120,7 @@ export function BusinessKPIClient({ data }: { data: KPIData }) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Business KPI Dashboard</h1>
+          <Heading level="h1" className="!text-2xl">Business KPI Dashboard</Heading>
           <p className="text-sm text-muted-foreground mt-1">Real-time telehealth launch metrics from Supabase</p>
         </div>
         <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isRefreshing}>

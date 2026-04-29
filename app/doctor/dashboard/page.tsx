@@ -1,6 +1,6 @@
 import { Suspense } from "react"
 
-import { IdentityIncompleteBanner,IntakeMonitor } from "@/components/doctor"
+import { IdentityIncompleteBanner,IntakeMonitor, SlaBreachHero } from "@/components/doctor"
 import { DashboardErrorBoundary } from "@/components/doctor/dashboard-error-boundary"
 import { Skeleton } from "@/components/ui/skeleton"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
@@ -73,6 +73,10 @@ async function DoctorStatsSection({
       {!identityComplete && (
         <IdentityIncompleteBanner missingFields={missingFields} />
       )}
+      <SlaBreachHero
+        breached={slaData.breached}
+        approaching={slaData.approaching}
+      />
       <DashboardErrorBoundary fallbackTitle="Unable to load stats">
         <IntakeMonitor initialStats={enrichedMonitoringStats} />
       </DashboardErrorBoundary>

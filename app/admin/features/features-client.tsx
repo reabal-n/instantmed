@@ -9,6 +9,7 @@ import { toast } from "sonner"
 import type { AutoApproveStats } from "@/app/actions/admin-config"
 import { updateFeatureFlagAction } from "@/app/actions/admin-config"
 import { Button } from "@/components/ui/button"
+import { Heading } from "@/components/ui/heading"
 import type { FeatureFlags, FlagKey } from "@/lib/data/types/feature-flags"
 import { FLAG_KEYS } from "@/lib/data/types/feature-flags"
 
@@ -113,10 +114,10 @@ export function FeatureFlagsClient({ initialFlags, auditLogs = [], autoApproveSt
             </Link>
           </Button>
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
+            <Heading level="h1" className="!text-2xl flex items-center gap-2">
               <ToggleLeft className="h-6 w-6 text-primary" />
               Feature Flags
-            </h1>
+            </Heading>
             <p className="text-sm text-muted-foreground mt-1">
               Kill switches and configuration toggles
             </p>

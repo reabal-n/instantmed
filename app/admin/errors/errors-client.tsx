@@ -5,6 +5,7 @@ import Link from "next/link"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Heading } from "@/components/ui/heading"
 
 export function ErrorMonitoringClient() {
   return (
@@ -16,10 +17,10 @@ export function ErrorMonitoringClient() {
           </Link>
         </Button>
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
+          <Heading level="h1" className="!text-2xl flex items-center gap-2">
             <Bug className="h-6 w-6 text-destructive" />
             Error Monitoring
-          </h1>
+          </Heading>
           <p className="text-sm text-muted-foreground mt-1">
             Application error tracking and resolution
           </p>

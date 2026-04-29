@@ -15,6 +15,7 @@ import {
 import { ServiceFormDialog } from "@/app/admin/services/service-form-dialog"
 import { ServicesStats, ServicesTableCard, ToggleConfirmDialog } from "@/app/admin/services/services-table"
 import { Button } from "@/components/ui/button"
+import { Heading } from "@/components/ui/heading"
 import type { Service, ServiceInput } from "@/lib/data/types/services"
 
 interface ServicesConfigClientProps {
@@ -223,10 +224,10 @@ export function ServicesConfigClient({ initialServices }: ServicesConfigClientPr
             </Link>
           </Button>
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
+            <Heading level="h1" className="!text-2xl flex items-center gap-2">
               <Settings className="h-6 w-6 text-primary" />
               Service Configuration
-            </h1>
+            </Heading>
             <p className="text-sm text-muted-foreground mt-1">
               Manage services, pricing, and eligibility rules
             </p>
