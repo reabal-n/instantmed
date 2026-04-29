@@ -32,17 +32,6 @@ interface StatusStep {
   icon: React.ReactNode
 }
 
-// Generate a consistent "random" wait time based on intake ID
-function getEstimatedWaitTime(intakeId: string): number {
-  // Use intake ID to generate consistent number between 5-45
-  let hash = 0
-  for (let i = 0; i < intakeId.length; i++) {
-    hash = ((hash << 5) - hash) + intakeId.charCodeAt(i)
-    hash |= 0
-  }
-  return 5 + Math.abs(hash % 41) // 5-45 minutes
-}
-
 const STATUS_STEPS: StatusStep[] = [
   {
     id: "paid",
@@ -251,7 +240,6 @@ export function IntakeStatusTracker({
   const currentIndex = getStatusIndex(status)
   const isSpecialStatus = status in SPECIAL_STATUSES
   const specialStatus = SPECIAL_STATUSES[status]
-  const estimatedWait = getEstimatedWaitTime(intakeId)
   const showWaitTime = status === "paid" || status === "in_review"
 
   return (
@@ -312,7 +300,7 @@ export function IntakeStatusTracker({
           <div className="flex items-center gap-2 text-info">
             <Clock className="h-4 w-4" />
             <span className="text-sm font-medium">
-              Doctors typically review within {estimatedWait} minutes
+              Most reviews finish in 1 to 2 hours during business hours (8am to 10pm AEST)
             </span>
           </div>
         </motion.div>
