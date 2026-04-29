@@ -1,6 +1,7 @@
 "use client"
 
 import {
+  ArrowRight,
   Bell,
   CreditCard,
   Download,
@@ -8,12 +9,11 @@ import {
   EyeOff,
   Loader2,
   Mail,
-  MapPin,
   Save,
-  Shield,
   User,
 } from "lucide-react"
-import { useRouter } from "next/navigation"
+import Link from "next/link"
+import { useRouter, useSearchParams } from "next/navigation"
 import { useState } from "react"
 import { toast } from "sonner"
 
@@ -51,8 +51,18 @@ interface PatientSettingsClientProps {
   emailPreferences?: EmailPreferences | null
 }
 
+type SettingsTab = "personal" | "medical" | "preferences"
+const VALID_TABS: readonly SettingsTab[] = ["personal", "medical", "preferences"] as const
+
 export function PatientSettingsClient({ profile, email, emailPreferences }: PatientSettingsClientProps) {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const requestedTab = searchParams?.get("tab")
+  const initialTab: SettingsTab =
+    requestedTab && (VALID_TABS as readonly string[]).includes(requestedTab)
+      ? (requestedTab as SettingsTab)
+      : "personal"
+  const [activeTab, setActiveTab] = useState<SettingsTab>(initialTab)
   const [isSaving, setIsSaving] = useState(false)
   const [isChangingPassword, setIsChangingPassword] = useState(false)
   const [isDeletingAccount, setIsDeletingAccount] = useState(false)
@@ -245,31 +255,23 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
         description="Manage your profile and preferences"
       />
 
-      <Tabs defaultValue="profile">
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as SettingsTab)}>
         <TabsList className="w-full flex-wrap">
-          <TabsTrigger value="profile" className="flex-1 gap-2">
+          <TabsTrigger value="personal" className="flex-1 gap-2">
             <User className="w-4 h-4" />
-            Profile
+            Personal
           </TabsTrigger>
-          <TabsTrigger value="address" className="flex-1 gap-2">
-            <MapPin className="w-4 h-4" />
-            Address
-          </TabsTrigger>
-          <TabsTrigger value="medicare" className="flex-1 gap-2">
+          <TabsTrigger value="medical" className="flex-1 gap-2">
             <CreditCard className="w-4 h-4" />
-            Medicare
+            Medical
           </TabsTrigger>
-          <TabsTrigger value="notifications" className="flex-1 gap-2">
+          <TabsTrigger value="preferences" className="flex-1 gap-2">
             <Bell className="w-4 h-4" />
-            Notifications
-          </TabsTrigger>
-          <TabsTrigger value="security" className="flex-1 gap-2">
-            <Shield className="w-4 h-4" />
-            Security
+            Preferences
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="profile" className="mt-8">
+        <TabsContent value="personal" className="mt-8">
           <div className="space-y-8">
             {/* Avatar Picker */}
             <AvatarPicker
@@ -338,13 +340,10 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
                 </Button>
               </div>
             </DashboardCard>
-          </div>
-        </TabsContent>
 
-        <TabsContent value="address" className="mt-8">
-          <DashboardCard tier="elevated" padding="none" className="p-6 sm:p-8 space-y-6">
-            <div>
-              <h3 className="font-medium text-foreground mb-5">Home Address</h3>
+            <DashboardCard tier="elevated" padding="none" className="p-6 sm:p-8 space-y-6">
+              <div>
+                <h3 className="font-medium text-foreground mb-5">Home Address</h3>
               <p className="text-sm text-muted-foreground mb-5">
                 This address is used for sending physical documents if required.
               </p>
@@ -399,28 +398,30 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
               </div>
             </div>
 
-            <div className="flex justify-end">
-              <Button onClick={handleSave} disabled={isSaving} className="rounded-xl">
-                {isSaving ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <Save className="w-4 h-4 mr-2" />
-                    Save Changes
-                  </>
-                )}
-              </Button>
-            </div>
-          </DashboardCard>
+              <div className="flex justify-end">
+                <Button onClick={handleSave} disabled={isSaving} className="rounded-xl">
+                  {isSaving ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4 mr-2" />
+                      Save Changes
+                    </>
+                  )}
+                </Button>
+              </div>
+            </DashboardCard>
+          </div>
         </TabsContent>
 
-        <TabsContent value="medicare" className="mt-8">
-          <DashboardCard tier="elevated" padding="none" className="p-6 sm:p-8 space-y-6">
-            <div>
-              <h3 className="font-medium text-foreground mb-5">Medicare Details</h3>
+        <TabsContent value="medical" className="mt-8">
+          <div className="space-y-8">
+            <DashboardCard tier="elevated" padding="none" className="p-6 sm:p-8 space-y-6">
+              <div>
+                <h3 className="font-medium text-foreground mb-5">Medicare Details</h3>
               <p className="text-sm text-muted-foreground mb-6">
                 Your Medicare information is stored securely and used for prescription and referral services.
               </p>
@@ -460,11 +461,28 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
                 </Button>
               </div>
             </div>
-          </DashboardCard>
+            </DashboardCard>
+
+            {/* Health Profile deep-link card. The standalone /patient/health-profile
+                page lives on for direct linking but is folded into Medical here. */}
+            <Link
+              href="/patient/health-profile"
+              className="group flex items-center justify-between rounded-2xl border border-border/50 dark:border-white/15 bg-white dark:bg-card shadow-sm shadow-primary/[0.04] dark:shadow-none p-6 transition-[transform,box-shadow,border-color] duration-300 hover:-translate-y-0.5 hover:shadow-md hover:shadow-primary/[0.06] hover:border-primary/40"
+            >
+              <div className="min-w-0 flex-1 pr-4">
+                <p className="font-semibold text-foreground">Health profile</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Allergies, conditions, current medications, and emergency contact. Pre-fills future consultation forms.
+                </p>
+              </div>
+              <ArrowRight className="h-5 w-5 shrink-0 text-muted-foreground transition-colors group-hover:text-primary" />
+            </Link>
+          </div>
         </TabsContent>
 
-        <TabsContent value="notifications" className="mt-8">
-          <DashboardCard tier="elevated" padding="none" className="p-6 sm:p-8 space-y-6">
+        <TabsContent value="preferences" className="mt-8">
+          <div className="space-y-8">
+            <DashboardCard tier="elevated" padding="none" className="p-6 sm:p-8 space-y-6">
             {/* Email Subscription Preferences */}
             <div>
               <div className="flex items-center gap-2.5 mb-5">
@@ -529,13 +547,11 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
                 </Button>
               </div>
             </div>
-          </DashboardCard>
-        </TabsContent>
+            </DashboardCard>
 
-        <TabsContent value="security" className="mt-6">
-          <DashboardCard tier="elevated" padding="none" className="p-6 space-y-6">
-            <div>
-              <h3 className="font-medium text-foreground mb-4">Change Password</h3>
+            <DashboardCard tier="elevated" padding="none" className="p-6 space-y-6">
+              <div>
+                <h3 className="font-medium text-foreground mb-4">Change Password</h3>
               <p className="text-sm text-muted-foreground mb-4">
                 Password changes are managed through your secure account portal for added security.
               </p>
@@ -688,7 +704,8 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
                 </AlertDialog>
               </div>
             </div>
-          </DashboardCard>
+            </DashboardCard>
+          </div>
         </TabsContent>
       </Tabs>
     </div>

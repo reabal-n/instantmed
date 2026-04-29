@@ -1,4 +1,6 @@
+export { CertificateCredentials } from "./certificate-credentials"
 export { CrossSellCard } from "./cross-sell-card"
+export { DashboardHero } from "./dashboard-hero"
 export { DocumentReadyReveal } from "./document-ready-reveal"
 export { EmailVerificationBanner,EmailVerificationGate } from "./email-verification-gate"
 export { PatientErrorAlert } from "./error-alert"

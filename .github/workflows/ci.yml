@@ -55,6 +55,9 @@ jobs:
       - name: Check for orphaned files
         run: bash scripts/check-orphaned-files.sh
 
+      - name: Portal design-system compliance (no legacy classes)
+        run: bash scripts/check-portal-no-legacy-classes.sh
+
       - name: "Type-check and build (budget: 180s)"
         env:
           NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co

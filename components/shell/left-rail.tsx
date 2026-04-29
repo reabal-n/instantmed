@@ -40,9 +40,14 @@ interface LeftRailProps {
   userName: string
   userAvatar?: string
   userRole: 'patient' | 'doctor'
+  /**
+   * Optional unread notification count. Renders a small dot on the bell
+   * when > 0. Wiring is up to the caller; LeftRail just paints.
+   */
+  unreadNotifications?: number
 }
 
-export function LeftRail({ userName, userAvatar, userRole }: LeftRailProps) {
+export function LeftRail({ userName, userAvatar, userRole, unreadNotifications = 0 }: LeftRailProps) {
   const [isExpanded, setIsExpanded] = useState(true)
   const [isSigningOut, setIsSigningOut] = useState(false)
   const pathname = usePathname()
@@ -57,11 +62,12 @@ export function LeftRail({ userName, userAvatar, userRole }: LeftRailProps) {
 
   // LeftRail is only used by the patient layout (AuthenticatedShell).
   // Doctor layout uses DashboardSidebar instead.
+  // Sentence case throughout — matches design system §16 voice.
   const navItems = [
     { icon: Home, label: 'Overview', href: '/patient' },
-    { icon: FileText, label: 'My Requests', href: '/patient/intakes' },
+    { icon: FileText, label: 'Requests', href: '/patient/intakes' },
     { icon: ClipboardList, label: 'Prescriptions', href: '/patient/prescriptions' },
-    { icon: Activity, label: 'Health Summary', href: '/patient/health-summary' },
+    { icon: Activity, label: 'Health summary', href: '/patient/health-summary' },
     { icon: FolderOpen, label: 'Documents', href: '/patient/documents' },
     { icon: MessageSquare, label: 'Messages', href: '/patient/messages' },
     { icon: Settings, label: 'Settings', href: '/patient/settings' },
@@ -124,29 +130,41 @@ export function LeftRail({ userName, userAvatar, userRole }: LeftRailProps) {
           )}
           <Link
             href="/patient/notifications"
-            className="p-2 rounded-lg hover:bg-muted transition-colors shrink-0"
+            className="relative p-2 rounded-lg hover:bg-muted transition-colors shrink-0"
             title="Notifications"
-            aria-label="Notifications"
+            aria-label={
+              unreadNotifications > 0
+                ? `Notifications (${unreadNotifications} unread)`
+                : "Notifications"
+            }
           >
             <Bell className="w-4 h-4 text-muted-foreground" />
+            {unreadNotifications > 0 && (
+              <span
+                aria-hidden="true"
+                className="absolute right-1.5 top-1.5 inline-flex h-2 w-2 rounded-full bg-primary ring-2 ring-background"
+              />
+            )}
           </Link>
         </div>
       </div>
 
-      {/* New Request Button - Primary Action for Patients */}
+      {/* Primary action for patients: New request. Canonical CTA glow per §11. */}
       {userRole === 'patient' && (
         <div className="p-4 shrink-0">
           <Button
             className={cn(
               "w-full bg-primary text-white hover:bg-primary/90",
-              !isExpanded && "aspect-square p-0"
+              "shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30",
+              "active:scale-[0.98] transition-[transform,box-shadow,background-color] duration-200",
+              !isExpanded && "aspect-square p-0",
             )}
             onClick={handleNewRequest}
           >
             {isExpanded ? (
               <>
                 <Plus className="w-4 h-4 mr-2" />
-                New Request
+                New request
               </>
             ) : (
               <Plus className="w-4 h-4" />

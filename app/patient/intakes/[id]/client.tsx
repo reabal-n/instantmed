@@ -14,8 +14,7 @@ import {
   Link2,
   Mail,
   RefreshCw,
-  Shield,
-  XCircle, 
+  XCircle,
 } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
@@ -25,7 +24,7 @@ import { cancelIntake } from "@/app/actions/cancel-intake"
 import { requestDateCorrection } from "@/app/actions/request-date-correction"
 import { resendCertificate } from "@/app/actions/resend-certificate"
 import { resendVerificationEmail } from "@/app/actions/resend-verification"
-import { CrossSellCard, DocumentReadyReveal, EmailVerificationGate, IntakeStatusListener,IntakeStatusTracker, SendToEmployerDialog } from "@/components/patient"
+import { CertificateCredentials, CrossSellCard, DocumentReadyReveal, EmailVerificationGate, IntakeStatusListener,IntakeStatusTracker, SendToEmployerDialog } from "@/components/patient"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -581,14 +580,11 @@ export function IntakeDetailClient({
                           Download PDF
                         </a>
                       </Button>
-                      {document.verification_code && (
-                        <div className="flex items-center gap-2 text-sm text-success pt-2">
-                          <Shield className="h-4 w-4" />
-                          <span>
-                            Verification Code: <code className="font-mono font-semibold bg-success-light px-2 py-0.5 rounded">{document.verification_code}</code>
-                          </span>
-                        </div>
-                      )}
+                      <CertificateCredentials
+                        verificationCode={document.verification_code}
+                        referenceId={intake.id.slice(0, 8).toUpperCase()}
+                        tone="muted"
+                      />
                       <p className="text-xs text-success">
                         A copy has also been sent to your email.
                       </p>
