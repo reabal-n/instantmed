@@ -13,6 +13,7 @@ import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { toast } from "sonner"
 
+import { DashboardPageHeader } from "@/components/dashboard"
 import { PatientErrorAlert } from "@/components/patient"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -108,18 +109,15 @@ export function MessagesClient({
 
   return (
     <div>
-          {/* Header */}
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h1 className="text-2xl font-semibold tracking-tight">Messages</h1>
-              <p className="text-muted-foreground mt-1">
-                Communicate with your doctor about your requests
-              </p>
-            </div>
-            {unreadCount > 0 && (
-              <Badge className="bg-primary">{unreadCount} unread</Badge>
-            )}
-          </div>
+          <DashboardPageHeader
+            title="Messages"
+            description="Communicate with your doctor about your requests"
+            badge={
+              unreadCount > 0 ? (
+                <Badge className="bg-primary">{unreadCount} unread</Badge>
+              ) : undefined
+            }
+          />
 
           {/* Error State */}
           {error && <PatientErrorAlert error={error} className="mb-6" />}

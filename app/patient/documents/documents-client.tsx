@@ -11,6 +11,7 @@ import {
 import Link from "next/link"
 import { useState } from "react"
 
+import { DashboardPageHeader } from "@/components/dashboard"
 import { PatientErrorAlert } from "@/components/patient"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -54,15 +55,10 @@ export function DocumentsClient({ documents, error }: DocumentsClientProps) {
 
   return (
       <div className="space-y-4">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="text-2xl font-semibold tracking-tight">My Documents</h1>
-              <p className="text-muted-foreground mt-1">
-                {totalDocs} document{totalDocs !== 1 ? "s" : ""} available
-              </p>
-            </div>
-          </div>
+          <DashboardPageHeader
+            title="My Documents"
+            description={`${totalDocs} document${totalDocs !== 1 ? "s" : ""} available`}
+          />
 
           {/* Error State */}
           {error && <PatientErrorAlert error={error} className="mb-6" />}

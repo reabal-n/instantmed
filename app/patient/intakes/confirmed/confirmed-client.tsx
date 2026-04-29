@@ -7,6 +7,7 @@ import { useEffect } from "react"
 import { StickerIcon } from "@/components/icons/stickers"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
+import { Heading } from "@/components/ui/heading"
 import { capture } from "@/lib/analytics/capture"
 import { CONTACT_EMAIL } from "@/lib/constants"
 
@@ -31,7 +32,7 @@ export function ConfirmedClient({ intakeId, email, serviceName: _serviceName }: 
         <Check className="w-8 h-8 text-white" strokeWidth={2.5} />
       </div>
 
-      <h1 className="text-2xl font-semibold tracking-tight mb-2">Request Confirmed</h1>
+      <Heading level="h1" className="!text-2xl mb-2">Request Confirmed</Heading>
       <p className="text-muted-foreground mb-6">
         Your payment was successful. A doctor will review your request shortly.
       </p>

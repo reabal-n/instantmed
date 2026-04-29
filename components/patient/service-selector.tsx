@@ -2,6 +2,7 @@
 
 import { FileText, MessageSquare,Pill } from 'lucide-react'
 
+import { Heading } from '@/components/ui/heading'
 import { PerspectiveTiltCard } from '@/components/ui/morning/perspective-tilt-card'
 import { cn } from '@/lib/utils'
 
@@ -24,7 +25,8 @@ const SERVICES = [
     icon: FileText,
     label: 'Medical Certificate',
     description: 'For work, uni, or carer\'s leave',
-    color: 'from-blue-50 to-blue-100 dark:from-blue-950/40 dark:to-blue-900/30',
+    // Solid tint per §5; no directional gradient on content surface.
+    color: 'bg-blue-50 dark:bg-blue-950/30',
     iconColor: 'text-primary',
   },
   {
@@ -32,7 +34,7 @@ const SERVICES = [
     icon: Pill,
     label: 'Prescription',
     description: 'New or repeat prescription',
-    color: 'from-emerald-50 to-emerald-100 dark:from-emerald-950/30 dark:to-emerald-900/20',
+    color: 'bg-emerald-50 dark:bg-emerald-950/30',
     iconColor: 'text-success',
   },
   {
@@ -40,7 +42,7 @@ const SERVICES = [
     icon: MessageSquare,
     label: 'General Consultation',
     description: 'Speak to a doctor about your health',
-    color: 'from-sky-50 to-sky-100 dark:from-sky-950/40 dark:to-sky-900/30',
+    color: 'bg-sky-50 dark:bg-sky-950/30',
     iconColor: 'text-sky-600 dark:text-sky-400',
   },
 ]
@@ -49,9 +51,9 @@ export function ServiceSelector({ onSelectService }: ServiceSelectorProps) {
   return (
     <div className="p-8">
       <div className="text-center mb-8">
-        <h2 className="text-2xl font-semibold tracking-tight text-foreground mb-2">
+        <Heading level="h2" className="!text-2xl mb-2">
           What do you need?
-        </h2>
+        </Heading>
         <p className="text-sm text-muted-foreground">
           Select a service to get started
         </p>
@@ -66,17 +68,18 @@ export function ServiceSelector({ onSelectService }: ServiceSelectorProps) {
                 onClick={() => onSelectService(service.id)}
                 className={cn(
                   'w-full p-6 rounded-2xl border-2 border-transparent',
-                  'bg-linear-to-br transition-[opacity] duration-200',
-                  'hover:-translate-y-0.5 hover:shadow-lg active:scale-[0.98]',
+                  'transition-[transform,box-shadow,border-color] duration-300',
+                  'hover:-translate-y-0.5 hover:shadow-md hover:shadow-primary/[0.06]',
+                  'active:scale-[0.98]',
                   'focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
-                  'text-left card-shine',
+                  'text-left',
                   service.color
                 )}
               >
                 <div className="flex items-start gap-4">
                   <div className={cn(
                     'w-12 h-12 rounded-xl flex items-center justify-center shrink-0',
-                    'bg-white dark:bg-white/10 shadow-sm icon-spin-hover',
+                    'bg-white dark:bg-white/10 shadow-sm shadow-primary/[0.04]',
                     service.iconColor
                   )}>
                     <Icon className="w-6 h-6" />

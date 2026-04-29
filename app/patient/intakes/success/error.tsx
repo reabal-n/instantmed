@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react"
 
 import { Button } from "@/components/ui/button"
 import { ErrorRefChip } from "@/components/ui/error-ref-chip"
+import { Heading } from "@/components/ui/heading"
 
 export default function SuccessError({
   error,
@@ -45,7 +46,7 @@ export default function SuccessError({
           <AlertTriangle className="h-8 w-8 text-destructive" />
         </div>
 
-        <h1 className="text-2xl font-semibold tracking-tight mb-2">Your payment was received</h1>
+        <Heading level="h1" className="!text-2xl mb-2">Your payment was received</Heading>
         <p className="text-muted-foreground mb-6">
           There was a display issue loading your confirmation. Your request is safe and a doctor will review it shortly.
         </p>

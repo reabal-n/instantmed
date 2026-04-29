@@ -4,6 +4,7 @@ import { AlertCircle, Heart, Loader2,Plus, Save, X } from "lucide-react"
 import { useState, useTransition } from "react"
 import { toast } from "sonner"
 
+import { Heading } from "@/components/ui/heading"
 import { Textarea } from "@/components/ui/textarea"
 import { Button, Input } from "@/components/uix"
 import type { HealthProfile } from "@/lib/data/health-profile"
@@ -111,19 +112,19 @@ export function HealthProfileClient({ initialProfile, patientId: _patientId }: H
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-rose-400 to-rose-600 text-white">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
           <Heart className="h-5 w-5" />
         </div>
         <div>
-          <h1 className="text-2xl font-semibold">Health Profile</h1>
+          <Heading level="h1" className="!text-2xl">Health Profile</Heading>
           <p className="text-sm text-muted-foreground">Pre-fills your future consultation forms</p>
         </div>
       </div>
 
-      <div className="rounded-xl border border-sky-200 bg-sky-50/50 p-3 dark:border-sky-800 dark:bg-sky-950/20">
+      <div className="rounded-xl border border-info-border bg-info-light p-3">
         <div className="flex gap-2">
-          <AlertCircle className="h-4 w-4 mt-0.5 text-sky-600 dark:text-sky-400 shrink-0" />
-          <p className="text-sm text-sky-700 dark:text-sky-300">
+          <AlertCircle className="h-4 w-4 mt-0.5 text-info shrink-0" />
+          <p className="text-sm text-info">
             This information is encrypted and only shared with your treating doctor during consultations.
           </p>
         </div>

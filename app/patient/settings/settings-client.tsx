@@ -21,6 +21,7 @@ import { changePassword, deleteAccount } from "@/app/actions/account"
 import { type EmailPreferences,updateEmailPreferences } from "@/app/actions/email-preferences"
 import { exportPatientData } from "@/app/actions/export-data"
 import { updateMedicareAction } from "@/app/actions/profile-todo"
+import { DashboardCard, DashboardPageHeader } from "@/components/dashboard"
 import { MedicareCapture } from "@/components/intake/medicare-capture"
 import {
   AlertDialog,
@@ -239,17 +240,12 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
 
   return (
     <div className="space-y-10">
-      {/* Header */}
-      <div className="animate-fade-in-up opacity-0" style={{ animationDelay: "0.1s", animationFillMode: "forwards" }}>
-        <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">Settings</h1>
-        <p className="mt-2 text-base text-muted-foreground">Manage your profile and preferences</p>
-      </div>
+      <DashboardPageHeader
+        title="Settings"
+        description="Manage your profile and preferences"
+      />
 
-      <Tabs
-        defaultValue="profile"
-        className="animate-fade-in-up opacity-0"
-        style={{ animationDelay: "0.2s", animationFillMode: "forwards" }}
-      >
+      <Tabs defaultValue="profile">
         <TabsList className="w-full flex-wrap">
           <TabsTrigger value="profile" className="flex-1 gap-2">
             <User className="w-4 h-4" />
@@ -285,7 +281,7 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
             />
 
             {/* Personal Information */}
-            <div className="glass-card rounded-2xl p-6 sm:p-8 space-y-6">
+            <DashboardCard tier="elevated" padding="none" className="p-6 sm:p-8 space-y-6">
               <div>
                 <h3 className="font-medium text-foreground mb-5">Personal Information</h3>
                 <div className="grid gap-5 sm:grid-cols-2">
@@ -341,12 +337,12 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
                   )}
                 </Button>
               </div>
-            </div>
+            </DashboardCard>
           </div>
         </TabsContent>
 
         <TabsContent value="address" className="mt-8">
-          <div className="glass-card rounded-2xl p-6 sm:p-8 space-y-6">
+          <DashboardCard tier="elevated" padding="none" className="p-6 sm:p-8 space-y-6">
             <div>
               <h3 className="font-medium text-foreground mb-5">Home Address</h3>
               <p className="text-sm text-muted-foreground mb-5">
@@ -418,11 +414,11 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
                 )}
               </Button>
             </div>
-          </div>
+          </DashboardCard>
         </TabsContent>
 
         <TabsContent value="medicare" className="mt-8">
-          <div className="glass-card rounded-2xl p-6 sm:p-8 space-y-6">
+          <DashboardCard tier="elevated" padding="none" className="p-6 sm:p-8 space-y-6">
             <div>
               <h3 className="font-medium text-foreground mb-5">Medicare Details</h3>
               <p className="text-sm text-muted-foreground mb-6">
@@ -464,11 +460,11 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
                 </Button>
               </div>
             </div>
-          </div>
+          </DashboardCard>
         </TabsContent>
 
         <TabsContent value="notifications" className="mt-8">
-          <div className="glass-card rounded-2xl p-6 sm:p-8 space-y-6">
+          <DashboardCard tier="elevated" padding="none" className="p-6 sm:p-8 space-y-6">
             {/* Email Subscription Preferences */}
             <div>
               <div className="flex items-center gap-2.5 mb-5">
@@ -533,11 +529,11 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
                 </Button>
               </div>
             </div>
-          </div>
+          </DashboardCard>
         </TabsContent>
 
         <TabsContent value="security" className="mt-6">
-          <div className="glass-card rounded-2xl p-6 space-y-6">
+          <DashboardCard tier="elevated" padding="none" className="p-6 space-y-6">
             <div>
               <h3 className="font-medium text-foreground mb-4">Change Password</h3>
               <p className="text-sm text-muted-foreground mb-4">
@@ -692,7 +688,7 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
                 </AlertDialog>
               </div>
             </div>
-          </div>
+          </DashboardCard>
         </TabsContent>
       </Tabs>
     </div>

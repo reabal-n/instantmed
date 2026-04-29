@@ -14,6 +14,7 @@ import { useEffect, useRef,useState } from "react"
 
 import { Button } from "@/components/ui/button"
 import { ErrorRefChip } from "@/components/ui/error-ref-chip"
+import { Heading } from "@/components/ui/heading"
 import { CONTACT_EMAIL } from "@/lib/constants"
 
 function getErrorInfo(error: Error & { digest?: string }) {
@@ -90,7 +91,7 @@ export default function PatientIntakeError({
           <IconComponent className="h-8 w-8 text-destructive" />
         </div>
 
-        <h1 className="text-2xl font-semibold tracking-tight mb-2">{errorInfo.title}</h1>
+        <Heading level="h1" className="!text-2xl mb-2">{errorInfo.title}</Heading>
         <p className="text-muted-foreground mb-6">{errorInfo.description}</p>
 
         <ErrorRefChip digest={error.digest} />

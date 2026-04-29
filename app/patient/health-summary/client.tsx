@@ -14,6 +14,7 @@ import {
 import Link from "next/link"
 import { useState } from "react"
 
+import { DashboardPageHeader } from "@/components/dashboard"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription,CardHeader, CardTitle } from "@/components/ui/card"
@@ -180,24 +181,19 @@ export function HealthSummaryClient({ summary }: HealthSummaryClientProps) {
   
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Health Summary</h1>
-          <p className="text-muted-foreground mt-1">
-            Your complete medical history with InstantMed
-          </p>
-          <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
-            <span className="flex items-center gap-1">
-              <Calendar className="w-4 h-4" />
-              Member since {memberSinceDate}
-            </span>
-            <span className="flex items-center gap-1">
-              <Shield className="w-4 h-4" />
-              Data secured &amp; encrypted
-            </span>
-          </div>
-        </div>
+      <DashboardPageHeader
+        title="Health Summary"
+        description="Your complete medical history with InstantMed"
+      />
+      <div className="flex items-center gap-4 -mt-4 text-sm text-muted-foreground">
+        <span className="flex items-center gap-1">
+          <Calendar className="w-4 h-4" />
+          Member since {memberSinceDate}
+        </span>
+        <span className="flex items-center gap-1">
+          <Shield className="w-4 h-4" />
+          Data secured &amp; encrypted
+        </span>
       </div>
       
       {/* Stats Grid */}

@@ -16,6 +16,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { useCallback, useEffect, useMemo,useRef, useState } from "react"
 import { toast } from "sonner"
 
+import { DashboardPageHeader } from "@/components/dashboard"
 import { RequestCard, StatGrid } from "@/components/patient"
 import { Button } from "@/components/ui/button"
 import { EmptyState } from "@/components/ui/empty-state"
@@ -158,32 +159,29 @@ export function IntakesClient({ intakes: initialIntakes, patientId, pagination }
   
   return (
     <div className="space-y-4">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">My Requests</h1>
-          <p className="text-muted-foreground mt-1">
-            View and manage all your medical requests
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={refreshIntakes}
-            disabled={isRefreshing}
-            title="Refresh requests"
-          >
-            <RefreshCw className={cn("w-4 h-4", isRefreshing && "animate-spin")} />
-          </Button>
-          <Link href="/request">
-            <Button>
-              <Plus className="w-4 h-4 mr-2" />
-              New Request
+      <DashboardPageHeader
+        title="My Requests"
+        description="View and manage all your medical requests"
+        actions={
+          <>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={refreshIntakes}
+              disabled={isRefreshing}
+              title="Refresh requests"
+            >
+              <RefreshCw className={cn("w-4 h-4", isRefreshing && "animate-spin")} />
             </Button>
-          </Link>
-        </div>
-      </div>
+            <Link href="/request">
+              <Button>
+                <Plus className="w-4 h-4 mr-2" />
+                New Request
+              </Button>
+            </Link>
+          </>
+        }
+      />
       
       {/* Stats - show when patient has at least one request */}
       {intakes.length >= 1 && (

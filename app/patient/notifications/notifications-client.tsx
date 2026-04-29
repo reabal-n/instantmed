@@ -15,6 +15,7 @@ import Link from "next/link"
 import { useCallback,useEffect, useMemo, useState } from "react"
 import { toast } from "sonner"
 
+import { DashboardPageHeader } from "@/components/dashboard"
 import { PatientErrorAlert } from "@/components/patient"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -170,29 +171,26 @@ export function NotificationsClient({ notifications: initialNotifications, patie
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Notifications</h1>
-          <p className="text-sm text-muted-foreground">
-            {unreadCount > 0 ? `${unreadCount} unread` : "All caught up!"}
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          {unreadCount > 0 && (
-            <Button variant="outline" size="sm" onClick={markAllAsRead} className="rounded-lg">
-              <CheckCheck className="h-4 w-4 mr-1" />
-              Mark all read
+      <DashboardPageHeader
+        title="Notifications"
+        description={unreadCount > 0 ? `${unreadCount} unread` : "All caught up."}
+        actions={
+          <>
+            {unreadCount > 0 && (
+              <Button variant="outline" size="sm" onClick={markAllAsRead}>
+                <CheckCheck className="h-4 w-4 mr-1" />
+                Mark all read
+              </Button>
+            )}
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/patient/settings">
+                <Settings className="h-4 w-4 mr-1" />
+                Settings
+              </Link>
             </Button>
-          )}
-          <Button variant="outline" size="sm" asChild className="rounded-lg">
-            <Link href="/patient/settings">
-              <Settings className="h-4 w-4 mr-1" />
-              Settings
-            </Link>
-          </Button>
-        </div>
-      </div>
+          </>
+        }
+      />
 
       {/* Fetch Error */}
       {fetchError && <PatientErrorAlert error={fetchError} />}
@@ -247,8 +245,11 @@ export function NotificationsClient({ notifications: initialNotifications, patie
                   const content = (
                     <div
                       className={cn(
-                        "glass-card rounded-xl p-4 transition-[box-shadow] hover:shadow-md cursor-pointer",
-                        !notification.read && "ring-2 ring-primary/20 bg-primary/5"
+                        "bg-white dark:bg-card border border-border/50 dark:border-white/15",
+                        "shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl p-4",
+                        "transition-[transform,box-shadow,border-color] duration-300",
+                        "hover:shadow-md hover:shadow-primary/[0.06] hover:border-primary/40 cursor-pointer",
+                        !notification.read && "ring-2 ring-primary/20 bg-primary/[0.04]"
                       )}
                       onClick={() => !notification.read && markAsRead(notification.id)}
                     >

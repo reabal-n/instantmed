@@ -64,6 +64,7 @@ export function DocumentReadyReveal({ intakeId, approvedAt, children }: Document
             exit={{ opacity: 0 }}
           >
             <motion.div
+              // portal-shim:allow — sanctioned shimmer sweep per DESIGN_SYSTEM.md §12
               className="absolute inset-y-0 -left-1/3 w-1/3 bg-linear-to-r from-transparent via-white/50 to-transparent dark:via-white/15"
               initial={{ x: 0 }}
               animate={{ x: "400%" }}

@@ -1,7 +1,9 @@
 import { ArrowLeft, Clock, CreditCard, RefreshCw,ShieldCheck, XCircle } from "lucide-react"
 import Link from "next/link"
 
+import { DashboardCard } from "@/components/dashboard"
 import { Button } from "@/components/ui/button"
+import { Heading } from "@/components/ui/heading"
 import { CONTACT_EMAIL } from "@/lib/constants"
 
 import { CancelledPageTracker } from "./tracker"
@@ -21,16 +23,16 @@ export default async function PaymentCancelledPage({
       <CancelledPageTracker intakeId={intakeId} />
       <div className="min-h-[60vh] flex items-center justify-center">
         <div className="max-w-lg mx-auto">
-          <div className="glass-card rounded-3xl p-8 text-center">
+          <DashboardCard tier="elevated" padding="none" className="rounded-3xl p-8 text-center">
             {/* Icon */}
             <div className="mx-auto w-16 h-16 rounded-full bg-warning-light/30 flex items-center justify-center mb-6">
               <XCircle className="w-8 h-8 text-warning" />
             </div>
 
             {/* Title */}
-            <h1 className="font-heading text-2xl font-semibold text-foreground mb-2">
+            <Heading level="h1" className="!text-2xl mb-2">
               Payment not completed
-            </h1>
+            </Heading>
             <p className="text-muted-foreground mb-6">
               No worries - your answers are saved and nothing has been charged.
             </p>
@@ -89,7 +91,7 @@ export default async function PaymentCancelledPage({
                 Contact support
               </a>
             </p>
-          </div>
+          </DashboardCard>
         </div>
       </div>
     </>

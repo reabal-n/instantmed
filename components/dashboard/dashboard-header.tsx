@@ -1,9 +1,8 @@
-"use client"
-
 import { ChevronLeft } from "lucide-react"
 import Link from "next/link"
-import { ReactNode } from "react"
+import { type ReactNode } from "react"
 
+import { Heading } from "@/components/ui/heading"
 import { cn } from "@/lib/utils"
 
 export interface DashboardHeaderProps {
@@ -17,9 +16,16 @@ export interface DashboardHeaderProps {
 }
 
 /**
- * DashboardHeader
- * 
- * Page header for dashboard pages with optional back navigation and actions.
+ * DashboardHeader (legacy alias)
+ *
+ * Page header used in admin / doctor surfaces. Internally renders the
+ * canonical `<Heading level="h1">` primitive instead of a hand-rolled
+ * `text-2xl font-semibold` string. Stripped the legacy `dashboard-header`
+ * class (was a flex+padding+border-bottom block; reproduced inline here
+ * with canonical tokens).
+ *
+ * For new code prefer `<DashboardPageHeader>` which has a more flexible
+ * action slot. Kept here for back-compat with existing admin imports.
  */
 export function DashboardHeader({
   title,
@@ -31,8 +37,14 @@ export function DashboardHeader({
   className,
 }: DashboardHeaderProps) {
   return (
-    <div className={cn("dashboard-header", className)}>
-      <div className="space-y-1">
+    <div
+      className={cn(
+        "flex items-start justify-between gap-4 flex-wrap",
+        "py-6 mb-6 border-b border-border/60",
+        className,
+      )}
+    >
+      <div className="space-y-1 min-w-0 flex-1">
         {backHref && (
           <Link
             href={backHref}
@@ -42,17 +54,17 @@ export function DashboardHeader({
             {backLabel}
           </Link>
         )}
-        <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-            {title}
-          </h1>
+        <div className="flex items-center gap-3 flex-wrap">
+          <Heading level="h1">{title}</Heading>
           {badge}
         </div>
         {description && (
-          <p className="text-muted-foreground">{description}</p>
+          <p className="text-base text-muted-foreground">{description}</p>
         )}
       </div>
-      {actions && <div className="flex items-center gap-3">{actions}</div>}
+      {actions && (
+        <div className="flex items-center gap-2 shrink-0 flex-wrap">{actions}</div>
+      )}
     </div>
   )
 }

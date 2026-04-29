@@ -76,7 +76,8 @@ const SPECIAL_STATUSES: Record<string, { label: string; description: string; ico
     label: "Escalated",
     description: "Requires additional review",
     icon: <AlertCircle className="h-4 w-4" />,
-    color: "text-orange-700 bg-orange-50 border-orange-200 dark:text-orange-400 dark:bg-orange-950/40 dark:border-orange-800",
+    // Canonical §10 severity step 3 (Elevated). Subtle, not alarming.
+    color: "bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-800",
   },
   awaiting_script: {
     label: "Preparing script",
@@ -269,13 +270,17 @@ export function IntakeStatusTracker({
         </div>
       </div>
 
-      {/* Special status alert */}
+      {/* Special status alert.
+          Animate opacity + transform only (DESIGN_SYSTEM.md §12 forbids
+          animating layout properties like height). The previous
+          height: 0 → "auto" violated the perf budget. */}
       <AnimatePresence>
         {isSpecialStatus && specialStatus && (
           <motion.div
-            initial={prefersReducedMotion ? {} : { opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={prefersReducedMotion ? undefined : { opacity: 0, height: 0 }}
+            initial={prefersReducedMotion ? {} : { opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={prefersReducedMotion ? undefined : { opacity: 0, y: -6 }}
+            transition={{ duration: prefersReducedMotion ? 0 : 0.18, ease: [0, 0, 0.2, 1] }}
             className={cn(
               "mb-5 p-4 rounded-xl border flex items-start gap-3",
               specialStatus.color

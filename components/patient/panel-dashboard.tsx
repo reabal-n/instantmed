@@ -14,6 +14,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useEffect } from "react"
 
+import { DashboardSection } from "@/components/dashboard"
 import { DrawerPanel,usePanel } from "@/components/panels"
 import { type FollowupRow,FollowupTrackerCard } from "@/components/patient/followup-tracker-card"
 import { GoogleReviewCard } from "@/components/patient/google-review-card"
@@ -26,6 +27,7 @@ import { ReferralCard } from "@/components/patient/referral-card"
 import { SubscriptionCard } from "@/components/patient/subscription-card"
 import { Button } from "@/components/ui/button"
 import { EmptyState } from "@/components/ui/empty-state"
+import { Heading } from "@/components/ui/heading"
 import { capture } from "@/lib/analytics/capture"
 import { formatDate } from "@/lib/format"
 import { getDaysUntilExpiry,needsRenewalSoon } from "@/lib/prescriptions"
@@ -150,14 +152,12 @@ export function PanelDashboard({
   return (
     <div className="space-y-12">
       {/* Welcome Section */}
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-semibold text-foreground mb-3">
-          Welcome back, {firstName}
-        </h1>
+      <div className="space-y-2">
+        <Heading level="h1">Welcome back, {firstName}</Heading>
         <p className="text-muted-foreground text-base">
           {pendingIntakes.length > 0
             ? `${pendingIntakes.length} ${pendingIntakes.length === 1 ? 'request' : 'requests'} pending review`
-            : "All caught up. Nothing needs your attention. 👍"}
+            : "All caught up. Nothing needs your attention."}
         </p>
       </div>
 
@@ -251,13 +251,10 @@ export function PanelDashboard({
         const readyIntakes = intakes.filter((i) => ["approved", "completed"].includes(i.status))
         if (readyIntakes.length === 0) return null
         return (
-          <section>
-            <div className="flex items-center justify-between mb-5">
-              <h2 className="text-xl font-semibold text-foreground">Documents ready</h2>
-              <Link href="/patient/documents" className="text-sm text-primary hover:underline">
-                View all
-              </Link>
-            </div>
+          <DashboardSection
+            title="Documents ready"
+            viewAllHref="/patient/documents"
+          >
             <div className="space-y-4">
               {readyIntakes.slice(0, 3).map((intake) => {
                 const serviceData = Array.isArray(intake.service) ? intake.service[0] : intake.service
@@ -284,21 +281,15 @@ export function PanelDashboard({
                 )
               })}
             </div>
-          </section>
+          </DashboardSection>
         )
       })()}
 
       {/* Recent Requests */}
-      <section>
-        <div className="flex items-center justify-between mb-5">
-          <h2 className="text-xl font-semibold text-foreground">Recent Requests</h2>
-          {intakes.length > 5 && (
-            <Link href="/patient/intakes" className="text-sm text-primary hover:underline">
-              View all
-            </Link>
-          )}
-        </div>
-
+      <DashboardSection
+        title="Recent Requests"
+        viewAllHref={intakes.length > 5 ? "/patient/intakes" : undefined}
+      >
         {intakes.length === 0 ? (
           <EmptyState
             icon={FileText}
@@ -316,7 +307,7 @@ export function PanelDashboard({
             ))}
           </div>
         )}
-      </section>
+      </DashboardSection>
 
       {/* Prescription Renewal Reminders */}
       {prescriptionsNeedingRenewal.length > 0 && (
@@ -348,16 +339,14 @@ export function PanelDashboard({
 
       {/* Active Prescriptions */}
       {prescriptions.length > 0 && (
-        <section>
-          <div className="flex items-center justify-between mb-5">
-            <h2 className="text-xl font-semibold text-foreground">Active Prescriptions</h2>
-            {prescriptions.filter((p) => p.status === "active").length > 3 && (
-              <Link href="/patient/prescriptions" className="text-sm text-primary hover:underline">
-                View all
-              </Link>
-            )}
-          </div>
-
+        <DashboardSection
+          title="Active Prescriptions"
+          viewAllHref={
+            prescriptions.filter((p) => p.status === "active").length > 3
+              ? "/patient/prescriptions"
+              : undefined
+          }
+        >
           <div className="space-y-4">
             {prescriptions
               .filter((p) => p.status === "active")
@@ -365,7 +354,7 @@ export function PanelDashboard({
               .map((rx) => (
                 <div
                   key={rx.id}
-                  className="dashboard-card rounded-xl p-5 hover:border-primary/50 transition-[border-color,box-shadow]"
+                  className="bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl p-5 transition-[transform,box-shadow,border-color] duration-300 hover:border-primary/40 hover:shadow-md hover:shadow-primary/[0.06]"
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
@@ -383,7 +372,7 @@ export function PanelDashboard({
                       </div>
                     </div>
                     <Link href="/request?service=repeat-script">
-                      <Button variant="outline" size="sm" className="magnetic-button">
+                      <Button variant="outline" size="sm">
                         <Pill className="w-4 h-4 mr-2" />
                         Request renewal
                       </Button>
@@ -392,7 +381,7 @@ export function PanelDashboard({
                 </div>
               ))}
           </div>
-        </section>
+        </DashboardSection>
       )}
 
       {/* Google Review prompt - show after first completed request */}

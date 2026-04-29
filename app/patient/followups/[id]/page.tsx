@@ -1,6 +1,7 @@
 import { notFound, redirect } from "next/navigation"
 
 import { getFollowup } from "@/app/actions/followups"
+import { Heading } from "@/components/ui/heading"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
 
 import { FollowupForm } from "./followup-form"
@@ -23,7 +24,7 @@ export default async function PatientFollowupPage({
   if (followup.completed_at) {
     return (
       <div className="max-w-lg mx-auto py-12 px-4 text-center">
-        <h1 className="text-2xl font-semibold mb-2">Thanks - we've got it</h1>
+        <Heading level="h1" className="!text-2xl mb-2">Thanks, we&apos;ve got it</Heading>
         <p className="text-muted-foreground">
           Your check-in was submitted. Your doctor will review it shortly.
         </p>

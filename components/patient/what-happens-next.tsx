@@ -182,7 +182,7 @@ export function WhatHappensNext({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: prefersReducedMotion ? 0 : 0.5 }}
         >
-          <div className="p-4 rounded-xl bg-gradient-to-br from-primary/5 to-secondary/5 border border-border/50">
+          <div className="p-4 rounded-xl bg-primary/[0.04] dark:bg-primary/[0.08] border border-border/50 dark:border-white/15">
             <div className="flex items-start gap-3">
               <div className="shrink-0 h-8 w-8 rounded-xl bg-primary/10 flex items-center justify-center">
                 <Share2 className="h-4 w-4 text-primary" />

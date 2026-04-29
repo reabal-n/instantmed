@@ -1,8 +1,5 @@
-import { ArrowLeft } from "lucide-react"
-import Link from "next/link"
-
+import { DashboardPageHeader } from "@/components/dashboard"
 import { PaymentHistoryContent } from "@/components/patient"
-import { Button } from "@/components/ui/button"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
 
 // Prevent static generation for dynamic auth
@@ -19,15 +16,11 @@ export default async function PaymentHistoryPage() {
 
   return (
     <div>
-      <div className="flex items-center gap-4 mb-6">
-        <Link href="/patient">
-          <Button variant="ghost" size="sm">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back
-          </Button>
-        </Link>
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Payment History</h1>
-      </div>
+      <DashboardPageHeader
+        title="Payment History"
+        backHref="/patient"
+        backLabel="Back to dashboard"
+      />
 
       <PaymentHistoryContent patientId={authUser.profile.id} />
     </div>

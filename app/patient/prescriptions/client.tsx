@@ -12,6 +12,7 @@ import {
 import Link from "next/link"
 import { useState } from "react"
 
+import { DashboardPageHeader } from "@/components/dashboard"
 import { PatientErrorAlert, RequestCard, StatGrid } from "@/components/patient"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -88,21 +89,18 @@ export function PrescriptionsClient({
   
   return (
     <div className="space-y-4">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">My Prescriptions</h1>
-          <p className="text-muted-foreground mt-1">
-            View your prescription history and manage renewals
-          </p>
-        </div>
-        <Link href="/request?service=prescription">
-          <Button>
-            <Plus className="w-4 h-4 mr-2" />
-            Request Prescription
-          </Button>
-        </Link>
-      </div>
+      <DashboardPageHeader
+        title="My Prescriptions"
+        description="View your prescription history and manage renewals"
+        actions={
+          <Link href="/request?service=prescription">
+            <Button>
+              <Plus className="w-4 h-4 mr-2" />
+              Request Prescription
+            </Button>
+          </Link>
+        }
+      />
 
       {/* Error State */}
       {error && <PatientErrorAlert error={error} className="mb-6" />}

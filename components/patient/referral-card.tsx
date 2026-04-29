@@ -57,7 +57,7 @@ export function ReferralCard({ patientId }: { patientId: string }) {
   const referralLink = `${typeof window !== "undefined" ? window.location.origin : ""}?ref=${stats.referralCode}`
 
   return (
-    <div className="rounded-xl border bg-linear-to-br from-primary/5 to-primary/10 p-5">
+    <div className="rounded-xl border border-border/50 dark:border-white/15 bg-primary/[0.04] dark:bg-primary/[0.08] shadow-sm shadow-primary/[0.04] dark:shadow-none p-5">
       <div className="flex items-center gap-2.5 mb-4">
         <Gift className="w-5 h-5 text-primary" />
         <h3 className="font-semibold text-foreground">Give $5, Get $5</h3>

@@ -109,7 +109,10 @@ export function ProfileTodoCard({ profileData, onOpenDrawer, hideWhenMedCertOnly
         animate={{ opacity: 1, y: 0 }}
         exit={prefersReducedMotion ? undefined : { opacity: 0, y: -8, height: 0, marginBottom: 0 }}
         transition={{ duration: prefersReducedMotion ? 0 : 0.3, ease: "easeOut" }}
-        className="rounded-xl border border-border bg-linear-to-br from-background to-muted/30 overflow-hidden"
+        className={cn(
+          "bg-white dark:bg-card border border-border/50 dark:border-white/15",
+          "shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl overflow-hidden",
+        )}
       >
         {/* Header */}
         <div className="px-5 pt-5 pb-5">

@@ -2,6 +2,73 @@
 
 > Tracks breaking and notable changes to the InstantMed design system. Pin against `DESIGN_SYSTEM_VERSION` in `lib/design-system/version.ts`.
 
+## [2.0.0] — 2026-04-29
+
+> **BREAKING.** Portal rebuild Phase 1 (patient surfaces). The legacy 21st.dev "glass-forward" CSS layer that contradicted Morning Canvas is gone, the patient portal is on canonical solid-depth, and three new portal primitives are extracted. Doctor + admin sweeps follow in subsequent commits.
+
+### Migration table
+
+| Was | Use instead |
+|---|---|
+| `<div className="glass-card ...">` | `<DashboardCard tier="elevated" padding="none" className="...">` |
+| `<div className="dashboard-card rounded-xl p-5">` | `<DashboardCard tier="standard">` (or canonical inline className) |
+| `<div className="dashboard-card-elevated">` | `<DashboardCard tier="elevated">` (deleted in v2.0.0) |
+| `<GlassStatCard>` | `<StatCard>` (alias retained, deprecated) |
+| `<GlowBadge>` | `<StatusBadge>` (alias retained, deprecated) |
+| `<DashboardCard spotlight>` | (removed; cursor-following effect was banned) |
+| `<DashboardGrid animate>` | (no-op; use Framer `stagger` from `lib/motion.ts` for patient stagger) |
+| `<h1 className="text-2xl font-semibold tracking-tight">…</h1>` | `<DashboardPageHeader title="…">` (or `<Heading level="h1">`) |
+| `<section> + flex items-center justify-between mb-5 + h2` | `<DashboardSection title="…" viewAllHref="…">` |
+| `bg-linear-to-br from-…/5 to-…/10` on content card | Solid tint: `bg-primary/[0.04] dark:bg-primary/[0.08]` |
+| `border-orange-200 bg-orange-50 text-orange-700` (escalated status) | §10 step 3 canonical: `bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-800` |
+| `motion.div` animating `height: 0 → "auto"` | Animate `opacity` + `y` only (§12 perf budget) |
+| `magnetic-button`, `hover-lift` legacy CSS classes | Removed; use canonical card hover pattern |
+
+### Added
+- `components/dashboard/dashboard-card.tsx` — `<DashboardCard tier="standard"|"elevated"|"highlighted">` primitive. Canonical solid-depth (Morning Canvas §5). Replaces all `glass-card`/`dashboard-card` className use in patient portal.
+- `components/dashboard/dashboard-section.tsx` — `<DashboardSection title pill description action viewAllHref>` primitive. Replaces ~12 hand-rolled `flex items-center justify-between mb-5 + h2` blocks across patient surfaces.
+- `components/dashboard/dashboard-page-header.tsx` — `<DashboardPageHeader title description badge backHref actions>` primitive. Replaces 16+ hand-rolled `<h1 className="text-2xl font-semibold tracking-tight">` instances. Always renders `<Heading level="h1">` internally.
+- `scripts/check-portal-no-legacy-classes.sh` — CI smoke check that asserts the patient portal source is free of legacy classes (`glass-card`, `dashboard-card`, gradient on content surface, banned `border-l-*` stripes, raw violet, raw orange ad-hoc combos). Magic-comment allowlist `portal-shim:allow` for explicitly sanctioned patterns (e.g. §12 shimmer sweeps).
+
+### Changed
+- `app/dashboard-styles.css` reduced from ~465 lines to ~75 lines. Header rewritten from "21ST.DEV DASHBOARD DESIGN SYSTEM. Sleek, dark, glass-forward aesthetic" to a thin Morning Canvas compatibility shim. `.dashboard-card` and `.dashboard-bg` are kept as canonical-aligned className aliases (admin still references them directly; new code should use the primitive).
+- `components/dashboard/glass-stat-card.tsx` exports `StatCard` as the canonical name. `GlassStatCard` retained as a deprecated alias. Stripped `dashboard-stat-*` inset-glow `box-shadow`s.
+- `components/dashboard/glow-badge.tsx` exports `StatusBadge` as the canonical name. `GlowBadge` retained as a deprecated alias. Replaced neon `box-shadow: 0 0 12px ...` glows with canonical inset-ring status pills (§10).
+- `components/dashboard/dashboard-grid.tsx` no longer applies the `dashboard-grid` CSS-stagger animation. The `animate` prop is preserved as a no-op for back-compat. Patient surfaces should wrap stagger with Framer Motion `stagger.container`/`stagger.item` from `lib/motion.ts`.
+- `components/dashboard/dashboard-empty.tsx` rewritten with canonical Tailwind utilities. Lottie empty-state animation retained per §13.
+- `components/dashboard/dashboard-header.tsx` now renders `<Heading level="h1">` internally and uses canonical token spacing.
+- `components/patient/intake-status-tracker.tsx`: replaced height-based AnimatePresence transition (`height: 0 → "auto"`, banned by §12) with `opacity + y` only. Normalised "escalated" status palette to §10 severity step 3 (canonical `bg-orange-100 text-orange-700` etc).
+- `components/patient/intake-card.tsx`, `profile-todo-card.tsx`, `referral-card.tsx`, `panel-dashboard.tsx`, `service-selector.tsx`, `what-happens-next.tsx`: all migrated off `bg-linear-to-br` / `bg-gradient-to-br` gradients on content surfaces. Now use solid tinted backgrounds.
+- `app/patient/health-profile/health-profile-client.tsx`: rose icon gradient → solid `bg-primary/10 text-primary`. Sky-50/200/700 alert callout → `bg-info-light border-info-border text-info`.
+- 16 patient surface h1s (intakes, prescriptions, documents, settings, messages, health-summary, notifications, payment-history, health-profile, intakes/cancelled, intakes/confirmed, intakes/[id]/error, error.tsx, not-found.tsx, followups/[id], intakes/success/error, intakes/confirmed/error) migrated from hand-rolled `text-2xl font-semibold tracking-tight` to `<DashboardPageHeader>` or `<Heading level="h1">`.
+- `components/patient/panel-dashboard.tsx` "Documents ready", "Recent Requests", "Active Prescriptions" sections migrated from hand-rolled `<section>` blocks to `<DashboardSection viewAllHref>`.
+
+### Deprecated
+- `GlassStatCard`, `GlassStatCardProps` — use `StatCard` / `StatCardProps`. Alias removed in v3.0.0.
+- `GlowBadge`, `GlowBadgeProps`, `GlowBadgeStatus` — use `StatusBadge` / `StatusBadgeProps` / `StatusBadgeStatus`. Alias removed in v3.0.0.
+- `DashboardCard.elevated` boolean prop — use `tier="elevated"`. Removed in v3.0.0.
+- `DashboardCard.spotlight` prop — accepted as no-op. Removed in v3.0.0.
+- `DashboardGrid.animate` prop — accepted as no-op. Removed in v3.0.0.
+
+### Removed
+- `dashboard-card-elevated` (CSS class). No remaining consumers; the primitive's tier system replaces it.
+- `dashboard-stat`, `dashboard-stat-success`, `dashboard-stat-warning`, `dashboard-stat-error`, `dashboard-stat-info` (CSS classes). Inset-glow box-shadows banned.
+- `glow-badge`, `glow-badge-success`, `glow-badge-warning`, `glow-badge-error`, `glow-badge-info`, `glow-badge-neutral` (CSS classes). Neon glows banned by §1.
+- `dashboard-spotlight` (CSS class) and the `dashboard-spotlight::after` cursor-following radial gradient.
+- `dashboard-grid` CSS-driven nth-child animation stagger.
+- `dashboard-sidebar`, `dashboard-nav-item`, `dashboard-row`, `dashboard-divider`, `dashboard-section-title`, `dashboard-empty`, `dashboard-header` CSS classes (no remaining consumers).
+- Violet radial gradients in `--dashboard-bg` dark-mode background.
+- `getEstimatedWaitTime(intakeId)` deterministic-hash function in `intake-status-tracker.tsx` — replaced with honest static range copy. (Shipped pre-rebuild as standalone P0 hotfix `8aebd5a1d`.)
+
+### Fixed
+- Patient portal no longer runs on a parallel "21st.dev glass-forward" design system that contradicted Morning Canvas §5 (solid depth) and §1 (no AI color palette).
+- 16 hand-rolled h1s now render with canonical responsive scale and tracking from `<Heading level="h1">`.
+- Status tracker no longer animates a layout property (height) inside an AnimatePresence transition.
+- Health-profile callout no longer uses raw sky-50/200/700 outside the design-system tokens.
+
+### Migration scope (admin + doctor follow-up)
+Admin and doctor portals still import the legacy CSS shim and reference `dashboard-card`/`glass-card`/`border-l-*`/`border-violet-*` patterns flagged in the parallel doctor audit. Phase 1 of those rebuilds will mirror this migration; expect them in v2.1.0 (admin) and v2.2.0 (doctor).
+
 ## [1.1.0] — 2026-04-28
 
 > Home-page Pass 2. Resolves the AI_ONBOARDING.md §1.5 TBD on the `<Heading>` primitive and rationalises hero composition. No breaking token changes.
