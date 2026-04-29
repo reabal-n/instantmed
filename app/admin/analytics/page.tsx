@@ -1,4 +1,7 @@
+import { Suspense } from "react"
+
 import { requireRole } from "@/lib/auth/helpers"
+import { getBusinessKPIData } from "@/lib/data/business-kpi"
 import { getDoctorDashboardStats, getIntakeMonitoringStats } from "@/lib/data/intakes"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
@@ -211,5 +214,18 @@ export default async function AnalyticsDashboardPage() {
     },
   }
 
-  return <AnalyticsDashboardClient analytics={analytics} />
+  // Business KPIs land in the same Analytics Hub as the 5th tab.
+  // Phase 4 doctor + admin rebuild — /admin/business-kpi was a near-duplicate
+  // surface that drifted. Failing closed (null) keeps the rest of the analytics
+  // page rendering even if the KPI fetch errors.
+  const businessKpis = await getBusinessKPIData().catch(() => null)
+
+  return (
+    <Suspense fallback={null}>
+      <AnalyticsDashboardClient
+        analytics={analytics}
+        businessKpis={businessKpis}
+      />
+    </Suspense>
+  )
 }

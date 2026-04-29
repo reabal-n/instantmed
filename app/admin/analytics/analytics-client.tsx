@@ -1,12 +1,15 @@
 "use client"
 
 import { ExternalLink } from "lucide-react"
-import { useState } from "react"
+import { useSearchParams } from "next/navigation"
+import { useEffect, useState } from "react"
 
 import { DashboardHeader } from "@/components/dashboard"
 import { Button } from "@/components/ui/button"
+import type { BusinessKPIData } from "@/lib/data/business-kpi"
 import { cn } from "@/lib/utils"
 
+import { AnalyticsBusinessKPIsTab } from "./analytics-business-kpis-tab"
 import { AnalyticsFunnelTab } from "./analytics-funnel-tab"
 import { type AnalyticsData, type TabKey } from "./analytics-helpers"
 import { AnalyticsOverviewTab } from "./analytics-overview-tab"
@@ -15,16 +18,48 @@ import { AnalyticsRevenueTab } from "./analytics-revenue-tab"
 
 interface AnalyticsDashboardClientProps {
   analytics: AnalyticsData
+  /** Optional KPI data; lets the Business KPIs tab degrade gracefully on fetch failure. */
+  businessKpis: BusinessKPIData | null
 }
 
-export function AnalyticsDashboardClient({ analytics }: AnalyticsDashboardClientProps) {
-  const [activeTab, setActiveTab] = useState<TabKey>("overview")
+const VALID_TABS: TabKey[] = [
+  "overview",
+  "funnel",
+  "revenue",
+  "queue",
+  "business-kpis",
+]
+
+function isValidTab(value: string | null): value is TabKey {
+  return value !== null && (VALID_TABS as string[]).includes(value)
+}
+
+export function AnalyticsDashboardClient({
+  analytics,
+  businessKpis,
+}: AnalyticsDashboardClientProps) {
+  const searchParams = useSearchParams()
+  const initial = searchParams.get("tab")
+  const [activeTab, setActiveTab] = useState<TabKey>(
+    isValidTab(initial) ? initial : "overview",
+  )
+
+  // Sync state when the URL ?tab= changes (back/forward navigation,
+  // /admin/business-kpi redirect landing here with ?tab=business-kpis).
+  useEffect(() => {
+    const next = searchParams.get("tab")
+    if (isValidTab(next) && next !== activeTab) {
+      setActiveTab(next)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams])
 
   const tabs: { key: TabKey; label: string }[] = [
     { key: "overview", label: "Overview" },
     { key: "funnel", label: "Conversion Funnel" },
     { key: "revenue", label: "Revenue" },
     { key: "queue", label: "Queue Health" },
+    { key: "business-kpis", label: "Business KPIs" },
   ]
 
   return (
@@ -69,6 +104,17 @@ export function AnalyticsDashboardClient({ analytics }: AnalyticsDashboardClient
         {activeTab === "funnel" && <AnalyticsFunnelTab analytics={analytics} />}
         {activeTab === "revenue" && <AnalyticsRevenueTab analytics={analytics} />}
         {activeTab === "queue" && <AnalyticsQueueTab analytics={analytics} />}
+        {activeTab === "business-kpis" && (
+          businessKpis ? (
+            <AnalyticsBusinessKPIsTab data={businessKpis} />
+          ) : (
+            <div className="rounded-xl border border-border/50 bg-muted/20 p-8 text-center">
+              <p className="text-sm text-muted-foreground">
+                Business KPIs are temporarily unavailable. Refresh in a moment.
+              </p>
+            </div>
+          )
+        )}
       </div>
     </div>
   )

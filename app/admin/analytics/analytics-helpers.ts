@@ -57,7 +57,12 @@ export interface AnalyticsData {
  */
 export const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#f87171", "#5db8c9", "#ec4899"] as const
 
-export type TabKey = "overview" | "funnel" | "revenue" | "queue"
+export type TabKey =
+  | "overview"
+  | "funnel"
+  | "revenue"
+  | "queue"
+  | "business-kpis"
 
 export { formatServiceType } from "@/lib/format/service"
 

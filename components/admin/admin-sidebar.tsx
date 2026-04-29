@@ -72,9 +72,13 @@ const emailNavItems: NavItem[] = [
 ]
 
 // ── Analytics (collapsible) ───────────────────────────────────
+// Business KPIs was a separate /admin/business-kpi route prior to
+// Phase 4 of the doctor + admin portal rebuild — content is now the
+// 5th tab inside /admin/analytics so it lives behind that single
+// Analytics link. The old route still works (redirects to the tab)
+// for bookmarks and email-digest links.
 const analyticsNavItems: NavItem[] = [
   { href: "/admin/analytics", label: "Analytics", icon: TrendingUp },
-  { href: "/admin/business-kpi", label: "Business KPIs", icon: BarChart3 },
   { href: "/admin/finance", label: "Finance", icon: DollarSign },
   { href: "/admin/ops", label: "Operations", icon: Activity },
   { href: "/admin/compliance", label: "Compliance", icon: ShieldCheck },
