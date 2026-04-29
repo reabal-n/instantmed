@@ -128,6 +128,13 @@
     "last 2 Edge versions"
   ],
   "pnpm": {
+    "onlyBuiltDependencies": [
+      "@sentry/cli",
+      "core-js",
+      "esbuild",
+      "protobufjs",
+      "sharp"
+    ],
     "overrides": {
       "next": "15.5.15",
       "react": "18.3.1",
