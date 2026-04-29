@@ -4,6 +4,7 @@ import {
   Button,
   colors,
   HeroBlock,
+  NameFirstGreeting,
   Text,
 } from "../base-email"
 
@@ -34,7 +35,7 @@ export function AbandonedCheckoutFollowupEmail({
         variant="warning"
       />
 
-      <Text>Hi {firstName},</Text>
+      <NameFirstGreeting name={firstName} />
       <Text>
         Just a heads up, your <strong>{serviceName}</strong> request is still waiting,
         but we can&apos;t hold it forever. Most people finish in under 2 minutes.

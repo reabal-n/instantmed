@@ -621,5 +621,6 @@ export function HeroBlock({ icon, headline, subtitle, variant = "info" }: HeroBl
 
 // Re-export extracted modules so existing `import { X } from "…/base-email"` still works
 export { colors, fontFamily } from "./email-primitives"
+export { NameFirstGreeting } from "./name-first-greeting"
 export { GoogleReviewCTA, ReferralCTA,ReviewHero } from "./review-cta"
 export { VerificationCode } from "./verification-code"

@@ -5,6 +5,7 @@ import {
   Heading,
   HeroBlock,
   List,
+  NameFirstGreeting,
   Text,
 } from "../base-email"
 
@@ -38,8 +39,6 @@ export function PartialIntakeRecoveryEmail({
   resumeUrl,
   appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au",
 }: PartialIntakeRecoveryEmailProps) {
-  const greeting = firstName ? `Hi ${firstName},` : "Hi,"
-
   return (
     <BaseEmail previewText={`Your ${serviceName.toLowerCase()} request is still saved`} appUrl={appUrl}>
       <HeroBlock
@@ -48,7 +47,7 @@ export function PartialIntakeRecoveryEmail({
         variant="info"
       />
 
-      <Text>{greeting}</Text>
+      <NameFirstGreeting name={firstName} />
       <Text>
         You started a <strong>{serviceName}</strong> request earlier today and
         didn&apos;t quite finish. Everything you entered is saved. Most people

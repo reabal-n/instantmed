@@ -16,6 +16,7 @@ import {
   Heading,
   HeroBlock,
   List,
+  NameFirstGreeting,
   Text,
 } from "../base-email"
 
@@ -60,7 +61,7 @@ export function RequestDeclinedEmail({
         variant="neutral"
       />
 
-      <Text>Hi {firstName},</Text>
+      <NameFirstGreeting name={firstName} />
 
       <Text>
         We know this isn&apos;t the result you were hoping for. After carefully

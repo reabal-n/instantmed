@@ -3,6 +3,7 @@ import {
   Box,
   Button,
   HeroBlock,
+  NameFirstGreeting,
   Text,
 } from "../base-email"
 export interface PaymentRetryEmailProps {
@@ -32,7 +33,7 @@ export function PaymentRetryEmail({
         variant="warning"
       />
 
-      <Text>Hi {patientName},</Text>
+      <NameFirstGreeting name={patientName} />
       <Text>
         We noticed your previous payment for your {requestType} request didn&apos;t go through.
         No worries, you can try again using the link below.

@@ -5,6 +5,7 @@ import {
   Heading,
   List,
   StatusBanner,
+  NameFirstGreeting,
   Text,
 } from "../base-email"
 
@@ -33,7 +34,7 @@ export function PaymentFailedEmail({
     <BaseEmail previewText={`We couldn't process your payment. Here's how to fix it ⏱️`} appUrl={appUrl}>
       <StatusBanner title="Payment could not be processed" variant="warning" />
 
-      <Text>Hi {firstName},</Text>
+      <NameFirstGreeting name={firstName} />
       <Text>
         We weren&apos;t able to process your payment for your <strong>{serviceName}</strong> request.
       </Text>

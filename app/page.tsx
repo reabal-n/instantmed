@@ -11,8 +11,9 @@ import { Navbar } from '@/components/shared/navbar'
 import { ReturningPatientBanner } from '@/components/shared/returning-patient-banner'
 import { PRICING_DISPLAY } from '@/lib/constants'
 import { getFeatureFlags } from '@/lib/feature-flags'
+import { getWaitState } from '@/lib/brand/wait-counter'
 import { faqItems } from '@/lib/marketing/homepage'
-import { WEDGE } from '@/lib/marketing/voice'
+import { ICONIC_HOOK, PROP_PHRASE, TAGLINE, WEDGE } from '@/lib/marketing/voice'
 
 // All below-fold sections are lazy-loaded to keep framer-motion and client
 // component bundles out of the critical JS path. SSR:true (default) keeps
@@ -54,7 +55,7 @@ export const revalidate = 3600
 // Note: Avoid prescription drug terms (script, prescription) per Google Ads policy for Australia
 export const metadata: Metadata = {
   title: { absolute: 'Online Doctor Australia | Consults, Repeat Rx, Med Certs, ED & Hair Loss | InstantMed' },
-  description: `Doctor consultations from ${PRICING_DISPLAY.CONSULT}. Repeat medication from ${PRICING_DISPLAY.REPEAT_SCRIPT}. Medical certificates from ${PRICING_DISPLAY.MED_CERT} in under 20 minutes. AHPRA-registered Australian GPs, 100% online.`,
+  description: `Faster than your GP. Telehealth without the small talk. Medical certificates from ${PRICING_DISPLAY.MED_CERT}, repeat medication from ${PRICING_DISPLAY.REPEAT_SCRIPT}, online doctor consults from ${PRICING_DISPLAY.CONSULT}. AHPRA-registered Australian GPs.`,
   keywords: [
     'online doctor australia',
     'telehealth australia',
@@ -68,8 +69,8 @@ export const metadata: Metadata = {
     'hair loss treatment online',
   ],
   openGraph: {
-    title: 'Online Doctor Australia | Consults, Repeat Rx, Med Certs, ED & Hair Loss | InstantMed',
-    description: 'Online doctor consultations, repeat medication & medical certificates from AHPRA-registered Australian GPs. No video calls, 100% online.',
+    title: 'Faster than your GP. Telehealth without the small talk. | InstantMed',
+    description: 'A real Australian doctor, ready in the time it takes to make a coffee. Medical certificates, repeat medication, and online doctor consults. No appointment, no waiting room. AHPRA-registered.',
     type: 'website',
     locale: 'en_AU',
     url: 'https://instantmed.com.au',
@@ -78,8 +79,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'InstantMed - Online Doctor Australia',
-    description: 'Online doctor consultations, repeat medication & medical certificates from AHPRA-registered Australian GPs. No video calls, 100% online.',
+    title: 'InstantMed | Faster than your GP. Telehealth without the small talk.',
+    description: 'A real Australian doctor, ready in the time it takes to make a coffee. AHPRA-registered. No appointment, no waiting room.',
     // Twitter image handled by app/opengraph-image.tsx convention file
   },
   alternates: {
@@ -112,6 +113,10 @@ export default async function HomePage() {
     answer: item.answer
   }))
 
+  // Live wait-counter state for the hero pill (signature brand device #1).
+  // Server-fetched so the pill renders with real data on first paint.
+  const waitState = await getWaitState()
+
   return (
     <MarketingPageShell>
     <div className="min-h-screen overflow-x-hidden">
@@ -141,8 +146,25 @@ export default async function HomePage() {
       </Suspense>
 
       <main className="relative">
-        {/* 1. Hero with main value prop */}
-        <Hero>
+        {/* 1. Hero with main value prop.
+            New brand stack (locked 2026-04-29 in docs/BRAND.md §4):
+              H1 = TAGLINE ("Faster than your GP.")
+              H2 = PROP_PHRASE ("Telehealth without the small talk.")
+              eyebrow above CTA = ICONIC_HOOK ("Three minutes. Done.") in brand-coral
+              subhead body = AHPRA reassurance + WEDGE
+        */}
+        <Hero
+          title={TAGLINE}
+          liveWait={waitState}
+          beforeCta={
+            <p className="text-sm sm:text-base font-semibold text-[color:var(--brand-coral)] tracking-tight">
+              {ICONIC_HOOK}
+            </p>
+          }
+        >
+          <h2 className="font-display text-2xl sm:text-3xl lg:text-[2.5rem] text-foreground/85 max-w-xl mx-auto lg:mx-0 mb-6 leading-tight font-semibold tracking-tight">
+            {PROP_PHRASE}
+          </h2>
           <p className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-8 leading-relaxed text-balance">
             AHPRA-registered Australian doctors. Reviewed in minutes. {WEDGE}
           </p>

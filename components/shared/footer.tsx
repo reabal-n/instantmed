@@ -2,6 +2,7 @@ import { Mail, Phone } from "lucide-react"
 import Link from "next/link"
 
 import { StripeBadge } from "@/components/checkout/trust-badges"
+import { DoctorSignature } from "@/components/marketing/doctor-signature"
 import { GoogleAdsCert } from "@/components/marketing/google-ads-cert"
 import { LegitScriptSeal } from "@/components/marketing/legitscript-seal"
 import { BrandLogo } from "@/components/shared/brand-logo"
@@ -13,7 +14,7 @@ interface FooterProps {
   variant?: "marketing" | "minimal"
 }
 
-export function Footer({ variant = "marketing" }: FooterProps) {
+export async function Footer({ variant = "marketing" }: FooterProps) {
   const currentYear = new Date().getFullYear()
   const isMarketing = variant === "marketing"
 
@@ -45,6 +46,17 @@ export function Footer({ variant = "marketing" }: FooterProps) {
                 <Phone className="w-3 h-3 shrink-0" />
                 {CONTACT_PHONE}
               </a>
+            )}
+            {/* Signature brand device #2 (docs/BRAND.md §6.2). Mark-only on
+                marketing surfaces per CLAUDE.md identity rule (no individual
+                doctor names on marketing pages). Logo-adjacent placement. */}
+            {isMarketing && (
+              <div className="mt-5 pt-4 border-t border-border/40">
+                <DoctorSignature variant="mark" size="sm" />
+                <p className="mt-1.5 text-[10px] text-muted-foreground/80 italic leading-snug">
+                  Reviewed by your InstantMed doctor.
+                </p>
+              </div>
             )}
           </div>
 

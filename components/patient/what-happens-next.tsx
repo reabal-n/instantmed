@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Confetti } from "@/components/ui/confetti"
 import { useReducedMotion } from "@/components/ui/motion"
+import { QUEUE_DISPLAY_CAP, type WaitState } from "@/lib/brand/wait-counter"
 import type { IntakeStatus } from "@/lib/data/intake-lifecycle"
 import { cn } from "@/lib/utils"
 
@@ -31,6 +32,13 @@ interface WhatHappensNextProps {
   isPriority?: boolean
   showConfetti?: boolean
   initialQueuePosition?: number | null
+  /**
+   * Live wait-counter state (signature brand device #1, see docs/BRAND.md
+   * §6.1). When provided, the queue card shows the median delivery time
+   * alongside the queue position. Powers the "specificity is the brand
+   * promise" rule (docs/BRAND.md §6.5).
+   */
+  waitState?: WaitState
 }
 
 const FAQ_ITEMS = [
@@ -60,6 +68,7 @@ export function WhatHappensNext({
   isPriority: _isPriority = false,
   showConfetti = false,
   initialQueuePosition,
+  waitState,
 }: WhatHappensNextProps) {
   const prefersReducedMotion = useReducedMotion()
   const [confettiTrigger, setConfettiTrigger] = useState(false)
@@ -123,21 +132,35 @@ export function WhatHappensNext({
             Check your junk or spam folder if you don't see our email within a few minutes.
           </p>
 
-          {/* Reassurance badge */}
+          {/* Reassurance badge — brand-coral pulse (docs/BRAND.md §6.1).
+              Replaces the prior success-green pulse so the post-submit
+              experience inherits the same brand-recognition signal as the
+              homepage hero wait counter. */}
           <motion.div
             initial={prefersReducedMotion ? {} : { opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: prefersReducedMotion ? 0 : 0.4 }}
-            className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-success-light border border-success-border"
+            className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white dark:bg-card border border-border/60 shadow-sm shadow-primary/[0.04]"
           >
-            <span className="relative flex h-2 w-2">
-              <span className="motion-safe:animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-60" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-success" />
+            <span className="relative flex h-2 w-2" aria-hidden="true">
+              <span className="motion-safe:animate-wait-pulse absolute inline-flex h-full w-full rounded-full bg-[color:var(--brand-coral)] opacity-60" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-[color:var(--brand-coral)]" />
             </span>
-            <span className="text-xs font-medium text-success">
-              {isMedCert ? "Typically delivered in under 30 minutes" : "Doctors are reviewing requests now"}
+            <span className="text-xs font-medium text-foreground">
+              {waitState?.medianMinutes
+                ? `Average wait today: ~${waitState.medianMinutes} min`
+                : isMedCert
+                  ? "Typically delivered in under 30 minutes"
+                  : "Doctors are reviewing requests now"}
             </span>
           </motion.div>
+
+          {/* Close-this-tab reassurance (docs/BRAND.md §6.5).
+              Specificity is the brand promise: tell patients explicitly that
+              they don't need to keep this tab open. */}
+          <p className="mt-3 text-xs text-muted-foreground">
+            We&apos;ll email the moment it&apos;s ready. You can close this tab.
+          </p>
         </motion.div>
 
         {/* Live status tracker */}
@@ -153,7 +176,8 @@ export function WhatHappensNext({
           />
         </motion.div>
 
-        {/* Queue position */}
+        {/* Queue position — capped at 6+ per docs/BRAND.md §6.1 graceful
+            degradation (uncapped numbers like "47 ahead" backfire). */}
         {queuePosition !== null && queuePosition > 0 && (
           <motion.div
             initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
@@ -165,11 +189,17 @@ export function WhatHappensNext({
                 <Users className="h-4 w-4 text-primary" />
               </div>
               <div>
-                <p className="font-medium text-sm">Queue position: #{queuePosition}</p>
+                <p className="font-medium text-sm">
+                  {queuePosition >= QUEUE_DISPLAY_CAP
+                    ? `${QUEUE_DISPLAY_CAP}+ in the queue`
+                    : `Queue position: #${queuePosition}`}
+                </p>
                 <p className="text-xs text-muted-foreground mt-0.5">
                   {queuePosition <= 3
                     ? "You're near the front. Should be reviewed very soon."
-                    : `${queuePosition} requests ahead of yours`}
+                    : queuePosition >= QUEUE_DISPLAY_CAP
+                      ? "Doctors are working through the queue now."
+                      : `${queuePosition} requests ahead of yours`}
                 </p>
               </div>
             </div>

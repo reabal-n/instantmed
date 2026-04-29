@@ -104,19 +104,23 @@ export function AboutClient() {
         <>
           <FAQSchema faqs={faqSchemaItems} />
 
-          {/* Hero - clean mission statement */}
+          {/* Hero - clean mission statement.
+              Lede uses BRAND_THESIS phrasing per docs/BRAND.md §1: "Telehealth
+              without the small talk. A real doctor, ready in the time it
+              takes to make a coffee." Split across H1/sub for visual rhythm. */}
           <section className="pt-16 sm:pt-24 pb-8 sm:pb-12 px-4">
             <div className="mx-auto max-w-2xl text-center">
               <p className="inline-flex items-center rounded-full border border-border/60 bg-background px-4 py-1.5 text-xs font-medium text-foreground/70 shadow-sm shadow-primary/[0.04] mb-6">
                 About InstantMed
               </p>
               <Heading level="display" className="mb-4">
-                Healthcare shouldn&apos;t require rearranging your day.
+                Telehealth without the small talk.
               </Heading>
               <p className="text-muted-foreground text-balance max-w-lg mx-auto">
-                We connect Australians with AHPRA-registered doctors for
-                medical certificates, prescriptions, and consultations.
-                Fast, simple, legitimate.
+                A real Australian doctor, ready in the time it takes to make
+                a coffee. AHPRA-registered, no waiting room, no appointment.
+                We handle medical certificates, repeat medication, and online
+                doctor consults.
               </p>
             </div>
           </section>
@@ -164,10 +168,10 @@ export function AboutClient() {
             eyebrow="What we actually are"
             headline={
               <>
-                A doctor, <span className="text-primary">without the wait</span>.
+                Faster than your <span className="text-primary">GP</span>.
               </>
             }
-            body="Not a wellness brand. Not an app. A real Australian medical practice that operates online. AHPRA-registered doctors, real prescriptions, real medical certificates, real clinical accountability."
+            body="Not a wellness brand. Not an app. A real Australian medical practice that operates online. AHPRA-registered doctors, real prescriptions, real medical certificates, real clinical accountability. Telehealth without the small talk."
           />
 
           {/* Data viz section */}

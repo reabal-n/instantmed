@@ -370,6 +370,8 @@ export const footerLinks = {
     { label: "Reviews", href: "/reviews" },
     { label: "Health Guides", href: "/blog" },
     { label: "Your Options", href: "/alternatives" },
+    { label: "What we won't do", href: "/what-we-wont-do" },
+    { label: "Why we're faster", href: "/why-instant" },
     { label: "Contact", href: "/contact" },
   ],
 }

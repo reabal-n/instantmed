@@ -12,6 +12,7 @@ import {
   Button,
   colors,
   Heading,
+  NameFirstGreeting,
   Text,
 } from "../base-email"
 
@@ -61,7 +62,7 @@ export function RepeatRxReminderEmail({
         </p>
       </div>
 
-      <Text>Hi {firstName},</Text>
+      <NameFirstGreeting name={firstName} />
 
       <Text>
         It&apos;s been about 30 days since your last <strong>{medicationName}</strong> prescription.

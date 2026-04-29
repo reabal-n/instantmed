@@ -14,6 +14,7 @@ import {
   Heading,
   HeroBlock,
   List,
+  NameFirstGreeting,
   Text,
 } from "../base-email"
 
@@ -56,7 +57,7 @@ export function HairLossApprovedEmail({
         variant="success"
       />
 
-      <Text>Hi {firstName},</Text>
+      <NameFirstGreeting name={firstName} />
 
       <Text>
         Good news! Your prescription for{" "}

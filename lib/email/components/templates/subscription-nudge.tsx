@@ -15,6 +15,7 @@ import {
   Button,
   colors,
   Heading,
+  NameFirstGreeting,
   Text,
 } from "../base-email"
 
@@ -33,7 +34,7 @@ export function SubscriptionNudgeEmail({
 
   return (
     <BaseEmail previewText="Save $10/month with a repeat prescription subscription" appUrl={appUrl}>
-      <Text>Hi {firstName},</Text>
+      <NameFirstGreeting name={firstName} />
 
       <Text>
         It&apos;s been about a month since your last repeat prescription. If you

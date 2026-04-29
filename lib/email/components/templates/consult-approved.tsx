@@ -12,6 +12,7 @@ import {
   Button,
   Heading,
   HeroBlock,
+  NameFirstGreeting,
   Text,
 } from "../base-email"
 
@@ -44,7 +45,7 @@ export function ConsultApprovedEmail({
         variant="success"
       />
 
-      <Text>Hi {firstName},</Text>
+      <NameFirstGreeting name={firstName} />
 
       <Text>
         Your doctor has reviewed your consultation. If a prescription was issued,

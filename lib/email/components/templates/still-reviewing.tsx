@@ -12,6 +12,7 @@ import {
   Box,
   Button,
   HeroBlock,
+  NameFirstGreeting,
   Text,
 } from "../base-email"
 
@@ -42,7 +43,7 @@ export function StillReviewingEmail({
         variant="info"
       />
 
-      <Text>Hi {firstName},</Text>
+      <NameFirstGreeting name={firstName} />
 
       <Text>
         Your <strong>{requestType}</strong> is taking a little longer than

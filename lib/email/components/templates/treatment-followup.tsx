@@ -5,6 +5,7 @@ import {
   Button,
   colors,
   HeroBlock,
+  NameFirstGreeting,
   Text,
 } from "../base-email"
 
@@ -77,7 +78,7 @@ export function TreatmentFollowupEmail({
         variant="info"
       />
 
-      <Text>Hi {patientName},</Text>
+      <NameFirstGreeting name={patientName} />
 
       <Text>{framing}</Text>
 

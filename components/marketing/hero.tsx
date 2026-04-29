@@ -8,8 +8,10 @@ import type { ReactNode } from 'react'
 import { GoogleAdsCert } from '@/components/marketing/google-ads-cert'
 import { LastReviewedSignal } from '@/components/marketing/last-reviewed-signal'
 import { LegitScriptSeal } from '@/components/marketing/legitscript-seal'
+import { WaitCounter } from '@/components/marketing/wait-counter'
 import { Button } from '@/components/ui/button'
 import { Heading } from '@/components/ui/heading'
+import type { WaitState } from '@/lib/brand/wait-counter'
 
 // Hero mockup is decorative below the fold of LCP. ssr:false keeps the
 // framer-motion bundle off the critical path. A skeleton placeholder of
@@ -88,31 +90,50 @@ interface HeroProps {
    * directly below the hero.
    */
   trustRow?: ReactNode | null
+  /**
+   * Optional live wait-counter state (signature brand device #1, see
+   * docs/BRAND.md §6.1). When provided, the default pill swaps the static
+   * "Open now" beat for the WaitCounter device. When omitted, the pill
+   * keeps the existing "Open now" indicator (back-compat for other heroes).
+   */
+  liveWait?: WaitState
 }
 
-const DEFAULT_PILL = (
-  <div className="inline-flex items-center gap-2.5 rounded-full px-3 py-1.5 text-xs font-medium bg-white dark:bg-card border border-border/60 shadow-sm shadow-primary/[0.04]">
+const DEFAULT_OPEN_NOW = (
+  <span className="hidden sm:inline-flex items-center gap-1 text-emerald-700 dark:text-emerald-400">
     <span
-      className="inline-flex items-center gap-0.5 text-amber-400"
-      aria-label="5 out of 5 rating"
-    >
-      {[1, 2, 3, 4, 5].map((i) => (
-        <Star key={i} className="w-3 h-3 fill-current" aria-hidden="true" />
-      ))}
-    </span>
-    <span className="text-border/70" aria-hidden="true">·</span>
-    <span className="text-muted-foreground">No Medicare needed</span>
-    <span className="text-border/70 hidden sm:inline" aria-hidden="true">·</span>
-    <span className="hidden sm:inline-flex items-center gap-1 text-emerald-700 dark:text-emerald-400">
-      <span
-        className="w-1.5 h-1.5 rounded-full bg-emerald-500"
-        style={{ animation: 'pulse 3s ease-in-out infinite' }}
-        aria-hidden="true"
-      />
-      Open now
-    </span>
-  </div>
+      className="w-1.5 h-1.5 rounded-full bg-emerald-500"
+      style={{ animation: 'pulse 3s ease-in-out infinite' }}
+      aria-hidden="true"
+    />
+    Open now
+  </span>
 )
+
+function buildDefaultPill(liveWait?: WaitState) {
+  return (
+    <div className="inline-flex items-center gap-2.5 rounded-full px-3 py-1.5 text-xs font-medium bg-white dark:bg-card border border-border/60 shadow-sm shadow-primary/[0.04]">
+      <span
+        className="inline-flex items-center gap-0.5 text-amber-400"
+        aria-label="5 out of 5 rating"
+      >
+        {[1, 2, 3, 4, 5].map((i) => (
+          <Star key={i} className="w-3 h-3 fill-current" aria-hidden="true" />
+        ))}
+      </span>
+      <span className="text-border/70" aria-hidden="true">·</span>
+      <span className="text-muted-foreground">No Medicare needed</span>
+      <span className="text-border/70 hidden sm:inline" aria-hidden="true">·</span>
+      {liveWait ? (
+        <span className="hidden sm:inline-flex">
+          <WaitCounter state={liveWait} variant="inline" />
+        </span>
+      ) : (
+        DEFAULT_OPEN_NOW
+      )}
+    </div>
+  )
+}
 
 const DEFAULT_TITLE = 'Consults, certs, and treatment. From your bed.'
 const DEFAULT_PRIMARY: CtaConfig = { text: 'Get started', href: '/request' }
@@ -135,8 +156,9 @@ export function Hero({
   beforeCta,
   mockup,
   trustRow,
+  liveWait,
 }: HeroProps) {
-  const resolvedPill = pill === undefined ? DEFAULT_PILL : pill
+  const resolvedPill = pill === undefined ? buildDefaultPill(liveWait) : pill
   const resolvedSecondary = secondaryCta === undefined ? DEFAULT_SECONDARY : secondaryCta
   const resolvedMockup = mockup === undefined ? <HeroDoctorReviewMockup /> : mockup
   const resolvedTrustRow = trustRow === undefined ? DEFAULT_TRUST_ROW : trustRow

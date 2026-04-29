@@ -14,6 +14,7 @@ import {
   colors,
   DetailRow,
   HeroBlock,
+  NameFirstGreeting,
   Text,
 } from "../base-email"
 
@@ -49,7 +50,7 @@ export function ReferralCreditEmail({
         variant="success"
       />
 
-      <Text>Hi {firstName},</Text>
+      <NameFirstGreeting name={firstName} />
 
       <Text>
         {friendFirstName ? (

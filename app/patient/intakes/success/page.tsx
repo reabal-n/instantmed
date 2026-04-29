@@ -2,6 +2,7 @@ import { redirect } from "next/navigation"
 import { notFound } from "next/navigation"
 
 import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
+import { getWaitState } from "@/lib/brand/wait-counter"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 import { SuccessClient } from "./success-client"
@@ -87,6 +88,10 @@ export default async function PaymentSuccessPage({
     patientEmail = authUser.profile.email
   }
 
+  // Live wait-counter state for the post-submit specificity screen
+  // (docs/BRAND.md §6.5). Powers the "Average wait today: ~X min" line.
+  const waitState = await getWaitState()
+
   return (
     <div className="min-h-[60vh] flex items-center justify-center py-12">
       <div className="w-full max-w-lg mx-auto">
@@ -100,6 +105,7 @@ export default async function PaymentSuccessPage({
           patientId={authUser?.profile?.id}
           queuePosition={queuePosition}
           isNewCustomer={isNewCustomer}
+          waitState={waitState}
         />
       </div>
     </div>

@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button"
 import { useReducedMotion } from "@/components/ui/motion"
 import { PulseSpinner } from "@/components/ui/spinner"
 import { trackPurchase } from "@/lib/analytics/conversion-tracking"
+import type { WaitState } from "@/lib/brand/wait-counter"
 import type { IntakeStatus } from "@/lib/data/intake-lifecycle"
 
 const RESEND_COOLDOWN_SECONDS = 60
@@ -24,6 +25,7 @@ interface SuccessClientProps {
   patientId?: string
   queuePosition?: number | null
   isNewCustomer?: boolean
+  waitState?: WaitState
 }
 
 export function SuccessClient({
@@ -36,6 +38,7 @@ export function SuccessClient({
   patientId,
   queuePosition: initialQueuePosition,
   isNewCustomer,
+  waitState,
 }: SuccessClientProps) {
   const prefersReducedMotion = useReducedMotion()
   const posthog = usePostHog()
@@ -367,6 +370,7 @@ export function SuccessClient({
         isPriority={isPriority}
         showConfetti={status === "paid"}
         initialQueuePosition={initialQueuePosition}
+        waitState={waitState}
       />
       {patientId && (
         <div>

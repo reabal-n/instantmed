@@ -11,6 +11,7 @@ import {
   BaseEmail,
   Button,
   HeroBlock,
+  NameFirstGreeting,
   Text,
   VerificationCode,
 } from "../base-email"
@@ -48,7 +49,7 @@ export function MedCertPatientEmail({
         variant="success"
       />
 
-      <Text>Hi {firstName},</Text>
+      <NameFirstGreeting name={firstName} />
 
       <Text>
         Your <strong>Medical Certificate</strong> has been approved and is ready to download.

@@ -13,6 +13,7 @@ import {
   colors,
   Heading,
   HeroBlock,
+  NameFirstGreeting,
   Text,
 } from "../base-email"
 
@@ -45,7 +46,7 @@ export function ScriptSentEmail({
         variant="success"
       />
 
-      <Text>Hi {firstName},</Text>
+      <NameFirstGreeting name={firstName} />
 
       <Text>
         Your prescription has been approved and the eScript is heading to your phone via SMS.

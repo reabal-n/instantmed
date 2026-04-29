@@ -5,6 +5,7 @@ import {
   Heading,
   HeroBlock,
   List,
+  NameFirstGreeting,
   Text,
 } from "../base-email"
 
@@ -37,7 +38,7 @@ export function AbandonedCheckoutEmail({
         variant="info"
       />
 
-      <Text>Hi {firstName},</Text>
+      <NameFirstGreeting name={firstName} />
       <Text>
         You started a <strong>{serviceName}</strong> request about {hoursAgo} hours ago
         but didn&apos;t finish checkout. No worries, everything is saved and

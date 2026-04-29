@@ -13,6 +13,7 @@ import {
   Heading,
   HeroBlock,
   List,
+  NameFirstGreeting,
   Text,
 } from "../base-email"
 
@@ -44,7 +45,7 @@ export function DeclineReengagementEmail({
         variant="info"
       />
 
-      <Text>Hi {firstName},</Text>
+      <NameFirstGreeting name={firstName} />
 
       <Text>
         We know it&apos;s not the answer you were hoping for. Your{" "}

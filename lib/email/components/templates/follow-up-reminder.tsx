@@ -14,6 +14,7 @@ import {
   Button,
   GoogleReviewCTA,
   HeroBlock,
+  NameFirstGreeting,
   Text,
 } from "../base-email"
 
@@ -38,7 +39,7 @@ export function FollowUpReminderEmail({
     >
       <HeroBlock icon="👋" headline="Checking in" variant="info" />
 
-      <Text>Hi {firstName},</Text>
+      <NameFirstGreeting name={firstName} />
 
       <Text>
         Just checking in. It&apos;s been a few days since your medical

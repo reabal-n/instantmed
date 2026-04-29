@@ -5,6 +5,7 @@ import {
   colors,
   HeroBlock,
   List,
+  NameFirstGreeting,
   Text,
 } from "../base-email"
 
@@ -37,7 +38,7 @@ export function GuestCompleteAccountEmail({
         variant="neutral"
       />
 
-      <Text>Hi {firstName},</Text>
+      <NameFirstGreeting name={firstName} />
       <Text>
         Your {requestType} request is underway. Set up a free account to track
         it in real-time, download your documents, and reorder in seconds next

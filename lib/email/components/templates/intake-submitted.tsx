@@ -15,6 +15,7 @@ import {
   Heading,
   List,
   StatusBanner,
+  NameFirstGreeting,
   Text,
 } from "../base-email"
 
@@ -44,7 +45,7 @@ export function IntakeSubmittedEmail({
     >
       <StatusBanner title="Request submitted" variant="info" />
 
-      <Text>Hi {firstName},</Text>
+      <NameFirstGreeting name={firstName} />
 
       <Text>
         Your <strong>{requestType}</strong> request has been submitted. A doctor

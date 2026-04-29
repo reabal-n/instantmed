@@ -11,6 +11,7 @@ import {
   BaseEmail,
   Button,
   HeroBlock,
+  NameFirstGreeting,
   Text,
 } from "../base-email"
 
@@ -43,7 +44,7 @@ export function PrescriptionApprovedEmail({
         variant="success"
       />
 
-      <Text>Hi {firstName},</Text>
+      <NameFirstGreeting name={firstName} />
 
       <Text>
         Your <strong>{medicationName}</strong> prescription has been approved.

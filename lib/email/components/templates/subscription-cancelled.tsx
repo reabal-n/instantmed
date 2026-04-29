@@ -13,6 +13,7 @@ import {
   Button,
   colors,
   StatusBanner,
+  NameFirstGreeting,
   Text,
 } from "../base-email"
 
@@ -35,7 +36,7 @@ export function SubscriptionCancelledEmail({
     <BaseEmail previewText="Your subscription has been cancelled. You can resubscribe anytime." appUrl={appUrl}>
       <StatusBanner title="Your subscription has been cancelled" variant="info" />
 
-      <Text>Hi {firstName},</Text>
+      <NameFirstGreeting name={firstName} />
 
       <Text>
         We&apos;ve confirmed that your Repeat Rx subscription has been cancelled.

@@ -494,6 +494,11 @@ body {
   --animate-accordion-down: accordion-down 0.2s ease-out;
   --animate-accordion-up: accordion-up 0.2s ease-out;
 
+  /* Brand wait-counter pulse — used by signature device #1 (docs/BRAND.md §6.1).
+     Soft brand-coral ping that radiates outward. Tailwind utility:
+     `animate-wait-pulse`. Reduced-motion users skip the animation in JSX. */
+  --animate-wait-pulse: wait-pulse 2.4s cubic-bezier(0, 0, 0.2, 1) infinite;
+
   @keyframes accordion-down {
     from {
       height: 0;
@@ -508,6 +513,20 @@ body {
     }
     to {
       height: 0;
+    }
+  }
+  @keyframes wait-pulse {
+    0% {
+      transform: scale(1);
+      opacity: 0.6;
+    }
+    70% {
+      transform: scale(2.6);
+      opacity: 0;
+    }
+    100% {
+      transform: scale(2.6);
+      opacity: 0;
     }
   }
 }

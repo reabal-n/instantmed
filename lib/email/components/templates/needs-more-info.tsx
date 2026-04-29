@@ -9,6 +9,7 @@ import {
   Box,
   Button,
   StatusBanner,
+  NameFirstGreeting,
   Text,
 } from "../base-email"
 
@@ -37,7 +38,7 @@ export function NeedsMoreInfoEmail({
     <BaseEmail previewText="The doctor has a quick question for you 🩺" appUrl={appUrl}>
       <StatusBanner title="The doctor has a question" variant="warning" />
 
-      <Text>Hi {firstName},</Text>
+      <NameFirstGreeting name={firstName} />
       <Text>
         The doctor reviewing your <strong>{requestType}</strong> request needs
         a bit more information before they can move forward.
