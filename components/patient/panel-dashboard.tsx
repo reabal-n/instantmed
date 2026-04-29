@@ -1,5 +1,6 @@
 "use client"
 
+import { motion } from "framer-motion"
 import {
   AlertCircle,
   Calendar,
@@ -24,8 +25,10 @@ import { type ProfileData, ProfileTodoCard, type TodoDrawerType } from "@/compon
 import { ReferralCard } from "@/components/patient/referral-card"
 import { SubscriptionCard } from "@/components/patient/subscription-card"
 import { Button } from "@/components/ui/button"
+import { useReducedMotion } from "@/components/ui/motion"
 import { capture } from "@/lib/analytics/capture"
 import { formatDate } from "@/lib/format"
+import { stagger } from "@/lib/motion"
 import { needsRenewalSoon } from "@/lib/prescriptions"
 
 /**
@@ -82,6 +85,7 @@ export function PanelDashboard({
 }: PatientDashboardProps) {
   const { openPanel } = usePanel()
   const router = useRouter()
+  const prefersReducedMotion = useReducedMotion()
   const firstName = fullName.split(" ")[0]
 
   const handleOpenProfileDrawer = (type: TodoDrawerType) => {
@@ -240,15 +244,26 @@ export function PanelDashboard({
               title="Recent requests"
               viewAllHref={intakes.length > 5 ? "/patient/intakes" : undefined}
             >
-              <div className="space-y-4">
+              <motion.div
+                className="space-y-4"
+                initial={prefersReducedMotion ? false : "initial"}
+                whileInView={prefersReducedMotion ? undefined : "animate"}
+                viewport={{ once: true, margin: "-40px" }}
+                variants={prefersReducedMotion ? undefined : stagger.containerFast}
+              >
+                {/* §12: stagger groups capped at 8 items. */}
                 {intakes.slice(0, 5).map((intake) => (
-                  <IntakeCard
+                  <motion.div
                     key={intake.id}
-                    intake={intake}
-                    onClick={() => handleViewIntake(intake)}
-                  />
+                    variants={prefersReducedMotion ? undefined : stagger.item}
+                  >
+                    <IntakeCard
+                      intake={intake}
+                      onClick={() => handleViewIntake(intake)}
+                    />
+                  </motion.div>
                 ))}
-              </div>
+              </motion.div>
             </DashboardSection>
           )}
 
@@ -261,13 +276,20 @@ export function PanelDashboard({
                   : undefined
               }
             >
-              <div className="space-y-4">
+              <motion.div
+                className="space-y-4"
+                initial={prefersReducedMotion ? false : "initial"}
+                whileInView={prefersReducedMotion ? undefined : "animate"}
+                viewport={{ once: true, margin: "-40px" }}
+                variants={prefersReducedMotion ? undefined : stagger.containerFast}
+              >
                 {prescriptions
                   .filter((p) => p.status === "active")
                   .slice(0, 3)
                   .map((rx) => (
-                    <div
+                    <motion.div
                       key={rx.id}
+                      variants={prefersReducedMotion ? undefined : stagger.item}
                       className="bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl p-5 transition-[transform,box-shadow,border-color] duration-300 hover:border-primary/40 hover:shadow-md hover:shadow-primary/[0.06]"
                     >
                       <div className="flex items-start justify-between gap-3">
@@ -292,9 +314,9 @@ export function PanelDashboard({
                           </Button>
                         </Link>
                       </div>
-                    </div>
+                    </motion.div>
                   ))}
-              </div>
+              </motion.div>
             </DashboardSection>
           )}
 
@@ -315,37 +337,57 @@ export function PanelDashboard({
       {hasAnyActivity && (
         <>
           {/* ─── ZONE 3 · MANAGE ────────────────────────────────────────── */}
-          <div className="grid gap-4 md:grid-cols-2">
+          <motion.div
+            className="grid gap-4 md:grid-cols-2"
+            initial={prefersReducedMotion ? false : "initial"}
+            whileInView={prefersReducedMotion ? undefined : "animate"}
+            viewport={{ once: true, margin: "-40px" }}
+            variants={prefersReducedMotion ? undefined : stagger.containerFast}
+          >
             {/* Profile todos: skip if hero is already nudging this. */}
             {profileData && !heroOwnsProfile && (
-              <ProfileTodoCard
-                profileData={profileData}
-                onOpenDrawer={handleOpenProfileDrawer}
-                hideWhenMedCertOnlyComplete={
-                  intakes.length > 0 &&
-                  prescriptions.length === 0 &&
-                  intakes.every((i) => {
-                    const s = Array.isArray(i.service) ? i.service[0] : i.service
-                    return (s as { type?: string } | null)?.type === "med_certs"
-                  })
-                }
-              />
+              <motion.div variants={prefersReducedMotion ? undefined : stagger.item}>
+                <ProfileTodoCard
+                  profileData={profileData}
+                  onOpenDrawer={handleOpenProfileDrawer}
+                  hideWhenMedCertOnlyComplete={
+                    intakes.length > 0 &&
+                    prescriptions.length === 0 &&
+                    intakes.every((i) => {
+                      const s = Array.isArray(i.service) ? i.service[0] : i.service
+                      return (s as { type?: string } | null)?.type === "med_certs"
+                    })
+                  }
+                />
+              </motion.div>
             )}
 
             {subscription && subscription.status === "active" && (
-              <SubscriptionCard subscription={subscription} />
+              <motion.div variants={prefersReducedMotion ? undefined : stagger.item}>
+                <SubscriptionCard subscription={subscription} />
+              </motion.div>
             )}
 
             {/* Follow-up tracker only renders not-due milestones; the
                 "due" case is in the hero. */}
             {followups && followups.length > 0 && !hasFollowupDue && (
-              <FollowupTrackerCard followups={followups} />
+              <motion.div variants={prefersReducedMotion ? undefined : stagger.item}>
+                <FollowupTrackerCard followups={followups} />
+              </motion.div>
             )}
 
             {/* Referral + Google Review only after first completion. */}
-            {hasReadyDoc && <ReferralCard patientId={patientId} />}
-            {hasReadyDoc && <GoogleReviewCard />}
-          </div>
+            {hasReadyDoc && (
+              <motion.div variants={prefersReducedMotion ? undefined : stagger.item}>
+                <ReferralCard patientId={patientId} />
+              </motion.div>
+            )}
+            {hasReadyDoc && (
+              <motion.div variants={prefersReducedMotion ? undefined : stagger.item}>
+                <GoogleReviewCard />
+              </motion.div>
+            )}
+          </motion.div>
         </>
       )}
     </div>
