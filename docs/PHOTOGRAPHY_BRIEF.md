@@ -136,6 +136,16 @@ Before swapping any image into `public/images/`:
 
 If commissioning a freelancer, brief them with this doc plus screenshots of Loop.co, Linear, and dub.co for the visual reference target.
 
+## Generative AI prompt scaffold (GPT-image / Nano Banana Pro)
+
+When generating images with GPT-image or similar, use this standing prompt as a base. Adjust the *scene* clause per shot from the shot list above; everything else stays identical for visual consistency.
+
+> "Photograph in the style of Australian editorial lifestyle photography. Late-morning Sydney/Melbourne window light, soft and indirect, slightly overexposed in highlights. Shallow depth of field, single focal subject, candid mid-action moment (not posed, not eye-contact-with-camera). Real lived-in interior or street, NOT a studio. Australian, ethnically diverse, age 25–45 unless the shot specifies otherwise. Subtle Australian-context cues (eucalyptus, AU power outlet, AU pharmacy signage, Bondi-style apartment) but understated, never literal. Warm coral or amber may appear as an organic prop colour (a mug, a throw, a piece of clothing) — never as a graphic overlay. NO: white coats, stethoscopes, hands-on-tablets, sterile clinic, smiling-stock-doctor cliché, generic SaaS hero shot, AI-glow aesthetic. Captured on a Leica Q3-style sensor, 28mm equivalent, f/2.8."
+>
+> *Scene:* [insert scene clause from the shot list above]
+
+After generation, run a curation pass against the §Acceptance criteria checklist before any image is committed to `public/images/`. Discard anything that fails even one criterion; iteration is cheaper than a stock-photo-feel hero in production.
+
 ---
 
-**Last updated:** 2026-04-28. Update this doc when commissioning the next batch.
+**Last updated:** 2026-04-29. Update this doc when commissioning the next batch.

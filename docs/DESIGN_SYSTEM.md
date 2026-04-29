@@ -85,6 +85,19 @@
   --morning-peach: #F5C6A0;
   --morning-ivory: #F7F3EC;
   --morning-champ: #E8D5A3;
+
+  /* -- Brand signature coral (added DS 1.1.0 / 2026-04-29) --
+     Used sparingly on brand-recognition moments only:
+       - signature mark on marketing pages
+       - homepage hero kicker / "Three minutes. Done." pill
+       - doctor signature underline
+       - page-enter sweep accent
+       - wait-counter pulse
+     NOT a replacement for --primary (system blue stays the CTA colour).
+     Distinct from --coral (#F87171), which is reserved for destructive states. */
+  --brand-coral:        #FF6B5B;
+  --brand-coral-light:  rgba(255,107,91,0.10);
+  --brand-coral-border: rgba(255,107,91,0.20);
 }
 ```
 
@@ -95,6 +108,7 @@
 - **Prohibited:** purple/violet (except `--service-referral`), neon, dark navy on marketing pages.
 - Morning spectrum: marketing heroes only. Never inside the product UI.
 - **Sky-toned shadows only: `shadow-primary/[0.06]`.** Never black shadows on marketing surfaces. The global `--shadow-*` CSS tokens in `app/globals.css:175-183` are based on `rgba(59, 130, 246, ...)` (the primary blue at low alpha) — updated 2026-04-08 in commit `270e6c3a1`. Every `shadow-sm`/`shadow-md`/`shadow-lg` Tailwind utility now cascades through these sky-tinted values.
+- **Brand coral is a signature accent, not a system colour.** Use `bg-brand-coral` / `text-brand-coral` only on the brand-recognition moments listed above. Do not introduce it into intake, dashboard, or product UI. `--primary` (system blue) remains the CTA colour everywhere.
 - **Dark mode card surfaces are SOLID**, not translucent. `--card` and `--popover` are `#111827` (not `rgba(17, 24, 39, 0.75)`) — updated 2026-04-08 in the same commit. Previously the translucent rgba values created an unintended glass effect on every card in dark mode.
 - Semantic colors convey status. Never use decoratively.
 
@@ -102,9 +116,10 @@
 
 ## 2. Typography
 
-**Primary:** Source Sans 3 — all UI, marketing, body.
+**Body / UI:** Source Sans 3 — paragraphs, form labels, captions, microcopy. The default for `body` and the `font-sans` Tailwind utility.
+**Display:** Plus Jakarta Sans — hero headlines and brand moments (display step, h1 in hero contexts, kicker lines). Use the `font-display` Tailwind utility or `--font-display` CSS variable. Plus Jakarta is humanist with character at large sizes; that's where it earns its keep.
 **Monospace:** JetBrains Mono — order IDs, certificate codes, API responses, code blocks only.
-No serif. No decorative fonts. Never Inter, Roboto, Arial.
+No serif. No decorative fonts. Never Inter, Roboto, Arial. Display-face usage is reserved for h1/hero; do not apply it to body or h2-and-below.
 
 ### Scale
 

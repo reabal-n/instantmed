@@ -402,7 +402,7 @@ export function WeightLossClient() {
 
           {/* Final CTA */}
           <CTABanner
-            title="Ready to Start Your Journey?"
+            title="Ready when you are."
             subtitle="Complete a health assessment in minutes. An AHPRA-registered doctor will review your case and recommend the best treatment option."
             ctaText="Start Consultation"
             ctaHref="/request?service=consult&subtype=weight_loss"

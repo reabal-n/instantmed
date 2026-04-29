@@ -52,7 +52,7 @@ const GROWTH_PHASES = [
   {
     name: "Anagen",
     duration: "2–7 years",
-    description: "Active growth. Most follicles on a healthy scalp are here. This is the phase where treatment has the most leverage.",
+    description: "Active growth. Most follicles on a healthy scalp are here. This is the phase where treatment has the most impact.",
     color: "bg-primary/10 border-primary/30 dark:border-primary/20",
     label_color: "text-primary",
   },

@@ -2,7 +2,7 @@ import "./globals.css"
 
 import { Analytics } from "@vercel/analytics/next"
 import type { Metadata, Viewport } from "next"
-import { JetBrains_Mono,Source_Sans_3 } from "next/font/google"
+import { JetBrains_Mono, Plus_Jakarta_Sans, Source_Sans_3 } from "next/font/google"
 // SkyBackground, NightSkyBackground, ScrollProgress moved to marketing pages only (perf)
 import { ThemeProvider } from "next-themes"
 import type React from "react"
@@ -30,6 +30,16 @@ const sourceSans = Source_Sans_3({
   weight: ["400", "500", "600"],
 })
 
+// Display face for hero headlines (48px+) and signature brand moments.
+// Plus Jakarta Sans is humanist, modern, has character at large sizes.
+// Body text stays Source Sans 3.
+const plusJakarta = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  variable: "--font-display",
+  display: "swap",
+  weight: ["500", "600", "700"],
+})
+
 const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
   variable: "--font-mono",
@@ -41,7 +51,7 @@ const jetbrainsMono = JetBrains_Mono({
   preload: false,
 })
 
-// Source Sans 3 for all text. JetBrains Mono for code only.
+// Source Sans 3 for body. Plus Jakarta Sans for display (h1/hero). JetBrains Mono for code only.
 
 export const metadata: Metadata = {
   title: {
@@ -142,7 +152,7 @@ export default function RootLayout({
     <SupabaseAuthProvider>
       <html
         lang="en-AU"
-        className={`${sourceSans.variable} ${jetbrainsMono.variable}`}
+        className={`${sourceSans.variable} ${plusJakarta.variable} ${jetbrainsMono.variable}`}
         suppressHydrationWarning
         style={{ backgroundColor: '#f8f7f4' }}
       >

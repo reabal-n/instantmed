@@ -49,8 +49,10 @@ body {
   /* Add test banner height variable */
   --test-banner-height: 0px;
 
-  /* Display font — maps to the sans font for heading contexts */
-  --font-display: var(--font-sans), "Source Sans 3", ui-sans-serif, system-ui, sans-serif;
+  /* Display font — Plus Jakarta Sans is wired in app/layout.tsx via next/font.
+     The --font-display variable is injected on <html> by next/font. We do not
+     redeclare it here (a :root override would beat the className-applied
+     variable). The fallback stack lives in @theme inline below for Tailwind. */
 
   /* Seamless scrolling */
   scroll-behavior: smooth;
@@ -239,6 +241,14 @@ body {
   --accent-peach: #F0B4A0;
   --accent-peach-foreground: #1E293B;
 
+  /* Brand signature coral — used sparingly on brand-recognition moments
+     only (signature mark, hero kicker, "Three minutes. Done." pill, doctor
+     signature underline, page-enter sweep accent). NOT a replacement for
+     --primary, which remains the system CTA blue. Distinct from --coral
+     (#F87171), which is reserved for destructive states. */
+  --brand-coral: #FF6B5B;
+  --brand-coral-foreground: #FFFFFF;
+
   /* Legacy/compat tokens - maintained for existing component refs */
   --navy: var(--slate-800);
   --indigo: var(--primary);
@@ -337,6 +347,10 @@ body {
   --accent-peach: #E8A08C;
   --accent-peach-foreground: #0B1120;
 
+  /* Brand signature coral — dark mode. Same hue, same recognition value. */
+  --brand-coral: #FF6B5B;
+  --brand-coral-foreground: #0B1120;
+
   /* Borders - subtle constellation lines */
   --border: rgba(148, 163, 184, 0.12);
   --input: rgba(17, 24, 39, 0.60);
@@ -373,8 +387,9 @@ body {
 }
 
 @theme inline {
-  /* Typography: Source Sans 3 for all text, JetBrains Mono for code */
+  /* Typography: Source Sans 3 (body), Plus Jakarta Sans (display), JetBrains Mono (code) */
   --font-sans: "Source Sans 3", "Source Sans 3 Fallback", system-ui, sans-serif;
+  --font-display: "Plus Jakarta Sans", "Plus Jakarta Sans Fallback", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", "JetBrains Mono Fallback", monospace;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -445,6 +460,8 @@ body {
   --color-accent-gold-foreground: var(--accent-gold-foreground);
   --color-accent-peach: var(--accent-peach);
   --color-accent-peach-foreground: var(--accent-peach-foreground);
+  --color-brand-coral: var(--brand-coral);
+  --color-brand-coral-foreground: var(--brand-coral-foreground);
   --color-navy: var(--navy);
   --color-indigo: var(--indigo);
   --color-violet: var(--violet);
