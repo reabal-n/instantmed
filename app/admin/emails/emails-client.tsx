@@ -486,7 +486,7 @@ export function EmailTemplatesClient({ initialTemplates }: EmailTemplatesClientP
                 {selectedTemplate && getPreviewHtml(selectedTemplate.subject, selectedTemplate.available_tags)}
               </p>
             </div>
-            <div className="flex-1 overflow-auto rounded-xl border shadow-sm bg-linear-to-b from-muted/50 to-white flex justify-center">
+            <div className="flex-1 overflow-auto rounded-xl border shadow-sm bg-muted/30 flex justify-center">
               <div className={previewMode === "mobile" ? "w-[375px] border-x" : "max-w-[600px] w-full"}>
                 <div className="p-6">
                   {selectedTemplate && (

@@ -9,6 +9,7 @@ import { getAIApprovedIntakes, getAutoApprovalMetrics, getDoctorQueue, getIntake
 import { createLogger } from "@/lib/observability/logger"
 
 import { QueueClient } from "../queue/queue-client"
+// portal-shim:allow — local dashboard-header.tsx file, not the legacy CSS class
 import { DashboardHeader } from "./dashboard-header"
 
 const log = createLogger("doctor-dashboard")

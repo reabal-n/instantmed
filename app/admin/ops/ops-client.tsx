@@ -84,7 +84,7 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
   const overallStatus = allHealthy ? "healthy" : "degraded"
 
   return (
-    <div className="min-h-screen dashboard-bg">
+    <div className="min-h-full">
       <div className="p-6 space-y-6">
         {/* Header */}
         <DashboardHeader
@@ -100,7 +100,7 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
         />
 
         {/* System Status */}
-        <div className="dashboard-card rounded-xl p-6">
+        <div className="bg-card border border-border/50 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl p-6">
           <div className="flex items-center gap-2 mb-4">
             <Server className="h-5 w-5 text-muted-foreground" />
             <h3 className="text-base font-semibold text-foreground">System Status</h3>
@@ -114,7 +114,7 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="dashboard-card rounded-xl p-5">
+          <div className="bg-card border border-border/50 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl p-5">
             <div className="flex items-center gap-4">
               <div className={cn("p-3 rounded-lg shrink-0", webhooks.failedCount > 0 ? "bg-destructive-light" : "bg-success-light")}>
                 <Webhook className={cn("h-5 w-5", webhooks.failedCount > 0 ? "text-destructive" : "text-success")} />
@@ -133,7 +133,7 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
             )}
           </div>
 
-          <div className="dashboard-card rounded-xl p-5">
+          <div className="bg-card border border-border/50 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl p-5">
             <div className="flex items-center gap-4">
               <div className={cn("p-3 rounded-lg shrink-0", emails.failed > 0 ? "bg-warning-light" : "bg-success-light")}>
                 <Mail className={cn("h-5 w-5", emails.failed > 0 ? "text-warning" : "text-success")} />
@@ -151,7 +151,7 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
             )}
           </div>
 
-          <div className="dashboard-card rounded-xl p-5">
+          <div className="bg-card border border-border/50 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl p-5">
             <div className="flex items-center gap-4">
               <div className={cn("p-3 rounded-lg shrink-0", staleIntakes > 0 ? "bg-warning-light" : "bg-success-light")}>
                 <Clock className={cn("h-5 w-5", staleIntakes > 0 ? "text-warning" : "text-success")} />
@@ -171,7 +171,7 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
             )}
           </div>
 
-          <div className="dashboard-card rounded-xl p-5">
+          <div className="bg-card border border-border/50 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl p-5">
             <div className="flex items-center gap-4">
               <div className="p-3 rounded-lg bg-info-light shrink-0">
                 <ScrollText className="h-5 w-5 text-info" />
@@ -190,7 +190,7 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
         {/* Details Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Recent Webhook Failures */}
-          <div className="dashboard-card rounded-xl p-6">
+          <div className="bg-card border border-border/50 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <Webhook className="h-5 w-5 text-muted-foreground" />
@@ -226,7 +226,7 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
           </div>
 
           {/* Recent Errors */}
-          <div className="dashboard-card rounded-xl p-6">
+          <div className="bg-card border border-border/50 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl p-6">
             <div className="flex items-center gap-2 mb-1">
               <AlertTriangle className="h-5 w-5 text-muted-foreground" />
               <h3 className="text-base font-semibold text-foreground">Recent Errors (7 days)</h3>
@@ -256,7 +256,7 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
         </div>
 
         {/* Quick Actions */}
-        <div className="dashboard-card rounded-xl p-6">
+        <div className="bg-card border border-border/50 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl p-6">
           <div className="flex items-center gap-2 mb-4">
             <Zap className="h-5 w-5 text-muted-foreground" />
             <h3 className="text-base font-semibold text-foreground">Quick Actions</h3>

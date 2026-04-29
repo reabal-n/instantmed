@@ -631,26 +631,26 @@ export function AutoApproveSection({
   onSaveFlag,
 }: AutoApproveSectionProps) {
   return (
-    <Card className={flags.ai_auto_approve_enabled ? "border-violet-300 bg-violet-50/30" : ""}>
+    <Card className={flags.ai_auto_approve_enabled ? "border-primary/30 bg-primary/[0.04]" : ""}>
       <CardHeader className="px-6 pt-6">
         <CardTitle className="text-base flex items-center gap-2">
           <Stethoscope className="h-4 w-4" />
-          AI Auto-Approve Med Certs
+          AI auto-approve med certs
           {flags.ai_auto_approve_enabled && (
-            <Badge className="ml-2 bg-violet-100 text-violet-700 border-violet-200">ACTIVE</Badge>
+            <Badge className="ml-2 bg-primary/10 text-primary border-primary/20">ACTIVE</Badge>
           )}
         </CardTitle>
         <CardDescription>
           Automatically approve eligible medical certificates (no flags, no mental health/injury/chronic) after payment.
-          Doctor batch review still applies - all AI-approved certs appear in the review queue for oversight.
+          Doctor batch review still applies, all AI-approved certs appear in the review queue for oversight.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-5 px-6 pb-6">
         {/* Master toggle */}
         <div className="flex items-center justify-between p-5 rounded-lg border">
           <div className="flex items-center gap-3">
-            <div className={`p-2 rounded-lg ${flags.ai_auto_approve_enabled ? "bg-violet-100" : "bg-muted"}`}>
-              <Stethoscope className={`h-5 w-5 ${flags.ai_auto_approve_enabled ? "text-violet-600" : "text-muted-foreground"}`} />
+            <div className={`p-2 rounded-lg ${flags.ai_auto_approve_enabled ? "bg-primary/10" : "bg-muted"}`}>
+              <Stethoscope className={`h-5 w-5 ${flags.ai_auto_approve_enabled ? "text-primary" : "text-muted-foreground"}`} />
             </div>
             <div>
               <p className="font-medium">Auto-Approval Status</p>
@@ -675,7 +675,7 @@ export function AutoApproveSection({
 
         {/* Settings (shown when enabled) */}
         {flags.ai_auto_approve_enabled && (
-          <div className="space-y-4 p-5 rounded-lg border bg-violet-50/20">
+          <div className="space-y-4 p-5 rounded-lg border bg-primary/[0.03]">
             <p className="text-sm font-medium">Auto-Approve Settings</p>
 
             {/* Delay */}
@@ -793,10 +793,10 @@ export function AutoApproveSection({
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">Skipped today</p>
               </div>
-              <div className="p-4 rounded-lg border bg-violet-50/50 dark:bg-violet-500/5">
-                <div className="flex items-center gap-2 text-violet-700 dark:text-violet-400">
+              <div className="p-4 rounded-lg border bg-primary/[0.04] dark:bg-primary/[0.08]">
+                <div className="flex items-center gap-2 text-primary">
                   <TrendingUp className="h-4 w-4" />
-                  <span className="text-2xl font-semibold">{autoApproveStats.last7DaysApproved}</span>
+                  <span className="text-2xl font-semibold tabular-nums">{autoApproveStats.last7DaysApproved}</span>
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">Last 7 days</p>
               </div>

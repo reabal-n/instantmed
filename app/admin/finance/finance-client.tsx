@@ -80,7 +80,9 @@ interface FinanceDashboardClientProps {
   finance: FinanceData
 }
 
-const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6"]
+// Tracks lib palette in `app/admin/analytics/analytics-helpers.ts`.
+// #8b5cf6 (violet) replaced with #5db8c9 (teal) per DESIGN_SYSTEM.md §1 — no violet outside --service-referral.
+const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#f87171", "#5db8c9"]
 
 function formatServiceType(type: string): string {
   const labels: Record<string, string> = {
@@ -109,7 +111,7 @@ export function FinanceDashboardClient({ finance }: FinanceDashboardClientProps)
   const weekChange = lastWeekTotal > 0 ? ((thisWeekTotal - lastWeekTotal) / lastWeekTotal) * 100 : 0
 
   return (
-    <div className="min-h-screen dashboard-bg">
+    <div className="min-h-full">
       <div className="p-6 space-y-6">
         {/* Header */}
         <DashboardHeader
@@ -181,7 +183,7 @@ export function FinanceDashboardClient({ finance }: FinanceDashboardClientProps)
         {/* Charts */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Revenue Trend */}
-          <div className="dashboard-card rounded-xl p-6 lg:col-span-2">
+          <div className="bg-card border border-border/50 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl p-6 lg:col-span-2">
             <div className="mb-4">
               <h3 className="text-base font-semibold text-foreground">Revenue Trend</h3>
               <p className="text-sm text-muted-foreground">Daily revenue over the last 30 days</p>
@@ -211,7 +213,7 @@ export function FinanceDashboardClient({ finance }: FinanceDashboardClientProps)
                     yAxisId="right"
                     type="monotone"
                     dataKey="Transactions"
-                    stroke="#8b5cf6"
+                    stroke="#5db8c9"
                     strokeWidth={2}
                     dot={false}
                   />
@@ -221,7 +223,7 @@ export function FinanceDashboardClient({ finance }: FinanceDashboardClientProps)
           </div>
 
           {/* Revenue by Service */}
-          <div className="dashboard-card rounded-xl p-6">
+          <div className="bg-card border border-border/50 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl p-6">
             <div className="mb-4">
               <h3 className="text-base font-semibold text-foreground">By Service</h3>
               <p className="text-sm text-muted-foreground">Revenue breakdown</p>
@@ -270,7 +272,7 @@ export function FinanceDashboardClient({ finance }: FinanceDashboardClientProps)
         {/* Risk Management Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Disputes */}
-          <div className="dashboard-card rounded-xl p-6">
+          <div className="bg-card border border-border/50 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl p-6">
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h3 className="text-base font-semibold text-foreground flex items-center gap-2">
@@ -280,7 +282,7 @@ export function FinanceDashboardClient({ finance }: FinanceDashboardClientProps)
                 <p className="text-sm text-muted-foreground">Active payment disputes requiring attention</p>
               </div>
               {summary.activeDisputes > 0 && (
-                <span className="px-2 py-1 text-xs font-medium bg-warning-light text-warning rounded-full0/20">
+                <span className="px-2 py-1 text-xs font-medium bg-warning-light text-warning rounded-full">
                   {summary.activeDisputes} active
                 </span>
               )}
@@ -328,7 +330,7 @@ export function FinanceDashboardClient({ finance }: FinanceDashboardClientProps)
           </div>
 
           {/* Fraud Flags */}
-          <div className="dashboard-card rounded-xl p-6">
+          <div className="bg-card border border-border/50 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl p-6">
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h3 className="text-base font-semibold text-foreground flex items-center gap-2">
@@ -338,7 +340,7 @@ export function FinanceDashboardClient({ finance }: FinanceDashboardClientProps)
                 <p className="text-sm text-muted-foreground">Suspicious activity detected by fraud detection</p>
               </div>
               {summary.recentFraudFlags > 0 && (
-                <span className="px-2 py-1 text-xs font-medium bg-destructive-light text-destructive rounded-full0/20">
+                <span className="px-2 py-1 text-xs font-medium bg-destructive-light text-destructive rounded-full">
                   {summary.recentFraudFlags} high/critical
                 </span>
               )}

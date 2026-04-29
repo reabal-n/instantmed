@@ -69,7 +69,7 @@ export default async function RevenueAnalyticsPage() {
     <div className="space-y-6 p-6">
       <div className="flex items-center gap-3">
         <div
-          className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 text-white"
+          className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400"
           aria-hidden="true"
         >
           <DollarSign className="h-5 w-5" />

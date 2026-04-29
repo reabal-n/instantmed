@@ -157,15 +157,15 @@ export function ClinicalNoteDiffView({
     switch (line.type) {
       case 'added':
         return (
-          <div key={index} className={`${baseClass} bg-emerald-100 text-emerald-900 dark:bg-emerald-500/20 dark:text-emerald-200 border-l-2 border-emerald-500`}>
-            <span className="select-none text-success mr-2">+</span>
+          <div key={index} className={`${baseClass} bg-emerald-100 text-emerald-900 dark:bg-emerald-500/20 dark:text-emerald-200 ring-1 ring-inset ring-emerald-500/40 dark:ring-emerald-500/30 rounded`}>
+            <span className="select-none text-success mr-2" aria-label="added">+</span>
             {line.content || ' '}
           </div>
         )
       case 'removed':
         return (
-          <div key={index} className={`${baseClass} bg-red-100 text-red-900 dark:bg-red-500/20 dark:text-red-200 border-l-2 border-red-500`}>
-            <span className="select-none text-destructive mr-2">−</span>
+          <div key={index} className={`${baseClass} bg-red-100 text-red-900 dark:bg-red-500/20 dark:text-red-200 ring-1 ring-inset ring-red-500/40 dark:ring-red-500/30 rounded`}>
+            <span className="select-none text-destructive mr-2" aria-label="removed">−</span>
             {line.content || ' '}
           </div>
         )

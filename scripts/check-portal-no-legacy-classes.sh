@@ -25,6 +25,10 @@ failures=0
 TARGETS=(
   "app/patient"
   "components/patient"
+  "app/doctor"
+  "components/doctor"
+  "app/admin"
+  "components/admin"
 )
 
 # Pattern => human-readable description
@@ -111,9 +115,9 @@ done
 
 if [[ $failures -gt 0 ]]; then
   echo ""
-  echo "Found $failures legacy-class violation(s) in patient portal source."
+  echo "Found $failures legacy-class violation(s) in portal source (patient + doctor + admin)."
   echo "See docs/DESIGN_SYSTEM.md and the design-system v2.0.0 migration table."
   exit 1
 fi
 
-echo "Patient portal: clean. No legacy classes detected."
+echo "Portals (patient + doctor + admin): clean. No legacy classes detected."

@@ -4,6 +4,7 @@ import { CheckCircle2, Clock, Filter, RotateCcw,Send } from "lucide-react"
 import { useRef,useState, useTransition } from "react"
 import { toast } from "sonner"
 
+import { DashboardPageHeader } from "@/components/dashboard"
 import { Button } from "@/components/ui/button"
 import { EmptyState } from "@/components/ui/empty-state"
 import { Pagination } from "@/components/uix"
@@ -99,22 +100,20 @@ export function ScriptsClient({ initialTasks, initialCounts, initialTotal }: Scr
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground font-sans">Script To-Do</h1>
-          <p className="text-sm text-muted-foreground mt-1">Prescriptions to send via Parchment</p>
-        </div>
-
-        <button
-          onClick={() => fetchPage(page)}
-          className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-muted/50 transition-colors"
-          aria-label="Refresh script tasks"
-        >
-          <RotateCcw className={`h-4 w-4 ${isPending ? "animate-spin" : ""}`} />
-          Refresh
-        </button>
-      </div>
+      <DashboardPageHeader
+        title="Script To-Do"
+        description="Prescriptions to send via Parchment"
+        actions={
+          <button
+            onClick={() => fetchPage(page)}
+            className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-muted/50 transition-colors"
+            aria-label="Refresh script tasks"
+          >
+            <RotateCcw className={`h-4 w-4 ${isPending ? "animate-spin" : ""}`} />
+            Refresh
+          </button>
+        }
+      />
 
       {/* Status summary cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">

@@ -98,18 +98,18 @@ export function ParchmentPrescribePanel({
         initial={prefersReducedMotion ? {} : "hidden"}
         animate="visible"
         exit="hidden"
-        className="absolute inset-0 bg-black/40"
+        className="absolute inset-0 bg-foreground/40"
         onClick={closePanel}
         aria-hidden="true"
       />
 
-      {/* Sheet */}
+      {/* Sheet — §12 panel exception (drawers/sheets allowed) */}
       <motion.div
         variants={sheetVariants("right")}
         initial={prefersReducedMotion ? {} : "hidden"}
         animate="visible"
         exit={prefersReducedMotion ? { opacity: 0 } : "exit"}
-        className="absolute top-0 right-0 h-full bg-background shadow-2xl flex flex-col"
+        className="absolute top-0 right-0 h-full bg-background shadow-2xl shadow-primary/[0.12] flex flex-col"
         style={{ width: "800px", maxWidth: "100vw" }}
         role="dialog"
         aria-modal="true"

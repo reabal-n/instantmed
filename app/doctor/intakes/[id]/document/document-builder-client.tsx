@@ -459,8 +459,8 @@ export function DocumentBuilderClient({
 
       {/* PDF Preview Modal */}
       {previewUrl && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="relative w-full max-w-3xl h-[85vh] bg-white dark:bg-card rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/60 backdrop-blur-sm">
+          <div className="relative w-full max-w-3xl h-[85vh] bg-white dark:bg-card rounded-2xl shadow-2xl shadow-primary/[0.12] overflow-hidden flex flex-col">
             <div className="flex items-center justify-between px-4 py-3 border-b border-border">
               <h3 className="font-semibold text-sm">Certificate Preview</h3>
               <Button variant="ghost" size="sm" onClick={() => setPreviewUrl(null)}>

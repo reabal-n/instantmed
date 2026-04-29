@@ -15,6 +15,7 @@ import {
   XAxis,
   YAxis,
 } from "@/components/charts/lazy-charts"
+import { DashboardCard } from "@/components/dashboard"
 import { formatAUD } from "@/lib/format"
 
 import { type AnalyticsData } from "./analytics-helpers"
@@ -22,10 +23,8 @@ import { type AnalyticsData } from "./analytics-helpers"
 export function AnalyticsRevenueTab({ analytics }: { analytics: AnalyticsData }) {
   const { funnel, dailyData, revenue } = analytics
 
-  // Calculate conversion rate
   const payRate = funnel.started > 0 ? ((funnel.paid / funnel.started) * 100).toFixed(1) : "0"
 
-  // Format daily chart data
   const chartData = dailyData.map((d) => ({
     date: new Date(d.date).toLocaleDateString("en-AU", { day: "numeric", month: "short" }),
     Revenue: d.revenue,
@@ -33,50 +32,57 @@ export function AnalyticsRevenueTab({ analytics }: { analytics: AnalyticsData })
 
   return (
     <div className="space-y-6">
-      {/* Revenue KPIs */}
+      {/* Revenue KPIs. Left-stripe accents banned by §17 absolute_bans.
+          Hierarchy now communicated via card tier + status-tinted icon + value color. */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="dashboard-card rounded-xl p-6 border-l-4 border-l-emerald-500">
+        <DashboardCard tier="elevated" padding="lg">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-muted-foreground font-medium">Today</p>
-              <p className="text-3xl font-semibold text-success">
+              <p className="text-3xl font-semibold tabular-nums text-success">
                 {formatAUD(revenue.today)}
               </p>
             </div>
-            <DollarSign className="h-8 w-8 text-emerald-400" />
+            <div className="rounded-xl bg-emerald-50 dark:bg-emerald-900/30 p-2.5">
+              <DollarSign className="h-6 w-6 text-emerald-700 dark:text-emerald-400" />
+            </div>
           </div>
-        </div>
+        </DashboardCard>
 
-        <div className="dashboard-card rounded-xl p-6 border-l-4 border-l-blue-500">
+        <DashboardCard tier="standard" padding="lg">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-muted-foreground font-medium">This Week</p>
-              <p className="text-3xl font-semibold text-info">
+              <p className="text-3xl font-semibold tabular-nums text-info">
                 {formatAUD(revenue.thisWeek)}
               </p>
             </div>
-            <TrendingUp className="h-8 w-8 text-blue-400" />
+            <div className="rounded-xl bg-blue-50 dark:bg-blue-900/30 p-2.5">
+              <TrendingUp className="h-6 w-6 text-blue-700 dark:text-blue-400" />
+            </div>
           </div>
-        </div>
+        </DashboardCard>
 
-        <div className="dashboard-card rounded-xl p-6 border-l-4 border-l-blue-500">
+        <DashboardCard tier="standard" padding="lg">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-muted-foreground font-medium">Last 30 Days</p>
-              <p className="text-3xl font-semibold text-info">
+              <p className="text-sm text-muted-foreground font-medium">Last 30 days</p>
+              <p className="text-3xl font-semibold tabular-nums text-info">
                 {formatAUD(revenue.thisMonth)}
               </p>
               <p className="text-xs text-muted-foreground mt-1">{funnel.paid} paid intakes</p>
             </div>
-            <Users className="h-8 w-8 text-blue-400" />
+            <div className="rounded-xl bg-blue-50 dark:bg-blue-900/30 p-2.5">
+              <Users className="h-6 w-6 text-blue-700 dark:text-blue-400" />
+            </div>
           </div>
-        </div>
+        </DashboardCard>
       </div>
 
       {/* Revenue Chart */}
-      <div className="dashboard-card rounded-xl p-6">
+      <DashboardCard tier="standard" padding="lg">
         <div className="mb-4">
-          <h3 className="text-base font-semibold text-foreground">Daily Revenue</h3>
+          <h3 className="text-base font-semibold text-foreground">Daily revenue</h3>
           <p className="text-sm text-muted-foreground">Last 30 days</p>
         </div>
         <div className="h-[350px]">
@@ -105,11 +111,11 @@ export function AnalyticsRevenueTab({ analytics }: { analytics: AnalyticsData })
             </AreaChart>
           </ResponsiveContainer>
         </div>
-      </div>
+      </DashboardCard>
 
       {/* Revenue per Service */}
-      <div className="dashboard-card rounded-xl p-6">
-        <h3 className="text-base font-semibold text-foreground mb-4">Revenue Metrics</h3>
+      <DashboardCard tier="standard" padding="lg">
+        <h3 className="text-base font-semibold text-foreground mb-4">Revenue metrics</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="p-4 rounded-xl bg-muted/30 border text-center">
             <p className="text-xs text-muted-foreground mb-1">Avg per Intake</p>
@@ -126,11 +132,11 @@ export function AnalyticsRevenueTab({ analytics }: { analytics: AnalyticsData })
             <p className="text-xl font-semibold">{funnel.paid}</p>
           </div>
           <div className="p-4 rounded-xl bg-muted/30 border text-center">
-            <p className="text-xs text-muted-foreground mb-1">Conversion to Pay</p>
+            <p className="text-xs text-muted-foreground mb-1">Conversion to pay</p>
             <p className="text-xl font-semibold">{payRate}%</p>
           </div>
         </div>
-      </div>
+      </DashboardCard>
     </div>
   )
 }

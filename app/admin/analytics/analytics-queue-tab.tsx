@@ -82,7 +82,7 @@ export function AnalyticsQueueTab({ analytics }: { analytics: AnalyticsData }) {
 
       {/* Today's Activity */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="dashboard-card rounded-xl p-6">
+        <div className="bg-card border border-border/50 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl p-6">
           <h3 className="text-base font-semibold text-foreground mb-4">Today&apos;s Activity</h3>
           <div className="space-y-4">
             <div className="flex items-center justify-between p-3 rounded-lg bg-info-light">
@@ -125,7 +125,7 @@ export function AnalyticsQueueTab({ analytics }: { analytics: AnalyticsData }) {
         </div>
 
         {/* SLA Health Indicator */}
-        <div className="dashboard-card rounded-xl p-6">
+        <div className="bg-card border border-border/50 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl p-6">
           <h3 className="text-base font-semibold text-foreground mb-4">Queue SLA Status</h3>
           <div className="space-y-6">
             <SlaIndicator
@@ -155,7 +155,7 @@ export function AnalyticsQueueTab({ analytics }: { analytics: AnalyticsData }) {
       </div>
 
       {/* Daily Activity Chart */}
-      <div className="dashboard-card rounded-xl p-6">
+      <div className="bg-card border border-border/50 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl p-6">
         <div className="mb-4">
           <h3 className="text-base font-semibold text-foreground">Daily Processing Volume</h3>
           <p className="text-sm text-muted-foreground">Submissions vs. completions over 30 days</p>

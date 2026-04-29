@@ -34,7 +34,7 @@ export function AnalyticsFunnelTab({ analytics }: { analytics: AnalyticsData }) 
   // Funnel chart data
   const funnelData = [
     { name: "Visits", value: funnel.visits, fill: "#3b82f6" },
-    { name: "Started", value: funnel.started, fill: "#8b5cf6" },
+    { name: "Started", value: funnel.started, fill: "#5db8c9" },
     { name: "Paid", value: funnel.paid, fill: "#f59e0b" },
     { name: "Completed", value: funnel.completed, fill: "#10b981" },
   ]
@@ -74,7 +74,7 @@ export function AnalyticsFunnelTab({ analytics }: { analytics: AnalyticsData }) 
 
       {/* Funnel Chart + Conversion Rates */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="dashboard-card rounded-xl p-6">
+        <div className="bg-card border border-border/50 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl p-6">
           <div className="mb-4">
             <h3 className="text-base font-semibold text-foreground">Conversion Funnel</h3>
             <p className="text-sm text-muted-foreground">Last 30 days</p>
@@ -97,7 +97,7 @@ export function AnalyticsFunnelTab({ analytics }: { analytics: AnalyticsData }) 
         </div>
 
         {/* Conversion Rate Cards */}
-        <div className="dashboard-card rounded-xl p-6">
+        <div className="bg-card border border-border/50 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl p-6">
           <div className="mb-4">
             <h3 className="text-base font-semibold text-foreground">Conversion Rates</h3>
             <p className="text-sm text-muted-foreground">Step-by-step drop-off analysis</p>
@@ -109,7 +109,7 @@ export function AnalyticsFunnelTab({ analytics }: { analytics: AnalyticsData }) 
               rate={Number(startRate)}
               fromCount={funnel.visits}
               toCount={funnel.started}
-              color="#8b5cf6"
+              color="#5db8c9"
             />
             <ConversionStep
               from="Started"
@@ -141,7 +141,7 @@ export function AnalyticsFunnelTab({ analytics }: { analytics: AnalyticsData }) 
       </div>
 
       {/* Traffic Sources */}
-      <div className="dashboard-card rounded-xl p-6">
+      <div className="bg-card border border-border/50 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl p-6">
         <div className="flex items-center justify-between mb-4">
           <div>
             <h3 className="text-base font-semibold text-foreground">Traffic Sources</h3>

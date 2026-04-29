@@ -14,6 +14,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState, useTransition } from "react"
 
+import { DashboardPageHeader } from "@/components/dashboard"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -124,15 +125,10 @@ export function CertificatesListClient({
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground font-sans">
-          Certificates
-        </h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          All issued medical certificates - search, filter, download.
-        </p>
-      </div>
+      <DashboardPageHeader
+        title="Certificates"
+        description="All issued medical certificates: search, filter, download."
+      />
 
       {/* Stats */}
       <div className="grid gap-4 sm:grid-cols-3">

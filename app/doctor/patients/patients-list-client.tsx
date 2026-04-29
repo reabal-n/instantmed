@@ -5,6 +5,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useMemo,useState } from "react"
 
+import { DashboardPageHeader } from "@/components/dashboard"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -52,11 +53,10 @@ export function PatientsListClient({ patients, currentPage, totalPages, totalPat
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground font-sans">Patient Directory</h1>
-        <p className="text-sm text-muted-foreground mt-1">View and manage all registered patients</p>
-      </div>
+      <DashboardPageHeader
+        title="Patient Directory"
+        description="View and manage all registered patients"
+      />
 
       {/* Stats */}
       <div className="grid gap-4 sm:grid-cols-3">

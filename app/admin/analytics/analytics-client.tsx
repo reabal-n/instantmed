@@ -28,7 +28,7 @@ export function AnalyticsDashboardClient({ analytics }: AnalyticsDashboardClient
   ]
 
   return (
-    <div className="min-h-screen dashboard-bg">
+    <div className="min-h-full">
       <div className="max-w-7xl mx-auto p-6 space-y-6">
         {/* Header */}
         <DashboardHeader

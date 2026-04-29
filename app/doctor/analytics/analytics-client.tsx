@@ -28,6 +28,7 @@ import {
   XAxis,
   YAxis,
 } from "@/components/charts/lazy-charts"
+import { DashboardPageHeader } from "@/components/dashboard"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
@@ -116,39 +117,35 @@ export function AnalyticsClient({ analytics, doctorName }: AnalyticsClientProps)
 
   return (
     <div className="space-y-6">
-      {/* Header with date range selector */}
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground font-sans">Analytics</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Performance overview for Dr. {doctorName}
-          </p>
-        </div>
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
-          {/* Date range selector */}
-          <div className="flex items-center gap-2">
-            <Calendar className="h-4 w-4 text-muted-foreground shrink-0" />
-            <Select value={currentDays} onValueChange={handleDateRangeChange}>
-              <SelectTrigger className="w-[160px]">
-                <SelectValue placeholder="Select range" />
-              </SelectTrigger>
-              <SelectContent>
-                {DATE_RANGE_OPTIONS.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="sm:text-right">
-            <p className="text-xs text-muted-foreground">
-              {analytics.pagination.totalInRange.toLocaleString()} intakes in range
-            </p>
-            <TrendBadge value={analytics.intakeTrend} suffix="% vs last week" />
-          </div>
-        </div>
-      </div>
+      <DashboardPageHeader
+        title="Analytics"
+        description={`Performance overview for Dr. ${doctorName}`}
+        actions={
+          <>
+            <div className="flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-muted-foreground shrink-0" />
+              <Select value={currentDays} onValueChange={handleDateRangeChange}>
+                <SelectTrigger className="w-[160px]">
+                  <SelectValue placeholder="Select range" />
+                </SelectTrigger>
+                <SelectContent>
+                  {DATE_RANGE_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="sm:text-right">
+              <p className="text-xs text-muted-foreground">
+                {analytics.pagination.totalInRange.toLocaleString()} intakes in range
+              </p>
+              <TrendBadge value={analytics.intakeTrend} suffix="% vs last week" />
+            </div>
+          </>
+        }
+      />
 
       {/* Key Metrics Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -219,7 +216,7 @@ export function AnalyticsClient({ analytics, doctorName }: AnalyticsClientProps)
 
       {/* Revenue Section */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card className="rounded-xl bg-linear-to-br from-emerald-50 to-white border-success-border dark:from-emerald-950/30 dark:to-background">
+        <Card className="rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border-success-border">
           <CardContent className="p-3 sm:p-5">
             <div className="flex items-center justify-between">
               <div>
@@ -231,7 +228,7 @@ export function AnalyticsClient({ analytics, doctorName }: AnalyticsClientProps)
           </CardContent>
         </Card>
 
-        <Card className="rounded-xl bg-linear-to-br from-blue-50 to-white border-info-border dark:from-blue-950/30 dark:to-background">
+        <Card className="rounded-xl bg-blue-50 dark:bg-blue-950/30 border-info-border">
           <CardContent className="p-3 sm:p-5">
             <div className="flex items-center justify-between">
               <div>
@@ -244,7 +241,7 @@ export function AnalyticsClient({ analytics, doctorName }: AnalyticsClientProps)
           </CardContent>
         </Card>
 
-        <Card className="rounded-xl bg-linear-to-br from-amber-50 to-white border-warning-border dark:from-amber-950/30 dark:to-background">
+        <Card className="rounded-xl bg-amber-50 dark:bg-amber-950/30 border-warning-border">
           <CardContent className="p-3 sm:p-5">
             <div className="flex items-center justify-between">
               <div>
@@ -382,7 +379,7 @@ export function AnalyticsClient({ analytics, doctorName }: AnalyticsClientProps)
 
       {/* Priority Stats */}
       {analytics.priorityCount > 0 && (
-        <Card className="rounded-xl border-warning-border bg-linear-to-r from-amber-50 to-white dark:from-amber-950/30 dark:to-background">
+        <Card className="rounded-xl border-warning-border bg-amber-50 dark:bg-amber-950/30">
           <CardContent className="p-3">
             <div className="flex items-center gap-3 sm:gap-4">
               <div className="p-2 sm:p-3 rounded-xl bg-warning-light">

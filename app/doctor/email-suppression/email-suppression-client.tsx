@@ -5,6 +5,7 @@ import { useState, useTransition } from "react"
 import { toast } from "sonner"
 
 import { clearBounceFlag, getSuppressedEmails, type SuppressedEmail } from "@/app/actions/email-suppression"
+import { DashboardPageHeader } from "@/components/dashboard"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription,CardHeader, CardTitle } from "@/components/ui/card"
@@ -49,18 +50,16 @@ export function EmailSuppressionClient({ initialData, error }: EmailSuppressionC
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Email Suppression List</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Emails blocked from delivery due to bounces or spam complaints.
-          </p>
-        </div>
-        <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isPending}>
-          <RefreshCw className={`h-4 w-4 mr-2 ${isPending ? "animate-spin" : ""}`} />
-          Refresh
-        </Button>
-      </div>
+      <DashboardPageHeader
+        title="Email suppression list"
+        description="Emails blocked from delivery due to bounces or spam complaints."
+        actions={
+          <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isPending}>
+            <RefreshCw className={`h-4 w-4 mr-2 ${isPending ? "animate-spin" : ""}`} />
+            Refresh
+          </Button>
+        }
+      />
 
       {error && (
         <Card className="border-destructive">

@@ -76,27 +76,27 @@ export function AnalyticsOverviewTab({ analytics }: { analytics: AnalyticsData }
 
       {/* Today's Activity */}
       <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
-        <div className="dashboard-card rounded-xl p-5 text-center">
+        <div className="bg-card border border-border/50 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl p-5 text-center">
           <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Today Submitted</p>
           <p className="text-2xl font-semibold tabular-nums">{queueHealth.todaySubmissions}</p>
         </div>
-        <div className="dashboard-card rounded-xl p-5 text-center">
+        <div className="bg-card border border-border/50 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl p-5 text-center">
           <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Today Approved</p>
           <p className="text-2xl font-semibold tabular-nums text-success">{queueHealth.approvedToday}</p>
         </div>
-        <div className="dashboard-card rounded-xl p-5 text-center">
+        <div className="bg-card border border-border/50 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl p-5 text-center">
           <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Today Declined</p>
           <p className="text-2xl font-semibold tabular-nums text-destructive">{queueHealth.declinedToday}</p>
         </div>
-        <div className="dashboard-card rounded-xl p-5 text-center">
+        <div className="bg-card border border-border/50 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl p-5 text-center">
           <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Avg Review</p>
           <p className="text-2xl font-semibold tabular-nums">{formatMinutes(queueHealth.avgReviewTimeMinutes)}</p>
         </div>
-        <div className="dashboard-card rounded-xl p-5 text-center">
+        <div className="bg-card border border-border/50 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl p-5 text-center">
           <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Scripts Pending</p>
           <p className="text-2xl font-semibold tabular-nums text-warning">{overview.scriptsPending}</p>
         </div>
-        <div className="dashboard-card rounded-xl p-5 text-center">
+        <div className="bg-card border border-border/50 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl p-5 text-center">
           <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Today Revenue</p>
           <p className="text-2xl font-semibold tabular-nums text-success">{formatAUD(revenue.today)}</p>
         </div>
@@ -105,7 +105,7 @@ export function AnalyticsOverviewTab({ analytics }: { analytics: AnalyticsData }
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Daily Trend */}
-        <div className="dashboard-card rounded-xl p-6">
+        <div className="bg-card border border-border/50 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl p-6">
           <div className="mb-4">
             <h3 className="text-base font-semibold text-foreground">Daily Intake Trend</h3>
             <p className="text-sm text-muted-foreground">Last 30 days</p>
@@ -118,7 +118,7 @@ export function AnalyticsOverviewTab({ analytics }: { analytics: AnalyticsData }
                 <YAxis allowDecimals={false} />
                 <Tooltip />
                 <Legend />
-                <Line type="monotone" dataKey="Started" stroke="#8b5cf6" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="Started" stroke="#5db8c9" strokeWidth={2} dot={false} />
                 <Line type="monotone" dataKey="Paid" stroke="#f59e0b" strokeWidth={2} dot={false} />
                 <Line type="monotone" dataKey="Completed" stroke="#10b981" strokeWidth={2} dot={false} />
               </LineChart>
@@ -127,7 +127,7 @@ export function AnalyticsOverviewTab({ analytics }: { analytics: AnalyticsData }
         </div>
 
         {/* By Service Type */}
-        <div className="dashboard-card rounded-xl p-6">
+        <div className="bg-card border border-border/50 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl p-6">
           <div className="mb-4">
             <h3 className="text-base font-semibold text-foreground">By Service Type</h3>
             <p className="text-sm text-muted-foreground">Distribution of intakes</p>
@@ -160,7 +160,7 @@ export function AnalyticsOverviewTab({ analytics }: { analytics: AnalyticsData }
       </div>
 
       {/* Status Breakdown */}
-      <div className="dashboard-card rounded-xl p-6">
+      <div className="bg-card border border-border/50 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl p-6">
         <h3 className="text-base font-semibold text-foreground mb-4">Status Overview (All Time)</h3>
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <div className="p-4 rounded-xl bg-info-light border border-info-border">

@@ -19,14 +19,17 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode
 }) {
-  // Allow both admin and doctor roles to access admin portal
-  const authUser = await requireRole(["admin", "doctor"], { redirectTo: "/" })
+  // Admin-only. Doctors previously had access (yesterday-widget renders
+  // Stripe revenue + open disputes via createServiceRoleClient — RLS-bypassing,
+  // PHI-adjacent). Tightened in Phase 0 hotfix 2026-04-29; doctors with a real
+  // need can use /doctor/analytics + /doctor/email-suppression instead.
+  const authUser = await requireRole(["admin"], { redirectTo: "/" })
 
   return (
-    <div className="flex min-h-screen bg-linear-to-br from-background via-blue-50/30 to-blue-50/20 dark:from-background dark:via-background dark:to-background">
+    <div className="flex min-h-screen bg-background">
       <AdminSidebar
         userName={authUser.profile.full_name}
-        userRole={authUser.profile.role === "admin" ? "Admin" : "Doctor"}
+        userRole="Admin"
       />
       <main className="flex-1 min-w-0 py-8 px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-6xl">

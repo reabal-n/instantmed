@@ -1,8 +1,7 @@
 "use client"
 
-import { AnimatePresence,motion } from "framer-motion"
 import { Keyboard, X } from "lucide-react"
-import { useEffect,useState } from "react"
+import { useEffect, useState } from "react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -12,7 +11,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { useReducedMotion } from "@/components/ui/motion"
 import { DOCTOR_SHORTCUTS } from "@/lib/hooks/use-doctor-shortcuts"
 import { cn } from "@/lib/utils"
 
@@ -23,18 +21,20 @@ interface KeyboardShortcutsModalProps {
 
 /**
  * Keyboard Shortcuts Help Modal
- * 
+ *
  * Shows all available keyboard shortcuts for doctors.
- * Can be triggered by:
- * - ⌘/Ctrl + ? (question mark)
- * - Clicking the keyboard icon button
+ * Trigger:
+ *   - ⌘/Ctrl + ? (question mark)
+ *   - Click the keyboard icon button
+ *
+ * §12 portal exception: doctor surfaces ship without decorative motion.
+ * Previous version animated the shortcut list with a 30ms stagger;
+ * removed in Phase 1 of the doctor-admin rebuild (2026-04-29).
  */
 export function KeyboardShortcutsModal({ trigger, className }: KeyboardShortcutsModalProps) {
-  const prefersReducedMotion = useReducedMotion()
   const [open, setOpen] = useState(false)
   const isMac = typeof window !== "undefined" && navigator.platform.toUpperCase().indexOf("MAC") >= 0
 
-  // Listen for ⌘/Ctrl + ? to open
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === "?") {
@@ -47,7 +47,6 @@ export function KeyboardShortcutsModal({ trigger, className }: KeyboardShortcuts
     return () => window.removeEventListener("keydown", handleKeyDown)
   }, [])
 
-  // Replace ⌘ with Ctrl for non-Mac
   const formatKey = (key: string) => {
     if (key === "⌘" && !isMac) return "Ctrl"
     return key
@@ -74,23 +73,20 @@ export function KeyboardShortcutsModal({ trigger, className }: KeyboardShortcuts
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Keyboard className="h-5 w-5" />
-            Keyboard Shortcuts
+            Keyboard shortcuts
           </DialogTitle>
         </DialogHeader>
-        
+
         <div className="py-4">
           <p className="text-sm text-muted-foreground mb-4">
             Speed up your workflow with these shortcuts.
           </p>
-          
+
           <div className="space-y-1">
-            {DOCTOR_SHORTCUTS.map((shortcut, index) => (
-              <motion.div
+            {DOCTOR_SHORTCUTS.map((shortcut) => (
+              <div
                 key={shortcut.label}
-                initial={prefersReducedMotion ? {} : { opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={prefersReducedMotion ? { duration: 0 } : { delay: index * 0.03 }}
-                className="flex items-center justify-between py-2 px-2 rounded-lg hover:bg-muted/50 transition-colors"
+                className="flex items-center justify-between py-2 px-2 rounded-lg hover:bg-muted/50 transition-colors duration-150"
               >
                 <div className="flex-1">
                   <p className="font-medium text-sm">{shortcut.label}</p>
@@ -108,7 +104,7 @@ export function KeyboardShortcutsModal({ trigger, className }: KeyboardShortcuts
                     </span>
                   ))}
                 </div>
-              </motion.div>
+              </div>
             ))}
           </div>
 
@@ -125,19 +121,17 @@ export function KeyboardShortcutsModal({ trigger, className }: KeyboardShortcuts
 }
 
 /**
- * Floating shortcut hint that appears on first visit
+ * Floating shortcut hint that appears on first visit.
+ * §12 portal exception: no entrance animation. Plain show/hide.
  */
 export function ShortcutDiscoveryHint() {
-  const prefersReducedMotion = useReducedMotion()
   const [show, setShow] = useState(false)
   const [dismissed, setDismissed] = useState(false)
   const isMac = typeof window !== "undefined" && navigator.platform.toUpperCase().indexOf("MAC") >= 0
 
   useEffect(() => {
-    // Check if user has seen this hint before
     const hasSeen = localStorage.getItem("doctor_shortcuts_hint_seen")
     if (!hasSeen) {
-      // Show after a short delay
       const timer = setTimeout(() => setShow(true), 3000)
       return () => clearTimeout(timer)
     }
@@ -146,48 +140,38 @@ export function ShortcutDiscoveryHint() {
   const handleDismiss = () => {
     setDismissed(true)
     localStorage.setItem("doctor_shortcuts_hint_seen", "true")
-    setTimeout(() => setShow(false), 300)
+    setTimeout(() => setShow(false), 200)
   }
 
-  if (!show) return null
+  if (!show || dismissed) return null
 
   return (
-    <AnimatePresence>
-      {!dismissed && (
-        <motion.div
-          initial={prefersReducedMotion ? {} : { opacity: 0, y: 20, scale: 0.95 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 10, scale: 0.95 }}
-          transition={prefersReducedMotion ? { duration: 0 } : undefined}
-          className="fixed bottom-20 right-4 z-50 max-w-xs"
+    <div className="fixed bottom-20 right-4 z-50 max-w-xs">
+      <div className="relative bg-card border border-border rounded-xl shadow-lg shadow-primary/[0.06] p-4">
+        <button
+          onClick={handleDismiss}
+          className="absolute top-2 right-2 p-1 text-muted-foreground hover:text-foreground rounded-lg hover:bg-muted transition-colors duration-150"
+          aria-label="Dismiss"
         >
-          <div className="bg-card border border-border rounded-xl shadow-lg p-4">
-            <button
-              onClick={handleDismiss}
-              className="absolute top-2 right-2 p-1 text-muted-foreground hover:text-foreground rounded-lg hover:bg-muted transition-colors"
-              aria-label="Dismiss"
-            >
-              <X className="h-4 w-4" />
-            </button>
-            
-            <div className="flex items-start gap-3 pr-6">
-              <div className="p-2 rounded-lg bg-primary/10">
-                <Keyboard className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <p className="font-medium text-sm">Keyboard shortcuts available</p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Press{" "}
-                  <kbd className="px-1 py-0.5 text-xs bg-muted rounded">
-                    {isMac ? "⌘" : "Ctrl"}+?
-                  </kbd>{" "}
-                  to see all shortcuts
-                </p>
-              </div>
-            </div>
+          <X className="h-4 w-4" />
+        </button>
+
+        <div className="flex items-start gap-3 pr-6">
+          <div className="p-2 rounded-lg bg-primary/10">
+            <Keyboard className="h-5 w-5 text-primary" />
           </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+          <div>
+            <p className="font-medium text-sm">Keyboard shortcuts available</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Press{" "}
+              <kbd className="px-1 py-0.5 text-xs bg-muted rounded">
+                {isMac ? "⌘" : "Ctrl"}+?
+              </kbd>{" "}
+              to see all shortcuts
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
   )
 }

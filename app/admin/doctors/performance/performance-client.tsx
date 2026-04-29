@@ -77,7 +77,7 @@ export function DoctorPerformanceClient({ doctors }: DoctorPerformanceClientProp
   }))
 
   return (
-    <div className="min-h-screen bg-linear-to-b from-sky-50/50 to-white">
+    <div className="min-h-full">
       <div className="p-6 space-y-6">
         {/* Header */}
         <div className="flex items-center gap-4">

@@ -5,6 +5,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useTransition } from "react"
 
+import { DashboardPageHeader } from "@/components/dashboard"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardHeader } from "@/components/ui/card"
@@ -39,29 +40,25 @@ export function RepeatRxListClient({ initialRequests, counts }: RepeatRxListClie
 
   return (
     <div className="space-y-4">
-      {/* Header */}
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground font-sans">
-            Repeat Prescriptions
-          </h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            {actionableCount > 0
-              ? `${actionableCount} request${actionableCount !== 1 ? "s" : ""} awaiting review`
-              : "Prescription requests submitted via the repeat flow"}
-          </p>
-        </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={refresh}
-          disabled={isPending}
-          className="shrink-0"
-        >
-          <RotateCcw className={`h-4 w-4 mr-2 ${isPending ? "animate-spin" : ""}`} />
-          Refresh
-        </Button>
-      </div>
+      <DashboardPageHeader
+        title="Repeat prescriptions"
+        description={
+          actionableCount > 0
+            ? `${actionableCount} request${actionableCount !== 1 ? "s" : ""} awaiting review`
+            : "Prescription requests submitted via the repeat flow"
+        }
+        actions={
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={refresh}
+            disabled={isPending}
+          >
+            <RotateCcw className={`h-4 w-4 mr-2 ${isPending ? "animate-spin" : ""}`} />
+            Refresh
+          </Button>
+        }
+      />
 
       {/* Stats */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-2">

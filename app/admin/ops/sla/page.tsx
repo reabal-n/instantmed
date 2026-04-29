@@ -49,7 +49,7 @@ export default async function SLAMonitoringPage() {
     <div className="space-y-6 p-6">
       <div className="flex items-center gap-3">
         <div
-          className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 text-white"
+          className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400"
           aria-hidden="true"
         >
           <Timer className="h-5 w-5" />

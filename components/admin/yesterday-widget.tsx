@@ -151,7 +151,7 @@ export async function YesterdayWidget({
   ]
 
   return (
-    <Card className="rounded-xl border-border/50 bg-linear-to-br from-background to-muted/20">
+    <Card className="rounded-xl border-border/50 bg-card">
       <CardContent className="p-6">
         <div className="flex items-center justify-between mb-5">
           <div>
