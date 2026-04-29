@@ -94,7 +94,7 @@ export const TESTIMONIALS: Testimonial[] = [
     location: "Carlton, VIC",
     age: 22,
     rating: 5,
-    text: "Missed an exam and needed a cert for special consideration. Done before my next lecture. The doctor asked follow-up questions too which made it feel legit.",
+    text: "Missed an exam, needed a cert. Done before my next lecture. The doctor asked follow-up questions too which made it feel legit.",
     date: "1 week ago",
     service: "medical-certificate",
     verified: true,
@@ -224,14 +224,14 @@ export const TESTIMONIALS: Testimonial[] = [
     image: "https://api.dicebear.com/7.x/notionists/svg?seed=CaitlinR",
     featured: true,
   },
-  // uni special consideration
+  // uni mid-semester
   {
     id: "t51",
     name: "Aiden K.",
     location: "Ultimo, NSW",
     age: 20,
     rating: 5,
-    text: "Needed a cert for special consideration on a mid-sem exam. Submitted it with my application and the uni accepted it no questions asked. Saved my semester honestly.",
+    text: "Was unwell during a mid-sem exam, needed a cert. Submitted it with the uni paperwork. Saved my semester honestly.",
     date: "1 week ago",
     service: "medical-certificate",
     verified: true,

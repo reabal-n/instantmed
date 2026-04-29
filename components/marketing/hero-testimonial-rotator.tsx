@@ -15,7 +15,7 @@ interface HeroTestimonial {
 }
 
 const heroTestimonials: HeroTestimonial[] = [
-  { quote: "Got my cert in 20 mins. Employer accepted it no questions asked.", name: "Sarah M.", location: "Sydney", rating: 5 },
+  { quote: "Got my cert in 20 mins. Sorted before my morning meeting.", name: "Sarah M.", location: "Sydney", rating: 5 },
   { quote: "Migraine hit at 7pm Sunday. Certificate was in my inbox before bed.", name: "Chris P.", location: "Gold Coast", rating: 5 },
   { quote: "Mental health day. No awkward conversations. Just answered honestly.", name: "Marcus W.", location: "Melbourne", rating: 5 },
   { quote: "Needed my regular medication renewed. Sorted in about 20 minutes.", name: "David R.", location: "Sydney", rating: 5 },

@@ -25,6 +25,8 @@ interface AuthenticatedShellProps {
   userAvatar?: string
   userRole: 'patient' | 'doctor'
   className?: string
+  /** Unread notification count for the LeftRail bell badge. */
+  unreadNotifications?: number
 }
 
 export function AuthenticatedShell({
@@ -32,7 +34,8 @@ export function AuthenticatedShell({
   userName,
   userAvatar,
   userRole,
-  className
+  className,
+  unreadNotifications,
 }: AuthenticatedShellProps) {
   return (
     <PanelProvider>
@@ -42,6 +45,7 @@ export function AuthenticatedShell({
           userName={userName}
           userAvatar={userAvatar}
           userRole={userRole}
+          unreadNotifications={unreadNotifications}
         />
 
         {/* Main Content Area - Offset by rail width */}

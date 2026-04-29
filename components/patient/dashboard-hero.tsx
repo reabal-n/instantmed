@@ -65,7 +65,7 @@ interface DashboardHeroProps {
  *   8. Empty state           → First-time user, surface the catalog.
  *   9. Default (caught up)   → Service grid + reassurance.
  */
-function resolveHeroState({
+export function resolveHeroState({
   intakes,
   prescriptions,
   profileData,
