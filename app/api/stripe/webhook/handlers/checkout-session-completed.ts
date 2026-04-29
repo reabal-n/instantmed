@@ -18,6 +18,16 @@ type ServiceDisplayNameInput = {
   subtype?: string
 }
 
+type PaidRequestTelegramNotificationInput = {
+  intakeId?: string | null
+  paymentStatus?: string | null
+  amountTotal?: number | null
+}
+
+export function shouldSendPaidRequestTelegramNotification(input: PaidRequestTelegramNotificationInput): boolean {
+  return Boolean(input.intakeId && input.paymentStatus === "paid")
+}
+
 /**
  * Resolve a human-friendly service name for patient emails + doctor notifications.
  * Consult intakes distinguish by subtype (ED, hair loss, etc.) so patients and
@@ -644,14 +654,16 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
     }
 
     // STEP 5: Send payment notification + confirmation email (non-critical)
-    if (patientId && session.amount_total) {
-      const { data: patientProfile } = await supabase
+    let patientProfile: { email: string | null; full_name: string | null; auth_user_id: string | null } | null = null
+    if (patientId) {
+      const { data } = await supabase
         .from("profiles")
         .select("email, full_name, auth_user_id")
         .eq("id", patientId)
-        .single()
+        .maybeSingle()
+      patientProfile = data
 
-      if (patientProfile?.email) {
+      if (patientProfile?.email && typeof session.amount_total === "number") {
         // 5a: In-app notification
         notifyPaymentReceived({
           intakeId,
@@ -713,14 +725,17 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
           log.error("Request received email error (non-fatal)", { intakeId }, emailErr)
         }
       }
+    }
 
-      // 5c: Telegram notification to doctor
-      // Intentionally outside the patientProfile?.email guard — doctor must be notified
-      // on every paid order regardless of whether the patient profile fetch succeeded.
-      // Synchronous (not after()) — Telegram is a fast HTTP call (<100ms) and the
-      // webhook has maxDuration=300. after() was causing silent failures: errors from
-      // deferred callbacks are not captured by Vercel's log indexer, making diagnosis
-      // impossible. Sentry.captureException ensures any failure is always visible.
+    // 5c: Telegram notification to doctor
+    // Intentionally outside the patientProfile/email/amount guards — doctor must be
+    // notified on every paid order, including fully discounted requests and cases
+    // where profile lookup fails.
+    if (shouldSendPaidRequestTelegramNotification({
+      intakeId,
+      paymentStatus: session.payment_status,
+      amountTotal: session.amount_total,
+    })) {
       try {
         const { notifyNewIntakeViaTelegram } = await import("@/lib/notifications/telegram")
         const serviceSlug = session.metadata?.service_slug ?? ""

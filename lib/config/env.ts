@@ -136,6 +136,8 @@ const productionRequirements = z.object({
   UPSTASH_REDIS_REST_TOKEN: z.string().min(1, "Production requires UPSTASH_REDIS_REST_TOKEN for rate limiting"),
   CRON_SECRET: z.string().min(1, "Production requires CRON_SECRET"),
   RESEND_API_KEY: z.string().min(1, "Production requires RESEND_API_KEY for email delivery"),
+  TELEGRAM_BOT_TOKEN: z.string().min(1, "Production requires TELEGRAM_BOT_TOKEN for paid request alerts"),
+  TELEGRAM_CHAT_ID: z.string().min(1, "Production requires TELEGRAM_CHAT_ID for paid request alerts"),
   PHI_ENCRYPTION_ENABLED: z.literal("true", { error: "Production requires PHI_ENCRYPTION_ENABLED=true" }),
   PHI_MASTER_KEY: z.string().min(32, "Production requires PHI_MASTER_KEY (min 32 chars)"),
 })

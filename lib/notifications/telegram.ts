@@ -11,6 +11,13 @@ const TELEGRAM_API = "https://api.telegram.org"
 function getToken() { return process.env.TELEGRAM_BOT_TOKEN }
 function getChatId() { return process.env.TELEGRAM_CHAT_ID }
 
+class TelegramSendError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = "TelegramSendError"
+  }
+}
+
 export function escapeMarkdown(text: string): string {
   return text.replace(/[_*[\]()~`>#+\-=|{}.!\\]/g, "\\$&")
 }
@@ -84,7 +91,7 @@ async function sendGenericNotification(
   const message = [
     `💰 *New request received*`,
     ``,
-    `*${escapeMarkdown(opts.serviceName)}* - ${escapeMarkdown(opts.amount)}`,
+    `*${escapeMarkdown(opts.serviceName)}* \\- ${escapeMarkdown(opts.amount)}`,
     `Patient: ${escapeMarkdown(firstName)}`,
     `Ref: \`${refId}\``,
     ``,
@@ -105,11 +112,13 @@ async function sendGenericNotification(
     if (!response.ok) {
       const body = await response.text()
       log.error("Telegram send failed", { status: response.status, body })
+      throw new TelegramSendError(`Telegram send failed: ${response.status}`)
     } else {
       log.info("Telegram notification sent", { intakeId: opts.intakeId })
     }
   } catch (error) {
     log.error("Telegram error", { intakeId: opts.intakeId }, error instanceof Error ? error : new Error(String(error)))
+    throw error
   }
 }
 
@@ -159,7 +168,7 @@ async function sendMedCertNotification(
   const message = [
     `💰 *New med cert request*`,
     ``,
-    `*${escapeMarkdown(opts.serviceName)}* - ${escapeMarkdown(opts.amount)}`,
+    `*${escapeMarkdown(opts.serviceName)}* \\- ${escapeMarkdown(opts.amount)}`,
     `Patient: ${escapeMarkdown(firstName)}`,
     `Ref: \`${refId}\``,
     summary,
@@ -189,11 +198,13 @@ async function sendMedCertNotification(
     if (!response.ok) {
       const body = await response.text()
       log.error("Telegram med cert send failed", { status: response.status, body })
+      throw new TelegramSendError(`Telegram med cert send failed: ${response.status}`)
     } else {
       log.info("Telegram med cert notification sent", { intakeId: opts.intakeId })
     }
   } catch (error) {
     log.error("Telegram error", { intakeId: opts.intakeId }, error instanceof Error ? error : new Error(String(error)))
+    throw error
   }
 }
 
