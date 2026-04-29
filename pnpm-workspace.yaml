@@ -1,0 +1,9 @@
+packages:
+  - "."
+
+onlyBuiltDependencies:
+  - "@sentry/cli"
+  - "core-js"
+  - "esbuild"
+  - "protobufjs"
+  - "sharp"
