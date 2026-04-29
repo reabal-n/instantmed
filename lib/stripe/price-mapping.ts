@@ -244,3 +244,27 @@ export function getBasePriceCents(category: ServiceCategory, absenceDays?: numbe
   }
   return basePrices[category] || Math.round(PRICING.MED_CERT * 100)
 }
+
+/**
+ * Calculate the canonical charge amount stored on the intake.
+ * This mirrors Stripe price selection so downstream refunds, referral credits,
+ * reconciliation, and reporting do not depend on stale services.price_cents rows.
+ */
+export function getAmountCentsForRequest({ category, subtype, answers }: PriceIdInput): number {
+  if (category === "medical_certificate") {
+    return getBasePriceCents(category, getAbsenceDays(answers))
+  }
+
+  if (category === "prescription") {
+    return getBasePriceCents(category)
+  }
+
+  if (category === "consult") {
+    const answerSubtype = answers?.consultSubtype as string | undefined
+    const subtypeSpecificPrices = new Set(["ed", "hair_loss", "womens_health", "weight_loss"])
+    const consultSubtype = subtypeSpecificPrices.has(subtype) ? subtype : (answerSubtype || subtype)
+    return Math.round(getConsultSubtypePrice(consultSubtype) * 100)
+  }
+
+  return getBasePriceCents(category)
+}

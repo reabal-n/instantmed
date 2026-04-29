@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest"
 
+import { isConsultServiceType, isKnownDoctorServiceType } from "@/lib/doctor/service-types"
 import {
   getConsultDraftResumeHref,
   getConsultSubtypeFirstStep,
@@ -126,5 +127,12 @@ describe("unified intake regressions", () => {
     expect(getConsultSubtypeResetKeys()).toEqual(
       expect.arrayContaining(["consultDetails", "edGoal", "hairPattern", "hairMedicationPreference"]),
     )
+  })
+
+  it("normalizes legacy and current consult service types for doctor actions", () => {
+    expect(isConsultServiceType("consult")).toBe(true)
+    expect(isConsultServiceType("consults")).toBe(true)
+    expect(isKnownDoctorServiceType("consult")).toBe(true)
+    expect(isKnownDoctorServiceType("consults")).toBe(true)
   })
 })

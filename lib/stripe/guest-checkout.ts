@@ -22,7 +22,7 @@ import { validateMedCertPayload } from "@/lib/validation/med-cert-schema"
 import { validateRepeatScriptPayload } from "@/lib/validation/repeat-script-schema"
 import type { ServiceCategory } from "@/types/services"
 
-import { getPriceIdForRequest,stripe } from "./client"
+import { getAmountCentsForRequest, getPriceIdForRequest, stripe } from "./client"
 
 const logger = createLogger("guest-checkout")
 
@@ -415,6 +415,11 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
       subtype: input.subtype,
       answers: input.answers,
     })
+    const amountCents = getAmountCentsForRequest({
+      category: input.category,
+      subtype: input.subtype,
+      answers: input.answers,
+    })
 
     // 3. Create the intake with pending_payment status
     // Include category, subtype, idempotency_key, guest_email, and stripe_price_id
@@ -431,7 +436,7 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
         service_id: service.id,
         status: "pending_payment",
         payment_status: "pending",
-        amount_cents: service.price_cents,
+        amount_cents: amountCents,
         category: input.category,
         subtype: input.subtype || null,
         idempotency_key: guestIdempotencyKey,

@@ -4,6 +4,7 @@ import { CheckCircle, Loader2,XCircle } from "lucide-react"
 
 import { useIntakeReview } from "@/components/doctor/review/intake-review-context"
 import { Button } from "@/components/ui/button"
+import { isConsultServiceType, isKnownDoctorServiceType } from "@/lib/doctor/service-types"
 
 export function IntakeActionButtons() {
   const {
@@ -49,7 +50,7 @@ export function IntakeActionButtons() {
       )}
 
       {/* Consults: complete */}
-      {service?.type === "consults" && intake.status === "paid" && (
+      {isConsultServiceType(service?.type) && intake.status === "paid" && (
         <Button
           onClick={() => handleStatusChange("approved")}
           className="bg-primary hover:bg-primary/90"
@@ -62,7 +63,7 @@ export function IntakeActionButtons() {
       )}
 
       {/* Generic approve */}
-      {!["med_certs", "repeat_rx", "common_scripts", "consults"].includes(service?.type || "") &&
+      {!isKnownDoctorServiceType(service?.type) &&
         intake.status === "paid" && (
           <Button
             onClick={() => handleStatusChange("approved")}

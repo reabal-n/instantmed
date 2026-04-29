@@ -7,6 +7,7 @@ import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
 import { getOrCreateMedCertDraftForIntake } from "@/lib/data/documents"
 import { getIntakeWithDetails, getNextQueueIntakeId,getPatientIntakes } from "@/lib/data/intakes"
 import { getCertDeliveryStatus } from "@/lib/data/issued-certificates"
+import { isConsultServiceType } from "@/lib/doctor/service-types"
 import { getFeatureFlags } from "@/lib/feature-flags"
 import { calculateAge } from "@/lib/format"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -60,7 +61,7 @@ export default async function DoctorIntakeDetailPage({
   let followups: DoctorFollowupRow[] = []
   const serviceTypeLocal = (intake.service as { type?: string } | undefined)?.type
   if (
-    serviceTypeLocal === "consults" &&
+    isConsultServiceType(serviceTypeLocal) &&
     (intake.subtype === "ed" || intake.subtype === "hair_loss")
   ) {
     const supabase = createServiceRoleClient()

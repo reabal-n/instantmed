@@ -43,7 +43,7 @@ import type { CertDeliveryStatus } from "@/lib/data/issued-certificates"
 import { INTAKE_STATUS, type IntakeStatus as StatusType } from "@/lib/data/status"
 // Re-export so existing consumers (intake-decline-dialog) don't have to change import paths.
 import { DECLINE_REASONS } from "@/lib/doctor/decline-reasons"
-import { SERVICE_TYPES } from "@/lib/doctor/service-types"
+import { isConsultServiceType, isKnownDoctorServiceType, SERVICE_TYPES } from "@/lib/doctor/service-types"
 import { formatIntakeStatus } from "@/lib/format/intake"
 import type { DeclineReasonCode, IntakeStatus, IntakeWithDetails } from "@/types/db"
 
@@ -284,7 +284,7 @@ export function IntakeDetailHeader({
             )}
 
             {/* For consults - approve after call with notes */}
-            {service?.type === SERVICE_TYPES.CONSULTS && intake.status === "paid" && (
+            {isConsultServiceType(service?.type) && intake.status === "paid" && (
               <Button onClick={() => onStatusChange("approved")} className="bg-primary hover:bg-primary/90" disabled={isPending}>
                 {isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-2" />}
                 {isPending ? "Completing..." : "Complete Consultation"}
@@ -292,7 +292,7 @@ export function IntakeDetailHeader({
             )}
 
             {/* Generic approve for other services */}
-            {!(Object.values(SERVICE_TYPES) as string[]).includes(service?.type || "") && intake.status === "paid" && (
+            {!isKnownDoctorServiceType(service?.type) && intake.status === "paid" && (
               <Button onClick={() => onStatusChange("approved")} className="bg-primary hover:bg-primary/90" disabled={isPending}>
                 {isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-2" />}
                 {isPending ? "Approving..." : "Approve"}

@@ -38,6 +38,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { isConsultServiceType } from "@/lib/doctor/service-types"
 import { formatMinutes } from "@/lib/format"
 import { formatServiceType } from "@/lib/format/service"
 import { cn } from "@/lib/utils"
@@ -112,7 +113,7 @@ export function AnalyticsClient({ analytics, doctorName }: AnalyticsClientProps)
   const serviceData = Object.entries(analytics.serviceTypeCounts).map(([type, count]) => ({
     name: formatServiceType(type),
     count,
-    fill: type === "med_certs" ? "#3b82f6" : type === "repeat_rx" ? "#10b981" : type === "consults" ? "#f59e0b" : "#0ea5e9",
+    fill: type === "med_certs" ? "#3b82f6" : type === "repeat_rx" ? "#10b981" : isConsultServiceType(type) ? "#f59e0b" : "#0ea5e9",
   }))
 
   return (

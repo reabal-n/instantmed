@@ -591,3 +591,45 @@ describe("getBasePriceCents", () => {
     )
   })
 })
+
+// ===========================================================================
+// getAmountCentsForRequest
+// ===========================================================================
+
+describe("getAmountCentsForRequest", () => {
+  it("stores tiered med cert amount from request answers", async () => {
+    const { getAmountCentsForRequest } = await importModule()
+    expect(getAmountCentsForRequest({
+      category: "medical_certificate",
+      subtype: "work",
+      answers: { duration: "3" },
+    })).toBe(3995)
+  })
+
+  it("stores repeat prescription amount independently of services.price_cents", async () => {
+    const { getAmountCentsForRequest } = await importModule()
+    expect(getAmountCentsForRequest({
+      category: "prescription",
+      subtype: "repeat",
+      answers: {},
+    })).toBe(2995)
+  })
+
+  it("stores consult subtype amount from the consult subtype", async () => {
+    const { getAmountCentsForRequest } = await importModule()
+    expect(getAmountCentsForRequest({
+      category: "consult",
+      subtype: "weight_loss",
+      answers: {},
+    })).toBe(8995)
+  })
+
+  it("stores consult subtype amount from answers when checkout subtype is generic", async () => {
+    const { getAmountCentsForRequest } = await importModule()
+    expect(getAmountCentsForRequest({
+      category: "consult",
+      subtype: "general",
+      answers: { consultSubtype: "weight_loss" },
+    })).toBe(8995)
+  })
+})

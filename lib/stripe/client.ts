@@ -8,6 +8,7 @@ import { createLogger } from "@/lib/observability/logger"
 // This allows consumers to import from @/lib/stripe/client as before
 export {
   getAbsenceDays,
+  getAmountCentsForRequest,
   getBasePriceCents,
   getConsultPriceId,
   getDisplayPriceForCategory,

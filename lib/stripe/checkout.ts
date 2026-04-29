@@ -27,7 +27,7 @@ import { validateMedCertPayload } from "@/lib/validation/med-cert-schema"
 import { validateRepeatScriptPayload } from "@/lib/validation/repeat-script-schema"
 import type { ServiceCategory } from "@/types/services"
 
-import { getPriceIdForRequest,stripe } from "./client"
+import { getAmountCentsForRequest, getPriceIdForRequest, stripe } from "./client"
 import { createReferralCouponIfEligible } from "./referral-coupon"
 
 const logger = createLogger("stripe-checkout")
@@ -447,6 +447,11 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
       subtype: input.subtype,
       answers: input.answers,
     })
+    const amountCents = getAmountCentsForRequest({
+      category: input.category as ServiceCategory,
+      subtype: input.subtype,
+      answers: input.answers,
+    })
 
     if (!priceId) {
       return { success: false, error: "Unable to determine pricing. Please contact support." }
@@ -460,7 +465,7 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
       service_id: service.id,
       status: "pending_payment",
       payment_status: "pending",
-      amount_cents: service.price_cents,
+      amount_cents: amountCents,
       category: input.category,
       subtype: input.subtype,
       is_priority: isPriority,
@@ -600,7 +605,7 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
     const refCode = cookieStore.get("instantmed_ref")?.value ?? ""
 
     // Apply referral credit as Stripe coupon if patient has unspent credits
-    const referralCoupon = await createReferralCouponIfEligible(patientId, service.price_cents)
+    const referralCoupon = await createReferralCouponIfEligible(patientId, amountCents)
 
     // Subscription mode: use recurring price for repeat scripts when opted in
     const isSubscription = input.answers.subscribe_and_save === true
@@ -944,7 +949,7 @@ export async function retryPaymentForIntakeAction(intakeId: string): Promise<Che
     const refCode = cookieStore.get("instantmed_ref")?.value ?? ""
 
     // Apply referral credit as Stripe coupon on retry too
-    const priceCents = service?.price_cents ?? 0
+    const priceCents = Number((intake as { amount_cents?: number | null }).amount_cents ?? service?.price_cents ?? 0)
     const referralCoupon = priceCents > 0
       ? await createReferralCouponIfEligible(patientId, priceCents)
       : null
@@ -1012,4 +1017,3 @@ export async function retryPaymentForIntakeAction(intakeId: string): Promise<Che
     }
   }
 }
-
