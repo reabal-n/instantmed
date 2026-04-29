@@ -1,6 +1,8 @@
 "use client"
 
 import dynamic from "next/dynamic"
+import type { ComponentProps } from "react"
+import { ResponsiveContainer as RechartsResponsiveContainer } from "recharts"
 
 import { Skeleton } from "@/components/ui/skeleton"
 
@@ -71,11 +73,38 @@ export {
   Legend,
   Line,
   Pie,
-  ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from "recharts"
+
+type ResponsiveContainerProps = ComponentProps<typeof RechartsResponsiveContainer>
+
+/**
+ * Recharts initializes percentage-based containers at -1/-1 before the
+ * ResizeObserver reports a real card size. The dashboards render charts inside
+ * dynamic grids and tabs, so provide a positive initial size to avoid noisy
+ * zero-size warnings while still allowing the chart to resize normally.
+ */
+export function ResponsiveContainer({
+  debounce = 50,
+  initialDimension,
+  minWidth = 0,
+  minHeight = 0,
+  ...props
+}: ResponsiveContainerProps) {
+  const fallbackHeight = typeof props.height === "number" ? props.height : 300
+
+  return (
+    <RechartsResponsiveContainer
+      debounce={debounce}
+      initialDimension={initialDimension ?? { width: 320, height: fallbackHeight }}
+      minHeight={minHeight}
+      minWidth={minWidth}
+      {...props}
+    />
+  )
+}
 
 /**
  * Chart Container with Suspense-like loading
