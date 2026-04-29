@@ -8,8 +8,8 @@
  * the category selector is hidden - only details + urgency are shown.
  */
 
-import { ArrowRight,Info, MessageSquare, Stethoscope } from "lucide-react"
-import { useCallback,useEffect, useState } from "react"
+import { AlertTriangle, ArrowRight, Info, MessageSquare, Stethoscope } from "lucide-react"
+import { useCallback,useEffect, useMemo, useState } from "react"
 
 import { usePostHog } from "@/components/providers/posthog-provider"
 import { EnhancedSelectionButton } from "@/components/shared"
@@ -75,6 +75,24 @@ const CATEGORY_GUIDANCE: Record<string, {
   },
 }
 
+const GENERAL_RED_FLAGS = [
+  { value: "none", label: "None of these" },
+  { value: "chest_pain", label: "Chest pain" },
+  { value: "difficulty_breathing", label: "Breathing difficulty" },
+  { value: "sudden_weakness", label: "Sudden weakness" },
+  { value: "severe_headache", label: "Sudden severe headache" },
+  { value: "suicidal_thoughts", label: "Self-harm thoughts" },
+  { value: "post_surgical_complications", label: "Recent surgery concern" },
+] as const
+
+const EMERGENCY_RED_FLAGS = new Set([
+  "chest_pain",
+  "difficulty_breathing",
+  "sudden_weakness",
+  "severe_headache",
+  "suicidal_thoughts",
+])
+
 export default function ConsultReasonStep({ onNext }: ConsultReasonStepProps) {
   const { answers, setAnswer } = useRequestStore()
   const posthog = usePostHog()
@@ -85,6 +103,10 @@ export default function ConsultReasonStep({ onNext }: ConsultReasonStepProps) {
   const consultCategory = answers.consultCategory as string | undefined
   const consultDetails = (answers.consultDetails as string) || ""
   const consultUrgency = answers.consultUrgency as string | undefined
+  const generalAssociatedSymptoms = useMemo(
+    () => (answers.general_associated_symptoms as string[] | undefined) || [],
+    [answers.general_associated_symptoms],
+  )
 
   // If user already selected a subtype from the service hub, category is pre-determined
   // and should not be shown again (fixes redundant type selection)
@@ -107,6 +129,10 @@ export default function ConsultReasonStep({ onNext }: ConsultReasonStepProps) {
       newErrors.consultCategory = "Please select what you'd like help with"
     }
 
+    if (generalAssociatedSymptoms.length === 0) {
+      newErrors.general_associated_symptoms = "Please answer the safety question"
+    }
+
     if (!consultDetails?.trim() || consultDetails.length < 20) {
       newErrors.consultDetails = "Please provide more detail (at least 20 characters)"
     }
@@ -117,7 +143,21 @@ export default function ConsultReasonStep({ onNext }: ConsultReasonStepProps) {
 
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
-  }, [consultCategory, consultDetails, consultUrgency])
+  }, [consultCategory, consultDetails, consultUrgency, generalAssociatedSymptoms.length])
+
+  const handleRedFlagToggle = useCallback((value: string) => {
+    const next = value === "none"
+      ? ["none"]
+      : generalAssociatedSymptoms.includes(value)
+        ? generalAssociatedSymptoms.filter((item) => item !== value)
+        : [...generalAssociatedSymptoms.filter((item) => item !== "none"), value]
+
+    setAnswer("general_associated_symptoms", next)
+    setAnswer(
+      "emergency_symptoms",
+      next.filter((item) => EMERGENCY_RED_FLAGS.has(item)),
+    )
+  }, [generalAssociatedSymptoms, setAnswer])
 
   const handleNext = useCallback(() => {
     if (validate()) {
@@ -126,7 +166,7 @@ export default function ConsultReasonStep({ onNext }: ConsultReasonStepProps) {
     }
   }, [validate, posthog, consultCategory, consultUrgency, onNext])
 
-  const isComplete = consultCategory && consultDetails?.length >= 20 && consultUrgency
+  const isComplete = consultCategory && generalAssociatedSymptoms.length > 0 && consultDetails?.length >= 20 && consultUrgency
 
   useKeyboardNavigation({
     onNext: isComplete ? handleNext : undefined,
@@ -179,6 +219,33 @@ export default function ConsultReasonStep({ onNext }: ConsultReasonStepProps) {
           )}
         </div>
       )}
+
+      {/* Red flag selection */}
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
+          <AlertTriangle className="w-4 h-4 text-muted-foreground" />
+          <Label className="text-sm font-medium">
+            Are any of these happening now?
+            <span className="text-destructive ml-0.5">*</span>
+          </Label>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          {GENERAL_RED_FLAGS.map((symptom) => (
+            <EnhancedSelectionButton
+              key={symptom.value}
+              variant="chip"
+              selected={generalAssociatedSymptoms.includes(symptom.value)}
+              onClick={() => handleRedFlagToggle(symptom.value)}
+              className="justify-center"
+            >
+              {symptom.label}
+            </EnhancedSelectionButton>
+          ))}
+        </div>
+        {errors.general_associated_symptoms && (
+          <p className="text-xs text-destructive" role="alert" aria-live="polite">{errors.general_associated_symptoms}</p>
+        )}
+      </div>
 
       {/* Details textarea */}
       <div className="space-y-2">

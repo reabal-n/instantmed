@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation"
 import { useCallback } from "react"
 
 import { trackFunnelStep } from "@/lib/analytics/conversion-tracking"
+import { getConsultSubtypeFirstStep, getConsultSubtypeResetKeys } from "@/lib/request/consult-flow"
 import type { StepDefinition, UnifiedServiceType } from "@/lib/request/step-registry"
 import { evaluateSafety, type SafetyEvaluationResult } from "@/lib/safety"
 
@@ -100,6 +101,12 @@ export function useFlowNavigation({
   const router = useRouter()
   const { nextStep, prevStep, goToStep, setServiceType, setAnswer, reset } = useRequestStore()
 
+  const clearConsultSubtypeAnswers = useCallback(() => {
+    for (const key of getConsultSubtypeResetKeys()) {
+      setAnswer(key, undefined)
+    }
+  }, [setAnswer])
+
   const handleBack = useCallback(() => {
     posthog?.capture('request_step_back', {
       service_type: analyticsServiceType,
@@ -188,21 +195,24 @@ export function useFlowNavigation({
 
   const handleStartFreshSubtype = useCallback(() => {
     setShowSubtypeMismatch(false)
+    clearConsultSubtypeAnswers()
     setAnswer('consultSubtype', initialSubtype)
-    setAnswer('consultCategory', undefined)
-    setAnswer('consultDetails', undefined)
-    setAnswer('edOnset', undefined)
-    setAnswer('edFrequency', undefined)
-    setAnswer('hairPattern', undefined)
-    setAnswer('womensHealthOption', undefined)
-    setAnswer('currentWeight', undefined)
-    setAnswer('preferredTimeSlot', undefined)
+    goToStep(getConsultSubtypeFirstStep(initialSubtype))
     posthog?.capture('consult_draft_cleared_for_new_subtype', {
       service_type: analyticsServiceType,
       old_subtype: draftSubtype,
       new_subtype: initialSubtype,
     })
-  }, [initialSubtype, draftSubtype, analyticsServiceType, setAnswer, posthog, setShowSubtypeMismatch])
+  }, [
+    initialSubtype,
+    draftSubtype,
+    analyticsServiceType,
+    clearConsultSubtypeAnswers,
+    setAnswer,
+    goToStep,
+    posthog,
+    setShowSubtypeMismatch,
+  ])
 
   const handleStepClick = useCallback((stepId: string, stepIndex: number) => {
     if (stepIndex === currentStepIndex) return
@@ -234,12 +244,17 @@ export function useFlowNavigation({
     // Set consultSubtype so step registry branches correctly on client-side hub navigation.
     // (The mount-only effect handles direct URL navigation; hub navigation doesn't remount.)
     if (service === 'consult' && consultSubtype) {
+      const currentSubtype = answers.consultSubtype as string | undefined
+      if (currentSubtype !== consultSubtype) {
+        clearConsultSubtypeAnswers()
+      }
       setAnswer('consultSubtype', consultSubtype)
+      goToStep(getConsultSubtypeFirstStep(consultSubtype))
       router.push(`/request?service=${service}&subtype=${consultSubtype}`)
     } else {
       router.push(`/request?service=${service}`)
     }
-  }, [setServiceType, setAnswer, router])
+  }, [answers.consultSubtype, clearConsultSubtypeAnswers, setServiceType, setAnswer, goToStep, router])
 
   return {
     handleBack,

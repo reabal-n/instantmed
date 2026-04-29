@@ -21,6 +21,7 @@ import { usePostHog } from "@/components/providers/posthog-provider"
 import { Button } from "@/components/ui/button"
 import { useReducedMotion } from "@/components/ui/motion"
 import { stagger } from "@/lib/motion"
+import { getConsultDraftResumeHref } from "@/lib/request/consult-flow"
 import {
   type CanonicalServiceType,
   clearDraft,
@@ -93,11 +94,13 @@ export function ServiceHubScreen({ onSelectService }: ServiceHubScreenProps) {
 
   const handleResumeDraft = useCallback(
     (draftToResume: DraftData) => {
+      const consultSubtype = draftToResume.answers.consultSubtype as string | undefined
       posthog?.capture("draft_resumed", {
         service_type: draftToResume.serviceType,
         step_id: draftToResume.currentStepId,
+        consult_subtype: consultSubtype,
       })
-      router.push(`/request?service=${draftToResume.serviceType}`)
+      router.push(getConsultDraftResumeHref(draftToResume))
     },
     [router, posthog],
   )

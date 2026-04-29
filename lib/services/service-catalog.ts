@@ -146,6 +146,7 @@ export const SERVICE_CATALOG: Record<CanonicalServiceId, ServiceDef> = {
     iconKey: "Stethoscope",
     colorToken: "sky",
     serviceRoute: "consult",
+    subtype: "general",
   },
   "womens-health": {
     id: "womens-health",

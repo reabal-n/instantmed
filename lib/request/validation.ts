@@ -156,6 +156,9 @@ export const medicalHistoryStepSchema = z
 
 export const consultReasonStepSchema = z.object({
   consultCategory: nonEmptyString("Please select what you'd like help with"),
+  general_associated_symptoms: z
+    .array(z.string())
+    .min(1, "Please answer the safety question"),
   consultDetails: z
     .string()
     .refine((v) => (v?.trim().length ?? 0) >= 20, {

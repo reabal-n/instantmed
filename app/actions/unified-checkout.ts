@@ -11,12 +11,10 @@ import crypto from "crypto"
 
 import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
 import {
-  validateCertificateStep,
-  validateConsultReasonStep,
-  validateDetailsStep,
-  validateMedicationStep,
-  validateSymptomsStep,
-} from "@/lib/request/validation"
+  resolveCheckoutSubtype,
+  transformAnswersForUnifiedCheckout,
+  validateAnswersServerSide,
+} from "@/lib/request/unified-checkout"
 import { createIntakeAndCheckoutAction } from "@/lib/stripe/checkout"
 import { createGuestCheckoutAction } from "@/lib/stripe/guest-checkout"
 import type { ServiceCategory,UnifiedServiceType } from "@/types/services"
@@ -73,126 +71,6 @@ function mapServiceToCategory(serviceType: UnifiedServiceType): { category: Serv
 }
 
 /**
- * Transform unified flow answers to expected checkout format
- */
-function transformAnswers(
-  serviceType: UnifiedServiceType, 
-  answers: Record<string, unknown>
-): Record<string, unknown> {
-  const transformed: Record<string, unknown> = { ...answers }
-  
-  // Map med-cert specific fields
-  if (serviceType === 'med-cert') {
-    transformed.certificate_type = answers.certType
-    transformed.duration = answers.duration
-    transformed.start_date = answers.startDate
-    transformed.symptoms = answers.symptoms
-    transformed.symptom_details = answers.symptomDetails
-    transformed.symptom_duration = answers.symptomDuration
-    transformed.employer_name = answers.employerName
-  }
-  
-  // Map prescription specific fields
-  if (serviceType === 'prescription' || serviceType === 'repeat-script') {
-    transformed.medication_name = answers.medicationName
-    transformed.medication_display = answers.medicationName // Alias for validation
-    transformed.medication_strength = answers.medicationStrength
-    transformed.medication_form = answers.medicationForm
-    transformed.pbs_code = answers.pbsCode
-    transformed.amt_code = answers.pbsCode // Alias for validation compatibility
-    // Map prescriptionHistory to last_prescribed for server-side validation
-    transformed.last_prescribed = answers.prescriptionHistory
-    transformed.prescription_history = answers.prescriptionHistory
-    transformed.last_prescription_date = answers.lastPrescriptionDate
-    transformed.side_effects = answers.sideEffects
-    // Gating fields required by validation (inferred from flow logic)
-    // If user reached checkout via repeat-script flow, they confirmed it's a repeat
-    transformed.prescribed_before = answers.prescribedBefore ?? true
-    transformed.dose_changed = answers.doseChanged ?? false
-  }
-  
-  // Map consult specific fields
-  if (serviceType === 'consult') {
-    transformed.consult_category = answers.consultCategory
-    transformed.consult_subtype = answers.consultSubtype
-    transformed.consult_details = answers.consultDetails
-    transformed.consult_urgency = answers.consultUrgency
-  }
-  
-  // Map shared medical history fields
-  transformed.has_allergies = answers.hasAllergies
-  transformed.allergies = answers.allergies
-  transformed.has_conditions = answers.hasConditions
-  transformed.conditions = answers.conditions
-  transformed.other_medications = answers.otherMedications
-  
-  // Map consent fields for server-side validation
-  transformed.telehealth_consent_given = answers.telehealthConsentGiven
-  transformed.accuracy_confirmed = answers.confirmedAccuracy
-  transformed.terms_agreed = answers.agreedToTerms
-
-  // Priority fee flag
-  transformed.is_priority = answers.isPriority === true
-
-  // Subscription toggle for repeat scripts
-  transformed.subscribe_and_save = answers.subscribeAndSave === true
-
-  // Safety rule fields: provide defaults for fields referenced by safety rules
-  // but not directly collected by intake forms (emergency_symptoms, symptom_severity).
-  // If the patient didn't report any emergency symptoms, default to empty array (none).
-  // If symptom_severity wasn't explicitly asked, default to 'mild' (non-blocking).
-  transformed.emergency_symptoms = answers.emergency_symptoms ?? []
-  transformed.symptom_severity = answers.symptom_severity ?? 'mild'
-
-  return transformed
-}
-
-/**
- * Server-side re-validation of answers before checkout.
- * Returns an error message if invalid, null if valid.
- */
-function validateAnswersServerSide(
-  serviceType: UnifiedServiceType,
-  answers: Record<string, unknown>,
-  identity: UnifiedCheckoutInput['identity']
-): string | null {
-  // Validate identity fields
-  const detailsResult = validateDetailsStep({
-    firstName: identity.fullName?.split(' ')[0],
-    lastName: identity.fullName?.split(' ').slice(1).join(' ') || undefined,
-    email: identity.email,
-    dob: identity.dateOfBirth,
-    phone: identity.phone,
-  }, {
-    requirePhone: serviceType === 'prescription' || serviceType === 'repeat-script',
-  })
-  if (!detailsResult.isValid) {
-    return Object.values(detailsResult.errors)[0]
-  }
-
-  // Validate service-specific fields
-  if (serviceType === 'med-cert') {
-    const certResult = validateCertificateStep(answers)
-    if (!certResult.isValid) return Object.values(certResult.errors)[0]
-
-    const symptomsResult = validateSymptomsStep(answers)
-    if (!symptomsResult.isValid) return Object.values(symptomsResult.errors)[0]
-  }
-
-  if (serviceType === 'prescription' || serviceType === 'repeat-script') {
-    const medResult = validateMedicationStep(answers)
-    if (!medResult.isValid) return Object.values(medResult.errors)[0]
-  }
-
-  if (serviceType === 'consult') {
-    const consultResult = validateConsultReasonStep(answers)
-    if (!consultResult.isValid) return Object.values(consultResult.errors)[0]
-  }
-
-  return null
-}
-
-/**
  * Create checkout session from unified flow data
  */
 export async function createCheckoutFromUnifiedFlow(
@@ -202,18 +80,7 @@ export async function createCheckoutFromUnifiedFlow(
   const { category, subtype } = mapServiceToCategory(serviceType)
   
   // Update subtype based on answers
-  let finalSubtype = subtype
-  if (serviceType === 'med-cert' && answers.certType) {
-    finalSubtype = String(answers.certType)
-  }
-  // For consults, use the category from answers (e.g., 'new_medication', 'ed', 'general')
-  if (serviceType === 'consult') {
-    if (answers.consultCategory) {
-      finalSubtype = String(answers.consultCategory)
-    } else if (answers.consultSubtype) {
-      finalSubtype = String(answers.consultSubtype)
-    }
-  }
+  const finalSubtype = resolveCheckoutSubtype(serviceType, answers, subtype)
   
   // Server-side validation before proceeding to checkout
   const validationError = validateAnswersServerSide(serviceType, answers, identity)
@@ -221,7 +88,7 @@ export async function createCheckoutFromUnifiedFlow(
     return { success: false, error: validationError }
   }
 
-  const transformedAnswers = transformAnswers(serviceType, answers)
+  const transformedAnswers = transformAnswersForUnifiedCheckout(serviceType, answers)
 
   // Check if user is authenticated
   const authResult = await getAuthenticatedUserWithProfile()
@@ -254,11 +121,13 @@ export async function createCheckoutFromUnifiedFlow(
       }
     }
     
-    // Phone required for prescriptions (eScript SMS delivery)
-    if ((serviceType === 'prescription' || serviceType === 'repeat-script') && !identity.phone) {
+    // Phone required for prescriptions (eScript SMS delivery) and consult callbacks.
+    if ((serviceType === 'prescription' || serviceType === 'repeat-script' || serviceType === 'consult') && !identity.phone) {
       return {
         success: false,
-        error: 'Phone number is required for prescription requests to receive your eScript via SMS.',
+        error: serviceType === 'consult'
+          ? 'Phone number is required so the doctor can contact you about your consultation.'
+          : 'Phone number is required for prescription requests to receive your eScript via SMS.',
       }
     }
     

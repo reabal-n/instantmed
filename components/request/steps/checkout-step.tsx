@@ -72,7 +72,7 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
   // Express Review defaults OFF - patient opts in consciously
   const [isPriority, setIsPriority] = useState(false)
   const isRepeatScript = serviceType === 'prescription' || serviceType === 'repeat-script'
-  const [subscribeAndSave, setSubscribeAndSave] = useState(isRepeatScript) // Default ON for repeat scripts
+  const [subscribeAndSave, setSubscribeAndSave] = useState(false)
 
   const duration = answers.duration as string | undefined
   const consultSubtype = answers.consultSubtype as string | undefined

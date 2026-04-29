@@ -213,6 +213,7 @@ export default async function RequestPage({
       hasCompleteIdentity={hasCompleteIdentity}
       hasMedicare={!!profile?.medicare_number}
       hasAddress={hasAddress}
+      hasPhone={!!profile?.phone}
       userEmail={user?.email ?? undefined}
       userName={profile?.full_name ?? undefined}
       userPhone={profile?.phone ?? undefined}

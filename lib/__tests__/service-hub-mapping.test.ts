@@ -1,6 +1,7 @@
 import { describe, expect,it } from "vitest"
 
 import { mapServiceParam, SUPPORTED_SERVICE_SLUGS } from "@/lib/request/step-registry"
+import { getActiveServices } from "@/lib/services/service-catalog"
 
 /**
  * Unit tests for mapServiceParam function
@@ -112,5 +113,17 @@ describe("mapServiceParam", () => {
         expect(["med-cert", "prescription", "repeat-script", "consult"]).toContain(result)
       }
     })
+  })
+})
+
+describe("service catalog hub routing", () => {
+  it("gives every active consult-flow service a subtype", () => {
+    const consultServices = getActiveServices().filter((service) => service.serviceRoute === "consult")
+    const servicesMissingSubtype = consultServices
+      .filter((service) => typeof service.subtype !== "string" || service.subtype.length === 0)
+      .map((service) => service.id)
+
+    expect(consultServices.map((service) => service.id)).toContain("general-consult")
+    expect(servicesMissingSubtype).toEqual([])
   })
 })

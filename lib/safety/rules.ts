@@ -536,10 +536,8 @@ const consultRules: SafetyRule[] = [
     name: 'Chest Pain - General Consult',
     description: 'Patient reporting chest pain in general consult - requires emergency care',
     conditions: [
-      { fieldId: 'consultCategory', operator: 'equals', value: 'general' },
       { fieldId: 'general_associated_symptoms', operator: 'includes_any', value: ['chest_pain'] },
     ],
-    conditionLogic: 'AND',
     outcome: 'DECLINE',
     riskTier: 'critical',
     patientMessage: 'Chest pain requires immediate medical attention. Please call 000 or go to your nearest emergency department right away.',
@@ -555,10 +553,8 @@ const consultRules: SafetyRule[] = [
     name: 'Suicidal Ideation - General Consult',
     description: 'Patient reporting suicidal thoughts in general consult',
     conditions: [
-      { fieldId: 'consultCategory', operator: 'equals', value: 'general' },
       { fieldId: 'general_associated_symptoms', operator: 'includes_any', value: ['suicidal_thoughts', 'self_harm'] },
     ],
-    conditionLogic: 'AND',
     outcome: 'DECLINE',
     riskTier: 'critical',
     patientMessage: 'We care about your wellbeing. Please call Lifeline on 13 11 14 for immediate 24/7 support, or call 000 if you\'re in danger. You\'re not alone.',
@@ -593,10 +589,8 @@ const consultRules: SafetyRule[] = [
     name: 'Recent Surgery Complications - General Consult',
     description: 'Patient has had recent surgery and is experiencing complications',
     conditions: [
-      { fieldId: 'consultCategory', operator: 'equals', value: 'general' },
       { fieldId: 'general_associated_symptoms', operator: 'includes_any', value: ['post_surgical_complications'] },
     ],
-    conditionLogic: 'AND',
     outcome: 'REQUIRES_CALL',
     riskTier: 'medium',
     patientMessage: 'Post-surgical concerns require a phone assessment to ensure you receive appropriate care. A doctor will call you.',

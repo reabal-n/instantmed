@@ -140,7 +140,7 @@ export const STEP_REGISTRY: Record<UnifiedServiceType, StepDefinition[]> = {
       componentPath: 'patient-details-step',
       validateFn: 'validateDetailsStep',
       // Prescriptions require Medicare + address - only skip if all are present
-      canSkip: (ctx) => ctx.isAuthenticated && (ctx.hasCompleteIdentity ?? ctx.hasProfile) && ctx.hasMedicare && ctx.hasAddress && (ctx.hasPhone !== false),
+      canSkip: (ctx) => ctx.isAuthenticated && (ctx.hasCompleteIdentity ?? ctx.hasProfile) && ctx.hasMedicare && ctx.hasAddress && ctx.hasPhone === true,
       required: true,
     },
     {
@@ -186,7 +186,7 @@ export const STEP_REGISTRY: Record<UnifiedServiceType, StepDefinition[]> = {
       shortLabel: 'Details',
       componentPath: 'patient-details-step',
       validateFn: 'validateDetailsStep',
-      canSkip: (ctx) => ctx.isAuthenticated && (ctx.hasCompleteIdentity ?? ctx.hasProfile) && ctx.hasMedicare && (ctx.hasPhone !== false),
+      canSkip: (ctx) => ctx.isAuthenticated && (ctx.hasCompleteIdentity ?? ctx.hasProfile) && ctx.hasMedicare && ctx.hasPhone === true,
       required: true,
     },
     {
@@ -227,7 +227,7 @@ const CONSULT_COMMON_TAIL: StepDefinition[] = [
     shortLabel: 'Details',
     componentPath: 'patient-details-step',
     validateFn: 'validateDetailsStep',
-    canSkip: (ctx) => ctx.isAuthenticated && (ctx.hasCompleteIdentity ?? ctx.hasProfile) && ctx.hasMedicare && (ctx.hasPhone !== false),
+    canSkip: (ctx) => ctx.isAuthenticated && (ctx.hasCompleteIdentity ?? ctx.hasProfile) && ctx.hasMedicare && ctx.hasPhone === true,
     required: true,
   },
   {
