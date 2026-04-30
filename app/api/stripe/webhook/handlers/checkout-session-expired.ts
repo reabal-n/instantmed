@@ -74,7 +74,7 @@ export async function handleCheckoutSessionExpired(ctx: WebhookContext): Promise
             resumeUrl: `${appUrl}/request?resume=${intakeId}`,
             intakeId,
           })
-          log.info("Session expired email sent", { intakeId, to: patient.email })
+          log.info("Session expired email sent", { intakeId })
         }
       } catch (emailError) {
         log.error("Failed to send session expired email", { intakeId }, emailError)

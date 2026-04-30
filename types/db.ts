@@ -115,6 +115,13 @@ export interface Intake {
   confirmation_email_sent_at: string | null
   notification_email_status: string | null
   notification_email_error: string | null
+  // Doctor Telegram notification for paid requests
+  paid_request_telegram_sent_at: string | null
+  paid_request_telegram_failed_at: string | null
+  paid_request_telegram_error: string | null
+  paid_request_telegram_attempts: number
+  paid_request_telegram_last_attempt_at: string | null
+  paid_request_telegram_claimed_at: string | null
   // Guest checkout
   guest_email: string | null
   // Document

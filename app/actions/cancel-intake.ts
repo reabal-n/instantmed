@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache"
 
 import { withServerAction } from "@/lib/actions/with-server-action"
 import { checkServerActionRateLimit } from "@/lib/rate-limit/redis"
+import { canCancelUnpaidCheckoutIntake } from "@/lib/stripe/payment-integrity"
 import type { ActionResult } from "@/types/shared"
 
 /**
@@ -22,7 +23,7 @@ export const cancelIntake = withServerAction<string>(
     // Fetch the intake to verify ownership and status
     const { data: intake, error: fetchError } = await supabase
       .from("intakes")
-      .select("id, patient_id, status")
+      .select("id, patient_id, status, payment_status")
       .eq("id", intakeId)
       .single()
 
@@ -43,8 +44,7 @@ export const cancelIntake = withServerAction<string>(
 
     // Verify status allows cancellation
     // Note: pending_info removed - doctor is waiting for response, patient should respond instead
-    const cancellableStatuses = ["draft", "pending_payment"]
-    if (!cancellableStatuses.includes(intake.status)) {
+    if (!canCancelUnpaidCheckoutIntake(intake.status, intake.payment_status)) {
       log.warn("Cancel intake: invalid status", { intakeId, status: intake.status })
 
       // Provide specific message for pending_info status

@@ -26,11 +26,11 @@ export default async function OpsDashboardPage() {
     patientIdentityResult,
     prescribingIdentityResult,
   ] = await Promise.all([
-    // Failed webhooks (DLQ) - table may not exist
+    // Failed webhooks (DLQ)
     supabase
-      .from("webhook_dlq")
-      .select("id, created_at, status, event_type", { count: "exact" })
-      .in("status", ["failed", "pending"])
+      .from("stripe_webhook_dead_letter")
+      .select("id, created_at, resolved_at, event_type", { count: "exact" })
+      .is("resolved_at", null)
       .order("created_at", { ascending: false })
       .limit(10)
       .then(r => r.error ? { data: [], count: 0 } : r),
@@ -60,9 +60,10 @@ export default async function OpsDashboardPage() {
     // System health check (intakes processing)
     supabase
       .from("intakes")
-      .select("id, status, created_at, updated_at")
+      .select("id, status, paid_at, updated_at")
       .eq("status", "paid")
-      .lt("created_at", new Date(now.getTime() - 2 * 60 * 60 * 1000).toISOString()) // Older than 2 hours
+      .eq("payment_status", "paid")
+      .lt("paid_at", new Date(now.getTime() - 2 * 60 * 60 * 1000).toISOString())
       .limit(10),
 
     getDuplicatePatientProfileSummary(supabase),
@@ -88,7 +89,10 @@ export default async function OpsDashboardPage() {
   const ops = {
     webhooks: {
       failedCount: webhookDlqResult.count || 0,
-      recentFailed: webhookDlqResult.data || [],
+      recentFailed: (webhookDlqResult.data || []).map((entry) => ({
+        ...entry,
+        status: entry.resolved_at ? "resolved" : "open",
+      })),
     },
     emails: {
       ...emailStats,

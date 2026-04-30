@@ -493,7 +493,6 @@ async function captureMismatchWarnings(records: ReconciliationRecord[]): Promise
         age_minutes: record.age_minutes,
         delivery_details: record.delivery_details,
         last_error: record.last_error,
-        patient_email: record.patient_email,
       },
       fingerprint: ["reconciliation-mismatch", record.intake_id, record.delivery_status],
     })

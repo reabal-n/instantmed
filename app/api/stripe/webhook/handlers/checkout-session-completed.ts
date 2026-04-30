@@ -1,14 +1,18 @@
 import * as Sentry from "@sentry/nextjs"
-import { after,NextResponse } from "next/server"
+import { after, NextResponse } from "next/server"
 import type Stripe from "stripe"
 
 import { generateDraftsForIntake } from "@/app/actions/generate-drafts"
 import { getPostHogClient, trackIntakeFunnelStep } from "@/lib/analytics/posthog-server"
+import { sendPaidRequestTelegramNotification } from "@/lib/notifications/paid-request-telegram"
 import { notifyPaymentReceived } from "@/lib/notifications/service"
 import { createLogger } from "@/lib/observability/logger"
+import { startPostPaymentReviewWork } from "@/lib/stripe/post-payment"
 
-import type { HandlerResult,WebhookContext } from "./types"
-import { addToDeadLetterQueue,recordEventError, tryClaimEvent } from "./utils"
+import type { HandlerResult, WebhookContext } from "./types"
+import { addToDeadLetterQueue, recordEventError, tryClaimEvent } from "./utils"
+
+export { shouldSendPaidRequestTelegramNotification } from "@/lib/notifications/paid-request-telegram"
 
 const log = createLogger("stripe-webhook:checkout-completed")
 
@@ -16,16 +20,6 @@ type ServiceDisplayNameInput = {
   serviceSlug?: string
   category?: string
   subtype?: string
-}
-
-type PaidRequestTelegramNotificationInput = {
-  intakeId?: string | null
-  paymentStatus?: string | null
-  amountTotal?: number | null
-}
-
-export function shouldSendPaidRequestTelegramNotification(input: PaidRequestTelegramNotificationInput): boolean {
-  return Boolean(input.intakeId && input.paymentStatus === "paid")
 }
 
 /**
@@ -55,6 +49,31 @@ function getServiceDisplayName(input: ServiceDisplayNameInput): string {
     "consult": "Consultation",
   }
   return slugDisplayNames[serviceSlug] ?? "Medical Request"
+}
+
+async function notifyPaidRequestTelegramForSession(
+  supabase: WebhookContext["supabase"],
+  session: Stripe.Checkout.Session,
+  intakeId: string | null | undefined,
+  patientId: string | null | undefined,
+  patientName?: string | null,
+): Promise<void> {
+  try {
+    await sendPaidRequestTelegramNotification({
+      supabase,
+      intakeId,
+      patientId,
+      patientName,
+      paymentStatus: session.payment_status,
+      amountCents: session.amount_total,
+      serviceSlug: session.metadata?.service_slug,
+      category: session.metadata?.category,
+      subtype: session.metadata?.subtype,
+    })
+  } catch (err) {
+    log.error("Telegram notification error (non-fatal)", { intakeId }, err)
+    Sentry.captureException(err, { tags: { source: "telegram-notification" }, extra: { intakeId } })
+  }
 }
 
 export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promise<HandlerResult> {
@@ -109,6 +128,7 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
 
   if (!shouldProcess) {
     log.info("Event already processed, skipping", { eventId: event.id })
+    await notifyPaidRequestTelegramForSession(supabase, session, intakeId, patientId)
     return NextResponse.json({ received: true, skipped: true })
   }
 
@@ -198,6 +218,15 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
         intakeId,
         currentStatus: currentIntake.status,
       })
+      await startPostPaymentReviewWork({
+        generateDraftsForIntake,
+        intakeId,
+        schedule: (task) => after(task),
+        serviceCategory: session.metadata?.category || session.metadata?.service_type,
+        serviceSlug: session.metadata?.service_slug,
+        supabase,
+      })
+      await notifyPaidRequestTelegramForSession(supabase, session, intakeId, patientId)
       return NextResponse.json({ received: true, already_paid: true })
     }
 
@@ -253,6 +282,7 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
 
       if (recheckIntake?.payment_status === "paid") {
         log.info("Intake was updated by concurrent webhook", { intakeId })
+        await notifyPaidRequestTelegramForSession(supabase, session, intakeId, patientId)
         return NextResponse.json({ received: true, concurrent_update: true })
       }
 
@@ -293,6 +323,7 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
           // Don't return early - fall through to continue webhook flow
         } else if (!forceError && rowsUpdated === 0) {
           log.info("Force update matched 0 rows - concurrent webhook already processed", { intakeId })
+          await notifyPaidRequestTelegramForSession(supabase, session, intakeId, patientId)
           return NextResponse.json({ received: true, concurrent_update: true })
         } else {
           log.error("Force update also failed", {
@@ -339,18 +370,14 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
       stripeCustomerId: stripeCustomerId,
     })
 
-    // Initialize auto-approval state for med certs
-    const serviceType = session.metadata?.category || session.metadata?.service_type
-    if (serviceType === "med_certs" || session.metadata?.service_slug?.startsWith("med-cert")) {
-      await supabase
-        .from("intakes")
-        .update({
-          auto_approval_state: "awaiting_drafts",
-          auto_approval_state_updated_at: new Date().toISOString(),
-        })
-        .eq("id", intakeId)
-        .is("auto_approval_state", null) // idempotent
-    }
+    await startPostPaymentReviewWork({
+      generateDraftsForIntake,
+      intakeId,
+      schedule: (task) => after(task),
+      serviceCategory: session.metadata?.category || session.metadata?.service_type,
+      serviceSlug: session.metadata?.service_slug,
+      supabase,
+    })
 
     // Track funnel: payment completed
     // Fetch auth_user_id so server-side PostHog distinctId matches client-side identify()
@@ -717,9 +744,9 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
           })
 
           if (emailResult?.success === false) {
-            log.error("Request received email failed", { intakeId, email: patientProfile.email, error: emailResult.error })
+            log.error("Request received email failed", { intakeId, error: emailResult.error })
           } else {
-            log.info("Request received email sent", { intakeId, email: patientProfile.email })
+            log.info("Request received email sent", { intakeId })
           }
         } catch (emailErr) {
           log.error("Request received email error (non-fatal)", { intakeId }, emailErr)
@@ -727,110 +754,10 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
       }
     }
 
-    // 5c: Telegram notification to doctor
-    // Intentionally outside the patientProfile/email/amount guards — doctor must be
-    // notified on every paid order, including fully discounted requests and cases
-    // where profile lookup fails.
-    if (shouldSendPaidRequestTelegramNotification({
-      intakeId,
-      paymentStatus: session.payment_status,
-      amountTotal: session.amount_total,
-    })) {
-      try {
-        const { notifyNewIntakeViaTelegram } = await import("@/lib/notifications/telegram")
-        const serviceSlug = session.metadata?.service_slug ?? ""
-        await notifyNewIntakeViaTelegram({
-          intakeId,
-          patientName: patientProfile?.full_name || "Patient",
-          serviceName: getServiceDisplayName({
-            serviceSlug,
-            category: session.metadata?.category,
-            subtype: session.metadata?.subtype,
-          }),
-          amount: `$${(session.amount_total! / 100).toFixed(2)}`,
-          serviceSlug,
-        })
-      } catch (err) {
-        log.error("Telegram notification error (non-fatal)", { intakeId }, err)
-        Sentry.captureException(err, { tags: { source: "telegram-notification" }, extra: { intakeId } })
-      }
-    }
-
-    // STEP 6: Generate AI drafts + attempt auto-approval (background)
-    // Uses Next.js after() to keep the function alive after the response is sent.
-    // This ensures draft generation + auto-approval actually completes on Vercel.
-    // Fallback: retry-auto-approval cron (every 3 min) catches any that slip through.
-    after(async () => {
-      try {
-        const result = await generateDraftsForIntake(intakeId)
-
-        if (result.success && !("skipped" in result && result.skipped)) {
-          log.info("AI drafts generated", {
-            intakeId,
-            clinicalNote: "clinicalNote" in result ? result.clinicalNote?.status : undefined,
-            medCert: "medCert" in result ? result.medCert?.status : undefined,
-          })
-
-          // Transition state: awaiting_drafts → pending
-          const { markDraftsReady } = await import("@/lib/clinical/auto-approval-state")
-          await markDraftsReady(supabase, intakeId)
-
-          // Attempt auto-approval for med certs immediately after drafts are generated,
-          // but ONLY when auto_approve_delay_minutes is 0. When a delay is configured,
-          // the retry-auto-approval cron enforces it - calling here would bypass it.
-          // The cron (every 3 min) also catches any slipped-through cases regardless.
-          try {
-            const { getFeatureFlags } = await import("@/lib/feature-flags")
-            const flags = await getFeatureFlags()
-            if (flags.auto_approve_delay_minutes === 0) {
-              const { attemptAutoApproval } = await import("@/lib/clinical/auto-approval-pipeline")
-              const autoResult = await attemptAutoApproval(intakeId)
-              log.info("Auto-approval attempted", {
-                intakeId,
-                autoApproved: autoResult.autoApproved,
-                reason: autoResult.reason,
-                certificateId: autoResult.certificateId,
-              })
-            } else {
-              log.info("Auto-approval deferred to cron - delay is configured", {
-                intakeId,
-                delayMinutes: flags.auto_approve_delay_minutes,
-              })
-            }
-          } catch (autoErr) {
-            // Never fail - auto-approval failure just means doctor reviews manually
-            log.warn("Auto-approval error (non-fatal, falls back to doctor queue)", {
-              intakeId,
-              error: autoErr instanceof Error ? autoErr.message : String(autoErr),
-            })
-          }
-        } else if (!result.success) {
-          log.warn("AI draft generation failed, queueing for retry", {
-            intakeId,
-            error: result.error,
-          })
-          await supabase.from("ai_draft_retry_queue").upsert({
-            intake_id: intakeId,
-            attempts: 1,
-            last_error: result.error || "Unknown error",
-            next_retry_at: new Date(Date.now() + 2 * 60 * 1000).toISOString(),
-          }, { onConflict: "intake_id" })
-        }
-      } catch (err) {
-        log.error("AI draft generation error, queueing for retry", { intakeId }, err)
-        try {
-          const { error: upsertErr } = await supabase.from("ai_draft_retry_queue").upsert({
-            intake_id: intakeId,
-            attempts: 1,
-            last_error: err instanceof Error ? err.message : String(err),
-            next_retry_at: new Date(Date.now() + 2 * 60 * 1000).toISOString(),
-          }, { onConflict: "intake_id" })
-          if (upsertErr) log.error("Failed to queue draft retry", { intakeId, error: upsertErr.message })
-        } catch (queueErr) {
-          log.error("Failed to queue draft retry", { intakeId, error: queueErr instanceof Error ? queueErr.message : String(queueErr) })
-        }
-      }
-    })
+    // 5c: Telegram notification to doctor. This is ledgered separately from
+    // email so webhook retries can recover a paid request that was marked paid
+    // before the external Telegram API call completed.
+    await notifyPaidRequestTelegramForSession(supabase, session, intakeId, patientId, patientProfile?.full_name)
 
     const duration = Date.now() - startTime
     log.info("Payment processed successfully", {

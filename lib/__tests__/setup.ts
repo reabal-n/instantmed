@@ -113,6 +113,9 @@ vi.mock('@/lib/stripe/client', () => ({
     refunds: {
       create: vi.fn(),
     },
+    paymentIntents: {
+      retrieve: vi.fn(),
+    },
   },
 }))
 

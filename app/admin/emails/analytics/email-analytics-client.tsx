@@ -40,20 +40,35 @@ import { cn } from "@/lib/utils"
 
 interface EmailAnalytics {
   summary: {
-    totalSent: number
+    totalAccepted: number
     totalFailed: number
-    deliveryRate: number
+    delivered: number
+    bounced: number
+    complained: number
+    opened: number
+    clicked: number
+    sendSuccessRate: number | null
+    deliveryRate: number | null
+    openRate: number | null
+    clickRate: number | null
   }
   templateStats: {
     template: string
-    sent: number
+    accepted: number
     failed: number
+    delivered: number
+    bounced: number
+    complained: number
+    opened: number
+    clicked: number
+    deliveryRate: number | null
   }[]
   recentEmails: {
     id: string
     template: string
     recipient: string
     status: string
+    deliveryStatus: string | null
     sentAt: string
     error: string | null
   }[]
@@ -70,6 +85,10 @@ function formatTemplateName(template: string): string {
     .split(" ")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ")
+}
+
+function formatRate(rate: number | null): string {
+  return rate === null ? "No events" : `${rate.toFixed(1)}%`
 }
 
 function getStatusBadge(status: string) {
@@ -107,15 +126,18 @@ function getStatusBadge(status: string) {
 
 export function EmailAnalyticsClient({ analytics }: EmailAnalyticsClientProps) {
   const { summary, templateStats, recentEmails } = analytics
+  const deliveryRateHealthy = summary.deliveryRate === null || summary.deliveryRate >= 95
 
   // Prepare chart data
   const chartData = templateStats
-    .sort((a, b) => b.sent - a.sent)
+    .sort((a, b) => b.accepted - a.accepted)
     .slice(0, 8)
     .map((t) => ({
       name: formatTemplateName(t.template).slice(0, 15),
-      Sent: t.sent,
+      Accepted: t.accepted,
+      Delivered: t.delivered,
       Failed: t.failed,
+      Bounced: t.bounced + t.complained,
     }))
 
   return (
@@ -134,7 +156,7 @@ export function EmailAnalyticsClient({ analytics }: EmailAnalyticsClientProps) {
               Analytics
             </Heading>
             <p className="text-sm text-muted-foreground mt-1">
-              Delivery metrics (last 30 days). Open/click tracking available in Resend dashboard.
+              Send, delivery, open, and click metrics from the last 30 days.
             </p>
           </div>
         </div>
@@ -147,7 +169,10 @@ export function EmailAnalyticsClient({ analytics }: EmailAnalyticsClientProps) {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Emails Sent</p>
-                <p className="text-2xl font-semibold">{summary.totalSent.toLocaleString()}</p>
+                <p className="text-2xl font-semibold">{summary.totalAccepted.toLocaleString()}</p>
+                <p className="text-xs text-muted-foreground">
+                  {formatRate(summary.sendSuccessRate)} send success
+                </p>
               </div>
               <Send className="h-8 w-8 text-muted-foreground/50" />
             </div>
@@ -158,11 +183,11 @@ export function EmailAnalyticsClient({ analytics }: EmailAnalyticsClientProps) {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Open Rate</p>
-                <p className="text-sm font-medium text-muted-foreground mt-1">
-                  Tracking via Resend
+                <p className="text-2xl font-semibold mt-1">
+                  {formatRate(summary.openRate)}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  View in Resend dashboard
+                  {summary.opened} opened
                 </p>
               </div>
               <Eye className="h-8 w-8 text-info/50" />
@@ -174,33 +199,33 @@ export function EmailAnalyticsClient({ analytics }: EmailAnalyticsClientProps) {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Click Rate</p>
-                <p className="text-sm font-medium text-muted-foreground mt-1">
-                  Tracking via Resend
+                <p className="text-2xl font-semibold mt-1">
+                  {formatRate(summary.clickRate)}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  View in Resend dashboard
+                  {summary.clicked} clicked
                 </p>
               </div>
               <MousePointer className="h-8 w-8 text-success/50" />
             </div>
           </CardContent>
         </Card>
-        <Card className={summary.totalFailed > 0 ? "border-destructive-border" : ""}>
+        <Card className={!deliveryRateHealthy || summary.totalFailed > 0 ? "border-destructive-border" : ""}>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Delivery Rate</p>
                 <p className={cn(
                   "text-2xl font-semibold",
-                  summary.deliveryRate < 95 ? "text-destructive" : "text-success"
+                  deliveryRateHealthy ? "text-success" : "text-destructive"
                 )}>
-                  {summary.deliveryRate.toFixed(1)}%
+                  {formatRate(summary.deliveryRate)}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  {summary.totalFailed} failed
+                  {summary.delivered} delivered, {summary.bounced + summary.complained} bounced/complained
                 </p>
               </div>
-              {summary.deliveryRate < 95 ? (
+              {!deliveryRateHealthy ? (
                 <AlertTriangle className="h-8 w-8 text-destructive/50" />
               ) : (
                 <CheckCircle className="h-8 w-8 text-success/50" />
@@ -232,8 +257,10 @@ export function EmailAnalyticsClient({ analytics }: EmailAnalyticsClientProps) {
                     }}
                   />
                   <Legend />
-                  <Bar dataKey="Sent" fill="#6b7280" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="Accepted" fill="#6b7280" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="Delivered" fill="#059669" radius={[4, 4, 0, 0]} />
                   <Bar dataKey="Failed" fill="#ef4444" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="Bounced" fill="#f59e0b" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -246,7 +273,7 @@ export function EmailAnalyticsClient({ analytics }: EmailAnalyticsClientProps) {
         <CardHeader>
           <CardTitle className="text-base">Template Breakdown</CardTitle>
           <CardDescription>
-            Delivery metrics per email template. Open/click tracking is available in the Resend dashboard.
+            Delivery metrics per email template from email_outbox webhook status.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -255,7 +282,8 @@ export function EmailAnalyticsClient({ analytics }: EmailAnalyticsClientProps) {
               <TableHeader>
                 <TableRow className="bg-muted/50">
                   <TableHead>Template</TableHead>
-                  <TableHead className="text-right">Sent</TableHead>
+                  <TableHead className="text-right">Accepted</TableHead>
+                  <TableHead className="text-right">Delivered</TableHead>
                   <TableHead className="text-right">Failed</TableHead>
                   <TableHead className="text-right">Delivery Rate</TableHead>
                 </TableRow>
@@ -263,18 +291,19 @@ export function EmailAnalyticsClient({ analytics }: EmailAnalyticsClientProps) {
               <TableBody>
                 {templateStats.length > 0 ? (
                   templateStats
-                    .sort((a, b) => b.sent - a.sent)
+                    .sort((a, b) => b.accepted - a.accepted)
                     .map((template) => {
-                      const deliveryRate = template.sent > 0
-                        ? ((template.sent - template.failed) / template.sent) * 100
-                        : 0
+                      const deliveryRate = template.deliveryRate
                       return (
                         <TableRow key={template.template}>
                           <TableCell className="font-medium">
                             {formatTemplateName(template.template)}
                           </TableCell>
                           <TableCell className="text-right font-mono">
-                            {template.sent.toLocaleString()}
+                            {template.accepted.toLocaleString()}
+                          </TableCell>
+                          <TableCell className="text-right font-mono text-success">
+                            {template.delivered.toLocaleString()}
                           </TableCell>
                           <TableCell className="text-right font-mono text-destructive">
                             {template.failed.toLocaleString()}
@@ -282,14 +311,16 @@ export function EmailAnalyticsClient({ analytics }: EmailAnalyticsClientProps) {
                           <TableCell className="text-right">
                             <Badge
                               className={cn(
-                                deliveryRate >= 98
+                                deliveryRate === null
+                                  ? "bg-muted text-foreground"
+                                  : deliveryRate >= 98
                                   ? "bg-success-light text-success"
                                   : deliveryRate >= 95
                                   ? "bg-warning-light text-warning"
                                   : "bg-destructive-light text-destructive"
                               )}
                             >
-                              {deliveryRate.toFixed(1)}%
+                              {formatRate(deliveryRate)}
                             </Badge>
                           </TableCell>
                         </TableRow>
@@ -297,7 +328,7 @@ export function EmailAnalyticsClient({ analytics }: EmailAnalyticsClientProps) {
                     })
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
                       No email data available
                     </TableCell>
                   </TableRow>
@@ -322,6 +353,7 @@ export function EmailAnalyticsClient({ analytics }: EmailAnalyticsClientProps) {
                   <TableHead>Template</TableHead>
                   <TableHead>Recipient</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Delivery</TableHead>
                   <TableHead>Sent</TableHead>
                 </TableRow>
               </TableHeader>
@@ -339,16 +371,25 @@ export function EmailAnalyticsClient({ analytics }: EmailAnalyticsClientProps) {
                         {getStatusBadge(email.status)}
                       </TableCell>
                       <TableCell>
+                        {email.deliveryStatus ? (
+                          <Badge variant="outline" className="capitalize">
+                            {email.deliveryStatus}
+                          </Badge>
+                        ) : (
+                          <span className="text-sm text-muted-foreground">Pending webhook</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
                         <div className="flex items-center gap-1.5 text-muted-foreground">
                           <Clock className="h-3 w-3" />
-                          <span className="text-sm">{formatTimeAgo(email.sentAt)}</span>
+                          <span className="text-sm">{email.sentAt ? formatTimeAgo(email.sentAt) : "Not sent"}</span>
                         </div>
                       </TableCell>
                     </TableRow>
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
                       No recent emails
                     </TableCell>
                   </TableRow>

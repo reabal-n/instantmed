@@ -21,7 +21,9 @@ import {
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState, useTransition } from "react"
+import { toast } from "sonner"
 
+import { retryOutboxEmail } from "@/app/actions/email-retry"
 import type { EmailStats, RecentEmailActivity } from "@/app/actions/email-stats"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -69,15 +71,33 @@ interface EmailHubClientProps {
 
 export function EmailHubClient({ initialStats, initialActivity, templateCounts, yesterdayEmailCount }: EmailHubClientProps) {
   const [activeTab, setActiveTab] = useState("overview")
-  const [stats] = useState(initialStats)
-  const [activity] = useState(initialActivity)
+  const [retryingId, setRetryingId] = useState<string | null>(null)
   const [isRefreshing, startRefresh] = useTransition()
   const router = useRouter()
+  const stats = initialStats
+  const activity = initialActivity
 
   const handleRefresh = () => {
     startRefresh(() => {
       router.refresh()
     })
+  }
+
+  const handleRetry = async (outboxId: string) => {
+    setRetryingId(outboxId)
+    try {
+      const result = await retryOutboxEmail(outboxId)
+      if (result.success) {
+        toast.success("Email retry queued")
+        router.refresh()
+      } else {
+        toast.error(result.error || "Email retry failed")
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Email retry failed")
+    } finally {
+      setRetryingId(null)
+    }
   }
 
   // Calculate real trend: compare today vs yesterday
@@ -139,13 +159,15 @@ export function EmailHubClient({ initialStats, initialActivity, templateCounts, 
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Delivery Rate</CardTitle>
+                <CardTitle className="text-sm font-medium">Send Success</CardTitle>
                 <CheckCircle className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-semibold">{stats.deliveryRate}%</div>
+                <div className="text-2xl font-semibold">
+                  {stats.sendSuccessRate === null ? "No sends" : `${stats.sendSuccessRate}%`}
+                </div>
                 <p className="text-xs text-muted-foreground">
-                  {stats.emailsSentWeek} sent this week
+                  {stats.deliveryRate === null ? "Awaiting delivery events" : `${stats.deliveryRate}% delivered`}
                 </p>
               </CardContent>
             </Card>
@@ -347,6 +369,11 @@ export function EmailHubClient({ initialStats, initialActivity, templateCounts, 
                           <p className="text-xs text-muted-foreground">
                             {sanitizeEmail(item.toEmail)} • {formatTimeAgo(item.createdAt)}
                           </p>
+                          {item.deliveryStatus && (
+                            <p className="text-xs text-muted-foreground mt-1 capitalize">
+                              Delivery: {item.deliveryStatus}
+                            </p>
+                          )}
                           {item.errorMessage && (
                             <p className="text-xs text-destructive mt-1">{item.errorMessage}</p>
                           )}
@@ -368,6 +395,21 @@ export function EmailHubClient({ initialStats, initialActivity, templateCounts, 
                         >
                           {item.status === 'skipped_e2e' ? 'sent (test)' : item.status}
                         </Badge>
+                        {["failed", "pending"].includes(item.status) && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleRetry(item.id)}
+                            disabled={retryingId === item.id}
+                          >
+                            {retryingId === item.id ? (
+                              <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" />
+                            ) : (
+                              <RefreshCw className="h-3.5 w-3.5 mr-1" />
+                            )}
+                            Retry
+                          </Button>
+                        )}
                       </div>
                     </div>
                   ))
@@ -445,9 +487,11 @@ export function EmailHubClient({ initialStats, initialActivity, templateCounts, 
                 <CheckCircle className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-semibold">{stats.deliveryRate}%</div>
+                <div className="text-2xl font-semibold">
+                  {stats.deliveryRate === null ? "No events" : `${stats.deliveryRate}%`}
+                </div>
                 <p className="text-xs text-muted-foreground">
-                  {stats.emailsSentWeek} delivered this week
+                  {stats.deliveredEmails} delivered, {stats.bouncedEmails + stats.complainedEmails} bounced/complained
                 </p>
               </CardContent>
             </Card>
@@ -470,7 +514,7 @@ export function EmailHubClient({ initialStats, initialActivity, templateCounts, 
                 if (failures.length === 0) {
                   return (
                     <p className="text-sm text-muted-foreground text-center py-4">
-                      No recent failures -- all emails delivered successfully.
+                      No recent failures. All emails delivered successfully.
                     </p>
                   )
                 }
@@ -492,6 +536,19 @@ export function EmailHubClient({ initialStats, initialActivity, templateCounts, 
                             {item.intakeId.slice(0, 8)}
                           </Badge>
                         )}
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleRetry(item.id)}
+                          disabled={retryingId === item.id}
+                        >
+                          {retryingId === item.id ? (
+                            <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" />
+                          ) : (
+                            <RefreshCw className="h-3.5 w-3.5 mr-1" />
+                          )}
+                          Retry
+                        </Button>
                       </div>
                     ))}
                   </div>

@@ -25,6 +25,7 @@ import type { ServiceCategory } from "@/types/services"
 
 import { getAmountCentsForRequest, getPriceIdForRequest, stripe } from "./client"
 import { shouldReuseGuestProfileForCheckout } from "./guest-profile-dedupe"
+import { buildPaymentIntentMetadata, resolveGuestDuplicateCheckoutRecovery } from "./payment-integrity"
 import { buildPrescribingProfileUpdates } from "./prescribing-profile-fields"
 
 const logger = createLogger("guest-checkout")
@@ -230,7 +231,7 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
       // CLINICAL AUDIT: Hard-block Schedule 8 / controlled substances (regex patterns)
       const medNameToCheck = medicationName || medicationDisplay || ""
       if (medNameToCheck && isControlledSubstance(medNameToCheck)) {
-        logger.warn("Controlled substance blocked at guest checkout", { medication: medNameToCheck, category: input.category })
+        logger.warn("Controlled substance blocked at guest checkout", { category: input.category })
         return {
           success: false,
           error: "This medication cannot be prescribed through our online service. Schedule 8 and controlled substances require an in-person consultation with your regular GP.",
@@ -339,7 +340,7 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
     // P1 FIX: Rate limit guest checkout by email to prevent abuse
     const rateLimitResult = await checkServerActionRateLimit(`guest:${normalizedEmail}`, "sensitive")
     if (!rateLimitResult.success) {
-      logger.warn("Guest checkout rate limited", { email: normalizedEmail })
+      logger.warn("Guest checkout rate limited", { category: input.category })
       return {
         success: false,
         error: rateLimitResult.error || "Too many checkout attempts. Please wait a moment before trying again.",
@@ -396,7 +397,9 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
           .eq("id", guestProfileId)
       }
     } else if ((existingGuestProfiles || []).length > 0) {
-      logger.info("Skipping guest profile reuse because identity evidence did not match", { email: normalizedEmail })
+      logger.info("Skipping guest profile reuse because identity evidence did not match", {
+        candidateCount: existingGuestProfiles?.length || 0,
+      })
     }
     
     if (!guestProfileId) {
@@ -509,6 +512,50 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
       .single()
 
     if (intakeError || !intake) {
+      if (intakeError?.code === "23505") {
+        const { data: existingIntake } = await supabase
+          .from("intakes")
+          .select("id, status, payment_status, payment_id")
+          .eq("idempotency_key", guestIdempotencyKey)
+          .eq("patient_id", guestProfileId)
+          .maybeSingle()
+
+        if (existingIntake) {
+          let checkoutUrl: string | null = null
+          if (existingIntake.payment_id && existingIntake.payment_status !== "paid") {
+            try {
+              const existingSession = await stripe.checkout.sessions.retrieve(existingIntake.payment_id)
+              checkoutUrl = existingSession.url || null
+            } catch (stripeError) {
+              logger.warn("Could not retrieve duplicate guest checkout session", {
+                intakeId: existingIntake.id,
+                error: stripeError instanceof Error ? stripeError.message : String(stripeError),
+              })
+            }
+          }
+
+          const recovery = resolveGuestDuplicateCheckoutRecovery({
+            baseUrl,
+            checkoutUrl,
+            intake: existingIntake,
+          })
+
+          if (recovery.success) {
+            logger.info("Recovered duplicate guest checkout attempt", {
+              intakeId: recovery.intakeId,
+              hasCheckoutUrl: !!checkoutUrl,
+            })
+            return {
+              success: true,
+              checkoutUrl: recovery.checkoutUrl,
+              intakeId: recovery.intakeId,
+            }
+          }
+
+          return { success: false, error: recovery.error }
+        }
+      }
+
       logger.error("Failed to create intake", { error: intakeError, code: intakeError?.code, message: intakeError?.message, details: intakeError?.details })
       if (intakeError?.code === "23503") {
         return { success: false, error: "Your profile could not be found. Please try again." }
@@ -573,7 +620,19 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
       logger.info("Creating guest Stripe checkout session", { 
         intakeId: intake.id, 
         category: input.category,
-        guestEmail: normalizedEmail,
+      })
+      const sessionMetadata = buildPaymentIntentMetadata({
+        intake_id: intake.id,
+        patient_id: guestProfileId,
+        category: input.category,
+        subtype: input.subtype,
+        service_slug: serviceSlug,
+        guest_checkout: "true",
+        ...(input.posthogDistinctId ? { ph_distinct_id: input.posthogDistinctId } : {}),
+        // Google Ads click IDs for Enhanced Conversions attribution
+        ...(input.attribution?.gclid ? { gclid: input.attribution.gclid } : {}),
+        ...(input.attribution?.gbraid ? { gbraid: input.attribution.gbraid } : {}),
+        ...(input.attribution?.wbraid ? { wbraid: input.attribution.wbraid } : {}),
       })
       // Use intake ID as idempotency key to prevent duplicate sessions on double-click
       session = await stripe.checkout.sessions.create({
@@ -590,19 +649,9 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
         allow_promotion_codes: true,
         customer_email: input.guestEmail,
         customer_creation: "always",
-        metadata: {
-          intake_id: intake.id,
-          patient_id: guestProfileId,
-          category: input.category,
-          subtype: input.subtype,
-          service_slug: serviceSlug,
-          guest_checkout: "true",
-          guest_email: input.guestEmail,
-          ...(input.posthogDistinctId ? { ph_distinct_id: input.posthogDistinctId } : {}),
-          // Google Ads click IDs for Enhanced Conversions attribution
-          ...(input.attribution?.gclid ? { gclid: input.attribution.gclid } : {}),
-          ...(input.attribution?.gbraid ? { gbraid: input.attribution.gbraid } : {}),
-          ...(input.attribution?.wbraid ? { wbraid: input.attribution.wbraid } : {}),
+        metadata: sessionMetadata,
+        payment_intent_data: {
+          metadata: sessionMetadata,
         },
       }, {
         idempotencyKey: `guest-checkout-${intake.id}`,

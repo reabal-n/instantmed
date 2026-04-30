@@ -47,7 +47,7 @@ export async function handleAsyncPaymentFailed(ctx: WebhookContext): Promise<Han
           retryUrl: `${appUrl}/request?resume=${intakeId}`,
           intakeId,
         })
-        log.info("Payment failed email sent", { intakeId, to: patient.email })
+        log.info("Payment failed email sent", { intakeId })
       }
     } catch (emailError) {
       log.error("Failed to send payment failed email", { intakeId }, emailError)

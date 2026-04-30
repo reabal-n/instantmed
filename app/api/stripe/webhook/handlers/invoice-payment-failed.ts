@@ -126,7 +126,6 @@ export async function handleInvoicePaymentFailed(ctx: WebhookContext): Promise<H
 
     log.info("Subscription payment failed email sent", {
       subscriptionId,
-      email: profile.email,
     })
   } catch (emailErr) {
     log.error("Failed to send subscription payment failed email (non-fatal)", { subscriptionId }, emailErr)

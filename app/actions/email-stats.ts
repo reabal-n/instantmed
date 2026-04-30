@@ -1,6 +1,7 @@
 "use server"
 
 import { requireRole } from "@/lib/auth/helpers"
+import { buildEmailAnalytics, type EmailAnalyticsRow } from "@/lib/email/analytics"
 import { createLogger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
@@ -9,7 +10,13 @@ const log = createLogger("email-stats")
 export interface EmailStats {
   emailsSentToday: number
   emailsSentWeek: number
-  deliveryRate: number
+  sendSuccessRate: number | null
+  deliveryRate: number | null
+  deliveredEmails: number
+  bouncedEmails: number
+  complainedEmails: number
+  openedEmails: number
+  clickedEmails: number
   pendingEmails: number
   failedEmails: number
 }
@@ -19,9 +26,11 @@ export interface RecentEmailActivity {
   emailType: string
   toEmail: string
   status: string
+  deliveryStatus: string | null
   createdAt: string
   intakeId: string | null
   errorMessage: string | null
+  retryCount: number
 }
 
 /**
@@ -48,15 +57,14 @@ export async function getEmailStats(): Promise<{ stats: EmailStats; error?: stri
       log.error("Failed to get today's email count", { error: todayError })
     }
 
-    // Emails sent this week
-    const { count: weekCount, error: weekError } = await supabase
+    // Email activity this week, including delivery webhook status.
+    const { data: weekRows, error: weekError } = await supabase
       .from("email_outbox")
-      .select("id", { count: "exact", head: true })
+      .select("id, email_type, to_email, status, sent_at, error_message, delivery_status, delivery_status_updated_at")
       .gte("created_at", weekAgo)
-      .in("status", ["sent", "skipped_e2e"])
 
     if (weekError) {
-      log.error("Failed to get week's email count", { error: weekError })
+      log.error("Failed to get week's email activity", { error: weekError })
     }
 
     // Pending emails (if any queue mechanism exists)
@@ -69,32 +77,21 @@ export async function getEmailStats(): Promise<{ stats: EmailStats; error?: stri
       log.error("Failed to get pending email count", { error: pendingError })
     }
 
-    // Failed emails (last 7 days)
-    const { count: failedCount, error: failedError } = await supabase
-      .from("email_outbox")
-      .select("id", { count: "exact", head: true })
-      .gte("created_at", weekAgo)
-      .eq("status", "failed")
-
-    if (failedError) {
-      log.error("Failed to get failed email count", { error: failedError })
-    }
-
-    // Calculate delivery rate (sent / (sent + failed) * 100) for last 7 days
-    const totalSent = weekCount || 0
-    const totalFailed = failedCount || 0
-    const totalAttempted = totalSent + totalFailed
-    const deliveryRate = totalAttempted > 0 
-      ? Math.round((totalSent / totalAttempted) * 1000) / 10 
-      : 100
+    const analytics = buildEmailAnalytics(((weekRows || []) as EmailAnalyticsRow[]))
 
     return {
       stats: {
         emailsSentToday: todayCount || 0,
-        emailsSentWeek: weekCount || 0,
-        deliveryRate,
+        emailsSentWeek: analytics.summary.totalAccepted,
+        sendSuccessRate: analytics.summary.sendSuccessRate,
+        deliveryRate: analytics.summary.deliveryRate,
+        deliveredEmails: analytics.summary.delivered,
+        bouncedEmails: analytics.summary.bounced,
+        complainedEmails: analytics.summary.complained,
+        openedEmails: analytics.summary.opened,
+        clickedEmails: analytics.summary.clicked,
         pendingEmails: pendingCount || 0,
-        failedEmails: failedCount || 0,
+        failedEmails: analytics.summary.totalFailed,
       },
     }
   } catch (error) {
@@ -103,7 +100,13 @@ export async function getEmailStats(): Promise<{ stats: EmailStats; error?: stri
       stats: {
         emailsSentToday: 0,
         emailsSentWeek: 0,
-        deliveryRate: 0,
+        sendSuccessRate: null,
+        deliveryRate: null,
+        deliveredEmails: 0,
+        bouncedEmails: 0,
+        complainedEmails: 0,
+        openedEmails: 0,
+        clickedEmails: 0,
         pendingEmails: 0,
         failedEmails: 0,
       },
@@ -125,7 +128,7 @@ export async function getRecentEmailActivity(limit = 10): Promise<{
 
     const { data, error } = await supabase
       .from("email_outbox")
-      .select("id, email_type, to_email, status, created_at, intake_id, error_message")
+      .select("id, email_type, to_email, status, delivery_status, created_at, intake_id, error_message, retry_count")
       .order("created_at", { ascending: false })
       .limit(limit)
 
@@ -139,9 +142,11 @@ export async function getRecentEmailActivity(limit = 10): Promise<{
       emailType: row.email_type || "unknown",
       toEmail: row.to_email,
       status: row.status,
+      deliveryStatus: row.delivery_status,
       createdAt: row.created_at,
       intakeId: row.intake_id,
       errorMessage: row.error_message,
+      retryCount: row.retry_count ?? 0,
     }))
 
     return { activity }

@@ -29,6 +29,7 @@ import { validateRepeatScriptPayload } from "@/lib/validation/repeat-script-sche
 import type { ServiceCategory } from "@/types/services"
 
 import { getAmountCentsForRequest, getPriceIdForRequest, stripe } from "./client"
+import { buildPaymentIntentMetadata, canRetryPaymentForIntake } from "./payment-integrity"
 import { buildPrescribingProfileUpdates } from "./prescribing-profile-fields"
 import { createReferralCouponIfEligible } from "./referral-coupon"
 
@@ -188,7 +189,7 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
       // CLINICAL AUDIT: Hard-block Schedule 8 / controlled substances (regex patterns)
       const medNameToCheck = medicationName || medicationDisplay || ""
       if (medNameToCheck && isControlledSubstance(medNameToCheck)) {
-        logger.warn("Controlled substance blocked at checkout", { medication: medNameToCheck, category: input.category })
+        logger.warn("Controlled substance blocked at checkout", { category: input.category })
         return {
           success: false,
           error: "This medication cannot be prescribed through our online service. Schedule 8 and controlled substances require an in-person consultation with your regular GP.",
@@ -515,7 +516,7 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
         // Return existing intake instead of creating duplicate
         const { data: existingIntake } = await supabase
           .from("intakes")
-          .select("id, status")
+          .select("id, status, payment_status")
           .eq("idempotency_key", input.idempotencyKey)
           .single()
         
@@ -524,15 +525,19 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
             intakeId: existingIntake.id,
             idempotencyKey: input.idempotencyKey 
           })
-          // If already paid, redirect to success
-          if (existingIntake.status !== "pending_payment") {
+          if (existingIntake.payment_status === "paid") {
             return {
               success: true,
               intakeId: existingIntake.id,
               checkoutUrl: `${baseUrl}/patient/intakes/${existingIntake.id}`
             }
           }
-          // Still pending payment - retry checkout for existing intake
+          if (!canRetryPaymentForIntake(existingIntake.status, existingIntake.payment_status)) {
+            return {
+              success: false,
+              error: "This request is not awaiting payment. Please refresh and check your request status.",
+            }
+          }
           logger.info("Retrying checkout for existing pending_payment intake", {
             intakeId: existingIntake.id,
           })
@@ -645,6 +650,7 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
       ...(input.attribution?.gbraid ? { gbraid: input.attribution.gbraid } : {}),
       ...(input.attribution?.wbraid ? { wbraid: input.attribution.wbraid } : {}),
     }
+    const paymentIntentMetadata = buildPaymentIntentMetadata(sessionMetadata)
 
     // allow_promotion_codes is mutually exclusive with `discounts` in Stripe.
     // When a referral coupon is auto-applied, we cannot also accept a manual promo code.
@@ -693,6 +699,7 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
           customer_creation: !stripeCustomerId && patientEmail ? "always" as const : undefined,
           // Enable saved payment methods for returning customers
           payment_intent_data: {
+            metadata: paymentIntentMetadata,
             setup_future_usage: "on_session" as const,
           },
           // Show saved payment methods for returning customers
@@ -874,7 +881,7 @@ export async function retryPaymentForIntakeAction(intakeId: string): Promise<Che
     }
 
     // Verify the intake is in pending_payment status
-    if (intake.status !== "pending_payment" && intake.payment_status !== "pending") {
+    if (!canRetryPaymentForIntake(intake.status, intake.payment_status)) {
       return { success: false, error: "This request has already been paid or is not awaiting payment" }
     }
 
@@ -954,6 +961,20 @@ export async function retryPaymentForIntakeAction(intakeId: string): Promise<Che
       ? await createReferralCouponIfEligible(patientId, priceCents)
       : null
 
+    const retrySessionMetadata = {
+      intake_id: intake.id,
+      patient_id: patientId,
+      is_retry: "true",
+      category: intake.category || "",
+      subtype: intake.subtype || "",
+      service_slug: serviceSlugForSafety || "",
+      ...(refCode ? { referral_code: refCode } : {}),
+      ...(referralCoupon ? {
+        referral_coupon_id: referralCoupon.couponId,
+        referral_discount_cents: String(referralCoupon.discountCents),
+      } : {}),
+    }
+
     const sessionParams = {
       line_items: [
         {
@@ -965,18 +986,9 @@ export async function retryPaymentForIntakeAction(intakeId: string): Promise<Che
       mode: "payment" as const,
       success_url: `${baseUrl}/patient/intakes/success?intake_id=${intake.id}&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${baseUrl}/patient/intakes/cancelled?intake_id=${intake.id}`,
-      metadata: {
-        intake_id: intake.id,
-        patient_id: patientId,
-        is_retry: "true",
-        category: intake.category || "",
-        subtype: intake.subtype || "",
-        service_slug: serviceSlugForSafety || "",
-        ...(refCode ? { referral_code: refCode } : {}),
-        ...(referralCoupon ? {
-          referral_coupon_id: referralCoupon.couponId,
-          referral_discount_cents: String(referralCoupon.discountCents),
-        } : {}),
+      metadata: retrySessionMetadata,
+      payment_intent_data: {
+        metadata: buildPaymentIntentMetadata(retrySessionMetadata),
       },
       customer: authUser.profile.stripe_customer_id || undefined,
       customer_email: !authUser.profile.stripe_customer_id && patientEmail ? patientEmail : undefined,

@@ -1,5 +1,7 @@
-import { AlertTriangle, CheckCircle2, Clock, Timer } from "lucide-react"
+import { AlertTriangle, ArrowUpRight, CheckCircle2, Clock, Timer } from "lucide-react"
+import Link from "next/link"
 
+import { Button } from "@/components/ui/button"
 import { requireRole } from "@/lib/auth/helpers"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
@@ -140,13 +142,21 @@ export default async function SLAMonitoringPage() {
                     {intake.category?.replace(/_/g, " ")}
                   </p>
                 </div>
-                <div className="text-right">
-                  <p className="font-semibold text-destructive">
-                    {intake.hoursWaiting}h waiting
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {intake.status}
-                  </p>
+                <div className="flex items-center gap-3">
+                  <div className="text-right">
+                    <p className="font-semibold text-destructive">
+                      {intake.hoursWaiting}h waiting
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {intake.status}
+                    </p>
+                  </div>
+                  <Button size="sm" variant="outline" asChild>
+                    <Link href={`/doctor/intakes/${intake.id}`}>
+                      Open
+                      <ArrowUpRight className="ml-1 h-3.5 w-3.5" />
+                    </Link>
+                  </Button>
                 </div>
               </div>
             ))}
@@ -175,13 +185,21 @@ export default async function SLAMonitoringPage() {
                     {intake.category?.replace(/_/g, " ")}
                   </p>
                 </div>
-                <div className="text-right">
-                  <p className="font-semibold text-warning">
-                    {intake.hoursWaiting}h waiting
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {intake.status}
-                  </p>
+                <div className="flex items-center gap-3">
+                  <div className="text-right">
+                    <p className="font-semibold text-warning">
+                      {intake.hoursWaiting}h waiting
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {intake.status}
+                    </p>
+                  </div>
+                  <Button size="sm" variant="outline" asChild>
+                    <Link href={`/doctor/intakes/${intake.id}`}>
+                      Open
+                      <ArrowUpRight className="ml-1 h-3.5 w-3.5" />
+                    </Link>
+                  </Button>
                 </div>
               </div>
             ))}

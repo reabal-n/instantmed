@@ -32,6 +32,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Skeleton } from "@/components/uix"
+import { fetchWithCsrf } from "@/lib/security/csrf-client"
 import { cn } from "@/lib/utils"
 
 interface DlqEntry {
@@ -85,7 +86,7 @@ export function WebhookDlqClient() {
   const handleAction = async (action: "retry" | "resolve" | "resolve_all", entryId?: string) => {
     setActionLoading(entryId || action)
     try {
-      const response = await fetch("/api/admin/webhook-dlq", {
+      const response = await fetchWithCsrf("/api/admin/webhook-dlq", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action, entryId, notes: resolveNotes }),

@@ -109,7 +109,6 @@ export async function handleCustomerSubscriptionDeleted(ctx: WebhookContext): Pr
 
       log.info("Subscription cancellation email sent", {
         subscriptionId: subscription.id,
-        email: profile.email,
       })
     }
   } catch (emailErr) {

@@ -2,13 +2,39 @@ import * as Sentry from "@sentry/nextjs"
 import { after, NextResponse } from "next/server"
 import type Stripe from "stripe"
 
+import { generateDraftsForIntake } from "@/app/actions/generate-drafts"
 import { sendGuestCompleteAccountEmail } from "@/lib/email/template-sender"
+import { sendPaidRequestTelegramNotification } from "@/lib/notifications/paid-request-telegram"
 import { createLogger } from "@/lib/observability/logger"
+import { startPostPaymentReviewWork } from "@/lib/stripe/post-payment"
 
-import type { HandlerResult,WebhookContext } from "./types"
+import type { HandlerResult, WebhookContext } from "./types"
 import { tryClaimEvent } from "./utils"
 
 const log = createLogger("stripe-webhook:async-payment-succeeded")
+
+async function notifyPaidRequestTelegramForAsyncSession(
+  supabase: WebhookContext["supabase"],
+  session: Stripe.Checkout.Session,
+  intakeId: string | null | undefined,
+  patientId: string | null | undefined,
+): Promise<void> {
+  try {
+    await sendPaidRequestTelegramNotification({
+      supabase,
+      intakeId,
+      patientId,
+      paymentStatus: "paid",
+      amountCents: session.amount_total,
+      serviceSlug: session.metadata?.service_slug,
+      category: session.metadata?.category,
+      subtype: session.metadata?.subtype,
+    })
+  } catch (err) {
+    log.error("Telegram notification error (non-fatal)", { intakeId }, err)
+    Sentry.captureException(err, { tags: { source: "telegram-notification-async" }, extra: { intakeId } })
+  }
+}
 
 export async function handleAsyncPaymentSucceeded(ctx: WebhookContext): Promise<HandlerResult> {
   const { event, supabase } = ctx
@@ -30,6 +56,7 @@ export async function handleAsyncPaymentSucceeded(ctx: WebhookContext): Promise<
     customer: session.customer,
   })
   if (!shouldProcess) {
+    await notifyPaidRequestTelegramForAsyncSession(supabase, session, intakeId, patientId)
     return NextResponse.json({ received: true, skipped: true })
   }
 
@@ -55,6 +82,15 @@ export async function handleAsyncPaymentSucceeded(ctx: WebhookContext): Promise<
 
     if (currentIntake.payment_status === "paid") {
       log.info("Intake already paid, skipping async payment update", { intakeId })
+      await startPostPaymentReviewWork({
+        generateDraftsForIntake,
+        intakeId,
+        schedule: (task) => after(task),
+        serviceCategory: session.metadata?.category || session.metadata?.service_type,
+        serviceSlug: session.metadata?.service_slug,
+        supabase,
+      })
+      await notifyPaidRequestTelegramForAsyncSession(supabase, session, intakeId, patientId)
       return NextResponse.json({ received: true, already_paid: true })
     }
 
@@ -149,7 +185,7 @@ export async function handleAsyncPaymentSucceeded(ctx: WebhookContext): Promise<
             }).catch((err: unknown) => {
               log.error("Guest account email error in async payment (non-fatal)", { intakeId: asyncEmailIntakeId }, err)
             })
-            log.info("Guest account completion email queued (async payment)", { intakeId: asyncEmailIntakeId, email: patientProfile.email })
+            log.info("Guest account completion email queued (async payment)", { intakeId: asyncEmailIntakeId })
           }
         } catch (emailErr) {
           log.warn("Async payment confirmation email error (non-fatal)", { intakeId: asyncEmailIntakeId }, emailErr)
@@ -157,37 +193,16 @@ export async function handleAsyncPaymentSucceeded(ctx: WebhookContext): Promise<
       })
     }
 
-    // Telegram notification to doctor — separate from email so it always fires
-    // even if the patient profile fetch later fails.
-    // Synchronous (not after()) — fast HTTP call, maxDuration=300 gives plenty of headroom.
-    // after() was causing silent failures: deferred callback errors aren't indexed by Vercel logs.
-    try {
-      const { notifyNewIntakeViaTelegram } = await import("@/lib/notifications/telegram")
-      const serviceSlug = session.metadata?.service_slug ?? ""
-      const serviceName = serviceSlug
-        .replace(/-/g, " ")
-        .replace(/\b\w/g, (c: string) => c.toUpperCase()) || "Medical Request"
-      // Best-effort name lookup — fall back to "Patient" if unavailable
-      let patientName = "Patient"
-      if (patientId) {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("full_name")
-          .eq("id", patientId)
-          .maybeSingle()
-        if (profile?.full_name) patientName = profile.full_name
-      }
-      await notifyNewIntakeViaTelegram({
-        intakeId,
-        patientName,
-        serviceName,
-        amount: `$${((session.amount_total ?? 0) / 100).toFixed(2)}`,
-        serviceSlug,
-      })
-    } catch (err) {
-      log.error("Telegram notification error (non-fatal)", { intakeId }, err)
-      Sentry.captureException(err, { tags: { source: "telegram-notification-async" }, extra: { intakeId } })
-    }
+    await notifyPaidRequestTelegramForAsyncSession(supabase, session, intakeId, patientId)
+
+    await startPostPaymentReviewWork({
+      generateDraftsForIntake,
+      intakeId,
+      schedule: (task) => after(task),
+      serviceCategory: session.metadata?.category || session.metadata?.service_type,
+      serviceSlug: session.metadata?.service_slug,
+      supabase,
+    })
 
     log.info("Async payment confirmed - intake marked as paid", { intakeId, paymentIntentId })
   } catch (error) {

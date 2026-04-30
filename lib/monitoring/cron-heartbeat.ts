@@ -14,6 +14,7 @@ const log = createLogger("cron-heartbeat")
 const CRITICAL_CRONS: Record<string, { schedule: string; maxDelayMinutes: number }> = {
   "health-check":           { schedule: "*/5 * * * *",   maxDelayMinutes: 12 },
   "email-dispatcher":       { schedule: "*/5 * * * *",   maxDelayMinutes: 12 },
+  "telegram-notifications":  { schedule: "*/5 * * * *",   maxDelayMinutes: 12 },
   "retry-auto-approval":    { schedule: "*/3 * * * *",   maxDelayMinutes: 10 },
   "retry-drafts":           { schedule: "*/5 * * * *",   maxDelayMinutes: 12 },
   "release-stale-claims":   { schedule: "*/5 * * * *",   maxDelayMinutes: 12 },

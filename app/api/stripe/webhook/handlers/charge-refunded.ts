@@ -48,9 +48,20 @@ export async function handleChargeRefunded(ctx: WebhookContext): Promise<Handler
     if (!updateResult.data?.length) {
       try {
         const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId)
+        const metadataIntakeId = paymentIntent.metadata?.intake_id || paymentIntent.metadata?.request_id
         const sessionId = paymentIntent.metadata?.checkout_session_id
 
-        if (sessionId) {
+        if (metadataIntakeId) {
+          updateResult = await supabase
+            .from("intakes")
+            .update({
+              payment_status: isFullRefund ? "refunded" : "partially_refunded",
+              refund_amount_cents: charge.amount_refunded,
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", metadataIntakeId)
+            .select("id")
+        } else if (sessionId) {
           updateResult = await supabase
             .from("intakes")
             .update({
@@ -123,7 +134,7 @@ export async function handleChargeRefunded(ctx: WebhookContext): Promise<Handler
                 intakeId: refundIntakeId,
                 patientId: patient.id,
               })
-              log.info("Refund notification email sent", { intakeId: refundIntakeId, to: patient.email })
+              log.info("Refund notification email sent", { intakeId: refundIntakeId })
             }
           }
         } catch (emailError) {

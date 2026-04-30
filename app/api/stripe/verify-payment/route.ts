@@ -1,11 +1,13 @@
 import * as Sentry from "@sentry/nextjs"
-import { NextRequest, NextResponse } from "next/server"
+import { after, NextRequest, NextResponse } from "next/server"
 
 import { generateDraftsForIntake } from "@/app/actions/generate-drafts"
 import { auth } from "@/lib/auth/helpers"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { stripe } from "@/lib/stripe/client"
+import { validateCheckoutSessionIntakeMatch } from "@/lib/stripe/payment-integrity"
+import { startPostPaymentReviewWork } from "@/lib/stripe/post-payment"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const log = createLogger("stripe-verify-payment")
@@ -51,7 +53,7 @@ export async function POST(req: NextRequest) {
     // 1. Check current intake status AND verify ownership
     const { data: intake, error: fetchError } = await supabase
       .from("intakes")
-      .select("id, status, payment_status, payment_id")
+      .select("id, status, payment_status, payment_id, category")
       .eq("id", intakeId)
       .eq("patient_id", profile.id)
       .single()
@@ -63,6 +65,14 @@ export async function POST(req: NextRequest) {
 
     // 2. Already paid - no action needed
     if (intake.payment_status === "paid") {
+      await startPostPaymentReviewWork({
+        generateDraftsForIntake,
+        intakeId,
+        schedule: (task) => after(task),
+        serviceCategory: intake.category,
+        supabase,
+      })
+
       return NextResponse.json({ 
         success: true, 
         status: intake.status,
@@ -95,6 +105,24 @@ export async function POST(req: NextRequest) {
         status: intake.status,
         error: "Failed to verify payment with Stripe" 
       })
+    }
+
+    const sessionMatch = validateCheckoutSessionIntakeMatch({
+      intakeId,
+      session,
+      storedPaymentId: intake.payment_id,
+    })
+    if (!sessionMatch.valid) {
+      log.warn("Payment verification session mismatch", {
+        intakeId,
+        reason: sessionMatch.reason,
+        sessionId: checkoutSessionId,
+      })
+      return NextResponse.json({
+        success: false,
+        status: intake.status,
+        error: "Payment session does not match this request",
+      }, { status: 409 })
     }
 
     // 5. Check if payment was successful
@@ -143,9 +171,12 @@ export async function POST(req: NextRequest) {
 
     log.info("Intake marked as paid via fallback verification", { intakeId })
 
-    // 7. Trigger AI draft generation (non-blocking)
-    generateDraftsForIntake(intakeId).catch((err) => {
-      log.error("Draft generation failed after fallback payment", { intakeId }, err)
+    await startPostPaymentReviewWork({
+      generateDraftsForIntake,
+      intakeId,
+      schedule: (task) => after(task),
+      serviceCategory: intake.category,
+      supabase,
     })
 
     return NextResponse.json({ 

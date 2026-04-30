@@ -342,7 +342,13 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
               <Link href={DOCTOR_QUEUE_REVIEW_HREF}>Doctor Queue</Link>
             </Button>
             <Button variant="outline" asChild>
+              <Link href="/admin/ops/sla">SLA Monitor</Link>
+            </Button>
+            <Button variant="outline" asChild>
               <Link href="/admin/ops/prescribing-identity">Rx Identity Blocks</Link>
+            </Button>
+            <Button variant="outline" asChild>
+              <Link href="/admin/ops/patient-merge-audit">Merge Audit</Link>
             </Button>
             <Button variant="outline" asChild>
               <Link href="/admin/refunds">Refunds</Link>

@@ -73,7 +73,7 @@ export async function handlePaymentIntentFailed(ctx: WebhookContext): Promise<Ha
             retryUrl: `${process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au"}/patient/intakes/${failedIntakeId}?retry=true`,
             intakeId: failedIntakeId,
           })
-          log.info("Sent payment failure notification", { intakeId: failedIntakeId, email: patient.email })
+          log.info("Sent payment failure notification", { intakeId: failedIntakeId })
         }
       } catch (emailError) {
         log.error("Failed to send payment failure notification", { intakeId: failedIntakeId }, emailError)
