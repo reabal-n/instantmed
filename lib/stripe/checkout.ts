@@ -14,7 +14,7 @@ import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
 import { isControlledSubstance } from "@/lib/clinical/intake-validation"
 import { getAppUrl } from "@/lib/config/env"
 import { checkCheckoutBlocked } from "@/lib/config/kill-switches"
-import { isAtCapacity,isOutsideBusinessHours } from "@/lib/config/operational-config"
+import { isAtCapacity } from "@/lib/config/operational-config"
 import { CONTACT_EMAIL } from "@/lib/constants"
 import { TELEHEALTH_CONSENT_VERSION,TERMS_VERSION } from "@/lib/constants"
 import { updateProfile } from "@/lib/data/profiles"
@@ -141,18 +141,6 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
       return {
         success: false,
         error: `This service is temporarily unavailable. Please try again later. [${errorCode}]`,
-      }
-    }
-
-    // Business hours (med certs are 24/7 - auto-approved)
-    if (input.category !== "medical_certificate") {
-      const outsideHours = await isOutsideBusinessHours()
-      if (outsideHours.closed) {
-        trackOperationalBlock({ blockType: "business_hours", source: "checkout", userId: input.patientId })
-        return {
-          success: false,
-          error: `We're outside our operating hours. We'll be back at ${outsideHours.nextOpen ?? "8am"} AEST.`,
-        }
       }
     }
 
