@@ -64,6 +64,7 @@ export function getAuditEventTypes(): { value: string; label: string }[] {
     { value: "document_generated", label: "Document Generated" },
     { value: "document_sent", label: "Document Sent" },
     { value: "admin_action", label: "Admin Action" },
+    { value: "patient_profiles_merged", label: "Patient Profiles Merged" },
     { value: "settings_changed", label: "Settings Changed" },
     { value: "login", label: "Login" },
     { value: "logout", label: "Logout" },

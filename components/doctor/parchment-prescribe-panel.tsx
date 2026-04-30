@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { AlertTriangle, CheckCircle, ExternalLink, Loader2, X } from "lucide-react"
+import { AlertTriangle, CheckCircle, Clipboard, ExternalLink, Loader2, X } from "lucide-react"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
 
@@ -9,12 +9,14 @@ import { getParchmentPrescribeUrlAction } from "@/app/actions/parchment"
 import { usePanel } from "@/components/panels/panel-provider"
 import { Button } from "@/components/ui/button"
 import { useReducedMotion } from "@/components/ui/motion"
+import type { ParchmentPrescriptionContext } from "@/lib/doctor/parchment-prescribing-context"
 import { backdropVariants, sheetVariants } from "@/lib/motion/panel-variants"
 import { canEmbedParchmentForHost } from "@/lib/parchment/embed-policy"
 
 interface ParchmentPrescribePanelProps {
   intakeId: string
   patientName: string
+  prescriptionContext?: ParchmentPrescriptionContext | null
   onScriptSent?: () => void
 }
 
@@ -29,6 +31,7 @@ interface ParchmentPrescribePanelProps {
 export function ParchmentPrescribePanel({
   intakeId,
   patientName,
+  prescriptionContext,
   onScriptSent,
 }: ParchmentPrescribePanelProps) {
   const { closePanel } = usePanel()
@@ -49,6 +52,16 @@ export function ParchmentPrescribePanel({
       toast.error(freshResult.error || "Failed to generate new Parchment session")
     }
   }, [intakeId])
+
+  const copyPrescriptionContext = useCallback(async () => {
+    if (!prescriptionContext?.clipboardText) return
+    try {
+      await navigator.clipboard.writeText(prescriptionContext.clipboardText)
+      toast.success("Prescription details copied")
+    } catch {
+      toast.error("Could not copy prescription details")
+    }
+  }, [prescriptionContext])
 
   const loadPrescribingUrl = useCallback(async () => {
     setLoading(true)
@@ -140,6 +153,29 @@ export function ParchmentPrescribePanel({
               <p className="text-sm text-muted-foreground mt-0.5">
                 Write the prescription in Parchment below. It will be confirmed automatically.
               </p>
+              {prescriptionContext && (
+                <div className="mt-3 rounded-md border border-border bg-muted/35 px-3 py-2">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                        Requested medicine
+                      </p>
+                      <p className="truncate text-sm font-medium text-foreground">
+                        {prescriptionContext.medicationLabel || prescriptionContext.presetLabel}
+                      </p>
+                      {prescriptionContext.searchHint && (
+                        <p className="truncate text-xs text-muted-foreground">
+                          Search in Parchment: {prescriptionContext.searchHint}
+                        </p>
+                      )}
+                    </div>
+                    <Button type="button" variant="outline" size="sm" onClick={copyPrescriptionContext}>
+                      <Clipboard className="mr-1.5 h-3.5 w-3.5" />
+                      Copy
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
             <div className="flex items-center gap-2 ml-4">
               {ssoUrl && (

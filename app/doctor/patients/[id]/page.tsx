@@ -1,5 +1,6 @@
-import { notFound } from "next/navigation"
+import { notFound, redirect } from "next/navigation"
 
+import { requireRole } from "@/lib/auth/helpers"
 import { decryptProfilePhi } from "@/lib/data/profiles"
 import { collapseDuplicatePatientProfiles } from "@/lib/doctor/patient-snapshot"
 import { logger } from "@/lib/observability/logger"
@@ -26,7 +27,9 @@ async function getPatientWithHistory(patientId: string) {
       ahpra_number, ahpra_verified, ahpra_verified_at, ahpra_verified_by,
       provider_number, consent_myhr, onboarding_completed,
       email_verified, email_verified_at,
-      avatar_url, stripe_customer_id, parchment_patient_id, created_at, updated_at
+      avatar_url, stripe_customer_id, parchment_patient_id,
+      merged_into_profile_id, merged_at, merged_by, merge_reason,
+      created_at, updated_at
     `)
     .eq("id", patientId)
     .eq("role", "patient")
@@ -34,6 +37,10 @@ async function getPatientWithHistory(patientId: string) {
 
   if (patientError || !patient) {
     return null
+  }
+
+  if (patient.merged_into_profile_id) {
+    redirect(`/doctor/patients/${patient.merged_into_profile_id}`)
   }
 
   const decryptedPatient = asProfile(decryptProfilePhi(patient as Record<string, unknown>))
@@ -50,9 +57,12 @@ async function getPatientWithHistory(patientId: string) {
       ahpra_number, ahpra_verified, ahpra_verified_at, ahpra_verified_by,
       provider_number, consent_myhr, onboarding_completed,
       email_verified, email_verified_at,
-      avatar_url, stripe_customer_id, parchment_patient_id, created_at, updated_at
+      avatar_url, stripe_customer_id, parchment_patient_id,
+      merged_into_profile_id, merged_at, merged_by, merge_reason,
+      created_at, updated_at
     `)
     .eq("role", "patient")
+    .is("merged_into_profile_id", null)
     .order("created_at", { ascending: false })
 
   if (duplicateCandidatesError) {
@@ -159,7 +169,7 @@ export const metadata = { title: "Patient Detail" }
 export const dynamic = "force-dynamic"
 
 export default async function PatientDetailPage({ params }: PageProps) {
-  // Layout enforces doctor/admin role
+  const authResult = await requireRole(["doctor", "admin"], { redirectTo: "/doctor/dashboard" })
   const { id } = await params
   const data = await getPatientWithHistory(id)
 
@@ -174,6 +184,7 @@ export default async function PatientDetailPage({ params }: PageProps) {
       stats={data.stats}
       emailLogs={data.emailLogs}
       patientNotes={data.patientNotes}
+      canMergePatientProfiles={authResult.profile.role === "admin"}
     />
   )
 }

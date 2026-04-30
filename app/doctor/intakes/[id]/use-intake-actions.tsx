@@ -19,6 +19,7 @@ import { MIN_CLINICAL_NOTES_LENGTH } from "@/components/doctor/review/utils"
 import { usePanel } from "@/components/panels/panel-provider"
 import { buildClinicalCaseSummary } from "@/lib/clinical/case-summary"
 import { resolveClinicalDecisionNote } from "@/lib/doctor/clinical-notes"
+import { buildParchmentPrescriptionContext } from "@/lib/doctor/parchment-prescribing-context"
 import type { IntakeStatus,IntakeWithDetails } from "@/types/db"
 
 import type { IntakeDialogState } from "./use-intake-dialogs"
@@ -86,9 +87,9 @@ export function useIntakeActions({
   const service = intake.service as { name?: string; type?: string; short_name?: string } | undefined
   const hasClinicalDraft = !!findClinicalNoteDraft(aiDrafts)
 
-  const resolveDecisionNote = useCallback(() => {
+  const getClinicalCaseSummary = useCallback(() => {
     const answers = (intake.answers?.answers || {}) as Record<string, unknown>
-    const caseSummary = buildClinicalCaseSummary({
+    return buildClinicalCaseSummary({
       answers,
       category: intake.category,
       subtype: intake.subtype,
@@ -97,12 +98,16 @@ export function useIntakeActions({
       riskTier: intake.risk_tier,
       requiresLiveConsult: intake.requires_live_consult,
     })
+  }, [intake, service?.type])
+
+  const resolveDecisionNote = useCallback(() => {
+    const caseSummary = getClinicalCaseSummary()
 
     return resolveClinicalDecisionNote({
       doctorNotes,
       fallbackDraftNote: caseSummary.draftNote,
     })
-  }, [doctorNotes, intake, service?.type])
+  }, [doctorNotes, getClinicalCaseSummary])
 
   // ── Audit logging + lock management ──
 
@@ -367,13 +372,14 @@ export function useIntakeActions({
         <ParchmentPrescribePanel
           intakeId={intake.id}
           patientName={intake.patient?.full_name || "Patient"}
+          prescriptionContext={buildParchmentPrescriptionContext(getClinicalCaseSummary())}
           onScriptSent={() => {
             dialogs.openScriptDialog()
           }}
         />
       ),
     })
-  }, [intake.id, intake.patient?.full_name, parchmentEnabled, openPanel, dialogs])
+  }, [getClinicalCaseSummary, intake.id, intake.patient?.full_name, parchmentEnabled, openPanel, dialogs])
 
   const handleMarkRefunded = useCallback(async () => {
     startTransition(async () => {

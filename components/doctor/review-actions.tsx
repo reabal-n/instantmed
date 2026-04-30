@@ -25,6 +25,7 @@ import { playApprovalSound } from "@/lib/audio/approval-sound"
 import { buildClinicalCaseSummary } from "@/lib/clinical/case-summary"
 import { resolveClinicalDecisionNote } from "@/lib/doctor/clinical-notes"
 import { DECLINE_REASONS } from "@/lib/doctor/constants"
+import { buildParchmentPrescriptionContext } from "@/lib/doctor/parchment-prescribing-context"
 import { useDoctorShortcuts } from "@/lib/hooks/use-doctor-shortcuts"
 import type { DeclineReasonCode,IntakeStatus } from "@/types/db"
 
@@ -168,6 +169,26 @@ export function useReviewActions({
     router.refresh()
   }, [closePanel, onActionComplete, router])
 
+  const handleDeclineReasonCodeChange = (code: DeclineReasonCode) => {
+    setDeclineReasonCode(code)
+    const template = DECLINE_REASONS.find((r) => r.code === code)?.template || ""
+    setDeclineReason(template)
+  }
+
+  const getClinicalCaseSummary = useCallback(() => {
+    if (!intake) return null
+    const answers = (intake.answers?.answers || {}) as Record<string, unknown>
+    return buildClinicalCaseSummary({
+      answers,
+      category: intake.category,
+      subtype: intake.subtype,
+      serviceType: service?.type,
+      patientName: intake.patient.full_name,
+      riskTier: intake.risk_tier,
+      requiresLiveConsult: intake.requires_live_consult,
+    })
+  }, [intake, service?.type])
+
   const openParchmentPanel = useCallback(() => {
     if (!intake) return
     openPanel({
@@ -177,35 +198,21 @@ export function useReviewActions({
         <ParchmentPrescribePanel
           intakeId={intake.id}
           patientName={intake.patient?.full_name || "Patient"}
+          prescriptionContext={buildParchmentPrescriptionContext(getClinicalCaseSummary())}
         />
       ),
     })
-  }, [intake, openPanel])
-
-  const handleDeclineReasonCodeChange = (code: DeclineReasonCode) => {
-    setDeclineReasonCode(code)
-    const template = DECLINE_REASONS.find((r) => r.code === code)?.template || ""
-    setDeclineReason(template)
-  }
+  }, [getClinicalCaseSummary, intake, openPanel])
 
   const resolveDecisionNote = useCallback(() => {
-    if (!intake) return null
-    const answers = (intake.answers?.answers || {}) as Record<string, unknown>
-    const caseSummary = buildClinicalCaseSummary({
-      answers,
-      category: intake.category,
-      subtype: intake.subtype,
-      serviceType: service?.type,
-      patientName: intake.patient.full_name,
-      riskTier: intake.risk_tier,
-      requiresLiveConsult: intake.requires_live_consult,
-    })
+    const caseSummary = getClinicalCaseSummary()
+    if (!caseSummary) return null
 
     return resolveClinicalDecisionNote({
       doctorNotes,
       fallbackDraftNote: caseSummary.draftNote,
     })
-  }, [doctorNotes, intake, service?.type])
+  }, [doctorNotes, getClinicalCaseSummary])
 
   // ---- Action handlers ----
 

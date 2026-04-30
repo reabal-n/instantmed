@@ -25,9 +25,12 @@ async function getPatients(page: number) {
       medicare_number, medicare_number_encrypted, medicare_irn, medicare_expiry,
       onboarding_completed,
       email_verified, email_verified_at,
-      avatar_url, stripe_customer_id, created_at, updated_at
+      avatar_url, stripe_customer_id,
+      merged_into_profile_id, merged_at, merged_by, merge_reason,
+      created_at, updated_at
     `, { count: "exact" })
     .eq("role", "patient")
+    .is("merged_into_profile_id", null)
     .order("created_at", { ascending: false })
 
   if (error) {

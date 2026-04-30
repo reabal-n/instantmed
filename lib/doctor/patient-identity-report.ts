@@ -21,9 +21,10 @@ export async function getDuplicatePatientProfileSummary(
     .from("profiles")
     .select(`
       id, email, full_name, date_of_birth, date_of_birth_encrypted,
-      phone, phone_encrypted, role, created_at, updated_at
+      phone, phone_encrypted, role, merged_into_profile_id, created_at, updated_at
     `)
     .eq("role", "patient")
+    .is("merged_into_profile_id", null)
 
   if (error) {
     return {

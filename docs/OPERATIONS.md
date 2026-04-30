@@ -75,6 +75,31 @@ PLAYWRIGHT=1 STRIPE_WEBHOOK_SECRET=whsec_test_... pnpm e2e e2e/stripe-webhook.sp
 5. Scheduled maintenance: cron runs every 5 min; if window passed but banner still on, manually set `maintenance_mode` = false in feature_flags
 6. Doctor availability: paused doctors (`doctor_available = false`) see empty queue; toggle at `/doctor/settings/identity`
 
+### Duplicate Patient Profiles
+
+**Symptoms:** `/doctor/patients` shows linked profiles, `/admin/ops` flags patient identity risk, or the daily digest reports duplicate profiles.
+
+**Triage:**
+
+1. Open the canonical patient from `/doctor/patients`. The detail page aggregates linked request history before any merge.
+2. Confirm the linked rows are guest duplicate profiles for the same person. Do not merge signed-in duplicate profiles from the UI; they require manual identity review.
+3. Check the banner count and request history. If the canonical profile looks correct, use **Merge** from the patient detail page.
+4. If merge is blocked because both profiles have health profile rows, manually compare those health rows first. Do not overwrite health history blindly.
+
+**What merge does:**
+
+1. Reassigns patient-owned records to the canonical profile in one database function.
+2. Archives duplicate guest profile rows with `merged_into_profile_id`, `merged_at`, `merged_by`, and `merge_reason`.
+3. Writes `patient_profile_merge_audit` and `audit_logs` entries with non-PHI IDs and movement counts.
+4. Removes archived duplicate profiles from patient directory and duplicate-identity reporting.
+
+**Post-merge verification:**
+
+1. Refresh `/doctor/patients`; the duplicate group should disappear.
+2. Open the canonical patient; request history, certificates, notes, and email history should remain visible.
+3. Check `/admin/audit` for `patient_profiles_merged`.
+4. If any merge fails, do not retry blindly. Read the returned blocker and resolve the conflicting record first.
+
 ### Solo-Doctor Operating Model
 
 **Current phase:** one AHPRA-registered GP operates as treating doctor and Medical Director. The platform must protect clinical quality and doctor capacity before it optimises volume.

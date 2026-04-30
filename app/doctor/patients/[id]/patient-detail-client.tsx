@@ -10,6 +10,7 @@ import {
   Clock,
   CreditCard,
   FileText,
+  GitMerge,
   Loader2,
   Mail,
   MapPin,
@@ -21,10 +22,23 @@ import {
   XCircle,
 } from "lucide-react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { useState, useTransition } from "react"
+import { toast } from "sonner"
 
 import { addPatientNoteAction } from "@/app/actions/patient-notes"
+import { mergePatientProfilesAction } from "@/app/actions/patient-profile-merge"
 import { PatientCommunicationHistory } from "@/components/doctor"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -69,8 +83,12 @@ interface PatientNote {
   created_by_name: string | null
 }
 
+type PatientDetailProfile = Profile & {
+  duplicate_profile_ids?: string[]
+}
+
 interface PatientDetailClientProps {
-  patient: Profile
+  patient: PatientDetailProfile
   intakes: IntakeWithService[]
   stats: {
     totalRequests: number
@@ -80,23 +98,58 @@ interface PatientDetailClientProps {
   }
   emailLogs: EmailLog[]
   patientNotes: PatientNote[]
+  canMergePatientProfiles: boolean
 }
 
-export function PatientDetailClient({ patient, intakes, stats, emailLogs, patientNotes }: PatientDetailClientProps) {
-  const [isPending, startTransition] = useTransition()
+export function PatientDetailClient({
+  patient,
+  intakes,
+  stats,
+  emailLogs,
+  patientNotes,
+  canMergePatientProfiles,
+}: PatientDetailClientProps) {
+  const router = useRouter()
+  const [isNotePending, startNoteTransition] = useTransition()
+  const [isMergePending, startMergeTransition] = useTransition()
   const [newNote, setNewNote] = useState("")
   const [notes, setNotes] = useState<PatientNote[]>(patientNotes)
   const [showNoteForm, setShowNoteForm] = useState(false)
+  const [showMergeDialog, setShowMergeDialog] = useState(false)
+  const duplicateProfileIds = patient.duplicate_profile_ids ?? []
+  const canMergeLinkedProfiles = canMergePatientProfiles && duplicateProfileIds.length > 0
 
   const handleAddNote = () => {
     if (!newNote.trim()) return
-    startTransition(async () => {
+    startNoteTransition(async () => {
       const result = await addPatientNoteAction(patient.id, newNote.trim())
       if (result.success && result.note) {
         setNotes(prev => [result.note as PatientNote, ...prev])
         setNewNote("")
         setShowNoteForm(false)
       }
+    })
+  }
+
+  const handleMergeLinkedProfiles = () => {
+    if (!canMergeLinkedProfiles) return
+
+    startMergeTransition(async () => {
+      const result = await mergePatientProfilesAction(
+        patient.id,
+        duplicateProfileIds,
+        "Merged from linked duplicate profile review",
+      )
+      const mergedCount = result.mergedProfileCount ?? duplicateProfileIds.length
+
+      if (result.success) {
+        toast.success(`Merged ${mergedCount} linked profile${mergedCount === 1 ? "" : "s"}`)
+        setShowMergeDialog(false)
+        router.refresh()
+        return
+      }
+
+      toast.error(result.error || "Could not merge linked profiles")
     })
   }
 
@@ -151,7 +204,21 @@ export function PatientDetailClient({ patient, intakes, stats, emailLogs, patien
         <CardContent className="px-4 py-3">
           {stats.linkedProfiles > 1 && (
             <div className="mb-4 rounded-lg border border-info-border bg-info-light px-3 py-2 text-sm text-info">
-              This view includes request history from {stats.linkedProfiles} linked patient profiles.
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <span>This view includes request history from {stats.linkedProfiles} linked patient profiles.</span>
+                {canMergeLinkedProfiles && (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    className="w-full border-info text-info hover:bg-info/10 sm:w-auto"
+                    onClick={() => setShowMergeDialog(true)}
+                  >
+                    <GitMerge className="mr-1 h-3.5 w-3.5" />
+                    Merge
+                  </Button>
+                )}
+              </div>
             </div>
           )}
           {snapshot.missingCriticalFields.length > 0 && (
@@ -354,8 +421,8 @@ export function PatientDetailClient({ patient, intakes, stats, emailLogs, patien
                 <Button variant="ghost" size="sm" onClick={() => { setShowNoteForm(false); setNewNote("") }}>
                   Cancel
                 </Button>
-                <Button size="sm" onClick={handleAddNote} disabled={isPending || !newNote.trim()}>
-                  {isPending && <Loader2 className="h-4 w-4 mr-1 animate-spin" />}
+                <Button size="sm" onClick={handleAddNote} disabled={isNotePending || !newNote.trim()}>
+                  {isNotePending && <Loader2 className="h-4 w-4 mr-1 animate-spin" />}
                   Save Note
                 </Button>
               </div>
@@ -401,6 +468,24 @@ export function PatientDetailClient({ patient, intakes, stats, emailLogs, patien
           metadata: null,
         }))}
       />
+
+      <AlertDialog open={showMergeDialog} onOpenChange={setShowMergeDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Merge Linked Patient Profiles</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will move request history, certificates, email logs, notes, consents, follow-ups, repeat Rx requests, and referral credits from {duplicateProfileIds.length} guest duplicate profile{duplicateProfileIds.length === 1 ? "" : "s"} into this canonical patient profile. The duplicate profile row{duplicateProfileIds.length === 1 ? "" : "s"} will stay archived for audit history.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isMergePending}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleMergeLinkedProfiles} disabled={isMergePending}>
+              {isMergePending && <Loader2 className="mr-1 h-4 w-4 animate-spin" />}
+              Merge Profiles
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

@@ -395,6 +395,13 @@ export interface Profile {
   // Parchment ePrescribing
   parchment_user_id?: string | null // Parchment user ID (doctors)
   parchment_patient_id?: string | null // Parchment patient ID (patients)
+  // Patient profile merge state
+  normalized_email?: string | null
+  normalized_phone?: string | null
+  merged_into_profile_id?: string | null
+  merged_at?: string | null
+  merged_by?: string | null
+  merge_reason?: string | null
   // Stripe customer linking
   stripe_customer_id: string | null
   // Timestamps
