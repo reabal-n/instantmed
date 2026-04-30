@@ -36,6 +36,10 @@
     },
     "Sentry": {
       "url": "https://mcp.sentry.dev/mcp/instantmed/javascript-nextjs"
+    },
+    "parchment-docs": {
+      "command": "npx",
+      "args": ["-y", "@parchmenthealth/docs-mcp"]
     }
   }
 }
