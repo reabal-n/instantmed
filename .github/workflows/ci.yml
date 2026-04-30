@@ -27,6 +27,19 @@ jobs:
       - name: Check stack pins (Next/React/Tailwind/Framer Motion)
         run: bash scripts/check-stack-pins.sh
 
+      - name: Supabase schema lint
+        env:
+          POSTGRES_URL_NON_POOLING: ${{ secrets.POSTGRES_URL_NON_POOLING }}
+        run: |
+          if [ -z "$POSTGRES_URL_NON_POOLING" ]; then
+            echo "::warning::POSTGRES_URL_NON_POOLING is not configured; skipping remote Supabase schema lint"
+            exit 0
+          fi
+          npx supabase@2.72.7 db lint \
+            --db-url "$POSTGRES_URL_NON_POOLING" \
+            --schema public,extensions \
+            --fail-on error
+
       - name: Security audit
         run: pnpm audit --audit-level=high
 

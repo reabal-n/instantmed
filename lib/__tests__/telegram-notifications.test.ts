@@ -54,4 +54,21 @@ describe("Telegram request notifications", () => {
       serviceSlug: "med-cert-sick",
     })).rejects.toThrow("Telegram med cert send failed: 400")
   })
+
+  it("fails loudly when paid-request Telegram credentials are missing", async () => {
+    delete process.env.TELEGRAM_BOT_TOKEN
+    delete process.env.TELEGRAM_CHAT_ID
+
+    const { notifyNewIntakeViaTelegram } = await import("@/lib/notifications/telegram")
+
+    await expect(notifyNewIntakeViaTelegram({
+      intakeId: "12345678-1234-1234-1234-123456789abc",
+      patientName: "Alex Patient",
+      serviceName: "Medical Certificate",
+      amount: "$29.95",
+      serviceSlug: "med-cert-sick",
+    })).rejects.toThrow("Telegram notification is not configured")
+
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
 })

@@ -65,8 +65,13 @@ export async function notifyNewIntakeViaTelegram(opts: TelegramNotifyOptions): P
   const token = getToken()
   const chatId = getChatId()
   if (!token || !chatId) {
-    log.debug("Telegram not configured, skipping notification")
-    return
+    const missing = [
+      !token ? "TELEGRAM_BOT_TOKEN" : null,
+      !chatId ? "TELEGRAM_CHAT_ID" : null,
+    ].filter(Boolean).join(", ")
+    const error = new TelegramSendError(`Telegram notification is not configured: missing ${missing}`)
+    log.error("Telegram notification not configured", { intakeId: opts.intakeId, missing })
+    throw error
   }
 
   const isMedCert = opts.serviceSlug?.startsWith("med-cert")
