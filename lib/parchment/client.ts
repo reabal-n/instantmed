@@ -61,8 +61,13 @@ function getConfig() {
 // TOKEN CACHE
 // ============================================================================
 
-/** Per-user token cache - avoids serving doctor A's token to doctor B in shared serverless instances */
+/** Per-user/per-scope token cache - avoids serving a token without the scopes a later call requires. */
 const tokenCache = new Map<string, { accessToken: string; expiresAt: number }>()
+
+function tokenCacheKey(userId: string, scopes: string[]): string {
+  const normalizedScopes = Array.from(new Set(scopes)).sort().join(" ")
+  return `${userId}:${normalizedScopes}`
+}
 
 /**
  * Get a valid JWT token, using cache when possible.
@@ -75,7 +80,8 @@ async function getToken(userId: string, scopes: string[]): Promise<string> {
   const now = Date.now()
 
   // Return cached token if still valid (60s buffer)
-  const cached = tokenCache.get(userId)
+  const cacheKey = tokenCacheKey(userId, scopes)
+  const cached = tokenCache.get(cacheKey)
   if (cached && cached.expiresAt > now + 60_000) {
     return cached.accessToken
   }
@@ -109,19 +115,21 @@ async function getToken(userId: string, scopes: string[]): Promise<string> {
   const json = await res.json()
   const parsed = parchmentTokenResponseSchema.parse(json)
 
-  tokenCache.set(userId, {
+  tokenCache.set(cacheKey, {
     accessToken: parsed.data.accessToken,
     expiresAt: now + parsed.data.expiresIn * 1000,
   })
 
-  log.info("Token acquired", { userId, scopes, expiresIn: parsed.data.expiresIn })
+  log.info("Token acquired", { scopeCount: scopes.length, expiresIn: parsed.data.expiresIn })
   return parsed.data.accessToken
 }
 
 /** Force-clear cached token(s) - called after 401 errors to force re-auth */
 export function clearTokenCache(userId?: string): void {
   if (userId) {
-    tokenCache.delete(userId)
+    for (const key of tokenCache.keys()) {
+      if (key.startsWith(`${userId}:`)) tokenCache.delete(key)
+    }
   } else {
     tokenCache.clear()
   }
@@ -165,7 +173,6 @@ export async function validateIntegration(
   const parsed = validateIntegrationResponseSchema.parse(json)
 
   log.info("Integration validated", {
-    userId,
     validated: parsed.data.validated,
     requestId: parsed.requestId,
   })

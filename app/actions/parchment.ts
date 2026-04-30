@@ -7,7 +7,7 @@ import { requireRoleOrNull } from "@/lib/auth/helpers"
 import { getFeatureFlags } from "@/lib/feature-flags"
 import { createLogger } from "@/lib/observability/logger"
 import { getSsoUrl, listUsers, validateIntegration } from "@/lib/parchment/client"
-import { ParchmentPatientIdentityError, syncPatientToParchment } from "@/lib/parchment/sync-patient"
+import { ParchmentPatientIdentityError, ParchmentPatientSyncError, syncPatientToParchment } from "@/lib/parchment/sync-patient"
 import { readAnswers } from "@/lib/security/phi-field-wrappers"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
@@ -72,11 +72,7 @@ export async function getParchmentPrescribeUrlAction(
 
     // Defense-in-depth: verify this doctor claimed the intake
     if (intake.claimed_by !== authResult.profile.id) {
-      log.warn("Parchment prescribe attempted by non-claiming doctor", {
-        intakeId,
-        claimedBy: intake.claimed_by,
-        attemptedBy: authResult.profile.id,
-      })
+      log.warn("Parchment prescribe attempted by non-claiming doctor")
       return { success: false, error: "You must claim this intake before prescribing" }
     }
 
@@ -107,10 +103,7 @@ export async function getParchmentPrescribeUrlAction(
       `/embed/patients/${parchmentPatientId}/prescriptions`,
     )
 
-    log.info("Parchment prescribe URL generated", {
-      intakeId,
-      doctorId: authResult.profile.id,
-    })
+    log.info("Parchment prescribe URL generated")
 
     return {
       success: true,
@@ -120,14 +113,19 @@ export async function getParchmentPrescribeUrlAction(
   } catch (error) {
     if (error instanceof ParchmentPatientIdentityError) {
       log.warn("Parchment prescribe blocked by incomplete prescribing identity", {
-        intakeId,
         missingFields: error.issues,
       })
       return { success: false, error: `Missing prescribing details: ${error.issues.join(", ")}` }
     }
 
-    log.error("Failed to get Parchment prescribe URL", { intakeId }, error instanceof Error ? error : new Error(String(error)))
-    Sentry.captureException(error, { extra: { intakeId } })
+    if (error instanceof ParchmentPatientSyncError) {
+      log.warn("Parchment prescribe blocked by patient sync failure")
+      Sentry.captureException(error, { extra: { context: "parchment_prescribe_patient_sync" } })
+      return { success: false, error: "Failed to refresh patient details in Parchment. Retry after confirming the patient details." }
+    }
+
+    log.error("Failed to get Parchment prescribe URL", {}, error instanceof Error ? error : new Error(String(error)))
+    Sentry.captureException(error, { extra: { context: "parchment_prescribe_url" } })
     return { success: false, error: "Failed to connect to Parchment. Please try again or use manual prescribing." }
   }
 }
@@ -205,12 +203,11 @@ export async function retryParchmentPatientSyncAction(
     revalidatePath(`/doctor/intakes/${intakeId}`)
     revalidatePath(`/doctor/patients/${intake.patient_id}`)
 
-    log.info("Parchment patient sync retried", { intakeId })
+    log.info("Parchment patient sync retried")
     return { success: true }
   } catch (error) {
     if (error instanceof ParchmentPatientIdentityError) {
       log.warn("Parchment retry blocked by incomplete prescribing identity", {
-        intakeId,
         missingFields: error.issues,
       })
       return {
@@ -220,8 +217,8 @@ export async function retryParchmentPatientSyncAction(
       }
     }
 
-    log.error("Failed to retry Parchment patient sync", { intakeId }, error instanceof Error ? error : new Error(String(error)))
-    Sentry.captureException(error, { extra: { intakeId } })
+    log.error("Failed to retry Parchment patient sync", {}, error instanceof Error ? error : new Error(String(error)))
+    Sentry.captureException(error, { extra: { context: "parchment_patient_sync_retry" } })
     return { success: false, error: "Failed to sync patient to Parchment. Check integration status and try again." }
   }
 }
@@ -244,7 +241,7 @@ export async function listParchmentUsersAction(): Promise<{
   }
 
   try {
-    const data = await listUsers()
+    const data = await listUsers(authResult.profile.parchment_user_id ?? undefined)
     return {
       success: true,
       users: data.users.map((u) => ({ user_id: u.user_id, full_name: u.full_name })),
@@ -291,10 +288,7 @@ export async function linkParchmentUserAction(
       throw error
     }
 
-    log.info("Parchment account linked", {
-      doctorId: authResult.profile.id,
-      parchmentUserId: trimmedUserId,
-    })
+    log.info("Parchment account linked")
 
     return { success: true }
   } catch (error) {

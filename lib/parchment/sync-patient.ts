@@ -75,6 +75,13 @@ export class ParchmentPatientIdentityError extends Error {
   }
 }
 
+export class ParchmentPatientSyncError extends Error {
+  constructor(message: string, readonly cause?: unknown) {
+    super(message)
+    this.name = "ParchmentPatientSyncError"
+  }
+}
+
 function answerString(
   intakeAnswers: Record<string, unknown> | undefined,
   keys: string[],
@@ -267,13 +274,15 @@ export function getParchmentPatientIdentityIssues(
   return issues
 }
 
-function buildCreatePatientRequest(
+export function buildCreatePatientRequest(
   profile: PatientProfile,
   patientProfileId: string,
   intakeAnswers?: Record<string, unknown>,
 ): CreatePatientRequest {
   const { givenName, familyName } = splitFullName(profile.full_name)
   const address = buildParchmentAddress(profile, intakeAnswers)
+  const email = profileOrAnswer(profile.email, intakeAnswers, ["email"])
+  const phone = normalizePhone(profileOrAnswer(profile.phone, intakeAnswers, ["phone", "mobile", "mobilePhone"]))
   const medicareNumber = profileOrAnswer(profile.medicare_number, intakeAnswers, ["medicare_number", "medicareNumber"])
   const medicareIrn = profileOrAnswer(profile.medicare_irn, intakeAnswers, ["medicare_irn", "medicareIrn"])
   const medicareExpiry = normalizeMedicareExpiry(profileOrAnswer(profile.medicare_expiry, intakeAnswers, ["medicare_expiry", "medicareExpiry"]))
@@ -285,8 +294,8 @@ function buildCreatePatientRequest(
     date_of_birth: dateOfBirth ?? throwMissingDob(patientProfileId),
     sex: resolveParchmentSex(profile, intakeAnswers),
     partner_patient_id: patientProfileId, // Our profile.id - used for webhook matching
-    ...(profile.email ? { email: profile.email } : {}),
-    ...(normalizePhone(profile.phone) ? { phone: normalizePhone(profile.phone) } : {}),
+    ...(email ? { email } : {}),
+    ...(phone ? { phone } : {}),
     ...(normalizeDigits(medicareNumber) ? { medicare_card_number: normalizeDigits(medicareNumber) } : {}),
     ...(normalizeDigits(medicareIrn) ? { medicare_irn: normalizeDigits(medicareIrn) } : {}),
     ...(medicareExpiry ? { medicare_valid_to: medicareExpiry } : {}),
@@ -294,12 +303,14 @@ function buildCreatePatientRequest(
   }
 }
 
-function buildUpdatePatientRequest(
+export function buildUpdatePatientRequest(
   profile: PatientProfile,
   intakeAnswers?: Record<string, unknown>,
 ): UpdatePatientRequest {
   const { givenName, familyName } = splitFullName(profile.full_name)
   const address = buildParchmentAddress(profile, intakeAnswers)
+  const email = profileOrAnswer(profile.email, intakeAnswers, ["email"])
+  const phone = normalizePhone(profileOrAnswer(profile.phone, intakeAnswers, ["phone", "mobile", "mobilePhone"]))
   const medicareNumber = profileOrAnswer(profile.medicare_number, intakeAnswers, ["medicare_number", "medicareNumber"])
   const medicareIrn = profileOrAnswer(profile.medicare_irn, intakeAnswers, ["medicare_irn", "medicareIrn"])
   const medicareExpiry = normalizeMedicareExpiry(profileOrAnswer(profile.medicare_expiry, intakeAnswers, ["medicare_expiry", "medicareExpiry"]))
@@ -310,8 +321,8 @@ function buildUpdatePatientRequest(
     given_name: givenName,
     ...(dateOfBirth ? { date_of_birth: dateOfBirth } : {}),
     sex: resolveParchmentSex(profile, intakeAnswers),
-    ...(profile.email ? { email: profile.email } : {}),
-    ...(normalizePhone(profile.phone) ? { phone: normalizePhone(profile.phone) } : {}),
+    ...(email ? { email } : {}),
+    ...(phone ? { phone } : {}),
     ...(normalizeDigits(medicareNumber) ? { medicare_card_number: normalizeDigits(medicareNumber) } : {}),
     ...(normalizeDigits(medicareIrn) ? { medicare_irn: normalizeDigits(medicareIrn) } : {}),
     ...(medicareExpiry ? { medicare_valid_to: medicareExpiry } : {}),
@@ -371,15 +382,15 @@ export async function syncPatientToParchment(
         buildUpdatePatientRequest(profile, intakeAnswers),
       )
     } catch (error) {
-      // Do not block prescribing if Parchment's demographic/HSD validation is
-      // temporarily unavailable. The doctor will still land on the existing
-      // Parchment patient and can verify details before prescribing.
-      log.warn("Patient refresh in Parchment failed; continuing with existing record")
+      // Conformance requires the PMS update flow to actually update Parchment.
+      // Continuing here can put the doctor on stale demographics.
+      log.warn("Patient refresh in Parchment failed; blocking prescribing")
       Sentry.captureException(error, {
         extra: {
           context: "parchment_patient_refresh",
         },
       })
+      throw new ParchmentPatientSyncError("Failed to refresh patient details in Parchment", error)
     }
 
     log.info("Patient already synced to Parchment; using existing record")

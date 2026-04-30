@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest"
 
-import { getParchmentPatientIdentityIssues } from "@/lib/parchment/sync-patient"
+import {
+  buildCreatePatientRequest,
+  buildUpdatePatientRequest,
+  getParchmentPatientIdentityIssues,
+} from "@/lib/parchment/sync-patient"
 import type { Profile } from "@/types/db"
 
 const baseProfile = {
@@ -71,5 +75,33 @@ describe("getParchmentPatientIdentityIssues", () => {
       ...baseProfile,
       medicare_expiry: "2020-01-01",
     })).toEqual(["Valid Medicare expiry"])
+  })
+
+  it("uses validated intake answer fallbacks in the create patient payload", () => {
+    const payload = buildCreatePatientRequest({
+      ...baseProfile,
+      email: null,
+      phone: null,
+    }, "profile-1", {
+      email: "fallback@example.com",
+      mobilePhone: "04 1207 4190",
+    })
+
+    expect(payload.email).toBe("fallback@example.com")
+    expect(payload.phone).toBe("0412074190")
+  })
+
+  it("uses validated intake answer fallbacks in the update patient payload", () => {
+    const payload = buildUpdatePatientRequest({
+      ...baseProfile,
+      email: null,
+      phone: null,
+    }, {
+      email: "fallback@example.com",
+      mobile: "04 1207 4190",
+    })
+
+    expect(payload.email).toBe("fallback@example.com")
+    expect(payload.phone).toBe("0412074190")
   })
 })

@@ -177,6 +177,61 @@ describe("Parchment client workflows", () => {
     )
   })
 
+  it("does not reuse a cached token when the same user requests different scopes", async () => {
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify({
+        success: true,
+        statusCode: 200,
+        data: { accessToken: "token-for-validate", expiresIn: 21600 },
+      }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({
+        success: true,
+        statusCode: 200,
+        data: { validated: true },
+        requestId: "req_validate",
+      }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({
+        success: true,
+        statusCode: 200,
+        data: { accessToken: "token-for-update", expiresIn: 21600 },
+      }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({
+        success: true,
+        statusCode: 200,
+        message: "Patient updated successfully",
+        data: { patient_id: "parchment-patient-1" },
+        requestId: "req_update",
+      }), { status: 200 }))
+
+    vi.stubGlobal("fetch", fetchMock)
+
+    await validateIntegration("parchment-user-1")
+    await updatePatient("parchment-user-1", "parchment-patient-1", {
+      given_name: "Jane",
+      family_name: "Smith",
+    })
+
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      3,
+      `${env.PARCHMENT_API_URL}/v1/token`,
+      expect.objectContaining({
+        body: JSON.stringify({
+          grantType: "client_credentials",
+          scope: ["update:patient", "read:patient"],
+        }),
+      }),
+    )
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      4,
+      `${env.PARCHMENT_API_URL}/v1/organizations/${env.PARCHMENT_ORGANIZATION_ID}/users/parchment-user-1/patients/parchment-patient-1`,
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          Authorization: "Bearer token-for-update",
+        }),
+      }),
+    )
+  })
+
   it("does not expose Parchment error bodies or patient identifiers in thrown errors or Sentry extras", async () => {
     const fetchMock = vi.fn()
       .mockResolvedValueOnce(new Response(JSON.stringify({

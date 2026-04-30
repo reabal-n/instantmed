@@ -22,6 +22,7 @@ import { createHmac, randomUUID } from "crypto"
 import {
   cleanupTestIntake,
   getIntakeById,
+  getSupabaseClient,
   isDbAvailable,
   seedTestIntake,
 } from "./helpers/db"
@@ -35,6 +36,8 @@ const PARCHMENT_WEBHOOK_SECRET = process.env.PARCHMENT_WEBHOOK_SECRET || ""
 const PARCHMENT_ORGANIZATION_ID = process.env.PARCHMENT_ORGANIZATION_ID || "test-org-id"
 const PARCHMENT_PARTNER_ID = process.env.PARCHMENT_PARTNER_ID || "test-partner-id"
 const E2E_PATIENT_ID = "e2e00000-0000-0000-0000-000000000002"
+const E2E_DOCTOR_ID = "e2e00000-0000-0000-0000-000000000003"
+const E2E_PARCHMENT_USER_ID = "e2e-parchment-user"
 
 // ============================================================================
 // PARCHMENT SIGNATURE HELPERS
@@ -186,9 +189,33 @@ test.describe("Parchment Webhook: Event Routing", () => {
 test.describe.serial("Parchment Webhook: prescription.created", () => {
   const testIntakeIds: string[] = []
 
+  test.beforeAll(async () => {
+    if (!isDbAvailable()) return
+
+    const supabase = getSupabaseClient()
+    await supabase
+      .from("profiles")
+      .update({
+        parchment_user_id: E2E_PARCHMENT_USER_ID,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", E2E_DOCTOR_ID)
+  })
+
   test.afterAll(async () => {
     for (const id of testIntakeIds) {
       await cleanupTestIntake(id)
+    }
+    if (isDbAvailable()) {
+      const supabase = getSupabaseClient()
+      await supabase
+        .from("profiles")
+        .update({
+          parchment_user_id: null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", E2E_DOCTOR_ID)
+        .eq("parchment_user_id", E2E_PARCHMENT_USER_ID)
     }
   })
 
@@ -221,6 +248,7 @@ test.describe.serial("Parchment Webhook: prescription.created", () => {
       status: "awaiting_script",
       payment_status: "paid",
       category: "common_scripts",
+      claimed_by: E2E_DOCTOR_ID,
     })
     expect(seed.success, `Seed should succeed: ${seed.error}`).toBe(true)
     testIntakeIds.push(seed.intakeId!)
@@ -228,13 +256,14 @@ test.describe.serial("Parchment Webhook: prescription.created", () => {
     const scid = `SCID-E2E-${Date.now().toString(36).toUpperCase()}`
     const payload = buildPrescriptionCreatedEvent({
       partnerPatientId: E2E_PATIENT_ID,
+      userId: E2E_PARCHMENT_USER_ID,
       scid,
     })
     const response = await postWebhook(request, payload)
 
     expect(response.status()).toBe(200)
     const body = await response.json()
-    expect(body.intakeId).toBe(seed.intakeId)
+    expect(body.received).toBe(true)
 
     // Verify DB state: parchment_reference set and script_sent=true
     const intake = await getIntakeById(seed.intakeId!)
@@ -253,12 +282,14 @@ test.describe.serial("Parchment Webhook: prescription.created", () => {
     const seed = await seedTestIntake({
       status: "in_review",
       payment_status: "paid",
+      claimed_by: E2E_DOCTOR_ID,
     })
     expect(seed.success, `Seed should succeed: ${seed.error}`).toBe(true)
     testIntakeIds.push(seed.intakeId!)
 
     const payload = buildPrescriptionCreatedEvent({
       partnerPatientId: E2E_PATIENT_ID,
+      userId: E2E_PARCHMENT_USER_ID,
       scid: `SCID-NOMATCH-${randomUUID().slice(0, 8)}`,
     })
     const response = await postWebhook(request, payload)
@@ -277,6 +308,7 @@ test.describe.serial("Parchment Webhook: prescription.created", () => {
       status: "awaiting_script",
       payment_status: "paid",
       category: "common_scripts",
+      claimed_by: E2E_DOCTOR_ID,
     })
     expect(seed.success, `Seed should succeed: ${seed.error}`).toBe(true)
     testIntakeIds.push(seed.intakeId!)
@@ -284,6 +316,7 @@ test.describe.serial("Parchment Webhook: prescription.created", () => {
     const scid = `SCID-DEDUP-${Date.now().toString(36).toUpperCase()}`
     const payload = buildPrescriptionCreatedEvent({
       partnerPatientId: E2E_PATIENT_ID,
+      userId: E2E_PARCHMENT_USER_ID,
       scid,
     })
 
