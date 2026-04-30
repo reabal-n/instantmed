@@ -175,6 +175,19 @@ export function PrescriptionFormStep({ subtype, title, flow }: PrescriptionFormS
             </div>
 
             <div className="space-y-3">
+              <Label htmlFor="repeat-current-dose" className="text-sm font-medium">
+                What dose do you currently take? <span className="text-red-500">*</span>
+              </Label>
+              <Textarea
+                id="repeat-current-dose"
+                value={flow.repeatCurrentDose}
+                onChange={(event) => flow.setRepeatCurrentDose(event.target.value)}
+                placeholder="e.g., 1 tablet each morning or 2 puffs twice daily"
+                className="min-h-[90px]"
+              />
+            </div>
+
+            <div className="space-y-3">
               <Label className="text-sm font-medium">
                 How are your symptoms on this current medication? <span className="text-red-500">*</span>
               </Label>

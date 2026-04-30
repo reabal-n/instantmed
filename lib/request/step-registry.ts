@@ -59,6 +59,8 @@ export interface StepContext {
   hasAddress: boolean
   /** True when profile has a phone number - required for prescriptions + consults */
   hasPhone?: boolean
+  /** True when prescribing sex is already stored on profile - required for eScript patient sync */
+  hasSex?: boolean
   serviceType: UnifiedServiceType
   answers: Record<string, unknown>
 }
@@ -140,7 +142,7 @@ export const STEP_REGISTRY: Record<UnifiedServiceType, StepDefinition[]> = {
       componentPath: 'patient-details-step',
       validateFn: 'validateDetailsStep',
       // Prescriptions require Medicare + address - only skip if all are present
-      canSkip: (ctx) => ctx.isAuthenticated && (ctx.hasCompleteIdentity ?? ctx.hasProfile) && ctx.hasMedicare && ctx.hasAddress && ctx.hasPhone === true,
+      canSkip: (ctx) => ctx.isAuthenticated && (ctx.hasCompleteIdentity ?? ctx.hasProfile) && ctx.hasMedicare && ctx.hasAddress && ctx.hasPhone === true && ctx.hasSex === true,
       required: true,
     },
     {

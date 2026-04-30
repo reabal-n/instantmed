@@ -17,14 +17,27 @@ import { findPotentialDuplicatePatients } from "@/lib/doctor/patient-snapshot"
 import { calculateAge,formatDate } from "@/lib/format"
 import type { Profile } from "@/types/db"
 
+type PatientDirectoryProfile = Profile & {
+  duplicate_profile_ids?: string[]
+}
+
 interface PatientsListClientProps {
-  patients: Profile[]
+  patients: PatientDirectoryProfile[]
   currentPage: number
   totalPages: number
   totalPatients: number
+  rawPatientProfiles: number
+  collapsedDuplicateProfiles: number
 }
 
-export function PatientsListClient({ patients, currentPage, totalPages, totalPatients }: PatientsListClientProps) {
+export function PatientsListClient({
+  patients,
+  currentPage,
+  totalPages,
+  totalPatients,
+  rawPatientProfiles,
+  collapsedDuplicateProfiles,
+}: PatientsListClientProps) {
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState("")
   const [stateFilter, setStateFilter] = useState<string>("all")
@@ -75,6 +88,11 @@ export function PatientsListClient({ patients, currentPage, totalPages, totalPat
               <Users className="h-5 w-5 text-primary shrink-0" />
             </div>
             <div className="mt-1.5 text-2xl font-semibold tabular-nums text-foreground">{totalPatients}</div>
+            {collapsedDuplicateProfiles > 0 && (
+              <p className="mt-1 text-xs text-muted-foreground">
+                {rawPatientProfiles} raw profiles
+              </p>
+            )}
           </CardContent>
         </Card>
 
@@ -145,7 +163,10 @@ export function PatientsListClient({ patients, currentPage, totalPages, totalPat
           </div>
 
           <div className="mt-4 text-sm text-muted-foreground">
-            Showing {filteredPatients.length} of {patients.length} on this page ({totalPatients} total)
+            Showing {filteredPatients.length} of {patients.length} on this page ({totalPatients} unique total)
+            {collapsedDuplicateProfiles > 0 && (
+              <span> · {collapsedDuplicateProfiles} duplicate profile {collapsedDuplicateProfiles === 1 ? "record" : "records"} collapsed</span>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -185,6 +206,7 @@ export function PatientsListClient({ patients, currentPage, totalPages, totalPat
               {filteredPatients.length > 0 ? (
                 filteredPatients.map((patient) => {
                   const age = calculateAge(patient.date_of_birth)
+                  const linkedProfileCount = patient.duplicate_profile_ids?.length ?? 0
 
                   return (
                     <TableRow
@@ -202,6 +224,11 @@ export function PatientsListClient({ patients, currentPage, totalPages, totalPat
                             <Badge variant="warning" size="sm" className="mt-1">
                               <AlertTriangle className="h-3 w-3" />
                               Possible duplicate
+                            </Badge>
+                          )}
+                          {linkedProfileCount > 0 && (
+                            <Badge variant="secondary" size="sm" className="mt-1">
+                              {linkedProfileCount} linked profile{linkedProfileCount === 1 ? "" : "s"}
                             </Badge>
                           )}
                         </Link>

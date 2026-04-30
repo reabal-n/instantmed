@@ -13,7 +13,24 @@ const log = createLogger("schema-validation")
 // Critical tables that must exist with specific columns
 // Only include tables that actually exist in the production database
 const REQUIRED_SCHEMA = {
-  profiles: ["id", "auth_user_id", "full_name", "email", "role"],
+  profiles: [
+    "id",
+    "auth_user_id",
+    "full_name",
+    "email",
+    "role",
+    "date_of_birth",
+    "sex",
+    "phone",
+    "medicare_number",
+    "medicare_irn",
+    "medicare_expiry",
+    "address_line1",
+    "suburb",
+    "state",
+    "postcode",
+    "parchment_patient_id",
+  ],
   intakes: ["id", "patient_id", "service_id", "status", "claimed_by", "claimed_at"],
   intake_answers: ["id", "intake_id", "answers"],
   audit_logs: ["id", "action", "actor_id", "created_at"],

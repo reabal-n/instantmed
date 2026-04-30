@@ -61,6 +61,7 @@ export function usePrescriptionFlow({
   // Repeat prescription state
   const [repeatReason, setRepeatReason] = useState<string | null>(null)
   const [repeatDuration, setRepeatDuration] = useState<string | null>(null)
+  const [repeatCurrentDose, setRepeatCurrentDose] = useState("")
   const [repeatControl, setRepeatControl] = useState<string | null>(null)
   const [repeatSideEffects, setRepeatSideEffects] = useState<string | null>(null)
 
@@ -78,7 +79,7 @@ export function usePrescriptionFlow({
     if (!selectedMedication) return false
     switch (subtype) {
       case "repeat":
-        return !!(repeatReason && repeatDuration && repeatControl && repeatSideEffects)
+        return !!(repeatReason && repeatDuration && repeatCurrentDose.trim() && repeatControl && repeatSideEffects)
       case "chronic":
         return !!(chronicRequests.length > 0 && chronicCondition && chronicReview && chronicControl)
       default:
@@ -113,6 +114,8 @@ export function usePrescriptionFlow({
           reason_label: repeatReasonOptions.find((r) => r.id === repeatReason)?.label,
           duration_on_medication: repeatDuration,
           duration_label: repeatDurationOptions.find((d) => d.id === repeatDuration)?.label,
+          current_dose: repeatCurrentDose.trim(),
+          dosage_instructions: repeatCurrentDose.trim(),
           symptom_control: repeatControl,
           control_label: repeatControlOptions.find((c) => c.id === repeatControl)?.label,
           side_effects: repeatSideEffects,
@@ -236,6 +239,8 @@ export function usePrescriptionFlow({
     setRepeatReason,
     repeatDuration,
     setRepeatDuration,
+    repeatCurrentDose,
+    setRepeatCurrentDose,
     repeatControl,
     setRepeatControl,
     repeatSideEffects,

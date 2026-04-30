@@ -11,5 +11,5 @@ export const metadata: Metadata = {
  * /prescriptions/repeat now redirects to the unified /request flow
  */
 export default function RepeatPrescriptionPage() {
-  redirect("/request?service=prescription")
+  redirect("/request?service=repeat-script")
 }

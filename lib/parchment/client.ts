@@ -61,8 +61,13 @@ function getConfig() {
 // TOKEN CACHE
 // ============================================================================
 
-/** Per-user token cache - avoids serving doctor A's token to doctor B in shared serverless instances */
+/** Per-user/per-scope token cache - avoids serving a token without the scopes a later call requires. */
 const tokenCache = new Map<string, { accessToken: string; expiresAt: number }>()
+
+function tokenCacheKey(userId: string, scopes: string[]): string {
+  const normalizedScopes = Array.from(new Set(scopes)).sort().join(" ")
+  return `${userId}:${normalizedScopes}`
+}
 
 /**
  * Get a valid JWT token, using cache when possible.
@@ -75,7 +80,8 @@ async function getToken(userId: string, scopes: string[]): Promise<string> {
   const now = Date.now()
 
   // Return cached token if still valid (60s buffer)
-  const cached = tokenCache.get(userId)
+  const cacheKey = tokenCacheKey(userId, scopes)
+  const cached = tokenCache.get(cacheKey)
   if (cached && cached.expiresAt > now + 60_000) {
     return cached.accessToken
   }
@@ -100,28 +106,30 @@ async function getToken(userId: string, scopes: string[]): Promise<string> {
 
   if (!res.ok) {
     const body = await res.text().catch(() => "")
-    const err = new Error(`Parchment token request failed: ${res.status} ${body}`)
-    log.error("Token request failed", { status: res.status }, err)
-    Sentry.captureException(err, { extra: { status: res.status, body } })
+    const err = new Error(`Parchment token request failed: ${res.status}`)
+    log.error("Token request failed", { status: res.status, responseBytes: body.length }, err)
+    Sentry.captureException(err, { extra: { status: res.status, responseBytes: body.length } })
     throw err
   }
 
   const json = await res.json()
   const parsed = parchmentTokenResponseSchema.parse(json)
 
-  tokenCache.set(userId, {
+  tokenCache.set(cacheKey, {
     accessToken: parsed.data.accessToken,
     expiresAt: now + parsed.data.expiresIn * 1000,
   })
 
-  log.info("Token acquired", { userId, scopes, expiresIn: parsed.data.expiresIn })
+  log.info("Token acquired", { scopeCount: scopes.length, expiresIn: parsed.data.expiresIn })
   return parsed.data.accessToken
 }
 
 /** Force-clear cached token(s) - called after 401 errors to force re-auth */
 export function clearTokenCache(userId?: string): void {
   if (userId) {
-    tokenCache.delete(userId)
+    for (const key of tokenCache.keys()) {
+      if (key.startsWith(`${userId}:`)) tokenCache.delete(key)
+    }
   } else {
     tokenCache.clear()
   }
@@ -155,9 +163,9 @@ export async function validateIntegration(
 
   if (!res.ok) {
     const body = await res.text().catch(() => "")
-    const err = new Error(`Parchment integration validation failed: ${res.status} ${body}`)
-    log.error("Integration validation failed", { status: res.status, userId }, err)
-    Sentry.captureException(err, { extra: { status: res.status, body } })
+    const err = new Error(`Parchment integration validation failed: ${res.status}`)
+    log.error("Integration validation failed", { status: res.status }, err)
+    Sentry.captureException(err, { extra: { status: res.status, responseBytes: body.length } })
     throw err
   }
 
@@ -165,7 +173,6 @@ export async function validateIntegration(
   const parsed = validateIntegrationResponseSchema.parse(json)
 
   log.info("Integration validated", {
-    userId,
     validated: parsed.data.validated,
     requestId: parsed.requestId,
   })
@@ -210,19 +217,16 @@ export async function createPatient(
   if (!res.ok) {
     if (res.status === 401) clearTokenCache(userId)
     const body = await res.text().catch(() => "")
-    const err = new Error(`Parchment create patient failed: ${res.status} ${body}`)
-    log.error("Create patient failed", { status: res.status, partnerId: patient.partner_patient_id }, err)
-    Sentry.captureException(err, { extra: { status: res.status, body } })
+    const err = new Error(`Parchment create patient failed: ${res.status}`)
+    log.error("Create patient failed", { status: res.status, responseBytes: body.length }, err)
+    Sentry.captureException(err, { extra: { status: res.status, responseBytes: body.length } })
     throw err
   }
 
   const json = await res.json()
   const parsed = createPatientResponseSchema.parse(json)
 
-  log.info("Patient created in Parchment", {
-    parchmentPatientId: parsed.data.parchment_patient_id,
-    partnerPatientId: patient.partner_patient_id,
-  })
+  log.info("Patient created in Parchment")
 
   return parsed.data
 }
@@ -257,9 +261,9 @@ export async function updatePatient(
   if (!res.ok) {
     if (res.status === 401) clearTokenCache(userId)
     const body = await res.text().catch(() => "")
-    const err = new Error(`Parchment update patient failed: ${res.status} ${body}`)
-    log.error("Update patient failed", { status: res.status, patientId }, err)
-    Sentry.captureException(err, { extra: { status: res.status, body, patientId } })
+    const err = new Error(`Parchment update patient failed: ${res.status}`)
+    log.error("Update patient failed", { status: res.status, responseBytes: body.length }, err)
+    Sentry.captureException(err, { extra: { status: res.status, responseBytes: body.length } })
     throw err
   }
 
@@ -267,7 +271,6 @@ export async function updatePatient(
   const parsed = updatePatientResponseSchema.parse(json)
 
   log.info("Patient updated in Parchment", {
-    parchmentPatientId: patientId,
     requestId: parsed.requestId,
   })
 
@@ -310,9 +313,9 @@ export async function getPatientPrescriptions({
   if (!res.ok) {
     if (res.status === 401) clearTokenCache(userId)
     const body = await res.text().catch(() => "")
-    const err = new Error(`Parchment get patient prescriptions failed: ${res.status} ${body}`)
-    log.error("Get patient prescriptions failed", { status: res.status, patientId }, err)
-    Sentry.captureException(err, { extra: { status: res.status, body, patientId } })
+    const err = new Error(`Parchment get patient prescriptions failed: ${res.status}`)
+    log.error("Get patient prescriptions failed", { status: res.status, responseBytes: body.length }, err)
+    Sentry.captureException(err, { extra: { status: res.status, responseBytes: body.length } })
     throw err
   }
 
@@ -320,8 +323,6 @@ export async function getPatientPrescriptions({
   const parsed = patientPrescriptionsResponseSchema.parse(json)
 
   log.info("Patient prescriptions retrieved from Parchment", {
-    userId,
-    patientId,
     count: parsed.data.prescriptions.length,
     requestId: parsed.requestId,
   })
@@ -364,16 +365,16 @@ export async function getSsoUrl(
 
   if (!res.ok) {
     const body = await res.text().catch(() => "")
-    const err = new Error(`Parchment SSO request failed: ${res.status} ${body}`)
-    log.error("SSO request failed", { status: res.status, userId, redirectPath }, err)
-    Sentry.captureException(err, { extra: { status: res.status, body } })
+    const err = new Error(`Parchment SSO request failed: ${res.status}`)
+    log.error("SSO request failed", { status: res.status, responseBytes: body.length }, err)
+    Sentry.captureException(err, { extra: { status: res.status, responseBytes: body.length } })
     throw err
   }
 
   const json = await res.json()
   const parsed = parchmentSsoResponseSchema.parse(json)
 
-  log.info("SSO URL generated", { userId, redirectPath, expiresIn: parsed.data.expires_in })
+  log.info("SSO URL generated", { expiresIn: parsed.data.expires_in })
   return parsed.data
 }
 
@@ -417,9 +418,9 @@ export async function listUsers(callerUserId?: string): Promise<ListUsersRespons
     if (!res.ok) {
       if (res.status === 401) clearTokenCache(userId)
       const body = await res.text().catch(() => "")
-      const err = new Error(`Parchment list users failed: ${res.status} ${body}`)
-      log.error("List users failed", { status: res.status, page }, err)
-      Sentry.captureException(err, { extra: { status: res.status, body, page } })
+      const err = new Error(`Parchment list users failed: ${res.status}`)
+      log.error("List users failed", { status: res.status, page, responseBytes: body.length }, err)
+      Sentry.captureException(err, { extra: { status: res.status, page, responseBytes: body.length } })
       throw err
     }
 

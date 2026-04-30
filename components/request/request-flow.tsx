@@ -80,6 +80,8 @@ interface RequestFlowProps {
   hasAddress: boolean
   /** Profile has a phone number - required for prescriptions + consults */
   hasPhone?: boolean
+  /** Profile has prescribing sex - required for prescription details skipping */
+  hasSex?: boolean
   /** User email for pre-filling */
   userEmail?: string
   /** User name for pre-filling */
@@ -90,6 +92,12 @@ interface RequestFlowProps {
   profileDateOfBirth?: string
   /** Profile Medicare number for pre-filling */
   profileMedicare?: string
+  /** Profile Medicare IRN for pre-filling */
+  profileMedicareIrn?: number | string
+  /** Profile Medicare expiry for pre-filling */
+  profileMedicareExpiry?: string
+  /** Profile prescribing sex for pre-filling */
+  profileSex?: string
   /** Profile address for pre-filling */
   profileAddress?: { addressLine1: string; suburb: string; state: string; postcode: string }
   /** Health profile data for pre-filling medical history steps */
@@ -109,11 +117,15 @@ export function RequestFlow({
   hasMedicare,
   hasAddress,
   hasPhone,
+  hasSex,
   userEmail,
   userName,
   userPhone,
   profileDateOfBirth,
   profileMedicare,
+  profileMedicareIrn,
+  profileMedicareExpiry,
+  profileSex,
   profileAddress,
   healthProfile,
 }: RequestFlowProps) {
@@ -148,8 +160,8 @@ export function RequestFlow({
 
   // Initialize auth context in store for step navigation
   useEffect(() => {
-    setAuthContext({ isAuthenticated, hasProfile, hasCompleteIdentity: hasCompleteIdentity ?? hasProfile, hasMedicare, hasAddress, hasPhone })
-  }, [isAuthenticated, hasProfile, hasCompleteIdentity, hasMedicare, hasAddress, hasPhone, setAuthContext])
+    setAuthContext({ isAuthenticated, hasProfile, hasCompleteIdentity: hasCompleteIdentity ?? hasProfile, hasMedicare, hasAddress, hasPhone, hasSex })
+  }, [isAuthenticated, hasProfile, hasCompleteIdentity, hasMedicare, hasAddress, hasPhone, hasSex, setAuthContext])
 
   // Pre-fill identity from auth if available
   useEffect(() => {
@@ -173,6 +185,15 @@ export function RequestFlow({
     if (profileMedicare && !answers.medicareNumber) {
       setAnswer('medicareNumber', profileMedicare)
     }
+    if (profileMedicareIrn && !answers.medicareIrn) {
+      setAnswer('medicareIrn', String(profileMedicareIrn))
+    }
+    if (profileMedicareExpiry && !answers.medicareExpiry) {
+      setAnswer('medicareExpiry', profileMedicareExpiry)
+    }
+    if (profileSex && !answers.sex) {
+      setAnswer('sex', profileSex)
+    }
     // Pre-fill address from profile
     if (profileAddress && !answers.addressLine1) {
       setAnswer('addressLine1', profileAddress.addressLine1)
@@ -180,7 +201,7 @@ export function RequestFlow({
       setAnswer('state', profileAddress.state)
       setAnswer('postcode', profileAddress.postcode)
     }
-  }, [userEmail, userName, userPhone, profileDateOfBirth, profileMedicare, profileAddress, answers.email, answers.medicareNumber, answers.addressLine1, phone, setIdentity, setAnswer])
+  }, [userEmail, userName, userPhone, profileDateOfBirth, profileMedicare, profileMedicareIrn, profileMedicareExpiry, profileSex, profileAddress, answers.email, answers.medicareNumber, answers.medicareIrn, answers.medicareExpiry, answers.sex, answers.addressLine1, phone, setIdentity, setAnswer])
 
   // Pre-fill medical history from health profile
   useEffect(() => {
@@ -302,9 +323,10 @@ export function RequestFlow({
     hasMedicare,
     hasAddress,
     hasPhone,
+    hasSex,
     serviceType: effectiveService || 'med-cert',
     answers,
-  }), [isAuthenticated, hasProfile, hasCompleteIdentity, hasMedicare, hasAddress, hasPhone, effectiveService, answers])
+  }), [isAuthenticated, hasProfile, hasCompleteIdentity, hasMedicare, hasAddress, hasPhone, hasSex, effectiveService, answers])
 
   // Get active steps for current service
   const activeSteps = useMemo(() => {

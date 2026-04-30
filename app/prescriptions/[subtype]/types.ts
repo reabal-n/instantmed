@@ -144,6 +144,8 @@ export interface PrescriptionFlowState {
   setRepeatReason: (v: string | null) => void
   repeatDuration: string | null
   setRepeatDuration: (v: string | null) => void
+  repeatCurrentDose: string
+  setRepeatCurrentDose: (v: string) => void
   repeatControl: string | null
   setRepeatControl: (v: string | null) => void
   repeatSideEffects: string | null

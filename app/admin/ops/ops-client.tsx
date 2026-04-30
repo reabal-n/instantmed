@@ -4,10 +4,12 @@ import {
   AlertTriangle,
   CheckCircle,
   Clock,
+  CreditCard,
   Mail,
   RefreshCw,
   ScrollText,
   Server,
+  Users,
   Webhook,
   XCircle,
   Zap,
@@ -46,11 +48,25 @@ interface OpsData {
     }>
   }
   auditVolume: number
+  patientIdentity: {
+    rawProfileCount: number
+    uniqueProfileCount: number
+    duplicateProfileCount: number
+    duplicateGroupCount: number
+  }
+  prescribingIdentity: {
+    totalActive: number
+    blockedCount: number
+    readyCount: number
+    topBlockers: Array<{ label: string; count: number }>
+  }
   staleIntakes: number
   systemStatus: {
     webhooksHealthy: boolean
     emailsHealthy: boolean
     intakesHealthy: boolean
+    patientIdentityHealthy: boolean
+    prescribingIdentityHealthy: boolean
   }
 }
 
@@ -79,9 +95,13 @@ function StatusIndicator({ healthy, label }: { healthy: boolean; label: string }
 }
 
 export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
-  const { webhooks, emails, errors, auditVolume, staleIntakes, systemStatus } = ops
+  const { webhooks, emails, errors, auditVolume, patientIdentity, prescribingIdentity, staleIntakes, systemStatus } = ops
 
-  const allHealthy = systemStatus.webhooksHealthy && systemStatus.emailsHealthy && systemStatus.intakesHealthy
+  const allHealthy = systemStatus.webhooksHealthy
+    && systemStatus.emailsHealthy
+    && systemStatus.intakesHealthy
+    && systemStatus.patientIdentityHealthy
+    && systemStatus.prescribingIdentityHealthy
   const overallStatus = allHealthy ? "healthy" : "degraded"
 
   return (
@@ -106,15 +126,17 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
             <Server className="h-5 w-5 text-muted-foreground" />
             <h3 className="text-base font-semibold text-foreground">System Status</h3>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
             <StatusIndicator healthy={systemStatus.webhooksHealthy} label="Webhooks" />
             <StatusIndicator healthy={systemStatus.emailsHealthy} label="Email Delivery" />
             <StatusIndicator healthy={systemStatus.intakesHealthy} label="Intake Processing" />
+            <StatusIndicator healthy={systemStatus.patientIdentityHealthy} label="Patient Identity" />
+            <StatusIndicator healthy={systemStatus.prescribingIdentityHealthy} label="Prescribing Identity" />
           </div>
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
           <div className="bg-card border border-border/50 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl p-5">
             <div className="flex items-center gap-4">
               <div className={cn("p-3 rounded-lg shrink-0", webhooks.failedCount > 0 ? "bg-destructive-light" : "bg-success-light")}>
@@ -185,6 +207,50 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
             <Button variant="link" size="sm" className="mt-3 p-0 h-auto text-xs" asChild>
               <Link href="/admin/audit">View Logs →</Link>
             </Button>
+          </div>
+
+          <div className="bg-card border border-border/50 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl p-5">
+            <div className="flex items-center gap-4">
+              <div className={cn("p-3 rounded-lg shrink-0", patientIdentity.duplicateProfileCount > 0 ? "bg-warning-light" : "bg-success-light")}>
+                <Users className={cn("h-5 w-5", patientIdentity.duplicateProfileCount > 0 ? "text-warning" : "text-success")} />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Patient Identity</p>
+                <p className={cn("text-2xl font-semibold tabular-nums mt-0.5", patientIdentity.duplicateProfileCount > 0 && "text-warning")}>
+                  {patientIdentity.duplicateProfileCount}
+                </p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {patientIdentity.uniqueProfileCount} unique / {patientIdentity.rawProfileCount} raw
+                </p>
+              </div>
+            </div>
+            {patientIdentity.duplicateProfileCount > 0 && (
+              <Button variant="link" size="sm" className="mt-3 p-0 h-auto text-xs" asChild>
+                <Link href="/doctor/patients">Review Patients →</Link>
+              </Button>
+            )}
+          </div>
+
+          <div className="bg-card border border-border/50 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl p-5">
+            <div className="flex items-center gap-4">
+              <div className={cn("p-3 rounded-lg shrink-0", prescribingIdentity.blockedCount > 0 ? "bg-warning-light" : "bg-success-light")}>
+                <CreditCard className={cn("h-5 w-5", prescribingIdentity.blockedCount > 0 ? "text-warning" : "text-success")} />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Rx Identity Blocks</p>
+                <p className={cn("text-2xl font-semibold tabular-nums mt-0.5", prescribingIdentity.blockedCount > 0 && "text-warning")}>
+                  {prescribingIdentity.blockedCount}
+                </p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {prescribingIdentity.readyCount} ready / {prescribingIdentity.totalActive} active
+                </p>
+              </div>
+            </div>
+            {prescribingIdentity.blockedCount > 0 && (
+              <Button variant="link" size="sm" className="mt-3 p-0 h-auto text-xs" asChild>
+                <Link href="/admin/ops/prescribing-identity">Review Blocks →</Link>
+              </Button>
+            )}
           </div>
         </div>
 
@@ -274,6 +340,9 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
             </Button>
             <Button variant="outline" asChild>
               <Link href={DOCTOR_QUEUE_REVIEW_HREF}>Doctor Queue</Link>
+            </Button>
+            <Button variant="outline" asChild>
+              <Link href="/admin/ops/prescribing-identity">Rx Identity Blocks</Link>
             </Button>
             <Button variant="outline" asChild>
               <Link href="/admin/refunds">Refunds</Link>

@@ -374,12 +374,82 @@ const MEDICATION_TYPOS: Record<string, string> = {
   'seritide': 'seretide',
 }
 
+const SEARCH_NOISE_WORDS = new Set([
+  "cap",
+  "caps",
+  "capsule",
+  "capsules",
+  "dose",
+  "doses",
+  "form",
+  "grams",
+  "inhalation",
+  "inhaler",
+  "mcg",
+  "microgram",
+  "micrograms",
+  "mg",
+  "ml",
+  "pressurised",
+  "puff",
+  "puffs",
+  "spray",
+  "tab",
+  "tabs",
+  "tablet",
+  "tablets",
+  "unit",
+  "units",
+])
+
 /**
  * Apply fuzzy correction for common medication typos
  */
 function correctMedicationTypo(query: string): string {
   const lower = query.toLowerCase()
-  return MEDICATION_TYPOS[lower] || query
+  if (MEDICATION_TYPOS[lower]) return MEDICATION_TYPOS[lower]
+
+  return lower.replace(/\b[a-z][a-z-]*\b/g, (token) => MEDICATION_TYPOS[token] || token)
+}
+
+function cleanMedicationSearchQuery(query: string): string {
+  return query
+    .toLowerCase()
+    .replace(/\b\d+(?:\.\d+)?(?:\s*\/\s*\d+(?:\.\d+)?)?\s*(?:mg|mcg|micrograms?|g|grams?|ml|units?|iu|%)\b/g, " ")
+    .replace(/\b\d+(?:\.\d+)?(?:\/\d+(?:\.\d+)?)?\b/g, " ")
+    .replace(/[+/,()-]+/g, " ")
+    .split(/\s+/)
+    .map((token) => token.trim())
+    .filter((token) => token.length >= 2 && !SEARCH_NOISE_WORDS.has(token))
+    .join(" ")
+    .trim()
+}
+
+function addSearchQuery(queries: string[], value: string | null | undefined): void {
+  const cleaned = value?.trim()
+  if (!cleaned || cleaned.length < 2 || queries.includes(cleaned)) return
+  queries.push(cleaned)
+}
+
+export function buildPBSMedicationSearchQueries(query: string): string[] {
+  const normalizedQuery = query.toLowerCase().trim()
+  if (!normalizedQuery || normalizedQuery.length < 2) return []
+
+  const correctedQuery = correctMedicationTypo(normalizedQuery)
+  const cleanedCorrected = cleanMedicationSearchQuery(correctedQuery)
+  const cleanedOriginal = cleanMedicationSearchQuery(normalizedQuery)
+  const queries: string[] = []
+
+  addSearchQuery(queries, cleanedCorrected || correctedQuery)
+  if (cleanedOriginal !== cleanedCorrected) {
+    addSearchQuery(queries, cleanedOriginal)
+  }
+
+  for (const token of cleanedCorrected.split(/\s+/)) {
+    if (token.length >= 4) addSearchQuery(queries, token)
+  }
+
+  return queries.slice(0, 5)
 }
 
 /**
@@ -450,25 +520,26 @@ export async function searchPBSItemsEnhanced(
     return cached.slice(0, limit)
   }
 
-  // Try typo correction first
-  const correctedQuery = correctMedicationTypo(normalizedQuery)
-  const searchQuery = correctedQuery !== normalizedQuery ? correctedQuery : normalizedQuery
+  const searchQueries = buildPBSMedicationSearchQueries(normalizedQuery)
 
-  // PARALLEL search: drug_name and brand_name at the same time
-  const [drugResults, brandResults] = await Promise.all([
-    searchPBSByField("drug_name", searchQuery, limit),
-    searchPBSByField("brand_name", searchQuery, limit),
-  ])
-
-  // Merge and deduplicate results, prioritizing drug_name matches
+  // Merge and deduplicate results, prioritizing drug_name matches.
+  // Try cleaned variants so label text like "10 mg tablet" does not break PBS prefix matching.
   const seen = new Set<string>()
   const merged: PBSSearchResult[] = []
 
-  for (const result of [...drugResults, ...brandResults]) {
-    const key = `${result.drug_name.toLowerCase()}-${result.form || ""}`
-    if (!seen.has(key)) {
-      seen.add(key)
-      merged.push(result)
+  for (const searchQuery of searchQueries) {
+    const [drugResults, brandResults] = await Promise.all([
+      searchPBSByField("drug_name", searchQuery, limit),
+      searchPBSByField("brand_name", searchQuery, limit),
+    ])
+
+    for (const result of [...drugResults, ...brandResults]) {
+      const key = `${result.drug_name.toLowerCase()}-${result.form || ""}`
+      if (!seen.has(key)) {
+        seen.add(key)
+        merged.push(result)
+      }
+      if (merged.length >= limit) break
     }
     if (merged.length >= limit) break
   }

@@ -9,6 +9,7 @@ import { CONTACT_EMAIL_HELLO, PRICING_DISPLAY } from "@/lib/constants"
 import { decryptProfilePhi } from "@/lib/data/profiles"
 import { isMaintenanceMode, isServiceDisabled } from "@/lib/feature-flags"
 import { mapServiceParam } from "@/lib/request/step-registry"
+import { validateMedicareExpiry, validateMedicareNumber } from "@/lib/validation/medicare"
 
 // Prevent static generation for dynamic auth
 export const dynamic = "force-dynamic"
@@ -200,6 +201,10 @@ export default async function RequestPage({
   }
   const hasCompleteIdentity = !!profile && !!profileDateOfBirth
   const hasAddress = !!(profile?.address_line1 && profile?.suburb && profile?.state && profile?.postcode)
+  const hasValidMedicareNumber = !!profile?.medicare_number && validateMedicareNumber(profile.medicare_number).valid
+  const hasValidMedicareExpiry = !!profile?.medicare_expiry && validateMedicareExpiry(profile.medicare_expiry).valid
+  const hasValidMedicare = hasValidMedicareNumber && !!profile?.medicare_irn && hasValidMedicareExpiry
+  const hasSex = !!profile?.sex
 
   return (
     <RequestFlow
@@ -211,14 +216,18 @@ export default async function RequestPage({
       isAuthenticated={!!user}
       hasProfile={!!profile}
       hasCompleteIdentity={hasCompleteIdentity}
-      hasMedicare={!!profile?.medicare_number}
+      hasMedicare={hasValidMedicare}
       hasAddress={hasAddress}
       hasPhone={!!profile?.phone}
+      hasSex={hasSex}
       userEmail={user?.email ?? undefined}
       userName={profile?.full_name ?? undefined}
       userPhone={profile?.phone ?? undefined}
       profileDateOfBirth={profileDateOfBirth ?? undefined}
-      profileMedicare={profile?.medicare_number ?? undefined}
+      profileMedicare={hasValidMedicareNumber ? profile?.medicare_number ?? undefined : undefined}
+      profileMedicareIrn={profile?.medicare_irn ?? undefined}
+      profileMedicareExpiry={hasValidMedicareExpiry ? profile?.medicare_expiry ?? undefined : undefined}
+      profileSex={hasSex ? profile?.sex ?? undefined : undefined}
       profileAddress={hasAddress ? {
         addressLine1: profile!.address_line1!,
         suburb: profile!.suburb!,

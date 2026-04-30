@@ -909,6 +909,7 @@ export interface SeedTestIntakeOptions {
   category?: string
   refund_status?: string
   refund_error?: string
+  claimed_by?: string
 }
 
 /**
@@ -986,6 +987,22 @@ export async function seedTestIntake(options: SeedTestIntakeOptions = {}): Promi
           await supabase.from("intakes").delete().eq("id", intake.id)
           return { success: false, error: `Failed to transition to ${targetStatus}: ${targetErr.message}` }
         }
+      }
+    }
+
+    if (options.claimed_by) {
+      const { error: claimErr } = await supabase
+        .from("intakes")
+        .update({
+          claimed_by: options.claimed_by,
+          claimed_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", intake.id)
+
+      if (claimErr) {
+        await supabase.from("intakes").delete().eq("id", intake.id)
+        return { success: false, error: `Failed to claim intake: ${claimErr.message}` }
       }
     }
 

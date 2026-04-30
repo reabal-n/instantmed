@@ -13,6 +13,7 @@ import { getAppUrl } from "@/lib/config/env"
 import { checkCheckoutBlocked } from "@/lib/config/kill-switches"
 import { CONTACT_EMAIL } from "@/lib/constants"
 import { TELEHEALTH_CONSENT_VERSION,TERMS_VERSION } from "@/lib/constants"
+import { decryptProfilePhi, updateProfile } from "@/lib/data/profiles"
 import { isMedicationBlocked, isServiceDisabled, SERVICE_DISABLED_ERRORS } from "@/lib/feature-flags"
 import { createLogger } from "@/lib/observability/logger"
 import { checkServerActionRateLimit } from "@/lib/rate-limit/redis"
@@ -23,6 +24,8 @@ import { validateRepeatScriptPayload } from "@/lib/validation/repeat-script-sche
 import type { ServiceCategory } from "@/types/services"
 
 import { getAmountCentsForRequest, getPriceIdForRequest, stripe } from "./client"
+import { shouldReuseGuestProfileForCheckout } from "./guest-profile-dedupe"
+import { buildPrescribingProfileUpdates } from "./prescribing-profile-fields"
 
 const logger = createLogger("guest-checkout")
 
@@ -65,6 +68,15 @@ interface CheckoutResult {
   error?: string
 }
 
+interface ExistingGuestProfile {
+  id: string
+  email: string | null
+  email_verified: boolean | null
+  full_name: string | null
+  date_of_birth: string | null
+  phone: string | null
+}
+
 function getBaseUrl(): string {
   return getAppUrl()
 }
@@ -76,6 +88,25 @@ function isValidUrl(url: string): boolean {
   } catch {
     return false
   }
+}
+
+function buildGuestProfileIdentityUpdate(
+  existingProfile: ExistingGuestProfile,
+  input: GuestCheckoutInput,
+): Record<string, unknown> {
+  const updates: Record<string, unknown> = {}
+
+  if (input.guestPhone && !existingProfile.phone) {
+    updates.phone = input.guestPhone
+  }
+  if (input.guestDateOfBirth && !existingProfile.date_of_birth) {
+    updates.date_of_birth = input.guestDateOfBirth
+  }
+  if (input.guestName && (!existingProfile.full_name || existingProfile.full_name.includes("@"))) {
+    updates.full_name = input.guestName
+  }
+
+  return updates
 }
 
 // Map category to service slug
@@ -330,31 +361,42 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
       }
     }
 
-    // Check for existing guest profile
-    // P1 FIX: Only reuse guest profile if it exists and belongs to same session
-    // to prevent profile hijacking via email guessing
-    const { data: existingGuestProfile } = await supabase
+    // Check for existing guest profiles. Verified guest profiles are safe to
+    // reuse by email. Unverified profiles require a second identity match so
+    // guessed emails cannot hijack a previous guest profile.
+    const { data: existingGuestProfiles } = await supabase
       .from("profiles")
-      .select("id, auth_user_id, email_verified")
+      .select(`
+        id, auth_user_id, email, email_verified, full_name,
+        date_of_birth, date_of_birth_encrypted, phone, phone_encrypted,
+        updated_at
+      `)
       .eq("email", normalizedEmail)
       .is("auth_user_id", null)
-      .single()
+      .order("email_verified", { ascending: false })
+      .order("updated_at", { ascending: false })
+      .limit(10)
 
-    if (existingGuestProfile) {
-      // Only reuse guest profile if email is verified to prevent takeover
-      if (existingGuestProfile.email_verified) {
-        guestProfileId = existingGuestProfile.id
-        // P1 FIX: Update phone if provided (for prescription eScript delivery)
-        if (input.guestPhone) {
-          await supabase
-            .from("profiles")
-            .update({ phone: input.guestPhone })
-            .eq("id", guestProfileId)
-        }
-      } else {
-        // Unverified guest profile exists - create new one to prevent hijacking
-        logger.info("Skipping unverified guest profile reuse", { email: normalizedEmail })
+    const reusableGuestProfile = (existingGuestProfiles || [])
+      .map(row => decryptProfilePhi(row as Record<string, unknown>) as unknown as ExistingGuestProfile)
+      .find(profile => shouldReuseGuestProfileForCheckout(profile, {
+        guestEmail: input.guestEmail,
+        guestName: input.guestName,
+        guestDateOfBirth: input.guestDateOfBirth,
+        guestPhone: input.guestPhone,
+      }))
+
+    if (reusableGuestProfile) {
+      guestProfileId = reusableGuestProfile.id
+      const profileUpdates = buildGuestProfileIdentityUpdate(reusableGuestProfile, input)
+      if (Object.keys(profileUpdates).length > 0) {
+        await supabase
+          .from("profiles")
+          .update(profileUpdates)
+          .eq("id", guestProfileId)
       }
+    } else if ((existingGuestProfiles || []).length > 0) {
+      logger.info("Skipping guest profile reuse because identity evidence did not match", { email: normalizedEmail })
     }
     
     if (!guestProfileId) {
@@ -393,6 +435,16 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
     if (!guestProfileId) {
       logger.error("Guest profile ID missing after creation logic")
       return { success: false, error: "Failed to create guest profile. Please try again." }
+    }
+
+    if (input.category === "prescription") {
+      const prescribingUpdates = buildPrescribingProfileUpdates(input.answers)
+      if (Object.keys(prescribingUpdates).length > 0) {
+        const updatedProfile = await updateProfile(guestProfileId, prescribingUpdates)
+        if (!updatedProfile) {
+          return { success: false, error: "Failed to save prescribing details. Please try again." }
+        }
+      }
     }
 
     // 2. Look up service by slug

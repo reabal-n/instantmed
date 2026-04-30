@@ -38,7 +38,24 @@ const OPTIONAL_TABLES = [
 ] as const
 
 const EXPECTED_COLUMNS: Record<string, string[]> = {
-  profiles: ["id", "auth_user_id", "email", "full_name", "role"],
+  profiles: [
+    "id",
+    "auth_user_id",
+    "email",
+    "full_name",
+    "role",
+    "date_of_birth",
+    "sex",
+    "phone",
+    "medicare_number",
+    "medicare_irn",
+    "medicare_expiry",
+    "address_line1",
+    "suburb",
+    "state",
+    "postcode",
+    "parchment_patient_id",
+  ],
   intakes: ["id", "patient_id", "category", "status", "payment_status", "created_at"],
   payments: ["id", "intake_id", "stripe_session_id", "amount", "status"],
   documents: ["id", "intake_id", "type", "pdf_url"],

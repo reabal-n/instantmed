@@ -20,6 +20,7 @@ import {
   validateWomensHealthTypeStep,
   type ValidationResult,
 } from "@/lib/request/validation"
+import { validateMedicareExpiry, validateMedicareNumber } from "@/lib/validation/medicare"
 import type { UnifiedServiceType } from "@/types/services"
 
 export interface UnifiedCheckoutIdentity {
@@ -37,6 +38,9 @@ const EMERGENCY_ASSOCIATED_SYMPTOMS = new Set([
   "suicidal_thoughts",
 ])
 
+const AUSTRALIAN_STATES = new Set(["ACT", "NSW", "NT", "QLD", "SA", "TAS", "VIC", "WA"])
+const PRESCRIBING_SEX_VALUES = new Set(["M", "F", "N", "I"])
+
 function asStringArray(value: unknown): string[] {
   return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : []
 }
@@ -44,6 +48,112 @@ function asStringArray(value: unknown): string[] {
 function firstValidationError(...results: ValidationResult[]): string | null {
   const invalidResult = results.find((result) => !result.isValid)
   return invalidResult ? Object.values(invalidResult.errors)[0] : null
+}
+
+function firstStringAnswer(
+  answers: Record<string, unknown>,
+  keys: string[],
+): string | undefined {
+  for (const key of keys) {
+    const value = answers[key]
+    if (typeof value === "string" && value.trim()) return value.trim()
+  }
+  return undefined
+}
+
+function firstScalarAnswer(
+  answers: Record<string, unknown>,
+  keys: string[],
+): string | undefined {
+  for (const key of keys) {
+    const value = answers[key]
+    if (typeof value === "number" && Number.isFinite(value)) return String(value)
+    if (typeof value === "string" && value.trim()) return value.trim()
+  }
+  return undefined
+}
+
+function copyStringAnswer(
+  target: Record<string, unknown>,
+  targetKey: string,
+  answers: Record<string, unknown>,
+  sourceKeys: string[],
+): void {
+  const value = firstStringAnswer(answers, sourceKeys)
+  if (value) target[targetKey] = value
+}
+
+function copyScalarAnswer(
+  target: Record<string, unknown>,
+  targetKey: string,
+  answers: Record<string, unknown>,
+  sourceKeys: string[],
+): void {
+  const value = firstScalarAnswer(answers, sourceKeys)
+  if (value) target[targetKey] = value
+}
+
+function normalizeMedicareExpiry(value: string | undefined): string | null {
+  const trimmed = value?.trim()
+  if (!trimmed) return null
+
+  const isoMonth = trimmed.match(/^(\d{4})-(\d{2})(?:-\d{2})?$/)
+  if (isoMonth) {
+    const month = Number.parseInt(isoMonth[2], 10)
+    return month >= 1 && month <= 12 ? `${isoMonth[1]}-${isoMonth[2]}-01` : null
+  }
+
+  const short = trimmed.match(/^(\d{1,2})\/(\d{2}|\d{4})$/)
+  if (short) {
+    const month = Number.parseInt(short[1], 10)
+    const rawYear = short[2]
+    const year = rawYear.length === 2 ? `20${rawYear}` : rawYear
+    return month >= 1 && month <= 12 ? `${year}-${String(month).padStart(2, "0")}-01` : null
+  }
+
+  return null
+}
+
+function validatePrescriptionIdentityAnswers(answers: Record<string, unknown>): string | null {
+  const medicare = firstStringAnswer(answers, ["medicare_number", "medicareNumber"])
+  const medicareIrn = firstScalarAnswer(answers, ["medicare_irn", "medicareIrn"])
+  const medicareExpiry = normalizeMedicareExpiry(firstScalarAnswer(answers, ["medicare_expiry", "medicareExpiry"]))
+  const addressLine1 = firstStringAnswer(answers, ["address_line1", "addressLine1", "address_line_1", "street_address"])
+  const suburb = firstStringAnswer(answers, ["suburb"])
+  const state = firstStringAnswer(answers, ["state"])
+  const postcode = firstStringAnswer(answers, ["postcode"])
+  const sex = firstStringAnswer(answers, ["sex", "gender"])
+
+  if (!medicare) return "Medicare number is required for prescription requests."
+  const medicareResult = validateMedicareNumber(medicare)
+  if (!medicareResult.valid) {
+    return medicareResult.error || "Invalid Medicare number."
+  }
+  if (!medicareIrn || !/^[1-9]$/.test(medicareIrn)) {
+    return "Medicare IRN is required for prescription requests."
+  }
+  if (!medicareExpiry) {
+    return "Medicare card expiry is required for prescription requests."
+  }
+  const expiryResult = validateMedicareExpiry(medicareExpiry)
+  if (!expiryResult.valid) {
+    return expiryResult.error || "Medicare card expiry is invalid."
+  }
+  if (!addressLine1) return "Street address is required for prescription requests."
+  if (!suburb || !state || !postcode) {
+    return "Address suburb, state, and postcode are required for prescription requests."
+  }
+  if (!AUSTRALIAN_STATES.has(state.toUpperCase())) {
+    return "A valid Australian state is required for prescription requests."
+  }
+  if (!/^\d{4}$/.test(postcode)) {
+    return "A valid 4-digit postcode is required for prescription requests."
+  }
+  if (!sex || !PRESCRIBING_SEX_VALUES.has(sex.toUpperCase())) {
+    return "Sex is required for prescription requests."
+  }
+
+  return null
 }
 
 export function transformAnswersForUnifiedCheckout(
@@ -72,6 +182,8 @@ export function transformAnswersForUnifiedCheckout(
     transformed.last_prescribed = answers.prescriptionHistory
     transformed.prescription_history = answers.prescriptionHistory
     transformed.last_prescription_date = answers.lastPrescriptionDate
+    transformed.current_dose = answers.currentDose || answers.current_dose
+    transformed.dosage_instructions = answers.currentDose || answers.dosageInstructions || answers.dosage_instructions
     transformed.side_effects = answers.sideEffects
     transformed.prescribed_before = answers.prescribedBefore ?? true
     transformed.dose_changed = answers.doseChanged ?? false
@@ -97,6 +209,16 @@ export function transformAnswersForUnifiedCheckout(
 
   transformed.is_priority = answers.isPriority === true
   transformed.subscribe_and_save = answers.subscribeAndSave === true
+
+  copyStringAnswer(transformed, "medicare_number", answers, ["medicare_number", "medicareNumber"])
+  copyScalarAnswer(transformed, "medicare_irn", answers, ["medicare_irn", "medicareIrn"])
+  copyStringAnswer(transformed, "medicare_expiry", answers, ["medicare_expiry", "medicareExpiry"])
+  copyStringAnswer(transformed, "address_line1", answers, ["address_line1", "addressLine1", "address_line_1", "street_address"])
+  copyStringAnswer(transformed, "address_line2", answers, ["address_line2", "addressLine2", "address_line_2"])
+  copyStringAnswer(transformed, "suburb", answers, ["suburb"])
+  copyStringAnswer(transformed, "state", answers, ["state"])
+  copyStringAnswer(transformed, "postcode", answers, ["postcode"])
+  copyStringAnswer(transformed, "sex", answers, ["sex", "gender"])
 
   const explicitEmergencySymptoms = asStringArray(answers.emergency_symptoms)
   const associatedEmergencySymptoms = asStringArray(answers.general_associated_symptoms)
@@ -137,6 +259,9 @@ export function validateAnswersServerSide(
   }
 
   if (serviceType === "prescription" || serviceType === "repeat-script") {
+    const prescriptionIdentityError = validatePrescriptionIdentityAnswers(answers)
+    if (prescriptionIdentityError) return prescriptionIdentityError
+
     return firstValidationError(
       validateMedicationStep(answers),
       validateMedicationHistoryStep(answers),

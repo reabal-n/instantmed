@@ -13,6 +13,7 @@ import {
   MapPin,
   Phone,
   User,
+  Users,
 } from "lucide-react"
 import Link from "next/link"
 import { useState } from "react"
@@ -25,14 +26,25 @@ import { buildPatientSnapshot } from "@/lib/doctor/patient-snapshot"
 import { cn } from "@/lib/utils"
 
 export function PatientInfoCard() {
-  const { intake, data } = useIntakeReview()
+  const { intake, data, answers, service } = useIntakeReview()
   const [open, setOpen] = useState(true)
   const [medicarecopied, setMedicareCopied] = useState(false)
-  const snapshot = buildPatientSnapshot(intake.patient)
+  const requiresPrescribingIdentity = (
+    service?.type === "repeat_rx"
+    || service?.type === "common_scripts"
+    || intake.category === "prescription"
+  )
+  const snapshot = buildPatientSnapshot(intake.patient, {
+    answers,
+    requireStructuredAddress: requiresPrescribingIdentity,
+    requireSex: requiresPrescribingIdentity,
+    requireMedicareDetails: requiresPrescribingIdentity,
+    validateMedicare: requiresPrescribingIdentity,
+  })
   const previousCount = data.previousIntakeCount ?? data.previousIntakes?.length ?? 0
 
   const copyMedicare = () => {
-    const num = intake.patient.medicare_number
+    const num = snapshot.medicare.value
     if (!num) return
     navigator.clipboard.writeText(num).then(() => {
       setMedicareCopied(true)
@@ -113,7 +125,7 @@ export function PatientInfoCard() {
                 <p className={cn("font-medium text-xs", snapshot.medicare.present ? "font-mono" : "text-warning")}>
                   {snapshot.medicare.label}
                 </p>
-                {intake.patient.medicare_number && (
+                {snapshot.medicare.value && (
                   <button
                     type="button"
                     onClick={copyMedicare}
@@ -127,8 +139,23 @@ export function PatientInfoCard() {
                   </button>
                 )}
               </div>
+              {snapshot.medicare.error && (
+                <p className="mt-1 text-xs text-warning">{snapshot.medicare.error}</p>
+              )}
+              {snapshot.medicare.detailsLabel && (
+                <p className="mt-1 text-xs text-muted-foreground">{snapshot.medicare.detailsLabel}</p>
+              )}
             </div>
           </div>
+          {requiresPrescribingIdentity && (
+            <div className="flex items-start gap-2 rounded-lg bg-muted/40 p-3">
+              <Users className="h-3.5 w-3.5 text-muted-foreground mt-0.5" />
+              <div>
+                <p className="text-xs text-muted-foreground">Sex</p>
+                <p className={cn("font-medium", !snapshot.sex.present && "text-warning")}>{snapshot.sex.label}</p>
+              </div>
+            </div>
+          )}
           <div className="flex items-start gap-2 rounded-lg bg-muted/40 p-3">
             <Phone className="h-3.5 w-3.5 text-muted-foreground mt-0.5" />
             <div>

@@ -15,6 +15,7 @@
     "ci": "pnpm install --frozen-lockfile && pnpm lint && pnpm test run && pnpm build",
     "blog:images": "node scripts/update-blog-images.mjs",
     "smoke:backend": "npx tsx scripts/smoke-backend.ts",
+    "smoke:parchment": "npx tsx scripts/parchment-smoke.ts",
     "check:rls": "npx tsx scripts/rls-check.ts",
     "import:artg": "npx tsx scripts/import_artg.ts",
     "encrypt:backfill": "npx tsx scripts/encrypt-phi-backfill.ts",

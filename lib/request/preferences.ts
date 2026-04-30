@@ -43,6 +43,8 @@ export interface UserPreferences {
     state?: string
     postcode?: string
     medicareNumber?: string
+    medicareIrn?: string
+    medicareExpiry?: string
   }
   
   // Consult preferences

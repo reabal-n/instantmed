@@ -27,7 +27,7 @@ import { getSavedIdentity, saveIdentity } from "@/lib/request/preferences"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 import { validateDOB, validateEmail, validateName,validatePhone } from "@/lib/request/validation"
 import { cn } from "@/lib/utils"
-import { formatMedicareNumber,validateMedicareNumber } from "@/lib/validation/medicare"
+import { formatMedicareNumber, validateMedicareExpiry, validateMedicareNumber } from "@/lib/validation/medicare"
 
 import { FormField } from "../form-field"
 import { useRequestStore } from "../store"
@@ -53,8 +53,12 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
   const state = (answers.state as string) || ""
   const postcode = (answers.postcode as string) || ""
   const medicareNumber = (answers.medicareNumber as string) || ""
+  const medicareIrn = String(answers.medicareIrn || "")
+  const medicareExpiry = (answers.medicareExpiry as string) || ""
   const sex = (answers.sex as string) || ""
   const consultSubtype = answers.consultSubtype as string | undefined
+  const medicareExpiryMonth = /^\d{4}-\d{2}/.test(medicareExpiry) ? medicareExpiry.slice(0, 7) : ""
+  const currentMonth = new Date().toISOString().slice(0, 7)
 
   // BMI auto-calculation for ED subtype
   const bmi = useMemo(() => {
@@ -102,6 +106,12 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
       if (savedData.medicareNumber) {
         setAnswer('medicareNumber', savedData.medicareNumber)
       }
+      if (savedData.medicareIrn) {
+        setAnswer('medicareIrn', savedData.medicareIrn)
+      }
+      if (savedData.medicareExpiry) {
+        setAnswer('medicareExpiry', savedData.medicareExpiry)
+      }
       setShowAutofillBanner(false)
     }
   }, [savedData, setIdentity, setAnswer])
@@ -148,9 +158,37 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
           error = 'Your Medicare number is needed to issue the prescription'
         }
         break
+      case 'medicareIrn':
+        if (needsPrescriptionDetails && !/^[1-9]$/.test(value || "")) {
+          error = 'Select your Medicare IRN'
+        }
+        break
+      case 'medicareExpiry':
+        if (needsPrescriptionDetails && !value) {
+          error = 'Select your Medicare card expiry'
+        } else if (needsPrescriptionDetails && value) {
+          const result = validateMedicareExpiry(value)
+          error = result.valid ? null : (result.error || 'Invalid Medicare expiry')
+        }
+        break
       case 'addressLine1':
         if (addressRequired && !value?.trim()) {
           error = 'Your address is needed to issue the prescription'
+        }
+        break
+      case 'suburb':
+        if (addressRequired && !value?.trim()) {
+          error = 'Suburb is required to issue the prescription'
+        }
+        break
+      case 'state':
+        if (addressRequired && !value?.trim()) {
+          error = 'State is required to issue the prescription'
+        }
+        break
+      case 'postcode':
+        if (addressRequired && !/^\d{4}$/.test(value || "")) {
+          error = 'Enter a valid 4-digit postcode'
         }
         break
     }
@@ -196,13 +234,45 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
         const medicareResult = validateMedicareNumber(medicareNumber)
         if (!medicareResult.valid) newErrors.medicareNumber = medicareResult.error || 'Invalid Medicare number'
       }
+      if (!/^[1-9]$/.test(medicareIrn)) {
+        newErrors.medicareIrn = 'Select your Medicare IRN'
+      }
+      if (!medicareExpiry) {
+        newErrors.medicareExpiry = 'Select your Medicare card expiry'
+      } else {
+        const expiryResult = validateMedicareExpiry(medicareExpiry)
+        if (!expiryResult.valid) newErrors.medicareExpiry = expiryResult.error || 'Invalid Medicare expiry'
+      }
       if (!addressLine1.trim()) {
         newErrors.addressLine1 = 'Your address is needed to issue the prescription'
+      }
+      if (!suburb.trim()) {
+        newErrors.suburb = 'Suburb is required to issue the prescription'
+      }
+      if (!state.trim()) {
+        newErrors.state = 'State is required to issue the prescription'
+      }
+      if (!/^\d{4}$/.test(postcode)) {
+        newErrors.postcode = 'Enter a valid 4-digit postcode'
       }
     }
 
     setErrors(newErrors)
-    setTouched({ firstName: true, lastName: true, email: true, dob: true, phone: true, medicareNumber: true, addressLine1: true })
+    setTouched({
+      firstName: true,
+      lastName: true,
+      email: true,
+      dob: true,
+      phone: true,
+      medicareNumber: true,
+      medicareIrn: true,
+      medicareExpiry: true,
+      addressLine1: true,
+      suburb: true,
+      state: true,
+      postcode: true,
+      sex: true,
+    })
     return Object.keys(newErrors).length === 0
   }
 
@@ -220,6 +290,8 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
         state,
         postcode,
         medicareNumber,
+        medicareIrn,
+        medicareExpiry,
       })
       // Send hashed user data to Google for Enhanced Conversions
       setEnhancedConversionsData({ email, phone, firstName, lastName })
@@ -247,7 +319,9 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
     }
   }
 
-  const isComplete = firstName && lastName && email && dob && (!needsPhone || phone) && (!needsPrescriptionDetails || (medicareNumber && addressLine1 && sex))
+  const addressComplete = !addressRequired || (addressLine1 && suburb && state && postcode)
+  const medicareComplete = !needsPrescriptionDetails || (medicareNumber && medicareIrn && medicareExpiry)
+  const isComplete = firstName && lastName && email && dob && (!needsPhone || phone) && (!needsPrescriptionDetails || (medicareComplete && addressComplete && sex))
   const hasNoErrors = Object.keys(errors).length === 0
   const canContinue = isComplete && hasNoErrors
   
@@ -434,34 +508,90 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
 
       {/* Medicare number - required for prescriptions */}
       {needsPrescriptionDetails && (
-        <FormField
-          label="Medicare number"
-          required
-          error={touched.medicareNumber ? errors.medicareNumber : undefined}
-          icon={CreditCard}
-          helpContent={{ title: "Why do we need your Medicare number?", content: "Required to issue your prescription under your name. Your Medicare details are encrypted and never shared." }}
-        >
-          <Input
-            type="text"
-            inputMode="numeric"
-            value={medicareNumber}
-            onChange={(e) => {
-              const raw = e.target.value.replace(/[^\d]/g, '').slice(0, 10)
-              setAnswer('medicareNumber', raw)
-            }}
-            onBlur={() => handleBlur('medicareNumber', medicareNumber)}
-            placeholder="1234 56789 0"
-            autoComplete="off"
-            aria-invalid={touched.medicareNumber && !!errors.medicareNumber}
-            data-error={touched.medicareNumber && errors.medicareNumber ? "true" : undefined}
-            className={cn("h-11", touched.medicareNumber && errors.medicareNumber && "border-destructive")}
-          />
-          {medicareNumber.length === 10 && !errors.medicareNumber && (
-            <p className="text-xs text-muted-foreground mt-1">
-              {formatMedicareNumber(medicareNumber)}
-            </p>
-          )}
-        </FormField>
+        <div className="space-y-3">
+          <FormField
+            label="Medicare number"
+            required
+            error={touched.medicareNumber ? errors.medicareNumber : undefined}
+            icon={CreditCard}
+            helpContent={{ title: "Why do we need your Medicare number?", content: "Required to issue your prescription under your name. Your Medicare details are encrypted and never shared." }}
+          >
+            <Input
+              type="text"
+              inputMode="numeric"
+              value={medicareNumber}
+              onChange={(e) => {
+                const raw = e.target.value.replace(/[^\d]/g, '').slice(0, 10)
+                setAnswer('medicareNumber', raw)
+              }}
+              onBlur={() => handleBlur('medicareNumber', medicareNumber)}
+              placeholder="1234 56789 0"
+              autoComplete="off"
+              aria-invalid={touched.medicareNumber && !!errors.medicareNumber}
+              data-error={touched.medicareNumber && errors.medicareNumber ? "true" : undefined}
+              className={cn("h-11", touched.medicareNumber && errors.medicareNumber && "border-destructive")}
+            />
+            {medicareNumber.length === 10 && !errors.medicareNumber && (
+              <p className="text-xs text-muted-foreground mt-1">
+                {formatMedicareNumber(medicareNumber)}
+              </p>
+            )}
+          </FormField>
+
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_160px]">
+            <div className="space-y-1.5">
+              <Label className="text-xs">IRN</Label>
+              <div className="grid grid-cols-9 gap-1">
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((value) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => {
+                      setAnswer("medicareIrn", String(value))
+                      setErrors((prev) => {
+                        const { medicareIrn: _, ...rest } = prev
+                        return rest
+                      })
+                    }}
+                    className={cn(
+                      "h-10 rounded-md border text-sm font-medium transition-colors",
+                      medicareIrn === String(value)
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : "border-border bg-background hover:bg-muted",
+                      touched.medicareIrn && errors.medicareIrn && "border-destructive",
+                    )}
+                    aria-pressed={medicareIrn === String(value)}
+                  >
+                    {value}
+                  </button>
+                ))}
+              </div>
+              {touched.medicareIrn && errors.medicareIrn && (
+                <p className="text-xs text-destructive">{errors.medicareIrn}</p>
+              )}
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="medicare-expiry" className="text-xs">Card expiry</Label>
+              <Input
+                id="medicare-expiry"
+                type="month"
+                value={medicareExpiryMonth}
+                min={currentMonth}
+                onChange={(e) => {
+                  const value = e.target.value
+                  setAnswer("medicareExpiry", value ? `${value}-01` : "")
+                }}
+                onBlur={() => handleBlur('medicareExpiry', medicareExpiry)}
+                aria-invalid={touched.medicareExpiry && !!errors.medicareExpiry}
+                data-error={touched.medicareExpiry && errors.medicareExpiry ? "true" : undefined}
+                className={cn("h-10", touched.medicareExpiry && errors.medicareExpiry && "border-destructive")}
+              />
+              {touched.medicareExpiry && errors.medicareExpiry && (
+                <p className="text-xs text-destructive">{errors.medicareExpiry}</p>
+              )}
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Address - required for prescriptions, optional for consults */}
@@ -480,8 +610,66 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
             placeholder="Start typing your address..."
             className={cn("h-11", touched.addressLine1 && errors.addressLine1 && "border-destructive")}
           />
-          {(suburb || state || postcode) && (
-            <p className="text-xs text-muted-foreground mt-1">
+          {addressRequired && (
+            <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-[1fr_120px_120px]">
+              <div className="space-y-1.5">
+                <Label htmlFor="suburb" className="text-xs">Suburb</Label>
+                <Input
+                  id="suburb"
+                  value={suburb}
+                  onChange={(e) => setAnswer("suburb", e.target.value)}
+                  onBlur={() => handleBlur('suburb', suburb)}
+                  autoComplete="address-level2"
+                  aria-invalid={touched.suburb && !!errors.suburb}
+                  data-error={touched.suburb && errors.suburb ? "true" : undefined}
+                  className={cn("h-10", touched.suburb && errors.suburb && "border-destructive")}
+                />
+                {touched.suburb && errors.suburb && (
+                  <p className="text-xs text-destructive">{errors.suburb}</p>
+                )}
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="state-select-trigger" className="text-xs">State</Label>
+                <Select value={state} onValueChange={(val) => setAnswer("state", val)}>
+                  <SelectTrigger
+                    id="state-select-trigger"
+                    aria-invalid={touched.state && !!errors.state}
+                    data-error={touched.state && errors.state ? "true" : undefined}
+                    className={cn("h-10", touched.state && errors.state && "border-destructive")}
+                  >
+                    <SelectValue placeholder="State" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {["ACT", "NSW", "NT", "QLD", "SA", "TAS", "VIC", "WA"].map((item) => (
+                      <SelectItem key={item} value={item}>{item}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {touched.state && errors.state && (
+                  <p className="text-xs text-destructive">{errors.state}</p>
+                )}
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="postcode" className="text-xs">Postcode</Label>
+                <Input
+                  id="postcode"
+                  value={postcode}
+                  onChange={(e) => setAnswer("postcode", e.target.value.replace(/\D/g, "").slice(0, 4))}
+                  onBlur={() => handleBlur('postcode', postcode)}
+                  inputMode="numeric"
+                  autoComplete="postal-code"
+                  aria-invalid={touched.postcode && !!errors.postcode}
+                  data-error={touched.postcode && errors.postcode ? "true" : undefined}
+                  className={cn("h-10", touched.postcode && errors.postcode && "border-destructive")}
+                />
+                {touched.postcode && errors.postcode && (
+                  <p className="text-xs text-destructive">{errors.postcode}</p>
+                )}
+              </div>
+            </div>
+          )}
+          {!addressRequired && (suburb || state || postcode) && (
+            <p className="mt-1 text-xs text-muted-foreground">
               {[suburb, state, postcode].filter(Boolean).join(", ")}
             </p>
           )}

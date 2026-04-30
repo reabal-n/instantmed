@@ -13,6 +13,7 @@ import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
 
 import { createLogger } from "@/lib/observability/logger"
+import { decryptField } from "@/lib/security/encryption"
 import { createClient } from "@/lib/supabase/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import type { Profile } from "@/types/db"
@@ -31,14 +32,16 @@ function escapeIlike(input: string): string {
 // ============================================================================
 const PROFILE_COLUMNS = `
   id, auth_user_id, email, full_name, first_name, last_name,
-  date_of_birth, role, phone, address_line1, suburb, state, postcode,
-  medicare_number, medicare_irn, medicare_expiry,
+  date_of_birth, date_of_birth_encrypted, role, sex, phone, phone_encrypted,
+  address_line1, suburb, state, postcode,
+  medicare_number, medicare_number_encrypted, medicare_irn, medicare_expiry,
+  phi_encrypted_at,
   ahpra_number, ahpra_verified, ahpra_verified_at, ahpra_verified_by,
   ahpra_verification_notes, ahpra_next_review_at, provider_number, nominals,
   consent_myhr, onboarding_completed,
   email_verified, email_verified_at, email_bounced, email_bounced_at,
   email_bounce_reason, email_delivery_failures,
-  avatar_url, stripe_customer_id, certificate_identity_complete,
+  avatar_url, stripe_customer_id, parchment_patient_id, certificate_identity_complete,
   signature_storage_path, created_at, updated_at
 ` as const
 
@@ -47,6 +50,43 @@ const AUTH_PROFILE_RETRY_DELAYS_MS = [150, 400]
 
 async function wait(ms: number): Promise<void> {
   await new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+function decryptProfilePhiForAuth<T extends Record<string, unknown>>(profile: T): T {
+  const decrypted: Record<string, unknown> = { ...profile }
+
+  if (profile.medicare_number_encrypted) {
+    try {
+      decrypted.medicare_number = decryptField<string>(profile.medicare_number_encrypted as string)
+    } catch (error) {
+      log.error("Failed to decrypt auth profile Medicare field", {}, error)
+      throw new Error("Failed to decrypt patient identity")
+    }
+  }
+
+  if (profile.date_of_birth_encrypted) {
+    try {
+      decrypted.date_of_birth = decryptField<string>(profile.date_of_birth_encrypted as string)
+    } catch (error) {
+      log.error("Failed to decrypt auth profile DOB field", {}, error)
+      throw new Error("Failed to decrypt patient identity")
+    }
+  }
+
+  if (profile.phone_encrypted) {
+    try {
+      decrypted.phone = decryptField<string>(profile.phone_encrypted as string)
+    } catch (error) {
+      log.error("Failed to decrypt auth profile phone field", {}, error)
+      throw new Error("Failed to decrypt patient identity")
+    }
+  }
+
+  delete decrypted.medicare_number_encrypted
+  delete decrypted.date_of_birth_encrypted
+  delete decrypted.phone_encrypted
+
+  return decrypted as T
 }
 
 async function fetchProfileByColumn(
@@ -63,7 +103,7 @@ async function fetchProfileByColumn(
       .maybeSingle()
 
     if (!error) {
-      return data as Record<string, unknown> | null
+      return data ? decryptProfilePhiForAuth(data as Record<string, unknown>) : null
     }
 
     if (attempt === AUTH_PROFILE_RETRY_DELAYS_MS.length) {
@@ -346,7 +386,7 @@ export async function getOrCreateAuthenticatedUser(): Promise<AuthenticatedUser 
     return null
   }
 
-  const typedProfile = asProfile(profile as Record<string, unknown>)
+  const typedProfile = asProfile(decryptProfilePhiForAuth(profile as Record<string, unknown>))
   return {
     user: {
       id: user.id,
@@ -462,7 +502,7 @@ export async function getUserProfile(authUserId: string): Promise<Profile | null
     .single()
 
   if (error || !profile) return null
-  return asProfile(profile as Record<string, unknown>)
+  return asProfile(decryptProfilePhiForAuth(profile as Record<string, unknown>))
 }
 
 /**

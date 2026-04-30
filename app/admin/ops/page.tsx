@@ -1,3 +1,7 @@
+import {
+  getDuplicatePatientProfileSummary,
+  getPrescribingIdentityBlockerReport,
+} from "@/lib/doctor/patient-identity-report"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 import { OpsDashboardClient } from "./ops-client"
@@ -19,6 +23,8 @@ export default async function OpsDashboardPage() {
     recentErrorsResult,
     auditLogsResult,
     systemHealthResult,
+    patientIdentityResult,
+    prescribingIdentityResult,
   ] = await Promise.all([
     // Failed webhooks (DLQ) - table may not exist
     supabase
@@ -58,6 +64,10 @@ export default async function OpsDashboardPage() {
       .eq("status", "paid")
       .lt("created_at", new Date(now.getTime() - 2 * 60 * 60 * 1000).toISOString()) // Older than 2 hours
       .limit(10),
+
+    getDuplicatePatientProfileSummary(supabase),
+
+    getPrescribingIdentityBlockerReport(supabase),
   ])
 
   // Process email stats
@@ -89,11 +99,23 @@ export default async function OpsDashboardPage() {
       recent: recentErrorsResult.data || [],
     },
     auditVolume: auditLogsResult.count || 0,
+    patientIdentity: patientIdentityResult,
+    prescribingIdentity: {
+      totalActive: prescribingIdentityResult.totalActive,
+      blockedCount: prescribingIdentityResult.blockedCount,
+      readyCount: prescribingIdentityResult.readyCount,
+      topBlockers: Object.entries(prescribingIdentityResult.blockerCounts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3)
+        .map(([label, count]) => ({ label, count })),
+    },
     staleIntakes: staleIntakes.length,
     systemStatus: {
       webhooksHealthy: (webhookDlqResult.count || 0) < 5,
       emailsHealthy: emailStats.failed < 3,
       intakesHealthy: staleIntakes.length < 3,
+      patientIdentityHealthy: patientIdentityResult.duplicateProfileCount === 0,
+      prescribingIdentityHealthy: prescribingIdentityResult.blockedCount === 0,
     },
   }
 

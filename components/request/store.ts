@@ -45,6 +45,7 @@ export interface RequestState {
     hasProfile: boolean
     hasMedicare: boolean
     hasAddress: boolean
+    hasSex?: boolean
   }
   
   // Consents
@@ -77,6 +78,8 @@ export interface AuthContext {
   hasAddress: boolean
   /** True when profile has a phone number - required for prescriptions + consults */
   hasPhone?: boolean
+  /** True when prescribing sex is already stored on profile - required for eScript patient sync */
+  hasSex?: boolean
 }
 
 export interface RequestActions {

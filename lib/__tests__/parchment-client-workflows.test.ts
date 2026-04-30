@@ -1,7 +1,9 @@
+import * as Sentry from "@sentry/nextjs"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
 import {
   clearTokenCache,
+  createPatient,
   getPatientPrescriptions,
   updatePatient,
   validateIntegration,
@@ -173,5 +175,95 @@ describe("Parchment client workflows", () => {
         }),
       }),
     )
+  })
+
+  it("does not reuse a cached token when the same user requests different scopes", async () => {
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify({
+        success: true,
+        statusCode: 200,
+        data: { accessToken: "token-for-validate", expiresIn: 21600 },
+      }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({
+        success: true,
+        statusCode: 200,
+        data: { validated: true },
+        requestId: "req_validate",
+      }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({
+        success: true,
+        statusCode: 200,
+        data: { accessToken: "token-for-update", expiresIn: 21600 },
+      }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({
+        success: true,
+        statusCode: 200,
+        message: "Patient updated successfully",
+        data: { patient_id: "parchment-patient-1" },
+        requestId: "req_update",
+      }), { status: 200 }))
+
+    vi.stubGlobal("fetch", fetchMock)
+
+    await validateIntegration("parchment-user-1")
+    await updatePatient("parchment-user-1", "parchment-patient-1", {
+      given_name: "Jane",
+      family_name: "Smith",
+    })
+
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      3,
+      `${env.PARCHMENT_API_URL}/v1/token`,
+      expect.objectContaining({
+        body: JSON.stringify({
+          grantType: "client_credentials",
+          scope: ["update:patient", "read:patient"],
+        }),
+      }),
+    )
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      4,
+      `${env.PARCHMENT_API_URL}/v1/organizations/${env.PARCHMENT_ORGANIZATION_ID}/users/parchment-user-1/patients/parchment-patient-1`,
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          Authorization: "Bearer token-for-update",
+        }),
+      }),
+    )
+  })
+
+  it("does not expose Parchment error bodies or patient identifiers in thrown errors or Sentry extras", async () => {
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify({
+        success: true,
+        statusCode: 200,
+        data: { accessToken: "token-for-create", expiresIn: 21600 },
+      }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({
+        error: "Rejected patient payload for 0400000000 / medicare 1111111111",
+        patient_id: "parchment-patient-secret",
+      }), { status: 422 }))
+
+    vi.stubGlobal("fetch", fetchMock)
+
+    await expect(createPatient("parchment-user-1", {
+      given_name: "Test",
+      family_name: "Patient",
+      date_of_birth: "1990-01-01",
+      sex: "M",
+      partner_patient_id: "profile-secret",
+      phone: "0400000000",
+      medicare_card_number: "1111111111",
+      medicare_irn: "1",
+      medicare_valid_to: "2029-05-01",
+    })).rejects.toThrow("Parchment create patient failed: 422")
+
+    const captured = vi.mocked(Sentry.captureException).mock.calls.at(-1)
+    expect(captured).toBeDefined()
+    expect(JSON.stringify(captured)).not.toContain("0400000000")
+    expect(JSON.stringify(captured)).not.toContain("1111111111")
+    expect(JSON.stringify(captured)).not.toContain("parchment-patient-secret")
+    expect(JSON.stringify(captured)).not.toContain("profile-secret")
+    expect(JSON.stringify(captured)).toContain("responseBytes")
   })
 })

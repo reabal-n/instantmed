@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation"
 
 import { decryptProfilePhi } from "@/lib/data/profiles"
+import { collapseDuplicatePatientProfiles } from "@/lib/doctor/patient-snapshot"
 import { logger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { asProfile } from "@/types/db"
@@ -18,14 +19,14 @@ async function getPatientWithHistory(patientId: string) {
   const { data: patient, error: patientError } = await supabase
     .from("profiles")
     .select(`
-      id, auth_user_id, auth_user_id, email, full_name, first_name, last_name,
+      id, auth_user_id, email, full_name, first_name, last_name,
       date_of_birth, date_of_birth_encrypted, role, phone, phone_encrypted,
-      address_line1, suburb, state, postcode,
+      sex, address_line1, suburb, state, postcode,
       medicare_number, medicare_number_encrypted, medicare_irn, medicare_expiry,
       ahpra_number, ahpra_verified, ahpra_verified_at, ahpra_verified_by,
       provider_number, consent_myhr, onboarding_completed,
       email_verified, email_verified_at,
-      avatar_url, stripe_customer_id, created_at, updated_at
+      avatar_url, stripe_customer_id, parchment_patient_id, created_at, updated_at
     `)
     .eq("id", patientId)
     .eq("role", "patient")
@@ -33,6 +34,41 @@ async function getPatientWithHistory(patientId: string) {
 
   if (patientError || !patient) {
     return null
+  }
+
+  const decryptedPatient = asProfile(decryptProfilePhi(patient as Record<string, unknown>))
+  let patientIds = [patientId]
+  let canonicalPatient = decryptedPatient
+
+  const { data: duplicateCandidates, error: duplicateCandidatesError } = await supabase
+    .from("profiles")
+    .select(`
+      id, auth_user_id, email, full_name, first_name, last_name,
+      date_of_birth, date_of_birth_encrypted, role, phone, phone_encrypted,
+      sex, address_line1, suburb, state, postcode,
+      medicare_number, medicare_number_encrypted, medicare_irn, medicare_expiry,
+      ahpra_number, ahpra_verified, ahpra_verified_at, ahpra_verified_by,
+      provider_number, consent_myhr, onboarding_completed,
+      email_verified, email_verified_at,
+      avatar_url, stripe_customer_id, parchment_patient_id, created_at, updated_at
+    `)
+    .eq("role", "patient")
+    .order("created_at", { ascending: false })
+
+  if (duplicateCandidatesError) {
+    logger.warn("Could not fetch duplicate patient candidates", { patientId }, duplicateCandidatesError)
+  } else {
+    const collapsedProfiles = collapseDuplicatePatientProfiles(
+      (duplicateCandidates || []).map(row => asProfile(decryptProfilePhi(row as Record<string, unknown>))),
+    )
+    const patientGroup = collapsedProfiles.patients.find((profile) => (
+      profile.id === patientId || profile.duplicate_profile_ids?.includes(patientId)
+    ))
+
+    if (patientGroup) {
+      canonicalPatient = patientGroup
+      patientIds = [patientGroup.id, ...(patientGroup.duplicate_profile_ids ?? [])]
+    }
   }
 
   const [intakesResult, certsResult, emailResult, notesResult] = await Promise.all([
@@ -50,14 +86,14 @@ async function getPatientWithHistory(patientId: string) {
         payment_status,
         service:services(name, short_name, type)
       `)
-      .eq("patient_id", patientId)
+      .in("patient_id", patientIds)
       .order("created_at", { ascending: false })
       .limit(50),
 
     supabase
       .from("issued_certificates")
       .select("id", { count: "exact", head: true })
-      .eq("patient_id", patientId),
+      .in("patient_id", patientIds),
 
     supabase
       .from("email_outbox")
@@ -72,14 +108,14 @@ async function getPatientWithHistory(patientId: string) {
         sent_at,
         intake_id
       `)
-      .eq("patient_id", patientId)
+      .in("patient_id", patientIds)
       .order("created_at", { ascending: false })
       .limit(20),
 
     supabase
       .from("patient_notes")
       .select("id, patient_id, note_type, content, created_by, created_by_name, created_at, updated_at")
-      .eq("patient_id", patientId)
+      .in("patient_id", patientIds)
       .order("created_at", { ascending: false }),
   ])
 
@@ -105,7 +141,7 @@ async function getPatientWithHistory(patientId: string) {
   }))
 
   return {
-    patient: asProfile(decryptProfilePhi(patient as Record<string, unknown>)),
+    patient: canonicalPatient,
     intakes: transformedIntakes,
     emailLogs: emailLogs || [],
     patientNotes: patientNotes || [],
@@ -113,6 +149,7 @@ async function getPatientWithHistory(patientId: string) {
       totalRequests: intakes?.length || 0,
       approvedRequests: intakes?.filter(i => i.status === "approved" || i.status === "completed").length || 0,
       certificatesIssued: certificatesCount || 0,
+      linkedProfiles: patientIds.length,
     }
   }
 }

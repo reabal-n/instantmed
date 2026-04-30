@@ -76,6 +76,7 @@ interface PatientDetailClientProps {
     totalRequests: number
     approvedRequests: number
     certificatesIssued: number
+    linkedProfiles: number
   }
   emailLogs: EmailLog[]
   patientNotes: PatientNote[]
@@ -99,7 +100,12 @@ export function PatientDetailClient({ patient, intakes, stats, emailLogs, patien
     })
   }
 
-  const snapshot = buildPatientSnapshot(patient)
+  const snapshot = buildPatientSnapshot(patient, {
+    requireStructuredAddress: true,
+    requireSex: true,
+    requireMedicareDetails: true,
+    validateMedicare: true,
+  })
 
   const getStatusColor = (status: string) => {
     return INTAKE_STATUS[status as IntakeStatus]?.color ?? "bg-muted text-muted-foreground"
@@ -143,6 +149,11 @@ export function PatientDetailClient({ patient, intakes, stats, emailLogs, patien
           </CardTitle>
         </CardHeader>
         <CardContent className="px-4 py-3">
+          {stats.linkedProfiles > 1 && (
+            <div className="mb-4 rounded-lg border border-info-border bg-info-light px-3 py-2 text-sm text-info">
+              This view includes request history from {stats.linkedProfiles} linked patient profiles.
+            </div>
+          )}
           {snapshot.missingCriticalFields.length > 0 && (
             <div className="mb-4 rounded-lg border border-warning-border bg-warning-light px-3 py-2 text-sm text-warning">
               <div className="flex items-start gap-2">
@@ -196,6 +207,27 @@ export function PatientDetailClient({ patient, intakes, stats, emailLogs, patien
                   </div>
                   <p className="font-medium font-mono">
                     {snapshot.medicare.present ? snapshot.medicare.label : "Medicare not collected"}
+                  </p>
+                  {snapshot.medicare.detailsLabel && (
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {snapshot.medicare.detailsLabel}
+                    </p>
+                  )}
+                </div>
+                <div className="p-3 bg-muted/50 rounded-lg">
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
+                    <User className="h-3 w-3" />
+                    Sex
+                  </div>
+                  <p className="font-medium">{snapshot.sex.label}</p>
+                </div>
+                <div className="p-3 bg-muted/50 rounded-lg">
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
+                    <FileText className="h-3 w-3" />
+                    Parchment
+                  </div>
+                  <p className="font-medium">
+                    {patient.parchment_patient_id ? "Synced" : "Not synced"}
                   </p>
                 </div>
               </div>
