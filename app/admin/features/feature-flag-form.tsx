@@ -48,7 +48,7 @@ export function KillSwitchConfirmDialog({
             {pendingToggle?.key === FLAG_KEYS.MAINTENANCE_MODE ? (
               <>
                 <p>
-                  This will immediately close the entire platform. No patients will be able to submit new requests or make payments.
+                  This will temporarily pause the patient intake and payment flow for planned maintenance or a real outage.
                 </p>
                 <p className="font-medium text-warning">
                   Existing requests will continue processing. Remember to disable maintenance mode when you&apos;re done.
@@ -61,7 +61,7 @@ export function KillSwitchConfirmDialog({
                   {pendingToggle ? KILL_SWITCH_LABELS[pendingToggle.key].toLowerCase() : "requests"}.
                 </p>
                 <p className="font-medium text-warning">
-                  Existing requests will continue processing, but no new ones can be submitted.
+                  Existing requests will continue processing while this service is paused.
                 </p>
               </>
             )}

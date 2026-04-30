@@ -9,7 +9,7 @@ export const ANXIETY_REDUCERS = {
   // Time expectations
   timing: {
     review: "Most requests done within 1-2 hours",
-    businessHours: "Faster during 8am-10pm AEST",
+    businessHours: "Submit anytime; review follows when available",
     worst: "Worst case, 24 hours",
     approval: "If approved, document lands in your inbox",
   },

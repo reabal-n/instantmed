@@ -87,7 +87,7 @@ export function MaintenanceModeSection({
           )}
         </CardTitle>
         <CardDescription>
-          Close the entire intake form. Patients will see a maintenance message and cannot submit or pay.
+          Temporarily pause the intake form for planned maintenance or a real outage.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-5 px-6 pb-6">
@@ -267,13 +267,13 @@ export function OperationalControlsSection({
           Operational Controls
         </CardTitle>
         <CardDescription>
-          Business hours, capacity limits, urgent notices, and scheduled maintenance
+          Review timing reference, capacity limits, urgent notices, and scheduled maintenance
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6 px-6 pb-6">
-        {/* Business Hours */}
+        {/* Review Timing Reference */}
         <div className="space-y-3 p-5 rounded-lg border">
-          <p className="font-medium">Business Hours</p>
+          <p className="font-medium">Review Timing Reference</p>
           <div className="flex flex-wrap items-center gap-4">
             <Switch
               checked={flags.business_hours_enabled}
@@ -281,7 +281,7 @@ export function OperationalControlsSection({
               disabled={isSaving === FLAG_KEYS.BUSINESS_HOURS_ENABLED}
             />
             <span className="text-sm text-muted-foreground">
-              {flags.business_hours_enabled ? "Enforce hours" : "Always open"}
+              {flags.business_hours_enabled ? "Reference window visible" : "Requests accepted 24/7"}
             </span>
             <div className="flex items-center gap-2">
               <Input

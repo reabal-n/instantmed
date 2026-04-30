@@ -311,7 +311,7 @@ export function DashboardHero({
           title={`A doctor is on it, ${firstName}.`}
           subtitle={
             intake
-              ? `Your ${getServiceName(intake).toLowerCase()} is in the queue. Most reviews finish in 1 to 2 hours during business hours (8am to 10pm AEST).`
+              ? `Your ${getServiceName(intake).toLowerCase()} is in the queue. Doctor review follows when available.`
               : "Your request is in the queue. We'll let you know as soon as there's an update."
           }
           primaryCta={

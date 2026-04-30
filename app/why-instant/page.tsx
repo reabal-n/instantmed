@@ -113,7 +113,7 @@ const timingSteps = [
     number: 2,
     title: "An AHPRA-registered doctor reviews it",
     description:
-      "Med certs: 24/7. Prescriptions and consults: 8am to 10pm AEST, 7 days. Median review time: well under an hour.",
+      "Requests can be submitted 24/7. A doctor reviews when available, and you get an email as soon as there is an update.",
   },
   {
     number: 3,

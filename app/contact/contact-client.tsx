@@ -301,8 +301,8 @@ function ContactInfoCard({ prefersReducedMotion }: { prefersReducedMotion: boole
               <Clock className="h-5 w-5 text-primary" aria-hidden="true" />
             </div>
             <div>
-              <p className="text-sm font-medium">Business Hours</p>
-              <p className="text-sm text-muted-foreground">Med certs: 24/7 · Rx &amp; Consults: 8am–10pm AEST</p>
+              <p className="text-sm font-medium">Request Hours</p>
+              <p className="text-sm text-muted-foreground">Requests accepted 24/7 · Doctor review follows when available</p>
             </div>
           </div>
           <div className="flex items-start gap-4 pt-2 border-t border-border/50">

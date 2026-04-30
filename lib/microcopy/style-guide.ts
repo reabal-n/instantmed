@@ -161,7 +161,7 @@ export const SUCCESS = {
   requestSubmitted: {
     title: "Request submitted",
     subtitle: "A doctor will review this shortly.",
-    body: "We'll email you when your document is ready, usually within an hour (8am–10pm AEST).",
+    body: "We'll email you when your document is ready.",
   },
 
   // Account
@@ -290,9 +290,9 @@ export const STATUS = {
 // ============================================
 export const TIME = {
   turnaround: "Usually under an hour",
-  turnaroundLong: "Most requests done within 1 hour (Rx/Consults: 8am–10pm AEST)",
-  hours: "Med certs: 24/7 · Rx & Consults: 8am–10pm AEST, 7 days",
-  afterHours: "After hours? We'll get to it first thing.",
+  turnaroundLong: "Requests accepted any time; review follows when available",
+  hours: "Requests accepted 24/7",
+  afterHours: "Submit anytime; review follows when available.",
   priority: "15-minute priority review",
   estimatedWait: (minutes: number) =>
     minutes < 60

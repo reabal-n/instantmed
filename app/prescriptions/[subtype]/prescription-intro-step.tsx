@@ -77,7 +77,7 @@ export function PrescriptionIntroStep({ title, subtype, setStep }: PrescriptionI
             <div>
               <p className="text-sm font-medium text-foreground">Receive your e-script</p>
               <p className="text-sm text-muted-foreground">
-                Your e-script will be sent to your phone via SMS, usually within 1 hour (8am-10pm AEST).
+                If approved, your e-script will be sent to your phone via SMS after doctor review.
               </p>
             </div>
           </div>

@@ -57,7 +57,7 @@ export function ConfirmedClient({ intakeId, email, serviceName: _serviceName }: 
           <div>
             <p className="font-medium text-sm">Typical turnaround</p>
             <p className="text-sm text-muted-foreground">
-              Most requests are reviewed within 30 minutes during business hours
+              Requests are accepted any time. Doctor review follows when available.
             </p>
           </div>
         </div>

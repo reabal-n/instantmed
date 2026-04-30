@@ -3,7 +3,7 @@
 import { useEffect,useState } from "react"
 
 import { cn } from "@/lib/utils"
-import { getAvailabilityMessage, isWithinBusinessHours } from "@/lib/utils/time-of-day"
+import { getAvailabilityMessage } from "@/lib/utils/time-of-day"
 
 interface AvailabilityIndicatorProps {
   variant?: "inline" | "badge" | "detailed"
@@ -22,17 +22,17 @@ export function AvailabilityIndicator({
   className
 }: AvailabilityIndicatorProps) {
   const [availability, setAvailability] = useState(() => getAvailabilityMessage(service))
-  const [isActive, setIsActive] = useState(() => service === "med-cert" || isWithinBusinessHours())
 
   // Update every minute to keep status current
   useEffect(() => {
     const interval = setInterval(() => {
       setAvailability(getAvailabilityMessage(service))
-      setIsActive(service === "med-cert" || isWithinBusinessHours())
     }, 60000)
 
     return () => clearInterval(interval)
   }, [service])
+
+  const isActive = availability.isActive
 
   if (variant === "badge") {
     return (

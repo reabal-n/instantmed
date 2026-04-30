@@ -184,7 +184,7 @@ export default function ConsultReasonStep({ onNext }: ConsultReasonStepProps) {
       <Alert variant="default" className="border-primary/20 bg-primary/5">
         <Stethoscope className="w-4 h-4" />
         <AlertDescription className="text-xs">
-          A doctor will review your request and respond within 1 hour during business hours.
+          Submit any time. A doctor will review your request and respond when available.
         </AlertDescription>
       </Alert>
 

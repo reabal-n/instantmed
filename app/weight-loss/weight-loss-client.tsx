@@ -61,7 +61,7 @@ const platformFeatures = [
   {
     icon: <StickerIcon name="clock" size={48} />,
     title: "Quick Turnaround",
-    description: "Most prescriptions issued within 15 minutes during business hours. No long waits.",
+    description: "Submit any time. Doctor review follows when available.",
   },
   {
     icon: <StickerIcon name="pulse" size={48} />,
@@ -110,7 +110,7 @@ const faqs = [
   {
     question: "How quickly can I get my prescription?",
     answer:
-      "Most consultations are completed and prescriptions issued within 15 minutes during business hours. For new patients, we may require additional information, which could extend this slightly.",
+      "Submit any time. A doctor reviews when available. For new patients, we may require additional information, which could extend timing.",
   },
   {
     question: "What side effects should I expect?",

@@ -44,7 +44,7 @@ interface WhatHappensNextProps {
 const FAQ_ITEMS = [
   {
     question: "How long does review take?",
-    answer: "Medical certificates are typically issued in under 30 minutes, available 24/7. Prescriptions and consultations are reviewed within 1–2 hours during operating hours (8am–10pm AEST).",
+    answer: "Requests can be submitted any time. Medical certificates are typically issued quickly, and prescriptions or consultations are reviewed when a doctor is available.",
   },
   {
     question: "What if the doctor needs more info?",

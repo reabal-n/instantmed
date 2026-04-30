@@ -203,7 +203,7 @@ function MidArticleCTA({ service }: { service: 'med-cert' | 'prescription' | 'co
     },
     'consult': {
       text: 'Speak with a doctor online',
-      sub: 'AHPRA-registered doctors, 8am–10pm AEST, 7 days a week.',
+      sub: 'AHPRA-registered doctors. Requests accepted 24/7.',
       href: '/consult',
       label: 'Start a consultation',
     },

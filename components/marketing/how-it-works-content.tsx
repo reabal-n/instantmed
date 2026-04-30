@@ -107,7 +107,7 @@ const howItWorksGuide: GuideSectionData[] = [
 
 const HOW_IT_WORKS_FAQ = [
   { question: "Is this a real doctor?", answer: "Yes. Every request is reviewed by an AHPRA-registered Australian GP. They're real doctors with real medical degrees and current registration, the same doctors who work in clinics and hospitals." },
-  { question: "How long does it take?", answer: "Medical certificates are typically issued within 30 minutes, 24/7. Prescriptions and consultations are reviewed within 1-2 hours. Prescriptions and consultations are available 8am-10pm AEST, 7 days." },
+  { question: "How long does it take?", answer: "Requests can be submitted any time. Medical certificates are typically issued quickly, and prescriptions or consultations are reviewed when a doctor is available." },
   { question: "Will my employer accept an online medical certificate?", answer: "Yes. Certificates from AHPRA-registered doctors are legally valid under the Fair Work Act. They carry the same weight as certificates from in-person GP visits." },
   { question: "Do I need to be available for a call?", answer: "No. InstantMed is fully async. You submit your form, the doctor reviews it, and you get a written response. No need to be free at a specific time." },
   { question: "Do I need a Medicare card?", answer: "For medical certificates, no. For prescriptions and consultations, Medicare details are requested for identity and prescribing history verification, but this is a private service." },
@@ -116,7 +116,7 @@ const HOW_IT_WORKS_FAQ = [
   { question: "Can I use this for my kids?", answer: "We primarily serve adults (18+). Minors may be assessed with parental consent for certain services, but complex paediatric cases should be seen by a GP in person." },
   { question: "How do I receive my documents?", answer: "Medical certificates are emailed as PDFs and available in your patient dashboard. Prescriptions are sent as eScripts via SMS. Take your phone to any pharmacy." },
   { question: "Is this available outside major cities?", answer: "Yes. InstantMed works anywhere in Australia with internet access. Regional, rural, and remote patients use our service regularly." },
-  { question: "What hours are you open?", answer: "Medical certificates are available 24/7. Prescriptions and consultations: 8am-10pm AEST, 7 days including public holidays." },
+  { question: "What hours are you open?", answer: "The online request flow is open 24/7. Submit when it suits you, including weekends and public holidays. Doctor review follows when a doctor is available." },
   { question: "How is this different from calling a GP clinic?", answer: "No appointments, no waiting rooms, no phone queues. You submit when it suits you, and a doctor reviews it without you needing to be available at a specific time." },
 ]
 

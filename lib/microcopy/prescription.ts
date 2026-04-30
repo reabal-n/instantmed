@@ -12,7 +12,7 @@ export { isControlledSubstance }
 
 export const RX_MICROCOPY = {
   // Global
-  turnaround: "Usually same-day review (8am–10pm AEST)",
+  turnaround: "Submit anytime; doctor review follows when available",
   doctorReview: "A doctor will review whether this medicine is clinically appropriate",
   mayRequest: "We may request additional information",
   noGuarantee: "Prescriptions are issued at the doctor's discretion",
@@ -221,4 +221,3 @@ export const RX_MICROCOPY = {
     controlled: "This medication cannot be prescribed through this service.",
   },
 } as const
-

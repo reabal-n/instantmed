@@ -5,7 +5,7 @@ export const ED_FAQ = [
   },
   {
     question: "How fast will I hear back?",
-    answer: "Most assessments are reviewed within 1-2 hours during operating hours (8am-10pm AEST, 7 days). You'll receive email updates as your request progresses.",
+    answer: "Requests can be submitted any time. A doctor reviews when available, and you'll receive email updates as your request progresses.",
   },
   {
     question: "Is this service discreet?",

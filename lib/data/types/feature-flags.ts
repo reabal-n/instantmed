@@ -154,15 +154,15 @@ export function getFlagInfo(key: FlagKey): { label: string; description: string 
   const info: Record<FlagKey, { label: string; description: string }> = {
     maintenance_mode: {
       label: "Maintenance Mode",
-      description: "Close the entire intake form - prevents all new submissions and payments",
+      description: "Temporarily pause the intake form for planned maintenance or a real outage",
     },
     maintenance_message: {
       label: "Maintenance Message",
       description: "Custom message shown to patients when maintenance mode is active",
     },
     business_hours_enabled: {
-      label: "Enforce Business Hours",
-      description: "Block new requests outside configured hours",
+      label: "Review Hours Reference",
+      description: "Reference window for review-time messaging only. Requests remain accepted 24/7.",
     },
     business_hours_open: {
       label: "Open Hour",

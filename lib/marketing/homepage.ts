@@ -8,10 +8,10 @@ export const siteConfig = {
   tagline: "Online doctor consultations, reviewed by real GPs.",
   operatingHours: {
     medCerts: "24/7",
-    rxConsults: "8am – 10pm AEST",
-    weekdays: "8am – 10pm AEST",
-    weekends: "8am – 10pm AEST",
-    publicHolidays: "8am – 10pm AEST",
+    rxConsults: "Submit 24/7",
+    weekdays: "Submit 24/7",
+    weekends: "Submit 24/7",
+    publicHolidays: "Submit 24/7",
   },
   contact: {
     email: CONTACT_EMAIL,
@@ -344,7 +344,7 @@ export const faqItems = [
   },
   {
     question: "Are you available on weekends and after hours?",
-    answer: "Yes. We're open 8am to 10pm AEST, seven days a week, including weekends and public holidays. Because getting sick doesn't wait for Monday.",
+    answer: "Yes. The online request flow is open 24/7, including weekends and public holidays. Submit when it suits you; doctor review follows when a doctor is available.",
   },
   {
     question: "Who are the doctors?",

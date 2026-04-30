@@ -81,7 +81,7 @@ const platformFeatures = [
     icon: <StickerIcon name="clock" size={48} />,
     title: "Reviewed Within Hours",
     description:
-      "An AHPRA-registered doctor reviews requests quickly. Most are reviewed within a few hours during business hours.",
+      "Submit any time. An AHPRA-registered doctor reviews when available.",
   },
   {
     icon: <StickerIcon name="privacy" size={48} />,

@@ -21,7 +21,7 @@ export const GENERAL_FAQ: FAQGroup[] = [
       {
         question: 'How long does it take?',
         answer:
-          "Medical certificates are reviewed within 30 minutes, 24/7. Prescriptions and consultations are reviewed within 1\u20132 hours during operating hours (8am\u201310pm AEST, 7 days). If we can\u2019t help you, you get a full refund \u2014 no questions asked.",
+          "Requests can be submitted any time. Medical certificates are typically reviewed quickly, and prescriptions or consultations are reviewed when a doctor is available. If we can\u2019t help you, you get a full refund \u2014 no questions asked.",
       },
       {
         question: 'How do I know if I need an in-person visit instead?',

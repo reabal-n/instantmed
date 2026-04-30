@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { Clock, FileText, Phone,Pill } from 'lucide-react'
-import { useEffect, useState, useSyncExternalStore } from 'react'
+import { useSyncExternalStore } from 'react'
 
 import { useReducedMotion } from '@/components/ui/motion'
 import { SOCIAL_PROOF } from '@/lib/social-proof'
@@ -24,61 +24,45 @@ const SERVICE_CONFIG = {
     label: 'Repeat Prescriptions',
     shortLabel: 'Prescriptions',
     icon: Pill,
-    waitLabel: 'Under 1 hour',
-    subtext: '8am-10pm AEST',
+    waitLabel: 'Submit 24/7',
+    subtext: 'Review follows when available',
     color: 'text-success',
     bgColor: 'bg-success-light',
-    alwaysOnline: false,
+    alwaysOnline: true,
   },
   'consult': {
     label: 'Consultations',
     shortLabel: 'Consults',
     icon: Phone,
-    waitLabel: 'Under 1 hour',
-    subtext: '8am-10pm AEST',
+    waitLabel: 'Submit 24/7',
+    subtext: 'Review follows when available',
     color: 'text-primary',
     bgColor: 'bg-primary/10',
-    alwaysOnline: false,
+    alwaysOnline: true,
   },
   'consult-ed': {
     label: 'ED Consultations',
     shortLabel: 'ED',
     icon: Phone,
-    waitLabel: 'Under 1 hour',
-    subtext: '8am-10pm AEST',
+    waitLabel: 'Submit 24/7',
+    subtext: 'Review follows when available',
     color: 'text-primary',
     bgColor: 'bg-primary/10',
-    alwaysOnline: false,
+    alwaysOnline: true,
   },
   'consult-hair-loss': {
     label: 'Hair Loss Consultations',
     shortLabel: 'Hair Loss',
     icon: Phone,
-    waitLabel: 'Under 1 hour',
-    subtext: '8am-10pm AEST',
+    waitLabel: 'Submit 24/7',
+    subtext: 'Review follows when available',
     color: 'text-primary',
     bgColor: 'bg-primary/10',
-    alwaysOnline: false,
+    alwaysOnline: true,
   },
 } as const
 
 type ServiceType = keyof typeof SERVICE_CONFIG
-
-// Operating hours (AEST) - 8am-10pm
-const OPEN_HOUR = 8
-const CLOSE_HOUR = 22
-
-function getAESTTime(): Date {
-  const now = new Date()
-  const utc = now.getTime() + now.getTimezoneOffset() * 60000
-  return new Date(utc + 10 * 3600000)
-}
-
-function isWithinHours(): boolean {
-  const aest = getAESTTime()
-  const hour = aest.getHours()
-  return hour >= OPEN_HOUR && hour < CLOSE_HOUR
-}
 
 function useHasMounted() {
   return useSyncExternalStore(
@@ -107,22 +91,12 @@ export function LiveWaitTime({
 }: LiveWaitTimeProps) {
   const mounted = useHasMounted()
   const prefersReducedMotion = useReducedMotion()
-  const [isOnline, setIsOnline] = useState(true)
-
-  // Update online status - checked every minute so UI stays accurate
-  useEffect(() => {
-    const updateStatus = () => setIsOnline(isWithinHours())
-    updateStatus()
-    const interval = setInterval(updateStatus, 60000)
-    return () => clearInterval(interval)
-  }, [])
 
   if (!mounted) return null
 
   // Badge variant - single service, inline pill
   if (service && variant === 'badge') {
     const config = SERVICE_CONFIG[service]
-    const serviceOnline = config.alwaysOnline || isOnline
 
     return (
       <div className={cn(
@@ -132,14 +106,8 @@ export function LiveWaitTime({
       )}>
         <Clock className="w-3.5 h-3.5 text-primary" />
         <span className="text-sm">
-          {serviceOnline ? (
-            <>
-              <span className="font-medium text-foreground">{config.waitLabel}</span>
-              <span className="text-muted-foreground"> typical wait</span>
-            </>
-          ) : (
-            <span className="font-medium text-foreground">Next business day</span>
-          )}
+          <span className="font-medium text-foreground">{config.waitLabel}</span>
+          <span className="text-muted-foreground"> · {config.subtext}</span>
         </span>
       </div>
     )
@@ -160,29 +128,26 @@ export function LiveWaitTime({
           className
         )}
       >
-        {isOnline && (
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <span className="relative flex h-2 w-2">
-              <span className={cn(
-                'absolute inline-flex h-full w-full rounded-full bg-success opacity-75',
-                !prefersReducedMotion && 'animate-ping'
-              )} />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-success" />
-            </span>
-            <span className="font-medium text-foreground">Doctors online</span>
-          </div>
-        )}
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <span className="relative flex h-2 w-2">
+            <span className={cn(
+              'absolute inline-flex h-full w-full rounded-full bg-success opacity-75',
+              !prefersReducedMotion && 'animate-ping'
+            )} />
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-success" />
+          </span>
+          <span className="font-medium text-foreground">Accepting requests</span>
+        </div>
 
         {displayServices.map(key => {
           const config = SERVICE_CONFIG[key]
-          const serviceOnline = config.alwaysOnline || isOnline
 
           return (
             <div key={key} className="flex items-center gap-1.5 text-muted-foreground">
               <config.icon className={cn('w-3.5 h-3.5', config.color)} />
               <span>{config.shortLabel}:</span>
               <span className="font-medium text-foreground">
-                {serviceOnline ? config.waitLabel : 'Next business day'}
+                {config.waitLabel}
               </span>
             </div>
           )
@@ -217,16 +182,16 @@ export function LiveWaitTime({
               <span className="relative flex h-2 w-2">
                 <span className={cn(
                   'absolute inline-flex h-full w-full rounded-full opacity-75',
-                  isOnline ? 'bg-success' : 'bg-muted-foreground',
-                  isOnline && !prefersReducedMotion && 'animate-ping'
+                  'bg-success',
+                  !prefersReducedMotion && 'animate-ping'
                 )} />
                 <span className={cn(
                   'relative inline-flex rounded-full h-2 w-2',
-                  isOnline ? 'bg-success' : 'bg-muted-foreground'
+                  'bg-success'
                 )} />
               </span>
               <span className="text-sm font-medium text-foreground">
-                {isOnline ? 'Doctors reviewing now' : 'Review times'}
+                Accepting requests
               </span>
             </div>
 
@@ -236,7 +201,6 @@ export function LiveWaitTime({
             <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6">
               {services.map(key => {
                 const config = SERVICE_CONFIG[key]
-                const serviceOnline = config.alwaysOnline || isOnline
 
                 return (
                   <div
@@ -250,13 +214,11 @@ export function LiveWaitTime({
                     )} />
                     <span className="text-muted-foreground">{config.shortLabel}:</span>
                     <span className="font-semibold text-foreground">
-                      {serviceOnline ? config.waitLabel : 'Next business day'}
+                      {config.waitLabel}
                     </span>
-                    {serviceOnline && (
-                      <span className="hidden lg:inline text-xs text-muted-foreground">
-                        {config.subtext}
-                      </span>
-                    )}
+                    <span className="hidden lg:inline text-xs text-muted-foreground">
+                      {config.subtext}
+                    </span>
                   </div>
                 )
               })}
@@ -297,17 +259,15 @@ export function LiveWaitTime({
           <span className="relative flex h-2 w-2">
             <span className={cn(
               'absolute inline-flex h-full w-full rounded-full opacity-75',
-              isOnline ? 'bg-success' : 'bg-muted-foreground',
-              isOnline && !prefersReducedMotion && 'animate-ping'
+              'bg-success',
+              !prefersReducedMotion && 'animate-ping'
             )} />
             <span className={cn(
               'relative inline-flex rounded-full h-2 w-2',
-              isOnline ? 'bg-success' : 'bg-muted-foreground'
+              'bg-success'
             )} />
           </span>
-          <span className={cn('font-medium', isOnline ? 'text-success' : 'text-muted-foreground')}>
-            {isOnline ? 'Online' : 'Offline'}
-          </span>
+          <span className="font-medium text-success">Accepting requests</span>
         </div>
       </div>
 
@@ -315,7 +275,6 @@ export function LiveWaitTime({
       <div className="grid gap-2.5">
         {services.map(key => {
           const config = SERVICE_CONFIG[key]
-          const serviceOnline = config.alwaysOnline || isOnline
 
           return (
             <motion.div
@@ -333,16 +292,11 @@ export function LiveWaitTime({
                 <config.icon className={cn('w-4 h-4 flex-shrink-0', config.color)} />
                 <div>
                   <p className="font-medium text-sm text-foreground">{config.label}</p>
-                  {serviceOnline && (
-                    <p className="text-xs text-muted-foreground">{config.subtext}</p>
-                  )}
+                  <p className="text-xs text-muted-foreground">{config.subtext}</p>
                 </div>
               </div>
-              <span className={cn(
-                'text-base font-semibold tabular-nums',
-                serviceOnline ? 'text-foreground' : 'text-muted-foreground'
-              )}>
-                {serviceOnline ? config.waitLabel : 'Next business day'}
+              <span className="text-base font-semibold tabular-nums text-foreground">
+                {config.waitLabel}
               </span>
             </motion.div>
           )

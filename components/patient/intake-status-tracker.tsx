@@ -305,7 +305,7 @@ export function IntakeStatusTracker({
           <div className="flex items-center gap-2 text-info">
             <Clock className="h-4 w-4" />
             <span className="text-sm font-medium">
-              Most reviews finish in 1 to 2 hours during business hours (8am to 10pm AEST)
+              Your request is in the queue. Doctor review follows when available.
             </span>
           </div>
         </motion.div>

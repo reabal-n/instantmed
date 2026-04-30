@@ -12,14 +12,14 @@ export const COPY = {
   // Global messaging
   global: {
     turnaround: "Most done in under an hour",
-    turnaroundLong: "Most requests completed within 1 hour (8am–10pm AEST)",
+    turnaroundLong: "Requests accepted any time; review follows when available",
     doctorReview: "A doctor reviews every request",
     noPhone: "Most requests sorted without a call",
     mayContact: "A doctor may message you if they need more info",
     // SLA messaging for intake status - configurable for seasonal adjustments
     slaReviewTime: "1–2 hours",
-    slaBusinessHours: "8am–10pm AEST",
-    slaPendingMessage: "Most requests are reviewed under an hour during business hours (8am–10pm AEST).",
+    slaBusinessHours: "Requests accepted 24/7",
+    slaPendingMessage: "Requests are accepted any time. Doctor review follows when available.",
     slaInReviewMessage: "A doctor is reviewing your request. Most reviews are completed under an hour.",
     price: {
       medcert: PRICING_DISPLAY.FROM_MED_CERT,
@@ -211,7 +211,7 @@ export const COPY = {
       medicare: "Medicare",
     },
     disclaimer:
-      "A real doctor will review this. They might message you if they need more. Most requests done within an hour (8am–10pm AEST).",
+      "A real doctor will review this. They might message you if they need more. Requests are accepted any time.",
   },
 
   // Payment
@@ -247,8 +247,7 @@ export const COPY = {
     heading: "Request submitted",
     subtitle: "A doctor will review this shortly.",
 
-    turnaround: "Most requests completed within 1 hour (8am–10pm AEST)",
+    turnaround: "Requests accepted any time; review follows when available",
     cta: "View my requests",
   },
 } as const
-
