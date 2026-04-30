@@ -36,7 +36,7 @@ import { useAuth } from "@/lib/supabase/auth-provider"
 
 interface IntakeReviewPanelProps {
   intakeId: string
-  onActionComplete?: () => void
+  onActionComplete?: (options?: { advance?: boolean }) => void
   onNextCase?: () => void
   onPrevCase?: () => void
   caseIndex?: number

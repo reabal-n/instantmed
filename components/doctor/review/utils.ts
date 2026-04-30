@@ -1,5 +1,7 @@
 import type { AIDraft } from "@/app/actions/draft-approval"
 
+export { MIN_CLINICAL_NOTES_LENGTH } from "@/lib/doctor/clinical-notes"
+
 export type FormattingType = "bold" | "italic" | "h2" | "bullet" | "numbered" | "divider"
 
 /**
@@ -92,8 +94,6 @@ export function isConcerningValue(val: unknown): boolean {
   const benign = new Set(["none", "no", "n/a", "nil", "not applicable", "false", "true", "mild", "moderate", "low", "minimal", "minor"])
   return !benign.has(str)
 }
-
-export const MIN_CLINICAL_NOTES_LENGTH = 50
 
 export function formatDate(dateString: string) {
   return new Date(dateString).toLocaleDateString("en-AU", {
