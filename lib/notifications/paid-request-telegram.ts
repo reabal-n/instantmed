@@ -1,5 +1,6 @@
 import "server-only"
 
+import * as Sentry from "@sentry/nextjs"
 import type { SupabaseClient } from "@supabase/supabase-js"
 
 import { createLogger } from "@/lib/observability/logger"
@@ -10,6 +11,7 @@ const log = createLogger("paid-request-telegram")
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 const MAX_ERROR_LENGTH = 1000
+const PAID_REQUEST_TELEGRAM_RETRY_CAP = 6
 
 type PaidRequestTelegramNotificationInput = {
   intakeId?: string | null
@@ -108,21 +110,6 @@ export function resolvePaidRequestServiceName(input: {
   return slugDisplayNames[serviceSlug] ?? "Medical Request"
 }
 
-async function getPatientName(
-  supabase: Pick<SupabaseClient, "from">,
-  patientId: string | null | undefined,
-): Promise<string> {
-  if (!patientId) return "Patient"
-
-  const { data } = await supabase
-    .from("profiles")
-    .select("full_name")
-    .eq("id", patientId)
-    .maybeSingle()
-
-  return data?.full_name || "Patient"
-}
-
 async function markSent(
   supabase: Pick<SupabaseClient, "from">,
   intakeId: string,
@@ -144,6 +131,16 @@ async function markSent(
       error: error.message,
     })
   }
+}
+
+function captureRetryCapReached(intakeId: string, attempts: number | null | undefined) {
+  if ((attempts ?? 0) < PAID_REQUEST_TELEGRAM_RETRY_CAP) return
+
+  Sentry.captureMessage("Paid request Telegram notification retry cap reached", {
+    level: "error",
+    tags: { source: "paid-request-telegram" },
+    extra: { intakeId, attempts },
+  })
 }
 
 async function markFailed(
@@ -216,10 +213,9 @@ export async function sendPaidRequestTelegramNotification(
   })
 
   try {
-    const patientName = input.patientName || await getPatientName(input.supabase, input.patientId ?? claim.patient_id)
     await notifyNewIntakeViaTelegram({
       intakeId: input.intakeId,
-      patientName,
+      patientName: "Patient",
       serviceName: resolvePaidRequestServiceName({ serviceSlug, category, subtype }),
       amount: formatAmount(input.amountCents ?? claim.amount_cents),
       serviceSlug,
@@ -229,6 +225,7 @@ export async function sendPaidRequestTelegramNotification(
     return { sent: true }
   } catch (error) {
     await markFailed(input.supabase, input.intakeId, error)
+    captureRetryCapReached(input.intakeId, claim.paid_request_telegram_attempts)
     throw error
   }
 }

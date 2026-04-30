@@ -1,6 +1,6 @@
 import "server-only"
 
-import { createHmac } from "crypto"
+import { createHmac, timingSafeEqual } from "crypto"
 
 import { createLogger } from "@/lib/observability/logger"
 
@@ -10,6 +10,7 @@ const TELEGRAM_API = "https://api.telegram.org"
 
 function getToken() { return process.env.TELEGRAM_BOT_TOKEN }
 function getChatId() { return process.env.TELEGRAM_CHAT_ID }
+function getActionSigningSecret() { return process.env.TELEGRAM_ACTION_SIGNING_SECRET }
 
 class TelegramSendError extends Error {
   constructor(message: string) {
@@ -32,17 +33,27 @@ export function escapeMarkdownValue(text: string): string {
 }
 
 /**
- * Sign an intake ID for secure Telegram callback approval.
- * HMAC-SHA256 using the bot token as the secret -- only the server can generate valid signatures.
+ * Telegram approval actions are intentionally opt-in. A leaked bot token must
+ * not be enough to approve clinical work.
  */
+export function areTelegramApprovalActionsEnabled(): boolean {
+  return process.env.TELEGRAM_APPROVAL_ACTIONS_ENABLED === "true" && Boolean(getActionSigningSecret())
+}
+
 export function signIntakeAction(intakeId: string, action: string): string {
-  const secret = getToken()
+  const secret = getActionSigningSecret()
   if (!secret) return ""
   return createHmac("sha256", secret).update(`${intakeId}:${action}`).digest("hex").slice(0, 16)
 }
 
 export function verifyIntakeAction(intakeId: string, action: string, signature: string): boolean {
-  return signIntakeAction(intakeId, action) === signature
+  const expected = signIntakeAction(intakeId, action)
+  if (!expected || signature.length !== expected.length) return false
+  try {
+    return timingSafeEqual(Buffer.from(signature), Buffer.from(expected))
+  } catch {
+    return false
+  }
 }
 
 // --- Notification types ---
@@ -58,7 +69,8 @@ interface TelegramNotifyOptions {
 
 /**
  * Send a new-order notification to the doctor's Telegram.
- * Med cert requests include a clinical summary + Approve/Review buttons.
+ * Messages are PHI-minimal: service, amount, short ref, and authenticated review link.
+ * Med cert approval buttons are disabled unless explicitly enabled with a separate signing secret.
  * Other requests get a notification + Review link.
  */
 export async function notifyNewIntakeViaTelegram(opts: TelegramNotifyOptions): Promise<void> {
@@ -88,7 +100,6 @@ async function sendGenericNotification(
   token: string,
   chatId: string,
 ): Promise<void> {
-  const firstName = opts.patientName.split(" ")[0]
   const refId = opts.intakeId.slice(0, 8).toUpperCase()
   const appUrl = opts.appUrl || process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au"
   const reviewUrl = `${appUrl}/doctor/intakes/${opts.intakeId}`
@@ -97,7 +108,6 @@ async function sendGenericNotification(
     `💰 *New request received*`,
     ``,
     `*${escapeMarkdown(opts.serviceName)}* \\- ${escapeMarkdown(opts.amount)}`,
-    `Patient: ${escapeMarkdown(firstName)}`,
     `Ref: \`${refId}\``,
     ``,
     `[Review now →](${reviewUrl})`,
@@ -133,59 +143,26 @@ async function sendMedCertNotification(
   chatId: string,
 ): Promise<void> {
   const appUrl = opts.appUrl || process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au"
-  const firstName = opts.patientName.split(" ")[0]
   const refId = opts.intakeId.slice(0, 8).toUpperCase()
 
-  // Fetch the clinical summary from intake answers
-  let summary = ""
-  try {
-    const { createServiceRoleClient } = await import("@/lib/supabase/service-role")
-    const supabase = createServiceRoleClient()
-    const { data: answers } = await supabase
-      .from("intake_answers")
-      .select("answers")
-      .eq("intake_id", opts.intakeId)
-      .maybeSingle()
+  const reviewUrl = `${appUrl}/doctor/intakes/${opts.intakeId}`
+  const buttons: Array<{ text: string; callback_data?: string; url?: string }> = [
+    { text: "📋 Review", url: reviewUrl },
+  ]
 
-    if (answers?.answers) {
-      const a = answers.answers as Record<string, unknown>
-      const certType = (a.certificate_type as string) || (a.cert_type as string) || ""
-      const duration = (a.duration as string) || (a.number_of_days as string) || ""
-      const startDate = (a.start_date as string) || ""
-      const symptoms = (a.symptoms as string) || (a.reason as string) || (a.medical_reason as string) || ""
-
-      const parts: string[] = []
-      if (certType) parts.push(`Type: ${escapeMarkdown(certType)}`)
-      if (duration) parts.push(`Duration: ${escapeMarkdown(String(duration))} day${duration === "1" ? "" : "s"}`)
-      if (startDate) parts.push(`Start: ${escapeMarkdown(startDate)}`)
-      if (symptoms) parts.push(`Reason: ${escapeMarkdown(symptoms.slice(0, 80))}${symptoms.length > 80 ? "\\.\\.\\." : ""}`)
-
-      if (parts.length > 0) {
-        summary = "\n" + parts.join("\n")
-      }
-    }
-  } catch (_err) {
-    log.warn("Failed to fetch intake answers for Telegram summary", { intakeId: opts.intakeId })
+  if (areTelegramApprovalActionsEnabled()) {
+    buttons.unshift({ text: "✅ Approve", callback_data: `approve:${opts.intakeId}:${signIntakeAction(opts.intakeId, "approve")}` })
   }
-
-  const sig = signIntakeAction(opts.intakeId, "approve")
 
   const message = [
     `💰 *New med cert request*`,
     ``,
     `*${escapeMarkdown(opts.serviceName)}* \\- ${escapeMarkdown(opts.amount)}`,
-    `Patient: ${escapeMarkdown(firstName)}`,
     `Ref: \`${refId}\``,
-    summary,
   ].join("\n")
 
   const inlineKeyboard = {
-    inline_keyboard: [
-      [
-        { text: "✅ Approve", callback_data: `approve:${opts.intakeId}:${sig}` },
-        { text: "📋 Review", url: `${appUrl}/doctor/intakes/${opts.intakeId}` },
-      ],
-    ],
+    inline_keyboard: [buttons],
   }
 
   try {

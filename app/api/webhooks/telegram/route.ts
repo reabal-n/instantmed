@@ -1,7 +1,7 @@
 import { timingSafeEqual } from "crypto"
 import { NextResponse } from "next/server"
 
-import { answerCallbackQuery, editTelegramMessage, escapeMarkdown,verifyIntakeAction } from "@/lib/notifications/telegram"
+import { answerCallbackQuery, areTelegramApprovalActionsEnabled, editTelegramMessage, escapeMarkdown, verifyIntakeAction } from "@/lib/notifications/telegram"
 import { createLogger } from "@/lib/observability/logger"
 
 const log = createLogger("telegram-webhook")
@@ -26,19 +26,22 @@ export async function POST(req: Request) {
   // 1. Verify request origin via webhook secret header
   const webhookSecret = process.env.TELEGRAM_WEBHOOK_SECRET
   const secretHeader = req.headers.get("x-telegram-bot-api-secret-token") ?? ""
-  if (webhookSecret) {
-    let valid = false
-    try {
-      valid =
-        secretHeader.length === webhookSecret.length &&
-        timingSafeEqual(Buffer.from(secretHeader), Buffer.from(webhookSecret))
-    } catch {
-      valid = false
-    }
-    if (!valid) {
-      log.warn("Telegram webhook secret mismatch")
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
+  if (!webhookSecret) {
+    log.warn("Telegram webhook received but TELEGRAM_WEBHOOK_SECRET not configured")
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  let valid = false
+  try {
+    valid =
+      secretHeader.length === webhookSecret.length &&
+      timingSafeEqual(Buffer.from(secretHeader), Buffer.from(webhookSecret))
+  } catch {
+    valid = false
+  }
+  if (!valid) {
+    log.warn("Telegram webhook secret mismatch")
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
   let body: Record<string, unknown>
@@ -65,6 +68,11 @@ export async function POST(req: Request) {
   if (!authorizedChatId || String(callbackQuery.message.chat.id) !== authorizedChatId) {
     log.warn("Telegram callback from unauthorized chat", { chatId: callbackQuery.message.chat.id })
     await answerCallbackQuery(callbackQuery.id, "Unauthorized")
+    return NextResponse.json({ ok: true })
+  }
+
+  if (!areTelegramApprovalActionsEnabled()) {
+    await answerCallbackQuery(callbackQuery.id, "Approval from Telegram is disabled. Use the dashboard.")
     return NextResponse.json({ ok: true })
   }
 

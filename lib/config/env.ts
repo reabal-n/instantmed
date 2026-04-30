@@ -88,6 +88,8 @@ const serverEnvSchema = z.object({
   TELEGRAM_BOT_TOKEN: z.string().optional(),
   TELEGRAM_CHAT_ID: z.string().optional(),
   TELEGRAM_WEBHOOK_SECRET: z.string().optional(),
+  TELEGRAM_APPROVAL_ACTIONS_ENABLED: z.enum(["true", "false"]).optional(),
+  TELEGRAM_ACTION_SIGNING_SECRET: z.string().optional(),
 
   // Cron job authentication
   CRON_SECRET: z.string().optional(),

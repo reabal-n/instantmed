@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/nextjs"
 import { afterEach, describe, expect, it, vi } from "vitest"
 
 vi.mock("@/lib/notifications/telegram", () => ({
@@ -51,9 +52,9 @@ describe("paid request Telegram notification ledger", () => {
     vi.clearAllMocks()
   })
 
-  it("claims a paid intake before sending and marks Telegram delivery as sent", async () => {
+  it("claims a paid intake before sending and marks Telegram delivery as sent without fetching patient PHI", async () => {
     const { sendPaidRequestTelegramNotification } = await import("@/lib/notifications/paid-request-telegram")
-    const { supabase, updates } = createSupabaseStub([
+    const { supabase, updates, profileMaybeSingle } = createSupabaseStub([
       {
         id: INTAKE_ID,
         patient_id: PATIENT_ID,
@@ -84,11 +85,12 @@ describe("paid request Telegram notification ledger", () => {
     )
     expect(notifyNewIntakeViaTelegram).toHaveBeenCalledWith({
       intakeId: INTAKE_ID,
-      patientName: "Alex Patient",
+      patientName: "Patient",
       serviceName: "Medical Certificate",
       amount: "$29.95",
       serviceSlug: "med-cert-sick",
     })
+    expect(profileMaybeSingle).not.toHaveBeenCalled()
     expect(updates[0]).toMatchObject({
       paid_request_telegram_claimed_at: null,
       paid_request_telegram_error: null,
@@ -129,6 +131,40 @@ describe("paid request Telegram notification ledger", () => {
     })
     expect(updates[0].paid_request_telegram_failed_at).toEqual(expect.any(String))
     expect(updates[0]).not.toHaveProperty("paid_request_telegram_sent_at")
+  })
+
+  it("captures a PHI-safe Sentry signal when Telegram delivery reaches the retry cap", async () => {
+    const { sendPaidRequestTelegramNotification } = await import("@/lib/notifications/paid-request-telegram")
+    const { supabase } = createSupabaseStub([
+      {
+        id: INTAKE_ID,
+        patient_id: PATIENT_ID,
+        amount_cents: 2995,
+        category: "consult",
+        subtype: "general",
+        paid_request_telegram_attempts: 6,
+      },
+    ])
+
+    vi.mocked(notifyNewIntakeViaTelegram).mockRejectedValueOnce(new Error("Telegram down"))
+
+    await expect(sendPaidRequestTelegramNotification({
+      supabase: supabase as never,
+      intakeId: INTAKE_ID,
+      paymentStatus: "paid",
+      amountCents: 2995,
+      category: "consult",
+      subtype: "general",
+    })).rejects.toThrow("Telegram down")
+
+    expect(Sentry.captureMessage).toHaveBeenCalledWith(
+      "Paid request Telegram notification retry cap reached",
+      expect.objectContaining({
+        level: "error",
+        tags: { source: "paid-request-telegram" },
+        extra: { intakeId: INTAKE_ID, attempts: 6 },
+      }),
+    )
   })
 
   it("skips sending when another worker already claimed or sent the intake", async () => {
