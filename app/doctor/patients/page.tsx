@@ -1,4 +1,5 @@
 import { decryptProfilePhi } from "@/lib/data/profiles"
+import { collapseDuplicatePatientProfiles } from "@/lib/doctor/patient-snapshot"
 import { createLogger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { asProfile } from "@/types/db"
@@ -28,16 +29,20 @@ async function getPatients(page: number) {
     `, { count: "exact" })
     .eq("role", "patient")
     .order("created_at", { ascending: false })
-    .range(from, to)
 
   if (error) {
     log.error("Failed to fetch patients list", { error: error.message, page: from })
-    return { patients: [], total: 0 }
+    return { patients: [], total: 0, rawTotal: 0, collapsedCount: 0 }
   }
 
+  const rawPatients = (data || []).map(row => asProfile(decryptProfilePhi(row as Record<string, unknown>)))
+  const collapsed = collapseDuplicatePatientProfiles(rawPatients)
+
   return {
-    patients: (data || []).map(row => asProfile(decryptProfilePhi(row as Record<string, unknown>))),
-    total: count ?? 0,
+    patients: collapsed.patients.slice(from, to + 1),
+    total: collapsed.patients.length,
+    rawTotal: count ?? rawPatients.length,
+    collapsedCount: collapsed.collapsedCount,
   }
 }
 
@@ -54,7 +59,7 @@ export default async function PatientsPage({
   // Layout enforces doctor/admin role
   const params = await searchParams
   const page = Math.max(1, parseInt(params.page || "1", 10) || 1)
-  const { patients, total } = await getPatients(page)
+  const { patients, total, rawTotal, collapsedCount } = await getPatients(page)
   const totalPages = Math.ceil(total / PAGE_SIZE)
 
   return (
@@ -63,6 +68,8 @@ export default async function PatientsPage({
       currentPage={page}
       totalPages={totalPages}
       totalPatients={total}
+      rawPatientProfiles={rawTotal}
+      collapsedDuplicateProfiles={collapsedCount}
     />
   )
 }

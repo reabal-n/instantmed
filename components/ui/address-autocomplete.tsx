@@ -302,9 +302,9 @@ export function AddressAutocomplete({
         value.length >= 3 &&
         !isVerified && (
           <div className="absolute z-50 w-full mt-1 bg-card/95 dark:bg-white/10 backdrop-blur-xl border border-border/50 dark:border-white/10 rounded-xl shadow-lg px-4 py-3">
-            <p className="text-sm text-muted-foreground text-center">
-              No addresses found. Try a different search.
-            </p>
+        <p className="text-sm text-muted-foreground text-center">
+          No verified match found. Enter the address manually below.
+        </p>
           </div>
         )}
 

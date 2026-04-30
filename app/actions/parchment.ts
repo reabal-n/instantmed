@@ -6,7 +6,7 @@ import { requireRoleOrNull } from "@/lib/auth/helpers"
 import { getFeatureFlags } from "@/lib/feature-flags"
 import { createLogger } from "@/lib/observability/logger"
 import { getSsoUrl, listUsers, validateIntegration } from "@/lib/parchment/client"
-import { syncPatientToParchment } from "@/lib/parchment/sync-patient"
+import { ParchmentPatientIdentityError, syncPatientToParchment } from "@/lib/parchment/sync-patient"
 import { readAnswers } from "@/lib/security/phi-field-wrappers"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
@@ -109,7 +109,6 @@ export async function getParchmentPrescribeUrlAction(
     log.info("Parchment prescribe URL generated", {
       intakeId,
       doctorId: authResult.profile.id,
-      parchmentPatientId,
     })
 
     return {
@@ -118,6 +117,14 @@ export async function getParchmentPrescribeUrlAction(
       parchmentPatientId,
     }
   } catch (error) {
+    if (error instanceof ParchmentPatientIdentityError) {
+      log.warn("Parchment prescribe blocked by incomplete prescribing identity", {
+        intakeId,
+        missingFields: error.issues,
+      })
+      return { success: false, error: `Missing prescribing details: ${error.issues.join(", ")}` }
+    }
+
     log.error("Failed to get Parchment prescribe URL", { intakeId }, error instanceof Error ? error : new Error(String(error)))
     Sentry.captureException(error, { extra: { intakeId } })
     return { success: false, error: "Failed to connect to Parchment. Please try again or use manual prescribing." }

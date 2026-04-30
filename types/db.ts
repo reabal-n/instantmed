@@ -341,8 +341,8 @@ export type RequestSubtype =
 export type AustralianState = "ACT" | "NSW" | "NT" | "QLD" | "SA" | "TAS" | "VIC" | "WA"
 
 // Table: profiles
-// NOTE: DB column is address_line_1 (with underscore), mapped to address_line1 in app layer
-// DB column is address_line_2 (with underscore), mapped to address_line2 in app layer (not in interface)
+// NOTE: Live DB currently stores the primary street field as address_line1.
+// address_line2 is only an app/input alias unless a migration adds that column.
 export interface Profile {
   id: string // uuid, PK
   auth_user_id: string | null // uuid, references auth.users.id (Supabase Auth)
@@ -357,6 +357,7 @@ export interface Profile {
   // Contact & address fields (DB uses address_line_1, app maps to address_line1)
   phone: string | null
   address_line1: string | null // Maps to DB: address_line_1
+  address_line2?: string | null // App/input alias; not selected from profiles unless migrated.
   suburb: string | null
   state: AustralianState | null
   postcode: string | null

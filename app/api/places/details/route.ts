@@ -1,18 +1,18 @@
 import { NextRequest, NextResponse } from "next/server"
 
-import { auth } from "@/lib/auth/helpers"
+import {
+  isAddressFinderPlaceId,
+  mapAddressFinderMetadataToParsedAddress,
+  parseAddressFinderPlaceId,
+} from "@/lib/google-places/addressfinder"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 
+const ADDRESSFINDER_KEY = process.env.ADDRESSFINDER_KEY || process.env.NEXT_PUBLIC_ADDRESSFINDER_KEY
+const ADDRESSFINDER_SECRET = process.env.ADDRESSFINDER_SECRET
 const GOOGLE_API_KEY = process.env.GOOGLE_PLACES_API_KEY
 
 export async function GET(request: NextRequest) {
-  // Require authenticated user to prevent quota abuse
-  const { userId } = await auth()
-  if (!userId) {
-    return NextResponse.json({ status: "UNAUTHORIZED" }, { status: 401 })
-  }
-
-  // Rate limit: standard (100 req/min per IP)
+  // Address search runs before guest checkout/auth, so protect it with rate limits instead of auth.
   const rateLimitResponse = await applyRateLimit(request, "standard")
   if (rateLimitResponse) return rateLimitResponse
 
@@ -21,6 +21,40 @@ export async function GET(request: NextRequest) {
 
   if (!placeId) {
     return NextResponse.json({ status: "INVALID_REQUEST" })
+  }
+
+  if (isAddressFinderPlaceId(placeId)) {
+    if (!ADDRESSFINDER_KEY) {
+      return NextResponse.json({ status: "ERROR", error: "Address provider not configured" })
+    }
+
+    const params = new URLSearchParams({
+      key: ADDRESSFINDER_KEY,
+      id: parseAddressFinderPlaceId(placeId),
+      format: "json",
+      source: "GNAF,PAF",
+      gps: "1",
+    })
+    if (ADDRESSFINDER_SECRET) {
+      params.set("secret", ADDRESSFINDER_SECRET)
+    }
+
+    try {
+      const response = await fetch(
+        `https://api.addressfinder.io/api/au/address/metadata?${params}`,
+        { cache: "no-store" },
+      )
+      const data = await response.json()
+      const address = mapAddressFinderMetadataToParsedAddress(data)
+
+      if (!response.ok || !address) {
+        return NextResponse.json({ status: "ZERO_RESULTS" })
+      }
+
+      return NextResponse.json({ status: "OK", address, provider: "addressfinder" })
+    } catch {
+      return NextResponse.json({ status: "ERROR" })
+    }
   }
 
   if (!GOOGLE_API_KEY) {

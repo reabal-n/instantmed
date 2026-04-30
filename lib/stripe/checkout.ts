@@ -17,6 +17,7 @@ import { checkCheckoutBlocked } from "@/lib/config/kill-switches"
 import { isAtCapacity,isOutsideBusinessHours } from "@/lib/config/operational-config"
 import { CONTACT_EMAIL } from "@/lib/constants"
 import { TELEHEALTH_CONSENT_VERSION,TERMS_VERSION } from "@/lib/constants"
+import { updateProfile } from "@/lib/data/profiles"
 import { isMedicationBlocked, isServiceDisabled, SERVICE_DISABLED_ERRORS } from "@/lib/feature-flags"
 import { createLogger } from "@/lib/observability/logger"
 import { checkServerActionRateLimit } from "@/lib/rate-limit/redis"
@@ -28,6 +29,7 @@ import { validateRepeatScriptPayload } from "@/lib/validation/repeat-script-sche
 import type { ServiceCategory } from "@/types/services"
 
 import { getAmountCentsForRequest, getPriceIdForRequest, stripe } from "./client"
+import { buildPrescribingProfileUpdates } from "./prescribing-profile-fields"
 import { createReferralCouponIfEligible } from "./referral-coupon"
 
 const logger = createLogger("stripe-checkout")
@@ -325,6 +327,16 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
       }
       
       patientId = profileId
+    }
+
+    if (input.category === "prescription") {
+      const prescribingUpdates = buildPrescribingProfileUpdates(input.answers)
+      if (Object.keys(prescribingUpdates).length > 0) {
+        const updatedProfile = await updateProfile(patientId, prescribingUpdates)
+        if (!updatedProfile) {
+          return { success: false, error: "Failed to save prescribing details. Please try again." }
+        }
+      }
     }
 
     // CLINICAL AUDIT: Enforce 18+ age requirement (CLAUDE.md eligibility constraint)

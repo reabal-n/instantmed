@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server"
 
 import { verifyCronRequest } from "@/lib/api/cron-auth"
 import { CONTACT_EMAIL, CONTACT_EMAIL_NOREPLY } from "@/lib/constants"
+import { getDuplicatePatientProfileSummary } from "@/lib/doctor/patient-identity-report"
 import { sendViaResend } from "@/lib/email/resend"
 import { createLogger } from "@/lib/observability/logger"
 import { captureCronError } from "@/lib/observability/sentry"
@@ -171,6 +172,8 @@ export async function GET(request: NextRequest) {
       .is("resolved_at", null)
       .lt("created_at", dlqThreshold.toISOString())
 
+    const patientIdentity = await getDuplicatePatientProfileSummary(supabase)
+
     // ─── Recipients ──────────────────────────────────────────────────────────
     // Priority: DIGEST_EMAIL_RECIPIENT (founder digest only) → ADMIN_EMAILS
     // (general admin distro list) → CONTACT_EMAIL (last-resort fallback).
@@ -209,6 +212,9 @@ export async function GET(request: NextRequest) {
     if ((highRiskWaiting ?? 0) > 0) attentionItems.push(`${highRiskWaiting} high/critical risk intake${highRiskWaiting === 1 ? "" : "s"} in queue`)
     if (openDisputes > 0) attentionItems.push(`${openDisputes} open Stripe dispute${openDisputes === 1 ? "" : "s"}`)
     if ((dlqStale ?? 0) > 0) attentionItems.push(`${dlqStale} Stripe webhook${dlqStale === 1 ? "" : "s"} in DLQ &gt;24h`)
+    if (patientIdentity.duplicateProfileCount > 0) {
+      attentionItems.push(`${patientIdentity.duplicateProfileCount} duplicate patient profile${patientIdentity.duplicateProfileCount === 1 ? "" : "s"} across ${patientIdentity.duplicateGroupCount} identity group${patientIdentity.duplicateGroupCount === 1 ? "" : "s"}`)
+    }
 
     const attentionHtml = attentionItems.length > 0
       ? `<ul style="margin:4px 0 0 0;padding-left:18px;color:#b91c1c">${attentionItems.map(i => `<li>${i}</li>`).join("")}</ul>`
@@ -250,6 +256,10 @@ export async function GET(request: NextRequest) {
         <tr>
           <td style="padding:8px 0;color:#64748b">👥 New patients</td>
           <td style="padding:8px 0;text-align:right;font-weight:600;font-variant-numeric:tabular-nums">${newPatients ?? 0}</td>
+        </tr>
+        <tr>
+          <td style="padding:8px 0;color:#64748b">🧾 Duplicate profiles</td>
+          <td style="padding:8px 0;text-align:right;font-weight:600;font-variant-numeric:tabular-nums">${patientIdentity.duplicateProfileCount}</td>
         </tr>
       </table>
     </div>
@@ -296,6 +306,7 @@ export async function GET(request: NextRequest) {
       `Declined:        ${byStatus.declined}`,
       `Avg review:      ${avgReviewMinutes !== null ? `${avgReviewMinutes} min` : "—"}`,
       `New patients:    ${newPatients ?? 0}`,
+      `Dup profiles:    ${patientIdentity.duplicateProfileCount} (${patientIdentity.uniqueProfileCount} unique / ${patientIdentity.rawProfileCount} raw)`,
       "",
       `By service:      ${Object.entries(byService).map(([s, n]) => `${s}=${n}`).join(", ") || "—"}`,
       "",

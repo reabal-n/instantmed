@@ -136,6 +136,7 @@ export const medicationStepSchema = z.object({
 
 export const medicationHistoryStepSchema = z.object({
   prescriptionHistory: nonEmptyString("Please indicate when you last had this prescribed"),
+  currentDose: nonEmptyString("Please enter the dose you currently take"),
 })
 
 export const medicalHistoryStepSchema = z
@@ -409,7 +410,10 @@ export function validateMedicationStep(answers: Record<string, unknown>): Valida
 }
 
 export function validateMedicationHistoryStep(answers: Record<string, unknown>): ValidationResult {
-  return runSchema(medicationHistoryStepSchema, answers)
+  return runSchema(medicationHistoryStepSchema, {
+    ...answers,
+    currentDose: answers.currentDose ?? answers.current_dose ?? answers.dosageInstructions ?? answers.dosage_instructions,
+  })
 }
 
 export function validateMedicalHistoryStep(answers: Record<string, unknown>): ValidationResult {

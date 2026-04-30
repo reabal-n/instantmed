@@ -80,6 +80,7 @@ describe("buildClinicalCaseSummary", () => {
         medicationStrength: "10 mg",
         medicationForm: "tablet",
         prescriptionHistory: "last_3_months",
+        currentDose: "10 mg nightly",
         takes_medications: "no",
         has_allergies: "no",
         has_conditions: "no",
@@ -88,6 +89,7 @@ describe("buildClinicalCaseSummary", () => {
 
     expect(summary.title).toBe("Repeat prescription")
     expect(summary.patientStory).toContain("Rosuvastatin")
+    expect(summary.keyFacts).toContainEqual({ label: "Patient-reported dose", value: "10 mg nightly" })
     expect(summary.recommendedPlan.action).toBe("prescribe")
     expect(summary.prescriptionIntent).toMatchObject({
       medicationName: "Rosuvastatin",
@@ -95,6 +97,7 @@ describe("buildClinicalCaseSummary", () => {
       form: "tablet",
       parchmentMode: "open_patient_prescribe",
     })
+    expect(summary.prescriptionIntent?.directionsTemplate).toContain("10 mg nightly")
   })
 
   it("builds a medical certificate summary without falling back to general consult copy", () => {

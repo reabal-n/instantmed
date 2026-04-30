@@ -45,6 +45,7 @@ export default function MedicationHistoryStep({ serviceType, onNext, onBack }: M
   
   const prescriptionHistory = answers.prescriptionHistory as string | undefined
   const lastPrescribedBy = (answers.lastPrescribedBy as string) || ""
+  const currentDose = (answers.currentDose as string) || ""
   const sideEffects = (answers.sideEffects as string) || ""
   const hasSideEffects = answers.hasSideEffects as boolean | undefined
   
@@ -62,24 +63,28 @@ export default function MedicationHistoryStep({ serviceType, onNext, onBack }: M
     // The inline upsell card below offers a one-click handoff to the new-prescription
     // consult flow ($49.95) so we don't dead-end the patient at their decision point.
 
+    if (prescriptionHistory && prescriptionHistory !== "never" && !currentDose.trim()) {
+      newErrors.currentDose = "Please enter the dose you currently take"
+    }
+
     if (hasSideEffects && !sideEffects.trim()) {
       newErrors.sideEffects = "Please describe the side effects you experienced"
     }
 
     setErrors(newErrors)
-    setTouched({ prescriptionHistory: true, sideEffects: true })
+    setTouched({ prescriptionHistory: true, currentDose: true, sideEffects: true })
     return Object.keys(newErrors).length === 0
-  }, [prescriptionHistory, hasSideEffects, sideEffects])
+  }, [prescriptionHistory, currentDose, hasSideEffects, sideEffects])
 
   const handleNext = useCallback(() => {
     if (validate()) {
-      posthog?.capture('step_completed', { step: 'medication-history', service_type: serviceType, prescription_history: prescriptionHistory, has_side_effects: hasSideEffects })
+      posthog?.capture('step_completed', { step: 'medication-history', service_type: serviceType, prescription_history: prescriptionHistory, has_current_dose: Boolean(currentDose.trim()), has_side_effects: hasSideEffects })
       onNext()
     }
-  }, [validate, posthog, serviceType, prescriptionHistory, hasSideEffects, onNext])
+  }, [validate, posthog, serviceType, prescriptionHistory, currentDose, hasSideEffects, onNext])
 
   const isNeverPrescribed = prescriptionHistory === "never"
-  const isComplete = prescriptionHistory && !isNeverPrescribed && (hasSideEffects === false || (hasSideEffects && sideEffects.trim()))
+  const isComplete = prescriptionHistory && !isNeverPrescribed && currentDose.trim() && (hasSideEffects === false || (hasSideEffects && sideEffects.trim()))
   const hasNoErrors = Object.keys(errors).length === 0
   const canContinue = isComplete && hasNoErrors
 
@@ -176,6 +181,27 @@ export default function MedicationHistoryStep({ serviceType, onNext, onBack }: M
             onChange={(e) => setAnswer("lastPrescribedBy", e.target.value)}
             placeholder="e.g., Dr Smith at ABC Medical Centre"
             className="h-11 mt-2"
+          />
+        </FormField>
+      )}
+
+      {/* Current dose */}
+      {!isNeverPrescribed && prescriptionHistory && (
+        <FormField
+          label="What dose do you currently take?"
+          required
+          error={touched.currentDose ? errors.currentDose : undefined}
+          hint="Write what is on your label, e.g. 1 puff twice daily or 1 tablet each morning"
+        >
+          <Textarea
+            value={currentDose}
+            onChange={(e) => {
+              setAnswer("currentDose", e.target.value)
+              setAnswer("dosageInstructions", e.target.value)
+            }}
+            onBlur={() => setTouched((prev) => ({ ...prev, currentDose: true }))}
+            placeholder="e.g., 2 puffs twice daily"
+            className="min-h-[80px] mt-2"
           />
         </FormField>
       )}

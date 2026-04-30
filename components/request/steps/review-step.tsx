@@ -184,6 +184,7 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
     const medicationName = answers.medicationName as string
     const medicationStrength = answers.medicationStrength as string
     const prescriptionHistory = answers.prescriptionHistory as string | undefined
+    const currentDose = answers.currentDose as string | undefined
     const hasSideEffects = answers.hasSideEffects as boolean | undefined
     const sideEffects = answers.sideEffects as string | undefined
 
@@ -203,6 +204,9 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
       if (prescriptionHistory) {
         items.push({ label: 'Last prescribed', value: PRESCRIPTION_HISTORY_LABELS[prescriptionHistory] || prescriptionHistory })
       }
+      if (currentDose) {
+        items.push({ label: 'Current dose', value: currentDose })
+      }
       if (hasSideEffects) {
         items.push({ label: 'Side effects', value: sideEffects || 'Yes' })
       }
@@ -214,6 +218,9 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
       ]
       if (prescriptionHistory) {
         items.push({ label: 'Last prescribed', value: PRESCRIPTION_HISTORY_LABELS[prescriptionHistory] || prescriptionHistory })
+      }
+      if (currentDose) {
+        items.push({ label: 'Current dose', value: currentDose })
       }
       if (hasSideEffects) {
         items.push({ label: 'Side effects', value: sideEffects || 'Yes' })

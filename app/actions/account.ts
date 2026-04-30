@@ -64,7 +64,6 @@ export async function deleteAccount(): Promise<{ success: boolean; error: string
       full_name: "Deleted User",
       phone: null,
       address_line1: null,
-      address_line2: null,
       suburb: null,
       state: null,
       postcode: null,

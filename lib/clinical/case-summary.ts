@@ -326,6 +326,7 @@ function repeatSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
   const strength = str(answers, "medicationStrength") || str(answers, "medication_strength")
   const form = str(answers, "medicationForm") || str(answers, "medication_form")
   const history = str(answers, "prescriptionHistory") || str(answers, "last_prescribed") || "not specified"
+  const currentDose = str(answers, "currentDose") || str(answers, "current_dose") || str(answers, "dosage_instructions")
   const controlled = isControlledSubstance(medicationName)
 
   const keyFacts = compactFacts([
@@ -333,6 +334,7 @@ function repeatSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
     fact("Strength", strength),
     fact("Form", form),
     { label: "Last prescribed", value: humanize(history) },
+    fact("Patient-reported dose", currentDose),
     fact("Last prescription date", str(answers, "lastPrescriptionDate")),
     fact("Side effects", str(answers, "sideEffects")),
     fact("Allergies", str(answers, "known_allergies")),
@@ -368,13 +370,15 @@ function repeatSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
     strength,
     form,
     medicationSearchHint: [medicationName, strength, form].filter(Boolean).join(" "),
-    directionsTemplate: "Repeat existing regimen after doctor confirms dose, quantity, repeats and indication in Parchment.",
+    directionsTemplate: currentDose
+      ? `Patient reports current dose: ${currentDose}. Confirm regimen, quantity, repeats and indication in Parchment before prescribing.`
+      : "Repeat existing regimen after doctor confirms dose, quantity, repeats and indication in Parchment.",
     quantityTemplate: "Match clinically appropriate repeat quantity in Parchment",
     repeatsTemplate: "Doctor to confirm in Parchment",
     safetyChecks: ["Repeat history reviewed", "Allergies checked", "Current medications checked", "Controlled-substance screen checked"],
   })
 
-  const subjective = `${input.patientName || "Patient"} requests a repeat prescription for ${[medicationName, strength, form].filter(Boolean).join(" ")}.`
+  const subjective = `${input.patientName || "Patient"} requests a repeat prescription for ${[medicationName, strength, form].filter(Boolean).join(" ")}.${currentDose ? ` Patient reports current dose: ${currentDose}.` : ""}`
   const objective = `Last prescribed: ${humanize(history)}. Allergies: ${yesNo(raw(answers, "has_allergies"))}. Current medicines: ${yesNo(raw(answers, "takes_medications"))}.`
   const assessment = controlled ? "Request is outside repeat prescription scope." : "Potentially suitable for repeat prescription subject to doctor review."
   const planText = recommendedPlan.nextSteps.join(" ")

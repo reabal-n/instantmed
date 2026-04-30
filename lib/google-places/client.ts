@@ -1,7 +1,7 @@
 /**
- * Google Places API Client for Australian Address Autocomplete
- * Calls our own API routes (/api/places/*) which proxy to Google,
- * avoiding CORS issues with the Google REST API from the browser.
+ * Australian address autocomplete client.
+ * Calls our own API routes (/api/places/*), which use Addressfinder first
+ * and Google Places as a fallback without exposing provider keys to browsers.
  */
 
 export interface PlaceSuggestion {
@@ -31,7 +31,7 @@ export interface ParsedAddress {
 
 /**
  * Search for Australian addresses as the user types.
- * Calls /api/places/autocomplete which proxies to Google Places.
+ * Calls /api/places/autocomplete which proxies to the configured address provider.
  */
 export async function searchAddresses(
   query: string,
@@ -79,7 +79,7 @@ export async function searchAddresses(
 
 /**
  * Get full address details after user selects a suggestion.
- * Calls /api/places/details which proxies to Google Place Details.
+ * Calls /api/places/details which normalizes provider metadata.
  */
 export async function getPlaceDetails(
   placeId: string,
@@ -103,6 +103,10 @@ export async function getPlaceDetails(
     }
 
     const data = await response.json()
+
+    if (data.status === "OK" && data.address) {
+      return data.address as ParsedAddress
+    }
 
     if (data.status !== "OK" || !data.result) {
       return null

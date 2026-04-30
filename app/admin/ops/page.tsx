@@ -1,3 +1,4 @@
+import { getDuplicatePatientProfileSummary } from "@/lib/doctor/patient-identity-report"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 import { OpsDashboardClient } from "./ops-client"
@@ -19,6 +20,7 @@ export default async function OpsDashboardPage() {
     recentErrorsResult,
     auditLogsResult,
     systemHealthResult,
+    patientIdentityResult,
   ] = await Promise.all([
     // Failed webhooks (DLQ) - table may not exist
     supabase
@@ -58,6 +60,8 @@ export default async function OpsDashboardPage() {
       .eq("status", "paid")
       .lt("created_at", new Date(now.getTime() - 2 * 60 * 60 * 1000).toISOString()) // Older than 2 hours
       .limit(10),
+
+    getDuplicatePatientProfileSummary(supabase),
   ])
 
   // Process email stats
@@ -89,11 +93,13 @@ export default async function OpsDashboardPage() {
       recent: recentErrorsResult.data || [],
     },
     auditVolume: auditLogsResult.count || 0,
+    patientIdentity: patientIdentityResult,
     staleIntakes: staleIntakes.length,
     systemStatus: {
       webhooksHealthy: (webhookDlqResult.count || 0) < 5,
       emailsHealthy: emailStats.failed < 3,
       intakesHealthy: staleIntakes.length < 3,
+      patientIdentityHealthy: patientIdentityResult.duplicateProfileCount === 0,
     },
   }
 

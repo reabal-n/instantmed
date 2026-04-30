@@ -10,6 +10,7 @@
 import crypto from "crypto"
 
 import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
+import { updateProfile } from "@/lib/data/profiles"
 import {
   resolveCheckoutSubtype,
   transformAnswersForUnifiedCheckout,
@@ -17,6 +18,7 @@ import {
 } from "@/lib/request/unified-checkout"
 import { createIntakeAndCheckoutAction } from "@/lib/stripe/checkout"
 import { createGuestCheckoutAction } from "@/lib/stripe/guest-checkout"
+import { buildCheckoutIdentityProfileUpdates } from "@/lib/stripe/prescribing-profile-fields"
 import type { ServiceCategory,UnifiedServiceType } from "@/types/services"
 
 interface UnifiedCheckoutInput {
@@ -94,6 +96,14 @@ export async function createCheckoutFromUnifiedFlow(
   const authResult = await getAuthenticatedUserWithProfile()
   
   if (authResult?.user && authResult?.profile) {
+    const identityUpdates = buildCheckoutIdentityProfileUpdates(authResult.profile, identity)
+    if (Object.keys(identityUpdates).length > 0) {
+      const updatedProfile = await updateProfile(authResult.profile.id, identityUpdates)
+      if (!updatedProfile) {
+        return { success: false, error: "Failed to save patient details. Please try again." }
+      }
+    }
+
     // Authenticated checkout
     return createIntakeAndCheckoutAction({
       category,

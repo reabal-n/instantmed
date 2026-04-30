@@ -93,6 +93,22 @@ describe("unified intake regressions", () => {
     expect(validateAnswersServerSide("consult", {}, { ...identity, phone: undefined })).toContain("Phone number is required")
   })
 
+  it("does not skip prescription details unless prescribing sex is already on profile", () => {
+    const baseContext: StepContext = {
+      isAuthenticated: true,
+      hasProfile: true,
+      hasCompleteIdentity: true,
+      hasMedicare: true,
+      hasAddress: true,
+      hasPhone: true,
+      serviceType: "repeat-script",
+      answers: {},
+    }
+
+    expect(getStepsForService("repeat-script", baseContext).map((step) => step.id)).toContain("details")
+    expect(getStepsForService("repeat-script", { ...baseContext, hasSex: true }).map((step) => step.id)).not.toContain("details")
+  })
+
   it("requires structured general consult red flags and maps them to emergency safety rules", () => {
     expect(
       validateConsultReasonStep({
@@ -140,5 +156,125 @@ describe("unified intake regressions", () => {
     expect(isConsultServiceType("consults")).toBe(true)
     expect(isKnownDoctorServiceType("consult")).toBe(true)
     expect(isKnownDoctorServiceType("consults")).toBe(true)
+  })
+
+  it("normalizes prescription identity answers for checkout, fraud checks, and prescribing", () => {
+    const transformed = transformAnswersForUnifiedCheckout("repeat-script", {
+      medicationName: "Budesonide + formoterol",
+      medicationStrength: "100/3 micrograms",
+      pbsCode: "MANUAL",
+      prescribedBefore: true,
+      doseChanged: false,
+      currentDose: "2 puffs twice daily",
+      medicareNumber: "1111111111",
+      medicareIrn: "2",
+      medicareExpiry: "2029-05-01",
+      addressLine1: "12 Manual Entry Road",
+      suburb: "Sydney",
+      state: "NSW",
+      postcode: "2000",
+      sex: "M",
+    })
+
+    expect(transformed.medicare_number).toBe("1111111111")
+    expect(transformed.medicare_irn).toBe("2")
+    expect(transformed.medicare_expiry).toBe("2029-05-01")
+    expect(transformed.current_dose).toBe("2 puffs twice daily")
+    expect(transformed.dosage_instructions).toBe("2 puffs twice daily")
+    expect(transformed.address_line1).toBe("12 Manual Entry Road")
+    expect(transformed.suburb).toBe("Sydney")
+    expect(transformed.state).toBe("NSW")
+    expect(transformed.postcode).toBe("2000")
+    expect(transformed.sex).toBe("M")
+  })
+
+  it("blocks prescription checkout when manual address is missing suburb state or postcode", () => {
+    const validPrescriptionAnswers = {
+      medicationName: "Budesonide + formoterol",
+      prescriptionHistory: "6 to 12 months",
+      currentDose: "2 puffs twice daily",
+      hasAllergies: false,
+      hasConditions: false,
+      medicareNumber: "1111111111",
+      medicareIrn: "2",
+      medicareExpiry: "2029-05-01",
+      addressLine1: "12 Manual Entry Road",
+      sex: "M",
+    }
+
+    expect(
+      validateAnswersServerSide("repeat-script", validPrescriptionAnswers, identity),
+    ).toContain("suburb")
+
+    expect(validateAnswersServerSide("repeat-script", {
+      ...validPrescriptionAnswers,
+      suburb: "Sydney",
+      state: "NSW",
+      postcode: "2000",
+    }, identity)).toBeNull()
+  })
+
+  it("blocks prescription checkout when Medicare IRN or expiry is missing", () => {
+    const validPrescriptionAnswers = {
+      medicationName: "Budesonide + formoterol",
+      prescriptionHistory: "6 to 12 months",
+      currentDose: "2 puffs twice daily",
+      hasAllergies: false,
+      hasConditions: false,
+      medicareNumber: "1111111111",
+      addressLine1: "12 Manual Entry Road",
+      suburb: "Sydney",
+      state: "NSW",
+      postcode: "2000",
+      sex: "M",
+    }
+
+    expect(
+      validateAnswersServerSide("repeat-script", validPrescriptionAnswers, identity),
+    ).toContain("IRN")
+
+    expect(validateAnswersServerSide("repeat-script", {
+      ...validPrescriptionAnswers,
+      medicareIrn: "2",
+    }, identity)).toContain("expiry")
+
+    expect(validateAnswersServerSide("repeat-script", {
+      ...validPrescriptionAnswers,
+      medicareIrn: "2",
+      medicareExpiry: "2029-05-01",
+    }, identity)).toBeNull()
+  })
+
+  it("requires the patient-reported dose for repeat medication requests", () => {
+    expect(validateAnswersServerSide("repeat-script", {
+      medicationName: "Budesonide + formoterol",
+      prescriptionHistory: "6 to 12 months",
+      hasAllergies: false,
+      hasConditions: false,
+      medicareNumber: "1111111111",
+      medicareIrn: "2",
+      medicareExpiry: "2029-05-01",
+      addressLine1: "12 Manual Entry Road",
+      suburb: "Sydney",
+      state: "NSW",
+      postcode: "2000",
+      sex: "M",
+    }, identity)).toContain("dose")
+
+    expect(validateAnswersServerSide("repeat-script", {
+      medicationName: "Budesonide + formoterol",
+      prescriptionHistory: "6 to 12 months",
+      currentDose: "2 puffs twice daily",
+      hasAllergies: false,
+      hasConditions: false,
+      medicareNumber: "1111111111",
+      medicareIrn: "2",
+      medicareExpiry: "2029-05-01",
+      addressLine1: "12 Manual Entry Road",
+      suburb: "Sydney",
+      state: "NSW",
+      postcode: "2000",
+      sex: "M",
+    }, identity)).toBeNull()
   })
 })
