@@ -67,6 +67,7 @@ storybook-static
 
 # Playwright MCP logs
 .playwright-mcp/
+.playwright-cli/
 
 # Audit/debug screenshots
 *.png

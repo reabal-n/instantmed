@@ -232,10 +232,9 @@ export function buildPatientSnapshot(
     medicare && (!options?.validateMedicare || medicareValidation?.valid),
   )
   const medicareIrnIsCritical = !options?.requireMedicareDetails || Boolean(medicareIrn && /^[1-9]$/.test(medicareIrn))
-  const medicareExpiryIsCritical = !options?.requireMedicareDetails || Boolean(medicareExpiry && medicareExpiryValidation?.valid)
   const medicareDetails = [
     medicareIrn ? `IRN ${medicareIrn}` : options?.requireMedicareDetails ? "IRN missing" : null,
-    medicareExpiry ? `Exp ${formatShortDateSafe(medicareExpiry) ?? medicareExpiry}` : options?.requireMedicareDetails ? "Expiry missing" : null,
+    medicareExpiry ? `Exp ${formatShortDateSafe(medicareExpiry) ?? medicareExpiry}` : null,
   ].filter(Boolean).join(" / ")
   const sexValue = normalizeSexValue(
     present(patient.sex) ?? presentAnswer(options?.answers, ["sex", "gender"]),
@@ -251,8 +250,7 @@ export function buildPatientSnapshot(
     options?.requireSex && !sexValue ? "Sex" : null,
     medicareIsCritical ? null : medicare ? "Valid Medicare" : "Medicare",
     options?.requireMedicareDetails && medicare && !medicareIrnIsCritical ? "Medicare IRN" : null,
-    options?.requireMedicareDetails && medicare && !medicareExpiry ? "Medicare expiry" : null,
-    options?.requireMedicareDetails && medicare && medicareExpiry && !medicareExpiryIsCritical ? "Valid Medicare expiry" : null,
+    options?.requireMedicareDetails && medicare && medicareExpiry && !medicareExpiryValidation?.valid ? "Valid Medicare expiry" : null,
     phone ? null : "Phone",
     addressIsCritical ? null : "Address",
   ].filter(Boolean) as string[]

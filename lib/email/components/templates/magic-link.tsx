@@ -13,6 +13,8 @@ export interface MagicLinkEmailProps {
   loginUrl: string
   email?: string
   appUrl?: string
+  actionType?: "magiclink" | "signup" | "recovery" | "invite" | "email_change" | "reauthentication" | string
+  firstName?: string
 }
 
 export const magicLinkEmailSubject = "Your InstantMed login link"
@@ -20,24 +22,51 @@ export const magicLinkEmailSubject = "Your InstantMed login link"
 export function MagicLinkEmail({
   loginUrl,
   appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au",
+  actionType = "magiclink",
+  firstName,
 }: MagicLinkEmailProps) {
+  const isSignup = actionType === "signup"
+  const isRecovery = actionType === "recovery"
+  const headline = isSignup
+    ? "Confirm your account"
+    : isRecovery
+      ? "Reset your access"
+      : "Continue to InstantMed"
+  const subtitle = isSignup
+    ? "Your request is ready in your account"
+    : isRecovery
+      ? "Secure one-time link"
+      : "Secure one-time sign-in link"
+  const buttonLabel = isSignup
+    ? "Confirm account"
+    : isRecovery
+      ? "Reset access"
+      : "Continue to InstantMed"
+  const previewText = isSignup
+    ? "Confirm your InstantMed account and continue to your request."
+    : isRecovery
+      ? "Use this secure link to reset access to InstantMed."
+      : "Use this secure link to continue to InstantMed. Expires in 60 minutes."
+
   return (
     <BaseEmail
-      previewText="Tap the button to log in to InstantMed. Expires in 60 minutes."
+      previewText={previewText}
       appUrl={appUrl}
     >
       <HeroBlock
-        icon="🔑"
-        headline="Your login link"
-        subtitle="Tap below to continue"
+        icon="IM"
+        headline={headline}
+        subtitle={subtitle}
         variant="info"
       />
 
       <Text>
-        One tap and you're in. This link expires in 60 minutes and works once only.
+        {firstName
+          ? `${firstName}, use the secure button below to continue.`
+          : "Use the secure button below to continue."} This link expires in 60 minutes and works once only.
       </Text>
 
-      <Button href={loginUrl}>Log in to InstantMed</Button>
+      <Button href={loginUrl}>{buttonLabel}</Button>
 
       <Text small muted style={{ textAlign: "center" as const }}>
         Didn't request this? You can safely ignore this email. Your account is secure.

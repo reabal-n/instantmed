@@ -62,14 +62,13 @@ describe("buildPrescribingIdentityBlockerReport", () => {
     expect(report.readyCount).toBe(1)
     expect(report.blockerCounts).toEqual({
       "Medicare IRN": 1,
-      "Medicare expiry": 1,
     })
     expect(report.items).toEqual([
       expect.objectContaining({
         intakeId: "intake-blocked",
         patientId: "patient-blocked",
         referenceNumber: "REQ-BLOCKED",
-        blockers: ["Medicare IRN", "Medicare expiry"],
+        blockers: ["Medicare IRN"],
         identity: expect.objectContaining({
           dateOfBirth: "1988-01-01",
           sex: "M",

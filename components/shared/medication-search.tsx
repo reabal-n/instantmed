@@ -384,28 +384,6 @@ export function MedicationSearch({
         This helps with record accuracy. A doctor will review everything.
       </p>
 
-      {/* "I don't know" fallback button - graceful degradation for users who can't recall medication name */}
-      {!value && (
-        <button
-          type="button"
-          onClick={() => {
-            const unknownEntry: SelectedPBSProduct = {
-              pbs_code: "UNKNOWN",
-              drug_name: "Unknown - doctor will confirm",
-              form: null,
-              strength: null,
-            }
-            onChange(unknownEntry)
-            setInputValue("Unknown - doctor will confirm")
-            setIsOpen(false)
-            setAnnouncement("Selected: I don't know the exact name. A doctor will help identify it.")
-          }}
-          className="mt-2 text-xs text-primary hover:text-primary/80 underline underline-offset-2 transition-colors"
-        >
-          I don&apos;t know the exact name
-        </button>
-      )}
-
       {/* Screen reader announcements */}
       <div
         role="status"

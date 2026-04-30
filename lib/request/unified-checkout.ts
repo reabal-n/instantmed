@@ -13,6 +13,7 @@ import {
   validateMedicalHistoryStep,
   validateMedicationHistoryStep,
   validateMedicationStep,
+  validatePrescriptionMedicalHistoryStep,
   validateSymptomsStep,
   validateWeightLossAssessmentStep,
   validateWeightLossCallStep,
@@ -117,7 +118,8 @@ function normalizeMedicareExpiry(value: string | undefined): string | null {
 function validatePrescriptionIdentityAnswers(answers: Record<string, unknown>): string | null {
   const medicare = firstStringAnswer(answers, ["medicare_number", "medicareNumber"])
   const medicareIrn = firstScalarAnswer(answers, ["medicare_irn", "medicareIrn"])
-  const medicareExpiry = normalizeMedicareExpiry(firstScalarAnswer(answers, ["medicare_expiry", "medicareExpiry"]))
+  const rawMedicareExpiry = firstScalarAnswer(answers, ["medicare_expiry", "medicareExpiry"])
+  const medicareExpiry = normalizeMedicareExpiry(rawMedicareExpiry)
   const addressLine1 = firstStringAnswer(answers, ["address_line1", "addressLine1", "address_line_1", "street_address"])
   const suburb = firstStringAnswer(answers, ["suburb"])
   const state = firstStringAnswer(answers, ["state"])
@@ -132,12 +134,14 @@ function validatePrescriptionIdentityAnswers(answers: Record<string, unknown>): 
   if (!medicareIrn || !/^[1-9]$/.test(medicareIrn)) {
     return "Medicare IRN is required for prescription requests."
   }
-  if (!medicareExpiry) {
-    return "Medicare card expiry is required for prescription requests."
-  }
-  const expiryResult = validateMedicareExpiry(medicareExpiry)
-  if (!expiryResult.valid) {
-    return expiryResult.error || "Medicare card expiry is invalid."
+  if (rawMedicareExpiry) {
+    if (!medicareExpiry) {
+      return "Medicare card expiry is invalid."
+    }
+    const expiryResult = validateMedicareExpiry(medicareExpiry)
+    if (!expiryResult.valid) {
+      return expiryResult.error || "Medicare card expiry is invalid."
+    }
   }
   if (!addressLine1) return "Street address is required for prescription requests."
   if (!suburb || !state || !postcode) {
@@ -201,7 +205,10 @@ export function transformAnswersForUnifiedCheckout(
   transformed.allergies = answers.allergies
   transformed.has_conditions = answers.hasConditions
   transformed.conditions = answers.conditions
+  transformed.has_other_medications = answers.hasOtherMedications
   transformed.other_medications = answers.otherMedications
+  transformed.is_pregnant_or_breastfeeding = answers.isPregnantOrBreastfeeding
+  transformed.has_adverse_medication_reactions = answers.hasAdverseMedicationReactions
 
   transformed.telehealth_consent_given = answers.telehealthConsentGiven
   transformed.accuracy_confirmed = answers.confirmedAccuracy
@@ -265,7 +272,7 @@ export function validateAnswersServerSide(
     return firstValidationError(
       validateMedicationStep(answers),
       validateMedicationHistoryStep(answers),
-      validateMedicalHistoryStep(answers),
+      validatePrescriptionMedicalHistoryStep(answers),
     )
   }
 

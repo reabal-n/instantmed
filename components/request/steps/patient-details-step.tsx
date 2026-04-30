@@ -27,7 +27,7 @@ import { getSavedIdentity, saveIdentity } from "@/lib/request/preferences"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 import { validateDOB, validateEmail, validateName,validatePhone } from "@/lib/request/validation"
 import { cn } from "@/lib/utils"
-import { formatMedicareNumber, validateMedicareExpiry, validateMedicareNumber } from "@/lib/validation/medicare"
+import { formatMedicareNumber, validateMedicareNumber } from "@/lib/validation/medicare"
 
 import { FormField } from "../form-field"
 import { useRequestStore } from "../store"
@@ -54,11 +54,8 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
   const postcode = (answers.postcode as string) || ""
   const medicareNumber = (answers.medicareNumber as string) || ""
   const medicareIrn = String(answers.medicareIrn || "")
-  const medicareExpiry = (answers.medicareExpiry as string) || ""
   const sex = (answers.sex as string) || ""
   const consultSubtype = answers.consultSubtype as string | undefined
-  const medicareExpiryMonth = /^\d{4}-\d{2}/.test(medicareExpiry) ? medicareExpiry.slice(0, 7) : ""
-  const currentMonth = new Date().toISOString().slice(0, 7)
 
   // BMI auto-calculation for ED subtype
   const bmi = useMemo(() => {
@@ -109,9 +106,6 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
       if (savedData.medicareIrn) {
         setAnswer('medicareIrn', savedData.medicareIrn)
       }
-      if (savedData.medicareExpiry) {
-        setAnswer('medicareExpiry', savedData.medicareExpiry)
-      }
       setShowAutofillBanner(false)
     }
   }, [savedData, setIdentity, setAnswer])
@@ -161,14 +155,6 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
       case 'medicareIrn':
         if (needsPrescriptionDetails && !/^[1-9]$/.test(value || "")) {
           error = 'Select your Medicare IRN'
-        }
-        break
-      case 'medicareExpiry':
-        if (needsPrescriptionDetails && !value) {
-          error = 'Select your Medicare card expiry'
-        } else if (needsPrescriptionDetails && value) {
-          const result = validateMedicareExpiry(value)
-          error = result.valid ? null : (result.error || 'Invalid Medicare expiry')
         }
         break
       case 'addressLine1':
@@ -237,12 +223,6 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
       if (!/^[1-9]$/.test(medicareIrn)) {
         newErrors.medicareIrn = 'Select your Medicare IRN'
       }
-      if (!medicareExpiry) {
-        newErrors.medicareExpiry = 'Select your Medicare card expiry'
-      } else {
-        const expiryResult = validateMedicareExpiry(medicareExpiry)
-        if (!expiryResult.valid) newErrors.medicareExpiry = expiryResult.error || 'Invalid Medicare expiry'
-      }
       if (!addressLine1.trim()) {
         newErrors.addressLine1 = 'Your address is needed to issue the prescription'
       }
@@ -266,7 +246,6 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
       phone: true,
       medicareNumber: true,
       medicareIrn: true,
-      medicareExpiry: true,
       addressLine1: true,
       suburb: true,
       state: true,
@@ -291,7 +270,6 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
         postcode,
         medicareNumber,
         medicareIrn,
-        medicareExpiry,
       })
       // Send hashed user data to Google for Enhanced Conversions
       setEnhancedConversionsData({ email, phone, firstName, lastName })
@@ -320,7 +298,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
   }
 
   const addressComplete = !addressRequired || (addressLine1 && suburb && state && postcode)
-  const medicareComplete = !needsPrescriptionDetails || (medicareNumber && medicareIrn && medicareExpiry)
+  const medicareComplete = !needsPrescriptionDetails || (medicareNumber && medicareIrn)
   const isComplete = firstName && lastName && email && dob && (!needsPhone || phone) && (!needsPrescriptionDetails || (medicareComplete && addressComplete && sex))
   const hasNoErrors = Object.keys(errors).length === 0
   const canContinue = isComplete && hasNoErrors
@@ -538,7 +516,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
             )}
           </FormField>
 
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_160px]">
+          <div className="grid grid-cols-1 gap-3">
             <div className="space-y-1.5">
               <Label className="text-xs">IRN</Label>
               <div className="grid grid-cols-9 gap-1">
@@ -568,26 +546,6 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
               </div>
               {touched.medicareIrn && errors.medicareIrn && (
                 <p className="text-xs text-destructive">{errors.medicareIrn}</p>
-              )}
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="medicare-expiry" className="text-xs">Card expiry</Label>
-              <Input
-                id="medicare-expiry"
-                type="month"
-                value={medicareExpiryMonth}
-                min={currentMonth}
-                onChange={(e) => {
-                  const value = e.target.value
-                  setAnswer("medicareExpiry", value ? `${value}-01` : "")
-                }}
-                onBlur={() => handleBlur('medicareExpiry', medicareExpiry)}
-                aria-invalid={touched.medicareExpiry && !!errors.medicareExpiry}
-                data-error={touched.medicareExpiry && errors.medicareExpiry ? "true" : undefined}
-                className={cn("h-10", touched.medicareExpiry && errors.medicareExpiry && "border-destructive")}
-              />
-              {touched.medicareExpiry && errors.medicareExpiry && (
-                <p className="text-xs text-destructive">{errors.medicareExpiry}</p>
               )}
             </div>
           </div>

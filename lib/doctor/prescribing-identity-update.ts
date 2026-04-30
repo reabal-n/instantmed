@@ -177,10 +177,14 @@ export function buildPrescribingIdentityProfileUpdates(
     fieldErrors.medicareIrn = "Enter the Medicare IRN as one digit from 1 to 9."
   }
 
-  const medicareExpiry = normalizeMedicareExpiry(input.medicareExpiry)
-  if (!medicareExpiry) {
-    fieldErrors.medicareExpiry = "Enter a valid Medicare expiry month."
-  } else {
+  const hasMedicareExpiry = input.medicareExpiry.trim().length > 0
+  const medicareExpiry = hasMedicareExpiry ? normalizeMedicareExpiry(input.medicareExpiry) : null
+  if (hasMedicareExpiry) {
+    if (!medicareExpiry) {
+      fieldErrors.medicareExpiry = "Enter a valid Medicare expiry month."
+    }
+  }
+  if (medicareExpiry) {
     const expiryResult = validateMedicareExpiry(medicareExpiry)
     if (!expiryResult.valid) {
       fieldErrors.medicareExpiry = expiryResult.error || "Enter a current Medicare expiry month."
@@ -221,7 +225,7 @@ export function buildPrescribingIdentityProfileUpdates(
       phone: phoneResult.e164,
       medicare_number: medicareNumber,
       medicare_irn: Number.parseInt(medicareIrn, 10),
-      medicare_expiry: medicareExpiry!,
+      ...(medicareExpiry ? { medicare_expiry: medicareExpiry } : {}),
       address_line1: input.addressLine1.trim(),
       suburb: input.suburb.trim(),
       state: state as AustralianState,

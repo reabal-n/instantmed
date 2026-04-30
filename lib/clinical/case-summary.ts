@@ -72,6 +72,14 @@ function str(answers: Answers, key: string): string | undefined {
   return undefined
 }
 
+function firstStr(answers: Answers, keys: string[]): string | undefined {
+  for (const key of keys) {
+    const value = str(answers, key)
+    if (value) return value
+  }
+  return undefined
+}
+
 function bool(answers: Answers, key: string): boolean | undefined {
   const value = raw(answers, key)
   return typeof value === "boolean" ? value : undefined
@@ -328,6 +336,11 @@ function repeatSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
   const history = str(answers, "prescriptionHistory") || str(answers, "last_prescribed") || "not specified"
   const currentDose = str(answers, "currentDose") || str(answers, "current_dose") || str(answers, "dosage_instructions")
   const controlled = isControlledSubstance(medicationName)
+  const allergies = firstStr(answers, ["known_allergies", "allergies"])
+  const conditions = firstStr(answers, ["existing_conditions", "conditions"])
+  const currentMedications = firstStr(answers, ["current_medications", "otherMedications", "other_medications"])
+  const pregnancyAnswer = raw(answers, "isPregnantOrBreastfeeding") ?? raw(answers, "is_pregnant_or_breastfeeding")
+  const adverseReactionAnswer = raw(answers, "hasAdverseMedicationReactions") ?? raw(answers, "has_adverse_medication_reactions")
 
   const keyFacts = compactFacts([
     { label: "Requested medication", value: medicationName },
@@ -337,9 +350,11 @@ function repeatSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
     fact("Patient-reported dose", currentDose),
     fact("Last prescription date", str(answers, "lastPrescriptionDate")),
     fact("Side effects", str(answers, "sideEffects")),
-    fact("Allergies", str(answers, "known_allergies")),
-    fact("Conditions", str(answers, "existing_conditions")),
-    fact("Current medications", str(answers, "current_medications")),
+    fact("Allergies", allergies),
+    fact("Conditions", conditions),
+    fact("Current medications", currentMedications),
+    pregnancyAnswer !== undefined ? { label: "Pregnant/breastfeeding", value: yesNo(pregnancyAnswer) } : null,
+    adverseReactionAnswer !== undefined ? { label: "Adverse medication reactions", value: yesNo(adverseReactionAnswer) } : null,
   ])
 
   const safetyItems: ClinicalSafetyItem[] = controlled
@@ -379,7 +394,13 @@ function repeatSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
   })
 
   const subjective = `${input.patientName || "Patient"} requests a repeat prescription for ${[medicationName, strength, form].filter(Boolean).join(" ")}.${currentDose ? ` Patient reports current dose: ${currentDose}.` : ""}`
-  const objective = `Last prescribed: ${humanize(history)}. Allergies: ${yesNo(raw(answers, "has_allergies"))}. Current medicines: ${yesNo(raw(answers, "takes_medications"))}.`
+  const objective = [
+    `Last prescribed: ${humanize(history)}.`,
+    `Allergies: ${allergies || yesNo(raw(answers, "has_allergies") ?? raw(answers, "hasAllergies"))}.`,
+    `Current medicines: ${currentMedications || yesNo(raw(answers, "takes_medications") ?? raw(answers, "hasOtherMedications"))}.`,
+    pregnancyAnswer !== undefined ? `Pregnant/breastfeeding: ${yesNo(pregnancyAnswer)}.` : null,
+    adverseReactionAnswer !== undefined ? `Adverse medication reactions: ${yesNo(adverseReactionAnswer)}.` : null,
+  ].filter(Boolean).join(" ")
   const assessment = controlled ? "Request is outside repeat prescription scope." : "Potentially suitable for repeat prescription subject to doctor review."
   const planText = recommendedPlan.nextSteps.join(" ")
 

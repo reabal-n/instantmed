@@ -62,17 +62,17 @@ describe("getParchmentPatientIdentityIssues", () => {
     })).toEqual(["Address suburb", "Address state", "Address postcode"])
   })
 
-  it("blocks Parchment sync when Medicare IRN or expiry are missing", () => {
+  it("blocks Parchment sync when Medicare IRN is missing but allows absent card expiry", () => {
     expect(getParchmentPatientIdentityIssues({
       ...baseProfile,
       medicare_irn: null,
       medicare_expiry: null,
-    })).toEqual(["Medicare IRN", "Medicare expiry"])
+    })).toEqual(["Medicare IRN"])
 
     expect(getParchmentPatientIdentityIssues({
       ...baseProfile,
       medicare_expiry: null,
-    })).toEqual(["Medicare expiry"])
+    })).toEqual([])
   })
 
   it("flags Medicare card expiry only when an invalid expiry is supplied", () => {

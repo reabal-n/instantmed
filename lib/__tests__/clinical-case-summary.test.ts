@@ -100,6 +100,37 @@ describe("buildClinicalCaseSummary", () => {
     expect(summary.prescriptionIntent?.directionsTemplate).toContain("10 mg nightly")
   })
 
+  it("surfaces unified repeat-prescription safety answers in the doctor summary", () => {
+    const summary = buildClinicalCaseSummary({
+      category: "prescription",
+      serviceType: "repeat-script",
+      patientName: "Pat Script",
+      answers: {
+        medicationName: "Rosuvastatin",
+        medicationStrength: "10 mg",
+        medicationForm: "tablet",
+        prescriptionHistory: "last_3_months",
+        currentDose: "10 mg nightly",
+        hasAllergies: true,
+        allergies: "Penicillin rash",
+        hasConditions: true,
+        conditions: "High cholesterol",
+        hasOtherMedications: true,
+        otherMedications: "Vitamin D daily",
+        isPregnantOrBreastfeeding: false,
+        hasAdverseMedicationReactions: true,
+      },
+    })
+
+    expect(summary.keyFacts).toContainEqual({ label: "Allergies", value: "Penicillin rash" })
+    expect(summary.keyFacts).toContainEqual({ label: "Conditions", value: "High cholesterol" })
+    expect(summary.keyFacts).toContainEqual({ label: "Current medications", value: "Vitamin D daily" })
+    expect(summary.keyFacts).toContainEqual({ label: "Pregnant/breastfeeding", value: "No" })
+    expect(summary.keyFacts).toContainEqual({ label: "Adverse medication reactions", value: "Yes" })
+    expect(summary.draftNote).toContain("Penicillin rash")
+    expect(summary.draftNote).toContain("Vitamin D daily")
+  })
+
   it("builds a medical certificate summary without falling back to general consult copy", () => {
     const summary = buildClinicalCaseSummary({
       serviceType: "med_certs",

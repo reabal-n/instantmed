@@ -178,9 +178,20 @@ export function validateRepeatScriptPayload(
   // Accept either medication_name or medication_display
   const medicationName = answers.medication_name || answers.medication_display
   const medicationDisplay = answers.medication_display || answers.medication_name
+  const medicationStrength = answers.medication_strength || answers.medicationStrength || answers.strength
+  const medicationForm = answers.medication_form || answers.medicationForm || answers.form
 
   // Allow "MANUAL" code for manual text entries when search doesn't find the medication
   const isManualEntry = medicationCode === "MANUAL"
+  const isUnknownEntry = typeof medicationCode === "string" && medicationCode.toUpperCase() === "UNKNOWN"
+
+  if (isUnknownEntry) {
+    return {
+      valid: false,
+      error: "Please enter the medication name, strength, and form.",
+      requiresConsult: false,
+    }
+  }
 
   if (!isManualEntry && (!medicationCode || typeof medicationCode !== "string" || medicationCode.trim() === "")) {
     return {
@@ -202,6 +213,30 @@ export function validateRepeatScriptPayload(
     return {
       valid: false,
       error: "Please enter a medication name.",
+      requiresConsult: false,
+    }
+  }
+
+  if (String(medicationName).toLowerCase().includes("unknown - doctor")) {
+    return {
+      valid: false,
+      error: "Please enter the medication name, strength, and form.",
+      requiresConsult: false,
+    }
+  }
+
+  if (!medicationStrength || typeof medicationStrength !== "string" || medicationStrength.trim() === "") {
+    return {
+      valid: false,
+      error: "Please enter the medication strength.",
+      requiresConsult: false,
+    }
+  }
+
+  if (!medicationForm || typeof medicationForm !== "string" || medicationForm.trim() === "") {
+    return {
+      valid: false,
+      error: "Please enter the medication form.",
       requiresConsult: false,
     }
   }
@@ -267,6 +302,15 @@ export function validateRepeatScriptPayload(
     return {
       valid: false,
       error: "Please indicate when this medication was last prescribed. This is required for clinical safety.",
+      requiresConsult: false,
+    }
+  }
+
+  const currentDose = answers.current_dose || answers.currentDose || answers.dosage_instructions || answers.dosageInstructions
+  if (!currentDose || typeof currentDose !== "string" || currentDose.trim() === "") {
+    return {
+      valid: false,
+      error: "Please enter the dose you currently take.",
       requiresConsult: false,
     }
   }

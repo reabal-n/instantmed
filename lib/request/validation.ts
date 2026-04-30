@@ -130,9 +130,76 @@ export const symptomsStepSchema = z.object({
   symptomDuration: nonEmptyString("Please indicate how long you've had these symptoms"),
 })
 
-export const medicationStepSchema = z.object({
-  medicationName: nonEmptyString("Please select or enter a medication"),
+const medicationEntrySchema = z.object({
+  product: z.unknown().optional().nullable(),
+  name: z.string().optional(),
+  strength: z.string().optional().nullable(),
+  form: z.string().optional().nullable(),
+  pbsCode: z.string().optional().nullable(),
 })
+
+function valueFromProduct(product: unknown, key: "drug_name" | "strength" | "form" | "pbs_code"): string | undefined {
+  if (!product || typeof product !== "object") return undefined
+  const value = (product as Record<string, unknown>)[key]
+  return typeof value === "string" && value.trim() ? value.trim() : undefined
+}
+
+function firstMedicationEntry(data: { medications?: z.infer<typeof medicationEntrySchema>[] }) {
+  return data.medications?.find((med) => {
+    const name = valueFromProduct(med.product, "drug_name") || med.name
+    return typeof name === "string" && name.trim()
+  })
+}
+
+export const medicationStepSchema = z
+  .object({
+    medicationName: z.string().optional(),
+    medicationStrength: z.string().optional(),
+    medicationForm: z.string().optional(),
+    pbsCode: z.string().optional(),
+    medications: z.array(medicationEntrySchema).optional(),
+  })
+  .superRefine((data, ctx) => {
+    const firstMedication = firstMedicationEntry(data)
+    const medicationName = data.medicationName?.trim()
+      || valueFromProduct(firstMedication?.product, "drug_name")
+      || firstMedication?.name?.trim()
+      || ""
+    const medicationStrength = data.medicationStrength?.trim()
+      || firstMedication?.strength?.trim()
+      || valueFromProduct(firstMedication?.product, "strength")
+      || ""
+    const medicationForm = data.medicationForm?.trim()
+      || firstMedication?.form?.trim()
+      || valueFromProduct(firstMedication?.product, "form")
+      || ""
+    const pbsCode = data.pbsCode?.trim()
+      || firstMedication?.pbsCode?.trim()
+      || valueFromProduct(firstMedication?.product, "pbs_code")
+      || ""
+
+    if (!medicationName) {
+      ctx.addIssue({ code: "custom", path: ["medicationName"], message: "Please select or enter a medication" })
+      return
+    }
+
+    if (pbsCode.toUpperCase() === "UNKNOWN" || medicationName.toLowerCase().includes("unknown - doctor")) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["medicationName"],
+        message: "Please enter the medication name, strength, and form.",
+      })
+      return
+    }
+
+    if (!medicationStrength) {
+      ctx.addIssue({ code: "custom", path: ["medicationStrength"], message: "Medication strength is required." })
+    }
+
+    if (!medicationForm) {
+      ctx.addIssue({ code: "custom", path: ["medicationForm"], message: "Medication form is required." })
+    }
+  })
 
 export const medicationHistoryStepSchema = z.object({
   prescriptionHistory: nonEmptyString("Please indicate when you last had this prescribed"),
@@ -152,6 +219,29 @@ export const medicalHistoryStepSchema = z
     }
     if (data.hasConditions === true && !data.conditions) {
       ctx.addIssue({ code: "custom", path: ["conditions"], message: "Please list your conditions" })
+    }
+  })
+
+export const prescriptionMedicalHistoryStepSchema = z
+  .object({
+    hasAllergies: z.boolean({ error: "Please indicate if you have any allergies" }),
+    allergies: z.string().optional(),
+    hasConditions: z.boolean({ error: "Please indicate if you have any medical conditions" }),
+    conditions: z.string().optional(),
+    hasOtherMedications: z.boolean({ error: "Please indicate if you take any other medications" }),
+    otherMedications: z.string().optional(),
+    isPregnantOrBreastfeeding: z.boolean({ error: "Please indicate if you are pregnant or breastfeeding" }),
+    hasAdverseMedicationReactions: z.boolean({ error: "Please indicate if you have had adverse medication reactions" }),
+  })
+  .superRefine((data, ctx) => {
+    if (data.hasAllergies === true && !data.allergies?.trim()) {
+      ctx.addIssue({ code: "custom", path: ["allergies"], message: "Please list your allergies" })
+    }
+    if (data.hasConditions === true && !data.conditions?.trim()) {
+      ctx.addIssue({ code: "custom", path: ["conditions"], message: "Please list your conditions" })
+    }
+    if (data.hasOtherMedications === true && !data.otherMedications?.trim()) {
+      ctx.addIssue({ code: "custom", path: ["otherMedications"], message: "Please list your other medications" })
     }
   })
 
@@ -418,6 +508,10 @@ export function validateMedicationHistoryStep(answers: Record<string, unknown>):
 
 export function validateMedicalHistoryStep(answers: Record<string, unknown>): ValidationResult {
   return runSchema(medicalHistoryStepSchema, answers)
+}
+
+export function validatePrescriptionMedicalHistoryStep(answers: Record<string, unknown>): ValidationResult {
+  return runSchema(prescriptionMedicalHistoryStepSchema, answers)
 }
 
 export function validateConsultReasonStep(answers: Record<string, unknown>): ValidationResult {

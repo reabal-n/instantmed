@@ -5,16 +5,23 @@
  * Shows all collected information for patient to verify
  */
 
-import { ChevronDown, ChevronUp, Edit2, RefreshCw,ShieldCheck } from "lucide-react"
+import { Check, ChevronDown, ChevronUp, Clock, CreditCard, Edit2, Loader2, Lock, MessageSquare, RefreshCw,ShieldCheck, Smartphone } from "lucide-react"
 import { usePostHog } from "posthog-js/react"
 import { useRef,useState } from "react"
 
+import { createCheckoutFromUnifiedFlow } from "@/app/actions/unified-checkout"
+import { PaymentLogos } from "@/components/checkout/payment-logos"
 import { GoogleAdsCert } from "@/components/marketing/google-ads-cert"
 import { LegitScriptSeal } from "@/components/marketing/legitscript-seal"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
-import { PRICING_DISPLAY } from "@/lib/constants"
+import { Switch } from "@/components/ui/switch"
+import { getAttribution } from "@/lib/analytics/attribution"
+import { trackFunnelStep } from "@/lib/analytics/conversion-tracking"
+import { PRICING as APP_PRICING, PRICING_DISPLAY } from "@/lib/constants"
 import { CONSULT_SUBTYPE_DISPLAY_LABELS,getDisplayPrice, getServiceDisplayLabel } from "@/lib/request/display-helpers"
 import type { UnifiedServiceType } from "@/lib/request/step-registry"
 
@@ -113,9 +120,27 @@ function ReviewSection({
 }
 
 export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
-  const { answers, firstName, lastName, email, phone, dob, goToStep, safetyConfirmed, setSafetyConfirmed } = useRequestStore()
+  const { answers, firstName, lastName, email, phone, dob, goToStep, safetyConfirmed, setSafetyConfirmed, getIdentity, setConsent } = useRequestStore()
   const posthog = usePostHog()
   const consentRef = useRef<HTMLDivElement>(null)
+  const isPrescriptionCheckout = serviceType === "prescription" || serviceType === "repeat-script"
+  const price = getDisplayPrice(serviceType, answers)
+  const [isProcessing, setIsProcessing] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [showCheckmark, setShowCheckmark] = useState(false)
+  const [isPriority, setIsPriority] = useState(false)
+  const [subscribeAndSave, setSubscribeAndSave] = useState(false)
+  const totalDue = (subscribeAndSave && isPrescriptionCheckout ? APP_PRICING.REPEAT_RX_MONTHLY : price)
+    + (isPriority ? APP_PRICING.PRIORITY_FEE : 0)
+
+  const handleConsentChange = (checked: boolean) => {
+    setSafetyConfirmed(checked)
+    if (isPrescriptionCheckout) {
+      setConsent("agreedToTerms", checked)
+      setConsent("confirmedAccuracy", checked)
+      setConsent("telehealthConsent", checked)
+    }
+  }
 
   const handleContinue = () => {
     posthog?.capture('step_completed', {
@@ -125,6 +150,77 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
       has_safety_consent: safetyConfirmed,
     })
     onNext()
+  }
+
+  const handlePayment = async () => {
+    if (!safetyConfirmed || !isPrescriptionCheckout) {
+      handleDisabledClick()
+      return
+    }
+
+    setIsProcessing(true)
+    setError(null)
+
+    const identity = getIdentity()
+    posthog?.capture("checkout_initiated", {
+      service_type: serviceType,
+      price_dollars: totalDue,
+      is_priority: isPriority,
+      subscribe_and_save: subscribeAndSave,
+    })
+    void trackFunnelStep("checkout", serviceType, identity.email)
+
+    try {
+      const result = await createCheckoutFromUnifiedFlow({
+        serviceType,
+        answers: {
+          ...answers,
+          agreedToTerms: true,
+          confirmedAccuracy: true,
+          telehealthConsentGiven: true,
+          isPriority,
+          subscribeAndSave,
+        },
+        identity,
+        attribution: getAttribution(),
+        posthogDistinctId: posthog?.get_distinct_id() || undefined,
+      })
+
+      if (!result.success) {
+        posthog?.capture("checkout_failed", {
+          service_type: serviceType,
+          stage: "session_creation",
+        })
+        setError(result.error || "Unable to create payment session. Please try again.")
+        return
+      }
+
+      if (!result.checkoutUrl) {
+        posthog?.capture("checkout_failed", {
+          service_type: serviceType,
+          stage: "missing_checkout_url",
+        })
+        setError("Unable to create payment session. Please try again.")
+        return
+      }
+
+      posthog?.capture("checkout_redirecting", {
+        service_type: serviceType,
+        price_dollars: totalDue,
+      })
+      setShowCheckmark(true)
+      setTimeout(() => {
+        window.location.href = result.checkoutUrl!
+      }, 500)
+    } catch {
+      posthog?.capture("checkout_failed", {
+        service_type: serviceType,
+        stage: "exception",
+      })
+      setError("Something went wrong. Please try again or contact support.")
+    } finally {
+      setIsProcessing(false)
+    }
   }
 
   const handleDisabledClick = () => {
@@ -591,28 +687,111 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
 
       {/* Safety consent + Continue */}
       <div className="space-y-3 pt-1">
-        {/* Price summary - show before CTA so there's no payment surprise */}
-        {(() => {
-          const price = getDisplayPrice(serviceType, answers)
-          return (
-            <div className="flex items-center justify-between px-4 py-3 rounded-2xl border border-border/50 bg-white dark:bg-card shadow-md shadow-primary/[0.06]">
-              <span className="text-sm text-muted-foreground">Total today</span>
-              <span className="text-base font-semibold text-foreground">${price.toFixed(2)}</span>
+        {isPrescriptionCheckout && (
+          <div className="rounded-2xl border border-border/50 bg-white dark:bg-card shadow-md shadow-primary/[0.06] p-3 space-y-3">
+            <div className="grid grid-cols-2 gap-2">
+              <label
+                htmlFor="review-subscribe-save-toggle"
+                className={`min-h-[86px] rounded-xl border p-3 cursor-pointer transition-colors ${
+                  subscribeAndSave ? "border-primary bg-primary/5" : "border-border hover:border-primary/40"
+                }`}
+              >
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <RefreshCw className="h-4 w-4 text-primary" />
+                  <Switch
+                    id="review-subscribe-save-toggle"
+                    checked={subscribeAndSave}
+                    onCheckedChange={setSubscribeAndSave}
+                    aria-label="Subscribe and save on repeat prescriptions"
+                  />
+                </div>
+                <div className="text-sm font-medium leading-tight">Subscribe &amp; save</div>
+                <div className="mt-1 text-xs text-muted-foreground">
+                  ${APP_PRICING.REPEAT_RX_MONTHLY.toFixed(2)}/mo
+                </div>
+              </label>
+
+              <label
+                htmlFor="review-express-review-toggle"
+                className={`min-h-[86px] rounded-xl border p-3 cursor-pointer transition-colors ${
+                  isPriority ? "border-primary bg-primary/5" : "border-border hover:border-primary/40"
+                }`}
+              >
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <Clock className="h-4 w-4 text-primary" />
+                  <Switch
+                    id="review-express-review-toggle"
+                    checked={isPriority}
+                    onCheckedChange={(checked) => {
+                      setIsPriority(checked)
+                      if (checked) posthog?.capture("express_review_opted_in", { service_type: serviceType })
+                    }}
+                    aria-label="Enable express review"
+                  />
+                </div>
+                <div className="text-sm font-medium leading-tight">Express review</div>
+                <div className="mt-1 text-xs text-muted-foreground">+{PRICING_DISPLAY.PRIORITY_FEE}</div>
+              </label>
             </div>
-          )
-        })()}
+
+            <div className="grid grid-cols-2 gap-2 border-t border-border/50 pt-3 text-xs text-muted-foreground">
+              <span className="flex items-center gap-1.5">
+                <Smartphone className="h-3.5 w-3.5" />
+                eScript by SMS
+              </span>
+              <span className="flex items-center gap-1.5">
+                <MessageSquare className="h-3.5 w-3.5" />
+                Doctor reviews
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* Price summary - show before CTA so there's no payment surprise */}
+        <div className="px-4 py-3 rounded-2xl border border-border/50 bg-white dark:bg-card shadow-md shadow-primary/[0.06] space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-muted-foreground">{isPrescriptionCheckout ? "Due today" : "Total today"}</span>
+            <span className="text-base font-semibold text-foreground">
+              ${totalDue.toFixed(2)}{subscribeAndSave && isPrescriptionCheckout ? "/mo" : ""}
+            </span>
+          </div>
+          {isPrescriptionCheckout && (
+            <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+              {subscribeAndSave ? (
+                <Badge variant="secondary" className="text-[11px]">Cancel anytime</Badge>
+              ) : (
+                <span>One-time fee</span>
+              )}
+              {isPriority && <span>Includes express review</span>}
+            </div>
+          )}
+        </div>
 
         <div ref={consentRef} className={`rounded-2xl border p-4 transition-colors duration-200 ${safetyConfirmed ? 'border-border/50 dark:border-white/10 bg-muted/30 dark:bg-white/5' : 'border-warning-border bg-warning-light/50 dark:bg-warning/10'}`}>
           <div className="flex items-start gap-3">
             <Checkbox
               id="safety-consent"
               checked={safetyConfirmed}
-              onCheckedChange={(checked) => setSafetyConfirmed(checked === true)}
+              onCheckedChange={(checked) => handleConsentChange(checked === true)}
               className="mt-0.5"
-              aria-label="Confirm this is not a medical emergency"
+              aria-label={isPrescriptionCheckout ? "Confirm request and payment terms" : "Confirm this is not a medical emergency"}
             />
             <Label htmlFor="safety-consent" className="text-sm cursor-pointer leading-snug text-muted-foreground">
-              I confirm this is not a medical emergency. In an emergency, I&apos;ll call 000.
+              {isPrescriptionCheckout ? (
+                <>
+                  I confirm this is not a medical emergency, my information is accurate, and I agree to the{" "}
+                  <a href="/terms" className="text-primary underline" target="_blank" onClick={(event) => event.stopPropagation()}>
+                    Terms
+                  </a>{" "}
+                  and{" "}
+                  <a href="/privacy" className="text-primary underline" target="_blank" onClick={(event) => event.stopPropagation()}>
+                    Privacy Policy
+                  </a>
+                  .
+                </>
+              ) : (
+                "I confirm this is not a medical emergency. In an emergency, I'll call 000."
+              )}
             </Label>
           </div>
           {!safetyConfirmed && (
@@ -628,17 +807,38 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
           state to screen readers; disabled={false} keeps the event handlers live.
         */}
         <Button
-          onClick={safetyConfirmed ? handleContinue : handleDisabledClick}
+          onClick={safetyConfirmed ? (isPrescriptionCheckout ? handlePayment : handleContinue) : handleDisabledClick}
           className={`w-full h-12 ${safetyConfirmed ? '' : 'opacity-60 hover:opacity-70'}`}
-          aria-disabled={!safetyConfirmed}
+          aria-disabled={!safetyConfirmed || isProcessing}
           aria-describedby={!safetyConfirmed ? 'safety-consent-warning' : undefined}
+          disabled={isProcessing}
         >
-          Continue to payment
+          {isProcessing ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Processing...
+            </>
+          ) : isPrescriptionCheckout ? (
+            <>
+              <CreditCard className="h-4 w-4" />
+              Pay ${totalDue.toFixed(2)}{subscribeAndSave ? "/mo" : ""}
+            </>
+          ) : (
+            "Continue to payment"
+          )}
         </Button>
 
-        <p className="text-center text-[11px] text-muted-foreground">
-          Express review available at checkout (+{PRICING_DISPLAY.PRIORITY_FEE})
-        </p>
+        {error && (
+          <Alert variant="destructive" role="alert">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+
+        {!isPrescriptionCheckout && (
+          <p className="text-center text-[11px] text-muted-foreground">
+            Express review available at checkout (+{PRICING_DISPLAY.PRIORITY_FEE})
+          </p>
+        )}
 
         <div className="flex flex-col items-center gap-3">
           <div className="flex items-center gap-4 text-[11px] text-muted-foreground">
@@ -655,8 +855,26 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
             <LegitScriptSeal size="sm" />
             <GoogleAdsCert size="sm" />
           </div>
+          {isPrescriptionCheckout && (
+            <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
+              <Lock className="h-3 w-3 shrink-0" aria-hidden="true" />
+              <PaymentLogos />
+            </div>
+          )}
         </div>
       </div>
+
+      {showCheckmark && (
+        <div
+          role="status"
+          aria-label="Redirecting to secure payment"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-background/60 backdrop-blur-sm"
+        >
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+            <Check className="h-8 w-8 text-primary" aria-hidden="true" />
+          </div>
+        </div>
+      )}
     </div>
   )
 }

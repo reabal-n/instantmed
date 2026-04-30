@@ -32,6 +32,48 @@ describe("buildPrescribingIdentityProfileUpdates", () => {
     })
   })
 
+  it("does not require Medicare expiry when updating prescribing identity", () => {
+    const result = buildPrescribingIdentityProfileUpdates({
+      dateOfBirth: "1988-01-01",
+      sex: "F",
+      phone: "0412 345 678",
+      medicareNumber: "1111 11111 1",
+      medicareIrn: "2",
+      medicareExpiry: "",
+      addressLine1: "12 Test Street",
+      suburb: "Sydney",
+      state: "NSW",
+      postcode: "2000",
+    })
+
+    expect(result.valid).toBe(true)
+    expect(result.updates).toMatchObject({
+      medicare_number: "1111111111",
+      medicare_irn: 2,
+    })
+    expect(result.updates).not.toHaveProperty("medicare_expiry")
+  })
+
+  it("rejects invalid Medicare expiry when one is supplied", () => {
+    const result = buildPrescribingIdentityProfileUpdates({
+      dateOfBirth: "1988-01-01",
+      sex: "F",
+      phone: "0412 345 678",
+      medicareNumber: "1111 11111 1",
+      medicareIrn: "2",
+      medicareExpiry: "2020-01",
+      addressLine1: "12 Test Street",
+      suburb: "Sydney",
+      state: "NSW",
+      postcode: "2000",
+    })
+
+    expect(result.valid).toBe(false)
+    expect(result.fieldErrors).toMatchObject({
+      medicareExpiry: expect.any(String),
+    })
+  })
+
   it("returns field errors instead of partial updates for unsafe prescribing identity", () => {
     const result = buildPrescribingIdentityProfileUpdates({
       dateOfBirth: "",
@@ -39,7 +81,7 @@ describe("buildPrescribingIdentityProfileUpdates", () => {
       phone: "123",
       medicareNumber: "123",
       medicareIrn: "10",
-      medicareExpiry: "2020-01",
+      medicareExpiry: "",
       addressLine1: "",
       suburb: "",
       state: "NSW",
@@ -54,7 +96,6 @@ describe("buildPrescribingIdentityProfileUpdates", () => {
       phone: expect.any(String),
       medicareNumber: expect.any(String),
       medicareIrn: expect.any(String),
-      medicareExpiry: expect.any(String),
       addressLine1: expect.any(String),
       suburb: expect.any(String),
       postcode: expect.any(String),

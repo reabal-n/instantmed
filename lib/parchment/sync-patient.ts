@@ -259,9 +259,7 @@ export function getParchmentPatientIdentityIssues(
     const medicare = validateMedicareNumber(medicareNumber)
     if (!medicare.valid) issues.push("Valid Medicare")
     if (!medicareIrn || !/^[1-9]$/.test(medicareIrn)) issues.push("Medicare IRN")
-    if (!medicareExpiry) {
-      issues.push("Medicare expiry")
-    } else {
+    if (medicareExpiry) {
       const expiry = validateMedicareExpiry(medicareExpiry)
       if (!expiry.valid) issues.push("Valid Medicare expiry")
     }

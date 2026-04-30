@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     log.error("PBS search exception", {
       error: error instanceof Error ? error.message : String(error),
-      query,
+      queryLength: query.length,
     })
     return NextResponse.json(
       { error: "Search temporarily unavailable" },

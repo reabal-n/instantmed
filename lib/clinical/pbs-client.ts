@@ -206,7 +206,7 @@ async function searchPBSByField(
 
   // Circuit breaker - fast fail if API is known to be down
   if (isCircuitOpen()) {
-    log.debug("PBS API circuit open, skipping request", { field, query })
+    log.debug("PBS API circuit open, skipping request", { field, queryLength: query.length })
     return []
   }
 
@@ -228,7 +228,7 @@ async function searchPBSByField(
     const duration = Date.now() - startTime
 
     if (!response.ok) {
-      log.warn("PBS API error response", { field, query, status: response.status, duration })
+      log.warn("PBS API error response", { field, queryLength: query.length, status: response.status, duration })
       recordFailure()
       return []
     }
@@ -237,7 +237,7 @@ async function searchPBSByField(
     const data = JSON.parse(text)
 
     // Log latency for monitoring
-    log.info("PBS API response", { field, query, duration, resultCount: data.data?.length || 0 })
+    log.info("PBS API response", { field, queryLength: query.length, duration, resultCount: data.data?.length || 0 })
     recordSuccess()
 
     if (!data.data || data.data.length === 0) {
@@ -248,9 +248,9 @@ async function searchPBSByField(
   } catch (error) {
     const duration = Date.now() - startTime
     if (error instanceof Error && error.name === "AbortError") {
-      log.warn(`PBS API ${field} search timeout`, { query, duration })
+      log.warn(`PBS API ${field} search timeout`, { queryLength: query.length, duration })
     } else {
-      log.error(`PBS API ${field} search error`, { query, duration, error: error instanceof Error ? error.message : String(error) })
+      log.error(`PBS API ${field} search error`, { queryLength: query.length, duration, error: error instanceof Error ? error.message : String(error) })
     }
     recordFailure()
     return []

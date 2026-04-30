@@ -1035,7 +1035,20 @@ describe("Email Templates", () => {
         />
       )
       expectBaseEmailStructure(html)
-      expectContains(html, "Log in to InstantMed", "Your login link", "60 minutes")
+      expectContains(html, "Continue to InstantMed", "Secure one-time sign-in link", "60 minutes")
+    })
+
+    it("renders signup confirmation copy", () => {
+      const html = render(
+        <MagicLinkEmail
+          loginUrl="https://example.com/auth/v1/verify?token=abc&type=signup"
+          appUrl={APP_URL}
+          actionType="signup"
+          firstName="Pat"
+        />
+      )
+      expectBaseEmailStructure(html)
+      expectContains(html, "Confirm your account", "Pat", "Confirm account")
     })
 
     it("magic-link subject", () => {

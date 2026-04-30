@@ -111,6 +111,7 @@ export default function MedicalHistoryStep({ serviceType, onNext }: MedicalHisto
   const otherMedications = (answers.otherMedications as string) || ""
   const isPregnantOrBreastfeeding = answers.isPregnantOrBreastfeeding as boolean | undefined
   const hasAdverseMedicationReactions = answers.hasAdverseMedicationReactions as boolean | undefined
+  const requiresMedicationSafety = serviceType === "prescription" || serviceType === "repeat-script"
 
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [touched, setTouched] = useState<Record<string, boolean>>({})
@@ -139,10 +140,24 @@ export default function MedicalHistoryStep({ serviceType, onNext }: MedicalHisto
       newErrors.otherMedications = "Please list your other medications"
     }
 
+    if (requiresMedicationSafety && isPregnantOrBreastfeeding === undefined) {
+      newErrors.isPregnantOrBreastfeeding = "Please indicate if you are pregnant or breastfeeding"
+    }
+
+    if (requiresMedicationSafety && hasAdverseMedicationReactions === undefined) {
+      newErrors.hasAdverseMedicationReactions = "Please indicate if you have had adverse medication reactions"
+    }
+
     setErrors(newErrors)
-    setTouched({ allergies: true, conditions: true, otherMedications: true })
+    setTouched({
+      allergies: true,
+      conditions: true,
+      otherMedications: true,
+      isPregnantOrBreastfeeding: true,
+      hasAdverseMedicationReactions: true,
+    })
     return Object.keys(newErrors).length === 0
-  }, [hasAllergies, allergies, hasConditions, conditions, hasOtherMedications, otherMedications])
+  }, [hasAllergies, allergies, hasConditions, conditions, hasOtherMedications, otherMedications, requiresMedicationSafety, isPregnantOrBreastfeeding, hasAdverseMedicationReactions])
 
   const handleNext = useCallback(() => {
     if (validate()) {
@@ -154,7 +169,11 @@ export default function MedicalHistoryStep({ serviceType, onNext }: MedicalHisto
   const isComplete =
     hasAllergies !== undefined && (!hasAllergies || allergies.trim()) &&
     hasConditions !== undefined && (!hasConditions || conditions.trim()) &&
-    hasOtherMedications !== undefined && (!hasOtherMedications || otherMedications.trim())
+    hasOtherMedications !== undefined && (!hasOtherMedications || otherMedications.trim()) &&
+    (!requiresMedicationSafety || (
+      isPregnantOrBreastfeeding !== undefined &&
+      hasAdverseMedicationReactions !== undefined
+    ))
   const hasNoErrors = Object.keys(errors).length === 0
   const canContinue = isComplete && hasNoErrors
 
@@ -234,6 +253,7 @@ export default function MedicalHistoryStep({ serviceType, onNext }: MedicalHisto
           yesLabel="Yes"
           value={isPregnantOrBreastfeeding}
           onSelect={(val) => setAnswer('isPregnantOrBreastfeeding', val)}
+          error={touched.isPregnantOrBreastfeeding ? errors.isPregnantOrBreastfeeding : undefined}
         />
 
         <div className="border-t border-border/40" />
@@ -245,6 +265,7 @@ export default function MedicalHistoryStep({ serviceType, onNext }: MedicalHisto
           yesLabel="Yes"
           value={hasAdverseMedicationReactions}
           onSelect={(val) => setAnswer('hasAdverseMedicationReactions', val)}
+          error={touched.hasAdverseMedicationReactions ? errors.hasAdverseMedicationReactions : undefined}
         />
       </div>
 

@@ -1,9 +1,17 @@
 import { type NextRequest,NextResponse } from "next/server"
 
+import { resolvePostAuthDestination } from "@/lib/auth/post-auth-destination"
 import { createLogger } from "@/lib/observability/logger"
 import { createClient } from "@/lib/supabase/server"
 
 const log = createLogger("auth-callback")
+
+function destinationKind(destination: string): string {
+  if (destination.startsWith("/auth/post-signin")) return "post_signin"
+  if (destination.startsWith("/patient")) return "patient"
+  if (destination.startsWith("/doctor")) return "doctor"
+  return "other"
+}
 
 /**
  * AUTH CALLBACK - Supabase PKCE code exchange
@@ -45,9 +53,7 @@ export async function GET(request: NextRequest) {
   }
 
   // Successful auth - redirect through post-signin for profile linking
-  const destination = next
-    ? `/auth/post-signin?redirect=${encodeURIComponent(next)}`
-    : "/auth/post-signin"
-  log.info("Supabase auth success, redirecting", { destination })
+  const destination = resolvePostAuthDestination(next)
+  log.info("Supabase auth success, redirecting", { destinationKind: destinationKind(destination) })
   return NextResponse.redirect(`${origin}${destination}`)
 }

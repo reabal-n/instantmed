@@ -94,8 +94,6 @@ interface RequestFlowProps {
   profileMedicare?: string
   /** Profile Medicare IRN for pre-filling */
   profileMedicareIrn?: number | string
-  /** Profile Medicare expiry for pre-filling */
-  profileMedicareExpiry?: string
   /** Profile prescribing sex for pre-filling */
   profileSex?: string
   /** Profile address for pre-filling */
@@ -124,7 +122,6 @@ export function RequestFlow({
   profileDateOfBirth,
   profileMedicare,
   profileMedicareIrn,
-  profileMedicareExpiry,
   profileSex,
   profileAddress,
   healthProfile,
@@ -188,9 +185,6 @@ export function RequestFlow({
     if (profileMedicareIrn && !answers.medicareIrn) {
       setAnswer('medicareIrn', String(profileMedicareIrn))
     }
-    if (profileMedicareExpiry && !answers.medicareExpiry) {
-      setAnswer('medicareExpiry', profileMedicareExpiry)
-    }
     if (profileSex && !answers.sex) {
       setAnswer('sex', profileSex)
     }
@@ -201,7 +195,7 @@ export function RequestFlow({
       setAnswer('state', profileAddress.state)
       setAnswer('postcode', profileAddress.postcode)
     }
-  }, [userEmail, userName, userPhone, profileDateOfBirth, profileMedicare, profileMedicareIrn, profileMedicareExpiry, profileSex, profileAddress, answers.email, answers.medicareNumber, answers.medicareIrn, answers.medicareExpiry, answers.sex, answers.addressLine1, phone, setIdentity, setAnswer])
+  }, [userEmail, userName, userPhone, profileDateOfBirth, profileMedicare, profileMedicareIrn, profileSex, profileAddress, answers.email, answers.medicareNumber, answers.medicareIrn, answers.sex, answers.addressLine1, phone, setIdentity, setAnswer])
 
   // Pre-fill medical history from health profile
   useEffect(() => {

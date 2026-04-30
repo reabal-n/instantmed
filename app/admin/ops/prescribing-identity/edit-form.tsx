@@ -144,7 +144,7 @@ export function PrescribingIdentityEditForm({
         />
 
         <Input
-          label="Medicare expiry"
+          label="Medicare expiry (optional)"
           type="month"
           value={form.medicareExpiry}
           isInvalid={Boolean(fieldErrors.medicareExpiry)}

@@ -17,6 +17,7 @@ import { usePostHog } from "@/components/providers/posthog-provider"
 import { MedicationSearch, type SelectedPBSProduct } from "@/components/shared"
 import { Alert, AlertDescription,AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { CONTROLLED_SUBSTANCE_DISCLAIMER,isControlledSubstance } from "@/lib/clinical/intake-validation"
 import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
 import { addRecentMedication,getSmartDefaults } from "@/lib/request/preferences"
@@ -55,12 +56,21 @@ export default function MedicationStep({ onNext }: MedicationStepProps) {
   const existingMedications = answers.medications as MedicationEntry[] | undefined
   const selectedMedication = answers.selectedMedication as SelectedPBSProduct | null
   const medicationName = (answers.medicationName as string) || ""
+  const medicationStrength = (answers.medicationStrength as string) || ""
+  const medicationForm = (answers.medicationForm as string) || ""
+  const pbsCode = (answers.pbsCode as string) || ""
 
   // Initialize medications array from existing data
   const [medications, setMedications] = useState<MedicationEntry[]>(() => {
     if (existingMedications && existingMedications.length > 0) return existingMedications
     if (selectedMedication || medicationName) {
-      return [{ product: selectedMedication, name: medicationName, strength: selectedMedication?.strength || "", form: selectedMedication?.form || "", pbsCode: selectedMedication?.pbs_code || "" }]
+      return [{
+        product: selectedMedication,
+        name: medicationName,
+        strength: selectedMedication?.strength || medicationStrength,
+        form: selectedMedication?.form || medicationForm,
+        pbsCode: selectedMedication?.pbs_code || pbsCode || (medicationName ? "MANUAL" : ""),
+      }]
     }
     return [{ product: null, name: "" }]
   })
@@ -119,6 +129,20 @@ export default function MedicationStep({ onNext }: MedicationStepProps) {
     checkForControlledSubstance(updated)
   }
 
+  const handleMedicationFieldChange = (index: number, field: "strength" | "form", value: string) => {
+    const updated = [...medications]
+    updated[index] = {
+      ...updated[index],
+      [field]: value,
+    }
+    syncToStore(updated)
+    setErrors((prev) => {
+      const next = { ...prev }
+      delete next[`${field}-${index}`]
+      return next
+    })
+  }
+
   const handleRecentMedClick = (med: RecentMedication) => {
     const updated = [...medications]
     updated[0] = {
@@ -126,7 +150,7 @@ export default function MedicationStep({ onNext }: MedicationStepProps) {
       name: med.name,
       strength: med.strength || "",
       form: med.form || "",
-      pbsCode: med.pbsCode || "",
+      pbsCode: med.pbsCode || "MANUAL",
     }
     syncToStore(updated)
     checkForControlledSubstance(updated)
@@ -154,13 +178,23 @@ export default function MedicationStep({ onNext }: MedicationStepProps) {
       newErrors.medication = "Please search for and select your medication"
     }
     // Belt-and-suspenders: recheck controlled substances in validate
-    for (const med of medications) {
+    medications.forEach((med, index) => {
       const name = med.product?.drug_name || med.name
+      const code = med.pbsCode || med.product?.pbs_code || ""
       if (name && isControlledSubstance(name)) {
         newErrors.medication = "Controlled substances cannot be prescribed online"
-        break
+        return
       }
-    }
+      if (code.toUpperCase() === "UNKNOWN" || name?.toLowerCase().includes("unknown - doctor")) {
+        newErrors.medication = "Please enter the medication name, strength, and form"
+      }
+      if (name && !med.strength?.trim()) {
+        newErrors[`strength-${index}`] = "Enter the strength"
+      }
+      if (name && !med.form?.trim()) {
+        newErrors[`form-${index}`] = "Enter the form"
+      }
+    })
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }, [medications])
@@ -177,7 +211,7 @@ export default function MedicationStep({ onNext }: MedicationStepProps) {
             pbsCode: med.product.pbs_code || undefined,
           })
         } else if (med.name) {
-          addRecentMedication({ name: med.name })
+          addRecentMedication({ name: med.name, strength: med.strength || undefined, form: med.form || undefined, pbsCode: med.pbsCode || "MANUAL" })
         }
       }
       posthog?.capture('step_completed', { step: 'medication', medication_count: medications.filter(m => m.product || m.name).length })
@@ -185,7 +219,8 @@ export default function MedicationStep({ onNext }: MedicationStepProps) {
     }
   }, [validate, medications, posthog, onNext])
 
-  const isComplete = medications.some(m => m.product || m.name)
+  const activeMedications = medications.filter(m => m.product || m.name)
+  const isComplete = activeMedications.length > 0 && activeMedications.every((med) => med.strength?.trim() && med.form?.trim())
   const hasNoErrors = Object.keys(errors).length === 0
   const canContinue = isComplete && hasNoErrors && !controlledBlock
 
@@ -270,16 +305,48 @@ export default function MedicationStep({ onNext }: MedicationStepProps) {
             </div>
           </FormField>
 
-          {/* Selected medication display */}
-          {med.product && (
-            <div className="p-3 rounded-2xl border border-border/50 bg-white dark:bg-card shadow-md shadow-primary/[0.06]">
-              <p className="font-medium text-sm">{med.product.drug_name}</p>
-              {med.product.strength && (
-                <p className="text-xs text-muted-foreground">{med.product.strength}</p>
-              )}
-              {med.product.form && (
-                <p className="text-xs text-muted-foreground">{med.product.form}</p>
-              )}
+          {(med.product || med.name) && (
+            <div className="rounded-xl border border-border/50 bg-muted/20 p-3">
+              <div className="mb-2 flex items-center justify-between gap-3">
+                <p className="text-sm font-medium">{med.product?.drug_name || med.name}</p>
+                {med.pbsCode && med.pbsCode !== "MANUAL" && (
+                  <span className="text-[11px] text-muted-foreground">PBS {med.pbsCode}</span>
+                )}
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <label className="text-xs text-muted-foreground" htmlFor={`medication-strength-${index}`}>
+                    Strength
+                  </label>
+                  <Input
+                    id={`medication-strength-${index}`}
+                    value={med.strength || ""}
+                    onChange={(event) => handleMedicationFieldChange(index, "strength", event.target.value)}
+                    placeholder="e.g. 10 mg"
+                    className="h-10"
+                    aria-invalid={Boolean(errors[`strength-${index}`])}
+                  />
+                  {errors[`strength-${index}`] && (
+                    <p className="text-xs text-destructive">{errors[`strength-${index}`]}</p>
+                  )}
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs text-muted-foreground" htmlFor={`medication-form-${index}`}>
+                    Form
+                  </label>
+                  <Input
+                    id={`medication-form-${index}`}
+                    value={med.form || ""}
+                    onChange={(event) => handleMedicationFieldChange(index, "form", event.target.value)}
+                    placeholder="e.g. tablet"
+                    className="h-10"
+                    aria-invalid={Boolean(errors[`form-${index}`])}
+                  />
+                  {errors[`form-${index}`] && (
+                    <p className="text-xs text-destructive">{errors[`form-${index}`]}</p>
+                  )}
+                </div>
+              </div>
             </div>
           )}
         </div>

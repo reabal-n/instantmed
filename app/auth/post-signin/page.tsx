@@ -29,6 +29,14 @@ const log = createLogger("post-signin")
 
 export const dynamic = "force-dynamic"
 
+function destinationKind(destination: string): string {
+  if (destination.startsWith("/patient/intakes/success")) return "patient_intake_success"
+  if (destination.startsWith("/patient/onboarding")) return "patient_onboarding"
+  if (destination.startsWith("/patient")) return "patient_dashboard"
+  if (destination.startsWith("/doctor")) return "doctor_dashboard"
+  return "other"
+}
+
 /**
  * Post Sign-In Handler
  *
@@ -64,7 +72,7 @@ export default async function PostSignInPage({
   const primaryEmail = user.email?.toLowerCase()
   const userId = user.id
 
-  log.info("Post sign-in check started", { userId, email: primaryEmail })
+  log.info("Post sign-in check started", { hasEmail: Boolean(primaryEmail) })
 
   const supabase = createServiceRoleClient()
 
@@ -87,7 +95,7 @@ export default async function PostSignInPage({
 
     if (existingProfile) {
       profile = existingProfile
-      log.info("Found profile by auth_user_id", { profileId: profile.id, attempt })
+      log.info("Found profile by auth_user_id", { attempt })
       break
     }
 
@@ -126,7 +134,7 @@ export default async function PostSignInPage({
 
         if (linkedProfile) {
           profile = linkedProfile
-          log.info("Linked guest profile", { profileId: profile.id, attempt })
+          log.info("Linked guest profile", { attempt })
           break
         } else if (linkError) {
           log.warn("Failed to link guest profile", { error: linkError.message, attempt })
@@ -141,7 +149,7 @@ export default async function PostSignInPage({
 
         if (nowLinkedProfile) {
           profile = nowLinkedProfile
-          log.info("Found profile linked by trigger/another process", { profileId: profile.id, attempt })
+          log.info("Found profile linked by trigger/another process", { attempt })
           break
         }
       }
@@ -179,7 +187,7 @@ export default async function PostSignInPage({
 
     if (!createError && newProfile) {
       profile = newProfile
-      log.info("Created new profile (trigger didn't fire)", { profileId: profile?.id })
+      log.info("Created new profile (trigger did not fire)")
     } else if (createError?.code === '23505') {
       // Race condition - trigger created it
       const { data: raceProfile } = await supabase
@@ -195,7 +203,7 @@ export default async function PostSignInPage({
 
   // Error state
   if (!profile) {
-    log.error("Failed to create or find profile after all attempts", { userId, email: primaryEmail })
+    log.error("Failed to create or find profile after all attempts", { hasEmail: Boolean(primaryEmail) })
 
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
@@ -251,7 +259,7 @@ export default async function PostSignInPage({
     }
   }
 
-  log.info("Post sign-in complete, redirecting", { destination, profileFound: true, role: profile.role })
+  log.info("Post sign-in complete, redirecting", { destinationKind: destinationKind(destination), profileFound: true, role: profile.role })
 
   redirect(destination)
 }

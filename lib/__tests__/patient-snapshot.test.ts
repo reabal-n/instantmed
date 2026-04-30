@@ -135,7 +135,7 @@ describe("buildPatientSnapshot", () => {
     expect(snapshot.missingCriticalFields).toEqual(["Valid Medicare"])
   })
 
-  it("flags missing Medicare IRN and expiry when full prescribing identity is required", () => {
+  it("flags missing Medicare IRN but does not require expiry when full prescribing identity is required", () => {
     const snapshot = buildPatientSnapshot({
       id: "patient-6",
       full_name: "Missing Medicare Details",
@@ -158,8 +158,8 @@ describe("buildPatientSnapshot", () => {
       validateMedicare: true,
     })
 
-    expect(snapshot.missingCriticalFields).toEqual(["Medicare IRN", "Medicare expiry"])
-    expect(snapshot.medicare.detailsLabel).toBe("IRN missing / Expiry missing")
+    expect(snapshot.missingCriticalFields).toEqual(["Medicare IRN"])
+    expect(snapshot.medicare.detailsLabel).toBe("IRN missing")
   })
 })
 

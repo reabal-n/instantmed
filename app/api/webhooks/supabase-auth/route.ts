@@ -146,7 +146,12 @@ export async function POST(req: Request) {
     let html: string
     try {
       html = await renderEmailToHtml(
-        React.createElement(MagicLinkEmail, { loginUrl: verifyUrl, appUrl })
+        React.createElement(MagicLinkEmail, {
+          loginUrl: verifyUrl,
+          appUrl,
+          actionType: emailData.email_action_type,
+          firstName,
+        })
       )
     } catch (err) {
       log.error("Email render failed", {}, toError(err))
@@ -177,7 +182,7 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: "Email delivery failed" }, { status: 500 })
       }
 
-      log.info("Auth email sent", { to: user.email, action: emailData.email_action_type })
+      log.info("Auth email sent", { action: emailData.email_action_type, hasRecipient: true })
     } catch (err) {
       log.error("Resend fetch failed", {}, toError(err))
       return NextResponse.json({ error: "Email delivery failed" }, { status: 500 })
