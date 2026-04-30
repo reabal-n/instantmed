@@ -13,10 +13,13 @@ export default async function PrescriptionSubtypePage({
 
   // Map subtypes to unified flow
   const serviceMap: Record<string, string> = {
-    repeat: "prescription",
-    chronic: "prescription",
+    repeat: "repeat-script",
+    chronic: "repeat-script",
+    "repeat-script": "repeat-script",
+    "new": "consult",
+    "new-medication": "consult",
   }
 
-  const service = serviceMap[subtype] || "prescription"
+  const service = serviceMap[subtype] || "repeat-script"
   redirect(`/request?service=${service}`)
 }

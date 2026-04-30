@@ -69,6 +69,7 @@ export async function deleteAccount(): Promise<{ success: boolean; error: string
       postcode: null,
       medicare_number: null,
       medicare_irn: null,
+      medicare_expiry: null,
     })
     .eq("auth_user_id", userId)
 

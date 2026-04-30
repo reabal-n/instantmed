@@ -363,7 +363,7 @@ export interface Profile {
   postcode: string | null
   // Medicare fields
   medicare_number: string | null
-  medicare_irn: number | null // 1-5
+  medicare_irn: number | null // 1-9
   medicare_expiry: string | null // ISO date string
   // PHI encryption columns
   date_of_birth_encrypted: string | null

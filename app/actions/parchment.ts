@@ -1,6 +1,7 @@
 "use server"
 
 import * as Sentry from "@sentry/nextjs"
+import { revalidatePath } from "next/cache"
 
 import { requireRoleOrNull } from "@/lib/auth/helpers"
 import { getFeatureFlags } from "@/lib/feature-flags"
@@ -128,6 +129,100 @@ export async function getParchmentPrescribeUrlAction(
     log.error("Failed to get Parchment prescribe URL", { intakeId }, error instanceof Error ? error : new Error(String(error)))
     Sentry.captureException(error, { extra: { intakeId } })
     return { success: false, error: "Failed to connect to Parchment. Please try again or use manual prescribing." }
+  }
+}
+
+export async function retryParchmentPatientSyncAction(
+  intakeId: string,
+): Promise<{ success: boolean; error?: string; missingFields?: string[] }> {
+  if (!UUID_RE.test(intakeId)) {
+    return { success: false, error: "Invalid intake ID" }
+  }
+
+  const authResult = await requireRoleOrNull(["doctor", "admin"])
+  if (!authResult) {
+    return { success: false, error: "Unauthorized" }
+  }
+
+  try {
+    const supabase = createServiceRoleClient()
+    const { data: intake } = await supabase
+      .from("intakes")
+      .select("patient_id, claimed_by, reviewing_doctor_id, reviewed_by")
+      .eq("id", intakeId)
+      .single()
+
+    if (!intake?.patient_id) {
+      return { success: false, error: "Intake or patient not found" }
+    }
+
+    let parchmentUserId = authResult.profile.parchment_user_id ?? null
+
+    if (!parchmentUserId) {
+      const candidateDoctorIds = [
+        intake.claimed_by,
+        intake.reviewing_doctor_id,
+        intake.reviewed_by,
+      ].filter((value): value is string => Boolean(value))
+
+      if (candidateDoctorIds.length > 0) {
+        const { data: doctorProfile } = await supabase
+          .from("profiles")
+          .select("parchment_user_id")
+          .in("id", candidateDoctorIds)
+          .not("parchment_user_id", "is", null)
+          .limit(1)
+          .maybeSingle()
+
+        parchmentUserId = doctorProfile?.parchment_user_id ?? null
+      }
+    }
+
+    if (!parchmentUserId) {
+      return {
+        success: false,
+        error: "No linked Parchment prescriber is available. Assign or claim the intake with a linked doctor first.",
+      }
+    }
+
+    const { data: answerRow } = await supabase
+      .from("intake_answers")
+      .select("answers, answers_encrypted")
+      .eq("intake_id", intakeId)
+      .maybeSingle()
+
+    const answers = answerRow
+      ? (await readAnswers({
+          answers: answerRow.answers as Record<string, unknown> | null,
+          answers_enc: answerRow.answers_encrypted as never,
+        })) ?? undefined
+      : undefined
+
+    await syncPatientToParchment(intake.patient_id, parchmentUserId, answers)
+
+    revalidatePath("/admin/ops")
+    revalidatePath("/admin/ops/prescribing-identity")
+    revalidatePath(`/doctor/intakes/${intakeId}`)
+    revalidatePath(`/doctor/patients/${intake.patient_id}`)
+
+    log.info("Parchment patient sync retried", { intakeId })
+    return { success: true }
+  } catch (error) {
+    if (error instanceof ParchmentPatientIdentityError) {
+      log.warn("Parchment retry blocked by incomplete prescribing identity", {
+        intakeId,
+        missingFields: error.issues,
+      })
+      return {
+        success: false,
+        error: `Missing prescribing details: ${error.issues.join(", ")}`,
+        missingFields: error.issues,
+      }
+    }
+
+    log.error("Failed to retry Parchment patient sync", { intakeId }, error instanceof Error ? error : new Error(String(error)))
+    Sentry.captureException(error, { extra: { intakeId } })
+    return { success: false, error: "Failed to sync patient to Parchment. Check integration status and try again." }
   }
 }
 

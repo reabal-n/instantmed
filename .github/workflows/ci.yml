@@ -88,6 +88,17 @@ jobs:
       - name: Bundle size gate (shared first-load JS)
         run: bash scripts/check-bundle-size.sh
 
+      - name: Parchment sandbox smoke
+        if: ${{ vars.PARCHMENT_SMOKE_ENABLED == 'true' }}
+        env:
+          PARCHMENT_API_URL: ${{ secrets.PARCHMENT_API_URL }}
+          PARCHMENT_PARTNER_ID: ${{ secrets.PARCHMENT_PARTNER_ID }}
+          PARCHMENT_PARTNER_SECRET: ${{ secrets.PARCHMENT_PARTNER_SECRET }}
+          PARCHMENT_ORGANIZATION_ID: ${{ secrets.PARCHMENT_ORGANIZATION_ID }}
+          PARCHMENT_ORGANIZATION_SECRET: ${{ secrets.PARCHMENT_ORGANIZATION_SECRET }}
+          PARCHMENT_SMOKE_USER_ID: ${{ secrets.PARCHMENT_SMOKE_USER_ID }}
+        run: pnpm smoke:parchment
+
   lighthouse:
     needs: build
     runs-on: ubuntu-latest
