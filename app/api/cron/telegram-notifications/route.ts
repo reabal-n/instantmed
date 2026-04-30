@@ -33,6 +33,8 @@ async function processPendingPaidTelegramNotifications() {
     .from("intakes")
     .select("id, patient_id, amount_cents, category, subtype, payment_status, paid_request_telegram_attempts")
     .eq("payment_status", "paid")
+    .not("paid_at", "is", null)
+    .gt("amount_cents", 0)
     .is("paid_request_telegram_sent_at", null)
     .lt("paid_request_telegram_attempts", MAX_ATTEMPTS)
     .order("paid_at", { ascending: true, nullsFirst: false })
