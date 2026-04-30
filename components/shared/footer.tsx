@@ -106,7 +106,7 @@ export function Footer({ variant = "marketing" }: FooterProps) {
       {isMarketing && (
         <div className="px-1 mb-3 text-[10px] text-muted-foreground">
           <p>
-            <strong className="text-muted-foreground/80">Important:</strong> Online assessment is not suitable for medical emergencies.
+            <strong className="text-foreground">Important:</strong> Online assessment is not suitable for medical emergencies.
             If you are experiencing a medical emergency, call <strong className="text-muted-foreground">000</strong> immediately.
           </p>
         </div>

@@ -152,7 +152,7 @@ export function HowItWorks() {
                   <p className="text-sm text-muted-foreground leading-relaxed max-w-[200px] mx-auto">
                     {step.description}
                   </p>
-                  <span className="inline-block mt-2 text-xs text-primary font-semibold bg-primary/8 px-2.5 py-1 rounded-full">
+                  <span className="inline-block mt-2 text-xs text-primary-foreground font-semibold bg-primary px-2.5 py-1 rounded-full">
                     {stepBadges[index]}
                   </span>
                 </div>

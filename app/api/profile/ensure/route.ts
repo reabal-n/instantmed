@@ -47,6 +47,7 @@ export async function POST(request: NextRequest) {
         .from("profiles")
         .select("id, auth_user_id")
         .ilike("email", escapeIlike(primaryEmail))
+        .eq("role", "patient")
         .is("auth_user_id", null)
         .maybeSingle()
 
@@ -68,8 +69,10 @@ export async function POST(request: NextRequest) {
             email_verified_at: new Date().toISOString(),
           })
           .eq("id", guestProfile.id)
+          .eq("role", "patient")
+          .is("auth_user_id", null)
           .select("id")
-          .single()
+          .maybeSingle()
 
         if (!linkError && linkedProfile) {
           profile = linkedProfile

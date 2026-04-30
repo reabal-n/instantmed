@@ -45,11 +45,8 @@ const sizeClasses = {
 }
 
 /**
- * StatusBadge (formerly GlowBadge)
- *
  * Canonical status pill. Inset ring instead of outset glow. Status
- * communicated through tinted background + foreground; never through a
- * neon `box-shadow` (banned by §1 "no AI color palette" rule).
+ * communicated through tinted background + foreground.
  */
 export function StatusBadge({
   status,
@@ -91,19 +88,3 @@ export function InfoBadge({ children, ...props }: Omit<StatusBadgeProps, "status
 export function NeutralBadge({ children, ...props }: Omit<StatusBadgeProps, "status">) {
   return <StatusBadge status="neutral" {...props}>{children}</StatusBadge>
 }
-
-/**
- * @deprecated Use `StatusBadge`. Alias kept during Phase 1 migration.
- * FIXME(2026-10-29): remove after admin + doctor portal migrations land.
- */
-export const GlowBadge = StatusBadge
-/**
- * @deprecated Use `StatusBadgeStatus`.
- * FIXME(2026-10-29): remove after admin + doctor portal migrations land.
- */
-export type GlowBadgeStatus = StatusBadgeStatus
-/**
- * @deprecated Use `StatusBadgeProps`.
- * FIXME(2026-10-29): remove after admin + doctor portal migrations land.
- */
-export type GlowBadgeProps = StatusBadgeProps

@@ -30,7 +30,7 @@ export function ConsultLimitationsSection() {
           </ul>
           <p className="mt-4 text-xs text-muted-foreground">
             Not sure if telehealth is right for your concern?{" "}
-            <a href={`mailto:${CONTACT_EMAIL}`} className="text-primary hover:underline">
+            <a href={`mailto:${CONTACT_EMAIL}`} className="text-primary underline underline-offset-2 hover:text-primary/80">
               Ask us first
             </a>{" "}
             - we&apos;ll point you in the right direction.

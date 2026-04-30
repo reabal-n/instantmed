@@ -36,11 +36,8 @@ const iconBgClasses: Record<StatCardStatus, string> = {
 }
 
 /**
- * StatCard (formerly GlassStatCard)
- *
- * Canonical KPI tile. Solid depth from `DESIGN.md` §5; status
- * communicated through the icon tint, NOT a colored ring or glow. Replaces
- * the legacy 21st.dev `dashboard-stat`/`dashboard-stat-*` inset-glow stack.
+ * Canonical KPI tile. Solid depth from `DESIGN.md` §5; status is communicated
+ * through the icon tint, not a colored ring or glow.
  */
 export function StatCard({
   label,
@@ -126,17 +123,3 @@ export function StatCard({
     </Wrapper>
   )
 }
-
-/**
- * @deprecated Use `StatCard` instead. Kept as an alias for back-compat
- * during the Phase 1 rebuild. Will be removed once admin/doctor consumers
- * migrate to the new name.
- * FIXME(2026-10-29): remove after admin + doctor portal migrations land.
- */
-export const GlassStatCard = StatCard
-
-/**
- * @deprecated Use `StatCardProps`.
- * FIXME(2026-10-29): remove after admin + doctor portal migrations land.
- */
-export type GlassStatCardProps = StatCardProps

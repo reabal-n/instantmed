@@ -8,6 +8,7 @@ import { isAtCapacity } from "@/lib/config/operational-config"
 import { CONTACT_EMAIL_HELLO, PRICING_DISPLAY } from "@/lib/constants"
 import { decryptProfilePhi } from "@/lib/data/profiles"
 import { isMaintenanceMode, isServiceDisabled } from "@/lib/feature-flags"
+import { normalizeConsultSubtypeParam } from "@/lib/request/consult-flow"
 import { mapServiceParam } from "@/lib/request/step-registry"
 import { validateMedicareExpiry, validateMedicareNumber } from "@/lib/validation/medicare"
 
@@ -36,6 +37,7 @@ export default async function RequestPage({
 }) {
   const params = await searchParams
   const initialService = mapServiceParam(params.service)
+  const initialSubtype = normalizeConsultSubtypeParam(params.subtype) ?? params.subtype
 
   // Check operational status - run in parallel, none depends on the others
   const [maintenance, atCapacity] = await Promise.all([
@@ -210,7 +212,7 @@ export default async function RequestPage({
     <RequestFlow
       initialService={initialService}
       rawServiceParam={params.service}
-      initialSubtype={params.subtype}
+      initialSubtype={initialSubtype}
       initialMedication={params.medication}
       initialCertType={params.certType}
       isAuthenticated={!!user}

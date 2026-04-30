@@ -92,6 +92,13 @@ export function isConsultSubtypeKey(value: unknown): value is ConsultSubtype {
   )
 }
 
+export function normalizeConsultSubtypeParam(value: unknown): ConsultSubtype | undefined {
+  if (typeof value !== "string") return undefined
+
+  const normalized = value.trim().toLowerCase().replaceAll("-", "_")
+  return isConsultSubtypeKey(normalized) ? normalized : undefined
+}
+
 export function getConsultSubtypeFirstStep(subtype: unknown): UnifiedStepId {
   return isConsultSubtypeKey(subtype)
     ? CONSULT_SUBTYPE_FIRST_STEPS[subtype]

@@ -380,26 +380,26 @@ export default async function SymptomPage({ params }: PageProps) {
               <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 text-sm">
                 <span className="text-muted-foreground font-medium">Related reading:</span>
                 {(symptom.serviceRecommendation.type === "med-cert" || symptom.serviceRecommendation.type === "both") && (
-                  <Link href="/guides/how-to-get-medical-certificate-for-work" className="text-primary hover:underline">
+                  <Link href="/guides/how-to-get-medical-certificate-for-work" className="text-primary underline underline-offset-2 hover:text-primary/80">
                     Med cert for work
                   </Link>
                 )}
                 {(symptom.serviceRecommendation.type === "med-cert" || symptom.serviceRecommendation.type === "both") && (
-                  <Link href="/blog/medical-certificate-online-australia" className="text-primary hover:underline">
+                  <Link href="/blog/medical-certificate-online-australia" className="text-primary underline underline-offset-2 hover:text-primary/80">
                     Online med certs in Australia
                   </Link>
                 )}
                 {(symptom.serviceRecommendation.type === "consult" || symptom.serviceRecommendation.type === "both") && (
-                  <Link href="/blog/telehealth-vs-gp-australia" className="text-primary hover:underline">
+                  <Link href="/blog/telehealth-vs-gp-australia" className="text-primary underline underline-offset-2 hover:text-primary/80">
                     Telehealth vs GP
                   </Link>
                 )}
                 {(symptom.serviceRecommendation.type === "consult" || symptom.serviceRecommendation.type === "both") && (
-                  <Link href="/guides/when-to-use-telehealth" className="text-primary hover:underline">
+                  <Link href="/guides/when-to-use-telehealth" className="text-primary underline underline-offset-2 hover:text-primary/80">
                     When to use telehealth
                   </Link>
                 )}
-                <Link href="/guides/telehealth-guide-australia" className="text-primary hover:underline">
+                <Link href="/guides/telehealth-guide-australia" className="text-primary underline underline-offset-2 hover:text-primary/80">
                   Telehealth guide
                 </Link>
               </div>
@@ -410,7 +410,7 @@ export default async function SymptomPage({ params }: PageProps) {
           <div className="mx-auto max-w-3xl px-4 py-4 text-center">
             <p className="text-xs text-muted-foreground">
               All clinical decisions are made by AHPRA-registered doctors following{" "}
-              <Link href="/clinical-governance" className="text-primary hover:underline">
+              <Link href="/clinical-governance" className="text-primary underline underline-offset-2 hover:text-primary/80">
                 our clinical governance framework
               </Link>
               . We never automate clinical decisions.

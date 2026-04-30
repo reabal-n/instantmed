@@ -36,12 +36,43 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
 
 // Same IDs as seed.ts
 const OPERATOR_PROFILE_ID = "e2e00000-0000-0000-0000-000000000001"
+const DOCTOR_PROFILE_ID = "e2e00000-0000-0000-0000-000000000003"
 const PATIENT_PROFILE_ID = "e2e00000-0000-0000-0000-000000000002"
 const INTAKE_ID = "e2e00000-0000-0000-0000-000000000010"
 const SERVICE_ID = "e2e00000-0000-0000-0000-000000000020"
 const CLINIC_IDENTITY_ID = "e2e00000-0000-0000-0000-000000000030"
 const DRAFT_ID = "e2e00000-0000-0000-0000-000000000040"
 const TEMPLATE_ID = "e2e00000-0000-0000-0000-000000000051"
+const E2E_PROFILE_IDS = [OPERATOR_PROFILE_ID, DOCTOR_PROFILE_ID, PATIENT_PROFILE_ID]
+
+let cachedIntakeIds: string[] | null = null
+
+async function getE2EIntakeIds(): Promise<string[]> {
+  if (cachedIntakeIds) return cachedIntakeIds
+
+  const ids = new Set<string>([INTAKE_ID])
+  const queries = await Promise.all([
+    supabase.from("intakes").select("id").in("patient_id", E2E_PROFILE_IDS),
+    supabase.from("intakes").select("id").in("claimed_by", E2E_PROFILE_IDS),
+    supabase.from("intakes").select("id").in("reviewed_by", E2E_PROFILE_IDS),
+    supabase.from("intakes").select("id").in("reviewing_doctor_id", E2E_PROFILE_IDS),
+    supabase.from("intakes").select("id").in("assigned_admin_id", E2E_PROFILE_IDS),
+    supabase.from("intakes").select("id").eq("service_id", SERVICE_ID),
+  ])
+
+  for (const query of queries) {
+    if (query.error) {
+      console.warn("⚠️  Failed to discover E2E intakes:", query.error.message)
+      continue
+    }
+    for (const row of query.data || []) {
+      ids.add(row.id)
+    }
+  }
+
+  cachedIntakeIds = Array.from(ids)
+  return cachedIntakeIds
+}
 
 // ============================================================================
 // TEARDOWN FUNCTIONS (in reverse dependency order)
@@ -49,6 +80,7 @@ const TEMPLATE_ID = "e2e00000-0000-0000-0000-000000000051"
 
 async function deleteDocumentDrafts() {
   console.log("🗑️  Deleting document drafts...")
+  const intakeIds = await getE2EIntakeIds()
 
   const byId = await supabase
     .from("document_drafts")
@@ -58,12 +90,12 @@ async function deleteDocumentDrafts() {
   const byIntake = await supabase
     .from("document_drafts")
     .delete()
-    .eq("intake_id", INTAKE_ID)
+    .in("intake_id", intakeIds)
 
   const byRequest = await supabase
     .from("document_drafts")
     .delete()
-    .eq("request_id", INTAKE_ID)
+    .in("request_id", intakeIds)
 
   const error = byId.error || byIntake.error || byRequest.error
 
@@ -76,11 +108,19 @@ async function deleteDocumentDrafts() {
 
 async function deleteIssuedCertificates() {
   console.log("🗑️  Deleting issued certificates...")
+  const intakeIds = await getE2EIntakeIds()
   
-  const { error } = await supabase
+  const byIntake = await supabase
     .from("issued_certificates")
     .delete()
-    .eq("intake_id", INTAKE_ID)
+    .in("intake_id", intakeIds)
+
+  const byPerson = await supabase
+    .from("issued_certificates")
+    .delete()
+    .or(`patient_id.in.(${E2E_PROFILE_IDS.join(",")}),doctor_id.in.(${E2E_PROFILE_IDS.join(",")})`)
+
+  const error = byIntake.error || byPerson.error
 
   if (error && !error.message.includes("0 rows")) {
     console.warn("⚠️  Failed to delete issued certificates:", error.message)
@@ -91,11 +131,19 @@ async function deleteIssuedCertificates() {
 
 async function deleteIntakeDocuments() {
   console.log("🗑️  Deleting intake documents...")
+  const intakeIds = await getE2EIntakeIds()
   
-  const { error } = await supabase
+  const byIntake = await supabase
     .from("intake_documents")
     .delete()
-    .eq("intake_id", INTAKE_ID)
+    .in("intake_id", intakeIds)
+
+  const byCreator = await supabase
+    .from("intake_documents")
+    .delete()
+    .in("created_by", E2E_PROFILE_IDS)
+
+  const error = byIntake.error || byCreator.error
 
   if (error && !error.message.includes("0 rows")) {
     console.warn("⚠️  Failed to delete intake documents:", error.message)
@@ -106,11 +154,12 @@ async function deleteIntakeDocuments() {
 
 async function deleteIntakeAnswers() {
   console.log("🗑️  Deleting intake answers...")
+  const intakeIds = await getE2EIntakeIds()
   
   const { error } = await supabase
     .from("intake_answers")
     .delete()
-    .eq("intake_id", INTAKE_ID)
+    .in("intake_id", intakeIds)
 
   if (error && !error.message.includes("0 rows")) {
     console.warn("⚠️  Failed to delete intake answers:", error.message)
@@ -121,30 +170,32 @@ async function deleteIntakeAnswers() {
 
 async function deleteAuditLogs() {
   console.log("🗑️  Deleting audit logs...")
+  const intakeIds = await getE2EIntakeIds()
   
   // Delete by intake_id
   await supabase
     .from("audit_logs")
     .delete()
-    .eq("intake_id", INTAKE_ID)
+    .in("intake_id", intakeIds)
 
   // Delete by actor_id (operator and patient)
   await supabase
     .from("audit_logs")
     .delete()
-    .in("actor_id", [OPERATOR_PROFILE_ID, PATIENT_PROFILE_ID])
+    .in("actor_id", E2E_PROFILE_IDS)
 
   console.log("✅ Audit logs deleted")
 }
 
 async function deleteCertificateAuditLog() {
   console.log("🗑️  Deleting certificate audit logs...")
+  const intakeIds = await getE2EIntakeIds()
   
-  // Delete certificates related to our intake first, then their audit logs
+  // Delete audit logs for certificates tied to E2E intakes or seeded profiles.
   const { data: certs } = await supabase
     .from("issued_certificates")
     .select("id")
-    .eq("intake_id", INTAKE_ID)
+    .or(`intake_id.in.(${intakeIds.join(",")}),patient_id.in.(${E2E_PROFILE_IDS.join(",")}),doctor_id.in.(${E2E_PROFILE_IDS.join(",")})`)
 
   if (certs && certs.length > 0) {
     const certIds = certs.map(c => c.id)
@@ -154,16 +205,22 @@ async function deleteCertificateAuditLog() {
       .in("certificate_id", certIds)
   }
 
+  await supabase
+    .from("certificate_audit_log")
+    .delete()
+    .in("actor_id", E2E_PROFILE_IDS)
+
   console.log("✅ Certificate audit logs deleted")
 }
 
 async function deleteIntakes() {
   console.log("🗑️  Deleting intakes...")
+  const intakeIds = await getE2EIntakeIds()
   
   const { error } = await supabase
     .from("intakes")
     .delete()
-    .eq("id", INTAKE_ID)
+    .in("id", intakeIds)
 
   if (error && !error.message.includes("0 rows")) {
     console.warn("⚠️  Failed to delete intakes:", error.message)
@@ -178,7 +235,7 @@ async function deleteNotifications() {
   const { error } = await supabase
     .from("notifications")
     .delete()
-    .in("user_id", [OPERATOR_PROFILE_ID, PATIENT_PROFILE_ID])
+    .in("user_id", E2E_PROFILE_IDS)
 
   if (error && !error.message.includes("0 rows")) {
     console.warn("⚠️  Failed to delete notifications:", error.message)
@@ -193,7 +250,7 @@ async function deleteProfiles() {
   const { error } = await supabase
     .from("profiles")
     .delete()
-    .in("id", [OPERATOR_PROFILE_ID, PATIENT_PROFILE_ID])
+    .in("id", E2E_PROFILE_IDS)
 
   if (error && !error.message.includes("0 rows")) {
     console.warn("⚠️  Failed to delete profiles:", error.message)
@@ -213,12 +270,12 @@ async function deleteClinicIdentity() {
   const byCreator = await supabase
     .from("clinic_identity")
     .delete()
-    .in("created_by", [OPERATOR_PROFILE_ID, PATIENT_PROFILE_ID])
+    .in("created_by", E2E_PROFILE_IDS)
 
   const byUpdater = await supabase
     .from("clinic_identity")
     .delete()
-    .in("updated_by", [OPERATOR_PROFILE_ID, PATIENT_PROFILE_ID])
+    .in("updated_by", E2E_PROFILE_IDS)
 
   const error = byId.error || byCreator.error || byUpdater.error
 
@@ -256,12 +313,12 @@ async function deleteCertificateTemplates() {
   const byCreator = await supabase
     .from("certificate_templates")
     .delete()
-    .in("created_by", [OPERATOR_PROFILE_ID, PATIENT_PROFILE_ID])
+    .in("created_by", E2E_PROFILE_IDS)
 
   const byActivator = await supabase
     .from("certificate_templates")
     .delete()
-    .in("activated_by", [OPERATOR_PROFILE_ID, PATIENT_PROFILE_ID])
+    .in("activated_by", E2E_PROFILE_IDS)
 
   const error = byId.error || byCreator.error || byActivator.error
 
@@ -307,4 +364,6 @@ async function main() {
   }
 }
 
-main()
+if (process.env.E2E_TEARDOWN_CLI === "1" || process.env.npm_lifecycle_event === "e2e:teardown") {
+  main()
+}

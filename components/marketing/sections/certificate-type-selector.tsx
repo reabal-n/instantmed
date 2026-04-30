@@ -115,7 +115,7 @@ export function CertificateTypeSelector({
           initial={animate ? { opacity: 0, y: 8 } : {}}
           whileInView={animate ? { opacity: 1, y: 0 } : undefined}
           viewport={{ once: true }}
-          transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
+          transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
         >
           <Heading level="h2" className="mb-3">
             Which certificate do you need?
@@ -148,7 +148,7 @@ export function CertificateTypeSelector({
                 initial={animate ? { opacity: 0, y: 8 } : {}}
                 whileInView={animate ? { opacity: 1, y: 0 } : undefined}
                 viewport={{ once: true }}
-                transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1], delay: i * 0.07 }}
+                transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1], delay: i * 0.07 }}
               >
                 {/* Most chosen badge - real-data positioning signal */}
                 {isMostChosen && !isSelected && (
@@ -353,7 +353,7 @@ export function MedCertComparisonTable({ className }: { className?: string }) {
           initial={prefersReducedMotion ? {} : { opacity: 0, y: 8 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
+          transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
         >
           <div className="text-center mb-6">
             <Heading level="h2">

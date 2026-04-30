@@ -19,8 +19,7 @@ import { cn } from "@/lib/utils"
 export function StripeWordmark({ className }: { className?: string }) {
   return (
     <span
-      className={cn("text-[#635BFF] font-semibold tracking-tight leading-none", className)}
-      aria-label="Stripe"
+      className={cn("text-[#4F46E5] font-semibold tracking-tight leading-none", className)}
     >
       stripe
     </span>

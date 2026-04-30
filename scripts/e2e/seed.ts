@@ -892,4 +892,6 @@ async function main() {
   }
 }
 
-main()
+if (process.env.E2E_SEED_CLI === "1" || process.env.npm_lifecycle_event === "e2e:seed") {
+  main()
+}

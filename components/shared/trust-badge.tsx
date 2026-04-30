@@ -364,14 +364,14 @@ function StripeBadge({ config, className }: { config: BadgeConfig; className?: s
   const inner = (
     <div
       className={cn(
-        'inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white dark:bg-card border border-[#635BFF]/20 hover:border-[#635BFF]/60 transition-colors shadow-sm cursor-help text-xs',
+        'inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white dark:bg-card border border-[#4F46E5]/20 hover:border-[#4F46E5]/60 transition-colors shadow-sm cursor-help text-xs',
         className,
       )}
     >
-      <Lock className="w-3.5 h-3.5 text-[#635BFF]" aria-hidden="true" />
+      <Lock className="w-3.5 h-3.5 text-[#4F46E5]" aria-hidden="true" />
       <span className="text-muted-foreground">Secured by</span>
       <svg viewBox="0 0 50 21" width={40} height={17} aria-label="Stripe">
-        <text x="0" y="16" fontFamily="Arial, sans-serif" fontSize="16" fontWeight="700" fill="#635BFF">stripe</text>
+        <text x="0" y="16" fontFamily="Arial, sans-serif" fontSize="16" fontWeight="700" fill="#4F46E5">stripe</text>
       </svg>
     </div>
   )

@@ -23,7 +23,7 @@ import {
   XAxis,
   YAxis,
 } from "@/components/charts/lazy-charts"
-import { DashboardGrid,GlassStatCard } from "@/components/dashboard"
+import { DashboardGrid, StatCard } from "@/components/dashboard"
 import { formatAUD,formatMinutes } from "@/lib/format"
 
 import { type AnalyticsData, COLORS, formatServiceType } from "./analytics-helpers"
@@ -48,25 +48,25 @@ export function AnalyticsOverviewTab({ analytics }: { analytics: AnalyticsData }
     <div className="space-y-6">
       {/* Top-level KPIs */}
       <DashboardGrid columns={4} gap="md">
-        <GlassStatCard
+        <StatCard
           label="Total Intakes"
           value={overview.total}
           icon={<FileText className="h-5 w-5" />}
           status="info"
         />
-        <GlassStatCard
+        <StatCard
           label="In Queue"
           value={overview.inQueue}
           icon={<Clock className="h-5 w-5" />}
           status={overview.inQueue > 10 ? "warning" : "info"}
         />
-        <GlassStatCard
+        <StatCard
           label="Approval Rate"
           value={`${approvalRate}%`}
           icon={<CheckCircle className="h-5 w-5" />}
           status="success"
         />
-        <GlassStatCard
+        <StatCard
           label="Month Revenue"
           value={formatAUD(revenue.thisMonth)}
           icon={<DollarSign className="h-5 w-5" />}

@@ -38,7 +38,7 @@ export function DoctorProfileSection() {
                   href="https://www.ahpra.gov.au/Registration/Registers-of-Practitioners.aspx"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-primary hover:underline"
+                  className="text-primary underline underline-offset-2 hover:text-primary/80"
                 >
                   AHPRA public register
                 </a>

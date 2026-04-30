@@ -156,7 +156,7 @@ const GUIDE_ITEMS: readonly GuideItem[] = [
         <p>
           Every certificate issued by InstantMed has a unique verification ID.
           Employers and institutions can verify any certificate at{" "}
-          <Link href="/verify" className="text-primary hover:underline">
+          <Link href="/verify" className="text-primary underline underline-offset-2 hover:text-primary/80">
             instantmed.com.au/verify
           </Link>{" "}
           - entering the certificate ID confirms it was genuinely issued by our
@@ -186,7 +186,7 @@ export function MedCertGuideSection() {
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <Reveal className="text-center mb-10">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-xs font-medium text-primary mb-4">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/5 border border-primary/20 text-xs font-medium text-primary mb-4">
             <BadgeCheck className="h-3.5 w-3.5" />
             Medically reviewed by AHPRA-registered GPs
           </div>
@@ -228,7 +228,7 @@ export function MedCertGuideSection() {
             following{" "}
             <Link
               href="/clinical-governance"
-              className="text-primary hover:underline"
+              className="text-primary underline underline-offset-2 hover:text-primary/80"
             >
               our clinical governance framework
             </Link>

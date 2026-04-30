@@ -30,8 +30,7 @@ import { cn } from "@/lib/utils"
 function StripeLogo() {
   return (
     <span
-      className="text-[#635BFF] font-semibold text-base tracking-tight leading-none"
-      aria-label="Stripe"
+      className="text-[#4F46E5] font-semibold text-base tracking-tight leading-none"
     >
       stripe
     </span>
@@ -60,7 +59,7 @@ export function StripeBadge({
         "bg-white dark:bg-card border border-border/50 dark:border-white/10",
         className
       )}>
-        <Lock className="w-4 h-4 text-[#635BFF]" />
+        <Lock className="w-4 h-4 text-[#4F46E5]" />
         <span className="text-xs text-muted-foreground">Secure payment via</span>
         <StripeLogo />
       </div>

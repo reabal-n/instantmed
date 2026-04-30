@@ -31,8 +31,7 @@ export function MedCertHeroMockup({ compact = false }: MedCertHeroMockupProps) {
           "relative rounded-[14px] overflow-hidden",
           "bg-[#fbfaf6] dark:bg-[#1a2030]",
           "border border-[#e9e4d6] dark:border-white/10",
-          "shadow-[0_24px_48px_-16px_rgba(59,130,246,0.18),0_2px_6px_-2px_rgba(15,23,42,0.08)]",
-          "dark:shadow-[0_24px_48px_-16px_rgba(0,0,0,0.55)]",
+          "shadow-xl shadow-primary/[0.08] dark:shadow-black/40",
           compact ? "hero-mobile-mockup-enter" : "hero-mockup-enter",
         )}
       >
@@ -55,7 +54,7 @@ export function MedCertHeroMockup({ compact = false }: MedCertHeroMockupProps) {
               </div>
               <div className="leading-tight">
                 <p className="text-[13px] font-semibold tracking-tight text-foreground dark:text-white">InstantMed</p>
-                <p className="text-[9px] text-muted-foreground/80 dark:text-white/50 tracking-wide">ABN 64 694 559 334</p>
+                <p className="text-[9px] text-muted-foreground dark:text-white/70 tracking-wide">ABN 64 694 559 334</p>
               </div>
             </div>
             <div className="text-right leading-tight">
@@ -69,7 +68,7 @@ export function MedCertHeroMockup({ compact = false }: MedCertHeroMockupProps) {
         <div className={cn("relative px-6 py-5 space-y-4", compact && "px-5 py-4 space-y-3")}>
           {/* Title */}
           <div className="text-center">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-primary/80">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-primary">
               Medical Certificate
             </p>
             <div className="mt-1.5 h-px bg-gradient-to-r from-transparent via-[#d8d2c0] dark:via-white/15 to-transparent" />
@@ -139,7 +138,7 @@ export function MedCertHeroMockup({ compact = false }: MedCertHeroMockupProps) {
                 <ShieldCheck className="w-5 h-5 text-primary" strokeWidth={2} />
                 <div className="absolute inset-0 rounded-full border border-dashed border-primary/20 m-[3px]" />
               </div>
-              <p className="text-[8px] font-semibold uppercase tracking-[0.18em] text-primary/80">AHPRA</p>
+              <p className="text-[8px] font-semibold uppercase tracking-[0.18em] text-primary">AHPRA</p>
             </div>
           </div>
         </div>
@@ -152,7 +151,7 @@ export function MedCertHeroMockup({ compact = false }: MedCertHeroMockupProps) {
         )}>
           <div className="flex items-center gap-1.5">
             <CheckCircle2 className="w-3 h-3 text-success" aria-hidden="true" />
-            <span className="text-[9px] text-muted-foreground/80 dark:text-white/50">Fair Work Act s 107</span>
+            <span className="text-[9px] text-muted-foreground dark:text-white/70">Fair Work Act s 107</span>
           </div>
           <span className="text-[9px] text-muted-foreground/70 dark:text-white/40 font-mono">REF IM-2026-{compact ? "4823" : "48231"}</span>
         </div>

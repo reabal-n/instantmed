@@ -53,19 +53,6 @@ export interface DashboardCardProps extends HTMLAttributes<HTMLDivElement> {
   padding?: keyof typeof paddingClasses
   /** When true OR onClick is provided, applies hover lift treatment. */
   interactive?: boolean
-  /**
-   * @deprecated Use tier="elevated" instead.
-   * Back-compat shim for the legacy 21st.dev DashboardCard.
-   * FIXME(2026-10-29): remove after admin + doctor portal migrations land.
-   */
-  elevated?: boolean
-  /**
-   * @deprecated Removed. Cursor-following spotlight effect was banned by the
-   * design system §17 (no decorative cursor effects). Prop accepted as a no-op
-   * for back-compat but ignored.
-   * FIXME(2026-10-29): remove after admin + doctor portal migrations land.
-   */
-  spotlight?: boolean
 }
 
 /**
@@ -88,14 +75,12 @@ export const DashboardCard = forwardRef<HTMLDivElement, DashboardCardProps>(
       tier,
       padding = "md",
       interactive,
-      elevated,
-      spotlight: _spotlight,
       onClick,
       ...rest
     },
     ref,
   ) {
-    const resolvedTier: DashboardCardTier = tier ?? (elevated ? "elevated" : "standard")
+    const resolvedTier: DashboardCardTier = tier ?? "standard"
     const isInteractive = Boolean(interactive ?? onClick)
 
     return (

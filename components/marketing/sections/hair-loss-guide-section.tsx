@@ -184,7 +184,7 @@ export function HairLossGuideSection() {
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <Reveal instant className="text-center mb-8">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-xs font-medium text-primary mb-4">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/5 border border-primary/20 text-xs font-medium text-primary mb-4">
             <BadgeCheck className="h-3.5 w-3.5" />
             Medically reviewed by AHPRA-registered GPs
           </div>
@@ -443,7 +443,7 @@ export function HairLossGuideSection() {
         <Reveal className="mt-8 pt-6 border-t border-border/40 text-center" delay={0.3}>
           <p className="text-xs text-muted-foreground">
             All clinical decisions are made by AHPRA-registered doctors following{" "}
-            <Link href="/clinical-governance" className="text-primary hover:underline">
+            <Link href="/clinical-governance" className="text-primary underline underline-offset-2 hover:text-primary/80">
               our clinical governance framework
             </Link>
             . We never automate clinical decisions.

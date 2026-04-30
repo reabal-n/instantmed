@@ -27,6 +27,10 @@ import { defineConfig, devices } from "@playwright/test"
 // Fixed by default, overridable locally when another dev server owns 3001.
 const E2E_PORT = Number(process.env.PLAYWRIGHT_PORT || process.env.E2E_PORT || 3001)
 const E2E_BASE_URL = process.env.PLAYWRIGHT_BASE_URL || `http://localhost:${E2E_PORT}`
+const requestedLocalWorkers = Number(process.env.PLAYWRIGHT_WORKERS || 2)
+const LOCAL_WORKERS = Number.isInteger(requestedLocalWorkers) && requestedLocalWorkers > 0
+  ? requestedLocalWorkers
+  : 2
 process.env.PLAYWRIGHT_BASE_URL = E2E_BASE_URL
 
 export default defineConfig({
@@ -45,8 +49,9 @@ export default defineConfig({
   // Retry failed tests: 1 locally, 2 on CI
   retries: process.env.CI ? 2 : 1,
   
-  // Workers: 1 on CI for stability, default locally
-  workers: process.env.CI ? 1 : undefined,
+  // Workers: Next dev cold-compiles routes; high local parallelism causes
+  // false timeouts and aborted requests before the app can settle.
+  workers: process.env.CI ? 1 : LOCAL_WORKERS,
   
   // Test timeout
   timeout: 60_000,

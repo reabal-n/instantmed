@@ -18,7 +18,7 @@ import {
   XAxis,
   YAxis,
 } from "@/components/charts/lazy-charts"
-import { DashboardGrid,GlassStatCard } from "@/components/dashboard"
+import { DashboardGrid, StatCard } from "@/components/dashboard"
 
 import { type AnalyticsData, COLORS } from "./analytics-helpers"
 
@@ -43,27 +43,27 @@ export function AnalyticsFunnelTab({ analytics }: { analytics: AnalyticsData }) 
     <div className="space-y-6">
       {/* Funnel Stats */}
       <DashboardGrid columns={4} gap="md">
-        <GlassStatCard
+        <StatCard
           label="Page Visits"
           value={funnel.visits}
           icon={<Eye className="h-5 w-5" />}
           status="info"
         />
-        <GlassStatCard
+        <StatCard
           label="Started Intake"
           value={funnel.started}
           icon={<MousePointer className="h-5 w-5" />}
           status="info"
           trend={{ value: Number(startRate), label: "of visits" }}
         />
-        <GlassStatCard
+        <StatCard
           label="Paid"
           value={funnel.paid}
           icon={<CreditCard className="h-5 w-5" />}
           status="warning"
           trend={{ value: Number(payRate), label: "of started" }}
         />
-        <GlassStatCard
+        <StatCard
           label="Completed"
           value={funnel.completed}
           icon={<CheckCircle className="h-5 w-5" />}

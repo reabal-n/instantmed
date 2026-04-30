@@ -248,6 +248,9 @@ const nextConfig = {
       { source: "/weight-management/:path*", destination: "/weight-loss/:path*", permanent: true },
       // Redirect-only pages moved to edge — no React rendering cost
       { source: "/gp-consult", destination: "/consult", permanent: true },
+      { source: "/womens-health", destination: "/request?service=consult&subtype=womens_health", permanent: false },
+      { source: "/request/med-cert", destination: "/request?service=med-cert", permanent: false },
+      { source: "/request/consult", destination: "/request?service=consult", permanent: false },
       { source: "/consult/request", destination: "/request?service=consult", permanent: false },
       { source: "/prescriptions/request", destination: "/request?service=prescription", permanent: false },
       { source: "/prescriptions/new", destination: "/request?service=consult", permanent: false },

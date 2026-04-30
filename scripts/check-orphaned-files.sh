@@ -53,9 +53,10 @@ while IFS= read -r deprecated_file; do
   import_path="${deprecated_file%.ts}"
   import_path="${import_path%.tsx}"
   # Check if anything imports from this file (excluding the file itself)
-  import_count=$(grep -rl --exclude-dir=node_modules --exclude-dir=.next --exclude-dir=.worktrees "$import_path" --include="*.ts" --include="*.tsx" . 2>/dev/null \
-    | grep -v "$deprecated_file" \
-    | wc -l | tr -d ' ')
+  matches=$(grep -rl --exclude-dir=node_modules --exclude-dir=.next --exclude-dir=.worktrees "$import_path" --include="*.ts" --include="*.tsx" . 2>/dev/null || true)
+  import_count=$(printf "%s\n" "$matches" \
+    | grep -vF "$deprecated_file" || true)
+  import_count=$(printf "%s\n" "$import_count" | sed '/^$/d' | wc -l | tr -d ' ')
   if [[ "$import_count" -eq 0 ]]; then
     echo "ORPHAN: $deprecated_file is @deprecated with 0 imports"
     orphans=$((orphans + 1))

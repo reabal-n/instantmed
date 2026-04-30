@@ -7,12 +7,6 @@ export interface DashboardGridProps {
   columns?: 1 | 2 | 3 | 4
   gap?: "sm" | "md" | "lg"
   className?: string
-  /**
-   * @deprecated No-op. Use Framer `stagger.container` from `lib/motion.ts`.
-   * FIXME(2026-10-29): remove after admin + doctor portal migrations land.
-   * The legacy `dashboard-grid` CSS-based stagger is gone (banned by §12).
-   */
-  animate?: boolean
 }
 
 const columnClasses = {
@@ -41,7 +35,6 @@ export function DashboardGrid({
   columns = 3,
   gap = "md",
   className,
-  animate: _animate,
 }: DashboardGridProps) {
   return (
     <div

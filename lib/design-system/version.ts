@@ -17,9 +17,8 @@
  *                         orange status drift, and a banned height animation.
  *                         New primitives: `<DashboardCard tier>`,
  *                         `<DashboardSection>`, `<DashboardPageHeader>`.
- *                         `GlassStatCard` → `StatCard` (alias kept).
- *                         `GlowBadge` → `StatusBadge` (alias kept). Doctor +
- *                         admin portal sweeps tracked separately.
+ *                         legacy dashboard aliases removed. Doctor + admin
+ *                         portal sweeps tracked separately.
  *
  * Consumers (plan doc, future packages) pin against this. Changelog lives
  * at docs/DESIGN_SYSTEM_CHANGELOG.md.

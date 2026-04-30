@@ -115,6 +115,7 @@ function buildDefaultPill(liveWait?: WaitState) {
     <div className="inline-flex items-center gap-2.5 rounded-full px-3 py-1.5 text-xs font-medium bg-white dark:bg-card border border-border/60 shadow-sm shadow-primary/[0.04]">
       <span
         className="inline-flex items-center gap-0.5 text-amber-400"
+        role="img"
         aria-label="5 out of 5 rating"
       >
         {[1, 2, 3, 4, 5].map((i) => (

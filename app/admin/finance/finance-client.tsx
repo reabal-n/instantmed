@@ -27,7 +27,7 @@ import {
   XAxis,
   YAxis,
 } from "@/components/charts/lazy-charts"
-import { DashboardGrid, DashboardHeader,GlassStatCard } from "@/components/dashboard"
+import { DashboardGrid, DashboardHeader, StatCard } from "@/components/dashboard"
 import { Button } from "@/components/ui/button"
 import { formatCurrency } from "@/lib/format"
 import { cn } from "@/lib/utils"
@@ -131,26 +131,26 @@ export function FinanceDashboardClient({ finance }: FinanceDashboardClientProps)
 
         {/* Summary Stats */}
         <DashboardGrid columns={4} gap="md">
-          <GlassStatCard
+          <StatCard
             label="Today"
             value={formatCurrency(summary.todayRevenue)}
             icon={<DollarSign className="h-5 w-5" />}
             status="success"
           />
-          <GlassStatCard
+          <StatCard
             label="This Week"
             value={formatCurrency(summary.weekRevenue)}
             icon={<TrendingUp className="h-5 w-5" />}
             status="info"
             trend={weekChange !== 0 ? { value: Number(weekChange.toFixed(1)), label: "vs last week" } : undefined}
           />
-          <GlassStatCard
+          <StatCard
             label="This Month"
             value={formatCurrency(summary.monthRevenue)}
             icon={<Receipt className="h-5 w-5" />}
             status="info"
           />
-          <GlassStatCard
+          <StatCard
             label="Avg Transaction"
             value={formatCurrency(summary.avgTransaction)}
             icon={<CreditCard className="h-5 w-5" />}
@@ -160,19 +160,19 @@ export function FinanceDashboardClient({ finance }: FinanceDashboardClientProps)
 
         {/* Secondary Stats */}
         <DashboardGrid columns={3} gap="md">
-          <GlassStatCard
+          <StatCard
             label="Total Refunds"
             value={formatCurrency(summary.totalRefunds)}
             icon={<RotateCcw className="h-5 w-5" />}
             status="error"
           />
-          <GlassStatCard
+          <StatCard
             label="Refund Rate"
             value={`${summary.refundRate.toFixed(1)}%`}
             icon={<TrendingDown className="h-5 w-5" />}
             status={summary.refundRate > 5 ? "error" : "neutral"}
           />
-          <GlassStatCard
+          <StatCard
             label="Pending Payments"
             value={summary.pendingPayments}
             icon={<Clock className="h-5 w-5" />}

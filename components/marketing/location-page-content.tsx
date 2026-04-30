@@ -80,7 +80,7 @@ const RELATED = [
   },
 ]
 
-const FADE_UP = { duration: 0.4, ease: [0.23, 1, 0.32, 1] as const }
+const FADE_UP = { duration: 0.3, ease: [0.23, 1, 0.32, 1] as const }
 const VIEWPORT = { once: true, margin: "-50px" as const }
 
 const ITEM_VARIANTS = {

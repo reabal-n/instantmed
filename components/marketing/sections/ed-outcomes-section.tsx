@@ -48,7 +48,7 @@ export function EdOutcomesSection() {
         <div className="grid gap-4 md:grid-cols-3">
           {/* Column 1: What treatment typically does */}
           <div className="rounded-2xl border border-border/50 bg-white dark:bg-card shadow-md shadow-primary/[0.06] p-6">
-            <div className="inline-flex items-center gap-2 rounded-full bg-success/10 px-3 py-1.5 mb-4">
+            <div className="inline-flex items-center gap-2 rounded-full bg-success/5 px-3 py-1.5 mb-4">
               <CheckCircle2 className="h-4 w-4 text-success" aria-hidden="true" />
               <span className="text-xs font-semibold text-success">
                 What treatment typically does
@@ -96,7 +96,7 @@ export function EdOutcomesSection() {
 
           {/* Column 3: When it's not appropriate */}
           <div className="rounded-2xl border border-border/50 bg-white dark:bg-card shadow-md shadow-primary/[0.06] p-6">
-            <div className="inline-flex items-center gap-2 rounded-full bg-warning/10 px-3 py-1.5 mb-4">
+            <div className="inline-flex items-center gap-2 rounded-full bg-warning/5 px-3 py-1.5 mb-4">
               <AlertCircle className="h-4 w-4 text-warning" aria-hidden="true" />
               <span className="text-xs font-semibold text-warning">
                 When it&apos;s not appropriate

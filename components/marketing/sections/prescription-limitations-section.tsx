@@ -30,7 +30,7 @@ export function PrescriptionLimitationsSection() {
           </ul>
           <p className="mt-4 text-xs text-muted-foreground">
             Not sure if we can help?{" "}
-            <a href={`mailto:${CONTACT_EMAIL}`} className="text-primary hover:underline">
+            <a href={`mailto:${CONTACT_EMAIL}`} className="text-primary underline underline-offset-2 hover:text-primary/80">
               Ask us first
             </a>{" "}
             - we&apos;ll be straight with you.

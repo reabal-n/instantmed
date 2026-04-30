@@ -16,7 +16,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 
-import { DashboardHeader,GlowBadge } from "@/components/dashboard"
+import { DashboardHeader, StatusBadge } from "@/components/dashboard"
 import { Button } from "@/components/ui/button"
 import { DOCTOR_QUEUE_REVIEW_HREF } from "@/lib/dashboard/routes"
 import { cn } from "@/lib/utils"
@@ -114,9 +114,9 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
           backHref="/admin"
           backLabel="Admin"
           actions={
-            <GlowBadge status={allHealthy ? "success" : "error"}>
+            <StatusBadge status={allHealthy ? "success" : "error"}>
               System {overallStatus}
-            </GlowBadge>
+            </StatusBadge>
           }
         />
 
@@ -285,7 +285,7 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
                         {new Date(webhook.created_at).toLocaleString("en-AU")}
                       </p>
                     </div>
-                    <GlowBadge status="error" size="sm">{webhook.status}</GlowBadge>
+                    <StatusBadge status="error" size="sm">{webhook.status}</StatusBadge>
                   </div>
                 ))}
               </div>

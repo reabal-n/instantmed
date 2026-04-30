@@ -41,6 +41,7 @@ export default async function globalSetup() {
       stdio: "inherit",
       env: {
         ...process.env,
+        E2E_SEED_CLI: "1",
         E2E_RUN_ID: runId,
       },
     })

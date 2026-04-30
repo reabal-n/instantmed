@@ -97,6 +97,7 @@ export default async function PostSignInPage({
         .from("profiles")
         .select("id, role, onboarding_completed, auth_user_id")
         .ilike("email", escapeIlike(primaryEmail))
+        .eq("role", "patient")
         .is("auth_user_id", null)
         .maybeSingle()
 
@@ -118,6 +119,7 @@ export default async function PostSignInPage({
             email_verified_at: new Date().toISOString(),
           })
           .eq("id", guestProfile.id)
+          .eq("role", "patient")
           .is("auth_user_id", null)
           .select("id, role, onboarding_completed")
           .maybeSingle()

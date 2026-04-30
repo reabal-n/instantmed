@@ -27,7 +27,7 @@ export default function PatientLoading() {
         </div>
       </div>
 
-      {/* 3 stat cards (DashboardGrid with GlassStatCards) */}
+      {/* 3 stat cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {[1, 2, 3].map((i) => (
           <div key={i} style={{ animationDelay: `${i * 100}ms` }}>

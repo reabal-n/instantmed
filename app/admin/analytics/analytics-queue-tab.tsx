@@ -20,7 +20,7 @@ import {
   XAxis,
   YAxis,
 } from "@/components/charts/lazy-charts"
-import { DashboardGrid,GlassStatCard } from "@/components/dashboard"
+import { DashboardGrid, StatCard } from "@/components/dashboard"
 import { formatMinutes } from "@/lib/format"
 import { cn } from "@/lib/utils"
 
@@ -44,13 +44,13 @@ export function AnalyticsQueueTab({ analytics }: { analytics: AnalyticsData }) {
     <div className="space-y-6">
       {/* Queue KPIs */}
       <DashboardGrid columns={4} gap="md">
-        <GlassStatCard
+        <StatCard
           label="Queue Size"
           value={queueHealth.queueSize}
           icon={<Activity className="h-5 w-5" />}
           status={queueHealth.queueSize > 10 ? "error" : queueHealth.queueSize > 5 ? "warning" : "success"}
         />
-        <GlassStatCard
+        <StatCard
           label="Avg Review Time"
           value={formatMinutes(queueHealth.avgReviewTimeMinutes)}
           icon={<Clock className="h-5 w-5" />}
@@ -60,7 +60,7 @@ export function AnalyticsQueueTab({ analytics }: { analytics: AnalyticsData }) {
               : "info"
           }
         />
-        <GlassStatCard
+        <StatCard
           label="Oldest in Queue"
           value={formatMinutes(queueHealth.oldestInQueueMinutes)}
           icon={<AlertTriangle className="h-5 w-5" />}
@@ -72,7 +72,7 @@ export function AnalyticsQueueTab({ analytics }: { analytics: AnalyticsData }) {
                 : "success"
           }
         />
-        <GlassStatCard
+        <StatCard
           label="Approval Rate"
           value={`${approvalRate}%`}
           icon={<CheckCircle className="h-5 w-5" />}

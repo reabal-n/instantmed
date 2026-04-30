@@ -96,7 +96,7 @@ export function DocumentReadyReveal({ intakeId, approvedAt, children }: Document
       initial={{ opacity: 0, y: 14, scale: 0.97 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{
-        duration: 0.4,
+        duration: 0.3,
         ease: [0.16, 1, 0.3, 1], // easing.panel — confident arrival
       }}
     >
@@ -111,7 +111,7 @@ export function DocumentReadyReveal({ intakeId, approvedAt, children }: Document
             initial={{ opacity: 0.6, scale: 1 }}
             animate={{ opacity: 0, scale: 1.04 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.6, ease: "easeOut" }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
             onAnimationComplete={() => setShowRingPulse(false)}
           />
         )}

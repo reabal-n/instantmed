@@ -4,13 +4,6 @@
  * Canonical Morning Canvas portal primitives. Solid depth, sky-toned shadows,
  * no glass / glow / spotlight. See `DESIGN.md` §5 + §10 + §12.
  *
- * Migration from the legacy 21st.dev stack (Phase 1, design system v2.0.0):
- *   GlassStatCard → StatCard
- *   GlowBadge     → StatusBadge
- *   DashboardCard.elevated  → DashboardCard tier="elevated"
- *   DashboardCard.spotlight → removed (no-op)
- *   DashboardGrid.animate   → removed (no-op; use Framer `stagger` for patient surfaces)
- *
  * Usage:
  *   import {
  *     DashboardCard,
@@ -39,26 +32,16 @@ export {
   type DashboardSectionProps,
 } from "./dashboard-section"
 
-// Stat tile (canonical name + back-compat alias).
+// Stat tile.
 export {
-  /** @deprecated Use StatCard. FIXME(2026-10-29): drop after admin + doctor migrate. */
-  GlassStatCard,
-  /** @deprecated Use StatCardProps. FIXME(2026-10-29): drop after admin + doctor migrate. */
-  type GlassStatCardProps,
   StatCard,
   type StatCardProps,
   type StatCardStatus,
 } from "./glass-stat-card"
 
-// Status badge (canonical name + back-compat alias + helpers).
+// Status badge.
 export {
   ErrorBadge,
-  /** @deprecated Use StatusBadge. FIXME(2026-10-29): drop after admin + doctor migrate. */
-  GlowBadge,
-  /** @deprecated Use StatusBadgeProps. FIXME(2026-10-29): drop after admin + doctor migrate. */
-  type GlowBadgeProps,
-  /** @deprecated Use StatusBadgeStatus. FIXME(2026-10-29): drop after admin + doctor migrate. */
-  type GlowBadgeStatus,
   InfoBadge,
   NeutralBadge,
   StatusBadge,

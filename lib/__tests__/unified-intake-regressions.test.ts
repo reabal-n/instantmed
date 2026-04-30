@@ -5,6 +5,7 @@ import {
   getConsultDraftResumeHref,
   getConsultSubtypeFirstStep,
   getConsultSubtypeResetKeys,
+  normalizeConsultSubtypeParam,
 } from "@/lib/request/consult-flow"
 import { getStepsForService, type StepContext } from "@/lib/request/step-registry"
 import {
@@ -146,6 +147,8 @@ describe("unified intake regressions", () => {
 
     expect(getConsultSubtypeFirstStep("ed")).toBe("ed-goals")
     expect(getConsultSubtypeFirstStep("hair_loss")).toBe("hair-loss-goals")
+    expect(normalizeConsultSubtypeParam("womens-health")).toBe("womens_health")
+    expect(normalizeConsultSubtypeParam("weight-loss")).toBe("weight_loss")
     expect(getConsultSubtypeResetKeys()).toEqual(
       expect.arrayContaining(["consultDetails", "edGoal", "hairPattern", "hairMedicationPreference"]),
     )

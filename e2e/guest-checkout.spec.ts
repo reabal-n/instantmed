@@ -1,5 +1,6 @@
 /* eslint-disable no-console */
 import { expect,test } from "@playwright/test"
+import { randomUUID } from "crypto"
 
 import { cleanupTestIntake,getSupabaseClient, isDbAvailable } from "./helpers/db"
 
@@ -13,22 +14,66 @@ import { cleanupTestIntake,getSupabaseClient, isDbAvailable } from "./helpers/db
  * race conditions between the handle_new_user trigger and post-signin page.
  */
 
-const GUEST_PROFILE_ID = "e2e00000-0000-0000-0000-guest0000001"
+const GUEST_PROFILE_ID = "e2e00000-0000-0000-0000-0000000000a1"
 const GUEST_EMAIL = "e2e-guest-test@example.com"
-const FAKE_AUTH_USER_ID = "e2e00000-0000-0000-0000-auth00000001"
 const E2E_SERVICE_ID = "e2e00000-0000-0000-0000-000000000020"
 
-test.describe("Guest Checkout → Account Linking", () => {
+test.describe.serial("Guest Checkout → Account Linking", () => {
   test.skip(!isDbAvailable(), "Skipping: DB not available")
 
   let guestIntakeId: string | null = null
+  let fakeAuthUserId: string | null = null
+  let secondAuthUserId: string | null = null
+  let authUserIds: string[] = []
+
+  async function createAuthUser(label: string) {
+    const supabase = getSupabaseClient()
+    const { data, error } = await supabase.auth.admin.createUser({
+      email: `e2e-guest-${label}-${Date.now()}-${randomUUID()}@example.com`,
+      password: `E2e-${randomUUID()}!`,
+      email_confirm: true,
+    })
+
+    if (error || !data.user) {
+      throw new Error(`Auth user seed failed: ${error?.message || "missing user"}`)
+    }
+
+    authUserIds.push(data.user.id)
+    return data.user.id
+  }
+
+  async function cleanupAuthUsers() {
+    const supabase = getSupabaseClient()
+    const ids = authUserIds
+    authUserIds = []
+    fakeAuthUserId = null
+    secondAuthUserId = null
+
+    for (const id of ids) {
+      await supabase.auth.admin.deleteUser(id)
+    }
+  }
+
+  async function cleanupGuestData() {
+    const supabase = getSupabaseClient()
+    const { data: intakes } = await supabase
+      .from("intakes")
+      .select("id")
+      .eq("patient_id", GUEST_PROFILE_ID)
+
+    for (const intake of intakes || []) {
+      await cleanupTestIntake(intake.id)
+    }
+
+    await supabase.from("profiles").delete().eq("id", GUEST_PROFILE_ID)
+    await supabase.from("profiles").delete().ilike("email", GUEST_EMAIL)
+  }
 
   test.beforeEach(async () => {
     const supabase = getSupabaseClient()
 
     // Clean up any previous test data
-    await supabase.from("profiles").delete().eq("id", GUEST_PROFILE_ID)
-    await supabase.from("profiles").delete().ilike("email", GUEST_EMAIL)
+    await cleanupGuestData()
 
     // Seed a guest profile (simulates what lib/stripe/guest-checkout.ts does)
     const { error: profileError } = await supabase.from("profiles").insert({
@@ -54,8 +99,8 @@ test.describe("Guest Checkout → Account Linking", () => {
         patient_id: GUEST_PROFILE_ID,
         service_id: E2E_SERVICE_ID,
         reference_number: refNum,
-        status: "paid",
-        payment_status: "paid",
+        status: "pending_payment",
+        payment_status: "pending",
         category: "medical_certificate",
       })
       .select("id")
@@ -67,20 +112,35 @@ test.describe("Guest Checkout → Account Linking", () => {
     }
 
     guestIntakeId = intake.id
+
+    const { error: paidError } = await supabase
+      .from("intakes")
+      .update({
+        status: "paid",
+        payment_status: "paid",
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", guestIntakeId)
+
+    if (paidError) {
+      console.error("Failed to transition guest intake to paid:", paidError.message)
+      throw new Error(`Intake transition failed: ${paidError.message}`)
+    }
+
+    fakeAuthUserId = await createAuthUser("primary")
+    secondAuthUserId = await createAuthUser("secondary")
   })
 
   test.afterEach(async () => {
-    const supabase = getSupabaseClient()
-
     // Clean up intake
     if (guestIntakeId) {
       await cleanupTestIntake(guestIntakeId)
       guestIntakeId = null
     }
 
-    // Clean up guest profile
-    await supabase.from("profiles").delete().eq("id", GUEST_PROFILE_ID)
-    await supabase.from("profiles").delete().ilike("email", GUEST_EMAIL)
+    // Clean up guest profile and any leftover guest intakes
+    await cleanupGuestData()
+    await cleanupAuthUsers()
   })
 
   test("guest profile exists with null auth_user_id", async () => {
@@ -115,7 +175,7 @@ test.describe("Guest Checkout → Account Linking", () => {
     const { error: linkError } = await supabase
       .from("profiles")
       .update({
-        auth_user_id: FAKE_AUTH_USER_ID,
+        auth_user_id: fakeAuthUserId!,
         email_verified: true,
         email_verified_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
@@ -132,19 +192,18 @@ test.describe("Guest Checkout → Account Linking", () => {
       .eq("id", GUEST_PROFILE_ID)
       .single()
 
-    expect(linkedProfile!.auth_user_id).toBe(FAKE_AUTH_USER_ID)
+    expect(linkedProfile!.auth_user_id).toBe(fakeAuthUserId)
     expect(linkedProfile!.email_verified).toBe(true)
   })
 
   test("linking guard prevents double-linking (race condition)", async () => {
     const supabase = getSupabaseClient()
-    const SECOND_AUTH_USER_ID = "e2e00000-0000-0000-0000-auth00000002"
 
     // First link - should succeed
     const { error: firstLinkError } = await supabase
       .from("profiles")
       .update({
-        auth_user_id: FAKE_AUTH_USER_ID,
+        auth_user_id: fakeAuthUserId!,
         updated_at: new Date().toISOString(),
       })
       .eq("id", GUEST_PROFILE_ID)
@@ -156,7 +215,7 @@ test.describe("Guest Checkout → Account Linking", () => {
     const { data: secondLink, error: secondLinkError } = await supabase
       .from("profiles")
       .update({
-        auth_user_id: SECOND_AUTH_USER_ID,
+        auth_user_id: secondAuthUserId!,
         updated_at: new Date().toISOString(),
       })
       .eq("id", GUEST_PROFILE_ID)
@@ -174,7 +233,7 @@ test.describe("Guest Checkout → Account Linking", () => {
       .eq("id", GUEST_PROFILE_ID)
       .single()
 
-    expect(profile!.auth_user_id).toBe(FAKE_AUTH_USER_ID)
+    expect(profile!.auth_user_id).toBe(fakeAuthUserId)
   })
 
   test("guest intake is accessible after profile linking", async () => {
@@ -184,7 +243,7 @@ test.describe("Guest Checkout → Account Linking", () => {
     await supabase
       .from("profiles")
       .update({
-        auth_user_id: FAKE_AUTH_USER_ID,
+        auth_user_id: fakeAuthUserId!,
         updated_at: new Date().toISOString(),
       })
       .eq("id", GUEST_PROFILE_ID)
@@ -208,35 +267,39 @@ test.describe("Guest Checkout → Account Linking", () => {
       .eq("id", intake!.patient_id)
       .single()
 
-    expect(profile!.auth_user_id).toBe(FAKE_AUTH_USER_ID)
+    expect(profile!.auth_user_id).toBe(fakeAuthUserId)
   })
 
   test("non-patient roles are not linkable", async () => {
     const supabase = getSupabaseClient()
 
-    // Update guest profile to doctor role (shouldn't be linkable)
-    await supabase
-      .from("profiles")
-      .update({ role: "doctor" })
-      .eq("id", GUEST_PROFILE_ID)
+    if (guestIntakeId) {
+      await cleanupTestIntake(guestIntakeId)
+      guestIntakeId = null
+    }
+    await cleanupGuestData()
+
+    const { error: profileError } = await supabase.from("profiles").insert({
+      id: GUEST_PROFILE_ID,
+      email: GUEST_EMAIL,
+      full_name: "E2E Non Patient",
+      role: "doctor",
+      auth_user_id: null,
+      onboarding_completed: true,
+      email_verified: true,
+    })
+
+    expect(profileError).toBeNull()
 
     // The post-signin linking code checks role === 'patient' before linking
     const { data: guestProfile } = await supabase
       .from("profiles")
       .select("id, auth_user_id, role")
       .ilike("email", GUEST_EMAIL)
+      .eq("role", "patient")
       .is("auth_user_id", null)
       .maybeSingle()
 
-    expect(guestProfile).toBeTruthy()
-    // A doctor profile should NOT be linked
-    expect(guestProfile!.role).toBe("doctor")
-    expect(guestProfile!.role).not.toBe("patient")
-
-    // Reset for cleanup
-    await supabase
-      .from("profiles")
-      .update({ role: "patient" })
-      .eq("id", GUEST_PROFILE_ID)
+    expect(guestProfile).toBeNull()
   })
 })

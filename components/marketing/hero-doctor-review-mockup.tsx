@@ -148,7 +148,7 @@ export function HeroDoctorReviewMockup() {
         className="relative rounded-2xl bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-xl shadow-primary/[0.08] dark:shadow-none overflow-hidden"
         initial={animate ? { opacity: 0, y: 16 } : false}
         animate={animate ? { opacity: 1, y: 0 } : { opacity: 1 }}
-        transition={{ duration: 0.4, delay: 0.1, ease: [0, 0, 0.2, 1] }}
+        transition={{ duration: 0.3, delay: 0.1, ease: [0, 0, 0.2, 1] }}
       >
         {/* Header */}
         <div className="px-5 pt-5 pb-4 flex items-center gap-3 border-b border-border/40">

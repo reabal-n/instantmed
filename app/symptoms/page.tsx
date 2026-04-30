@@ -165,7 +165,7 @@ export default function SymptomsIndexPage() {
           <div className="mx-auto max-w-3xl px-4 py-4 text-center">
             <p className="text-xs text-muted-foreground">
               All clinical decisions are made by AHPRA-registered doctors following{" "}
-              <Link href="/clinical-governance" className="text-primary hover:underline">
+              <Link href="/clinical-governance" className="text-primary underline underline-offset-2 hover:text-primary/80">
                 our clinical governance framework
               </Link>
               . We never automate clinical decisions.

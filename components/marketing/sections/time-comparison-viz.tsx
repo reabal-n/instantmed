@@ -104,13 +104,13 @@ export function TimeComparisonViz({
               </p>
             </div>
             <div className="text-right">
-              <p className="text-[11px] font-semibold text-muted-foreground/50 uppercase tracking-wider mb-1.5">
+              <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">
                 {theirs.label}
               </p>
-              <p className="text-4xl sm:text-5xl font-semibold tabular-nums text-muted-foreground/60 leading-none">
+              <p className="text-4xl sm:text-5xl font-semibold tabular-nums text-foreground/75 leading-none">
                 {theirs.value}
                 {theirs.valueSuffix}
-                <span className="text-xl font-normal ml-1">{theirs.unit}</span>
+                <span className="text-xl font-normal text-foreground/70 ml-1">{theirs.unit}</span>
               </p>
             </div>
           </div>

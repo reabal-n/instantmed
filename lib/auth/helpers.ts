@@ -298,6 +298,7 @@ export async function getOrCreateAuthenticatedUser(): Promise<AuthenticatedUser 
       .from("profiles")
       .select(PROFILE_COLUMNS)
       .ilike("email", escapeIlike(primaryEmail))
+      .eq("role", "patient")
       .is("auth_user_id", null)
       .maybeSingle()
 
@@ -320,8 +321,10 @@ export async function getOrCreateAuthenticatedUser(): Promise<AuthenticatedUser 
           email_verified_at: new Date().toISOString(),
         })
         .eq("id", guestProfile.id)
+        .eq("role", "patient")
+        .is("auth_user_id", null)
         .select(PROFILE_COLUMNS)
-        .single()
+        .maybeSingle()
 
       if (!linkError && linkedProfile) {
         profile = linkedProfile

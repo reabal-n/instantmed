@@ -1,7 +1,7 @@
 import { AlertTriangle, CheckCircle, CreditCard, ExternalLink } from "lucide-react"
 import Link from "next/link"
 
-import { DashboardHeader, GlowBadge } from "@/components/dashboard"
+import { DashboardHeader, StatusBadge } from "@/components/dashboard"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { getPrescribingIdentityBlockerReport } from "@/lib/doctor/patient-identity-report"
@@ -40,9 +40,9 @@ export default async function PrescribingIdentityOpsPage() {
         backHref="/admin/ops"
         backLabel="Operations"
         actions={
-          <GlowBadge status={report.blockedCount === 0 ? "success" : "warning"}>
+          <StatusBadge status={report.blockedCount === 0 ? "success" : "warning"}>
             {report.blockedCount === 0 ? "No blockers" : `${report.blockedCount} blocked`}
-          </GlowBadge>
+          </StatusBadge>
         }
       />
 

@@ -53,7 +53,7 @@ export function SocialProofSection({ lifestyleImage }: SocialProofSectionProps =
               initial={prefersReducedMotion ? {} : { opacity: 0, y: 12 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
+              transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
             >
               <div className="relative aspect-[4/3] sm:aspect-[5/4] rounded-2xl overflow-hidden border border-border/40 shadow-lg shadow-primary/[0.06] dark:shadow-none mx-auto max-w-md lg:max-w-none">
                 <Image
@@ -73,7 +73,7 @@ export function SocialProofSection({ lifestyleImage }: SocialProofSectionProps =
             initial={prefersReducedMotion ? {} : { opacity: 0, y: 8 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
+            transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
           >
             <Heading level="h2" className="mb-3">
               Real patients. Real reviews.
@@ -90,7 +90,7 @@ export function SocialProofSection({ lifestyleImage }: SocialProofSectionProps =
           initial={prefersReducedMotion ? {} : { opacity: 0, y: 8 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1], delay: 0.08 }}
+          transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1], delay: 0.08 }}
         >
           {inlineStats.map((stat, i) => (
             <div key={stat.label} className="flex items-baseline gap-x-8 sm:gap-x-12">
@@ -115,7 +115,7 @@ export function SocialProofSection({ lifestyleImage }: SocialProofSectionProps =
           <GoogleReviewsBadge />
           <Link
             href="/reviews"
-            className="inline-flex items-center gap-1 text-xs font-medium text-primary/80 hover:text-primary transition-colors"
+            className="inline-flex items-center gap-1 text-xs font-medium text-primary underline underline-offset-2 hover:text-primary/80 transition-colors"
           >
             See all reviews
             <ArrowRight className="h-3 w-3" />

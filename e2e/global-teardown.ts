@@ -38,6 +38,7 @@ export default async function globalTeardown() {
       stdio: "inherit",
       env: {
         ...process.env,
+        E2E_TEARDOWN_CLI: "1",
         E2E_RUN_ID: runId,
       },
     })
