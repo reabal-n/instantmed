@@ -9,6 +9,7 @@ import { IntakeReviewPanel } from "@/components/doctor"
 import { usePanel } from "@/components/panels/panel-provider"
 import { Button } from "@/components/ui/button"
 import { DOCTOR_DASHBOARD_HREF, parseQueueStatusFilter, type QueueStatusFilter } from "@/lib/dashboard/routes"
+import { removeCompletedIntakeFromQueue } from "@/lib/doctor/queue-state"
 import { calculateSlaCountdown,calculateWaitTime, getWaitTimeSeverity } from "@/lib/doctor/queue-utils"
 import { SERVICE_TYPES } from "@/lib/doctor/service-types"
 import { useQueueRealtime } from "@/lib/doctor/use-queue-realtime"
@@ -211,18 +212,15 @@ export function QueueClient({
           intakeId={intakeId}
           caseIndex={caseIndex >= 0 ? caseIndex : undefined}
           totalCases={list.length > 0 ? list.length : undefined}
-          onActionComplete={() => {
+          onActionComplete={(options) => {
             router.refresh()
-            // Auto-advance: open the next case in the filtered queue
+            const { nextIntake } = removeCompletedIntakeFromQueue(filteredIntakesRef.current, intakeId)
             setIntakes((prev) => {
-              const remaining = prev.filter((r) => r.id !== intakeId)
-              const currentIdx = prev.findIndex((r) => r.id === intakeId)
-              const nextIntake = remaining[currentIdx] ?? remaining[currentIdx - 1]
-              if (nextIntake) {
-                setTimeout(() => openReviewPanel(nextIntake.id), 150)
-              }
-              return prev
+              return removeCompletedIntakeFromQueue(prev, intakeId).remaining
             })
+            if (options?.advance !== false && nextIntake) {
+              setTimeout(() => openReviewPanel(nextIntake.id), 150)
+            }
           }}
           onNextCase={() => {
             const nextId = getAdjacentId("next")

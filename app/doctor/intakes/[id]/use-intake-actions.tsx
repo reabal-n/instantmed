@@ -17,6 +17,8 @@ import type { CertificatePreviewData } from "@/components/doctor"
 import { ParchmentPrescribePanel } from "@/components/doctor"
 import { MIN_CLINICAL_NOTES_LENGTH } from "@/components/doctor/review/utils"
 import { usePanel } from "@/components/panels/panel-provider"
+import { buildClinicalCaseSummary } from "@/lib/clinical/case-summary"
+import { resolveClinicalDecisionNote } from "@/lib/doctor/clinical-notes"
 import type { IntakeStatus,IntakeWithDetails } from "@/types/db"
 
 import type { IntakeDialogState } from "./use-intake-dialogs"
@@ -83,6 +85,24 @@ export function useIntakeActions({
 
   const service = intake.service as { name?: string; type?: string; short_name?: string } | undefined
   const hasClinicalDraft = !!findClinicalNoteDraft(aiDrafts)
+
+  const resolveDecisionNote = useCallback(() => {
+    const answers = (intake.answers?.answers || {}) as Record<string, unknown>
+    const caseSummary = buildClinicalCaseSummary({
+      answers,
+      category: intake.category,
+      subtype: intake.subtype,
+      serviceType: service?.type,
+      patientName: intake.patient.full_name,
+      riskTier: intake.risk_tier,
+      requiresLiveConsult: intake.requires_live_consult,
+    })
+
+    return resolveClinicalDecisionNote({
+      doctorNotes,
+      fallbackDraftNote: caseSummary.draftNote,
+    })
+  }, [doctorNotes, intake, service?.type])
 
   // ── Audit logging + lock management ──
 
@@ -217,15 +237,38 @@ export function useIntakeActions({
   }, [intake.id, doctorNotes, aiDrafts, advanceToNext])
 
   const handleStatusChange = useCallback(async (status: IntakeStatus) => {
-    if ((status === "approved" || status === "awaiting_script") && doctorNotes.trim().length < MIN_CLINICAL_NOTES_LENGTH) {
+    const decisionNote = status === "awaiting_script" ? resolveDecisionNote() : null
+
+    if (status === "approved" && doctorNotes.trim().length < MIN_CLINICAL_NOTES_LENGTH) {
+      toast.error(`Clinical notes required (min ${MIN_CLINICAL_NOTES_LENGTH} chars).`)
+      notesRef.current?.focus()
+      return
+    }
+
+    if (status === "awaiting_script" && !decisionNote) {
       toast.error(`Clinical notes required (min ${MIN_CLINICAL_NOTES_LENGTH} chars).`)
       notesRef.current?.focus()
       return
     }
 
     startTransition(async () => {
-      if (status === "approved" || status === "awaiting_script") {
-        await saveDoctorNotesAction(intake.id, doctorNotes)
+      if (status === "approved") {
+        const saveResult = await saveDoctorNotesAction(intake.id, doctorNotes)
+        if (!saveResult.success) {
+          toast.error(saveResult.error || "Failed to save clinical notes")
+          return
+        }
+      }
+
+      if (status === "awaiting_script" && decisionNote) {
+        const saveResult = await saveDoctorNotesAction(intake.id, decisionNote)
+        if (!saveResult.success) {
+          toast.error(saveResult.error || "Failed to save clinical notes")
+          return
+        }
+        setDoctorNotes(decisionNote)
+        setNoteSaved(true)
+        setIsAiPrefilled(false)
       }
 
       const result = await updateStatusAction(intake.id, status)
@@ -236,7 +279,7 @@ export function useIntakeActions({
         toast.error(result.error || "Failed to update status")
       }
     })
-  }, [doctorNotes, intake.id, advanceToNext])
+  }, [doctorNotes, intake.id, advanceToNext, resolveDecisionNote])
 
   const handleDecline = useCallback(async () => {
     if (!dialogs.declineReason.trim()) return

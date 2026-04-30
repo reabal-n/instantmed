@@ -14,6 +14,7 @@ import {
   updateIntakeStatus,
   updateScriptSent,
 } from "@/lib/data/intakes"
+import { isClinicalNoteSufficient, MIN_CLINICAL_NOTES_LENGTH } from "@/lib/doctor/clinical-notes"
 import { createLogger } from "@/lib/observability/logger"
 import type { IntakeStatus } from "@/types/db"
 
@@ -49,10 +50,10 @@ export async function updateStatusAction(
       .single()
 
     const notes = intake?.doctor_notes?.trim() || ""
-    if (notes.length < 50) {
+    if (!isClinicalNoteSufficient(notes)) {
       return {
         success: false,
-        error: "Clinical notes must be at least 50 characters before approving or sending a script.",
+        error: `Clinical notes must be at least ${MIN_CLINICAL_NOTES_LENGTH} characters before approving or sending a script.`,
         code: "INSUFFICIENT_CLINICAL_NOTES",
       }
     }
@@ -126,6 +127,7 @@ export async function updateStatusAction(
     }
 
     revalidatePath("/doctor/dashboard")
+    revalidatePath("/doctor/queue")
     revalidatePath(`/doctor/intakes/${intakeId}`)
 
     return { success: true }
@@ -204,6 +206,7 @@ export async function declineIntakeAction(
   }
 
   revalidatePath("/doctor/dashboard")
+  revalidatePath("/doctor/queue")
   revalidatePath(`/doctor/intakes/${intakeId}`)
   revalidatePath(`/patient/intakes/${intakeId}`)
 
@@ -303,6 +306,7 @@ export async function markScriptSentAction(
   }
 
   revalidatePath("/doctor/dashboard")
+  revalidatePath("/doctor/queue")
   revalidatePath(`/doctor/intakes/${intakeId}`)
   revalidatePath(`/patient/intakes/${intakeId}`)
 
