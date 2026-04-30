@@ -2,14 +2,15 @@
 
 import { motion } from "framer-motion"
 import { AlertTriangle, CheckCircle, ExternalLink, Loader2, X } from "lucide-react"
-import { useCallback, useEffect, useRef,useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
 
 import { getParchmentPrescribeUrlAction } from "@/app/actions/parchment"
 import { usePanel } from "@/components/panels/panel-provider"
 import { Button } from "@/components/ui/button"
 import { useReducedMotion } from "@/components/ui/motion"
-import { backdropVariants,sheetVariants } from "@/lib/motion/panel-variants"
+import { backdropVariants, sheetVariants } from "@/lib/motion/panel-variants"
+import { canEmbedParchmentForHost } from "@/lib/parchment/embed-policy"
 
 interface ParchmentPrescribePanelProps {
   intakeId: string
@@ -36,8 +37,18 @@ export function ParchmentPrescribePanel({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [iframeLoaded, setIframeLoaded] = useState(false)
+  const [canUseIframe, setCanUseIframe] = useState(true)
   const [_ssoExpired, setSsoExpired] = useState(false)
   const ssoExpiryTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const openInNewTab = useCallback(async () => {
+    const freshResult = await getParchmentPrescribeUrlAction(intakeId)
+    if (freshResult.success && freshResult.ssoUrl) {
+      window.open(freshResult.ssoUrl, "_blank", "noopener,noreferrer")
+    } else {
+      toast.error(freshResult.error || "Failed to generate new Parchment session")
+    }
+  }, [intakeId])
 
   const loadPrescribingUrl = useCallback(async () => {
     setLoading(true)
@@ -72,6 +83,10 @@ export function ParchmentPrescribePanel({
       if (ssoExpiryTimer.current) clearTimeout(ssoExpiryTimer.current)
     }
   }, [loadPrescribingUrl])
+
+  useEffect(() => {
+    setCanUseIframe(canEmbedParchmentForHost(window.location.hostname))
+  }, [])
 
   // Prevent body scroll
   useEffect(() => {
@@ -132,15 +147,7 @@ export function ParchmentPrescribePanel({
                   variant="ghost"
                   size="sm"
                   className="text-xs text-muted-foreground"
-                  onClick={async () => {
-                    // Fetch a fresh SSO URL for the new tab to avoid leaking the iframe token
-                    const freshResult = await getParchmentPrescribeUrlAction(intakeId)
-                    if (freshResult.success && freshResult.ssoUrl) {
-                      window.open(freshResult.ssoUrl, "_blank", "noopener,noreferrer")
-                    } else {
-                      toast.error("Failed to generate new session URL")
-                    }
-                  }}
+                  onClick={openInNewTab}
                 >
                   <ExternalLink className="h-3.5 w-3.5 mr-1.5" />
                   Open in new tab
@@ -191,7 +198,7 @@ export function ParchmentPrescribePanel({
           {/* Iframe */}
           {ssoUrl && (
             <>
-              {!iframeLoaded && !error && (
+              {canUseIframe && !iframeLoaded && !error && (
                 <div className="absolute inset-0 flex items-center justify-center bg-background z-10">
                   <div className="text-center space-y-3">
                     <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
@@ -199,15 +206,34 @@ export function ParchmentPrescribePanel({
                   </div>
                 </div>
               )}
-              <iframe
-                src={ssoUrl}
-                className="w-full h-full border-0"
-                onLoad={() => setIframeLoaded(true)}
-                sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox"
-                allow="clipboard-write; publickey-credentials-get *; publickey-credentials-create *"
-                referrerPolicy="strict-origin-when-cross-origin"
-                title="Parchment Prescribing"
-              />
+              {canUseIframe ? (
+                <iframe
+                  src={ssoUrl}
+                  className="w-full h-full border-0"
+                  onLoad={() => setIframeLoaded(true)}
+                  sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox"
+                  allow="clipboard-write; publickey-credentials-get *; publickey-credentials-create *"
+                  referrerPolicy="strict-origin-when-cross-origin"
+                  title="Parchment Prescribing"
+                />
+              ) : (
+                <div className="absolute inset-0 flex items-center justify-center bg-background z-20">
+                  <div className="text-center space-y-4 max-w-md px-6">
+                    <ExternalLink className="h-10 w-10 text-primary mx-auto" />
+                    <div>
+                      <p className="text-sm font-medium text-foreground">Open Parchment in a new tab</p>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Parchment has not whitelisted this domain for embedded sandbox prescribing yet.
+                        The secure SSO session still works in a separate tab.
+                      </p>
+                    </div>
+                    <Button size="sm" onClick={openInNewTab}>
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      Open Parchment
+                    </Button>
+                  </div>
+                </div>
+              )}
             </>
           )}
         </div>
