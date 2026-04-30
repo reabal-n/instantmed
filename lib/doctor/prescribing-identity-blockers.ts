@@ -1,4 +1,8 @@
 import { buildPatientSnapshot, type PatientSnapshotInput } from "@/lib/doctor/patient-snapshot"
+import {
+  type PrescribingIdentityFormValues,
+  resolvePrescribingIdentityFormValues,
+} from "@/lib/doctor/prescribing-identity-update"
 
 export interface PrescribingIdentityIntakeRow {
   id: string
@@ -23,6 +27,7 @@ export interface PrescribingIdentityBlockerItem {
   createdAt: string
   paidAt: string | null
   blockers: string[]
+  identity: PrescribingIdentityFormValues
   intakeHref: string
   profileHref: string
 }
@@ -67,6 +72,7 @@ export function buildPrescribingIdentityBlockerReport(
       createdAt: row.created_at,
       paidAt: row.paid_at ?? null,
       blockers: snapshot.missingCriticalFields,
+      identity: resolvePrescribingIdentityFormValues(row.patient, row.answers),
       intakeHref: `/doctor/intakes/${row.id}`,
       profileHref: snapshot.profileHref,
     })

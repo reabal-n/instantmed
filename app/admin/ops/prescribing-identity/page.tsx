@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { getPrescribingIdentityBlockerReport } from "@/lib/doctor/patient-identity-report"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
+import { PrescribingIdentityEditForm } from "./edit-form"
 import { RetryParchmentSyncButton } from "./retry-button"
 
 export const dynamic = "force-dynamic"
@@ -92,7 +93,7 @@ export default async function PrescribingIdentityOpsPage() {
         <div className="border-b border-border/60 px-5 py-4">
           <h2 className="text-base font-semibold">Blocked prescription requests</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Fix the patient details on the active intake or profile, then retry Parchment sync.
+            Fix the patient details here or on the profile, then retry Parchment sync.
           </p>
         </div>
 
@@ -137,6 +138,12 @@ export default async function PrescribingIdentityOpsPage() {
                   </Button>
                   <RetryParchmentSyncButton intakeId={item.intakeId} />
                 </div>
+
+                <PrescribingIdentityEditForm
+                  patientId={item.patientId}
+                  intakeId={item.intakeId}
+                  identity={item.identity}
+                />
               </div>
             ))}
           </div>
