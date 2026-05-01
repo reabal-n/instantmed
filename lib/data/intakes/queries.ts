@@ -3,6 +3,7 @@ import "server-only"
 import { unstable_cache } from "next/cache"
 
 import { readDashboardQuery } from "@/lib/data/dashboard-read-model"
+import { filterSeededE2EIntakes } from "@/lib/data/seeded-e2e-data"
 import { QUEUE_REVIEW_STATUSES } from "@/lib/doctor/queue-utils"
 import { toError } from "@/lib/errors"
 import { createLogger } from "@/lib/observability/logger"
@@ -278,11 +279,11 @@ export async function getDoctorQueue(
     fallback: { count: 0, degraded: true },
     context: { surface: "doctor-dashboard" },
     operation: async () => {
-      const { count, error } = await supabase
+      const { count, error } = await filterSeededE2EIntakes(supabase
         .from("intakes")
         .select("id", { count: "exact", head: true })
         .in("status", QUEUE_REVIEW_STATUSES)
-        .eq("payment_status", "paid")
+        .eq("payment_status", "paid"))
 
       return { data: error ? null : { count: count ?? 0, degraded: false }, error }
     },
@@ -290,7 +291,7 @@ export async function getDoctorQueue(
   const countFallback = countResult.degraded
 
   // Fetch paginated data with only necessary fields for queue view
-  const { data, error } = await supabase
+  const { data, error } = await filterSeededE2EIntakes(supabase
     .from("intakes")
     .select(`
       id,
@@ -323,7 +324,7 @@ export async function getDoctorQueue(
       service:services!service_id (id, name, short_name, type, slug)
     `)
     .in("status", QUEUE_REVIEW_STATUSES)
-    .eq("payment_status", "paid")
+    .eq("payment_status", "paid"))
     .order("is_priority", { ascending: false })
     .order("sla_deadline", { ascending: true, nullsFirst: false })
     .order("paid_at", { ascending: true, nullsFirst: false })
@@ -526,12 +527,12 @@ export async function getNextQueueIntakeId(currentIntakeId: string): Promise<str
   const supabase = createServiceRoleClient()
 
   // Fetch the next intake in queue order (same ordering as getDoctorQueue)
-  const { data, error } = await supabase
+  const { data, error } = await filterSeededE2EIntakes(supabase
     .from("intakes")
     .select("id")
     .in("status", QUEUE_REVIEW_STATUSES)
     .eq("payment_status", "paid")
-    .neq("id", currentIntakeId)
+    .neq("id", currentIntakeId))
     .order("is_priority", { ascending: false })
     .order("sla_deadline", { ascending: true, nullsFirst: false })
     .order("paid_at", { ascending: true, nullsFirst: false })
@@ -761,37 +762,37 @@ export const getDoctorDashboardStats = unstable_cache(
     // Run all count queries in parallel for efficiency
     const [totalResult, inQueueResult, approvedResult, declinedResult, pendingInfoResult, scriptsPendingResult] = await Promise.all([
     // Total paid intakes
-    supabase
+    filterSeededE2EIntakes(supabase
       .from("intakes")
       .select("id", { count: "exact", head: true })
       .eq("payment_status", "paid")
-      .not("status", "in", '("draft","cancelled")'),
+      .not("status", "in", '("draft","cancelled")')),
     // In queue (paid or in_review status)
-    supabase
+    filterSeededE2EIntakes(supabase
       .from("intakes")
       .select("id", { count: "exact", head: true })
-      .in("status", ["paid", "in_review"]),
+      .in("status", ["paid", "in_review"])),
     // Approved or completed
-    supabase
+    filterSeededE2EIntakes(supabase
       .from("intakes")
       .select("id", { count: "exact", head: true })
-      .in("status", ["approved", "completed"]),
+      .in("status", ["approved", "completed"])),
     // Declined
-    supabase
+    filterSeededE2EIntakes(supabase
       .from("intakes")
       .select("id", { count: "exact", head: true })
-      .eq("status", "declined"),
+      .eq("status", "declined")),
     // Pending info
-    supabase
+    filterSeededE2EIntakes(supabase
       .from("intakes")
       .select("id", { count: "exact", head: true })
-      .eq("status", "pending_info"),
+      .eq("status", "pending_info")),
     // Scripts pending (approved but not sent)
-    supabase
+    filterSeededE2EIntakes(supabase
       .from("intakes")
       .select("id", { count: "exact", head: true })
       .eq("status", "approved")
-      .eq("script_sent", false),
+      .eq("script_sent", false)),
   ])
 
     // Log any errors but don't fail completely
@@ -866,54 +867,54 @@ export async function getIntakeMonitoringStats(): Promise<{
       recentCompletedResult,
     ] = await Promise.all([
     // Today's submissions (paid today)
-    supabase
+    filterSeededE2EIntakes(supabase
       .from("intakes")
       .select("id", { count: "exact", head: true })
-      .gte("paid_at", todayStartISO),
+      .gte("paid_at", todayStartISO)),
     // Queue size
-    supabase
+    filterSeededE2EIntakes(supabase
       .from("intakes")
       .select("id", { count: "exact", head: true })
       .in("status", QUEUE_REVIEW_STATUSES)
-      .eq("payment_status", "paid"),
+      .eq("payment_status", "paid")),
     // Paid count
-    supabase
+    filterSeededE2EIntakes(supabase
       .from("intakes")
       .select("id", { count: "exact", head: true })
       .eq("payment_status", "paid")
-      .not("status", "in", '("draft","cancelled")'),
+      .not("status", "in", '("draft","cancelled")')),
     // Pending count
-    supabase
+    filterSeededE2EIntakes(supabase
       .from("intakes")
       .select("id", { count: "exact", head: true })
       .eq("payment_status", "pending")
-      .not("status", "in", '("draft","cancelled")'),
+      .not("status", "in", '("draft","cancelled")')),
     // Approved today
-    supabase
+    filterSeededE2EIntakes(supabase
       .from("intakes")
       .select("id", { count: "exact", head: true })
-      .gte("approved_at", todayStartISO),
+      .gte("approved_at", todayStartISO)),
     // Declined today
-    supabase
+    filterSeededE2EIntakes(supabase
       .from("intakes")
       .select("id", { count: "exact", head: true })
-      .gte("declined_at", todayStartISO),
+      .gte("declined_at", todayStartISO)),
     // Oldest in queue (single row, ordered by paid_at/created_at)
-    supabase
+    filterSeededE2EIntakes(supabase
       .from("intakes")
       .select("paid_at, submitted_at, created_at")
       .in("status", QUEUE_REVIEW_STATUSES)
-      .eq("payment_status", "paid")
+      .eq("payment_status", "paid"))
       .order("paid_at", { ascending: true, nullsFirst: false })
       .order("created_at", { ascending: true })
       .limit(1)
       .maybeSingle(),
     // Recent completed for avg review time (last 100 to keep query fast)
-    supabase
+    filterSeededE2EIntakes(supabase
       .from("intakes")
       .select("paid_at, approved_at, declined_at")
       .not("paid_at", "is", null)
-      .in("status", ["approved", "declined", "completed"])
+      .in("status", ["approved", "declined", "completed"]))
       .order("approved_at", { ascending: false, nullsFirst: true })
       .limit(100),
   ])
@@ -1079,12 +1080,12 @@ export async function getSlaBreachIntakes(): Promise<{
   const now = new Date()
   const oneHourFromNow = new Date(now.getTime() + 60 * 60 * 1000)
 
-  const { data, error } = await supabase
+  const { data, error } = await filterSeededE2EIntakes(supabase
     .from("intakes")
     .select("id, sla_deadline")
     .in("status", QUEUE_REVIEW_STATUSES)
     .eq("payment_status", "paid")
-    .not("sla_deadline", "is", null)
+    .not("sla_deadline", "is", null))
 
   if (error || !data) {
     return { breached: 0, approaching: 0, intakeIds: [] }

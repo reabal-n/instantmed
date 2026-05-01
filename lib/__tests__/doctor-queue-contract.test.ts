@@ -33,10 +33,33 @@ const queueActionsSource = readFileSync(
   "utf8",
 )
 
+const queueHealthSource = readFileSync(
+  join(process.cwd(), "lib/monitoring/queue-health.ts"),
+  "utf8",
+)
+
+const e2eResetMigrationSource = readFileSync(
+  join(process.cwd(), "supabase/migrations/20260501124500_harden_e2e_intake_reset.sql"),
+  "utf8",
+)
+
 describe("doctor queue production contract", () => {
   it("keeps the server queue aligned with all actionable paid statuses", () => {
     expect(queriesSource).toContain("QUEUE_REVIEW_STATUSES")
     expect(queriesSource).toContain('.eq("payment_status", "paid")')
+  })
+
+  it("keeps seeded E2E intakes out of live operational queue reads", () => {
+    expect(queriesSource).toContain("filterSeededE2EIntakes")
+    expect(queueHealthSource).toContain("filterSeededE2EIntakes")
+    expect(queueHealthSource).toContain("QUEUE_REVIEW_STATUSES")
+    expect(queueHealthSource).not.toContain("mailinator.com")
+  })
+
+  it("keeps the E2E reset helper from leaving stale terminal timestamps", () => {
+    expect(e2eResetMigrationSource).toContain("CREATE OR REPLACE FUNCTION public.e2e_reset_intake_status")
+    expect(e2eResetMigrationSource).toContain("cancelled_at = CASE")
+    expect(e2eResetMigrationSource).toContain("completed_at = CASE")
   })
 
   it("does not inject raw Supabase realtime INSERT rows into the hydrated queue list", () => {

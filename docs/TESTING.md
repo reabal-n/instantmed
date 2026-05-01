@@ -117,12 +117,13 @@ When `PLAYWRIGHT=1` is set:
 - **Rate limiting:** Redis TTLs may need manual reset between tests if hitting limits
 - **Auth:** bypass cookie accepted by middleware
 - **Intake status reset:** use `e2e_reset_intake_status()` RPC (see below) — direct status updates are blocked by the state machine trigger
+- **Seeded queue data:** the fixed `E2E Test Patient` seed is hidden from live operational queue reads unless an E2E/test env flag is set
 
 ### E2E Intake Reset RPC
 
 The `validate_intake_status_transition` trigger blocks terminal-state resets (e.g. `approved → paid`), which breaks E2E test cleanup that needs to reuse intakes across test runs.
 
-**Solution:** `e2e_reset_intake_status(p_intake_id UUID, p_status TEXT)` — a Supabase RPC that bypasses the trigger using a transaction-local flag.
+**Solution:** `e2e_reset_intake_status(p_intake_id UUID, p_status TEXT)` — a Supabase RPC that bypasses the trigger using a transaction-local flag and keeps terminal timestamps coherent when moving test intakes into or out of `cancelled` / `completed`.
 
 ```ts
 // Call via service role client only — not from browser/patient context
@@ -132,7 +133,7 @@ const { error } = await supabase.rpc('e2e_reset_intake_status', {
 })
 ```
 
-**Security:** `service_role` only. `authenticated` and `anon` are explicitly revoked. The bypass flag (`app.e2e_reset`) is transaction-local — it expires at transaction end and cannot leak across requests. Migration: `20260402000003_add_e2e_intake_reset_rpc.sql`.
+**Security:** `service_role` only. `authenticated` and `anon` are explicitly revoked. The bypass flag (`app.e2e_reset`) is transaction-local — it expires at transaction end and cannot leak across requests. Original migration: `20260402000003_add_e2e_intake_reset_rpc.sql`; timestamp hardening: `20260501124500_harden_e2e_intake_reset.sql`.
 
 ### What to E2E Test
 

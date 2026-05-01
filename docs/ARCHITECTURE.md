@@ -345,7 +345,7 @@ Config-driven, immutably versioned. Template config stored as JSONB in `certific
 | `/doctor/scripts` | External script task list | `script_tasks` scoped by doctor/admin role |
 | `/doctor/settings/identity` | Doctor identity config | Doctor profile |
 
-**Queue architecture:** Paginated (`pageSize` capped at 100 via `Math.min()`). Stale data warning shown when queue may be out of date. Polling-based refresh. Paused doctors (`profiles.doctor_available = false`) receive an empty queue — `getDoctorQueue({ doctorId })` filters them out so they do not see new intakes.
+**Queue architecture:** Paginated (`pageSize` capped at 100 via `Math.min()`). Stale data warning shown when queue may be out of date. Polling-based refresh. Paused doctors (`profiles.doctor_available = false`) receive an empty queue — `getDoctorQueue({ doctorId })` filters them out so they do not see new intakes. Live queue reads also exclude the fixed seeded E2E patient via `lib/data/seeded-e2e-data.ts` unless an E2E/test env flag is set.
 
 **Intake review flow:**
 1. Doctor opens case from queue

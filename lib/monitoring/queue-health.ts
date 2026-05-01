@@ -8,6 +8,8 @@
 
 import * as Sentry from "@sentry/nextjs"
 
+import { filterSeededE2EIntakes } from "@/lib/data/seeded-e2e-data"
+import { QUEUE_REVIEW_STATUSES } from "@/lib/doctor/queue-utils"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 export interface QueueHealthMetrics {
@@ -48,23 +50,12 @@ export function buildQueueSlaBreachPayload(metrics: QueueHealthMetrics) {
 export async function getQueueHealth(): Promise<QueueHealthMetrics> {
   const supabase = createServiceRoleClient()
   
-  // Get all pending requests, excluding test/E2E records
-  // Joins profiles to filter out known test email domains so dev seeds never breach SLA
-  const { data: pendingRequests } = await supabase
+  const { data: pendingRequests } = await filterSeededE2EIntakes(supabase
     .from("intakes")
-    .select("id, created_at, is_priority, patient:profiles!patient_id(email)")
-    .in("status", ["paid", "in_review", "pending_info"])
+    .select("id, created_at, is_priority")
+    .in("status", QUEUE_REVIEW_STATUSES)
+    .eq("payment_status", "paid"))
     .order("created_at", { ascending: true })
-    .then(res => ({
-      ...res,
-      data: res.data?.filter(r => {
-        const email: string = (Array.isArray(r.patient) ? r.patient[0]?.email : (r.patient as { email?: string } | null)?.email) ?? ""
-        return !email.includes("mailinator.com") &&
-               !email.includes("mail.fakedata.pro") &&
-               !email.includes("@test.instantmed.com.au") &&
-               !r.id.startsWith("e2e0000")
-      }) ?? null,
-    }))
   
   if (!pendingRequests || pendingRequests.length === 0) {
     return {
@@ -170,10 +161,11 @@ export async function checkQueueHealthAndAlert(): Promise<QueueHealthMetrics> {
 export async function getQueueByServiceType(): Promise<Record<string, number>> {
   const supabase = createServiceRoleClient()
   
-  const { data } = await supabase
+  const { data } = await filterSeededE2EIntakes(supabase
     .from("intakes")
     .select("id, category")
-    .in("status", ["paid", "in_review", "pending_info"])
+    .in("status", QUEUE_REVIEW_STATUSES)
+    .eq("payment_status", "paid"))
   
   if (!data) return {}
   
