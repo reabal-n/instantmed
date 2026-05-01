@@ -6,7 +6,6 @@ const mocks = vi.hoisted(() => ({
   getAuthenticatedUserWithProfile: vi.fn(),
   isAtCapacity: vi.fn(),
   isMedicationBlocked: vi.fn(),
-  isOutsideBusinessHours: vi.fn(),
   isServiceDisabled: vi.fn(),
   trackOperationalBlock: vi.fn(),
   validateSafetyFieldsPresent: vi.fn(),
@@ -40,7 +39,6 @@ vi.mock("@/lib/config/kill-switches", () => ({
 
 vi.mock("@/lib/operational-controls/config", () => ({
   isAtCapacity: mocks.isAtCapacity,
-  isOutsideBusinessHours: mocks.isOutsideBusinessHours,
 }))
 
 vi.mock("@/lib/data/profiles", () => ({
@@ -90,7 +88,6 @@ describe("checkout operating hours", () => {
     mocks.getAuthenticatedUserWithProfile.mockResolvedValue(null)
     mocks.isAtCapacity.mockResolvedValue(false)
     mocks.isMedicationBlocked.mockResolvedValue({ blocked: false })
-    mocks.isOutsideBusinessHours.mockResolvedValue({ closed: true, nextOpen: "8am" })
     mocks.isServiceDisabled.mockResolvedValue(false)
     mocks.validateSafetyFieldsPresent.mockReturnValue({ valid: true, missingFields: [] })
   })
@@ -104,7 +101,6 @@ describe("checkout operating hours", () => {
       type: "consult",
     })
 
-    expect(mocks.isOutsideBusinessHours).not.toHaveBeenCalled()
     expect(mocks.trackOperationalBlock).not.toHaveBeenCalledWith(
       expect.objectContaining({ blockType: "business_hours" }),
     )

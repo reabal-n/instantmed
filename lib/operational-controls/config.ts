@@ -50,49 +50,6 @@ export async function getOperationalConfig(): Promise<OperationalConfig> {
 }
 
 /**
- * Check if current time is within business hours (AEST/AEDT)
- */
-export function isWithinBusinessHours(config: OperationalConfig): boolean {
-  if (!config.business_hours_enabled) return true
-  const now = new Date()
-  const formatter = new Intl.DateTimeFormat("en-AU", {
-    timeZone: config.business_hours_timezone,
-    hour: "numeric",
-    minute: "numeric",
-    hour12: false,
-  })
-  const parts = formatter.formatToParts(now)
-  const hour = parseInt(parts.find(p => p.type === "hour")?.value ?? "0", 10)
-  const minute = parseInt(parts.find(p => p.type === "minute")?.value ?? "0", 10)
-  const currentMinutes = hour * 60 + minute
-  const openMinutes = config.business_hours_open * 60
-  const closeMinutes = config.business_hours_close * 60
-  return currentMinutes >= openMinutes && currentMinutes < closeMinutes
-}
-
-/**
- * Get formatted "back at" time for display
- */
-export function getNextOpenTime(config: OperationalConfig): string {
-  const open = config.business_hours_open
-  const hour = open % 24
-  const ampm = hour >= 12 ? "pm" : "am"
-  const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour
-  return `${displayHour}${ampm}`
-}
-
-/**
- * Check if platform is closed (outside business hours)
- */
-export async function isOutsideBusinessHours(): Promise<{ closed: boolean; nextOpen?: string }> {
-  const config = await getOperationalConfig()
-  if (!config.business_hours_enabled) return { closed: false }
-  const within = isWithinBusinessHours(config)
-  if (within) return { closed: false }
-  return { closed: true, nextOpen: getNextOpenTime(config) }
-}
-
-/**
  * Count intakes created today (Australia/Sydney) for capacity check
  */
 export async function getTodayIntakeCount(): Promise<number> {

@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs"
+import { join } from "node:path"
+
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
 const mocks = vi.hoisted(() => ({
@@ -72,5 +75,12 @@ describe("operational control capacity checks", () => {
 
     await expect(isAtCapacity()).resolves.toBe(false)
     expect(mocks.createServiceRoleClient).not.toHaveBeenCalled()
+  })
+
+  it("does not expose business hours as a checkout-closure helper", () => {
+    const source = readFileSync(join(process.cwd(), "lib/operational-controls/config.ts"), "utf8")
+
+    expect(source).not.toContain("isOutsideBusinessHours")
+    expect(source).not.toContain("getNextOpenTime")
   })
 })
