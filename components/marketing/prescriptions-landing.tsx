@@ -61,7 +61,7 @@ const PrescriptionLimitationsSection = dynamic(
   { loading: () => <div className="min-h-[150px]" /> },
 )
 const RegulatoryPartners = dynamic(
-  () => import("@/components/marketing/media-mentions").then((m) => m.RegulatoryPartners),
+  () => import("@/components/marketing/regulatory-partners").then((m) => m.RegulatoryPartners),
   { loading: () => <div className="min-h-[120px]" /> },
 )
 const FAQSection = dynamic(

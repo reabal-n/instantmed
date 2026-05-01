@@ -22,7 +22,6 @@ export {
 } from "./dashboard-card"
 export { DashboardEmpty, type DashboardEmptyProps } from "./dashboard-empty"
 export { DashboardGrid, type DashboardGridProps } from "./dashboard-grid"
-export { DashboardHeader, type DashboardHeaderProps } from "./dashboard-header"
 export {
   DashboardPageHeader,
   type DashboardPageHeaderProps,

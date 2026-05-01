@@ -88,7 +88,7 @@ const systemNavItems: NavItem[] = [
   { href: "/admin/audit", label: "Audit Log", icon: ScrollText },
   { href: "/admin/refunds", label: "Refunds", icon: CreditCard },
   { href: "/admin/errors", label: "Errors", icon: Bug },
-  { href: "/admin/webhooks", label: "Webhooks", icon: Webhook },
+  { href: "/admin/webhook-dlq", label: "Webhooks", icon: Webhook },
   { href: "/admin/content", label: "Content", icon: PenTool },
   { href: "/admin/settings", label: "Settings", icon: Settings },
 ]

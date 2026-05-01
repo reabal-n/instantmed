@@ -27,7 +27,7 @@ import {
   XAxis,
   YAxis,
 } from "@/components/charts/lazy-charts"
-import { DashboardGrid, DashboardHeader, StatCard } from "@/components/dashboard"
+import { DashboardGrid, DashboardPageHeader, StatCard } from "@/components/dashboard"
 import { Button } from "@/components/ui/button"
 import { formatCurrency } from "@/lib/format"
 import { cn } from "@/lib/utils"
@@ -114,7 +114,7 @@ export function FinanceDashboardClient({ finance }: FinanceDashboardClientProps)
     <div className="min-h-full">
       <div className="p-6 space-y-6">
         {/* Header */}
-        <DashboardHeader
+        <DashboardPageHeader
           title="Finance Dashboard"
           description="Revenue, refunds, and financial metrics"
           backHref="/admin"

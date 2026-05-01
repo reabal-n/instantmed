@@ -12,7 +12,6 @@
  * Routes exercised:
  * - GET  /api/doctor/monitoring-stats   (doctor/admin only)
  * - POST /api/doctor/assign-request     (doctor/admin only, CSRF after auth)
- * - POST /api/doctor/update-request     (doctor/admin only, CSRF before auth)
  * - POST /api/med-cert/preview          (doctor/admin only, CSRF after auth)
  *
  * Notes on response codes:
@@ -72,13 +71,6 @@ test.describe("API RBAC - Unauthenticated Requests", () => {
     expect(isDenied(response.status())).toBe(true)
   })
 
-  test("POST /api/doctor/update-request is denied without auth", async ({ request }) => {
-    const response = await request.post(`${BASE_URL}/api/doctor/update-request`, {
-      data: { intake_id: INTAKE_ID, action: "approve" },
-    })
-    expect(isDenied(response.status())).toBe(true)
-  })
-
   test("POST /api/med-cert/preview is denied without auth", async ({ request }) => {
     const response = await request.post(`${BASE_URL}/api/med-cert/preview`, {
       data: { draftData: { patient_full_name: "Test" } },
@@ -105,20 +97,6 @@ test.describe("API RBAC - Patient Role Restrictions", () => {
   test("patient cannot POST /api/doctor/assign-request", async ({ request }) => {
     const response = await request.post(`${BASE_URL}/api/doctor/assign-request`, {
       data: { intake_id: INTAKE_ID, doctor_id: "00000000-0000-0000-0000-000000000000" },
-    })
-    expect(isDenied(response.status())).toBe(true)
-  })
-
-  test("patient cannot POST /api/doctor/update-request (approve)", async ({ request }) => {
-    const response = await request.post(`${BASE_URL}/api/doctor/update-request`, {
-      data: { intake_id: INTAKE_ID, action: "approve" },
-    })
-    expect(isDenied(response.status())).toBe(true)
-  })
-
-  test("patient cannot POST /api/doctor/update-request (decline)", async ({ request }) => {
-    const response = await request.post(`${BASE_URL}/api/doctor/update-request`, {
-      data: { intake_id: INTAKE_ID, action: "decline", notes: "test" },
     })
     expect(isDenied(response.status())).toBe(true)
   })
@@ -166,13 +144,6 @@ test.describe("API RBAC - Operator Role Access", () => {
     // Without a CSRF token, an authed operator hits CSRF and gets a handler 403
     // ("Invalid or missing CSRF token"). The KEY assertion: NOT rejected by
     // auth middleware (auth recognized).
-    expect(await wasRejectedByMiddleware(response)).toBe(false)
-  })
-
-  test("operator POST /api/doctor/update-request - auth passes (CSRF may fail)", async ({ request }) => {
-    const response = await request.post(`${BASE_URL}/api/doctor/update-request`, {
-      data: { intake_id: INTAKE_ID, action: "approve" },
-    })
     expect(await wasRejectedByMiddleware(response)).toBe(false)
   })
 

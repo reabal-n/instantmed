@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs"
+import { existsSync, readFileSync } from "node:fs"
 import { join } from "node:path"
 
 import { describe, expect, it } from "vitest"
@@ -25,6 +25,11 @@ const queueClientSource = readFileSync(
 
 const queueTypesSource = readFileSync(
   join(process.cwd(), "app/doctor/queue/types.ts"),
+  "utf8",
+)
+
+const queueActionsSource = readFileSync(
+  join(process.cwd(), "app/doctor/queue/actions.ts"),
   "utf8",
 )
 
@@ -55,5 +60,14 @@ describe("doctor queue production contract", () => {
     expect(queriesSource).toContain("degraded")
     expect(queueTypesSource).toContain("queueDegraded")
     expect(queueClientSource).toContain("Queue data may be incomplete")
+  })
+
+  it("retires duplicate doctor decision APIs in favour of canonical server actions", () => {
+    expect(existsSync(join(process.cwd(), "app/api/doctor/update-request/route.ts"))).toBe(false)
+    expect(existsSync(join(process.cwd(), "app/api/doctor/bulk-action/route.ts"))).toBe(false)
+    expect(existsSync(join(process.cwd(), "app/api/intakes/[id]/approve/route.ts"))).toBe(false)
+    expect(existsSync(join(process.cwd(), "lib/stripe/refunds.ts"))).toBe(false)
+    expect(queueActionsSource).toContain("declineIntakeCanonical")
+    expect(queueActionsSource).not.toContain("refundIfEligible")
   })
 })

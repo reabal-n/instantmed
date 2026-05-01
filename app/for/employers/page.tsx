@@ -19,7 +19,7 @@ import {
 import type { Metadata } from "next"
 import Link from "next/link"
 
-import { LiveWaitTime, MarketingFooter, MediaMentions, SampleCertificate,StatsStrip } from "@/components/marketing"
+import { LiveWaitTime, MarketingFooter, RegulatoryPartners, SampleCertificate,StatsStrip } from "@/components/marketing"
 import { ScrollingLogoMarquee } from "@/components/marketing/shared"
 import { Navbar } from "@/components/shared"
 import { Badge } from "@/components/ui/badge"
@@ -598,7 +598,7 @@ export default function EmployersPage() {
         {/* Social Proof */}
         <LiveWaitTime variant="strip" services={['med-cert']} />
         <StatsStrip className="bg-muted/20 border-y border-border/30" />
-        <MediaMentions className="bg-muted/30" />
+        <RegulatoryPartners className="bg-muted/30" />
       </main>
 
       <MarketingFooter />

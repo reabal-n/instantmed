@@ -142,6 +142,7 @@ Operational rules:
 - Do not preselect or auto-create prescription items in Parchment unless Parchment provides a supported, conformant API endpoint for prescription drafts.
 - The Parchment panel may show copyable requested-medicine context for doctor convenience, but the doctor must confirm medicine, PBS/private status, quantity, repeats, directions, contraindications, and monitoring inside Parchment.
 - If a doctor reports mismatch between InstantMed context and Parchment/MIMS search results, treat Parchment as source of truth and document the discrepancy in clinical notes.
+- Treat `Parchment webhook could not match prescription.created to an intake` Sentry warnings as P1 operations issues: the script may exist in Parchment while InstantMed has not completed the linked request or sent the patient notification. These are also logged as `webhook_failed` audit events and surfaced in `/admin/ops`.
 
 **Weekly operating dashboard:**
 
@@ -495,11 +496,11 @@ ROLLBACK  ROLLBACK    ROLLBACK
 
 **When:** webhooks failed during the incident window and events need to be reprocessed.
 
-**How it works:** every failed webhook event lands in `webhook_dlq` (dead letter queue) with the full event payload. The admin panel at `/admin/ops/webhook-dlq` lists entries.
+**How it works:** every failed Stripe webhook event lands in `stripe_webhook_dead_letter` with the full event payload. The admin panel at `/admin/webhook-dlq` lists entries.
 
 **Steps:**
 
-1. **Check DLQ depth** — Vercel deploy logs or `/admin/ops/webhook-dlq` shows count. Sentry alerts fire at > 5 unprocessed events.
+1. **Check DLQ depth** — Vercel deploy logs or `/admin/webhook-dlq` shows count. Sentry alerts fire at > 5 unprocessed events.
 2. **Investigate root cause** — click an entry, read the error. Common causes: signature verification failed (env var wrong), downstream DB error (migration issue), handler bug.
 3. **Fix the root cause** — don't replay until the underlying issue is resolved. Otherwise the replay just re-fails and doubles the queue.
 4. **Replay individually** — for each entry in DLQ, click "Retry." This POSTs the original payload back to `/api/stripe/webhook` with the original signature (re-verified idempotently via `tryClaimEvent`).

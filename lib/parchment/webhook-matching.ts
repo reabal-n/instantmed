@@ -11,11 +11,22 @@ export function selectParchmentWebhookIntake(
   prescriberProfileIds: string[] | null,
 ): ParchmentWebhookIntakeCandidate | null {
   if (!prescriberProfileIds || prescriberProfileIds.length === 0) return null
-  const prescriberIds = new Set(prescriberProfileIds)
 
   return candidates.find((candidate) => (
-    (candidate.claimed_by && prescriberIds.has(candidate.claimed_by)) ||
-    (candidate.reviewing_doctor_id && prescriberIds.has(candidate.reviewing_doctor_id)) ||
-    (candidate.reviewed_by && prescriberIds.has(candidate.reviewed_by))
+    selectParchmentWebhookPrescriberId(candidate, prescriberProfileIds) !== null
   )) ?? null
+}
+
+export function selectParchmentWebhookPrescriberId(
+  candidate: ParchmentWebhookIntakeCandidate,
+  prescriberProfileIds: string[] | null,
+): string | null {
+  if (!prescriberProfileIds || prescriberProfileIds.length === 0) return null
+  const prescriberIds = new Set(prescriberProfileIds)
+
+  for (const doctorId of [candidate.claimed_by, candidate.reviewing_doctor_id, candidate.reviewed_by]) {
+    if (doctorId && prescriberIds.has(doctorId)) return doctorId
+  }
+
+  return null
 }

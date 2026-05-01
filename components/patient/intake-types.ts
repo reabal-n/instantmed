@@ -8,7 +8,7 @@ export interface Intake {
   service?: { id: string; name?: string; short_name?: string; type?: string; slug?: string } | null
 }
 
-/** Resolve status config from lib/status.ts - single source of truth */
+/** Resolve status config from lib/data/status.ts - single source of truth */
 export function resolveStatusConfig(status: string) {
   return INTAKE_STATUS[status as IntakeStatus] ?? INTAKE_STATUS.pending
 }

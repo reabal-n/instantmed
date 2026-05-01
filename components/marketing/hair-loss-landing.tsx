@@ -35,7 +35,7 @@ const DoctorProfileSection = dynamic(
   { loading: () => <div className="min-h-[200px]" /> },
 )
 const RegulatoryPartners = dynamic(
-  () => import("@/components/marketing/media-mentions").then((m) => m.RegulatoryPartners),
+  () => import("@/components/marketing/regulatory-partners").then((m) => m.RegulatoryPartners),
   { loading: () => <div className="min-h-[120px]" /> },
 )
 const HairLossGuideSection = dynamic(

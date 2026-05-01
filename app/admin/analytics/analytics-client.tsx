@@ -4,7 +4,7 @@ import { ExternalLink } from "lucide-react"
 import { useSearchParams } from "next/navigation"
 import { useEffect, useState } from "react"
 
-import { DashboardHeader } from "@/components/dashboard"
+import { DashboardPageHeader } from "@/components/dashboard"
 import { Button } from "@/components/ui/button"
 import type { BusinessKPIData } from "@/lib/data/business-kpi"
 import { cn } from "@/lib/utils"
@@ -66,7 +66,7 @@ export function AnalyticsDashboardClient({
     <div className="min-h-full">
       <div className="max-w-7xl mx-auto p-6 space-y-6">
         {/* Header */}
-        <DashboardHeader
+        <DashboardPageHeader
           title="Analytics Hub"
           description="Comprehensive business intelligence and operational metrics"
           backHref="/admin"

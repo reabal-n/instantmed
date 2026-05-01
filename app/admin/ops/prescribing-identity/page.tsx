@@ -1,7 +1,7 @@
 import { AlertTriangle, CheckCircle, CreditCard, ExternalLink } from "lucide-react"
 import Link from "next/link"
 
-import { DashboardHeader, StatusBadge } from "@/components/dashboard"
+import { DashboardPageHeader, StatusBadge } from "@/components/dashboard"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { getPrescribingIdentityBlockerReport } from "@/lib/doctor/patient-identity-report"
@@ -34,7 +34,7 @@ export default async function PrescribingIdentityOpsPage() {
 
   return (
     <div className="space-y-6">
-      <DashboardHeader
+      <DashboardPageHeader
         title="Prescribing Identity Blocks"
         description="Paid prescription requests that are not ready for Parchment because identity data is incomplete."
         backHref="/admin/ops"

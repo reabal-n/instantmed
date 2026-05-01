@@ -16,7 +16,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 
-import { DashboardHeader, StatusBadge } from "@/components/dashboard"
+import { DashboardPageHeader, StatusBadge } from "@/components/dashboard"
 import { Button } from "@/components/ui/button"
 import { DOCTOR_QUEUE_REVIEW_HREF } from "@/lib/dashboard/routes"
 import { cn } from "@/lib/utils"
@@ -108,7 +108,7 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
     <div className="min-h-full">
       <div className="p-6 space-y-6">
         {/* Header */}
-        <DashboardHeader
+        <DashboardPageHeader
           title="Operations Dashboard"
           description="System health and monitoring"
           backHref="/admin"

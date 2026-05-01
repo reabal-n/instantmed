@@ -172,6 +172,12 @@ export async function GET(request: NextRequest) {
       .is("resolved_at", null)
       .lt("created_at", dlqThreshold.toISOString())
 
+    const { count: providerWebhookFailures } = await supabase
+      .from("audit_logs")
+      .select("id", { count: "exact", head: true })
+      .eq("action", "webhook_failed")
+      .gte("created_at", since.toISOString())
+
     const patientIdentity = await getDuplicatePatientProfileSummary(supabase)
 
     // ─── Recipients ──────────────────────────────────────────────────────────
@@ -212,6 +218,7 @@ export async function GET(request: NextRequest) {
     if ((highRiskWaiting ?? 0) > 0) attentionItems.push(`${highRiskWaiting} high/critical risk intake${highRiskWaiting === 1 ? "" : "s"} in queue`)
     if (openDisputes > 0) attentionItems.push(`${openDisputes} open Stripe dispute${openDisputes === 1 ? "" : "s"}`)
     if ((dlqStale ?? 0) > 0) attentionItems.push(`${dlqStale} Stripe webhook${dlqStale === 1 ? "" : "s"} in DLQ &gt;24h`)
+    if ((providerWebhookFailures ?? 0) > 0) attentionItems.push(`${providerWebhookFailures} provider webhook failure${providerWebhookFailures === 1 ? "" : "s"} logged in audit trail`)
     if (patientIdentity.duplicateProfileCount > 0) {
       attentionItems.push(`${patientIdentity.duplicateProfileCount} duplicate patient profile${patientIdentity.duplicateProfileCount === 1 ? "" : "s"} across ${patientIdentity.duplicateGroupCount} identity group${patientIdentity.duplicateGroupCount === 1 ? "" : "s"}`)
     }

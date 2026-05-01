@@ -46,7 +46,7 @@ export default async function OpsDashboardPage() {
     supabase
       .from("audit_logs")
       .select("id, action, created_at, metadata")
-      .ilike("action", "%error%")
+      .or("action.ilike.%error%,action.eq.webhook_failed")
       .gte("created_at", weekAgo.toISOString())
       .order("created_at", { ascending: false })
       .limit(20),

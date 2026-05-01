@@ -110,7 +110,7 @@ export function AdminHubZones({
       links: [
         { label: "Refunds", href: "/admin/refunds" },
         { label: "Errors", href: "/admin/errors" },
-        { label: "Webhooks", href: "/admin/webhooks" },
+        { label: "Webhooks", href: "/admin/webhook-dlq" },
         { label: "Ops health", href: "/admin/ops" },
         { label: "Compliance", href: "/admin/compliance" },
       ],

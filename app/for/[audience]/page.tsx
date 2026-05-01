@@ -3,7 +3,7 @@ import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 
-import { LiveWaitTime, MarketingFooter, MediaMentions,StatsStrip } from "@/components/marketing"
+import { LiveWaitTime, MarketingFooter, RegulatoryPartners,StatsStrip } from "@/components/marketing"
 import { BreadcrumbSchema,FAQSchema } from "@/components/seo"
 import { Navbar } from "@/components/shared"
 import { Button } from "@/components/ui/button"
@@ -268,7 +268,7 @@ export default async function AudiencePage({ params }: PageProps) {
 
           <LiveWaitTime variant="strip" services={["med-cert"]} />
           <StatsStrip className="bg-muted/20 border-y border-border/30" />
-          <MediaMentions className="bg-muted/30" />
+          <RegulatoryPartners className="bg-muted/30" />
         </main>
 
         <MarketingFooter />

@@ -6,48 +6,7 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
-// Backwards-compatible Select that accepts both shadcn/ui and legacy APIs
-interface SelectProps extends React.ComponentPropsWithoutRef<typeof SelectPrimitive.Root> {
-  // Legacy API compatibility
-  selectedKeys?: string[] | Set<string>
-  onSelectionChange?: (keys: Set<string>) => void
-  // Additional legacy props
-  placeholder?: string
-  className?: string
-  classNames?: Record<string, string>
-}
-
-function Select({ 
-  selectedKeys, 
-  onSelectionChange, 
-  className: _className, 
-  classNames: _classNames, 
-  placeholder: _placeholder, 
-  ...props 
-}: SelectProps) {
-  // Map legacy API to Radix API
-  let radixValue = props.value
-  let radixOnValueChange = props.onValueChange
-
-  if (selectedKeys !== undefined && radixValue === undefined) {
-    const keysArray = selectedKeys instanceof Set ? Array.from(selectedKeys) : selectedKeys
-    radixValue = keysArray[0]
-  }
-
-  if (onSelectionChange && !radixOnValueChange) {
-    radixOnValueChange = (value: string) => {
-      onSelectionChange(new Set([value]))
-    }
-  }
-
-  return (
-    <SelectPrimitive.Root
-      {...props}
-      value={radixValue}
-      onValueChange={radixOnValueChange}
-    />
-  )
-}
+const Select = SelectPrimitive.Root
 
 const SelectGroup = SelectPrimitive.Group
 
@@ -182,47 +141,34 @@ const SelectLabel = React.forwardRef<
 ))
 SelectLabel.displayName = SelectPrimitive.Label.displayName
 
-// SelectItem with legacy API compatibility (accepts `key` as alias for `value`)
-interface SelectItemProps extends Omit<React.ComponentPropsWithoutRef<typeof SelectPrimitive.Item>, "value"> {
-  value?: string
-  // Legacy API uses `key` prop for item identification
-  key?: string
-}
-
 const SelectItem = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Item>,
-  SelectItemProps
->(({ className, children, value, ...props }, ref) => {
-  // Use value prop, falling back to key if provided via props spread
-  const itemValue = value ?? (props as { key?: string }).key ?? ""
-  
-  return (
-    <SelectPrimitive.Item
-      ref={ref}
-      value={itemValue}
-      className={cn(
-        "relative flex w-full cursor-default select-none items-center",
-        "rounded-lg py-2 pl-9 pr-3",
-        "text-sm",
-        "outline-none",
-        "transition-colors duration-150",
-        // Focus/hover state
-        "focus:bg-primary/10 focus:text-accent-foreground",
-        "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
-        className
-      )}
-      {...props}
-    >
-      <span className="absolute left-2.5 flex h-4 w-4 items-center justify-center">
-        <SelectPrimitive.ItemIndicator>
-          <Check className="h-4 w-4" />
-        </SelectPrimitive.ItemIndicator>
-      </span>
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Item>
+>(({ className, children, ...props }, ref) => (
+  <SelectPrimitive.Item
+    ref={ref}
+    className={cn(
+      "relative flex w-full cursor-default select-none items-center",
+      "rounded-lg py-2 pl-9 pr-3",
+      "text-sm",
+      "outline-none",
+      "transition-colors duration-150",
+      // Focus/hover state
+      "focus:bg-primary/10 focus:text-accent-foreground",
+      "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      className
+    )}
+    {...props}
+  >
+    <span className="absolute left-2.5 flex h-4 w-4 items-center justify-center">
+      <SelectPrimitive.ItemIndicator>
+        <Check className="h-4 w-4" />
+      </SelectPrimitive.ItemIndicator>
+    </span>
 
-      <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
-    </SelectPrimitive.Item>
-  )
-})
+    <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
+  </SelectPrimitive.Item>
+))
 SelectItem.displayName = SelectPrimitive.Item.displayName
 
 const SelectSeparator = React.forwardRef<

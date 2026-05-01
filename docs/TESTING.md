@@ -14,8 +14,8 @@
 **Coverage threshold:** 80% statements / 70% branches / 80% functions / 80% lines (enforced by Vitest config, scoped to `lib/clinical/` and `lib/security/`). **Note:** `lib/state-machine/` was removed from the include list 2026-04-08 because the directory no longer exists — the state-machine logic was consolidated into `lib/clinical/auto-approval-state.ts`.
 
 **Recent additions (2026-04-08 audit sweep):**
-- `lib/__tests__/stripe-refunds.test.ts` — 26 tests covering every branch of `lib/stripe/refunds.ts` (eligibility gates, E2E short-circuit, payment intent resolution fallback, success path, Stripe failure path, Sentry reporting, idempotency key)
 - `lib/__tests__/decline-intake.test.ts` — 19 tests covering `app/actions/decline-intake.ts` (actor gate, idempotency, **refund amount math per category** including 50% partial refund for consults, E2E short-circuit, skipRefund flag)
+- `lib/__tests__/doctor-queue-contract.test.ts` — contract coverage for canonical doctor queue actions and retired duplicate doctor decision APIs.
 
 Prior to these, the canonical refund code had **zero unit coverage** — only the e2e suite exercised it, which gave slow feedback and no per-branch visibility.
 
@@ -178,7 +178,7 @@ The certificate pipeline has strict idempotency and security requirements. These
 - **Scoped thresholds** (Vitest config): 80% statements, 70% branches, 80% functions, 80% lines — applied to `lib/clinical/` and `lib/security/` only
 - `lib/state-machine/` was removed from the include list 2026-04-08 (directory no longer exists; state-machine logic lives in `lib/clinical/auto-approval-state.ts` which IS covered)
 - Run `pnpm test:coverage` to see per-file breakdown
-- Other directories are not gated but critical paths (checkout, certificate pipeline, decline/refund) are tested via both unit tests (`stripe-refunds.test.ts`, `decline-intake.test.ts`) AND the full e2e suite
+- Other directories are not gated but critical paths (checkout, certificate pipeline, decline/refund) are tested via focused unit tests (`decline-intake.test.ts`, queue/action contract tests) and the full e2e suite
 
 ---
 

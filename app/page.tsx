@@ -46,7 +46,7 @@ const MarketingFooter = dynamic(
 // composition (was crowding above-the-fold). Renders the four regulatory
 // logos (AHPRA, TGA, Medicare, RACGP) as a single subdued line.
 const RegulatoryPartners = dynamic(
-  () => import('@/components/marketing/media-mentions').then(m => ({ default: m.RegulatoryPartners })),
+  () => import('@/components/marketing/regulatory-partners').then(m => ({ default: m.RegulatoryPartners })),
 )
 
 export const revalidate = 3600

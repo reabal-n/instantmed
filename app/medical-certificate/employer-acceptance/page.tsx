@@ -10,7 +10,7 @@ import {
 import type { Metadata } from 'next'
 import Link from 'next/link'
 
-import { MarketingFooter } from '@/components/marketing/footer'
+import { MarketingFooter } from '@/components/marketing/marketing-footer'
 import { BreadcrumbSchema, FAQSchema } from '@/components/seo/healthcare-schema'
 import { Navbar } from '@/components/shared/navbar'
 import { Button } from '@/components/ui/button'

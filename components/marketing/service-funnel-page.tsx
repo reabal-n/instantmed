@@ -22,9 +22,9 @@ import { ReturningPatientBanner } from '@/components/shared/returning-patient-ba
 import { CONTACT_EMAIL } from '@/lib/constants'
 import { cn } from '@/lib/utils'
 
-import { MarketingFooter } from './footer'
 import { LiveWaitTime } from './live-wait-time'
-import { MediaMentions } from './media-mentions'
+import { MarketingFooter } from './marketing-footer'
+import { RegulatoryPartners } from './regulatory-partners'
 import { StatsStrip } from './total-patients-counter'
 import { TrustBadgeSlider } from './trust-badge-slider'
 
@@ -169,9 +169,9 @@ export function ServiceFunnelPage({
         </div>
       </section>
 
-      {/* Stats + Media Mentions */}
+      {/* Stats + regulatory partners */}
       <StatsStrip className="bg-muted/20 dark:bg-muted/10 border-y border-border/30" />
-      <MediaMentions className="bg-muted/10 dark:bg-muted/5" />
+      <RegulatoryPartners className="bg-muted/10 dark:bg-muted/5" />
 
       {/* Optional deep content (guide sections, E-E-A-T) */}
       {children}

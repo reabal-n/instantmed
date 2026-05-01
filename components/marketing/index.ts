@@ -1,8 +1,8 @@
 // Marketing components barrel export
 
 // ── Core layout & shells ───────────────────────────────────────────
-export { MarketingFooter } from "./footer"
 export { Hero } from "./hero"
+export { MarketingFooter } from "./marketing-footer"
 export { MarketingPageShell } from "./marketing-page-shell"
 
 // ── Landing pages ──────────────────────────────────────────────────
@@ -35,8 +35,8 @@ export { GoogleAdsCert } from "./google-ads-cert"
 export { GoogleReviewsBadge } from "./google-reviews-badge"
 export { GUARANTEE_HREF,GuaranteeBadge } from "./guarantee-badge"
 export { LegitScriptSeal } from "./legitscript-seal"
-export { MediaMentions,RegulatoryPartners } from "./media-mentions"
 export { RecentReviewsTicker } from "./recent-reviews-ticker"
+export { RegulatoryPartners } from "./regulatory-partners"
 export { SocialProofSection } from "./social-proof-section"
 export { TrustBadgeSlider } from "./trust-badge-slider"
 

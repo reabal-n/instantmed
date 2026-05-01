@@ -1,5 +1,3 @@
-import "../dashboard-styles.css"
-
 import type { Metadata } from "next"
 import type React from "react"
 import { Suspense } from "react"

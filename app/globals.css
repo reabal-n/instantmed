@@ -1157,8 +1157,7 @@ body {
     inset 0 -1px 0 rgba(0, 0, 0, 0.6);
 }
 
-/* Glass Card - Unified with dashboard-card for consistency */
-/* NOTE: .glass-card now aliases .dashboard-card styling - see dashboard section below */
+/* Glass Card compatibility utilities for older public pages. */
 
 
 /* Primary glow - single layer */

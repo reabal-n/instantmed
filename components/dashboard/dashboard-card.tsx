@@ -59,8 +59,7 @@ export interface DashboardCardProps extends HTMLAttributes<HTMLDivElement> {
  * DashboardCard
  *
  * Canonical solid-depth card for portal surfaces. Replaces the legacy
- * 21st.dev `dashboard-card` / `dashboard-card-elevated` classes from
- * `app/dashboard-styles.css`.
+ * 21st.dev `dashboard-card` / `dashboard-card-elevated` class pattern.
  *
  * @example
  *   <DashboardCard tier="elevated" padding="md">

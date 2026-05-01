@@ -5,13 +5,13 @@ import Image from 'next/image'
 import { cn } from '@/lib/utils'
 
 const regulatoryPartners = [
-  { name: 'AHPRA', logo: '/logos/AHPRA.png', width: 80 },
-  { name: 'TGA', logo: '/logos/TGA.png', width: 64 },
-  { name: 'Medicare', logo: '/logos/medicare.png', width: 52 },
-  { name: 'RACGP', logo: '/logos/RACGP.png', width: 72 },
+  { name: 'AHPRA', logo: '/logos/AHPRA.png', width: 80, height: 40 },
+  { name: 'TGA', logo: '/logos/TGA.png', width: 64, height: 38 },
+  { name: 'Medicare', logo: '/logos/medicare.png', width: 52, height: 16 },
+  { name: 'RACGP', logo: '/logos/RACGP.png', width: 72, height: 28 },
   // Text-only entries for partners without logo files
-  { name: 'Stripe', logo: null, width: 0 },
-  { name: 'ADHA', logo: null, width: 0 },
+  { name: 'Stripe', logo: null, width: 0, height: 0 },
+  { name: 'ADHA', logo: null, width: 0, height: 0 },
 ]
 
 interface RegulatoryPartnersProps {
@@ -50,9 +50,10 @@ function LogoItem({ partner }: { partner: typeof regulatoryPartners[number] }) {
       src={partner.logo}
       alt={partner.name}
       width={partner.width}
-      height={32}
+      height={partner.height}
       unoptimized
-      className="h-6 sm:h-7 w-auto object-contain grayscale opacity-40 dark:invert dark:opacity-30"
+      style={{ height: 'auto' }}
+      className="object-contain grayscale opacity-40 dark:invert dark:opacity-30"
     />
   )
 }
@@ -78,6 +79,3 @@ export function RegulatoryPartners({ className, exclude = [] }: RegulatoryPartne
     </div>
   )
 }
-
-// Keep old export name for backwards compatibility
-export { RegulatoryPartners as MediaMentions }

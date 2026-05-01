@@ -2,11 +2,13 @@ import * as Sentry from "@sentry/nextjs"
 import { Redis } from "@upstash/redis"
 import { NextResponse } from "next/server"
 
+import { logExternalPrescribingIndicated } from "@/lib/audit/compliance-audit"
 import { updateScriptSent } from "@/lib/data/intakes"
 import { createLogger } from "@/lib/observability/logger"
 import { verifyWebhookSignature } from "@/lib/parchment/client"
 import { webhookPayloadSchema } from "@/lib/parchment/types"
-import { selectParchmentWebhookIntake } from "@/lib/parchment/webhook-matching"
+import { selectParchmentWebhookIntake, selectParchmentWebhookPrescriberId } from "@/lib/parchment/webhook-matching"
+import { logWebhookFailure } from "@/lib/security/audit-log"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 // Short-lived Redis dedup key - 60s window catches rapid duplicate deliveries
@@ -161,6 +163,7 @@ export async function POST(request: Request) {
 
     if (!patientProfileId) {
       log.warn("Patient not found for webhook", { eventId: payload.event_id })
+      await recordParchmentWebhookMismatch("patient_not_found", payload.event_id)
       // Return 200 to prevent retries - patient genuinely doesn't exist in our system
       return NextResponse.json({ received: true, warning: "Patient not found" })
     }
@@ -182,6 +185,7 @@ export async function POST(request: Request) {
 
     if (!prescriberProfiles || prescriberProfiles.length === 0) {
       log.warn("No linked prescriber found for Parchment webhook", { eventId: payload.event_id })
+      await recordParchmentWebhookMismatch("prescriber_not_linked", payload.event_id)
       return NextResponse.json({ received: true, warning: "Prescriber not linked" })
     }
 
@@ -213,10 +217,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Failed to find intake" }, { status: 500 })
     }
 
-    const candidate = selectParchmentWebhookIntake(
-      candidates ?? [],
-      prescriberProfiles.map((profile) => profile.id),
-    )
+    const prescriberProfileIds = prescriberProfiles.map((profile) => profile.id)
+    const candidate = selectParchmentWebhookIntake(candidates ?? [], prescriberProfileIds)
+    const webhookPrescriberId = candidate
+      ? selectParchmentWebhookPrescriberId(candidate, prescriberProfileIds)
+      : null
     let claimed: { id: string; parchment_reference: string | null } | null = null
 
     if (candidate) {
@@ -251,7 +256,7 @@ export async function POST(request: Request) {
       // Could be: (a) parchment_reference already set for this SCID, (b) manually marked sent, (c) no awaiting_script intake
       const { data: existing } = await supabase
         .from("intakes")
-        .select("id, parchment_reference, script_sent")
+        .select("id, parchment_reference, script_sent, claimed_by, reviewing_doctor_id, reviewed_by, created_at")
         .eq("patient_id", patientProfileId)
         .eq("parchment_reference", scid)
         .maybeSingle()
@@ -264,7 +269,8 @@ export async function POST(request: Request) {
       if (existing && !existing.script_sent) {
         // Claimed (parchment_reference set) but updateScriptSent failed previously - resume
         log.info("Resuming partially-processed webhook", { eventId: payload.event_id })
-        const resumeSuccess = await updateScriptSent(existing.id, true, scriptNotes, scid)
+        const resumePrescriberId = selectParchmentWebhookPrescriberId(existing, prescriberProfileIds)
+        const resumeSuccess = await updateScriptSent(existing.id, true, scriptNotes, scid, resumePrescriberId ?? undefined)
         if (!resumeSuccess) {
           log.error("Failed to mark script sent (resumed)", { eventId: payload.event_id })
           Sentry.captureMessage("Parchment webhook resume failed", {
@@ -273,18 +279,20 @@ export async function POST(request: Request) {
           })
           return NextResponse.json({ error: "Failed to update intake" }, { status: 500 })
         }
+        await logWebhookPrescribingBoundary(existing.id, resumePrescriberId, scid, payload.event_id)
         log.info("Webhook resumed successfully", { eventId: payload.event_id })
         return NextResponse.json({ received: true, resumed: true })
       }
 
       log.warn("No matching awaiting_script intake found for webhook", { eventId: payload.event_id })
+      await recordParchmentWebhookMismatch("no_awaiting_script_intake", payload.event_id)
       return NextResponse.json({ received: true, warning: "No awaiting_script intake found" })
     }
 
     const intake = claimed
 
     // Mark script as sent and transition status
-    const success = await updateScriptSent(intake.id, true, scriptNotes, scid)
+    const success = await updateScriptSent(intake.id, true, scriptNotes, scid, webhookPrescriberId ?? undefined)
 
     if (!success) {
       log.error("Failed to mark script sent via webhook", { eventId: payload.event_id })
@@ -294,6 +302,8 @@ export async function POST(request: Request) {
       })
       return NextResponse.json({ error: "Failed to update intake" }, { status: 500 })
     }
+
+    await logWebhookPrescribingBoundary(intake.id, webhookPrescriberId, scid, payload.event_id)
 
     // Send patient notification email
     try {
@@ -338,5 +348,48 @@ export async function POST(request: Request) {
     log.error("Webhook processing error", {}, error instanceof Error ? error : new Error(String(error)))
     Sentry.captureException(error, { extra: { eventId: payload.event_id, context: "parchment_webhook_unhandled" } })
     return NextResponse.json({ error: "Internal error" }, { status: 500 })
+  }
+}
+
+async function logWebhookPrescribingBoundary(
+  intakeId: string,
+  prescriberProfileId: string | null,
+  scid: string,
+  eventId: string,
+) {
+  if (!prescriberProfileId) {
+    log.warn("Skipping Parchment prescribing boundary audit; no matched prescriber", { eventId })
+    return
+  }
+
+  try {
+    await logExternalPrescribingIndicated(intakeId, "repeat_rx", prescriberProfileId, scid)
+  } catch (auditError) {
+    log.warn(
+      "Failed to log external_prescribing_indicated event for Parchment webhook",
+      { eventId },
+      auditError instanceof Error ? auditError : undefined,
+    )
+  }
+}
+
+async function recordParchmentWebhookMismatch(reason: string, eventId: string) {
+  Sentry.captureMessage("Parchment webhook could not match prescription.created to an intake", {
+    level: "warning",
+    tags: {
+      source: "parchment-webhook",
+      unmatched_reason: reason,
+    },
+    extra: { eventId },
+  })
+
+  try {
+    await logWebhookFailure(eventId, "parchment:prescription.created", null, reason)
+  } catch (auditError) {
+    log.warn(
+      "Failed to log durable Parchment webhook mismatch audit event",
+      { eventId },
+      auditError instanceof Error ? auditError : undefined,
+    )
   }
 }

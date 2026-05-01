@@ -1,7 +1,7 @@
 /**
- * SEO pages module - re-exports all public API for backwards compatibility.
+ * SEO pages package barrel for public page data, types, and lookup helpers.
  *
- * Consumers can import from "@/lib/seo/pages" as before.
+ * Consumers should import from "@/lib/seo/pages" instead of deep files.
  */
 
 // Types

@@ -27,8 +27,7 @@ const gapClasses = {
  *
  * Plain responsive grid for KPI rows + card grids. Animation removed in
  * Phase 1 because the legacy `dashboard-grid` CSS stagger violated §12
- * for portal surfaces. The `animate` prop is preserved as a no-op for
- * back-compat; it has no visual effect.
+ * for portal surfaces.
  */
 export function DashboardGrid({
   children,

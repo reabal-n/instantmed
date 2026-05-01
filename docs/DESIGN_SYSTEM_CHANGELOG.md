@@ -2,6 +2,17 @@
 
 > Tracks breaking and notable changes to the InstantMed design system. Pin against `DESIGN_SYSTEM_VERSION` in `lib/design-system/version.ts`.
 
+## [2.0.2] — 2026-05-01
+
+### Removed
+- `app/dashboard-styles.css` and its patient/admin/doctor layout imports. The `dashboard-card` / `dashboard-bg` compatibility class consumers are gone; use dashboard primitives or local Tailwind classes.
+- Legacy `components/ui/select.tsx` compatibility props (`selectedKeys`, `onSelectionChange`, `classNames`) and the `SelectItem` key-as-value fallback. Use Radix `value` / `onValueChange` / `SelectItem value`.
+- Unused `components/uix/tabs.tsx` compatibility wrapper. Use canonical `@/components/ui/tabs` exports.
+- Disabled `components/seo/related-pages.tsx` null component and unused root `lib/status.ts` re-export.
+- Legacy `MediaMentions` alias and `components/marketing/media-mentions.tsx` filename. Use `RegulatoryPartners` from `components/marketing/regulatory-partners.tsx`.
+- Ambiguous `components/marketing/footer.tsx` wrapper filename. Use `components/marketing/marketing-footer.tsx`.
+- Legacy `DashboardHeader` alias in `components/dashboard/dashboard-header.tsx`. Use `DashboardPageHeader`.
+
 ## [2.0.1] — 2026-05-01
 
 ### Removed
@@ -39,22 +50,17 @@
 - `scripts/check-portal-no-legacy-classes.sh` — CI smoke check that asserts the patient portal source is free of legacy classes (`glass-card`, `dashboard-card`, gradient on content surface, banned `border-l-*` stripes, raw violet, raw orange ad-hoc combos). Magic-comment allowlist `portal-shim:allow` for explicitly sanctioned patterns (e.g. §12 shimmer sweeps).
 
 ### Changed
-- `app/dashboard-styles.css` reduced from ~465 lines to ~75 lines. Header rewritten from "21ST.DEV DASHBOARD DESIGN SYSTEM. Sleek, dark, glass-forward aesthetic" to a thin Morning Canvas compatibility shim. `.dashboard-card` and `.dashboard-bg` are kept as canonical-aligned className aliases (admin still references them directly; new code should use the primitive).
+- `app/dashboard-styles.css` reduced from ~465 lines to ~75 lines. It was later removed completely in v2.0.2 after the compatibility class consumers were cleared.
 - `components/dashboard/stat-card.tsx` exports `StatCard` as the canonical KPI tile. Stripped `dashboard-stat-*` inset-glow `box-shadow`s.
 - `components/dashboard/status-badge.tsx` exports `StatusBadge` as the canonical status pill. Replaced neon `box-shadow: 0 0 12px ...` glows with canonical inset-ring status pills (§10).
-- `components/dashboard/dashboard-grid.tsx` no longer applies the `dashboard-grid` CSS-stagger animation. The `animate` prop is preserved as a no-op for back-compat. Patient surfaces should wrap stagger with Framer Motion `stagger.container`/`stagger.item` from `lib/motion.ts`.
+- `components/dashboard/dashboard-grid.tsx` no longer applies the `dashboard-grid` CSS-stagger animation. Patient surfaces should wrap stagger with Framer Motion `stagger.container`/`stagger.item` from `lib/motion.ts`.
 - `components/dashboard/dashboard-empty.tsx` rewritten with canonical Tailwind utilities. Lottie empty-state animation retained per §13.
-- `components/dashboard/dashboard-header.tsx` now renders `<Heading level="h1">` internally and uses canonical token spacing.
+- `components/dashboard/dashboard-header.tsx` temporarily rendered `<Heading level="h1">` internally; it was later retired in v2.0.2 in favour of `DashboardPageHeader`.
 - `components/patient/intake-status-tracker.tsx`: replaced height-based AnimatePresence transition (`height: 0 → "auto"`, banned by §12) with `opacity + y` only. Normalised "escalated" status palette to §10 severity step 3 (canonical `bg-orange-100 text-orange-700` etc).
 - `components/patient/intake-card.tsx`, `profile-todo-card.tsx`, `referral-card.tsx`, `panel-dashboard.tsx`, `service-selector.tsx`, `what-happens-next.tsx`: all migrated off `bg-linear-to-br` / `bg-gradient-to-br` gradients on content surfaces. Now use solid tinted backgrounds.
 - `app/patient/health-profile/health-profile-client.tsx`: rose icon gradient → solid `bg-primary/10 text-primary`. Sky-50/200/700 alert callout → `bg-info-light border-info-border text-info`.
 - 16 patient surface h1s (intakes, prescriptions, documents, settings, messages, health-summary, notifications, payment-history, health-profile, intakes/cancelled, intakes/confirmed, intakes/[id]/error, error.tsx, not-found.tsx, followups/[id], intakes/success/error, intakes/confirmed/error) migrated from hand-rolled `text-2xl font-semibold tracking-tight` to `<DashboardPageHeader>` or `<Heading level="h1">`.
 - `components/patient/panel-dashboard.tsx` "Documents ready", "Recent Requests", "Active Prescriptions" sections migrated from hand-rolled `<section>` blocks to `<DashboardSection viewAllHref>`.
-
-### Deprecated
-- `DashboardCard.elevated` boolean prop — use `tier="elevated"`. Removed in v3.0.0.
-- `DashboardCard.spotlight` prop — accepted as no-op. Removed in v3.0.0.
-- `DashboardGrid.animate` prop — accepted as no-op. Removed in v3.0.0.
 
 ### Removed
 - `dashboard-card-elevated` (CSS class). No remaining consumers; the primitive's tier system replaces it.
@@ -74,7 +80,7 @@
 - Health-profile callout no longer uses raw sky-50/200/700 outside the design-system tokens.
 
 ### Migration scope (admin + doctor follow-up)
-Admin and doctor portals still import the legacy CSS shim and reference `dashboard-card`/`glass-card`/`border-l-*`/`border-violet-*` patterns flagged in the parallel doctor audit. Phase 1 of those rebuilds will mirror this migration; expect them in v2.1.0 (admin) and v2.2.0 (doctor).
+Admin and doctor portal compatibility stylesheet imports were removed in v2.0.2 after the `dashboard-card` / `dashboard-bg` class consumers were cleared.
 
 ## [1.1.0] — 2026-04-28
 

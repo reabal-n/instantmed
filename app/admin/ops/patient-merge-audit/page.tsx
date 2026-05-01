@@ -1,7 +1,7 @@
 import { CheckCircle, ExternalLink, GitMerge, History, Users } from "lucide-react"
 import Link from "next/link"
 
-import { DashboardHeader, StatusBadge } from "@/components/dashboard"
+import { DashboardPageHeader, StatusBadge } from "@/components/dashboard"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { requireRole } from "@/lib/auth/helpers"
@@ -31,7 +31,7 @@ export default async function PatientMergeAuditPage() {
 
   return (
     <div className="space-y-6">
-      <DashboardHeader
+      <DashboardPageHeader
         title="Patient Merge Audit"
         description="Immutable history of duplicate patient profile merges and the records moved into the canonical profile."
         backHref="/admin/ops"

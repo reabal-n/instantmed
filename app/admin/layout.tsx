@@ -1,5 +1,3 @@
-import "../dashboard-styles.css"
-
 import type { Metadata } from "next"
 
 import { AdminSidebar, MobileAdminNav } from "@/components/admin/admin-sidebar"

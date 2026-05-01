@@ -289,15 +289,16 @@ Allowed: "Reference only", "Helps with accuracy", "Doctor will review"
 
 Every script handoff to Parchment (the external eScript system) is evidenced in `compliance_audit_log` via the `external_prescribing_indicated` event type. This creates an audit trail that InstantMed itself did not prescribe — the medication was handed off to a separately-licensed prescribing system.
 
-**Emission points (all added 2026-04-08 in commit `ae1c80822`):**
+**Emission points:**
 
-| API route | When fired | Event type |
+| Emission point | When fired | Event type |
 |---|---|---|
-| `app/api/doctor/update-request/route.ts` | Doctor approves/declines an intake | `triage_approved` or `triage_declined` |
+| `app/doctor/queue/actions.ts` (`updateStatusAction`, `declineIntakeAction`) | Doctor approves/declines an intake | `triage_approved` or `triage_declined` |
 | `app/doctor/queue/actions.ts` (`markScriptSentAction`) | Doctor completes a claimed paid prescribing intake after Parchment handoff | `external_prescribing_indicated` (reference = parchment ID or "parchment") |
 | `app/api/doctor/scripts/[id]/route.ts` | Doctor transitions a script task to "sent" | `external_prescribing_indicated` (reference = "parchment") |
+| `app/api/webhooks/parchment/route.ts` | Parchment confirms `prescription.created` and completes the linked intake | `external_prescribing_indicated` (reference = SCID) |
 
-Previously these mutations only updated the `intakes` row and logged to the observability logger — an AHPRA defensibility gap. The decline path via `app/actions/decline-intake.ts` already emitted `triage_declined` via `logTriageDeclined()`; now all doctor mutation routes are consistent.
+Previously these mutations only updated the `intakes` row and logged to the observability logger — an AHPRA defensibility gap. The decline path via `app/actions/decline-intake.ts` emits `triage_declined` via `logTriageDeclined()`; doctor mutation surfaces are now aligned around the canonical queue actions.
 
 Every triage outcome and external prescribing handoff is now reconstructable from `compliance_audit_log` alone, per the core requirement: *"if an action affects clinical care or access to care, it must be reconstructable after the fact."*
 

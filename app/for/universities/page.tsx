@@ -19,7 +19,7 @@ import {
 import type { Metadata } from "next"
 import Link from "next/link"
 
-import { LiveWaitTime, MarketingFooter, MediaMentions, SampleCertificate, StatsStrip } from "@/components/marketing"
+import { LiveWaitTime, MarketingFooter, RegulatoryPartners, SampleCertificate, StatsStrip } from "@/components/marketing"
 import { Navbar } from "@/components/shared"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -502,7 +502,7 @@ export default function UniversitiesPage() {
         {/* Social Proof */}
         <LiveWaitTime variant="strip" services={['med-cert']} />
         <StatsStrip className="bg-muted/20 border-y border-border/30" />
-        <MediaMentions className="bg-muted/30" />
+        <RegulatoryPartners className="bg-muted/30" />
       </main>
 
       <MarketingFooter />
