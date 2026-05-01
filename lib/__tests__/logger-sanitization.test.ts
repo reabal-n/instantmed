@@ -14,6 +14,7 @@ describe("logger PHI sanitization", () => {
     const sanitized = sanitizeLogContext({
       certificateId: "47e24318-089e-4658-885f-4b9049b69a35",
       certificateRef: "IM-WORK-20260430-98104640",
+      verificationCode: "MC-ABC123-XYZ",
       intakeId: "e2e00000-0000-0000-0000-000000000010",
       status: "paid",
       subject: "Patient, your medical certificate is ready",
@@ -23,6 +24,7 @@ describe("logger PHI sanitization", () => {
     expect(sanitized).toMatchObject({
       certificateId: "[REDACTED]",
       certificateRef: "[REDACTED]",
+      verificationCode: "[REDACTED]",
       intakeId: "[REDACTED]",
       status: "paid",
       subject: "[REDACTED]",
@@ -31,6 +33,7 @@ describe("logger PHI sanitization", () => {
     const line = JSON.stringify(sanitized)
     expect(line).not.toContain("47e24318")
     expect(line).not.toContain("IM-WORK")
+    expect(line).not.toContain("MC-ABC123")
     expect(line).not.toContain("medical certificate is ready")
   })
 

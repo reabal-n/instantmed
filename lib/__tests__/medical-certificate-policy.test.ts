@@ -72,4 +72,16 @@ describe("medical certificate policy contract", () => {
       expect(source, path).not.toContain("to: patient.email,\n          resentBy")
     }
   })
+
+  it("does not persist verification codes in approval email metadata", () => {
+    const source = readFileSync("lib/clinical/execute-cert-approval.ts", "utf8")
+    const patientEmailSend = source.match(
+      /const emailResult = await sendEmail\(\{[\s\S]*?emailType: "med_cert_patient"[\s\S]*?tags:/,
+    )
+
+    const metadataBlock = patientEmailSend?.[0].match(/metadata: \{[\s\S]*?\},\n\s{4}tags:/)
+
+    expect(metadataBlock?.[0] ?? "missing approval email metadata block").not.toContain("verification_code")
+    expect(metadataBlock?.[0] ?? "missing approval email metadata block").not.toContain("verificationCode")
+  })
 })

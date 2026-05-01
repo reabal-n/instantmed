@@ -69,11 +69,17 @@ const SENSITIVE_KEY_EXACT = new Set([
   "recipientemail",
   "recipientname",
   "symptoms",
+  "verificationcode",
+  "verification_code",
 ])
 
 const SENSITIVE_IDENTIFIER_KEYS = new Set([
   "certificateid",
   "certificate_id",
+  "certificateref",
+  "certificate_ref",
+  "certificatenumber",
+  "certificate_number",
   "actorid",
   "actor_id",
   "doctorid",

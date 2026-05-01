@@ -127,4 +127,35 @@ describe("Sentry PHI scrubber", () => {
     expect(serialized).not.toContain("request-sensitive-id")
     expect(event.tags?.service_type).toBe("certificate")
   })
+
+  it("redacts certificate credentials and document identifiers by key", () => {
+    const event = scrubSentryEvent({
+      tags: {
+        certificate_ref: "IM-WORK-20260501-12345678",
+        certificateNumber: "MC-2026-12345678",
+      },
+      extra: {
+        verificationCode: "MC-ABC123-XYZ",
+      },
+      breadcrumbs: [
+        {
+          message: "Atomic approval transaction",
+          data: {
+            certificateRef: "IM-WORK-20260501-12345678",
+            certificateNumber: "MC-2026-12345678",
+            verification_code: "MC-ABC123-XYZ",
+          },
+        },
+      ],
+    })
+
+    const serialized = JSON.stringify(event)
+
+    expect(serialized).not.toContain("IM-WORK")
+    expect(serialized).not.toContain("MC-2026")
+    expect(serialized).not.toContain("MC-ABC123")
+    expect(event.tags?.certificate_ref).toBe("[REDACTED]")
+    expect(event.tags?.certificateNumber).toBe("[REDACTED]")
+    expect(event.extra?.verificationCode).toBe("[REDACTED]")
+  })
 })

@@ -59,6 +59,7 @@ export function sanitizeLogContext(context: LogContext): LogContext {
     'medicare', 'irn', 'referenceNumber', 'providerNumber', 'prescriberNumber',
     // Internal request identifiers that can link back to a patient case
     'actorId', 'certificateId', 'certificateNumber', 'certificateRef',
+    'verificationCode', 'verification_code',
     'certId', 'doctorId', 'draftId', 'entryId', 'intakeId',
     'newDraftId', 'patientId', 'profileId', 'requestId', 'refundId',
     'targetDoctorId', 'userId',

@@ -336,7 +336,7 @@ Logs are for compliance and defensibility only — not decision-support, analyti
 
 ### Log Sanitization (`lib/observability/logger.ts`)
 
-Auto-redacted (30+ keys): `password`, `token`, `secret`, `key`, `medicare`, `irn`, `providerNumber`, `diagnosis`, `medication`, `symptom`, `full_name`, `email`, `phone`, `address`.
+Auto-redacted (30+ keys): `password`, `token`, `secret`, `key`, `medicare`, `irn`, `providerNumber`, `diagnosis`, `medication`, `symptom`, `full_name`, `email`, `phone`, `address`, medical-certificate credentials (`verificationCode`, `verification_code`, `certificateRef`, `certificate_ref`, `certificateNumber`, `certificate_number`). Sentry uses the shared scrubber in `lib/observability/scrub-phi.ts`; do not send certificate credentials in analytics properties, email metadata, breadcrumbs, tags, or extras.
 
 ### PHI in Audit Logs
 

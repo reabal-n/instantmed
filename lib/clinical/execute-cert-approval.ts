@@ -521,7 +521,6 @@ export async function executeCertApproval(
     certificateId,
     metadata: {
       cert_type: certificateType,
-      verification_code: verificationCode,
     },
     tags: [
       { name: "category", value: "med_cert_approved" },
