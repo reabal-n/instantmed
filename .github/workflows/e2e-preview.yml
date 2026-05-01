@@ -52,10 +52,16 @@ jobs:
           fi
 
       - name: Wait for preview to be ready
+        env:
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
         run: |
           echo "Waiting for ${{ steps.url.outputs.PREVIEW_URL }} to be ready..."
           for i in {1..30}; do
-            if curl -s -o /dev/null -w "%{http_code}" "${{ steps.url.outputs.PREVIEW_URL }}" | grep -q "200\|301\|302"; then
+            curl_args=(-s -o /dev/null -w "%{http_code}")
+            if [ -n "$VERCEL_AUTOMATION_BYPASS_SECRET" ]; then
+              curl_args+=(-H "x-vercel-protection-bypass: $VERCEL_AUTOMATION_BYPASS_SECRET")
+            fi
+            if curl "${curl_args[@]}" "${{ steps.url.outputs.PREVIEW_URL }}" | grep -q "200\|301\|302"; then
               echo "Preview is ready!"
               exit 0
             fi
