@@ -131,6 +131,37 @@ describe("buildClinicalCaseSummary", () => {
     expect(summary.draftNote).toContain("Vitamin D daily")
   })
 
+  it("surfaces every requested repeat medication in the doctor summary", () => {
+    const summary = buildClinicalCaseSummary({
+      category: "prescription",
+      serviceType: "repeat-script",
+      patientName: "Pat Script",
+      answers: {
+        medicationName: "Rosuvastatin",
+        medicationStrength: "10 mg",
+        medicationForm: "tablet",
+        prescriptionHistory: "last_3_months",
+        currentDose: "10 mg nightly",
+        medications: [
+          { name: "Rosuvastatin", strength: "10 mg", form: "tablet", pbsCode: "MANUAL" },
+          { name: "Metformin", strength: "500 mg", form: "tablet", pbsCode: "MANUAL" },
+        ],
+        hasAllergies: false,
+        hasConditions: false,
+        hasOtherMedications: false,
+        isPregnantOrBreastfeeding: false,
+        hasAdverseMedicationReactions: false,
+      },
+    })
+
+    expect(summary.keyFacts).toContainEqual({
+      label: "Requested medications",
+      value: "Rosuvastatin 10 mg tablet; Metformin 500 mg tablet",
+    })
+    expect(summary.draftNote).toContain("Metformin 500 mg tablet")
+    expect(summary.prescriptionIntent?.clipboardText).toContain("Metformin 500 mg tablet")
+  })
+
   it("builds a medical certificate summary without falling back to general consult copy", () => {
     const summary = buildClinicalCaseSummary({
       serviceType: "med_certs",

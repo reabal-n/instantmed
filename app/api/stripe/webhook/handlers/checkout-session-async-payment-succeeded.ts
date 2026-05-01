@@ -71,13 +71,23 @@ export async function handleAsyncPaymentSucceeded(ctx: WebhookContext): Promise<
   try {
     const { data: currentIntake } = await supabase
       .from("intakes")
-      .select("id, status, payment_status")
+      .select("id, status, payment_status, payment_id")
       .eq("id", intakeId)
       .single()
 
     if (!currentIntake) {
       log.error("Intake not found for async payment", { intakeId })
       return NextResponse.json({ error: "Intake not found" }, { status: 500 })
+    }
+
+    if (currentIntake.payment_id && currentIntake.payment_id !== session.id) {
+      log.warn("checkout.session.async_payment_succeeded ignored because session is no longer current", {
+        currentPaymentId: currentIntake.payment_id,
+        eventId: event.id,
+        intakeId,
+        sessionId: session.id,
+      })
+      return NextResponse.json({ received: true, skipped: true, reason: "stale_checkout_session" })
     }
 
     if (currentIntake.payment_status === "paid") {
@@ -101,7 +111,7 @@ export async function handleAsyncPaymentSucceeded(ctx: WebhookContext): Promise<
       ? session.customer
       : session.customer?.id || null
 
-    const { error: updateError } = await supabase
+    const { data: paidIntake, error: updateError } = await supabase
       .from("intakes")
       .update({
         payment_status: "paid",
@@ -112,10 +122,24 @@ export async function handleAsyncPaymentSucceeded(ctx: WebhookContext): Promise<
         stripe_customer_id: stripeCustomerId,
       })
       .eq("id", intakeId)
+      .eq("payment_id", session.id)
+      .in("status", ["pending_payment", "checkout_failed"])
+      .in("payment_status", ["pending", "unpaid", "failed"])
+      .select("id")
+      .maybeSingle()
 
     if (updateError) {
       log.error("Failed to update intake for async payment", { intakeId, error: updateError.message })
       return NextResponse.json({ error: "Update failed" }, { status: 500 })
+    }
+
+    if (!paidIntake) {
+      log.warn("Async payment success ignored because checkout session is no longer current or retryable", {
+        eventId: event.id,
+        intakeId,
+        sessionId: session.id,
+      })
+      return NextResponse.json({ received: true, skipped: true, reason: "stale_checkout_session" })
     }
 
     // Save Stripe customer ID to profile

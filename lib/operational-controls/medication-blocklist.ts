@@ -1,3 +1,5 @@
+import { collectRepeatMedicationEntries } from "@/lib/clinical/repeat-medications"
+
 function collectStringAnswers(
   answers: Record<string, unknown>,
   keys: string[],
@@ -19,6 +21,14 @@ export function getMedicationBlocklistCandidate(
     "consult_details",
     "consultDetails",
   ])
+
+  for (const medication of collectRepeatMedicationEntries(answers)) {
+    candidates.push([
+      medication.name,
+      medication.strength,
+      medication.form,
+    ].filter(Boolean).join(" "))
+  }
 
   return candidates.length > 0 ? candidates.join(" ") : undefined
 }

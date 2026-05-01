@@ -193,6 +193,8 @@ Any message touching UI / UX / styling / animation / component review: scan avai
 
 All prices in `lib/constants.ts` (`PRICING`). Stripe IDs mapped in `lib/stripe/price-mapping.ts`.
 
+**Stripe payment-state invariant:** Webhook and fallback payment confirmation must never mark an intake paid from a stale Checkout Session. Paid transitions are guarded by the current stored `intakes.payment_id`, retryable intake status, and unpaid/failed `payment_status`. Expiry and async failure handlers already use the same current-session guard.
+
 | Service | Price | Stripe Env Var |
 |---------|-------|----------------|
 | Med cert (1 day) | $19.95 | `STRIPE_PRICE_MEDCERT` |

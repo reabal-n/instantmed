@@ -296,6 +296,30 @@ describe("unified intake regressions", () => {
     }, identity)).toBeNull()
   })
 
+  it("rejects repeat medication requests when the patient says it was never prescribed", () => {
+    const answers = {
+      medicationName: "Rosuvastatin",
+      medicationStrength: "10 mg",
+      medicationForm: "tablet",
+      pbsCode: "MANUAL",
+      prescriptionHistory: "never",
+      currentDose: "10 mg nightly",
+      ...sharedMedicalHistory,
+      medicareNumber: "1111111111",
+      medicareIrn: "2",
+      addressLine1: "12 Manual Entry Road",
+      suburb: "Sydney",
+      state: "NSW",
+      postcode: "2000",
+      sex: "M",
+    }
+
+    expect(String(validateAnswersServerSide("repeat-script", answers, identity))).toMatch(/repeat prescription/i)
+
+    const transformed = transformAnswersForUnifiedCheckout("repeat-script", answers)
+    expect(transformed.prescribed_before).toBe(false)
+  })
+
   it("rejects unknown or incomplete repeat prescription medication details", () => {
     const baseAnswers = {
       prescriptionHistory: "6 to 12 months",
@@ -336,6 +360,33 @@ describe("unified intake regressions", () => {
       medicationForm: "inhaler",
       pbsCode: "MANUAL",
     }, identity)).toBeNull()
+  })
+
+  it("validates every active medication in a repeat prescription payload", () => {
+    const baseAnswers = {
+      medicationName: "Rosuvastatin",
+      medicationStrength: "10 mg",
+      medicationForm: "tablet",
+      pbsCode: "MANUAL",
+      prescriptionHistory: "6 to 12 months",
+      currentDose: "10 mg nightly",
+      ...sharedMedicalHistory,
+      medicareNumber: "1111111111",
+      medicareIrn: "2",
+      addressLine1: "12 Manual Entry Road",
+      suburb: "Sydney",
+      state: "NSW",
+      postcode: "2000",
+      sex: "M",
+    }
+
+    expect(String(validateAnswersServerSide("repeat-script", {
+      ...baseAnswers,
+      medications: [
+        { name: "Rosuvastatin", strength: "10 mg", form: "tablet", pbsCode: "MANUAL" },
+        { name: "Metformin", strength: "500 mg", pbsCode: "MANUAL" },
+      ],
+    }, identity))).toMatch(/form/i)
   })
 
   it("requires repeat prescription medication safety questions before checkout", () => {

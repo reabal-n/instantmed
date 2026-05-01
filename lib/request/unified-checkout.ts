@@ -1,3 +1,4 @@
+import { collectRepeatMedicationEntries } from "@/lib/clinical/repeat-medications"
 import {
   validateCertificateStep,
   validateConsultReasonStep,
@@ -177,19 +178,36 @@ export function transformAnswersForUnifiedCheckout(
   }
 
   if (serviceType === "prescription" || serviceType === "repeat-script") {
+    const medications = collectRepeatMedicationEntries(answers)
+    const primaryMedication = medications[0]
+
     transformed.medication_name = answers.medicationName
+      || primaryMedication?.name
+      || answers.medication_name
     transformed.medication_display = answers.medicationName
+      || primaryMedication?.name
+      || answers.medication_display
     transformed.medication_strength = answers.medicationStrength
+      || primaryMedication?.strength
+      || answers.medication_strength
     transformed.medication_form = answers.medicationForm
+      || primaryMedication?.form
+      || answers.medication_form
     transformed.pbs_code = answers.pbsCode
+      || primaryMedication?.pbsCode
+      || answers.pbs_code
     transformed.amt_code = answers.pbsCode
+      || primaryMedication?.pbsCode
+      || answers.amt_code
     transformed.last_prescribed = answers.prescriptionHistory
     transformed.prescription_history = answers.prescriptionHistory
     transformed.last_prescription_date = answers.lastPrescriptionDate
     transformed.current_dose = answers.currentDose || answers.current_dose
     transformed.dosage_instructions = answers.currentDose || answers.dosageInstructions || answers.dosage_instructions
     transformed.side_effects = answers.sideEffects
-    transformed.prescribed_before = answers.prescribedBefore ?? true
+    transformed.prescribed_before = typeof answers.prescribedBefore === "boolean"
+      ? answers.prescribedBefore
+      : String(answers.prescriptionHistory || "").trim().toLowerCase() !== "never"
     transformed.dose_changed = answers.doseChanged ?? false
   }
 

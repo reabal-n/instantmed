@@ -172,6 +172,8 @@ Prescribing is framed as: "a possible outcome of clinician review, occurring sep
 
 Subscriptions, monthly prescribing, pharmacy fulfilment, and ongoing check-in programs are not part of the current operating model.
 
+Repeat-prescription intake is server-enforced as prior-prescription only. If the patient indicates the medicine has never been prescribed before, checkout must be blocked or routed to a consult/regular GP pathway; it must not be normalized into a repeat request.
+
 ---
 
 ## AI Boundary Rules

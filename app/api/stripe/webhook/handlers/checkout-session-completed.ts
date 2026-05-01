@@ -159,7 +159,7 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
     // STEP 1: Check current intake state BEFORE updating
     const { data: currentIntake, error: fetchError } = await supabase
       .from("intakes")
-      .select("id, status, payment_status")
+      .select("id, status, payment_status, payment_id")
       .eq("id", intakeId)
       .single()
 
@@ -212,6 +212,16 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
       return NextResponse.json({ error: "Intake not found" }, { status: 500 })
     }
 
+    if (currentIntake.payment_id && currentIntake.payment_id !== session.id) {
+      log.warn("checkout.session.completed ignored because session is no longer current", {
+        currentPaymentId: currentIntake.payment_id,
+        eventId: event.id,
+        intakeId,
+        sessionId: session.id,
+      })
+      return NextResponse.json({ received: true, skipped: true, reason: "stale_checkout_session" })
+    }
+
     // STEP 2: Guard against double-marking as paid
     if (currentIntake.payment_status === "paid") {
       log.info("Intake already marked as paid, skipping update", {
@@ -257,6 +267,8 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
         stripe_customer_id: stripeCustomerId,
       })
       .eq("id", intakeId)
+      .eq("payment_id", session.id)
+      .in("status", ["pending_payment", "checkout_failed"])
       .in("payment_status", ["pending", "unpaid", "failed"]) // Allow successful retries after failed attempts
       .select("id, status")
       .single()
@@ -265,7 +277,7 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
       // Check current intake state for diagnosis
       const { data: recheckIntake, error: recheckError } = await supabase
         .from("intakes")
-        .select("id, status, payment_status, paid_at, stripe_payment_intent_id")
+        .select("id, status, payment_status, paid_at, payment_id, stripe_payment_intent_id")
         .eq("id", intakeId)
         .single()
 
@@ -284,6 +296,16 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
         log.info("Intake was updated by concurrent webhook", { intakeId })
         await notifyPaidRequestTelegramForSession(supabase, session, intakeId, patientId)
         return NextResponse.json({ received: true, concurrent_update: true })
+      }
+
+      if (recheckIntake?.payment_id && recheckIntake.payment_id !== session.id) {
+        log.warn("Intake update skipped because checkout session is no longer current", {
+          currentPaymentId: recheckIntake.payment_id,
+          eventId: event.id,
+          intakeId,
+          sessionId: session.id,
+        })
+        return NextResponse.json({ received: true, skipped: true, reason: "stale_checkout_session" })
       }
 
       // If the update failed but intake exists with wrong status, try force update
@@ -305,6 +327,8 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
             stripe_customer_id: stripeCustomerId,
           })
           .eq("id", intakeId)
+          .eq("payment_id", session.id)
+          .in("status", ["pending_payment", "checkout_failed"])
           .neq("payment_status", "paid")
           .select("id, status")
 

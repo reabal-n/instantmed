@@ -631,7 +631,11 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
 
     // 5. Validate price ID (already fetched above)
     if (!priceId) {
-      await supabase.from("intakes").delete().eq("id", intake.id)
+      await supabase.from("intakes").update({
+        status: "checkout_failed",
+        checkout_error: "No Stripe price ID resolved for guest checkout",
+        updated_at: new Date().toISOString(),
+      }).eq("id", intake.id)
       return { success: false, error: "Unable to determine pricing. Please contact support." }
     }
 
@@ -687,8 +691,12 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
         hasUrl: !!session.url 
       })
     } catch (stripeError: unknown) {
-      await supabase.from("intakes").delete().eq("id", intake.id)
       const errorMessage = stripeError instanceof Error ? stripeError.message : String(stripeError)
+      await supabase.from("intakes").update({
+        status: "checkout_failed",
+        checkout_error: errorMessage,
+        updated_at: new Date().toISOString(),
+      }).eq("id", intake.id)
       logger.error("Stripe checkout session creation failed", { 
         error: errorMessage, 
         intakeId: intake.id,
@@ -709,7 +717,11 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
 
     if (!session.url) {
       logger.error("Stripe session created but no URL returned", { sessionId: session.id })
-      await supabase.from("intakes").delete().eq("id", intake.id)
+      await supabase.from("intakes").update({
+        status: "checkout_failed",
+        checkout_error: "No checkout URL returned from Stripe",
+        updated_at: new Date().toISOString(),
+      }).eq("id", intake.id)
       return { success: false, error: "Failed to create checkout session. Please try again." }
     }
 

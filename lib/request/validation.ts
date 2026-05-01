@@ -8,6 +8,7 @@
 
 import { z } from "zod"
 
+import { collectRepeatMedicationEntries } from "@/lib/clinical/repeat-medications"
 import { validateSymptomTextQuality } from "@/lib/clinical/symptom-text-quality"
 
 export interface ValidationResult {
@@ -138,19 +139,6 @@ const medicationEntrySchema = z.object({
   pbsCode: z.string().optional().nullable(),
 })
 
-function valueFromProduct(product: unknown, key: "drug_name" | "strength" | "form" | "pbs_code"): string | undefined {
-  if (!product || typeof product !== "object") return undefined
-  const value = (product as Record<string, unknown>)[key]
-  return typeof value === "string" && value.trim() ? value.trim() : undefined
-}
-
-function firstMedicationEntry(data: { medications?: z.infer<typeof medicationEntrySchema>[] }) {
-  return data.medications?.find((med) => {
-    const name = valueFromProduct(med.product, "drug_name") || med.name
-    return typeof name === "string" && name.trim()
-  })
-}
-
 export const medicationStepSchema = z
   .object({
     medicationName: z.string().optional(),
@@ -160,51 +148,51 @@ export const medicationStepSchema = z
     medications: z.array(medicationEntrySchema).optional(),
   })
   .superRefine((data, ctx) => {
-    const firstMedication = firstMedicationEntry(data)
-    const medicationName = data.medicationName?.trim()
-      || valueFromProduct(firstMedication?.product, "drug_name")
-      || firstMedication?.name?.trim()
-      || ""
-    const medicationStrength = data.medicationStrength?.trim()
-      || firstMedication?.strength?.trim()
-      || valueFromProduct(firstMedication?.product, "strength")
-      || ""
-    const medicationForm = data.medicationForm?.trim()
-      || firstMedication?.form?.trim()
-      || valueFromProduct(firstMedication?.product, "form")
-      || ""
-    const pbsCode = data.pbsCode?.trim()
-      || firstMedication?.pbsCode?.trim()
-      || valueFromProduct(firstMedication?.product, "pbs_code")
-      || ""
+    const medications = collectRepeatMedicationEntries(data)
 
-    if (!medicationName) {
+    if (medications.length === 0) {
       ctx.addIssue({ code: "custom", path: ["medicationName"], message: "Please select or enter a medication" })
       return
     }
 
-    if (pbsCode.toUpperCase() === "UNKNOWN" || medicationName.toLowerCase().includes("unknown - doctor")) {
-      ctx.addIssue({
-        code: "custom",
-        path: ["medicationName"],
-        message: "Please enter the medication name, strength, and form.",
-      })
-      return
-    }
+    medications.forEach((medication, index) => {
+      const namePath = index === 0 ? ["medicationName"] : ["medications", index, "name"]
+      const strengthPath = index === 0 ? ["medicationStrength"] : ["medications", index, "strength"]
+      const formPath = index === 0 ? ["medicationForm"] : ["medications", index, "form"]
 
-    if (!medicationStrength) {
-      ctx.addIssue({ code: "custom", path: ["medicationStrength"], message: "Medication strength is required." })
-    }
+      if (medication.pbsCode?.toUpperCase() === "UNKNOWN" || medication.name.toLowerCase().includes("unknown - doctor")) {
+        ctx.addIssue({
+          code: "custom",
+          path: namePath,
+          message: "Please enter the medication name, strength, and form.",
+        })
+        return
+      }
 
-    if (!medicationForm) {
-      ctx.addIssue({ code: "custom", path: ["medicationForm"], message: "Medication form is required." })
-    }
+      if (!medication.strength) {
+        ctx.addIssue({ code: "custom", path: strengthPath, message: "Medication strength is required." })
+      }
+
+      if (!medication.form) {
+        ctx.addIssue({ code: "custom", path: formPath, message: "Medication form is required." })
+      }
+    })
   })
 
-export const medicationHistoryStepSchema = z.object({
-  prescriptionHistory: nonEmptyString("Please indicate when you last had this prescribed"),
-  currentDose: nonEmptyString("Please enter the dose you currently take"),
-})
+export const medicationHistoryStepSchema = z
+  .object({
+    prescriptionHistory: nonEmptyString("Please indicate when you last had this prescribed"),
+    currentDose: nonEmptyString("Please enter the dose you currently take"),
+  })
+  .superRefine((data, ctx) => {
+    if (data.prescriptionHistory.trim().toLowerCase() === "never") {
+      ctx.addIssue({
+        code: "custom",
+        path: ["prescriptionHistory"],
+        message: "This repeat prescription service is only for medicines prescribed before.",
+      })
+    }
+  })
 
 export const medicalHistoryStepSchema = z
   .object({

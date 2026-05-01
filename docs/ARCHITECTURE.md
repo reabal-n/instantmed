@@ -201,6 +201,8 @@ checkout-step.tsx -> unified-checkout.ts createCheckoutFromUnifiedFlow()
 
 **Pre-checkout blocks**: maintenance mode is enforced at `/request`; disabled services are enforced at `/request` and both checkout actions; capacity limits are enforced at `/request`, `createIntakeAndCheckoutAction`, and `createGuestCheckoutAction`. When the capacity switch is enabled and the daily counter RPC cannot be read, the system fails closed and shows the high-demand block. Business hours are a review-timing reference only and do not block checkout. PostHog `operational_block` events track capacity-limit blocks for analytics.
 
+**Checkout failure visibility:** Authenticated and guest checkout both preserve failed Stripe session creation as `intakes.status = checkout_failed` with `checkout_error` rather than deleting the request. Operators can see and recover failed payment setup attempts; only answer-save failures roll back the just-created intake because no usable clinical record exists yet.
+
 ### Idempotency & Duplicate Protection
 
 | Layer | Mechanism |
@@ -211,7 +213,7 @@ checkout-step.tsx -> unified-checkout.ts createCheckoutFromUnifiedFlow()
 | Stripe | Idempotency key on `sessions.create()` (guest flow) |
 | Webhook | Atomic event claim via `try_process_stripe_event` RPC |
 | Webhook | `payment_status === 'paid'` early return |
-| Webhook | `WHERE payment_status IN ('pending','unpaid')` on UPDATE |
+| Webhook | Paid transitions require current `payment_id = session.id`, retryable intake status, and `payment_status IN ('pending','unpaid','failed')` |
 
 On Postgres 23505 (duplicate key), returns existing intake. If already paid, redirects to success.
 
@@ -326,6 +328,8 @@ Config-driven, immutably versioned. Template config stored as JSONB in `certific
 **Audit logging:** `intake_id`, `medication_search_used`, `medication_selected`, `selected_pbs_code`. Does NOT log keystrokes or partial queries.
 
 **Controlled substances:** `lib/clinical/intake-validation.ts` hard-blocks Schedule 8 in both form and chat paths.
+
+**Repeat medication normalization:** Repeat-prescription validation, medication blocklists, AI draft context, and doctor-facing case summaries all read through `lib/clinical/repeat-medications.ts`. That keeps scalar fields (`medicationName`, `medication_strength`, etc.) and the multi-medication `answers.medications[]` array aligned. Every active medication entry must have name, strength, and form; `prescriptionHistory = "never"` is rejected server-side because this flow is not for new prescriptions.
 
 **Workflow:** Patient submits -> Doctor reviews in portal -> Doctor inputs into Parchment (external eScript) -> Doctor toggles "Script Sent" -> Patient notified via email.
 

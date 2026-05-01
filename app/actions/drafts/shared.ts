@@ -3,6 +3,7 @@ import "server-only"
 import { createClient } from "@supabase/supabase-js"
 
 import { checkAndSanitize } from "@/lib/ai/prompt-safety"
+import { collectRepeatMedicationEntries, formatRepeatMedication } from "@/lib/clinical/repeat-medications"
 import { env } from "@/lib/config/env"
 import { type DraftCategory,getDraftCategory, normalizeServiceType } from "@/lib/constants/service-types"
 import { createLogger } from "@/lib/observability/logger"
@@ -131,11 +132,23 @@ export function formatIntakeContext(
   }
 
   if (draftCategory === "repeat_rx") {
-    if (answers.medication || answers.medicationName) {
-      parts.push(`Medication: ${sanitizeAnswerValue(answers.medication || answers.medicationName, intakeId)}`)
+    const medications = collectRepeatMedicationEntries(answers)
+    if (medications.length > 0) {
+      parts.push(`Medication(s): ${medications.map(formatRepeatMedication).map(value => sanitizeAnswerValue(value, intakeId)).join("; ")}`)
+    } else if (answers.medication || answers.medicationName || answers.medication_name) {
+      parts.push(`Medication: ${sanitizeAnswerValue(answers.medication || answers.medicationName || answers.medication_name, intakeId)}`)
     }
-    if (answers.medicationStrength || answers.strength) {
-      parts.push(`Strength: ${sanitizeAnswerValue(answers.medicationStrength || answers.strength, intakeId)}`)
+    if (medications.length <= 1 && (answers.medicationStrength || answers.medication_strength || answers.strength)) {
+      parts.push(`Strength: ${sanitizeAnswerValue(answers.medicationStrength || answers.medication_strength || answers.strength, intakeId)}`)
+    }
+    if (medications.length <= 1 && (answers.medicationForm || answers.medication_form || answers.form)) {
+      parts.push(`Form: ${sanitizeAnswerValue(answers.medicationForm || answers.medication_form || answers.form, intakeId)}`)
+    }
+    if (answers.currentDose || answers.current_dose || answers.dosage_instructions) {
+      parts.push(`Current Dose: ${sanitizeAnswerValue(answers.currentDose || answers.current_dose || answers.dosage_instructions, intakeId)}`)
+    }
+    if (answers.prescriptionHistory || answers.prescription_history || answers.last_prescribed) {
+      parts.push(`Prescription History: ${sanitizeAnswerValue(answers.prescriptionHistory || answers.prescription_history || answers.last_prescribed, intakeId)}`)
     }
     if (answers.treatmentDuration || answers.medicationDuration) {
       parts.push(`Treatment Duration: ${sanitizeAnswerValue(answers.treatmentDuration || answers.medicationDuration, intakeId)}`)

@@ -3,6 +3,8 @@
  * Single source of truth for repeat-script answers stored in request_answers.answers
  */
 
+import { collectRepeatMedicationEntries } from "@/lib/clinical/repeat-medications"
+
 // Canonical keys for repeat script medication data
 export interface RepeatScriptMedicationPayload {
   // Required fields
@@ -173,13 +175,15 @@ export interface ValidationResult {
 export function validateRepeatScriptPayload(
   answers: Record<string, unknown>
 ): ValidationResult {
+  const medications = collectRepeatMedicationEntries(answers)
+  const primaryMedication = medications[0]
   // Accept either pbs_code or amt_code - PBS is from medication search, AMT is legacy
-  const medicationCode = answers.pbs_code || answers.amt_code
+  const medicationCode = answers.pbs_code || answers.amt_code || primaryMedication?.pbsCode
   // Accept either medication_name or medication_display
-  const medicationName = answers.medication_name || answers.medication_display
-  const medicationDisplay = answers.medication_display || answers.medication_name
-  const medicationStrength = answers.medication_strength || answers.medicationStrength || answers.strength
-  const medicationForm = answers.medication_form || answers.medicationForm || answers.form
+  const medicationName = answers.medication_name || answers.medication_display || primaryMedication?.name
+  const medicationDisplay = answers.medication_display || answers.medication_name || primaryMedication?.name
+  const medicationStrength = answers.medication_strength || answers.medicationStrength || answers.strength || primaryMedication?.strength
+  const medicationForm = answers.medication_form || answers.medicationForm || answers.form || primaryMedication?.form
 
   // Allow "MANUAL" code for manual text entries when search doesn't find the medication
   const isManualEntry = medicationCode === "MANUAL"
@@ -241,6 +245,32 @@ export function validateRepeatScriptPayload(
     }
   }
 
+  for (const medication of medications) {
+    if (!medication.strength) {
+      return {
+        valid: false,
+        error: `Please enter the medication strength for ${medication.name}.`,
+        requiresConsult: false,
+      }
+    }
+
+    if (!medication.form) {
+      return {
+        valid: false,
+        error: `Please enter the medication form for ${medication.name}.`,
+        requiresConsult: false,
+      }
+    }
+
+    if (medication.pbsCode?.toUpperCase() === "UNKNOWN" || medication.name.toLowerCase().includes("unknown - doctor")) {
+      return {
+        valid: false,
+        error: "Please enter the medication name, strength, and form.",
+        requiresConsult: false,
+      }
+    }
+  }
+
   // Check gating questions
   const prescribedBefore = answers.prescribed_before
   const doseChanged = answers.dose_changed
@@ -293,6 +323,16 @@ export function validateRepeatScriptPayload(
       valid: false,
       error: "Schedule 8 and controlled substances cannot be prescribed through this service. Please see your regular doctor.",
       requiresConsult: false,
+    }
+  }
+
+  for (const medication of medications) {
+    if (isPBSCodeBlocked(medication.pbsCode) || containsBlockedSubstance(medication.name)) {
+      return {
+        valid: false,
+        error: "Schedule 8 and controlled substances cannot be prescribed through this service. Please see your regular doctor.",
+        requiresConsult: false,
+      }
     }
   }
 
