@@ -1,6 +1,6 @@
 "use server"
 
-import { trackIntakeFunnelStep,trackSafetyBlock, trackSafetyOutcome } from "@/lib/analytics/posthog-server"
+import { trackIntakeFunnelStep,trackOperationalBlock, trackSafetyBlock, trackSafetyOutcome } from "@/lib/analytics/posthog-server"
 import {
   logAccuracyAttestationGiven,
   logRequestCreated,
@@ -16,6 +16,8 @@ import { TELEHEALTH_CONSENT_VERSION,TERMS_VERSION } from "@/lib/constants"
 import { decryptProfilePhi, updateProfile } from "@/lib/data/profiles"
 import { isMedicationBlocked, isServiceDisabled, SERVICE_DISABLED_ERRORS } from "@/lib/feature-flags"
 import { createLogger } from "@/lib/observability/logger"
+import { isAtCapacity } from "@/lib/operational-controls/config"
+import { getMedicationBlocklistCandidate } from "@/lib/operational-controls/medication-blocklist"
 import { checkServerActionRateLimit } from "@/lib/rate-limit/redis"
 import { checkSafetyForServer, validateSafetyFieldsPresent } from "@/lib/safety/evaluate"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -168,6 +170,19 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
       }
     }
 
+    // Capacity limit must be enforced at the server action layer, not just the request page.
+    if (await isAtCapacity()) {
+      trackOperationalBlock({
+        blockType: "capacity_limit",
+        metadata: { checkout_type: "guest" },
+        source: "checkout",
+      })
+      return {
+        success: false,
+        error: "We're experiencing high demand today. Please try again tomorrow.",
+      }
+    }
+
     // CLINICAL AUDIT: Enforce 18+ age requirement (CLAUDE.md eligibility constraint)
     if (input.guestDateOfBirth) {
       const dob = new Date(input.guestDateOfBirth)
@@ -220,7 +235,7 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
       // KILL SWITCH: Check for blocked medications (DB-based blocklist)
       const medicationName = input.answers.medication_name as string | undefined
       const medicationDisplay = input.answers.medication_display as string | undefined
-      const medCheck = await isMedicationBlocked(medicationName || medicationDisplay)
+      const medCheck = await isMedicationBlocked(getMedicationBlocklistCandidate(input.answers))
       if (medCheck.blocked) {
         return {
           success: false,
@@ -235,6 +250,17 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
         return {
           success: false,
           error: "This medication cannot be prescribed through our online service. Schedule 8 and controlled substances require an in-person consultation with your regular GP.",
+        }
+      }
+    }
+
+    // Check blocked medication terms in consult details as a defense-in-depth policy gate.
+    if (input.category === "consult") {
+      const medCheck = await isMedicationBlocked(getMedicationBlocklistCandidate(input.answers))
+      if (medCheck.blocked) {
+        return {
+          success: false,
+          error: `This medication cannot be prescribed through our online service for compliance reasons. Please consult your regular doctor. [${SERVICE_DISABLED_ERRORS.MEDICATION_BLOCKED}]`,
         }
       }
     }

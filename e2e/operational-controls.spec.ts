@@ -45,10 +45,10 @@ test.describe("Operational Controls - Admin Feature Flags", () => {
 
     await expect(page.getByRole("heading", { name: /feature flags/i })).toBeVisible({ timeout: 10000 })
     await expect(page.getByText("Operational Controls")).toBeVisible()
-    await expect(page.getByText("Business hours")).toBeVisible()
-    await expect(page.getByText("Capacity limit")).toBeVisible()
-    await expect(page.getByText("Urgent notice")).toBeVisible()
-    await expect(page.getByText("Scheduled maintenance")).toBeVisible()
+    await expect(page.getByText("Review Timing Reference")).toBeVisible()
+    await expect(page.getByText("Capacity Limit")).toBeVisible()
+    await expect(page.getByText("Urgent Notice")).toBeVisible()
+    await expect(page.getByText("Scheduled Maintenance")).toBeVisible()
   })
 
   test("admin features page shows Maintenance Mode section", async ({ page }) => {

@@ -1,7 +1,7 @@
 import "server-only"
 
 import { createClient } from "@supabase/supabase-js"
-import { revalidateTag,unstable_cache } from "next/cache"
+import { revalidateTag, unstable_cache } from "next/cache"
 
 import { toError } from "@/lib/errors"
 import { createLogger } from "@/lib/observability/logger"
@@ -15,14 +15,23 @@ export {
   FLAG_KEYS,
   getFlagInfo,
   isArrayFlag,
+  isNumberFlag,
   isServiceKillSwitch,
   isStringFlag,
 } from "@/lib/data/types/feature-flags"
 
 import type { FeatureFlags, FlagKey } from "@/lib/data/types/feature-flags"
-import { DEFAULT_FLAGS, DEFAULT_SAFETY_SYMPTOMS,FLAG_KEYS } from "@/lib/data/types/feature-flags"
+import {
+  DEFAULT_FLAGS,
+  DEFAULT_SAFETY_SYMPTOMS,
+  FLAG_KEYS,
+  isArrayFlag,
+  isNumberFlag,
+  isStringFlag,
+} from "@/lib/data/types/feature-flags"
 
 const logger = createLogger("feature-flags")
+const KNOWN_FLAG_KEYS = new Set<string>(Object.values(FLAG_KEYS))
 
 function getServiceClient() {
   const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -32,6 +41,59 @@ function getServiceClient() {
     return null
   }
   return createClient(url, key)
+}
+
+function isKnownFlagKey(key: string): key is FlagKey {
+  return KNOWN_FLAG_KEYS.has(key)
+}
+
+function isValidInteger(value: unknown, min: number, max: number): value is number {
+  return typeof value === "number" && Number.isInteger(value) && value >= min && value <= max
+}
+
+function isValidFlagValue(key: FlagKey, value: boolean | string | string[] | number | null): boolean {
+  if (isArrayFlag(key)) {
+    return Array.isArray(value) && value.every((item) => typeof item === "string" && item.trim().length > 0)
+  }
+
+  if (isStringFlag(key)) {
+    if (key === FLAG_KEYS.MAINTENANCE_SCHEDULED_START || key === FLAG_KEYS.MAINTENANCE_SCHEDULED_END) {
+      return value === null || (typeof value === "string" && value.trim().length > 0 && !Number.isNaN(Date.parse(value)))
+    }
+
+    return typeof value === "string"
+  }
+
+  if (isNumberFlag(key)) {
+    if (key === FLAG_KEYS.BUSINESS_HOURS_OPEN || key === FLAG_KEYS.BUSINESS_HOURS_CLOSE) {
+      return isValidInteger(value, 0, 23)
+    }
+    if (key === FLAG_KEYS.CAPACITY_LIMIT_MAX) {
+      return isValidInteger(value, 1, 10_000)
+    }
+    if (key === FLAG_KEYS.AUTO_APPROVE_DELAY_MINUTES) {
+      return isValidInteger(value, 0, 60)
+    }
+    if (key === FLAG_KEYS.AUTO_APPROVE_RATE_LIMIT_5MIN) {
+      return isValidInteger(value, 1, 100)
+    }
+    if (key === FLAG_KEYS.AUTO_APPROVE_DAILY_CAP) {
+      return isValidInteger(value, 1, 500)
+    }
+    if (key === FLAG_KEYS.AUTO_APPROVE_MAX_DURATION_DAYS) {
+      return isValidInteger(value, 1, 3)
+    }
+    if (key === FLAG_KEYS.DOCTOR_ALERT_THRESHOLD_HOURS) {
+      return isValidInteger(value, 1, 24)
+    }
+    if (key === FLAG_KEYS.PATIENT_DELAY_EMAIL_HOURS) {
+      return isValidInteger(value, 1, 48)
+    }
+
+    return typeof value === "number" && Number.isFinite(value)
+  }
+
+  return typeof value === "boolean"
 }
 
 /**
@@ -235,6 +297,14 @@ export async function updateFeatureFlag(
   value: boolean | string | string[] | number | null,
   updatedBy: string
 ): Promise<{ success: boolean; error?: string }> {
+  if (!isKnownFlagKey(key)) {
+    return { success: false, error: "Unknown feature flag" }
+  }
+
+  if (!isValidFlagValue(key, value)) {
+    return { success: false, error: "Invalid feature flag value" }
+  }
+
   const supabase = getServiceClient()
   if (!supabase) {
     return { success: false, error: "Database unavailable" }

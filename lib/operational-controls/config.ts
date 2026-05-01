@@ -1,15 +1,11 @@
 import "server-only"
 
-import { createClient } from "@supabase/supabase-js"
-import { revalidateTag } from "next/cache"
-
 import { toError } from "@/lib/errors"
 import { getFeatureFlags } from "@/lib/feature-flags"
 import { createLogger } from "@/lib/observability/logger"
-import { logAuditEvent } from "@/lib/security/audit-log"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
-const logger = createLogger("operational-config")
+const logger = createLogger("operational-controls")
 
 export interface OperationalConfig {
   business_hours_enabled: boolean
@@ -35,28 +31,6 @@ export const DEFAULT_OPERATIONAL_CONFIG: OperationalConfig = {
   urgent_notice_message: "",
   maintenance_scheduled_start: null,
   maintenance_scheduled_end: null,
-}
-
-export const OP_CONFIG_KEYS = {
-  BUSINESS_HOURS_ENABLED: "business_hours_enabled",
-  BUSINESS_HOURS_OPEN: "business_hours_open",
-  BUSINESS_HOURS_CLOSE: "business_hours_close",
-  BUSINESS_HOURS_TIMEZONE: "business_hours_timezone",
-  CAPACITY_LIMIT_ENABLED: "capacity_limit_enabled",
-  CAPACITY_LIMIT_MAX: "capacity_limit_max",
-  URGENT_NOTICE_ENABLED: "urgent_notice_enabled",
-  URGENT_NOTICE_MESSAGE: "urgent_notice_message",
-  MAINTENANCE_SCHEDULED_START: "maintenance_scheduled_start",
-  MAINTENANCE_SCHEDULED_END: "maintenance_scheduled_end",
-} as const
-
-export type OpConfigKey = (typeof OP_CONFIG_KEYS)[keyof typeof OP_CONFIG_KEYS]
-
-function getServiceClient() {
-  const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
-  if (!url || !key) return null
-  return createClient(url, key)
 }
 
 export async function getOperationalConfig(): Promise<OperationalConfig> {
@@ -122,20 +96,38 @@ export async function isOutsideBusinessHours(): Promise<{ closed: boolean; nextO
  * Count intakes created today (Australia/Sydney) for capacity check
  */
 export async function getTodayIntakeCount(): Promise<number> {
+  const result = await readTodayIntakeCount()
+  return result.ok ? result.count : 0
+}
+
+async function readTodayIntakeCount(): Promise<
+  | { ok: true; count: number }
+  | { ok: false; error: Error }
+> {
   const supabase = createServiceRoleClient()
   const { data, error } = await supabase.rpc("count_intakes_today_sydney")
-  if (error) return 0
-  return Number(data ?? 0)
+  if (error) {
+    return { ok: false, error: toError(error) }
+  }
+
+  return { ok: true, count: Number(data ?? 0) }
 }
 
 /**
- * Check if at capacity (daily limit reached)
+ * Check if at capacity (daily limit reached).
+ * If the capacity switch is enabled but the counter fails, fail closed so a
+ * broken RPC cannot bypass an explicit operations safety limit.
  */
 export async function isAtCapacity(): Promise<boolean> {
   const config = await getOperationalConfig()
   if (!config.capacity_limit_enabled) return false
-  const count = await getTodayIntakeCount()
-  return count >= config.capacity_limit_max
+  const count = await readTodayIntakeCount()
+  if (!count.ok) {
+    logger.error("Daily intake capacity count failed", {}, count.error)
+    return true
+  }
+
+  return count.count >= config.capacity_limit_max
 }
 
 /**
@@ -147,57 +139,4 @@ export function isScheduledMaintenance(config: OperationalConfig): boolean {
   const start = new Date(config.maintenance_scheduled_start).getTime()
   const end = new Date(config.maintenance_scheduled_end).getTime()
   return now >= start && now <= end
-}
-
-export async function updateOperationalConfig(
-  key: OpConfigKey,
-  value: boolean | number | string | null,
-  updatedBy: string
-): Promise<{ success: boolean; error?: string }> {
-  const supabase = getServiceClient()
-  if (!supabase) return { success: false, error: "Database unavailable" }
-
-  try {
-    const { data: oldData } = await supabase
-      .from("feature_flags")
-      .select("value")
-      .eq("key", key)
-      .single()
-
-    const jsonValue = value === null ? null : value
-    const { error } = await supabase
-      .from("feature_flags")
-      .upsert(
-        {
-          key,
-          value: jsonValue,
-          updated_at: new Date().toISOString(),
-          updated_by: updatedBy,
-        },
-        { onConflict: "key" }
-      )
-
-    if (error) {
-      logger.error("Update error", {}, toError(error))
-      return { success: false, error: error.message }
-    }
-
-    await logAuditEvent({
-      action: "settings_changed",
-      actorId: updatedBy,
-      actorType: "admin",
-      metadata: {
-        flag_key: key,
-        old_value: oldData?.value,
-        new_value: value,
-        action_type: "operational_config_updated",
-      },
-    })
-
-    revalidateTag("feature-flags")
-    return { success: true }
-  } catch (error) {
-    logger.error("Unexpected error", {}, toError(error))
-    return { success: false, error: "Unexpected error" }
-  }
 }
