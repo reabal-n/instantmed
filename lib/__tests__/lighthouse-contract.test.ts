@@ -9,8 +9,10 @@ const lighthouseConfig = JSON.parse(
 
 describe("lighthouse CI contract", () => {
   it("keeps simulated LCP warning-only while hard-gating stable core web vitals", () => {
+    const collect = lighthouseConfig.ci.collect
     const assertions = lighthouseConfig.ci.assert.assertions
 
+    expect(collect.settings.preset).toBe("desktop")
     expect(assertions["largest-contentful-paint"][0]).toBe("warn")
     expect(assertions["first-contentful-paint"][0]).toBe("error")
     expect(assertions["total-blocking-time"][0]).toBe("error")
