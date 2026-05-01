@@ -116,6 +116,11 @@ export const INTAKE_STATUS: Record<IntakeStatus, StatusConfig> = {
 }
 
 export const PAYMENT_STATUS: Record<PaymentStatus, StatusConfig> = {
+  unpaid: {
+    label: "Unpaid",
+    color: "bg-gray-100 dark:bg-gray-950/40 text-gray-700 dark:text-gray-300",
+    icon: CreditCard,
+  },
   paid: {
     label: "Paid",
     color: "bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300",
@@ -128,6 +133,36 @@ export const PAYMENT_STATUS: Record<PaymentStatus, StatusConfig> = {
   },
   failed: {
     label: "Failed",
+    color: "bg-red-100 dark:bg-red-950/40 text-red-700 dark:text-red-300",
+    icon: XCircle,
+  },
+  expired: {
+    label: "Expired",
+    color: "bg-gray-100 dark:bg-gray-950/40 text-gray-700 dark:text-gray-300",
+    icon: TimerOff,
+  },
+  disputed: {
+    label: "Disputed",
+    color: "bg-red-100 dark:bg-red-950/40 text-red-700 dark:text-red-300",
+    icon: ShieldAlert,
+  },
+  refunded: {
+    label: "Refunded",
+    color: "bg-gray-100 dark:bg-gray-950/40 text-gray-700 dark:text-gray-300",
+    icon: RotateCcw,
+  },
+  partially_refunded: {
+    label: "Partially Refunded",
+    color: "bg-blue-100 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300",
+    icon: RotateCcw,
+  },
+  refund_processing: {
+    label: "Refund Processing",
+    color: "bg-amber-100 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300",
+    icon: Clock,
+  },
+  refund_failed: {
+    label: "Refund Failed",
     color: "bg-red-100 dark:bg-red-950/40 text-red-700 dark:text-red-300",
     icon: XCircle,
   },

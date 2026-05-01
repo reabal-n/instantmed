@@ -53,7 +53,17 @@ export interface Intake {
   live_consult_reason: string | null
   // Payment
   payment_id: string | null
-  payment_status: "unpaid" | "pending" | "paid" | "refunded" | "failed"
+  payment_status:
+    | "unpaid"
+    | "pending"
+    | "paid"
+    | "refunded"
+    | "failed"
+    | "expired"
+    | "disputed"
+    | "partially_refunded"
+    | "refund_processing"
+    | "refund_failed"
   amount_cents: number | null
   refund_amount_cents: number
   stripe_payment_intent_id: string | null // For refund traceability
@@ -514,7 +524,17 @@ export interface PrescriptionDraftData {
 }
 
 // Payment status type
-export type PaymentStatus = "pending_payment" | "paid" | "failed" | "refunded"
+export type PaymentStatus =
+  | "pending"
+  | "unpaid"
+  | "paid"
+  | "failed"
+  | "refunded"
+  | "expired"
+  | "disputed"
+  | "partially_refunded"
+  | "refund_processing"
+  | "refund_failed"
 
 // Refund status type
 export type RefundStatus = "not_applicable" | "eligible" | "processing" | "refunded" | "failed" | "not_eligible"
