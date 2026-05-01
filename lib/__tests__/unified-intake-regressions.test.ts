@@ -14,7 +14,7 @@ import {
   validateAnswersServerSide,
 } from "@/lib/request/unified-checkout"
 import { validateConsultReasonStep } from "@/lib/request/validation"
-import { evaluateSafety } from "@/lib/safety"
+import { checkSafetyForServer, evaluateSafety } from "@/lib/safety"
 
 const identity = {
   email: "patient@example.com",
@@ -153,6 +153,38 @@ describe("unified intake regressions", () => {
     const result = evaluateSafety("consult", transformed)
     expect(result.outcome).toBe("DECLINE")
     expect(result.triggeredRules.some((rule) => rule.ruleId === "emergency_chest_pain")).toBe(true)
+  })
+
+  it("maps medical certificate emergency free text into server safety rules", () => {
+    const transformed = transformAnswersForUnifiedCheckout("med-cert", {
+      certType: "work",
+      duration: "1",
+      startDate: new Date().toLocaleDateString("en-CA", { timeZone: "Australia/Sydney" }),
+      symptoms: ["cold_flu"],
+      symptomDetails: "I have crushing chest pain and feel unwell today.",
+      symptomDuration: "today",
+    })
+
+    expect(transformed.emergency_symptoms).toContain("chest_pain")
+
+    const result = checkSafetyForServer("medical-certificate", transformed)
+    expect(result.isAllowed).toBe(false)
+    expect(result.outcome).toBe("DECLINE")
+    expect(result.triggeredRuleIds).toContain("emergency_chest_pain")
+
+    const genericEmergency = transformAnswersForUnifiedCheckout("med-cert", {
+      certType: "work",
+      duration: "1",
+      startDate: new Date().toLocaleDateString("en-CA", { timeZone: "Australia/Sydney" }),
+      symptoms: ["cold_flu"],
+      symptomDetails: "I had a seizure and cannot safely manage this at home.",
+      symptomDuration: "today",
+    })
+
+    expect(genericEmergency.emergency_symptoms).toContain("emergency_free_text")
+    expect(checkSafetyForServer("medical-certificate", genericEmergency).triggeredRuleIds).toContain(
+      "emergency_free_text",
+    )
   })
 
   it("resumes consult drafts with their saved subtype and resets stale subtype answers", () => {

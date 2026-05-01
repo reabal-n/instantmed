@@ -23,6 +23,7 @@ import { getCertificateForIntake, logCertificateEvent } from "@/lib/data/issued-
 import { MedCertPatientEmail, medCertPatientEmailSubject } from "@/lib/email/components/templates"
 import { sendEmail } from "@/lib/email/send-email"
 import { formatDateLong, formatShortDate, formatShortDateSafe } from "@/lib/format"
+import { validateCertificateDateRange } from "@/lib/medical-certificates/date-policy"
 import { createLogger } from "@/lib/observability/logger"
 import { renderTemplatePdf } from "@/lib/pdf/template-renderer"
 import { prepareCertificatePatientNameWrite } from "@/lib/security/phi-field-wrappers"
@@ -68,22 +69,14 @@ export async function reissueCertificateAction(
       return { success: false, error: "Patient name is required" }
     }
 
-    const startMs = new Date(input.startDate).getTime()
-    const endMs = new Date(input.endDate).getTime()
-
-    if (isNaN(startMs) || isNaN(endMs)) {
-      return { success: false, error: "Invalid date format. Use YYYY-MM-DD." }
+    const dateRangeValidation = validateCertificateDateRange(input.startDate, input.endDate, {
+      maxBackdateDays: null,
+      maxDurationDays: 30,
+    })
+    if (!dateRangeValidation.valid) {
+      return { success: false, error: dateRangeValidation.error }
     }
-
-    if (endMs < startMs) {
-      return { success: false, error: "End date must be on or after start date" }
-    }
-
-    // Duration in days (inclusive: +1)
-    const durationDays = Math.round((endMs - startMs) / (1000 * 60 * 60 * 24)) + 1
-    if (durationDays > 30) {
-      return { success: false, error: "Certificate duration cannot exceed 30 days" }
-    }
+    const durationDays = dateRangeValidation.durationDays
 
     // 3. FETCH EXISTING CERT - must be valid
     const cert = await getCertificateForIntake(intakeId)
@@ -312,7 +305,6 @@ export async function reissueCertificateAction(
             certificateId: cert.id,
             metadata: {
               cert_type: input.certificateType,
-              verification_code: cert.verification_code,
               reissued_by: user.profile.id,
             },
             tags: [
@@ -325,7 +317,7 @@ export async function reissueCertificateAction(
           logger.info("[ReissueCert] Patient notified of updated certificate", {
             intakeId,
             certId: cert.id,
-            to: patient.email,
+            hasPatientEmail: true,
           })
         }
       } catch (emailError) {

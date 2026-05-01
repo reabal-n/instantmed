@@ -7,6 +7,7 @@ Use this checklist before promoting dashboard, payment, clinical, or patient-flo
 - `pnpm lint`
 - `pnpm typecheck`
 - `pnpm exec vitest run`
+- `scripts/check-orphaned-files.sh`
 - `PLAYWRIGHT=1 pnpm exec playwright test e2e/dashboard-audit.spec.ts --project=chromium --workers=1 --reporter=list`
 - `PLAYWRIGHT=1 pnpm exec playwright test e2e/medical-certificate.spec.ts --project=chromium --workers=1 --reporter=list`
 - `pnpm build`
@@ -23,6 +24,8 @@ Use this checklist before promoting dashboard, payment, clinical, or patient-flo
 
 - Doctor identity gating blocks approval until provider and AHPRA identity are complete.
 - Decline, approve, refund, and document delivery paths are verified against seeded E2E data.
+- Medical certificate future-date guards are covered in app validation, legacy render/reissue paths, and the `issued_certificates_start_date_not_future` DB constraint.
+- Retired medical certificate expiry jobs are absent from Vercel cron config, heartbeat monitoring, routes, and tests.
 - Auto-approved and AI-assisted queues degrade to empty read models if optional read paths fail.
 - Clinical decision actions still write audit logs.
 - No PHI appears in browser console, Sentry extras, PostHog event payloads, or server logs.

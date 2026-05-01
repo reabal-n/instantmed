@@ -3,6 +3,8 @@
  * Single source of truth for med cert answers validation
  */
 
+import { validateCertificateStartDate } from "@/lib/medical-certificates/date-policy"
+
 export interface MedCertValidationResult {
   valid: boolean
   error?: string
@@ -113,32 +115,11 @@ export function validateMedCertPayload(
     }
   }
 
-  // Validate start date format and check for excessive backdating
-  try {
-    const date = new Date(startDate)
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-
-    // Check if date is valid
-    if (isNaN(date.getTime())) {
-      return {
-        valid: false,
-        error: "Invalid start date format.",
-      }
-    }
-
-    // Backdating more than 7 days is not allowed
-    const daysDiff = Math.floor((today.getTime() - date.getTime()) / (1000 * 60 * 60 * 24))
-    if (daysDiff > 7) {
-      return {
-        valid: false,
-        error: "Certificates cannot be backdated more than 7 days. Please see your doctor for earlier dates.",
-      }
-    }
-  } catch {
+  const startDateValidation = validateCertificateStartDate(startDate)
+  if (!startDateValidation.valid) {
     return {
       valid: false,
-      error: "Invalid start date.",
+      error: startDateValidation.error || "Invalid start date.",
     }
   }
 

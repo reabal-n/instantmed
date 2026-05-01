@@ -2,13 +2,15 @@ import { NextRequest, NextResponse } from "next/server"
 
 import { getApiAuth } from "@/lib/auth/helpers"
 import { formatDateLong, formatShortDate, formatShortDateSafe } from "@/lib/format"
+import { validateCertificateDateRange } from "@/lib/medical-certificates/date-policy"
 import { createLogger } from "@/lib/observability/logger"
 import { generateCertificateRef } from "@/lib/pdf/cert-identifiers"
 import { renderTemplatePdf } from "@/lib/pdf/template-renderer"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { requireValidCsrf } from "@/lib/security/csrf"
-const log = createLogger("med-cert-preview-route")
 import type { MedCertDraft } from "@/types/db"
+
+const log = createLogger("med-cert-preview-route")
 
 /**
  * Endpoint to generate a preview PDF for a medical certificate draft.
@@ -57,6 +59,16 @@ export async function POST(request: NextRequest) {
     if (!draftData.date_from || !draftData.date_to) {
       return NextResponse.json(
         { success: false, error: "Certificate dates are required" },
+        { status: 400 }
+      )
+    }
+    const dateRangeValidation = validateCertificateDateRange(draftData.date_from, draftData.date_to, {
+      maxBackdateDays: null,
+      maxDurationDays: 30,
+    })
+    if (!dateRangeValidation.valid) {
+      return NextResponse.json(
+        { success: false, error: dateRangeValidation.error },
         { status: 400 }
       )
     }

@@ -1,3 +1,4 @@
+import { checkEmergencySymptoms } from "@/lib/clinical/triage-rules-engine"
 import {
   validateCertificateStep,
   validateConsultReasonStep,
@@ -37,6 +38,7 @@ const EMERGENCY_ASSOCIATED_SYMPTOMS = new Set([
   "sudden_weakness",
   "severe_headache",
   "suicidal_thoughts",
+  "emergency_free_text",
 ])
 
 const AUSTRALIAN_STATES = new Set(["ACT", "NSW", "NT", "QLD", "SA", "TAS", "VIC", "WA"])
@@ -92,6 +94,71 @@ function copyScalarAnswer(
 ): void {
   const value = firstScalarAnswer(answers, sourceKeys)
   if (value) target[targetKey] = value
+}
+
+function emergencySymptomIdForKeyword(keyword: string): string {
+  const normalized = keyword.toLowerCase()
+
+  if (normalized.includes("chest") || normalized.includes("heart attack")) {
+    return "chest_pain"
+  }
+  if (
+    normalized.includes("breath") ||
+    normalized.includes("asthma") ||
+    normalized.includes("gasping") ||
+    normalized.includes("choking") ||
+    normalized.includes("drowning")
+  ) {
+    return "difficulty_breathing"
+  }
+  if (
+    normalized.includes("stroke") ||
+    normalized.includes("facial") ||
+    normalized.includes("slurred") ||
+    normalized.includes("sudden weakness") ||
+    normalized.includes("sudden numbness") ||
+    normalized.includes("sudden confusion") ||
+    normalized.includes("vision loss")
+  ) {
+    return "sudden_weakness"
+  }
+  if (normalized.includes("headache")) {
+    return "severe_headache"
+  }
+  if (
+    normalized.includes("suicid") ||
+    normalized.includes("want to die") ||
+    normalized.includes("end my life") ||
+    normalized.includes("kill myself") ||
+    normalized.includes("self harm") ||
+    normalized.includes("self-harm") ||
+    normalized.includes("cutting myself") ||
+    normalized.includes("hurting myself") ||
+    normalized.includes("overdose")
+  ) {
+    return "suicidal_thoughts"
+  }
+
+  return "emergency_free_text"
+}
+
+function deriveEmergencySymptomsFromText(answers: Record<string, unknown>): string[] {
+  const text = [
+    answers.symptomDetails,
+    answers.symptom_details,
+    answers.symptoms_description,
+    answers.consultDetails,
+    answers.consult_details,
+  ]
+    .filter((value): value is string => typeof value === "string" && value.trim().length > 0)
+    .join(" ")
+
+  if (!text) return []
+
+  const result = checkEmergencySymptoms(text)
+  if (!result.isEmergency) return []
+
+  return Array.from(new Set(result.matchedKeywords.map(emergencySymptomIdForKeyword)))
 }
 
 function normalizeMedicareExpiry(value: string | undefined): string | null {
@@ -230,9 +297,11 @@ export function transformAnswersForUnifiedCheckout(
   const explicitEmergencySymptoms = asStringArray(answers.emergency_symptoms)
   const associatedEmergencySymptoms = asStringArray(answers.general_associated_symptoms)
     .filter((symptom) => EMERGENCY_ASSOCIATED_SYMPTOMS.has(symptom))
+  const textDerivedEmergencySymptoms = deriveEmergencySymptomsFromText(transformed)
   transformed.emergency_symptoms = Array.from(new Set([
     ...explicitEmergencySymptoms,
     ...associatedEmergencySymptoms,
+    ...textDerivedEmergencySymptoms,
   ]))
   transformed.symptom_severity = answers.symptom_severity ?? "mild"
 

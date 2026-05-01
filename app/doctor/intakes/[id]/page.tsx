@@ -12,6 +12,7 @@ import { isConsultServiceType } from "@/lib/doctor/service-types"
 import { getFeatureFlags } from "@/lib/feature-flags"
 import { calculateAge } from "@/lib/format"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
+import { maskMedicare } from "@/lib/utils/format"
 
 import { IntakeDetailClient } from "./intake-detail-client"
 import type { DoctorFollowupRow } from "./intake-detail-followups"
@@ -79,7 +80,7 @@ export default async function DoctorIntakeDetailPage({
   }
 
   const patientAge = calculateAge(intake.patient.date_of_birth)
-  const maskedMedicare = intake.patient.medicare_number ?? "Not provided"
+  const maskedMedicare = maskMedicare(intake.patient.medicare_number ?? null)
 
   return (
     <IntakeDetailClient

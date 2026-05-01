@@ -8,6 +8,7 @@ import { getIntakeWithDetails, getNextQueueIntakeId, getPatientIntakes } from "@
 import { getCertificateForIntake } from "@/lib/data/issued-certificates"
 import { getPatientMessagesForIntake } from "@/lib/data/patient-messages"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
+import { maskMedicare } from "@/lib/utils/format"
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
@@ -76,7 +77,7 @@ export async function GET(
     }
   }
 
-  const maskedMedicare = intake.patient.medicare_number ?? "Not provided"
+  const maskedMedicare = maskMedicare(intake.patient.medicare_number ?? null)
 
   return NextResponse.json({
     intake,
@@ -91,6 +92,8 @@ export async function GET(
     certificate: certificate ? {
       id: certificate.id,
       email_sent_at: certificate.email_sent_at ?? null,
+      email_failed_at: certificate.email_failed_at ?? null,
+      email_failure_reason: certificate.email_failure_reason ?? null,
       email_opened_at: certificate.email_opened_at ?? null,
       resend_count: certificate.resend_count ?? 0,
     } : null,

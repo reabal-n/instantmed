@@ -2,8 +2,10 @@
 
 import { z } from "zod"
 
+import { reissueCertificateAction } from "@/app/actions/reissue-cert"
 import { getApiAuth } from "@/lib/auth/helpers"
-import { escapeMarkdownValue,sendTelegramAlert } from "@/lib/notifications/telegram"
+import { getCertificateForIntake } from "@/lib/data/issued-certificates"
+import { validateCertificateDateRange } from "@/lib/medical-certificates/date-policy"
 import { createLogger } from "@/lib/observability/logger"
 import { checkServerActionRateLimit } from "@/lib/rate-limit/redis"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -56,11 +58,12 @@ export async function requestDateCorrection(
     return { success: false, error: "Can only request corrections on approved certificates" }
   }
 
-  // Validate dates
-  const start = new Date(requestedStartDate)
-  const end = new Date(requestedEndDate)
-  if (isNaN(start.getTime()) || isNaN(end.getTime()) || end < start) {
-    return { success: false, error: "Invalid dates" }
+  const dateRangeValidation = validateCertificateDateRange(requestedStartDate, requestedEndDate, {
+    maxBackdateDays: null,
+    maxDurationDays: 30,
+  })
+  if (!dateRangeValidation.valid) {
+    return { success: false, error: dateRangeValidation.error }
   }
 
   // Check for existing pending correction
@@ -96,13 +99,7 @@ export async function requestDateCorrection(
     return { success: false, error: "Failed to submit request" }
   }
 
-  logger.info("Date correction requested", { intakeId, requestedStartDate, requestedEndDate })
-
-  // Notify doctor via Telegram (fire-and-forget)
-  const msg = `*Date Correction Request*\n\nPatient: ${escapeMarkdownValue(authResult.profile.full_name || "Unknown")}\nIntake: ${intakeId.slice(0, 8)}\\.\\.\\.\nNew dates: ${escapeMarkdownValue(requestedStartDate)} → ${escapeMarkdownValue(requestedEndDate)}\nReason: ${escapeMarkdownValue(reason)}`
-  // Patient-initiated date correction — not urgent. Silenced from Telegram
-  // by default; surfaces via the daily digest. Override with TELEGRAM_ALL_LEVELS=1.
-  sendTelegramAlert(msg, { severity: "warning" }).catch(() => {})
+  logger.info("Date correction requested", { intakeId })
 
   return { success: true }
 }
@@ -151,7 +148,7 @@ export async function approveDateCorrection(
   intakeId: string
 ): Promise<{ success: boolean; error?: string }> {
   const authResult = await getApiAuth()
-  if (!authResult || !["doctor", "admin"].includes(authResult.profile.role)) {
+  if (!authResult || authResult.profile.role !== "doctor") {
     return { success: false, error: "Unauthorized" }
   }
 
@@ -173,20 +170,28 @@ export async function approveDateCorrection(
   const startDate = meta.requested_start_date as string
   const endDate = meta.requested_end_date as string
 
-  // Regenerate the certificate with corrected dates.
-  // This supersedes the old PDF, generates a new one, and emails the patient.
-  const { regenerateCertificateAction } = await import("@/app/actions/regenerate-certificate")
-  const regenResult = await regenerateCertificateAction({
+  const cert = await getCertificateForIntake(intakeId)
+  if (!cert || cert.status !== "valid") {
+    return { success: false, error: "No valid certificate found for this request" }
+  }
+
+  const certificateType =
+    cert.certificate_type === "study" || cert.certificate_type === "carer" ? cert.certificate_type : "work"
+
+  const reissueResult = await reissueCertificateAction({
     intakeId,
-    reason: `Date correction: ${meta.reason || "dates updated"}`,
-    corrections: {
-      dateRange: { startDate, endDate },
-    },
+    patientName: cert.patient_name,
+    patientDob: cert.patient_dob,
+    certificateType,
+    startDate,
+    endDate,
+    medicalReason: "date_correction",
+    notifyPatient: true,
   })
 
-  if (!regenResult.success) {
-    logger.error("Failed to regenerate certificate for date correction", { intakeId, error: regenResult.error })
-    return { success: false, error: regenResult.error || "Failed to regenerate certificate with corrected dates" }
+  if (!reissueResult.success) {
+    logger.error("Failed to reissue certificate for date correction", { intakeId, error: reissueResult.error })
+    return { success: false, error: reissueResult.error || "Failed to reissue certificate with corrected dates" }
   }
 
   // Mark the correction as approved
@@ -207,16 +212,14 @@ export async function approveDateCorrection(
       correction_event_id: correctionEventId,
       new_start_date: startDate,
       new_end_date: endDate,
-      new_certificate_id: regenResult.certificateId,
+      certificate_id: reissueResult.certificateId,
     },
   })
 
-  logger.info("Date correction approved - certificate regenerated", {
+  logger.info("Date correction approved - certificate reissued", {
     intakeId,
     correctionEventId,
-    startDate,
-    endDate,
-    newCertificateId: regenResult.certificateId,
+    certificateId: reissueResult.certificateId,
   })
 
   return { success: true }

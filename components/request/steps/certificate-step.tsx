@@ -5,7 +5,7 @@
  *
  * Date model: two-question layout.
  * 1. How many days? (1/2/3 chips with prices)
- * 2. Starting from? (4 chips: day before yesterday, yesterday, today, tomorrow)
+ * 2. Starting from? (3 chips: day before yesterday, yesterday, today)
  * Certificates capped at 3 days max.
  */
 
@@ -45,9 +45,9 @@ const DURATION_OPTIONS: Duration[] = [1, 2, 3]
 // ─── Date helpers ─────────────────────────────────────────────────────────
 
 const WIN_MIN = -2
-const WIN_MAX = 1
+const WIN_MAX = 0
 
-const START_OFFSETS = [-2, -1, 0, 1] as const
+const START_OFFSETS = [-2, -1, 0] as const
 
 function offsetToDate(offset: number): Date {
   const d = new Date()
@@ -74,7 +74,6 @@ function isoToOffset(iso: string): number | null {
 function chipLabel(offset: number): string {
   if (offset === -1) return "Yesterday"
   if (offset === 0) return "Today"
-  if (offset === 1) return "Tomorrow"
   const d = offsetToDate(offset)
   return d.toLocaleDateString("en-AU", { weekday: "short", day: "numeric" })
 }
@@ -82,7 +81,6 @@ function chipLabel(offset: number): string {
 function summaryLabel(offset: number): string {
   if (offset === -1) return "Yesterday"
   if (offset === 0) return "Today"
-  if (offset === 1) return "Tomorrow"
   const d = offsetToDate(offset)
   return d.toLocaleDateString("en-AU", { weekday: "short", day: "numeric", month: "short" })
 }
@@ -341,9 +339,9 @@ export default function CertificateStep({ onNext }: CertificateStepProps) {
           required
           error={touched.startDate ? errors.startDate : undefined}
           helpContent={{
-            title: "Can I include future dates?",
+            title: "Need tomorrow covered too?",
             content:
-              "Yes - if you're already unwell but need to cover tomorrow too, select today as the start date. A doctor reviews your dates based on your symptoms.",
+              "Select today as the start date and choose the number of days you were unfit. A doctor reviews your dates based on your symptoms.",
           }}
         >
           <div

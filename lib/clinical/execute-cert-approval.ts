@@ -17,6 +17,7 @@ import {
 import { MedCertPatientEmail, medCertPatientEmailSubject } from "@/lib/email/components/templates"
 import { sendEmail } from "@/lib/email/send-email"
 import { formatDateLong, formatShortDate, formatShortDateSafe } from "@/lib/format"
+import { validateCertificateDateRange } from "@/lib/medical-certificates/date-policy"
 import { createNotification } from "@/lib/notifications/service"
 import { logger } from "@/lib/observability/logger"
 import { generateCertificateNumber, generateCertificateRef,generateVerificationCode } from "@/lib/pdf/cert-identifiers"
@@ -175,21 +176,19 @@ export async function executeCertApproval(
   const generatedAt = new Date().toISOString()
 
   // Validate and calculate duration days
-  const startDate = new Date(reviewData.startDate)
-  const endDate = new Date(reviewData.endDate)
-
-  if (endDate < startDate) {
-    logger.warn("Invalid certificate dates: end date before start date", { intakeId, startDate: reviewData.startDate, endDate: reviewData.endDate })
-    return { success: false, error: "End date cannot be before start date" }
+  const dateRangeValidation = validateCertificateDateRange(reviewData.startDate, reviewData.endDate, {
+    maxBackdateDays: null,
+    maxDurationDays: 30,
+  })
+  if (!dateRangeValidation.valid) {
+    logger.warn("Invalid certificate date range - blocking approval", {
+      intakeId,
+      reason: dateRangeValidation.error,
+    })
+    return { success: false, error: dateRangeValidation.error || "Invalid certificate date range" }
   }
 
-  const maxDurationMs = 30 * 24 * 60 * 60 * 1000
-  if (endDate.getTime() - startDate.getTime() > maxDurationMs) {
-    logger.warn("Certificate duration exceeds maximum", { intakeId, startDate: reviewData.startDate, endDate: reviewData.endDate })
-    return { success: false, error: "Certificate duration cannot exceed 30 days" }
-  }
-
-  const durationDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1
+  const durationDays = dateRangeValidation.durationDays
 
   // Get intake answers (Supabase FK join returns array or object depending on join cardinality)
   type AnswersJoin = { answers: Record<string, unknown> }
@@ -216,8 +215,6 @@ export async function executeCertApproval(
       intakeId,
       paidDurationDays,
       approvedDurationDays: durationDays,
-      startDate: reviewData.startDate,
-      endDate: reviewData.endDate,
     })
     if (!skipClaim) {
       await supabase.rpc("release_intake_claim", { p_intake_id: intakeId, p_doctor_id: doctorProfile.id })
@@ -235,8 +232,6 @@ export async function executeCertApproval(
       intakeId,
       paidDurationDays,
       approvedDurationDays: durationDays,
-      startDate: reviewData.startDate,
-      endDate: reviewData.endDate,
     })
     Sentry.addBreadcrumb({
       category: "cert.audit",

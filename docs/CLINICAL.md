@@ -56,7 +56,8 @@ InstantMed's commercial moat is no booked appointment, no waiting room, and a se
 | **Identity** | Name + DOB + address. No photo ID verification. Medicare Luhn check when provided |
 | **Hours** | Med certs: 24/7. Rx/Consults: 8am–10pm AEST, 7 days. Target 1-2h review, 24h max. No guaranteed response time |
 | **Med cert duration** | Hard cap 3 days. Constant: `MAX_MED_CERT_DURATION_DAYS` in `lib/clinical/intake-validation.ts`. Auto-approval flags `duration_too_long` for anything above. No override |
-| **Med cert validity** | Certificates do not expire. Once issued, they remain authentic indefinitely. Only `revoked` status invalidates a cert; DB trigger from migration `20260428000001_lock_cert_status.sql` rejects any other transition |
+| **Med cert start date** | Start date must be today or in the past, never future-dated. Shared policy lives in `lib/medical-certificates/date-policy.ts` and is enforced across checkout validation, approval, in-place reissue/date correction, render/preview routes, and DB constraint `issued_certificates_start_date_not_future`. |
+| **Med cert validity** | Certificates do not expire. Once issued, they remain authentic indefinitely. Only `revoked` status invalidates a cert; DB trigger from migration `20260428000001_lock_cert_status.sql` rejects any other transition. The retired expiry cron must not exist in Vercel cron config, heartbeat monitoring, routes, or tests. |
 | **Med cert use cases — refused at intake** | Exam deferral, special consideration, court / tribunal / summons / jury, family law / custody / AVO, fitness-for-driving / firearm / aviation, workers comp / NDIS / TAC / insurance claims. `checkHighStakesUseCase` in `lib/clinical/intake-validation.ts` blocks these at submission; `HIGH_STAKES_USE_CASE_KEYWORDS` in `lib/clinical/auto-approval.ts` is the auto-approval fallback if anything bypasses the intake guard |
 | **Med cert language** | Conservative consultation-statement only. PDF body says "consulted me on X and reported / indicated [reason] consistent with a need to be absent from [duties]". No "medically unfit", no fitness-for-X, no exam-deferral support, no modality disclosure on the cert body. Locked in `lib/pdf/template-renderer.ts` |
 | **Refund on decline** | Med certs + prescriptions: **full auto-refund**. Consults: **50% partial auto-refund** via `decline-intake.ts` `PARTIAL_REFUND_PERCENT` = 0.5 (acknowledges doctor review time while honoring money-back guarantee). Updated 2026-04-08 — unit tested in `lib/__tests__/decline-intake.test.ts`. |
@@ -124,6 +125,7 @@ Requests are immediately declined (system-level) if they involve:
 ### Emergency & Crisis Detection
 
 - Emergency keywords trigger hard blocks via deterministic rules, not AI
+- Free-text medical-certificate symptoms are mapped into canonical server-side safety rules before checkout; client warnings are not sufficient
 - Crisis/self-harm keywords trigger hard blocks with crisis support resources
 - Safety-related answers are excluded from AI context
 - Red flags force deterministic outcomes, not suggestions

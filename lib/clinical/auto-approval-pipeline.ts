@@ -545,7 +545,9 @@ export async function attemptAutoApproval(intakeId: string): Promise<AutoApprova
       log.info("Auto-approval DRY RUN: would have approved", {
         intakeId,
         doctorId: doctor.id,
-        reviewData,
+        hasStartDate: Boolean(reviewData.startDate),
+        hasEndDate: Boolean(reviewData.endDate),
+        hasMedicalReason: Boolean(reviewData.medicalReason),
       })
       trackOutcome("dry_run", "would_approve", { doctor_id: doctor.id })
       // Transition back: attempting → pending (so it can be picked up again)

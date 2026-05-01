@@ -9,6 +9,7 @@
 import { z } from "zod"
 
 import { validateSymptomTextQuality } from "@/lib/clinical/symptom-text-quality"
+import { validateCertificateStartDate } from "@/lib/medical-certificates/date-policy"
 
 export interface ValidationResult {
   isValid: boolean
@@ -110,6 +111,15 @@ export const certificateStepSchema = z.object({
   certType: nonEmptyString("Please select certificate type"),
   duration: nonEmptyString("Please select duration"),
   startDate: nonEmptyString("Please select start date"),
+}).superRefine((data, ctx) => {
+  const startDateValidation = validateCertificateStartDate(data.startDate)
+  if (!startDateValidation.valid) {
+    ctx.addIssue({
+      code: "custom",
+      message: startDateValidation.error || "Invalid start date",
+      path: ["startDate"],
+    })
+  }
 })
 
 export const symptomsStepSchema = z.object({

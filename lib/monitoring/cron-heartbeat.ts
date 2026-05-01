@@ -21,7 +21,6 @@ const CRITICAL_CRONS: Record<string, { schedule: string; maxDelayMinutes: number
   "stale-queue":            { schedule: "0 * * * *",     maxDelayMinutes: 75 },
   "emergency-flags":        { schedule: "0 * * * *",     maxDelayMinutes: 75 },
   "daily-reconciliation":   { schedule: "0 21 * * *",    maxDelayMinutes: 1500 }, // ~25h
-  "expire-certificates":    { schedule: "30 14 * * *",   maxDelayMinutes: 1500 }, // ~25h
 }
 
 /**

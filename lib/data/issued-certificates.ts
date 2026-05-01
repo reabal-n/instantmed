@@ -253,7 +253,13 @@ export async function createIssuedCertificate(
         return { success: true, certificate: existing, isExisting: true }
       }
     }
-    log.error("Failed to create certificate", { input }, error)
+    log.error("Failed to create certificate", {
+      intakeId: input.intake_id,
+      certificateType: input.certificate_type,
+      hasPdfHash: Boolean(input.pdf_hash),
+      fileSizeBytes: input.file_size_bytes,
+      errorCode: error.code,
+    }, error)
     return { success: false, error: error.message }
   }
 
