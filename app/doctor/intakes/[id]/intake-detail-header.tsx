@@ -43,6 +43,11 @@ import type { CertDeliveryStatus } from "@/lib/data/issued-certificates"
 import { INTAKE_STATUS, type IntakeStatus as StatusType } from "@/lib/data/status"
 // Re-export so existing consumers (intake-decline-dialog) don't have to change import paths.
 import { DECLINE_REASONS } from "@/lib/doctor/decline-reasons"
+import {
+  buildPatientSnapshot,
+  getPatientSnapshotOptionsForCase,
+  requiresPrescribingIdentityForCase,
+} from "@/lib/doctor/patient-snapshot"
 import { isConsultServiceType, isKnownDoctorServiceType, SERVICE_TYPES } from "@/lib/doctor/service-types"
 import { formatIntakeStatus } from "@/lib/format/intake"
 import type { DeclineReasonCode, IntakeStatus, IntakeWithDetails } from "@/types/db"
@@ -124,7 +129,22 @@ export function IntakeDetailHeader({
   certDelivery,
 }: IntakeDetailHeaderProps) {
   const service = intake.service as { type?: string } | undefined
+  const answers = (intake.answers?.answers ?? {}) as Record<string, unknown>
   const isPrescribingConsult = intake.category === "consult" && ["ed", "hair_loss"].includes(intake.subtype || "")
+  const snapshotContext = {
+    answers,
+    category: intake.category,
+    serviceType: service?.type,
+    subtype: intake.subtype,
+  }
+  const missingPrescribingIdentityFields = requiresPrescribingIdentityForCase(snapshotContext)
+    ? buildPatientSnapshot(intake.patient, getPatientSnapshotOptionsForCase(snapshotContext)).missingCriticalFields
+    : []
+  const hasPrescribingIdentityBlocker = missingPrescribingIdentityFields.length > 0
+  const prescribingIdentityTitle = hasPrescribingIdentityBlocker
+    ? `Complete patient identity: ${missingPrescribingIdentityFields.join(", ")}`
+    : undefined
+  const prescribingActionLabel = hasPrescribingIdentityBlocker ? "Complete patient identity" : null
 
   const getStatusColor = (status: string) => {
     return INTAKE_STATUS[status as StatusType]?.color ?? "bg-primary/10 text-primary"
@@ -250,6 +270,12 @@ export function IntakeDetailHeader({
       <Card>
         <CardContent className="px-4 py-4">
           <div className="flex flex-wrap gap-3">
+            {hasPrescribingIdentityBlocker && (
+              <div className="w-full rounded-md border border-warning-border bg-warning-light px-3 py-2 text-sm font-medium text-warning">
+                Complete patient identity before prescribing: {missingPrescribingIdentityFields.join(", ")}
+              </div>
+            )}
+
             {/* For med certs - preview then approve: shows preview dialog first */}
             {service?.type === SERVICE_TYPES.MED_CERTS && ["paid", "in_review"].includes(intake.status) && (
               <Button onClick={onMedCertApprove} className="bg-emerald-600 hover:bg-emerald-700" disabled={isPending || isLoadingPreview}>
@@ -260,9 +286,14 @@ export function IntakeDetailHeader({
 
             {/* For repeat scripts - approve then mark sent externally */}
             {(service?.type === SERVICE_TYPES.REPEAT_RX || service?.type === SERVICE_TYPES.COMMON_SCRIPTS) && intake.status === "paid" && (
-              <Button onClick={() => onStatusChange("awaiting_script")} className="bg-primary hover:bg-primary/90" disabled={isPending}>
+              <Button
+                onClick={() => onStatusChange("awaiting_script")}
+                className="bg-primary hover:bg-primary/90"
+                disabled={isPending || hasPrescribingIdentityBlocker}
+                title={prescribingIdentityTitle}
+              >
                 {isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-2" />}
-                {isPending ? "Approving..." : "Approve Script"}
+                {isPending ? "Approving..." : prescribingActionLabel ?? "Approve Script"}
               </Button>
             )}
 
@@ -270,9 +301,14 @@ export function IntakeDetailHeader({
             {intake.status === "awaiting_script" && (
               <>
                 {onOpenParchmentPrescribe && (
-                  <Button onClick={onOpenParchmentPrescribe} className="bg-blue-600 hover:bg-blue-700">
+                  <Button
+                    onClick={onOpenParchmentPrescribe}
+                    className="bg-blue-600 hover:bg-blue-700"
+                    disabled={isPending || hasPrescribingIdentityBlocker}
+                    title={prescribingIdentityTitle}
+                  >
                     <Send className="h-4 w-4 mr-2" />
-                    Prescribe
+                    {prescribingActionLabel ?? "Prescribe"}
                   </Button>
                 )}
                 <Button
@@ -287,9 +323,14 @@ export function IntakeDetailHeader({
             )}
 
             {isPrescribingConsult && ["paid", "in_review"].includes(intake.status) && onApproveAndOpenParchment && (
-              <Button onClick={onApproveAndOpenParchment} className="bg-primary hover:bg-primary/90" disabled={isPending}>
+              <Button
+                onClick={onApproveAndOpenParchment}
+                className="bg-primary hover:bg-primary/90"
+                disabled={isPending || hasPrescribingIdentityBlocker}
+                title={prescribingIdentityTitle}
+              >
                 {isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Send className="h-4 w-4 mr-2" />}
-                {isPending ? "Approving..." : "Approve + Prescribe"}
+                {isPending ? "Approving..." : prescribingActionLabel ?? "Approve + Prescribe"}
               </Button>
             )}
 

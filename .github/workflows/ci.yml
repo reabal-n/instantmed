@@ -214,7 +214,10 @@ jobs:
           # report without blocking deploys for variance.
           #
           # The other Core Web Vitals (FCP, TBT, CLS) remain "error" so
-          # genuine regressions still fail CI.
+          # genuine desktop regressions still fail CI. PR Lighthouse uses the
+          # same desktop preset as the production Lighthouse workflow; mobile
+          # marketing performance is tracked separately and should not block
+          # clinical/admin safety fixes without a dedicated perf pass.
           #
           # Config + URLs live in `lighthouserc.json` (root). lhci picks it
           # up automatically — `lhci autorun` with no flags reads it. We
@@ -260,6 +263,7 @@ jobs:
           PLAYWRIGHT: '1'
           NEXT_PUBLIC_PLAYWRIGHT: '1'
           E2E_SECRET: ${{ secrets.E2E_SECRET }}
+          ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}

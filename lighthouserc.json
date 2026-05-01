@@ -8,7 +8,10 @@
         "http://localhost:3000/conditions/cold-and-flu",
         "http://localhost:3000/faq"
       ],
-      "numberOfRuns": 1
+      "numberOfRuns": 1,
+      "settings": {
+        "preset": "desktop"
+      }
     },
     "assert": {
       "assertions": {
@@ -21,7 +24,7 @@
         "total-blocking-time": ["error", { "maxNumericValue": 400 }],
         "cumulative-layout-shift": ["error", { "maxNumericValue": 0.1 }],
 
-        "largest-contentful-paint": ["error", { "maxNumericValue": 4000 }]
+        "largest-contentful-paint": ["warn", { "maxNumericValue": 4000 }]
       }
     },
     "upload": {

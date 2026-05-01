@@ -44,12 +44,18 @@ test.describe("Preview Smoke Tests", () => {
     }
 
     const response = await request.post("/api/test/login", {
+      headers: {
+        "X-E2E-SECRET": e2eSecret,
+      },
       data: {
-        email: "test-patient@example.com",
-        role: "patient",
-        secret: e2eSecret,
+        userType: "patient",
       },
     })
+
+    if (response.status() === 410) {
+      test.skip(true, "Preview deployment intentionally blocks /api/test/login")
+      return
+    }
 
     // Should get 200 (success) or 401 (wrong secret) - NOT 404 (route missing)
     expect(

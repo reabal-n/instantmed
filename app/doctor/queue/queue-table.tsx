@@ -326,6 +326,7 @@ export function QueueTable({
                     variant="outline"
                     size="sm"
                     className="h-8 px-3 text-xs"
+                    aria-label={`Open case for ${intake.patient.full_name}`}
                     onClick={(e) => {
                       e.stopPropagation()
                       openReviewPanel(intake.id)

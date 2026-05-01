@@ -93,4 +93,9 @@ describe("doctor queue production contract", () => {
     expect(queueActionsSource).toContain("declineIntakeCanonical")
     expect(queueActionsSource).not.toContain("refundIfEligible")
   })
+
+  it("blocks awaiting-script transitions when prescribing identity is incomplete", () => {
+    expect(queueActionsSource).toContain("getParchmentPatientIdentityIssues")
+    expect(queueActionsSource).toContain("Cannot approve for prescribing until patient identity is complete")
+  })
 })

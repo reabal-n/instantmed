@@ -20,10 +20,13 @@ import {
 } from "@/lib/data/intakes"
 import { isClinicalNoteSufficient, MIN_CLINICAL_NOTES_LENGTH } from "@/lib/doctor/clinical-notes"
 import {
+  getParchmentPatientSyncEligibility,
   getParchmentScriptCompletionEligibility,
   isParchmentClaimSatisfied,
 } from "@/lib/doctor/parchment-claim"
 import { createLogger } from "@/lib/observability/logger"
+import { getParchmentPatientIdentityIssues } from "@/lib/parchment/sync-patient"
+import { readAnswers } from "@/lib/security/phi-field-wrappers"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import type { IntakeStatus } from "@/types/db"
 
@@ -36,9 +39,19 @@ function isValidUUID(id: string): boolean {
 }
 
 type ServiceRelation = { type?: string | null } | { type?: string | null }[] | null
+type RelationValue<T> = T | T[] | null | undefined
+type PrescribingIdentityPatient = Parameters<typeof getParchmentPatientIdentityIssues>[0]
+type IntakeAnswersRow = {
+  answers: Record<string, unknown> | null
+  answers_encrypted: never | null
+}
 
 function getServiceType(service: ServiceRelation | undefined): string | null {
   return Array.isArray(service) ? service[0]?.type ?? null : service?.type ?? null
+}
+
+function firstRelation<T>(value: RelationValue<T>): T | null {
+  return Array.isArray(value) ? value[0] ?? null : value ?? null
 }
 
 function getScriptCompletionRequestType(category: string | null, serviceType?: string | null): RequestType {
@@ -105,6 +118,77 @@ export async function updateStatusAction(
         success: false, 
         error: "Medical certificates must be approved through the document builder to generate PDFs and send emails.",
         code: "MED_CERT_REQUIRES_DOCUMENT_BUILDER"
+      }
+    }
+  }
+
+  if (status === "awaiting_script") {
+    const supabase = createServiceRoleClient()
+    const { data: intake } = await supabase
+      .from("intakes")
+      .select(`
+        status,
+        payment_status,
+        category,
+        subtype,
+        patient:profiles!patient_id (
+          id,
+          full_name,
+          date_of_birth,
+          sex,
+          medicare_number,
+          medicare_irn,
+          medicare_expiry,
+          phone,
+          email,
+          address_line1,
+          suburb,
+          state,
+          postcode
+        ),
+        answers:intake_answers (
+          answers,
+          answers_encrypted
+        ),
+        service:services!service_id(type)
+      `)
+      .eq("id", intakeId)
+      .single()
+
+    if (!intake) {
+      return { success: false, error: "Intake not found" }
+    }
+
+    const serviceType = getServiceType(intake.service as ServiceRelation)
+    const eligibility = getParchmentPatientSyncEligibility({
+      status: intake.status,
+      payment_status: intake.payment_status,
+      category: intake.category,
+      subtype: intake.subtype,
+      serviceType,
+    })
+
+    if (eligibility.eligible) {
+      const patient = firstRelation(intake.patient as RelationValue<PrescribingIdentityPatient>)
+      const answerRow = firstRelation(intake.answers as RelationValue<IntakeAnswersRow>)
+      const answers = answerRow
+        ? (await readAnswers({
+            answers: answerRow.answers,
+            answers_enc: answerRow.answers_encrypted,
+          })) ?? undefined
+        : undefined
+
+      if (!patient) {
+        return { success: false, error: "Patient profile not found" }
+      }
+
+      const missingFields = getParchmentPatientIdentityIssues(patient, answers)
+      if (missingFields.length > 0) {
+        return {
+          success: false,
+          error: `Cannot approve for prescribing until patient identity is complete: ${missingFields.join(", ")}`,
+          code: "INCOMPLETE_PRESCRIBING_IDENTITY",
+        }
       }
     }
   }
