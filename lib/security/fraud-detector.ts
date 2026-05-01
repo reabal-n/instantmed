@@ -135,8 +135,8 @@ async function checkDuplicateRequest(patientId: string, category: string, subtyp
 // ============================================================================
 
 /**
- * CRITICAL #3: Medicare number deduplication for repeat prescriptions
- * Prevents multi-account medication stacking
+ * CRITICAL #3: Medicare number deduplication for repeat prescriptions.
+ * Checks canonical paid intake records for completed prescription requests.
  */
 export async function checkMedicareDuplication(
   medicareNumber: string,
@@ -161,25 +161,48 @@ export async function checkMedicareDuplication(
 
   if (patientIds.length === 0) return null
 
-  // Step 2: Check for active repeat_rx_requests for the same medication
-  // from any of those profiles in the last 30 days
-  const { data: existingRequests } = await supabase
-    .from("repeat_rx_requests")
+  const { data: matchingIntakes } = await supabase
+    .from("intakes")
     .select("id, patient_id, status, created_at")
     .in("patient_id", patientIds)
-    .eq("medication_code", medicationCode)
-    .in("status", ["pending", "approved"])
+    .eq("category", "prescription")
+    .in("status", ["paid", "in_review", "awaiting_script", "completed"])
     .gte("created_at", thirtyDaysAgo.toISOString())
 
-  if (existingRequests && existingRequests.length > 0) {
+  if (!matchingIntakes || matchingIntakes.length === 0) return null
+
+  const matchingIntakeIds = matchingIntakes.map((intake) => intake.id as string)
+  const { data: answerRows } = await supabase
+    .from("intake_answers")
+    .select("intake_id, answers")
+    .in("intake_id", matchingIntakeIds)
+
+  const normalizedMedicationCode = medicationCode.trim().toUpperCase()
+  const duplicateRows = (answerRows || []).filter((row) => {
+    const answers = (row.answers || {}) as Record<string, unknown>
+    const storedCode = String(
+      answers.pbs_code ||
+      answers.amt_code ||
+      answers.pbsCode ||
+      answers.medication_code ||
+      "",
+    ).trim().toUpperCase()
+
+    return storedCode && storedCode === normalizedMedicationCode
+  })
+
+  if (duplicateRows.length > 0) {
+    const duplicateIntakeIds = new Set(duplicateRows.map((row) => row.intake_id as string))
+    const duplicateIntakes = matchingIntakes.filter((intake) => duplicateIntakeIds.has(intake.id as string))
+
     return {
       type: "duplicate_medication",
       severity: "critical",
       details: {
         medicationCode,
-        matchingRequestCount: existingRequests.length,
-        matchingPatientIds: existingRequests.map((r) => r.patient_id),
-        existingRequestIds: existingRequests.map((r) => r.id),
+        matchingRequestCount: duplicateRows.length,
+        matchingPatientIds: duplicateIntakes.map((intake) => intake.patient_id),
+        existingRequestIds: duplicateRows.map((row) => row.intake_id),
         reason: "Same Medicare number used across accounts for the same medication",
       },
     }

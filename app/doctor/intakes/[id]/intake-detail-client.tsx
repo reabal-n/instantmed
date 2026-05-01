@@ -1,7 +1,9 @@
 "use client"
 
 import type { AIDraft } from "@/app/actions/draft-approval"
+import { PatientMessageThread } from "@/components/doctor/review/patient-message-thread"
 import type { CertDeliveryStatus } from "@/lib/data/issued-certificates"
+import type { PatientThreadMessage } from "@/lib/data/patient-messages"
 import { useDoctorShortcuts } from "@/lib/hooks/use-doctor-shortcuts"
 import type { IntakeWithDetails, IntakeWithPatient } from "@/types/db"
 
@@ -34,6 +36,7 @@ interface IntakeDetailClientProps {
   followups?: DoctorFollowupRow[]
   certDelivery?: CertDeliveryStatus | null
   parchmentEnabled?: boolean
+  patientMessages?: PatientThreadMessage[]
 }
 
 export function IntakeDetailClient({
@@ -49,6 +52,7 @@ export function IntakeDetailClient({
   followups = [],
   certDelivery,
   parchmentEnabled = false,
+  patientMessages = [],
 }: IntakeDetailClientProps) {
   const dialogs = useIntakeDialogs(initialAction === "decline")
   const service = intake.service as { name?: string; type?: string; short_name?: string } | undefined
@@ -69,7 +73,7 @@ export function IntakeDetailClient({
     if (Array.isArray(val)) return val.filter(v => v && String(v).trim()).length > 0
     const str = String(val).toLowerCase().trim()
     if (!str) return false
-    const benign = new Set(["none", "no", "n/a", "nil", "not applicable", "false", "mild", "moderate", "low", "minimal", "minor", "[]"])
+    const benign = new Set(["none", "no", "n/a", "nil", "not applicable", "false", "true", "mild", "moderate", "low", "minimal", "minor", "[]"])
     return !benign.has(str)
   }
   const formatFlagValue = (val: unknown): string => {
@@ -93,7 +97,13 @@ export function IntakeDetailClient({
   useDoctorShortcuts({
     onApprove: () => {
       if (intake.status === "paid" && !actions.isPending) {
-        if (service?.type === "med_certs") {
+        if (
+          intake.category === "consult" &&
+          ["ed", "hair_loss"].includes(intake.subtype || "") &&
+          actions.handleApproveAndOpenParchment
+        ) {
+          actions.handleApproveAndOpenParchment()
+        } else if (service?.type === "med_certs") {
           actions.handleMedCertApprove()
         } else if (service?.type === "repeat_rx" || service?.type === "common_scripts") {
           actions.handleStatusChange("awaiting_script")
@@ -142,6 +152,7 @@ export function IntakeDetailClient({
         onViewCertificate={actions.handleViewCertificate}
         onCertPreviewConfirm={actions.handleCertPreviewConfirm}
         onOpenParchmentPrescribe={actions.handleOpenParchmentPrescribe}
+        onApproveAndOpenParchment={actions.handleApproveAndOpenParchment}
         showReissueDialog={dialogs.showReissueDialog}
         setShowReissueDialog={dialogs.setShowReissueDialog}
         reissuePreviewData={dialogs.reissuePreviewData}
@@ -157,6 +168,13 @@ export function IntakeDetailClient({
         previousIntakes={previousIntakes}
         hasRedFlags={hasRedFlags}
         redFlagDetails={redFlagDetails}
+      />
+
+      <PatientMessageThread
+        messages={patientMessages}
+        infoRequestMessage={intake.info_request_message}
+        infoRequestedAt={intake.info_requested_at}
+        status={intake.status}
       />
 
       {followups.length > 0 && (

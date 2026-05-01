@@ -37,7 +37,7 @@ export {
   StatCard,
   type StatCardProps,
   type StatCardStatus,
-} from "./glass-stat-card"
+} from "./stat-card"
 
 // Status badge.
 export {
@@ -49,4 +49,4 @@ export {
   type StatusBadgeStatus,
   SuccessBadge,
   WarningBadge,
-} from "./glow-badge"
+} from "./status-badge"

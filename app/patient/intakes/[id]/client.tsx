@@ -332,8 +332,8 @@ export function IntakeDetailClient({
     (intake.status === "approved" || intake.status === "completed") && document?.pdf_url
   const showSubmittedAnswers =
     intake.answers && intake.answers.length > 0 && intake.answers[0]?.answers
-  const showSupportLink = intake.status === "declined" || intake.status === "pending_info"
-  const showLiveTracker = ["paid", "in_review", "pending_info"].includes(intake.status)
+  const showSupportLink = intake.status === "declined" || intake.status === "pending_info" || intake.status === "escalated"
+  const showLiveTracker = ["paid", "in_review", "pending_info", "awaiting_script", "escalated"].includes(intake.status)
 
   const getStatusIcon = (status: string) => {
     const config = INTAKE_STATUS[status as StatusKey]
@@ -491,6 +491,11 @@ export function IntakeDetailClient({
           {intake.status === "pending_info" && (
             <p className="text-sm text-warning">
               The doctor needs more information. Please check your messages.
+            </p>
+          )}
+          {intake.status === "escalated" && (
+            <p className="text-sm text-warning">
+              Your request needs additional review. We&apos;ll update you as soon as there is a decision.
             </p>
           )}
           {intake.status === "awaiting_script" && (

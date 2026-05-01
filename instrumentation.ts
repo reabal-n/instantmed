@@ -9,7 +9,7 @@
 
 import * as Sentry from "@sentry/nextjs";
 
-import { scrubPHI, scrubPHIFromObject } from "@/lib/observability/scrub-phi";
+import { scrubSentryBreadcrumb, scrubSentryEvent } from "@/lib/observability/scrub-phi";
 import {
   getSentryDsn,
   getSentryEnvironment,
@@ -131,41 +131,10 @@ export async function register() {
       "AbortError",
     ],
     beforeSend(event) {
-      // Scrub sensitive headers
-      if (event.request?.headers) {
-        delete event.request.headers['authorization']
-        delete event.request.headers['cookie']
-        delete event.request.headers['x-forwarded-for']
-      }
-      // Scrub PHI from request body / query string
-      if (event.request?.data) {
-        event.request.data = scrubPHIFromObject(event.request.data) as string
-      }
-      if (event.request?.query_string) {
-        if (typeof event.request.query_string === "string") {
-          event.request.query_string = scrubPHI(event.request.query_string)
-        } else {
-          event.request.query_string = scrubPHIFromObject(event.request.query_string) as typeof event.request.query_string
-        }
-      }
-      // Scrub PHI from extra context
-      if (event.extra) {
-        event.extra = scrubPHIFromObject(event.extra) as Record<string, unknown>
-      }
-      // Scrub breadcrumbs
-      if (event.breadcrumbs) {
-        for (const breadcrumb of event.breadcrumbs) {
-          if (breadcrumb.message) breadcrumb.message = scrubPHI(breadcrumb.message)
-          if (breadcrumb.data) breadcrumb.data = scrubPHIFromObject(breadcrumb.data) as Record<string, unknown>
-        }
-      }
-      return event
+      return scrubSentryEvent(event)
     },
     beforeBreadcrumb(breadcrumb) {
-      // Scrub PHI from breadcrumbs at capture time
-      if (breadcrumb.message) breadcrumb.message = scrubPHI(breadcrumb.message)
-      if (breadcrumb.data) breadcrumb.data = scrubPHIFromObject(breadcrumb.data) as Record<string, unknown>
-      return breadcrumb
+      return scrubSentryBreadcrumb(breadcrumb)
     },
     // Always sample critical clinical and payment transactions
     tracesSampler: ({ name, parentSampled }) => {

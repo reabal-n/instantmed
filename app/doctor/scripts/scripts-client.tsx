@@ -10,6 +10,7 @@ import { Pagination } from "@/components/uix"
 import { capture } from "@/lib/analytics/capture"
 import type { ScriptTask, ScriptTaskStatus } from "@/lib/data/script-tasks"
 import { formatDateTime } from "@/lib/format"
+import { fetchWithCsrf } from "@/lib/security/csrf-client"
 
 const PAGE_SIZE = 50
 
@@ -75,7 +76,7 @@ export function ScriptsClient({ initialTasks, initialCounts, initialTotal }: Scr
     )
 
     try {
-      const res = await fetch(`/api/doctor/scripts/${taskId}`, {
+      const res = await fetchWithCsrf(`/api/doctor/scripts/${taskId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus }),

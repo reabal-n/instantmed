@@ -3,17 +3,55 @@
 import * as Sentry from "@sentry/nextjs"
 import { revalidatePath } from "next/cache"
 
+import {
+  logNoPrescribingInPlatform,
+  type RequestType,
+} from "@/lib/audit/compliance-audit"
 import { requireRoleOrNull } from "@/lib/auth/helpers"
+import { acquireIntakeLock } from "@/lib/data/intake-lock"
+import {
+  getParchmentPatientSyncEligibility,
+  getParchmentPrescriberCandidateIds,
+  getParchmentPrescribingEligibility,
+  isParchmentClaimSatisfied,
+} from "@/lib/doctor/parchment-claim"
 import { getFeatureFlags } from "@/lib/feature-flags"
 import { createLogger } from "@/lib/observability/logger"
 import { getSsoUrl, listUsers, validateIntegration } from "@/lib/parchment/client"
 import { ParchmentPatientIdentityError, ParchmentPatientSyncError, syncPatientToParchment } from "@/lib/parchment/sync-patient"
+import { checkServerActionRateLimit } from "@/lib/rate-limit/redis"
 import { readAnswers } from "@/lib/security/phi-field-wrappers"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 const log = createLogger("parchment-actions")
+
+type ServiceRelation = { type?: string | null } | { type?: string | null }[] | null
+
+function getServiceType(service: ServiceRelation | undefined): string | null {
+  return Array.isArray(service) ? service[0]?.type ?? null : service?.type ?? null
+}
+
+function getParchmentAuditRequestType({
+  category,
+  serviceType,
+}: {
+  category?: string | null
+  serviceType?: string | null
+}): RequestType {
+  if (category === "medical_certificate") return "med_cert"
+  if (
+    category === "prescription" ||
+    serviceType === "common_scripts" ||
+    serviceType === "repeat_rx" ||
+    serviceType === "prescription" ||
+    serviceType === "repeat-script"
+  ) {
+    return "repeat_rx"
+  }
+  return "intake"
+}
 
 // ============================================================================
 // SSO - Get prescribing URL for embedded iframe
@@ -34,6 +72,11 @@ export async function getParchmentPrescribeUrlAction(
   const authResult = await requireRoleOrNull(["doctor", "admin"])
   if (!authResult) {
     return { success: false, error: "Unauthorized" }
+  }
+
+  const rateLimit = await checkServerActionRateLimit(`parchment:sso:${authResult.profile.id}`, "admin")
+  if (!rateLimit.success) {
+    return { success: false, error: rateLimit.error || "Too many Parchment requests. Please wait and try again." }
   }
 
   // Defense-in-depth: block if feature flag is off (UI also guards this)
@@ -59,10 +102,20 @@ export async function getParchmentPrescribeUrlAction(
       }
     }
 
-    // Get patient_id from the intake (verify doctor owns it)
+    // Get patient_id from the intake and enforce prescribing eligibility server-side.
     const { data: intake } = await supabase
       .from("intakes")
-      .select("patient_id, claimed_by")
+      .select(`
+        patient_id,
+        status,
+        payment_status,
+        category,
+        subtype,
+        claimed_by,
+        reviewing_doctor_id,
+        reviewed_by,
+        service:services!service_id(type)
+      `)
       .eq("id", intakeId)
       .single()
 
@@ -70,10 +123,51 @@ export async function getParchmentPrescribeUrlAction(
       return { success: false, error: "Intake or patient not found" }
     }
 
-    // Defense-in-depth: verify this doctor claimed the intake
-    if (intake.claimed_by !== authResult.profile.id) {
-      log.warn("Parchment prescribe attempted by non-claiming doctor")
-      return { success: false, error: "You must claim this intake before prescribing" }
+    const serviceType = getServiceType(intake.service)
+    const eligibility = getParchmentPrescribingEligibility({
+      status: intake.status,
+      payment_status: intake.payment_status,
+      category: intake.category,
+      subtype: intake.subtype,
+      serviceType,
+    })
+    if (!eligibility.eligible) {
+      log.warn("Parchment prescribe blocked by intake eligibility", {
+        status: intake.status,
+        paymentStatus: intake.payment_status,
+        category: intake.category,
+        subtype: intake.subtype,
+        serviceType,
+      })
+      return { success: false, error: eligibility.error }
+    }
+
+    // Defense-in-depth: ensure a live doctor-owned review claim exists before SSO.
+    // The queue sheet is replaced by the Parchment sheet, so its cleanup can clear
+    // the soft lock just before this action runs. Re-claim here and verify the
+    // resulting row instead of trusting UI lifecycle timing.
+    if (!isParchmentClaimSatisfied(intake, authResult.profile.id)) {
+      const claim = await acquireIntakeLock(
+        intakeId,
+        authResult.profile.id,
+        authResult.profile.full_name || "Doctor",
+      )
+
+      if (!claim.acquired) {
+        log.warn("Parchment prescribe attempted while another clinician owns the review lock")
+        return { success: false, error: claim.warning || "This intake is currently claimed by another clinician." }
+      }
+
+      const { data: refreshedIntake } = await supabase
+        .from("intakes")
+        .select("claimed_by, reviewing_doctor_id, reviewed_by")
+        .eq("id", intakeId)
+        .single()
+
+      if (!refreshedIntake || !isParchmentClaimSatisfied(refreshedIntake, authResult.profile.id)) {
+        log.warn("Parchment prescribe blocked because review claim could not be verified")
+        return { success: false, error: "You must claim this intake before prescribing" }
+      }
     }
 
     const { data: answerRow } = await supabase
@@ -102,6 +196,16 @@ export async function getParchmentPrescribeUrlAction(
       doctorProfile.parchment_user_id,
       `/embed/patients/${parchmentPatientId}/prescriptions`,
     )
+
+    try {
+      await logNoPrescribingInPlatform(
+        intakeId,
+        getParchmentAuditRequestType({ category: intake.category, serviceType }),
+        authResult.profile.id,
+      )
+    } catch (auditError) {
+      log.warn("Failed to log Parchment prescribing boundary evidence", {}, auditError)
+    }
 
     log.info("Parchment prescribe URL generated")
 
@@ -137,16 +241,31 @@ export async function retryParchmentPatientSyncAction(
     return { success: false, error: "Invalid intake ID" }
   }
 
-  const authResult = await requireRoleOrNull(["doctor", "admin"])
+  const authResult = await requireRoleOrNull(["admin"])
   if (!authResult) {
     return { success: false, error: "Unauthorized" }
+  }
+
+  const rateLimit = await checkServerActionRateLimit(`parchment:sync-retry:${authResult.profile.id}`, "sensitive")
+  if (!rateLimit.success) {
+    return { success: false, error: rateLimit.error || "Too many Parchment sync attempts. Please wait and try again." }
   }
 
   try {
     const supabase = createServiceRoleClient()
     const { data: intake } = await supabase
       .from("intakes")
-      .select("patient_id, claimed_by, reviewing_doctor_id, reviewed_by")
+      .select(`
+        patient_id,
+        status,
+        payment_status,
+        category,
+        subtype,
+        claimed_by,
+        reviewing_doctor_id,
+        reviewed_by,
+        service:services!service_id(type)
+      `)
       .eq("id", intakeId)
       .single()
 
@@ -154,26 +273,40 @@ export async function retryParchmentPatientSyncAction(
       return { success: false, error: "Intake or patient not found" }
     }
 
-    let parchmentUserId = authResult.profile.parchment_user_id ?? null
+    const serviceType = getServiceType(intake.service)
+    const syncEligibility = getParchmentPatientSyncEligibility({
+      status: intake.status,
+      payment_status: intake.payment_status,
+      category: intake.category,
+      subtype: intake.subtype,
+      serviceType,
+    })
+    if (!syncEligibility.eligible) {
+      log.warn("Parchment patient sync retry blocked by intake eligibility", {
+        status: intake.status,
+        paymentStatus: intake.payment_status,
+        category: intake.category,
+        subtype: intake.subtype,
+        serviceType,
+      })
+      return { success: false, error: syncEligibility.error }
+    }
 
-    if (!parchmentUserId) {
-      const candidateDoctorIds = [
-        intake.claimed_by,
-        intake.reviewing_doctor_id,
-        intake.reviewed_by,
-      ].filter((value): value is string => Boolean(value))
+    let parchmentUserId: string | null = null
+    const candidateDoctorIds = getParchmentPrescriberCandidateIds(intake)
 
-      if (candidateDoctorIds.length > 0) {
-        const { data: doctorProfile } = await supabase
-          .from("profiles")
-          .select("parchment_user_id")
-          .in("id", candidateDoctorIds)
-          .not("parchment_user_id", "is", null)
-          .limit(1)
-          .maybeSingle()
+    if (candidateDoctorIds.length > 0) {
+      const { data: doctorProfiles } = await supabase
+        .from("profiles")
+        .select("id, parchment_user_id")
+        .in("id", candidateDoctorIds)
+        .not("parchment_user_id", "is", null)
 
-        parchmentUserId = doctorProfile?.parchment_user_id ?? null
-      }
+      const linkedDoctor = candidateDoctorIds
+        .map((id) => doctorProfiles?.find((profile) => profile.id === id && profile.parchment_user_id))
+        .find(Boolean)
+
+      parchmentUserId = linkedDoctor?.parchment_user_id ?? null
     }
 
     if (!parchmentUserId) {

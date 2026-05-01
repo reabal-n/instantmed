@@ -12,6 +12,9 @@ import {
 
 import { useReducedMotion } from "@/components/ui/motion"
 import { cn } from "@/lib/utils"
+import { validateAustralianAddress } from "@/lib/validation/australian-address"
+import { validateAustralianPhone } from "@/lib/validation/australian-phone"
+import { validateMedicareExpiry, validateMedicareNumber } from "@/lib/validation/medicare"
 import type { AustralianState } from "@/types/db"
 
 export interface ProfileData {
@@ -46,12 +49,36 @@ interface TodoItem {
   hint?: string
 }
 
-function getTodoItems(profile: ProfileData): TodoItem[] {
-  const hasPhone = Boolean(profile.phone)
-  const hasAddress = Boolean(
-    profile.addressLine1 && profile.suburb && profile.state && profile.postcode,
-  )
-  const hasMedicare = Boolean(profile.medicareNumber)
+function hasCompletePhone(profile: ProfileData): boolean {
+  return profile.phone ? validateAustralianPhone(profile.phone).valid : false
+}
+
+function hasCompleteAddress(profile: ProfileData): boolean {
+  return validateAustralianAddress({
+    addressLine1: profile.addressLine1 ?? undefined,
+    suburb: profile.suburb ?? undefined,
+    state: profile.state,
+    postcode: profile.postcode ?? undefined,
+  }).valid
+}
+
+function hasCompleteMedicare(profile: ProfileData): boolean {
+  if (!profile.medicareNumber || !validateMedicareNumber(profile.medicareNumber).valid) {
+    return false
+  }
+
+  const medicareIrn = profile.medicareIrn
+  if (typeof medicareIrn !== "number" || !Number.isInteger(medicareIrn) || medicareIrn < 1 || medicareIrn > 9) {
+    return false
+  }
+
+  return profile.medicareExpiry ? validateMedicareExpiry(profile.medicareExpiry).valid : true
+}
+
+export function getTodoItems(profile: ProfileData): TodoItem[] {
+  const hasPhone = hasCompletePhone(profile)
+  const hasAddress = hasCompleteAddress(profile)
+  const hasMedicare = hasCompleteMedicare(profile)
 
   return [
     {

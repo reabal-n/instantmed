@@ -124,11 +124,12 @@ export function PanelDashboard({
     [prescriptions],
   )
 
-  // Stale pending_payment intakes (older than 1 hour). Hero's "stale-payment"
-  // state surfaces the most-recent one; this metric stays for analytics.
+  // Failed checkout is immediately recoverable; pending_payment becomes stale
+  // after 1 hour. Hero's "stale-payment" state owns the patient prompt.
   const stalePaymentIntakes = useMemo(
     () =>
       intakes.filter((r) => {
+        if (r.status === "checkout_failed") return true
         if (r.status !== "pending_payment") return false
         const createdAt = new Date(r.created_at)
         return createdAt < new Date(Date.now() - 60 * 60 * 1000)

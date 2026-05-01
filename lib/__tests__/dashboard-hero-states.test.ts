@@ -182,6 +182,44 @@ describe("DashboardHero · resolveHeroState", () => {
       expect(result.state).toBe("default")
     })
 
+    it("checkout_failed surfaces immediate payment recovery", () => {
+      const result = resolveHeroState({
+        intakes: [mkIntake({ id: "i-failed", status: "checkout_failed", created_at: ONE_HOUR_AGO })],
+        prescriptions: [],
+      })
+
+      expect(result.state).toBe("stale-payment")
+      expect(result.intake?.id).toBe("i-failed")
+    })
+
+    it.each([
+      ["pending_info", "doctor-question", ONE_HOUR_AGO],
+      ["approved", "documents-ready", ONE_HOUR_AGO],
+      ["completed", "documents-ready", ONE_HOUR_AGO],
+      ["paid", "live-review", ONE_HOUR_AGO],
+      ["in_review", "live-review", ONE_HOUR_AGO],
+      ["checkout_failed", "stale-payment", ONE_HOUR_AGO],
+      ["pending_payment", "stale-payment", TWO_HOURS_AGO],
+    ] as const)(
+      "keeps critical patient status %s mapped to %s",
+      (status, expectedState, createdAt) => {
+        const result = resolveHeroState({
+          intakes: [
+            mkIntake({
+              id: `i-${status}`,
+              status,
+              created_at: createdAt,
+              updated_at: createdAt,
+            }),
+          ],
+          prescriptions: [],
+        })
+
+        expect(result.state).toBe(expectedState)
+        expect(result.intake?.id).toBe(`i-${status}`)
+      },
+    )
+
     it("renewal-due wins over followup-due and profile-incomplete", () => {
       const result = resolveHeroState({
         intakes: [mkIntake({ status: "completed", updated_at: ONE_DAY_AGO })],

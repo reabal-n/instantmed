@@ -6,12 +6,15 @@ import { useState } from "react"
 import { ClinicalCaseReview } from "@/components/doctor/clinical-case-review"
 import { useIntakeReview } from "@/components/doctor/review/intake-review-context"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { getQueueEnteredAt } from "@/lib/doctor/queue-utils"
 import { formatServiceType } from "@/lib/format/intake"
 import { cn } from "@/lib/utils"
 
 export function RequestInfoCard() {
   const { intake, service, answers, formatDate } = useIntakeReview()
   const [open, setOpen] = useState(true)
+  const submittedAt = intake.submitted_at ?? intake.created_at
+  const queueEnteredAt = getQueueEnteredAt(intake)
 
   return (
     <Card>
@@ -30,12 +33,12 @@ export function RequestInfoCard() {
           <div className="flex items-center gap-4 text-xs text-muted-foreground">
             <div className="flex items-center gap-1">
               <Clock className="h-3.5 w-3.5" />
-              Submitted: {formatDate(intake.created_at)}
+              Submitted: {formatDate(submittedAt)}
             </div>
-            {intake.paid_at && (
+            {(intake.payment_status === "paid" || intake.paid_at) && (
               <div className="flex items-center gap-1">
                 <CheckCircle className="h-3.5 w-3.5 text-emerald-500" />
-                Paid: {formatDate(intake.paid_at)}
+                Paid: {intake.paid_at ? formatDate(queueEnteredAt) : "time missing"}
               </div>
             )}
           </div>

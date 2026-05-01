@@ -22,7 +22,7 @@ import { useState, useTransition } from "react"
 import { toast } from "sonner"
 
 import type { AIDraft } from "@/app/actions/draft-approval"
-import { markRepeatScriptSentAction } from "@/app/actions/repeat-prescription"
+import { markScriptSentAction } from "@/app/doctor/queue/actions"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -31,8 +31,9 @@ interface RepeatPrescriptionChecklistProps {
   intakeId: string
   intakeStatus: string
   aiDrafts: AIDraft[]
-  prescriptionSentAt: string | null
-  prescriptionSentChannel: string | null
+  scriptSent: boolean
+  scriptSentAt: string | null
+  scriptSentChannel?: string | null
   doctorName?: string
 }
 
@@ -40,13 +41,14 @@ export function RepeatPrescriptionChecklist({
   intakeId,
   intakeStatus,
   aiDrafts,
-  prescriptionSentAt,
-  prescriptionSentChannel,
+  scriptSent,
+  scriptSentAt,
+  scriptSentChannel,
   doctorName,
 }: RepeatPrescriptionChecklistProps) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
-  const [isScriptSent, setIsScriptSent] = useState(!!prescriptionSentAt)
+  const [isScriptSent, setIsScriptSent] = useState(scriptSent)
 
   // Check if EMR note is drafted
   const clinicalNoteDraft = aiDrafts.find(
@@ -65,34 +67,20 @@ export function RepeatPrescriptionChecklist({
   const handleScriptSentToggle = (checked: boolean) => {
     if (isPending) return
 
-    // Only allow checking (not unchecking) unless admin or within window
-    if (!checked && isScriptSent) {
-      // For undo, we still call the action which handles the 5-minute window
-      startTransition(async () => {
-        const result = await markRepeatScriptSentAction(intakeId, false)
-        if (result.success) {
-          setIsScriptSent(false)
-          toast.success("Script sent status undone")
-          router.refresh()
-        } else {
-          toast.error(result.error || "Failed to undo")
-        }
-      })
+    if (!checked || isScriptSent) {
       return
     }
 
-    if (checked && !isScriptSent) {
-      startTransition(async () => {
-        const result = await markRepeatScriptSentAction(intakeId, true, "parchment")
-        if (result.success) {
-          setIsScriptSent(true)
-          toast.success("Script marked as sent - intake completed")
-          router.refresh()
-        } else {
-          toast.error(result.error || "Failed to mark script as sent")
-        }
-      })
-    }
+    startTransition(async () => {
+      const result = await markScriptSentAction(intakeId, undefined, "parchment")
+      if (result.success) {
+        setIsScriptSent(true)
+        toast.success("Script marked as sent")
+        router.refresh()
+      } else {
+        toast.error(result.error || "Failed to mark script as sent")
+      }
+    })
   }
 
   // Format sent timestamp
@@ -161,7 +149,7 @@ export function RepeatPrescriptionChecklist({
                 id="script-sent"
                 checked={scriptChecked}
                 onCheckedChange={handleScriptSentToggle}
-                disabled={isPending || intakeStatus === "completed"}
+                disabled={isPending || isScriptSent || intakeStatus === "completed"}
                 className="mt-0.5 data-[state=checked]:bg-emerald-600 data-[state=checked]:border-emerald-600"
               />
             )}
@@ -172,12 +160,12 @@ export function RepeatPrescriptionChecklist({
               className="text-sm font-medium leading-none flex items-center gap-2 cursor-pointer"
             >
               <Send className="h-4 w-4 text-primary" />
-              Script sent via {prescriptionSentChannel || "Parchment"}
+              Script sent via {scriptSentChannel || "Parchment"}
             </label>
-            {prescriptionSentAt ? (
+            {scriptSentAt ? (
               <p className="text-xs text-muted-foreground flex items-center gap-1">
                 <Clock className="h-3 w-3" />
-                Sent {formatSentTime(prescriptionSentAt)}
+                Sent {formatSentTime(scriptSentAt)}
                 {doctorName && (
                   <>
                     <span className="mx-1">•</span>

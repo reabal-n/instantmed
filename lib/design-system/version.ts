@@ -19,10 +19,13 @@
  *                         `<DashboardSection>`, `<DashboardPageHeader>`.
  *                         legacy dashboard aliases removed. Doctor + admin
  *                         portal sweeps tracked separately.
+ *   2.0.1 (2026-05-01) — Removed unused glass/glow shim files and the unused
+ *                         GlassCard effect module. Canonical files now use
+ *                         `stat-card.tsx` and `status-badge.tsx`.
  *
  * Consumers (plan doc, future packages) pin against this. Changelog lives
  * at docs/DESIGN_SYSTEM_CHANGELOG.md.
  */
-export const DESIGN_SYSTEM_VERSION = "2.0.0" as const
+export const DESIGN_SYSTEM_VERSION = "2.0.1" as const
 
 export type DesignSystemVersion = typeof DESIGN_SYSTEM_VERSION

@@ -52,6 +52,23 @@ export async function PATCH(
     }
 
     const { status, notes } = parsed.data
+    const supabase = createServiceRoleClient()
+    const { data: task, error: taskError } = await supabase
+      .from("script_tasks")
+      .select("id, intake_id, doctor_id")
+      .eq("id", id)
+      .single()
+
+    if (taskError || !task) {
+      return NextResponse.json({ error: "Task not found" }, { status: 404 })
+    }
+
+    if (profile.role !== "admin" && task.doctor_id !== profile.id) {
+      return NextResponse.json(
+        { error: "You can only update your own script tasks" },
+        { status: 403 },
+      )
+    }
 
     const success = await updateScriptTaskStatus(id, status, notes)
 
@@ -67,12 +84,6 @@ export async function PATCH(
     // outside the platform.
     if (status === "sent") {
       try {
-        const supabase = createServiceRoleClient()
-        const { data: task } = await supabase
-          .from("script_tasks")
-          .select("intake_id")
-          .eq("id", id)
-          .single()
         if (task?.intake_id) {
           await logExternalPrescribingIndicated(
             task.intake_id,

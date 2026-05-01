@@ -323,7 +323,7 @@ Config-driven, immutably versioned. Template config stored as JSONB in `certific
 | `/doctor/intakes/[id]/document` | Med cert generation | `getOrCreateMedCertDraftForIntake()` |
 | `/doctor/patients` | Patient list (capped 100) | Direct Supabase query |
 | `/doctor/analytics` | Intake + payment analytics | Direct Supabase query |
-| `/doctor/repeat-rx/[id]` | Repeat prescription review | Intake + patient join |
+| `/doctor/scripts` | External script task list | `script_tasks` scoped by doctor/admin role |
 | `/doctor/settings/identity` | Doctor identity config | Doctor profile |
 
 **Queue architecture:** Paginated (`pageSize` capped at 100 via `Math.min()`). Stale data warning shown when queue may be out of date. Polling-based refresh. Paused doctors (`profiles.doctor_available = false`) receive an empty queue — `getDoctorQueue({ doctorId })` filters them out so they do not see new intakes.
@@ -442,7 +442,7 @@ All tables have RLS policies. PHI fields use AES-256-GCM field-level encryption.
 | **Admin** (2) | `/api/admin/*` | `test-email`, `webhook-dlq` |
 | **AI** (6) | `/api/ai/*` | `chat-intake`, `chat-intake/validate`, `clinical-note`, `form-validation`, `med-cert-draft`, `symptom-suggestions` |
 | **Cron** (21) | `/api/cron/*` | See OPERATIONS.md for full cron table |
-| **Doctor** (13) | `/api/doctor/*` | `assign-request`, `update-request`, `bulk-action`, `certificates/[intakeId]/download`, `drafts/[intakeId]`, `intakes/[id]/review-data`, `monitoring-stats`, `onboarding-status`, `script-sent`, `scripts` (index + `[id]`), `export`, `log-view-duration` |
+| **Doctor** (12) | `/api/doctor/*` | `assign-request`, `update-request`, `bulk-action`, `certificates/[intakeId]/download`, `drafts/[intakeId]`, `intakes/[id]/review-data`, `monitoring-stats`, `onboarding-status`, `scripts` (index + `[id]`), `export`, `log-view-duration` |
 | **Patient** (14) | `/api/patient/*` | `certificates/[id]/download`, `documents/[intakeId]/download`, `get-invoices`, `download-invoice`, `health-profile`, `intake-status`, `messages` (GET/POST), `profile` (PATCH), `referral`, `refill-prescription`, `retry-payment`, `resend-confirmation`, `last-prescription`, `update-profile` |
 | **Med Cert** (2) | `/api/med-cert/*` | `preview` (GET), `render` (POST) |
 | **Stripe Portal** (1) | `/api/stripe/customer-portal` | POST → creates Stripe billing portal session for subscription management |

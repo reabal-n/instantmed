@@ -159,7 +159,7 @@ export async function POST(req: NextRequest) {
         stripe_customer_id: stripeCustomerId,
       })
       .eq("id", intakeId)
-      .in("payment_status", ["pending", "unpaid"])
+      .in("payment_status", ["pending", "unpaid", "failed"])
 
     if (updateError) {
       log.error("Failed to update intake via fallback", { intakeId }, updateError)

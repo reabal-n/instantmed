@@ -21,7 +21,7 @@ export async function handleCheckoutSessionExpired(ctx: WebhookContext): Promise
   })
 
   // Atomic claim
-  const shouldProcess = await tryClaimEvent(
+  const shouldProcess = ctx.adminReplay || await tryClaimEvent(
     supabase,
     event.id,
     event.type,
@@ -37,7 +37,7 @@ export async function handleCheckoutSessionExpired(ctx: WebhookContext): Promise
   if (intakeId) {
     try {
       // Update intake status and payment_status to expired if still pending payment
-      const { error: expireError } = await supabase
+      const { data: expiredIntake, error: expireError } = await supabase
         .from("intakes")
         .update({
           status: "expired",
@@ -45,10 +45,21 @@ export async function handleCheckoutSessionExpired(ctx: WebhookContext): Promise
           updated_at: new Date().toISOString(),
         })
         .eq("id", intakeId)
+        .eq("payment_id", session.id)
         .eq("status", "pending_payment")
+        .select("id")
+        .maybeSingle()
 
       if (expireError) {
         log.error("Error expiring intake", { sessionId: session.id }, expireError)
+      }
+
+      if (!expiredIntake) {
+        log.info("Expired event ignored because checkout session is no longer current", {
+          eventId: event.id,
+          sessionId: session.id,
+        })
+        return NextResponse.json({ received: true, skipped: true })
       }
 
       log.info("Intake session expired", {

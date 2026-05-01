@@ -4,6 +4,8 @@ import { toError } from "@/lib/errors"
 import { logger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
+const LOCKABLE_STATUSES = ["paid", "in_review", "pending_info", "awaiting_script"] as const
+
 /**
  * Soft Session Lock for Intake Review
  * 
@@ -42,9 +44,17 @@ export async function acquireIntakeLock(
     // Check for existing active lock (check both reviewing_doctor_id and claimed_by)
     const { data: intake } = await supabase
       .from("intakes")
-      .select("reviewing_doctor_id, reviewing_doctor_name, review_started_at, claimed_by, claimed_at")
+      .select("status, payment_status, reviewing_doctor_id, reviewing_doctor_name, review_started_at, claimed_by, claimed_at")
       .eq("id", intakeId)
       .single()
+
+    if (
+      !intake ||
+      intake.payment_status !== "paid" ||
+      !LOCKABLE_STATUSES.includes(intake.status as (typeof LOCKABLE_STATUSES)[number])
+    ) {
+      return { acquired: true }
+    }
 
     // Check reviewing lock
     if (intake?.reviewing_doctor_id && intake.review_started_at) {
@@ -135,7 +145,7 @@ export async function releaseIntakeLock(
       })
       .eq("id", intakeId)
       .eq("reviewing_doctor_id", doctorId)
-      .in("status", ["paid", "in_review", "pending_info"])
+      .in("status", LOCKABLE_STATUSES)
 
     if (error) {
       logger.error("Failed to release intake lock", { intakeId, doctorId }, error)

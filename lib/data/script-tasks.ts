@@ -9,7 +9,6 @@ export type ScriptTaskStatus = "pending_send" | "sent" | "confirmed"
 export interface ScriptTask {
   id: string
   intake_id: string | null
-  repeat_rx_request_id: string | null
   doctor_id: string
   patient_name: string
   patient_email: string | null
@@ -43,7 +42,7 @@ export async function getScriptTasks(filters?: {
     operation: async () => {
       let query = supabase
         .from("script_tasks")
-        .select("id, intake_id, repeat_rx_request_id, doctor_id, patient_name, patient_email, medication_name, medication_strength, medication_form, status, notes, sent_at, confirmed_at, created_at, updated_at", { count: "exact" })
+        .select("id, intake_id, doctor_id, patient_name, patient_email, medication_name, medication_strength, medication_form, status, notes, sent_at, confirmed_at, created_at, updated_at", { count: "exact" })
         .order("created_at", { ascending: false })
         .range(from, to)
 
@@ -63,7 +62,7 @@ export async function getScriptTasks(filters?: {
   })
 }
 
-export async function getScriptTaskCounts(): Promise<{
+export async function getScriptTaskCounts(filters?: { doctorId?: string }): Promise<{
   pending_send: number
   sent: number
   confirmed: number
@@ -73,10 +72,18 @@ export async function getScriptTaskCounts(): Promise<{
   const data = await readDashboardQuery({
     label: "script task counts",
     fallback: [] as Array<{ status: ScriptTaskStatus }>,
-    context: { surface: "doctor-scripts" },
-    operation: async () => await supabase
-      .from("script_tasks")
-      .select("status"),
+    context: { surface: "doctor-scripts", hasDoctorId: Boolean(filters?.doctorId) },
+    operation: async () => {
+      let query = supabase
+        .from("script_tasks")
+        .select("status")
+
+      if (filters?.doctorId) {
+        query = query.eq("doctor_id", filters.doctorId)
+      }
+
+      return await query
+    },
   })
 
   const counts = {
@@ -93,42 +100,6 @@ export async function getScriptTaskCounts(): Promise<{
   }
 
   return counts
-}
-
-export async function createScriptTask(task: {
-  intake_id?: string
-  repeat_rx_request_id?: string
-  doctor_id: string
-  patient_name: string
-  patient_email?: string
-  medication_name?: string
-  medication_strength?: string
-  medication_form?: string
-}): Promise<ScriptTask | null> {
-  const supabase = createServiceRoleClient()
-
-  const { data, error } = await supabase
-    .from("script_tasks")
-    .insert({
-      intake_id: task.intake_id || null,
-      repeat_rx_request_id: task.repeat_rx_request_id || null,
-      doctor_id: task.doctor_id,
-      patient_name: task.patient_name,
-      patient_email: task.patient_email || null,
-      medication_name: task.medication_name || null,
-      medication_strength: task.medication_strength || null,
-      medication_form: task.medication_form || null,
-      status: "pending_send",
-    })
-    .select("id, intake_id, doctor_id, status, created_at")
-    .single()
-
-  if (error) {
-    log.error("Failed to create script task", { error: error.message })
-    return null
-  }
-
-  return data as ScriptTask
 }
 
 export async function updateScriptTaskStatus(

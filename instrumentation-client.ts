@@ -2,7 +2,7 @@
 // The added config here will be used whenever a users loads a page in their browser.
 // https://docs.sentry.io/platforms/javascript/guides/nextjs/
 
-import { scrubPHI, scrubPHIFromObject } from "@/lib/observability/scrub-phi";
+import { scrubSentryBreadcrumb, scrubSentryEvent } from "@/lib/observability/scrub-phi";
 
 // Sentry module reference — populated after lazy load.
 // Exported as a function ref so Next.js router can capture transitions even if
@@ -91,26 +91,12 @@ async function loadAndInitSentry() {
 
     beforeSend(event) {
       if (!sentryEnabled) return null;
-      if (event.request?.headers) {
-        delete event.request.headers["Authorization"];
-        delete event.request.headers["Cookie"];
-      }
-      if (event.extra) {
-        event.extra = scrubPHIFromObject(event.extra) as Record<string, unknown>;
-      }
-      if (event.breadcrumbs) {
-        for (const breadcrumb of event.breadcrumbs) {
-          if (breadcrumb.message) breadcrumb.message = scrubPHI(breadcrumb.message);
-          if (breadcrumb.data) breadcrumb.data = scrubPHIFromObject(breadcrumb.data) as Record<string, unknown>;
-        }
-      }
+      scrubSentryEvent(event);
       if (isPlaywrightMode) event.tags = { ...event.tags, playwright: "1" };
       return event;
     },
     beforeBreadcrumb(breadcrumb) {
-      if (breadcrumb.message) breadcrumb.message = scrubPHI(breadcrumb.message);
-      if (breadcrumb.data) breadcrumb.data = scrubPHIFromObject(breadcrumb.data) as Record<string, unknown>;
-      return breadcrumb;
+      return scrubSentryBreadcrumb(breadcrumb);
     },
   });
 

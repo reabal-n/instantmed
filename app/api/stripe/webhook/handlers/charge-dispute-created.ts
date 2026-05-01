@@ -25,7 +25,7 @@ export async function handleChargeDisputeCreated(ctx: WebhookContext): Promise<H
     status: dispute.status,
   })
 
-  const shouldProcess = await tryClaimEvent(supabase, event.id, event.type, undefined, chargeId)
+  const shouldProcess = ctx.adminReplay || await tryClaimEvent(supabase, event.id, event.type, undefined, chargeId)
   if (!shouldProcess) {
     return NextResponse.json({ received: true, skipped: true })
   }

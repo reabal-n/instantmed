@@ -7,6 +7,7 @@ import type Stripe from "stripe"
  * Keeps handler signatures consistent and avoids threading arguments through deeply.
  */
 export interface WebhookContext {
+  adminReplay?: boolean
   event: Stripe.Event
   supabase: SupabaseClient
   startTime: number

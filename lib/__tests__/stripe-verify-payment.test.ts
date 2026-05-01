@@ -175,10 +175,48 @@ describe("POST /api/stripe/verify-payment", () => {
       stripe_payment_intent_id: "pi_paid",
       stripe_customer_id: "cus_test",
     })
-    expect(intakeUpdate.in).toHaveBeenCalledWith("payment_status", ["pending", "unpaid"])
+    expect(intakeUpdate.in).toHaveBeenCalledWith("payment_status", ["pending", "unpaid", "failed"])
     expect(mocks.startPostPaymentReviewWork).toHaveBeenCalledWith(expect.objectContaining({
       intakeId: "intake-1",
       supabase: expect.any(Object),
     }))
+  })
+
+  it("settles a paid retry session after a previous failed payment attempt", async () => {
+    const { intakeUpdate, updates } = setupSupabase({
+      intake: {
+        id: "intake-1",
+        amount_cents: 1995,
+        payment_id: "cs_retry",
+        payment_status: "failed",
+        status: "checkout_failed",
+      },
+    })
+    mocks.retrieveCheckoutSession.mockResolvedValue({
+      id: "cs_retry",
+      customer: "cus_test",
+      metadata: { intake_id: "intake-1" },
+      payment_intent: "pi_retry_paid",
+      payment_status: "paid",
+    })
+
+    const response = await POST(makeRequest({
+      intakeId: "intake-1",
+      sessionId: "cs_retry",
+    }))
+    const body = await response.json()
+
+    expect(response.status).toBe(200)
+    expect(body).toEqual({
+      fallback_applied: true,
+      status: "paid",
+      success: true,
+    })
+    expect(updates[0]).toMatchObject({
+      payment_status: "paid",
+      status: "paid",
+      stripe_payment_intent_id: "pi_retry_paid",
+    })
+    expect(intakeUpdate.in).toHaveBeenCalledWith("payment_status", ["pending", "unpaid", "failed"])
   })
 })

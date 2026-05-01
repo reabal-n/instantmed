@@ -67,8 +67,9 @@ export function IntakeDetailDrafts({
           intakeId={intake.id}
           intakeStatus={intake.status}
           aiDrafts={aiDrafts}
-          prescriptionSentAt={intake.prescription_sent_at || null}
-          prescriptionSentChannel={intake.prescription_sent_channel || null}
+          scriptSent={Boolean(intake.script_sent)}
+          scriptSentAt={intake.script_sent_at || null}
+          scriptSentChannel={intake.parchment_reference ? "Parchment" : null}
         />
       )}
 

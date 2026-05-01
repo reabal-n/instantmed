@@ -8,6 +8,7 @@ export interface QueueClientProps {
   intakes: IntakeWithPatient[]
   doctorId: string
   identityComplete?: boolean
+  queueDegraded?: boolean
   pagination?: PaginationInfo
   aiApprovedIntakes?: IntakeWithPatient[]
   recentlyCompleted?: IntakeWithPatient[]

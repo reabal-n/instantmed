@@ -316,6 +316,53 @@ interface MedicareDrawerProps {
   profileData: ProfileData
 }
 
+export function validateMedicareDrawerFields({
+  medicareNumber,
+  irn,
+  expiryMonth,
+  expiryYear,
+}: {
+  medicareNumber: string
+  irn: number | null
+  expiryMonth: string | null
+  expiryYear: number | null
+}): { errors: Record<string, string>; expiryWarning: string | null } {
+  const errors: Record<string, string> = {}
+  let expiryWarning: string | null = null
+  const hasMedicareData = medicareNumber.length > 0 || irn !== null || expiryMonth !== null || expiryYear !== null
+
+  if (!hasMedicareData) {
+    return { errors, expiryWarning }
+  }
+
+  if (!medicareNumber) {
+    errors.medicare = "Medicare number is required when saving card details"
+  } else {
+    const result = validateMedicareNumber(medicareNumber)
+    if (!result.valid) errors.medicare = result.error || "Invalid Medicare number"
+  }
+
+  if (medicareNumber.length >= 10 && !irn) {
+    errors.irn = "Please select your IRN"
+  }
+
+  if (expiryMonth || expiryYear) {
+    if (!expiryMonth || !expiryYear) {
+      errors.expiry = "Select both expiry month and year, or leave expiry blank"
+    } else {
+      const expiryDate = `${expiryYear}-${expiryMonth}-01`
+      const expiryValidation = validateMedicareExpiry(expiryDate)
+      if (!expiryValidation.valid) {
+        errors.expiry = expiryValidation.error || "Invalid expiry date"
+      } else if (expiryValidation.isExpiringSoon) {
+        expiryWarning = "Your Medicare card is expiring soon. Please update it after this visit."
+      }
+    }
+  }
+
+  return { errors, expiryWarning }
+}
+
 export function MedicareDrawerContent({ profileData }: MedicareDrawerProps) {
   const prefersReducedMotion = useReducedMotion()
   const { closePanel } = usePanel()
@@ -370,33 +417,15 @@ export function MedicareDrawerContent({ profileData }: MedicareDrawerProps) {
   }
 
   const validate = (): boolean => {
-    const errs: Record<string, string> = {}
-    const hasMedicareData = medicareNumber.length > 0 || irn !== null || expiryMonth !== null || expiryYear !== null
-
-    if (hasMedicareData) {
-      if (medicareNumber.length > 0) {
-        const result = validateMedicareNumber(medicareNumber)
-        if (!result.valid) errs.medicare = result.error || "Invalid Medicare number"
-      }
-      if (medicareNumber.length >= 10 && !irn) {
-        errs.irn = "Please select your IRN"
-      }
-      if (medicareNumber.length >= 10 && (!expiryMonth || !expiryYear)) {
-        errs.expiry = "Please select expiry date"
-      } else if (expiryMonth && expiryYear) {
-        const expiryDate = `${expiryYear}-${expiryMonth}-01`
-        const expiryValidation = validateMedicareExpiry(expiryDate)
-        if (!expiryValidation.valid) {
-          errs.expiry = expiryValidation.error || "Invalid expiry date"
-        } else if (expiryValidation.isExpiringSoon) {
-          setExpiryWarning("Your Medicare card is expiring soon. Please update it after this visit.")
-        } else {
-          setExpiryWarning(null)
-        }
-      }
-    }
+    const { errors: errs, expiryWarning: nextExpiryWarning } = validateMedicareDrawerFields({
+      medicareNumber,
+      irn,
+      expiryMonth,
+      expiryYear,
+    })
 
     setErrors(errs)
+    setExpiryWarning(nextExpiryWarning)
     return Object.keys(errs).length === 0
   }
 
@@ -515,7 +544,7 @@ export function MedicareDrawerContent({ profileData }: MedicareDrawerProps) {
 
       {/* Expiry */}
       <div className="space-y-1.5">
-        <label className="text-sm font-medium text-foreground">Card expiry</label>
+        <label className="text-sm font-medium text-foreground">Card expiry (optional)</label>
         <div className="space-y-2">
           <div className="grid grid-cols-6 gap-1.5">
             {MONTHS.map((m) => (

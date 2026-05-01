@@ -21,6 +21,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { EmptyState } from "@/components/ui/empty-state"
 import { Textarea } from "@/components/ui/textarea"
 import { formatDate } from "@/lib/format"
+import { fetchWithCsrf } from "@/lib/security/csrf-client"
 import { cn } from "@/lib/utils"
 
 interface Message {
@@ -85,7 +86,7 @@ export function MessagesClient({
 
     setSending(true)
     try {
-      const response = await fetch("/api/patient/messages", {
+      const response = await fetchWithCsrf("/api/patient/messages", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

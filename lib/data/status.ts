@@ -33,6 +33,11 @@ interface StatusConfig {
  * This replaces per-page STATUS_CONFIG objects.
  */
 export const INTAKE_STATUS: Record<IntakeStatus, StatusConfig> = {
+  draft: {
+    label: "Draft",
+    color: "bg-gray-100 dark:bg-gray-950/40 text-gray-700 dark:text-gray-300",
+    icon: Clock,
+  },
   approved: {
     label: "Approved",
     color: "bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300",
@@ -67,6 +72,11 @@ export const INTAKE_STATUS: Record<IntakeStatus, StatusConfig> = {
     label: "Declined",
     color: "bg-red-100 dark:bg-red-950/40 text-red-700 dark:text-red-300",
     icon: XCircle,
+  },
+  escalated: {
+    label: "Escalated",
+    color: "bg-red-100 dark:bg-red-950/40 text-red-700 dark:text-red-300",
+    icon: ShieldAlert,
   },
   pending_info: {
     label: "More Info Needed",

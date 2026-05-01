@@ -50,7 +50,6 @@ const ADMIN_PAGES = [
 
 const DOCTOR_PAGES = [
   "/doctor/dashboard",
-  "/doctor/repeat-rx",
   "/doctor/scripts",
   "/doctor/patients",
   "/admin",
@@ -369,7 +368,6 @@ test.describe("Dashboard Audit - Link navigation", () => {
     await waitForPageLoad(page)
 
     const links = [
-      { href: "/doctor/repeat-rx", label: /repeat rx/i },
       { href: "/doctor/scripts", label: /scripts/i },
       { href: "/doctor/patients", label: /patients/i },
     ]

@@ -269,7 +269,7 @@ export async function declineIntake(input: DeclineInput): Promise<DeclineResult>
           reason: reason || "Your request could not be approved at this time.",
         })
         emailSent = true
-        logger.info("[Decline] Decline email sent", { intakeId, to: patient.email })
+        logger.info("[Decline] Decline email sent", { intakeId, emailSent: true })
       } catch (emailError) {
         logger.error("[Decline] Failed to send decline email", { intakeId }, emailError instanceof Error ? emailError : undefined)
         // Don't fail the decline if email fails

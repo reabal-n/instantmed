@@ -16,7 +16,7 @@ import Link from "next/link"
 import { ClinicalCaseReview } from "@/components/doctor"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { buildPatientSnapshot } from "@/lib/doctor/patient-snapshot"
+import { buildPatientSnapshot, getPatientSnapshotOptionsForCase } from "@/lib/doctor/patient-snapshot"
 import { formatDate,formatDateLong } from "@/lib/format"
 import { formatIntakeStatus, formatServiceType } from "@/lib/format/intake"
 import type { IntakeWithDetails, IntakeWithPatient } from "@/types/db"
@@ -52,7 +52,12 @@ export function IntakeDetailAnswers({
 }: IntakeDetailAnswersProps) {
   const service = intake.service as { name?: string; type?: string; short_name?: string } | undefined
   const answers = intake.answers?.answers || {}
-  const snapshot = buildPatientSnapshot(intake.patient)
+  const snapshot = buildPatientSnapshot(intake.patient, getPatientSnapshotOptionsForCase({
+    answers: answers as Record<string, unknown>,
+    category: intake.category,
+    serviceType: service?.type,
+    subtype: intake.subtype,
+  }))
 
   return (
     <>

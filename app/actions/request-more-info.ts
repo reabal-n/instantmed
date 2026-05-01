@@ -109,29 +109,28 @@ export async function requestMoreInfoAction(
       return { success: false, error: "Message is required" }
     }
 
-    // Update intake status and store info request details
-    const { error: updateError } = await supabase
-      .from("intakes")
-      .update({
-        status: "pending_info",
-        previous_status: intake.status,
-        info_request_code: templateCode,
-        info_request_message: message,
-        info_requested_at: now,
-        info_requested_by: profile.id,
-        updated_at: now,
-      })
-      .eq("id", intakeId)
+    const trimmedMessage = message.trim()
+    const patientData = intake.patient as { id: string; full_name: string; email: string } | { id: string; full_name: string; email: string }[] | null
+    const patient = Array.isArray(patientData) ? patientData[0] : patientData
 
-    if (updateError) {
-      log.error("Failed to update intake for info request", { intakeId }, updateError)
+    const { error: transitionError } = await supabase
+      .rpc("request_more_info_atomic", {
+        p_doctor_id: profile.id,
+        p_intake_id: intakeId,
+        p_message: trimmedMessage,
+        p_requested_at: now,
+        p_template_code: templateCode,
+      })
+
+    if (transitionError) {
+      if (transitionError.message?.includes("request_more_info_status_not_allowed")) {
+        return { success: false, error: "Cannot request info for this request status" }
+      }
+      log.error("Failed to atomically request patient info", {}, transitionError)
       return { success: false, error: "Failed to update request" }
     }
 
     // Send email to patient
-    const patientData = intake.patient as { id: string; full_name: string; email: string } | { id: string; full_name: string; email: string }[] | null
-    const patient = Array.isArray(patientData) ? patientData[0] : patientData
-
     if (patient?.email) {
       await sendEmail({
         to: patient.email,
@@ -141,7 +140,7 @@ export async function requestMoreInfoAction(
           patientName: patient.full_name?.split(" ")[0] || "there",
           requestType: intake.category || "request",
           requestId: intakeId,
-          doctorMessage: message,
+          doctorMessage: trimmedMessage,
         }),
         emailType: "needs_more_info",
         intakeId,
@@ -156,7 +155,7 @@ export async function requestMoreInfoAction(
         ],
       })
 
-      log.info("Info request email sent", { intakeId, to: patient.email })
+      log.info("Info request email sent", { hasPatientEmail: true })
     }
 
     // Revalidate paths
@@ -168,7 +167,6 @@ export async function requestMoreInfoAction(
     return { success: true }
   } catch (error) {
     log.error("Request more info error", {
-      intakeId,
       error: error instanceof Error ? error.message : String(error),
     })
     return { success: false, error: "Failed to request more information" }

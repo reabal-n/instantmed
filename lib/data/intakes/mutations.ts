@@ -2,6 +2,7 @@ import "server-only"
 
 import { revalidateTag } from "next/cache"
 
+import { getParchmentScriptCompletionEligibility } from "@/lib/doctor/parchment-claim"
 import { toError } from "@/lib/errors"
 import { createLogger } from "@/lib/observability/logger"
 import { prepareDoctorNotesWrite, preparePatientNoteContentWrite, readPatientNoteContent } from "@/lib/security/phi-field-wrappers"
@@ -27,6 +28,12 @@ import {
 import { triggerStatusEmail } from "./email-triggers"
 
 const logger = createLogger("data-intakes-mutations")
+
+type ServiceRelation = { type?: string | null } | { type?: string | null }[] | null
+
+function getServiceType(service: ServiceRelation | undefined): string | null {
+  return Array.isArray(service) ? service[0]?.type ?? null : service?.type ?? null
+}
 
 // ============================================
 // CREATE / UPDATE OPERATIONS
@@ -214,6 +221,52 @@ export async function updateScriptSent(
 ): Promise<boolean> {
   const supabase = createServiceRoleClient()
   const now = new Date().toISOString()
+
+  if (!scriptSent) {
+    logger.warn("[updateScriptSent] Script sent reversal blocked; use the audited prescription reversal workflow", { intakeId })
+    return false
+  }
+
+  if (scriptSent) {
+    const { data: intake, error: intakeError } = await supabase
+      .from("intakes")
+      .select(`
+        status, payment_status, category, subtype, script_sent,
+        service:services!service_id(type)
+      `)
+      .eq("id", intakeId)
+      .single()
+
+    if (intakeError || !intake) {
+      logger.warn("[updateScriptSent] Failed to fetch intake before script completion", { intakeId })
+      return false
+    }
+
+    if (intake.script_sent === true && intake.status === "completed") {
+      return true
+    }
+
+    const serviceType = getServiceType(intake.service as ServiceRelation)
+    const eligibility = getParchmentScriptCompletionEligibility({
+      status: intake.status,
+      payment_status: intake.payment_status,
+      category: intake.category,
+      subtype: intake.subtype,
+      serviceType,
+    })
+
+    if (!eligibility.eligible) {
+      logger.warn("[updateScriptSent] Blocked script completion for ineligible intake", {
+        intakeId,
+        status: intake.status,
+        paymentStatus: intake.payment_status,
+        category: intake.category,
+        subtype: intake.subtype,
+        serviceType,
+      })
+      return false
+    }
+  }
 
   // First, update only the script-related fields
   const { error: scriptError } = await supabase

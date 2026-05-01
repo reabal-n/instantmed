@@ -16,7 +16,7 @@ export interface AuditLog {
   profile_id: string | null
   admin_action_id: string | null
   actor_id: string | null
-  actor_type: "patient" | "admin" | "system" | "webhook"
+  actor_type: "patient" | "doctor" | "admin" | "system" | "webhook"
   description: string | null
   previous_state: Record<string, unknown> | null
   new_state: Record<string, unknown> | null
@@ -63,6 +63,7 @@ export function getAuditEventTypes(): { value: string; label: string }[] {
     { value: "status_changed", label: "Status Changed" },
     { value: "document_generated", label: "Document Generated" },
     { value: "document_sent", label: "Document Sent" },
+    { value: "request_more_info", label: "Request More Info" },
     { value: "admin_action", label: "Admin Action" },
     { value: "patient_profiles_merged", label: "Patient Profiles Merged" },
     { value: "settings_changed", label: "Settings Changed" },
@@ -86,6 +87,7 @@ export function formatEventType(type: string): string {
 export function formatActorType(type: string): string {
   const labels: Record<string, string> = {
     patient: "Patient",
+    doctor: "Doctor",
     admin: "Admin",
     system: "System",
     webhook: "Webhook",

@@ -22,19 +22,37 @@ export async function handlePaymentIntentFailed(ctx: WebhookContext): Promise<Ha
     failureMessage: paymentIntent.last_payment_error?.message,
   })
 
-  const shouldProcess = await tryClaimEvent(supabase, event.id, event.type, intakeId, paymentIntent.id)
+  const shouldProcess = ctx.adminReplay || await tryClaimEvent(supabase, event.id, event.type, intakeId, paymentIntent.id)
   if (!shouldProcess) {
     return NextResponse.json({ received: true, skipped: true })
   }
 
   if (intakeId) {
-    await supabase
+    const { data: failedIntake, error: updateError } = await supabase
       .from("intakes")
       .update({
         payment_status: "failed",
+        status: "checkout_failed",
         updated_at: new Date().toISOString(),
       })
       .eq("id", intakeId)
+      .in("status", ["pending_payment", "checkout_failed"])
+      .in("payment_status", ["pending", "unpaid", "failed"])
+      .select("id")
+      .maybeSingle()
+
+    if (updateError) {
+      log.error("Failed to mark payment intent failure", { eventId: event.id, paymentIntentId: paymentIntent.id }, updateError)
+      return NextResponse.json({ received: true })
+    }
+
+    if (!failedIntake) {
+      log.info("Payment failure ignored because intake is no longer retryable", {
+        eventId: event.id,
+        paymentIntentId: paymentIntent.id,
+      })
+      return NextResponse.json({ received: true, skipped: true })
+    }
 
     // Track business metric: payment failed
     trackBusinessMetric({

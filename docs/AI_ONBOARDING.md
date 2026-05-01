@@ -21,7 +21,7 @@ Read (or re-read) these before touching any `.tsx` / `.css` in `app/` or `compon
 13. **`components/marketing/sections/service-claim-section.tsx`** — `<ServiceClaimSection>` page claim anchor. Claims must be evidence-backed and compliant with `docs/ADVERTISING_COMPLIANCE.md`.
 14. **`components/sections/section-header.tsx`** — `SectionHeader` (title + pill + animated WordReveal entrance). Title className is kept in lockstep with Heading h1 spec. Used by FeatureGrid / ProcessSteps / FAQSection / IconChecklist / Timeline / ComparisonTable / AccordionSection — and through them, most marketing pages.
 
-Bonus: **`lib/design-system/version.ts`** — current `DESIGN_SYSTEM_VERSION` (1.1.0 as of 2026-04-28). Bump and update `docs/DESIGN_SYSTEM_CHANGELOG.md` on breaking changes.
+Bonus: **`lib/design-system/version.ts`** — current `DESIGN_SYSTEM_VERSION` (2.0.1 as of 2026-05-01). Bump and update `docs/DESIGN_SYSTEM_CHANGELOG.md` on breaking changes.
 
 ## Top 10 rules of thumb
 
@@ -38,7 +38,7 @@ Bonus: **`lib/design-system/version.ts`** — current `DESIGN_SYSTEM_VERSION` (1
 
 ## Common gotchas (already-tripped mines)
 
-- **`GlassCard` is a misnomer.** Despite the name, it's NOT glass — it uses solid backgrounds. Use the primary solid-depth className pattern (rule 5) directly.
+- **`GlassCard` is retired.** Use the primary solid-depth className pattern (rule 5) directly, or use `DashboardCard` on portal surfaces.
 - **ServiceIconTile with `iconKey: "FileText"`** renders a tile by default — not a sticker — since v1.0.0. To get a sticker, explicitly pass `variant="sticker"`.
 - **All marketing-page heroes use the canonical `<Hero>` primitive** (rule 6). Bespoke hero files (`med-cert-hero.tsx`, `prescriptions-hero.tsx`, `ed-hero.tsx`, `hair-loss-hero.tsx`) were retired in the 2026-04-28 sweep. Don't create new ones — extend `<Hero>` slot props instead.
 - **All marketing-page final CTAs use `<CTABanner>`** (rule 7). Bespoke `ServiceFinalCTA` was retired. Refund line auto-renders from `GUARANTEE` constant — don't hardcode "Full refund if we can't help" text inline.

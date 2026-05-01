@@ -27,6 +27,21 @@ const QUEUE_CRITICAL_SIZE = parseInt(process.env.QUEUE_CRITICAL_SIZE || "50", 10
 const SLA_WARNING_MINUTES = parseInt(process.env.SLA_WARNING_MINUTES || "30", 10)
 const SLA_BREACH_MINUTES = parseInt(process.env.SLA_BREACH_MINUTES || "60", 10)
 
+export function buildQueueSlaBreachPayload(metrics: QueueHealthMetrics) {
+  return {
+    level: "error" as const,
+    tags: {
+      alert_type: "sla_breach",
+      severity: "critical",
+    },
+    extra: {
+      queueSize: metrics.queueSize,
+      requestsBreaching: metrics.requestsWaitingOver60Min,
+      oldestRequestMinutes: metrics.oldestRequestAgeMinutes,
+    },
+  }
+}
+
 /**
  * Get current queue health metrics
  */
@@ -99,19 +114,10 @@ export async function checkQueueHealthAndAlert(): Promise<QueueHealthMetrics> {
   
   // SLA Breach alert (critical)
   if (metrics.slaBreached) {
-    Sentry.captureMessage("SLA BREACH: Requests waiting > 60 minutes", {
-      level: "error",
-      tags: { 
-        alert_type: "sla_breach",
-        severity: "critical",
-      },
-      extra: {
-        queueSize: metrics.queueSize,
-        requestsBreaching: metrics.requestsWaitingOver60Min,
-        oldestRequestMinutes: metrics.oldestRequestAgeMinutes,
-        oldestRequestId: metrics.oldestRequestId,
-      },
-    })
+    Sentry.captureMessage(
+      "SLA BREACH: Requests waiting > 60 minutes",
+      buildQueueSlaBreachPayload(metrics),
+    )
   }
   
   // Queue depth warning

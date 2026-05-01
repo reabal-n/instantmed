@@ -92,7 +92,7 @@ const REST_AT_END_MS = 1400
 /**
  * Hero mockup — doctor-led, multi-output, sequenced.
  *
- * Replaces the old `HeroMultiServiceMockup` kitchen-sink composition.
+ * Replaces the previous kitchen-sink hero composition.
  *
  * Structure:
  *   - Primary card: "Your GP — reviewing now" with a 3-state progress

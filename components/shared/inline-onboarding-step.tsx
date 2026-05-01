@@ -8,9 +8,9 @@ import { DataSecurityStrip } from "@/components/checkout/trust-badges"
 import { AddressAutocomplete, type AddressComponents } from "@/components/ui/address-autocomplete"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
-import { GlassRadioGroup } from "@/components/ui/glass-radio-group"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { SegmentedRadioGroup } from "@/components/ui/segmented-radio-group"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { createClient } from "@/lib/supabase/client"
 import { validatePostcodeState } from "@/lib/validation/australian-address"
@@ -365,7 +365,7 @@ export function InlineOnboardingStep({ profileId, userName, onBack, onComplete }
             </TooltipProvider>
           </div>
           <div className="flex justify-center">
-            <GlassRadioGroup
+            <SegmentedRadioGroup
               options={IRNS.map((n) => ({
                 id: `irn-${n}`,
                 value: n.toString(),

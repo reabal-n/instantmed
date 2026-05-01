@@ -5,6 +5,10 @@ import { revalidatePath } from "next/cache"
 
 import { declineIntake as declineIntakeCanonical } from "@/app/actions/decline-intake"
 import { trackIntakeFunnelStep } from "@/lib/analytics/posthog-server"
+import {
+  logExternalPrescribingIndicated,
+  type RequestType,
+} from "@/lib/audit/compliance-audit"
 import { requireRole } from "@/lib/auth/helpers"
 import { IntakeLifecycleError } from "@/lib/data/intake-lifecycle"
 import {
@@ -15,7 +19,12 @@ import {
   updateScriptSent,
 } from "@/lib/data/intakes"
 import { isClinicalNoteSufficient, MIN_CLINICAL_NOTES_LENGTH } from "@/lib/doctor/clinical-notes"
+import {
+  getParchmentScriptCompletionEligibility,
+  isParchmentClaimSatisfied,
+} from "@/lib/doctor/parchment-claim"
 import { createLogger } from "@/lib/observability/logger"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import type { IntakeStatus } from "@/types/db"
 
 const logger = createLogger("doctor-queue-actions")
@@ -24,6 +33,26 @@ const logger = createLogger("doctor-queue-actions")
 function isValidUUID(id: string): boolean {
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
   return uuidRegex.test(id)
+}
+
+type ServiceRelation = { type?: string | null } | { type?: string | null }[] | null
+
+function getServiceType(service: ServiceRelation | undefined): string | null {
+  return Array.isArray(service) ? service[0]?.type ?? null : service?.type ?? null
+}
+
+function getScriptCompletionRequestType(category: string | null, serviceType?: string | null): RequestType {
+  if (category === "medical_certificate") return "med_cert"
+  if (
+    category === "prescription" ||
+    serviceType === "common_scripts" ||
+    serviceType === "repeat_rx" ||
+    serviceType === "prescription" ||
+    serviceType === "repeat-script"
+  ) {
+    return "repeat_rx"
+  }
+  return "intake"
 }
 
 export async function updateStatusAction(
@@ -247,12 +276,70 @@ export async function markScriptSentAction(
     return { success: false, error: "Unauthorized" }
   }
 
-  const { createServiceRoleClient: createSR } = await import("@/lib/supabase/service-role")
-  const supabase = createSR()
+  const supabase = createServiceRoleClient()
+  const { data: intake, error: intakeError } = await supabase
+    .from("intakes")
+    .select(`
+      id,
+      status,
+      payment_status,
+      category,
+      subtype,
+      claimed_by,
+      reviewing_doctor_id,
+      reviewed_by,
+      script_sent,
+      service:services!service_id(type)
+    `)
+    .eq("id", intakeId)
+    .single()
 
-  const success = await updateScriptSent(intakeId, true, scriptNotes, parchmentReference)
+  if (intakeError || !intake) {
+    return { success: false, error: "Intake not found" }
+  }
+
+  if (intake.script_sent === true && intake.status === "completed") {
+    return { success: true }
+  }
+
+  if (profile.role !== "admin" && !isParchmentClaimSatisfied(intake, profile.id)) {
+    return { success: false, error: "You must claim this intake before marking the script sent" }
+  }
+
+  const serviceType = getServiceType(intake.service as ServiceRelation)
+  const eligibility = getParchmentScriptCompletionEligibility({
+    status: intake.status,
+    payment_status: intake.payment_status,
+    category: intake.category,
+    subtype: intake.subtype,
+    serviceType,
+  })
+
+  if (!eligibility.eligible) {
+    return {
+      success: false,
+      error: eligibility.error || "This request is not ready for script completion",
+    }
+  }
+
+  const success = await updateScriptSent(intakeId, true, scriptNotes, parchmentReference, profile.id)
   if (!success) {
     return { success: false, error: "Failed to mark script sent" }
+  }
+
+  try {
+    await logExternalPrescribingIndicated(
+      intakeId,
+      getScriptCompletionRequestType(intake.category ?? null, serviceType),
+      profile.id,
+      parchmentReference || "parchment",
+    )
+  } catch (auditError) {
+    logger.warn(
+      "Failed to log external_prescribing_indicated event",
+      { intakeId },
+      auditError instanceof Error ? auditError : undefined,
+    )
   }
 
   // Send email notification to patient via the centralized sendEmail pipeline

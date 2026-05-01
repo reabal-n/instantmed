@@ -100,12 +100,12 @@ export async function GET(request: NextRequest) {
           },
           extra: {
             critical_mismatches: criticalMismatches.slice(0, 10).map((r) => ({
-              reference: r.reference_number,
               status: r.intake_status,
               delivery: r.delivery_status,
               age_hours: Math.round(r.age_minutes / 60),
               category: r.category,
-              error: r.last_error,
+              has_error: Boolean(r.last_error),
+              payment_issue: r.payment_issue,
             })),
             summary,
           },
@@ -124,9 +124,9 @@ export async function GET(request: NextRequest) {
           },
           extra: {
             failed_refunds: failedRefunds.slice(0, 10).map((r) => ({
-              reference: r.reference_number,
-              refund_error: r.refund_error,
-              patient: r.patient_email,
+              category: r.category,
+              status: r.intake_status,
+              has_refund_error: Boolean(r.refund_error),
             })),
           },
         }
@@ -144,10 +144,9 @@ export async function GET(request: NextRequest) {
           },
           extra: {
             failed_deliveries: failedDeliveries.slice(0, 10).map((r) => ({
-              reference: r.reference_number,
               category: r.category,
               delivery_details: r.delivery_details,
-              error: r.last_error,
+              has_error: Boolean(r.last_error),
             })),
           },
         }

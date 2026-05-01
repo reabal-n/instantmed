@@ -39,7 +39,8 @@ import {
 import { Textarea } from "@/components/ui/textarea"
 import { Pagination,UserCard } from "@/components/uix"
 import { capture } from "@/lib/analytics/capture"
-import { buildPatientSnapshot } from "@/lib/doctor/patient-snapshot"
+import { buildPatientSnapshot, getPatientSnapshotOptionsForCase } from "@/lib/doctor/patient-snapshot"
+import { getQueueEnteredAt, getQueueStatusMeta } from "@/lib/doctor/queue-utils"
 import { prefetchReviewData } from "@/lib/doctor/review-data-cache"
 import { SERVICE_TYPES } from "@/lib/doctor/service-types"
 import { calculateAge } from "@/lib/format"
@@ -95,6 +96,7 @@ export interface QueueTableProps {
   calculateSlaCountdown: (slaDeadline: string | null | undefined) => string | null
   openReviewPanel: (intakeId: string) => void
   openIntakeId: string | null
+  doctorId: string
   readIds: Set<string>
   dialogs: QueueDialogState
 
@@ -118,6 +120,7 @@ export function QueueTable({
   calculateSlaCountdown,
   openReviewPanel,
   openIntakeId,
+  doctorId,
   readIds,
   dialogs: {
     declineDialog,
@@ -163,6 +166,16 @@ export function QueueTable({
   // A patient is "returning" if they have a recently completed case — derived from recentlyCompleted prop
   const returningPatientIds = new Set(recentlyCompleted.map((r) => r.patient_id))
 
+  const formatQueueTimestamp = (value: string | null | undefined) => {
+    if (!value) return null
+    return new Date(value).toLocaleString("en-AU", {
+      day: "numeric",
+      month: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+    })
+  }
+
   return (
     <>
       {/* Queue List — flat rows, single click opens review panel */}
@@ -180,10 +193,25 @@ export function QueueTable({
         <div className="overflow-hidden rounded-xl border border-border/60 bg-card shadow-sm shadow-primary/[0.03]">
           {filteredIntakes.map((intake, index) => {
             const isFocused = expandedId === intake.id
-            const waitSeverity = getWaitTimeSeverity(intake.created_at, intake.sla_deadline)
-            const patientSnapshot = buildPatientSnapshot(intake.patient)
+            const queueEnteredAt = getQueueEnteredAt(intake)
+            const waitSeverity = getWaitTimeSeverity(queueEnteredAt, intake.sla_deadline)
             const patientAge = calculateAge(intake.patient.date_of_birth)
             const service = intake.service as { name?: string; type?: string; short_name?: string } | undefined
+            const patientSnapshot = buildPatientSnapshot(intake.patient, {
+              ...getPatientSnapshotOptionsForCase({
+                category: intake.category,
+                serviceType: service?.type,
+                subtype: intake.subtype,
+              }),
+            })
+            const statusMeta = getQueueStatusMeta(intake.status)
+            const paidAt = formatQueueTimestamp(intake.paid_at)
+            const submittedAt = formatQueueTimestamp(intake.submitted_at ?? intake.created_at)
+            const claimLabel = intake.claimed_by
+              ? intake.claimed_by === doctorId
+                ? "Claimed by you"
+                : "Claimed"
+              : null
 
             const isOpen = openIntakeId === intake.id
             const isRead = readIds.has(intake.id)
@@ -192,6 +220,7 @@ export function QueueTable({
             return (
               <div
                 key={intake.id}
+                data-testid={`queue-row-${intake.id}`}
                 className={cn(
                   "group grid cursor-pointer grid-cols-[minmax(0,1fr)_auto] items-start gap-x-3 gap-y-2 px-3 py-3 transition-colors sm:grid-cols-[minmax(0,auto)_minmax(0,1fr)_auto_auto_auto] sm:items-center sm:px-4",
                   "hover:bg-muted/40",
@@ -228,6 +257,17 @@ export function QueueTable({
                   <Badge variant="outline" className="text-xs">
                     {service?.short_name || formatServiceType(service?.type || "")}
                   </Badge>
+                  <Badge
+                    variant="outline"
+                    className={cn(
+                      "text-xs",
+                      statusMeta.tone === "script" && "border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-500/20 dark:bg-blue-500/10 dark:text-blue-300",
+                      statusMeta.tone === "info" && "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-300",
+                      statusMeta.tone === "review" && "border-info-border bg-info-light text-info"
+                    )}
+                  >
+                    {statusMeta.label}
+                  </Badge>
                   {(() => {
                     const subtypeLabel = getConsultSubtypeLabel(intake.subtype)
                     return subtypeLabel ? (
@@ -257,6 +297,11 @@ export function QueueTable({
                   {isReturning && (
                     <Badge variant="outline" className="text-xs text-muted-foreground border-border/50">
                       Returning
+                    </Badge>
+                  )}
+                  {claimLabel && (
+                    <Badge variant="outline" className="text-xs text-muted-foreground border-border/50">
+                      {claimLabel}
                     </Badge>
                   )}
                   {patientSnapshot.completenessTone !== "complete" && (
@@ -358,8 +403,14 @@ export function QueueTable({
                   waitSeverity === "critical" ? "text-destructive" : waitSeverity === "warning" ? "text-warning" : "text-muted-foreground"
                 )}>
                   <Clock className="h-3.5 w-3.5" />
-                  <span>{intake.sla_deadline ? calculateSlaCountdown(intake.sla_deadline) : calculateWaitTime(intake.created_at)}</span>
+                  <span>{intake.sla_deadline ? calculateSlaCountdown(intake.sla_deadline) : calculateWaitTime(queueEnteredAt)}</span>
                 </div>
+                {(paidAt || submittedAt) && (
+                  <p className="col-span-2 col-start-1 row-start-4 text-[11px] text-muted-foreground sm:col-span-2 sm:col-start-2 sm:row-start-2">
+                    {paidAt ? `Paid ${paidAt}` : "Paid time missing"}
+                    {submittedAt ? ` · Submitted ${submittedAt}` : ""}
+                  </p>
+                )}
                 {waitSeverity === "critical" && (
                   <AlertTriangle className="col-start-2 row-start-3 h-3.5 w-3.5 shrink-0 justify-self-end text-destructive sm:col-start-5 sm:row-start-1" aria-label="Critical" />
                 )}

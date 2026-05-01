@@ -27,6 +27,11 @@ const statusMessages: Record<string, { title: string; description: string; type:
     description: "The doctor needs additional information. Please check your request.",
     type: "info",
   },
+  escalated: {
+    title: "Additional Review Needed",
+    description: "Your request needs additional review. We will update you as soon as there is a decision.",
+    type: "info",
+  },
   completed: {
     title: "Request Complete",
     description: "Your request has been fully processed.",

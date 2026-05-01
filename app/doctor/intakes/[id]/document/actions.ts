@@ -190,14 +190,13 @@ export async function generateMedCertPdfAndApproveAction(
   intakeId: string,
   draftId: string
 ): Promise<ApproveActionResult> {
-  // DEBUG: Log at entry to prove server action is called
-  logger.info("APPROVE_ACTION_START", { intakeId, draftId })
+  logger.info("APPROVE_ACTION_START", { hasDraftId: Boolean(draftId) })
   
   try {
     // Require doctor or admin role (non-redirecting for server actions)
     const authResult = await requireRoleOrNull(["doctor", "admin"])
     if (!authResult) {
-      logger.warn("APPROVE_ACTION_UNAUTHORIZED", { intakeId, draftId })
+      logger.warn("APPROVE_ACTION_UNAUTHORIZED", { hasDraftId: Boolean(draftId) })
       return { success: false, error: "Unauthorized or session expired" }
     }
 
@@ -236,23 +235,20 @@ export async function generateMedCertPdfAndApproveAction(
     // This handles cases where the draft was never created (e.g. page load
     // failed due to a prior DB issue like a missing enum value).
     if (!draft) {
-      logger.info("No draft found, auto-creating from intake data", { intakeId, draftId })
+      logger.info("No draft found, auto-creating from intake data", { hasDraftId: Boolean(draftId) })
       try {
         const autoCreatedDraft = await getOrCreateMedCertDraftForIntake(intakeId)
         if (autoCreatedDraft?.data) {
           draft = { data: autoCreatedDraft.data }
           logger.info("Auto-created draft successfully", {
-            intakeId,
-            newDraftId: autoCreatedDraft.id,
-            draftDataKeys: Object.keys(autoCreatedDraft.data as Record<string, unknown>),
+            draftDataKeyCount: Object.keys(autoCreatedDraft.data as Record<string, unknown>).length,
           })
         } else {
-          logger.warn("Auto-create returned null or empty data", { intakeId, hasResult: !!autoCreatedDraft })
+          logger.warn("Auto-create returned null or empty data", { hasResult: !!autoCreatedDraft })
         }
       } catch (autoCreateError) {
         logger.error("Auto-create draft failed with exception", {
-          intakeId,
-          error: autoCreateError instanceof Error ? autoCreateError.message : String(autoCreateError),
+          errorName: autoCreateError instanceof Error ? autoCreateError.name : "UnknownError",
         })
       }
     }
@@ -262,13 +258,12 @@ export async function generateMedCertPdfAndApproveAction(
     // Require draft data with dates
     if (!draftData?.date_from || !draftData?.date_to) {
       logger.warn("Draft data missing or incomplete - cannot approve without valid dates", {
-        intakeId,
-        draftId,
+        hasDraftId: Boolean(draftId),
         hasDraft: !!draft,
         hasDraftData: !!draftData,
-        draftDataKeys: draftData ? Object.keys(draftData) : [],
-        dateFrom: draftData?.date_from ?? "MISSING",
-        dateTo: draftData?.date_to ?? "MISSING",
+        draftDataKeyCount: draftData ? Object.keys(draftData).length : 0,
+        hasStartDate: Boolean(draftData?.date_from),
+        hasEndDate: Boolean(draftData?.date_to),
       })
       return { success: false, error: "Certificate draft is missing required date information. Please save the draft first, then try approving again." }
     }
@@ -277,11 +272,14 @@ export async function generateMedCertPdfAndApproveAction(
     const parsedFrom = new Date(draftData.date_from)
     const parsedTo = new Date(draftData.date_to)
     if (isNaN(parsedFrom.getTime()) || isNaN(parsedTo.getTime())) {
-      logger.warn("Draft has invalid date values", { intakeId, dateFrom: draftData.date_from, dateTo: draftData.date_to })
+      logger.warn("Draft has invalid date values", {
+        hasStartDate: Boolean(draftData.date_from),
+        hasEndDate: Boolean(draftData.date_to),
+      })
       return { success: false, error: "Certificate dates are invalid. Please correct the dates before approving." }
     }
     if (parsedTo < parsedFrom) {
-      logger.warn("Draft end date before start date", { intakeId, dateFrom: draftData.date_from, dateTo: draftData.date_to })
+      logger.warn("Draft end date before start date", { hasStartDate: true, hasEndDate: true })
       return { success: false, error: "End date cannot be before start date. Please correct the dates before approving." }
     }
 
@@ -320,14 +318,10 @@ export async function generateMedCertPdfAndApproveAction(
       emailStatus,
     }
   } catch (err) {
-    // DEBUG: Log full error details to identify where flow stops
     const errorMessage = err instanceof Error ? err.message : String(err)
-    const errorStack = err instanceof Error ? err.stack : undefined
     logger.error("APPROVE_ACTION_ERROR", { 
-      intakeId, 
-      draftId,
-      error: errorMessage, 
-      stack: errorStack 
+      hasDraftId: Boolean(draftId),
+      errorName: err instanceof Error ? err.name : "UnknownError",
     })
     return { success: false, error: errorMessage || "An unexpected error occurred" }
   }

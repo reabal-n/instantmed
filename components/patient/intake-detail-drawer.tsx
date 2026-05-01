@@ -11,6 +11,7 @@ const WHATS_NEXT: Record<string, { message: string; actionLabel?: string }> = {
   paid: { message: "A doctor will review your request shortly. We'll email you when it's done." },
   in_review: { message: "A doctor is reviewing your request now. Hang tight, shouldn't be long." },
   pending_info: { message: "The doctor has a question for you. Please respond so we can keep things moving.", actionLabel: "Respond now" },
+  escalated: { message: "Your request needs additional review. We'll update you as soon as there is a decision." },
   approved: { message: "All approved. Your document is ready to download.", actionLabel: "View & download" },
   declined: { message: "This request wasn't approved. You can view the reason below.", actionLabel: "View details" },
   awaiting_script: { message: "Your prescription is being prepared. We'll let you know when it's ready." },

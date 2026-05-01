@@ -22,25 +22,28 @@ import { useIntakeReview } from "@/components/doctor/review/intake-review-contex
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { buildPatientSnapshot } from "@/lib/doctor/patient-snapshot"
+import {
+  buildPatientSnapshot,
+  getPatientSnapshotOptionsForCase,
+  requiresPrescribingIdentityForCase,
+} from "@/lib/doctor/patient-snapshot"
 import { cn } from "@/lib/utils"
 
 export function PatientInfoCard() {
   const { intake, data, answers, service } = useIntakeReview()
   const [open, setOpen] = useState(true)
   const [medicarecopied, setMedicareCopied] = useState(false)
-  const requiresPrescribingIdentity = (
-    service?.type === "repeat_rx"
-    || service?.type === "common_scripts"
-    || intake.category === "prescription"
-  )
-  const snapshot = buildPatientSnapshot(intake.patient, {
+  const snapshotContext = {
     answers,
-    requireStructuredAddress: requiresPrescribingIdentity,
-    requireSex: requiresPrescribingIdentity,
-    requireMedicareDetails: requiresPrescribingIdentity,
-    validateMedicare: requiresPrescribingIdentity,
+    category: intake.category,
+    serviceType: service?.type,
+    subtype: intake.subtype,
+  }
+  const snapshot = buildPatientSnapshot(intake.patient, {
+    ...getPatientSnapshotOptionsForCase(snapshotContext),
+    answers,
   })
+  const requiresPrescribingIdentity = requiresPrescribingIdentityForCase(snapshotContext)
   const previousCount = data.previousIntakeCount ?? data.previousIntakes?.length ?? 0
 
   const copyMedicare = () => {

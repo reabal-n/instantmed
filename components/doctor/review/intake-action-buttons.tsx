@@ -47,6 +47,7 @@ export function IntakeActionButtons() {
   const hasPrescriptionIntent = Boolean(caseSummary.prescriptionIntent)
   const isRepeatScript = service?.type === "repeat_rx" || service?.type === "common_scripts"
   const isPrescribingConsult = intake.category === "consult" && ["ed", "hair_loss"].includes(intake.subtype || "")
+  const shouldPrescribeFromConsult = isPrescribingConsult && hasPrescriptionIntent
 
   return (
     <div className="sticky bottom-0 bg-background border-t border-border pt-3 pb-1 flex flex-wrap gap-2">
@@ -92,11 +93,22 @@ export function IntakeActionButtons() {
         </Button>
       )}
 
-      {hasPrescriptionIntent && (intake.status === "awaiting_script" || (isPrescribingConsult && ["paid", "in_review"].includes(intake.status))) && (
+      {shouldPrescribeFromConsult && ["paid", "in_review"].includes(intake.status) && (
+        <Button
+          onClick={handleApproveAndOpenParchment}
+          className="bg-primary hover:bg-primary/90"
+          disabled={isPending}
+          size="sm"
+        >
+          {isPending ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Send className="h-4 w-4 mr-1.5" />}
+          {isPending ? "Approving..." : "Approve + Prescribe"}
+        </Button>
+      )}
+
+      {hasPrescriptionIntent && intake.status === "awaiting_script" && (
         <Button
           onClick={handleOpenParchmentPrescribe}
-          variant={isPrescribingConsult ? "outline" : "default"}
-          className={isPrescribingConsult ? "" : "bg-blue-600 hover:bg-blue-700"}
+          className="bg-blue-600 hover:bg-blue-700"
           disabled={isPending}
           size="sm"
         >
@@ -106,7 +118,7 @@ export function IntakeActionButtons() {
       )}
 
       {/* Consults: complete */}
-      {isConsultServiceType(service?.type) && intake.status === "paid" && (
+      {isConsultServiceType(service?.type) && intake.status === "paid" && !shouldPrescribeFromConsult && (
         <Button
           onClick={() => handleStatusChange("approved")}
           className="bg-primary hover:bg-primary/90"

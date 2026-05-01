@@ -83,6 +83,7 @@ interface IntakeDetailHeaderProps {
   onViewCertificate: () => void
   onCertPreviewConfirm: (data: CertificatePreviewData) => void
   onOpenParchmentPrescribe?: () => void
+  onApproveAndOpenParchment?: () => void
   showReissueDialog: boolean
   setShowReissueDialog: (val: boolean) => void
   reissuePreviewData: CertificatePreviewData | null
@@ -114,6 +115,7 @@ export function IntakeDetailHeader({
   onViewCertificate,
   onCertPreviewConfirm,
   onOpenParchmentPrescribe,
+  onApproveAndOpenParchment,
   showReissueDialog,
   setShowReissueDialog,
   reissuePreviewData,
@@ -284,15 +286,15 @@ export function IntakeDetailHeader({
               </>
             )}
 
-            {isPrescribingConsult && ["paid", "in_review"].includes(intake.status) && onOpenParchmentPrescribe && (
-              <Button onClick={onOpenParchmentPrescribe} variant="outline" disabled={isPending}>
-                <Send className="h-4 w-4 mr-2" />
-                Prescribe
+            {isPrescribingConsult && ["paid", "in_review"].includes(intake.status) && onApproveAndOpenParchment && (
+              <Button onClick={onApproveAndOpenParchment} className="bg-primary hover:bg-primary/90" disabled={isPending}>
+                {isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Send className="h-4 w-4 mr-2" />}
+                {isPending ? "Approving..." : "Approve + Prescribe"}
               </Button>
             )}
 
             {/* For consults - approve after call with notes */}
-            {isConsultServiceType(service?.type) && intake.status === "paid" && (
+            {isConsultServiceType(service?.type) && intake.status === "paid" && !isPrescribingConsult && (
               <Button onClick={() => onStatusChange("approved")} className="bg-primary hover:bg-primary/90" disabled={isPending}>
                 {isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-2" />}
                 {isPending ? "Completing..." : "Complete Consultation"}

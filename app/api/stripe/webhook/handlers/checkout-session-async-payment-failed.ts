@@ -19,14 +19,32 @@ export async function handleAsyncPaymentFailed(ctx: WebhookContext): Promise<Han
   })
 
   if (intakeId) {
-    await supabase
+    const { data: failedIntake, error: updateError } = await supabase
       .from("intakes")
       .update({
         payment_status: "failed",
+        status: "checkout_failed",
         updated_at: new Date().toISOString(),
       })
       .eq("id", intakeId)
       .eq("status", "pending_payment")
+      .eq("payment_id", session.id)
+      .in("payment_status", ["pending", "unpaid", "failed"])
+      .select("id")
+      .maybeSingle()
+
+    if (updateError) {
+      log.error("Failed to mark async checkout payment failure", { eventId: event.id, sessionId: session.id }, updateError)
+      return
+    }
+
+    if (!failedIntake) {
+      log.info("Async payment failure ignored because checkout session is no longer current", {
+        eventId: event.id,
+        sessionId: session.id,
+      })
+      return
+    }
 
     // Send payment failed email to patient
     try {

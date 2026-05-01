@@ -95,7 +95,7 @@ export async function POST(request: Request) {
   const handler = handlers.get(event.type)
 
   if (handler) {
-    const result = await handler({ event, supabase, startTime })
+    const result = await handler({ adminReplay: isAdminReplay, event, supabase, startTime })
     // If handler returns a NextResponse, use it; otherwise return default success
     if (result) return result
   } else {

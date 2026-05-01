@@ -15,6 +15,7 @@ import {
   type ReviewData,
 } from "@/components/doctor/review/intake-review-context"
 import { PatientInfoCard } from "@/components/doctor/review/patient-info-card"
+import { PatientMessageThread } from "@/components/doctor/review/patient-message-thread"
 import { RequestInfoCard } from "@/components/doctor/review/request-info-card"
 import { SafetyFlagsCard } from "@/components/doctor/review/safety-flags-card"
 import {
@@ -324,6 +325,12 @@ export function IntakeReviewPanel({ intakeId, onActionComplete, onNextCase, onPr
 
             <PatientInfoCard />
             <RequestInfoCard />
+            <PatientMessageThread
+              messages={data?.patientMessages ?? []}
+              infoRequestMessage={intake.info_request_message}
+              infoRequestedAt={intake.info_requested_at}
+              status={intake.status}
+            />
             <SafetyFlagsCard />
             <ClinicalNotesEditor />
             <IntakeActionButtons />

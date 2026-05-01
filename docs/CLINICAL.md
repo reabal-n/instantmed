@@ -294,7 +294,7 @@ Every script handoff to Parchment (the external eScript system) is evidenced in 
 | API route | When fired | Event type |
 |---|---|---|
 | `app/api/doctor/update-request/route.ts` | Doctor approves/declines an intake | `triage_approved` or `triage_declined` |
-| `app/api/doctor/script-sent/route.ts` | Doctor toggles "Script Sent" for a repeat Rx | `external_prescribing_indicated` (reference = parchment ID or "parchment") |
+| `app/doctor/queue/actions.ts` (`markScriptSentAction`) | Doctor completes a claimed paid prescribing intake after Parchment handoff | `external_prescribing_indicated` (reference = parchment ID or "parchment") |
 | `app/api/doctor/scripts/[id]/route.ts` | Doctor transitions a script task to "sent" | `external_prescribing_indicated` (reference = "parchment") |
 
 Previously these mutations only updated the `intakes` row and logged to the observability logger — an AHPRA defensibility gap. The decline path via `app/actions/decline-intake.ts` already emitted `triage_declined` via `logTriageDeclined()`; now all doctor mutation routes are consistent.

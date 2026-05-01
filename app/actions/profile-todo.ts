@@ -4,11 +4,11 @@ import { revalidatePath } from "next/cache"
 
 import { auth } from "@/lib/auth/helpers"
 import { verifyAddress } from "@/lib/google-places/geocoding"
-import { encryptIfNeeded } from "@/lib/security/encryption"
+import { encryptField } from "@/lib/security/encryption"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { validatePostcodeState } from "@/lib/validation/australian-address"
 import { validateAustralianPhone } from "@/lib/validation/australian-phone"
-import { validateMedicareNumber } from "@/lib/validation/medicare"
+import { validateMedicareExpiry,validateMedicareNumber } from "@/lib/validation/medicare"
 import type { AustralianState } from "@/types/db"
 import type { ActionResult } from "@/types/shared"
 
@@ -60,11 +60,16 @@ export async function updatePhoneAction(
     }
   }
 
+  const normalizedPhone = phoneValidation.e164 || phone
+  const now = new Date().toISOString()
+
   const { error } = await supabase
     .from("profiles")
     .update({
-      phone: encryptIfNeeded(phoneValidation.e164 || phone),
-      updated_at: new Date().toISOString(),
+      phone: normalizedPhone,
+      phone_encrypted: encryptField(normalizedPhone),
+      phi_encrypted_at: now,
+      updated_at: now,
     })
     .eq("id", profileId)
 
@@ -183,20 +188,38 @@ export async function updateMedicareAction(
     if (!medicareValidation.valid) {
       fieldErrors.medicare = medicareValidation.error || "Invalid Medicare number"
     }
+
+    if (!data.medicareIrn) {
+      fieldErrors.irn = "Please select your IRN"
+    }
+
+    if (data.medicareExpiry) {
+      const expiryValidation = validateMedicareExpiry(data.medicareExpiry)
+      if (!expiryValidation.valid) {
+        fieldErrors.expiry = expiryValidation.error || "Invalid expiry date"
+      }
+    }
+  } else if (data.medicareIrn || data.medicareExpiry) {
+    fieldErrors.medicare = "Medicare number is required when saving card details"
   }
 
   if (Object.keys(fieldErrors).length > 0) {
     return { success: false, error: "Please correct the errors below", fieldErrors }
   }
 
+  const now = new Date().toISOString()
+  const medicareNumber = data.medicareNumber || null
+
   const { error } = await supabase
     .from("profiles")
     .update({
-      medicare_number: data.medicareNumber || null,
+      medicare_number: medicareNumber,
+      medicare_number_encrypted: medicareNumber ? encryptField(medicareNumber) : null,
       medicare_irn: data.medicareIrn || null,
       medicare_expiry: data.medicareExpiry || null,
       consent_myhr: data.consentMyhr,
-      updated_at: new Date().toISOString(),
+      ...(medicareNumber ? { phi_encrypted_at: now } : {}),
+      updated_at: now,
     })
     .eq("id", profileId)
 

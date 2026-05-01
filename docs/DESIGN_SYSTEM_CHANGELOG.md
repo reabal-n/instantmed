@@ -2,6 +2,14 @@
 
 > Tracks breaking and notable changes to the InstantMed design system. Pin against `DESIGN_SYSTEM_VERSION` in `lib/design-system/version.ts`.
 
+## [2.0.1] — 2026-05-01
+
+### Removed
+- Deprecated dashboard primitive shim filenames: `components/dashboard/glass-stat-card.tsx` and `components/dashboard/glow-badge.tsx`. Canonical files are now `stat-card.tsx` and `status-badge.tsx`.
+- Unused `components/marketing/hero-multi-service-mockup.tsx`; `HeroDoctorReviewMockup` is the only supported hero mockup.
+- Unused `components/effects/glass-card.tsx`; use canonical solid-depth classes or `DashboardCard` instead.
+- Legacy `components/ui/glass-radio-group.tsx` name; the active component is now `SegmentedRadioGroup` in `components/ui/segmented-radio-group.tsx`.
+
 ## [2.0.0] — 2026-04-29
 
 > **BREAKING.** Portal rebuild Phase 1 (patient surfaces). The legacy 21st.dev "glass-forward" CSS layer that contradicted Morning Canvas is gone, the patient portal is on canonical solid-depth, and three new portal primitives are extracted. Doctor + admin sweeps follow in subsequent commits.
@@ -13,8 +21,8 @@
 | `<div className="glass-card ...">` | `<DashboardCard tier="elevated" padding="none" className="...">` |
 | `<div className="dashboard-card rounded-xl p-5">` | `<DashboardCard tier="standard">` (or canonical inline className) |
 | `<div className="dashboard-card-elevated">` | `<DashboardCard tier="elevated">` (deleted in v2.0.0) |
-| `<GlassStatCard>` | `<StatCard>` (alias retained, deprecated) |
-| `<GlowBadge>` | `<StatusBadge>` (alias retained, deprecated) |
+| `<GlassStatCard>` | `<StatCard>` (alias removed in v2.0.1) |
+| `<GlowBadge>` | `<StatusBadge>` (alias removed in v2.0.1) |
 | `<DashboardCard spotlight>` | (removed; cursor-following effect was banned) |
 | `<DashboardGrid animate>` | (no-op; use Framer `stagger` from `lib/motion.ts` for patient stagger) |
 | `<h1 className="text-2xl font-semibold tracking-tight">…</h1>` | `<DashboardPageHeader title="…">` (or `<Heading level="h1">`) |
@@ -32,8 +40,8 @@
 
 ### Changed
 - `app/dashboard-styles.css` reduced from ~465 lines to ~75 lines. Header rewritten from "21ST.DEV DASHBOARD DESIGN SYSTEM. Sleek, dark, glass-forward aesthetic" to a thin Morning Canvas compatibility shim. `.dashboard-card` and `.dashboard-bg` are kept as canonical-aligned className aliases (admin still references them directly; new code should use the primitive).
-- `components/dashboard/glass-stat-card.tsx` exports `StatCard` as the canonical name. `GlassStatCard` retained as a deprecated alias. Stripped `dashboard-stat-*` inset-glow `box-shadow`s.
-- `components/dashboard/glow-badge.tsx` exports `StatusBadge` as the canonical name. `GlowBadge` retained as a deprecated alias. Replaced neon `box-shadow: 0 0 12px ...` glows with canonical inset-ring status pills (§10).
+- `components/dashboard/stat-card.tsx` exports `StatCard` as the canonical KPI tile. Stripped `dashboard-stat-*` inset-glow `box-shadow`s.
+- `components/dashboard/status-badge.tsx` exports `StatusBadge` as the canonical status pill. Replaced neon `box-shadow: 0 0 12px ...` glows with canonical inset-ring status pills (§10).
 - `components/dashboard/dashboard-grid.tsx` no longer applies the `dashboard-grid` CSS-stagger animation. The `animate` prop is preserved as a no-op for back-compat. Patient surfaces should wrap stagger with Framer Motion `stagger.container`/`stagger.item` from `lib/motion.ts`.
 - `components/dashboard/dashboard-empty.tsx` rewritten with canonical Tailwind utilities. Lottie empty-state animation retained per §13.
 - `components/dashboard/dashboard-header.tsx` now renders `<Heading level="h1">` internally and uses canonical token spacing.
@@ -44,14 +52,13 @@
 - `components/patient/panel-dashboard.tsx` "Documents ready", "Recent Requests", "Active Prescriptions" sections migrated from hand-rolled `<section>` blocks to `<DashboardSection viewAllHref>`.
 
 ### Deprecated
-- `GlassStatCard`, `GlassStatCardProps` — use `StatCard` / `StatCardProps`. Alias removed in v3.0.0.
-- `GlowBadge`, `GlowBadgeProps`, `GlowBadgeStatus` — use `StatusBadge` / `StatusBadgeProps` / `StatusBadgeStatus`. Alias removed in v3.0.0.
 - `DashboardCard.elevated` boolean prop — use `tier="elevated"`. Removed in v3.0.0.
 - `DashboardCard.spotlight` prop — accepted as no-op. Removed in v3.0.0.
 - `DashboardGrid.animate` prop — accepted as no-op. Removed in v3.0.0.
 
 ### Removed
 - `dashboard-card-elevated` (CSS class). No remaining consumers; the primitive's tier system replaces it.
+- `GlassStatCard`, `GlassStatCardProps`, `GlowBadge`, `GlowBadgeProps`, `GlowBadgeStatus` aliases. Use `StatCard`, `StatCardProps`, `StatusBadge`, `StatusBadgeProps`, and `StatusBadgeStatus`.
 - `dashboard-stat`, `dashboard-stat-success`, `dashboard-stat-warning`, `dashboard-stat-error`, `dashboard-stat-info` (CSS classes). Inset-glow box-shadows banned.
 - `glow-badge`, `glow-badge-success`, `glow-badge-warning`, `glow-badge-error`, `glow-badge-info`, `glow-badge-neutral` (CSS classes). Neon glows banned by §1.
 - `dashboard-spotlight` (CSS class) and the `dashboard-spotlight::after` cursor-following radial gradient.
@@ -93,7 +100,7 @@ Admin and doctor portals still import the legacy CSS shim and reference `dashboa
 - Home-page typography drift: hero h1 was rendering at `font-semibold tracking-tight` instead of the spec'd display weight 300 / tracking -0.03em. Now flows through `<Heading level="display">`.
 
 ### Deprecated
-- `HeroMultiServiceMockup` — replaced by `HeroDoctorReviewMockup`. Old file retained as `.deprecated` shim for any service page still importing it; remove in 1.2.0.
+- `HeroMultiServiceMockup` — replaced by `HeroDoctorReviewMockup`; shim removed in v2.0.1.
 
 ## [1.0.0] — 2026-04-20
 

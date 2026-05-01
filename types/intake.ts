@@ -45,6 +45,7 @@ export type PaymentStatus = "unpaid" | "pending" | "paid" | "refunded" | "failed
  * - Patient/doctor/admin dashboard components
  */
 export type DisplayIntakeStatus =
+  | "draft"
   | "approved"
   | "completed"
   | "paid"
@@ -52,6 +53,7 @@ export type DisplayIntakeStatus =
   | "pending"
   | "pending_payment"
   | "declined"
+  | "escalated"
   | "pending_info"
   | "cancelled"
   | "awaiting_script"

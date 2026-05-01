@@ -4,6 +4,7 @@ import {
   buildPatientSnapshot,
   collapseDuplicatePatientProfiles,
   findPotentialDuplicatePatients,
+  getPatientSnapshotOptionsForCase,
   summarizeDuplicatePatientProfiles,
 } from "@/lib/doctor/patient-snapshot"
 
@@ -160,6 +161,60 @@ describe("buildPatientSnapshot", () => {
 
     expect(snapshot.missingCriticalFields).toEqual(["Medicare IRN"])
     expect(snapshot.medicare.detailsLabel).toBe("IRN missing")
+  })
+})
+
+describe("getPatientSnapshotOptionsForCase", () => {
+  it("does not require Medicare, phone, or address for medical certificate review", () => {
+    const snapshot = buildPatientSnapshot({
+      id: "med-cert-patient",
+      full_name: "Med Cert Patient",
+      date_of_birth: "1990-01-01",
+      medicare_number: null,
+      phone: null,
+      email: "medcert@example.com",
+      address_line1: null,
+      suburb: null,
+      state: null,
+      postcode: null,
+    }, {
+      now,
+      ...getPatientSnapshotOptionsForCase({
+        category: "medical_certificate",
+        serviceType: "med_certs",
+      }),
+    })
+
+    expect(snapshot.missingCriticalFields).toEqual([])
+    expect(snapshot.completenessTone).toBe("complete")
+  })
+
+  it("requires full prescribing identity for ED and hair-loss prescribing consults", () => {
+    const snapshot = buildPatientSnapshot({
+      id: "ed-patient",
+      full_name: "ED Patient",
+      date_of_birth: "1990-01-01",
+      medicare_number: "1111111111",
+      medicare_irn: null,
+      medicare_expiry: null,
+      phone: "0400000000",
+      email: "ed@example.com",
+      address_line1: "1 Test Street",
+      suburb: "Sydney",
+      state: "NSW",
+      postcode: "2000",
+      sex: null,
+    }, {
+      now,
+      ...getPatientSnapshotOptionsForCase({
+        category: "consult",
+        subtype: "ed",
+        serviceType: "consult",
+      }),
+    })
+
+    expect(snapshot.missingCriticalFields).toEqual(["Sex", "Medicare IRN"])
+    expect(snapshot.completenessTone).toBe("partial")
   })
 })
 

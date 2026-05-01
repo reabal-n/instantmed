@@ -115,9 +115,15 @@ test.describe("Doctor Queue", () => {
     // The patient name should appear in the queue list
     const patientName = page.getByText(SEEDED_PATIENT_NAME)
     await expect(patientName.first()).toBeVisible({ timeout: 10000 })
+
+    const queueRow = page.getByTestId(`queue-row-${SEEDED_INTAKE_ID}`)
+    await expect(queueRow).toBeVisible()
+    await expect(queueRow.getByText("Needs review")).toBeVisible()
+    await expect(queueRow.getByText(/Paid /)).toBeVisible()
+    await expect(queueRow.getByText(/Submitted /)).toBeVisible()
   })
 
-  test("can navigate to document builder from queue", async ({ page }) => {
+  test("can open review panel from queue", async ({ page }) => {
     test.skip(!SUPABASE_SERVICE_ROLE_KEY, "SUPABASE_SERVICE_ROLE_KEY required")
 
     // Ensure intake is in paid status
@@ -134,27 +140,11 @@ test.describe("Doctor Queue", () => {
     await expect(patientRow).toBeVisible({ timeout: 10000 })
     await patientRow.click()
 
-    // Wait for expansion and look for the review/document button
-    await page.waitForTimeout(500)
-
-    // Look for a link/button to the document builder
-    const documentLink = page.getByRole("link", { name: /review|document|certificate/i }).first()
-    
-    if (await documentLink.isVisible()) {
-      await documentLink.click()
-    } else {
-      // Alternative: direct navigation
-      await page.goto(`/doctor/intakes/${SEEDED_INTAKE_ID}/document`)
-    }
-
-    await waitForPageLoad(page)
-
-    // Should be on the document builder page
-    expect(page.url()).toContain("/document")
-    
-    // Should see document builder content (not an error page)
-    const hasContent = await page.getByText(/certificate|patient|approve/i).first().isVisible().catch(() => false)
-    expect(hasContent).toBe(true)
+    const reviewPanel = page.getByRole("dialog", { name: SEEDED_PATIENT_NAME })
+    await expect(reviewPanel).toBeVisible({ timeout: 15000 })
+    await expect(reviewPanel.getByText(/medical certificate/i).first()).toBeVisible()
+    await expect(reviewPanel.getByRole("button", { name: /approve|review|certificate/i }).first()).toBeVisible()
+    await expect(reviewPanel.getByRole("button", { name: /decline/i }).first()).toBeVisible()
   })
 
   test("full approval flow from queue to approved status", async ({ page }) => {

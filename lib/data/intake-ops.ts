@@ -9,6 +9,7 @@
 
 import * as Sentry from "@sentry/nextjs"
 
+import { buildStuckIntakeWarningPayload } from "@/lib/monitoring/stuck-intake-telemetry"
 import { createLogger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
@@ -320,30 +321,17 @@ async function captureStuckIntakeWarnings(intakes: StuckIntake[]): Promise<void>
     // Mark as warned
     warnedIntakes.add(fingerprint)
 
-    // Capture to Sentry with deduped fingerprint
-    Sentry.captureMessage(`Intake stuck: ${intake.stuck_reason}`, {
-      level: "warning",
-      tags: {
-        intake_id: intake.id,
-        stuck_reason: intake.stuck_reason,
-        service_type: intake.service_type || "unknown",
-        consult_subtype: intake.subtype || "unknown",
-        intake_status: intake.status,
-      },
-      extra: {
-        reference_number: intake.reference_number,
-        stuck_age_minutes: intake.stuck_age_minutes,
-        patient_email: intake.patient_email,
-        is_priority: intake.is_priority,
-      },
-      fingerprint: ["stuck-intake", intake.id, intake.stuck_reason],
-    })
+    // Capture to Sentry without patient identifiers or contact details.
+    Sentry.captureMessage(
+      `Intake stuck: ${intake.stuck_reason}`,
+      buildStuckIntakeWarningPayload(intake),
+    )
 
     logger.warn("[IntakeOps] Stuck intake detected", {
-      intakeId: intake.id,
       reason: intake.stuck_reason,
       ageMinutes: intake.stuck_age_minutes,
       serviceType: intake.service_type,
+      status: intake.status,
     })
   }
 

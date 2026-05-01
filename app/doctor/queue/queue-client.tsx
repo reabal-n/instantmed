@@ -10,7 +10,7 @@ import { usePanel } from "@/components/panels/panel-provider"
 import { Button } from "@/components/ui/button"
 import { DOCTOR_DASHBOARD_HREF, parseQueueStatusFilter, type QueueStatusFilter } from "@/lib/dashboard/routes"
 import { removeCompletedIntakeFromQueue } from "@/lib/doctor/queue-state"
-import { calculateSlaCountdown,calculateWaitTime, getWaitTimeSeverity } from "@/lib/doctor/queue-utils"
+import { calculateSlaCountdown,calculateWaitTime, getQueueEnteredAt, getWaitTimeSeverity } from "@/lib/doctor/queue-utils"
 import { SERVICE_TYPES } from "@/lib/doctor/service-types"
 import { useQueueRealtime } from "@/lib/doctor/use-queue-realtime"
 import { formatServiceType } from "@/lib/format/intake"
@@ -25,8 +25,9 @@ import { useQueueDialogs } from "./use-queue-dialogs"
 
 export function QueueClient({
   intakes: initialIntakes,
-  doctorId: _doctorId,
+  doctorId,
   identityComplete = true,
+  queueDegraded = false,
   pagination,
   aiApprovedIntakes = [],
   recentlyCompleted = [],
@@ -301,7 +302,7 @@ export function QueueClient({
       const aSla = a.sla_deadline ? new Date(a.sla_deadline).getTime() : Infinity
       const bSla = b.sla_deadline ? new Date(b.sla_deadline).getTime() : Infinity
       if (aSla !== bSla) return aSla - bSla
-      return new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+      return new Date(getQueueEnteredAt(a)).getTime() - new Date(getQueueEnteredAt(b)).getTime()
     })
   }, [intakes, hasRedFlags])
 
@@ -460,6 +461,32 @@ export function QueueClient({
       )}
 
       {/* Stale Data Warning */}
+      {queueDegraded && (
+        <div
+          role="alert"
+          className="flex items-center gap-3 rounded-lg border border-warning-border/60 bg-warning-light p-3"
+        >
+          <AlertTriangle className="h-4 w-4 shrink-0 text-warning" />
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-medium text-warning">
+              Queue data may be incomplete
+            </p>
+            <p className="text-xs text-warning/80">
+              Refresh before making clinical decisions. If this remains visible, check ops logs.
+            </p>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => router.refresh()}
+            className="h-7 shrink-0 text-xs"
+          >
+            <RefreshCw className="mr-1 h-3 w-3" />
+            Refresh
+          </Button>
+        </div>
+      )}
+
       {isStale && (
         <div
           role="alert"
@@ -509,6 +536,7 @@ export function QueueClient({
         expandedId={expandedId}
         onToggleExpand={(id) => setExpandedId(expandedId === id ? null : id)}
         openIntakeId={openIntakeId}
+        doctorId={doctorId}
         readIds={readIds}
         isPending={dialogs.isPending || isApprovePending}
         identityComplete={identityComplete}

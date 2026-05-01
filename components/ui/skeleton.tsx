@@ -190,7 +190,7 @@ function SkeletonDashboard() {
 // FORM-SPECIFIC SKELETONS
 // =============================================================================
 
-/** Skeleton for a GlassCard form section */
+/** Skeleton for a solid-depth form section */
 function SkeletonFormSection() {
   return (
     <div className="rounded-2xl border border-border/50 dark:border-white/15 bg-white dark:bg-card shadow-sm shadow-primary/[0.04] dark:shadow-none p-5 md:p-6 space-y-5">

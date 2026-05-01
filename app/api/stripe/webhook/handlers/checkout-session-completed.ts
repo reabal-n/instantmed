@@ -113,7 +113,7 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
   })
 
   // ATOMIC IDEMPOTENCY CHECK - claim this event for processing
-  const shouldProcess = await tryClaimEvent(
+  const shouldProcess = ctx.adminReplay || await tryClaimEvent(
     supabase,
     event.id,
     event.type,
@@ -257,7 +257,7 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
         stripe_customer_id: stripeCustomerId,
       })
       .eq("id", intakeId)
-      .in("payment_status", ["pending", "unpaid"]) // Only update if still pending
+      .in("payment_status", ["pending", "unpaid", "failed"]) // Allow successful retries after failed attempts
       .select("id, status")
       .single()
 

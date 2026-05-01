@@ -381,6 +381,37 @@ export function useIntakeActions({
     })
   }, [getClinicalCaseSummary, intake.id, intake.patient?.full_name, parchmentEnabled, openPanel, dialogs])
 
+  const handleApproveAndOpenParchment = useCallback(async () => {
+    if (!parchmentEnabled) return
+
+    const decisionNote = resolveDecisionNote()
+    if (!decisionNote) {
+      toast.error(`Clinical notes required (min ${MIN_CLINICAL_NOTES_LENGTH} chars).`)
+      notesRef.current?.focus()
+      return
+    }
+
+    startTransition(async () => {
+      const saveResult = await saveDoctorNotesAction(intake.id, decisionNote)
+      if (!saveResult.success) {
+        toast.error(saveResult.error || "Failed to save clinical notes")
+        return
+      }
+
+      const result = await updateStatusAction(intake.id, "awaiting_script")
+      if (result.success) {
+        setDoctorNotes(decisionNote)
+        setNoteSaved(true)
+        setIsAiPrefilled(false)
+        toast.success("Approved. Opening Parchment.")
+        router.refresh()
+        handleOpenParchmentPrescribe()
+      } else {
+        toast.error(result.error || "Failed to approve script")
+      }
+    })
+  }, [handleOpenParchmentPrescribe, intake.id, parchmentEnabled, resolveDecisionNote, router])
+
   const handleMarkRefunded = useCallback(async () => {
     startTransition(async () => {
       const result = await issueRefundAction(intake.id)
@@ -506,6 +537,7 @@ export function useIntakeActions({
     handleSaveNotes,
     handleMarkScriptSent,
     handleOpenParchmentPrescribe: parchmentEnabled ? handleOpenParchmentPrescribe : undefined,
+    handleApproveAndOpenParchment: parchmentEnabled ? handleApproveAndOpenParchment : undefined,
     handleMarkRefunded,
     handleApproveDateCorrection,
     handleResendCertificate,

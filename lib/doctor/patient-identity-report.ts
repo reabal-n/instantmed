@@ -1,5 +1,9 @@
 import { decryptProfilePhi } from "@/lib/data/profiles"
 import {
+  PARCHMENT_PATIENT_SYNC_STATUSES,
+  PARCHMENT_PRESCRIBING_CONSULT_SUBTYPES,
+} from "@/lib/doctor/parchment-claim"
+import {
   type DuplicatePatientProfilesSummary,
   summarizeDuplicatePatientProfiles,
 } from "@/lib/doctor/patient-snapshot"
@@ -65,6 +69,7 @@ function firstRelated<T>(value: T | T[] | null | undefined): T | null {
 export async function getPrescribingIdentityBlockerReport(
   supabase: ServiceRoleClient,
 ): Promise<PrescribingIdentityBlockerReport> {
+  const prescribingConsultSubtypeFilter = PARCHMENT_PRESCRIBING_CONSULT_SUBTYPES.join(",")
   const { data, error } = await supabase
     .from("intakes")
     .select(`
@@ -88,8 +93,8 @@ export async function getPrescribingIdentityBlockerReport(
       )
     `)
     .eq("payment_status", "paid")
-    .eq("category", "prescription")
-    .in("status", ["paid", "in_review", "awaiting_script"])
+    .or(`category.eq.prescription,and(category.eq.consult,subtype.in.(${prescribingConsultSubtypeFilter}))`)
+    .in("status", [...PARCHMENT_PATIENT_SYNC_STATUSES])
     .order("paid_at", { ascending: true, nullsFirst: false })
     .limit(100)
 

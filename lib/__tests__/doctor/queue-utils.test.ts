@@ -3,7 +3,11 @@ import { afterEach,beforeEach, describe, expect, it, vi } from "vitest"
 import {
   calculateSlaCountdown,
   calculateWaitTime,
+  getQueueEnteredAt,
+  getQueueStatusMeta,
   getWaitTimeSeverity,
+  isHydratedQueueRealtimeInsert,
+  QUEUE_REVIEW_STATUSES,
 } from "@/lib/doctor/queue-utils"
 
 describe("calculateWaitTime", () => {
@@ -96,5 +100,56 @@ describe("calculateSlaCountdown", () => {
 
   it("returns hours overdue for long breaches", () => {
     expect(calculateSlaCountdown("2026-04-09T10:00:00Z")).toBe("2h 0m overdue")
+  })
+})
+
+describe("doctor queue operational helpers", () => {
+  it("treats awaiting_script as a first-class queue status", () => {
+    expect(QUEUE_REVIEW_STATUSES).toContain("awaiting_script")
+  })
+
+  it("uses paid_at before submitted_at or created_at for queue wait time", () => {
+    const enteredAt = getQueueEnteredAt({
+      paid_at: "2026-04-09T11:40:00Z",
+      submitted_at: "2026-04-09T11:00:00Z",
+      created_at: "2026-04-09T10:00:00Z",
+    })
+
+    expect(enteredAt).toBe("2026-04-09T11:40:00Z")
+  })
+
+  it("falls back to submitted_at for legacy paid rows without paid_at", () => {
+    const enteredAt = getQueueEnteredAt({
+      paid_at: null,
+      submitted_at: "2026-04-09T11:00:00Z",
+      created_at: "2026-04-09T10:00:00Z",
+    })
+
+    expect(enteredAt).toBe("2026-04-09T11:00:00Z")
+  })
+
+  it("labels script cases truthfully", () => {
+    expect(getQueueStatusMeta("awaiting_script")).toMatchObject({
+      label: "Awaiting script",
+      tone: "script",
+    })
+  })
+
+  it("rejects raw realtime inserts that do not include joined queue data", () => {
+    expect(
+      isHydratedQueueRealtimeInsert({
+        id: "intake-1",
+        status: "paid",
+      }),
+    ).toBe(false)
+
+    expect(
+      isHydratedQueueRealtimeInsert({
+        id: "intake-1",
+        status: "paid",
+        patient: { id: "patient-1", full_name: "Hydrated Patient" },
+        service: { id: "service-1", type: "med_certs" },
+      }),
+    ).toBe(true)
   })
 })

@@ -57,6 +57,12 @@ const PHI_KEYS = new Set([
   "details",
   "comment",
   "comments",
+  "content",
+  "body",
+  "dateofbirth",
+  "birthdate",
+  "recipient_name",
+  "recipientname",
   
   // Document/attachment references (contain PHI indirectly)
   "pdf_url",
@@ -156,6 +162,9 @@ function isPHIKey(key: string): boolean {
   if (lowerKey.includes("message")) return true
   if (lowerKey.includes("transcript")) return true
   if (lowerKey.includes("medicare")) return true
+  if (lowerKey === "content" || lowerKey === "body") return true
+  if (lowerKey.includes("birth") && lowerKey.includes("date")) return true
+  if (lowerKey.includes("recipient") && lowerKey.includes("name")) return true
   if (lowerKey.includes("address") && !lowerKey.includes("ip_address")) return true
   if (lowerKey.includes("phone")) return true
   if (lowerKey.includes("symptom")) return true

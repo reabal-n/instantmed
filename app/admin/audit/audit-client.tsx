@@ -7,6 +7,7 @@ import {
   Eye,
   ScrollText,
   Search,
+  Stethoscope,
   User,
   Webhook,
 } from "lucide-react"
@@ -109,6 +110,8 @@ export function AuditLogClient({ initialLogs, initialTotal, stats }: AuditLogCli
     switch (type) {
       case "patient":
         return <User className="h-3 w-3" />
+      case "doctor":
+        return <Stethoscope className="h-3 w-3" />
       case "admin":
         return <User className="h-3 w-3" />
       case "system":
@@ -124,6 +127,8 @@ export function AuditLogClient({ initialLogs, initialTotal, stats }: AuditLogCli
     switch (type) {
       case "patient":
         return "bg-info-light text-info"
+      case "doctor":
+        return "bg-success-light text-success"
       case "admin":
         return "bg-warning-light text-warning"
       case "system":
@@ -257,6 +262,7 @@ export function AuditLogClient({ initialLogs, initialTotal, stats }: AuditLogCli
               <SelectContent>
                 <SelectItem value="all">All Actors</SelectItem>
                 <SelectItem value="patient">Patient</SelectItem>
+                <SelectItem value="doctor">Doctor</SelectItem>
                 <SelectItem value="admin">Admin</SelectItem>
                 <SelectItem value="system">System</SelectItem>
                 <SelectItem value="webhook">Webhook</SelectItem>

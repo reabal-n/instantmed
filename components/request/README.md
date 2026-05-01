@@ -97,35 +97,6 @@ const {
 } = useRequestStore()
 ```
 
-## Migration from Legacy Flows
-
-### EnhancedIntakeFlow → RequestFlow
-
-Old:
-```tsx
-import { EnhancedIntakeFlow } from "@/components/intake/enhanced-intake-flow"
-<EnhancedIntakeFlow serviceType="med-cert" />
-```
-
-New:
-```tsx
-import { RequestFlow } from "@/components/request"
-<RequestFlow initialService="med-cert" isAuthenticated={...} hasProfile={...} hasMedicare={...} />
-```
-
-### RepeatRxIntakeFlow → RequestFlow
-
-Old:
-```tsx
-import { RepeatRxIntakeFlow } from "@/components/repeat-rx/intake-flow"
-```
-
-New:
-```tsx
-import { RequestFlow } from "@/components/request"
-<RequestFlow initialService="prescription" isAuthenticated={...} hasProfile={...} hasMedicare={...} />
-```
-
 ## Adding New Steps
 
 1. Create step component in `components/request/steps/`:

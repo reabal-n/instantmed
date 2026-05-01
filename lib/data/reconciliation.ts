@@ -9,6 +9,7 @@
 
 import * as Sentry from "@sentry/nextjs"
 
+import { getPaymentTraceabilityIssue } from "@/lib/data/reconciliation-helpers"
 import { createLogger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
@@ -35,6 +36,7 @@ export interface ReconciliationRecord {
   service_type: string | null
   subtype: string | null
   category: string | null
+  payment_id: string | null
   stripe_payment_intent_id: string | null
   payment_status: string
   intake_status: string
@@ -42,6 +44,7 @@ export interface ReconciliationRecord {
   delivery_details: string
   last_error: string | null
   is_mismatch: boolean
+  payment_issue: string | null
   age_minutes: number
   // Refund tracking (for declined intakes)
   refund_status: string | null
@@ -117,6 +120,7 @@ export async function getReconciliationRecords(
         payment_status,
         category,
         subtype,
+        payment_id,
         stripe_payment_intent_id,
         generated_document_url,
         script_sent,
@@ -229,9 +233,14 @@ export async function getReconciliationRecords(
       const refundStatus = (intake as { refund_status?: string }).refund_status || null
       const refundError = (intake as { refund_error?: string }).refund_error || null
       const refundFailed = refundStatus === "failed"
+      const paymentIssue = getPaymentTraceabilityIssue({
+        payment_id: intake.payment_id,
+        payment_status: intake.payment_status,
+        stripe_payment_intent_id: intake.stripe_payment_intent_id,
+      })
       
       // Include refund failures in mismatch calculation
-      const finalIsMismatch = isMismatch || refundFailed
+      const finalIsMismatch = isMismatch || refundFailed || Boolean(paymentIssue)
 
       const record: ReconciliationRecord = {
         intake_id: intake.id,
@@ -243,13 +252,15 @@ export async function getReconciliationRecords(
         service_type: service?.type || null,
         subtype: intake.subtype,
         category: intakeCategory,
+        payment_id: intake.payment_id,
         stripe_payment_intent_id: intake.stripe_payment_intent_id,
         payment_status: intake.payment_status,
         intake_status: intake.status,
         delivery_status: deliveryStatus,
-        delivery_details: refundFailed ? `Refund failed: ${refundError || "Unknown error"}` : deliveryDetails,
-        last_error: refundFailed ? refundError : lastError,
+        delivery_details: refundFailed ? "Refund failed" : paymentIssue || deliveryDetails,
+        last_error: refundFailed ? refundError : paymentIssue || lastError,
         is_mismatch: finalIsMismatch,
+        payment_issue: paymentIssue,
         age_minutes: ageMinutes,
         refund_status: refundStatus,
         refund_error: refundError,
@@ -482,25 +493,29 @@ async function captureMismatchWarnings(records: ReconciliationRecord[]): Promise
     Sentry.captureMessage(`Payment reconciliation mismatch: ${record.delivery_status}`, {
       level: "warning",
       tags: {
-        intake_id: record.intake_id,
         delivery_status: record.delivery_status,
         intake_status: record.intake_status,
         category: record.category || "unknown",
         service_type: record.service_type || "unknown",
       },
       extra: {
-        reference_number: record.reference_number,
         age_minutes: record.age_minutes,
         delivery_details: record.delivery_details,
-        last_error: record.last_error,
+        has_last_error: Boolean(record.last_error),
+        payment_issue: record.payment_issue,
       },
-      fingerprint: ["reconciliation-mismatch", record.intake_id, record.delivery_status],
+      fingerprint: [
+        "reconciliation-mismatch",
+        record.delivery_status,
+        record.intake_status,
+        record.category || "unknown",
+      ],
     })
 
     logger.warn("[Reconciliation] Mismatch detected", {
-      intakeId: record.intake_id,
       deliveryStatus: record.delivery_status,
       ageMinutes: record.age_minutes,
+      category: record.category || "unknown",
     })
   }
 

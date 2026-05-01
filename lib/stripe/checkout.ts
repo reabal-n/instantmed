@@ -1015,11 +1015,24 @@ export async function retryPaymentForIntakeAction(intakeId: string): Promise<Che
       return { success: false, error: "Failed to create checkout session. Please try again." }
     }
 
-    // Update intake with new payment session ID
-    await supabase
+    // Reset retryable failures to a fresh pending checkout session.
+    const { error: retryUpdateError } = await supabase
       .from("intakes")
-      .update({ payment_id: session.id })
+      .update({
+        payment_id: session.id,
+        payment_status: "pending",
+        status: "pending_payment",
+        checkout_error: null,
+        updated_at: new Date().toISOString(),
+      })
       .eq("id", intake.id)
+      .in("status", ["pending_payment", "checkout_failed"])
+      .in("payment_status", ["pending", "unpaid", "failed"])
+
+    if (retryUpdateError) {
+      logger.error("Failed to attach retry checkout session", { intakeId: intake.id }, retryUpdateError)
+      return { success: false, error: "Failed to prepare payment retry. Please try again." }
+    }
 
     return { success: true, checkoutUrl: session.url, intakeId: intake.id }
   } catch {

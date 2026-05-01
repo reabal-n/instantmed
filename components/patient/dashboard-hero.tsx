@@ -106,7 +106,10 @@ export function resolveHeroState({
     )[0]
   if (inReview) return { state: "live-review", intake: inReview }
 
-  // 4. Stale payment: pending_payment over 1 hour
+  // 4. Payment recovery: failed checkout immediately; stale pending_payment over 1 hour.
+  const failedPayment = intakes.find((i) => i.status === "checkout_failed")
+  if (failedPayment) return { state: "stale-payment", intake: failedPayment }
+
   const stalePayment = intakes.find((i) => {
     if (i.status !== "pending_payment") return false
     return new Date(i.created_at).getTime() < Date.now() - 60 * 60 * 1000

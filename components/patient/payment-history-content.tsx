@@ -27,6 +27,7 @@ import { Input } from "@/components/ui/input"
 import { useReducedMotion } from "@/components/ui/motion"
 import { PAYMENT_STATUS } from "@/lib/data/status"
 import { formatCurrency,formatDate, formatDateLong } from "@/lib/format"
+import { fetchWithCsrf } from "@/lib/security/csrf-client"
 import { cn } from "@/lib/utils"
 
 interface Invoice {
@@ -110,7 +111,7 @@ export function PaymentHistoryContent(_props: PaymentHistoryContentProps) {
   const handleRetryPayment = async (invoiceId: string) => {
     try {
       setIsRetrying(true)
-      const response = await fetch("/api/patient/retry-payment", {
+      const response = await fetchWithCsrf("/api/patient/retry-payment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ invoiceId }),

@@ -1,4 +1,6 @@
 /* eslint-disable no-console */
+import { scrubPHI } from "@/lib/observability/scrub-phi"
+
 /**
  * Centralized Logging Service
  * 
@@ -44,7 +46,7 @@ function shouldLog(level: LogLevel): boolean {
 // Allow disabling sanitization in development for debugging (set LOG_SANITIZE_DEV=false)
 const SANITIZE_IN_DEV = process.env.LOG_SANITIZE_DEV !== 'false'
 
-function sanitizeContext(context: LogContext): LogContext {
+export function sanitizeLogContext(context: LogContext): LogContext {
   // Skip sanitization in development when explicitly disabled
   if (process.env.NODE_ENV === 'development' && !SANITIZE_IN_DEV) {
     return context
@@ -55,6 +57,11 @@ function sanitizeContext(context: LogContext): LogContext {
     'password', 'token', 'secret', 'key', 'auth',
     // Australian identifiers
     'medicare', 'irn', 'referenceNumber', 'providerNumber', 'prescriberNumber',
+    // Internal request identifiers that can link back to a patient case
+    'actorId', 'certificateId', 'certificateNumber', 'certificateRef',
+    'certId', 'doctorId', 'draftId', 'entryId', 'intakeId',
+    'newDraftId', 'patientId', 'profileId', 'requestId', 'refundId',
+    'targetDoctorId', 'userId',
     // Financial
     'credit', 'card', 'ssn', 'bsb', 'accountNumber',
     // Personal identifiable information
@@ -62,6 +69,7 @@ function sanitizeContext(context: LogContext): LogContext {
     'address', 'street', 'postcode', 'suburb',
     'phone', 'mobile', 'email',
     'full_name', 'fullName', 'firstName', 'lastName',
+    'subject', 'title',
     // Medical/clinical terms (PHI compliance)
     'diagnosis', 'medication', 'prescription', 'symptom', 'symptoms',
     'condition', 'treatment', 'medical_history', 'medicalHistory',
@@ -75,12 +83,14 @@ function sanitizeContext(context: LogContext): LogContext {
   
   for (const [key, value] of Object.entries(context)) {
     const lowerKey = key.toLowerCase()
-    const isSensitive = sensitiveKeys.some(sk => lowerKey.includes(sk))
+    const isSensitive = sensitiveKeys.some(sk => lowerKey.includes(sk.toLowerCase()))
     
     if (isSensitive) {
       sanitized[key] = '[REDACTED]'
+    } else if (typeof value === 'string') {
+      sanitized[key] = scrubPHI(value)
     } else if (typeof value === 'object' && value !== null) {
-      sanitized[key] = sanitizeContext(value as LogContext)
+      sanitized[key] = sanitizeLogContext(value as LogContext)
     } else {
       sanitized[key] = value
     }
@@ -115,7 +125,7 @@ function createLogEntry(
   }
   
   if (context) {
-    entry.context = sanitizeContext(context)
+    entry.context = sanitizeLogContext(context)
   }
   
   if (error) {

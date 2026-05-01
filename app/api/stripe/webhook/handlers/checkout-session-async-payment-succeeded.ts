@@ -50,7 +50,7 @@ export async function handleAsyncPaymentSucceeded(ctx: WebhookContext): Promise<
     amount: session.amount_total,
   })
 
-  const shouldProcess = await tryClaimEvent(supabase, event.id, event.type, intakeId, session.id, {
+  const shouldProcess = ctx.adminReplay || await tryClaimEvent(supabase, event.id, event.type, intakeId, session.id, {
     amount: session.amount_total,
     payment_intent: session.payment_intent,
     customer: session.customer,

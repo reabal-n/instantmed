@@ -49,10 +49,68 @@ export interface PatientSnapshot {
 export interface PatientSnapshotOptions {
   now?: Date
   answers?: Record<string, unknown> | null
+  requireMedicare?: boolean
+  requirePhone?: boolean
+  requireAddress?: boolean
   requireStructuredAddress?: boolean
   requireSex?: boolean
   validateMedicare?: boolean
   requireMedicareDetails?: boolean
+}
+
+export interface PatientSnapshotCaseContext {
+  answers?: Record<string, unknown> | null
+  category?: string | null
+  serviceType?: string | null
+  subtype?: string | null
+}
+
+const PRESCRIBING_CONSULT_SUBTYPES = new Set(["ed", "hair_loss"])
+
+export function requiresPrescribingIdentityForCase({
+  category,
+  serviceType,
+  subtype,
+}: PatientSnapshotCaseContext): boolean {
+  const normalizedServiceType = serviceType ?? ""
+  const normalizedCategory = category ?? ""
+
+  return (
+    normalizedCategory === "prescription" ||
+    normalizedServiceType === "common_scripts" ||
+    normalizedServiceType === "repeat_rx" ||
+    normalizedServiceType === "prescription" ||
+    normalizedServiceType === "repeat-script" ||
+    (normalizedCategory === "consult" && PRESCRIBING_CONSULT_SUBTYPES.has(subtype ?? ""))
+  )
+}
+
+export function getPatientSnapshotOptionsForCase(
+  context: PatientSnapshotCaseContext,
+): PatientSnapshotOptions {
+  const normalizedServiceType = context.serviceType ?? ""
+  const normalizedCategory = context.category ?? ""
+  const isMedCert =
+    normalizedServiceType === "med_certs" ||
+    normalizedCategory === "medical_certificate" ||
+    normalizedCategory === "med_certs"
+  const isConsult =
+    normalizedServiceType === "consult" ||
+    normalizedServiceType === "consults" ||
+    normalizedCategory === "consult"
+  const requiresPrescribingIdentity = requiresPrescribingIdentityForCase(context)
+  const requiresClinicalContact = requiresPrescribingIdentity || isConsult
+
+  return {
+    answers: context.answers,
+    requireMedicare: isMedCert ? false : requiresClinicalContact,
+    requirePhone: !isMedCert,
+    requireAddress: requiresPrescribingIdentity,
+    requireStructuredAddress: requiresPrescribingIdentity,
+    requireSex: requiresPrescribingIdentity,
+    requireMedicareDetails: requiresPrescribingIdentity,
+    validateMedicare: !isMedCert && requiresClinicalContact,
+  }
 }
 
 export interface DuplicatePatientGroup {
@@ -245,14 +303,18 @@ export function buildPatientSnapshot(
   const address = resolveAddressComponents(patient, options?.answers)
   const addressIsCritical = options?.requireStructuredAddress ? address.complete : Boolean(address.label)
 
+  const requireMedicare = options?.requireMedicare ?? true
+  const requirePhone = options?.requirePhone ?? true
+  const requireAddress = options?.requireAddress ?? true
+
   const missingCriticalFields = [
     patient.date_of_birth ? null : "DOB",
     options?.requireSex && !sexValue ? "Sex" : null,
-    medicareIsCritical ? null : medicare ? "Valid Medicare" : "Medicare",
+    requireMedicare ? (medicareIsCritical ? null : medicare ? "Valid Medicare" : "Medicare") : null,
     options?.requireMedicareDetails && medicare && !medicareIrnIsCritical ? "Medicare IRN" : null,
     options?.requireMedicareDetails && medicare && medicareExpiry && !medicareExpiryValidation?.valid ? "Valid Medicare expiry" : null,
-    phone ? null : "Phone",
-    addressIsCritical ? null : "Address",
+    requirePhone ? (phone ? null : "Phone") : null,
+    requireAddress ? (addressIsCritical ? null : "Address") : null,
   ].filter(Boolean) as string[]
 
   const completenessTone = missingCriticalFields.length === 0

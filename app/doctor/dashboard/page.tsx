@@ -112,7 +112,7 @@ async function DoctorQueueSection({
 
   const queueResult = results[0].status === "fulfilled"
     ? results[0].value
-    : { data: [], total: 0, page: 1, pageSize }
+    : { data: [], total: 0, page: 1, pageSize, degraded: true }
   const aiApprovedIntakes = results[1].status === "fulfilled"
     ? results[1].value
     : []
@@ -134,6 +134,7 @@ async function DoctorQueueSection({
         intakes={queueResult.data}
         doctorId={profileId}
         identityComplete={identityComplete}
+        queueDegraded={queueResult.degraded}
         pagination={{
           page: queueResult.page,
           pageSize: queueResult.pageSize,

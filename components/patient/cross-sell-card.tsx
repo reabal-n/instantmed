@@ -19,14 +19,14 @@ interface CrossSellConfig {
   cta: string
 }
 
-function getCrossSell(serviceType: ServiceType | undefined): CrossSellConfig | null {
+export function getCrossSell(serviceType: ServiceType | undefined): CrossSellConfig | null {
   switch (serviceType) {
     case "med_certs":
       return {
         headline: "Need a prescription renewal?",
         description: "A doctor reviews repeat medication requests the same way. No appointment needed.",
         price: `from ${PRICING_DISPLAY.REPEAT_SCRIPT}`,
-        href: "/request?service=prescription",
+        href: "/request?service=repeat-script",
         cta: "Renew a prescription",
       }
     case "common_scripts":

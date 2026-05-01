@@ -24,7 +24,7 @@ export async function handleChargeRefunded(ctx: WebhookContext): Promise<Handler
     amountRefunded: charge.amount_refunded,
   })
 
-  const shouldProcess = await tryClaimEvent(supabase, event.id, event.type, undefined, charge.id)
+  const shouldProcess = ctx.adminReplay || await tryClaimEvent(supabase, event.id, event.type, undefined, charge.id)
   if (!shouldProcess) {
     return NextResponse.json({ received: true, skipped: true })
   }

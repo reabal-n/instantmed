@@ -18,6 +18,7 @@ const logger = createLogger("intake-lifecycle")
 //   paid → declined               (doctor declines directly)
 //   paid → pending_info           (doctor needs more info)
 //   in_review → approved          (doctor approves)
+//   in_review → awaiting_script   (doctor approves a prescription and must send script)
 //   in_review → declined          (doctor declines)
 //   in_review → pending_info      (doctor needs more info)
 //   in_review → escalated         (doctor escalates)
@@ -39,7 +40,7 @@ const VALID_STATUS_TRANSITIONS: Record<IntakeStatus, IntakeStatus[]> = {
   pending_payment: ["paid", "checkout_failed", "cancelled", "expired"],
   checkout_failed: ["pending_payment", "cancelled"], // Retry or abandon
   paid: ["in_review", "approved", "awaiting_script", "cancelled"],
-  in_review: ["approved", "declined", "pending_info", "escalated"],
+  in_review: ["approved", "declined", "pending_info", "escalated", "awaiting_script"],
   pending_info: ["in_review", "paid", "cancelled", "expired"],
   approved: ["completed", "awaiting_script"],
   awaiting_script: ["completed"],

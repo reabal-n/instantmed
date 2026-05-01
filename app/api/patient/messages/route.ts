@@ -1,3 +1,4 @@
+import { revalidatePath } from "next/cache"
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 
@@ -12,8 +13,16 @@ const log = createLogger("patient-messages")
 
 const messageSchema = z.object({
   intakeId: z.string().uuid(),
-  content: z.string().min(1, "Message cannot be empty").max(5000).transform(s => s.trim()),
+  content: z.string().trim().min(1, "Message cannot be empty").max(5000),
 })
+
+function revalidateMessageSurfaces(intakeId: string) {
+  revalidatePath("/doctor/dashboard")
+  revalidatePath("/doctor/queue")
+  revalidatePath(`/doctor/intakes/${intakeId}`)
+  revalidatePath("/patient/messages")
+  revalidatePath(`/patient/intakes/${intakeId}`)
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -46,7 +55,7 @@ export async function POST(request: NextRequest) {
     // Verify the intake belongs to this patient
     const { data: intake } = await supabase
       .from("intakes")
-      .select("id, patient_id")
+      .select("id, patient_id, status")
       .eq("id", intakeId)
       .single()
 
@@ -57,6 +66,37 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    if (intake.status === "pending_info") {
+      const { data: responseMessage, error: responseError } = await supabase
+        .rpc("respond_to_info_request_atomic", {
+          p_intake_id: intakeId,
+          p_message: content,
+          p_patient_id: patientId,
+        })
+
+      if (responseError) {
+        log.error("Info response RPC failed", { error: responseError.message })
+        return NextResponse.json(
+          { error: "Failed to send message" },
+          { status: 500 }
+        )
+      }
+
+      const restored = Array.isArray(responseMessage) ? responseMessage[0] : responseMessage
+      revalidateMessageSurfaces(intakeId)
+
+      return NextResponse.json({
+        success: true,
+        message: restored
+          ? {
+              id: restored.message_id,
+              created_at: restored.created_at,
+              restored_status: restored.restored_status,
+            }
+          : null,
+      })
+    }
+
     // Insert the message
     const { data: message, error } = await supabase
       .from("patient_messages")
@@ -65,7 +105,7 @@ export async function POST(request: NextRequest) {
         intake_id: intakeId,
         sender_type: "patient",
         sender_id: patientId,
-        content: content.trim(),
+        content,
       })
       .select("id, created_at")
       .single()
@@ -77,6 +117,8 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       )
     }
+
+    revalidateMessageSurfaces(intakeId)
 
     return NextResponse.json({ success: true, message })
   } catch (error) {

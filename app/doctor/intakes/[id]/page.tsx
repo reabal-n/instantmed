@@ -7,6 +7,7 @@ import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
 import { getOrCreateMedCertDraftForIntake } from "@/lib/data/documents"
 import { getIntakeWithDetails, getNextQueueIntakeId,getPatientIntakes } from "@/lib/data/intakes"
 import { getCertDeliveryStatus } from "@/lib/data/issued-certificates"
+import { getPatientMessagesForIntake } from "@/lib/data/patient-messages"
 import { isConsultServiceType } from "@/lib/doctor/service-types"
 import { getFeatureFlags } from "@/lib/feature-flags"
 import { calculateAge } from "@/lib/format"
@@ -47,7 +48,7 @@ export default async function DoctorIntakeDetailPage({
   const previousIntakes = patientHistory.filter((r: { id: string }) => r.id !== id).slice(0, 5)
 
   // Fetch AI drafts, next intake, cert delivery status in parallel
-  const [aiDrafts, nextIntakeId, medCertDraft, pendingCorrection, certDelivery, featureFlags] = await Promise.all([
+  const [aiDrafts, nextIntakeId, medCertDraft, pendingCorrection, certDelivery, featureFlags, patientMessages] = await Promise.all([
     getAIDraftsForIntake(id),
     getNextQueueIntakeId(id),
     (intake.service as { type?: string } | undefined)?.type === "med_certs"
@@ -56,6 +57,7 @@ export default async function DoctorIntakeDetailPage({
     getPendingDateCorrection(id),
     getCertDeliveryStatus(id),
     getFeatureFlags(),
+    getPatientMessagesForIntake(id),
   ])
 
   // Phase 3: fetch follow-ups for ED/hair-loss consults
@@ -93,6 +95,7 @@ export default async function DoctorIntakeDetailPage({
       followups={followups}
       certDelivery={certDelivery}
       parchmentEnabled={featureFlags.parchment_embedded_prescribing}
+      patientMessages={patientMessages}
     />
   )
 }

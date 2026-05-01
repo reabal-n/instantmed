@@ -3,6 +3,7 @@
 import { createContext, type RefObject,useContext } from "react"
 
 import type { AIDraft } from "@/app/actions/draft-approval"
+import type { PatientThreadMessage } from "@/lib/data/patient-messages"
 import type { DeclineReasonCode,IntakeStatus, IntakeWithDetails, IntakeWithPatient } from "@/types/db"
 
 export interface ReviewData {
@@ -20,6 +21,7 @@ export interface ReviewData {
     email_opened_at: string | null
     resend_count: number
   } | null
+  patientMessages?: PatientThreadMessage[]
 }
 
 export interface IntakeReviewContextValue {

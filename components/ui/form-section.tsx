@@ -16,7 +16,7 @@ export function useFormGroupDescribedBy() {
 }
 
 // =============================================================================
-// FORM SECTION - GlassCard wrapper for form groups
+// FORM SECTION - solid-depth wrapper for form groups
 // =============================================================================
 
 interface FormSectionProps {

@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation"
 import { useEffect, useRef, useState } from "react"
 
+import { isHydratedQueueRealtimeInsert } from "@/lib/doctor/queue-utils"
 import { createClient } from "@/lib/supabase/client"
 import type { IntakeWithPatient } from "@/types/db"
 
@@ -74,11 +75,15 @@ export function useQueueRealtime({
             setIsStale(false)
 
             if (payload.eventType === "INSERT") {
-              const newRow = payload.new as IntakeWithPatient
+              const newRow = payload.new as Partial<IntakeWithPatient> & { id: string }
               // Sound only — toast is handled by IntakeNotificationListener
               // to avoid duplicate notifications.
               playNotificationSoundRef.current()
-              onInsertRef.current(newRow)
+              if (isHydratedQueueRealtimeInsert(newRow)) {
+                onInsertRef.current(newRow as IntakeWithPatient)
+              } else {
+                router.refresh()
+              }
             } else if (payload.eventType === "UPDATE") {
               onUpdateRef.current(payload.new as Partial<IntakeWithPatient> & { id: string })
             } else if (payload.eventType === "DELETE") {

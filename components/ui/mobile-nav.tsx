@@ -103,11 +103,6 @@ const doctorItems: NavItem[] = [
 
 const doctorMoreItems: NavItem[] = [
   {
-    label: "Repeat Rx",
-    icon: ClipboardList,
-    href: "/doctor/repeat-rx",
-  },
-  {
     label: "Certificates",
     icon: FileCheck,
     href: "/doctor/certificates",

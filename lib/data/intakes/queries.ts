@@ -3,6 +3,7 @@ import "server-only"
 import { unstable_cache } from "next/cache"
 
 import { readDashboardQuery } from "@/lib/data/dashboard-read-model"
+import { QUEUE_REVIEW_STATUSES } from "@/lib/doctor/queue-utils"
 import { toError } from "@/lib/errors"
 import { createLogger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -252,7 +253,7 @@ export async function getAllIntakesByStatus(
  */
 export async function getDoctorQueue(
   options?: { page?: number; pageSize?: number; doctorId?: string }
-): Promise<{ data: IntakeWithPatient[]; total: number; page: number; pageSize: number }> {
+): Promise<{ data: IntakeWithPatient[]; total: number; page: number; pageSize: number; degraded?: boolean }> {
   const supabase = createServiceRoleClient()
   const page = options?.page ?? 1
   const pageSize = Math.min(options?.pageSize ?? 50, 100) // Cap at 100
@@ -266,7 +267,7 @@ export async function getDoctorQueue(
       .eq("id", options.doctorId)
       .single()
     if (profile?.doctor_available === false) {
-      return { data: [], total: 0, page, pageSize }
+      return { data: [], total: 0, page, pageSize, degraded: false }
     }
   }
 
@@ -280,7 +281,8 @@ export async function getDoctorQueue(
       const { count, error } = await supabase
         .from("intakes")
         .select("id", { count: "exact", head: true })
-        .in("status", ["paid", "in_review", "pending_info"])
+        .in("status", QUEUE_REVIEW_STATUSES)
+        .eq("payment_status", "paid")
 
       return { data: error ? null : { count: count ?? 0, degraded: false }, error }
     },
@@ -298,8 +300,13 @@ export async function getDoctorQueue(
       subtype,
       status,
       payment_status,
+      claimed_by,
+      claimed_at,
       is_priority,
       sla_deadline,
+      submitted_at,
+      paid_at,
+      reviewed_at,
       created_at,
       updated_at,
       flagged_for_followup,
@@ -310,18 +317,23 @@ export async function getDoctorQueue(
       ai_draft_status,
       ai_approved,
       ai_approved_at,
-      patient:profiles!patient_id (id, full_name, email, date_of_birth, medicare_number, phone, address_line1, suburb, state, postcode),
+      script_sent,
+      parchment_reference,
+      patient:profiles!patient_id (id, full_name, email, date_of_birth, sex, medicare_number, medicare_irn, medicare_expiry, phone, address_line1, suburb, state, postcode),
       service:services!service_id (id, name, short_name, type, slug)
     `)
-    .in("status", ["paid", "in_review", "pending_info"])
+    .in("status", QUEUE_REVIEW_STATUSES)
+    .eq("payment_status", "paid")
     .order("is_priority", { ascending: false })
     .order("sla_deadline", { ascending: true, nullsFirst: false })
+    .order("paid_at", { ascending: true, nullsFirst: false })
+    .order("submitted_at", { ascending: true, nullsFirst: false })
     .order("created_at", { ascending: true })
     .range(offset, offset + pageSize - 1)
 
   if (error) {
     logger.error("Error fetching doctor queue", {}, toError(error))
-    return { data: [], total: countResult.count, page, pageSize }
+    return { data: [], total: countResult.count, page, pageSize, degraded: true }
   }
 
   const unwrapped = (data || []).map(row => ({
@@ -335,6 +347,7 @@ export async function getDoctorQueue(
     total: countFallback ? validData.length : countResult.count,
     page,
     pageSize,
+    degraded: countFallback,
   }
 }
 
@@ -516,10 +529,13 @@ export async function getNextQueueIntakeId(currentIntakeId: string): Promise<str
   const { data, error } = await supabase
     .from("intakes")
     .select("id")
-    .in("status", ["paid", "in_review", "pending_info"])
+    .in("status", QUEUE_REVIEW_STATUSES)
+    .eq("payment_status", "paid")
     .neq("id", currentIntakeId)
     .order("is_priority", { ascending: false })
     .order("sla_deadline", { ascending: true, nullsFirst: false })
+    .order("paid_at", { ascending: true, nullsFirst: false })
+    .order("submitted_at", { ascending: true, nullsFirst: false })
     .order("created_at", { ascending: true })
     .limit(1)
 
@@ -550,6 +566,7 @@ export async function getIntakeWithDetails(intakeId: string): Promise<IntakeWith
         email,
         phone,
         phone_encrypted,
+        sex,
         medicare_number,
         medicare_number_encrypted,
         medicare_irn,
@@ -857,7 +874,8 @@ export async function getIntakeMonitoringStats(): Promise<{
     supabase
       .from("intakes")
       .select("id", { count: "exact", head: true })
-      .in("status", ["paid", "in_review", "pending_info"]),
+      .in("status", QUEUE_REVIEW_STATUSES)
+      .eq("payment_status", "paid"),
     // Paid count
     supabase
       .from("intakes")
@@ -883,8 +901,9 @@ export async function getIntakeMonitoringStats(): Promise<{
     // Oldest in queue (single row, ordered by paid_at/created_at)
     supabase
       .from("intakes")
-      .select("paid_at, created_at")
-      .in("status", ["paid", "in_review", "pending_info"])
+      .select("paid_at, submitted_at, created_at")
+      .in("status", QUEUE_REVIEW_STATUSES)
+      .eq("payment_status", "paid")
       .order("paid_at", { ascending: true, nullsFirst: false })
       .order("created_at", { ascending: true })
       .limit(1)
@@ -902,7 +921,11 @@ export async function getIntakeMonitoringStats(): Promise<{
   // Calculate oldest in queue minutes
   let oldestInQueueMinutes: number | null = null
   if (oldestInQueueResult.data) {
-    const oldestTime = new Date(oldestInQueueResult.data.paid_at || oldestInQueueResult.data.created_at).getTime()
+    const oldestTime = new Date(
+      oldestInQueueResult.data.paid_at ||
+      oldestInQueueResult.data.submitted_at ||
+      oldestInQueueResult.data.created_at
+    ).getTime()
     oldestInQueueMinutes = Math.round((Date.now() - oldestTime) / (1000 * 60))
   }
 
@@ -1059,7 +1082,8 @@ export async function getSlaBreachIntakes(): Promise<{
   const { data, error } = await supabase
     .from("intakes")
     .select("id, sla_deadline")
-    .in("status", ["paid", "in_review", "pending_info"])
+    .in("status", QUEUE_REVIEW_STATUSES)
+    .eq("payment_status", "paid")
     .not("sla_deadline", "is", null)
 
   if (error || !data) {

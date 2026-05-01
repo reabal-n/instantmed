@@ -50,7 +50,6 @@ interface DashboardSidebarProps {
 
 const doctorNavItems: NavItem[] = [
   { href: "/doctor/dashboard", label: "Review Queue", icon: ListOrdered, badge: true },
-  { href: "/doctor/repeat-rx", label: "Repeat Rx", icon: Pill },
   { href: "/doctor/scripts", label: "Scripts", icon: ClipboardList },
   { href: "/doctor/certificates", label: "Certificates", icon: FileCheck },
   { href: "/doctor/patients", label: "Patients", icon: Users },
