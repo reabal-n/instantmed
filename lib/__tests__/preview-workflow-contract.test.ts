@@ -13,5 +13,7 @@ describe("preview deployment workflow contract", () => {
     expect(previewWorkflowSource).toContain("VERCEL_AUTOMATION_BYPASS_SECRET")
     expect(previewWorkflowSource).toContain("x-vercel-protection-bypass")
     expect(previewWorkflowSource).toContain("curl_args+=(-H")
+    expect(previewWorkflowSource).toContain("--max-time 10")
+    expect(previewWorkflowSource).toContain("got HTTP")
   })
 })
