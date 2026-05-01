@@ -206,20 +206,15 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
     return { success: false, error }
   }
 
-  // Check daily send limit (domain warmup)
-  const warmupCheck = await checkDailySendLimit()
+  // Check daily send limit for marketing warmup only. Transactional clinical
+  // and payment emails must not be blocked by a launch deliverability cap.
+  const isMarketingEmail = MARKETING_EMAIL_TYPES.has(emailType)
+  const warmupCheck = isMarketingEmail
+    ? await checkDailySendLimit()
+    : { allowed: true, current: 0, limit: 0 }
   if (!warmupCheck.allowed) {
-    const error = `Daily send limit reached (${warmupCheck.current}/${warmupCheck.limit})`
+    const error = `Daily marketing email limit reached (${warmupCheck.current}/${warmupCheck.limit})`
     logger.warn("[Email] " + error, { emailType })
-
-    // Alert if warmup is blocking transactional (non-marketing) emails
-    if (!MARKETING_EMAIL_TYPES.has(emailType)) {
-      Sentry.captureMessage("Warmup limit blocking transactional email", {
-        level: "warning",
-        tags: { email_type: emailType, alert_type: "warmup_transactional_blocked" },
-        extra: { current: warmupCheck.current, limit: warmupCheck.limit, intakeId },
-      })
-    }
 
     // Log to outbox as failed so dispatcher can retry later
     await logToOutbox({
@@ -233,7 +228,7 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
       intake_id: intakeId,
       patient_id: patientId,
       certificate_id: certificateId,
-      metadata: { ...metadata, warmup_limited: true },
+      metadata: { ...metadata, warmup_limited: true, warmup_scope: "marketing" },
     })
 
     return { success: false, error }
@@ -307,7 +302,10 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
     try {
       if (attempt > 0) {
         const delay = getRetryDelay(attempt - 1)
-        logger.info(`[Email] Retry ${attempt}/${RETRY_CONFIG.maxRetries} after ${delay}ms`, { to, subject })
+        logger.info(`[Email] Retry ${attempt}/${RETRY_CONFIG.maxRetries} after ${delay}ms`, {
+          to: sanitizeEmailForLog(to),
+          emailType,
+        })
         await sleep(delay)
       }
 
@@ -327,7 +325,11 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
         lastError = data.message || data.error?.message || `Resend API error (${response.status})`
 
         if (isRetryableError(response.status, lastError) && attempt < RETRY_CONFIG.maxRetries) {
-          logger.warn(`[Email] Retryable error (${response.status}): ${lastError}`, { to, attempt })
+          logger.warn(`[Email] Retryable error (${response.status}): ${lastError}`, {
+            to: sanitizeEmailForLog(to),
+            emailType,
+            attempt,
+          })
           continue
         }
 
@@ -393,8 +395,10 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
         })
       }
 
-      // Increment daily send counter for warmup tracking
-      incrementDailySendCount().catch(() => {})
+      // Increment daily warmup counter for marketing sends only.
+      if (isMarketingEmail) {
+        incrementDailySendCount().catch(() => {})
+      }
 
       return { success: true, messageId: data.id, outboxId: outboxId || undefined }
 
@@ -402,7 +406,11 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
       lastError = err instanceof Error ? err.message : "Unknown error"
 
       if (isRetryableError(undefined, lastError) && attempt < RETRY_CONFIG.maxRetries) {
-        logger.warn(`[Email] Network error, will retry: ${lastError}`, { to, attempt })
+        logger.warn(`[Email] Network error, will retry: ${lastError}`, {
+          to: sanitizeEmailForLog(to),
+          emailType,
+          attempt,
+        })
         continue
       }
 

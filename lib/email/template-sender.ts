@@ -11,6 +11,7 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 import { createLogger } from "../observability/logger"
 import { sendCriticalEmail,sendViaResend } from "./resend"
+import { sanitizeEmailForLog } from "./send/helpers"
 
 const log = createLogger("template-sender")
 
@@ -213,9 +214,9 @@ export async function sendTemplateEmail(params: SendTemplateEmailParams): Promis
   })
 
   if (result.success) {
-    log.info("Template email sent", { templateSlug, to, resendId: result.id })
+    log.info("Template email sent", { templateSlug, to: sanitizeEmailForLog(to), resendId: result.id })
   } else {
-    log.error("Template email failed", { templateSlug, to, error: result.error })
+    log.error("Template email failed", { templateSlug, to: sanitizeEmailForLog(to), error: result.error })
   }
 
   return {

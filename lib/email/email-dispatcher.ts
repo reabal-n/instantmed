@@ -3,6 +3,7 @@ import "server-only"
 import * as Sentry from "@sentry/nextjs"
 
 import { claimOutboxRow } from "@/lib/email/send/outbox"
+import { MARKETING_EMAIL_TYPES } from "@/lib/email/send/types"
 import { sendFromOutboxRow } from "@/lib/email/send-email"
 import { checkDailySendLimit, incrementDailySendCount } from "@/lib/email/warmup"
 import { createLogger } from "@/lib/observability/logger"
@@ -25,6 +26,7 @@ export const MAX_RETRIES = 10
 
 // Backoff schedule in minutes
 const BACKOFF_MINUTES = [0, 1, 2, 5, 10, 30, 60, 60, 60, 60]
+const STALE_SENDING_MINUTES = 15
 
 // Email types that the dispatcher can reconstruct and resend
 // Must match the types handled by reconstructEmailHtml() in send-email.ts
@@ -54,6 +56,7 @@ const SUPPORTED_EMAIL_TYPES = [
   "request_received",
   "request_approved",
   "still_reviewing",
+  "payment_retry",
   "verification_code",
   // Engagement & retention
   "abandoned_checkout",
@@ -119,6 +122,43 @@ function isEligibleForRetry(row: { retry_count: number; last_attempt_at: string 
   return new Date() >= eligibleAt
 }
 
+function isMarketingEmailType(emailType: string): boolean {
+  return MARKETING_EMAIL_TYPES.has(emailType as Parameters<typeof MARKETING_EMAIL_TYPES.has>[0])
+}
+
+async function recoverStaleSendingRows(): Promise<number> {
+  const supabase = createServiceRoleClient()
+  const staleBefore = new Date(Date.now() - STALE_SENDING_MINUTES * 60 * 1000).toISOString()
+
+  const { data, error } = await supabase
+    .from("email_outbox")
+    .update({
+      status: "failed",
+      error_message: "Recovered from stale sending claim",
+      last_attempt_at: new Date().toISOString(),
+    })
+    .eq("status", "sending")
+    .lt("last_attempt_at", staleBefore)
+    .select("id")
+
+  if (error) {
+    logger.warn("[Email Dispatcher] Failed to recover stale sending rows", { error: error.message })
+    return 0
+  }
+
+  const recovered = data?.length ?? 0
+  if (recovered > 0) {
+    logger.warn("[Email Dispatcher] Recovered stale sending rows", { recovered })
+    Sentry.captureMessage("Recovered stale email_outbox sending claims", {
+      level: "warning",
+      tags: { subsystem: "email-dispatcher", alert_type: "stale_sending_recovered" },
+      extra: { recovered },
+    })
+  }
+
+  return recovered
+}
+
 export interface DispatcherResult {
   processed: number
   sent: number
@@ -134,14 +174,17 @@ export interface DispatcherResult {
  * This is the core dispatcher logic used by both cron and ops routes.
  */
 export async function processEmailDispatch(): Promise<DispatcherResult> {
-  // Respect domain warmup - if daily limit is hit, skip entire batch
+  await recoverStaleSendingRows()
+
+  // Respect domain warmup for marketing only. Transactional clinical/payment
+  // delivery must continue even when launch warmup is capped.
   const warmup = await checkDailySendLimit()
-  if (!warmup.allowed) {
+  const marketingPaused = !warmup.allowed
+  if (marketingPaused) {
     logger.info("[Email Dispatcher] Skipping batch - daily send limit reached", {
       current: warmup.current,
       limit: warmup.limit,
     })
-    return { processed: 0, sent: 0, failed: 0, skipped: 0, results: [], message: `Daily send limit reached (${warmup.current}/${warmup.limit})` }
   }
 
   const supabase = createServiceRoleClient()
@@ -167,6 +210,7 @@ export async function processEmailDispatch(): Promise<DispatcherResult> {
   // Filter by backoff eligibility
   const eligible = candidates
     .filter((row) => isEligibleForRetry(row))
+    .filter((row) => !marketingPaused || !isMarketingEmailType(row.email_type))
     .slice(0, MAX_BATCH_SIZE)
 
   if (eligible.length === 0) {
@@ -176,7 +220,9 @@ export async function processEmailDispatch(): Promise<DispatcherResult> {
       failed: 0,
       skipped: 0,
       pending: candidates.length,
-      message: "All pending emails are in backoff",
+      message: marketingPaused
+        ? `Daily marketing email limit reached (${warmup.current}/${warmup.limit}); no transactional emails eligible`
+        : "All pending emails are in backoff",
       results: [],
     }
   }
@@ -229,7 +275,9 @@ export async function processEmailDispatch(): Promise<DispatcherResult> {
 
     if (result.success) {
       sent++
-      incrementDailySendCount().catch(() => {})
+      if (isMarketingEmailType(claimedRow.email_type)) {
+        incrementDailySendCount().catch(() => {})
+      }
     } else {
       failed++
       // Alert if this failure just exhausted all retries

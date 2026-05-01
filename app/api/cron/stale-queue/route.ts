@@ -125,7 +125,7 @@ export async function GET(request: NextRequest) {
       const { data: delayEmailCandidates } = await supabase
         .from("intakes")
         .select(`
-          id, category,
+          id, category, patient_id,
           patient:profiles!patient_id(full_name, email)
         `)
         .eq("status", "paid")
@@ -154,7 +154,7 @@ export async function GET(request: NextRequest) {
             const requestType = formatServiceType(intake.category as string | null)
 
             try {
-              await sendEmail({
+              const emailResult = await sendEmail({
                 to: patient.email,
                 toName: patient.full_name || undefined,
                 subject: stillReviewingSubject(requestType),
@@ -165,12 +165,20 @@ export async function GET(request: NextRequest) {
                 }),
                 emailType: "still_reviewing",
                 intakeId: intake.id,
+                patientId: intake.patient_id,
               })
-              await supabase
-                .from("intakes")
-                .update({ delay_notification_sent_at: new Date().toISOString() })
-                .eq("id", intake.id)
-              delayEmailsSent++
+              if (emailResult.success || emailResult.outboxId) {
+                await supabase
+                  .from("intakes")
+                  .update({ delay_notification_sent_at: new Date().toISOString() })
+                  .eq("id", intake.id)
+                delayEmailsSent++
+              } else {
+                logger.error("Patient delay notification failed without outbox recovery", {
+                  intakeId: intake.id,
+                  error: emailResult.error,
+                })
+              }
             } catch (err) {
               logger.error("Failed to send patient delay notification", { intakeId: intake.id }, err as Error)
             }

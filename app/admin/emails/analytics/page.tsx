@@ -13,9 +13,9 @@ export default async function EmailAnalyticsPage() {
   const [emailLogsResult] = await Promise.allSettled([
     supabase
       .from("email_outbox")
-      .select("id, email_type, to_email, status, sent_at, error_message, delivery_status, delivery_status_updated_at")
-      .gte("sent_at", monthAgo.toISOString())
-      .order("sent_at", { ascending: false })
+      .select("id, email_type, to_email, status, created_at, sent_at, error_message, delivery_status, delivery_status_updated_at")
+      .gte("created_at", monthAgo.toISOString())
+      .order("created_at", { ascending: false })
       .limit(500),
   ])
 

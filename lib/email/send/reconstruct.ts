@@ -313,6 +313,58 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
   }
 
   // ----------------------------------------------------------------
+  // payment_retry - React template, usually patient-owned invoice context
+  // ----------------------------------------------------------------
+  if (row.email_type === "payment_retry") {
+    const metadata = row.metadata as {
+      invoice_id?: string
+      request_type?: string
+      amount_cents?: number
+      payment_url?: string
+    } | null
+
+    let requestType = metadata?.request_type || "your request"
+    let amountCents = metadata?.amount_cents ?? 0
+    const paymentUrl = metadata?.payment_url
+      || (metadata?.invoice_id
+        ? `${env.appUrl}/checkout?invoiceId=${metadata.invoice_id}`
+        : `${env.appUrl}/patient/payment-history`)
+
+    if (metadata?.invoice_id) {
+      const { data: invoice } = await supabase
+        .from("invoices")
+        .select("description, amount_cents")
+        .eq("id", metadata.invoice_id)
+        .maybeSingle()
+
+      requestType = invoice?.description || requestType
+      amountCents = invoice?.amount_cents ?? amountCents
+    }
+
+    let patientName = row.to_name || "there"
+    if (row.patient_id) {
+      const { data: patient } = await supabase
+        .from("profiles")
+        .select("full_name")
+        .eq("id", row.patient_id)
+        .maybeSingle()
+      patientName = patient?.full_name || patientName
+    }
+
+    const { PaymentRetryEmail } = await import("@/lib/email/components/templates/payment-retry")
+    const template = PaymentRetryEmail({
+      patientName,
+      requestType,
+      amount: `$${(amountCents / 100).toFixed(2)}`,
+      paymentUrl,
+      appUrl: env.appUrl,
+    })
+
+    const html = await renderEmailToHtml(template)
+    return { success: true, html }
+  }
+
+  // ----------------------------------------------------------------
   // guest_complete_account - database template with merge tags
   // ----------------------------------------------------------------
   if (row.email_type === "guest_complete_account") {
@@ -332,6 +384,29 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
       intake_id: ctx.intake.id,
       complete_account_url: completeAccountUrl,
     })
+  }
+
+  // ----------------------------------------------------------------
+  // still_reviewing - React template, needs intake + service context
+  // ----------------------------------------------------------------
+  if (row.email_type === "still_reviewing") {
+    if (!row.intake_id) {
+      return { success: false, error: "still_reviewing requires intake_id for reconstruction" }
+    }
+
+    const ctx = await fetchIntakeContext(row.intake_id)
+    if ("error" in ctx) return { success: false, error: ctx.error }
+
+    const { StillReviewingEmail } = await import("@/lib/email/components/templates/still-reviewing")
+    const template = StillReviewingEmail({
+      patientName: ctx.patient.full_name || row.to_name || "there",
+      requestType: ctx.service.short_name || ctx.service.name || "request",
+      requestId: ctx.intake.id,
+      appUrl: env.appUrl,
+    })
+
+    const html = await renderEmailToHtml(template)
+    return { success: true, html }
   }
 
   // ----------------------------------------------------------------

@@ -108,11 +108,11 @@ function getStatusBadge(status: string) {
       </Badge>
     )
   }
-  if (status === "pending" || status === "claimed") {
+  if (status === "pending" || status === "sending" || status === "claimed") {
     return (
       <Badge className="bg-warning-light text-warning gap-1">
         <Clock className="h-3 w-3" />
-        {status === "claimed" ? "Processing" : "Pending"}
+        {status === "sending" || status === "claimed" ? "Processing" : "Pending"}
       </Badge>
     )
   }
@@ -343,7 +343,7 @@ export function EmailAnalyticsClient({ analytics }: EmailAnalyticsClientProps) {
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Recent Emails</CardTitle>
-          <CardDescription>Last 50 emails sent</CardDescription>
+          <CardDescription>Last 50 queue entries, including pending and failed sends</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="rounded-lg border overflow-hidden">
@@ -354,7 +354,8 @@ export function EmailAnalyticsClient({ analytics }: EmailAnalyticsClientProps) {
                   <TableHead>Recipient</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Delivery</TableHead>
-                  <TableHead>Sent</TableHead>
+                  <TableHead>Issue</TableHead>
+                  <TableHead>Activity</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -379,17 +380,20 @@ export function EmailAnalyticsClient({ analytics }: EmailAnalyticsClientProps) {
                           <span className="text-sm text-muted-foreground">Pending webhook</span>
                         )}
                       </TableCell>
+                      <TableCell className="max-w-[240px] truncate text-sm text-muted-foreground">
+                        {email.error || "—"}
+                      </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1.5 text-muted-foreground">
                           <Clock className="h-3 w-3" />
-                          <span className="text-sm">{email.sentAt ? formatTimeAgo(email.sentAt) : "Not sent"}</span>
+                          <span className="text-sm">{email.sentAt ? formatTimeAgo(email.sentAt) : "No timestamp"}</span>
                         </div>
                       </TableCell>
                     </TableRow>
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                       No recent emails
                     </TableCell>
                   </TableRow>

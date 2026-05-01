@@ -249,19 +249,19 @@ Entry points (doctor queue | admin panel | API)
 
 **Senders:** `lib/email/send-email.ts` (React templates via Resend), `lib/email/template-sender.ts` (DB templates with merge tags).
 
-**Template types:** `med_cert_patient`, `med_cert_employer`, `welcome`, `script_sent`, `request_declined`.
+**Template types:** Core transactional and lifecycle types are reconstructed from source records for retry, including `med_cert_patient`, `script_sent`, `prescription_approved`, `still_reviewing`, and `payment_retry`. Marketing/engagement types are capped by warmup limits; transactional clinical/payment sends are not.
 
-**Admin hub:** `/admin/email-hub` links to editor (`/admin/emails`), preview (`/admin/emails/preview`), analytics (`/admin/emails/analytics`). Test studio at `/admin/email-test`.
+**Admin hub:** `/admin/emails/hub` links to editor (`/admin/emails`), preview (`/admin/emails/preview`), analytics (`/admin/emails/analytics`). Test studio at `/admin/email-test`; legacy `/admin/email-hub` redirects to the hub.
 
 ### Retry & Delivery
 
-All sends logged to `email_outbox`: `status` (pending | sent | failed | skipped_e2e), `provider_message_id` (Resend ID), `error_message`, `email_retry_count` (max 3), `intake_id`.
+All sends logged to `email_outbox`: `status` (pending | sending | sent | failed | skipped_e2e), `delivery_status`, `provider_message_id` (Resend ID), `error_message`, `retry_count` (dispatcher max 10), `intake_id`, `patient_id`, `certificate_id`, and reconstruction metadata. The dispatcher atomically claims rows as `sending`, recovers stale `sending` claims, retries reconstructable failed rows with backoff, and permanently fails unsupported types after surfacing them to Sentry/logs.
 
 **Pipeline:** Doctor approval -> PDF generation -> Storage upload -> DB update -> Email send -> `email_outbox` log. Each step fails independently.
 
 **E2E seam:** `PLAYWRIGHT=1` skips Resend sends, logs as `skipped_e2e`.
 
-**Observability:** Sentry (`action:send_email`), Vercel logs, Resend dashboard (tagged `category`, `intake_id`), `email_outbox` queries.
+**Observability:** Sentry (`action:send_email`, dispatcher exhaustion, stale sending recovery), Vercel logs, Resend dashboard, `/admin/emails/analytics`, `/admin/emails/hub`, `/api/ops/email-dispatcher`, and `email_outbox` queries. Resend webhook lifecycle events update `delivery_status`; raw recipient addresses must be masked in logs/analytics.
 
 ### Email Test Studio
 
@@ -288,7 +288,7 @@ app/actions/approve-cert.ts
 
 **Security:** Private storage bucket, signed URLs (5-15 min expiry) via `getSecureDownloadUrl()`, ownership check (patient/doctor/admin), certificate IDs via `crypto.randomInt()`. Public verification (`app/api/verify/route.ts`): rate-limited, masked patient name (first + last initial), no doctor name.
 
-**Email delivery:** Links to `/patient/intakes/[id]`, failure tracked (`email_failed_at`, `email_failure_reason`), max 3 retries, duplicate prevention via `email_sent_at` check.
+**Email delivery:** Links to `/patient/intakes/[id]`, failure state is visible through certificate fields and `email_outbox`, dispatcher retry max is 10, duplicate prevention happens through certificate sent markers plus the outbox idempotency guard.
 
 ### Doctor Cert Workflow
 
