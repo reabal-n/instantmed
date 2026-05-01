@@ -306,7 +306,7 @@ ORDER BY i.created_at DESC LIMIT 5;
 | Tag | Values | Purpose |
 |-----|--------|---------|
 | `service_type` | `consult`, `med-cert`, `prescription` | Request service type |
-| `consult_subtype` | `ed`, `weight_loss`, `womens_health`, `hair_loss` | Consult category |
+| `consult_subtype` | Active: `general`, `ed`, `hair_loss`; gated future: `womens_health`, `weight_loss` | Consult category |
 | `step_id` | `checkout`, `consult_reason`, `review` | Current flow step |
 | `intake_id` | UUID | Intake identifier |
 | `checkout_error` | `true` | Checkout failure marker |

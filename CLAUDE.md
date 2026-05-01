@@ -1,6 +1,6 @@
 # CLAUDE.md — InstantMed
 
-> Australian telehealth platform for specialised one-off services: medical certificates, repeat prescriptions, hair loss, ED, women's health, and weight loss. Patients start with a secure clinical form. A doctor reviews, approves/declines, contacts the patient if clinically needed, and delivers documents or eScript tokens digitally.
+> Australian telehealth platform for specialised one-off services: medical certificates, repeat prescriptions, hair loss, ED, and general consult fallback. Women's health and weight loss are reserved future subtypes and are gated off until launch readiness is explicitly changed. Patients start with a secure clinical form. A doctor reviews, approves/declines, contacts the patient if clinically needed, and delivers documents or eScript tokens digitally.
 
 > **This file is the project brain.** Always load first. Satellite docs below for deep dives.
 
@@ -54,7 +54,7 @@ pnpm e2e              # Playwright E2E (needs PLAYWRIGHT=1)
 pnpm ci               # Full CI: install → lint → test → build
 ```
 
-- Unit tests: `lib/__tests__/**/*.test.ts` — Node environment, not jsdom. Coverage: 80% statements, 70% branches, 80% functions, 80% lines (scoped to `lib/clinical/`, `lib/state-machine/`, `lib/security/`).
+- Unit tests: `lib/__tests__/**/*.test.ts` — Node environment, not jsdom. Coverage: 80% statements, 70% branches, 80% functions, 80% lines (scoped to `lib/clinical/` and `lib/security/`; `lib/state-machine/` was removed 2026-04-08).
 - E2E tests: `e2e/**/*.spec.ts` — auto-seeds/tears down test data. Auth bypass: `PLAYWRIGHT=1` + `__e2e_auth_user_id` cookie.
 
 ## Tech Stack
@@ -203,8 +203,8 @@ All prices in `lib/constants.ts` (`PRICING`). Stripe IDs mapped in `lib/stripe/p
 | General consult | $49.95 | `STRIPE_PRICE_CONSULT` |
 | ED consult | $49.95 | `STRIPE_PRICE_CONSULT_ED` |
 | Hair loss | $49.95 | `STRIPE_PRICE_CONSULT_HAIR_LOSS` |
-| Women's health | $59.95 | `STRIPE_PRICE_CONSULT_WOMENS_HEALTH` |
-| Weight loss | $89.95 | `STRIPE_PRICE_CONSULT_WEIGHT_LOSS` |
+| Women's health (gated future subtype) | $59.95 reserved | `STRIPE_PRICE_CONSULT_WOMENS_HEALTH` |
+| Weight loss (gated future subtype) | $89.95 reserved | `STRIPE_PRICE_CONSULT_WEIGHT_LOSS` |
 | Priority fee (Express Review) | $9.95 | `STRIPE_PRICE_PRIORITY_FEE` |
 | Repeat Rx subscription | $19.95/mo | `STRIPE_PRICE_REPEAT_RX_MONTHLY` |
 | Referral letter | $29.95 | — (display only, not yet Stripe-mapped) |
@@ -214,7 +214,7 @@ All prices in `lib/constants.ts` (`PRICING`). Stripe IDs mapped in `lib/stripe/p
 
 **Intake flow:** Step-based wizard at `/request?service=<type>`. Managed by `lib/request/step-registry.ts`. Steps are React components in `components/request/steps/`. See docs/ARCHITECTURE.md for full step sequences.
 
-**Specialty services (ED, Hair Loss):** Dedicated landing pages at `/erectile-dysfunction` and `/hair-loss` are the top-level marketing surfaces for these pathways (alongside `/medical-certificate` and `/prescriptions`). Both CTAs route into `/request?service=consult&subtype=ed` and `/request?service=consult&subtype=hair_loss` respectively. They share the `consult` service type and common-tail step sequence but have subtype-specific steps defined in `CONSULT_SUBTYPE_STEPS` (see `lib/request/step-registry.ts`). Current positioning is **form-first doctor review**: patient completes the structured form, the doctor reviews, and the doctor calls/messages only if clinically needed. Do not hard-promise "no call needed" for prescribing pathways. Service hub (`/request`) shows 5 active cards (med-cert, repeat prescriptions, ED, hair loss, general consult) + 2 coming-soon (women's health, weight management); the services dropdown and footer match. `/general-consult` was retired in commit `542ae8119` as an SEO cannibalization fix and now 301s to `/consult`, which remains a fallback pathway rather than the brand centre. **ED intake uses 4-step flow:** ed-goals (goal + duration) → ed-assessment (visual IIEF-5, validated 5-question instrument producing `iiefTotal` 5–25) → ed-health (6 collapsible accordion sections consolidating safety screening + medical history — nitrate hard block, cardiac soft blocks with GP clearance) → ed-preferences (lifestyle framing: daily/as-needed/doctor-decides, **no Schedule 4 drug names** per TGA). Common tail adds height/weight/BMI for ED subtype. IIEF-5 score persisted for followup delta tracking. **Follow-up tracker:** Follow-up infrastructure exists, but subscriptions/monthly prescribing and staff-heavy follow-up are not part of the current solo-doctor business model unless `docs/BUSINESS_PLAN.md` is updated.
+**Specialty services (ED, Hair Loss):** Dedicated landing pages at `/erectile-dysfunction` and `/hair-loss` are the top-level marketing surfaces for these pathways (alongside `/medical-certificate` and `/prescriptions`). Both CTAs route into `/request?service=consult&subtype=ed` and `/request?service=consult&subtype=hair_loss` respectively. They share the `consult` service type and common-tail step sequence. Step sequences live in `lib/request/step-registry.ts`; consult subtype launch state lives in `lib/request/consult-subtypes.ts` and must be changed before any reserved subtype accepts payment. Current positioning is **form-first doctor review**: patient completes the structured form, the doctor reviews, and the doctor calls/messages only if clinically needed. Do not hard-promise "no call needed" for prescribing pathways. Service hub (`/request`) shows 5 active cards (med-cert, repeat prescriptions, ED, hair loss, general consult) + 2 coming-soon (women's health, weight management); the services dropdown and footer match. `/general-consult` was retired in commit `542ae8119` as an SEO cannibalization fix and now 301s to `/consult`, which remains a fallback pathway rather than the brand centre. **ED intake uses 4-step flow:** ed-goals (goal + duration) → ed-assessment (visual IIEF-5, validated 5-question instrument producing `iiefTotal` 5–25) → ed-health (6 collapsible accordion sections consolidating safety screening + medical history — nitrate hard block, cardiac soft blocks with GP clearance) → ed-preferences (lifestyle framing: daily/as-needed/doctor-decides, **no Schedule 4 drug names** per TGA). Common tail adds height/weight/BMI for ED subtype. IIEF-5 score persisted for followup delta tracking. **Follow-up tracker:** Follow-up infrastructure exists, but subscriptions/monthly prescribing and staff-heavy follow-up are not part of the current solo-doctor business model unless `docs/BUSINESS_PLAN.md` is updated.
 
 **Prescription workflow:** Patient submits → Doctor reviews in portal → Doctor clicks "Prescribe" → Parchment iframe opens in slide-over panel → Doctor writes eScript inside InstantMed → Parchment webhook (`prescription.created`) auto-marks script sent with SCID → Patient notified via email. Feature flag: `parchment_embedded_prescribing` (DB toggle). Fallback: "Mark Sent Manually" button for external prescribing. Key files: `lib/parchment/client.ts`, `lib/parchment/sync-patient.ts`, `components/doctor/parchment-prescribe-panel.tsx`, `app/api/webhooks/parchment/route.ts`, `app/actions/parchment.ts`.
 
