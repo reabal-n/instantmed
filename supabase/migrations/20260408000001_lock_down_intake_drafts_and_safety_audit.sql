@@ -57,6 +57,9 @@ DROP POLICY IF EXISTS "intake_drafts_claim_guest" ON public.intake_drafts;
 DROP POLICY IF EXISTS "intake_drafts_user_select" ON public.intake_drafts;
 DROP POLICY IF EXISTS "intake_drafts_user_update" ON public.intake_drafts;
 DROP POLICY IF EXISTS "intake_drafts_user_insert" ON public.intake_drafts;
+DROP POLICY IF EXISTS "intake_drafts_owner_select" ON public.intake_drafts;
+DROP POLICY IF EXISTS "intake_drafts_owner_update" ON public.intake_drafts;
+DROP POLICY IF EXISTS "intake_drafts_owner_insert" ON public.intake_drafts;
 
 -- Authenticated users can only read their OWN drafts (no session_id fallback).
 -- Anonymous (anon) clients have no SELECT policy and therefore cannot read.
@@ -96,6 +99,7 @@ COMMENT ON TABLE public.intake_drafts IS
 DROP POLICY IF EXISTS "safety_audit_authenticated_insert" ON public.safety_audit_log;
 DROP POLICY IF EXISTS "safety_audit_insert" ON public.safety_audit_log;
 DROP POLICY IF EXISTS "safety_audit_service_insert" ON public.safety_audit_log;
+DROP POLICY IF EXISTS "safety_audit_service_insert_only" ON public.safety_audit_log;
 
 -- Only the service role can write safety audit rows. Application code goes
 -- through /api/flow/drafts (or future server actions) which already use the
@@ -125,20 +129,35 @@ COMMENT ON POLICY "safety_audit_service_insert_only" ON public.safety_audit_log 
 -- functions can always be invoked by the role that owns them (postgres).
 
 -- 5-arg overload: (uuid, text, jsonb, text, text)
-REVOKE EXECUTE ON FUNCTION public.log_safety_evaluation(
-  uuid, text, jsonb, text, text
-) FROM PUBLIC, anon, authenticated;
+DO $$
+BEGIN
+  IF to_regprocedure('public.log_safety_evaluation(uuid,text,jsonb,text,text)') IS NOT NULL THEN
+    REVOKE EXECUTE ON FUNCTION public.log_safety_evaluation(
+      uuid, text, jsonb, text, text
+    ) FROM PUBLIC, anon, authenticated;
+  END IF;
+END $$;
 
 -- 11-arg overload: (uuid, text, text, text, text, text[], jsonb, jsonb, integer, boolean, uuid)
-REVOKE EXECUTE ON FUNCTION public.log_safety_evaluation(
-  uuid, text, text, text, text, text[], jsonb, jsonb, integer, boolean, uuid
-) FROM PUBLIC, anon, authenticated;
+DO $$
+BEGIN
+  IF to_regprocedure('public.log_safety_evaluation(uuid,text,text,text,text,text[],jsonb,jsonb,integer,boolean,uuid)') IS NOT NULL THEN
+    REVOKE EXECUTE ON FUNCTION public.log_safety_evaluation(
+      uuid, text, text, text, text, text[], jsonb, jsonb, integer, boolean, uuid
+    ) FROM PUBLIC, anon, authenticated;
+  END IF;
+END $$;
 
 -- ----------------------------------------------------------------------------
 -- cleanup_old_drafts: same treatment (SECURITY DEFINER cron-only function)
 -- ----------------------------------------------------------------------------
 
-REVOKE EXECUTE ON FUNCTION public.cleanup_old_drafts() FROM PUBLIC, anon, authenticated;
+DO $$
+BEGIN
+  IF to_regprocedure('public.cleanup_old_drafts()') IS NOT NULL THEN
+    REVOKE EXECUTE ON FUNCTION public.cleanup_old_drafts() FROM PUBLIC, anon, authenticated;
+  END IF;
+END $$;
 
 -- ============================================================================
 -- Done. Verification queries (for manual smoke test post-deploy):

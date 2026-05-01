@@ -32,6 +32,7 @@ import type {
 import { SLA_THRESHOLDS } from "@/lib/data/types/intake-ops"
 
 const logger = createLogger("intake-ops")
+const DELIVERY_EMAIL_TYPES = ["request_approved", "certificate_delivery", "med_cert_patient", "script_sent"]
 
 // ============================================================================
 // MAIN QUERY: Get stuck intakes
@@ -183,6 +184,32 @@ export async function getStuckIntakesDirect(
       }
     }
 
+    const approvedIntakeIds = (data || [])
+      .filter((intake) => intake.status === "approved")
+      .map((intake) => intake.id)
+    const deliveryEmailStatusesByIntake = new Map<string, Set<string>>()
+
+    if (approvedIntakeIds.length > 0) {
+      const { data: deliveryEmails, error: deliveryEmailError } = await supabase
+        .from("email_outbox")
+        .select("intake_id, email_type, status")
+        .in("intake_id", approvedIntakeIds)
+        .in("email_type", DELIVERY_EMAIL_TYPES)
+
+      if (deliveryEmailError) {
+        logger.warn("[IntakeOps] Could not inspect delivery email status in direct fallback", {
+          error: deliveryEmailError.message,
+        })
+      }
+
+      for (const email of deliveryEmails || []) {
+        if (!email.intake_id || !email.status) continue
+        const statuses = deliveryEmailStatusesByIntake.get(email.intake_id) || new Set<string>()
+        statuses.add(email.status)
+        deliveryEmailStatusesByIntake.set(email.intake_id, statuses)
+      }
+    }
+
     // Process and filter stuck intakes
     const stuckIntakes: StuckIntake[] = []
 
@@ -206,6 +233,9 @@ export async function getStuckIntakesDirect(
       const minutesSinceApproved = approvedAt
         ? (now.getTime() - approvedAt.getTime()) / (1000 * 60)
         : 0
+      const deliveryEmailStatuses = deliveryEmailStatusesByIntake.get(intake.id) || new Set<string>()
+      const deliveryEmailSent = deliveryEmailStatuses.has("sent") || deliveryEmailStatuses.has("skipped_e2e")
+      const deliveryEmailFailed = deliveryEmailStatuses.has("failed")
 
       let stuckReason: StuckReason | null = null
       let stuckAge = 0
@@ -221,10 +251,16 @@ export async function getStuckIntakesDirect(
         stuckAge = minutesInReview
       } else if (
         intake.status === "approved" &&
-        minutesSinceApproved > SLA_THRESHOLDS.DELIVERY_TIMEOUT
+        deliveryEmailFailed &&
+        !deliveryEmailSent
       ) {
-        // For direct query, we assume delivery pending if approved > 10 min
-        // (we can't easily check email_outbox without a join)
+        stuckReason = "delivery_failed"
+        stuckAge = minutesSinceApproved
+      } else if (
+        intake.status === "approved" &&
+        minutesSinceApproved > SLA_THRESHOLDS.DELIVERY_TIMEOUT &&
+        !deliveryEmailSent
+      ) {
         stuckReason = "delivery_pending"
         stuckAge = minutesSinceApproved
       }

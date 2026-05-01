@@ -586,16 +586,16 @@ After every rollback, within 24 hours:
 
 ## SLA Targets
 
-**Admin page:** `/admin/ops/intakes-stuck` (requires `doctor` or `admin` role)
+**Admin page:** `/admin/ops/intakes-stuck` (requires `admin` via the admin shell)
 
 | Condition | Threshold | Reason Code |
 |-----------|-----------|-------------|
-| Paid but not picked up | > 4 hours (warning), > 8 hours (critical) | `paid_no_review` |
+| Paid but not picked up | > 5 minutes in the admin stuck-intake viewer; stale-queue alerts use configurable hour thresholds | `paid_no_review` |
 | In review or pending info | > 60 minutes | `review_timeout` |
 | Approved but no delivery email | > 10 minutes | `delivery_pending` |
 | Approved but delivery email failed | Any | `delivery_failed` |
 
-**Escalation:** The `stale-queue` cron monitors `paid_no_review`. At 4h: Sentry warning. At 8h: Sentry critical + email escalation to `support@instantmed.com.au` with intake details (ID, service type, patient name, hours waiting).
+**Escalation:** The `stale-queue` cron monitors paid requests still waiting for review. Doctor alerts use `doctor_alert_threshold_hours` (default 1h), patient delay emails use `patient_delay_email_hours` (default 2h), and Sentry severity becomes critical when 5+ intakes breach the configured patient-delay threshold.
 
 **Kill switches:** `DISABLE_INTAKE_EVENTS=true` (disable event logging), `DISABLE_STUCK_INTAKE_SENTRY=true` (disable stuck intake Sentry warnings), `DISABLE_RECONCILIATION_SENTRY=true` (disable reconciliation mismatch Sentry warnings).
 
@@ -605,8 +605,8 @@ After every rollback, within 24 hours:
 |--------|-------|------------|
 | `paid_no_review` | No doctor picked up intake | Check doctor availability; assign/review manually |
 | `review_timeout` | Doctor started but did not finish within 60 min | Contact doctor or reassign; check for blocking issues |
-| `delivery_pending` | Approved but email not sent | Check `email_outbox` (`/doctor/admin/email-outbox?intake_id=...`); trigger manually |
-| `delivery_failed` | Delivery email failed | Check `email_outbox` for error; verify patient email; retry or contact patient |
+| `delivery_pending` | Approved but email not sent | Check `email_outbox` via `/admin/emails/hub?intake_id=...`; trigger manually |
+| `delivery_failed` | Delivery email failed | Check `/admin/emails/hub?intake_id=...` for error; verify patient email; retry or contact patient |
 
 ### Useful SQL Queries
 
@@ -643,10 +643,10 @@ WHERE i.status = 'approved'
 | First Contentful Paint (FCP) | ≤ 2.0s | 1.4s local / 3.4s prod | `WebVitalsReporter`, PSI |
 | Largest Contentful Paint (LCP) | ≤ 2.5s | 5.2s prod conversion pages | `WebVitalsReporter`, PSI |
 | Cumulative Layout Shift (CLS) | ≤ 0.1 | 0.003 | `WebVitalsReporter` |
-| Total Blocking Time (TBT) | ≤ 200ms | 80-330ms | Lighthouse CI |
+| Total Blocking Time (TBT) | ≤ 200ms | PR CI noisy; production gate remains ≤ 300ms | Lighthouse CI |
 | Interaction to Next Paint (INP) | ≤ 200ms | TBD (needs dashboard) | `WebVitalsReporter` |
 
-**CI gate:** LHCI asserts FCP ≤ 3s, LCP ≤ 5.5s, TBT ≤ 400ms, CLS ≤ 0.1. More generous than the SLO because CI runners are noisier than real-user conditions. Breaching blocks merge.
+**CI gate:** PR LHCI blocks on FCP ≤ 3s, CLS ≤ 0.1, accessibility ≥ 0.9, and SEO ≥ 0.9. LCP and TBT are warning-only in PR CI because simulated throttling on GitHub runners has produced 600ms-1s TBT outliers and 7s+ LCP on untouched marketing pages. The scheduled production Lighthouse workflow remains the stricter performance signal, including TBT ≤ 300ms.
 
 **Bundle-size gate:** shared first-load JS ≤ 160 KB (current: 129 KB). Enforced by `scripts/check-bundle-size.sh` after every build.
 

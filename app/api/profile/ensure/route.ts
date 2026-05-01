@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 
+import { selectGuestProfileForAuthLink } from "@/lib/auth/guest-profile-linking"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { createClient } from "@/lib/supabase/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -41,15 +42,39 @@ export async function POST(request: NextRequest) {
       .eq("auth_user_id", user.id)
       .single()
 
-    // If no profile, check for guest profile to link by email
+    // If no profile, deterministically link one guest profile by email.
+    // Duplicate guest profiles can exist historically; maybeSingle() would
+    // fail the account-linking flow instead of recovering the paid profile.
     if (!profile) {
-      const { data: guestProfile } = await serviceClient
+      const { data: guestProfiles } = await serviceClient
         .from("profiles")
-        .select("id, auth_user_id")
+        .select("id, auth_user_id, created_at")
         .ilike("email", escapeIlike(primaryEmail))
         .eq("role", "patient")
         .is("auth_user_id", null)
-        .maybeSingle()
+        .order("created_at", { ascending: false })
+        .limit(10)
+
+      const guestProfileRows = guestProfiles || []
+      let paidProfileIds = new Set<string>()
+      if (guestProfileRows.length > 0) {
+        const { data: paidIntakes } = await serviceClient
+          .from("intakes")
+          .select("patient_id")
+          .in("patient_id", guestProfileRows.map((guestProfile) => guestProfile.id))
+          .eq("payment_status", "paid")
+          .limit(100)
+        paidProfileIds = new Set((paidIntakes || []).map((intake) => intake.patient_id as string))
+      }
+
+      const guestProfile = selectGuestProfileForAuthLink(
+        guestProfileRows.map((candidate) => ({
+          id: candidate.id,
+          auth_user_id: candidate.auth_user_id,
+          created_at: candidate.created_at,
+          has_paid_intake: paidProfileIds.has(candidate.id),
+        })),
+      )
 
       if (guestProfile) {
         const fullName = user.user_metadata?.full_name

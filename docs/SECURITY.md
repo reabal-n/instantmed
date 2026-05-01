@@ -285,6 +285,7 @@ All webhooks use signature verification (not CSRF).
 | `auth()` from `@/lib/auth` | Most API routes (20+ files) |
 | `getApiAuth()` | Document download, med-cert routes |
 | `requireRole()` / `requireRoleOrNull()` | Admin/doctor layouts, server actions |
+| Guest profile linking | `/auth/post-signin`, `/api/profile/ensure`, and `handle_new_user()` link a single deterministic unlinked patient profile: return-intake profile first, then profiles with paid intake history, then newest guest profile. Never bulk-update duplicate email matches. |
 
 ### Input Validation
 

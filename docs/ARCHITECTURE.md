@@ -382,7 +382,7 @@ Config-driven, immutably versioned. Template config stored as JSONB in `certific
 
 **Real-time:** Messaging and notifications use Supabase Realtime (`postgres_changes` subscription on INSERT/UPDATE). Push notifications via Web Push API (VAPID key, Service Worker). Notification types: `request_update`, `payment`, `document_ready`, `refill_reminder`, `system`, `promotion`.
 
-**Guest → Authenticated flow:** Guest checkout creates profile without `auth_user_id` → Stripe redirect → success URL `/auth/complete-account?intake_id={id}` → post-signin page links guest profile by email match → sets `email_verified: true` → checks `onboarding_completed` → routes to `/patient/onboarding` or `/patient`.
+**Guest → Authenticated flow:** Guest checkout creates profile without `auth_user_id` → Stripe redirect → success URL `/auth/complete-account?intake_id={id}` → post-signin page links the exact paid checkout profile when possible, otherwise one deterministic unlinked email match with paid history before newest guest fallback → sets `email_verified: true` → checks `onboarding_completed` → routes to `/patient/onboarding` or `/patient`.
 
 **Payment state display:**
 
@@ -723,7 +723,7 @@ See `TESTING.md` for full testing strategy, conventions, E2E patterns, auth bypa
 | `types/certificate-template.ts` | PDF template field definitions |
 | `hooks/` | 5 custom hooks (use-connection-status, use-debounce, use-doctor-shortcuts, use-keyboard-navigation, use-landing-analytics) |
 | `e2e/` | 46 Playwright specs, `helpers/` (seed/teardown, auth bypass). Full suite runs in CI. |
-| `supabase/migrations/` | 194 SQL migration files (squashed baseline + 193 incremental). Most recent: `20260408000001_lock_down_intake_drafts_and_safety_audit.sql` |
+| `supabase/migrations/` | 52 SQL migration files (1 squashed baseline + 51 incremental). Most recent: `20260502012000_harden_info_request_rpc_privileges.sql` |
 | `public/templates/` | Static PDF templates for certificate generation |
 
 ---
