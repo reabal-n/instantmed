@@ -135,7 +135,7 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
       if (!result.success) {
         posthog?.capture('checkout_failed', {
           service_type: serviceType,
-          error: result.error,
+          consult_subtype: consultSubtype,
           stage: 'session_creation',
         })
         setError(result.error || 'Failed to create checkout session')
@@ -155,18 +155,18 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
       } else {
         posthog?.capture('checkout_failed', {
           service_type: serviceType,
-          error: 'no_checkout_url',
+          consult_subtype: consultSubtype,
           stage: 'session_creation',
         })
         setError('Unable to create payment session. Please try again.')
       }
-    } catch (err) {
+    } catch {
       posthog?.capture('checkout_failed', {
         service_type: serviceType,
-        error: err instanceof Error ? err.message : 'unknown',
+        consult_subtype: consultSubtype,
         stage: 'exception',
       })
-      setError(err instanceof Error ? err.message : 'Something went wrong. Please try again or contact support.')
+      setError('Something went wrong. Please try again or contact support.')
     } finally {
       setIsProcessing(false)
     }

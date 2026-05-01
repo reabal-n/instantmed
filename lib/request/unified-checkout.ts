@@ -1,4 +1,8 @@
 import {
+  isConsultSubtypeAvailable,
+  isConsultSubtypeKey,
+} from "@/lib/request/consult-subtypes"
+import {
   validateCertificateStep,
   validateConsultReasonStep,
   validateDetailsStep,
@@ -277,7 +281,18 @@ export function validateAnswersServerSide(
   }
 
   if (serviceType === "consult") {
-    const consultSubtype = String(answers.consultSubtype || "general")
+    const rawConsultSubtype = answers.consultSubtype
+    const consultSubtype = typeof rawConsultSubtype === "string" && rawConsultSubtype.trim()
+      ? rawConsultSubtype.trim()
+      : "general"
+
+    if (!isConsultSubtypeKey(consultSubtype)) {
+      return "Unknown consultation type."
+    }
+
+    if (!isConsultSubtypeAvailable(consultSubtype)) {
+      return "This consultation type is not currently available."
+    }
 
     if (consultSubtype === "ed") {
       return firstValidationError(

@@ -1,5 +1,12 @@
+import type { ConsultSubtype, UnifiedStepId } from "@/types/services"
+
+import { isConsultSubtypeKey } from "./consult-subtypes"
 import type { DraftData } from "./draft-storage"
-import type { ConsultSubtype, UnifiedStepId } from "./step-registry"
+
+export {
+  isConsultSubtypeKey,
+  normalizeConsultSubtypeParam,
+} from "./consult-subtypes"
 
 const CONSULT_SUBTYPE_FIRST_STEPS: Record<ConsultSubtype, UnifiedStepId> = {
   general: "consult-reason",
@@ -81,23 +88,6 @@ const CONSULT_SUBTYPE_RESET_KEYS = [
   "preferredTimeSlot",
   "callbackPhone",
 ] as const
-
-export function isConsultSubtypeKey(value: unknown): value is ConsultSubtype {
-  return (
-    value === "general" ||
-    value === "ed" ||
-    value === "hair_loss" ||
-    value === "womens_health" ||
-    value === "weight_loss"
-  )
-}
-
-export function normalizeConsultSubtypeParam(value: unknown): ConsultSubtype | undefined {
-  if (typeof value !== "string") return undefined
-
-  const normalized = value.trim().toLowerCase().replaceAll("-", "_")
-  return isConsultSubtypeKey(normalized) ? normalized : undefined
-}
 
 export function getConsultSubtypeFirstStep(subtype: unknown): UnifiedStepId {
   return isConsultSubtypeKey(subtype)

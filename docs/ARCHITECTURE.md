@@ -19,7 +19,7 @@
 | `/conditions/:slug` | `/health/:slug` | |
 | `/conditions/:slug` | `/conditions/:slug/:city` | Condition-location combos redirect to parent (thin content consolidation) |
 
-**Intake flow service slugs** (canonical values): `med-cert`, `prescription`, `consult`. Aliases (`medcert`, `repeat-rx`, `repeat-script`, `consultation`, `general-consult`) are normalized via `lib/request/draft-storage.ts:canonicalizeServiceType()`.
+**Intake flow service slugs** (canonical values): `med-cert`, `prescription`, `repeat-script`, `consult`. Aliases (`medcert`, `repeat-rx`, `consultation`, `general-consult`) are normalized via `lib/request/draft-storage.ts:canonicalizeServiceType()`.
 
 **Location SEO structure:**
 - `/locations` — hub (browse by state OR by city)
@@ -38,7 +38,7 @@ app/request/page.tsx -> RequestFlow -> step-router.tsx (lazy) -> steps/*.tsx
                         store.ts (Zustand + localStorage persist)
 ```
 
-**Core files:** `components/request/request-flow.tsx` (orchestrator), `step-router.tsx` (lazy loader), `step-error-boundary.tsx`, `store.ts` (Zustand), `lib/request/step-registry.ts` (step definitions + skip logic).
+**Core files:** `components/request/request-flow.tsx` (orchestrator), `step-router.tsx` (lazy loader), `step-error-boundary.tsx`, `store.ts` (Zustand), `lib/request/step-registry.ts` (step definitions + skip logic), `lib/request/consult-subtypes.ts` (consult subtype launch state).
 
 **Service routing** via `?service=` param. `mapServiceParam()` normalises aliases (`medcert` -> `med-cert`, `repeat-rx` -> `repeat-script`, `consultation` -> `consult`).
 
@@ -48,7 +48,8 @@ app/request/page.tsx -> RequestFlow -> step-router.tsx (lazy) -> steps/*.tsx
 | `prescription` / `repeat-script` | medication, medication-history, medical-history, details, review, checkout |
 | `consult` (general) | consult-reason, medical-history, details, review, checkout |
 | `consult` (ED) | ed-goals, ed-assessment (IIEF-5), ed-health (consolidated safety + medical history), ed-preferences, details (+ height/weight/BMI), review, checkout |
-| `consult` (hair loss) | hair-loss-assessment, medical-history, details, review, checkout |
+| `consult` (hair loss) | hair-loss-goals, hair-loss-assessment, hair-loss-health, hair-loss-preferences, details, review, checkout |
+| `consult` (women's health / weight loss) | Coming-soon step definitions exist, but `lib/request/consult-subtypes.ts` blocks entry and server checkout validation until launched |
 
 **Adding steps:** (1) Create component in `components/request/steps/` implementing `StepProps`, (2) register lazy import in `step-router.tsx`, (3) add definition to `lib/request/step-registry.ts`. Steps support conditional skip via `getStepsForService(type, { isAuthenticated, hasProfile, hasMedicare, answers })`.
 

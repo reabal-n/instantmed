@@ -113,6 +113,27 @@ describe("validateEdConsult", () => {
     )
   })
 
+  it("recognizes current boolean ED safety fields", () => {
+    const result = validateEdConsult({
+      edAgeConfirmed: true,
+      edGoal: "improve_erections",
+      edDuration: "6_12_months",
+      iief1: 3,
+      iief2: 3,
+      iief3: 3,
+      iief4: 3,
+      iief5: 3,
+      edPreference: "prn",
+      edNitrates: true,
+    })
+
+    expect(result.valid).toBe(false)
+    expect(result.flags).toContainEqual(
+      expect.objectContaining({ type: "safety_block", reason: "nitrate_interaction" }),
+    )
+    expect(result.errors).not.toContain("Symptom onset is required")
+  })
+
   it("blocks on unmanaged recent cardiac event", () => {
     const result = validateEdConsult({
       ...validEd,

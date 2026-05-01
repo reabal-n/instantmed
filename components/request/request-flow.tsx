@@ -66,7 +66,7 @@ interface RequestFlowProps {
   initialService: UnifiedServiceType | null
   /** Raw service param from URL (for error messages) */
   rawServiceParam?: string
-  /** Subtype from URL (e.g., 'new-medication' for consult handoff) */
+  /** Canonical consult subtype from URL, already normalized by app/request/page.tsx */
   initialSubtype?: string
   /** Medication context from URL (for consult handoff from prescription flow) */
   initialMedication?: string
@@ -259,7 +259,7 @@ export function RequestFlow({
     if (initialService === 'consult' && initialSubtype) {
       if (!isConsultSubtypeAvailable(initialSubtype as ConsultSubtype)) {
         const redirectMap: Record<string, string> = {
-          womens_health: '/womens-health',
+          womens_health: '/request',
           weight_loss: '/weight-loss',
         }
         router.replace(redirectMap[initialSubtype] || '/')

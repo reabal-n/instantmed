@@ -37,7 +37,9 @@ export default async function RequestPage({
 }) {
   const params = await searchParams
   const initialService = mapServiceParam(params.service)
-  const initialSubtype = normalizeConsultSubtypeParam(params.subtype) ?? params.subtype
+  const initialSubtype = initialService === "consult"
+    ? normalizeConsultSubtypeParam(params.subtype)
+    : params.subtype
 
   // Check operational status - run in parallel, none depends on the others
   const [maintenance, atCapacity] = await Promise.all([

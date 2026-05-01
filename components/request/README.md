@@ -25,8 +25,14 @@ import { RequestFlow } from "@/components/request"
 | `/request?service=med-cert` | Medical certificate flow |
 | `/request?service=prescription` | New prescription request |
 | `/request?service=repeat-script` | Repeat prescription |
-| `/request?service=consult` | Doctor consultation |
+| `/request?service=consult&subtype=general` | General doctor consultation |
+| `/request?service=consult&subtype=ed` | Erectile dysfunction consultation |
+| `/request?service=consult&subtype=hair_loss` | Hair loss consultation |
 | `/request?service=referral` | Specialist referral |
+
+Coming-soon consult subtypes (`womens_health`, `weight_loss`) are defined in
+`lib/request/consult-subtypes.ts` and are blocked before checkout even if a
+client route is bypassed.
 
 ## Architecture
 
@@ -65,6 +71,7 @@ components/request/
 ### Step Registry
 
 Steps are defined in `lib/request/step-registry.ts`:
+Consult subtype launch state is defined in `lib/request/consult-subtypes.ts`.
 
 ```ts
 import { STEP_REGISTRY, getStepsForService } from "@/lib/request/step-registry"
