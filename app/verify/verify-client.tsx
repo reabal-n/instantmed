@@ -78,10 +78,10 @@ export function VerifyClient() {
         const verifyResult = response.ok ? data : { valid: false, error: data.error || "Verification failed" }
         setResult(verifyResult)
         // #12 - Track verification attempts in PostHog
-        capture("certificate_verified", { code: codes[0], valid: verifyResult.valid, mode: "single" })
+        capture("certificate_verified", { valid: verifyResult.valid, mode: "single" })
       } catch {
         setResult({ valid: false, error: "Unable to verify. Please try again." })
-        capture("certificate_verified", { code: codes[0], valid: false, mode: "single", error: true })
+        capture("certificate_verified", { valid: false, mode: "single", error: true })
       } finally {
         setIsLoading(false)
       }

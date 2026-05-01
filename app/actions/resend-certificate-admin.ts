@@ -122,7 +122,6 @@ export async function resendCertificateAdmin(intakeId: string): Promise<ResendCe
         certificateId: certificate.id,
         metadata: {
           cert_type: certificate.certificate_type,
-          verification_code: certificate.verification_code,
           resent_by: profile.id,
           retry_count: certificate.email_retry_count + 1,
         },
@@ -160,7 +159,7 @@ export async function resendCertificateAdmin(intakeId: string): Promise<ResendCe
         log.info("Certificate resent by admin", { 
           intakeId, 
           certificateId: certificate.id,
-          to: patient.email,
+          hasPatientEmail: true,
           resentBy: profile.id,
         })
         return { success: true }

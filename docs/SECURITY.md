@@ -61,7 +61,7 @@ Field-level **envelope encryption** using **AES-256-GCM** with unique IV per ope
 
 ### Medicare: Permanent Dual-Write
 
-Medicare number is stored in both `profiles.medicare_number` (plaintext) and `profiles.medicare_number_encrypted` (AES-256-GCM). **Plaintext is kept permanently** — the doctor dashboard displays it directly and the Parchment eScript integration requires an unencrypted medicare number for prescription generation.
+Medicare number is stored in both `profiles.medicare_number` (plaintext) and `profiles.medicare_number_encrypted` (AES-256-GCM). **Plaintext is kept permanently for prescribing integration compatibility** — Parchment eScript payloads require an unencrypted Medicare number. Patient-facing and med-cert review surfaces must mask Medicare by default and only expose raw values in workflows that genuinely require them.
 
 ### Phase 2 Dual-Write (Other PHI Fields)
 

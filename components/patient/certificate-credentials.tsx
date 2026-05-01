@@ -52,11 +52,11 @@ export function CertificateCredentials({
     }
     if (kind === "code") {
       setCopiedCode(true)
-      capture("verification_code_copied", { code: value })
+      capture("verification_code_copied")
       setTimeout(() => setCopiedCode(false), 2000)
     } else {
       setCopiedRef(true)
-      capture("reference_id_copied", { ref: value })
+      capture("reference_id_copied")
       setTimeout(() => setCopiedRef(false), 2000)
     }
   }

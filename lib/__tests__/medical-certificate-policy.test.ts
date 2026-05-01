@@ -50,4 +50,26 @@ describe("medical certificate policy contract", () => {
       expect(source, path).not.toContain('intake.patient.medicare_number ?? "Not provided"')
     }
   })
+
+  it("does not send certificate credentials or patient email values to analytics/log metadata", () => {
+    const sensitiveSurfaces = [
+      "components/patient/certificate-credentials.tsx",
+      "app/verify/verify-client.tsx",
+      "app/patient/intakes/[id]/client.tsx",
+      "app/actions/resend-certificate.ts",
+      "app/actions/resend-certificate-admin.ts",
+      "app/actions/reissue-cert.ts",
+    ]
+
+    for (const path of sensitiveSurfaces) {
+      const source = readFileSync(path, "utf8")
+      expect(source, path).not.toContain("code: value")
+      expect(source, path).not.toContain("ref: value")
+      expect(source, path).not.toContain("verification_code:")
+      expect(source, path).not.toContain('capture("certificate_verified", { code:')
+      expect(source, path).not.toContain('capture("verification_link_copied", { code:')
+      expect(source, path).not.toContain('log.info("Certificate resent successfully", { intakeId, to: patient.email })')
+      expect(source, path).not.toContain("to: patient.email,\n          resentBy")
+    }
+  })
 })

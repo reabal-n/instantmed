@@ -200,7 +200,7 @@ function CopyVerifyLinkButton({ verificationCode }: { verificationCode: string }
     try {
       await navigator.clipboard.writeText(url)
       setCopied(true)
-      capture("verification_link_copied", { code: verificationCode })
+      capture("verification_link_copied")
       setTimeout(() => setCopied(false), 2000)
     } catch {
       const input = document.createElement("input")

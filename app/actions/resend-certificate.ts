@@ -2,14 +2,14 @@
 
 import { getApiAuth } from "@/lib/auth/helpers"
 import { env } from "@/lib/config/env"
+import { getCertificateForIntake } from "@/lib/data/issued-certificates"
 import { MedCertPatientEmail, medCertPatientEmailSubject } from "@/lib/email/components/templates"
 import { sendEmail } from "@/lib/email/send-email"
 import { createLogger } from "@/lib/observability/logger"
+import { checkResendRateLimit } from "@/lib/rate-limit/resend-cert"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const log = createLogger("resend-certificate")
-import { getCertificateForIntake } from "@/lib/data/issued-certificates"
-import { checkResendRateLimit } from "@/lib/rate-limit/resend-cert"
 
 interface ResendCertificateResult {
   success: boolean
@@ -114,7 +114,6 @@ export async function resendCertificate(intakeId: string): Promise<ResendCertifi
         certificateId: certificate.id,
         metadata: {
           cert_type: certificate.certificate_type,
-          verification_code: certificate.verification_code,
           resent_by_patient: true,
         },
         tags: [
@@ -128,7 +127,7 @@ export async function resendCertificate(intakeId: string): Promise<ResendCertifi
         return { success: false, error: "Failed to send email. Please try again." }
       }
 
-      log.info("Certificate resent successfully", { intakeId, to: patient.email })
+      log.info("Certificate resent successfully", { intakeId, certificateId: certificate.id, hasPatientEmail: true })
       return { success: true }
     }
 
