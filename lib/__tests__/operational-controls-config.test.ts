@@ -83,4 +83,14 @@ describe("operational control capacity checks", () => {
     expect(source).not.toContain("isOutsideBusinessHours")
     expect(source).not.toContain("getNextOpenTime")
   })
+
+  it("only exposes the capacity gate from operational runtime config", () => {
+    const source = readFileSync(join(process.cwd(), "lib/operational-controls/config.ts"), "utf8")
+
+    expect(source).not.toContain("export interface OperationalConfig")
+    expect(source).not.toContain("export const DEFAULT_OPERATIONAL_CONFIG")
+    expect(source).not.toContain("export async function getOperationalConfig")
+    expect(source).not.toContain("export async function getTodayIntakeCount")
+    expect(source).not.toContain("export function isScheduledMaintenance")
+  })
 })
