@@ -54,7 +54,7 @@ vi.mock("@/lib/config/kill-switches", () => ({
   checkCheckoutBlocked: vi.fn(() => ({ blocked: false })),
 }))
 
-vi.mock("@/lib/config/operational-config", () => ({
+vi.mock("@/lib/operational-controls/config", () => ({
   isAtCapacity: vi.fn(() => false),
 }))
 

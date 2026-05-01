@@ -14,12 +14,13 @@ import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
 import { isControlledSubstance } from "@/lib/clinical/intake-validation"
 import { getAppUrl } from "@/lib/config/env"
 import { checkCheckoutBlocked } from "@/lib/config/kill-switches"
-import { isAtCapacity } from "@/lib/config/operational-config"
 import { CONTACT_EMAIL } from "@/lib/constants"
 import { TELEHEALTH_CONSENT_VERSION,TERMS_VERSION } from "@/lib/constants"
 import { updateProfile } from "@/lib/data/profiles"
 import { isMedicationBlocked, isServiceDisabled, SERVICE_DISABLED_ERRORS } from "@/lib/feature-flags"
 import { createLogger } from "@/lib/observability/logger"
+import { isAtCapacity } from "@/lib/operational-controls/config"
+import { getMedicationBlocklistCandidate } from "@/lib/operational-controls/medication-blocklist"
 import { checkServerActionRateLimit } from "@/lib/rate-limit/redis"
 import { checkSafetyForServer, validateSafetyFieldsPresent } from "@/lib/safety/evaluate"
 import { runFraudChecks, saveFraudFlags } from "@/lib/security/fraud-detector"
@@ -178,7 +179,7 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
       // KILL SWITCH: Check for blocked medications (DB-based blocklist)
       const medicationName = input.answers.medication_name as string | undefined
       const medicationDisplay = input.answers.medication_display as string | undefined
-      const medCheck = await isMedicationBlocked(medicationName || medicationDisplay)
+      const medCheck = await isMedicationBlocked(getMedicationBlocklistCandidate(input.answers))
       if (medCheck.blocked) {
         return {
           success: false,
@@ -199,9 +200,7 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
 
     // Check blocked medications in consults
     if (input.category === "consult") {
-      const medicationName = input.answers.medication_name as string | undefined
-      const medicationDisplay = input.answers.medication_display as string | undefined
-      const medCheck = await isMedicationBlocked(medicationName || medicationDisplay)
+      const medCheck = await isMedicationBlocked(getMedicationBlocklistCandidate(input.answers))
       if (medCheck.blocked) {
         return {
           success: false,

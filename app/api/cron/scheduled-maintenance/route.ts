@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
 
     const { data: flags } = await supabase
       .from("feature_flags")
-      .select("key, value")
+      .select("key, value, updated_by")
       .in("key", [
         FLAG_KEYS.MAINTENANCE_MODE,
         FLAG_KEYS.MAINTENANCE_SCHEDULED_START,
@@ -41,6 +41,10 @@ export async function GET(request: NextRequest) {
     const byKey = Object.fromEntries(
       (flags || []).map((r) => [r.key, r.value])
     )
+    const maintenanceModeRow = flags?.find((r) => r.key === FLAG_KEYS.MAINTENANCE_MODE)
+    const maintenanceModeUpdatedBy = typeof maintenanceModeRow?.updated_by === "string"
+      ? maintenanceModeRow.updated_by
+      : null
     const start = byKey[FLAG_KEYS.MAINTENANCE_SCHEDULED_START] as string | null
     const end = byKey[FLAG_KEYS.MAINTENANCE_SCHEDULED_END] as string | null
     const currentMode = byKey[FLAG_KEYS.MAINTENANCE_MODE] === true
@@ -78,6 +82,14 @@ export async function GET(request: NextRequest) {
       revalidateTag("feature-flags")
       log.info("Maintenance mode enabled (scheduled window started)")
     } else if (!inWindow && currentMode) {
+      if (maintenanceModeUpdatedBy !== CRON_ACTOR) {
+        return NextResponse.json({
+          message: "Manual maintenance mode active; scheduled window not allowed to disable it",
+          in_window: inWindow,
+          maintenance_mode: currentMode,
+        })
+      }
+
       const { error } = await supabase
         .from("feature_flags")
         .upsert(

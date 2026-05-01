@@ -163,12 +163,13 @@ interface StructuredIntake {
 ```
 checkout-step.tsx -> unified-checkout.ts createCheckoutFromUnifiedFlow()
   -> lib/stripe/checkout.ts createIntakeAndCheckoutAction()
-     1. Service kill-switch   2. Zod validation   3. Safety rules   4. Auth check
-     5. Idempotency key (>=16 chars)   6. Rate limit   7. INSERT intakes
-     8. Fraud detection   9. INSERT intake_answers   10. Link chat transcript
-     11. Resolve Stripe price (lib/stripe/price-mapping.ts)
-     12. stripe.checkout.sessions.create({ metadata: intake_id, patient_id, category, subtype })
-     13. UPDATE intakes SET payment_id
+     1. Env/DB service kill-switches   2. Capacity limit   3. Zod validation
+     4. Medication blocklist   5. Safety rules   6. Auth check
+     7. Idempotency key (>=16 chars)   8. Rate limit   9. INSERT intakes
+     10. Fraud detection   11. INSERT intake_answers   12. Link chat transcript
+     13. Resolve Stripe price (lib/stripe/price-mapping.ts)
+     14. stripe.checkout.sessions.create({ metadata: intake_id, patient_id, category, subtype })
+     15. UPDATE intakes SET payment_id
   -> Stripe hosted checkout (redirect)
   -> app/api/stripe/webhook/route.ts
      1. Signature verify   2. Atomic claim (try_process_stripe_event RPC)
@@ -178,9 +179,9 @@ checkout-step.tsx -> unified-checkout.ts createCheckoutFromUnifiedFlow()
      10. generateDraftsForIntake() (30s timeout, fallback: ai_draft_retry_queue)
 ```
 
-**Key files:** `lib/stripe/checkout.ts`, `lib/stripe/guest-checkout.ts`, `app/api/stripe/webhook/route.ts`, `app/actions/generate-drafts.ts`, `lib/stripe/price-mapping.ts`.
+**Key files:** `lib/stripe/checkout.ts`, `lib/stripe/guest-checkout.ts`, `lib/operational-controls/config.ts`, `lib/operational-controls/medication-blocklist.ts`, `app/api/stripe/webhook/route.ts`, `app/actions/generate-drafts.ts`, `lib/stripe/price-mapping.ts`.
 
-**Pre-checkout blocks** (enforced at `/request` and in `createIntakeAndCheckoutAction`): maintenance mode, business hours (`isOutsideBusinessHours`), capacity limit (`isAtCapacity`), disabled services. PostHog `operational_block` events track business-hours and capacity-limit blocks for analytics.
+**Pre-checkout blocks**: maintenance mode is enforced at `/request`; disabled services are enforced at `/request` and both checkout actions; capacity limits are enforced at `/request`, `createIntakeAndCheckoutAction`, and `createGuestCheckoutAction`. When the capacity switch is enabled and the daily counter RPC cannot be read, the system fails closed and shows the high-demand block. Business hours are a review-timing reference only and do not block checkout. PostHog `operational_block` events track capacity-limit blocks for analytics.
 
 ### Idempotency & Duplicate Protection
 
@@ -383,7 +384,7 @@ Config-driven, immutably versioned. Template config stored as JSONB in `certific
 
 Admin capabilities span the `/admin` route group and include: operations dashboard, analytics, compliance audit logs, feature flag management (kill switches, operational controls), finance (fraud flags, Stripe disputes), clinic identity configuration, and doctor management.
 
-**Operational controls** (`/admin/features`): Business hours (configurable open/close, timezone), capacity limit (max intakes/day), urgent notice banner, scheduled maintenance (start/end datetime). Cron `scheduled-maintenance` syncs `maintenance_mode` with the scheduled window every 5 min.
+**Operational controls** (`/admin/features`): Review timing reference (open/close, timezone), capacity limit (max intakes/day), urgent notice banner, scheduled maintenance (start/end datetime). Runtime helpers live in `lib/operational-controls/`; admin writes go through `lib/feature-flags.ts` with server-side key/value validation. Cron `scheduled-maintenance` syncs `maintenance_mode` with the scheduled window every 5 min, but will not disable manually enabled maintenance mode from an admin incident response.
 
 Role assignment methods: SQL update on `profiles` table (production) via Supabase dashboard or service role client.
 
@@ -689,6 +690,7 @@ See `TESTING.md` for full testing strategy, conventions, E2E patterns, auth bypa
 | `lib/notifications/` | Alerts | `telegram.ts` (ops alerts), `service.ts` (payment notifications) |
 | `lib/observability/` | Logging/monitoring | `logger.ts` (structured logger), `sentry.ts` (helpers) |
 | `lib/feature-flags.ts` | Feature flags | DB-backed via `feature_flags` table, `getFeatureFlags()` |
+| `lib/operational-controls/` | Runtime controls | Capacity fail-closed checks and medication-blocklist answer extraction |
 | `lib/posthog-server.ts` | Server analytics | `getPostHogClient()`, funnel tracking, safety outcome tracking |
 | `lib/validation/` | Validation schemas | `med-cert-schema.ts`, `repeat-script-schema.ts` |
 

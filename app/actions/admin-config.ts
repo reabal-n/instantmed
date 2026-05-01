@@ -191,14 +191,14 @@ export async function getFeatureFlagAuditLogsAction() {
   const { data } = await getAuditLogs(
     { eventType: "settings_changed" },
     1,
-    20
+    100
   )
   // Filter to feature flag and operational config changes
   return data.filter(
     (log) =>
       (log.metadata?.action_type === "feature_flag_updated" ||
         log.metadata?.action_type === "operational_config_updated")
-  )
+  ).slice(0, 20)
 }
 
 // ============================================================================

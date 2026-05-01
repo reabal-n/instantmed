@@ -64,15 +64,15 @@ PLAYWRIGHT=1 STRIPE_WEBHOOK_SECRET=whsec_test_... pnpm e2e e2e/stripe-webhook.sp
 3. If connection pool exhausted: scale up Supabase compute (Project Settings > Database), kill long-running queries
 4. If Supabase is down: check https://status.supabase.com
 
-### Operational Controls (Business Hours / Capacity / Maintenance)
+### Operational Controls (Review Timing / Capacity / Maintenance)
 
-**Symptoms:** Patients report "We're closed" or "High demand" when trying to request; maintenance banner shows unexpectedly.
+**Symptoms:** Patients report "High demand" when trying to request; maintenance banner shows unexpectedly; review-time messaging looks wrong.
 
-1. Check `/admin/features` → Operational Controls: business hours, capacity limit, urgent notice, scheduled maintenance
-2. PostHog: filter by `operational_block` event to see how often business hours or capacity blocks occur
-3. Business hours: verify `business_hours_open`/`close` and `business_hours_timezone` (default Australia/Sydney)
-4. Capacity: `count_intakes_today_sydney` RPC; if at limit, either raise `capacity_limit_max` or wait for next day
-5. Scheduled maintenance: cron runs every 5 min; if window passed but banner still on, manually set `maintenance_mode` = false in feature_flags
+1. Check `/admin/features` → Operational Controls: review timing reference, capacity limit, urgent notice, scheduled maintenance
+2. PostHog: filter by `operational_block` event to see how often capacity blocks occur
+3. Review timing reference: verify `business_hours_open`/`close` and `business_hours_timezone` (default Australia/Sydney). These values set expectations; they do not block checkout.
+4. Capacity: `count_intakes_today_sydney` RPC; if at limit, either raise `capacity_limit_max` or wait for next day. If the capacity switch is enabled and the RPC fails, checkout fails closed as high demand until the RPC/schema issue is fixed or the capacity switch is deliberately disabled.
+5. Scheduled maintenance: cron runs every 5 min; if the window passed but banner still on, check whether an admin manually enabled `maintenance_mode` for an incident. Manually disable it only after the incident is resolved.
 6. Doctor availability: paused doctors (`doctor_available = false`) see empty queue; toggle at `/doctor/settings/identity`
 
 ### Duplicate Patient Profiles

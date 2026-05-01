@@ -125,7 +125,7 @@ FOR SELECT USING (
 | `patient_notes` | Own (except `note_type = 'admin'`) | SELECT/INSERT all, UPDATE own | SELECT/INSERT all, UPDATE own |
 | `audit_log` | Own intake, limited event types | SELECT all | SELECT all |
 | `audit_logs` | None | SELECT all | SELECT all |
-| `feature_flags` | Read all | Read all | Read/Write all |
+| `feature_flags` | None | Read all, no direct writes | Read all, update existing flags |
 | `doctor_profiles` | None | Own only | All |
 | `notifications` | Own (`user_id`) | Own | Own |
 | `payments` | Own via intake chain | Via intake | All |
@@ -393,6 +393,10 @@ Monitoring: Sentry (errors, CSP), PostHog (behavior), Supabase (DB audit logs).
 | Admin UI | No | Yes |
 | Requires redeploy | Yes | No |
 | Best for | Emergencies | Routine toggles, med blocklists |
+
+**Write control:** DB feature-flag writes are admin-only at both layers: `/admin/features` uses admin-only server actions, and `feature_flags` RLS restricts direct table updates to `profiles.role = 'admin'`. No direct client INSERT/DELETE policy exists for feature flags. Server-side mutation code rejects unknown keys and invalid value types/ranges before DB writes. Doctors may read flag status, but cannot mutate kill switches directly.
+
+**Runtime control helpers:** Operational enforcement that is not pure flag fetching lives in `lib/operational-controls/`. Capacity limits fail closed when the limit is enabled and the daily count RPC cannot be read; medication blocklist extraction is shared by authenticated and guest checkout paths.
 
 ### Kill Switches (Env Vars)
 
