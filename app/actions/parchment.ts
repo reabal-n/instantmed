@@ -143,8 +143,8 @@ export async function getParchmentPrescribeUrlAction(
     }
 
     // Defense-in-depth: ensure a live doctor-owned review claim exists before SSO.
-    // The queue sheet is replaced by the Parchment sheet, so its cleanup can clear
-    // the soft lock just before this action runs. Re-claim here and verify the
+    // The queue sheet is replaced by the Parchment sheet, so its cleanup can release
+    // the review context just before this action runs. Re-claim here and verify the
     // resulting row instead of trusting UI lifecycle timing.
     if (!isParchmentClaimSatisfied(intake, authResult.profile.id)) {
       const claim = await acquireIntakeLock(

@@ -50,6 +50,9 @@ function createSupabaseMock() {
                   status: "paid",
                   patient_id: PATIENT_ID,
                   category: "medical_certificate",
+                  claimed_by: DOCTOR_ID,
+                  reviewing_doctor_id: null,
+                  reviewed_by: null,
                   patient: {
                     id: PATIENT_ID,
                     full_name: "Test Patient",
@@ -73,7 +76,7 @@ function createSupabaseMock() {
 describe("requestMoreInfoAction", () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    mocks.requireRole.mockResolvedValue({ profile: { id: DOCTOR_ID } })
+    mocks.requireRole.mockResolvedValue({ profile: { id: DOCTOR_ID, role: "doctor" } })
     mocks.sendEmail.mockResolvedValue({ success: true })
   })
 
