@@ -317,11 +317,11 @@ Config-driven, immutably versioned. Template config stored as JSONB in `certific
 
 ## Prescription Workflow
 
-**Endpoint:** `GET /api/medications/search?q=<term>&limit=15` -- PBS read-only reference for medication recall. Returns: `pbs_code`, `drug_name`, `strength`, `form`, `manufacturer`.
+**Endpoint:** `GET /api/medications/search?q=<term>&limit=15` -- PBS read-only reference for medication recall. Returns: `pbs_code`, `drug_name` (product display), `brand_name`, `active_ingredient`, `strength`, `form`, `manufacturer`.
 
-**Hard constraints:** No ranking heuristics, no synonyms/substitutions/"did you mean", no clinical interpretation, no query caching, stateless. Never used by eligibility logic, approval automation, or AI.
+**Hard constraints:** No clinical interpretation, substitutions, eligibility logic, approval automation, or AI. The endpoint may use deterministic typo cleanup, brand/generic PBS field matching, and a short in-process cache to protect the PBS API, but it must never recommend alternatives or imply clinical suitability.
 
-**Patient UX:** Autocomplete dropdown, optional field (never blocks progression). Clinician view: patient-typed text + matched PBS item, labeled "Patient-selected (reference only)".
+**Patient UX:** Autocomplete dropdown for reference lookup, with manual entry fallback. Clinician view: patient-requested medicine context, labeled as reference only and confirmed inside Parchment/MIMS.
 
 **Audit logging:** `intake_id`, `medication_search_used`, `medication_selected`, `selected_pbs_code`. Does NOT log keystrokes or partial queries.
 

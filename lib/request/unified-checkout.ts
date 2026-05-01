@@ -22,6 +22,7 @@ import {
   type ValidationResult,
 } from "@/lib/request/validation"
 import { validateMedicareExpiry, validateMedicareNumber } from "@/lib/validation/medicare"
+import { extractRepeatScriptMedications } from "@/lib/validation/repeat-script-medications"
 import type { UnifiedServiceType } from "@/types/services"
 
 export interface UnifiedCheckoutIdentity {
@@ -177,12 +178,25 @@ export function transformAnswersForUnifiedCheckout(
   }
 
   if (serviceType === "prescription" || serviceType === "repeat-script") {
-    transformed.medication_name = answers.medicationName
-    transformed.medication_display = answers.medicationName
-    transformed.medication_strength = answers.medicationStrength
-    transformed.medication_form = answers.medicationForm
-    transformed.pbs_code = answers.pbsCode
-    transformed.amt_code = answers.pbsCode
+    const primaryMedication = extractRepeatScriptMedications(answers)[0]
+    const medicationName = firstStringAnswer(answers, ["medicationName", "medication_name", "medicationDisplay", "medication_display"])
+      || primaryMedication?.name
+    const medicationDisplay = firstStringAnswer(answers, ["medicationDisplay", "medication_display", "medicationName", "medication_name"])
+      || primaryMedication?.displayName
+      || primaryMedication?.name
+    const medicationStrength = firstStringAnswer(answers, ["medicationStrength", "medication_strength", "strength"])
+      || primaryMedication?.strength
+    const medicationForm = firstStringAnswer(answers, ["medicationForm", "medication_form", "form"])
+      || primaryMedication?.form
+    const medicationCode = firstScalarAnswer(answers, ["pbsCode", "pbs_code", "amtCode", "amt_code"])
+      || primaryMedication?.pbsCode
+
+    transformed.medication_name = medicationName
+    transformed.medication_display = medicationDisplay
+    transformed.medication_strength = medicationStrength
+    transformed.medication_form = medicationForm
+    transformed.pbs_code = medicationCode
+    transformed.amt_code = medicationCode
     transformed.last_prescribed = answers.prescriptionHistory
     transformed.prescription_history = answers.prescriptionHistory
     transformed.last_prescription_date = answers.lastPrescriptionDate

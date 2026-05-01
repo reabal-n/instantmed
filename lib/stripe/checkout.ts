@@ -177,9 +177,8 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
       }
 
       // KILL SWITCH: Check for blocked medications (DB-based blocklist)
-      const medicationName = input.answers.medication_name as string | undefined
-      const medicationDisplay = input.answers.medication_display as string | undefined
-      const medCheck = await isMedicationBlocked(getMedicationBlocklistCandidate(input.answers))
+      const medicationBlocklistCandidate = getMedicationBlocklistCandidate(input.answers)
+      const medCheck = await isMedicationBlocked(medicationBlocklistCandidate)
       if (medCheck.blocked) {
         return {
           success: false,
@@ -188,12 +187,11 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
       }
 
       // CLINICAL AUDIT: Hard-block Schedule 8 / controlled substances (regex patterns)
-      const medNameToCheck = medicationName || medicationDisplay || ""
-      if (medNameToCheck && isControlledSubstance(medNameToCheck)) {
+      if (medicationBlocklistCandidate && isControlledSubstance(medicationBlocklistCandidate)) {
         logger.warn("Controlled substance blocked at checkout", { category: input.category })
         return {
           success: false,
-          error: "This medication cannot be prescribed through our online service. Schedule 8 and controlled substances require an in-person consultation with your regular GP.",
+          error: "This medication cannot be prescribed through our online service. Controlled substances require an in-person consultation with your regular GP.",
         }
       }
     }

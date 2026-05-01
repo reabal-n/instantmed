@@ -4,6 +4,11 @@ import {
   validateHairLossConsult,
 } from "@/lib/clinical/consult-validators"
 import { isControlledSubstance } from "@/lib/clinical/intake-validation"
+import {
+  buildRepeatScriptMedicationValidationText,
+  extractRepeatScriptMedications,
+  formatRepeatScriptMedicationLabel,
+} from "@/lib/validation/repeat-script-medications"
 
 type Answers = Record<string, unknown>
 
@@ -330,12 +335,27 @@ function scalpSummary(answers: Answers): string {
 
 function repeatSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
   const { answers } = input
-  const medicationName = str(answers, "medicationName") || str(answers, "medication_name") || "Requested medication"
-  const strength = str(answers, "medicationStrength") || str(answers, "medication_strength")
-  const form = str(answers, "medicationForm") || str(answers, "medication_form")
+  const medications = extractRepeatScriptMedications(answers)
+  const medicationLabels = medications.map(formatRepeatScriptMedicationLabel)
+  const primaryMedication = medications[0]
+  const hasMultipleMedications = medicationLabels.length > 1
+  const medicationName = hasMultipleMedications
+    ? medicationLabels.join("; ")
+    : primaryMedication?.name || str(answers, "medicationName") || str(answers, "medication_name") || "Requested medication"
+  const strength = hasMultipleMedications
+    ? undefined
+    : primaryMedication?.strength || str(answers, "medicationStrength") || str(answers, "medication_strength")
+  const form = hasMultipleMedications
+    ? undefined
+    : primaryMedication?.form || str(answers, "medicationForm") || str(answers, "medication_form")
+  const requestedMedicationValue = medicationLabels.length > 0
+    ? medicationLabels.join("; ")
+    : medicationName
   const history = str(answers, "prescriptionHistory") || str(answers, "last_prescribed") || "not specified"
   const currentDose = str(answers, "currentDose") || str(answers, "current_dose") || str(answers, "dosage_instructions")
-  const controlled = isControlledSubstance(medicationName)
+  const controlled = medications.length > 0
+    ? medications.some((medication) => isControlledSubstance(buildRepeatScriptMedicationValidationText(medication)))
+    : isControlledSubstance(medicationName)
   const allergies = firstStr(answers, ["known_allergies", "allergies"])
   const conditions = firstStr(answers, ["existing_conditions", "conditions"])
   const currentMedications = firstStr(answers, ["current_medications", "otherMedications", "other_medications"])
@@ -343,9 +363,9 @@ function repeatSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
   const adverseReactionAnswer = raw(answers, "hasAdverseMedicationReactions") ?? raw(answers, "has_adverse_medication_reactions")
 
   const keyFacts = compactFacts([
-    { label: "Requested medication", value: medicationName },
-    fact("Strength", strength),
-    fact("Form", form),
+    { label: hasMultipleMedications ? "Requested medications" : "Requested medication", value: requestedMedicationValue },
+    !hasMultipleMedications ? fact("Strength", strength) : null,
+    !hasMultipleMedications ? fact("Form", form) : null,
     { label: "Last prescribed", value: humanize(history) },
     fact("Patient-reported dose", currentDose),
     fact("Last prescription date", str(answers, "lastPrescriptionDate")),
@@ -384,16 +404,18 @@ function repeatSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
     medicationName,
     strength,
     form,
-    medicationSearchHint: [medicationName, strength, form].filter(Boolean).join(" "),
+    medicationSearchHint: hasMultipleMedications
+      ? medicationLabels[0]
+      : [medicationName, strength, form].filter(Boolean).join(" "),
     directionsTemplate: currentDose
-      ? `Patient reports current dose: ${currentDose}. Confirm regimen, quantity, repeats and indication in Parchment before prescribing.`
-      : "Repeat existing regimen after doctor confirms dose, quantity, repeats and indication in Parchment.",
+      ? `${hasMultipleMedications ? `Patient requested multiple medicines: ${requestedMedicationValue}. ` : ""}Patient reports current dose: ${currentDose}. Confirm regimen, quantity, repeats and indication in Parchment before prescribing.`
+      : `${hasMultipleMedications ? `Patient requested multiple medicines: ${requestedMedicationValue}. ` : ""}Repeat existing regimen after doctor confirms dose, quantity, repeats and indication in Parchment.`,
     quantityTemplate: "Match clinically appropriate repeat quantity in Parchment",
     repeatsTemplate: "Doctor to confirm in Parchment",
     safetyChecks: ["Repeat history reviewed", "Allergies checked", "Current medications checked", "Controlled-substance screen checked"],
   })
 
-  const subjective = `${input.patientName || "Patient"} requests a repeat prescription for ${[medicationName, strength, form].filter(Boolean).join(" ")}.${currentDose ? ` Patient reports current dose: ${currentDose}.` : ""}`
+  const subjective = `${input.patientName || "Patient"} requests a repeat prescription for ${requestedMedicationValue}.${currentDose ? ` Patient reports current dose: ${currentDose}.` : ""}`
   const objective = [
     `Last prescribed: ${humanize(history)}.`,
     `Allergies: ${allergies || yesNo(raw(answers, "has_allergies") ?? raw(answers, "hasAllergies"))}.`,

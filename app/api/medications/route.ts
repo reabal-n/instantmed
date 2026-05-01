@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ 
       medications: [],
       blocked: true,
-      message: "Schedule 8 and controlled substances cannot be prescribed through this service."
+      message: "Controlled substances cannot be prescribed through this service."
     })
   }
 
@@ -73,7 +73,7 @@ export async function GET(request: NextRequest) {
     })
 
     if (error) {
-      log.error("Medication search RPC error", { error, query })
+      log.error("Medication search RPC error", { error, queryLength: query.length })
       // Fallback to direct query if RPC fails
       const { data: fallbackData, error: fallbackError } = await supabase
         .from("medications")
@@ -85,7 +85,7 @@ export async function GET(request: NextRequest) {
         .limit(15)
 
       if (fallbackError) {
-        log.error("Medication search fallback error", { error: fallbackError, query })
+        log.error("Medication search fallback error", { error: fallbackError, queryLength: query.length })
         throw fallbackError
       }
 
@@ -101,7 +101,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     log.error("Medication search error", {
       error: error instanceof Error ? error.message : String(error),
-      query
+      queryLength: query.length,
     })
     return NextResponse.json(
       { error: "Failed to search medications" },

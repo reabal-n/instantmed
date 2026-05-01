@@ -1,3 +1,8 @@
+import {
+  buildRepeatScriptMedicationValidationText,
+  extractRepeatScriptMedications,
+} from "@/lib/validation/repeat-script-medications"
+
 function collectStringAnswers(
   answers: Record<string, unknown>,
   keys: string[],
@@ -11,14 +16,18 @@ function collectStringAnswers(
 export function getMedicationBlocklistCandidate(
   answers: Record<string, unknown>,
 ): string | undefined {
-  const candidates = collectStringAnswers(answers, [
-    "medication_name",
-    "medication_display",
-    "medicationName",
-    "medicationDisplay",
-    "consult_details",
-    "consultDetails",
-  ])
+  const candidates = [
+    ...collectStringAnswers(answers, [
+      "medication_name",
+      "medication_display",
+      "medicationName",
+      "medicationDisplay",
+      "consult_details",
+      "consultDetails",
+    ]),
+    ...extractRepeatScriptMedications(answers).map(buildRepeatScriptMedicationValidationText),
+  ]
 
-  return candidates.length > 0 ? candidates.join(" ") : undefined
+  const uniqueCandidates = Array.from(new Set(candidates.filter(Boolean)))
+  return uniqueCandidates.length > 0 ? uniqueCandidates.join(" ") : undefined
 }

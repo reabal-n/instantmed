@@ -105,6 +105,8 @@ export interface PBSItem {
 export interface PBSSearchResult {
   pbs_code: string
   drug_name: string
+  brand_name: string | null
+  active_ingredient: string | null
   form: string | null
   strength: string | null
   manufacturer: string | null
@@ -159,10 +161,14 @@ async function fetchWithTimeout(
   }
 }
 
+function stringField(value: unknown): string | null {
+  return typeof value === "string" && value.trim() ? value.trim() : null
+}
+
 /**
- * Parse PBS API response data into PBSSearchResult array
+ * Parse PBS API response data into PBSSearchResult array.
  */
-function parseItemsToResults(
+export function mapPBSItemsToSearchResults(
   items: Record<string, unknown>[],
   limit: number
 ): PBSSearchResult[] {
@@ -170,18 +176,24 @@ function parseItemsToResults(
   const results: PBSSearchResult[] = []
 
   for (const item of items) {
-    const drugName = String(item.drug_name || item.li_drug_name || "")
-    const form = item.li_form ? String(item.li_form) : null
-    const key = `${drugName.toLowerCase()}-${form || ""}`
+    const activeIngredient = stringField(item.drug_name) || stringField(item.li_drug_name)
+    const brandName = stringField(item.brand_name)
+    const displayName = brandName || activeIngredient
+    const form = stringField(item.li_form)
+    const key = `${displayName?.toLowerCase() || ""}-${activeIngredient?.toLowerCase() || ""}-${form || ""}`
 
-    if (drugName && !seen.has(key)) {
+    if (displayName && !seen.has(key)) {
       seen.add(key)
       results.push({
         pbs_code: String(item.pbs_code || ""),
-        drug_name: drugName,
+        drug_name: displayName,
+        brand_name: brandName,
+        active_ingredient: activeIngredient && activeIngredient.toLowerCase() !== displayName.toLowerCase()
+          ? activeIngredient
+          : null,
         form: form,
         strength: form, // li_form contains strength info
-        manufacturer: item.manufacturer_code ? String(item.manufacturer_code) : null,
+        manufacturer: stringField(item.manufacturer_name) || stringField(item.manufacturer_code),
       })
     }
     if (results.length >= limit) break
@@ -244,7 +256,7 @@ async function searchPBSByField(
       return []
     }
 
-    return parseItemsToResults(data.data, limit)
+    return mapPBSItemsToSearchResults(data.data, limit)
   } catch (error) {
     const duration = Date.now() - startTime
     if (error instanceof Error && error.name === "AbortError") {
@@ -534,7 +546,7 @@ export async function searchPBSItemsEnhanced(
     ])
 
     for (const result of [...drugResults, ...brandResults]) {
-      const key = `${result.drug_name.toLowerCase()}-${result.form || ""}`
+      const key = `${result.drug_name.toLowerCase()}-${result.active_ingredient?.toLowerCase() || ""}-${result.form || ""}`
       if (!seen.has(key)) {
         seen.add(key)
         merged.push(result)
