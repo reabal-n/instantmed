@@ -107,7 +107,7 @@ AddressAutocomplete
      -> addressLine1, suburb, state, postcode
 ```
 
-Prescribing cases require the structured fields before checkout. They are normalized into `address_line1`, `suburb`, `state`, and `postcode`, persisted on `profiles`, visible in the doctor patient snapshot/admin prescribing identity blocker report, and used by `lib/parchment/sync-patient.ts` to build the Parchment address payload.
+Prescribing cases require the structured fields before checkout. They are normalized into `address_line1`, `suburb`, `state`, and `postcode`, persisted on `profiles`, visible in the doctor patient snapshot/admin prescribing identity blocker report, and used by `lib/parchment/sync-patient.ts` to build the Parchment address payload. Doctor approval into `awaiting_script` also rechecks prescribing identity server-side so legacy or imported incomplete profiles cannot enter the prescribing handoff silently.
 
 **DB insert sequence:** INSERT `intakes` (status=pending_payment) -> INSERT `intake_answers` -> Stripe redirect -> UPDATE `intakes` status=paid (webhook) -> INSERT `intake_drafts` (via `generateDraftsForIntake`).
 
@@ -327,7 +327,7 @@ Config-driven, immutably versioned. Template config stored as JSONB in `certific
 
 **Controlled substances:** `lib/clinical/intake-validation.ts` hard-blocks Schedule 8 in both form and chat paths.
 
-**Workflow:** Patient submits -> Doctor reviews in portal -> Doctor inputs into Parchment (external eScript) -> Doctor toggles "Script Sent" -> Patient notified via email.
+**Workflow:** Patient submits -> Doctor reviews in portal -> Doctor approves for prescribing after identity completeness check -> Doctor prescribes in embedded Parchment or external fallback -> Parchment webhook or manual confirmation marks script sent -> Patient notified via email.
 
 ---
 

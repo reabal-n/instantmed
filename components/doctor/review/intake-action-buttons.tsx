@@ -6,6 +6,11 @@ import { useMemo } from "react"
 import { useIntakeReview } from "@/components/doctor/review/intake-review-context"
 import { Button } from "@/components/ui/button"
 import { buildClinicalCaseSummary } from "@/lib/clinical/case-summary"
+import {
+  buildPatientSnapshot,
+  getPatientSnapshotOptionsForCase,
+  requiresPrescribingIdentityForCase,
+} from "@/lib/doctor/patient-snapshot"
 import { isConsultServiceType, isKnownDoctorServiceType } from "@/lib/doctor/service-types"
 
 export function IntakeActionButtons() {
@@ -48,9 +53,29 @@ export function IntakeActionButtons() {
   const isRepeatScript = service?.type === "repeat_rx" || service?.type === "common_scripts"
   const isPrescribingConsult = intake.category === "consult" && ["ed", "hair_loss"].includes(intake.subtype || "")
   const shouldPrescribeFromConsult = isPrescribingConsult && hasPrescriptionIntent
+  const snapshotContext = {
+    answers,
+    category: intake.category,
+    serviceType: service?.type,
+    subtype: intake.subtype,
+  }
+  const missingPrescribingIdentityFields = requiresPrescribingIdentityForCase(snapshotContext)
+    ? buildPatientSnapshot(intake.patient, getPatientSnapshotOptionsForCase(snapshotContext)).missingCriticalFields
+    : []
+  const hasPrescribingIdentityBlocker = missingPrescribingIdentityFields.length > 0
+  const prescribingIdentityTitle = hasPrescribingIdentityBlocker
+    ? `Complete patient identity: ${missingPrescribingIdentityFields.join(", ")}`
+    : undefined
+  const prescribingActionLabel = hasPrescribingIdentityBlocker ? "Complete patient identity" : null
 
   return (
     <div className="sticky bottom-0 bg-background border-t border-border pt-3 pb-1 flex flex-wrap gap-2">
+      {hasPrescribingIdentityBlocker && (
+        <div className="w-full rounded-md border border-warning-border bg-warning-light px-3 py-2 text-xs font-medium text-warning">
+          Complete patient identity before prescribing: {missingPrescribingIdentityFields.join(", ")}
+        </div>
+      )}
+
       {/* Med cert: preview then approve */}
       {service?.type === "med_certs" && ["paid", "in_review"].includes(intake.status) && (
         <Button
@@ -73,11 +98,12 @@ export function IntakeActionButtons() {
         <Button
           onClick={handleApproveAndOpenParchment}
           className="bg-primary hover:bg-primary/90"
-          disabled={isPending}
+          disabled={isPending || hasPrescribingIdentityBlocker}
+          title={prescribingIdentityTitle}
           size="sm"
         >
           {isPending ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Send className="h-4 w-4 mr-1.5" />}
-          {isPending ? "Approving..." : "Approve + Prescribe"}
+          {isPending ? "Approving..." : prescribingActionLabel ?? "Approve + Prescribe"}
         </Button>
       )}
 
@@ -85,11 +111,12 @@ export function IntakeActionButtons() {
         <Button
           onClick={() => handleStatusChange("awaiting_script")}
           className="bg-primary hover:bg-primary/90"
-          disabled={isPending}
+          disabled={isPending || hasPrescribingIdentityBlocker}
+          title={prescribingIdentityTitle}
           size="sm"
         >
           {isPending ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-1.5" />}
-          {isPending ? "Approving..." : "Approve Script"}
+          {isPending ? "Approving..." : prescribingActionLabel ?? "Approve Script"}
         </Button>
       )}
 
@@ -97,11 +124,12 @@ export function IntakeActionButtons() {
         <Button
           onClick={handleApproveAndOpenParchment}
           className="bg-primary hover:bg-primary/90"
-          disabled={isPending}
+          disabled={isPending || hasPrescribingIdentityBlocker}
+          title={prescribingIdentityTitle}
           size="sm"
         >
           {isPending ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Send className="h-4 w-4 mr-1.5" />}
-          {isPending ? "Approving..." : "Approve + Prescribe"}
+          {isPending ? "Approving..." : prescribingActionLabel ?? "Approve + Prescribe"}
         </Button>
       )}
 
@@ -109,11 +137,12 @@ export function IntakeActionButtons() {
         <Button
           onClick={handleOpenParchmentPrescribe}
           className="bg-blue-600 hover:bg-blue-700"
-          disabled={isPending}
+          disabled={isPending || hasPrescribingIdentityBlocker}
+          title={prescribingIdentityTitle}
           size="sm"
         >
           <Send className="h-4 w-4 mr-1.5" />
-          Open Parchment
+          {prescribingActionLabel ?? "Open Parchment"}
         </Button>
       )}
 
