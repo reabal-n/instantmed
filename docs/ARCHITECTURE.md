@@ -192,9 +192,10 @@ checkout-step.tsx -> unified-checkout.ts createCheckoutFromUnifiedFlow()
   -> app/api/stripe/webhook/route.ts
      1. Signature verify   2. Atomic claim (try_process_stripe_event RPC)
      3. Extract intake_id from metadata   4. Guard: intake exists (else DLQ + 500)
-     5. Guard: already paid   6. UPDATE intakes paid   7. Guard: concurrent webhook
-     8. Save Stripe customer ID   9. Payment notification
-     10. generateDraftsForIntake() (30s timeout, fallback: ai_draft_retry_queue)
+     5. Guard: already paid   6. Guard: intake is still payment-retryable
+     7. UPDATE intakes paid   8. Guard: concurrent/stale webhook
+     9. Save Stripe customer ID   10. Payment notification
+     11. generateDraftsForIntake() (30s timeout, fallback: ai_draft_retry_queue)
 ```
 
 **Key files:** `lib/stripe/checkout.ts`, `lib/stripe/guest-checkout.ts`, `lib/operational-controls/config.ts`, `lib/operational-controls/medication-blocklist.ts`, `app/api/stripe/webhook/route.ts`, `app/actions/generate-drafts.ts`, `lib/stripe/price-mapping.ts`.
@@ -211,13 +212,16 @@ checkout-step.tsx -> unified-checkout.ts createCheckoutFromUnifiedFlow()
 | Stripe | Idempotency key on `sessions.create()` (guest flow) |
 | Webhook | Atomic event claim via `try_process_stripe_event` RPC |
 | Webhook | `payment_status === 'paid'` early return |
-| Webhook | `WHERE payment_status IN ('pending','unpaid')` on UPDATE |
+| Webhook | `WHERE status IN ('pending_payment','checkout_failed') AND payment_status IN ('pending','unpaid','failed')` on paid UPDATE |
+| Async webhook | Requires current `payment_id` to match the succeeding Stripe Checkout Session |
 
 On Postgres 23505 (duplicate key), returns existing intake. If already paid, redirects to success.
 
-**DLQ:** Missing intake -> `addToDeadLetterQueue()` + 500 (Stripe retries). Max 3 retries then 200 (stops retry storm). 5 items/hour -> Sentry FATAL. Admin UI at `/admin/webhook-dlq` with `X-Admin-Replay` replay. Daily cron: `cron/dlq-monitor/route.ts`.
+**DLQ:** Missing intake -> `addToDeadLetterQueue()` + 500 (Stripe retries). Non-retryable or stale paid webhooks -> `addToDeadLetterQueue()` + 200 (operator-visible, no retry storm). Max 3 retries then 200. 5 items/hour -> Sentry FATAL. Admin UI at `/admin/webhook-dlq` with `X-Admin-Replay` replay. Daily cron: `cron/dlq-monitor/route.ts`.
 
-**Retry payment** (`retryPaymentForIntakeAction`): auth + ownership + status guard (pending_payment only) + safety re-validation + expire old session + create fresh session.
+**Retry payment** (`retryPaymentForIntakeAction`): auth + ownership + status guard (`pending_payment` or `checkout_failed` with unpaid/pending/failed payment state) + safety re-validation + expire old session + create fresh session.
+
+**Guest checkout failures:** after clinical answers/compliance audit are persisted, Stripe price/session failures mark the intake `checkout_failed` and keep `checkout_error` for operator recovery. The system must not hard-delete those intakes because that hides paid-flow failures from support and breaks the audit trail.
 
 ### Decline & Refund Flow
 

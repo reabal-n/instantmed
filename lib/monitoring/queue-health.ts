@@ -8,6 +8,7 @@
 
 import * as Sentry from "@sentry/nextjs"
 
+import { QUEUE_REVIEW_STATUSES } from "@/lib/doctor/queue-utils"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 export interface QueueHealthMetrics {
@@ -53,7 +54,8 @@ export async function getQueueHealth(): Promise<QueueHealthMetrics> {
   const { data: pendingRequests } = await supabase
     .from("intakes")
     .select("id, created_at, is_priority, patient:profiles!patient_id(email)")
-    .in("status", ["paid", "in_review", "pending_info"])
+    .in("status", QUEUE_REVIEW_STATUSES)
+    .eq("payment_status", "paid")
     .order("created_at", { ascending: true })
     .then(res => ({
       ...res,
@@ -173,7 +175,8 @@ export async function getQueueByServiceType(): Promise<Record<string, number>> {
   const { data } = await supabase
     .from("intakes")
     .select("id, category")
-    .in("status", ["paid", "in_review", "pending_info"])
+    .in("status", QUEUE_REVIEW_STATUSES)
+    .eq("payment_status", "paid")
   
   if (!data) return {}
   

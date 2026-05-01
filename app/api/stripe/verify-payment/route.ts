@@ -6,7 +6,7 @@ import { auth } from "@/lib/auth/helpers"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { stripe } from "@/lib/stripe/client"
-import { validateCheckoutSessionIntakeMatch } from "@/lib/stripe/payment-integrity"
+import { canRetryPaymentForIntake, validateCheckoutSessionIntakeMatch } from "@/lib/stripe/payment-integrity"
 import { startPostPaymentReviewWork } from "@/lib/stripe/post-payment"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
@@ -138,6 +138,19 @@ export async function POST(req: NextRequest) {
       })
     }
 
+    if (!canRetryPaymentForIntake(intake.status, intake.payment_status)) {
+      log.warn("Payment verification refused for non-retryable intake state", {
+        intakeId,
+        paymentStatus: intake.payment_status,
+        status: intake.status,
+      })
+      return NextResponse.json({
+        success: false,
+        status: intake.status,
+        error: "This request is not awaiting payment",
+      }, { status: 409 })
+    }
+
     // 6. Payment confirmed - update intake status (webhook fallback)
     log.info("Webhook fallback: Marking intake as paid", { intakeId })
 
@@ -159,6 +172,7 @@ export async function POST(req: NextRequest) {
         stripe_customer_id: stripeCustomerId,
       })
       .eq("id", intakeId)
+      .in("status", ["pending_payment", "checkout_failed"])
       .in("payment_status", ["pending", "unpaid", "failed"])
 
     if (updateError) {

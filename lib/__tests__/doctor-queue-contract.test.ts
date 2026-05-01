@@ -33,6 +33,11 @@ const queueActionsSource = readFileSync(
   "utf8",
 )
 
+const queueHealthSource = readFileSync(
+  join(process.cwd(), "lib/monitoring/queue-health.ts"),
+  "utf8",
+)
+
 describe("doctor queue production contract", () => {
   it("keeps the server queue aligned with all actionable paid statuses", () => {
     expect(queriesSource).toContain("QUEUE_REVIEW_STATUSES")
@@ -60,6 +65,12 @@ describe("doctor queue production contract", () => {
     expect(queriesSource).toContain("degraded")
     expect(queueTypesSource).toContain("queueDegraded")
     expect(queueClientSource).toContain("Queue data may be incomplete")
+  })
+
+  it("keeps queue health monitoring aligned with the paid doctor queue", () => {
+    expect(queueHealthSource).toContain("QUEUE_REVIEW_STATUSES")
+    expect(queueHealthSource).toContain('.in("status", QUEUE_REVIEW_STATUSES)')
+    expect(queueHealthSource).toContain('.eq("payment_status", "paid")')
   })
 
   it("retires duplicate doctor decision APIs in favour of canonical server actions", () => {
