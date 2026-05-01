@@ -5,6 +5,7 @@ import {
   mapAddressFinderMetadataToParsedAddress,
   parseAddressFinderPlaceId,
 } from "@/lib/google-places/addressfinder"
+import { normalizePlaceId } from "@/lib/google-places/request"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 
 const ADDRESSFINDER_KEY = process.env.ADDRESSFINDER_KEY || process.env.NEXT_PUBLIC_ADDRESSFINDER_KEY
@@ -13,11 +14,11 @@ const GOOGLE_API_KEY = process.env.GOOGLE_PLACES_API_KEY
 
 export async function GET(request: NextRequest) {
   // Address search runs before guest checkout/auth, so protect it with rate limits instead of auth.
-  const rateLimitResponse = await applyRateLimit(request, "standard")
+  const rateLimitResponse = await applyRateLimit(request, "addressSearch")
   if (rateLimitResponse) return rateLimitResponse
 
   const { searchParams } = new URL(request.url)
-  const placeId = searchParams.get("place_id")
+  const placeId = normalizePlaceId(searchParams.get("place_id"))
 
   if (!placeId) {
     return NextResponse.json({ status: "INVALID_REQUEST" })

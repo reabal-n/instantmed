@@ -361,9 +361,9 @@ export interface Profile {
   date_of_birth: string | null // ISO date string
   sex: "M" | "F" | "N" | "I" | null // For prescribing: Male, Female, Not stated, Intersex
   role: UserRole
-  // Contact & address fields (DB uses address_line_1, app maps to address_line1)
+  // Contact & address fields (profiles uses address_line1; address_line_1 is legacy/clinic-table naming)
   phone: string | null
-  address_line1: string | null // Maps to DB: address_line_1
+  address_line1: string | null // DB column: address_line1
   address_line2?: string | null // App/input alias; not selected from profiles unless migrated.
   suburb: string | null
   state: AustralianState | null

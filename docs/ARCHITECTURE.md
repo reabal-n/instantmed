@@ -91,6 +91,24 @@ interface StructuredIntake {
 
 **Normalization:** Form flow uses `transformAnswers()` in `unified-checkout.ts`. Chat flow uses `normalizeCollectedFields()` in `chat-validation.ts`. Both map frontend field names to backend columns.
 
+### Address Search & Prescribing Address Flow
+
+Address entry is unauthenticated because it runs before guest checkout and account creation. The public routes are protected by the `addressSearch` rate-limit bucket, not by auth.
+
+```
+AddressAutocomplete
+  -> GET /api/places/autocomplete
+     -> Addressfinder AU autocomplete first (GNAF/PAF, no post boxes)
+     -> Google Places autocomplete fallback
+  -> GET /api/places/details
+     -> Addressfinder metadata for af:* ids
+     -> Google Place Details for Google ids
+  -> manual structured fallback fields
+     -> addressLine1, suburb, state, postcode
+```
+
+Prescribing cases require the structured fields before checkout. They are normalized into `address_line1`, `suburb`, `state`, and `postcode`, persisted on `profiles`, visible in the doctor patient snapshot/admin prescribing identity blocker report, and used by `lib/parchment/sync-patient.ts` to build the Parchment address payload.
+
 **DB insert sequence:** INSERT `intakes` (status=pending_payment) -> INSERT `intake_answers` -> Stripe redirect -> UPDATE `intakes` status=paid (webhook) -> INSERT `intake_drafts` (via `generateDraftsForIntake`).
 
 **Tables:** `intakes`, `intake_answers`, `ai_chat_transcripts`, `ai_chat_audit_log`, `ai_safety_blocks`.

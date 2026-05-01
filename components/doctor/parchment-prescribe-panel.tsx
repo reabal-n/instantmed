@@ -259,7 +259,7 @@ export function ParchmentPrescribePanel({
                     <div>
                       <p className="text-sm font-medium text-foreground">Open Parchment in a new tab</p>
                       <p className="text-sm text-muted-foreground mt-1">
-                        Parchment has not whitelisted this domain for embedded sandbox prescribing yet.
+                        This host is not enabled for embedded prescribing.
                         The secure SSO session still works in a separate tab.
                       </p>
                     </div>

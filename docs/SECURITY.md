@@ -198,8 +198,8 @@ child-src 'self' blob:;
 style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
 font-src 'self' https://fonts.gstatic.com data:;
 img-src 'self' data: blob: https://*.supabase.co https://images.unsplash.com https://raw.githubusercontent.com https://svgl.app https://api.dicebear.com https://*.googleusercontent.com https://*.gravatar.com https://*.stripe.com https://pagead2.googlesyndication.com https://*.doubleclick.net https://www.google.com https://www.google.com.au;
-connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://*.google-analytics.com https://*.google.com https://*.google.com.au https://www.googletagmanager.com https://*.googleadservices.com https://*.doubleclick.net https://*.sentry.io https://api.resend.com https://challenges.cloudflare.com https://*.posthog.com https://us.i.posthog.com https://accounts.google.com https://pagead2.googlesyndication.com;
-frame-src 'self' https://js.stripe.com https://challenges.cloudflare.com;
+connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://*.google-analytics.com https://*.google.com https://*.google.com.au https://www.googletagmanager.com https://*.googleadservices.com https://*.doubleclick.net https://*.sentry.io https://api.resend.com https://challenges.cloudflare.com https://*.posthog.com https://us.i.posthog.com https://accounts.google.com https://pagead2.googlesyndication.com https://*.vercel-insights.com https://va.vercel-scripts.com;
+frame-src 'self' https://js.stripe.com https://challenges.cloudflare.com https://portal.sandbox.parchment.health https://portal.parchment.health;
 form-action 'self' https://*.supabase.co https://accounts.google.com;
 frame-ancestors 'self';
 object-src 'none';
@@ -209,7 +209,9 @@ upgrade-insecure-requests;
 
 **Why `challenges.cloudflare.com`:** Required by Stripe Checkout for bot protection challenges during payment flows. This is Stripe's embedded Cloudflare challenge, not a standalone Turnstile implementation.
 
-**Why `unsafe-inline` (no `unsafe-eval` in prod):** `unsafe-inline` required by Next.js 16 for hydration scripts and dynamic imports. `unsafe-eval` added only in dev/test for HMR. Nonce-based CSP not fully supported in Next.js 16 production. Mitigated by: first-party scripts only, no `innerHTML` with user content, input sanitization, `frame-ancestors 'self'`.
+**Why `unsafe-inline` (no `unsafe-eval` in prod):** `unsafe-inline` required by the current Next.js 15 app for hydration scripts and dynamic imports. `unsafe-eval` added only in dev/test for HMR. Nonce-based CSP is not wired for this production build. Mitigated by: first-party scripts only, no `innerHTML` with user content, input sanitization, `frame-ancestors 'self'`.
+
+**Why Parchment frame hosts:** Embedded prescribing loads only from Parchment portal hosts. Parchment confirmed `https://instantmed.com.au` and `https://www.instantmed.com.au` are allowed embedding origins on 2026-05-01; InstantMed still restricts which local hostnames may use the iframe through `lib/parchment/embed-policy.ts`.
 
 **CSP violation reporting:** A separate `Content-Security-Policy-Report-Only` header (stricter, no `unsafe-inline`) reports violations to `/api/csp-report` via `report-uri`. The main enforced CSP does **not** include `report-uri`.
 
@@ -226,6 +228,7 @@ upgrade-insecure-requests;
 | Endpoint Category | Limit | Window | Module |
 |-------------------|-------|--------|--------|
 | Standard API | 100 requests | 1 minute | redis |
+| Address search | 60 requests | 1 minute | redis |
 | Authentication | 10 requests | 1 minute | redis |
 | Sensitive operations | 20 requests | 1 hour | redis |
 | File uploads | 30 requests | 1 hour | redis |

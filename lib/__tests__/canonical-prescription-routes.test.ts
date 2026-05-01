@@ -34,4 +34,12 @@ describe("legacy prescription routes", () => {
     expect(scriptTasks).not.toContain("repeat_rx_request_id")
     expect(scriptTasks).not.toContain("createScriptTask")
   })
+
+  it("keeps legacy inline onboarding address writes aligned with profile columns", () => {
+    const inlineOnboarding = readFileSync(path.join(root, "components/shared/inline-onboarding-step.tsx"), "utf8")
+
+    expect(inlineOnboarding).toContain("address_line1:")
+    expect(inlineOnboarding).not.toContain("address_line_1:")
+    expect(inlineOnboarding).not.toContain("address_line_2:")
+  })
 })

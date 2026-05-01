@@ -4,6 +4,8 @@ const DEFAULT_ALLOWED_PATTERNS = [
   "::1",
   "*.localhost",
   "*.vercel.app",
+  "instantmed.com.au",
+  "www.instantmed.com.au",
 ]
 
 function normalizeHostname(hostname: string): string {

@@ -166,13 +166,13 @@ export function InlineOnboardingStep({ profileId, userName, onBack, onComplete }
 
     try {
       const rawMedicare = medicareNumber.replace(/\s/g, "")
+      const canonicalAddressLine1 = [addressLine2.trim(), addressLine1.trim()].filter(Boolean).join(", ")
 
       const { error: updateError } = await supabase
         .from("profiles")
         .update({
           phone,
-          address_line_1: addressLine1,
-          address_line_2: addressLine2 || null,
+          address_line1: canonicalAddressLine1,
           suburb,
           state,
           postcode,

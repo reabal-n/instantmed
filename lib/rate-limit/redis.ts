@@ -49,6 +49,19 @@ export const rateLimitConfigs = {
     label: "standard",
   },
 
+  /** Public address search: 60 requests per minute before auth/checkout */
+  addressSearch: {
+    limiter: redis
+      ? new Ratelimit({
+          redis,
+          limiter: Ratelimit.slidingWindow(60, "1 m"),
+          analytics: true,
+          prefix: "ratelimit:address-search",
+        })
+      : null,
+    label: "addressSearch",
+  },
+
   /** Auth operations: 10 requests per minute */
   auth: {
     limiter: redis
