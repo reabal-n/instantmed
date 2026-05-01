@@ -1,12 +1,9 @@
 import * as Sentry from "@sentry/nextjs"
 import { NextRequest, NextResponse } from "next/server"
-import * as React from "react"
 import { z } from "zod"
 
 import { getApiAuth } from "@/lib/auth/helpers"
 import { env } from "@/lib/config/env"
-import { PaymentRetryEmail, paymentRetrySubject } from "@/lib/email/components/templates/payment-retry"
-import { sendEmail } from "@/lib/email/send-email"
 import { toError } from "@/lib/errors"
 import { createLogger } from "@/lib/observability/logger"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
@@ -18,6 +15,35 @@ const logger = createLogger("api-retry-payment")
 const retryPaymentSchema = z.object({
   invoiceId: z.string().min(1, "Invoice ID is required"),
 })
+
+async function getRetryablePaymentIntakeId(
+  supabase: ReturnType<typeof createServiceRoleClient>,
+  paymentId: string,
+  patientId: string,
+) {
+  const { data: payment, error: paymentError } = await supabase
+    .from("payments")
+    .select("id, intake_id")
+    .eq("id", paymentId)
+    .maybeSingle()
+
+  if (paymentError || !payment?.intake_id) {
+    return null
+  }
+
+  const { data: intake, error: intakeError } = await supabase
+    .from("intakes")
+    .select("id")
+    .eq("id", payment.intake_id)
+    .eq("patient_id", patientId)
+    .maybeSingle()
+
+  if (intakeError || !intake) {
+    return null
+  }
+
+  return intake.id
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -56,19 +82,32 @@ export async function POST(request: NextRequest) {
     // Get invoice
     const { data: invoice, error: invoiceError } = await supabase
       .from("invoices")
-      .select("id, status, retry_count, last_retry_at, description, amount_cents")
+      .select("id, status")
       .eq("id", invoiceId)
       .eq("customer_id", authResult.profile.id)
       .single()
 
     if (invoiceError || !invoice) {
+      const intakeId = await getRetryablePaymentIntakeId(supabase, invoiceId, authResult.profile.id)
+      if (!intakeId) {
+        return NextResponse.json(
+          { error: "Payment not found" },
+          { status: 404 }
+        )
+      }
+
       return NextResponse.json(
-        { error: "Invoice not found" },
-        { status: 404 }
+        {
+          success: true,
+          message: "Payment retry initiated. Redirecting you to checkout.",
+          paymentUrl: `${env.appUrl}/patient/intakes/${intakeId}?retry=true`,
+        },
+        { status: 200 }
       )
     }
 
-    // Only allow retry for failed invoices
+    // Only allow retry for failed invoices. Legacy invoice rows do not have a
+    // standalone checkout route; they must resolve back to the owned intake.
     if (invoice.status !== "failed") {
       return NextResponse.json(
         { error: "Only failed invoices can be retried" },
@@ -76,53 +115,19 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Update invoice status back to pending
-    const { error: updateError } = await supabase
-      .from("invoices")
-      .update({
-        status: "pending",
-        retry_count: (invoice.retry_count || 0) + 1,
-        last_retry_at: new Date().toISOString(),
-      })
-      .eq("id", invoiceId)
-
-    if (updateError) {
+    const intakeId = await getRetryablePaymentIntakeId(supabase, invoiceId, authResult.profile.id)
+    if (!intakeId) {
       return NextResponse.json(
-        { error: "Failed to update invoice" },
-        { status: 500 }
+        { error: "This payment cannot be retried online. Please open the original request or contact support." },
+        { status: 400 }
       )
-    }
-
-    // Send email notification for payment retry
-    const paymentUrl = `${env.appUrl}/checkout?invoiceId=${invoiceId}`
-    const patientEmail = authResult.profile.email
-    
-    if (patientEmail) {
-      await sendEmail({
-        to: patientEmail,
-        toName: authResult.profile.full_name || undefined,
-        subject: paymentRetrySubject(),
-        template: React.createElement(PaymentRetryEmail, {
-          patientName: authResult.profile.full_name || "there",
-          requestType: invoice.description || "service",
-          amount: `$${((invoice.amount_cents || 0) / 100).toFixed(2)}`,
-          paymentUrl,
-        }),
-        emailType: "payment_retry",
-        patientId: authResult.profile.id,
-        metadata: { invoice_id: invoiceId },
-        tags: [
-          { name: "category", value: "payment_retry" },
-          { name: "invoice_id", value: invoiceId },
-        ],
-      })
     }
 
     return NextResponse.json(
       {
         success: true,
-        message: "Payment retry initiated. Please check your email for next steps.",
-        paymentUrl,
+        message: "Payment retry initiated. Redirecting you to checkout.",
+        paymentUrl: `${env.appUrl}/patient/intakes/${intakeId}?retry=true`,
       },
       { status: 200 }
     )

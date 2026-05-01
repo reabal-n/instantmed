@@ -268,7 +268,7 @@ export function DashboardHero({
           primaryCta={
             intake && (
               <Button asChild>
-                <Link href={`/patient/intakes/${intake.id}`}>
+                <Link href={`/patient/messages?intakeId=${encodeURIComponent(intake.id)}`}>
                   Reply now
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
@@ -419,7 +419,7 @@ export function DashboardHero({
         <HeroShell
           pill={{ icon: <CheckCircle2 className="h-3 w-3" />, label: "Welcome", tone: "primary" }}
           title={`Pick a service, ${firstName}.`}
-          subtitle="A doctor reviews your request, and we email you the result. No call, no waiting room."
+          subtitle="A doctor contacts you only if clinically needed, and we email you the result."
         >
           <div className="pt-2">
             <ServiceGrid />

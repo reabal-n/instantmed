@@ -18,7 +18,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useState, useTransition } from "react"
+import { useCallback, useEffect, useRef, useState, useTransition } from "react"
 
 import { cancelIntake } from "@/app/actions/cancel-intake"
 import { requestDateCorrection } from "@/app/actions/request-date-correction"
@@ -242,6 +242,7 @@ export function IntakeDetailClient({
   intake: initialIntake,
   document,
   intakeDocument,
+  retryPayment = false,
   isEmailVerified = true,
   userEmail,
 }: IntakeDetailClientProps) {
@@ -250,6 +251,7 @@ export function IntakeDetailClient({
   const [isPending, startTransition] = useTransition()
   const [actionError, setActionError] = useState<string | null>(null)
   const [resendSuccess, setResendSuccess] = useState(false)
+  const hasAutoRetriedPayment = useRef(false)
 
   const service = intake.service as { name?: string; short_name?: string; type?: string } | undefined
   const isMedCert = (service?.type || "").toLowerCase().includes("cert")
@@ -285,7 +287,7 @@ export function IntakeDetailClient({
     })
   }
 
-  const handleRetryPayment = () => {
+  const handleRetryPayment = useCallback(() => {
     setActionError(null)
     startTransition(async () => {
       const result = await retryPaymentForIntakeAction(intake.id)
@@ -297,7 +299,20 @@ export function IntakeDetailClient({
         window.location.href = result.checkoutUrl
       }
     })
-  }
+  }, [intake.id])
+
+  useEffect(() => {
+    if (
+      !retryPayment ||
+      hasAutoRetriedPayment.current ||
+      !["pending_payment", "checkout_failed"].includes(intake.status)
+    ) {
+      return
+    }
+
+    hasAutoRetriedPayment.current = true
+    handleRetryPayment()
+  }, [handleRetryPayment, intake.status, retryPayment])
 
   const [showDateCorrection, setShowDateCorrection] = useState(false)
   const [correctionStartDate, setCorrectionStartDate] = useState("")

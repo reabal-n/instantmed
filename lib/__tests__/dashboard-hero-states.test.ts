@@ -12,6 +12,9 @@
  * full DOM rendering would require jsdom + RTL setup that isn't currently
  * wired for this project's vitest config.
  */
+import { readFileSync } from "node:fs"
+import { join } from "node:path"
+
 import { describe, expect, it } from "vitest"
 
 import { resolveHeroState } from "@/components/patient/dashboard-hero"
@@ -25,6 +28,10 @@ const ONE_DAY_AGO = new Date(NOW - 24 * 60 * 60 * 1000).toISOString()
 const ONE_HOUR_AGO = new Date(NOW - 60 * 60 * 1000).toISOString()
 const SOON = new Date(NOW + 24 * 60 * 60 * 1000).toISOString()
 const PAST_DUE = new Date(NOW - 24 * 60 * 60 * 1000).toISOString()
+const dashboardHeroSource = readFileSync(
+  join(process.cwd(), "components/patient/dashboard-hero.tsx"),
+  "utf8",
+)
 
 function mkIntake(overrides: Partial<Intake>): Intake {
   return {
@@ -77,6 +84,16 @@ const INCOMPLETE_PROFILE: ProfileData = {
 }
 
 describe("DashboardHero · resolveHeroState", () => {
+  it("does not hard-promise no-call service delivery across the mixed service grid", () => {
+    expect(dashboardHeroSource).not.toContain("No call, no waiting room.")
+    expect(dashboardHeroSource).toContain("doctor contacts you only if clinically needed")
+  })
+
+  it("routes doctor-question replies directly to the message thread", () => {
+    expect(dashboardHeroSource).toContain("/patient/messages?intakeId=")
+    expect(dashboardHeroSource).not.toContain('Link href={`/patient/intakes/${intake.id}`}>\n                  Reply now')
+  })
+
   it("empty: no intakes and no prescriptions", () => {
     const result = resolveHeroState({ intakes: [], prescriptions: [] })
     expect(result.state).toBe("empty")

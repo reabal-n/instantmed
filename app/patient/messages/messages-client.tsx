@@ -43,6 +43,7 @@ interface MessagesClientProps {
   messages: Message[]
   messagesByIntake: Record<string, Message[]>
   unreadCount: number
+  initialSelectedIntakeId?: string | null
   error?: string | null
 }
 
@@ -59,10 +60,15 @@ export function MessagesClient({
   messages,
   messagesByIntake,
   unreadCount,
+  initialSelectedIntakeId,
   error,
 }: MessagesClientProps) {
   const router = useRouter()
-  const [selectedIntake, setSelectedIntake] = useState<string | null>(null)
+  const [selectedIntake, setSelectedIntake] = useState<string | null>(() => (
+    initialSelectedIntakeId && messagesByIntake[initialSelectedIntakeId]
+      ? initialSelectedIntakeId
+      : null
+  ))
   const [newMessage, setNewMessage] = useState("")
   const [sending, setSending] = useState(false)
 

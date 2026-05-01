@@ -12,9 +12,19 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic"
 
-export default async function PatientMessagesPage() {
+function isUuid(value: string | undefined): value is string {
+  return Boolean(value?.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i))
+}
+
+export default async function PatientMessagesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ intakeId?: string }>
+}) {
   // Layout enforces patient role - use cached profile
   const authUser = (await getAuthenticatedUserWithProfile())!
+  const query = await searchParams
+  const initialSelectedIntakeId = isUuid(query.intakeId) ? query.intakeId : null
 
   const supabase = createServiceRoleClient()
   const patientId = authUser.profile.id
@@ -42,6 +52,23 @@ export default async function PatientMessagesPage() {
   // Capture fetch error for display
   const fetchError = messagesError ? "Unable to load messages. Please try again later." : null
 
+  const doctorUnreadIds = (rawMessages || [])
+    .filter((msg) => msg.sender_type === "doctor" && !msg.read_at)
+    .map((msg) => msg.id)
+  let readAt: string | null = null
+
+  if (doctorUnreadIds.length > 0) {
+    const attemptedReadAt = new Date().toISOString()
+    const { error: markReadError } = await supabase
+      .from("patient_messages")
+      .update({ read_at: attemptedReadAt })
+      .in("id", doctorUnreadIds)
+
+    if (!markReadError) {
+      readAt = attemptedReadAt
+    }
+  }
+
   // Format raw category slugs to human-readable service names
   function formatCategory(category: string | null | undefined): string {
     if (!category) return "Service"
@@ -56,20 +83,13 @@ export default async function PatientMessagesPage() {
     const formattedName = formatCategory(intake?.category)
     return {
       ...msg,
+      read_at: msg.sender_type === "doctor" && !msg.read_at ? readAt : msg.read_at,
       intake: intake ? {
         ...intake,
         service: { name: formattedName, short_name: formattedName },
       } : null,
     }
   })
-
-  // Get unread count
-  const { count: unreadCount } = await supabase
-    .from("patient_messages")
-    .select("id", { count: "exact", head: true })
-    .eq("patient_id", patientId)
-    .eq("sender_type", "doctor")
-    .is("read_at", null)
 
   // Group messages by intake
   const messagesByIntake: Record<string, typeof messages> = {}
@@ -81,11 +101,19 @@ export default async function PatientMessagesPage() {
     messagesByIntake[intakeId]!.push(msg)
   }
 
+  const { count: unreadCount } = await supabase
+    .from("patient_messages")
+    .select("id", { count: "exact", head: true })
+    .eq("patient_id", patientId)
+    .eq("sender_type", "doctor")
+    .is("read_at", null)
+
   return (
     <MessagesClient
       messages={messages || []}
       messagesByIntake={messagesByIntake}
       unreadCount={unreadCount || 0}
+      initialSelectedIntakeId={initialSelectedIntakeId}
       error={fetchError}
     />
   )
