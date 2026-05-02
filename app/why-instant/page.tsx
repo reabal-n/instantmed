@@ -9,7 +9,6 @@ import type { FeatureItem } from "@/components/sections"
 import { AccordionSection, CTABanner, FeatureGrid, ProcessSteps } from "@/components/sections"
 import { FAQSchema } from "@/components/seo"
 import { Navbar } from "@/components/shared"
-import { SOCIAL_PROOF } from "@/lib/social-proof"
 
 // =============================================================================
 // METADATA
@@ -18,13 +17,13 @@ import { SOCIAL_PROOF } from "@/lib/social-proof"
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://instantmed.com.au"
 
 export const metadata: Metadata = {
-  title: { absolute: "Why InstantMed is faster than your GP | The math behind the brand line" },
+  title: { absolute: "Why InstantMed avoids the waiting room | InstantMed" },
   description:
-    "Faster than your GP. Substantiation page: median GP wait time vs InstantMed median delivery time, with sources.",
+    "How InstantMed removes booking and waiting-room friction while keeping every request reviewed by an Australian doctor.",
   alternates: { canonical: "/why-instant" },
   openGraph: {
-    title: "Why InstantMed is faster than your GP",
-    description: "The math behind the brand line. Sources: RACGP Health of the Nation 2024, ABS Patient Experience Survey 2022-23.",
+    title: "Why InstantMed avoids the waiting room",
+    description: "Structured online requests reviewed by Australian doctors, with clear limits and refund handling.",
     url: `${SITE_URL}/why-instant`,
     siteName: "InstantMed",
     type: "website",
@@ -32,8 +31,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Why InstantMed is faster than your GP",
-    description: "The math behind the brand line.",
+    title: "Why InstantMed avoids the waiting room",
+    description: "Structured online requests reviewed by Australian doctors.",
   },
 }
 
@@ -47,7 +46,7 @@ const whyInstantFaqs = [
   {
     question: "Faster than my GP, really?",
     answer:
-      "Yes, but specifically: faster than the wait to see your GP. Most Australians wait several days for a non-urgent GP appointment (RACGP Health of the Nation 2024). InstantMed reviews most medical certificate requests in well under an hour, 24/7. We're comparing wait times for what we offer (forms reviewed by a doctor) against the wait to book a GP appointment, not clinical depth or scope.",
+      "Specifically: faster than booking and attending a non-urgent GP appointment. InstantMed lets you submit structured requests online for doctor review. We're comparing access friction, not clinical depth or scope.",
   },
   {
     question: "Are you cutting corners to be faster?",
@@ -84,9 +83,9 @@ const honestFastFeatures: FeatureItem[] = [
   },
   {
     icon: <StickerIcon name="clock" size={48} />,
-    title: "Median, not best-case",
+    title: "No waiting room",
     description:
-      `Our published delivery time (~${SOCIAL_PROOF.averageResponseMinutes} min) is the median across recent requests, not a marketing minimum. Half are faster, half are slower.`,
+      "You complete the form from home and receive the outcome by email. Timing depends on doctor availability and whether more clinical information is needed.",
   },
   {
     icon: <StickerIcon name="security-shield" size={48} />,
@@ -132,10 +131,10 @@ export default function WhyInstantPage() {
 
         <main className="flex-1">
           <CenteredHero
-            pill="The math behind the brand line"
-            title="Faster than your GP."
-            highlightWords={["GP."]}
-            subtitle="We say it because it's true and substantiable. Below, the sources, the comparison, and the honest caveats. No fine print."
+            pill="No waiting room"
+            title="Faster access without cutting clinical review."
+            highlightWords={["clinical review."]}
+            subtitle="The speed comes from removing booking and travel friction. Every request is still reviewed by an AHPRA-registered doctor."
           />
 
           {/* Comparison: GP wait vs InstantMed delivery */}
@@ -143,13 +142,13 @@ export default function WhyInstantPage() {
             <div className="mx-auto max-w-2xl">
               <div className="rounded-2xl border border-border/60 bg-card p-6 sm:p-8 shadow-md shadow-primary/[0.06]">
                 <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">
-                  Median wait, like for like
+                  Access path, like for like
                 </p>
                 <ComparisonBar
                   us={{
                     label: "InstantMed: form to outcome",
-                    value: `~${SOCIAL_PROOF.averageResponseMinutes} min`,
-                    subtext: "Median across recent medical certificate requests, 24/7.",
+                    value: "Online",
+                    subtext: "Submit a structured request for doctor review from home.",
                   }}
                   them={{
                     label: "Wait for a non-urgent GP appointment",
@@ -186,7 +185,7 @@ export default function WhyInstantPage() {
                   >
                     Cleanbill 2024 Blue Report
                   </a>
-                  . InstantMed median sourced from internal request telemetry, recalculated quarterly.
+                  . InstantMed removes booking and waiting-room steps; it does not guarantee a fixed review time.
                 </p>
               </div>
             </div>

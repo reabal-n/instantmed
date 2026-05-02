@@ -76,7 +76,7 @@ const instantmedVsHubHealth: ComparisonEntry = {
     { feature: "Weight management", instantmed: PRICING_DISPLAY.WEIGHT_LOSS, competitor: "Subscription program", winner: "tie" },
     { feature: "Ongoing nurse/coach support", instantmed: "Doctor messaging per request", competitor: "Program care team", winner: "competitor" },
     { feature: "Commitment required", instantmed: "None - one-off", competitor: "Ongoing subscription", winner: "instantmed" },
-    { feature: "Median doctor response", instantmed: "~20 min for med certs", competitor: "Varies by program", winner: "instantmed" },
+    { feature: "Median doctor response", instantmed: "Doctor review for med certs", competitor: "Varies by program", winner: "instantmed" },
     { feature: "Cancel anytime", instantmed: "No subscription to cancel", competitor: "Yes, via account", winner: "tie" },
     { feature: "AHPRA-registered doctors", instantmed: true, competitor: true, winner: "tie" },
     { feature: "Refund on declined request", instantmed: "100% on med cert/Rx, 50% on consults", competitor: "Varies by program", winner: "instantmed" },
@@ -85,7 +85,7 @@ const instantmedVsHubHealth: ComparisonEntry = {
     "You need a single service - a medical certificate, a repeat script, or a one-off consult",
     "You don't want another monthly subscription on your card",
     "You want an upfront, transparent price for the thing you need today",
-    "You need a medical certificate quickly (often in about 20 minutes)",
+    "You need an online doctor-reviewed medical certificate pathway",
     "You prefer per-request care over an ongoing program structure",
   ],
   whenCompetitorBetter: [
@@ -123,7 +123,7 @@ const instantmedVsHubHealth: ComparisonEntry = {
     },
     {
       q: "Which service is faster for a medical certificate?",
-      a: "InstantMed is optimised for fast medical certificate turnaround - most requests are reviewed in about 20 minutes, 24/7. Hub Health isn't primarily built around same-day medical certificates, so InstantMed will usually be the faster option if that's what you need.",
+      a: "InstantMed is optimised for online medical certificate requests and accepts med-cert submissions 24/7. Hub Health isn't primarily built around medical certificates, so check the current service terms before relying on either provider for a deadline.",
     },
     {
       q: "Can I use a Medicare rebate on either service?",
@@ -256,7 +256,7 @@ const instantmedVsDoctorsOnDemand: ComparisonEntry = {
         id: "format-differences",
         title: "How Async and Video Consultations Actually Differ",
         paragraphs: [
-          "An async consultation works like a structured medical history - you fill in a form with your symptoms, relevant background, and what you're asking for. A doctor reviews it on their own time, often within an hour for common services. If they need clarification, they message you. If they're satisfied, they approve and issue whatever you need - a certificate, a script, a referral.",
+          "An async consultation works like a structured medical history - you fill in a form with your symptoms, relevant background, and what you're asking for. A doctor reviews it on their own time, when available for common services. If they need clarification, they message you. If they're satisfied, they approve and issue whatever you need - a certificate, a script, a referral.",
           "A video consultation is closer to the experience of an in-person GP visit. You book a slot, a doctor joins a video call at the scheduled time, and you have a live conversation. The doctor can ask follow-up questions in real time, observe you, and guide the conversation dynamically. It takes longer - typically 10 to 20 minutes - and the doctor's time is dedicated to you for that period.",
           "Neither format is universally better. Async is efficient; video is interactive. The match depends on what you're trying to get done.",
         ],
@@ -308,7 +308,7 @@ const instantmedVsCleanbill: ComparisonEntry = {
     { feature: "Care provided directly", instantmed: true, competitor: false, winner: "instantmed" },
     { feature: "Need to leave home", instantmed: "No", competitor: "Yes - book and attend clinic", winner: "instantmed" },
     { feature: "Medicare rebate", instantmed: "Private - no rebate", competitor: "Bulk billed = no out-of-pocket", winner: "competitor" },
-    { feature: "Medical certificate turnaround", instantmed: "~20 min, 24/7", competitor: "Depends on appointment availability", winner: "instantmed" },
+    { feature: "Medical certificate turnaround", instantmed: "Doctor review, 24/7", competitor: "Depends on appointment availability", winner: "instantmed" },
     { feature: "Physical examination", instantmed: "Not available", competitor: "Available at the clinic", winner: "competitor" },
     { feature: "Works after hours", instantmed: true, competitor: "Limited to clinic hours", winner: "instantmed" },
     { feature: "Complex or ongoing care", instantmed: "Not the primary use case", competitor: "Regular GP is ideal for this", winner: "competitor" },
@@ -392,7 +392,7 @@ const instantmedVsCleanbill: ComparisonEntry = {
         title: "How Telehealth Fills the Gaps",
         paragraphs: [
           "Telehealth isn't a replacement for bulk-billed primary care - and any honest telehealth provider will tell you that. What it is, is a useful gap-filler. When your regular GP is fully booked, when it's 9pm on a Sunday, when you're too unwell to travel, or when you need a certificate for a shift starting in six hours, telehealth gives you a path to care that doesn't require waiting for the clinic to open.",
-          "The cost matters. Paying $19.95 for a same-day medical certificate is a choice that makes sense when the alternative is missing work, losing a shift, or driving an hour to an after-hours clinic. It doesn't always make sense - if your bulk-billed GP can see you tomorrow, the free option is obviously better. The decision depends on urgency.",
+          "The cost matters. Paying $19.95 for an online medical certificate is a choice that makes sense when the alternative is missing work, losing a shift, or driving an hour to an after-hours clinic. It doesn't always make sense - if your bulk-billed GP can see you tomorrow, the free option is obviously better. The decision depends on urgency.",
           "Used well, telehealth and bulk-billed GP care complement each other. Use your GP for continuity, complex issues, and anything that needs physical examination. Use telehealth for the episodic, time-sensitive needs that a traditional clinic schedule can't absorb.",
         ],
       },
@@ -465,7 +465,7 @@ const instantmedVsQoctor: ComparisonEntry = {
     },
     {
       q: "Which service is faster for a medical certificate?",
-      a: "InstantMed targets around 20 minutes for most medical certificate reviews and runs 24/7. Qoctor's typical turnaround is similar during their operating hours. For out-of-hours requests, InstantMed's 24/7 availability is a tangible difference - if you submit at 2am, you'll get a response faster with a 24/7 service than one that's business-hours only.",
+      a: "InstantMed accepts medical certificate submissions 24/7 for doctor review. Qoctor's operating hours and turnaround may differ, so check the current service terms before relying on either provider for a deadline.",
     },
     {
       q: "Do both services let me message the doctor if they have questions?",

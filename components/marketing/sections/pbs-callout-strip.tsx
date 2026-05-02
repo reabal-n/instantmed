@@ -18,7 +18,7 @@ export function PBSCalloutStrip() {
       }
       body={
         <>
-          You only pay the standard PBS co-payment for eligible medications. Same subsidy you would get at any GP-issued script. {SOCIAL_PROOF.scriptFulfillmentPercent}% of our scripts are fulfilled same day.
+          You only pay the standard PBS co-payment for eligible medications. Same subsidy you would get at any GP-issued script. {SOCIAL_PROOF.scriptFulfillmentPercent}% of our scripts are fulfilled after doctor approval.
         </>
       }
     />

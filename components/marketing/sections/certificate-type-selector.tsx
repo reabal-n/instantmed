@@ -38,12 +38,12 @@ const CATEGORY_STICKERS: Record<CertCategory, import("@/components/icons/sticker
 const CATEGORY_FEATURES: Record<CertCategory, string[]> = {
   work: [
     "Recognised under the Fair Work Act",
-    "Same-day PDF to your inbox",
+    "Approved PDF to your inbox",
     "AHPRA doctor on every certificate",
   ],
   study: [
     "For uni and TAFE absences",
-    "Same-day PDF to your inbox",
+    "Approved PDF to your inbox",
     "AHPRA doctor on every certificate",
   ],
   carer: [
@@ -305,10 +305,10 @@ const comparisonRows: Array<{
   instantWins?: boolean
 }> = [
   { label: 'Price',           instant: `$${PRICING.MED_CERT.toFixed(2)}`,           gp: SOCIAL_PROOF.gpPriceStandard, instantWins: true },
-  { label: 'Turnaround',      instant: `~${SOCIAL_PROOF.certTurnaroundMinutes} min`, gp: 'Hours of waiting',           instantWins: true },
+  { label: 'Pathway',         instant: 'Online request',                            gp: 'Clinic booking',             instantWins: true },
   { label: 'Open 24/7',       instant: true,                                         gp: false,                        instantWins: true },
   { label: 'No appointment',  instant: true,                                         gp: false,                        instantWins: true },
-  { label: 'Same-day cert',   instant: true,                                         gp: false,                        instantWins: true },
+  { label: 'Doctor-reviewed cert',   instant: true,                                         gp: false,                        instantWins: true },
   { label: 'AHPRA doctor',    instant: true,                                         gp: true },
 ]
 

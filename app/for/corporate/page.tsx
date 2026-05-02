@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: "Medical Certificates for Corporate Workers | InstantMed",
-    description: "Get your medical certificate in 15 minutes. Professional, discreet, HR-ready.",
+    description: "Get your medical certificate online. Professional, discreet, HR-ready.",
     url: "https://instantmed.com.au/for/corporate",
   },
   alternates: {
@@ -48,7 +48,7 @@ export default function CorporatePage() {
         name: "How quickly can I get my certificate?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Most certificates are issued within 15 minutes during business hours (8am-10pm AEST). You'll receive a professional PDF via email that you can forward directly to HR.",
+          text: "You'll receive a professional PDF via email that you can forward directly to HR.",
         },
       },
     ],
@@ -76,7 +76,7 @@ export default function CorporatePage() {
                     Medical Certificate Before HR Asks
                   </h1>
                   <p className="text-sm md:text-base text-muted-foreground max-w-xl mx-auto mb-4">
-                    Unwell and working from home? Get your medical certificate in <strong>15 minutes</strong>. Professional PDF delivered to your inbox - ready to forward to HR.
+                    Unwell and working from home? Get your medical certificate online. Professional PDF delivered to your inbox - ready to forward to HR.
                   </p>
                   <p className="text-xs text-muted-foreground mb-6">
                     Employer policies vary • Discreet • No time off work needed
@@ -310,7 +310,7 @@ export default function CorporatePage() {
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               <div className="max-w-xl mx-auto text-center">
                 <div className="glass-card rounded-3xl p-6 lg:p-8 relative overflow-hidden border-border bg-muted/30 dark:bg-white/5">
-                  <h2 className="text-2xl font-semibold mb-3">Certificate in 15 minutes</h2>
+                  <h2 className="text-2xl font-semibold mb-3">Doctor-reviewed certificate</h2>
                   <p className="text-sm text-muted-foreground mb-6">
                     Professional, discreet, and ready for HR. Get sorted now.
                   </p>

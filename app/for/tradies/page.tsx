@@ -39,7 +39,7 @@ export default function TradiesPage() {
         name: "Can I get a medical certificate on my phone?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Yes. Complete the questionnaire on your phone in about 2 minutes. Your certificate is reviewed by a doctor and delivered to your email - typically within 15 minutes. No need to leave the site.",
+          text: "Yes. Complete the questionnaire on your phone in about 2 minutes. Your certificate is reviewed by a doctor and delivered to your email - after doctor approval. No need to leave the site.",
         },
       },
       {
@@ -75,7 +75,7 @@ export default function TradiesPage() {
                     Get Your Med Cert Without Leaving Site
                   </h1>
                   <p className="text-sm md:text-base text-muted-foreground max-w-xl mx-auto mb-4">
-                    Woke up crook? Get your medical certificate on your phone in <strong>15 minutes</strong>. No doctor visits, no time off site, no stuffing around.
+                    Woke up crook? Get your medical certificate on your phone online after doctor approval. No doctor visits, no time off site, no stuffing around.
                   </p>
                   <p className="text-xs text-muted-foreground mb-6">
                     Employer policies vary • AHPRA doctors • Done from your phone
@@ -254,7 +254,7 @@ export default function TradiesPage() {
                     },
                     {
                       q: "How fast is it?",
-                      a: "Fill out the form in 2 minutes. Doctor reviews it. Most certs are in your inbox within 15 minutes.",
+                      a: "Fill out the form in 2 minutes. Doctor reviews it. Certificates are emailed after doctor approval.",
                     },
                     {
                       q: "Can I get a cert for yesterday?",
@@ -262,7 +262,7 @@ export default function TradiesPage() {
                     },
                     {
                       q: "What if I need a script too?",
-                      a: "We do repeat prescriptions for common stuff - blood pressure meds, reflux, asthma inhalers. Same deal, 15 minutes, sent to your phone.",
+                      a: "We do repeat prescriptions for common stuff - blood pressure meds, reflux, asthma inhalers. Same pathway, sent to your phone after doctor approval.",
                     },
                     {
                       q: "What's it cost?",
@@ -284,7 +284,7 @@ export default function TradiesPage() {
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               <div className="max-w-xl mx-auto text-center">
                 <div className="glass-card rounded-3xl p-6 lg:p-8 relative overflow-hidden border-dawn-500/20 bg-amber-50/30 dark:bg-amber-950/10">
-                  <h2 className="text-2xl font-semibold mb-3">Sorted in 15 minutes</h2>
+                  <h2 className="text-2xl font-semibold mb-3">Sorted online after doctor approval</h2>
                   <p className="text-sm text-muted-foreground mb-6">
                     Get your cert on your phone. No stuffing around.
                   </p>

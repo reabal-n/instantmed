@@ -35,7 +35,7 @@ export const NT_CITIES: Record<string, DeepCityContent> = {
     pharmacyInfo: {
       title: "Pharmacies in Darwin and the NT",
       paragraphs: [
-        "Darwin has major pharmacy chains including Chemist Warehouse, Priceline, and TerryWhite Chemmart across Casuarina, Palmerston, and the CBD. eScripts are accepted at all Australian pharmacies - simply show the QR code on your phone. After-hours options are more limited in Darwin than capital cities further south, making same-day eScript dispatch from telehealth particularly valuable.",
+        "Darwin has major pharmacy chains including Chemist Warehouse, Priceline, and TerryWhite Chemmart across Casuarina, Palmerston, and the CBD. eScripts are accepted at all Australian pharmacies - simply show the QR code on your phone. After-hours options are more limited in Darwin than capital cities further south, making eScript after doctor approval dispatch from telehealth particularly valuable.",
       ],
     },
     telehealthRegulations: {

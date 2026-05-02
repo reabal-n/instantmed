@@ -235,7 +235,7 @@ export default function BlogPage() {
 
           <CTABanner
             title="Need a Medical Certificate?"
-            subtitle="Get assessed by an AHPRA-registered doctor. Most requests reviewed within an hour."
+            subtitle="Get assessed by an AHPRA-registered doctor. Most requests reviewed by a doctor."
             ctaText="Start a request"
             ctaHref="/request"
             secondaryText={`${PRICING_DISPLAY.FROM_MED_CERT} - No Medicare card required`}

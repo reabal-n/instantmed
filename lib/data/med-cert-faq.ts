@@ -21,7 +21,7 @@ export const MED_CERT_FAQ = [
   {
     question: "What happens after I submit?",
     answer:
-      "Medical certificates are available 24/7 and typically reviewed within 30 minutes. If the doctor needs more information, they\u2019ll message you through our secure platform. In rare cases, a quick phone call may be needed.",
+      "Medical certificate requests can be submitted 24/7 and are reviewed by a doctor after submission. If the doctor needs more information, they\u2019ll message you through our secure platform. In rare cases, a quick phone call may be needed.",
   },
   {
     question: "Can I get a certificate backdated?",

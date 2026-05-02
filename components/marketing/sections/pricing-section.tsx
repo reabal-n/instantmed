@@ -201,7 +201,7 @@ function ComparisonTable() {
         </table>
       </div>
       <p className="mt-4 text-[11px] text-muted-foreground text-center leading-relaxed px-2">
-        * Average review time based on recent requests. Individual times vary.{" "}
+        * Doctor review timing depends on availability and whether follow-up information is needed.{" "}
         † GP cost estimated from MBS item 23 standard consultation fee. Out-of-pocket costs vary by clinic.
       </p>
     </motion.div>
@@ -228,7 +228,7 @@ const comparisonRows: Array<{
   instantHighlight?: boolean
 }> = [
   { label: 'Cost †', instant: `$${PRICING.MED_CERT.toFixed(2)}`, gp: SOCIAL_PROOF.gpPriceStandard, walkin: SOCIAL_PROOF.gpPriceComplex, instantHighlight: true },
-  { label: 'Turnaround *', instant: `~${SOCIAL_PROOF.certTurnaroundMinutes} min avg`, gp: 'Requires booking', walkin: '2-4 hours', instantHighlight: true },
+  { label: 'Pathway *', instant: 'Online request', gp: 'Requires booking', walkin: 'Clinic queue', instantHighlight: true },
   { label: 'No waiting room visit', instant: true, gp: false, walkin: false, instantHighlight: true },
   { label: 'Workplace evidence', instant: true, gp: true, walkin: true },
   { label: 'AHPRA doctor', instant: true, gp: true, walkin: true },

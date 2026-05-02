@@ -11,9 +11,9 @@ interface ServiceSEO {
 
 export const serviceSEO: Record<string, ServiceSEO> = {
   "medical-certificate": {
-    title: "Online Medical Certificate Australia | Same Day",
+    title: "Online Medical Certificate Australia | Doctor Reviewed",
     description:
-      "Get a medical certificate online in Australia. Same-day certificates for work, uni, or carer's leave. Reviewed by AHPRA-registered doctors. From $19.95.",
+      "Get a medical certificate online in Australia for work, uni, or carer's leave. Reviewed by AHPRA-registered doctors. From $19.95.",
     keywords: [
       "online medical certificate australia",
       "same day medical certificate",
@@ -27,7 +27,7 @@ export const serviceSEO: Record<string, ServiceSEO> = {
       {
         question: "How quickly can I get a medical certificate?",
         answer:
-          "Most certificates are issued in under 30 minutes, available 24/7. You'll receive it via email as a PDF.",
+          "Requests can be submitted any time. A doctor reviews your information when available, and you'll receive approved certificates via email as a PDF.",
       },
       {
         question: "Is an online medical certificate valid for work?",

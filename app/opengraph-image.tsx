@@ -84,7 +84,7 @@ export default async function Image() {
             maxWidth: '800px',
           }}
         >
-          Reviewed by AHPRA-registered Australian doctors in under an hour
+          Reviewed by AHPRA-registered Australian doctors
         </div>
 
         {/* Trust badges */}
@@ -95,7 +95,7 @@ export default async function Image() {
             marginTop: '48px',
           }}
         >
-          {['AHPRA Registered', '100% Online', '~20 min'].map((badge) => (
+          {['AHPRA Registered', '100% Online', 'Doctor reviewed'].map((badge) => (
             <div
               key={badge}
               style={{

@@ -35,7 +35,7 @@ const services = [
     priceSubtext: `1 day: $${PRICING.MED_CERT} · 2 days: $${PRICING.MED_CERT_2DAY}`,
     description: "Work, uni, or carer's leave",
     features: [
-      "Same-day delivery",
+      "Certificate delivery",
       "Standard workplace evidence",
       "AHPRA-registered doctor",
       "PDF via email",
@@ -55,7 +55,7 @@ const services = [
     features: [
       "E-script to your phone",
       "Any pharmacy Australia-wide",
-      "Usually under 1 hour",
+      "Doctor reviewed",
       "SMS token delivery",
     ],
     popular: false,
@@ -90,7 +90,7 @@ const comparisonItems = [
   { label: "No appointment needed", us: true, them: false },
   { label: "Available 7 days a week", us: true, them: false },
   { label: "AHPRA-registered doctors", us: true, them: true },
-  { label: "Same-day turnaround", us: true, them: false },
+  { label: "Doctor-reviewed pathway", us: true, them: false },
   { label: "Full refund if declined", us: true, them: false },
   { label: "No lock-in contracts", us: true, them: false },
   { label: "Standard workplace evidence", us: true, them: true },
@@ -309,7 +309,7 @@ export function PricingClient() {
               </div>
               <div className="flex items-center gap-2 bg-muted/50 dark:bg-white/[0.06] rounded-full px-3 py-1.5 border border-border/50">
                 <Clock className="w-3.5 h-3.5 text-primary" />
-                <span>Same-day response</span>
+                <span>Doctor response</span>
               </div>
               <div className="flex items-center gap-2 bg-muted/50 dark:bg-white/[0.06] rounded-full px-3 py-1.5 border border-border/50">
                 <Zap className="w-3.5 h-3.5 text-success" />

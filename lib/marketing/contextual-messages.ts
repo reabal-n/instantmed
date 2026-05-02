@@ -33,7 +33,7 @@ const CONTEXTUAL_MESSAGES: Record<ContextualMessageService, MessageSet> = {
   },
   "hair-loss": {
     januaryAny: "Starting fresh this year? Month 3 is usually when patients notice the difference.",
-    weekendDay: "Taking care of this on the weekend? Reviewed within a few hours.",
+    weekendDay: "Taking care of this on the weekend? Doctor review follows after you submit.",
     weeknightLate: "Starting treatment sooner means more follicles to work with.",
     fallback: "A quick structured assessment, reviewed by an Australian-registered doctor.",
   },

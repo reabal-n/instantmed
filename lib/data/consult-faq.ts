@@ -38,6 +38,6 @@ export const CONSULT_FAQ: readonly FAQItem[] = [
   {
     question: "How long does the consultation take?",
     answer:
-      "Most consults are completed within 2 hours of submission. The doctor may call for 5-15 minutes depending on the complexity of your concern.",
+      "A doctor reviews your consult after submission. They may call for 5-15 minutes depending on the complexity of your concern.",
   },
 ]

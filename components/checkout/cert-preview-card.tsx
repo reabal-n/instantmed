@@ -63,7 +63,7 @@ export function CertPreviewCard({
           </span>
         </div>
         <span className="text-[10px] text-muted-foreground">
-          Issued after doctor review
+          Issued after doctor approval
         </span>
       </div>
 

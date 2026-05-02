@@ -150,7 +150,7 @@ export function WhatHappensNext({
               {waitState?.medianMinutes
                 ? `Average wait today: ~${waitState.medianMinutes} min`
                 : isMedCert
-                  ? "Typically delivered in under 30 minutes"
+                  ? "A doctor reviews your request"
                   : "Doctors are reviewing requests now"}
             </span>
           </motion.div>

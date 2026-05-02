@@ -108,7 +108,7 @@ export default function ConditionsIndexPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4 text-primary" />
-                  <span>Response in ~1 hour</span>
+                  <span>Doctor reviewed</span>
                 </div>
               </div>
             </div>

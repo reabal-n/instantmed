@@ -90,7 +90,7 @@ export default async function ConsultPage({ searchParams }: ConsultPageProps) {
           },
           {
             name: "Doctor reviews and responds",
-            text: "An AHPRA-registered GP reviews your questionnaire and responds in writing with advice, a prescription, or a referral - typically within 1–2 hours.",
+            text: "An AHPRA-registered GP reviews your questionnaire and responds in writing with advice, a prescription, or a referral.",
           },
         ]}
       />

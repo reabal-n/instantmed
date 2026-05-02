@@ -39,7 +39,7 @@ export function ExitIntentReminderEmail({
           items={[
             "Fill in a short form (about 2 minutes)",
             "An AHPRA-registered doctor reviews your request",
-            "Your certificate is emailed to you, usually within an hour",
+            "Your certificate is emailed to you after doctor approval",
           ]}
         />
       </Box>

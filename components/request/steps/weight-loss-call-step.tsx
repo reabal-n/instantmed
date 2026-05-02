@@ -63,7 +63,7 @@ export default function WeightLossCallStep({ onNext }: WeightLossCallStepProps) 
       <Alert variant="default" className="border-primary/20 bg-primary/5">
         <Phone className="w-4 h-4" />
         <AlertDescription className="text-xs">
-          A doctor will call you for a brief consultation (usually 5-10 minutes) to discuss your weight loss goals and ensure the treatment is right for you. We typically call within 30 minutes.
+          A doctor will call you for a brief consultation (usually 5-10 minutes) to discuss your weight loss goals and ensure the treatment is right for you. We use your preferred time window where possible.
         </AlertDescription>
       </Alert>
 
@@ -152,7 +152,7 @@ export default function WeightLossCallStep({ onNext }: WeightLossCallStepProps) 
         <ul className="space-y-1.5 text-xs text-muted-foreground">
           <li className="flex items-start gap-2">
             <span className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
-            <span>A doctor will call you shortly - usually within 30 minutes</span>
+            <span>A doctor will call using your preferred time window where possible</span>
           </li>
           <li className="flex items-start gap-2">
             <span className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
@@ -164,7 +164,7 @@ export default function WeightLossCallStep({ onNext }: WeightLossCallStepProps) 
           </li>
           <li className="flex items-start gap-2">
             <span className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
-            <span>If suitable, a prescription can be sent same day</span>
+            <span>If suitable, a prescription can be sent after doctor approval</span>
           </li>
         </ul>
       </div>

@@ -21,7 +21,7 @@ const GUIDE_SECTIONS: Array<{
     paragraphs: [
       "When you request a consultation through InstantMed, you're not talking to a chatbot or filling in a form that disappears into a queue. You're submitting your health concern to an AHPRA-registered doctor who reviews your case individually. You'll describe your symptoms, medical history, and what you're hoping to address - the same information you'd share in a GP waiting room, minus the waiting room.",
       "From there, the doctor determines the best approach based on clinical need. Some conditions can be assessed entirely from your history and description - a straightforward UTI, a medication review, or a recurring issue you've managed before. Others benefit from a phone call, where the doctor can ask follow-up questions, clarify symptoms, or discuss treatment options in real time. You don't need to guess which category you fall into. The doctor makes that call.",
-      "Most consultations are reviewed within a couple of hours. If additional information is needed, the doctor will reach out directly. There's no algorithm deciding your care - just a doctor reading your case and making a clinical judgement, the same way they would in a clinic.",
+      "A doctor reviews your consultation after you submit. If additional information is needed, the doctor will reach out directly. There's no algorithm deciding your care - just a doctor reading your case and making a clinical judgement, the same way they would in a clinic.",
     ],
   },
   {

@@ -51,7 +51,7 @@ export function AbandonedCheckoutEmail({
         <Heading as="h3">What happens next</Heading>
         <List
           items={[
-            "A doctor reviews your request (usually within an hour)",
+            "A doctor reviews your request after you submit",
             "You'll receive your document via email",
             "Form-first review, with follow-up if clinically needed",
           ]}

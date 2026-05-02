@@ -4,7 +4,7 @@ import { redirect } from "next/navigation"
 export const metadata: Metadata = {
   title: "Repeat Prescription",
   description:
-    "Request a repeat of your existing medication online. AHPRA-registered doctors, same-day electronic scripts.",
+    "Request a repeat of your existing medication online. AHPRA-registered doctors, electronic scripts after doctor approval.",
 }
 
 /**

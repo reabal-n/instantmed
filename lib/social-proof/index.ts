@@ -20,7 +20,7 @@
  * set ANCHOR_DATE to today, and adjust TARGET_COUNT if needed.
  *
  * Use `getPatientCount()` for server-side, `usePatientCount()` for client.
- * All social proof stats (rating, response time) live here.
+ * All social proof stats (ratings and outcome rates) live here.
  *
  * This file is SERVER-SAFE - no React hooks. Client hook is in ./use-patient-count.ts
  */
@@ -46,7 +46,7 @@ const TOTAL_MS = TARGET_DATE.getTime() - ANCHOR_DATE.getTime()
  * All marketing pages, SEO data objects, and structured data must
  * reference these constants (or SOCIAL_PROOF_DISPLAY) instead of
  * hardcoding numbers. Prose copy (blog articles, meta descriptions)
- * may use natural language equivalents ("under an hour") but the
+ * may use natural language equivalents ("from home") but the
  * numbers here are the source.
  *
  * Update here when real analytics data becomes available.
@@ -59,12 +59,6 @@ export const SOCIAL_PROOF = {
   /** Verified reviews count - must match GOOGLE_REVIEWS.count. Update here only. */
   reviewCount: 3,
 
-  // ── Response Times ──
-  /** Average response in minutes (used for stat displays) */
-  averageResponseMinutes: 44,
-  /** Typical turnaround for certificates specifically - must stay under 30 min */
-  certTurnaroundMinutes: 20,
-
   // ── Platform Credentials ──
   ahpraVerifiedPercent: 100,
   employerAcceptancePercent: 98,
@@ -74,7 +68,6 @@ export const SOCIAL_PROOF = {
   doctorCount: 1,
 
   // ── Outcome Stats ──
-  sameDayDeliveryPercent: 94,
   certApprovalPercent: 97,
   scriptFulfillmentPercent: 96,
   patientReturnPercent: 73,
@@ -96,8 +89,6 @@ export const SOCIAL_PROOF_DISPLAY = {
   rating: `${SOCIAL_PROOF.averageRating}`,
   ratingWithStar: `${SOCIAL_PROOF.averageRating}★`,
   ratingOutOf5: `${SOCIAL_PROOF.averageRating}/5`,
-  responseTime: `~${SOCIAL_PROOF.averageResponseMinutes} min`,
-  certTurnaround: `${SOCIAL_PROOF.certTurnaroundMinutes} min`,
   operatingHours: `${SOCIAL_PROOF.operatingHoursStart}am–${SOCIAL_PROOF.operatingHoursEnd > 12 ? SOCIAL_PROOF.operatingHoursEnd - 12 : SOCIAL_PROOF.operatingHoursEnd}pm`,
   operatingSchedule: `${SOCIAL_PROOF.operatingDays} days a week`,
   refundGuarantee: `${SOCIAL_PROOF.refundPercent}% refund guarantee`,
@@ -105,9 +96,8 @@ export const SOCIAL_PROOF_DISPLAY = {
   gpComparison: `Typically ${SOCIAL_PROOF.gpPriceStandard} at a GP`,
   gpComparisonComplex: `Typically ${SOCIAL_PROOF.gpPriceComplex} at a GP`,
   doctorExperience: "Experienced AHPRA-registered GPs",
-  sameDayDelivery: `${SOCIAL_PROOF.sameDayDeliveryPercent}% delivered same day`,
   certApproval: `${SOCIAL_PROOF.certApprovalPercent}% approval rate`,
-  scriptFulfillment: `${SOCIAL_PROOF.scriptFulfillmentPercent}% fulfilled same day`,
+  scriptFulfillment: `${SOCIAL_PROOF.scriptFulfillmentPercent}% fulfilled after doctor approval`,
   patientReturn: `${SOCIAL_PROOF.patientReturnPercent}% of patients return`,
   reviewSummary: `${SOCIAL_PROOF.reviewCount} verified reviews`,
 } as const

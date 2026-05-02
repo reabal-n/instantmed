@@ -72,15 +72,15 @@ export const medicalCertificatesConfig: ServiceConfig = {
   name: 'Medical Certificates',
   shortName: 'Med Certs',
   tagline: 'Sick leave, carer\'s leave, or fitness-to-work certificates',
-  description: 'Get a valid medical certificate for work, university, or official purposes. Reviewed by AHPRA-registered doctors, delivered same-day.',
+  description: 'Get a valid medical certificate for work, university, or official purposes. Reviewed by AHPRA-registered doctors, delivered after doctor approval.',
   
   heroTitle: 'Get a medical certificate without the waiting room',
-  heroSubtitle: 'Complete a quick questionnaire, and an Australian doctor reviews your request. If approved, your certificate is delivered directly to your email, typically within an hour.',
+  heroSubtitle: 'Complete a quick questionnaire, and an Australian doctor reviews your request. If approved, your certificate is delivered directly to your email.',
   heroImage: 'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=600&h=500&fit=crop&q=80',
   heroImageAlt: 'Healthcare professional reviewing medical documents on tablet',
   
   proofMetrics: [
-    { label: 'Typical turnaround', value: '< 1 hour', icon: 'Zap' },
+    { label: 'Typical turnaround', value: 'Doctor review', icon: 'Zap' },
     { label: 'Valid for', value: 'All employers', icon: 'Building2' },
     { label: 'AHPRA doctors', value: 'Always', icon: 'Shield' },
     { label: 'Secure delivery', value: 'Email + portal', icon: 'Lock' },
@@ -128,7 +128,7 @@ export const medicalCertificatesConfig: ServiceConfig = {
   priceFrom: 19.95,
   pricingNote: 'One flat fee. No hidden costs.',
   pricingFeatures: [
-    'Same-day certificate',
+    'Doctor-reviewed certificate',
     'Valid for employers & institutions',
     'Secure PDF delivery',
     'Doctor\'s name & qualifications included',
@@ -158,8 +158,8 @@ export const medicalCertificatesConfig: ServiceConfig = {
     },
   ],
   
-  metaTitle: 'Online Medical Certificates | Same-Day Delivery | InstantMed',
-  metaDescription: 'Get a medical certificate from an Australian doctor in under an hour. Employer policies may vary. Secure, private, and delivered to your email.',
+  metaTitle: 'Online Medical Certificates | Doctor Reviewed | InstantMed',
+  metaDescription: 'Get a medical certificate from an Australian doctor online. Employer policies may vary. Secure, private, and delivered to your email.',
   
   accentColor: 'emerald',
   icon: 'FileText',
@@ -182,7 +182,7 @@ export const commonScriptsConfig: ServiceConfig = {
   heroImageAlt: 'Pharmacist preparing prescription medication',
   
   proofMetrics: [
-    { label: 'Turnaround', value: '~1 hour', icon: 'Clock' },
+    { label: 'Review', value: 'Doctor', icon: 'Clock' },
     { label: 'E-script ready', value: 'To your phone', icon: 'Smartphone' },
     { label: 'AHPRA doctors', value: 'Always', icon: 'Shield' },
     { label: 'Any pharmacy', value: 'Australia-wide', icon: 'MapPin' },

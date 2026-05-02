@@ -22,7 +22,6 @@ import { Reveal } from "@/components/ui/reveal"
 import { SectionPill } from "@/components/ui/section-pill"
 import { PRICING } from "@/lib/constants"
 import { ED_FAQ } from "@/lib/data/ed-faq"
-import { SOCIAL_PROOF_DISPLAY } from "@/lib/social-proof"
 
 // Below-fold lazy loads
 const HowItWorksInline = dynamic(
@@ -67,14 +66,14 @@ const HOW_IT_WORKS_STEPS = [
     step: 2,
     title: "A real GP reviews it",
     description: "An AHPRA-registered doctor reviews your assessment, same standards as in-person.",
-    time: "Within 1 hour",
+    time: "Doctor review",
   },
   {
     sticker: "sent" as const,
     step: 3,
     title: "eScript sent to your phone",
     description: "Your prescription is sent via SMS. Collect treatment from any Australian pharmacy.",
-    time: "Same day",
+    time: "Doctor review",
   },
 ]
 
@@ -96,7 +95,7 @@ const LANDING_CONFIG: LandingPageConfig = {
     desktopLabel: "ED Treatment · Discreet & doctor-reviewed",
     priceLabel: `From $${PRICING.MENS_HEALTH.toFixed(2)}`,
     desktopCtaText: "Start assessment",
-    responseTime: `Avg response: ${SOCIAL_PROOF_DISPLAY.responseTime}`,
+    responseTime: "Doctor-reviewed request",
   },
 }
 
@@ -110,7 +109,7 @@ function EDComparisonViz() {
     <div className="bg-muted/30 dark:bg-white/[0.02]">
       <TimeComparisonViz
         pill="Why go online?"
-        heading="Doctor-reviewed in under an hour."
+        heading="Doctor-reviewed online."
         ours={{ label: "InstantMed", value: "~1", unit: "hr" }}
         theirs={{ label: "GP clinic", value: "2", valueSuffix: "+", unit: "hrs" }}
         ourSteps={["2-min health form", "Doctor reviews privately", "eScript sent by SMS"]}

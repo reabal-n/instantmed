@@ -36,12 +36,12 @@ export const intentPages: IntentPage[] = [
     description: 'Need a medical certificate today? Reviewed by Australian doctors, valid for employers and universities. From $19.95.',
     h1: 'Same Day Medical Certificate - Reviewed & Valid',
     content: {
-      intro: 'Feeling unwell and need a medical certificate for work or uni today? Our Australian doctors typically issue valid medical certificates in under 30 minutes, 24/7, delivered straight to your email. Submit from home - no waiting rooms.',
+      intro: 'Feeling unwell and need a medical certificate for work or uni today? Our Australian doctors issue valid medical certificates after doctor approval, 24/7, delivered straight to your email. Submit from home - no waiting rooms.',
       uniqueBlocks: [
         {
           id: 'how-fast',
           type: 'text',
-          content: 'Most medical certificates are issued in under 30 minutes, available 24/7. Your certificate is emailed as a PDF and is immediately valid.',
+          content: 'Requests can be submitted any time. A doctor reviews your information, and approved certificates are emailed as a PDF.',
         },
         {
           id: 'what-employers-accept',
@@ -55,7 +55,7 @@ export const intentPages: IntentPage[] = [
             'Answer a few questions about your symptoms (takes 2-3 minutes)',
             'Pay $19.95 via secure payment',
             'Australian doctor reviews your case',
-            'Certificate emailed to you - typically in under 30 minutes',
+            'Certificate emailed to you after doctor approval',
             'Forward to your employer or upload to your HR system',
           ],
         },
@@ -103,7 +103,7 @@ export const intentPages: IntentPage[] = [
         'medical certificate today',
         'urgent medical certificate',
         'fast medical certificate online',
-        'medical certificate within hours',
+        'medical certificate after doctor approval',
       ],
       lastModified: new Date('2026-01-03'),
     },
@@ -111,7 +111,7 @@ export const intentPages: IntentPage[] = [
       faqs: [
         {
           question: 'How quickly can I get a medical certificate?',
-          answer: 'Most certificates are issued in under 30 minutes, available 24/7. Your certificate is emailed as a PDF as soon as it\u0027s approved.',
+          answer: 'Requests can be submitted any time. A doctor reviews your information, and approved certificates are emailed as a PDF.',
         },
         {
           question: 'Will my employer accept an online medical certificate?',
@@ -140,7 +140,7 @@ export const intentPages: IntentPage[] = [
         'medical certificate today',
         'urgent medical certificate',
         'fast medical certificate',
-        'medical certificate within hours',
+        'medical certificate after doctor approval',
         'last minute medical certificate',
       ],
       userNeed: 'Get a valid medical certificate quickly for work/uni',
@@ -159,10 +159,10 @@ export const intentPages: IntentPage[] = [
     slug: 'uti-treatment-online',
     type: 'intent',
     title: 'UTI Treatment Online Australia | Doctor Assessed',
-    description: 'Burning when you pee? Get assessed for UTI treatment online by Australian doctors. Doctor-reviewed, same-day where appropriate. From $29.95.',
+    description: 'Burning when you pee? Get assessed for UTI treatment online by Australian doctors. Doctor-reviewed after you submit. From $29.95.',
     h1: 'UTI Treatment Online - Relief When You Need It',
     content: {
-      intro: 'Urinary tract infections are uncomfortable, urgent, and need quick treatment. Our Australian doctors can assess your symptoms online and prescribe antibiotics if appropriate, with your e-script sent to your phone within hours.',
+      intro: 'Urinary tract infections are uncomfortable, urgent, and need quick treatment. Our Australian doctors can assess your symptoms online and prescribe antibiotics if appropriate, with your e-script sent to your phone after doctor approval.',
       uniqueBlocks: [
         {
           id: 'symptoms-we-treat',
@@ -287,7 +287,7 @@ export const intentPages: IntentPage[] = [
         {
           id: 'turnaround',
           type: 'text',
-          content: 'Standard requests are reviewed within 24 hours, usually much faster during business hours and weekends. Priority requests are reviewed within 30-60 minutes during service hours. Requests submitted overnight are reviewed first thing in the morning.',
+          content: 'Standard requests are reviewed after submission. Priority requests are fast-tracked in the doctor queue during service hours. Requests submitted overnight are reviewed when the next doctor session starts.',
         },
         {
           id: 'what-constitutes-after-hours',
@@ -454,7 +454,7 @@ export const intentPages: IntentPage[] = [
         },
         {
           question: 'How long does a repeat medication request take?',
-          answer: 'Most repeat medication requests are reviewed within 1-3 hours. Priority review is available for urgent needs. Your e-script is sent via SMS.',
+          answer: 'Repeat medication requests are reviewed after submission. Priority review is available for urgent needs. Your e-script is sent via SMS if approved.',
         },
       ],
     },
@@ -488,7 +488,7 @@ export const intentPages: IntentPage[] = [
     slug: 'work-certificate-online',
     type: 'intent',
     title: 'Work Certificate Online Australia | Sick Leave',
-    description: 'Need a work certificate for sick leave? Get one online within hours from Australian doctors. Employer-ready. From $19.95.',
+    description: 'Need a work certificate for sick leave? Get one online after doctor approval from Australian doctors. Employer-ready. From $19.95.',
     h1: 'Work Certificate Online - Valid for Sick Leave',
     content: {
       intro: 'Feeling too unwell to work? Get a medical certificate for sick leave without visiting a clinic. Our certificates are issued by AHPRA-registered doctors and meet Fair Work requirements.',
@@ -815,7 +815,7 @@ export const intentPages: IntentPage[] = [
     slug: 'flu-certificate-online',
     type: 'intent',
     title: 'Flu Certificate Online Australia | Medical Certificate',
-    description: 'Need a medical certificate for flu or cold? Get one online in under 30 minutes, 24/7. Australian doctors. Employer-ready. From $19.95.',
+    description: 'Need a medical certificate for flu or cold? Get one online after doctor approval, 24/7. Australian doctors. Employer-ready. From $19.95.',
     h1: 'Flu & Cold Certificate Online - Too Sick to Work',
     content: {
       intro: 'Got the flu or a bad cold and need to stay home? Get a medical certificate online without dragging yourself to a clinic. Our AHPRA-registered doctors issue valid certificates for work or uni, delivered straight to your email.',

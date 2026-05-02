@@ -38,7 +38,7 @@ const builtInComparisons: Record<string, ComparisonEntry> = {
     heroText: "Both telehealth and in-person GP visits have their place in modern healthcare. Here's an honest comparison to help you choose the right option for your situation.",
     comparisonTable: [
       { feature: "Wait time for appointment", instantmed: "No wait - start immediately", competitor: "Often days to weeks", winner: "instantmed" },
-      { feature: "Time to see doctor", instantmed: "Usually under 1 hour", competitor: "15-60 min in waiting room + consult", winner: "instantmed" },
+      { feature: "Time to see doctor", instantmed: "Doctor reviewed", competitor: "15-60 min in waiting room + consult", winner: "instantmed" },
       { feature: "Available after hours", instantmed: "Yes, extended hours", competitor: "Limited (after-hours clinics)", winner: "instantmed" },
       { feature: "Physical examination", instantmed: "Not available", competitor: "Full examination possible", winner: "competitor" },
       { feature: "Blood tests & procedures", instantmed: "Referrals only", competitor: "On-site or nearby", winner: "competitor" },
@@ -172,7 +172,7 @@ const builtInComparisons: Record<string, ComparisonEntry> = {
     heroText: "Several telehealth services in Australia offer online medical certificates. Here's what to look for and how the options compare.",
     comparisonTable: [
       { feature: "AHPRA registered doctors", instantmed: true, competitor: "Varies - always check", winner: "tie" },
-      { feature: "Average response time", instantmed: "Under 1 hour", competitor: "1-24 hours", winner: "instantmed" },
+      { feature: "Request pathway", instantmed: "Online doctor review", competitor: "Varies by service", winner: "tie" },
       { feature: "Price for med cert", instantmed: PRICING_DISPLAY.FROM_MED_CERT, competitor: "$15-50", winner: "tie" },
       { feature: "Backdating available", instantmed: "If clinically appropriate", competitor: "Varies by service", winner: "tie" },
       { feature: "Carer's leave certificates", instantmed: true, competitor: "Most services", winner: "tie" },
@@ -183,7 +183,7 @@ const builtInComparisons: Record<string, ComparisonEntry> = {
       { feature: "Prescription services", instantmed: true, competitor: "Some services", winner: "instantmed" },
     ],
     whenInstantMedBetter: [
-      "You need your certificate quickly (under 1 hour)",
+      "You want an online doctor-reviewed request pathway",
       "You want to be able to message the doctor if they have questions",
       "You also need a prescription or other medical service",
       "You value a refund guarantee if your request can't be fulfilled",
@@ -300,7 +300,7 @@ const builtInComparisons: Record<string, ComparisonEntry> = {
       { feature: "Booking an appointment", instantmed: "Instant - start now", competitor: "Often 2-7 days wait", winner: "instantmed" },
       { feature: "Time in waiting room", instantmed: "0 minutes", competitor: "15-45 minutes average", winner: "instantmed" },
       { feature: "Travel time", instantmed: "None", competitor: "15-30 minutes each way", winner: "instantmed" },
-      { feature: "Total time investment", instantmed: "~10 min form + wait for response", competitor: "Often 1-2+ hours total", winner: "instantmed" },
+      { feature: "Total time investment", instantmed: "Short form + doctor review", competitor: "Often 1-2+ hours total", winner: "instantmed" },
       { feature: "Can do while sick in bed", instantmed: true, competitor: false, winner: "instantmed" },
       { feature: "Exposure to other sick people", instantmed: "None", competitor: "Waiting room exposure", winner: "instantmed" },
       { feature: "Need to take time off work", instantmed: "Usually no", competitor: "Often yes", winner: "instantmed" },
@@ -328,7 +328,7 @@ const builtInComparisons: Record<string, ComparisonEntry> = {
     faqs: [
       {
         q: "How much time does telehealth actually save?",
-        a: "For a typical medical certificate, telehealth takes about 10 minutes to complete the form, then you wait for the doctor's response (usually under an hour). Compare this to days waiting for a GP appointment, plus travel and waiting room time."
+        a: "For a typical medical certificate, telehealth takes about 10 minutes to complete the form, then you wait for the doctor's response (usually from home). Compare this to days waiting for a GP appointment, plus travel and waiting room time."
       },
       {
         q: "Is it worth paying for telehealth when GPs can bulk bill?",
@@ -416,7 +416,7 @@ const builtInComparisons: Record<string, ComparisonEntry> = {
     heroText: "Bulk-billed telehealth is free with Medicare, but private telehealth often offers faster service and more flexibility. Here's how they compare.",
     comparisonTable: [
       { feature: "Out-of-pocket cost", instantmed: PRICING_DISPLAY.FROM_MED_CERT, competitor: "Free (with Medicare)", winner: "competitor" },
-      { feature: "Wait time for appointment", instantmed: "Usually under 1 hour", competitor: "Often days to weeks", winner: "instantmed" },
+      { feature: "Wait time for appointment", instantmed: "Doctor reviewed", competitor: "Often days to weeks", winner: "instantmed" },
       { feature: "Available 7 days", instantmed: true, competitor: "Varies - limited", winner: "instantmed" },
       { feature: "Extended hours", instantmed: "7am-10pm AEST", competitor: "Often business hours only", winner: "instantmed" },
       { feature: "Medical certificates", instantmed: true, competitor: "Yes", winner: "tie" },
@@ -490,7 +490,7 @@ const builtInComparisons: Record<string, ComparisonEntry> = {
           id: "availability",
           title: "Why Availability Differs So Much",
           paragraphs: [
-            "The wait time difference between bulk-billed and private telehealth is often dramatic - days or weeks versus under an hour. This isn't a mystery: when something is free, demand outstrips supply. Bulk-billed telehealth services are often overwhelmed, with appointment slots filling up almost immediately.",
+            "The wait time difference between bulk-billed and private telehealth is often dramatic - days or weeks versus from home. This isn't a mystery: when something is free, demand outstrips supply. Bulk-billed telehealth services are often overwhelmed, with appointment slots filling up almost immediately.",
             "Private services manage this through pricing. The fee creates a natural demand filter - people who need care urgently are willing to pay, while those with less urgent needs may prefer to wait for a free option. This isn't a value judgment; it's how markets work. The result is that private services can maintain shorter wait times because they aren't absorbing unlimited demand at zero cost."
           ]
         },
@@ -499,7 +499,7 @@ const builtInComparisons: Record<string, ComparisonEntry> = {
           title: "A Practical Decision Framework",
           paragraphs: [
             "Rather than treating this as an either/or choice, most Australians are better served by using both models strategically. For routine check-ups, chronic disease management, and ongoing care, a bulk-billed GP (in-person or telehealth) provides the best value. Your regular GP knows your history, coordinates your care, and bulk billing keeps costs manageable over time.",
-            "For acute needs - a medical certificate for tomorrow, a repeat prescription that ran out over the weekend, or care after hours when bulk-billed services aren't available - private telehealth fills a genuine gap. Paying $20-40 for same-day service is a reasonable cost when the alternative is missing work or going without care.",
+            "For acute needs - a medical certificate for tomorrow, a repeat prescription that ran out over the weekend, or care after hours when bulk-billed services aren't available - private telehealth fills a genuine gap. Paying $20-40 for online service is a reasonable cost when the alternative is missing work or going without care.",
             "The test is simple: can this wait, or do I need it now? If it can wait, use the free option. If it can't, pay for the faster one. Neither choice is wrong - they serve different needs."
           ]
         }
@@ -899,7 +899,7 @@ export default async function ComparisonPage({ params }: PageProps) {
                 </div>
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4 text-primary" />
-                  <span>Under 1 hour</span>
+                  <span>Doctor reviewed</span>
                 </div>
               </div>
             </div>

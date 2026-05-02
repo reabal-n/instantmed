@@ -264,7 +264,7 @@ export const FORM = {
 export const TOOLTIPS = {
   medicare: "We need this to verify your identity. Encrypted, secure, never shared.",
   irn: "The small number (1-9) next to your name. Usually overlooked.",
-  priority: "Jump the queue. Doctor reviews within 15 minutes.",
+  priority: "Priority queue. Doctor review is fast-tracked.",
   securePayment: "Payments go through Stripe. We never see your card details.",
   doctorReview: "Every request reviewed by an AHPRA-registered Australian GP. The real deal.",
 } as const
@@ -289,11 +289,11 @@ export const STATUS = {
 // TIME & TURNAROUND
 // ============================================
 export const TIME = {
-  turnaround: "Usually under an hour",
+  turnaround: "Doctor reviewed",
   turnaroundLong: "Requests accepted any time; review follows when available",
   hours: "Requests accepted 24/7",
   afterHours: "Submit anytime; review follows when available.",
-  priority: "15-minute priority review",
+  priority: "Priority doctor review",
   estimatedWait: (minutes: number) =>
     minutes < 60
       ? `About ${minutes} min${minutes === 1 ? "" : "s"}`

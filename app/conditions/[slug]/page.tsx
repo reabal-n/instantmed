@@ -74,10 +74,9 @@ export async function generateStaticParams() {
 }
 
 const PLATFORM_STATS: StatItem[] = [
-  { value: SOCIAL_PROOF.certTurnaroundMinutes, suffix: " min", label: "avg cert turnaround" },
-  { value: SOCIAL_PROOF.averageResponseMinutes, suffix: " min", label: "avg doctor review" },
   { value: SOCIAL_PROOF.certApprovalPercent, suffix: "%", label: "approval rate" },
   { value: SOCIAL_PROOF.refundPercent, suffix: "%", label: "refund if we can't help" },
+  { value: SOCIAL_PROOF.operatingDays, suffix: " days", label: "available weekly" },
 ]
 
 export default async function ConditionPage({ params }: PageProps) {
@@ -488,7 +487,7 @@ export default async function ConditionPage({ params }: PageProps) {
             {/* CTA Banner */}
             <CTABanner
               title={`Ready to get help with ${condition.name}?`}
-              subtitle={`Australian-registered doctors available now. Most ${serviceLabel} completed within an hour.`}
+              subtitle={`Australian-registered doctors available now. ${serviceLabel} reviewed by a doctor.`}
               ctaText={condition.ctaText}
               ctaHref={condition.ctaHref}
               secondaryText="Learn how it works"

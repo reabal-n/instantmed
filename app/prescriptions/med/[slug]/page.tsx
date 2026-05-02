@@ -19,7 +19,7 @@ const PRESCRIPTION_FAQS = [
   { q: "How does eScript work?", a: "After your doctor approves the prescription, you receive an eScript token via SMS. Take your phone to any Australian pharmacy and they'll scan it directly - no paper needed." },
   { q: "Do PBS subsidies still apply?", a: "Yes. If your medication is listed on the PBS, you'll pay the subsidised price at the pharmacy as usual. Our consultation fee is separate from your medication cost." },
   { q: "Can you prescribe Schedule 8 medications?", a: "No. We cannot prescribe Schedule 8 (S8) controlled substances such as opioids, benzodiazepines, or stimulants. These require an in-person consultation with your regular GP." },
-  { q: "How long does a prescription review take?", a: "Most prescription requests are reviewed within 1–2 hours during operating hours (8am–10pm AEST, 7 days). You'll receive an email when your request has been reviewed." },
+  { q: "How long does a prescription review take?", a: "Most prescription requests are reviewed when a doctor is available. You'll receive an email when your request has been reviewed." },
   { q: "Do I need a previous prescription?", a: "For repeat prescriptions, yes - this service is for medications you've already been prescribed. If you need a new medication, our general consult service is more appropriate." },
   { q: "What if the doctor declines my request?", a: "If a doctor determines the medication isn't appropriate, you'll receive a full refund. The doctor may suggest an alternative or recommend seeing your regular GP." },
 ]
@@ -128,7 +128,7 @@ export default async function MedicationPage({ params }: { params: Promise<{ slu
                 <div className="flex flex-wrap gap-4 text-sm">
                   <div className="flex items-center gap-2">
                     <Clock className="h-4 w-4 text-primary" />
-                    <span>Same-day review</span>
+                    <span>Doctor review</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Shield className="h-4 w-4 text-primary" />

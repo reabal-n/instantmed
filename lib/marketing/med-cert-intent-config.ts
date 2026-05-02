@@ -55,7 +55,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     slug: "work",
     h1: "Medical certificate for work.",
     heroSubheadline:
-      "Your employer asked for a sick note. A real Australian doctor reviews your request. No appointments, no waiting rooms. Most sorted in under an hour. From $19.95.",
+      "Your employer asked for a sick note. A real Australian doctor reviews your request. No appointments, no waiting rooms. Doctor-reviewed after you submit. From $19.95.",
     explainerTitle: "When you might need one",
     explainerSubtitle: "Work certificates cover most short-term absences. Here's what to know.",
     explainerParagraphs: [
@@ -77,7 +77,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     metadata: {
       title: "Medical Certificate for Work | Sick Note Online $19.95",
       description:
-        "Medical certificate for work absence. AHPRA-registered doctors review your request, most sorted in under an hour. From $19.95. Fair Work compliant.",
+        "Medical certificate for work absence. AHPRA-registered doctors review your request, doctor-reviewed after you submit. From $19.95. Fair Work compliant.",
       keywords: [
         "medical certificate for work",
         "sick certificate work",
@@ -100,7 +100,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
       {
         question: "How quickly will I receive it?",
         answer:
-          "Medical certificates are typically reviewed within 20 minutes, available 24/7. You'll get an email when the doctor starts reviewing.",
+          "Requests can be submitted any time. You'll get an email when the doctor starts reviewing.",
       },
       {
         question: "Can I get a certificate for a day I've already missed?",
@@ -119,7 +119,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     slug: "study",
     h1: "Medical certificate for study.",
     heroSubheadline:
-      "Study absence documentation. A doctor reviews your request, typically sorted in under an hour. From $19.95.",
+      "Study absence documentation. A doctor reviews your request, reviewed after you submit. From $19.95.",
     explainerTitle: "When students need documentation",
     explainerSubtitle: "Universities and TAFEs often require medical evidence for study absences.",
     explainerParagraphs: [
@@ -136,7 +136,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     ],
     ctaTitle: "Get the documentation you need",
     ctaSubtitle:
-      "Quick form, real doctor review. Certificate to your inbox, usually within the hour.",
+      "Quick form, real doctor review. Certificate to your inbox, after doctor approval.",
     ctaButtonText: "Get your certificate",
     metadata: {
       title: "Medical Certificate for Study | Uni & TAFE $19.95",
@@ -173,7 +173,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     slug: "carer",
     h1: "Carer medical certificate.",
     heroSubheadline:
-      "Time off to look after a sick family member. A doctor reviews your request, no appointments, typically sorted in under an hour. From $19.95.",
+      "Time off to look after a sick family member. A doctor reviews your request, no appointments, reviewed after you submit. From $19.95.",
     explainerTitle: "When carers need documentation",
     explainerSubtitle: "Carer's leave certificates support absences when you're looking after someone who needs you.",
     explainerParagraphs: [
@@ -226,7 +226,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     slug: "sick-leave",
     h1: "Sick leave certificate online.",
     heroSubheadline:
-      "Too sick to visit a GP? Get a valid certificate from bed. A doctor reviews your request, most sorted in under an hour. From $19.95.",
+      "Too sick to visit a GP? Get a valid certificate from bed. A doctor reviews your request, doctor-reviewed after you submit. From $19.95.",
     explainerTitle: "Sick leave without the waiting room",
     explainerSubtitle: "When you need documentation for time off, but leaving the house isn't an option.",
     explainerParagraphs: [
@@ -246,9 +246,9 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
       "Two minutes on your phone. Real doctor review. Certificate delivered. No clinic visit required.",
     ctaButtonText: "Get your certificate",
     metadata: {
-      title: "Sick Leave Certificate Online | $19.95 Under 1 Hour",
+      title: "Sick Leave Certificate Online | $19.95 Doctor Reviewed",
       description:
-        "Get a sick leave certificate online. AHPRA-registered doctors review your request, most sorted in under an hour. From $19.95. No appointments, no waiting rooms.",
+        "Get a sick leave certificate online. AHPRA-registered doctors review your request, doctor-reviewed after you submit. From $19.95. No appointments, no waiting rooms.",
       keywords: [
         "sick leave certificate online",
         "sick note online australia",
@@ -260,7 +260,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
       {
         question: "How quickly can I get a sick leave certificate?",
         answer:
-          "Medical certificates are typically reviewed within 20 minutes, available 24/7. You'll get an email when the doctor starts reviewing.",
+          "Requests can be submitted any time. You'll get an email when the doctor starts reviewing.",
       },
       {
         question: "Do I need to see a doctor in person?",
@@ -279,7 +279,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     slug: "university",
     h1: "Medical certificate for university.",
     heroSubheadline:
-      "Study absence documentation. A doctor reviews your request, typically under an hour. From $19.95.",
+      "Study absence documentation. A doctor reviews your request, reviewed after you submit. From $19.95.",
     explainerTitle: "When uni requires medical evidence",
     explainerSubtitle: "Universities often need a medical certificate to support absence documentation.",
     explainerParagraphs: [
@@ -296,7 +296,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     ],
     ctaTitle: "Get the documentation your uni needs",
     ctaSubtitle:
-      "Quick form, real doctor review. Certificate to your inbox, usually within the hour.",
+      "Quick form, real doctor review. Certificate to your inbox, after doctor approval.",
     ctaButtonText: "Get your certificate",
     metadata: {
       title: "Medical Certificate for University | Student Absence $19.95",
@@ -328,7 +328,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
       {
         question: "How quickly can I get it?",
         answer:
-          "Most requests are reviewed within 30–60 minutes during operating hours. Plan ahead for deadlines. We can't guarantee same-day delivery during peak periods.",
+          "Review timing depends on doctor availability. Plan ahead for deadlines, and we'll email you when the doctor has reviewed your request.",
       },
     ],
   },
@@ -337,7 +337,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     slug: "school",
     h1: "Medical certificate for school.",
     heroSubheadline:
-      "Documentation for your child's school absence. A doctor reviews your request, typically sorted in under an hour. From $19.95.",
+      "Documentation for your child's school absence. A doctor reviews your request, reviewed after you submit. From $19.95.",
     explainerTitle: "When schools require medical evidence",
     explainerSubtitle: "Some schools ask for a medical certificate to excuse a child's absence.",
     explainerParagraphs: [
@@ -354,7 +354,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     ],
     ctaTitle: "Documentation for school absences",
     ctaSubtitle:
-      "Quick form, doctor review. Certificate to your inbox, usually within the hour.",
+      "Quick form, doctor review. Certificate to your inbox, after doctor approval.",
     ctaButtonText: "Get your certificate",
     metadata: {
       title: "Medical Certificate for School | Child Absence $19.95",
@@ -390,7 +390,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     slug: "return-to-work",
     h1: "Return to work certificate.",
     heroSubheadline:
-      "Your employer asked for clearance before you return. A doctor reviews your request, typically sorted in under an hour. From $19.95.",
+      "Your employer asked for clearance before you return. A doctor reviews your request, reviewed after you submit. From $19.95.",
     explainerTitle: "When employers ask for clearance",
     explainerSubtitle: "Some employers require a certificate before you return after sick leave.",
     explainerParagraphs: [
@@ -407,7 +407,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     ],
     ctaTitle: "Clearance when you need it",
     ctaSubtitle:
-      "Quick form, doctor assessment. Certificate to your inbox, usually within the hour.",
+      "Quick form, doctor assessment. Certificate to your inbox, after doctor approval.",
     ctaButtonText: "Get your certificate",
     metadata: {
       title: "Return to Work Certificate | Doctor Assessment $19.95",
@@ -448,7 +448,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     slug: "centrelink",
     h1: "Medical certificate for Centrelink.",
     heroSubheadline:
-      "Centrelink requires medical evidence for certain claims. A doctor reviews your request, typically sorted in under an hour. From $19.95.",
+      "Centrelink requires medical evidence for certain claims. A doctor reviews your request, reviewed after you submit. From $19.95.",
     explainerTitle: "When Centrelink needs medical evidence",
     explainerSubtitle: "Centrelink may require a medical certificate for sickness allowance, disability support, or other claims.",
     explainerParagraphs: [
@@ -465,7 +465,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     ],
     ctaTitle: "Documentation when you need it",
     ctaSubtitle:
-      "Quick form, doctor review. Certificate to your inbox, usually within the hour.",
+      "Quick form, doctor review. Certificate to your inbox, after doctor approval.",
     ctaButtonText: "Get your certificate",
     metadata: {
       title: "Medical Certificate for Centrelink | Sickness Allowance $19.95",
@@ -492,7 +492,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
       {
         question: "How quickly can I get it?",
         answer:
-          "Most requests are reviewed within 30–60 minutes during operating hours. Plan ahead for Centrelink deadlines. Submit your claim as soon as you have the certificate.",
+          "Review timing depends on doctor availability. Plan ahead for Centrelink deadlines, and submit your claim as soon as you have the certificate.",
       },
     ],
   },
@@ -500,7 +500,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     slug: "anxiety",
     h1: "Medical certificate for anxiety.",
     heroSubheadline:
-      "Anxiety is a legitimate medical condition. A doctor reviews your request. No judgement, no waiting rooms. Most sorted in under an hour. From $19.95.",
+      "Anxiety is a legitimate medical condition. A doctor reviews your request. No judgement, no waiting rooms. Doctor-reviewed after you submit. From $19.95.",
     explainerTitle: "Anxiety is a valid reason to take time off",
     explainerSubtitle: "Mental health conditions, including anxiety, are covered under sick leave laws in Australia.",
     explainerParagraphs: [
@@ -559,7 +559,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     slug: "flu",
     h1: "Medical certificate for the flu.",
     heroSubheadline:
-      "Fever, aches, can't get out of bed? Get your sick note from home. A doctor reviews your request, most sorted in under an hour. From $19.95.",
+      "Fever, aches, can't get out of bed? Get your sick note from home. A doctor reviews your request, doctor-reviewed after you submit. From $19.95.",
     explainerTitle: "Get your certificate without leaving the house",
     explainerSubtitle: "Influenza and flu-like illness are among the most common reasons for work absence.",
     explainerParagraphs: [
@@ -618,7 +618,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     slug: "work-from-home",
     h1: "Medical certificate for working from home.",
     heroSubheadline:
-      "Your employer wants documentation before approving remote work. A doctor reviews your request, typically sorted in under an hour. From $19.95.",
+      "Your employer wants documentation before approving remote work. A doctor reviews your request, reviewed after you submit. From $19.95.",
     explainerTitle: "When employers need medical justification for WFH",
     explainerSubtitle: "Some employers require a medical certificate before approving temporary work from home arrangements due to illness.",
     explainerParagraphs: [
@@ -635,7 +635,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     ],
     ctaTitle: "Documentation for working remotely",
     ctaSubtitle:
-      "Quick form, doctor assessment. Certificate to your inbox, usually within the hour.",
+      "Quick form, doctor assessment. Certificate to your inbox, after doctor approval.",
     ctaButtonText: "Get your certificate",
     metadata: {
       title: "Medical Certificate Work From Home | WFH Documentation $19.95",

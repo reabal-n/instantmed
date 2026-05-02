@@ -28,7 +28,6 @@ import { PRICING } from "@/lib/constants"
 import { MED_CERT_FAQ } from "@/lib/data/med-cert-faq"
 import { usePatientCount } from "@/lib/hooks/use-patient-count"
 import { useSectionVisibilityFunnel } from "@/lib/hooks/use-section-visibility-funnel"
-import { SOCIAL_PROOF, SOCIAL_PROOF_DISPLAY } from "@/lib/social-proof"
 
 // =============================================================================
 // DATA
@@ -46,15 +45,15 @@ const HOW_IT_WORKS_STEPS = [
     sticker: "stethoscope" as const,
     step: 2,
     title: "A real GP reviews it",
-    description: `An AHPRA-registered doctor reviews your assessment. Average review time is ~${SOCIAL_PROOF.averageResponseMinutes} minutes.`,
-    time: `~${SOCIAL_PROOF.averageResponseMinutes} min`,
+    description: "An AHPRA-registered doctor reviews your assessment after you submit.",
+    time: "Doctor review",
   },
   {
     sticker: "certificate" as const,
     step: 3,
     title: "Certificate sent to you",
     description: "Your medical certificate is emailed to you as a PDF. Valid under the Fair Work Act 2009.",
-    time: "Same day",
+    time: "Doctor review",
   },
 ]
 
@@ -69,7 +68,7 @@ const LANDING_CONFIG: LandingPageConfig = {
     priceLabel: `From $${PRICING.MED_CERT.toFixed(2)}`,
     desktopCtaText: "Get your certificate",
     pricingScrollTarget: "certificate-type",
-    responseTime: `Avg response: ${SOCIAL_PROOF_DISPLAY.responseTime}`,
+    responseTime: "Doctor-reviewed request",
     mobileFooter: <StripePaymentLogos className="mt-1.5 opacity-60" />,
   },
 }
@@ -127,8 +126,8 @@ function EmployerCalloutStrip({ onEmployerClick, onVerifyClick }: { onEmployerCl
 function CertComparisonViz() {
   return (
     <TimeComparisonViz
-      heading="Back on the couch in minutes. Not hours."
-      ours={{ label: "InstantMed", value: `~${SOCIAL_PROOF.certTurnaroundMinutes}`, unit: "min" }}
+      heading="Back on the couch without the waiting room."
+      ours={{ label: "InstantMed", value: "Online", unit: "" }}
       theirs={{ label: "GP clinic", value: "2", valueSuffix: "+", unit: "hrs" }}
       ourSteps={["2 min form", "GP reviews your request", "Certificate in your inbox"]}
       theirSteps={["Call to book appointment", "Travel to clinic", "Waiting room and consult"]}

@@ -74,7 +74,7 @@ export function RepeatRxReminderEmail({
         <ul style={{ paddingLeft: "20px", margin: "8px 0", color: colors.text }}>
           <li style={{ marginBottom: "6px", fontSize: "14px" }}>Click the button below to start your repeat request</li>
           <li style={{ marginBottom: "6px", fontSize: "14px" }}>Your details are pre-filled from last time</li>
-          <li style={{ marginBottom: "6px", fontSize: "14px" }}>A doctor reviews and sends your eScript within hours</li>
+          <li style={{ marginBottom: "6px", fontSize: "14px" }}>A doctor reviews and sends your eScript after approval</li>
         </ul>
       </Box>
 

@@ -45,7 +45,7 @@ const suburbs: Record<
     localFlair: "Serving all of Western Sydney",
     testimonial: {
       name: "Priya S.",
-      quote: "So much easier than trying to find a bulk-billing GP in Parra. Done in 15 minutes.",
+      quote: "So much easier than trying to find a bulk-billing GP in Parra. Done online after doctor approval.",
       occupation: "Retail Manager",
     },
   },
@@ -284,7 +284,7 @@ export default async function SuburbMedCertPage({ params }: PageProps) {
         name: `Can I get a medical certificate online in ${data.name}?`,
         acceptedAnswer: {
           "@type": "Answer",
-          text: `Yes! InstantMed provides online medical certificates to ${data.name} residents. Complete a quick questionnaire, get reviewed by an AHPRA-registered doctor, and receive your certificate - typically in under 30 minutes, available 24/7.`,
+          text: `Yes! InstantMed provides online medical certificates to ${data.name} residents. Complete a quick questionnaire, get reviewed by an AHPRA-registered doctor, and receive your certificate after doctor approval, available 24/7.`,
         },
       },
       {
@@ -300,7 +300,7 @@ export default async function SuburbMedCertPage({ params }: PageProps) {
         name: "How fast can I get my medical certificate?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Most certificates are issued in under 30 minutes, available 24/7. You'll receive a secure PDF via email.",
+          text: "Requests can be submitted any time. A doctor reviews your information, and approved certificates are sent as a secure PDF via email.",
         },
       },
     ],
@@ -347,7 +347,7 @@ export default async function SuburbMedCertPage({ params }: PageProps) {
                 Get a Medical Certificate Online in {data.name}
               </h1>
               <p className="text-muted-foreground text-lg max-w-xl mx-auto mb-8">
-                Skip the waiting room. Get your medical certificate reviewed by an Australian doctor and delivered to your inbox - typically in <strong>under 30 minutes</strong>, 24/7.
+                Skip the waiting room. Get your medical certificate reviewed by an Australian doctor and delivered to your inbox after doctor approval, 24/7.
               </p>
 
               <Link href="/medical-certificate/request">
@@ -449,7 +449,7 @@ export default async function SuburbMedCertPage({ params }: PageProps) {
                     step: "2",
                     title: "Doctor reviews",
                     desc: "An AHPRA-registered GP assesses your request.",
-                    time: "~15 min",
+                    time: "Doctor review",
                   },
                   {
                     step: "3",
@@ -483,7 +483,7 @@ export default async function SuburbMedCertPage({ params }: PageProps) {
                 {[
                   {
                     q: `Can I get a medical certificate online in ${data.name}?`,
-                    a: `Yes! InstantMed provides online medical certificates to ${data.name} residents and anyone in ${data.stateShort}. Complete a quick questionnaire, get reviewed by an AHPRA-registered doctor, and receive your certificate - typically in under 30 minutes, available 24/7.`,
+                    a: `Yes! InstantMed provides online medical certificates to ${data.name} residents and anyone in ${data.stateShort}. Complete a quick questionnaire, get reviewed by an AHPRA-registered doctor, and receive your certificate after doctor approval, available 24/7.`,
                   },
                   {
                     q: "Will my employer accept this certificate?",
@@ -491,7 +491,7 @@ export default async function SuburbMedCertPage({ params }: PageProps) {
                   },
                   {
                     q: "How fast can I get my certificate?",
-                    a: "Most certificates are issued in under 30 minutes, available 24/7. You'll receive a secure PDF via email as soon as it's approved.",
+                    a: "Requests can be submitted any time. A doctor reviews your information, and approved certificates are sent as a secure PDF via email.",
                   },
                   {
                     q: "Can I get a certificate for yesterday?",
@@ -514,7 +514,7 @@ export default async function SuburbMedCertPage({ params }: PageProps) {
           {/* CTA */}
           <section className="px-4 py-12">
             <div className="mx-auto max-w-xl text-center">
-              <h2 className="text-2xl font-semibold mb-4">Ready in 15 minutes</h2>
+              <h2 className="text-2xl font-semibold mb-4">Doctor-reviewed certificate</h2>
               <p className="text-muted-foreground mb-6">
                 Join hundreds of {data.name} residents who skip the waiting room with InstantMed.
               </p>

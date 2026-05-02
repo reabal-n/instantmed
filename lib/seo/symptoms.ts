@@ -168,7 +168,7 @@ export const symptomPages: SymptomPage[] = [
       whatWeOffer: [
         'Quick symptom assessment by Australian doctor',
         'Antibiotic prescription if appropriate (e.g., trimethoprim)',
-        'E-script sent to your phone within hours',
+        'E-script sent to your phone after doctor approval',
         'Advice on when to seek in-person care',
       ],
       ctaText: 'Get UTI Treatment Online',

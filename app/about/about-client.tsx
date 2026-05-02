@@ -152,8 +152,8 @@ export function AboutClient() {
               },
               {
                 type: "stat-callout",
-                value: `~${SOCIAL_PROOF.averageResponseMinutes} min`,
-                label: "Average response time",
+                value: "AHPRA",
+                label: "Doctor-reviewed requests",
               },
               {
                 type: "pull-quote",
@@ -190,8 +190,8 @@ export function AboutClient() {
                   <ComparisonBar
                     us={{
                       label: "InstantMed",
-                      value: `~${SOCIAL_PROOF.certTurnaroundMinutes} min`,
-                      subtext: "Average certificate delivery",
+                      value: "Online",
+                      subtext: "Structured form reviewed by an AHPRA-registered doctor.",
                     }}
                     them={{
                       label: "GP clinic visit",

@@ -112,7 +112,7 @@ export const generalConsultFunnelConfig: ServiceFunnelConfig = {
         icon: 'FileCheck',
         title: 'Treatment plan',
         description: 'The doctor provides advice, prescriptions if appropriate, or referrals if you need further care.',
-        time: 'Same day',
+        time: 'Doctor review',
       },
     ],
   },

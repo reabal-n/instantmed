@@ -18,7 +18,7 @@ export interface ExitIntentSocialProofEmailProps {
 }
 
 export function exitIntentSocialProofSubject() {
-  return "97% of requests approved within an hour"
+  return "Doctor-reviewed request"
 }
 
 export function ExitIntentSocialProofEmail({
@@ -42,8 +42,8 @@ export function ExitIntentSocialProofEmail({
         <Heading as="h3">The numbers</Heading>
         <List
           items={[
-            "97% of requests approved within an hour",
-            "Average review time: 32 minutes",
+            "97% approval rate",
+            "Doctor-reviewed requests",
             "Full refund if our doctors can't help",
           ]}
         />

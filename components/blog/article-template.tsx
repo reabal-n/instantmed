@@ -197,7 +197,7 @@ function MidArticleCTA({ service }: { service: 'med-cert' | 'prescription' | 'co
     },
     'prescription': {
       text: 'Need a repeat prescription?',
-      sub: 'A doctor reviews your request — typically within 2 hours.',
+      sub: 'A doctor reviews your request after you submit.',
       href: '/prescriptions',
       label: 'Request your script',
     },

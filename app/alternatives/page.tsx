@@ -77,9 +77,9 @@ const OPTIONS: OptionCard[] = [
     whenItWorks:
       "When you have an established relationship with your doctor, need a thorough examination, or have a chronic condition that benefits from continuity of care.",
     whenItDoesnt:
-      "When booking takes days, when you cannot leave home because you are unwell, or when you need a certificate the same day for a short absence.",
+      "When booking takes days, when you cannot leave home because you are unwell, or when you need a certificate for a short absence.",
     typicalCost: "$0 (bulk-billed) to $50-$90 (privately billed, after Medicare rebate)",
-    typicalTime: "Same day to several days for an appointment, plus travel and waiting time",
+    typicalTime: "Several days for an appointment, plus travel and waiting time",
   },
   {
     title: "Walk-in clinic or urgent care centre",
@@ -97,7 +97,7 @@ const OPTIONS: OptionCard[] = [
     whenItDoesnt:
       "When your condition needs an in-person examination, diagnostic tests, or is severe or worsening. Telehealth providers will decline and refund in those cases.",
     typicalCost: `From $${PRICING.MED_CERT.toFixed(2)}, no Medicare required. Refund if a doctor cannot help.`,
-    typicalTime: "Form takes around 2 minutes. Doctor review usually within 20 minutes. Certificate emailed as a PDF.",
+    typicalTime: "Form takes around 2 minutes. Doctor review after you submit. Certificate emailed as a PDF.",
   },
   {
     title: "Statutory declaration",
@@ -254,7 +254,7 @@ export default function AlternativesPage() {
               If online telehealth fits your situation
             </h2>
             <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
-              An AHPRA-registered Australian GP reviews your request, usually within 20 minutes, and emails the certificate to you as a PDF. Full refund if our doctor cannot help.
+              An AHPRA-registered Australian GP reviews your request, after doctor approval, and emails the certificate to you as a PDF. Full refund if our doctor cannot help.
             </p>
             <div className="pt-2">
               <Link

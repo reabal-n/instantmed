@@ -46,7 +46,7 @@ interface LocationPageContentProps {
 const SERVICES = [
   {
     name: "Medical Certificates",
-    desc: "Same-day work and study absence notes",
+    desc: "Doctor-reviewed work and study absence notes",
     href: "/medical-certificate",
     Icon: FileText,
     price: PRICING_DISPLAY.FROM_MED_CERT,
@@ -170,7 +170,7 @@ export function LocationPageContent({
             </div>
             <div className="flex items-center gap-1.5">
               <Clock className="h-4 w-4 text-primary" />
-              <span>Usually under 1 hour</span>
+              <span>Doctor reviewed</span>
             </div>
             <div className="flex items-center gap-1.5">
               <Shield className="h-4 w-4 text-primary" />
@@ -341,7 +341,7 @@ export function LocationPageContent({
               {
                 step: "2",
                 title: "Doctor reviews",
-                desc: "An Australian doctor reviews your request, usually within 1 hour",
+                desc: "An Australian doctor reviews your request after you submit",
               },
               {
                 step: "3",
@@ -378,7 +378,7 @@ export function LocationPageContent({
             {[
               "No need to leave home or work",
               "Skip the waiting room",
-              "Same-day service, most requests",
+              "Online service, most requests",
               "eScripts sent to your phone",
               "Employer policies may vary",
               "Reviewed by real Australian doctors",

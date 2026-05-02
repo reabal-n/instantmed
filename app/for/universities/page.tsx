@@ -389,7 +389,7 @@ export default function UniversitiesPage() {
                 </div>
                 <div className="space-y-3 text-sm text-muted-foreground">
                   <p>
-                    Most Australian universities require students to submit a medical certificate within 3-5 business days of a missed assessment. InstantMed certificates are typically issued within 30 minutes, available 24/7 - meaning students can obtain documentation promptly, even on weekends, public holidays, or during after-hours exam periods when GP clinics are closed.
+                    Most Australian universities require students to submit a medical certificate within 3-5 business days of a missed assessment. InstantMed certificates are issued after doctor approval when approved, available 24/7 - meaning students can obtain documentation promptly, even on weekends, public holidays, or during after-hours exam periods when GP clinics are closed.
                   </p>
                   <p>
                     Our certificates contain the standard elements expected in study absence documentation: practitioner details, AHPRA registration, consultation date, period of unfitness, and the practitioner&apos;s signature. Faculties should assess the certificate on its merits, applying the same standards as any certificate from a registered medical practice.

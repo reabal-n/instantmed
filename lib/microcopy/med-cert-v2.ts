@@ -13,7 +13,7 @@ export const MED_CERT_COPY = {
   // GLOBAL
   // ============================================================================
   global: {
-    turnaround: "Usually reviewed within 30 minutes, available 24/7",
+    turnaround: "Requests accepted 24/7; doctor review follows when available",
     doctorReview: "An AHPRA-registered GP will review your request",
     noGuarantee: "Certificates are issued at the doctor's clinical discretion",
     mayRequest: "The doctor may request additional information if needed",
@@ -186,7 +186,7 @@ export const MED_CERT_COPY = {
     whatNext: {
       heading: "What happens next?",
       steps: [
-        "A GP will review your request (usually within 1 hour)",
+        "A GP will review your request after you submit",
         "If approved, your certificate will be emailed to you",
         "You can also download it from your account",
       ],

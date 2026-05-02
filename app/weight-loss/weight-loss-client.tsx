@@ -198,7 +198,7 @@ export function WeightLossClient() {
             <div className="flex flex-wrap justify-center gap-3 text-xs">
               <div className="flex items-center gap-1.5 bg-muted/50 dark:bg-white/[0.06] px-3 py-1.5 rounded-full border border-border/50">
                 <Zap className="h-3.5 w-3.5 text-primary" />
-                <span className="font-medium text-muted-foreground">Reviewed within 1–2 hours</span>
+                <span className="font-medium text-muted-foreground">Doctor review after you submit</span>
               </div>
               <div className="flex items-center gap-1.5 bg-muted/50 dark:bg-white/[0.06] px-3 py-1.5 rounded-full border border-border/50">
                 <Activity className="h-3.5 w-3.5 text-primary" />
@@ -388,7 +388,7 @@ export function WeightLossClient() {
 
           {/* Doctor credibility */}
           <div className="max-w-4xl mx-auto px-4">
-            <DoctorCredibility variant="inline" stats={['experience', 'approval', 'sameDay']} />
+            <DoctorCredibility variant="inline" stats={['experience', 'approval', 'delivery']} />
           </div>
 
           {/* E-E-A-T Guide */}

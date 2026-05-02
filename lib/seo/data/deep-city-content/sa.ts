@@ -36,7 +36,7 @@ export const SA_CITIES: Record<string, DeepCityContent> = {
         title: "Regional South Australia",
         paragraphs: [
           "Outside Adelaide, healthcare access in South Australia drops off significantly. Regional centres like Mount Gambier, Port Augusta, Port Lincoln, and the Riverland have limited GP availability. Some smaller towns have lost their only doctor entirely. For residents in these areas, telehealth isn't a convenience - it's essential for timely access to routine medical services.",
-          "The Barossa Valley, McLaren Vale, and the Adelaide Hills - while close to Adelaide - have growing populations and limited local healthcare. Weekend GP availability is particularly scarce. For wine industry and tourism workers who fall ill on a Saturday, telehealth provides same-day access to a doctor when local clinics are closed.",
+          "The Barossa Valley, McLaren Vale, and the Adelaide Hills - while close to Adelaide - have growing populations and limited local healthcare. Weekend GP availability is particularly scarce. For wine industry and tourism workers who fall ill on a Saturday, telehealth provides online access to a doctor when local clinics are closed.",
         ],
       },
     ],
@@ -76,7 +76,7 @@ export const SA_CITIES: Record<string, DeepCityContent> = {
         paragraphs: [
           "Mount Gambier is the service centre for SA's Limestone Coast region - an area stretching from the Victorian border to Kingston SE, and inland to Naracoorte and Bordertown. With a population of roughly 28,000 in the city and a broader regional catchment of 65,000+, the region's GP capacity is under significant strain. Same-day appointments are rarely available, wait times of one to two weeks are common, and several practices have restricted new patient intakes entirely.",
           "The Limestone Coast has been classified as a Distribution Priority Area (DPA) with genuine, long-standing GP workforce shortages. Recruiting and retaining doctors in a regional city 450 kilometres from Adelaide has been a persistent challenge. The Mount Gambier and Districts Health Service provides hospital care, but the primary care gap is the real problem for everyday healthcare needs.",
-          "For residents of smaller Limestone Coast towns - Millicent, Penola, Naracoorte, Robe, Kingston SE, Bordertown - the nearest GP is often Mount Gambier, adding a round trip of 1-2 hours. For a medical certificate or repeat prescription, this journey is disproportionate. Telehealth eliminates the travel entirely, providing same-day access to an AHPRA-registered doctor from home.",
+          "For residents of smaller Limestone Coast towns - Millicent, Penola, Naracoorte, Robe, Kingston SE, Bordertown - the nearest GP is often Mount Gambier, adding a round trip of 1-2 hours. For a medical certificate or repeat prescription, this journey is disproportionate. Telehealth eliminates the travel entirely, providing online access to an AHPRA-registered doctor from home.",
         ],
       },
       {

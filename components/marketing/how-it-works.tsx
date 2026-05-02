@@ -107,7 +107,7 @@ function StepThreeMockup() {
 
 export function HowItWorks() {
   const stepMockups = [StepOneMockup, StepTwoMockup, StepThreeMockup]
-  const stepBadges = ["~2 min", "~20 min", "Same day"]
+  const stepBadges = ["~2 min", "Doctor review", "If approved"]
 
   return (
     <section id="how-it-works" className="py-10 sm:py-16 lg:py-24 scroll-mt-20">

@@ -68,7 +68,7 @@ export function RequestReceivedEmail({
 
       <Text style={{ fontFamily }}>
         Your <strong>{requestType}</strong> is with a doctor now.
-        We&apos;ll email you the moment it&apos;s done, usually within the hour.
+        We&apos;ll email you the moment it&apos;s done after doctor approval.
       </Text>
 
       <Button href={`${appUrl}/track/${requestId}`}>

@@ -10,10 +10,10 @@ import { Button } from "@/components/ui/button"
 
 export const metadata: Metadata = {
   title: "Find What You Need | Online Doctor Services",
-  description: "Looking for a specific telehealth service? Same-day medical certificates, UTI treatment, after-hours doctor, ongoing medication reviews, and more - all reviewed by Australian doctors.",
+  description: "Looking for a specific telehealth service? Medical certificates, UTI treatment, after-hours doctor, ongoing medication reviews, and more - all reviewed by Australian doctors.",
   openGraph: {
     title: "Find What You Need | InstantMed",
-    description: "Same-day medical certificates, prescriptions, and consultations reviewed by Australian doctors.",
+    description: "Medical certificates, prescriptions, and consultations reviewed by Australian doctors.",
   },
   alternates: {
     canonical: "https://instantmed.com.au/intent",
@@ -21,14 +21,14 @@ export const metadata: Metadata = {
 }
 
 const intents = [
-  { slug: "same-day-medical-certificate", name: "Same Day Medical Certificate", description: "Get a valid certificate issued and emailed in about 20 minutes, 24/7" },
+  { slug: "same-day-medical-certificate", name: "Same Day Medical Certificate", description: "Request a valid certificate online for doctor review" },
   { slug: "work-certificate-online", name: "Work Certificate Online", description: "Doctor-issued sick leave certificate for workplace evidence" },
   { slug: "flu-certificate-online", name: "Cold & Flu Certificate", description: "Too sick to work? Get a certificate from your couch" },
-  { slug: "uti-treatment-online", name: "UTI Treatment Online", description: "Doctor-assessed UTI treatment with same-day eScript" },
+  { slug: "uti-treatment-online", name: "UTI Treatment Online", description: "Doctor-assessed UTI treatment with eScript after doctor approval" },
   { slug: "repeat-prescription-online", name: "Medication Review Online", description: "Ongoing medication management without a clinic visit" },
   { slug: "after-hours-doctor", name: "After Hours Doctor", description: "Med certs 24/7 · Rx & Consults 8am-10pm AEST, 7 days" },
   { slug: "hair-loss-treatment-online", name: "Hair Loss Treatment", description: "Doctor-reviewed treatment plans for hair thinning" },
-  { slug: "emergency-contraception-online", name: "Emergency Contraception", description: "Confidential doctor assessment with same-day eScript" },
+  { slug: "emergency-contraception-online", name: "Emergency Contraception", description: "Confidential doctor assessment with eScript after doctor approval" },
 ]
 
 const intentFaqs = [
@@ -46,7 +46,7 @@ const intentFaqs = [
   },
   {
     question: "How long does it take to get a response?",
-    answer: "Medical certificates are typically issued in about 20 minutes, available 24/7. Prescriptions and consultations are reviewed within 1–2 hours during operating hours (8am–10pm AEST, 7 days).",
+    answer: "Requests can be submitted any time. Doctor review follows when available, and you'll receive an email notification once your request has been reviewed.",
   },
   {
     question: "Is my information kept private?",

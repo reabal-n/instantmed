@@ -92,7 +92,7 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
         paragraphs: [
           "Under the Fair Work Act 2009, Gold Coast employers must set their own policies for medical certificates from AHPRA-registered doctors, regardless of the consultation method. Queensland-specific industrial instruments - including the QLD Public Service enterprise agreement - do not require certificates to come from face-to-face consultations.",
           "For Gold Coast students, Bond University sets its own policy for telehealth-issued certificates for all academic considerations. Griffith University Gold Coast campus follows the same documentation policy as their Brisbane campuses. Southern Cross University's Coolangatta campus accepts certificates from any registered practitioner.",
-          "Theme park employees (Dreamworld, Sea World, Movie World, Wet'n'Wild), surf lifesavers, and hospitality workers often need certificates at short notice. Telehealth accommodates this - submit your request when you wake up feeling unwell, and most certificates are issued in under 30 minutes, available 24/7.",
+          "Theme park employees (Dreamworld, Sea World, Movie World, Wet'n'Wild), surf lifesavers, and hospitality workers often need certificates at short notice. Telehealth accommodates this - submit your request when you wake up feeling unwell, then a doctor reviews your information.",
         ],
       },
     ],
@@ -246,7 +246,7 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
     additionalFaqs: [
       { q: "Can tourists visiting Cairns use InstantMed?", a: "Yes. Any Australian resident (18+) can use InstantMed. International tourists are not currently eligible as our doctors prescribe under Australian regulations." },
       { q: "Does InstantMed serve Port Douglas?", a: "Yes. We serve all of Far North Queensland - Port Douglas, Palm Cove, the Atherton Tablelands, and Cairns Northern Beaches." },
-      { q: "Can hospitality workers get same-day certificates?", a: `Yes. Most certificates are issued within 1–2 hours. We're available 8am–10pm AEST, 7 days, which suits hospitality schedules. From ${PRICING_DISPLAY.MED_CERT}.` },
+      { q: "Can hospitality workers get doctor-reviewed certificates?", a: `Yes. Most certificates are issued within 1–2 hours. We're available 8am–10pm AEST, 7 days, which suits hospitality schedules. From ${PRICING_DISPLAY.MED_CERT}.` },
     ],
   },
   toowoomba: {
@@ -332,7 +332,7 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
     additionalFaqs: [
       { q: "Does InstantMed cover Springfield and Ripley Valley?", a: "Yes. We cover all of the Ipswich region - Springfield, Ripley Valley, Redbank Plains, Goodna, and everywhere else. It's an online service, so your location doesn't matter." },
       { q: "Can RAAF Amberley personnel use InstantMed?", a: "Yes, for personal medical needs (not Defence medical assessments). Our certificates are valid for civilian employment purposes and personal record-keeping." },
-      { q: "How fast can I get a certificate in Ipswich?", a: `Most certificates are reviewed within 1 hour. From ${PRICING_DISPLAY.MED_CERT} - typically faster and more affordable than competing for a GP appointment in a growth corridor.` },
+      { q: "How fast can I get a certificate in Ipswich?", a: `Review timing depends on doctor availability and whether follow-up information is needed. From ${PRICING_DISPLAY.MED_CERT} - typically faster and more affordable than competing for a GP appointment in a growth corridor.` },
     ],
   },
   mackay: {
@@ -355,7 +355,7 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
         title: "Shift Workers, FIFO Rosters, and Mining Industry Documentation",
         paragraphs: [
           "Mining companies operating in the Bowen Basin - BHP, Glencore, Peabody, Anglo American, and smaller contractors - have some of the strictest medical documentation requirements in the country. Fitness-for-duty protocols typically require a certificate from a registered medical practitioner for any unplanned absence, and the documentation bar for returning to site after illness is high. Our certificates include the doctor's name, AHPRA registration number, consultation date, and the recommended period of absence - everything a mining HR team needs.",
-          "For workers on 7/7 or 14/7 rosters, getting to a Mackay GP during their one week off - when they are also trying to see family and rest - is a logistical headache. Telehealth lets you handle the documentation in 20–30 minutes from home, on a Saturday morning, without burning a full day of downtime. If you fall ill mid-swing at camp and have internet, you can start the intake from site and have a certificate ready for your supervisor before your next shift.",
+          "For workers on 7/7 or 14/7 rosters, getting to a Mackay GP during their one week off - when they are also trying to see family and rest - is a logistical headache. Telehealth lets you handle the documentation from home after doctor review, on a Saturday morning, without burning a full day of downtime. If you fall ill mid-swing at camp and have internet, you can start the intake from site and have a certificate ready for your supervisor before your next shift.",
           "Beyond mining, Mackay's sugarcane industry, the Port of Mackay, and marine tourism businesses in the Whitsundays all contribute to a heavily shift-based local workforce. The Fair Work Act covers all of these workers equally, and none of the relevant industrial instruments require that certificates come from face-to-face consultations. A telehealth certificate from an AHPRA-registered doctor is legally identical to one from a clinic down the road.",
         ],
       },
@@ -373,7 +373,7 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
           "Telehealth is not a substitute for your regular GP for complex care. Chronic disease management, immunisations, screening, hands-on physical examinations, injections, and dressings all still require face-to-face care. What telehealth replaces is the unnecessary trip - the certificate for a flu that any doctor could clinically assess in five minutes, the renewal of a stable blood pressure tablet you have taken for years, the simple script for a recognised, recurrent issue.",
           "For Mackay's FIFO workforce in particular, the telehealth model is often more clinically consistent than what they would otherwise piece together. A worker who rotates between Mackay, the mine site, and possibly a different town for rest periods can struggle to maintain a single GP relationship. Telehealth gives them a consistent care pathway for routine needs that does not depend on being in any particular town on any particular day.",
           "We will always refer you to in-person care when the clinical situation needs it. If your symptoms suggest a physical examination is required - suspected chest infection, possible fracture, suspicious skin lesion - the doctor will tell you and you will not be charged for the telehealth consultation. The same filter applies in Mackay as everywhere else.",
-          "InstantMed's flat-fee model also removes the unpredictability of regional GP economics. You know what the certificate or script costs before you start the intake - there are no gap fees and no surprise add-ons at the end of the consultation. For Mackay families budgeting carefully and FIFO workers who need predictable healthcare costs, that matters as much as the time saved. Most certificates are reviewed within an hour during business hours, and the documentation arrives via email or SMS for forwarding directly to your supervisor or HR contact.",
+          "InstantMed's flat-fee model also removes the unpredictability of regional GP economics. You know what the certificate or script costs before you start the intake - there are no gap fees and no surprise add-ons at the end of the consultation. For Mackay families budgeting carefully and FIFO workers who need predictable healthcare costs, that matters as much as the time saved. Certificates are reviewed after submission, and approved documentation arrives via email or SMS for forwarding directly to your supervisor or HR contact.",
         ],
       },
     ],
@@ -419,7 +419,7 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
         title: "Mining, Agriculture, and the CQ Workforce",
         paragraphs: [
           "Central Queensland's economy is built on beef (Rockhampton bills itself as the 'beef capital of Australia'), mining - particularly the coalfields around Blackwater, Moranbah, and Moura - and the transport and port infrastructure connecting them to global markets. Each of these industries is heavily shift-based. Feedlot operations, abattoirs, meatworks, port logistics, and coal haulage all run around the clock, and their workers need medical documentation that fits around rotating rosters, not 9-to-5 clinic hours.",
-          "For workers at JBS Rockhampton, Teys Australia, or any of the regional abattoirs, a medical certificate is often a requirement for any unplanned absence. Same-day clinic visits are difficult in a city where GP wait times stretch to a week. Telehealth can issue the certificate within hours, typically 30 minutes or less during business hours, and the result is emailed to you as a PDF you can forward directly to your shift supervisor.",
+          "For workers at JBS Rockhampton, Teys Australia, or any of the regional abattoirs, a medical certificate is often a requirement for any unplanned absence. Same-day clinic visits are difficult in a city where GP wait times stretch to a week. Telehealth can issue the certificate after doctor approval, and the result is emailed to you as a PDF you can forward directly to your shift supervisor.",
           "Central Queensland University's main campus is in Rockhampton, and both CQU and TAFE Queensland Central Queensland serve thousands of local and regional students. Australian universities, including CQU, set their own policies for medical certificates used as academic support documentation. The delivery method - telehealth or face-to-face - does not affect acceptance.",
         ],
       },
@@ -435,7 +435,7 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
         title: "What Telehealth Replaces - and What It Doesn't",
         paragraphs: [
           "Telehealth is not a replacement for your regular GP relationship. Chronic disease management, immunisations, screening, hands-on physical examinations, and any condition that needs in-person assessment still require a face-to-face consultation. What telehealth replaces is the unnecessary trip - the sick note for a standard flu, the repeat script for a stable medication, the routine prescription for a recurrent issue you already understand.",
-          "Central Queensland's distances make this distinction particularly valuable. A round trip of two or three hours for a five-minute clinical assessment is wasted time and fuel. Telehealth lets you reserve the in-person visits for the things that genuinely need them, and handle everything else in 20–30 minutes from home. For working families in the Rockhampton region, that often means the difference between getting healthcare done and putting it off another week.",
+          "Central Queensland's distances make this distinction particularly valuable. A round trip of two or three hours for a five-minute clinical assessment is wasted time and fuel. Telehealth lets you reserve the in-person visits for the things that genuinely need them, and handle everything else from home after doctor review. For working families in the Rockhampton region, that often means the difference between getting healthcare done and putting it off another week.",
           "If your situation is not appropriate for telehealth, the doctor will refer you to in-person care and you will not be charged for the consultation. We never issue a certificate when a physical examination is genuinely required.",
         ],
       },
@@ -444,7 +444,7 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
         paragraphs: [
           "GP economics in Rockhampton and Central Queensland have moved in line with the national trend. Bulk-billing has declined, gap fees of $30–$60 are common, and waiting times for non-urgent appointments stretch to a week. For households budgeting carefully - particularly those on agricultural or shift-based incomes - the combined cost of a routine GP visit (gap fee, fuel from outlying communities, lost work time) frequently exceeds what telehealth charges flat.",
           "InstantMed's flat-fee model removes the unpredictability. You know what the certificate or script costs before you start the intake. There are no gap fees and no surprise add-ons. For families managing tight budgets in a region where wages have not kept pace with cost of living, that predictability matters as much as the time saved.",
-          "Most certificates are reviewed within an hour during business hours. The eScript or PDF arrives via email or SMS for collection at the nearest pharmacy or to forward directly to your employer. The full process - from starting the intake to having the documentation in hand - typically takes 30–60 minutes. For Rockhampton and broader Central Queensland residents, that is significantly faster than securing a same-day clinic appointment.",
+          "Review timing depends on doctor availability and whether follow-up information is needed. The eScript or PDF arrives via email or SMS for collection at the nearest pharmacy or to forward directly to your employer. The request is handled online, with the outcome sent electronically after doctor approval. For Rockhampton and broader Central Queensland residents, that is significantly faster than securing a same-day clinic appointment.",
         ],
       },
     ],
@@ -490,7 +490,7 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
         title: "Sugar, Horticulture, and Wide Bay Workers",
         paragraphs: [
           "Bundaberg's economy runs on agriculture - sugarcane, macadamias, avocados, tomatoes, and the region's famous small crops. Harvest season brings a large influx of working-holiday visa holders and seasonal workers, and it intersects with the permanent workforce at the sugar mills, packing sheds, and processing facilities (Bundaberg Rum is only the most visible example). All of these are heavily shift-based industries where a 9-to-5 GP clinic visit doesn't fit the roster.",
-          "Medical certificates are a routine requirement for any unplanned absence from harvest, packing, or mill work. Telehealth can issue the certificate within hours, available as a PDF that workers can forward to their supervisor or labour hire provider. For working-holiday visa holders who don't have an established GP in the region, telehealth provides a consistent pathway that doesn't depend on finding a local clinic that can fit them in.",
+          "Medical certificates are a routine requirement for any unplanned absence from harvest, packing, or mill work. Telehealth can issue the certificate after doctor approval, available as a PDF that workers can forward to their supervisor or labour hire provider. For working-holiday visa holders who don't have an established GP in the region, telehealth provides a consistent pathway that doesn't depend on finding a local clinic that can fit them in.",
           "Central Queensland University has a Bundaberg campus, and TAFE Queensland's Wide Bay institutes serve thousands of vocational students. Both set their own policies for medical certificates from AHPRA-registered doctors for academic support and academic support. The consultation method is not a factor in documentation review.",
         ],
       },
@@ -506,7 +506,7 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
         title: "What Telehealth Replaces - and What It Doesn't",
         paragraphs: [
           "Telehealth is not a substitute for your regular GP. Chronic disease management, immunisations, screening, hands-on physical examinations, and any condition that needs in-person assessment still require face-to-face care. What telehealth replaces is the unnecessary trip - the certificate for a standard flu, the renewal of a stable medication, the simple prescription for a recurrent issue you already understand.",
-          "For Bundaberg's agricultural and seasonal workforce, the value is straightforward: a same-day certificate without a half-day trip into town and a multi-day wait for a clinic appointment. For the region's older residents, the value is repeat scripts on stable chronic medications without leaving the house - the eScript arrives via SMS for collection at the nearest pharmacy. For visitors, the value is access to an AHPRA-registered Australian doctor without needing a local patient relationship.",
+          "For Bundaberg's agricultural and seasonal workforce, the value is straightforward: a doctor-reviewed certificate without a half-day trip into town and a multi-day wait for a clinic appointment. For the region's older residents, the value is repeat scripts on stable chronic medications without leaving the house - the eScript arrives via SMS for collection at the nearest pharmacy. For visitors, the value is access to an AHPRA-registered Australian doctor without needing a local patient relationship.",
           "We never issue a certificate when a physical examination is genuinely required. If your situation needs in-person care, the doctor refers you to it and you are not charged for the telehealth consultation. The clinical filter is identical regardless of whether you are in Bundaberg, Childers, or anywhere else.",
         ],
       },
@@ -515,7 +515,7 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
         paragraphs: [
           "GP economics in Bundaberg and the broader Wide Bay have shifted in recent years. Bulk-billing has declined, gap fees have grown, and waiting times have lengthened. For households across the region - particularly those on agricultural incomes that fluctuate seasonally - the combined cost of a routine GP visit (gap fee, fuel from outlying towns, lost work time, the wait) frequently exceeds what telehealth charges flat. For straightforward needs, the arithmetic favours telehealth.",
           "InstantMed's flat-fee model removes the unpredictability. You know what the certificate or script costs before you start the intake. There are no gap fees and no surprise add-ons. For families budgeting carefully, that predictability matters as much as the time saved.",
-          "Most certificates are reviewed within an hour during business hours. The eScript or PDF arrives via email or SMS, and you can forward it to your employer or labour hire provider directly. The full process - from starting the intake to having the documentation in hand - typically takes 30–60 minutes. For Bundaberg and Wide Bay residents, that is significantly faster than securing a same-day clinic appointment.",
+          "Review timing depends on doctor availability and whether follow-up information is needed. The eScript or PDF arrives via email or SMS, and you can forward it to your employer or labour hire provider directly. The request is handled online, with the outcome sent electronically after doctor approval. For Bundaberg and Wide Bay residents, that is significantly faster than securing a same-day clinic appointment.",
         ],
       },
     ],
@@ -562,7 +562,7 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
         title: "Retirees, Working-Age Residents, and Seasonal Tourism",
         paragraphs: [
           "Hervey Bay's retiree population, combined with the established working-age community in Maryborough and the Fraser Coast's service industries, creates a mixed healthcare demand profile. For retirees who are generally comfortable with technology (a growing share), telehealth is a practical alternative to sitting in a waiting room - particularly for repeat scripts of stable medications like blood pressure or cholesterol tablets, where there is no clinical reason to attend in person.",
-          "For working-age residents in hospitality, retail, and the marine tourism sector, the same logic applies as anywhere else in regional Australia - irregular hours, limited sick leave, and a real need for same-day certificates. The whale watching season (July to November) and K'gari tourism draw significant seasonal employment, and these workers benefit most from telehealth's flexible availability.",
+          "For working-age residents in hospitality, retail, and the marine tourism sector, the same logic applies as anywhere else in regional Australia - irregular hours, limited sick leave, and a real need for doctor-reviewed certificates. The whale watching season (July to November) and K'gari tourism draw significant seasonal employment, and these workers benefit most from telehealth's flexible availability.",
           "We never issue a certificate when the clinical situation needs a physical examination or face-to-face care. If your symptoms suggest you need an in-person assessment - suspected chest infection, suspicious skin lesion, joint injury - the doctor will refer you to in-person care and you will not be charged for the telehealth consultation.",
         ],
       },
@@ -571,14 +571,14 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
         paragraphs: [
           "Hervey Bay and Fraser Coast employers operate under the Fair Work Act 2009 or, for state government workers, the relevant Queensland industrial instruments. Both frameworks accept medical certificates from AHPRA-registered practitioners and do not distinguish between telehealth and face-to-face consultations. Queensland government departments, Fraser Coast Regional Council, Hervey Bay Hospital, tourism operators, and local businesses all assess telehealth certificates under their own policies.",
           "University of the Sunshine Coast's Fraser Coast campus in Hervey Bay serves regional students. USC sets its own policy for medical certificates from AHPRA-registered doctors for academic support requests, missed assessment documentation, and coursework documentation - the same rule that applies at every Australian university.",
-          "Repeat prescription needs are particularly common in the Hervey Bay demographic. Rather than wait a week for a GP appointment simply to renew a stable medication, telehealth can handle the renewal in 20–30 minutes with an eScript sent directly to your phone for collection at any local pharmacy.",
+          "Repeat prescription needs are particularly common in the Hervey Bay demographic. Rather than wait a week for a GP appointment simply to renew a stable medication, telehealth can handle the renewal online after doctor approval, with an eScript sent directly to your phone for collection at any local pharmacy.",
         ],
       },
       {
         title: "What Telehealth Replaces - and What It Doesn't",
         paragraphs: [
           "Telehealth is not a substitute for your regular GP relationship. Chronic disease management, immunisations, screening, hands-on physical examinations, and dressings still require face-to-face care. What telehealth replaces is the unnecessary trip - the certificate for a standard flu, the renewal of a stable medication, the simple prescription for a recurrent issue you already recognise.",
-          "For Hervey Bay's older residents in particular, the convenience of telehealth for routine repeat scripts is substantial. There is no clinical reason to attend a clinic in person to renew a long-standing blood pressure or cholesterol medication. The doctor reviews your history, confirms the renewal is appropriate, and the eScript arrives via SMS for collection at the nearest pharmacy. The whole process takes 20–30 minutes from your living room.",
+          "For Hervey Bay's older residents in particular, the convenience of telehealth for routine repeat scripts is substantial. There is no clinical reason to attend a clinic in person to renew a long-standing blood pressure or cholesterol medication. The doctor reviews your history, confirms the renewal is appropriate, and the eScript arrives via SMS for collection at the nearest pharmacy. The request can be handled from your living room after doctor review.",
           "If your symptoms or situation are not appropriate for telehealth, the doctor refers you to in-person care and you are not charged. We never issue a certificate when a physical examination is genuinely required. The clinical filter applies identically regardless of the patient's age or location.",
         ],
       },
@@ -587,7 +587,7 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
         paragraphs: [
           "GP economics on the Fraser Coast have shifted in recent years. Bulk-billing has declined, gap fees have grown, and waiting times have lengthened. For Hervey Bay residents - particularly those on fixed retiree incomes - predictability matters. The combined cost of a routine GP visit (gap fee, time, occasional travel) frequently exceeds what telehealth charges flat. For straightforward certificate and script needs, the arithmetic increasingly favours telehealth.",
           "InstantMed's flat-fee model removes the unpredictability. You know what the certificate or script costs before you start the intake. There are no gap fees, no surprise add-ons, and no bill shock at the end. For retirees and families budgeting on fixed or modest incomes, that predictability often matters as much as the time saved.",
-          "Most certificates are reviewed within an hour during business hours. The eScript or PDF arrives via email or SMS for collection at the nearest pharmacy or to forward directly to your employer. The full process - from starting the intake to having the documentation in hand - typically takes 30–60 minutes. For Hervey Bay and Fraser Coast residents, that is significantly faster than securing a same-day clinic appointment in the local catchment.",
+          "Review timing depends on doctor availability and whether follow-up information is needed. The eScript or PDF arrives via email or SMS for collection at the nearest pharmacy or to forward directly to your employer. The request is handled online, with the outcome sent electronically after doctor approval. For Hervey Bay and Fraser Coast residents, that is significantly faster than securing a same-day clinic appointment in the local catchment.",
         ],
       },
     ],
@@ -610,7 +610,7 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
     additionalFaqs: [
       { q: "Can retirees in Hervey Bay use InstantMed?", a: "Yes. InstantMed is available to any Australian resident 18+. The intake is designed to be straightforward, and telehealth is particularly useful for repeat scripts of stable chronic medications - no need to attend a clinic in person just to renew a prescription you have been on for years." },
       { q: "Does InstantMed cover Maryborough and K'gari?", a: "Yes. Hervey Bay, Maryborough, Burrum Heads, Tin Can Bay, and K'gari (Fraser Island) - anywhere on the Fraser Coast with internet access is covered." },
-      { q: "Can whale watching season workers get certificates quickly?", a: `Yes. Most certificates are reviewed within an hour during business hours. From ${PRICING_DISPLAY.MED_CERT}, regardless of whether it is peak season or off-season.` },
+      { q: "Can whale watching season workers get certificates quickly?", a: `Yes. Review timing depends on doctor availability and whether follow-up information is needed. From ${PRICING_DISPLAY.MED_CERT}, regardless of whether it is peak season or off-season.` },
       { q: "Are certificates suitable for Fraser Coast Regional Council and Hervey Bay Hospital documentation?", a: "Yes. All Australian employers, including local councils and public hospitals, must set their own policies for certificates from AHPRA-registered doctors under the Fair Work Act. The consultation method does not affect validity." },
     ],
   },
@@ -634,7 +634,7 @@ export const QLD_CITIES: Record<string, DeepCityContent> = {
         title: "Industrial Workers and Medical Certificates in Gladstone",
         paragraphs: [
           "Gladstone's industrial employers - Santos, Origin Energy, ConocoPhillips, Rio Tinto (QAL and Boyne Smelters), GPC - typically require medical certificates for any absence, often as part of fitness-for-duty protocols. These are large, safety-critical operations where unplanned absences affect shift coverage and production. Workers need certificates quickly to maintain their standing with supervisors and HR.",
-          "Many Gladstone workers are employed through labour hire companies (Programmed, Chandler Macleod, Hays) or on contractor arrangements. These workers often face stricter documentation requirements than permanent employees - a missing certificate can mean losing future shifts. Telehealth's same-day turnaround is particularly valuable for this workforce.",
+          "Many Gladstone workers are employed through labour hire companies (Programmed, Chandler Macleod, Hays) or on contractor arrangements. These workers often face stricter documentation requirements than permanent employees - a missing certificate can mean losing future shifts. Telehealth's doctor review is particularly valuable for this workforce.",
           "FIFO and DIDO (drive-in, drive-out) workers who commute to Gladstone from Rockhampton, Bundaberg, or further afield face additional challenges. If they fall ill during their swing, they may not have a local GP. Telehealth provides access to a doctor regardless of where the worker's home base is located. Certificates are nationally valid and industrial employer policies may vary.",
         ],
       },

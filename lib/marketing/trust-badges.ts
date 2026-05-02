@@ -149,11 +149,11 @@ export const BADGE_REGISTRY: Record<BadgeId, BadgeConfig> = {
     tooltip: 'Most intake forms take under 2 minutes to complete',
   },
   same_day: {
-    id: 'same_day', label: 'Same-day delivery', icon: Send,
+    id: 'same_day', label: 'Certificate delivery', icon: Send,
     iconColor: 'text-cyan-600',
     pillClass: 'bg-cyan-50 border-cyan-200 text-cyan-800 dark:bg-cyan-950/40 dark:border-cyan-800 dark:text-cyan-300',
     hasStyledTier: true,
-    tooltip: '94% of certificates delivered same day',
+    tooltip: '94% of certificates delivered after doctor approval',
   },
 
   // ── Outcome ───────────────────────────────────────────────────────────

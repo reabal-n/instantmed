@@ -21,7 +21,7 @@ export const SMS_TEMPLATES = {
     `Hi ${patientName}, your eScript is ready! Show this code at any pharmacy: ${scriptToken}. Or tap: https://erx.com.au/script/${scriptToken}`,
 
   PAYMENT_RECEIVED: (patientName: string, amount: string) =>
-    `Hi ${patientName}, payment of ${amount} received. Your request is now in the doctor queue. ETA: ~15 mins.`,
+    `Hi ${patientName}, payment of ${amount} received. Your request is now in the doctor queue. Doctor review is underway.`,
 
   REFILL_REMINDER: (medicationName: string, daysLeft: number) =>
     `Your ${medicationName} script may run out in ${daysLeft} days. Tap to refill: instantmed.com.au/prescriptions/request`,

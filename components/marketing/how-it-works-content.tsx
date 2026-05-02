@@ -21,7 +21,7 @@ const processSteps = [
   {
     title: "A real doctor reviews it",
     description:
-      "An AHPRA-registered GP reviews your request and medical history. If they need more info, they\u2019ll reach out directly. Most reviews done within the hour.",
+      "An AHPRA-registered GP reviews your request and medical history. If they need more info, they\u2019ll reach out directly. A doctor reviews your request after you submit.",
   },
   {
     title: "Get your document",
@@ -35,7 +35,7 @@ const features = [
     icon: <StickerIcon name="clock" size={44} />,
     title: "Fast turnaround",
     description:
-      "Most requests reviewed within hours. If we can't help, you get a full refund.",
+      "Doctor review after you submit. If we can't help, you get a full refund.",
   },
   {
     icon: <StickerIcon name="security-shield" size={44} />,
@@ -165,7 +165,7 @@ export function HowItWorksContent() {
         {/* Doctor Credibility */}
         <DoctorCredibility
           variant="section"
-          stats={["experience", "approval", "sameDay"]}
+          stats={["experience", "approval", "delivery"]}
           className="px-4 sm:px-6"
         />
 

@@ -43,7 +43,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!condition || !combo) return {}
 
   const title = `${condition.name} in ${cityName} | Medical Certificate Online`
-  const description = `${condition.description} Get a medical certificate for ${condition.name.toLowerCase()} in ${cityName}. Australian doctors, same-day assessment. ${PRICING_DISPLAY.FROM_MED_CERT}.`
+  const description = `${condition.description} Get a medical certificate for ${condition.name.toLowerCase()} in ${cityName}. Australian doctors, doctor review. ${PRICING_DISPLAY.FROM_MED_CERT}.`
 
   return {
     title,
@@ -55,7 +55,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     ],
     openGraph: {
       title: `${condition.name} in ${cityName} | InstantMed`,
-      description: `Get a medical certificate for ${condition.name.toLowerCase()} in ${cityName}. Australian doctors, same-day assessment.`,
+      description: `Get a medical certificate for ${condition.name.toLowerCase()} in ${cityName}. Australian doctors, doctor review.`,
       url: `https://instantmed.com.au/conditions/${slug}/${city}`,
     },
     alternates: {
@@ -311,7 +311,7 @@ export default async function ConditionLocationPage({ params }: PageProps) {
               </h2>
               <p className="text-lg text-muted-foreground mb-8">
                 Our Australian-registered doctors are available now. Most consultations completed
-                within an hour.
+                after doctor review.
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                 <Button

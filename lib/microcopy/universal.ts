@@ -11,7 +11,7 @@ export { isControlledSubstance }
 export const COPY = {
   // Global messaging
   global: {
-    turnaround: "Most done in under an hour",
+    turnaround: "Doctor reviewed after you submit",
     turnaroundLong: "Requests accepted any time; review follows when available",
     doctorReview: "A doctor reviews every request",
     noPhone: "Most requests sorted without a call",
@@ -20,7 +20,7 @@ export const COPY = {
     slaReviewTime: "1–2 hours",
     slaBusinessHours: "Requests accepted 24/7",
     slaPendingMessage: "Requests are accepted any time. Doctor review follows when available.",
-    slaInReviewMessage: "A doctor is reviewing your request. Most reviews are completed under an hour.",
+    slaInReviewMessage: "A doctor is reviewing your request. We'll notify you when it is complete.",
     price: {
       medcert: PRICING_DISPLAY.FROM_MED_CERT,
       medcertOneDay: PRICING_DISPLAY.MED_CERT,

@@ -10,8 +10,8 @@ Single source of truth for all platform metrics shown on marketing pages.
 
 | Export | Type | What it provides |
 |--------|------|-----------------|
-| `SOCIAL_PROOF` | `const object` | Raw numbers: `averageRating`, `certTurnaroundMinutes`, `averageResponseMinutes`, `certApprovalPercent`, `scriptFulfillmentPercent`, `sameDayDeliveryPercent`, `refundPercent`, `reviewCount`, etc. |
-| `SOCIAL_PROOF_DISPLAY` | `const object` | Pre-formatted strings: `rating`, `ratingWithStar`, `responseTime`, `certTurnaround`, `operatingHours`, `refundGuarantee`, `sameDayDelivery`, etc. |
+| `SOCIAL_PROOF` | `const object` | Raw numbers: `averageRating`, `certApprovalPercent`, `scriptFulfillmentPercent`, `refundPercent`, `reviewCount`, etc. |
+| `SOCIAL_PROOF_DISPLAY` | `const object` | Pre-formatted strings: `rating`, `ratingWithStar`, `operatingHours`, `refundGuarantee`, `certApproval`, etc. |
 | `GOOGLE_REVIEWS` | `object` | Google Business Profile config: `enabled`, `placeId`, `reviewsUrl`, `rating`, `count`. Gates `GoogleReviewsBadge` and `OrganizationSchema`. |
 | `getPatientCount()` | `function` | Server-safe interpolated patient count. Client hook: `usePatientCount()` from `lib/use-patient-count.ts`. |
 
@@ -44,7 +44,7 @@ Service-specific stat configurations for social proof strips.
 | Export | Type | What it provides |
 |--------|------|-----------------|
 | `StatEntry` | `interface` | `{ icon: LucideIcon, value: number, suffix: string, label: string, color: string, decimals?: number }` |
-| `STAT_PRESETS` | `Record<string, readonly StatEntry[]>` | 3 presets: `med-cert` (approval%, turnaround, rating, same-day delivery), `prescription` (fulfillment%, response time, rating, refund guarantee), `consult` (review time, rating, approval%, refund guarantee). All values sourced from `SOCIAL_PROOF`. |
+| `STAT_PRESETS` | `Record<string, readonly StatEntry[]>` | 3 presets: `med-cert`, `prescription`, and `consult` using non-SLA proof points sourced from `SOCIAL_PROOF`. |
 | `TotalPatientsCounter` | `component` | Variants: `inline`, `card`, `hero`, `badge`. Uses `usePatientCount()` + `NumberFlow`. |
 | `StatsStrip` | `component` | Compact strip showing patients served, approval rate, avg rating. |
 
@@ -103,13 +103,13 @@ Canonical FAQ content per service. All exports are `FAQItem[]` or `FAQGroup[]` (
 
 ## 6. Wait Times — `components/marketing/live-wait-time.tsx`
 
-Static, honest wait time display per service. No fake randomization.
+Static, honest review-state display per service. No fake randomization and no fixed timing promise unless backed by real request telemetry.
 
 | Constant | Scope |
 |----------|-------|
 | `SERVICE_CONFIG` | Internal to `live-wait-time.tsx`. Keys: `med-cert`, `scripts`, `consult`, `consult-ed`, `consult-hair-loss`. |
 
-Med-cert wait time reads from `SOCIAL_PROOF.certTurnaroundMinutes` (currently 20 min). Other services use fixed "Under 1 hour".
+All services currently show submission/review-state copy rather than fixed wait times.
 
 **Components:** `LiveWaitTime` (single service), `WaitTimeStrip` (all services in a row).
 

@@ -17,9 +17,7 @@
  * of unique state-specific content + city grid + FAQs.
  */
 
-import { SOCIAL_PROOF } from "@/lib/social-proof"
-
-const CERT_TURNAROUND = `~${SOCIAL_PROOF.certTurnaroundMinutes} min`
+const CERT_REVIEW = "Doctor review"
 
 export type StateSlug = "nsw" | "vic" | "qld" | "wa" | "sa" | "tas" | "act" | "nt"
 
@@ -59,12 +57,12 @@ export const statesData: Record<StateSlug, StateData> = {
     healthcareContext: [
       "New South Wales has the largest population and the widest healthcare-access gap of any Australian state. Metropolitan Sydney alone spans 12,000 km² with healthcare availability varying dramatically between suburbs - the Eastern Suburbs and Lower North Shore have high GP density but low bulk-billing, while Western and Southwestern Sydney have growing populations outpacing clinic capacity. Even when bulk-billing is available in the west, same-day appointments are often impossible, particularly on Mondays and Fridays when demand peaks.",
       "Beyond Sydney, regional NSW faces a different set of pressures. Towns like Dubbo, Orange, Wagga Wagga, and the Mid North Coast have fewer GPs per capita than the national average, and locum coverage is inconsistent. For residents of these areas, a 'quick trip to the doctor' for a straightforward med cert or repeat script can mean a half-day round trip. Telehealth removes the distance barrier entirely - the same AHPRA-registered doctor reviews your request whether you're in Mosman or Moree.",
-      "Sydney's shift-working population - hospitality, healthcare workers at RPA and Westmead, logistics staff in Western Sydney - rarely align with standard 9-5 clinic hours. After-hours medical centres exist but typically charge premium fees and have 2-3 hour waits. InstantMed's med-cert service runs 24/7 with ~20 minute turnarounds, and prescription/consultation reviews run 8am-10pm AEST, seven days a week.",
+      "Sydney's shift-working population - hospitality, healthcare workers at RPA and Westmead, logistics staff in Western Sydney - rarely align with standard 9-5 clinic hours. After-hours medical centres exist but typically charge premium fees and have 2-3 hour waits. InstantMed's med-cert service accepts submissions 24/7 for doctor review, and prescription/consultation reviews run 8am-10pm AEST, seven days a week.",
     ],
     stats: [
       { label: "Population", value: "8.3M", context: "Largest Australian state" },
       { label: "Cities served", value: "13+", context: "Sydney to Wagga Wagga" },
-      { label: "Med cert turnaround", value: CERT_TURNAROUND, context: "24/7 availability" },
+      { label: "Med cert pathway", value: CERT_REVIEW, context: "24/7 submission" },
       { label: "Bulk-billing rate", value: "~69%", context: "Below national average in metro Sydney" },
     ],
     localContext: [
@@ -107,7 +105,7 @@ export const statesData: Record<StateSlug, StateData> = {
       },
       {
         q: "Do you offer NSW-specific prescriptions or state-based scripts?",
-        a: "Prescriptions are federally regulated under the Commonwealth Therapeutic Goods Act, not state-based. An eScript issued by an AHPRA-registered doctor is valid at any pharmacy across NSW and the rest of Australia - you can fill it at your local pharmacy in Sydney, at a pharmacy in Wagga, or anywhere else the same day.",
+        a: "Prescriptions are federally regulated under the Commonwealth Therapeutic Goods Act, not state-based. An eScript issued by an AHPRA-registered doctor is valid at any pharmacy across NSW and the rest of Australia.",
       },
     ],
   },
@@ -130,7 +128,7 @@ export const statesData: Record<StateSlug, StateData> = {
       { label: "Population", value: "6.9M", context: "Second-largest Australian state" },
       { label: "Cities served", value: "6+", context: "Melbourne to Mildura" },
       { label: "Melbourne CBD bulk-billing", value: "~55%", context: "Among the lowest in Australia" },
-      { label: "Med cert turnaround", value: CERT_TURNAROUND, context: "24/7" },
+      { label: "Med cert pathway", value: CERT_REVIEW, context: "24/7 submission" },
     ],
     localContext: [
       {
@@ -171,17 +169,17 @@ export const statesData: Record<StateSlug, StateData> = {
     capital: "Brisbane",
     heroHeadline: "Online doctor across Queensland",
     heroSubtitle:
-      "Telehealth medical certificates and prescriptions for Queensland residents. From Brisbane to Cairns, reviewed by AHPRA-registered doctors - same-day turnaround, no driving.",
+      "Telehealth medical certificates and prescriptions for Queensland residents. From Brisbane to Cairns, reviewed by AHPRA-registered doctors - doctor review, no driving.",
     healthcareContext: [
       "Queensland's geography makes it the poster child for Australian telehealth. The state covers 1.85 million km² - more than seven times the size of the UK - with population clusters along the coast and sparse inland communities. A resident of Mount Isa is closer to Darwin than to Brisbane. Regional Queenslanders have some of the highest telehealth adoption rates in the country, and for good reason: the alternative is often a 2-4 hour drive or a flight to the nearest GP with availability.",
       "The Southeast corner - Brisbane, Gold Coast, Sunshine Coast, Ipswich, Toowoomba - has decent GP density but among the longest appointment wait times in Australia. Brisbane's northside and the Sunshine Coast have been growing faster than clinic capacity since 2020, pushing non-urgent wait times to 5-10 days. For FIFO workers, shift workers at the Brisbane Airport precinct, or anyone managing a busy schedule, the friction of a traditional GP visit for a straightforward med cert or prescription repeat is often untenable.",
-      "Far North Queensland and the tropics present unique medical considerations - stinger season, dengue awareness, tropical ulcer management - that InstantMed's doctors are trained for. Our prescribing follows TGA guidelines and we maintain the same Schedule 8 blocks as any other telehealth provider, but for straightforward repeat scripts on stable medication, the Cairns-to-Townsville corridor can access an AHPRA-registered doctor within an hour regardless of wet season flooding.",
+      "Far North Queensland and the tropics present unique medical considerations - stinger season, dengue awareness, tropical ulcer management - that InstantMed's doctors are trained for. Our prescribing follows TGA guidelines and we maintain the same Schedule 8 blocks as any other telehealth provider, but for straightforward repeat scripts on stable medication, the Cairns-to-Townsville corridor can access an AHPRA-registered doctor online regardless of wet season flooding.",
     ],
     stats: [
       { label: "Population", value: "5.5M", context: "Third-largest Australian state" },
       { label: "Cities served", value: "12+", context: "Brisbane to Cairns" },
       { label: "Area covered", value: "1.85M km²", context: "Spread across coast, inland, FNQ" },
-      { label: "Med cert turnaround", value: CERT_TURNAROUND, context: "24/7" },
+      { label: "Med cert pathway", value: CERT_REVIEW, context: "24/7 submission" },
     ],
     localContext: [
       {
@@ -296,7 +294,7 @@ export const statesData: Record<StateSlug, StateData> = {
       { label: "Population", value: "1.8M", context: "75% in metro Adelaide" },
       { label: "Cities served", value: "3+", context: "Adelaide, Mt Gambier, Port Augusta" },
       { label: "Area covered", value: "984,000 km²", context: "Includes remote Outback communities" },
-      { label: "Med cert turnaround", value: CERT_TURNAROUND, context: "24/7" },
+      { label: "Med cert pathway", value: CERT_REVIEW, context: "24/7 submission" },
     ],
     localContext: [
       {
@@ -347,7 +345,7 @@ export const statesData: Record<StateSlug, StateData> = {
       { label: "Population", value: "570K", context: "Smallest mainland state" },
       { label: "Cities served", value: "2+", context: "Hobart, Launceston + regional" },
       { label: "New-patient GP wait", value: "6+ weeks", context: "Highest in Australia (2026)" },
-      { label: "Med cert turnaround", value: CERT_TURNAROUND, context: "24/7" },
+      { label: "Med cert pathway", value: CERT_REVIEW, context: "24/7 submission" },
     ],
     localContext: [
       {
@@ -398,7 +396,7 @@ export const statesData: Record<StateSlug, StateData> = {
       { label: "Population", value: "460K", context: "Smallest Australian state/territory" },
       { label: "Cities served", value: "1", context: "Canberra (ACT is one city-state)" },
       { label: "Bulk-billing rate", value: "~42%", context: "Among the lowest in Australia" },
-      { label: "Med cert turnaround", value: CERT_TURNAROUND, context: "24/7" },
+      { label: "Med cert pathway", value: CERT_REVIEW, context: "24/7 submission" },
     ],
     localContext: [
       {
@@ -449,7 +447,7 @@ export const statesData: Record<StateSlug, StateData> = {
       { label: "Population", value: "250K", context: "Smallest Australian jurisdiction" },
       { label: "Cities served", value: "2+", context: "Darwin, Alice Springs + remote" },
       { label: "Area covered", value: "1.4M km²", context: "Largest per-capita area" },
-      { label: "Med cert turnaround", value: CERT_TURNAROUND, context: "24/7" },
+      { label: "Med cert pathway", value: CERT_REVIEW, context: "24/7 submission" },
     ],
     localContext: [
       {

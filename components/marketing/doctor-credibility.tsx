@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils'
 
 interface DoctorCredibilityProps {
   variant?: 'inline' | 'card' | 'section'
-  stats?: ('experience' | 'approval' | 'sameDay' | 'returnRate' | 'reviews')[]
+  stats?: ('experience' | 'approval' | 'delivery' | 'returnRate' | 'reviews')[]
   className?: string
 }
 
@@ -29,10 +29,10 @@ const STAT_CONFIG = {
     color: 'text-success',
     bg: 'bg-success-light',
   },
-  sameDay: {
+  delivery: {
     icon: Clock,
-    value: `${SOCIAL_PROOF.sameDayDeliveryPercent}%`,
-    label: 'Delivered same day',
+    value: 'PDF',
+    label: 'Secure delivery',
     color: 'text-primary',
     bg: 'bg-primary/10',
   },
@@ -54,7 +54,7 @@ const STAT_CONFIG = {
 
 export function DoctorCredibility({
   variant = 'inline',
-  stats = ['experience', 'approval', 'sameDay', 'reviews'],
+  stats = ['experience', 'approval', 'delivery', 'reviews'],
   className,
 }: DoctorCredibilityProps) {
   const prefersReducedMotion = useReducedMotion()

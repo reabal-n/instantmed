@@ -89,7 +89,7 @@ export default async function Image() {
             marginBottom: '36px',
           }}
         >
-          {['AHPRA-Registered GP', 'Under 1 Hour', 'Accepted Everywhere'].map((badge) => (
+          {['AHPRA-Registered GP', 'Doctor Reviewed', 'Employer policies vary'].map((badge) => (
             <div
               key={badge}
               style={{

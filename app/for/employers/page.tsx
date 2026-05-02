@@ -117,7 +117,7 @@ export default function EmployersPage() {
     {
       question: "How quickly can employees get a certificate?",
       answer:
-        "Most certificates are issued in under 30 minutes, available 24/7. This means employees can produce a certificate whenever they need one.",
+        "Requests can be submitted any time. A doctor reviews the employee's information, and approved certificates are sent as a secure PDF.",
     },
     {
       question: "Can we set up a corporate account?",

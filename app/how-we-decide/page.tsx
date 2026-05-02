@@ -26,7 +26,7 @@ const howWeDecideFaqs = [
   },
   {
     question: "How long does the review take?",
-    answer: "Most requests are reviewed within 1-2 hours during operating hours (8am-10pm AEST, 7 days). Some may take longer if the doctor needs to follow up with additional questions or if we're experiencing higher than usual demand.",
+    answer: "Review timing depends on doctor availability and whether follow-up questions are needed. You'll receive a notification when your request is reviewed or if the doctor needs more information.",
   },
   {
     question: "What if the doctor needs more information?",

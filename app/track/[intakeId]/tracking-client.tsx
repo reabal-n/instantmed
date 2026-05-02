@@ -266,8 +266,7 @@ export function TrackingClient({
                 <div className="flex items-center gap-1.5">
                   <Clock className="w-3 h-3" />
                   <span>
-                    Usually delivered within{" "}
-                    {intake.is_priority ? "a few minutes" : "5 minutes"}
+                    Doctor review is underway
                   </span>
                 </div>
                 {queuePosition > 0 && intake.status === "paid" && (

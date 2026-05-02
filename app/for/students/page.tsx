@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: "Medical Certificates for Uni Students | InstantMed",
-    description: "Get a doctor-reviewed medical certificate for study absence documentation in 15 minutes.",
+    description: "Get a doctor-reviewed medical certificate for study absence documentation online.",
     url: "https://instantmed.com.au/for/students",
   },
   alternates: {
@@ -75,7 +75,7 @@ export default function StudentsPage() {
                     Medical Certificates for Students
                   </h1>
                   <p className="text-sm md:text-base text-muted-foreground max-w-xl mx-auto mb-4">
-                    Too unwell for class or study? Get your medical certificate in <strong>15 minutes</strong>. Institution policies vary.
+                    Too unwell for class or study? Get your medical certificate online. Institution policies vary.
                   </p>
                   <p className="text-xs text-muted-foreground mb-6">
                     Study absence documentation • Doctor-reviewed • Verification code included
@@ -209,7 +209,7 @@ export default function StudentsPage() {
                     {
                       icon: Clock,
                       title: "No GP waitlists",
-                      desc: "Skip the 2-week wait for a bulk-billing appointment. Sorted in 15 minutes.",
+                      desc: "Skip the 2-week wait for a bulk-billing appointment. Sorted online after doctor approval.",
                     },
                     {
                       icon: Zap,
@@ -283,7 +283,7 @@ export default function StudentsPage() {
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               <div className="max-w-xl mx-auto text-center">
                 <div className="glass-card rounded-3xl p-6 lg:p-8 relative overflow-hidden border-primary/20 bg-blue-50/30 dark:bg-blue-950/10">
-                  <h2 className="text-2xl font-semibold mb-3">Get your certificate in 15 minutes</h2>
+                  <h2 className="text-2xl font-semibold mb-3">Get your certificate online</h2>
                   <p className="text-sm text-muted-foreground mb-6">
                     Get your certificate before your documentation deadline.
                   </p>

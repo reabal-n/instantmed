@@ -103,7 +103,7 @@ export const SERVICE_METADATA: Record<ServiceType, ServiceMetadata> = {
     shortName: "Med Cert",
     urlSlug: "medical-certificate",
     description: "Get a medical certificate for work or study",
-    estimatedTime: "15 minutes",
+    estimatedTime: "Doctor review",
     price: PRICING_DISPLAY.MED_CERT,
     priceInCents: PRICING.MED_CERT * 100,
     requiresConsult: false,

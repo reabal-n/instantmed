@@ -23,7 +23,6 @@ import { SectionPill } from "@/components/ui/section-pill"
 import { PRICING_DISPLAY } from "@/lib/constants"
 import { getAllStateSlugs, statesData } from "@/lib/seo/data/states"
 import { safeJsonLd } from "@/lib/seo/safe-json-ld"
-import { SOCIAL_PROOF } from "@/lib/social-proof"
 
 // ============================================================================
 // METADATA - head-term pillar for "online doctor australia"
@@ -32,8 +31,8 @@ import { SOCIAL_PROOF } from "@/lib/social-proof"
 const CANONICAL = "https://instantmed.com.au/online-doctor-australia"
 
 export const metadata: Metadata = {
-  title: "Online Doctor Australia | AHPRA-Registered GPs, Reviewed Same Day",
-  description: `See an online doctor in Australia without the waiting room. AHPRA-registered GPs review medical certificates, prescriptions, and consultations same-day. ${PRICING_DISPLAY.FROM_MED_CERT}, 24/7 for med certs, 8am\u201310pm AEST for Rx and consults.`,
+  title: "Online Doctor Australia | AHPRA-Registered GPs",
+  description: `See an online doctor in Australia without the waiting room. AHPRA-registered GPs review medical certificates, prescriptions, and consultations online. ${PRICING_DISPLAY.FROM_MED_CERT}, 24/7 for med cert submissions, 8am\u201310pm AEST for Rx and consults.`,
   keywords: [
     "online doctor australia",
     "online doctor au",
@@ -48,7 +47,7 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: "Online Doctor Australia - AHPRA-Registered GPs | InstantMed",
-    description: `See an Australian online doctor without leaving home. Med certs, repeat prescriptions, and consultations reviewed by AHPRA-registered GPs. Same-day turnaround from ${PRICING_DISPLAY.MED_CERT}.`,
+    description: `See an Australian online doctor without leaving home. Med certs, repeat prescriptions, and consultations reviewed by AHPRA-registered GPs. Doctor-reviewed pathway from ${PRICING_DISPLAY.MED_CERT}.`,
     url: CANONICAL,
     siteName: "InstantMed",
     locale: "en_AU",
@@ -58,7 +57,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Online Doctor Australia | InstantMed",
     description:
-      "AHPRA-registered online GPs. Medical certificates, prescriptions, consultations - reviewed same-day.",
+      "AHPRA-registered online GPs. Medical certificates, prescriptions, consultations - reviewed online.",
   },
   alternates: { canonical: CANONICAL },
 }
@@ -69,7 +68,7 @@ export const metadata: Metadata = {
 
 const STATS = [
   { value: "AHPRA", label: "Registered GPs", context: "Every review by an Australian-registered doctor" },
-  { value: `~${SOCIAL_PROOF.certTurnaroundMinutes} min`, label: "Med cert turnaround", context: "Typical same-day timing" },
+  { value: "24/7", label: "Med cert submission", context: "Doctor review follows when available" },
   { value: "24/7", label: "Med cert availability", context: "Rx + consults 8am–10pm AEST" },
   { value: `${PRICING_DISPLAY.MED_CERT}`, label: "From", context: "Full refund if we can't help" },
 ]
@@ -78,7 +77,7 @@ const SERVICES = [
   {
     icon: FileText,
     title: "Medical certificates",
-    body: "Valid for employers, universities, and Centrelink. Same-day turnaround, accepted under the Fair Work Act 2009.",
+    body: "Valid for employers, universities, and Centrelink. Doctor-reviewed pathway, accepted under the Fair Work Act 2009.",
     href: "/medical-certificate",
     cta: "Request a medical certificate",
     priceLabel: `From ${PRICING_DISPLAY.MED_CERT}`,
@@ -130,7 +129,7 @@ const FAQS = [
   {
     question: "How fast will I actually hear back from the doctor?",
     answer:
-      "Medical certificates are typically reviewed within around 30 minutes, 24 hours a day. Prescriptions and consultations are reviewed within 1–2 hours during our operating hours (8am–10pm AEST, seven days a week), and within 24 hours at the maximum. We don't publish a customer-facing SLA guarantee, but the vast majority of requests are cleared same-day.",
+      "Requests can be submitted any time. Doctor review timing depends on availability, case complexity, and whether follow-up questions are needed. We don't publish a customer-facing SLA guarantee, and you'll receive an email when your request has been reviewed.",
   },
   {
     question: "Can I use an online doctor for my children?",
@@ -249,7 +248,7 @@ export default function OnlineDoctorAustraliaPage() {
                 </span>
                 <span className="flex items-center gap-1.5">
                   <Clock className="w-4 h-4 text-primary" />
-                  ~30 min med cert turnaround
+                  Doctor-reviewed med certs
                 </span>
                 <span className="flex items-center gap-1.5">
                   <MapPin className="w-4 h-4 text-primary" />
@@ -391,7 +390,7 @@ export default function OnlineDoctorAustraliaPage() {
               <div className="space-y-5 text-muted-foreground leading-relaxed">
                 <p>
                   The whole process is designed to replace the 90-minute round trip to a GP clinic
-                  with a 2-minute form and a same-day review. You start at{" "}
+                  with a 2-minute form and a doctor review. You start at{" "}
                   <Link href="/request" className="text-primary hover:underline font-medium">
                     /request
                   </Link>{" "}

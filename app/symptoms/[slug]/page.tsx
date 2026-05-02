@@ -41,7 +41,7 @@ const SHARED_SYMPTOM_FAQS: Array<{ q: string; a: string }> = [
   },
   {
     q: "How long does the doctor's review take?",
-    a: "Medical certificates are typically issued in about 20 minutes, available 24/7. Other requests are reviewed within 1–2 hours during operating hours (8am–10pm AEST, 7 days). You'll receive an email notification once your request has been reviewed.",
+    a: "Medical certificates are reviewed after you submit, available 24/7. Other requests are reviewed when a doctor is available. You'll receive an email notification once your request has been reviewed.",
   },
   {
     q: "What happens if the doctor thinks I need in-person care?",
@@ -168,7 +168,7 @@ export default async function SymptomPage({ params }: PageProps) {
                   </Link>
                 </Button>
                 <span className="text-sm text-muted-foreground">
-                  Australian doctors · Response in ~45 mins
+                  Australian doctors · Doctor-reviewed request
                 </span>
               </div>
             </div>
@@ -570,7 +570,7 @@ export default async function SymptomPage({ params }: PageProps) {
                 </div>
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4 text-primary" />
-                  <span>Response in ~45 mins</span>
+                  <span>Doctor-reviewed request</span>
                 </div>
               </div>
             </div>

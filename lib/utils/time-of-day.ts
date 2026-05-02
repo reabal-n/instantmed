@@ -55,14 +55,13 @@ export function getAvailabilityMessage(service?: string): {
 
 /**
  * Get estimated response time based on time of day
- * @param service - Optional service type. Med certs are always "under 30 minutes".
+ * @param service - Optional service type.
  */
 export function getEstimatedResponseTime(service?: string): string {
   const isMedCert = service === "med-cert" || service === "medical_certificate"
 
-  // Med certs are 24/7 auto-approved
   if (isMedCert) {
-    return "under 30 minutes"
+    return "after doctor review"
   }
 
   return "after doctor review"

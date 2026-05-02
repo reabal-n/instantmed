@@ -30,7 +30,7 @@ interface StickyCTAProps {
   mobileFooter?: React.ReactNode
   /** Optional "See pricing" scroll button */
   pricingScrollTarget?: string
-  /** Optional response time text (e.g. "Avg response: ~44 min") */
+  /** Optional review-state text (e.g. "Doctor-reviewed request") */
   responseTime?: string
 }
 

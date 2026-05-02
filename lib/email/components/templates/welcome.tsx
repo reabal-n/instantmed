@@ -33,7 +33,7 @@ export function WelcomeEmail({
 
       <Text>
         No waiting rooms, no phone tag. Fill in a short form, a real Australian
-        doctor reviews it, and you&apos;re done. Usually within the hour.
+        doctor reviews it, and you&apos;re done. After doctor review.
       </Text>
 
       <Text small muted>

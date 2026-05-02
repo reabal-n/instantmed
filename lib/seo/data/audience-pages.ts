@@ -68,7 +68,7 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
       },
       {
         q: "What if I work night shift?",
-        a: "Medical certificates are available 24/7 - submit at any hour and receive your certificate within 30 minutes, including after a night shift.",
+        a: "Medical certificates are available 24/7 - submit at any hour and receive your certificate after doctor approval if approved, including after a night shift.",
       },
       {
         q: "How much does a medical certificate cost?",
@@ -92,7 +92,7 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
       },
       {
         q: "What if my hospital requires a certificate from day one?",
-        a: "Many healthcare employers require a certificate for any absence. We can issue same-day certificates so you have documentation ready before your next rostered shift.",
+        a: "Many healthcare employers require a certificate for any absence. We can issue doctor-reviewed certificates so you have documentation ready before your next rostered shift.",
       },
       {
         q: "Do I need to provide my Medicare card?",
@@ -143,12 +143,12 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
     h1: "Medical Certificates for Teachers",
     heroSubtext:
       "School hours = GP hours. Get your medical certificate online without leaving work. Built for DET, Catholic, and independent school documentation.",
-    heroTagline: "No relief needed to see a doctor • All schools accept • Usually under 1 hour",
+    heroTagline: "No relief needed to see a doctor • All schools accept • Doctor reviewed",
     icon: GraduationCap,
     metadata: {
       title: "Medical Certificates for Teachers | Online",
       description:
-        "Teachers: get a medical certificate without taking time off. Doctor-reviewed, usually under 1 hour. School policies vary. Complete during lunch or after school.",
+        "Teachers: get a medical certificate without taking time off. Doctor-reviewed online. School policies vary. Complete during lunch or after school.",
       keywords: [
         "medical certificate teachers",
         "teacher sick certificate",
@@ -191,7 +191,7 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
       },
       {
         q: "What if I need a certificate before 8am for a morning absence?",
-        a: "Medical certificates are available 24/7. Submit at any time - even at 5am before school - and you will typically have your certificate within 30 minutes.",
+        a: "Medical certificates are available 24/7. Submit at any time - even at 5am before school - and you will receive your certificate after doctor approval if approved.",
       },
       {
         q: "Can I get a multi-day certificate?",
@@ -212,7 +212,7 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
         desc: "All Australian education employers accept our certificates. No questions asked.",
       },
       {
-        title: "Same-day when you need it",
+        title: "Online when you need it",
         desc: "Wake up unwell? Get your cert before school starts or during your first free period.",
       },
     ],
@@ -247,7 +247,7 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
     metadata: {
       title: "Medical Certificates for Hospitality Workers",
       description:
-        "Hospitality workers: get a medical certificate without missing a shift to see a GP. Doctor-reviewed, usually under 1 hour. Accepted by restaurants, hotels, venues.",
+        "Hospitality workers: get a medical certificate without missing a shift to see a GP. Doctor-reviewed online. Accepted by restaurants, hotels, venues.",
       keywords: [
         "medical certificate hospitality",
         "chef sick certificate",
@@ -266,7 +266,7 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
       },
       {
         q: "What if I need it before my evening shift?",
-        a: "Medical certificates are available 24/7 and typically issued in under 30 minutes. Submit anytime.",
+        a: "Medical certificates are available 24/7 and reviewed after you submit. Submit anytime.",
       },
       {
         q: "How much does a medical certificate cost?",
@@ -339,12 +339,12 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
     h1: "Medical Certificates for Retail",
     heroSubtext:
       "Supermarkets, shops, warehouses - get your medical certificate online. No need to miss work to see a GP. Available 24/7.",
-    heroTagline: "Works around your roster • All retailers accept • Usually under 1 hour",
+    heroTagline: "Works around your roster • All retailers accept • Doctor reviewed",
     icon: ShoppingBag,
     metadata: {
       title: "Medical Certificates for Retail Workers",
       description:
-        "Retail workers: get a medical certificate without a clinic visit. Doctor-reviewed, usually under 1 hour. Accepted by supermarkets, shops, and warehouses.",
+        "Retail workers: get a medical certificate without a clinic visit. Doctor-reviewed online. Accepted by supermarkets, shops, and warehouses.",
       keywords: [
         "medical certificate retail",
         "retail worker sick certificate",
@@ -432,12 +432,12 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
     h1: "Medical Certificates for Office Workers",
     heroSubtext:
       "Desk job doesn't mean you have time for a GP visit. Get your medical certificate online from your desk or home. Employer policies may vary.",
-    heroTagline: "From your desk or home • Usually under 1 hour • Employer policies vary",
+    heroTagline: "From your desk or home • Doctor reviewed • Employer policies vary",
     icon: Briefcase,
     metadata: {
       title: "Medical Certificates for Office Workers",
       description:
-        "Office workers: get a medical certificate without leaving work or home. Doctor-reviewed, usually under 1 hour. Built for corporate and government workplace documentation.",
+        "Office workers: get a medical certificate without leaving work or home. Doctor-reviewed online. Built for corporate and government workplace documentation.",
       keywords: [
         "medical certificate office workers",
         "corporate sick certificate",
@@ -476,7 +476,7 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
       },
       {
         q: "What if my employer requires a certificate from day one?",
-        a: "Some corporate policies require documentation for any absence. We issue certificates same-day, so you can have your documentation ready before you even email HR.",
+        a: "Some corporate policies require documentation for any absence. We issue certificates after doctor approval, so submit early when you have a workplace deadline.",
       },
       {
         q: "Can I submit the certificate electronically?",
@@ -531,7 +531,7 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
     metadata: {
       title: "Medical Certificates for Parents | Carer's Leave",
       description:
-        "Parents: get a medical certificate for carer's leave or school absence when your child is sick. No need to take them to a clinic. Doctor-reviewed, usually under 1 hour.",
+        "Parents: get a medical certificate for carer's leave or school absence when your child is sick. No need to take them to a clinic. Doctor-reviewed online.",
       keywords: [
         "medical certificate parents",
         "carers leave certificate",
@@ -627,13 +627,13 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
     badgeLabel: "For Remote Workers",
     h1: "Medical Certificates for Remote Workers",
     heroSubtext:
-      "Work from home? Live regionally? Get your medical certificate without leaving the house. Doctor-reviewed, usually under 1 hour. Employer policies may vary.",
+      "Work from home? Live regionally? Get your medical certificate without leaving the house. Doctor-reviewed online. Employer policies may vary.",
     heroTagline: "From anywhere • No commute • Employer policies vary",
     icon: Laptop,
     metadata: {
       title: "Medical Certificates for Remote Workers",
       description:
-        "Remote workers: get a medical certificate from home. No clinic visit, no commute. Doctor-reviewed, usually under 1 hour. Works for WFH and regional workers.",
+        "Remote workers: get a medical certificate from home. No clinic visit, no commute. Doctor-reviewed online. Works for WFH and regional workers.",
       keywords: [
         "medical certificate remote workers",
         "work from home sick certificate",
@@ -704,7 +704,7 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
     industryContext: [
       "Remote work has permanently changed healthcare access patterns. When your office is your spare room, 'popping out to the GP' means either a 30-minute drive or disrupting your entire day. And when you're working from a regional area or travelling, local GP availability may be limited. Telehealth is the natural healthcare model for remote workers - you're already online.",
       "A common misconception among remote workers is that because you can work from bed, you don't need a sick day. This is wrong and harmful. Working while unwell extends your recovery time, reduces the quality of your output, and normalises overwork. You are entitled to sick leave whether you work from home or an office. Taking a day off to recover is not being lazy - it's being sensible.",
-      "For remote workers in regional Australia, telehealth may be the most practical option regardless of health status. GP availability in towns like Byron Bay, Noosa, or Margaret River can be severely limited, with wait times of weeks for non-urgent appointments. InstantMed provides same-day access from anywhere with internet.",
+      "For remote workers in regional Australia, telehealth may be the most practical option regardless of health status. GP availability in towns like Byron Bay, Noosa, or Margaret River can be severely limited, with wait times of weeks for non-urgent appointments. InstantMed provides online access from anywhere with internet.",
     ],
     commonConditions: [
       { name: "Back Pain", slug: "back-pain", why: "Home office ergonomics are often worse than corporate offices - dining chairs, laptop on couch" },
@@ -725,12 +725,12 @@ export const audiencePageConfigs: Record<string, AudiencePageConfig> = {
     h1: "Medical Certificates for Gig Workers",
     heroSubtext:
       "Uber, Deliveroo, Airtasker - when you're sick you need documentation. Get your medical certificate online. No appointments, no waiting.",
-    heroTagline: "No appointments • Usually under 1 hour • Platforms accept",
+    heroTagline: "No appointments • Doctor reviewed • Platforms accept",
     icon: Car,
     metadata: {
       title: "Medical Certificates for Gig Workers",
       description:
-        "Gig and contract workers: get a medical certificate when you're sick. Uber, Deliveroo, and other platforms accept our certificates. Doctor-reviewed, usually under 1 hour.",
+        "Gig and contract workers: get a medical certificate when you're sick. Uber, Deliveroo, and other platforms accept our certificates. Doctor-reviewed online.",
       keywords: [
         "medical certificate gig workers",
         "uber driver sick certificate",

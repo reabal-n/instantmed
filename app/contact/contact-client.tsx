@@ -172,8 +172,8 @@ export function ContactClient() {
                 </div>
                 <div className="space-y-4">
                   <div className="rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none p-4">
-                    <p className="text-2xl font-semibold text-primary tabular-nums">~{SOCIAL_PROOF.averageResponseMinutes} min</p>
-                    <p className="text-xs text-muted-foreground">Average support response time</p>
+                    <p className="text-2xl font-semibold text-primary tabular-nums">{SOCIAL_PROOF.refundPercent}%</p>
+                    <p className="text-xs text-muted-foreground">Refund if declined</p>
                   </div>
                   <div className="rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none p-4">
                     <p className="text-2xl font-semibold text-foreground tabular-nums">24h max</p>
@@ -224,7 +224,7 @@ export function ContactClient() {
         {/* CTA Banner */}
         <CTABanner
           title="Looking for a medical certificate or repeat medication?"
-          subtitle={`Join ${getPatientCount().toLocaleString()}+ Australians who trust InstantMed. Fill in a quick form and a real GP reviews your request, most done within the hour.`}
+          subtitle={`Join ${getPatientCount().toLocaleString()}+ Australians who trust InstantMed. Fill in a quick form and a real GP reviews your request.`}
           ctaText="Get started"
           ctaHref="/request"
           secondaryText="See how it works"

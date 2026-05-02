@@ -96,7 +96,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     twitter: {
       card: "summary_large_image",
       title: `Online Doctor ${data.fullName} | InstantMed`,
-      description: `Telehealth for ${data.fullName} residents - same-day med certs, eScripts, consultations.`,
+      description: `Telehealth for ${data.fullName} residents - doctor-reviewed med certs, eScripts, consultations.`,
     },
     alternates: { canonical },
   }
@@ -224,7 +224,7 @@ export default async function StatePage({ params }: PageProps) {
                 </span>
                 <span className="flex items-center gap-1.5">
                   <Clock className="w-4 h-4 text-primary" />
-                  ~30 min med certs, 24/7
+                  Doctor-reviewed med certs
                 </span>
                 <span className="flex items-center gap-1.5">
                   <MapPin className="w-4 h-4 text-primary" />

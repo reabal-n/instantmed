@@ -22,13 +22,13 @@ const CITY_CONTENT: Record<string, string> = {
   darwin: "In the Top End, extreme weather and distance can make doctor visits difficult. InstantMed works on NT time and is available whether you're in the CBD, Palmerston, or further afield.",
   "sunshine-coast": "The Sunshine Coast's popularity means doctor clinics are often overloaded, especially in peak season. From Noosa to Caloundra, InstantMed offers a quick alternative to long clinic waits.",
   wollongong: "Illawarra residents often face the choice of a long wait locally or driving to Sydney for a doctor. InstantMed lets you stay in the Gong and get sorted from your couch.",
-  geelong: "Geelong is growing fast, and doctor availability hasn't kept up. InstantMed gives you same-day access to doctors without the drive to Melbourne or the wait at a walk-in clinic.",
+  geelong: "Geelong is growing fast, and doctor availability hasn't kept up. InstantMed gives you online access to doctors without the drive to Melbourne or the wait at a walk-in clinic.",
   townsville: "North Queensland's limited specialist availability makes telehealth essential. InstantMed connects Townsville patients with Australian doctors for everyday health needs, rain or shine.",
   cairns: "Far North Queensland can be challenging for doctor access, especially in the wet season. InstantMed keeps you connected to healthcare from anywhere in the Cairns region.",
   toowoomba: "Toowoomba and the Darling Downs can face doctor shortages, especially outside business hours. InstantMed gives you flexible access to Australian doctors when you need them.",
   ballarat: "Ballarat and regional Victoria have fewer doctor options than Melbourne. InstantMed lets you get medical certificates and scripts without the drive or the wait.",
   bendigo: "Bendigo's growing population means doctor wait times are increasing. InstantMed provides an alternative that works around your schedule - no appointments needed.",
-  launceston: "Northern Tasmania's doctor availability can be limited. InstantMed bridges the gap with same-day access to Australian-registered doctors, seven days a week.",
+  launceston: "Northern Tasmania's doctor availability can be limited. InstantMed bridges the gap with online access to Australian-registered doctors, seven days a week.",
   mackay: "The Mackay region, including the mining communities of the Bowen Basin, can face limited doctor access. InstantMed is designed to work around shift patterns and remote schedules.",
   rockhampton: "Central Queensland's vast distances make doctor visits time-consuming. InstantMed lets Rockhampton residents get healthcare sorted without the drive.",
   bunbury: "South-West WA has fewer doctor options than Perth. InstantMed gives Bunbury and surrounding area residents access to doctors without a trip to the city.",
@@ -38,7 +38,7 @@ const CITY_CONTENT: Record<string, string> = {
   parramatta: "Parramatta and Western Sydney face some of the longest GP wait times in the country. InstantMed gives you access to Australian doctors without the commute - from your office, home, or anywhere in the region.",
   "bondi-beach": "Eastern suburbs residents know the drill: packed medical centres and long waits. InstantMed lets you get a med cert or script without the queue - perfect when you're under the weather but need to sort things fast.",
   fremantle: "Fremantle and the port city have a distinct character - and distinct healthcare challenges. InstantMed works on WA time and connects you with doctors without the trip into Perth.",
-  "central-coast": "The Central Coast stretches from Gosford to The Entrance, and doctor availability varies. InstantMed gives the whole region same-day access to Australian doctors - no drive to Sydney required.",
+  "central-coast": "The Central Coast stretches from Gosford to The Entrance, and doctor availability varies. InstantMed gives the whole region online access to Australian doctors - no drive to Sydney required.",
   penrith: "Western Sydney's growth has outpaced healthcare infrastructure. InstantMed provides an alternative for Penrith, St Marys, and the greater west - fast, from home.",
   ipswich: "Ipswich is one of Australia's fastest-growing cities. Doctor availability hasn't kept up. InstantMed gives you access without the drive to Brisbane or the wait at a walk-in clinic.",
   "port-macquarie": "The Mid North Coast has a significant retiree population and limited after-hours options. InstantMed bridges the gap with 7-day access to Australian doctors.",
@@ -59,7 +59,7 @@ const CITY_FAQS: Record<string, Array<{ q: string; a: string }>> = {
   sydney: [
     { q: "Can I use InstantMed if I live in Western Sydney?", a: "Yes - InstantMed is available anywhere in Greater Sydney, from Penrith to Bondi. All you need is an internet connection." },
     { q: "Can NSW employers use InstantMed certificates as evidence?", a: "Yes. Our certificates are issued by AHPRA-registered doctors and include standard workplace evidence details. Employer policies may vary." },
-    { q: "How fast can I get a medical certificate in Sydney?", a: "Most medical certificates are reviewed within 45 minutes during business hours. You'll receive it via email as a PDF." },
+    { q: "How fast can I get a medical certificate in Sydney?", a: "Review timing depends on doctor availability and whether follow-up information is needed. Approved certificates are emailed as a PDF." },
   ],
   melbourne: [
     { q: "Is InstantMed available across all of Melbourne?", a: "Yes - from the CBD to the outer suburbs. We serve all of Greater Melbourne and regional Victoria." },
@@ -87,7 +87,7 @@ const CITY_FAQS: Record<string, Array<{ q: string; a: string }>> = {
 const DEFAULT_FAQS = [
   { q: "Is InstantMed available in my area?", a: "Yes - InstantMed works anywhere in Australia with an internet connection. No matter your location, an AHPRA-registered doctor can help." },
   { q: "Can employers use your medical certificates as evidence?", a: "Yes. Our certificates are issued by AHPRA-registered doctors and include standard workplace evidence details. Employer and institution policies may vary." },
-  { q: "How fast will I receive my medical certificate?", a: "Most medical certificates are reviewed within 45 minutes during business hours. You'll receive it as a PDF via email." },
+  { q: "How fast will I receive my medical certificate?", a: "Review timing depends on doctor availability and whether follow-up information is needed. Approved certificates are emailed as a PDF." },
 ]
 
 // Local SEO Pages - Top 25 Australian cities & regions
@@ -237,7 +237,7 @@ const cities: Record<
     state: "VIC",
     slug: "bendigo",
     population: "100,000",
-    localTestimonial: { name: "Steve R.", quote: "Easy to use and got my certificate within the hour." },
+    localTestimonial: { name: "Steve R.", quote: "Easy to use and got my certificate after doctor approval." },
   },
   launceston: {
     name: "Launceston",

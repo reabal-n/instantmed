@@ -292,7 +292,7 @@ export default function EmployerAcceptancePage() {
             <div className="mx-auto max-w-2xl text-center">
               <h2 className="text-2xl font-semibold mb-4">Ready to get your certificate?</h2>
               <p className="text-muted-foreground mb-8">
-                Complete the questionnaire in about 2 minutes. A doctor reviews your request within an hour.
+                Complete the questionnaire in about 2 minutes. A doctor reviews your request after you submit.
               </p>
               <Button
                 asChild

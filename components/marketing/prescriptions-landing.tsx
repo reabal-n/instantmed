@@ -3,7 +3,6 @@
 import {
   ArrowRight,
   CheckCircle2,
-  Clock,
   ShieldCheck,
   Star,
   Users,
@@ -78,10 +77,9 @@ const CTABanner = dynamic(
 // =============================================================================
 
 const SOCIAL_PROOF_STATS: SocialProofStat[] = [
-  { icon: Users, value: SOCIAL_PROOF.scriptFulfillmentPercent, suffix: "%", label: "fulfilled same day", color: "text-success" },
-  { icon: Clock, value: SOCIAL_PROOF.averageResponseMinutes, suffix: " min", label: "avg response", color: "text-primary" },
-  { icon: Star, value: SOCIAL_PROOF.averageRating, suffix: "/5", label: "patient rating", color: "text-amber-500", decimals: 1 },
+  { icon: Users, value: SOCIAL_PROOF.scriptFulfillmentPercent, suffix: "%", label: "fulfilled after doctor approval", color: "text-success" },
   { icon: ShieldCheck, value: 100, suffix: "%", label: "refund guarantee", color: "text-success" },
+  { icon: Star, value: SOCIAL_PROOF.averageRating, suffix: "/5", label: "patient rating", color: "text-amber-500", decimals: 1 },
 ]
 
 const RECENT_ACTIVITY_ENTRIES = [
@@ -114,7 +112,7 @@ const HOW_IT_WORKS_STEPS = [
     step: 2,
     title: "A real GP reviews it",
     description: "An AHPRA-registered doctor checks your request and medical history.",
-    time: `~${SOCIAL_PROOF.averageResponseMinutes} min`,
+    time: "Doctor review",
   },
   {
     sticker: "sent" as const,
@@ -135,7 +133,7 @@ const LANDING_CONFIG: LandingPageConfig = {
     desktopLabel: `Repeat Medication · Open ${SOCIAL_PROOF_DISPLAY.operatingHours} AEST · 7 days`,
     priceLabel: `From $${PRICING.REPEAT_SCRIPT.toFixed(2)}`,
     desktopCtaText: "Renew your medication",
-    responseTime: `Avg response: ${SOCIAL_PROOF_DISPLAY.responseTime}`,
+    responseTime: "Doctor-reviewed request",
   },
 }
 
@@ -294,7 +292,7 @@ function PrescriptionComparisonViz() {
   return (
     <TimeComparisonViz
       heading="Your medication. Without the appointment."
-      ours={{ label: "InstantMed", value: "~45", unit: "min" }}
+      ours={{ label: "InstantMed", value: "Online", unit: "" }}
       theirs={{ label: "GP visit", value: "3", valueSuffix: "+", unit: "hrs" }}
       ourSteps={["5 min form", "GP reviews your request", "eScript sent to your phone"]}
       theirSteps={["Call for appointment", "Travel to clinic", "Wait room + consult + pharmacy"]}
@@ -340,7 +338,7 @@ export function PrescriptionsLanding() {
             mockup={<EScriptHeroMockup />}
           >
             <p className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-6 sm:mb-7 leading-relaxed text-balance">
-              An AHPRA-registered GP reviews your request and sends an eScript to your phone. Any pharmacy in Australia, same day.
+              An AHPRA-registered GP reviews your request and sends an eScript to your phone. Any pharmacy in Australia.
             </p>
           </Hero>
 
@@ -370,7 +368,7 @@ export function PrescriptionsLanding() {
             onCTAClick={handleHowItWorksCTA}
             isDisabled={isDisabled}
             heading="Three steps. No waiting room."
-            subheading="From your couch to your pharmacy. Most scripts are sent same day."
+            subheading="From your couch to your pharmacy. Most scripts are sent after doctor approval."
           />
 
           {/* 3. eScript explainer — muted bg for rhythm.
@@ -429,7 +427,7 @@ export function PrescriptionsLanding() {
               props (was bespoke ServiceFinalCTA, retired in Pass 2). */}
           <CTABanner
             title="Your regular medication, renewed from home."
-            subtitle="Answer a few questions, a doctor reviews it, and your script is sent same day."
+            subtitle="Answer a few questions, a doctor reviews it, and your script is sent after doctor approval."
             ctaText="Renew your medication"
             ctaHref="/request?service=prescription"
             onCtaClick={handleFinalCTA}

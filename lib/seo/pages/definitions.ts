@@ -51,7 +51,7 @@ export const conditionPages: ConditionPage[] = [
     howWeHelp: [
       "Describe your symptoms and how long you've been unwell",
       "Our doctor assesses whether a medical certificate is appropriate",
-      "Certificate issued and emailed in about 20 minutes",
+      "Certificate issued and emailed after doctor approval",
     ],
     disclaimers: [
       "This is not a diagnosis. A medical certificate confirms you're unwell and unable to work - it's not treatment.",
@@ -141,7 +141,7 @@ export const conditionPages: ConditionPage[] = [
     name: "Migraine",
     title: "Migraine Treatment & Medical Certificate | Online Doctor | InstantMed",
     description:
-      "Get migraine treatment and a medical certificate online. Australian doctors can prescribe relief. Same-day assessment.",
+      "Get migraine treatment and a medical certificate online. Australian doctors can prescribe relief after reviewing your request.",
     h1: "Migraine too severe to work? We can help",
     heroText:
       "Debilitating migraine? Get a medical certificate and pain relief options without fighting to get a GP appointment.",
@@ -890,7 +890,7 @@ export const certificatePages: CertificatePage[] = [
     name: "Work Medical Certificate",
     title: "Work Medical Certificate Online | Australia | InstantMed",
     description:
-      "Get a doctor-reviewed medical certificate for work in under an hour. Employer policies may vary. No waiting rooms.",
+      "Get a doctor-reviewed medical certificate for work online. Employer policies may vary. No waiting rooms.",
     h1: "Medical certificate for work - fast and valid",
     heroText:
       "Unwell and need to tell your boss? Get a legitimate medical certificate issued by an AHPRA-registered Australian doctor.",
@@ -932,7 +932,7 @@ export const certificatePages: CertificatePage[] = [
       },
       {
         q: "What if I need more than the certificate covers?",
-        a: "If you're sick for longer, see a GP in person for extended leave documentation. We handle same-day situations.",
+        a: "If you're sick for longer, see a GP in person for extended leave documentation. We handle short-absence documentation online after doctor approval.",
       },
     ],
   },
@@ -976,7 +976,7 @@ export const certificatePages: CertificatePage[] = [
       },
       {
         q: "How long does the certificate take?",
-        a: "Usually within an hour. Get it submitted quickly to your institution.",
+        a: "Review timing depends on doctor availability and whether follow-up information is needed. Get it submitted quickly to your institution.",
       },
       {
         q: "My exam was yesterday - can I still get a certificate?",
@@ -1044,13 +1044,13 @@ export const benefitPages: BenefitPage[] = [
     name: "Why Online Medical Certificates",
     title: "Why Choose Online Medical Certificates | InstantMed",
     description:
-      "Skip the waiting room. Get a medical certificate in under an hour from home. Legal, valid, and Australian.",
+      "Skip the waiting room. Get a medical certificate online from home. Legal, valid, and Australian.",
     h1: "Why online medical certificates make sense",
     sections: [
       {
         title: "Speed",
         content:
-          "Most requests are done within an hour. No 3-week GP wait, no phone tag, no sitting in a waiting room full of sick people. Get it done, get it sent.",
+          "Requests are reviewed by an Australian doctor. No 3-week GP wait, no phone tag, no sitting in a waiting room full of sick people.",
       },
       {
         title: "Convenience",

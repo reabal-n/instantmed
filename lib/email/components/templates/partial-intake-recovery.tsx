@@ -61,7 +61,7 @@ export function PartialIntakeRecoveryEmail({
         <List
           items={[
             "A real Australian GP reviews your request",
-            "Average review time is around 20 minutes",
+            "A doctor reviews your request after you submit",
             "Your certificate is emailed to you as a PDF",
             "Full refund if our doctor cannot help",
           ]}

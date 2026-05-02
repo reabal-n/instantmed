@@ -23,7 +23,6 @@ import { Reveal } from "@/components/ui/reveal"
 import { SectionPill } from "@/components/ui/section-pill"
 import { PRICING } from "@/lib/constants"
 import { HAIR_LOSS_FAQ } from "@/lib/data/hair-loss-faq"
-import { SOCIAL_PROOF } from "@/lib/social-proof"
 
 // Below-fold lazy loads
 const HowItWorksInline = dynamic(
@@ -68,14 +67,14 @@ const HOW_IT_WORKS_STEPS = [
     step: 2,
     title: "A real GP reviews it",
     description: "An AHPRA-registered doctor reviews your assessment and recommends the right treatment approach.",
-    time: `~${SOCIAL_PROOF.averageResponseMinutes} min`,
+    time: "Doctor review",
   },
   {
     sticker: "pill-bottle" as const,
     step: 3,
     title: "Treatment plan delivered",
     description: "Your prescription is sent via SMS. Collect treatment from any Australian pharmacy.",
-    time: "Same day",
+    time: "Doctor review",
   },
 ]
 
@@ -136,7 +135,7 @@ const LANDING_CONFIG: LandingPageConfig = {
     desktopLabel: "Hair loss treatment · Doctor-reviewed",
     priceLabel: `From $${PRICING.HAIR_LOSS.toFixed(2)}`,
     desktopCtaText: "Start assessment",
-    responseTime: `Avg response: ${SOCIAL_PROOF.averageResponseMinutes} min`,
+    responseTime: "Doctor-reviewed request",
   },
 }
 
@@ -212,10 +211,10 @@ function HairLossComparisonViz() {
     <div className="bg-muted/30 dark:bg-white/[0.02]">
       <TimeComparisonViz
         pill="Why go online?"
-        heading="Start treatment the same day."
+        heading="Start treatment online."
         ours={{ label: "InstantMed", value: "~1", unit: "hr" }}
         theirs={{ label: "GP clinic", value: "2", valueSuffix: "+", unit: "hrs" }}
-        ourSteps={["2-min health form", "Doctor reviews same day", "Treatment plan by SMS"]}
+        ourSteps={["2-min health form", "Doctor reviews after you submit", "Treatment plan by SMS"]}
         theirSteps={["Book appointment", "Travel + wait in clinic", "Face-to-face consult"]}
         primaryFillPercent={30}
       />

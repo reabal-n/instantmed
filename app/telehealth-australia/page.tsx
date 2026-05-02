@@ -26,7 +26,6 @@ import { SectionPill } from "@/components/ui/section-pill"
 import { PRICING_DISPLAY } from "@/lib/constants"
 import { getAllStateSlugs, statesData } from "@/lib/seo/data/states"
 import { safeJsonLd } from "@/lib/seo/safe-json-ld"
-import { SOCIAL_PROOF } from "@/lib/social-proof"
 
 // ============================================================================
 // METADATA - head-term pillar for "telehealth australia" and related
@@ -72,7 +71,7 @@ export const metadata: Metadata = {
 
 const STATS = [
   { value: "2011", label: "Telehealth legal in AU", context: "Federally recognised since the MBS reform" },
-  { value: `~${SOCIAL_PROOF.certTurnaroundMinutes} min`, label: "Med cert turnaround", context: "Reviewed around the clock" },
+  { value: "AHPRA", label: "Doctor review", context: "Reviewed by registered Australian doctors" },
   { value: "AHPRA", label: "Clinical governance", context: "RACGP-aligned standards" },
   { value: `${PRICING_DISPLAY.MED_CERT}`, label: "From", context: "Private fee, refund if declined" },
 ]
@@ -242,7 +241,7 @@ export default function TelehealthAustraliaPage() {
                 </span>
                 <span className="flex items-center gap-1.5">
                   <Clock className="w-4 h-4 text-primary" />
-                  ~{SOCIAL_PROOF.certTurnaroundMinutes} min med cert turnaround
+                  Doctor-reviewed med cert requests
                 </span>
                 <span className="flex items-center gap-1.5">
                   <Shield className="w-4 h-4 text-primary" />
@@ -643,7 +642,7 @@ export default function TelehealthAustraliaPage() {
               </Heading>
               <p className="text-muted-foreground mb-8">
                 Fill in a form, an AHPRA-registered doctor reviews it, certificate or eScript
-                arrives the same day. Refund if it&apos;s not the right fit.
+                arrives after doctor approval. Refund if it&apos;s not the right fit.
               </p>
               <div className="flex flex-wrap justify-center gap-3">
                 <Button asChild size="lg" className="rounded-full px-8">

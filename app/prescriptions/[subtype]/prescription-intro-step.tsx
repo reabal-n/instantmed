@@ -77,7 +77,7 @@ export function PrescriptionIntroStep({ title, subtype, setStep }: PrescriptionI
             <div>
               <p className="text-sm font-medium text-foreground">Receive your e-script</p>
               <p className="text-sm text-muted-foreground">
-                If approved, your e-script will be sent to your phone via SMS after doctor review.
+                If approved, your e-script will be sent to your phone via SMS after doctor approval.
               </p>
             </div>
           </div>

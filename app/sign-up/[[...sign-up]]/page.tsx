@@ -327,7 +327,7 @@ export default function SignUpPage() {
             </h1>
             <p className="text-lg text-muted-foreground mb-8">
               Create your free account and get your first medical certificate
-              or prescription in under an hour.
+              or prescription online.
             </p>
 
             <div className="space-y-4 mb-8">

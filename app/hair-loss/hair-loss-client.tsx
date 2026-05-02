@@ -79,7 +79,7 @@ const platformFeatures = [
   },
   {
     icon: <StickerIcon name="clock" size={48} />,
-    title: "Reviewed Within Hours",
+    title: "Reviewed Doctor Reviewed",
     description:
       "Submit any time. An AHPRA-registered doctor reviews when available.",
   },
@@ -379,7 +379,7 @@ export function HairLossClient({ faqSchema }: HairLossClientProps) {
 
           {/* Doctor credibility */}
           <div className="max-w-4xl mx-auto px-4">
-            <DoctorCredibility variant="inline" stats={['experience', 'approval', 'sameDay']} />
+            <DoctorCredibility variant="inline" stats={['experience', 'approval', 'delivery']} />
           </div>
 
           <HairLossGuideSection />

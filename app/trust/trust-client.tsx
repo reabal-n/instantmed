@@ -157,7 +157,7 @@ export default function TrustPage() {
           stats={[
             { value: mounted ? patientCount : 420, suffix: "+", label: "Patients served" },
             { value: mounted ? SOCIAL_PROOF.averageRating : 4.8, suffix: "/5", label: "Patient rating" },
-            { value: mounted ? SOCIAL_PROOF.averageResponseMinutes : 47, suffix: " min", label: "Avg response" },
+            { value: mounted ? SOCIAL_PROOF.refundPercent : 100, suffix: "%", label: "Refund if declined" },
             { value: mounted ? SOCIAL_PROOF.operatingDays : 7, suffix: " days/wk", label: "Available" },
           ]}
         />
@@ -332,7 +332,7 @@ export default function TrustPage() {
             },
             {
               title: "Doctor reviews your case",
-              description: "An AHPRA-registered doctor reviews your full submission. Average ~34 min.",
+              description: "An AHPRA-registered doctor reviews your full submission. Doctor-reviewed request.",
               icon: <StickerIcon name="user-check" size={48} />,
             },
             {
@@ -376,4 +376,3 @@ export default function TrustPage() {
     </div>
   )
 }
-

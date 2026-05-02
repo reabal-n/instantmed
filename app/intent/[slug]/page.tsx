@@ -135,7 +135,7 @@ export default async function IntentPage({ params }: PageProps) {
                 <SectionPill>AHPRA Registered Doctors</SectionPill>
                 <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 shadow-sm shadow-primary/[0.04] dark:shadow-none">
                   <Clock className="w-4 h-4 text-emerald-600" />
-                  <span className="text-sm font-medium">Usually under 1 hour</span>
+                  <span className="text-sm font-medium">Doctor reviewed</span>
                 </div>
               </div>
 
@@ -257,7 +257,7 @@ export default async function IntentPage({ params }: PageProps) {
               </h2>
               <p className="text-lg text-muted-foreground mb-8">
                 Our Australian-registered doctors are available 7 days a week. Most
-                requests reviewed within an hour.
+                requests reviewed by a doctor.
               </p>
 
               <Button
@@ -278,7 +278,7 @@ export default async function IntentPage({ params }: PageProps) {
                 </div>
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4 text-primary" />
-                  <span>~1 hour response</span>
+                  <span>Doctor reviewed</span>
                 </div>
               </div>
             </div>

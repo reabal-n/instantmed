@@ -88,7 +88,7 @@ const DESCRIPTION_TEMPLATES: Record<PageType, (page: SEOPage) => string> = {
   },
   
   condition: (page) => {
-    return `${page.content.intro.substring(0, 120)}... Online treatment from Australian doctors. Same-day assessment available.`
+    return `${page.content.intro.substring(0, 120)}... Online treatment from Australian doctors. Doctor review available.`
   },
   
   intent: (page) => {
@@ -117,7 +117,7 @@ const DESCRIPTION_TEMPLATES: Record<PageType, (page: SEOPage) => string> = {
   },
   
   certificate: (page) => {
-    return `Get a ${page.slug.replace(/-/g, ' ')} online. Valid for employers and universities. Issued by Australian doctors within hours.`
+    return `Get a ${page.slug.replace(/-/g, ' ')} online. Valid for employers and universities. Issued by Australian doctors after doctor approval.`
   },
   
   benefit: (page) => {

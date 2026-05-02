@@ -159,7 +159,7 @@ export default async function AudiencePage({ params }: PageProps) {
                       step: "2",
                       title: "Doctor reviews",
                       desc: "An AHPRA-registered GP assesses your request.",
-                      time: "~15 min",
+                      time: "Doctor review",
                     },
                     {
                       step: "3",
@@ -218,7 +218,7 @@ export default async function AudiencePage({ params }: PageProps) {
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               <div className="max-w-xl mx-auto text-center">
                 <div className="bg-primary/5 dark:bg-card border border-primary/20 dark:border-white/15 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-3xl p-6 lg:p-8 relative overflow-hidden">
-                  <Heading level="h2" className="mb-3">Get your certificate in 15 minutes</Heading>
+                  <Heading level="h2" className="mb-3">Get your certificate online</Heading>
                   <p className="text-sm text-muted-foreground mb-6">
                     No appointments. No waiting rooms. Just results.
                   </p>

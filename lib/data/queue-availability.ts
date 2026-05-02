@@ -24,24 +24,24 @@ export async function getQueueEstimate(): Promise<QueueEstimate> {
       .in("status", ["paid", "in_review"])
 
     if (error) {
-      return { pendingCount: 0, estimatedWait: "~1 hour" }
+      return { pendingCount: 0, estimatedWait: "Doctor review" }
     }
 
     const pendingCount = count || 0
 
     let estimatedWait: string
     if (pendingCount <= 5) {
-      estimatedWait = "~15 minutes"
+      estimatedWait = "Doctor review"
     } else if (pendingCount <= 15) {
-      estimatedWait = "~30 minutes"
+      estimatedWait = "Doctor review"
     } else if (pendingCount <= 30) {
-      estimatedWait = "~1 hour"
+      estimatedWait = "Doctor review"
     } else {
-      estimatedWait = "~2 hours"
+      estimatedWait = "Doctor review"
     }
 
     return { pendingCount, estimatedWait }
   } catch {
-    return { pendingCount: 0, estimatedWait: "~1 hour" }
+    return { pendingCount: 0, estimatedWait: "Doctor review" }
   }
 }

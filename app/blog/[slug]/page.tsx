@@ -166,7 +166,7 @@ export default async function BlogPostPage({ params }: PageProps) {
             { name: 'Complete a brief questionnaire', text: 'Tell us about your situation and what you need. Takes about 2 minutes.' },
             { name: 'Verify your identity', text: 'Provide your details including name and date of birth. Medicare is optional for certificates.' },
             { name: 'Make payment', text: `Pay securely online. Certificates from ${PRICING_DISPLAY.MED_CERT}, prescriptions ${PRICING_DISPLAY.REPEAT_SCRIPT}.` },
-            { name: 'Doctor reviews your request', text: 'An AHPRA-registered doctor reviews your request. Most reviewed within 1-2 hours.' },
+            { name: 'Doctor reviews your request', text: 'An AHPRA-registered doctor reviews your request. A doctor reviews your request after you submit.' },
             { name: 'Receive your document', text: slug.includes('prescription')
               ? 'If approved, your eScript is sent via SMS to your phone. Take it to any pharmacy.'
               : 'Your medical certificate is emailed as a PDF, valid for work and institutions.'

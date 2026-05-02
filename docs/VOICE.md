@@ -49,7 +49,7 @@ This is the merchandised promise. It lives above checkout CTAs, inline on hero C
 2. **Name the wait, then remove it.** *You used to wait three weeks for a GP. Not anymore.*
 3. **Use negation carefully.** *No appointment. No waiting room.* is broadly safe. *No call* is med-cert-specific unless a clinician has explicitly approved the service context.
 4. **Lead with the human.** A real Australian doctor reviews your request. Say that. Don't hide behind "our platform."
-5. **Price in the first breath, not the footer.** Numbers are trust signals. *Medical certificate, $19.95. Reviewed in under 30 minutes.*
+5. **Price in the first breath, not the footer.** Numbers are trust signals. *Medical certificate, $19.95. Reviewed by an Australian doctor.*
 
 ## 5 Don'ts
 

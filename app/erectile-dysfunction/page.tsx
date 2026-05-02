@@ -15,7 +15,7 @@ export const revalidate = 86400
 
 export const metadata: Metadata = {
   title: { absolute: "ED Assessment | Private, No Waiting Room | InstantMed" },
-  description: `Discreet ED assessment from an Australian doctor. Fill out a secure form, no booked appointment or waiting room. Reviewed within 1-2 hours. From $${PRICING.MENS_HEALTH.toFixed(2)}.`,
+  description: `Discreet ED assessment from an Australian doctor. Fill out a secure form, no booked appointment or waiting room. Doctor review follows after you submit. From $${PRICING.MENS_HEALTH.toFixed(2)}.`,
   keywords: [
     "ed treatment online australia",
     "erectile dysfunction treatment online",
@@ -64,7 +64,7 @@ export default function Page() {
       />
       <HealthArticleSchema
         title="ED Treatment Online Australia"
-        description={`Discreet ED assessment from an AHPRA-registered Australian doctor. Reviewed within 1-2 hours. From $${PRICING.MENS_HEALTH.toFixed(2)}.`}
+        description={`Discreet ED assessment from an AHPRA-registered Australian doctor. Doctor review follows after you submit. From $${PRICING.MENS_HEALTH.toFixed(2)}.`}
         url="/erectile-dysfunction"
       />
       <ErectileDysfunctionLanding />

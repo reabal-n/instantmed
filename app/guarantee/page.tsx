@@ -58,7 +58,7 @@ const guaranteeFaqs = [
   {
     question: "How long until I know if a doctor can help me?",
     answer:
-      "Medical certificates: usually under 30 minutes, 24/7. Prescriptions and consultations: typically reviewed within 1 to 2 hours during operating hours (8am to 10pm AEST, 7 days). You will get email updates. We do not guarantee a specific time, only the outcome.",
+      "Requests can be submitted any time. Doctor review timing depends on availability, case complexity, and whether more information is needed. You will get email updates. We do not guarantee a specific time, only the outcome.",
   },
   {
     question: "What if the doctor needs more information from me?",

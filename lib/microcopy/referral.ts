@@ -10,7 +10,7 @@ import { PRICING_DISPLAY } from "@/lib/constants"
 
 export const REFERRAL_COPY = {
   // Global
-  turnaround: "Reviewed within 24 hours",
+  turnaround: "Doctor review after you submit",
   doctorReview: "A GP will determine whether a referral is clinically appropriate",
   mayRequest: "Some tests may require an in-person assessment",
   disclaimer: "We cannot order advanced imaging without clear clinical indication",

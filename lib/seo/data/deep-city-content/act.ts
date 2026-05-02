@@ -21,7 +21,7 @@ export const ACT_CITIES: Record<string, DeepCityContent> = {
         paragraphs: [
           "Canberra has a well-documented GP shortage. The ACT consistently has the lowest bulk-billing rate in Australia - around 47% compared to the national average of 78%. For many Canberrans, seeing a GP means either waiting 5–10 days for a bulk-billed appointment or paying gap fees of $50–$100 for a same-day consultation. When you're unwell and just need a medical certificate, neither option is ideal.",
           "The problem is structural. Canberra's population has grown rapidly - from 350,000 to 470,000 in two decades - but GP numbers haven't kept pace. New suburbs in Gungahlin, Molonglo Valley, and Coombs have limited medical infrastructure. Residents often travel 20–30 minutes to see a GP in Woden, Belconnen, or Civic, even for routine matters.",
-          "For the tens of thousands of Australian Public Service (APS) employees in Canberra, taking sick leave often involves the bureaucratic requirement of providing a medical certificate. When it takes a week to see your GP, getting a certificate for a two-day illness becomes absurd. Telehealth addresses this mismatch directly - a certificate issued in under 30 minutes, available 24/7.",
+          "For the tens of thousands of Australian Public Service (APS) employees in Canberra, taking sick leave often involves the bureaucratic requirement of providing a medical certificate. When it takes a week to see your GP, getting a certificate for a two-day illness becomes absurd. Telehealth addresses this mismatch directly - submit online, then a doctor reviews your information.",
         ],
       },
       {

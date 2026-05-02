@@ -39,7 +39,7 @@ export function ReviewsClientPageComponent() {
           <LogoBadgeStrip
             badges={[
               { icon: <Shield className="w-3.5 h-3.5" />, label: "AHPRA-registered doctors" },
-              { icon: <Clock className="w-3.5 h-3.5" />, label: `~${SOCIAL_PROOF.averageResponseMinutes} min avg response` },
+              { icon: <Clock className="w-3.5 h-3.5" />, label: "Doctor-reviewed requests" },
               { icon: <Zap className="w-3.5 h-3.5 text-success" />, label: "100% refund guarantee" },
             ]}
           />
@@ -68,15 +68,15 @@ export function ReviewsClientPageComponent() {
                     </div>
                     <div>
                       <p className="text-2xl font-semibold text-foreground tabular-nums">
-                        ~{SOCIAL_PROOF.averageResponseMinutes} min
+                        {SOCIAL_PROOF.refundPercent}%
                       </p>
-                      <p className="text-xs text-muted-foreground mt-1">Average response time</p>
+                      <p className="text-xs text-muted-foreground mt-1">Refund if declined</p>
                     </div>
                     <div>
-                      <p className="text-2xl font-semibold text-foreground tabular-nums">
-                        {SOCIAL_PROOF.sameDayDeliveryPercent}%
+                      <p className="text-2xl font-semibold text-foreground">
+                        AHPRA
                       </p>
-                      <p className="text-xs text-muted-foreground mt-1">Delivered same day</p>
+                      <p className="text-xs text-muted-foreground mt-1">Registered doctors</p>
                     </div>
                   </div>
                 </div>

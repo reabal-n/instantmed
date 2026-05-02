@@ -60,7 +60,7 @@ const audienceFaqs = [
   },
   {
     question: "Is the service available outside business hours?",
-    answer: "Medical certificates are available 24/7 - submit at any hour and receive your certificate within 15 minutes. Prescriptions and consultations are available 8am–10pm AEST, 7 days including public holidays.",
+    answer: "Medical certificates are available 24/7 - submit at any hour and receive your certificate after doctor approval. Prescriptions and consultations are available 8am–10pm AEST, 7 days including public holidays.",
   },
   {
     question: "Can my company set up a corporate account?",

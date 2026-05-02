@@ -252,7 +252,7 @@ export default async function MedCertSlugPage({ params }: PageProps) {
         name: `Can I get a medical certificate online in ${data.name}?`,
         acceptedAnswer: {
           "@type": "Answer",
-          text: `Yes! InstantMed provides online medical certificates to ${data.name} residents. Complete a quick questionnaire, get reviewed by an AHPRA-registered doctor, and receive your certificate - typically in under 30 minutes, available 24/7.`,
+          text: `Yes! InstantMed provides online medical certificates to ${data.name} residents. Complete a quick questionnaire, get reviewed by an AHPRA-registered doctor, and receive your certificate after doctor approval, available 24/7.`,
         },
       },
       {
@@ -292,13 +292,13 @@ export default async function MedCertSlugPage({ params }: PageProps) {
 
               <p className="text-lg text-background/70 mb-8 max-w-2xl mx-auto">
                 Get a valid medical certificate from AHPRA-registered doctors. No waiting rooms, no
-                appointments. Reviewed in ~15 minutes.
+                appointments. Reviewed by an Australian doctor after you submit.
               </p>
 
               <div className="flex flex-wrap justify-center gap-4 mb-8">
                 <div className="flex items-center gap-2 text-sm text-background/70">
                   <Zap className="h-4 w-4 text-primary" />
-                  ~15 min turnaround
+                  Doctor review
                 </div>
                 <div className="flex items-center gap-2 text-sm text-background/70">
                   <Shield className="h-4 w-4 text-primary" />
@@ -374,7 +374,7 @@ export default async function MedCertSlugPage({ params }: PageProps) {
 
           <section className="px-4 py-12">
             <div className="mx-auto max-w-xl text-center">
-              <h2 className="text-2xl font-semibold mb-4">Ready in 15 minutes</h2>
+              <h2 className="text-2xl font-semibold mb-4">Doctor-reviewed certificate</h2>
               <p className="text-background/60 mb-6">
                 Join hundreds of {data.name} residents who skip the waiting room with InstantMed.
               </p>
