@@ -27,6 +27,7 @@ Field-level **envelope encryption** using **AES-256-GCM** with unique IV per ope
 | `profiles` | `medicare_number`, `date_of_birth`, `phone`, `full_name`, `address_*` | Yes (Phase 1) | Yes |
 | `intakes` | `client_ip`, `doctor_notes`, `decline_reason` | `doctor_notes` ✅ Phase 2 | Yes |
 | `intake_answers` | `answers` (JSONB), `allergy_details`, `medical_conditions`, symptom fields | All 3 ✅ Phase 2 | Yes |
+| `partial_intakes` | `answers` (JSONB), `identity_encrypted` (surname/phone/email/name envelope) | `answers_encrypted`, `identity_encrypted` ✅ 2026-05-02 | Service role only |
 | `intake_drafts` | `data` (JSONB) | `data_encrypted` ✅ Phase 3 | Yes |
 | `ai_chat_transcripts` | `messages` (JSONB -- full conversation) | `messages_enc` ✅ Phase 3 | Yes |
 | `ai_chat_audit_log` | `user_input_preview`, `ai_output_preview` | Truncated 50 chars | Yes |
@@ -49,6 +50,7 @@ Field-level **envelope encryption** using **AES-256-GCM** with unique IV per ope
 | `intake_answers` | `answers` (JSONB) | `answers_encrypted` | `lib/data/intake-answers.ts` | ✅ Dual-write + decrypt-on-read |
 | `intake_answers` | `allergy_details` | `allergy_details_enc` | `lib/data/intake-answers.ts` | ✅ Dual-write + decrypt-on-read |
 | `intake_answers` | `medical_conditions` | `medical_conditions_enc` | `lib/data/intake-answers.ts` | ✅ Dual-write + decrypt-on-read |
+| `partial_intakes` | `answers` / `last_name` / `phone` | `answers_encrypted` / `identity_encrypted` | `app/api/draft/route.ts` | ✅ Encrypted new writes + legacy plaintext read fallback until expiry |
 | `intakes` | `doctor_notes` | `doctor_notes_enc` | `lib/data/intakes.ts` | ✅ Dual-write + decrypt-on-read |
 | `patient_notes` | `content` | `content_enc` | `lib/data/intakes.ts` | ✅ Dual-write + decrypt-on-read |
 | `document_drafts` | `data` (JSONB) | `data_enc` | `lib/data/documents.ts` | ✅ Dual-write + decrypt-on-read |
@@ -83,6 +85,8 @@ Wrapper functions in `lib/security/phi-field-wrappers.ts`:
 - `prepare*Write()` — returns spread-ready object with both columns
 - `read*()` — prefers encrypted, falls back to plaintext
 - All async, all graceful-fallback on error (log + continue)
+
+**Anonymous partial-intake drafts:** `/api/draft` is service-role-only and treats `session_id` as a bearer token. New writes rate-limit anonymous callers and encrypt draft answers plus surname/phone in `partial_intakes.answers_encrypted` and `partial_intakes.identity_encrypted`; the plaintext `answers`, `last_name`, and `phone` fields are left empty for new rows. `email` and `first_name` remain plaintext because the recovery email cron needs them. Reads prefer encrypted columns and fall back to legacy plaintext rows until the 7-day draft expiry window clears.
 
 **In transit:** TLS 1.2+ only, Vercel-managed, Let's Encrypt auto-renewed certificates.
 

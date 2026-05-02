@@ -13,9 +13,11 @@
  */
 
 import * as Sentry from "@sentry/nextjs"
-import { type NextRequest,NextResponse } from "next/server"
+import { type NextRequest, NextResponse } from "next/server"
 
 import { createLogger } from "@/lib/observability/logger"
+import { applyRateLimit } from "@/lib/rate-limit/redis"
+import { decryptJSONB, type EncryptedPHI, encryptJSONB } from "@/lib/security/phi-encryption"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const logger = createLogger("api-draft")
@@ -42,6 +44,76 @@ interface DraftPayload {
   }
 }
 
+interface DraftIdentity {
+  email?: string
+  firstName?: string
+  lastName?: string
+  phone?: string
+}
+
+function normalizeIdentity(identity?: DraftPayload["identity"]): DraftIdentity {
+  return {
+    email: identity?.email?.toLowerCase().trim() || undefined,
+    firstName: identity?.firstName?.trim() || undefined,
+    lastName: identity?.lastName?.trim() || undefined,
+    phone: identity?.phone?.trim() || undefined,
+  }
+}
+
+function isEncryptedPHI(value: unknown): value is EncryptedPHI {
+  if (!value || typeof value !== "object") {
+    return false
+  }
+
+  const candidate = value as Partial<EncryptedPHI>
+  return (
+    typeof candidate.ciphertext === "string" &&
+    typeof candidate.encryptedDataKey === "string" &&
+    typeof candidate.iv === "string" &&
+    typeof candidate.authTag === "string" &&
+    typeof candidate.keyId === "string" &&
+    typeof candidate.version === "number"
+  )
+}
+
+async function encryptDraftJson<T extends object>(data: T, label: string): Promise<EncryptedPHI> {
+  try {
+    return await encryptJSONB(data)
+  } catch (error) {
+    logger.error("Failed to encrypt intake draft data", {
+      label,
+      error: error instanceof Error ? error.message : "Unknown encryption error",
+    })
+    Sentry.captureException(error, {
+      tags: { route: "api/draft", operation: "encrypt", label },
+    })
+    throw new Error("Failed to secure draft data")
+  }
+}
+
+async function decryptDraftJson<T extends object>(value: unknown, label: string): Promise<T | null> {
+  if (!value) {
+    return null
+  }
+
+  if (!isEncryptedPHI(value)) {
+    return null
+  }
+
+  try {
+    return await decryptJSONB<T>(value)
+  } catch (error) {
+    logger.error("Failed to decrypt intake draft data", {
+      label,
+      error: error instanceof Error ? error.message : "Unknown decryption error",
+    })
+    Sentry.captureException(error, {
+      tags: { route: "api/draft", operation: "decrypt", label },
+    })
+    throw new Error("Failed to read secured draft data")
+  }
+}
+
 /**
  * POST /api/draft - upsert a draft.
  *
@@ -49,6 +121,11 @@ interface DraftPayload {
  * Returns: { sessionId, expiresAt, updatedAt }
  */
 export async function POST(req: NextRequest) {
+  const rateLimitResponse = await applyRateLimit(req, "standard")
+  if (rateLimitResponse) {
+    return rateLimitResponse
+  }
+
   let body: DraftPayload
   try {
     body = (await req.json()) as DraftPayload
@@ -73,17 +150,35 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Draft answers payload too large" }, { status: 413 })
   }
 
-  const supabase = createServiceRoleClient()
+  const identity = normalizeIdentity(body.identity)
+  let answersEncrypted: EncryptedPHI
+  let identityEncrypted: EncryptedPHI
 
+  try {
+    answersEncrypted = await encryptDraftJson(body.answers ?? {}, "answers")
+    identityEncrypted = await encryptDraftJson(identity, "identity")
+  } catch {
+    return NextResponse.json({ error: "Failed to secure draft data" }, { status: 500 })
+  }
+
+  const supabase = createServiceRoleClient()
   const row = {
     ...(body.sessionId ? { session_id: body.sessionId } : {}),
     service_type: body.serviceType,
     current_step_id: body.currentStepId ?? null,
-    answers: body.answers ?? {},
-    email: body.identity?.email?.toLowerCase().trim() || null,
-    first_name: body.identity?.firstName?.trim() || null,
-    last_name: body.identity?.lastName?.trim() || null,
-    phone: body.identity?.phone?.trim() || null,
+    answers: {},
+    answers_encrypted: answersEncrypted,
+    identity_encrypted: identityEncrypted,
+    encryption_metadata: {
+      answersKeyId: answersEncrypted.keyId,
+      identityKeyId: identityEncrypted.keyId,
+      version: answersEncrypted.version,
+      encryptedAt: new Date().toISOString(),
+    },
+    email: identity.email || null,
+    first_name: identity.firstName || null,
+    last_name: null,
+    phone: null,
   }
 
   const { data, error } = await supabase
@@ -113,6 +208,11 @@ export async function POST(req: NextRequest) {
  * GET /api/draft?id=<sessionId> - retrieve a draft.
  */
 export async function GET(req: NextRequest) {
+  const rateLimitResponse = await applyRateLimit(req, "standard")
+  if (rateLimitResponse) {
+    return rateLimitResponse
+  }
+
   const sessionId = req.nextUrl.searchParams.get("id")
 
   if (!sessionId || !isUuid(sessionId)) {
@@ -122,7 +222,9 @@ export async function GET(req: NextRequest) {
   const supabase = createServiceRoleClient()
   const { data, error } = await supabase
     .from("partial_intakes")
-    .select("session_id, service_type, current_step_id, answers, email, first_name, last_name, phone, updated_at, expires_at, converted_to_intake_id")
+    .select(
+      "session_id, service_type, current_step_id, answers, answers_encrypted, identity_encrypted, email, first_name, last_name, phone, updated_at, expires_at, converted_to_intake_id",
+    )
     .eq("session_id", sessionId)
     .gt("expires_at", new Date().toISOString())
     .is("converted_to_intake_id", null)
@@ -140,16 +242,31 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Draft not found or expired" }, { status: 404 })
   }
 
+  let answers = data.answers ?? {}
+  let identity: DraftIdentity = {
+    email: data.email ?? undefined,
+    firstName: data.first_name ?? undefined,
+    lastName: data.last_name ?? undefined,
+    phone: data.phone ?? undefined,
+  }
+
+  try {
+    answers = (await decryptDraftJson<Record<string, unknown>>(data.answers_encrypted, "answers")) ?? answers
+    identity = (await decryptDraftJson<DraftIdentity>(data.identity_encrypted, "identity")) ?? identity
+  } catch {
+    return NextResponse.json({ error: "Failed to read secured draft data" }, { status: 500 })
+  }
+
   return NextResponse.json({
     sessionId: data.session_id,
     serviceType: data.service_type,
     currentStepId: data.current_step_id,
-    answers: data.answers,
+    answers,
     identity: {
-      email: data.email,
-      firstName: data.first_name,
-      lastName: data.last_name,
-      phone: data.phone,
+      email: identity.email ?? null,
+      firstName: identity.firstName ?? null,
+      lastName: identity.lastName ?? null,
+      phone: identity.phone ?? null,
     },
     updatedAt: data.updated_at,
     expiresAt: data.expires_at,
@@ -163,6 +280,11 @@ export async function GET(req: NextRequest) {
  * when the user explicitly abandons.
  */
 export async function DELETE(req: NextRequest) {
+  const rateLimitResponse = await applyRateLimit(req, "standard")
+  if (rateLimitResponse) {
+    return rateLimitResponse
+  }
+
   const sessionId = req.nextUrl.searchParams.get("id")
 
   if (!sessionId || !isUuid(sessionId)) {
