@@ -316,7 +316,7 @@ export const faqItems = [
   },
   {
     question: "How fast is it really?",
-    answer: "Medical certificates are typically issued in under 20 minutes, available 24/7. Prescriptions and consultations are reviewed within 1–2 hours during operating hours. You'll get email updates as things progress, so you're not left wondering.",
+    answer: "Medical certificates are typically issued in under 20 minutes, available 24/7. Prescription and consultation requests can be submitted 24/7 and are usually reviewed within 1–2 hours during review hours. You'll get email updates as things progress, so you're not left wondering.",
   },
   {
     question: "Is my information private?",

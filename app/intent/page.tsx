@@ -26,7 +26,7 @@ const intents = [
   { slug: "flu-certificate-online", name: "Cold & Flu Certificate", description: "Too sick to work? Get a certificate from your couch" },
   { slug: "uti-treatment-online", name: "UTI Treatment Online", description: "Doctor-assessed UTI treatment with same-day eScript" },
   { slug: "repeat-prescription-online", name: "Medication Review Online", description: "Ongoing medication management without a clinic visit" },
-  { slug: "after-hours-doctor", name: "After Hours Doctor", description: "Med certs 24/7 · Rx & Consults 8am-10pm AEST, 7 days" },
+  { slug: "after-hours-doctor", name: "After Hours Doctor", description: "Submit any request 24/7 · Doctor review follows when available" },
   { slug: "hair-loss-treatment-online", name: "Hair Loss Treatment", description: "Doctor-reviewed treatment plans for hair thinning" },
   { slug: "emergency-contraception-online", name: "Emergency Contraception", description: "Confidential doctor assessment with same-day eScript" },
 ]
@@ -46,7 +46,7 @@ const intentFaqs = [
   },
   {
     question: "How long does it take to get a response?",
-    answer: "Medical certificates are typically issued in about 20 minutes, available 24/7. Prescriptions and consultations are reviewed within 1–2 hours during operating hours (8am–10pm AEST, 7 days).",
+    answer: "Medical certificates are typically issued in about 20 minutes, available 24/7. Prescription and consultation requests can be submitted 24/7 and are usually reviewed within 1–2 hours during review hours (8am–10pm AEST, 7 days).",
   },
   {
     question: "Is my information kept private?",

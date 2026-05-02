@@ -60,7 +60,7 @@ const audienceFaqs = [
   },
   {
     question: "Is the service available outside business hours?",
-    answer: "Medical certificates are available 24/7 - submit at any hour and receive your certificate within 15 minutes. Prescriptions and consultations are available 8am–10pm AEST, 7 days including public holidays.",
+    answer: "Yes. The request flow is available 24/7 for every pathway. Prescription and consultation reviews usually happen during review hours, but you can submit the request at any time, including weekends and public holidays.",
   },
   {
     question: "Can my company set up a corporate account?",

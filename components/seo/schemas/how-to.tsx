@@ -95,7 +95,7 @@ export function MedCertHowToSchema({ baseUrl = "https://instantmed.com.au" }: { 
         },
         {
           name: "Doctor reviews your request",
-          text: "An AHPRA-registered Australian doctor reviews your request. Most are reviewed within 1-2 hours during operating hours."
+          text: "An AHPRA-registered Australian doctor reviews your request. Requests can be submitted 24/7; most are reviewed within 1-2 hours during review hours."
         },
         {
           name: "Receive your certificate",

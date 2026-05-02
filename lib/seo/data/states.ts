@@ -59,7 +59,7 @@ export const statesData: Record<StateSlug, StateData> = {
     healthcareContext: [
       "New South Wales has the largest population and the widest healthcare-access gap of any Australian state. Metropolitan Sydney alone spans 12,000 km² with healthcare availability varying dramatically between suburbs - the Eastern Suburbs and Lower North Shore have high GP density but low bulk-billing, while Western and Southwestern Sydney have growing populations outpacing clinic capacity. Even when bulk-billing is available in the west, same-day appointments are often impossible, particularly on Mondays and Fridays when demand peaks.",
       "Beyond Sydney, regional NSW faces a different set of pressures. Towns like Dubbo, Orange, Wagga Wagga, and the Mid North Coast have fewer GPs per capita than the national average, and locum coverage is inconsistent. For residents of these areas, a 'quick trip to the doctor' for a straightforward med cert or repeat script can mean a half-day round trip. Telehealth removes the distance barrier entirely - the same AHPRA-registered doctor reviews your request whether you're in Mosman or Moree.",
-      "Sydney's shift-working population - hospitality, healthcare workers at RPA and Westmead, logistics staff in Western Sydney - rarely align with standard 9-5 clinic hours. After-hours medical centres exist but typically charge premium fees and have 2-3 hour waits. InstantMed's med-cert service runs 24/7 with ~20 minute turnarounds, and prescription/consultation reviews run 8am-10pm AEST, seven days a week.",
+      "Sydney's shift-working population - hospitality, healthcare workers at RPA and Westmead, logistics staff in Western Sydney - rarely align with standard 9-5 clinic hours. After-hours medical centres exist but typically charge premium fees and have 2-3 hour waits. InstantMed requests can be submitted 24/7, with medical certificates usually turned around quickly and prescription/consultation reviews usually handled 8am-10pm AEST, seven days a week.",
     ],
     stats: [
       { label: "Population", value: "8.3M", context: "Largest Australian state" },
@@ -238,7 +238,7 @@ export const statesData: Record<StateSlug, StateData> = {
       "Telehealth medical certificates and prescriptions for WA residents. Perth to Broome, Bunbury to Karratha - the same AHPRA-registered doctor, wherever you are in the state.",
     healthcareContext: [
       "Western Australia is larger than Western Europe - 2.6 million km² - with 90% of the population concentrated in the southwest corner around Perth. For residents outside metropolitan Perth, healthcare access is defined by distance. A Broome local needing a repeat prescription has a 2,200 km drive to the nearest major GP centre in Perth. Telehealth is not a convenience for WA regional residents - it's often the only practical option.",
-      "Even within metropolitan Perth, WA has unique access pressures. The East-West time difference (3 hours behind the eastern states) means Perth residents often can't reach eastern-state telehealth providers during local business hours - providers closing at 5pm AEST are actually closing at 2pm WA time. InstantMed's prescription and consultation service runs 8am-10pm AEST which translates to 5am-7pm WA time, with med certs available 24/7.",
+      "Even within metropolitan Perth, WA has unique access pressures. The East-West time difference (3 hours behind the eastern states) means Perth residents often can't reach eastern-state telehealth providers during local business hours - providers closing at 5pm AEST are actually closing at 2pm WA time. InstantMed requests can be submitted 24/7, with prescription and consultation reviews usually handled 8am-10pm AEST and med certs available 24/7.",
       "WA's mining sector and offshore oil & gas workforce is substantial - FIFO workers commuting between Perth and the Pilbara, Kimberley, or Goldfields represent tens of thousands of residents. These workers are rarely at home during standard business hours, and their home postcodes (often Perth southern/northern suburbs) face significant GP access pressure. Telehealth consultations fit the FIFO lifestyle in a way traditional clinics cannot.",
     ],
     stats: [
@@ -250,7 +250,7 @@ export const statesData: Record<StateSlug, StateData> = {
     localContext: [
       {
         title: "WA time zone & service hours",
-        body: "Perth runs on Australian Western Standard Time (AWST), 3 hours behind Sydney/Melbourne/Brisbane. Our med cert service is 24/7 so time zone is irrelevant. Prescription and consultation reviews run 8am-10pm AEST which converts to 5am-7pm AWST - so Perth residents can request a script from early morning through to mid-evening local time.",
+        body: "Perth runs on Australian Western Standard Time (AWST), 3 hours behind Sydney/Melbourne/Brisbane. Requests can be submitted 24/7, so time zone never blocks the form. Prescription and consultation reviews usually run 8am-10pm AEST, which converts to 5am-7pm AWST.",
       },
       {
         title: "WA mining & resources sector",
@@ -273,7 +273,7 @@ export const statesData: Record<StateSlug, StateData> = {
       },
       {
         q: "Can I use the service during the WA time difference from the east?",
-        a: "Yes. Med certs are 24/7. Prescription/consultation reviews run 8am-10pm AEST which is 5am-7pm AWST (early morning through to mid-evening Perth time). You can submit a request outside these hours and it will be queued for morning review.",
+        a: "Yes. Every pathway can be submitted 24/7. Prescription/consultation reviews usually run 8am-10pm AEST, which is 5am-7pm AWST, and requests submitted outside those review hours queue for the next doctor review window.",
       },
     ],
   },

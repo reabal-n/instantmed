@@ -26,7 +26,7 @@ const howWeDecideFaqs = [
   },
   {
     question: "How long does the review take?",
-    answer: "Most requests are reviewed within 1-2 hours during operating hours (8am-10pm AEST, 7 days). Some may take longer if the doctor needs to follow up with additional questions or if we're experiencing higher than usual demand.",
+    answer: "You can submit a request 24/7. Most prescription and consultation requests are reviewed within 1-2 hours during review hours (8am-10pm AEST, 7 days). Some may take longer if the doctor needs to follow up with additional questions or if we're experiencing higher than usual demand.",
   },
   {
     question: "What if the doctor needs more information?",

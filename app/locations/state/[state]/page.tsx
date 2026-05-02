@@ -148,7 +148,7 @@ export default async function StatePage({ params }: PageProps) {
         dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
         opens: "00:00",
         closes: "23:59",
-        description: "Medical certificates available 24/7. Prescription and consultation reviews 08:00-22:00 AEST.",
+        description: "Requests accepted 24/7. Prescription and consultation reviews usually occur 08:00-22:00 AEST.",
       },
     ],
     medicalSpecialty: "General Practice",

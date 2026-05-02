@@ -169,7 +169,7 @@ const medicalBusinessSchema = {
       opens: "00:00",
       closes: "23:59",
       description:
-        "Medical certificates 24/7. Prescription and consultation reviews 08:00–22:00 AEST, seven days a week.",
+        "Requests accepted 24/7. Prescription and consultation reviews usually occur 08:00–22:00 AEST, seven days a week.",
     },
   ],
   medicalSpecialty: "General Practice",

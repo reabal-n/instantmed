@@ -102,7 +102,7 @@ export default async function AudiencePage({ params }: PageProps) {
                   <div className="mt-6 flex flex-wrap justify-center gap-3 text-xs">
                     <div className="flex items-center gap-1.5 bg-muted/50 dark:bg-white/[0.06] px-3 py-1.5 rounded-full border border-border/50">
                       <Clock className="h-3.5 w-3.5 text-primary" />
-                      <span className="font-medium text-muted-foreground">8am-10pm, 7 days</span>
+                      <span className="font-medium text-muted-foreground">Submit 24/7</span>
                     </div>
                     <div className="flex items-center gap-1.5 bg-muted/50 dark:bg-white/[0.06] px-3 py-1.5 rounded-full border border-border/50">
                       <Zap className="h-3.5 w-3.5 text-primary" />
@@ -232,7 +232,7 @@ export default async function AudiencePage({ params }: PageProps) {
                     </Button>
                   </Link>
                   <p className="mt-4 text-xs text-muted-foreground">
-                    {PRICING_DISPLAY.FROM_MED_CERT} • 8am-10pm, 7 days
+                    {PRICING_DISPLAY.FROM_MED_CERT} • submit 24/7
                   </p>
                 </div>
               </div>
