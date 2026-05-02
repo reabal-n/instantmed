@@ -665,10 +665,12 @@ WHERE i.status = 'approved'
 | SLO | Target | Reason |
 |---|---|---|
 | Controlled-substance requests blocked at submit | 100% | Clinical safety — Schedule 8 cannot be prescribed via this channel |
+| Missing safety-critical answers blocked before payment | 100% | Patients must not reach Stripe with incomplete emergency/eligibility screening |
 | PHI leaks to Sentry/PostHog (detected in breadcrumbs/replays) | 0 | Privacy Act 1988 APP 11 obligation |
 | Doctor action audit-log completeness | 100% | AHPRA audit trail requirement |
 
 Violations of any clinical-safety SLO are P0 incidents regardless of frequency.
+Recent checkout safety stops are visible in `/admin/ops` from sanitized `safety_audit_log` rows. The log stores outcome metadata and answer keys only, not the full clinical answers payload.
 
 ### Response Expectations
 

@@ -22,6 +22,7 @@ import { createLogger } from "@/lib/observability/logger"
 import { isAtCapacity } from "@/lib/operational-controls/config"
 import { getMedicationBlocklistCandidate } from "@/lib/operational-controls/medication-blocklist"
 import { checkServerActionRateLimit } from "@/lib/rate-limit/redis"
+import { recordSafetyEvaluationForOperators } from "@/lib/safety/audit-log"
 import { checkSafetyForServer, validateSafetyFieldsPresent } from "@/lib/safety/evaluate"
 import { runFraudChecks, saveFraudFlags } from "@/lib/security/fraud-detector"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -220,6 +221,19 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
         serviceSlug: serviceSlugForSafety,
         missingFields: fieldCheck.missingFields,
       })
+      await recordSafetyEvaluationForOperators({
+        answers: input.answers,
+        context: "checkout",
+        result: {
+          isAllowed: false,
+          outcome: "REQUEST_MORE_INFO",
+          riskTier: "high",
+          blockReason: "Required medical information is missing.",
+          requiresCall: false,
+          triggeredRuleIds: ["missing_safety_fields"],
+        },
+        serviceSlug: serviceSlugForSafety,
+      })
       return {
         success: false,
         error: `Required medical information is missing. Please go back and complete all questions. Missing: ${fieldCheck.missingFields.join(", ")}`,
@@ -252,6 +266,12 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
         outcome: safetyCheck.outcome,
         blockReason: safetyCheck.blockReason || "Unknown reason",
         triggeredRuleIds: safetyCheck.triggeredRuleIds,
+      })
+      await recordSafetyEvaluationForOperators({
+        answers: input.answers,
+        context: "checkout",
+        result: safetyCheck,
+        serviceSlug: serviceSlugForSafety,
       })
       
       // Return appropriate error based on outcome
@@ -569,6 +589,26 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
       await supabase.from("intakes").delete().eq("id", intake.id)
       return { success: false, error: "Failed to save your clinical information. Please try again." }
     }
+
+    await Promise.all([
+      recordSafetyEvaluationForOperators({
+        answers: input.answers,
+        context: "checkout",
+        requestId: intake.id,
+        result: safetyCheck,
+        serviceSlug: serviceSlugForSafety,
+      }),
+      supabase
+        .from("intakes")
+        .update({
+          risk_tier: safetyCheck.riskTier,
+          triage_result: "allow",
+          triage_reasons: safetyCheck.triggeredRuleIds,
+          requires_live_consult: safetyCheck.requiresCall,
+          live_consult_reason: safetyCheck.blockReason || null,
+        })
+        .eq("id", intake.id),
+    ])
 
     // Compliance audit: log request creation and consent for LegitScript/AHPRA defensibility
     // Placed after answers insert so these records never orphan if the intake is rolled back.
@@ -898,6 +938,20 @@ export async function retryPaymentForIntakeAction(intakeId: string): Promise<Che
         serviceSlug: serviceSlugForSafety,
         missingFields: fieldCheck.missingFields,
       })
+      await recordSafetyEvaluationForOperators({
+        answers: intakeAnswers,
+        context: "retry_payment",
+        requestId: intakeId,
+        result: {
+          isAllowed: false,
+          outcome: "REQUEST_MORE_INFO",
+          riskTier: "high",
+          blockReason: "Required medical information is missing.",
+          requiresCall: false,
+          triggeredRuleIds: ["missing_safety_fields"],
+        },
+        serviceSlug: serviceSlugForSafety,
+      })
       return {
         success: false,
         error: `Required medical information is missing. Please go back and complete all questions. Missing: ${fieldCheck.missingFields.join(", ")}`,
@@ -912,6 +966,13 @@ export async function retryPaymentForIntakeAction(intakeId: string): Promise<Che
         serviceSlug: serviceSlugForSafety,
         outcome: safetyCheck.outcome,
         triggeredRules: safetyCheck.triggeredRuleIds,
+      })
+      await recordSafetyEvaluationForOperators({
+        answers: intakeAnswers,
+        context: "retry_payment",
+        requestId: intakeId,
+        result: safetyCheck,
+        serviceSlug: serviceSlugForSafety,
       })
       
       return {

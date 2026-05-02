@@ -22,6 +22,7 @@ export default async function OpsDashboardPage() {
     emailQueueResult,
     recentErrorsResult,
     auditLogsResult,
+    safetyBlocksResult,
     systemHealthResult,
     patientIdentityResult,
     prescribingIdentityResult,
@@ -56,6 +57,15 @@ export default async function OpsDashboardPage() {
       .from("audit_logs")
       .select("id", { count: "exact", head: true })
       .gte("created_at", dayAgo.toISOString()),
+
+    supabase
+      .from("safety_audit_log")
+      .select("id, evaluated_at, service_slug, outcome, risk_tier, triggered_rule_ids, request_id", { count: "exact" })
+      .neq("outcome", "ALLOW")
+      .gte("evaluated_at", dayAgo.toISOString())
+      .order("evaluated_at", { ascending: false })
+      .limit(10)
+      .then(r => r.error ? { data: [], count: 0 } : r),
     
     // System health check (intakes processing)
     supabase
@@ -103,6 +113,10 @@ export default async function OpsDashboardPage() {
       recent: recentErrorsResult.data || [],
     },
     auditVolume: auditLogsResult.count || 0,
+    safetyBlocks: {
+      count: safetyBlocksResult.count || 0,
+      recent: safetyBlocksResult.data || [],
+    },
     patientIdentity: patientIdentityResult,
     prescribingIdentity: {
       totalActive: prescribingIdentityResult.totalActive,

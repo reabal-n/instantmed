@@ -54,7 +54,7 @@ InstantMed's commercial moat is no booked appointment, no waiting room, and a se
 | **Age** | 18+ minimum. Parental/guardian consent for minors (Terms section 2) |
 | **Medicare** | Optional for med certs. Required for prescriptions and consultations |
 | **Identity** | Name + DOB + address. No photo ID verification. Medicare Luhn check when provided |
-| **Hours** | Med certs: 24/7. Rx/Consults: 8am–10pm AEST, 7 days. Target 1-2h review, 24h max. No guaranteed response time |
+| **Hours** | Requests currently submit 24/7. Rx/consult review timing is 8am–10pm AEST, 7 days. Target 1-2h review, 24h max. No guaranteed response time. Hard checkout closure outside review hours requires an explicit product/legal decision |
 | **Med cert duration** | Hard cap 3 days. Constant: `MAX_MED_CERT_DURATION_DAYS` in `lib/clinical/intake-validation.ts`. Auto-approval flags `duration_too_long` for anything above. No override |
 | **Med cert validity** | Certificates do not expire. Once issued, they remain authentic indefinitely. Only `revoked` status invalidates a cert; DB trigger from migration `20260428000001_lock_cert_status.sql` rejects any other transition |
 | **Med cert use cases — refused at intake** | Exam deferral, special consideration, court / tribunal / summons / jury, family law / custody / AVO, fitness-for-driving / firearm / aviation, workers comp / NDIS / TAC / insurance claims. `checkHighStakesUseCase` in `lib/clinical/intake-validation.ts` blocks these at submission; `HIGH_STAKES_USE_CASE_KEYWORDS` in `lib/clinical/auto-approval.ts` is the auto-approval fallback if anything bypasses the intake guard |
@@ -106,6 +106,7 @@ The platform may apply deterministic (non-AI) rules to assist triage:
 - Escalation markers disable async completion
 - All rules are logic-based, server-side, fully logged, and explainable
 - Rules assist but never replace clinician judgment
+- Checkout and retry-payment paths must reject missing safety-critical answers before payment. Missing-answer outcomes are `REQUEST_MORE_INFO`, not clinician declines.
 
 ---
 

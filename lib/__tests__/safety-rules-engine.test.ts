@@ -631,11 +631,28 @@ describe("Safety Rules Engine", () => {
       expect(result.missingFields).toHaveLength(0)
     })
 
-    it("returns valid when no fields are marked as requiredForSafety", () => {
-      // The current rule set does not mark any field as requiredForSafety,
-      // so even an empty answers object should pass validation.
+    it("requires core medical certificate safety fields before checkout", () => {
       const result = validateSafetyFieldsPresent("medical-certificate", {})
-      expect(result.valid).toBe(true)
+      expect(result.valid).toBe(false)
+      expect(result.missingFields).toEqual(["emergency_symptoms", "start_date"])
+    })
+
+    it("requires general consult safety screen fields before checkout", () => {
+      const result = validateSafetyFieldsPresent("consult", {
+        consultCategory: "general",
+        emergency_symptoms: [],
+      })
+      expect(result.valid).toBe(false)
+      expect(result.missingFields).toEqual(["general_associated_symptoms", "consultUrgency"])
+    })
+
+    it("requires ED safety screen fields without requiring general consult fields", () => {
+      const result = validateSafetyFieldsPresent("consult", {
+        consultSubtype: "ed",
+        emergency_symptoms: [],
+      })
+      expect(result.valid).toBe(false)
+      expect(result.missingFields).toEqual(["edNitrates", "edRecentHeartEvent", "edSevereHeart"])
     })
   })
 

@@ -15,7 +15,7 @@
 | Support | support@instantmed.com.au · 0450 722 549 |
 | Complaints | complaints@instantmed.com.au · 24h ack · 14-day clinical SLA · canonical page at `/complaints` · linked from footer + Terms §13. Escalation: AHPRA + 8 state HCCC bodies + OAIC (privacy). |
 | Doctor model | Supports multiple doctors. Currently operates with **one** AHPRA-registered GP who serves as both treating practitioner and Medical Director (disclosed in Terms §5, `/clinical-governance`, `/complaints` §4). Never advertise FRACGP, peer review across a cohort, or team training — marketing surfaces use "AHPRA-registered Medical Director" only. Do not expose individual doctor names on marketing pages. |
-| Hours | Med certs: 24/7. Rx/Consults: 8am–10pm AEST, 7 days. Target 1-2h review, 24h max. No customer-facing SLA guarantee. |
+| Hours | Requests currently submit 24/7. Rx/consult review timing is 8am–10pm AEST, 7 days. Target 1-2h review, 24h max. No customer-facing SLA guarantee. Hard checkout closure outside review hours requires an explicit product/legal decision. |
 | Eligibility | Australia only · 18+ (parental consent for minors) · Medicare optional for med certs, required for Rx/consults |
 
 ## Satellite Documentation
@@ -219,6 +219,8 @@ All prices in `lib/constants.ts` (`PRICING`). Stripe IDs mapped in `lib/stripe/p
 **Prescription workflow:** Patient submits → Doctor reviews in portal → Doctor clicks "Prescribe" → Parchment iframe opens in slide-over panel → Doctor writes eScript inside InstantMed → Parchment webhook (`prescription.created`) auto-marks script sent with SCID → Patient notified via email. Feature flag: `parchment_embedded_prescribing` (DB toggle). Fallback: "Mark Sent Manually" button for external prescribing. Parchment confirmed custom-domain iframe whitelist for `https://instantmed.com.au` and `https://www.instantmed.com.au` on 2026-05-01; `lib/parchment/embed-policy.ts` defaults must continue to allow those hosts plus local/Vercel preview hosts. Key files: `lib/parchment/client.ts`, `lib/parchment/sync-patient.ts`, `lib/parchment/embed-policy.ts`, `components/doctor/parchment-prescribe-panel.tsx`, `app/api/webhooks/parchment/route.ts`, `app/actions/parchment.ts`.
 
 **Operational controls:** Admin control surface lives at `/admin/features`; DB-backed mutation path is `app/actions/admin-config.ts` → `lib/feature-flags.ts`. Runtime enforcement lives under `lib/operational-controls/`: capacity limits fail closed when enabled but the count RPC fails, and medication blocklist extraction is shared across authenticated and guest checkout. Business hours are review-timing reference only, not a checkout blocker.
+
+**Checkout safety enforcement:** Authenticated, guest, and retry-payment checkout paths must call `validateSafetyFieldsPresent()` before `checkSafetyForServer()`. Missing safety-critical answers return `REQUEST_MORE_INFO` and are written to `safety_audit_log` via the service role with sanitized metadata only. Allowed checkout outcomes update intake triage fields (`risk_tier`, `triage_result`, `triage_reasons`, `requires_live_consult`, `live_consult_reason`) after `intake_answers` has been saved.
 
 **Repeat Rx subscription:** Dormant/future strategy. Code and Stripe plumbing may exist for `$19.95/mo`, but the current business model is one-off transactions only. Do not market, default, or expand subscriptions until `docs/BUSINESS_PLAN.md` and `docs/REVENUE_MODEL.md` are explicitly updated.
 

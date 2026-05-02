@@ -111,7 +111,7 @@ Prescribing cases require the structured fields before checkout. They are normal
 
 **DB insert sequence:** INSERT `intakes` (status=pending_payment) -> INSERT `intake_answers` -> Stripe redirect -> UPDATE `intakes` status=paid (webhook) -> INSERT `intake_drafts` (via `generateDraftsForIntake`).
 
-**Tables:** `intakes`, `intake_answers`, `ai_chat_transcripts`, `ai_chat_audit_log`, `ai_safety_blocks`.
+**Tables:** `intakes`, `intake_answers`, `safety_audit_log`, `ai_chat_transcripts`, `ai_chat_audit_log`, `ai_safety_blocks`.
 
 ---
 
@@ -182,7 +182,7 @@ Prescribing cases require the structured fields before checkout. They are normal
 checkout-step.tsx -> unified-checkout.ts createCheckoutFromUnifiedFlow()
   -> lib/stripe/checkout.ts createIntakeAndCheckoutAction()
      1. Env/DB service kill-switches   2. Capacity limit   3. Zod validation
-     4. Medication blocklist   5. Safety rules   6. Auth check
+     4. Medication blocklist   5. Safety completeness + rules   6. Auth check
      7. Idempotency key (>=16 chars)   8. Rate limit   9. INSERT intakes
      10. Fraud detection   11. INSERT intake_answers   12. Link chat transcript
      13. Resolve Stripe price (lib/stripe/price-mapping.ts)
@@ -199,7 +199,7 @@ checkout-step.tsx -> unified-checkout.ts createCheckoutFromUnifiedFlow()
 
 **Key files:** `lib/stripe/checkout.ts`, `lib/stripe/guest-checkout.ts`, `lib/operational-controls/config.ts`, `lib/operational-controls/medication-blocklist.ts`, `app/api/stripe/webhook/route.ts`, `app/actions/generate-drafts.ts`, `lib/stripe/price-mapping.ts`.
 
-**Pre-checkout blocks**: maintenance mode is enforced at `/request`; disabled services are enforced at `/request` and both checkout actions; capacity limits are enforced at `/request`, `createIntakeAndCheckoutAction`, and `createGuestCheckoutAction`. When the capacity switch is enabled and the daily counter RPC cannot be read, the system fails closed and shows the high-demand block. Business hours are a review-timing reference only and do not block checkout. PostHog `operational_block` events track capacity-limit blocks for analytics.
+**Pre-checkout blocks**: maintenance mode is enforced at `/request`; disabled services are enforced at `/request` and both checkout actions; capacity limits are enforced at `/request`, `createIntakeAndCheckoutAction`, and `createGuestCheckoutAction`. When the capacity switch is enabled and the daily counter RPC cannot be read, the system fails closed and shows the high-demand block. Business hours are a review-timing reference only and do not block checkout. Safety completeness is enforced server-side before rule evaluation; missing critical answers return `REQUEST_MORE_INFO`, persist a sanitized `safety_audit_log` row, and do not create a Stripe session. PostHog `operational_block` events track capacity-limit blocks for analytics.
 
 ### Idempotency & Duplicate Protection
 
@@ -696,7 +696,7 @@ See `TESTING.md` for full testing strategy, conventions, E2E patterns, auth bypa
 | `lib/clinical/` | Clinical logic | `auto-approval.ts` (eligibility), `auto-approval-pipeline.ts` (orchestrator), `auto-approval-state.ts` (state machine — CAS transitions), `intake-validation.ts` (Schedule 8 blocking), `triage-rules-engine.ts` |
 | `lib/data/` | Supabase queries | `intakes.ts`, `issued-certificates.ts`, `documents.ts`, `intake-answers.ts` — all use `createServiceRoleClient()` |
 | `lib/email/` | Email system | `send-email.ts` (server sender), `send/` helpers, `email-dispatcher.ts` (cron processor) |
-| `lib/safety/` | Safety & eligibility engine | `evaluate.ts`, `rules.ts`, `types.ts`. Used by `/request` flow + `lib/stripe/checkout.ts` pre-checkout gate. |
+| `lib/safety/` | Safety & eligibility engine | `evaluate.ts`, `rules.ts`, `types.ts`, `audit-log.ts`. Used by `/request` flow + authenticated, guest, and retry-payment checkout gates. |
 | `lib/offline-queue.ts` | Client-side offline action queue | Used by `hooks/use-connection-status.ts` |
 | `lib/pdf/` | PDF generation | `template-renderer.ts` (pdf-lib overlay on static templates in `/public/templates/`) |
 | `lib/rate-limit/` | Rate limiting | `redis.ts` (Upstash), `doctor.ts` (auto-approval limits). Fallback: in-memory Map |

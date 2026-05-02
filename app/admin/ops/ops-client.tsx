@@ -48,6 +48,18 @@ interface OpsData {
     }>
   }
   auditVolume: number
+  safetyBlocks: {
+    count: number
+    recent: Array<{
+      id: string
+      evaluated_at: string
+      service_slug: string
+      outcome: string
+      risk_tier: string
+      triggered_rule_ids: string[] | null
+      request_id: string | null
+    }>
+  }
   patientIdentity: {
     rawProfileCount: number
     uniqueProfileCount: number
@@ -95,7 +107,7 @@ function StatusIndicator({ healthy, label }: { healthy: boolean; label: string }
 }
 
 export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
-  const { webhooks, emails, errors, auditVolume, patientIdentity, prescribingIdentity, staleIntakes, systemStatus } = ops
+  const { webhooks, emails, errors, auditVolume, safetyBlocks, patientIdentity, prescribingIdentity, staleIntakes, systemStatus } = ops
 
   const allHealthy = systemStatus.webhooksHealthy
     && systemStatus.emailsHealthy
@@ -136,7 +148,7 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-7 gap-4">
           <div className="bg-card border border-border/50 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl p-5">
             <div className="flex items-center gap-4">
               <div className={cn("p-3 rounded-lg shrink-0", webhooks.failedCount > 0 ? "bg-destructive-light" : "bg-success-light")}>
@@ -207,6 +219,21 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
             <Button variant="link" size="sm" className="mt-3 p-0 h-auto text-xs" asChild>
               <Link href="/admin/audit">View Logs →</Link>
             </Button>
+          </div>
+
+          <div className="bg-card border border-border/50 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl p-5">
+            <div className="flex items-center gap-4">
+              <div className={cn("p-3 rounded-lg shrink-0", safetyBlocks.count > 0 ? "bg-warning-light" : "bg-success-light")}>
+                <AlertTriangle className={cn("h-5 w-5", safetyBlocks.count > 0 ? "text-warning" : "text-success")} />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Safety Blocks</p>
+                <p className={cn("text-2xl font-semibold tabular-nums mt-0.5", safetyBlocks.count > 0 && "text-warning")}>
+                  {safetyBlocks.count}
+                </p>
+                <p className="text-xs text-muted-foreground mt-0.5">Last 24h</p>
+              </div>
+            </div>
           </div>
 
           <div className="bg-card border border-border/50 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl p-5">
@@ -315,6 +342,39 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
                       </p>
                     </div>
                     <XCircle className="w-4 h-4 text-destructive shrink-0 ml-2" />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Recent Safety Blocks */}
+          <div className="bg-card border border-border/50 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl p-6">
+            <div className="flex items-center gap-2 mb-1">
+              <AlertTriangle className="h-5 w-5 text-muted-foreground" />
+              <h3 className="text-base font-semibold text-foreground">Recent Safety Blocks (24h)</h3>
+            </div>
+            <p className="text-sm text-muted-foreground mb-4">{safetyBlocks.count} checkout safety stops logged</p>
+            {safetyBlocks.recent.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <CheckCircle className="w-8 h-8 mx-auto mb-2 text-success" />
+                <p>No recent safety blocks</p>
+              </div>
+            ) : (
+              <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                {safetyBlocks.recent.map((entry) => (
+                  <div key={entry.id} className="flex items-center justify-between gap-3 p-2 rounded-lg bg-muted/50">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium truncate">
+                        {entry.service_slug} · {(entry.triggered_rule_ids || []).join(", ") || "safety rule"}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(entry.evaluated_at).toLocaleString("en-AU")}
+                      </p>
+                    </div>
+                    <StatusBadge status={entry.risk_tier === "critical" || entry.outcome === "DECLINE" ? "error" : "warning"} size="sm">
+                      {entry.outcome}
+                    </StatusBadge>
                   </div>
                 ))}
               </div>
