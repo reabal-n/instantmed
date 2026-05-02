@@ -107,17 +107,17 @@ describe("Email Templates", () => {
   })
 
   describe("MedCertPatientEmail", () => {
-    it("renders with download link and dashboard link", () => {
+    it("renders with dashboard link", () => {
       const html = render(
         <MedCertPatientEmail
           patientName="Alex Johnson"
-          downloadUrl="https://instantmed.com.au/dl/abc123"
           dashboardUrl="https://instantmed.com.au/patient/intakes/123"
           appUrl={APP_URL}
         />
       )
       expectBaseEmailStructure(html)
-      expectContains(html, "Alex", "certificate is ready", "/dl/abc123")
+      expectContains(html, "Alex", "certificate is ready", "/patient/intakes/123")
+      expect(html).not.toContain("/dl/abc123")
     })
 
     it("renders without download link (falls back to dashboard)", () => {
@@ -1167,7 +1167,6 @@ describe("Link validation", () => {
     MedCertPatientEmail: (
       <MedCertPatientEmail
         patientName="Test Patient"
-        downloadUrl="https://instantmed.com.au/dl/abc123"
         dashboardUrl="https://instantmed.com.au/patient/intakes/123"
         verificationCode="ABC-1234"
         appUrl={APP_URL}
@@ -1456,7 +1455,6 @@ describe("Google Review UTM tracking", () => {
     MedCertPatientEmail: (
       <MedCertPatientEmail
         patientName="Test"
-        downloadUrl="https://instantmed.com.au/dl/abc"
         dashboardUrl="https://instantmed.com.au/patient/intakes/123"
         verificationCode="ABC-1234"
         appUrl={APP_URL}

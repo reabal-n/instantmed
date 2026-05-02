@@ -146,7 +146,7 @@ Critical paths only — every flow that touches money, auth, or clinical data:
 | Doctor approval → certificate generation | Approve → PDF → email outbox |
 | Doctor decline → refund | Decline → Stripe refund → patient email |
 | Auth flows | Sign in, sign up, guest checkout → account link |
-| Document download | Auth required, ownership verified, signed URL |
+| Document download | Auth required, ownership verified, app-streamed PDF |
 | Patient portal | Dashboard, intake detail, prescription history |
 
 ### What NOT to E2E Test
@@ -167,7 +167,7 @@ The certificate pipeline has strict idempotency and security requirements. These
 | Issuance locking | Template + clinic snapshots captured at approval time; old certs use original snapshot |
 | Doctor gating | Approval blocked without provider number or AHPRA number; intake reverts on failure |
 | Idempotency | Double-approve creates single certificate and single email |
-| Secure downloads | Auth required; ownership verified; signed URLs expire (5 min); revoked certs blocked |
+| Secure downloads | Auth required; ownership verified; storage signed URLs stay server-side and expire quickly; revoked certs blocked |
 | Verification | Rate limited (10/min, stricter after 3 failures); patient name masked; no sensitive data in response |
 | Input sanitization | SQL injection and XSS attempts rejected; whitespace trimmed |
 | Audit trail | Events logged for issuance, download, verification, email; IP and actor captured |

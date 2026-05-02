@@ -286,7 +286,7 @@ app/actions/approve-cert.ts
   9. Send patient email (dashboard link, not attachment)
 ```
 
-**Security:** Private storage bucket, signed URLs (5-15 min expiry) via `getSecureDownloadUrl()`, ownership check (patient/doctor/admin), certificate IDs via `crypto.randomInt()`. Public verification (`app/api/verify/route.ts`): rate-limited, masked patient name (first + last initial), no doctor name.
+**Security:** Private storage bucket, authenticated app-streamed downloads for patients, and short-lived storage signed URLs only behind server routes. Downloads require ownership checks (patient/doctor/admin as appropriate), and certificate IDs use `crypto.randomInt()`. Public verification (`app/api/verify/route.ts`): rate-limited, masked patient name (first + last initial), no doctor name.
 
 **Email delivery:** Links to `/patient/intakes/[id]`, failure tracked (`email_failed_at`, `email_failure_reason`), max 3 retries, duplicate prevention via `email_sent_at` check.
 

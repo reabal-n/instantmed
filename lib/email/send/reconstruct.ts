@@ -9,6 +9,7 @@ import * as Sentry from "@sentry/nextjs"
 
 import { env } from "@/lib/config/env"
 import { logger } from "@/lib/observability/logger"
+import { getPatientIntakeDetailHref } from "@/lib/patient/certificate-download"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 import { renderEmailToHtml } from "../react-renderer-server"
@@ -48,26 +49,12 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
       return { success: false, error: "Certificate not found for retry" }
     }
 
-    // Generate signed download URL for guest-friendly download
-    let downloadUrl: string | undefined
-    if (cert.storage_path) {
-      try {
-        const { data: signedUrlData } = await supabase.storage
-          .from("documents")
-          .createSignedUrl(cert.storage_path, 3 * 24 * 60 * 60) // 72 hours
-        downloadUrl = signedUrlData?.signedUrl ?? undefined
-      } catch {
-        // Non-fatal: email will fall back to dashboard link
-      }
-    }
-
     // Render the template
     const { MedCertPatientEmail } = await import("@/lib/email/components/templates")
-    const dashboardUrl = `${env.appUrl}/track/${cert.intake_id}`
+    const dashboardUrl = `${env.appUrl}${getPatientIntakeDetailHref(cert.intake_id)}`
 
     const template = MedCertPatientEmail({
       patientName: cert.patient_name,
-      downloadUrl,
       dashboardUrl,
       verificationCode: cert.verification_code,
       certType: cert.certificate_type as "work" | "study" | "carer",

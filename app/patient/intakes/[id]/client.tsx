@@ -489,9 +489,17 @@ export function IntakeDetailClient({
             </div>
           )}
           {intake.status === "pending_info" && (
-            <p className="text-sm text-warning">
-              The doctor needs more information. Please check your messages.
-            </p>
+            <div className="space-y-3">
+              <p className="text-sm text-warning">
+                The doctor needs more information before this can move forward.
+              </p>
+              <Button asChild variant="outline" size="sm">
+                <Link href={`/patient/messages?intakeId=${encodeURIComponent(intake.id)}`}>
+                  Open messages
+                  <ArrowLeft className="ml-2 h-4 w-4 rotate-180" />
+                </Link>
+              </Button>
+            </div>
           )}
           {intake.status === "escalated" && (
             <p className="text-sm text-warning">

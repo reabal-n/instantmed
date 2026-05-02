@@ -268,7 +268,7 @@ export function DashboardHero({
           primaryCta={
             intake && (
               <Button asChild>
-                <Link href={`/patient/intakes/${intake.id}`}>
+                <Link href={`/patient/messages?intakeId=${encodeURIComponent(intake.id)}`}>
                   Reply now
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>

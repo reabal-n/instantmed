@@ -165,7 +165,6 @@ const templates: Record<string, {
     render: () => (
       <MedCertPatientEmail
         patientName={mock.patientName}
-        downloadUrl={mock.downloadUrl}
         dashboardUrl={mock.dashboardUrl}
         verificationCode={mock.verificationCode}
         certType="work"

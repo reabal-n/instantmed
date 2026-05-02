@@ -15,6 +15,7 @@ import { claimOutboxRow } from "@/lib/email/send/outbox"
 import { sendEmail } from "@/lib/email/send-email"
 import { type OutboxRow,sendFromOutboxRow } from "@/lib/email/send-email"
 import { createLogger } from "@/lib/observability/logger"
+import { getPatientIntakeDetailHref } from "@/lib/patient/certificate-download"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 const log = createLogger("email-retry")
@@ -68,7 +69,7 @@ export async function retryEmail(certificateId: string): Promise<RetryResult> {
     await incrementEmailRetry(certificateId)
 
     // Generate email template as React element
-    const dashboardUrl = `${env.appUrl}/track/${certificate.intake_id}`
+    const dashboardUrl = `${env.appUrl}${getPatientIntakeDetailHref(certificate.intake_id)}`
     const emailTemplate = MedCertPatientEmail({
       patientName: certificate.patient_name,
       dashboardUrl,
@@ -77,7 +78,7 @@ export async function retryEmail(certificateId: string): Promise<RetryResult> {
     // Send email via outbox (tracked, auditable)
     log.info("Retrying email send via outbox", {
       certificateId,
-      patientEmail: patient.email,
+      patientEmailPresent: true,
       retryCount: certificate.email_retry_count + 1,
     })
 

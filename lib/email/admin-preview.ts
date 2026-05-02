@@ -157,7 +157,6 @@ const PREVIEW_TEMPLATES: PreviewTemplate[] = [
     sampleData: { patientName: "Sarah Johnson", verificationCode: "MC-ABC123-XYZ", certType: "work" },
     render: (d) => React.createElement(MedCertPatientEmail, {
       patientName: d.patientName,
-      downloadUrl: `${APP_URL}/api/download/mock-signed-url`,
       dashboardUrl: `${APP_URL}/patient/intakes/abc-123`,
       verificationCode: d.verificationCode,
       certType: (d.certType as "work" | "study" | "carer") || "work",

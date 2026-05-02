@@ -7,6 +7,7 @@ import crypto from "crypto"
 
 import { SYSTEM_AUTO_APPROVE_ID } from "@/lib/constants"
 import { createLogger } from "@/lib/observability/logger"
+import { getPatientCertificateDownloadHref } from "@/lib/patient/certificate-download"
 import {
   prepareCertificatePatientNameWrite,
   readCertificatePatientName,
@@ -742,7 +743,9 @@ export async function getCertificateForIntake(
 }
 
 /**
- * Get certificate for intake with PDF URL for patient display
+ * Get certificate for intake with patient download URL for display.
+ * The URL points at the authenticated streaming route so downloads remain
+ * ownership-checked and audit-logged. Do not expose storage signed URLs here.
  * Returns a format compatible with GeneratedDocument interface
  */
 export async function getCertificateWithPdfUrl(
@@ -763,27 +766,12 @@ export async function getCertificateWithPdfUrl(
     return null
   }
   
-  // Generate signed URL for the PDF
-  const supabase = createServiceRoleClient()
-  const { data: signedUrlData } = await supabase.storage
-    .from("documents")
-    .createSignedUrl(certificate.storage_path, 86400) // 24 hour expiry
-  
-  if (!signedUrlData?.signedUrl) {
-    log.error("Failed to generate signed URL for certificate", { 
-      intakeId, 
-      certificateId: certificate.id,
-      storagePath: certificate.storage_path 
-    })
-    return null
-  }
-  
   return {
     id: certificate.id,
     intake_id: intakeId,
     type: "med_cert",
     subtype: certificate.certificate_type,
-    pdf_url: signedUrlData.signedUrl,
+    pdf_url: getPatientCertificateDownloadHref(certificate.id),
     verification_code: certificate.verification_code,
     created_at: certificate.created_at,
     updated_at: certificate.updated_at,
