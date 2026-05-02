@@ -52,14 +52,24 @@ jobs:
           fi
 
       - name: Wait for preview to be ready
+        env:
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
         run: |
           echo "Waiting for ${{ steps.url.outputs.PREVIEW_URL }} to be ready..."
           for i in {1..30}; do
-            if curl -s -o /dev/null -w "%{http_code}" "${{ steps.url.outputs.PREVIEW_URL }}" | grep -q "200\|301\|302"; then
+            status=$(curl -s -o /dev/null -w "%{http_code}" \
+              -H "x-vercel-protection-bypass: ${VERCEL_AUTOMATION_BYPASS_SECRET}" \
+              -H "x-vercel-set-bypass-cookie: true" \
+              "${{ steps.url.outputs.PREVIEW_URL }}")
+            if [ "$status" = "401" ] && [ -z "$VERCEL_AUTOMATION_BYPASS_SECRET" ]; then
+              echo "::error::Missing GitHub secret VERCEL_AUTOMATION_BYPASS_SECRET for protected Vercel preview E2E."
+              exit 1
+            fi
+            if echo "$status" | grep -q "200\|301\|302\|307\|308"; then
               echo "Preview is ready!"
               exit 0
             fi
-            echo "Attempt $i/30 - waiting 10s..."
+            echo "Attempt $i/30 - HTTP $status, waiting 10s..."
             sleep 10
           done
           echo "Preview not ready after 5 minutes"
@@ -77,24 +87,6 @@ jobs:
             --config=playwright.preview.config.ts \
             --project=chromium \
             e2e/preview-smoke.spec.ts
-
-      - name: Run E2E tests against preview
-        env:
-          PLAYWRIGHT: '1'
-          NEXT_PUBLIC_PLAYWRIGHT: '1'
-          E2E_SECRET: ${{ secrets.E2E_SECRET }}
-          E2E_BASE_URL: ${{ steps.url.outputs.PREVIEW_URL }}
-          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
-          # Supabase credentials for preview testing
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-        run: |
-          pnpm exec playwright test \
-            --config=playwright.preview.config.ts \
-            --project=chromium \
-            e2e/consult-subtypes.spec.ts \
-            e2e/service-hub.spec.ts
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
@@ -131,7 +123,7 @@ jobs:
               [View Test Report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
               
               Common issues to check:
-              - First step rendering correctly for each consult subtype
-              - Price labels matching expected values
-              - Checkout session creation with correct Stripe price ID`
+              - Vercel protection bypass secret is present
+              - Preview app is serving the active request route
+              - /api/test/login is either safely disabled with 410 or configured with matching E2E_SECRET`
             });

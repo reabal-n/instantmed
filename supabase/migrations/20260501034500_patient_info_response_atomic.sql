@@ -112,14 +112,3 @@ BEGIN
   RETURN NEXT;
 END;
 $$;
-
-REVOKE ALL ON FUNCTION public.respond_to_info_request_atomic(uuid, uuid, text, timestamptz) FROM PUBLIC;
-REVOKE ALL ON FUNCTION public.respond_to_info_request_atomic(uuid, uuid, text, timestamptz) FROM anon;
-REVOKE ALL ON FUNCTION public.respond_to_info_request_atomic(uuid, uuid, text, timestamptz) FROM authenticated;
-GRANT EXECUTE ON FUNCTION public.respond_to_info_request_atomic(uuid, uuid, text, timestamptz) TO service_role;
-
-COMMENT ON FUNCTION public.respond_to_info_request_atomic(uuid, uuid, text, timestamptz) IS
-  'Atomically writes a patient info-response message and restores the paid intake to the clinical queue.';
-
-CREATE INDEX IF NOT EXISTS idx_patient_messages_intake_created_at
-  ON public.patient_messages(intake_id, created_at);

@@ -91,6 +91,7 @@ ALTER TABLE public.safety_audit_log
   ADD COLUMN IF NOT EXISTS requires_review boolean,
   ADD COLUMN IF NOT EXISTS details text;
 
+DROP FUNCTION IF EXISTS public.log_safety_evaluation(uuid, text, jsonb, text, text);
 CREATE OR REPLACE FUNCTION public.log_safety_evaluation(
   p_request_id uuid,
   p_evaluation_type text,
@@ -140,6 +141,7 @@ BEGIN
 END;
 $$;
 
+DROP FUNCTION IF EXISTS public.log_safety_evaluation(uuid, text, text, text, text, text[], jsonb, jsonb, integer, boolean, uuid);
 CREATE OR REPLACE FUNCTION public.log_safety_evaluation(
   p_request_id uuid,
   p_evaluation_type text,

@@ -1,7 +1,7 @@
 -- Create subscriptions table for repeat script subscription system
 -- Tracks Stripe subscription state, billing periods, and remaining credits
 
-CREATE TABLE public.subscriptions (
+CREATE TABLE IF NOT EXISTS public.subscriptions (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   profile_id uuid NOT NULL REFERENCES public.profiles(id),
   stripe_subscription_id text UNIQUE NOT NULL,
@@ -17,9 +17,9 @@ CREATE TABLE public.subscriptions (
 );
 
 -- Indexes
-CREATE INDEX idx_subscriptions_profile_id ON public.subscriptions(profile_id);
+CREATE INDEX IF NOT EXISTS idx_subscriptions_profile_id ON public.subscriptions(profile_id);
 -- stripe_subscription_id already has a unique index from the UNIQUE constraint
-CREATE INDEX idx_subscriptions_status_active ON public.subscriptions(status)
+CREATE INDEX IF NOT EXISTS idx_subscriptions_status_active ON public.subscriptions(status)
   WHERE status = 'active';
 
 -- RLS
@@ -29,6 +29,7 @@ CREATE INDEX idx_subscriptions_status_active ON public.subscriptions(status)
 ALTER TABLE public.subscriptions ENABLE ROW LEVEL SECURITY;
 
 -- Trigger: auto-update updated_at on row changes (reuses existing function)
+DROP TRIGGER IF EXISTS subscriptions_updated_at ON public.subscriptions;
 CREATE TRIGGER subscriptions_updated_at
   BEFORE UPDATE ON public.subscriptions
   FOR EACH ROW

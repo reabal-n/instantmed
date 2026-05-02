@@ -3,6 +3,7 @@ import Link from "next/link"
 import { redirect } from "next/navigation"
 import { Suspense } from "react"
 
+import { selectGuestProfileForAuthLink } from "@/lib/auth/guest-profile-linking"
 import { createLogger } from "@/lib/observability/logger"
 import { createClient } from "@/lib/supabase/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -26,6 +27,7 @@ function escapeIlike(input: string): string {
 }
 
 const log = createLogger("post-signin")
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 export const dynamic = "force-dynamic"
 
@@ -35,6 +37,83 @@ function destinationKind(destination: string): string {
   if (destination.startsWith("/patient")) return "patient_dashboard"
   if (destination.startsWith("/doctor")) return "doctor_dashboard"
   return "other"
+}
+
+type GuestProfileCandidateRow = {
+  id: string
+  role: string
+  onboarding_completed: boolean | null
+  auth_user_id: string | null
+  created_at: string | null
+}
+
+type GuestProfileLinkCandidate = GuestProfileCandidateRow & {
+  has_paid_intake: boolean
+}
+
+async function getPreferredGuestProfileIdForIntake(
+  supabase: ReturnType<typeof createServiceRoleClient>,
+  intakeId: string | undefined,
+  primaryEmail: string,
+): Promise<string | null> {
+  if (!intakeId || !UUID_RE.test(intakeId)) return null
+
+  const { data: intake } = await supabase
+    .from("intakes")
+    .select("patient_id, patient:profiles!patient_id(id, email, role, auth_user_id)")
+    .eq("id", intakeId)
+    .eq("payment_status", "paid")
+    .maybeSingle()
+
+  const patientRaw = intake?.patient as
+    | { id: string; email: string | null; role: string | null; auth_user_id: string | null }
+    | { id: string; email: string | null; role: string | null; auth_user_id: string | null }[]
+    | null
+    | undefined
+  const patient = Array.isArray(patientRaw) ? patientRaw[0] : patientRaw
+  if (
+    patient?.id &&
+    patient.role === "patient" &&
+    !patient.auth_user_id &&
+    patient.email?.toLowerCase() === primaryEmail
+  ) {
+    return patient.id
+  }
+
+  return null
+}
+
+async function getGuestProfileLinkCandidates(
+  supabase: ReturnType<typeof createServiceRoleClient>,
+  primaryEmail: string,
+  preferredProfileId: string | null,
+): Promise<GuestProfileLinkCandidate[]> {
+  const { data: guestProfiles } = await supabase
+    .from("profiles")
+    .select("id, role, onboarding_completed, auth_user_id, created_at")
+    .ilike("email", escapeIlike(primaryEmail))
+    .eq("role", "patient")
+    .is("auth_user_id", null)
+    .order("created_at", { ascending: false })
+    .limit(10)
+
+  const profileRows = (guestProfiles || []) as GuestProfileCandidateRow[]
+  if (profileRows.length === 0) return []
+
+  const profileIds = profileRows.map((profile) => profile.id)
+  const { data: paidIntakes } = await supabase
+    .from("intakes")
+    .select("patient_id")
+    .in("patient_id", profileIds)
+    .eq("payment_status", "paid")
+    .limit(100)
+
+  const paidProfileIds = new Set((paidIntakes || []).map((intake) => intake.patient_id as string))
+
+  return profileRows.map((profile) => ({
+    ...profile,
+    has_paid_intake: profile.id === preferredProfileId || paidProfileIds.has(profile.id),
+  }))
 }
 
 /**
@@ -99,15 +178,13 @@ export default async function PostSignInPage({
       break
     }
 
-    // Try to link a guest profile by email (auth_user_id IS NULL)
+    // Try to link one deterministic guest profile by email. Prefer the paid
+    // checkout profile that brought the user here, then any profile with paid
+    // history, then the newest unlinked duplicate.
     if (primaryEmail) {
-      const { data: guestProfile } = await supabase
-        .from("profiles")
-        .select("id, role, onboarding_completed, auth_user_id")
-        .ilike("email", escapeIlike(primaryEmail))
-        .eq("role", "patient")
-        .is("auth_user_id", null)
-        .maybeSingle()
+      const preferredProfileId = await getPreferredGuestProfileIdForIntake(supabase, params.intake_id, primaryEmail)
+      const guestProfiles = await getGuestProfileLinkCandidates(supabase, primaryEmail, preferredProfileId)
+      const guestProfile = selectGuestProfileForAuthLink(guestProfiles, preferredProfileId)
 
       if (guestProfile) {
         const fullName = user.user_metadata?.full_name
