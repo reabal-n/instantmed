@@ -14,6 +14,7 @@ describe("homepage timing claims", () => {
       "components/marketing/service-picker.tsx",
       "components/marketing/social-proof-section.tsx",
       "components/request/steps/certificate-step.tsx",
+      "app/request/page.tsx",
       "components/seo/schemas/how-to.tsx",
     ]
     const publicCopy = publicHomepageFiles
@@ -30,5 +31,7 @@ describe("homepage timing claims", () => {
     expect(publicCopy).not.toContain("within the hour")
     expect(publicCopy).not.toContain("within ~1 hour")
     expect(publicCopy).not.toContain("same-day")
+    expect(publicCopy).not.toContain("under 30 minutes")
+    expect(publicCopy).not.toContain("issued in under")
   })
 })

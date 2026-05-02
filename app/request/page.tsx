@@ -4,7 +4,7 @@ import Link from "next/link"
 import { RequestFlow } from "@/components/request"
 import { trackOperationalBlock } from "@/lib/analytics/posthog-server"
 import { getCurrentUser, getUserProfile } from "@/lib/auth/helpers"
-import { CONTACT_EMAIL_HELLO, PRICING_DISPLAY } from "@/lib/constants"
+import { CONTACT_EMAIL_HELLO } from "@/lib/constants"
 import { decryptProfilePhi } from "@/lib/data/profiles"
 import { isMaintenanceMode, isServiceDisabled } from "@/lib/feature-flags"
 import { isAtCapacity } from "@/lib/operational-controls/config"
@@ -18,7 +18,7 @@ export const dynamic = "force-dynamic"
 export const metadata: Metadata = {
   title: "Get Started",
   description:
-    `Medical certificates from $19 - issued in under 30 minutes, 24/7. Repeat medication from ${PRICING_DISPLAY.REPEAT_SCRIPT}, doctor consultations from ${PRICING_DISPLAY.CONSULT}. Reviewed by Australian doctors.`,
+    "Request medical certificates, medication renewals, and doctor consultations online. Reviewed by Australian doctors.",
   openGraph: {
     title: "Get Started | InstantMed",
     description: "Medical certificates, medication renewals, and consultations online. Reviewed by Australian doctors.",
