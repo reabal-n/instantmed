@@ -206,7 +206,6 @@ All prices in `lib/constants.ts` (`PRICING`). Stripe IDs mapped in `lib/stripe/p
 | Women's health | $59.95 | `STRIPE_PRICE_CONSULT_WOMENS_HEALTH` |
 | Weight loss | $89.95 | `STRIPE_PRICE_CONSULT_WEIGHT_LOSS` |
 | Priority fee (Express Review) | $9.95 | `STRIPE_PRICE_PRIORITY_FEE` |
-| Repeat Rx subscription | $19.95/mo | `STRIPE_PRICE_REPEAT_RX_MONTHLY` |
 | Referral letter | $29.95 | — (display only, not yet Stripe-mapped) |
 | Pathology request | $29.95 | — (display only, not yet Stripe-mapped) |
 
@@ -220,7 +219,7 @@ All prices in `lib/constants.ts` (`PRICING`). Stripe IDs mapped in `lib/stripe/p
 
 **Operational controls:** Admin control surface lives at `/admin/features`; DB-backed mutation path is `app/actions/admin-config.ts` → `lib/feature-flags.ts`. Runtime enforcement lives under `lib/operational-controls/`: capacity limits fail closed when enabled but the count RPC fails, and medication blocklist extraction is shared across authenticated and guest checkout. Business hours are review-timing reference only, not a checkout blocker.
 
-**Repeat Rx subscription:** Dormant/future strategy. Code and Stripe plumbing may exist for `$19.95/mo`, but the current business model is one-off transactions only. Do not market, default, or expand subscriptions until `docs/BUSINESS_PLAN.md` and `docs/REVENUE_MODEL.md` are explicitly updated.
+**Repeat Rx subscription:** Dormant/future strategy. Patient-facing checkout, nudge cron, email template, env requirement, and display price were retired; the current business model is one-off transactions only. Historical subscription webhook/account support may remain for compatibility. Do not market, default, or expand subscriptions until `docs/BUSINESS_PLAN.md` and `docs/REVENUE_MODEL.md` are explicitly updated.
 
 **Priority fee (Express Review):** $9.95 add-on toggle on checkout. Adds second line item to Stripe session. Sets `is_priority` on intake → doctor queue sorts priority-first.
 
@@ -264,7 +263,7 @@ All prices in `lib/constants.ts` (`PRICING`). Stripe IDs mapped in `lib/stripe/p
 - **Tailwind v4**: CSS-first config. Custom morning spectrum colors (sky, dawn, ivory)
 - **Route group conflicts**: Never place `page.tsx` inside a route group `(name)/` if the parent dir also has `page.tsx` — both resolve to the same URL and Vercel's build tracer will fail with ENOENT. CI runs `scripts/check-route-conflicts.sh` to catch this
 - **Canonical intake flow**: `/request` is the **sole** canonical intake. The `/flow` parallel system was deleted in 2026-04-08 (commit `18e26f0b7`). `/flow` and `/flow/:path*` now 301 to `/request` via `next.config.mjs`. Do not add any new logic under a `/flow/*` path, and do not reference `lib/flow/*` — safety engine lives at `lib/safety/` and offline queue at `lib/offline-queue.ts`.
-- **Redirect-only pages**: `/prescriptions/request`, `/prescriptions/new`, `/consult/request`, `/medical-certificates/*`, `/medications/*` all redirect to canonical routes via `next.config.mjs`. The `page.tsx` files still exist as defense-in-depth but their sibling client/action files were deleted in 2026-04-08 (commit `f53d336ec`). Do not recreate those client files.
+- **Redirect-only pages**: `/prescriptions/request`, `/prescriptions/new`, `/prescriptions/repeat`, `/consult/request`, `/medical-certificate/request`, `/medical-certificates/*`, `/medications/*`, `/login`, and `/auth/login` redirect to canonical routes via `next.config.mjs`. The duplicate `page.tsx` trees were removed; do not recreate local client/action files for those aliases.
 - **Stack pin check regex**: `scripts/check-stack-pins.sh` uses glob `[[ == *"^"* ]]` substring tests, NOT bash regex bracket classes (`[[ =~ [\^~\>*x] ]]`). The regex form is bash-version-dependent and produces false positives on bash 5 (Ubuntu CI). Fixed in commit `1e54d69ee` — don't revert it.
 - **Orphaned file check**: `scripts/check-orphaned-files.sh` detects dead intake steps not in the step registry, stale `/flow/` routes, `@deprecated` modules with zero imports, and orphaned worktree directories. Run it before deploying.
 - **CI runs a blocking ops E2E smoke** (`e2e/admin.ops-index.spec.ts`) via `.github/workflows/ci.yml` when repo variable `E2E_ENABLED=true`. Requires repo secret `ENCRYPTION_KEY`; ops/admin pages can decrypt PHI-backed fields during E2E. The older broad Playwright suite is currently non-blocking debt because it contains stale routes/product assumptions and timeouts.

@@ -119,7 +119,7 @@ const instantmedVsHubHealth: ComparisonEntry = {
     },
     {
       q: "Do I have to commit to anything with InstantMed?",
-      a: "No. InstantMed has no subscription and no ongoing commitment. You pay for the service you need, once. The only recurring option is the repeat prescription subscription ($19.95/mo) for patients who specifically want automated monthly repeats - and that's opt-in at checkout, not a default.",
+      a: "No. InstantMed has no subscription and no ongoing commitment. You pay for the service you need, once.",
     },
     {
       q: "Which service is faster for a medical certificate?",
@@ -429,14 +429,14 @@ const instantmedVsQoctor: ComparisonEntry = {
     { feature: "24/7 medical certificates", instantmed: true, competitor: "Extended hours", winner: "instantmed" },
     { feature: "Priority review option", instantmed: `Express Review +${PRICING_DISPLAY.PRIORITY_FEE}`, competitor: "Not advertised", winner: "instantmed" },
     { feature: "Refund on declined request", instantmed: "100% on med cert/Rx, 50% on consults", competitor: "Refund policy varies", winner: "instantmed" },
-    { feature: "Repeat prescription subscription", instantmed: "$19.95/mo optional", competitor: "Per-request only", winner: "tie" },
+    { feature: "Repeat prescription commitment", instantmed: "Per-request only", competitor: "Per-request only", winner: "tie" },
   ],
   whenInstantMedBetter: [
     "You want a clearly documented refund guarantee (100% on med cert/Rx declines)",
     "You need 24/7 availability for medical certificates",
     "You want the option to fast-track your review for a small add-on fee",
     "You prefer direct doctor messaging when clinical questions come up",
-    "You're looking for an optional monthly subscription for ongoing repeat scripts",
+    "You prefer repeat scripts handled as separate doctor-reviewed requests",
   ],
   whenCompetitorBetter: [
     "You've used Qoctor before, trust their process, and want continuity",
@@ -541,7 +541,7 @@ const instantmedVsInstantScripts: ComparisonEntry = {
     { feature: "General consultation", instantmed: PRICING_DISPLAY.FROM_CONSULT, competitor: "Similar pricing", winner: "tie" },
     { feature: "eScript delivery", instantmed: true, competitor: true, winner: "tie" },
     { feature: "Priority / Express review", instantmed: `+${PRICING_DISPLAY.PRIORITY_FEE} fast-track option`, competitor: "Varies", winner: "instantmed" },
-    { feature: "Repeat script subscription", instantmed: "$19.95/mo optional", competitor: "Per-request", winner: "tie" },
+    { feature: "Repeat script commitment", instantmed: "Per-request", competitor: "Per-request", winner: "tie" },
     { feature: "24/7 medical certificates", instantmed: true, competitor: "Extended hours", winner: "instantmed" },
     { feature: "Direct doctor messaging", instantmed: true, competitor: "Varies by request", winner: "instantmed" },
     { feature: "Refund on declined request", instantmed: "100% med cert/Rx, 50% consults", competitor: "Refund policy varies", winner: "instantmed" },
@@ -552,7 +552,7 @@ const instantmedVsInstantScripts: ComparisonEntry = {
     "You want 24/7 availability for medical certificates",
     "You want the Express Review option to fast-track your request",
     "You prefer direct doctor messaging as part of the review process",
-    "You want an opt-in monthly repeat prescription subscription",
+    "You prefer repeat scripts handled without a subscription commitment",
   ],
   whenCompetitorBetter: [
     "You prefer a service with broader name recognition and longer track record",

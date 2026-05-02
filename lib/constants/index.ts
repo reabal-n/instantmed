@@ -50,7 +50,6 @@ export const PRICING = {
   REFERRAL: 29.95,
   PATHOLOGY: 29.95,
   PRIORITY_FEE: 9.95,    // Express review fee
-  REPEAT_RX_MONTHLY: 19.95, // Repeat Rx subscription (monthly)
 } as const
 
 // Formatted pricing strings for display - use these everywhere in UI/SEO/marketing
@@ -68,7 +67,6 @@ export const PRICING_DISPLAY = {
   REFERRAL: `$${PRICING.REFERRAL.toFixed(2)}`,
   PATHOLOGY: `$${PRICING.PATHOLOGY.toFixed(2)}`,
   PRIORITY_FEE: `$${PRICING.PRIORITY_FEE.toFixed(2)}`,
-  REPEAT_RX_MONTHLY: `$${PRICING.REPEAT_RX_MONTHLY.toFixed(2)}`,
   // Common display patterns
   FROM_MED_CERT: `From $${PRICING.MED_CERT.toFixed(2)}`,
   FROM_SCRIPT: `From $${PRICING.REPEAT_SCRIPT.toFixed(2)}`,

@@ -16,7 +16,6 @@ import { GuaranteeBadge } from "@/components/marketing/guarantee-badge"
 import { usePostHog } from "@/components/providers/posthog-provider"
 import { CheckoutButton, TrustBadgeRow } from "@/components/shared"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useReducedMotion } from "@/components/ui/motion"
 import { Switch } from "@/components/ui/switch"
@@ -71,8 +70,6 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
   const [consentGiven, setConsentGiven] = useState(false)
   // Express Review defaults OFF - patient opts in consciously
   const [isPriority, setIsPriority] = useState(false)
-  const isRepeatScript = serviceType === 'prescription' || serviceType === 'repeat-script'
-  const [subscribeAndSave, setSubscribeAndSave] = useState(false)
 
   const duration = answers.duration as string | undefined
   const consultSubtype = answers.consultSubtype as string | undefined
@@ -119,7 +116,6 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
         confirmedAccuracy: true,
         telehealthConsentGiven: true,
         isPriority,
-        subscribeAndSave: subscribeAndSave && isRepeatScript,
       }
       // Retrieve persisted attribution (captured on landing page load)
       const attribution = getAttribution()
@@ -240,16 +236,7 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
         <div className="pt-3 border-t space-y-1">
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">{displayLabel}</span>
-            <span className="font-medium">
-              {subscribeAndSave ? (
-                <>
-                  <span className="line-through text-muted-foreground/60 mr-1">${price.toFixed(2)}</span>
-                  ${APP_PRICING.REPEAT_RX_MONTHLY.toFixed(2)}
-                </>
-              ) : (
-                `$${price.toFixed(2)}`
-              )}
-            </span>
+            <span className="font-medium">${price.toFixed(2)}</span>
           </div>
           {isPriority && (
             <div className="flex justify-between text-sm">
@@ -260,21 +247,15 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
           <div className="flex justify-between items-baseline pt-2 border-t border-dashed">
             <div>
               <span className="font-medium">Total</span>
-              <span className="text-xs text-muted-foreground ml-2">
-                {subscribeAndSave ? "/month" : "one-time fee"}
-              </span>
+              <span className="text-xs text-muted-foreground ml-2">one-time fee</span>
             </div>
             <div className="text-right">
               <span className="text-2xl font-semibold text-primary">
-                ${((subscribeAndSave ? APP_PRICING.REPEAT_RX_MONTHLY : price) + (isPriority ? APP_PRICING.PRIORITY_FEE : 0)).toFixed(2)}
+                ${(price + (isPriority ? APP_PRICING.PRIORITY_FEE : 0)).toFixed(2)}
               </span>
             </div>
           </div>
-          <p className="text-xs text-muted-foreground">
-            {subscribeAndSave
-              ? "First script processed immediately. Cancel anytime."
-              : "One-time fee. Your doctor reviews right after."}
-          </p>
+          <p className="text-xs text-muted-foreground">One-time fee. Your doctor reviews right after.</p>
         </div>
       </motion.div>
 
@@ -314,40 +295,6 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
             If the doctor needs more information before prescribing, they&apos;ll reach out directly.
           </p>
         </div>
-      )}
-
-      {/* Subscribe & Save toggle - repeat scripts only */}
-      {isRepeatScript && (
-        <motion.div variants={stagger.item}>
-          <label
-            htmlFor="subscribe-save-toggle"
-            className={`w-full p-3.5 rounded-xl border-2 text-left transition-[background-color,border-color] duration-200 flex items-start gap-3 cursor-pointer ${
-              subscribeAndSave
-                ? "border-primary bg-primary/5"
-                : "border-border hover:border-primary/40"
-            }`}
-          >
-            <Switch
-              id="subscribe-save-toggle"
-              checked={subscribeAndSave}
-              onCheckedChange={setSubscribeAndSave}
-              className="mt-1 shrink-0"
-              aria-label="Subscribe and save on repeat prescriptions"
-            />
-            <div className="flex-1">
-              <div className="flex items-center gap-2">
-                <RefreshCw className="w-4 h-4 text-primary" />
-                <span className="text-sm font-medium">Subscribe &amp; save</span>
-                <Badge variant="secondary" className="text-xs font-semibold text-primary bg-primary/10">
-                  Save ${(price - APP_PRICING.REPEAT_RX_MONTHLY).toFixed(2)}/mo
-                </Badge>
-              </div>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                ${APP_PRICING.REPEAT_RX_MONTHLY.toFixed(2)}/mo instead of ${price.toFixed(2)} per script. Includes 1 repeat per month. Cancel anytime.
-              </p>
-            </div>
-          </label>
-        </motion.div>
       )}
 
       {/* Express review toggle - opt-in, understated */}
@@ -465,8 +412,8 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
             onClick={handleCheckout}
             isLoading={isProcessing}
             disabled={!canCheckout}
-            price={`$${((subscribeAndSave ? APP_PRICING.REPEAT_RX_MONTHLY : price) + (isPriority ? APP_PRICING.PRIORITY_FEE : 0)).toFixed(2)}${subscribeAndSave ? "/mo" : ""}`}
-            label={`Pay $${((subscribeAndSave ? APP_PRICING.REPEAT_RX_MONTHLY : price) + (isPriority ? APP_PRICING.PRIORITY_FEE : 0)).toFixed(2)}${subscribeAndSave ? "/mo" : ""}`}
+            price={`$${(price + (isPriority ? APP_PRICING.PRIORITY_FEE : 0)).toFixed(2)}`}
+            label={`Pay $${(price + (isPriority ? APP_PRICING.PRIORITY_FEE : 0)).toFixed(2)}`}
             loadingLabel="Processing..."
             variant="prominent"
           />

@@ -38,7 +38,6 @@ export type EmailType =
   | "treatment_followup"
   | "abandoned_checkout_followup"
   | "partial_intake_recovery"
-  | "subscription_nudge"
   | "follow_up_reminder"
   | "verification_code"
   // Review lifecycle emails (cron-triggered)
@@ -52,7 +51,6 @@ export const MARKETING_EMAIL_TYPES: ReadonlySet<EmailType> = new Set([
   "abandoned_checkout",
   "abandoned_checkout_followup",
   "partial_intake_recovery",
-  "subscription_nudge",
   "follow_up_reminder",
   "review_request",
   "review_followup",

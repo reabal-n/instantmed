@@ -56,12 +56,12 @@ Service-specific stat configurations for social proof strips.
 
 | Export | Type | What it provides |
 |--------|------|-----------------|
-| `PRICING` | `const object` | Raw prices: `MED_CERT` ($19.95), `MED_CERT_2DAY` ($29.95), `MED_CERT_3DAY` ($39.95), `REPEAT_SCRIPT` ($29.95), `NEW_SCRIPT` ($49.95), `CONSULT` ($49.95), `MENS_HEALTH` ($49.95), `WOMENS_HEALTH` ($59.95), `HAIR_LOSS` ($49.95), `WEIGHT_LOSS` ($89.95), `REFERRAL` ($29.95), `PATHOLOGY` ($29.95), `PRIORITY_FEE` ($9.95), `REPEAT_RX_MONTHLY` ($19.95). |
+| `PRICING` | `const object` | Raw prices: `MED_CERT` ($19.95), `MED_CERT_2DAY` ($29.95), `MED_CERT_3DAY` ($39.95), `REPEAT_SCRIPT` ($29.95), `NEW_SCRIPT` ($49.95), `CONSULT` ($49.95), `MENS_HEALTH` ($49.95), `WOMENS_HEALTH` ($59.95), `HAIR_LOSS` ($49.95), `WEIGHT_LOSS` ($89.95), `REFERRAL` ($29.95), `PATHOLOGY` ($29.95), `PRIORITY_FEE` ($9.95). |
 | `PRICING_DISPLAY` | `const object` | Formatted strings: `MED_CERT` ("$19.95"), `FROM_MED_CERT` ("From $19.95"), `RANGE` ("$19.95 - $49.95"), etc. |
 
 **Rule:** Never hardcode a price. Stripe price IDs are mapped separately in `lib/stripe/price-mapping.ts`.
 
-**Business rule:** `REPEAT_RX_MONTHLY` is dormant/future strategy. Do not market subscriptions until `docs/BUSINESS_PLAN.md` and `docs/REVENUE_MODEL.md` are updated to reactivate them.
+**Business rule:** Repeat Rx subscription acquisition is dormant/future strategy. Do not add subscription display prices or market subscriptions until `docs/BUSINESS_PLAN.md` and `docs/REVENUE_MODEL.md` are updated to reactivate them.
 
 ---
 

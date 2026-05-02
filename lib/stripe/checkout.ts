@@ -611,22 +611,9 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
     // Apply referral credit as Stripe coupon if patient has unspent credits
     const referralCoupon = await createReferralCouponIfEligible(patientId, amountCents)
 
-    // Subscription mode: use recurring price for repeat scripts when opted in
-    const isSubscription = input.answers.subscribe_and_save === true
-    const subscriptionPriceId = process.env.STRIPE_PRICE_REPEAT_RX_MONTHLY
+    const lineItems: Array<{ price: string; quantity: number }> = [{ price: priceId, quantity: 1 }]
 
-    // Build line items. CRITICAL: in subscription mode, line_items must be
-    // recurring-only - Stripe rejects mixing one-time prices into a
-    // subscription session with a 400. The Express Review one-time fee gets
-    // attached via subscription_data.add_invoice_items below so it bills on
-    // the first invoice. See launch blocker #4.
-    const lineItems: Array<{ price: string; quantity: number }> = isSubscription && subscriptionPriceId
-      ? [{ price: subscriptionPriceId, quantity: 1 }]
-      : [{ price: priceId, quantity: 1 }]
-
-    // For one-time payment mode, push the priority fee directly into line_items.
-    // For subscription mode, defer to add_invoice_items (handled below).
-    if (isPriority && priorityPriceId && !isSubscription) {
+    if (isPriority && priorityPriceId) {
       lineItems.push({ price: priorityPriceId, quantity: 1 })
     }
 
@@ -643,7 +630,6 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
       } : {}),
       ...(input.posthogDistinctId ? { ph_distinct_id: input.posthogDistinctId } : {}),
       ...(isPriority ? { is_priority: "true" } : {}),
-      ...(isSubscription ? { is_subscription: "true" } : {}),
       // Google Ads click IDs for Enhanced Conversions attribution
       ...(input.attribution?.gclid ? { gclid: input.attribution.gclid } : {}),
       ...(input.attribution?.gbraid ? { gbraid: input.attribution.gbraid } : {}),
@@ -655,57 +641,27 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
     // When a referral coupon is auto-applied, we cannot also accept a manual promo code.
     const allowPromotionCodes = !referralCoupon
 
-    // For subscription mode with Express Review, add the one-time priority fee
-    // as a first-invoice add-on. This is the only Stripe-supported way to
-    // combine a one-time charge with a recurring subscription in Checkout.
-    const subscriptionAddInvoiceItems: Array<{ price: string; quantity: number }> = []
-    if (isSubscription && isPriority && priorityPriceId) {
-      subscriptionAddInvoiceItems.push({ price: priorityPriceId, quantity: 1 })
+    const sessionParams = {
+      line_items: lineItems,
+      ...(referralCoupon ? { discounts: [{ coupon: referralCoupon.couponId }] } : {}),
+      ...(allowPromotionCodes ? { allow_promotion_codes: true } : {}),
+      mode: "payment" as const,
+      success_url: successUrl,
+      cancel_url: cancelUrl,
+      metadata: sessionMetadata,
+      customer: stripeCustomerId || undefined,
+      customer_email: !stripeCustomerId && patientEmail ? patientEmail : undefined,
+      customer_creation: !stripeCustomerId && patientEmail ? "always" as const : undefined,
+      // Enable saved payment methods for returning customers
+      payment_intent_data: {
+        metadata: paymentIntentMetadata,
+        setup_future_usage: "on_session" as const,
+      },
+      // Show saved payment methods for returning customers
+      saved_payment_method_options: stripeCustomerId ? {
+        payment_method_save: "enabled" as const,
+      } : undefined,
     }
-
-    const sessionParams = isSubscription && subscriptionPriceId
-      ? {
-          // Subscription checkout
-          line_items: lineItems,
-          ...(referralCoupon ? { discounts: [{ coupon: referralCoupon.couponId }] } : {}),
-          ...(allowPromotionCodes ? { allow_promotion_codes: true } : {}),
-          mode: "subscription" as const,
-          success_url: successUrl,
-          cancel_url: cancelUrl,
-          subscription_data: {
-            metadata: sessionMetadata,
-            // Bill the Express Review one-time fee on the first invoice only.
-            ...(subscriptionAddInvoiceItems.length > 0
-              ? { add_invoice_items: subscriptionAddInvoiceItems }
-              : {}),
-          },
-          metadata: sessionMetadata,
-          customer: stripeCustomerId || undefined,
-          customer_email: !stripeCustomerId && patientEmail ? patientEmail : undefined,
-          customer_creation: !stripeCustomerId && patientEmail ? "always" as const : undefined,
-        }
-      : {
-          // One-time payment checkout
-          line_items: lineItems,
-          ...(referralCoupon ? { discounts: [{ coupon: referralCoupon.couponId }] } : {}),
-          ...(allowPromotionCodes ? { allow_promotion_codes: true } : {}),
-          mode: "payment" as const,
-          success_url: successUrl,
-          cancel_url: cancelUrl,
-          metadata: sessionMetadata,
-          customer: stripeCustomerId || undefined,
-          customer_email: !stripeCustomerId && patientEmail ? patientEmail : undefined,
-          customer_creation: !stripeCustomerId && patientEmail ? "always" as const : undefined,
-          // Enable saved payment methods for returning customers
-          payment_intent_data: {
-            metadata: paymentIntentMetadata,
-            setup_future_usage: "on_session" as const,
-          },
-          // Show saved payment methods for returning customers
-          saved_payment_method_options: stripeCustomerId ? {
-            payment_method_save: "enabled" as const,
-          } : undefined,
-        }
 
     // 10. Create Stripe checkout session with idempotency key
     let session

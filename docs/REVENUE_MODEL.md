@@ -37,7 +37,7 @@ All canonical prices live in `lib/constants/index.ts`.
 | General consult | $49.95 |
 | Priority fee | $9.95 |
 
-Repeat Rx subscription pricing exists in code but is not part of the current business model. Treat it as dormant/future until explicitly reactivated.
+Repeat Rx subscription acquisition is dormant/future strategy. Patient-facing checkout, nudge cron, email template, env requirement, and display price were retired. Treat subscriptions as inactive unless explicitly reactivated in this document and `docs/BUSINESS_PLAN.md`.
 
 ## 3. Orders Needed For $1M
 
@@ -140,4 +140,3 @@ Do not scale paid spend until:
 - Do not push weight loss as a high-volume automated product.
 - Do not use med-cert subscriptions or bundles.
 - Do not optimise approval rate at the expense of clinical defensibility.
-
