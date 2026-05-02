@@ -15,7 +15,7 @@ import { getPatientCount } from '@/lib/social-proof'
 const inlineStats = [
   { value: getPatientCount(), suffix: '+', label: 'Australians helped', decimals: 0 },
   { value: SOCIAL_PROOF.averageRating, suffix: '/5', label: 'Patient rating', decimals: 1 },
-  { value: SOCIAL_PROOF.sameDayDeliveryPercent, suffix: '%', label: 'Same-day delivery', decimals: 0 },
+  { value: SOCIAL_PROOF.certApprovalPercent, suffix: '%', label: 'Clinically approved', decimals: 0 },
   { value: 100, suffix: '%', label: 'AHPRA-registered doctors', decimals: 0 },
 ]
 

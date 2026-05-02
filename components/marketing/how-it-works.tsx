@@ -181,7 +181,7 @@ export function HowItWorks() {
             </Link>
           </Button>
           <p className="text-xs text-muted-foreground mt-2.5">
-            Med certs typically ready in under 20 minutes.
+            Submit online. A doctor reviews when available.
           </p>
         </Reveal>
       </div>

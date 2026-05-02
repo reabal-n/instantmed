@@ -28,7 +28,7 @@ export function Footer({ variant = "marketing" }: FooterProps) {
           <div className="md:w-[200px] shrink-0">
             <BrandLogo size="md" />
             <p className="text-muted-foreground text-sm mt-3 leading-snug">
-              See a doctor from bed. Most requests reviewed within 1–2 hours.
+              See a doctor from bed. AHPRA-registered doctors review every request.
             </p>
             {isMarketing && (
               <div className="flex flex-col gap-1.5 mt-3 text-xs text-muted-foreground">

@@ -27,13 +27,13 @@ test.describe("Unified Request Flow - Medical Certificate", () => {
     await expect(page.getByRole("heading", { name: /Certificate details/i })).toBeVisible({ timeout: 15000 })
     
     // Select work certificate type
-    await page.getByRole("button", { name: /Work/i }).click()
+    await page.getByRole("radio", { name: /Work/i }).click()
     
     // Select 1 day duration
-    await page.getByRole("button", { name: /1 day/i }).click()
+    await page.getByRole("radio", { name: /1 day/i }).click()
     
     // Continue button should be visible (may be disabled until all fields complete)
-    await expect(page.getByRole("button", { name: /Continue/i })).toBeVisible()
+    await expect(page.getByRole("button", { name: /Review my certificate/i })).toBeVisible()
   })
 
   test("certificate step shows type options", async ({ page }) => {
@@ -41,9 +41,9 @@ test.describe("Unified Request Flow - Medical Certificate", () => {
     await expect(page.getByRole("heading", { name: /Certificate details/i })).toBeVisible({ timeout: 15000 })
     
     // Should see certificate type options
-    await expect(page.getByRole("button", { name: /Work/i })).toBeVisible()
-    await expect(page.getByRole("button", { name: /Study/i })).toBeVisible()
-    await expect(page.getByRole("button", { name: /Carer/i })).toBeVisible()
+    await expect(page.getByRole("radio", { name: /Work/i })).toBeVisible()
+    await expect(page.getByRole("radio", { name: /Study/i })).toBeVisible()
+    await expect(page.getByRole("radio", { name: /Carer/i })).toBeVisible()
   })
 
   test("can select duration options", async ({ page }) => {
@@ -51,8 +51,8 @@ test.describe("Unified Request Flow - Medical Certificate", () => {
     await expect(page.getByRole("heading", { name: /Certificate details/i })).toBeVisible({ timeout: 15000 })
     
     // Duration options should be visible
-    await expect(page.getByRole("button", { name: /1 day/i })).toBeVisible()
-    await expect(page.getByRole("button", { name: /2 days/i })).toBeVisible()
+    await expect(page.getByRole("radio", { name: /1 day/i })).toBeVisible()
+    await expect(page.getByRole("radio", { name: /2 days/i })).toBeVisible()
   })
 
   test("shows progress indicator", async ({ page }) => {
@@ -131,7 +131,7 @@ test.describe("Unified Request Flow - Draft Persistence", () => {
     await expect(page.getByRole("heading", { name: /Certificate details/i })).toBeVisible({ timeout: 15000 })
     
     // Select certificate type
-    await page.getByRole("button", { name: /Work/i }).click()
+    await page.getByRole("radio", { name: /Work/i }).click()
     
     // Button should show selected state (visual feedback)
     await page.waitForTimeout(300)
@@ -189,7 +189,7 @@ test.describe("Unified Request Flow - Accessibility", () => {
     await expect(page.getByRole("heading", { name: /Certificate details/i })).toBeVisible({ timeout: 15000 })
     
     // Page should have focusable buttons
-    await expect(page.getByRole("button", { name: /Work/i })).toBeVisible()
+    await expect(page.getByRole("radio", { name: /Work/i })).toBeVisible()
   })
 
   test("interactive elements are present", async ({ page }) => {

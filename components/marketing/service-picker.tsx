@@ -1,7 +1,7 @@
 'use client'
 
 import { motion, type Variants } from 'framer-motion'
-import { AlertCircle,ArrowRight, Check, Clock, ShieldCheck, Stethoscope } from 'lucide-react'
+import { AlertCircle, ArrowRight, Check, Clock, ShieldCheck, Stethoscope } from 'lucide-react'
 import Link from 'next/link'
 
 import { ServiceIconTile } from '@/components/icons/service-icons'
@@ -10,7 +10,7 @@ import { ConsultChatMockup } from '@/components/marketing/mockups/consult-chat-m
 import { EDHeroMockup } from '@/components/marketing/mockups/ed-hero-mockup'
 import { EScriptMockup } from '@/components/marketing/mockups/escript'
 import { HairLossHeroMockup } from '@/components/marketing/mockups/hair-loss-hero-mockup'
-import { type ServiceId,useServiceAvailability } from '@/components/providers/service-availability-provider'
+import { type ServiceId, useServiceAvailability } from '@/components/providers/service-availability-provider'
 import { Button } from '@/components/ui/button'
 import { useReducedMotion } from '@/components/ui/motion'
 import { serviceCategories } from '@/lib/marketing/homepage'
@@ -28,7 +28,7 @@ const mockupMap: Record<string, React.ComponentType> = {
 // Trust signals - unique per section, no duplicates with hero/trust-badge-slider
 const trustSignals = [
   { icon: Stethoscope, text: 'AHPRA-registered doctors' },
-  { icon: Clock, text: 'Most reviewed within 1-2 hours' },
+  { icon: Clock, text: 'Submit online 24/7' },
   { icon: ShieldCheck, text: 'Flat pricing, no hidden fees' },
 ]
 

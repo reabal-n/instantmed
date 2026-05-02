@@ -5,7 +5,7 @@
  * Shows all collected information for patient to verify
  */
 
-import { Check, ChevronDown, ChevronUp, Clock, CreditCard, Edit2, Loader2, Lock, MessageSquare, RefreshCw,ShieldCheck, Smartphone } from "lucide-react"
+import { Check, ChevronDown, ChevronUp, Clock, CreditCard, Edit2, Loader2, Lock, MessageSquare, RefreshCw, ShieldCheck, Smartphone } from "lucide-react"
 import { usePostHog } from "posthog-js/react"
 import { useRef,useState } from "react"
 
@@ -14,7 +14,6 @@ import { PaymentLogos } from "@/components/checkout/payment-logos"
 import { GoogleAdsCert } from "@/components/marketing/google-ads-cert"
 import { LegitScriptSeal } from "@/components/marketing/legitscript-seal"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
@@ -129,9 +128,7 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
   const [error, setError] = useState<string | null>(null)
   const [showCheckmark, setShowCheckmark] = useState(false)
   const [isPriority, setIsPriority] = useState(false)
-  const [subscribeAndSave, setSubscribeAndSave] = useState(false)
-  const totalDue = (subscribeAndSave && isPrescriptionCheckout ? APP_PRICING.REPEAT_RX_MONTHLY : price)
-    + (isPriority ? APP_PRICING.PRIORITY_FEE : 0)
+  const totalDue = price + (isPriority ? APP_PRICING.PRIORITY_FEE : 0)
 
   const handleConsentChange = (checked: boolean) => {
     setSafetyConfirmed(checked)
@@ -166,7 +163,7 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
       service_type: serviceType,
       price_dollars: totalDue,
       is_priority: isPriority,
-      subscribe_and_save: subscribeAndSave,
+      subscribe_and_save: false,
     })
     void trackFunnelStep("checkout", serviceType, identity.email)
 
@@ -179,7 +176,7 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
           confirmedAccuracy: true,
           telehealthConsentGiven: true,
           isPriority,
-          subscribeAndSave,
+          subscribeAndSave: false,
         },
         identity,
         attribution: getAttribution(),
@@ -689,28 +686,7 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
       <div className="space-y-3 pt-1">
         {isPrescriptionCheckout && (
           <div className="rounded-2xl border border-border/50 bg-white dark:bg-card shadow-md shadow-primary/[0.06] p-3 space-y-3">
-            <div className="grid grid-cols-2 gap-2">
-              <label
-                htmlFor="review-subscribe-save-toggle"
-                className={`min-h-[86px] rounded-xl border p-3 cursor-pointer transition-colors ${
-                  subscribeAndSave ? "border-primary bg-primary/5" : "border-border hover:border-primary/40"
-                }`}
-              >
-                <div className="mb-2 flex items-center justify-between gap-2">
-                  <RefreshCw className="h-4 w-4 text-primary" />
-                  <Switch
-                    id="review-subscribe-save-toggle"
-                    checked={subscribeAndSave}
-                    onCheckedChange={setSubscribeAndSave}
-                    aria-label="Subscribe and save on repeat prescriptions"
-                  />
-                </div>
-                <div className="text-sm font-medium leading-tight">Subscribe &amp; save</div>
-                <div className="mt-1 text-xs text-muted-foreground">
-                  ${APP_PRICING.REPEAT_RX_MONTHLY.toFixed(2)}/mo
-                </div>
-              </label>
-
+            <div className="grid gap-2 sm:grid-cols-2">
               <label
                 htmlFor="review-express-review-toggle"
                 className={`min-h-[86px] rounded-xl border p-3 cursor-pointer transition-colors ${
@@ -732,6 +708,15 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
                 <div className="text-sm font-medium leading-tight">Express review</div>
                 <div className="mt-1 text-xs text-muted-foreground">+{PRICING_DISPLAY.PRIORITY_FEE}</div>
               </label>
+              <div className="min-h-[86px] rounded-xl border border-border bg-muted/30 p-3">
+                <div className="mb-2 flex items-center gap-2">
+                  <Smartphone className="h-4 w-4 text-primary" />
+                  <div className="text-sm font-medium leading-tight">One-off request</div>
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  No subscription. The doctor reviews this request, then you pay again only when you need another script.
+                </div>
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-2 border-t border-border/50 pt-3 text-xs text-muted-foreground">
@@ -752,16 +737,12 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
           <div className="flex items-center justify-between">
             <span className="text-sm text-muted-foreground">{isPrescriptionCheckout ? "Due today" : "Total today"}</span>
             <span className="text-base font-semibold text-foreground">
-              ${totalDue.toFixed(2)}{subscribeAndSave && isPrescriptionCheckout ? "/mo" : ""}
+              ${totalDue.toFixed(2)}
             </span>
           </div>
           {isPrescriptionCheckout && (
             <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-              {subscribeAndSave ? (
-                <Badge variant="secondary" className="text-[11px]">Cancel anytime</Badge>
-              ) : (
-                <span>One-time fee</span>
-              )}
+              <span>One-time fee</span>
               {isPriority && <span>Includes express review</span>}
             </div>
           )}
@@ -821,7 +802,7 @@ export default function ReviewStep({ serviceType, onNext }: ReviewStepProps) {
           ) : isPrescriptionCheckout ? (
             <>
               <CreditCard className="h-4 w-4" />
-              Pay ${totalDue.toFixed(2)}{subscribeAndSave ? "/mo" : ""}
+              Pay ${totalDue.toFixed(2)}
             </>
           ) : (
             "Continue to payment"

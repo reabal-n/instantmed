@@ -70,7 +70,7 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: 'Faster than your GP. Telehealth without the small talk. | InstantMed',
-    description: 'A real Australian doctor, ready in the time it takes to make a coffee. Medical certificates, repeat medication, and online doctor consults. No appointment, no waiting room. AHPRA-registered.',
+    description: 'A real Australian doctor reviews your request. Medical certificates, repeat medication, and online doctor consults. No appointment, no waiting room. AHPRA-registered.',
     type: 'website',
     locale: 'en_AU',
     url: 'https://instantmed.com.au',
@@ -80,7 +80,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'InstantMed | Faster than your GP. Telehealth without the small talk.',
-    description: 'A real Australian doctor, ready in the time it takes to make a coffee. AHPRA-registered. No appointment, no waiting room.',
+    description: 'A real Australian doctor reviews your request. AHPRA-registered. No appointment, no waiting room.',
     // Twitter image handled by app/opengraph-image.tsx convention file
   },
   alternates: {
@@ -125,7 +125,7 @@ export default async function HomePage() {
       <FAQSchema faqs={faqSchemaData} />
       <SpeakableSchema
         name="InstantMed - Online Doctor Australia"
-        description={`Get medical certificates in under 20 minutes, 24/7. Repeat medication and discreet treatment for ED and hair loss from AHPRA-registered Australian doctors. ${PRICING_DISPLAY.FROM_MED_CERT}.`}
+        description={`Start a secure request for medical certificates, repeat medication, ED, and hair loss from AHPRA-registered Australian doctors. ${PRICING_DISPLAY.FROM_MED_CERT}.`}
         url="/"
       />
 
@@ -166,7 +166,7 @@ export default async function HomePage() {
             {PROP_PHRASE}
           </h2>
           <p className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-8 leading-relaxed text-balance">
-            AHPRA-registered Australian doctors. Reviewed in minutes. {WEDGE}
+            AHPRA-registered Australian doctors. {WEDGE}
           </p>
         </Hero>
 

@@ -1,3 +1,4 @@
+import { REPEAT_RX_SUBSCRIPTIONS_ACTIVE } from "@/lib/config/subscriptions"
 import {
   validateCertificateStep,
   validateConsultReasonStep,
@@ -215,7 +216,7 @@ export function transformAnswersForUnifiedCheckout(
   transformed.terms_agreed = answers.agreedToTerms
 
   transformed.is_priority = answers.isPriority === true
-  transformed.subscribe_and_save = answers.subscribeAndSave === true
+  transformed.subscribe_and_save = REPEAT_RX_SUBSCRIPTIONS_ACTIVE && answers.subscribeAndSave === true
 
   copyStringAnswer(transformed, "medicare_number", answers, ["medicare_number", "medicareNumber"])
   copyScalarAnswer(transformed, "medicare_irn", answers, ["medicare_irn", "medicareIrn"])

@@ -76,7 +76,7 @@ export function MedCertHowToSchema({ baseUrl = "https://instantmed.com.au" }: { 
   return (
     <HowToSchema
       name="How to Get a Medical Certificate Online in Australia"
-      description="Get a valid medical certificate from an AHPRA-registered doctor online. No appointment needed. Most requests reviewed within 1-2 hours."
+      description="Get a valid medical certificate from an AHPRA-registered doctor online. No appointment needed. Doctor review follows submission."
       totalTime="PT120M"
       estimatedCost="19.95"
       baseUrl={baseUrl}
@@ -95,7 +95,7 @@ export function MedCertHowToSchema({ baseUrl = "https://instantmed.com.au" }: { 
         },
         {
           name: "Doctor reviews your request",
-          text: "An AHPRA-registered Australian doctor reviews your request. Most are reviewed within 1-2 hours during operating hours."
+          text: "An AHPRA-registered Australian doctor reviews your request and follows up if more information is needed."
         },
         {
           name: "Receive your certificate",
@@ -113,7 +113,7 @@ export function PrescriptionHowToSchema({ baseUrl = "https://instantmed.com.au" 
   return (
     <HowToSchema
       name="How to Get a Prescription Online in Australia"
-      description="Request a prescription from an AHPRA-registered doctor online. Reviewed within 1-2 hours, eScript sent directly to your phone."
+      description="Request a prescription from an AHPRA-registered doctor online. Doctor review follows submission, and eScripts are sent directly to your phone if approved."
       totalTime="PT120M"
       estimatedCost="29.95"
       baseUrl={baseUrl}

@@ -3,7 +3,7 @@ import { redirect } from "next/navigation"
 
 export const metadata: Metadata = {
   title: "Get Started",
-  description: "Start your telehealth consultation with InstantMed. Get medical certificates, prescriptions, or doctor consultations online in minutes.",
+  description: "Start your telehealth consultation with InstantMed. Get medical certificates, prescriptions, or doctor consultations reviewed by Australian doctors.",
 }
 
 // Prevent static generation for dynamic auth

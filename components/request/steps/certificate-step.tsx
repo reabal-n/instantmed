@@ -385,7 +385,7 @@ export default function CertificateStep({ onNext }: CertificateStepProps) {
                 : `${summaryLabel(startOffset)} → ${summaryLabel(endOffset)} · ${selectedDays} days`}
             </p>
             <p className="text-xs text-muted-foreground mt-0.5">
-              No waiting rooms · reviewed within ~1 hour
+              No waiting rooms · doctor reviewed
             </p>
           </div>
           <span className="text-base font-semibold text-primary shrink-0 ml-3">${price}</span>

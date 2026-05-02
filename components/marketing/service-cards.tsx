@@ -201,7 +201,7 @@ export function ServiceCards() {
           </p>
           <p className="flex items-center justify-center gap-1.5 text-sm text-muted-foreground">
             <Clock className="w-3.5 h-3.5 text-primary" />
-            Med certs typically ready in under 20 minutes
+            Doctor-reviewed requests
           </p>
         </Reveal>
 

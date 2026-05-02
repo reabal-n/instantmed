@@ -1,4 +1,4 @@
-import { ABN, COMPANY_ADDRESS,COMPANY_NAME, CONTACT_EMAIL, CONTACT_PHONE, PRICING_DISPLAY } from "@/lib/constants"
+import { ABN, COMPANY_ADDRESS, COMPANY_NAME, CONTACT_EMAIL, CONTACT_PHONE, PRICING_DISPLAY } from "@/lib/constants"
 
 // Homepage Marketing Data
 // All content centralized for easy updates
@@ -36,8 +36,8 @@ export const heroRotatingTexts = [
 export const trustSignals = [
   {
     icon: "Clock",
-    text: "Certs in ~20 min, scripts in 1–2 hrs",
-    description: "Most requests sorted same day",
+    text: "Doctor-reviewed requests",
+    description: "Email updates as your request progresses",
   },
   {
     icon: "Clock",
@@ -72,7 +72,7 @@ export const serviceCategories = [
     cta: "Get your certificate",
     benefits: [
       "Issued if clinically appropriate",
-      "Delivered to your inbox same-day",
+      "Delivered to your inbox after doctor approval",
       "AHPRA-registered doctor on every cert",
     ],
     testimonial: {
@@ -99,7 +99,7 @@ export const serviceCategories = [
       "Sent to your phone via SMS"
     ],
     testimonial: {
-      quote: "Script on my phone in 30 minutes. Took it to the chemist that afternoon.",
+      quote: "Doctor-reviewed request. Took the eScript to the chemist that afternoon.",
       author: "David, Melbourne"
     },
   },
@@ -122,7 +122,7 @@ export const serviceCategories = [
       "Full refund if we can't help",
     ],
     testimonial: {
-      quote: "Spoke to a doctor within the hour. Got a referral sorted without leaving work.",
+      quote: "Doctor-reviewed request. Got a referral sorted without leaving work.",
       author: "Tom, Adelaide"
     },
   },
@@ -217,7 +217,7 @@ export const serviceCategories = [
 export const proofMetrics = [
   {
     label: "Typical turnaround",
-    value: "Under 1 hour",
+    value: "Doctor-reviewed",
     icon: "Zap",
   },
   {
@@ -264,7 +264,7 @@ export const featuredServices = [
     description: "Feeling too sick to visit a GP? Get a valid, employer-ready certificate from an AHPRA-registered doctor, without leaving bed.",
     priceFrom: 19.95,
     href: "/request?service=med-cert",
-    features: ["Sick leave", "Carer's leave", "Uni extensions", "Same-day delivery"],
+    features: ["Sick leave", "Carer's leave", "Uni extensions", "Doctor-approved delivery"],
   },
   {
     title: "Repeat Medication",
@@ -316,7 +316,7 @@ export const faqItems = [
   },
   {
     question: "How fast is it really?",
-    answer: "Medical certificates are typically issued in under 20 minutes, available 24/7. Prescriptions and consultations are reviewed within 1–2 hours during operating hours. You'll get email updates as things progress, so you're not left wondering.",
+    answer: "The request flow is open 24/7. A doctor reviews submitted requests when available, and you'll get email updates as things progress so you're not left wondering.",
   },
   {
     question: "Is my information private?",
@@ -377,8 +377,8 @@ export const footerLinks = {
 }
 
 export const slaPolicy = {
-  standardTurnaround: "60 minutes",
-  operatingHoursNote: "During operating hours",
+  standardTurnaround: "Doctor review when available",
+  operatingHoursNote: "Submit 24/7; review timing depends on doctor availability",
   exceptions: [
     "Complex medical histories may require additional review time",
     "Requests requiring a phone/video consultation",

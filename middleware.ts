@@ -1,4 +1,4 @@
-import { type NextRequest,NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 
 import { updateSupabaseSession } from '@/lib/supabase/middleware'
 
@@ -53,7 +53,6 @@ export default async function middleware(req: NextRequest) {
   // A 404 signals "might come back"; a 410 signals "stop wasting crawl budget."
   const ghostPaths = [
     "/performance-anxiety",
-    "/start",
   ]
   if (ghostPaths.includes(pathname)) {
     return new NextResponse(null, { status: 410 })
