@@ -39,6 +39,7 @@ const PROFILE_COLUMNS = `
   ahpra_number, ahpra_verified, ahpra_verified_at, ahpra_verified_by,
   ahpra_verification_notes, ahpra_next_review_at, provider_number, nominals,
   consent_myhr, onboarding_completed,
+  account_closed_at, account_closure_reason,
   email_verified, email_verified_at, email_bounced, email_bounced_at,
   email_bounce_reason, email_delivery_failures,
   avatar_url, stripe_customer_id, parchment_patient_id, certificate_identity_complete,
@@ -87,6 +88,11 @@ function decryptProfilePhiForAuth<T extends Record<string, unknown>>(profile: T)
   delete decrypted.phone_encrypted
 
   return decrypted as T
+}
+
+function isClosedProfile(profile: Record<string, unknown> | Profile | null): boolean {
+  const closedAt = profile?.account_closed_at
+  return typeof closedAt === "string" && closedAt.length > 0
 }
 
 async function fetchProfileByColumn(
@@ -213,7 +219,7 @@ export async function getAuthenticatedUserWithProfile(): Promise<AuthenticatedUs
       }
     }
 
-    if (profile) {
+    if (profile && !isClosedProfile(profile)) {
       const typedProfile = asProfile(profile)
       return {
         user: {
@@ -247,7 +253,7 @@ export async function getAuthenticatedUserWithProfile(): Promise<AuthenticatedUs
     "supabase_auth",
   )
 
-  if (!profile) {
+  if (!profile || isClosedProfile(profile)) {
     return null
   }
 
@@ -300,6 +306,7 @@ export async function getOrCreateAuthenticatedUser(): Promise<AuthenticatedUser 
       .ilike("email", escapeIlike(primaryEmail))
       .eq("role", "patient")
       .is("auth_user_id", null)
+      .is("account_closed_at", null)
       .maybeSingle()
 
     if (guestProfile) {
@@ -323,6 +330,7 @@ export async function getOrCreateAuthenticatedUser(): Promise<AuthenticatedUser 
         .eq("id", guestProfile.id)
         .eq("role", "patient")
         .is("auth_user_id", null)
+        .is("account_closed_at", null)
         .select(PROFILE_COLUMNS)
         .maybeSingle()
 
@@ -385,7 +393,7 @@ export async function getOrCreateAuthenticatedUser(): Promise<AuthenticatedUser 
     }
   }
 
-  if (!profile) {
+  if (!profile || isClosedProfile(profile as Record<string, unknown>)) {
     return null
   }
 
@@ -504,7 +512,7 @@ export async function getUserProfile(authUserId: string): Promise<Profile | null
     .eq("auth_user_id", authUserId)
     .single()
 
-  if (error || !profile) return null
+  if (error || !profile || isClosedProfile(profile as Record<string, unknown>)) return null
   return asProfile(decryptProfilePhiForAuth(profile as Record<string, unknown>))
 }
 
@@ -602,7 +610,7 @@ export async function getApiAuth(): Promise<{ userId: string; profile: Profile }
     profile = byAuthId.data as Record<string, unknown> | null
   }
 
-  if (!profile) {
+  if (!profile || isClosedProfile(profile)) {
     return null
   }
 

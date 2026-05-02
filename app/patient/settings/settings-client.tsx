@@ -236,13 +236,13 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
     try {
       const result = await deleteAccount()
       if (result.success) {
-        toast.success("Account deleted successfully")
+        toast.success("Account closed successfully")
         router.push("/")
       } else {
-        toast.error(result.error || "Failed to delete account")
+        toast.error(result.error || "Failed to close account")
       }
     } catch {
-      toast.error("Failed to delete account")
+      toast.error("Failed to close account")
     } finally {
       setIsDeletingAccount(false)
     }
@@ -662,9 +662,10 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
             <div>
               <h3 className="font-medium text-destructive mb-4">Danger Zone</h3>
               <div className="p-4 rounded-xl bg-destructive-light border border-destructive-border/50 max-w-md">
-                <p className="font-medium text-destructive">Delete Account</p>
+                <p className="font-medium text-destructive">Close Account</p>
                 <p className="text-sm text-destructive/70 mb-4">
-                  Permanently delete your account and all associated data. This action cannot be undone.
+                  Close sign-in access and remove non-essential profile/contact details. Clinical, payment, and audit
+                  records required for care, refunds, complaints, and legal retention are retained.
                 </p>
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
@@ -672,15 +673,15 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
                       variant="outline"
                       className="rounded-xl text-destructive border-destructive-border dark:border-destructive-border/30 hover:bg-destructive-light bg-transparent"
                     >
-                      Delete My Account
+                      Close My Account
                     </Button>
                   </AlertDialogTrigger>
                   <AlertDialogContent className="rounded-2xl">
                     <AlertDialogHeader>
-                      <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                      <AlertDialogTitle>Close this account?</AlertDialogTitle>
                       <AlertDialogDescription>
-                        This action cannot be undone. This will permanently delete your account and remove your data
-                        from our servers.
+                        This closes patient sign-in access and removes non-essential profile/contact details. Clinical,
+                        payment, and audit records are retained where required.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -693,10 +694,10 @@ export function PatientSettingsClient({ profile, email, emailPreferences }: Pati
                         {isDeletingAccount ? (
                           <>
                             <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                            Deleting...
+                            Closing...
                           </>
                         ) : (
-                          "Yes, delete my account"
+                          "Yes, close my account"
                         )}
                       </AlertDialogAction>
                     </AlertDialogFooter>

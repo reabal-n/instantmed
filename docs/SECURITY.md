@@ -148,6 +148,12 @@ See `OPERATIONS.md` §Rollback Runbook for the reversibility matrix and rollback
 
 **No DELETE policies** on most tables -- intentional for audit trail preservation.
 
+### Patient Account Closure
+
+Patient self-service closure is **not** a clinical-record deletion. `deleteAccount()` in `app/actions/account.ts` blocks closure while active clinical work exists, closes sign-in access by clearing `profiles.auth_user_id`, sets `profiles.account_closed_at` / `account_closure_reason`, removes non-essential profile/contact PHI from plaintext and encrypted profile columns, and writes an `account_closed` audit event. Retained clinical, payment, document, and audit tables stay linked by `profiles.id`.
+
+Closed profiles are rejected by the central auth helpers (`getAuthenticatedUserWithProfile()`, `getOrCreateAuthenticatedUser()`, `getApiAuth()`, `getUserProfile()`) and are excluded from guest-profile relinking. Do not delete the Supabase auth user for this flow: `profiles.auth_user_id` has historically referenced `auth.users(id)` with cascade behavior, so auth deletion can destroy the retained record chain.
+
 ### Storage Buckets
 
 | Bucket | Visibility | Patient | Doctor | Delete |

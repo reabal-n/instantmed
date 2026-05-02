@@ -37,6 +37,7 @@ export type AuditAction =
   | "ai_draft_generated"
   | "ai_draft_failed"
   | "data_export"
+  | "account_closed"
   | "permission_change"
 
 interface AuditLogEntry {

@@ -374,7 +374,7 @@ Config-driven, immutably versioned. Template config stored as JSONB in `certific
 | `/patient/messages` | Doctor-patient messaging (Supabase Realtime) | `patient_messages` table, `.limit(50)` |
 | `/patient/intakes/[id]` | Intake detail + document download | Ownership check via `patient_id` |
 | `/patient/payment-history` | Stripe invoices | Client-side fetch to `/api/patient/get-invoices` |
-| `/patient/settings` | Profile, email prefs, export, delete | Multiple API endpoints |
+| `/patient/settings` | Profile, email prefs, export, retained-record account closure | Multiple API endpoints |
 | `/patient/health-summary` | Aggregated health summary (stats, recent requests, certs, Rx history) | Direct Supabase query |
 | `/patient/notifications` | Notification feed (Supabase Realtime + Web Push via VAPID) | Direct Supabase query |
 
@@ -382,7 +382,9 @@ Config-driven, immutably versioned. Template config stored as JSONB in `certific
 
 **Real-time:** Messaging and notifications use Supabase Realtime (`postgres_changes` subscription on INSERT/UPDATE). Push notifications via Web Push API (VAPID key, Service Worker). Notification types: `request_update`, `payment`, `document_ready`, `refill_reminder`, `system`, `promotion`.
 
-**Guest → Authenticated flow:** Guest checkout creates profile without `auth_user_id` → Stripe redirect → success URL `/auth/complete-account?intake_id={id}` → post-signin page links guest profile by email match → sets `email_verified: true` → checks `onboarding_completed` → routes to `/patient/onboarding` or `/patient`.
+**Guest → Authenticated flow:** Guest checkout creates profile without `auth_user_id` → Stripe redirect → success URL `/auth/complete-account?intake_id={id}` → post-signin page links guest profile by email match → sets `email_verified: true` → checks `onboarding_completed` → routes to `/patient/onboarding` or `/patient`. Closed profiles (`account_closed_at is not null`) are excluded from relinking.
+
+**Account closure:** Patient self-service closure is blocked while active clinical work exists. Otherwise it detaches `profiles.auth_user_id`, records `account_closed_at` / `account_closure_reason`, clears non-essential profile/contact PHI, and retains clinical/payment/audit rows by `profiles.id`.
 
 **Payment state display:**
 
@@ -724,7 +726,7 @@ See `TESTING.md` for full testing strategy, conventions, E2E patterns, auth bypa
 | `types/certificate-template.ts` | PDF template field definitions |
 | `hooks/` | 5 custom hooks (use-connection-status, use-debounce, use-doctor-shortcuts, use-keyboard-navigation, use-landing-analytics) |
 | `e2e/` | 46 Playwright specs, `helpers/` (seed/teardown, auth bypass). Full suite runs in CI. |
-| `supabase/migrations/` | 48 SQL migration files (squashed baseline + 47 incremental). Most recent: `20260502000000_encrypt_partial_intake_drafts.sql` |
+| `supabase/migrations/` | 49 SQL migration files (squashed baseline + 48 incremental). Most recent: `20260502003000_add_account_closure_to_profiles.sql` |
 | `public/templates/` | Static PDF templates for certificate generation |
 
 ---

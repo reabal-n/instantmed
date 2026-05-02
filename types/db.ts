@@ -389,6 +389,9 @@ export interface Profile {
   // Consent and onboarding
   consent_myhr: boolean
   onboarding_completed: boolean
+  // Account closure state. Clinical/payment/audit records remain linked by profile id.
+  account_closed_at?: string | null
+  account_closure_reason?: string | null
   // Email verification
   email_verified: boolean
   email_verified_at: string | null
