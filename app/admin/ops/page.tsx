@@ -1,3 +1,4 @@
+import { getStuckIntakes } from "@/lib/data/intake-ops"
 import {
   getDuplicatePatientProfileSummary,
   getPrescribingIdentityBlockerReport,
@@ -22,7 +23,7 @@ export default async function OpsDashboardPage() {
     emailQueueResult,
     recentErrorsResult,
     auditLogsResult,
-    systemHealthResult,
+    stuckIntakesResult,
     patientIdentityResult,
     prescribingIdentityResult,
   ] = await Promise.all([
@@ -57,14 +58,7 @@ export default async function OpsDashboardPage() {
       .select("id", { count: "exact", head: true })
       .gte("created_at", dayAgo.toISOString()),
     
-    // System health check (intakes processing)
-    supabase
-      .from("intakes")
-      .select("id, status, paid_at, updated_at")
-      .eq("status", "paid")
-      .eq("payment_status", "paid")
-      .lt("paid_at", new Date(now.getTime() - 2 * 60 * 60 * 1000).toISOString())
-      .limit(10),
+    getStuckIntakes({}),
 
     getDuplicatePatientProfileSummary(supabase),
 
@@ -83,8 +77,7 @@ export default async function OpsDashboardPage() {
     ? ((emailStats.sent / emailStats.total) * 100).toFixed(1) 
     : "100"
 
-  // Stale intakes (paid but not reviewed in 2+ hours)
-  const staleIntakes = systemHealthResult.data || []
+  const stuckIntakeCount = stuckIntakesResult.counts.total
 
   const ops = {
     webhooks: {
@@ -113,11 +106,11 @@ export default async function OpsDashboardPage() {
         .slice(0, 3)
         .map(([label, count]) => ({ label, count })),
     },
-    staleIntakes: staleIntakes.length,
+    staleIntakes: stuckIntakeCount,
     systemStatus: {
       webhooksHealthy: (webhookDlqResult.count || 0) < 5,
       emailsHealthy: emailStats.failed < 3,
-      intakesHealthy: staleIntakes.length < 3,
+      intakesHealthy: stuckIntakeCount < 3,
       patientIdentityHealthy: patientIdentityResult.duplicateProfileCount === 0,
       prescribingIdentityHealthy: prescribingIdentityResult.blockedCount === 0,
     },

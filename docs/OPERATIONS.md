@@ -51,7 +51,7 @@ PLAYWRIGHT=1 STRIPE_WEBHOOK_SECRET=whsec_test_... pnpm e2e e2e/stripe-webhook.sp
 **Symptoms:** Emails stuck "pending" in `email_outbox`, email dispatcher cron reporting high failure counts.
 
 1. Check Resend status: https://resend-status.com
-2. Check `/admin/ops/email-outbox` for stuck emails and `/admin/ops/email-queue` for retry queue
+2. Check `/admin/emails/hub` for failed or pending email issues and retry actions
 3. Manual retry: click "Retry" on individual emails in admin
 4. If Resend is completely down: emails auto-retry via the `email-dispatcher` cron
 
@@ -605,8 +605,8 @@ After every rollback, within 24 hours:
 |--------|-------|------------|
 | `paid_no_review` | No doctor picked up intake | Check doctor availability; assign/review manually |
 | `review_timeout` | Doctor started but did not finish within 60 min | Contact doctor or reassign; check for blocking issues |
-| `delivery_pending` | Approved but email not sent | Check `email_outbox` (`/doctor/admin/email-outbox?intake_id=...`); trigger manually |
-| `delivery_failed` | Delivery email failed | Check `email_outbox` for error; verify patient email; retry or contact patient |
+| `delivery_pending` | Approved but email not sent | Check `/admin/emails/hub` and filter by intake/email context; retry or trigger manually |
+| `delivery_failed` | Delivery email failed | Check `/admin/emails/hub` for error; verify patient email; retry or contact patient |
 
 ### Useful SQL Queries
 

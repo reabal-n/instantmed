@@ -65,17 +65,19 @@ function sanitizeEmail(email: string): string {
 interface EmailHubClientProps {
   initialStats: EmailStats
   initialActivity: RecentEmailActivity[]
+  issueActivity: RecentEmailActivity[]
   templateCounts: { active: number; total: number }
   yesterdayEmailCount: number
 }
 
-export function EmailHubClient({ initialStats, initialActivity, templateCounts, yesterdayEmailCount }: EmailHubClientProps) {
+export function EmailHubClient({ initialStats, initialActivity, issueActivity, templateCounts, yesterdayEmailCount }: EmailHubClientProps) {
   const [activeTab, setActiveTab] = useState("overview")
   const [retryingId, setRetryingId] = useState<string | null>(null)
   const [isRefreshing, startRefresh] = useTransition()
   const router = useRouter()
   const stats = initialStats
   const activity = initialActivity
+  const emailIssues = issueActivity
 
   const handleRefresh = () => {
     startRefresh(() => {
@@ -510,17 +512,16 @@ export function EmailHubClient({ initialStats, initialActivity, templateCounts, 
             </CardHeader>
             <CardContent>
               {(() => {
-                const failures = activity.filter((a) => a.status === "failed")
-                if (failures.length === 0) {
+                if (emailIssues.length === 0) {
                   return (
                     <p className="text-sm text-muted-foreground text-center py-4">
-                      No recent failures. All emails delivered successfully.
+                      No failed or pending email issues.
                     </p>
                   )
                 }
                 return (
                   <div className="space-y-3">
-                    {failures.slice(0, 5).map((item) => (
+                    {emailIssues.map((item) => (
                       <div key={item.id} className="flex items-center justify-between p-3 rounded-lg border border-destructive/20 bg-destructive/5">
                         <div>
                           <p className="font-medium text-sm">{emailTypeLabels[item.emailType] || item.emailType}</p>

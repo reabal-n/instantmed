@@ -382,7 +382,7 @@ Config-driven, immutably versioned. Template config stored as JSONB in `certific
 
 **Real-time:** Messaging and notifications use Supabase Realtime (`postgres_changes` subscription on INSERT/UPDATE). Push notifications via Web Push API (VAPID key, Service Worker). Notification types: `request_update`, `payment`, `document_ready`, `refill_reminder`, `system`, `promotion`.
 
-**Guest → Authenticated flow:** Guest checkout creates profile without `auth_user_id` → Stripe redirect → success URL `/auth/complete-account?intake_id={id}` → post-signin page links guest profile by email match → sets `email_verified: true` → checks `onboarding_completed` → routes to `/patient/onboarding` or `/patient`.
+**Guest → Authenticated flow:** Guest checkout creates profile without `auth_user_id` → Stripe redirect → success URL `/auth/complete-account?intake_id={id}` → post-signin/profile ensure links a same-email unlinked guest profile deterministically, preferring profiles with paid intakes before newest fallbacks → sets `email_verified: true` → checks `onboarding_completed` → routes to `/patient/onboarding` or `/patient`.
 
 **Payment state display:**
 

@@ -3,6 +3,10 @@ import Link from "next/link"
 import { redirect } from "next/navigation"
 import { Suspense } from "react"
 
+import {
+  buildGuestProfileAuthLinkUpdate,
+  selectGuestProfileForAuthLink,
+} from "@/lib/auth/guest-profile-linking"
 import { createLogger } from "@/lib/observability/logger"
 import { createClient } from "@/lib/supabase/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -101,31 +105,41 @@ export default async function PostSignInPage({
 
     // Try to link a guest profile by email (auth_user_id IS NULL)
     if (primaryEmail) {
-      const { data: guestProfile } = await supabase
+      const { data: guestProfiles } = await supabase
         .from("profiles")
-        .select("id, role, onboarding_completed, auth_user_id")
+        .select("id, role, onboarding_completed, auth_user_id, email, full_name, created_at, updated_at")
         .ilike("email", escapeIlike(primaryEmail))
         .eq("role", "patient")
         .is("auth_user_id", null)
-        .maybeSingle()
+        .limit(10)
+
+      const guestProfileIds = (guestProfiles || []).map((candidate) => candidate.id)
+      const { data: paidIntakes } = guestProfileIds.length > 0
+        ? await supabase
+            .from("intakes")
+            .select("patient_id")
+            .in("patient_id", guestProfileIds)
+            .eq("payment_status", "paid")
+            .limit(guestProfileIds.length)
+        : { data: [] as Array<{ patient_id: string | null }> }
+      const paidPatientIds = new Set((paidIntakes || []).map((intake) => intake.patient_id).filter(Boolean))
+      const guestProfile = selectGuestProfileForAuthLink(
+        (guestProfiles || []).map((candidate) => ({
+          ...candidate,
+          has_paid_intake: paidPatientIds.has(candidate.id),
+        })),
+        primaryEmail,
+      )
 
       if (guestProfile) {
-        const fullName = user.user_metadata?.full_name
-          || user.user_metadata?.name
-          || primaryEmail.split('@')[0]
-
         const { data: linkedProfile, error: linkError } = await supabase
           .from("profiles")
-          .update({
-            auth_user_id: userId,
-            email: primaryEmail,
-            full_name: fullName,
-            first_name: user.user_metadata?.first_name || null,
-            last_name: user.user_metadata?.last_name || null,
-            avatar_url: user.user_metadata?.avatar_url || null,
-            email_verified: true,
-            email_verified_at: new Date().toISOString(),
-          })
+          .update(buildGuestProfileAuthLinkUpdate({
+            profile: guestProfile,
+            userId,
+            primaryEmail,
+            userMetadata: user.user_metadata,
+          }))
           .eq("id", guestProfile.id)
           .eq("role", "patient")
           .is("auth_user_id", null)

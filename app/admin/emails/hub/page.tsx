@@ -1,6 +1,6 @@
 import { Suspense } from "react"
 
-import { getEmailStats, getRecentEmailActivity } from "@/app/actions/email-stats"
+import { getEmailStats, getRecentEmailActivity, getRecentEmailIssues } from "@/app/actions/email-stats"
 import { Skeleton } from "@/components/ui/skeleton"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
@@ -26,9 +26,10 @@ export default async function EmailHubPage() {
   const yesterdayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1)
   const yesterdayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate())
 
-  const [statsResult, activityResult, templateCountResult, yesterdayCountResult] = await Promise.all([
+  const [statsResult, activityResult, issueResult, templateCountResult, yesterdayCountResult] = await Promise.all([
     getEmailStats(),
     getRecentEmailActivity(10),
+    getRecentEmailIssues(25),
     supabase.from("email_templates").select("id, is_active", { count: "exact" }),
     supabase
       .from("email_outbox")
@@ -47,6 +48,7 @@ export default async function EmailHubPage() {
       <EmailHubClient
         initialStats={statsResult.stats}
         initialActivity={activityResult.activity}
+        issueActivity={issueResult.activity}
         templateCounts={{ active: activeTemplates, total: totalTemplates }}
         yesterdayEmailCount={yesterdayEmails}
       />

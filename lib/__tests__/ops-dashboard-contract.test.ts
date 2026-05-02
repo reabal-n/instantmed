@@ -26,9 +26,10 @@ describe("ops dashboard data contract", () => {
     expect(opsPageSource).not.toContain('.from("webhook_dlq")')
   })
 
-  it("uses paid_at, not created_at, for stale paid intake monitoring", () => {
-    expect(opsPageSource).toContain('.lt("paid_at"')
+  it("uses the canonical stuck-intake loader instead of an ad hoc paid-only query", () => {
+    expect(opsPageSource).toContain('getStuckIntakes({})')
     expect(opsPageSource).not.toContain('.lt("created_at"')
+    expect(opsPageSource).not.toContain('.lt("paid_at"')
   })
 
   it("surfaces durable webhook_failed audit events in ops recent errors", () => {

@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
 
+import {
+  buildGuestProfileAuthLinkUpdate,
+  selectGuestProfileForAuthLink,
+} from "@/lib/auth/guest-profile-linking"
 import { applyRateLimit } from "@/lib/rate-limit/redis"
 import { createClient } from "@/lib/supabase/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -43,31 +47,41 @@ export async function POST(request: NextRequest) {
 
     // If no profile, check for guest profile to link by email
     if (!profile) {
-      const { data: guestProfile } = await serviceClient
+      const { data: guestProfiles } = await serviceClient
         .from("profiles")
-        .select("id, auth_user_id")
+        .select("id, auth_user_id, email, full_name, created_at, updated_at")
         .ilike("email", escapeIlike(primaryEmail))
         .eq("role", "patient")
         .is("auth_user_id", null)
-        .maybeSingle()
+        .limit(10)
+
+      const guestProfileIds = (guestProfiles || []).map((candidate) => candidate.id)
+      const { data: paidIntakes } = guestProfileIds.length > 0
+        ? await serviceClient
+            .from("intakes")
+            .select("patient_id")
+            .in("patient_id", guestProfileIds)
+            .eq("payment_status", "paid")
+            .limit(guestProfileIds.length)
+        : { data: [] as Array<{ patient_id: string | null }> }
+      const paidPatientIds = new Set((paidIntakes || []).map((intake) => intake.patient_id).filter(Boolean))
+      const guestProfile = selectGuestProfileForAuthLink(
+        (guestProfiles || []).map((candidate) => ({
+          ...candidate,
+          has_paid_intake: paidPatientIds.has(candidate.id),
+        })),
+        primaryEmail,
+      )
 
       if (guestProfile) {
-        const fullName = user.user_metadata?.full_name
-          || user.user_metadata?.name
-          || primaryEmail.split('@')[0]
-
         const { data: linkedProfile, error: linkError } = await serviceClient
           .from("profiles")
-          .update({
-            auth_user_id: user.id,
-            email: primaryEmail,
-            full_name: fullName,
-            first_name: user.user_metadata?.first_name || null,
-            last_name: user.user_metadata?.last_name || null,
-            avatar_url: user.user_metadata?.avatar_url || null,
-            email_verified: true,
-            email_verified_at: new Date().toISOString(),
-          })
+          .update(buildGuestProfileAuthLinkUpdate({
+            profile: guestProfile,
+            userId: user.id,
+            primaryEmail,
+            userMetadata: user.user_metadata,
+          }))
           .eq("id", guestProfile.id)
           .eq("role", "patient")
           .is("auth_user_id", null)

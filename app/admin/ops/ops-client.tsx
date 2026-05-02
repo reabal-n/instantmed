@@ -18,7 +18,6 @@ import Link from "next/link"
 
 import { DashboardPageHeader, StatusBadge } from "@/components/dashboard"
 import { Button } from "@/components/ui/button"
-import { DOCTOR_QUEUE_REVIEW_HREF } from "@/lib/dashboard/routes"
 import { cn } from "@/lib/utils"
 
 interface OpsData {
@@ -180,16 +179,16 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
                 <Clock className={cn("h-5 w-5", staleIntakes > 0 ? "text-warning" : "text-success")} />
               </div>
               <div className="min-w-0">
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Stale Intakes</p>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Stuck Intakes</p>
                 <p className={cn("text-2xl font-semibold tabular-nums mt-0.5", staleIntakes > 0 && "text-warning")}>
                   {staleIntakes}
                 </p>
-                <p className="text-xs text-muted-foreground">Awaiting 2h+</p>
+                <p className="text-xs text-muted-foreground">SLA breach</p>
               </div>
             </div>
             {staleIntakes > 0 && (
               <Button variant="link" size="sm" className="mt-3 p-0 h-auto text-xs" asChild>
-                <Link href={DOCTOR_QUEUE_REVIEW_HREF}>View Queue →</Link>
+                <Link href="/admin/ops/intakes-stuck">View Cases →</Link>
               </Button>
             )}
           </div>
@@ -339,7 +338,7 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
               <Link href="/admin/audit">Audit Logs</Link>
             </Button>
             <Button variant="outline" asChild>
-              <Link href={DOCTOR_QUEUE_REVIEW_HREF}>Doctor Queue</Link>
+              <Link href="/doctor/queue">Doctor Queue</Link>
             </Button>
             <Button variant="outline" asChild>
               <Link href="/admin/ops/sla">SLA Monitor</Link>

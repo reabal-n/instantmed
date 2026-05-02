@@ -25,23 +25,17 @@ test.describe("Ops Index Page", () => {
     await page.waitForLoadState("networkidle")
 
     // Page title
-    const heading = page.getByRole("heading", { name: /ops/i })
+    const heading = page.getByRole("heading", { name: /operations dashboard/i })
     await expect(heading).toBeVisible({ timeout: 10000 })
 
-    // Ops cards (using stable data-testid selectors)
-    await expect(page.getByTestId("ops-card-email-outbox")).toBeVisible()
-    await expect(page.getByTestId("ops-card-stuck-intakes")).toBeVisible()
-    await expect(page.getByTestId("ops-card-reconciliation")).toBeVisible()
-    await expect(page.getByTestId("ops-card-doctors")).toBeVisible()
-
-    // Sentry card (text placeholder - non-clickable)
-    await expect(page.getByText("Sentry")).toBeVisible()
-
-    // Vercel Logs card (text placeholder - non-clickable)
-    await expect(page.getByText("Vercel Logs")).toBeVisible()
-
-    // Quick summary section
-    await expect(page.getByText("Quick Summary")).toBeVisible()
+    await expect(page.getByText("System Status")).toBeVisible()
+    await expect(page.getByText("Failed Webhooks")).toBeVisible()
+    await expect(page.getByText("Email Success")).toBeVisible()
+    await expect(page.getByText("Stuck Intakes")).toBeVisible()
+    await expect(page.getByText("Audit Logs (24h)")).toBeVisible()
+    await expect(page.getByText("Patient Identity", { exact: true }).first()).toBeVisible()
+    await expect(page.getByText("Rx Identity Blocks", { exact: true }).first()).toBeVisible()
+    await expect(page.getByText("Quick Actions")).toBeVisible()
   })
 
   test("navigate to each ops page and verify headers load", async ({ page }) => {
@@ -49,57 +43,51 @@ test.describe("Ops Index Page", () => {
     await page.goto("/admin/ops")
     await page.waitForLoadState("networkidle")
 
-    // Email Outbox (using stable data-testid)
-    await page.getByTestId("ops-card-email-outbox").click()
-    await expect(page).toHaveURL(/\/doctor\/admin\/email-outbox/)
-    await expect(page.getByRole("heading", { name: /email outbox/i })).toBeVisible({ timeout: 10000 })
-    await expect(page.getByText("Back to Ops")).toBeVisible()
+    await expect(page.getByRole("link", { name: "Email Queue" })).toHaveAttribute("href", "/admin/emails/hub")
 
-    // Back to Ops via link
-    await page.getByText("Back to Ops").click()
-    await expect(page).toHaveURL(/\/doctor\/admin\/ops$/)
+    await page.getByRole("link", { name: "SLA Monitor" }).click()
+    await expect(page).toHaveURL(/\/admin\/ops\/sla/)
+    await expect(page.getByRole("heading", { name: /sla/i })).toBeVisible({ timeout: 10000 })
+    await page.goto("/admin/ops")
 
-    // Stuck Intakes (using stable data-testid)
-    await page.getByTestId("ops-card-stuck-intakes").click()
-    await expect(page).toHaveURL(/\/doctor\/admin\/ops\/intakes-stuck/)
+    await page.goto("/admin/ops/intakes-stuck")
+    await expect(page).toHaveURL(/\/admin\/ops\/intakes-stuck/)
     await expect(page.getByRole("heading", { name: /stuck intakes/i })).toBeVisible({ timeout: 10000 })
-    await expect(page.getByText("Back to Ops")).toBeVisible()
+    await expect(page.getByRole("link", { name: "Back to Ops" }).first()).toBeVisible()
 
     // Back to Ops
-    await page.getByText("Back to Ops").click()
-    await expect(page).toHaveURL(/\/doctor\/admin\/ops$/)
+    await page.getByRole("link", { name: "Back to Ops" }).first().click()
+    await expect(page).toHaveURL(/\/admin\/ops$/)
 
-    // Reconciliation (using stable data-testid)
-    await page.getByTestId("ops-card-reconciliation").click()
-    await expect(page).toHaveURL(/\/doctor\/admin\/ops\/reconciliation/)
+    await page.getByRole("link", { name: "Refunds" }).click()
+    await expect(page).toHaveURL(/\/admin\/refunds/)
+    await page.goto("/admin/ops")
+
+    await page.getByRole("link", { name: "Merge Audit" }).click()
+    await expect(page).toHaveURL(/\/admin\/ops\/patient-merge-audit/)
+    await expect(page.getByRole("heading", { name: /merge audit/i })).toBeVisible({ timeout: 10000 })
+    await page.goto("/admin/ops")
+
+    await page.getByRole("link", { name: "Rx Identity Blocks" }).click()
+    await expect(page).toHaveURL(/\/admin\/ops\/prescribing-identity/)
+    await expect(page.getByRole("heading", { name: /prescribing identity/i })).toBeVisible({ timeout: 10000 })
+    await page.goto("/admin/ops")
+
+    await page.goto("/admin/ops/reconciliation")
     await expect(page.getByRole("heading", { name: /reconciliation/i })).toBeVisible({ timeout: 10000 })
-    await expect(page.getByText("Back to Ops")).toBeVisible()
+    await expect(page.getByRole("link", { name: "Back to Ops" }).first()).toBeVisible()
 
     // Back to Ops
-    await page.getByText("Back to Ops").click()
-    await expect(page).toHaveURL(/\/doctor\/admin\/ops$/)
-
-    // Doctor Ops (using stable data-testid)
-    await page.getByTestId("ops-card-doctors").click()
-    await expect(page).toHaveURL(/\/doctor\/admin\/ops\/doctors/)
-    await expect(page.getByRole("heading", { name: /doctor ops/i })).toBeVisible({ timeout: 10000 })
-    await expect(page.getByText("Back to Ops")).toBeVisible()
+    await page.getByRole("link", { name: "Back to Ops" }).first().click()
+    await expect(page).toHaveURL(/\/admin\/ops$/)
   })
 
   test("sidebar ops navigation is visible", async ({ page }) => {
     await page.goto("/admin/ops")
     await page.waitForLoadState("networkidle")
 
-    // Verify sidebar ops section exists (on desktop)
-    const opsSection = page.getByText("Ops", { exact: true }).first()
-    await expect(opsSection).toBeVisible({ timeout: 10000 })
-
-    // Verify ops nav items in sidebar
-    const sidebarOpsOverview = page.locator("nav").getByText("Ops Overview")
-    const hasSidebarNav = await sidebarOpsOverview.isVisible().catch(() => false)
-    
-    if (hasSidebarNav) {
-      await expect(sidebarOpsOverview).toBeVisible()
-    }
+    const sidebar = page.getByRole("complementary", { name: "Admin sidebar" })
+    await expect(sidebar).toBeVisible({ timeout: 10000 })
+    await expect(sidebar.getByRole("link", { name: "Operations" })).toHaveAttribute("href", "/admin/ops")
   })
 })
