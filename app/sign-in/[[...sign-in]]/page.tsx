@@ -9,6 +9,7 @@ import { Suspense, useCallback,useState } from "react"
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { getPostAuthRedirectParam } from '@/lib/auth/redirects'
 import { PATIENT_DASHBOARD_HREF } from '@/lib/dashboard/routes'
 import { getPatientCount } from '@/lib/social-proof'
 import { createClient } from '@/lib/supabase/client'
@@ -45,7 +46,11 @@ type FormState = 'idle' | 'loading' | 'success' | 'error'
 
 function SignInForm() {
   const searchParams = useSearchParams()
-  const redirectUrl = searchParams.get('redirect_url') || searchParams.get('redirect') || ''
+  const redirectUrl = getPostAuthRedirectParam(
+    searchParams,
+    '',
+    typeof window !== 'undefined' ? window.location.origin : undefined,
+  )
   const shouldReduceMotion = useReducedMotion()
 
   const [email, setEmail] = useState('')
@@ -95,7 +100,7 @@ function SignInForm() {
 
     // Redirect on success
     const next = redirectUrl || PATIENT_DASHBOARD_HREF
-    window.location.href = next
+    window.location.assign(next)
   }, [email, password, redirectUrl, supabase.auth])
 
   const handleGoogleSignIn = useCallback(async () => {

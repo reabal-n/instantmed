@@ -7,9 +7,9 @@
 
 **There is one intake flow.** If you see an old reference to `/flow` or `/prescriptions/request` or `/consult/request`, those are deprecated paths that 301 via `next.config.mjs`. Edit the canonical target, not the redirect source.
 
-| Canonical | Aliases (301 redirect) | Notes |
+| Canonical | Aliases / redirects | Notes |
 |---|---|---|
-| `/request` | `/flow`, `/flow/:path*`, `/prescriptions/request`, `/prescriptions/new`, `/consult/request` | Sole intake flow (commit `18e26f0b7` killed the parallel `/flow` system) |
+| `/request` | `/start`, `/start?service=...`, `/flow`, `/flow/:path*`, `/prescriptions/request`, `/prescriptions/new`, `/consult/request` | Sole intake flow (commit `18e26f0b7` killed the parallel `/flow` system). `/start` is a 307 compatibility route that maps legacy `service` values and preserves attribution/query params before redirecting. `/flow` redirects via `next.config.mjs`. |
 | `/medical-certificate` | `/medical-certificates`, `/medical-certificates/:path*` | Singular is canonical (`next.config.mjs`) |
 | `/prescriptions` | `/repeat-prescription`, `/repeat-prescription/:path*`, `/repeat-prescriptions`, `/repeat-prescriptions/:path*`, `/prescription` | |
 | `/` | `/medications`, `/medications/:path*` | Medications pages deleted 2026-04-08 (orphan duplicate of `/prescriptions/med/:slug`) |
