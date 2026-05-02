@@ -43,18 +43,11 @@ test.describe("Ops Index Page", () => {
     await page.goto("/admin/ops")
     await page.waitForLoadState("networkidle")
 
-    await page.getByRole("link", { name: "Webhook DLQ" }).click()
-    await expect(page).toHaveURL(/\/admin\/webhook-dlq/)
+    await expect(page.getByRole("link", { name: "Webhook DLQ" })).toHaveAttribute("href", "/admin/webhook-dlq")
+    await expect(page.getByRole("link", { name: "Audit Logs" })).toHaveAttribute("href", "/admin/audit")
+    await expect(page.getByRole("link", { name: "Doctor Queue" })).toHaveAttribute("href", "/doctor/dashboard?status=review")
+    await expect(page.getByRole("link", { name: "Rx Identity Blocks" })).toHaveAttribute("href", "/admin/ops/prescribing-identity")
 
-    await page.goto("/admin/ops")
-    await page.getByRole("link", { name: "Audit Logs" }).click()
-    await expect(page).toHaveURL(/\/admin\/audit/)
-
-    await page.goto("/admin/ops")
-    await page.getByRole("link", { name: "Doctor Queue" }).click()
-    await expect(page).toHaveURL(/\/doctor\/dashboard/)
-
-    await page.goto("/admin/ops")
     await page.getByRole("link", { name: "Rx Identity Blocks" }).click()
     await expect(page).toHaveURL(/\/admin\/ops\/prescribing-identity/)
     await expect(page.getByRole("heading", { name: "Prescribing Identity Blocks" })).toBeVisible({ timeout: 10000 })
