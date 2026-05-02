@@ -97,6 +97,7 @@ ALTER TABLE referral_credits ENABLE ROW LEVEL SECURITY;
 
 -- Patients can see referral events they're part of
 -- auth.uid() returns uuid; clerk_user_id is text — must cast: (auth.uid())::text = clerk_user_id
+DROP POLICY IF EXISTS "referral_events_select_own" ON referral_events;
 CREATE POLICY "referral_events_select_own" ON referral_events
   FOR SELECT USING (
     referrer_id = (SELECT id FROM profiles WHERE (auth.uid())::text = clerk_user_id LIMIT 1)
@@ -104,13 +105,16 @@ CREATE POLICY "referral_events_select_own" ON referral_events
     referred_id = (SELECT id FROM profiles WHERE (auth.uid())::text = clerk_user_id LIMIT 1)
   );
 
+DROP POLICY IF EXISTS "referral_credits_select_own" ON referral_credits;
 CREATE POLICY "referral_credits_select_own" ON referral_credits
   FOR SELECT USING (
     profile_id = (SELECT id FROM profiles WHERE (auth.uid())::text = clerk_user_id LIMIT 1)
   );
 
+DROP POLICY IF EXISTS "referral_events_service_role_all" ON referral_events;
 CREATE POLICY "referral_events_service_role_all" ON referral_events
   FOR ALL USING (auth.role() = 'service_role');
 
+DROP POLICY IF EXISTS "referral_credits_service_role_all" ON referral_credits;
 CREATE POLICY "referral_credits_service_role_all" ON referral_credits
   FOR ALL USING (auth.role() = 'service_role');

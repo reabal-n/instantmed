@@ -94,11 +94,3 @@ BEGIN
   );
 END;
 $$;
-
-REVOKE ALL ON FUNCTION public.request_more_info_atomic(uuid, uuid, text, text, timestamptz) FROM PUBLIC;
-REVOKE ALL ON FUNCTION public.request_more_info_atomic(uuid, uuid, text, text, timestamptz) FROM anon;
-REVOKE ALL ON FUNCTION public.request_more_info_atomic(uuid, uuid, text, text, timestamptz) FROM authenticated;
-GRANT EXECUTE ON FUNCTION public.request_more_info_atomic(uuid, uuid, text, text, timestamptz) TO service_role;
-
-COMMENT ON FUNCTION public.request_more_info_atomic(uuid, uuid, text, text, timestamptz) IS
-  'Atomically writes a doctor info-request message and moves the intake to pending_info.';

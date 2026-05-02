@@ -14,6 +14,7 @@
 -- User roles in the system
 CREATE TYPE public.user_role AS ENUM (
   'patient',
+  'doctor',
   'admin'  -- doctors/admins who can review requests
 );
 
@@ -25,7 +26,8 @@ CREATE TYPE public.service_type AS ENUM (
   'common_scripts',
   'med_certs',
   'referrals',
-  'pathology'
+  'pathology',
+  'consults'
 );
 
 -- Request/intake status lifecycle
@@ -119,7 +121,7 @@ CREATE TYPE public.audit_event_type AS ENUM (
 CREATE TABLE public.profiles (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   auth_user_id UUID UNIQUE NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  
+
   -- Basic info
   email TEXT NOT NULL,
   full_name TEXT NOT NULL,
@@ -127,42 +129,42 @@ CREATE TABLE public.profiles (
   last_name TEXT,
   date_of_birth DATE,
   phone TEXT,
-  
+
   -- Address
   address_line_1 TEXT,
   address_line_2 TEXT,
   suburb TEXT,
   state TEXT CHECK (state IN ('ACT', 'NSW', 'NT', 'QLD', 'SA', 'TAS', 'VIC', 'WA')),
   postcode TEXT,
-  
+
   -- Medicare (for patients)
   medicare_number TEXT,
   medicare_irn INTEGER CHECK (medicare_irn BETWEEN 1 AND 9),
   medicare_expiry DATE,
-  
+
   -- Role and status
   role public.user_role NOT NULL DEFAULT 'patient',
   is_verified BOOLEAN DEFAULT FALSE,
   is_active BOOLEAN DEFAULT TRUE,
-  
+
   -- Admin-specific fields
   admin_level INTEGER DEFAULT 0, -- 0 = patient, 1 = basic admin, 2 = senior admin
   can_approve_high_risk BOOLEAN DEFAULT FALSE,
-  
+
   -- Preferences
   preferred_contact_method TEXT DEFAULT 'email' CHECK (preferred_contact_method IN ('email', 'sms', 'phone')),
   notifications_enabled BOOLEAN DEFAULT TRUE,
-  
+
   -- Metadata
   avatar_url TEXT,
   timezone TEXT DEFAULT 'Australia/Sydney',
   stripe_customer_id TEXT,
-  
+
   -- Timestamps
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW(),
   last_login_at TIMESTAMPTZ,
-  
+
   -- Constraints
   CONSTRAINT valid_medicare CHECK (
     (medicare_number IS NULL AND medicare_irn IS NULL AND medicare_expiry IS NULL) OR
@@ -261,21 +263,21 @@ CREATE POLICY "Admins can update profiles"
 
 CREATE TABLE public.services (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  
+
   -- Service identification
   slug TEXT UNIQUE NOT NULL,
   name TEXT NOT NULL,
   short_name TEXT,
   description TEXT,
-  
+
   -- Categorization
   type public.service_type NOT NULL,
   category TEXT, -- Sub-category for grouping
-  
+
   -- Pricing (in cents)
   price_cents INTEGER NOT NULL DEFAULT 0,
   priority_fee_cents INTEGER DEFAULT 0, -- Extra fee for priority processing
-  
+
   -- Configuration
   is_active BOOLEAN DEFAULT TRUE,
   requires_id_verification BOOLEAN DEFAULT FALSE,
@@ -284,24 +286,24 @@ CREATE TABLE public.services (
   min_age INTEGER, -- Minimum age requirement
   max_age INTEGER, -- Maximum age requirement
   allowed_states TEXT[], -- States where service is available
-  
+
   -- SLA configuration (in minutes)
   sla_standard_minutes INTEGER DEFAULT 1440, -- 24 hours
   sla_priority_minutes INTEGER DEFAULT 240,  -- 4 hours
-  
+
   -- Questionnaire configuration
   questionnaire_id TEXT, -- Reference to questionnaire config
   eligibility_rules JSONB DEFAULT '{}', -- Eligibility check rules
-  
+
   -- Display
   icon_name TEXT,
   display_order INTEGER DEFAULT 0,
   badge_text TEXT, -- e.g., "Most Popular", "New"
-  
+
   -- SEO
   meta_title TEXT,
   meta_description TEXT,
-  
+
   -- Timestamps
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -374,49 +376,52 @@ INSERT INTO public.services (slug, name, short_name, type, price_cents, descript
 
 CREATE TABLE public.intakes (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  
+
   -- Relationships
   patient_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
   service_id UUID NOT NULL REFERENCES public.services(id),
   assigned_admin_id UUID REFERENCES public.profiles(id),
-  
+
   -- Reference number for patients
-  reference_number TEXT UNIQUE NOT NULL DEFAULT 
+  reference_number TEXT UNIQUE NOT NULL DEFAULT
     'IM-' || TO_CHAR(NOW(), 'YYYYMMDD') || '-' || UPPER(SUBSTRING(gen_random_uuid()::TEXT FROM 1 FOR 6)),
-  
+  idempotency_key TEXT,
+  category TEXT,
+  subtype TEXT,
+
   -- Status tracking
   status public.intake_status NOT NULL DEFAULT 'draft',
   previous_status public.intake_status,
-  
+
   -- Priority and SLA
   is_priority BOOLEAN DEFAULT FALSE,
   sla_deadline TIMESTAMPTZ,
   sla_warning_sent BOOLEAN DEFAULT FALSE,
   sla_breached BOOLEAN DEFAULT FALSE,
-  
+
   -- Risk assessment (populated by rules engine)
   risk_score INTEGER DEFAULT 0 CHECK (risk_score BETWEEN 0 AND 100),
   risk_tier public.risk_tier DEFAULT 'low',
   risk_reasons JSONB DEFAULT '[]',
   risk_flags JSONB DEFAULT '[]', -- Specific flags that triggered
-  
+
   -- Triage result
   triage_result TEXT CHECK (triage_result IN ('allow', 'request_more_info', 'requires_live_consult', 'decline')),
   triage_reasons JSONB DEFAULT '[]',
   requires_live_consult BOOLEAN DEFAULT FALSE,
   live_consult_reason TEXT,
-  
+
   -- Payment
   payment_id TEXT, -- Stripe payment intent ID
   payment_status TEXT DEFAULT 'unpaid' CHECK (payment_status IN ('unpaid', 'pending', 'paid', 'refunded', 'failed')),
   amount_cents INTEGER,
   refund_amount_cents INTEGER DEFAULT 0,
-  
+
   -- Admin workflow
   admin_notes TEXT, -- Internal notes not visible to patient
   decline_reason TEXT,
   escalation_notes TEXT,
-  
+
   -- Timestamps for lifecycle
   submitted_at TIMESTAMPTZ,
   paid_at TIMESTAMPTZ,
@@ -426,16 +431,16 @@ CREATE TABLE public.intakes (
   declined_at TIMESTAMPTZ,
   completed_at TIMESTAMPTZ,
   cancelled_at TIMESTAMPTZ,
-  
+
   -- Document references
   generated_document_url TEXT,
   generated_document_type TEXT,
   document_sent_at TIMESTAMPTZ,
-  
+
   -- Client info for consent
   client_ip TEXT,
   client_user_agent TEXT,
-  
+
   -- Timestamps
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -453,8 +458,23 @@ CREATE INDEX idx_intakes_risk_tier ON public.intakes(risk_tier);
 CREATE INDEX idx_intakes_payment_status ON public.intakes(payment_status);
 
 -- Composite indexes for admin queue
-CREATE INDEX idx_intakes_admin_queue ON public.intakes(status, is_priority DESC, created_at ASC) 
+CREATE INDEX idx_intakes_admin_queue ON public.intakes(status, is_priority DESC, created_at ASC)
   WHERE status IN ('paid', 'in_review', 'pending_info');
+
+-- Compatibility table for replaying pre-intakes legacy migration blocks inside
+-- this squashed baseline. The canonical schema drops it after request_id
+-- references are migrated to intake_id.
+CREATE TABLE public.requests (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  patient_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
+  status TEXT DEFAULT 'pending_payment',
+  payment_status TEXT DEFAULT 'pending_payment',
+  category TEXT,
+  subtype TEXT,
+  clinical_notes TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
 
 CREATE TRIGGER intakes_updated_at
   BEFORE UPDATE ON public.intakes
@@ -470,20 +490,20 @@ BEGIN
   -- Only set SLA when status changes to 'paid'
   IF NEW.status = 'paid' AND (OLD.status IS NULL OR OLD.status != 'paid') THEN
     SELECT * INTO service_record FROM public.services WHERE id = NEW.service_id;
-    
+
     IF NEW.is_priority THEN
       NEW.sla_deadline := NOW() + (service_record.sla_priority_minutes || ' minutes')::INTERVAL;
     ELSE
       NEW.sla_deadline := NOW() + (service_record.sla_standard_minutes || ' minutes')::INTERVAL;
     END IF;
-    
+
     NEW.paid_at := NOW();
   END IF;
-  
+
   -- Track status changes
   IF OLD.status IS DISTINCT FROM NEW.status THEN
     NEW.previous_status := OLD.status;
-    
+
     -- Set timestamps based on status transitions
     CASE NEW.status
       WHEN 'in_review' THEN NEW.reviewed_at := NOW();
@@ -494,7 +514,7 @@ BEGIN
       ELSE NULL;
     END CASE;
   END IF;
-  
+
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -570,10 +590,10 @@ CREATE POLICY "Admins can update intakes"
 CREATE TABLE public.intake_answers (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   intake_id UUID NOT NULL REFERENCES public.intakes(id) ON DELETE CASCADE,
-  
+
   -- Full answers JSON blob
   answers JSONB NOT NULL DEFAULT '{}',
-  
+
   -- Normalized key fields for querying/rules (extracted from answers)
   -- Medical history flags
   has_allergies BOOLEAN,
@@ -582,28 +602,28 @@ CREATE TABLE public.intake_answers (
   current_medications TEXT[],
   has_medical_conditions BOOLEAN,
   medical_conditions TEXT[],
-  
+
   -- Specific clinical data (varies by service type)
   symptom_duration TEXT,
   symptom_severity TEXT CHECK (symptom_severity IN ('mild', 'moderate', 'severe')),
   pregnancy_status TEXT CHECK (pregnancy_status IN ('not_pregnant', 'pregnant', 'breastfeeding', 'trying', 'na')),
-  
+
   -- Weight loss specific
   current_weight_kg DECIMAL(5,2),
   height_cm INTEGER,
   bmi DECIMAL(4,1) GENERATED ALWAYS AS (
-    CASE WHEN height_cm > 0 THEN 
+    CASE WHEN height_cm > 0 THEN
       ROUND((current_weight_kg / POWER(height_cm::DECIMAL / 100, 2))::NUMERIC, 1)
     END
   ) STORED,
   target_weight_kg DECIMAL(5,2),
   previous_weight_loss_attempts TEXT[],
-  
+
   -- Men's health specific
   ed_frequency TEXT,
   ed_duration TEXT,
   cardiovascular_risk_factors TEXT[],
-  
+
   -- Med cert specific
   absence_start_date DATE,
   absence_end_date DATE,
@@ -614,14 +634,14 @@ CREATE TABLE public.intake_answers (
   ) STORED,
   employer_name TEXT,
   reason_category TEXT,
-  
+
   -- Risk flags (populated by rules engine)
   red_flags TEXT[] DEFAULT '{}',
   yellow_flags TEXT[] DEFAULT '{}',
-  
+
   -- Version tracking for questionnaire changes
   questionnaire_version TEXT,
-  
+
   -- Timestamps
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -632,6 +652,46 @@ CREATE INDEX idx_intake_answers_intake ON public.intake_answers(intake_id);
 CREATE INDEX idx_intake_answers_red_flags ON public.intake_answers USING GIN(red_flags) WHERE array_length(red_flags, 1) > 0;
 CREATE INDEX idx_intake_answers_bmi ON public.intake_answers(bmi) WHERE bmi IS NOT NULL;
 CREATE INDEX idx_intake_answers_answers_gin ON public.intake_answers USING GIN(answers);
+
+-- Temporary legacy table required while replaying request-era migrations inside
+-- this squashed baseline. Dropped once intake_answers is canonical.
+CREATE TABLE public.request_answers (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  request_id UUID NOT NULL REFERENCES public.requests(id) ON DELETE CASCADE,
+  answers JSONB NOT NULL DEFAULT '{}',
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE public.request_answers ENABLE ROW LEVEL SECURITY;
+
+CREATE TABLE IF NOT EXISTS public.fraud_flags (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  intake_id UUID REFERENCES public.intakes(id) ON DELETE CASCADE,
+  request_id UUID REFERENCES public.requests(id) ON DELETE CASCADE,
+  patient_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
+  flag_type TEXT NOT NULL,
+  severity TEXT NOT NULL CHECK (severity IN ('low', 'medium', 'high', 'critical')),
+  details JSONB NOT NULL DEFAULT '{}',
+  status TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open', 'reviewed', 'dismissed')),
+  reviewed_by UUID REFERENCES public.profiles(id),
+  reviewed_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE public.fraud_flags ENABLE ROW LEVEL SECURITY;
+
+CREATE TABLE public.priority_upsell_conversions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  request_id UUID REFERENCES public.requests(id) ON DELETE CASCADE,
+  intake_id UUID REFERENCES public.intakes(id) ON DELETE CASCADE,
+  patient_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
+  offered_at TIMESTAMPTZ DEFAULT NOW(),
+  converted_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE public.priority_upsell_conversions ENABLE ROW LEVEL SECURITY;
 
 CREATE TRIGGER intake_answers_updated_at
   BEFORE UPDATE ON public.intake_answers
@@ -709,28 +769,28 @@ CREATE POLICY "Admins can update intake answers"
 
 CREATE TABLE public.consents (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  
+
   -- Relationships
   intake_id UUID NOT NULL REFERENCES public.intakes(id) ON DELETE CASCADE,
   patient_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-  
+
   -- Consent details
   consent_type public.consent_type NOT NULL,
   consent_version TEXT NOT NULL DEFAULT '1.0', -- Track consent document versions
-  
+
   -- Consent state
   is_granted BOOLEAN NOT NULL DEFAULT FALSE,
   granted_at TIMESTAMPTZ,
   revoked_at TIMESTAMPTZ,
-  
+
   -- Audit trail data (immutable)
   client_ip TEXT,
   client_user_agent TEXT,
   client_fingerprint TEXT, -- Browser fingerprint for fraud detection
-  
+
   -- Legal
   consent_text_hash TEXT, -- SHA256 of the consent text shown
-  
+
   -- Timestamps
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -742,7 +802,7 @@ CREATE INDEX idx_consents_type ON public.consents(consent_type);
 CREATE INDEX idx_consents_granted ON public.consents(is_granted, granted_at);
 
 -- Unique constraint: one consent of each type per intake
-CREATE UNIQUE INDEX idx_consents_unique_per_intake 
+CREATE UNIQUE INDEX idx_consents_unique_per_intake
   ON public.consents(intake_id, consent_type);
 
 -- ============================================
@@ -801,12 +861,12 @@ BEGIN
   SELECT patient_id INTO v_patient_id
   FROM public.intakes
   WHERE id = p_intake_id;
-  
+
   -- Verify the caller owns this intake
   IF v_patient_id NOT IN (SELECT id FROM public.profiles WHERE auth_user_id = auth.uid()) THEN
     RAISE EXCEPTION 'Not authorized to grant consent for this intake';
   END IF;
-  
+
   -- Insert or update consent
   INSERT INTO public.consents (
     intake_id,
@@ -829,7 +889,7 @@ BEGIN
     p_client_ip,
     p_client_user_agent
   )
-  ON CONFLICT (intake_id, consent_type) 
+  ON CONFLICT (intake_id, consent_type)
   DO UPDATE SET
     consent_version = EXCLUDED.consent_version,
     consent_text_hash = EXCLUDED.consent_text_hash,
@@ -839,7 +899,7 @@ BEGIN
     client_user_agent = EXCLUDED.client_user_agent,
     revoked_at = NULL
   RETURNING id INTO v_consent_id;
-  
+
   RETURN v_consent_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -853,26 +913,26 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 CREATE TABLE public.messages (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  
+
   -- Relationships
   intake_id UUID NOT NULL REFERENCES public.intakes(id) ON DELETE CASCADE,
   sender_id UUID REFERENCES public.profiles(id), -- NULL for system messages
-  
+
   -- Message content
   sender_type public.message_sender_type NOT NULL,
   content TEXT NOT NULL,
-  
+
   -- For structured messages (e.g., info requests)
   message_type TEXT DEFAULT 'general' CHECK (message_type IN ('general', 'info_request', 'info_response', 'status_update', 'system')),
   metadata JSONB DEFAULT '{}', -- Additional structured data
-  
+
   -- Read tracking
   is_read BOOLEAN DEFAULT FALSE,
   read_at TIMESTAMPTZ,
-  
+
   -- For admin messages
   is_internal BOOLEAN DEFAULT FALSE, -- If true, only visible to admins
-  
+
   -- Timestamps
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -987,7 +1047,7 @@ BEGIN
     p_metadata
   )
   RETURNING id INTO v_message_id;
-  
+
   RETURN v_message_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -1001,31 +1061,31 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 CREATE TABLE public.attachments (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  
+
   -- Relationships
   intake_id UUID NOT NULL REFERENCES public.intakes(id) ON DELETE CASCADE,
   uploaded_by_id UUID NOT NULL REFERENCES public.profiles(id),
   message_id UUID REFERENCES public.messages(id) ON DELETE SET NULL, -- If attached to a message
-  
+
   -- File info
   file_name TEXT NOT NULL,
   file_type TEXT NOT NULL, -- MIME type
   file_size_bytes INTEGER,
   attachment_type public.attachment_type DEFAULT 'other',
-  
+
   -- Storage
   storage_bucket TEXT NOT NULL DEFAULT 'attachments',
   storage_path TEXT NOT NULL, -- Path in Supabase Storage
-  
+
   -- Status
   is_verified BOOLEAN DEFAULT FALSE, -- For ID documents
   verified_at TIMESTAMPTZ,
   verified_by_id UUID REFERENCES public.profiles(id),
-  
+
   -- Metadata
   description TEXT,
   metadata JSONB DEFAULT '{}',
-  
+
   -- Timestamps
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -1142,34 +1202,34 @@ CREATE POLICY "Admins can update attachments"
 
 CREATE TABLE public.admin_actions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  
+
   -- Relationships
   intake_id UUID NOT NULL REFERENCES public.intakes(id) ON DELETE CASCADE,
   admin_id UUID NOT NULL REFERENCES public.profiles(id),
-  
+
   -- Action details
   action_type public.admin_action_type NOT NULL,
-  
+
   -- Context
   previous_status public.intake_status,
   new_status public.intake_status,
-  
+
   -- Content
   notes TEXT, -- Admin notes/reason
   internal_notes TEXT, -- Notes only visible to other admins
-  
+
   -- For info requests
   questions_asked JSONB, -- Structured questions for patient
-  
+
   -- For approvals/declines
   clinical_notes TEXT,
-  
+
   -- Metadata
   metadata JSONB DEFAULT '{}',
-  
+
   -- Client info
   client_ip TEXT,
-  
+
   -- Timestamps
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -1245,16 +1305,16 @@ BEGIN
   SELECT id INTO v_admin_id
   FROM public.profiles
   WHERE auth_user_id = auth.uid() AND role = 'admin';
-  
+
   IF v_admin_id IS NULL THEN
     RAISE EXCEPTION 'Not authorized: admin access required';
   END IF;
-  
+
   -- Get current intake status
   SELECT status INTO v_previous_status
   FROM public.intakes
   WHERE id = p_intake_id;
-  
+
   -- Insert admin action
   INSERT INTO public.admin_actions (
     intake_id,
@@ -1280,17 +1340,17 @@ BEGIN
     p_metadata
   )
   RETURNING id INTO v_action_id;
-  
+
   -- Update intake status if provided
   IF p_new_status IS NOT NULL THEN
     UPDATE public.intakes
-    SET 
+    SET
       status = p_new_status,
       admin_notes = COALESCE(p_clinical_notes, admin_notes),
       decline_reason = CASE WHEN p_action_type = 'declined' THEN p_notes ELSE decline_reason END
     WHERE id = p_intake_id;
   END IF;
-  
+
   -- Handle assignment
   IF p_action_type = 'assigned' THEN
     UPDATE public.intakes
@@ -1301,7 +1361,7 @@ BEGIN
     SET assigned_admin_id = NULL, assigned_at = NULL
     WHERE id = p_intake_id;
   END IF;
-  
+
   RETURN v_action_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -1315,34 +1375,34 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 CREATE TABLE public.audit_log (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  
+
   -- Event identification
   event_type public.audit_event_type NOT NULL,
-  
+
   -- Related entities
   intake_id UUID REFERENCES public.intakes(id) ON DELETE SET NULL,
   profile_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
   admin_action_id UUID REFERENCES public.admin_actions(id) ON DELETE SET NULL,
-  
+
   -- Actor
   actor_id UUID REFERENCES public.profiles(id), -- Who performed the action
   actor_type TEXT NOT NULL CHECK (actor_type IN ('patient', 'admin', 'system', 'webhook')),
-  
+
   -- Event details
   description TEXT NOT NULL,
-  
+
   -- Before/after state (for state changes)
   previous_state JSONB,
   new_state JSONB,
-  
+
   -- Metadata
   metadata JSONB DEFAULT '{}',
-  
+
   -- Client/request info
   client_ip TEXT,
   client_user_agent TEXT,
   request_id TEXT, -- For tracing
-  
+
   -- Immutable timestamp
   created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
@@ -1355,7 +1415,7 @@ CREATE INDEX idx_audit_log_event_type ON public.audit_log(event_type);
 CREATE INDEX idx_audit_log_created ON public.audit_log(created_at DESC);
 
 -- Composite index for intake history
-CREATE INDEX idx_audit_log_intake_history ON public.audit_log(intake_id, created_at ASC) 
+CREATE INDEX idx_audit_log_intake_history ON public.audit_log(intake_id, created_at ASC)
   WHERE intake_id IS NOT NULL;
 
 -- ============================================
@@ -1423,7 +1483,7 @@ BEGIN
     FROM public.profiles
     WHERE auth_user_id = auth.uid();
   END IF;
-  
+
   INSERT INTO public.audit_log (
     event_type,
     intake_id,
@@ -1454,7 +1514,7 @@ BEGIN
     p_request_id
   )
   RETURNING id INTO v_audit_id;
-  
+
   RETURN v_audit_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -1520,7 +1580,7 @@ CREATE TRIGGER audit_intake_create
 
 -- Admin queue view with all relevant info
 CREATE OR REPLACE VIEW public.admin_queue AS
-SELECT 
+SELECT
   i.id,
   i.reference_number,
   i.status,
@@ -1533,32 +1593,32 @@ SELECT
   i.submitted_at,
   i.paid_at,
   i.assigned_at,
-  
+
   -- Patient info
   p.id AS patient_id,
   p.full_name AS patient_name,
   p.email AS patient_email,
   p.date_of_birth AS patient_dob,
-  
+
   -- Service info
   s.id AS service_id,
   s.name AS service_name,
   s.type AS service_type,
   s.slug AS service_slug,
-  
+
   -- Assigned admin
   a.id AS assigned_admin_id,
   a.full_name AS assigned_admin_name,
-  
+
   -- Calculated fields
   EXTRACT(EPOCH FROM (NOW() - i.paid_at)) / 60 AS minutes_since_paid,
   EXTRACT(EPOCH FROM (i.sla_deadline - NOW())) / 60 AS minutes_until_sla,
-  CASE 
+  CASE
     WHEN i.sla_deadline < NOW() THEN 'breached'
     WHEN i.sla_deadline < NOW() + INTERVAL '1 hour' THEN 'warning'
     ELSE 'ok'
   END AS sla_status,
-  
+
   -- Unread messages count
   (SELECT COUNT(*) FROM public.messages m WHERE m.intake_id = i.id AND m.sender_type = 'patient' AND m.is_read = FALSE) AS unread_messages
 
@@ -1567,14 +1627,14 @@ JOIN public.profiles p ON i.patient_id = p.id
 JOIN public.services s ON i.service_id = s.id
 LEFT JOIN public.profiles a ON i.assigned_admin_id = a.id
 WHERE i.status IN ('paid', 'in_review', 'pending_info')
-ORDER BY 
+ORDER BY
   i.is_priority DESC,
   i.sla_deadline ASC NULLS LAST,
   i.created_at ASC;
 
 -- Patient dashboard view
 CREATE OR REPLACE VIEW public.patient_intakes_summary AS
-SELECT 
+SELECT
   i.id,
   i.reference_number,
   i.status,
@@ -1584,30 +1644,30 @@ SELECT
   i.approved_at,
   i.completed_at,
   i.payment_status,
-  
+
   -- Service info
   s.name AS service_name,
   s.type AS service_type,
   s.slug AS service_slug,
-  
+
   -- Latest message preview
   (
-    SELECT m.content 
-    FROM public.messages m 
-    WHERE m.intake_id = i.id AND m.is_internal = FALSE 
-    ORDER BY m.created_at DESC 
+    SELECT m.content
+    FROM public.messages m
+    WHERE m.intake_id = i.id AND m.is_internal = FALSE
+    ORDER BY m.created_at DESC
     LIMIT 1
   ) AS latest_message,
-  
+
   -- Unread messages count
   (
-    SELECT COUNT(*) 
-    FROM public.messages m 
-    WHERE m.intake_id = i.id 
-    AND m.sender_type IN ('admin', 'system') 
+    SELECT COUNT(*)
+    FROM public.messages m
+    WHERE m.intake_id = i.id
+    AND m.sender_type IN ('admin', 'system')
     AND m.is_read = FALSE
   ) AS unread_count,
-  
+
   -- Patient ID for RLS
   i.patient_id
 
@@ -1616,7 +1676,7 @@ JOIN public.services s ON i.service_id = s.id;
 
 -- Analytics: Daily intake stats (for admin dashboard)
 CREATE OR REPLACE VIEW public.daily_intake_stats AS
-SELECT 
+SELECT
   DATE(created_at) AS date,
   COUNT(*) AS total_intakes,
   COUNT(*) FILTER (WHERE status = 'approved') AS approved,
@@ -1753,7 +1813,7 @@ CREATE TABLE IF NOT EXISTS public.clinical_summaries (
   summary_data JSONB NOT NULL DEFAULT '{}',
   generated_by_id UUID NOT NULL REFERENCES public.profiles(id),
   created_at TIMESTAMPTZ DEFAULT NOW(),
-  
+
   CONSTRAINT unique_intake_version UNIQUE (intake_id, version)
 );
 
@@ -1816,7 +1876,7 @@ DECLARE
 BEGIN
   -- This test would be run with a specific user's JWT
   RAISE NOTICE 'RLS Test 1: Patient can only see own intakes';
-  
+
   -- Actual test would involve:
   -- 1. Setting auth.uid() to test_patient_id
   -- 2. Querying intakes
@@ -1828,7 +1888,7 @@ END $$;
 DO $$
 BEGIN
   RAISE NOTICE 'RLS Test 2: Patient cannot update others intakes';
-  
+
   -- Actual test would involve:
   -- 1. Setting auth.uid() to patient A
   -- 2. Attempting to update intake owned by patient B
@@ -1840,7 +1900,7 @@ END $$;
 DO $$
 BEGIN
   RAISE NOTICE 'RLS Test 3: Admin can see all intakes';
-  
+
   -- Actual test would involve:
   -- 1. Setting auth.uid() to an admin user
   -- 2. Querying intakes
@@ -1852,7 +1912,7 @@ END $$;
 DO $$
 BEGIN
   RAISE NOTICE 'RLS Test 4: Patient cannot see internal messages';
-  
+
   -- Actual test would involve:
   -- 1. Creating an internal message on an intake
   -- 2. Querying as the patient
@@ -1864,7 +1924,7 @@ END $$;
 DO $$
 BEGIN
   RAISE NOTICE 'RLS Test 5: Audit log is immutable';
-  
+
   -- Actual test would involve:
   -- 1. Attempting to UPDATE audit_log
   -- 2. Attempting to DELETE from audit_log
@@ -2053,7 +2113,7 @@ CREATE TABLE IF NOT EXISTS patient_messages (
 CREATE INDEX IF NOT EXISTS idx_patient_messages_patient_id ON patient_messages(patient_id);
 CREATE INDEX IF NOT EXISTS idx_patient_messages_intake_id ON patient_messages(intake_id);
 CREATE INDEX IF NOT EXISTS idx_patient_messages_created_at ON patient_messages(created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_patient_messages_unread ON patient_messages(patient_id, sender_type, read_at) 
+CREATE INDEX IF NOT EXISTS idx_patient_messages_unread ON patient_messages(patient_id, sender_type, read_at)
   WHERE read_at IS NULL;
 
 -- RLS Policies
@@ -2086,8 +2146,8 @@ CREATE POLICY "Doctors can read all messages"
   TO authenticated
   USING (
     EXISTS (
-      SELECT 1 FROM profiles 
-      WHERE auth_user_id = auth.uid() 
+      SELECT 1 FROM profiles
+      WHERE auth_user_id = auth.uid()
       AND role IN ('doctor', 'admin')
     )
   );
@@ -2098,8 +2158,8 @@ CREATE POLICY "Doctors can send messages"
   TO authenticated
   WITH CHECK (
     EXISTS (
-      SELECT 1 FROM profiles 
-      WHERE auth_user_id = auth.uid() 
+      SELECT 1 FROM profiles
+      WHERE auth_user_id = auth.uid()
       AND role IN ('doctor', 'admin')
     )
     AND sender_type IN ('doctor', 'system')
@@ -2111,8 +2171,8 @@ CREATE POLICY "Doctors can update messages"
   TO authenticated
   USING (
     EXISTS (
-      SELECT 1 FROM profiles 
-      WHERE auth_user_id = auth.uid() 
+      SELECT 1 FROM profiles
+      WHERE auth_user_id = auth.uid()
       AND role IN ('doctor', 'admin')
     )
   );
@@ -2193,11 +2253,11 @@ AS $$
 DECLARE
   v_updated boolean;
 BEGIN
-  UPDATE public.intakes 
+  UPDATE public.intakes
   SET claimed_by = NULL, claimed_at = NULL, updated_at = NOW()
-  WHERE id = p_intake_id 
+  WHERE id = p_intake_id
     AND claimed_by = p_doctor_id;
-  
+
   GET DIAGNOSTICS v_updated = ROW_COUNT;
   RETURN v_updated > 0;
 END;
@@ -2230,12 +2290,12 @@ AS $$
 DECLARE
   v_claimed boolean;
 BEGIN
-  UPDATE public.intakes 
+  UPDATE public.intakes
   SET claimed_by = p_doctor_id, claimed_at = NOW(), updated_at = NOW()
-  WHERE id = p_intake_id 
+  WHERE id = p_intake_id
     AND claimed_by IS NULL
     AND status IN ('paid', 'in_review', 'pending_info');
-  
+
   GET DIAGNOSTICS v_claimed = ROW_COUNT;
   RETURN v_claimed > 0;
 END;
@@ -2254,7 +2314,7 @@ BEGIN
     INSERT INTO public.certificate_edit_history (
       intake_id, doctor_id, field_name, original_value, new_value, change_summary
     ) VALUES (
-      NEW.id, 
+      NEW.id,
       NEW.reviewed_by,
       'certificate_data',
       OLD.certificate_data::text,
@@ -2305,9 +2365,6 @@ DROP INDEX IF EXISTS public.idx_requests_patient_id;
 DROP INDEX IF EXISTS public.idx_requests_status;
 
 -- Add missing foreign key indexes for commonly queried relationships
-CREATE INDEX IF NOT EXISTS idx_email_delivery_log_intake_id ON public.email_delivery_log(intake_id);
-CREATE INDEX IF NOT EXISTS idx_email_delivery_log_recipient_id ON public.email_delivery_log(recipient_id);
-CREATE INDEX IF NOT EXISTS idx_certificate_audit_log_actor_id ON public.certificate_audit_log(actor_id);
 CREATE INDEX IF NOT EXISTS idx_ai_safety_blocks_patient_id ON public.ai_safety_blocks(patient_id);
 
 
@@ -2382,36 +2439,36 @@ COMMENT ON COLUMN audit_logs.actor_type IS 'Type of actor: patient, doctor, admi
 
 CREATE TABLE IF NOT EXISTS public.medications (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  
+
   -- Basic info
   name TEXT NOT NULL,                      -- Generic name (e.g., "Atorvastatin")
   brand_names TEXT[] DEFAULT '{}',         -- Brand names (e.g., ["Lipitor", "Atorlip"])
   synonyms TEXT[] DEFAULT '{}',            -- Alternative names/spellings
-  
+
   -- Classification
   category TEXT NOT NULL,                  -- Category slug (e.g., "cardiovascular", "respiratory")
   category_label TEXT NOT NULL,            -- Display label (e.g., "Cardiovascular")
   schedule TEXT,                           -- PBS schedule (S2, S3, S4, S8, etc.)
-  
+
   -- Forms and strengths
   forms JSONB DEFAULT '[]',                -- Available forms: [{"form": "tablet", "strengths": ["10mg", "20mg", "40mg"]}]
   default_form TEXT,                       -- Most common form
   default_strength TEXT,                   -- Most common strength
-  
+
   -- Prescription info
   is_repeatable BOOLEAN DEFAULT true,      -- Can be prescribed as repeat
   max_repeats INTEGER DEFAULT 5,           -- Maximum repeats allowed
   requires_authority BOOLEAN DEFAULT false, -- Requires authority prescription
   is_controlled BOOLEAN DEFAULT false,     -- S8 or controlled substance
-  
+
   -- Search optimization (populated by trigger)
   search_vector tsvector,
-  
+
   -- Display
   display_order INTEGER DEFAULT 100,
   is_common BOOLEAN DEFAULT false,         -- Show in "common medications" list
   is_active BOOLEAN DEFAULT true,
-  
+
   -- Timestamps
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -2549,8 +2606,8 @@ INSERT INTO public.medications (name, brand_names, category, category_label, sch
 ON CONFLICT DO NOTHING;
 
 -- Update antibiotics to not be repeatable
-UPDATE public.medications 
-SET is_repeatable = false, max_repeats = 0 
+UPDATE public.medications
+SET is_repeatable = false, max_repeats = 0
 WHERE category = 'antibiotics';
 
 -- ============================================
@@ -2579,7 +2636,7 @@ SECURITY DEFINER
 AS $$
 BEGIN
   RETURN QUERY
-  SELECT 
+  SELECT
     m.id,
     m.name,
     m.brand_names,
@@ -2598,7 +2655,7 @@ BEGIN
       OR m.name ILIKE '%' || search_query || '%'
       OR EXISTS (SELECT 1 FROM unnest(m.brand_names) AS bn WHERE bn ILIKE '%' || search_query || '%')
     )
-  ORDER BY 
+  ORDER BY
     m.is_common DESC,
     ts_rank(m.search_vector, websearch_to_tsquery('english', search_query)) DESC,
     m.display_order ASC
@@ -2619,36 +2676,36 @@ GRANT EXECUTE ON FUNCTION search_medications TO anon, authenticated;
 
 CREATE TABLE IF NOT EXISTS public.intake_drafts (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  
+
   -- Ownership
   session_id TEXT NOT NULL,             -- Anonymous session ID from localStorage
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,  -- Linked after auth
-  
+
   -- Flow state
   service_slug TEXT NOT NULL,
   current_step TEXT DEFAULT 'service',
   current_group_index INTEGER DEFAULT 0,
-  
+
   -- Form data (all answers stored as JSONB)
   data JSONB DEFAULT '{}',
-  
+
   -- Safety evaluation results
   safety_outcome TEXT,                  -- ALLOW, REQUEST_MORE_INFO, REQUIRES_CALL, DECLINE
   safety_risk_tier TEXT,                -- low, medium, high, critical
   safety_triggered_rules TEXT[],        -- Array of rule IDs
   safety_evaluated_at TIMESTAMPTZ,
-  
+
   -- Status
   status TEXT DEFAULT 'in_progress' CHECK (status IN ('in_progress', 'completed', 'abandoned', 'converted')),
-  
+
   -- Tracking
   claimed_at TIMESTAMPTZ,               -- When anonymous draft was claimed by user
   last_accessed_at TIMESTAMPTZ DEFAULT NOW(),
-  
+
   -- Timestamps
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW(),
-  
+
   -- Conversion tracking
   intake_id UUID,                       -- Reference to final intake when converted
   request_id UUID                       -- Reference to request when converted
@@ -2704,27 +2761,27 @@ CREATE POLICY "intake_drafts_staff_select" ON public.intake_drafts
 
 CREATE TABLE IF NOT EXISTS public.safety_audit_log (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  
+
   -- Reference
   draft_id UUID REFERENCES public.intake_drafts(id) ON DELETE SET NULL,
   session_id TEXT NOT NULL,
   service_slug TEXT NOT NULL,
-  
+
   -- Evaluation result
   outcome TEXT NOT NULL,
   risk_tier TEXT NOT NULL,
   triggered_rule_ids TEXT[],
-  
+
   -- Snapshot of data at evaluation time
   answers_snapshot JSONB NOT NULL,
   additional_info_provided JSONB,
-  
+
   -- Metadata
   evaluated_at TIMESTAMPTZ DEFAULT NOW(),
   evaluation_duration_ms INTEGER,
   ip_address INET,
   user_agent TEXT,
-  
+
   -- If re-evaluated
   is_re_evaluation BOOLEAN DEFAULT FALSE,
   previous_evaluation_id UUID REFERENCES public.safety_audit_log(id)
@@ -2802,11 +2859,11 @@ BEGIN
     p_previous_eval_id
   )
   RETURNING id INTO v_log_id;
-  
+
   -- Also update the draft with safety info
   IF p_draft_id IS NOT NULL THEN
     UPDATE public.intake_drafts
-    SET 
+    SET
       safety_outcome = p_outcome,
       safety_risk_tier = p_risk_tier,
       safety_triggered_rules = p_triggered_rules,
@@ -2814,7 +2871,7 @@ BEGIN
       updated_at = NOW()
     WHERE id = p_draft_id;
   END IF;
-  
+
   RETURN v_log_id;
 END;
 $$;
@@ -2835,23 +2892,23 @@ DECLARE
 BEGIN
   WITH deleted AS (
     DELETE FROM public.intake_drafts
-    WHERE 
+    WHERE
       status = 'in_progress'
       AND updated_at < NOW() - INTERVAL '30 days'
       AND user_id IS NULL  -- Only cleanup anonymous drafts
     RETURNING id
   )
   SELECT COUNT(*) INTO v_deleted FROM deleted;
-  
+
   -- Also mark old authenticated drafts as abandoned
   UPDATE public.intake_drafts
-  SET 
+  SET
     status = 'abandoned',
     updated_at = NOW()
-  WHERE 
+  WHERE
     status = 'in_progress'
     AND updated_at < NOW() - INTERVAL '90 days';
-  
+
   RETURN v_deleted;
 END;
 $$;
@@ -2871,7 +2928,7 @@ $$;
 
 -- Add email column for guest checkout support
 -- (Guest profiles need email stored before auth account exists)
-ALTER TABLE public.profiles 
+ALTER TABLE public.profiles
 ADD COLUMN IF NOT EXISTS email TEXT;
 
 -- Create index on email for guest profile lookups
@@ -2882,13 +2939,13 @@ CREATE INDEX IF NOT EXISTS idx_profiles_email ON public.profiles(email);
 -- ============================================
 
 -- Rename clinical_notes to clinical_note (code expects singular)
-DO $$ 
+DO $$
 BEGIN
   IF EXISTS (
-    SELECT 1 FROM information_schema.columns 
+    SELECT 1 FROM information_schema.columns
     WHERE table_schema = 'public' AND table_name = 'requests' AND column_name = 'clinical_notes'
   ) AND NOT EXISTS (
-    SELECT 1 FROM information_schema.columns 
+    SELECT 1 FROM information_schema.columns
     WHERE table_schema = 'public' AND table_name = 'requests' AND column_name = 'clinical_note'
   ) THEN
     ALTER TABLE public.requests RENAME COLUMN clinical_notes TO clinical_note;
@@ -2896,41 +2953,41 @@ BEGIN
 END $$;
 
 -- Add doctor_notes for private doctor annotations
-ALTER TABLE public.requests 
+ALTER TABLE public.requests
 ADD COLUMN IF NOT EXISTS doctor_notes TEXT;
 
 -- Add escalation tracking fields
-ALTER TABLE public.requests 
+ALTER TABLE public.requests
 ADD COLUMN IF NOT EXISTS escalation_level TEXT DEFAULT 'none';
 
-ALTER TABLE public.requests 
+ALTER TABLE public.requests
 ADD COLUMN IF NOT EXISTS escalation_reason TEXT;
 
-ALTER TABLE public.requests 
+ALTER TABLE public.requests
 ADD COLUMN IF NOT EXISTS escalated_at TIMESTAMPTZ;
 
-ALTER TABLE public.requests 
+ALTER TABLE public.requests
 ADD COLUMN IF NOT EXISTS escalated_by UUID REFERENCES public.profiles(id);
 
 -- Add followup tracking
-ALTER TABLE public.requests 
+ALTER TABLE public.requests
 ADD COLUMN IF NOT EXISTS flagged_for_followup BOOLEAN DEFAULT FALSE;
 
-ALTER TABLE public.requests 
+ALTER TABLE public.requests
 ADD COLUMN IF NOT EXISTS followup_reason TEXT;
 
 -- Add audit trail fields (who reviewed and when)
-ALTER TABLE public.requests 
+ALTER TABLE public.requests
 ADD COLUMN IF NOT EXISTS reviewed_by UUID REFERENCES public.profiles(id);
 
-ALTER TABLE public.requests 
+ALTER TABLE public.requests
 ADD COLUMN IF NOT EXISTS reviewed_at TIMESTAMPTZ;
 
 -- Add script tracking fields
-ALTER TABLE public.requests 
+ALTER TABLE public.requests
 ADD COLUMN IF NOT EXISTS script_sent_at TIMESTAMPTZ;
 
-ALTER TABLE public.requests 
+ALTER TABLE public.requests
 ADD COLUMN IF NOT EXISTS script_notes TEXT;
 
 -- Add CHECK constraint for escalation_level
@@ -2940,33 +2997,67 @@ BEGIN
     SELECT 1 FROM pg_constraint WHERE conname = 'requests_escalation_level_check'
   ) THEN
     ALTER TABLE public.requests
-    ADD CONSTRAINT requests_escalation_level_check 
+    ADD CONSTRAINT requests_escalation_level_check
     CHECK (escalation_level IN ('none', 'senior_review', 'phone_consult'));
   END IF;
 END $$;
 
 -- Create composite index for doctor queue (hot path)
-CREATE INDEX IF NOT EXISTS idx_requests_doctor_queue 
+CREATE INDEX IF NOT EXISTS idx_requests_doctor_queue
 ON public.requests(status, payment_status, created_at DESC)
 WHERE payment_status = 'paid';
 
 -- Create index for audit queries
-CREATE INDEX IF NOT EXISTS idx_requests_reviewed_by 
-ON public.requests(reviewed_by) 
+CREATE INDEX IF NOT EXISTS idx_requests_reviewed_by
+ON public.requests(reviewed_by)
 WHERE reviewed_by IS NOT NULL;
 
 -- ============================================
 -- 3. DOCUMENT_DRAFTS TABLE FIXES
 -- ============================================
 
+-- Compatibility definition for replaying pre-intakes document draft migrations
+-- inside this squashed baseline. The canonical schema removes request_id after
+-- the final intake migration block.
+DO $$ BEGIN
+  CREATE TYPE draft_type AS ENUM ('clinical_note', 'med_cert');
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$ BEGIN
+  CREATE TYPE draft_status AS ENUM ('ready', 'failed', 'pending');
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
+
+CREATE TABLE IF NOT EXISTS public.document_drafts (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  request_id UUID REFERENCES public.requests(id) ON DELETE CASCADE,
+  intake_id UUID REFERENCES public.intakes(id) ON DELETE CASCADE,
+  type draft_type NOT NULL,
+  content JSONB NOT NULL DEFAULT '{}',
+  model TEXT NOT NULL DEFAULT 'openai/gpt-4o-mini',
+  is_ai_generated BOOLEAN NOT NULL DEFAULT true,
+  status draft_status NOT NULL DEFAULT 'pending',
+  error TEXT,
+  prompt_tokens INTEGER,
+  completion_tokens INTEGER,
+  generation_duration_ms INTEGER,
+  validation_errors JSONB,
+  ground_truth_errors JSONB,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
 -- Rename document_type to type (code expects 'type')
-DO $$ 
+DO $$
 BEGIN
   IF EXISTS (
-    SELECT 1 FROM information_schema.columns 
+    SELECT 1 FROM information_schema.columns
     WHERE table_schema = 'public' AND table_name = 'document_drafts' AND column_name = 'document_type'
   ) AND NOT EXISTS (
-    SELECT 1 FROM information_schema.columns 
+    SELECT 1 FROM information_schema.columns
     WHERE table_schema = 'public' AND table_name = 'document_drafts' AND column_name = 'type'
   ) THEN
     ALTER TABLE public.document_drafts RENAME COLUMN document_type TO type;
@@ -2974,13 +3065,13 @@ BEGIN
 END $$;
 
 -- Rename content to data (code expects 'data')
-DO $$ 
+DO $$
 BEGIN
   IF EXISTS (
-    SELECT 1 FROM information_schema.columns 
+    SELECT 1 FROM information_schema.columns
     WHERE table_schema = 'public' AND table_name = 'document_drafts' AND column_name = 'content'
   ) AND NOT EXISTS (
-    SELECT 1 FROM information_schema.columns 
+    SELECT 1 FROM information_schema.columns
     WHERE table_schema = 'public' AND table_name = 'document_drafts' AND column_name = 'data'
   ) THEN
     ALTER TABLE public.document_drafts RENAME COLUMN content TO data;
@@ -2988,7 +3079,7 @@ BEGIN
 END $$;
 
 -- Add subtype column (for med_cert subtypes: work, uni, carer)
-ALTER TABLE public.document_drafts 
+ALTER TABLE public.document_drafts
 ADD COLUMN IF NOT EXISTS subtype TEXT;
 
 -- ============================================
@@ -3004,11 +3095,29 @@ CREATE TABLE IF NOT EXISTS public.documents (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS public.intake_documents (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  intake_id UUID NOT NULL REFERENCES public.intakes(id) ON DELETE CASCADE,
+  document_type TEXT NOT NULL,
+  filename TEXT NOT NULL,
+  storage_path TEXT NOT NULL,
+  mime_type TEXT NOT NULL DEFAULT 'application/pdf',
+  file_size_bytes INTEGER,
+  certificate_number TEXT,
+  verification_code TEXT,
+  metadata JSONB NOT NULL DEFAULT '{}',
+  created_by UUID REFERENCES public.profiles(id),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+ALTER TABLE public.intake_documents ENABLE ROW LEVEL SECURITY;
+
 -- Indexes for documents table
-CREATE INDEX IF NOT EXISTS idx_documents_request_id 
+CREATE INDEX IF NOT EXISTS idx_documents_request_id
 ON public.documents(request_id);
 
-CREATE INDEX IF NOT EXISTS idx_documents_created_at 
+CREATE INDEX IF NOT EXISTS idx_documents_created_at
 ON public.documents(created_at DESC);
 
 -- RLS for documents table
@@ -3089,10 +3198,10 @@ CREATE TABLE IF NOT EXISTS public.document_verifications (
 ALTER TABLE public.document_verifications ENABLE ROW LEVEL SECURITY;
 
 -- Create indexes
-CREATE INDEX IF NOT EXISTS idx_document_verifications_request_id 
+CREATE INDEX IF NOT EXISTS idx_document_verifications_request_id
 ON public.document_verifications(request_id);
 
-CREATE INDEX IF NOT EXISTS idx_document_verifications_code 
+CREATE INDEX IF NOT EXISTS idx_document_verifications_code
 ON public.document_verifications(verification_code);
 
 -- ============================================
@@ -3103,21 +3212,47 @@ ON public.document_verifications(verification_code);
 DO $$
 BEGIN
   IF EXISTS (
-    SELECT 1 FROM information_schema.tables 
+    SELECT 1 FROM information_schema.tables
     WHERE table_schema = 'public' AND table_name = 'payments'
   ) THEN
     CREATE INDEX IF NOT EXISTS idx_payments_status ON public.payments(status);
   END IF;
 END $$;
 
+CREATE TABLE IF NOT EXISTS public.payments (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  intake_id UUID REFERENCES public.intakes(id) ON DELETE SET NULL,
+  request_id UUID REFERENCES public.requests(id) ON DELETE SET NULL,
+  stripe_session_id TEXT,
+  stripe_payment_intent_id TEXT,
+  amount INTEGER,
+  currency TEXT DEFAULT 'aud',
+  status TEXT DEFAULT 'pending',
+  metadata JSONB DEFAULT '{}',
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- ============================================
 -- 6. ENSURE stripe_webhook_events HAS UNIQUE CONSTRAINT
 -- ============================================
 
+CREATE TABLE IF NOT EXISTS public.stripe_webhook_events (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  event_id TEXT NOT NULL,
+  event_type TEXT NOT NULL,
+  request_id UUID,
+  session_id TEXT,
+  metadata JSONB DEFAULT '{}',
+  error_message TEXT,
+  processed_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 DO $$
 BEGIN
   IF NOT EXISTS (
-    SELECT 1 FROM pg_constraint 
+    SELECT 1 FROM pg_constraint
     WHERE conname = 'stripe_webhook_events_event_id_key'
   ) THEN
     ALTER TABLE public.stripe_webhook_events
@@ -3133,7 +3268,7 @@ END $$;
 DO $$
 BEGIN
   IF NOT EXISTS (
-    SELECT 1 FROM pg_policies 
+    SELECT 1 FROM pg_policies
     WHERE tablename = 'requests' AND policyname = 'Doctors can view all requests'
   ) THEN
     CREATE POLICY "Doctors can view all requests"
@@ -3152,7 +3287,7 @@ END $$;
 DO $$
 BEGIN
   IF NOT EXISTS (
-    SELECT 1 FROM pg_policies 
+    SELECT 1 FROM pg_policies
     WHERE tablename = 'requests' AND policyname = 'Doctors can update requests'
   ) THEN
     CREATE POLICY "Doctors can update requests"
@@ -3184,19 +3319,19 @@ END $$;
 
 DROP POLICY IF EXISTS "patients_update_own_requests" ON public.requests;
 
-CREATE POLICY "patients_update_own_requests" 
+CREATE POLICY "patients_update_own_requests"
 ON public.requests FOR UPDATE
 USING (
   -- Patient owns this request
   patient_id IN (
-    SELECT profiles.id FROM profiles 
+    SELECT profiles.id FROM profiles
     WHERE profiles.auth_user_id = auth.uid()
   )
 )
 WITH CHECK (
   -- Patient owns this request
   patient_id IN (
-    SELECT profiles.id FROM profiles 
+    SELECT profiles.id FROM profiles
     WHERE profiles.auth_user_id = auth.uid()
   )
   -- Can only update if request is still unpaid (not yet in doctor queue)
@@ -3297,7 +3432,7 @@ BEGIN
   END IF;
 END $$;
 
--- Note: The above policy remains permissive because the verification_code 
+-- Note: The above policy remains permissive because the verification_code
 -- IS the access control mechanism. Employers need to verify certificates.
 -- The risk is mitigated because:
 -- 1. verification_code is a random string (not guessable)
@@ -3322,7 +3457,7 @@ BEGIN
 END $$;
 
 -- Payments should ONLY be modified by service role (webhooks)
--- No additional policies needed - the absence of INSERT/UPDATE/DELETE 
+-- No additional policies needed - the absence of INSERT/UPDATE/DELETE
 -- policies means only service role can write
 
 -- ============================================
@@ -3410,7 +3545,7 @@ REVOKE ALL ON FUNCTION public.is_patient() FROM public;
 GRANT EXECUTE ON FUNCTION public.is_patient() TO authenticated;
 
 -- ============================================
--- 10. ADD get_my_profile_id() HELPER FUNCTION  
+-- 10. ADD get_my_profile_id() HELPER FUNCTION
 -- ============================================
 -- Reduces repeated subqueries in policies
 
@@ -3459,7 +3594,7 @@ BEGIN
   IF to_regclass('public.documents') IS NOT NULL THEN
     -- Patients can view their own documents
     DROP POLICY IF EXISTS "patients_view_own_documents" ON public.documents;
-    
+
     CREATE POLICY "patients_view_own_documents"
     ON public.documents FOR SELECT
     USING (
@@ -3472,14 +3607,14 @@ BEGIN
 
     -- Doctors can view all documents
     DROP POLICY IF EXISTS "doctors_view_all_documents" ON public.documents;
-    
+
     CREATE POLICY "doctors_view_all_documents"
     ON public.documents FOR SELECT
     USING (is_doctor());
 
     -- Doctors can insert documents
     DROP POLICY IF EXISTS "doctors_insert_documents" ON public.documents;
-    
+
     CREATE POLICY "doctors_insert_documents"
     ON public.documents FOR INSERT
     WITH CHECK (is_doctor());
@@ -3489,7 +3624,7 @@ END $$;
 -- ============================================
 -- AUDIT SUMMARY
 -- ============================================
--- 
+--
 -- FIXED:
 -- 1. requests: Added patient UPDATE for cancellation (unpaid only)
 -- 2. request_answers: Added patient UPDATE for needs_follow_up flow
@@ -3529,9 +3664,9 @@ END $$;
 -- DO $$
 -- BEGIN
 --   IF EXISTS (
---     SELECT stripe_session_id, COUNT(*) 
---     FROM payments 
---     GROUP BY stripe_session_id 
+--     SELECT stripe_session_id, COUNT(*)
+--     FROM payments
+--     GROUP BY stripe_session_id
 --     HAVING COUNT(*) > 1
 --   ) THEN
 --     RAISE EXCEPTION 'Cannot add unique constraint - duplicate stripe_session_id values exist';
@@ -3541,12 +3676,12 @@ END $$;
 -- Add unique constraint (index already exists, just needs to be unique)
 DROP INDEX IF EXISTS payments_stripe_session_id_idx;
 
-CREATE UNIQUE INDEX payments_stripe_session_id_unique_idx 
+CREATE UNIQUE INDEX payments_stripe_session_id_unique_idx
 ON public.payments (stripe_session_id);
 
 -- Add constraint name for clarity
-ALTER TABLE public.payments 
-ADD CONSTRAINT payments_stripe_session_id_unique 
+ALTER TABLE public.payments
+ADD CONSTRAINT payments_stripe_session_id_unique
 UNIQUE USING INDEX payments_stripe_session_id_unique_idx;
 
 -- ============================================
@@ -3612,15 +3747,15 @@ BEGIN
   INSERT INTO stripe_webhook_events (event_id, event_type, request_id, session_id, metadata, processed_at, created_at)
   VALUES (p_event_id, p_event_type, p_request_id, p_session_id, p_metadata, NOW(), NOW())
   ON CONFLICT (event_id) DO NOTHING;
-  
+
   -- Check if we actually inserted (GET DIAGNOSTICS not available for ON CONFLICT)
   -- Instead, check if our processed_at matches NOW()
   SELECT EXISTS (
-    SELECT 1 FROM stripe_webhook_events 
-    WHERE event_id = p_event_id 
+    SELECT 1 FROM stripe_webhook_events
+    WHERE event_id = p_event_id
     AND processed_at >= NOW() - INTERVAL '1 second'
   ) INTO v_inserted;
-  
+
   RETURN v_inserted;
 END;
 $$;
@@ -3652,7 +3787,7 @@ GRANT EXECUTE ON FUNCTION public.payment_exists_for_session TO authenticated;
 -- ============================================
 -- AUDIT LOG
 -- ============================================
--- 
+--
 -- Changes made:
 -- 1. payments.stripe_session_id - Added UNIQUE constraint
 -- 2. stripe_webhook_events - Added metadata, request_id, session_id, error_message columns
@@ -3686,33 +3821,33 @@ DO $$
 BEGIN
   -- Try to create unique constraint on (request_id, document_type)
   IF EXISTS (
-    SELECT 1 FROM information_schema.columns 
-    WHERE table_name = 'document_drafts' 
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'document_drafts'
     AND column_name = 'document_type'
   ) THEN
     -- Use document_type column name
     IF NOT EXISTS (
-      SELECT 1 FROM pg_constraint 
+      SELECT 1 FROM pg_constraint
       WHERE conname = 'document_drafts_request_type_unique'
     ) THEN
       ALTER TABLE public.document_drafts
-      ADD CONSTRAINT document_drafts_request_type_unique 
+      ADD CONSTRAINT document_drafts_request_type_unique
       UNIQUE (request_id, document_type);
     END IF;
   END IF;
-  
+
   -- Also try 'type' column if it exists
   IF EXISTS (
-    SELECT 1 FROM information_schema.columns 
-    WHERE table_name = 'document_drafts' 
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'document_drafts'
     AND column_name = 'type'
   ) THEN
     IF NOT EXISTS (
-      SELECT 1 FROM pg_constraint 
+      SELECT 1 FROM pg_constraint
       WHERE conname = 'document_drafts_request_type_unique'
     ) THEN
       ALTER TABLE public.document_drafts
-      ADD CONSTRAINT document_drafts_request_type_unique 
+      ADD CONSTRAINT document_drafts_request_type_unique
       UNIQUE (request_id, type);
     END IF;
   END IF;
@@ -3724,11 +3859,11 @@ END $$;
 -- Table may have been created in earlier migration without these columns
 
 -- Add verification_code column if missing
-ALTER TABLE public.documents 
+ALTER TABLE public.documents
 ADD COLUMN IF NOT EXISTS verification_code TEXT;
 
 -- Add updated_at column if missing
-ALTER TABLE public.documents 
+ALTER TABLE public.documents
 ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT NOW();
 
 -- Add indexes
@@ -3739,7 +3874,7 @@ CREATE INDEX IF NOT EXISTS idx_documents_verification_code ON public.documents(v
 ALTER TABLE public.documents ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies for documents
-DO $$ 
+DO $$
 BEGIN
   -- Patients can view their own documents
   IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'patients_view_own_documents' AND tablename = 'documents') THEN
@@ -3752,7 +3887,7 @@ BEGIN
       )
     );
   END IF;
-  
+
   -- Doctors can view and insert all documents
   IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'doctors_manage_documents' AND tablename = 'documents') THEN
     CREATE POLICY doctors_manage_documents ON public.documents FOR ALL
@@ -3770,7 +3905,7 @@ END $$;
 ALTER TABLE public.document_verifications
 ADD COLUMN IF NOT EXISTS document_id UUID REFERENCES public.documents(id) ON DELETE CASCADE;
 
-CREATE INDEX IF NOT EXISTS idx_document_verifications_document_id 
+CREATE INDEX IF NOT EXISTS idx_document_verifications_document_id
 ON public.document_verifications(document_id) WHERE document_id IS NOT NULL;
 
 -- RLS Policies for document_verifications (if not already created)
@@ -3814,30 +3949,30 @@ BEGIN
   -- Step 1: Verify request can be approved
   SELECT status, payment_status INTO v_request_status, v_payment_status
   FROM requests WHERE id = p_request_id;
-  
+
   IF v_request_status IS NULL THEN
     RETURN QUERY SELECT NULL::UUID, NULL::TEXT, FALSE, 'Request not found';
     RETURN;
   END IF;
-  
+
   IF v_payment_status != 'paid' THEN
     RETURN QUERY SELECT NULL::UUID, NULL::TEXT, FALSE, 'Request not paid';
     RETURN;
   END IF;
-  
+
   IF v_request_status NOT IN ('pending', 'needs_follow_up') THEN
     RETURN QUERY SELECT NULL::UUID, NULL::TEXT, FALSE, 'Request already processed: ' || v_request_status;
     RETURN;
   END IF;
-  
+
   -- Step 2: Generate unique verification code
   v_verification_code := 'IM-' || upper(substr(md5(random()::text), 1, 8));
-  
+
   -- Step 3: Create document record
   INSERT INTO documents (request_id, type, subtype, pdf_url, verification_code)
   VALUES (p_request_id, p_document_type, p_document_subtype, p_pdf_url, v_verification_code)
   RETURNING id INTO v_document_id;
-  
+
   -- Step 4: Create verification record
   INSERT INTO document_verifications (
     request_id,
@@ -3857,10 +3992,10 @@ BEGIN
     NOW() + INTERVAL '1 year',
     TRUE
   );
-  
+
   -- Step 5: Update request status to approved
   UPDATE requests
-  SET 
+  SET
     status = 'approved',
     reviewed_by = p_doctor_id,
     reviewed_at = NOW(),
@@ -3868,14 +4003,14 @@ BEGIN
   WHERE id = p_request_id
   AND status IN ('pending', 'needs_follow_up') -- Conditional update
   AND payment_status = 'paid';
-  
+
   IF NOT FOUND THEN
     -- Rollback will happen automatically, but return error
     RAISE EXCEPTION 'Failed to update request status - concurrent modification';
   END IF;
-  
+
   RETURN QUERY SELECT v_document_id, v_verification_code, TRUE, NULL::TEXT;
-  
+
 EXCEPTION
   WHEN OTHERS THEN
     RETURN QUERY SELECT NULL::UUID, NULL::TEXT, FALSE, SQLERRM;
@@ -3906,14 +4041,14 @@ DECLARE
 BEGIN
   -- Determine which column name is used for type
   IF EXISTS (
-    SELECT 1 FROM information_schema.columns 
+    SELECT 1 FROM information_schema.columns
     WHERE table_name = 'document_drafts' AND column_name = 'document_type'
   ) THEN
     v_col_name := 'document_type';
   ELSE
     v_col_name := 'type';
   END IF;
-  
+
   -- Try to find existing draft first
   IF v_col_name = 'document_type' THEN
     SELECT id INTO v_draft_id
@@ -3924,11 +4059,11 @@ BEGIN
     FROM document_drafts
     WHERE request_id = p_request_id AND type = p_document_type;
   END IF;
-  
+
   IF v_draft_id IS NOT NULL THEN
     RETURN v_draft_id;
   END IF;
-  
+
   -- Create new draft - let constraint handle race condition
   BEGIN
     IF v_col_name = 'document_type' THEN
@@ -3940,7 +4075,7 @@ BEGIN
       VALUES (p_request_id, p_document_type, p_initial_data)
       RETURNING id INTO v_draft_id;
     END IF;
-    
+
     RETURN v_draft_id;
   EXCEPTION
     WHEN unique_violation THEN
@@ -3954,7 +4089,7 @@ BEGIN
         FROM document_drafts
         WHERE request_id = p_request_id AND type = p_document_type;
       END IF;
-      
+
       RETURN v_draft_id;
   END;
 END;
@@ -3976,7 +4111,7 @@ CHECK (type IN ('med_cert', 'prescription', 'referral', 'pathology'));
 -- ============================================
 -- AUDIT LOG
 -- ============================================
--- 
+--
 -- Changes made:
 -- 1. document_drafts - Added unique constraint on (request_id, type)
 -- 2. documents - Created table if not exists, added RLS policies
@@ -4031,7 +4166,7 @@ ON CONFLICT (id) DO UPDATE SET
 -- Policy: Public can read documents (the bucket is public, but we still need this)
 -- Documents are organized as: documents/{request_id}/{filename}.pdf
 -- Patients need to access their documents via direct URL
-DO $$ 
+DO $$
 BEGIN
   DROP POLICY IF EXISTS "Anyone can view documents" ON storage.objects;
   CREATE POLICY "Anyone can view documents"
@@ -4046,7 +4181,7 @@ END $$;
 -- The server-side code uses service role client for uploads
 
 -- Policy: Doctors can upload documents (via service role, but adding for completeness)
-DO $$ 
+DO $$
 BEGIN
   DROP POLICY IF EXISTS "Doctors can upload documents" ON storage.objects;
   CREATE POLICY "Doctors can upload documents"
@@ -4068,7 +4203,7 @@ END $$;
 
 -- Policy: No one can delete documents (immutable once created)
 -- We want an audit trail - documents should never be deleted
-DO $$ 
+DO $$
 BEGIN
   DROP POLICY IF EXISTS "No one can delete documents" ON storage.objects;
   CREATE POLICY "No one can delete documents"
@@ -4092,7 +4227,7 @@ END $$;
 -- ============================================
 -- AUDIT LOG
 -- ============================================
--- 
+--
 -- Bucket created: documents
 --   - Public read: YES (patients need to download)
 --   - Write access: Doctors only (via RLS) + Service role
@@ -4121,27 +4256,27 @@ ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS email TEXT;
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS onboarding_completed BOOLEAN DEFAULT FALSE;
 
 -- 3. Populate email from auth.users for existing profiles
-UPDATE public.profiles p 
-SET email = u.email 
-FROM auth.users u 
+UPDATE public.profiles p
+SET email = u.email
+FROM auth.users u
 WHERE p.auth_user_id = u.id AND p.email IS NULL;
 
 -- 4. Drop the NOT NULL constraint on auth_user_id to allow guest profiles
-ALTER TABLE public.profiles 
+ALTER TABLE public.profiles
 ALTER COLUMN auth_user_id DROP NOT NULL;
 
 -- 5. Re-add uniqueness as a partial index (only for non-null values)
-CREATE UNIQUE INDEX IF NOT EXISTS profiles_auth_user_id_unique 
-ON public.profiles(auth_user_id) 
+CREATE UNIQUE INDEX IF NOT EXISTS profiles_auth_user_id_unique
+ON public.profiles(auth_user_id)
 WHERE auth_user_id IS NOT NULL;
 
 -- 6. Add index on email for all profiles
-CREATE INDEX IF NOT EXISTS idx_profiles_email 
+CREATE INDEX IF NOT EXISTS idx_profiles_email
 ON public.profiles(email);
 
 -- 7. Add an index to find guest profiles by email efficiently
-CREATE INDEX IF NOT EXISTS idx_profiles_guest_email 
-ON public.profiles(email) 
+CREATE INDEX IF NOT EXISTS idx_profiles_guest_email
+ON public.profiles(email)
 WHERE auth_user_id IS NULL;
 
 -- ── 20241216000002_fix_profiles_rls.sql ──
@@ -4231,7 +4366,7 @@ ALTER TABLE amt_search_cache ENABLE ROW LEVEL SECURITY;
 -- Supports deterministic, idempotent refund logic for declined requests
 
 -- Add refund status enum-like column
-ALTER TABLE public.payments 
+ALTER TABLE public.payments
 ADD COLUMN IF NOT EXISTS refund_status text DEFAULT 'not_applicable'
   CHECK (refund_status IN ('not_applicable', 'eligible', 'processing', 'refunded', 'failed', 'not_eligible'));
 
@@ -4247,7 +4382,7 @@ CREATE INDEX IF NOT EXISTS payments_refund_status_idx ON public.payments(refund_
 CREATE INDEX IF NOT EXISTS payments_stripe_refund_id_idx ON public.payments(stripe_refund_id);
 
 -- Add unique constraint on stripe_refund_id to prevent duplicates
-CREATE UNIQUE INDEX IF NOT EXISTS payments_stripe_refund_id_unique 
+CREATE UNIQUE INDEX IF NOT EXISTS payments_stripe_refund_id_unique
 ON public.payments(stripe_refund_id) WHERE stripe_refund_id IS NOT NULL;
 
 COMMENT ON COLUMN public.payments.refund_status IS 'Refund eligibility and processing status';
@@ -4278,7 +4413,7 @@ CREATE POLICY "doctors_select_feature_flags"
   USING (
     EXISTS (
       SELECT 1 FROM public.profiles
-      WHERE auth_user_id = auth.uid() 
+      WHERE auth_user_id = auth.uid()
       AND role IN ('doctor', 'admin')
     )
   );
@@ -4289,7 +4424,7 @@ CREATE POLICY "doctors_update_feature_flags"
   USING (
     EXISTS (
       SELECT 1 FROM public.profiles
-      WHERE auth_user_id = auth.uid() 
+      WHERE auth_user_id = auth.uid()
       AND role IN ('doctor', 'admin')
     )
   );
@@ -4365,7 +4500,7 @@ BEGIN
   INSERT INTO public.notifications (user_id, type, title, message, action_url, metadata)
   VALUES (p_user_id, p_type, p_title, p_message, p_action_url, p_metadata)
   RETURNING id INTO v_notification_id;
-  
+
   RETURN v_notification_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -4384,12 +4519,12 @@ BEGIN
   IF OLD.status = NEW.status THEN
     RETURN NEW;
   END IF;
-  
+
   -- Get patient name
   SELECT full_name INTO v_patient_name FROM public.profiles WHERE id = NEW.patient_id;
-  
+
   v_action_url := '/patient/requests/' || NEW.id::TEXT;
-  
+
   -- Determine notification content based on new status
   CASE NEW.status
     WHEN 'approved' THEN
@@ -4416,7 +4551,7 @@ BEGIN
     ELSE
       RETURN NEW;
   END CASE;
-  
+
   -- Create the notification
   PERFORM create_notification(
     NEW.patient_id,
@@ -4426,7 +4561,7 @@ BEGIN
     v_action_url,
     jsonb_build_object('request_id', NEW.id, 'request_type', NEW.type, 'status', NEW.status)
   );
-  
+
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -4453,25 +4588,25 @@ GRANT EXECUTE ON FUNCTION notify_on_request_status_change TO service_role;
 -- ============================================
 
 -- Index for doctor dashboard: fetch pending requests ordered by created_at
-CREATE INDEX IF NOT EXISTS idx_requests_status_created 
+CREATE INDEX IF NOT EXISTS idx_requests_status_created
   ON public.requests(status, created_at DESC);
 
 -- Index for patient dashboard: fetch requests by patient
-CREATE INDEX IF NOT EXISTS idx_requests_patient_created 
+CREATE INDEX IF NOT EXISTS idx_requests_patient_created
   ON public.requests(patient_id, created_at DESC);
 
 -- Index for payment status queries
-CREATE INDEX IF NOT EXISTS idx_requests_payment_status 
-  ON public.requests(payment_status) 
+CREATE INDEX IF NOT EXISTS idx_requests_payment_status
+  ON public.requests(payment_status)
   WHERE payment_status = 'pending_payment';
 
 -- Composite index for filtering by status and category
-CREATE INDEX IF NOT EXISTS idx_requests_status_category 
+CREATE INDEX IF NOT EXISTS idx_requests_status_category
   ON public.requests(status, category);
 
 -- Index for active checkout sessions (used in webhook processing)
-CREATE INDEX IF NOT EXISTS idx_requests_active_checkout 
-  ON public.requests(active_checkout_session_id) 
+CREATE INDEX IF NOT EXISTS idx_requests_active_checkout
+  ON public.requests(active_checkout_session_id)
   WHERE active_checkout_session_id IS NOT NULL;
 
 -- ============================================
@@ -4479,16 +4614,16 @@ CREATE INDEX IF NOT EXISTS idx_requests_active_checkout
 -- ============================================
 
 -- Index for auth user lookups (most common operation)
-CREATE INDEX IF NOT EXISTS idx_profiles_auth_user 
+CREATE INDEX IF NOT EXISTS idx_profiles_auth_user
   ON public.profiles(auth_user_id);
 
 -- Index for role-based queries (doctors vs patients)
-CREATE INDEX IF NOT EXISTS idx_profiles_role 
+CREATE INDEX IF NOT EXISTS idx_profiles_role
   ON public.profiles(role);
 
 -- Index for Stripe customer lookups
-CREATE INDEX IF NOT EXISTS idx_profiles_stripe_customer 
-  ON public.profiles(stripe_customer_id) 
+CREATE INDEX IF NOT EXISTS idx_profiles_stripe_customer
+  ON public.profiles(stripe_customer_id)
   WHERE stripe_customer_id IS NOT NULL;
 
 -- ============================================
@@ -4496,15 +4631,15 @@ CREATE INDEX IF NOT EXISTS idx_profiles_stripe_customer
 -- ============================================
 
 -- Index for Stripe session lookups (webhook processing)
-CREATE INDEX IF NOT EXISTS idx_payments_stripe_session 
+CREATE INDEX IF NOT EXISTS idx_payments_stripe_session
   ON public.payments(stripe_session_id);
 
 -- Index for payment status queries
-CREATE INDEX IF NOT EXISTS idx_payments_status 
+CREATE INDEX IF NOT EXISTS idx_payments_status
   ON public.payments(status);
 
 -- Index for request payment lookups
-CREATE INDEX IF NOT EXISTS idx_payments_request 
+CREATE INDEX IF NOT EXISTS idx_payments_request
   ON public.payments(request_id);
 
 -- ============================================
@@ -4512,11 +4647,11 @@ CREATE INDEX IF NOT EXISTS idx_payments_request
 -- ============================================
 
 -- Index for fetching documents by request
-CREATE INDEX IF NOT EXISTS idx_documents_request 
+CREATE INDEX IF NOT EXISTS idx_documents_request
   ON public.documents(request_id, created_at DESC);
 
 -- Index for document type queries
-CREATE INDEX IF NOT EXISTS idx_documents_type 
+CREATE INDEX IF NOT EXISTS idx_documents_type
   ON public.documents(type);
 
 -- ============================================
@@ -4527,8 +4662,8 @@ CREATE INDEX IF NOT EXISTS idx_documents_type
 -- These are here for completeness if running separately
 
 -- Index for unread notifications count
-CREATE INDEX IF NOT EXISTS idx_notifications_user_unread_count 
-  ON public.notifications(user_id) 
+CREATE INDEX IF NOT EXISTS idx_notifications_user_unread_count
+  ON public.notifications(user_id)
   WHERE read = FALSE;
 
 -- ============================================
@@ -4536,12 +4671,12 @@ CREATE INDEX IF NOT EXISTS idx_notifications_user_unread_count
 -- ============================================
 
 -- Index for event idempotency checks
-CREATE INDEX IF NOT EXISTS idx_stripe_events_event_id 
+CREATE INDEX IF NOT EXISTS idx_stripe_events_event_id
   ON public.stripe_webhook_events(event_id);
 
 -- Index for debugging: find events by request
-CREATE INDEX IF NOT EXISTS idx_stripe_events_request 
-  ON public.stripe_webhook_events(request_id) 
+CREATE INDEX IF NOT EXISTS idx_stripe_events_request
+  ON public.stripe_webhook_events(request_id)
   WHERE request_id IS NOT NULL;
 
 -- ============================================
@@ -4549,7 +4684,7 @@ CREATE INDEX IF NOT EXISTS idx_stripe_events_request
 -- ============================================
 
 -- Index for fetching answers by request
-CREATE INDEX IF NOT EXISTS idx_request_answers_request 
+CREATE INDEX IF NOT EXISTS idx_request_answers_request
   ON public.request_answers(request_id);
 
 -- ============================================
@@ -4570,8 +4705,8 @@ ANALYZE public.notifications;
 -- Previously only allowed 'patient' and 'doctor'
 
 ALTER TABLE profiles DROP CONSTRAINT IF EXISTS profiles_role_check;
-ALTER TABLE profiles ADD CONSTRAINT profiles_role_check 
-  CHECK (role = ANY (ARRAY['patient'::text, 'doctor'::text, 'admin'::text]));
+ALTER TABLE profiles ADD CONSTRAINT profiles_role_check
+  CHECK (role::text = ANY (ARRAY['patient'::text, 'doctor'::text, 'admin'::text]));
 
 
 -- ── 20241222000001_fix_doctors_profiles_rls.sql ──
@@ -4581,7 +4716,7 @@ ALTER TABLE profiles ADD CONSTRAINT profiles_role_check
 -- Generated: 2024-12-22
 -- Purpose: Re-add the doctors_select_patients policy that was removed
 -- in 20241216000002_fix_profiles_rls.sql
--- 
+--
 -- Without this policy, doctors cannot see patient profiles when
 -- fetching requests with patient data, causing the admin dashboard
 -- to show no requests.
@@ -4740,7 +4875,7 @@ ALTER TABLE requests ADD CONSTRAINT valid_status
   CHECK (status IN ('pending_payment', 'pending', 'under_review', 'needs_follow_up', 'awaiting_prescribe', 'approved', 'declined'));
 
 -- Step 3: Add parchment_reference and sent_via columns
-ALTER TABLE requests 
+ALTER TABLE requests
   ADD COLUMN IF NOT EXISTS parchment_reference TEXT,
   ADD COLUMN IF NOT EXISTS sent_via TEXT CHECK (sent_via IS NULL OR sent_via IN ('parchment', 'paper'));
 
@@ -4828,8 +4963,8 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Step 6: Add index for awaiting_prescribe queries
-CREATE INDEX IF NOT EXISTS idx_requests_awaiting_prescribe 
-  ON requests(status, created_at DESC) 
+CREATE INDEX IF NOT EXISTS idx_requests_awaiting_prescribe
+  ON requests(status, created_at DESC)
   WHERE status = 'awaiting_prescribe';
 
 
@@ -4839,13 +4974,13 @@ CREATE INDEX IF NOT EXISTS idx_requests_awaiting_prescribe
 -- These fields provide structured data for doctor decisions (approve/decline)
 
 -- Step 1: Add decision enum-like text column
-ALTER TABLE requests 
+ALTER TABLE requests
   ADD COLUMN IF NOT EXISTS decision TEXT CHECK (decision IS NULL OR decision IN ('approved', 'declined'));
 
 -- Step 2: Add decline reason code (structured category)
-ALTER TABLE requests 
+ALTER TABLE requests
   ADD COLUMN IF NOT EXISTS decline_reason_code TEXT CHECK (
-    decline_reason_code IS NULL OR 
+    decline_reason_code IS NULL OR
     decline_reason_code IN (
       'requires_examination',     -- Clinical - Requires in-person physical examination
       'not_telehealth_suitable',  -- Service - Not available via telehealth
@@ -4861,11 +4996,11 @@ ALTER TABLE requests
   );
 
 -- Step 3: Add decline reason note (free text explanation)
-ALTER TABLE requests 
+ALTER TABLE requests
   ADD COLUMN IF NOT EXISTS decline_reason_note TEXT;
 
 -- Step 4: Add decided_at timestamp
-ALTER TABLE requests 
+ALTER TABLE requests
   ADD COLUMN IF NOT EXISTS decided_at TIMESTAMPTZ;
 
 -- Step 5: Add comments
@@ -4937,7 +5072,7 @@ ALTER TABLE public.intakes
   ADD COLUMN IF NOT EXISTS priority_review BOOLEAN DEFAULT FALSE;
 
 -- Index for script tracking queries
-CREATE INDEX IF NOT EXISTS idx_intakes_script_sent 
+CREATE INDEX IF NOT EXISTS idx_intakes_script_sent
   ON public.intakes(script_sent) WHERE script_sent = FALSE AND status = 'approved';
 
 -- ============================================
@@ -4946,13 +5081,13 @@ CREATE INDEX IF NOT EXISTS idx_intakes_script_sent
 
 CREATE TABLE IF NOT EXISTS public.patient_notes (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  
+
   -- Patient reference (required)
   patient_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-  
+
   -- Optional link to specific intake/case
   intake_id UUID REFERENCES public.intakes(id) ON DELETE SET NULL,
-  
+
   -- Note content
   note_type TEXT NOT NULL DEFAULT 'encounter' CHECK (note_type IN (
     'encounter',      -- Clinical encounter note
@@ -4964,13 +5099,13 @@ CREATE TABLE IF NOT EXISTS public.patient_notes (
   )),
   title TEXT,
   content TEXT NOT NULL,
-  
+
   -- Structured data for specific note types
   metadata JSONB DEFAULT '{}',
-  
+
   -- Author (the doctor - you)
   created_by UUID NOT NULL REFERENCES public.profiles(id),
-  
+
   -- Timestamps
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -5043,8 +5178,8 @@ CREATE POLICY "Admins can update own patient notes"
 DO $$
 BEGIN
   IF NOT EXISTS (
-    SELECT 1 FROM pg_enum 
-    WHERE enumlabel = 'awaiting_script' 
+    SELECT 1 FROM pg_enum
+    WHERE enumlabel = 'awaiting_script'
     AND enumtypid = 'public.intake_status'::regtype
   ) THEN
     ALTER TYPE public.intake_status ADD VALUE IF NOT EXISTS 'awaiting_script' AFTER 'approved';
@@ -5075,7 +5210,7 @@ SECURITY DEFINER
 AS $$
 BEGIN
   RETURN QUERY
-  SELECT 
+  SELECT
     pn.id,
     pn.intake_id,
     pn.note_type,
@@ -5101,15 +5236,15 @@ GRANT EXECUTE ON FUNCTION get_patient_notes TO authenticated;
 -- Add GP Consult service for new prescriptions and complex health concerns
 -- This service is separate from common-scripts (repeat prescriptions) and has different pricing
 
-INSERT INTO public.services (slug, name, short_name, type, price_cents, description, display_order, requires_id_verification) 
+INSERT INTO public.services (slug, name, short_name, type, price_cents, description, display_order, requires_id_verification)
 VALUES (
-  'gp-consult', 
-  'General Consultation', 
-  'GP Consult', 
-  'consults', 
-  4995, 
-  'Online consultation for new prescriptions, dose changes, referrals, and complex health concerns', 
-  9, 
+  'gp-consult',
+  'General Consultation',
+  'GP Consult',
+  'consults',
+  4995,
+  'Online consultation for new prescriptions, dose changes, referrals, and complex health concerns',
+  9,
   false
 )
 ON CONFLICT (slug) DO UPDATE SET
@@ -5120,7 +5255,7 @@ ON CONFLICT (slug) DO UPDATE SET
   description = EXCLUDED.description;
 
 -- Add service type to enum if not exists (for consults)
-DO $$ 
+DO $$
 BEGIN
   -- Check if 'consults' type exists by checking if any service uses it
   -- The services.type column accepts any text, so we just need the service entry
@@ -5147,24 +5282,24 @@ CREATE TYPE public.compliance_event_type AS ENUM (
   'request_created',
   'request_reviewed',
   'outcome_assigned',
-  
+
   -- Clinician Involvement (Section 2)
   'clinician_opened_request',
   'clinician_reviewed_request',
   'clinician_selected_outcome',
-  
+
   -- Triage Outcome (Section 3)
   'triage_approved',
   'triage_needs_call',
   'triage_declined',
   'triage_outcome_changed',
-  
+
   -- Synchronous Contact Indicators (Section 4)
   'call_required_flagged',
   'call_initiated',
   'call_completed',
   'decision_after_call',
-  
+
   -- Prescribing Boundary Evidence (Section 5)
   'no_prescribing_in_platform',
   'external_prescribing_indicated'
@@ -5176,44 +5311,44 @@ CREATE TYPE public.compliance_event_type AS ENUM (
 
 CREATE TABLE public.compliance_audit_log (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  
+
   -- Event classification
   event_type public.compliance_event_type NOT NULL,
-  
+
   -- Request reference (supports med_cert, repeat_rx, or generic intakes)
   request_id UUID NOT NULL,
   request_type TEXT NOT NULL CHECK (request_type IN ('med_cert', 'repeat_rx', 'intake')),
-  
+
   -- Actor attribution (who performed the action)
   actor_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
   actor_role TEXT NOT NULL CHECK (actor_role IN ('patient', 'clinician', 'admin', 'system')),
-  
+
   -- Human-in-the-loop proof
   is_human_action BOOLEAN NOT NULL DEFAULT true,
-  
+
   -- Outcome tracking
   outcome TEXT, -- 'approved', 'needs_call', 'declined'
   previous_outcome TEXT, -- For triage_outcome_changed events
-  
+
   -- Call tracking (Section 4)
   call_required BOOLEAN,
   call_occurred BOOLEAN,
   call_completed_before_decision BOOLEAN,
-  
+
   -- Prescribing boundary (Section 5)
   prescribing_occurred_in_platform BOOLEAN DEFAULT false,
   external_prescribing_reference TEXT, -- e.g., "Parchment", "External PBS"
-  
+
   -- Event details (flexible JSONB for additional context)
   event_data JSONB NOT NULL DEFAULT '{}'::jsonb,
-  
+
   -- Audit metadata
   ip_address INET,
   user_agent TEXT,
-  
+
   -- Immutable timestamp (cannot be modified after creation)
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  
+
   -- Constraints
   CONSTRAINT valid_outcome CHECK (
     outcome IS NULL OR outcome IN ('approved', 'needs_call', 'declined')
@@ -5231,7 +5366,7 @@ CREATE INDEX idx_compliance_audit_created ON public.compliance_audit_log(created
 CREATE INDEX idx_compliance_audit_request_type ON public.compliance_audit_log(request_type);
 
 -- Composite index for request timeline reconstruction
-CREATE INDEX idx_compliance_audit_request_timeline 
+CREATE INDEX idx_compliance_audit_request_timeline
   ON public.compliance_audit_log(request_id, created_at ASC);
 
 -- ============================================================================
@@ -5248,7 +5383,7 @@ CREATE POLICY "Clinicians and admins can read compliance audit"
     EXISTS (
       SELECT 1 FROM public.profiles p
       WHERE p.auth_user_id = auth.uid()
-      AND p.role IN ('clinician', 'doctor', 'admin')
+      AND p.role::text IN ('clinician', 'doctor', 'admin')
     )
   );
 
@@ -5323,7 +5458,7 @@ BEGIN
     p_user_agent
   )
   RETURNING id INTO v_audit_id;
-  
+
   RETURN v_audit_id;
 END;
 $$;
@@ -5337,10 +5472,10 @@ CREATE OR REPLACE VIEW public.compliance_audit_summary AS
 SELECT
   cal.request_id,
   cal.request_type,
-  
+
   -- Q1: Who reviewed this request?
   (
-    SELECT p.full_name 
+    SELECT p.full_name
     FROM public.compliance_audit_log c
     JOIN public.profiles p ON p.id = c.actor_id
     WHERE c.request_id = cal.request_id
@@ -5348,47 +5483,47 @@ SELECT
     ORDER BY c.created_at DESC
     LIMIT 1
   ) AS reviewed_by,
-  
+
   -- Q2: When was the decision made?
   (
-    SELECT c.created_at 
+    SELECT c.created_at
     FROM public.compliance_audit_log c
     WHERE c.request_id = cal.request_id
     AND c.event_type = 'outcome_assigned'
     ORDER BY c.created_at DESC
     LIMIT 1
   ) AS decision_at,
-  
+
   -- Q3: What was the outcome?
   (
-    SELECT c.outcome 
+    SELECT c.outcome
     FROM public.compliance_audit_log c
     WHERE c.request_id = cal.request_id
     AND c.event_type = 'outcome_assigned'
     ORDER BY c.created_at DESC
     LIMIT 1
   ) AS final_outcome,
-  
+
   -- Q4: Was a call required?
   (
-    SELECT c.call_required 
+    SELECT c.call_required
     FROM public.compliance_audit_log c
     WHERE c.request_id = cal.request_id
     AND c.call_required IS NOT NULL
     ORDER BY c.created_at DESC
     LIMIT 1
   ) AS call_required,
-  
+
   -- Q4b: Did a call occur before decision?
   (
-    SELECT c.call_completed_before_decision 
+    SELECT c.call_completed_before_decision
     FROM public.compliance_audit_log c
     WHERE c.request_id = cal.request_id
     AND c.call_completed_before_decision IS NOT NULL
     ORDER BY c.created_at DESC
     LIMIT 1
   ) AS call_completed_before_decision,
-  
+
   -- Q5: Where did prescribing occur?
   CASE
     WHEN EXISTS (
@@ -5401,7 +5536,7 @@ SELECT
       WHERE c.request_id = cal.request_id
       AND c.external_prescribing_reference IS NOT NULL
     ) THEN (
-      SELECT c.external_prescribing_reference 
+      SELECT c.external_prescribing_reference
       FROM public.compliance_audit_log c
       WHERE c.request_id = cal.request_id
       AND c.external_prescribing_reference IS NOT NULL
@@ -5410,7 +5545,7 @@ SELECT
     )
     ELSE 'NO_PRESCRIBING'
   END AS prescribing_location,
-  
+
   -- Human-in-the-loop verification
   EXISTS (
     SELECT 1 FROM public.compliance_audit_log c
@@ -5419,10 +5554,10 @@ SELECT
     AND c.actor_role = 'clinician'
     AND c.event_type IN ('clinician_reviewed_request', 'clinician_selected_outcome')
   ) AS has_human_review,
-  
+
   -- Timeline completeness check
   (
-    SELECT COUNT(DISTINCT c.event_type) 
+    SELECT COUNT(DISTINCT c.event_type)
     FROM public.compliance_audit_log c
     WHERE c.request_id = cal.request_id
     AND c.event_type IN ('request_created', 'request_reviewed', 'outcome_assigned')
@@ -5439,7 +5574,7 @@ GROUP BY cal.request_id, cal.request_type;
 DO $$
 BEGIN
   IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'med_cert_requests') THEN
-    ALTER TABLE public.med_cert_requests 
+    ALTER TABLE public.med_cert_requests
       ADD COLUMN IF NOT EXISTS call_required BOOLEAN DEFAULT false,
       ADD COLUMN IF NOT EXISTS call_occurred BOOLEAN DEFAULT false,
       ADD COLUMN IF NOT EXISTS call_occurred_at TIMESTAMPTZ,
@@ -5451,7 +5586,7 @@ END $$;
 DO $$
 BEGIN
   IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'intakes') THEN
-    ALTER TABLE public.intakes 
+    ALTER TABLE public.intakes
       ADD COLUMN IF NOT EXISTS call_required BOOLEAN DEFAULT false,
       ADD COLUMN IF NOT EXISTS call_occurred BOOLEAN DEFAULT false,
       ADD COLUMN IF NOT EXISTS call_occurred_at TIMESTAMPTZ,
@@ -5463,15 +5598,15 @@ END $$;
 -- COMMENTS
 -- ============================================================================
 
-COMMENT ON TABLE public.compliance_audit_log IS 
+COMMENT ON TABLE public.compliance_audit_log IS
   'Immutable audit log for regulatory compliance per AUDIT_LOGGING_REQUIREMENTS.md';
-COMMENT ON COLUMN public.compliance_audit_log.is_human_action IS 
+COMMENT ON COLUMN public.compliance_audit_log.is_human_action IS
   'Proves human-in-the-loop review, not automation';
-COMMENT ON COLUMN public.compliance_audit_log.prescribing_occurred_in_platform IS 
+COMMENT ON COLUMN public.compliance_audit_log.prescribing_occurred_in_platform IS
   'Must always be false - platform does not prescribe';
-COMMENT ON COLUMN public.compliance_audit_log.external_prescribing_reference IS 
+COMMENT ON COLUMN public.compliance_audit_log.external_prescribing_reference IS
   'Reference to external prescribing system (e.g., Parchment)';
-COMMENT ON VIEW public.compliance_audit_summary IS 
+COMMENT ON VIEW public.compliance_audit_summary IS
   'Answers the 5 audit readiness questions from AUDIT_LOGGING_REQUIREMENTS.md';
 
 
@@ -5494,12 +5629,12 @@ BEGIN
   IF OLD.status = NEW.status THEN
     RETURN NEW;
   END IF;
-  
+
   -- Get patient name
   SELECT full_name INTO v_patient_name FROM public.profiles WHERE id = NEW.patient_id;
-  
+
   v_action_url := '/patient/intakes/' || NEW.id::TEXT;
-  
+
   -- Determine notification content based on new status
   CASE NEW.status
     WHEN 'approved' THEN
@@ -5543,7 +5678,7 @@ BEGIN
     ELSE
       RETURN NEW;
   END CASE;
-  
+
   -- Create the notification
   INSERT INTO public.notifications (user_id, type, title, message, action_url, metadata)
   VALUES (
@@ -5559,7 +5694,7 @@ BEGIN
       'previous_status', OLD.status
     )
   );
-  
+
   RETURN NEW;
 EXCEPTION
   WHEN OTHERS THEN
@@ -5583,7 +5718,7 @@ CREATE TRIGGER trigger_notify_on_intake_status_change
 GRANT EXECUTE ON FUNCTION notify_on_intake_status_change TO service_role;
 
 -- Add index for faster notification queries if not exists
-CREATE INDEX IF NOT EXISTS idx_notifications_user_created 
+CREATE INDEX IF NOT EXISTS idx_notifications_user_created
 ON public.notifications(user_id, created_at DESC);
 
 
@@ -5658,7 +5793,7 @@ RETURNS TABLE (
 ) AS $$
 BEGIN
   RETURN QUERY
-  SELECT 
+  SELECT
     a.artg_id,
     a.product_name,
     a.active_ingredients_raw,
@@ -5669,7 +5804,7 @@ BEGIN
       similarity(LOWER(a.active_ingredients_raw), LOWER(search_query)) * 0.8
     ) AS relevance
   FROM public.artg_products a
-  WHERE 
+  WHERE
     a.product_name ILIKE '%' || search_query || '%'
     OR a.active_ingredients_raw ILIKE '%' || search_query || '%'
     OR similarity(a.product_name, search_query) > 0.2
@@ -5704,19 +5839,19 @@ RETURNS TABLE (
 ) AS $$
 BEGIN
   RETURN QUERY
-  SELECT 
+  SELECT
     a.artg_id,
     a.product_name,
     a.active_ingredients_raw,
     a.dosage_form,
     a.route
   FROM public.artg_products a
-  WHERE 
+  WHERE
     a.product_name ILIKE '%' || search_query || '%'
     OR a.active_ingredients_raw ILIKE '%' || search_query || '%'
     OR similarity(COALESCE(a.product_name, ''), search_query) > 0.15
     OR similarity(COALESCE(a.active_ingredients_raw, ''), search_query) > 0.15
-  ORDER BY 
+  ORDER BY
     GREATEST(
       similarity(COALESCE(a.product_name, ''), search_query),
       similarity(COALESCE(a.active_ingredients_raw, ''), search_query) * 0.8
@@ -5744,24 +5879,24 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'intakes' AND column_name = 'medication_search_used') THEN
       ALTER TABLE public.intakes ADD COLUMN medication_search_used BOOLEAN DEFAULT FALSE;
     END IF;
-    
+
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'intakes' AND column_name = 'medication_selected') THEN
       ALTER TABLE public.intakes ADD COLUMN medication_selected BOOLEAN DEFAULT FALSE;
     END IF;
-    
+
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'intakes' AND column_name = 'selected_artg_id') THEN
       ALTER TABLE public.intakes ADD COLUMN selected_artg_id TEXT REFERENCES public.artg_products(artg_id);
     END IF;
-    
+
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'intakes' AND column_name = 'selected_medication_name') THEN
       ALTER TABLE public.intakes ADD COLUMN selected_medication_name TEXT;
     END IF;
-    
+
     -- Create index for audit queries
     IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE schemaname = 'public' AND tablename = 'intakes' AND indexname = 'idx_intakes_medication_search') THEN
       CREATE INDEX idx_intakes_medication_search ON public.intakes(medication_search_used, medication_selected) WHERE medication_search_used = TRUE;
     END IF;
-    
+
     RAISE NOTICE 'Medication search fields added to intakes table';
   ELSE
     RAISE NOTICE 'Intakes table does not exist yet - medication search fields will be added when intakes is created';
@@ -5795,19 +5930,19 @@ SET search_path = ''
 AS $$
 BEGIN
   RETURN QUERY
-  SELECT 
+  SELECT
     a.artg_id,
     a.product_name,
     a.active_ingredients_raw,
     a.dosage_form,
     a.route
   FROM public.artg_products a
-  WHERE 
+  WHERE
     a.product_name ILIKE '%' || search_query || '%'
     OR a.active_ingredients_raw ILIKE '%' || search_query || '%'
     OR public.similarity(COALESCE(a.product_name, ''), search_query) > 0.15
     OR public.similarity(COALESCE(a.active_ingredients_raw, ''), search_query) > 0.15
-  ORDER BY 
+  ORDER BY
     GREATEST(
       public.similarity(COALESCE(a.product_name, ''), search_query),
       public.similarity(COALESCE(a.active_ingredients_raw, ''), search_query) * 0.8
@@ -5820,7 +5955,7 @@ $$;
 GRANT EXECUTE ON FUNCTION public.search_artg_products(TEXT, INTEGER) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.search_artg_products(TEXT, INTEGER) TO anon;
 
-COMMENT ON FUNCTION public.search_artg_products IS 
+COMMENT ON FUNCTION public.search_artg_products IS
   'Fuzzy search ARTG products with pg_trgm similarity ranking. Reference only - not for prescribing. Security hardened with empty search_path.';
 
 
@@ -5841,10 +5976,10 @@ AS
 SELECT
   cal.request_id,
   cal.request_type,
-  
+
   -- Q1: Who reviewed this request?
   (
-    SELECT p.full_name 
+    SELECT p.full_name
     FROM public.compliance_audit_log c
     JOIN public.profiles p ON p.id = c.actor_id
     WHERE c.request_id = cal.request_id
@@ -5852,47 +5987,47 @@ SELECT
     ORDER BY c.created_at DESC
     LIMIT 1
   ) AS reviewed_by,
-  
+
   -- Q2: When was the decision made?
   (
-    SELECT c.created_at 
+    SELECT c.created_at
     FROM public.compliance_audit_log c
     WHERE c.request_id = cal.request_id
     AND c.event_type = 'outcome_assigned'
     ORDER BY c.created_at DESC
     LIMIT 1
   ) AS decision_at,
-  
+
   -- Q3: What was the outcome?
   (
-    SELECT c.outcome 
+    SELECT c.outcome
     FROM public.compliance_audit_log c
     WHERE c.request_id = cal.request_id
     AND c.event_type = 'outcome_assigned'
     ORDER BY c.created_at DESC
     LIMIT 1
   ) AS final_outcome,
-  
+
   -- Q4: Was a call required?
   (
-    SELECT c.call_required 
+    SELECT c.call_required
     FROM public.compliance_audit_log c
     WHERE c.request_id = cal.request_id
     AND c.call_required IS NOT NULL
     ORDER BY c.created_at DESC
     LIMIT 1
   ) AS call_required,
-  
+
   -- Q4b: Did a call occur before decision?
   (
-    SELECT c.call_completed_before_decision 
+    SELECT c.call_completed_before_decision
     FROM public.compliance_audit_log c
     WHERE c.request_id = cal.request_id
     AND c.call_completed_before_decision IS NOT NULL
     ORDER BY c.created_at DESC
     LIMIT 1
   ) AS call_completed_before_decision,
-  
+
   -- Q5: Where did prescribing occur?
   CASE
     WHEN EXISTS (
@@ -5905,7 +6040,7 @@ SELECT
       WHERE c.request_id = cal.request_id
       AND c.external_prescribing_reference IS NOT NULL
     ) THEN (
-      SELECT c.external_prescribing_reference 
+      SELECT c.external_prescribing_reference
       FROM public.compliance_audit_log c
       WHERE c.request_id = cal.request_id
       AND c.external_prescribing_reference IS NOT NULL
@@ -5914,7 +6049,7 @@ SELECT
     )
     ELSE 'NO_PRESCRIBING'
   END AS prescribing_location,
-  
+
   -- Human-in-the-loop verification
   EXISTS (
     SELECT 1 FROM public.compliance_audit_log c
@@ -5923,10 +6058,10 @@ SELECT
     AND c.actor_role = 'clinician'
     AND c.event_type IN ('clinician_reviewed_request', 'clinician_selected_outcome')
   ) AS has_human_review,
-  
+
   -- Timeline completeness check
   (
-    SELECT COUNT(DISTINCT c.event_type) 
+    SELECT COUNT(DISTINCT c.event_type)
     FROM public.compliance_audit_log c
     WHERE c.request_id = cal.request_id
     AND c.event_type IN ('request_created', 'request_reviewed', 'outcome_assigned')
@@ -5935,7 +6070,7 @@ SELECT
 FROM public.compliance_audit_log cal
 GROUP BY cal.request_id, cal.request_type;
 
-COMMENT ON VIEW public.compliance_audit_summary IS 
+COMMENT ON VIEW public.compliance_audit_summary IS
   'Answers the 5 audit readiness questions from AUDIT_LOGGING_REQUIREMENTS.md. Uses SECURITY INVOKER for proper RLS enforcement.';
 
 
@@ -5955,7 +6090,7 @@ DROP POLICY IF EXISTS "safety_audit_insert" ON public.safety_audit_log;
 -- Create a more restrictive policy
 -- Only authenticated users can insert, and we track their session
 CREATE POLICY "safety_audit_authenticated_insert" ON public.safety_audit_log
-  FOR INSERT 
+  FOR INSERT
   TO authenticated
   WITH CHECK (
     -- Must have a valid session_id (prevents orphaned logs)
@@ -5965,7 +6100,7 @@ CREATE POLICY "safety_audit_authenticated_insert" ON public.safety_audit_log
 -- Allow service role to insert (for system-level logging)
 -- Service role bypasses RLS by default, but we make it explicit
 CREATE POLICY "safety_audit_service_insert" ON public.safety_audit_log
-  FOR INSERT 
+  FOR INSERT
   TO service_role
   WITH CHECK (true);
 
@@ -5998,9 +6133,9 @@ DROP EXTENSION IF EXISTS pg_trgm;
 CREATE EXTENSION IF NOT EXISTS pg_trgm WITH SCHEMA extensions;
 
 -- Recreate the indexes using the extension from its new schema
-CREATE INDEX IF NOT EXISTS idx_artg_products_product_name_trgm 
+CREATE INDEX IF NOT EXISTS idx_artg_products_product_name_trgm
   ON public.artg_products USING gin (product_name extensions.gin_trgm_ops);
-CREATE INDEX IF NOT EXISTS idx_artg_products_active_ingredients_trgm 
+CREATE INDEX IF NOT EXISTS idx_artg_products_active_ingredients_trgm
   ON public.artg_products USING gin (active_ingredients_raw extensions.gin_trgm_ops);
 
 -- Update the search function to use the new extension location
@@ -6024,19 +6159,19 @@ SET search_path = ''
 AS $$
 BEGIN
   RETURN QUERY
-  SELECT 
+  SELECT
     a.artg_id,
     a.product_name,
     a.active_ingredients_raw,
     a.dosage_form,
     a.route
   FROM public.artg_products a
-  WHERE 
+  WHERE
     a.product_name ILIKE '%' || search_query || '%'
     OR a.active_ingredients_raw ILIKE '%' || search_query || '%'
     OR extensions.similarity(COALESCE(a.product_name, ''), search_query) > 0.15
     OR extensions.similarity(COALESCE(a.active_ingredients_raw, ''), search_query) > 0.15
-  ORDER BY 
+  ORDER BY
     GREATEST(
       extensions.similarity(COALESCE(a.product_name, ''), search_query),
       extensions.similarity(COALESCE(a.active_ingredients_raw, ''), search_query) * 0.8
@@ -6049,7 +6184,7 @@ $$;
 GRANT EXECUTE ON FUNCTION public.search_artg_products(TEXT, INTEGER) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.search_artg_products(TEXT, INTEGER) TO anon;
 
-COMMENT ON FUNCTION public.search_artg_products IS 
+COMMENT ON FUNCTION public.search_artg_products IS
   'Fuzzy search ARTG products with pg_trgm similarity ranking. Reference only - not for prescribing.';
 
 
@@ -6076,7 +6211,7 @@ CREATE POLICY "profiles_select_own_or_doctor" ON public.profiles
 
 DROP POLICY IF EXISTS "profiles_update_own" ON public.profiles;
 CREATE POLICY "profiles_update_own" ON public.profiles
-  FOR UPDATE 
+  FOR UPDATE
   USING (auth_user_id = (select auth.uid()))
   WITH CHECK (auth_user_id = (select auth.uid()));
 
@@ -6088,7 +6223,7 @@ DROP POLICY IF EXISTS "patients_select_own_requests" ON public.requests;
 CREATE POLICY "patients_select_own_requests" ON public.requests
   FOR SELECT USING (
     patient_id IN (
-      SELECT profiles.id FROM profiles 
+      SELECT profiles.id FROM profiles
       WHERE profiles.auth_user_id = (select auth.uid())
     )
   );
@@ -6120,9 +6255,9 @@ DROP POLICY IF EXISTS "doctors_select_all_requests" ON public.requests;
 CREATE POLICY "doctors_select_all_requests" ON public.requests
   FOR SELECT USING (
     EXISTS (
-      SELECT 1 FROM profiles 
-      WHERE profiles.auth_user_id = (select auth.uid()) 
-      AND profiles.role = ANY (ARRAY['doctor'::text, 'admin'::text])
+      SELECT 1 FROM profiles
+      WHERE profiles.auth_user_id = (select auth.uid())
+      AND profiles.role::text = ANY (ARRAY['doctor'::text, 'admin'::text])
     )
   );
 
@@ -6131,9 +6266,9 @@ CREATE POLICY "doctors_update_requests" ON public.requests
   FOR UPDATE
   USING (
     EXISTS (
-      SELECT 1 FROM profiles 
-      WHERE profiles.auth_user_id = (select auth.uid()) 
-      AND profiles.role = ANY (ARRAY['doctor'::text, 'admin'::text])
+      SELECT 1 FROM profiles
+      WHERE profiles.auth_user_id = (select auth.uid())
+      AND profiles.role::text = ANY (ARRAY['doctor'::text, 'admin'::text])
     )
   )
   WITH CHECK (
@@ -6186,9 +6321,9 @@ DROP POLICY IF EXISTS "doctors_select_all_answers" ON public.request_answers;
 CREATE POLICY "doctors_select_all_answers" ON public.request_answers
   FOR SELECT USING (
     EXISTS (
-      SELECT 1 FROM profiles 
-      WHERE profiles.auth_user_id = (select auth.uid()) 
-      AND profiles.role = ANY (ARRAY['doctor'::text, 'admin'::text])
+      SELECT 1 FROM profiles
+      WHERE profiles.auth_user_id = (select auth.uid())
+      AND profiles.role::text = ANY (ARRAY['doctor'::text, 'admin'::text])
     )
   );
 
@@ -6200,9 +6335,9 @@ DROP POLICY IF EXISTS "Admins can read audit logs" ON public.audit_logs;
 CREATE POLICY "Admins can read audit logs" ON public.audit_logs
   FOR SELECT USING (
     EXISTS (
-      SELECT 1 FROM profiles 
-      WHERE profiles.auth_user_id = (select auth.uid()) 
-      AND profiles.role = 'admin'::text
+      SELECT 1 FROM profiles
+      WHERE profiles.auth_user_id = (select auth.uid())
+      AND profiles.role::text = 'admin'::text
     )
   );
 
@@ -6210,9 +6345,9 @@ DROP POLICY IF EXISTS "doctors_view_audit_logs" ON public.audit_logs;
 CREATE POLICY "doctors_view_audit_logs" ON public.audit_logs
   FOR SELECT USING (
     EXISTS (
-      SELECT 1 FROM profiles 
-      WHERE profiles.auth_user_id = (select auth.uid()) 
-      AND profiles.role = ANY (ARRAY['doctor'::text, 'admin'::text])
+      SELECT 1 FROM profiles
+      WHERE profiles.auth_user_id = (select auth.uid())
+      AND profiles.role::text = ANY (ARRAY['doctor'::text, 'admin'::text])
     )
   );
 
@@ -6224,9 +6359,9 @@ DROP POLICY IF EXISTS "doctors_view_fraud_flags" ON public.fraud_flags;
 CREATE POLICY "doctors_view_fraud_flags" ON public.fraud_flags
   FOR SELECT USING (
     EXISTS (
-      SELECT 1 FROM profiles 
-      WHERE profiles.auth_user_id = (select auth.uid()) 
-      AND profiles.role = ANY (ARRAY['doctor'::text, 'admin'::text])
+      SELECT 1 FROM profiles
+      WHERE profiles.auth_user_id = (select auth.uid())
+      AND profiles.role::text = ANY (ARRAY['doctor'::text, 'admin'::text])
     )
   );
 
@@ -6234,9 +6369,9 @@ DROP POLICY IF EXISTS "doctors_update_fraud_flags" ON public.fraud_flags;
 CREATE POLICY "doctors_update_fraud_flags" ON public.fraud_flags
   FOR UPDATE USING (
     EXISTS (
-      SELECT 1 FROM profiles 
-      WHERE profiles.auth_user_id = (select auth.uid()) 
-      AND profiles.role = ANY (ARRAY['doctor'::text, 'admin'::text])
+      SELECT 1 FROM profiles
+      WHERE profiles.auth_user_id = (select auth.uid())
+      AND profiles.role::text = ANY (ARRAY['doctor'::text, 'admin'::text])
     )
   );
 
@@ -6244,14 +6379,19 @@ CREATE POLICY "doctors_update_fraud_flags" ON public.fraud_flags
 -- REFERRALS TABLE
 -- ============================================================================
 
-DROP POLICY IF EXISTS "referrals_select_own" ON public.referrals;
-CREATE POLICY "referrals_select_own" ON public.referrals
-  FOR SELECT USING (
-    referrer_id = (
-      SELECT profiles.id FROM profiles 
-      WHERE profiles.auth_user_id = (select auth.uid())
-    )
-  );
+DO $$
+BEGIN
+  IF to_regclass('public.referrals') IS NOT NULL THEN
+    DROP POLICY IF EXISTS "referrals_select_own" ON public.referrals;
+    CREATE POLICY "referrals_select_own" ON public.referrals
+      FOR SELECT USING (
+        referrer_id = (
+          SELECT profiles.id FROM profiles
+          WHERE profiles.auth_user_id = (select auth.uid())
+        )
+      );
+  END IF;
+END $$;
 
 -- ============================================================================
 -- INTAKE_DRAFTS TABLE
@@ -6261,9 +6401,9 @@ DROP POLICY IF EXISTS "intake_drafts_staff_select" ON public.intake_drafts;
 CREATE POLICY "intake_drafts_staff_select" ON public.intake_drafts
   FOR SELECT USING (
     EXISTS (
-      SELECT 1 FROM profiles 
-      WHERE profiles.auth_user_id = (select auth.uid()) 
-      AND profiles.role = ANY (ARRAY['admin'::text, 'doctor'::text])
+      SELECT 1 FROM profiles
+      WHERE profiles.auth_user_id = (select auth.uid())
+      AND profiles.role::text = ANY (ARRAY['admin'::text, 'doctor'::text])
     )
   );
 
@@ -6293,9 +6433,9 @@ DROP POLICY IF EXISTS "Doctors can insert documents" ON public.documents;
 CREATE POLICY "Doctors can insert documents" ON public.documents
   FOR INSERT WITH CHECK (
     EXISTS (
-      SELECT 1 FROM profiles p 
-      WHERE p.auth_user_id = (select auth.uid()) 
-      AND p.role = 'doctor'::text
+      SELECT 1 FROM profiles p
+      WHERE p.auth_user_id = (select auth.uid())
+      AND p.role::text = 'doctor'::text
     )
   );
 
@@ -6303,9 +6443,9 @@ DROP POLICY IF EXISTS "Doctors can view all documents" ON public.documents;
 CREATE POLICY "Doctors can view all documents" ON public.documents
   FOR SELECT USING (
     EXISTS (
-      SELECT 1 FROM profiles p 
-      WHERE p.auth_user_id = (select auth.uid()) 
-      AND p.role = 'doctor'::text
+      SELECT 1 FROM profiles p
+      WHERE p.auth_user_id = (select auth.uid())
+      AND p.role::text = 'doctor'::text
     )
   );
 
@@ -6323,9 +6463,9 @@ DROP POLICY IF EXISTS "doctors_create_documents" ON public.documents;
 CREATE POLICY "doctors_create_documents" ON public.documents
   FOR INSERT WITH CHECK (
     EXISTS (
-      SELECT 1 FROM profiles 
-      WHERE profiles.auth_user_id = (select auth.uid()) 
-      AND profiles.role = ANY (ARRAY['doctor'::text, 'admin'::text])
+      SELECT 1 FROM profiles
+      WHERE profiles.auth_user_id = (select auth.uid())
+      AND profiles.role::text = ANY (ARRAY['doctor'::text, 'admin'::text])
     )
   );
 
@@ -6333,9 +6473,9 @@ DROP POLICY IF EXISTS "doctors_view_all_documents" ON public.documents;
 CREATE POLICY "doctors_view_all_documents" ON public.documents
   FOR SELECT USING (
     EXISTS (
-      SELECT 1 FROM profiles 
-      WHERE profiles.auth_user_id = (select auth.uid()) 
-      AND profiles.role = ANY (ARRAY['doctor'::text, 'admin'::text])
+      SELECT 1 FROM profiles
+      WHERE profiles.auth_user_id = (select auth.uid())
+      AND profiles.role::text = ANY (ARRAY['doctor'::text, 'admin'::text])
     )
   );
 
@@ -6357,9 +6497,9 @@ DROP POLICY IF EXISTS "doctors_create_document_drafts" ON public.document_drafts
 CREATE POLICY "doctors_create_document_drafts" ON public.document_drafts
   FOR INSERT WITH CHECK (
     EXISTS (
-      SELECT 1 FROM profiles 
-      WHERE profiles.auth_user_id = (select auth.uid()) 
-      AND profiles.role = ANY (ARRAY['doctor'::text, 'admin'::text])
+      SELECT 1 FROM profiles
+      WHERE profiles.auth_user_id = (select auth.uid())
+      AND profiles.role::text = ANY (ARRAY['doctor'::text, 'admin'::text])
     )
   );
 
@@ -6367,9 +6507,9 @@ DROP POLICY IF EXISTS "doctors_delete_document_drafts" ON public.document_drafts
 CREATE POLICY "doctors_delete_document_drafts" ON public.document_drafts
   FOR DELETE USING (
     EXISTS (
-      SELECT 1 FROM profiles 
-      WHERE profiles.auth_user_id = (select auth.uid()) 
-      AND profiles.role = ANY (ARRAY['doctor'::text, 'admin'::text])
+      SELECT 1 FROM profiles
+      WHERE profiles.auth_user_id = (select auth.uid())
+      AND profiles.role::text = ANY (ARRAY['doctor'::text, 'admin'::text])
     )
   );
 
@@ -6377,9 +6517,9 @@ DROP POLICY IF EXISTS "doctors_update_document_drafts" ON public.document_drafts
 CREATE POLICY "doctors_update_document_drafts" ON public.document_drafts
   FOR UPDATE USING (
     EXISTS (
-      SELECT 1 FROM profiles 
-      WHERE profiles.auth_user_id = (select auth.uid()) 
-      AND profiles.role = ANY (ARRAY['doctor'::text, 'admin'::text])
+      SELECT 1 FROM profiles
+      WHERE profiles.auth_user_id = (select auth.uid())
+      AND profiles.role::text = ANY (ARRAY['doctor'::text, 'admin'::text])
     )
   );
 
@@ -6387,9 +6527,9 @@ DROP POLICY IF EXISTS "doctors_view_document_drafts" ON public.document_drafts;
 CREATE POLICY "doctors_view_document_drafts" ON public.document_drafts
   FOR SELECT USING (
     EXISTS (
-      SELECT 1 FROM profiles 
-      WHERE profiles.auth_user_id = (select auth.uid()) 
-      AND profiles.role = ANY (ARRAY['doctor'::text, 'admin'::text])
+      SELECT 1 FROM profiles
+      WHERE profiles.auth_user_id = (select auth.uid())
+      AND profiles.role::text = ANY (ARRAY['doctor'::text, 'admin'::text])
     )
   );
 
@@ -6425,9 +6565,9 @@ DROP POLICY IF EXISTS "doctors_select_feature_flags" ON public.feature_flags;
 CREATE POLICY "doctors_select_feature_flags" ON public.feature_flags
   FOR SELECT USING (
     EXISTS (
-      SELECT 1 FROM profiles 
-      WHERE profiles.auth_user_id = (select auth.uid()) 
-      AND profiles.role = ANY (ARRAY['doctor'::text, 'admin'::text])
+      SELECT 1 FROM profiles
+      WHERE profiles.auth_user_id = (select auth.uid())
+      AND profiles.role::text = ANY (ARRAY['doctor'::text, 'admin'::text])
     )
   );
 
@@ -6435,9 +6575,9 @@ DROP POLICY IF EXISTS "doctors_update_feature_flags" ON public.feature_flags;
 CREATE POLICY "doctors_update_feature_flags" ON public.feature_flags
   FOR UPDATE USING (
     EXISTS (
-      SELECT 1 FROM profiles 
-      WHERE profiles.auth_user_id = (select auth.uid()) 
-      AND profiles.role = ANY (ARRAY['doctor'::text, 'admin'::text])
+      SELECT 1 FROM profiles
+      WHERE profiles.auth_user_id = (select auth.uid())
+      AND profiles.role::text = ANY (ARRAY['doctor'::text, 'admin'::text])
     )
   );
 
@@ -6449,9 +6589,9 @@ DROP POLICY IF EXISTS "medications_admin_all" ON public.medications;
 CREATE POLICY "medications_admin_all" ON public.medications
   FOR ALL USING (
     EXISTS (
-      SELECT 1 FROM profiles 
-      WHERE profiles.auth_user_id = (select auth.uid()) 
-      AND profiles.role = 'admin'::text
+      SELECT 1 FROM profiles
+      WHERE profiles.auth_user_id = (select auth.uid())
+      AND profiles.role::text = 'admin'::text
     )
   );
 
@@ -6463,9 +6603,9 @@ DROP POLICY IF EXISTS "doctors_select_all_payments" ON public.payments;
 CREATE POLICY "doctors_select_all_payments" ON public.payments
   FOR SELECT USING (
     EXISTS (
-      SELECT 1 FROM profiles 
-      WHERE profiles.auth_user_id = (select auth.uid()) 
-      AND profiles.role = ANY (ARRAY['doctor'::text, 'admin'::text])
+      SELECT 1 FROM profiles
+      WHERE profiles.auth_user_id = (select auth.uid())
+      AND profiles.role::text = ANY (ARRAY['doctor'::text, 'admin'::text])
     )
   );
 
@@ -6487,9 +6627,9 @@ DROP POLICY IF EXISTS "doctors_view_all_conversions" ON public.priority_upsell_c
 CREATE POLICY "doctors_view_all_conversions" ON public.priority_upsell_conversions
   FOR SELECT USING (
     EXISTS (
-      SELECT 1 FROM profiles 
-      WHERE profiles.id = (select auth.uid()) 
-      AND profiles.role = ANY (ARRAY['doctor'::text, 'admin'::text])
+      SELECT 1 FROM profiles
+      WHERE profiles.id = (select auth.uid())
+      AND profiles.role::text = ANY (ARRAY['doctor'::text, 'admin'::text])
     )
   );
 
@@ -6505,9 +6645,9 @@ DROP POLICY IF EXISTS "Clinicians and admins can read compliance audit" ON publi
 CREATE POLICY "Clinicians and admins can read compliance audit" ON public.compliance_audit_log
   FOR SELECT USING (
     EXISTS (
-      SELECT 1 FROM profiles p 
-      WHERE p.auth_user_id = (select auth.uid()) 
-      AND p.role = ANY (ARRAY['clinician'::text, 'doctor'::text, 'admin'::text])
+      SELECT 1 FROM profiles p
+      WHERE p.auth_user_id = (select auth.uid())
+      AND p.role::text = ANY (ARRAY['clinician'::text, 'doctor'::text, 'admin'::text])
     )
   );
 
@@ -6519,9 +6659,9 @@ DROP POLICY IF EXISTS "safety_audit_staff_select" ON public.safety_audit_log;
 CREATE POLICY "safety_audit_staff_select" ON public.safety_audit_log
   FOR SELECT USING (
     EXISTS (
-      SELECT 1 FROM profiles 
-      WHERE profiles.auth_user_id = (select auth.uid()) 
-      AND profiles.role = ANY (ARRAY['admin'::text, 'doctor'::text])
+      SELECT 1 FROM profiles
+      WHERE profiles.auth_user_id = (select auth.uid())
+      AND profiles.role::text = ANY (ARRAY['admin'::text, 'doctor'::text])
     )
   );
 
@@ -6529,14 +6669,19 @@ CREATE POLICY "safety_audit_staff_select" ON public.safety_audit_log
 -- CREDITS TABLE
 -- ============================================================================
 
-DROP POLICY IF EXISTS "credits_select_own" ON public.credits;
-CREATE POLICY "credits_select_own" ON public.credits
-  FOR SELECT USING (
-    profile_id = (
-      SELECT profiles.id FROM profiles 
-      WHERE profiles.auth_user_id = (select auth.uid())
-    )
-  );
+DO $$
+BEGIN
+  IF to_regclass('public.credits') IS NOT NULL THEN
+    DROP POLICY IF EXISTS "credits_select_own" ON public.credits;
+    CREATE POLICY "credits_select_own" ON public.credits
+      FOR SELECT USING (
+        profile_id = (
+          SELECT profiles.id FROM profiles
+          WHERE profiles.auth_user_id = (select auth.uid())
+        )
+      );
+  END IF;
+END $$;
 
 -- ============================================================================
 -- Done
@@ -6584,7 +6729,7 @@ CREATE TABLE IF NOT EXISTS document_drafts (
   -- Timestamps
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  
+
   -- Unique constraint for idempotency: one draft per type per intake
   CONSTRAINT document_drafts_intake_type_unique UNIQUE (intake_id, type)
 );
@@ -6594,6 +6739,11 @@ CREATE INDEX IF NOT EXISTS idx_document_drafts_intake_id ON document_drafts(inta
 CREATE INDEX IF NOT EXISTS idx_document_drafts_status ON document_drafts(status);
 CREATE INDEX IF NOT EXISTS idx_document_drafts_type ON document_drafts(type);
 CREATE INDEX IF NOT EXISTS idx_document_drafts_created_at ON document_drafts(created_at DESC);
+
+-- Earlier request-era replay renames content to data. Current draft flows use
+-- content, so restore it before the subsequent baseline comments/functions.
+ALTER TABLE public.document_drafts
+  ADD COLUMN IF NOT EXISTS content JSONB NOT NULL DEFAULT '{}'::jsonb;
 
 -- Add updated_at trigger
 CREATE OR REPLACE FUNCTION update_document_drafts_updated_at()
@@ -6678,11 +6828,11 @@ COMMENT ON COLUMN document_drafts.ground_truth_errors IS 'Validation errors from
 -- ============================================
 -- 1. AHPRA Number for Doctors (P1)
 -- ============================================
-ALTER TABLE public.profiles 
+ALTER TABLE public.profiles
 ADD COLUMN IF NOT EXISTS ahpra_number TEXT;
 
 -- Index for lookup
-CREATE INDEX IF NOT EXISTS idx_profiles_ahpra ON public.profiles(ahpra_number) 
+CREATE INDEX IF NOT EXISTS idx_profiles_ahpra ON public.profiles(ahpra_number)
 WHERE ahpra_number IS NOT NULL;
 
 COMMENT ON COLUMN public.profiles.ahpra_number IS 'AHPRA registration number for doctors (e.g., MED0002576546)';
@@ -6695,17 +6845,17 @@ COMMENT ON COLUMN public.profiles.ahpra_number IS 'AHPRA registration number for
 -- ============================================
 -- 3. Concurrent Review Lock (P1)
 -- ============================================
-ALTER TABLE public.requests 
+ALTER TABLE public.requests
 ADD COLUMN IF NOT EXISTS claimed_by UUID REFERENCES public.profiles(id);
 
-ALTER TABLE public.requests 
+ALTER TABLE public.requests
 ADD COLUMN IF NOT EXISTS claimed_at TIMESTAMPTZ;
 
 COMMENT ON COLUMN public.requests.claimed_by IS 'Doctor who has claimed this request for review (prevents concurrent edits)';
 COMMENT ON COLUMN public.requests.claimed_at IS 'When the request was claimed for review';
 
 -- Index for finding unclaimed requests
-CREATE INDEX IF NOT EXISTS idx_requests_claimed ON public.requests(claimed_by) 
+CREATE INDEX IF NOT EXISTS idx_requests_claimed ON public.requests(claimed_by)
 WHERE claimed_by IS NOT NULL;
 
 -- ============================================
@@ -6730,7 +6880,7 @@ CREATE TABLE IF NOT EXISTS public.request_documents (
 -- Indexes
 CREATE INDEX IF NOT EXISTS idx_request_documents_request ON public.request_documents(request_id);
 CREATE INDEX IF NOT EXISTS idx_request_documents_type ON public.request_documents(document_type);
-CREATE INDEX IF NOT EXISTS idx_request_documents_cert_number ON public.request_documents(certificate_number) 
+CREATE INDEX IF NOT EXISTS idx_request_documents_cert_number ON public.request_documents(certificate_number)
 WHERE certificate_number IS NOT NULL;
 
 -- RLS
@@ -6829,6 +6979,7 @@ CREATE TABLE IF NOT EXISTS public.stripe_webhook_dead_letter (
   error_message TEXT NOT NULL,
   error_code TEXT,
   payload JSONB,
+  intake_id UUID REFERENCES public.intakes(id),
   retry_count INTEGER DEFAULT 0,
   max_retries INTEGER DEFAULT 5,
   last_retry_at TIMESTAMPTZ,
@@ -6839,7 +6990,7 @@ CREATE TABLE IF NOT EXISTS public.stripe_webhook_dead_letter (
 );
 
 -- Indexes
-CREATE INDEX IF NOT EXISTS idx_dead_letter_unresolved ON public.stripe_webhook_dead_letter(created_at) 
+CREATE INDEX IF NOT EXISTS idx_dead_letter_unresolved ON public.stripe_webhook_dead_letter(created_at)
 WHERE resolved_at IS NULL;
 CREATE INDEX IF NOT EXISTS idx_dead_letter_request ON public.stripe_webhook_dead_letter(request_id);
 CREATE INDEX IF NOT EXISTS idx_dead_letter_event ON public.stripe_webhook_dead_letter(event_id);
@@ -6906,13 +7057,13 @@ CREATE POLICY "Admins can view reconciliation"
 -- ============================================
 -- 8. AI Draft Retry Tracking (P1)
 -- ============================================
-ALTER TABLE public.document_drafts 
+ALTER TABLE public.document_drafts
 ADD COLUMN IF NOT EXISTS retry_count INTEGER DEFAULT 0;
 
-ALTER TABLE public.document_drafts 
+ALTER TABLE public.document_drafts
 ADD COLUMN IF NOT EXISTS last_retry_at TIMESTAMPTZ;
 
-ALTER TABLE public.document_drafts 
+ALTER TABLE public.document_drafts
 ADD COLUMN IF NOT EXISTS alert_sent BOOLEAN DEFAULT FALSE;
 
 -- ============================================
@@ -6923,7 +7074,7 @@ CREATE OR REPLACE FUNCTION public.claim_request_for_review(
   p_doctor_id UUID,
   p_force BOOLEAN DEFAULT FALSE
 )
-RETURNS TABLE(success BOOLEAN, error_message TEXT, current_claimant TEXT) 
+RETURNS TABLE(success BOOLEAN, error_message TEXT, current_claimant TEXT)
 LANGUAGE plpgsql
 SECURITY DEFINER
 AS $$
@@ -6937,12 +7088,12 @@ BEGIN
   FROM public.requests r
   LEFT JOIN public.profiles p ON r.claimed_by = p.id
   WHERE r.id = p_request_id;
-  
+
   IF NOT FOUND THEN
     RETURN QUERY SELECT FALSE, 'Request not found'::TEXT, NULL::TEXT;
     RETURN;
   END IF;
-  
+
   -- Check if already claimed by someone else
   IF v_request.claimed_by IS NOT NULL AND v_request.claimed_by != p_doctor_id THEN
     -- Check if claim is stale (older than 30 minutes)
@@ -6953,24 +7104,24 @@ BEGIN
           claimed_at = NOW(),
           updated_at = NOW()
       WHERE id = p_request_id;
-      
+
       RETURN QUERY SELECT TRUE, NULL::TEXT, v_request.claimant_name;
       RETURN;
     ELSE
-      RETURN QUERY SELECT FALSE, 
+      RETURN QUERY SELECT FALSE,
         format('Already claimed by %s', v_request.claimant_name)::TEXT,
         v_request.claimant_name;
       RETURN;
     END IF;
   END IF;
-  
+
   -- Claim the request
   UPDATE public.requests
   SET claimed_by = p_doctor_id,
       claimed_at = NOW(),
       updated_at = NOW()
   WHERE id = p_request_id;
-  
+
   RETURN QUERY SELECT TRUE, NULL::TEXT, NULL::TEXT;
 END;
 $$;
@@ -6993,7 +7144,7 @@ BEGIN
       updated_at = NOW()
   WHERE id = p_request_id
   AND (claimed_by = p_doctor_id OR claimed_by IS NULL);
-  
+
   RETURN FOUND;
 END;
 $$;
@@ -7018,7 +7169,7 @@ DECLARE
   v_id UUID;
 BEGIN
   INSERT INTO public.stripe_webhook_dead_letter (
-    event_id, event_type, session_id, request_id, 
+    event_id, event_type, session_id, request_id,
     error_message, error_code, payload
   )
   VALUES (
@@ -7026,7 +7177,7 @@ BEGIN
     p_error_message, p_error_code, p_payload
   )
   RETURNING id INTO v_id;
-  
+
   RETURN v_id;
 END;
 $$;
@@ -7092,39 +7243,39 @@ END $$;
 -- Create the ai_audit_log table
 CREATE TABLE IF NOT EXISTS ai_audit_log (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  
+
   -- Reference to the intake (nullable for system-level events)
   intake_id UUID REFERENCES intakes(id) ON DELETE SET NULL,
-  
+
   -- Action details
   action ai_audit_action NOT NULL,
   draft_type draft_type, -- 'clinical_note' or 'med_cert' (uses existing enum)
   draft_id UUID REFERENCES document_drafts(id) ON DELETE SET NULL,
-  
+
   -- Actor information
   actor_id UUID REFERENCES profiles(id) ON DELETE SET NULL,
   actor_type ai_actor_type NOT NULL,
-  
+
   -- Content hashes for diff detection
   input_hash VARCHAR(64), -- SHA256 of intake answers at time of generation
   output_hash VARCHAR(64), -- SHA256 of AI output
-  
+
   -- Model and token tracking
   model VARCHAR(50),
   prompt_tokens INTEGER,
   completion_tokens INTEGER,
   generation_duration_ms INTEGER,
-  
+
   -- Validation results
   validation_passed BOOLEAN,
   ground_truth_passed BOOLEAN,
   validation_errors JSONB,
   ground_truth_errors JSONB,
-  
+
   -- Additional context
   metadata JSONB DEFAULT '{}',
   reason TEXT, -- For reject/edit actions
-  
+
   -- Timestamps (immutable - no updated_at)
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -7165,7 +7316,7 @@ CREATE POLICY "Service role full access to audit logs"
 -- ============================================
 
 -- Add approval tracking columns
-ALTER TABLE document_drafts 
+ALTER TABLE document_drafts
   ADD COLUMN IF NOT EXISTS approved_by UUID REFERENCES profiles(id),
   ADD COLUMN IF NOT EXISTS approved_at TIMESTAMPTZ,
   ADD COLUMN IF NOT EXISTS rejected_by UUID REFERENCES profiles(id),
@@ -7182,7 +7333,7 @@ CREATE INDEX IF NOT EXISTS idx_document_drafts_approved_at ON document_drafts(ap
 -- Add check constraint for approval state
 -- A draft cannot be both approved and rejected
 ALTER TABLE document_drafts DROP CONSTRAINT IF EXISTS check_approval_state;
-ALTER TABLE document_drafts ADD CONSTRAINT check_approval_state 
+ALTER TABLE document_drafts ADD CONSTRAINT check_approval_state
   CHECK (NOT (approved_at IS NOT NULL AND rejected_at IS NOT NULL));
 
 -- ============================================
@@ -7252,7 +7403,7 @@ BEGIN
     p_metadata,
     p_reason
   ) RETURNING id INTO v_audit_id;
-  
+
   RETURN v_audit_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -7271,14 +7422,14 @@ BEGIN
   SELECT intake_id, type INTO v_intake_id, v_draft_type
   FROM document_drafts
   WHERE id = p_draft_id;
-  
+
   IF NOT FOUND THEN
     RETURN FALSE;
   END IF;
-  
+
   -- Update draft with approval
   UPDATE document_drafts
-  SET 
+  SET
     approved_by = p_doctor_id,
     approved_at = now(),
     edited_content = COALESCE(p_edited_content, edited_content),
@@ -7286,11 +7437,11 @@ BEGIN
   WHERE id = p_draft_id
     AND approved_at IS NULL
     AND rejected_at IS NULL;
-  
+
   IF NOT FOUND THEN
     RETURN FALSE;
   END IF;
-  
+
   -- Log the approval
   PERFORM log_ai_audit(
     v_intake_id,
@@ -7303,7 +7454,7 @@ BEGIN
     jsonb_build_object('has_edits', p_edited_content IS NOT NULL),
     NULL
   );
-  
+
   RETURN TRUE;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -7322,14 +7473,14 @@ BEGIN
   SELECT intake_id, type INTO v_intake_id, v_draft_type
   FROM document_drafts
   WHERE id = p_draft_id;
-  
+
   IF NOT FOUND THEN
     RETURN FALSE;
   END IF;
-  
+
   -- Update draft with rejection
   UPDATE document_drafts
-  SET 
+  SET
     rejected_by = p_doctor_id,
     rejected_at = now(),
     rejection_reason = p_reason,
@@ -7337,11 +7488,11 @@ BEGIN
   WHERE id = p_draft_id
     AND approved_at IS NULL
     AND rejected_at IS NULL;
-  
+
   IF NOT FOUND THEN
     RETURN FALSE;
   END IF;
-  
+
   -- Log the rejection
   PERFORM log_ai_audit(
     v_intake_id,
@@ -7354,7 +7505,7 @@ BEGIN
     '{}',
     p_reason
   );
-  
+
   RETURN TRUE;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -7399,7 +7550,7 @@ DROP POLICY IF EXISTS "artg_products_service_role" ON public.artg_products;
 DROP POLICY IF EXISTS "artg_products_anon_select" ON public.artg_products;
 
 -- Drop the table
-DROP TABLE IF EXISTS public.artg_products;
+DROP TABLE IF EXISTS public.artg_products CASCADE;
 
 -- Note: pg_trgm extension is kept as it may be used by other features
 
@@ -7407,12 +7558,12 @@ DROP TABLE IF EXISTS public.artg_products;
 -- ── 20250115000001_add_abandoned_checkout_tracking.sql ──
 
 -- Add column to track abandoned checkout email sends
-ALTER TABLE public.intakes 
+ALTER TABLE public.intakes
 ADD COLUMN IF NOT EXISTS abandoned_email_sent_at TIMESTAMPTZ;
 
 -- Index for efficiently finding abandoned checkouts
-CREATE INDEX IF NOT EXISTS idx_intakes_abandoned_checkout 
-ON public.intakes(created_at, status, payment_status, abandoned_email_sent_at) 
+CREATE INDEX IF NOT EXISTS idx_intakes_abandoned_checkout
+ON public.intakes(created_at, status, payment_status, abandoned_email_sent_at)
 WHERE status = 'pending_payment' AND payment_status = 'pending' AND abandoned_email_sent_at IS NULL;
 
 COMMENT ON COLUMN public.intakes.abandoned_email_sent_at IS 'Timestamp when abandoned checkout recovery email was sent';
@@ -7519,25 +7670,25 @@ CREATE POLICY "Admins can view dead letter queue" ON public.stripe_webhook_dead_
 -- PERFORMANCE: Add indexes for unindexed foreign keys
 -- ============================================================================
 
-CREATE INDEX IF NOT EXISTS idx_document_drafts_rejected_by 
+CREATE INDEX IF NOT EXISTS idx_document_drafts_rejected_by
   ON public.document_drafts(rejected_by);
 
-CREATE INDEX IF NOT EXISTS idx_intake_documents_created_by 
+CREATE INDEX IF NOT EXISTS idx_intake_documents_created_by
   ON public.intake_documents(created_by);
 
-CREATE INDEX IF NOT EXISTS idx_intakes_reviewed_by 
+CREATE INDEX IF NOT EXISTS idx_intakes_reviewed_by
   ON public.intakes(reviewed_by);
 
-CREATE INDEX IF NOT EXISTS idx_payment_reconciliation_request_id 
+CREATE INDEX IF NOT EXISTS idx_payment_reconciliation_request_id
   ON public.payment_reconciliation(request_id);
 
-CREATE INDEX IF NOT EXISTS idx_payment_reconciliation_resolved_by 
+CREATE INDEX IF NOT EXISTS idx_payment_reconciliation_resolved_by
   ON public.payment_reconciliation(resolved_by);
 
-CREATE INDEX IF NOT EXISTS idx_request_documents_created_by 
+CREATE INDEX IF NOT EXISTS idx_request_documents_created_by
   ON public.request_documents(created_by);
 
-CREATE INDEX IF NOT EXISTS idx_stripe_webhook_dead_letter_resolved_by 
+CREATE INDEX IF NOT EXISTS idx_stripe_webhook_dead_letter_resolved_by
   ON public.stripe_webhook_dead_letter(resolved_by);
 
 -- ============================================================================
@@ -7978,9 +8129,14 @@ COMMENT ON SCHEMA public IS 'RLS initplan fixes applied - 2025-01-15';
 -- 1. DROP ARTG_PRODUCTS TABLE (deprecated - replaced by PBS API)
 -- ============================================================================
 
-DROP POLICY IF EXISTS "artg_products_select_anon" ON public.artg_products;
-DROP POLICY IF EXISTS "artg_products_select_authenticated" ON public.artg_products;
-DROP POLICY IF EXISTS "artg_products_service_role" ON public.artg_products;
+DO $$
+BEGIN
+  IF to_regclass('public.artg_products') IS NOT NULL THEN
+    DROP POLICY IF EXISTS "artg_products_select_anon" ON public.artg_products;
+    DROP POLICY IF EXISTS "artg_products_select_authenticated" ON public.artg_products;
+    DROP POLICY IF EXISTS "artg_products_service_role" ON public.artg_products;
+  END IF;
+END $$;
 DROP TABLE IF EXISTS public.artg_products CASCADE;
 
 -- ============================================================================
@@ -8088,13 +8244,13 @@ CREATE TABLE IF NOT EXISTS ai_draft_retry_queue (
 );
 
 -- Partial unique index to prevent duplicate pending retries for the same intake
-CREATE UNIQUE INDEX IF NOT EXISTS idx_unique_pending_intake 
-  ON ai_draft_retry_queue(intake_id) 
+CREATE UNIQUE INDEX IF NOT EXISTS idx_unique_pending_intake
+  ON ai_draft_retry_queue(intake_id)
   WHERE completed_at IS NULL;
 
 -- Index for efficient cron job queries
-CREATE INDEX IF NOT EXISTS idx_ai_draft_retry_pending 
-  ON ai_draft_retry_queue(next_retry_at) 
+CREATE INDEX IF NOT EXISTS idx_ai_draft_retry_pending
+  ON ai_draft_retry_queue(next_retry_at)
   WHERE completed_at IS NULL AND attempts < max_attempts;
 
 -- RLS policies
@@ -8132,17 +8288,17 @@ CREATE TABLE IF NOT EXISTS email_retry_queue (
 );
 
 -- Index for processing retries efficiently
-CREATE INDEX IF NOT EXISTS idx_email_retry_queue_next_retry 
-ON email_retry_queue (next_retry_at ASC) 
+CREATE INDEX IF NOT EXISTS idx_email_retry_queue_next_retry
+ON email_retry_queue (next_retry_at ASC)
 WHERE next_retry_at IS NOT NULL AND retry_count < 3;
 
 -- Index for finding exhausted retries
-CREATE INDEX IF NOT EXISTS idx_email_retry_queue_exhausted 
-ON email_retry_queue (retry_count) 
+CREATE INDEX IF NOT EXISTS idx_email_retry_queue_exhausted
+ON email_retry_queue (retry_count)
 WHERE retry_count >= 3;
 
 -- Index for linking back to intakes
-CREATE INDEX IF NOT EXISTS idx_email_retry_queue_intake 
+CREATE INDEX IF NOT EXISTS idx_email_retry_queue_intake
 ON email_retry_queue (intake_id);
 
 -- RLS policies
@@ -8170,17 +8326,17 @@ USING (
 );
 
 -- Add notification_email_status and notification_email_error to intakes if not exists
-DO $$ 
+DO $$
 BEGIN
   IF NOT EXISTS (
-    SELECT 1 FROM information_schema.columns 
+    SELECT 1 FROM information_schema.columns
     WHERE table_name = 'intakes' AND column_name = 'notification_email_status'
   ) THEN
     ALTER TABLE intakes ADD COLUMN notification_email_status TEXT;
   END IF;
-  
+
   IF NOT EXISTS (
-    SELECT 1 FROM information_schema.columns 
+    SELECT 1 FROM information_schema.columns
     WHERE table_name = 'intakes' AND column_name = 'notification_email_error'
   ) THEN
     ALTER TABLE intakes ADD COLUMN notification_email_error TEXT;
@@ -8219,7 +8375,7 @@ BEGIN
   END IF;
 
   -- Define valid state transitions
-  
+
   -- draft -> pending_payment (form completed, ready for checkout)
   IF OLD.status = 'draft' THEN
     IF NEW.status NOT IN ('pending_payment', 'expired') THEN
@@ -8297,7 +8453,7 @@ CREATE TRIGGER enforce_intake_status_transitions
   EXECUTE FUNCTION validate_intake_status_transition();
 
 -- Note: Check constraint not needed as status column uses intake_status enum type
--- The enum already enforces valid values: draft, pending_payment, paid, in_review, 
+-- The enum already enforces valid values: draft, pending_payment, paid, in_review,
 -- pending_info, approved, declined, escalated, completed, cancelled, expired
 
 -- Add check constraint for valid payment_status values (if not exists)
@@ -8339,10 +8495,10 @@ CREATE INDEX IF NOT EXISTS idx_intakes_patient_status ON intakes(patient_id, sta
 
 -- Stripe webhook dead letter queue indexes
 -- Used by dlq-monitor cron job and manual resolution queries
-CREATE INDEX IF NOT EXISTS idx_stripe_webhook_dlq_intake 
+CREATE INDEX IF NOT EXISTS idx_stripe_webhook_dlq_intake
 ON stripe_webhook_dead_letter(intake_id) WHERE intake_id IS NOT NULL;
 
-CREATE INDEX IF NOT EXISTS idx_stripe_webhook_dlq_unresolved 
+CREATE INDEX IF NOT EXISTS idx_stripe_webhook_dlq_unresolved
 ON stripe_webhook_dead_letter(created_at) WHERE resolved_at IS NULL;
 
 CREATE INDEX IF NOT EXISTS idx_stripe_webhook_dlq_event_id
@@ -8351,7 +8507,7 @@ ON stripe_webhook_dead_letter(event_id);
 -- AI draft retry queue indexes
 -- Used by retry-drafts cron job
 CREATE INDEX IF NOT EXISTS idx_ai_draft_retry_pending
-ON ai_draft_retry_queue(next_retry_at) 
+ON ai_draft_retry_queue(next_retry_at)
 WHERE completed_at IS NULL;
 
 CREATE INDEX IF NOT EXISTS idx_ai_draft_retry_intake
@@ -8369,7 +8525,7 @@ ON stripe_webhook_events(event_id);
 
 ALTER TABLE intakes ADD COLUMN IF NOT EXISTS checkout_error TEXT;
 
-COMMENT ON COLUMN intakes.checkout_error IS 
+COMMENT ON COLUMN intakes.checkout_error IS
   'Error message from Stripe when checkout session creation fails - preserves audit trail';
 
 -- Add checkout_failed to status enum if not exists
@@ -8387,11 +8543,11 @@ END $$;
 -- Add unique index on intakes.idempotency_key for efficient duplicate detection
 -- This prevents table scans when checking for duplicate submissions
 
-CREATE UNIQUE INDEX IF NOT EXISTS idx_intakes_idempotency_key 
-ON intakes(idempotency_key) 
+CREATE UNIQUE INDEX IF NOT EXISTS idx_intakes_idempotency_key
+ON intakes(idempotency_key)
 WHERE idempotency_key IS NOT NULL;
 
-COMMENT ON INDEX idx_intakes_idempotency_key IS 
+COMMENT ON INDEX idx_intakes_idempotency_key IS
   'Unique partial index for idempotency key lookups - prevents duplicate checkout submissions';
 
 
@@ -8401,46 +8557,46 @@ COMMENT ON INDEX idx_intakes_idempotency_key IS
 -- These indexes improve query performance for the doctor dashboard, queue, and monitoring features
 
 -- Index for queue queries (status + payment_status combinations)
-CREATE INDEX IF NOT EXISTS idx_intakes_queue_status 
-ON intakes (status, payment_status) 
+CREATE INDEX IF NOT EXISTS idx_intakes_queue_status
+ON intakes (status, payment_status)
 WHERE status IN ('paid', 'in_review', 'pending_info');
 
 -- Index for today's submissions queries (paid_at for date filtering)
-CREATE INDEX IF NOT EXISTS idx_intakes_paid_at 
-ON intakes (paid_at DESC) 
+CREATE INDEX IF NOT EXISTS idx_intakes_paid_at
+ON intakes (paid_at DESC)
 WHERE paid_at IS NOT NULL;
 
 -- Index for approval/decline rate queries
-CREATE INDEX IF NOT EXISTS idx_intakes_approved_at 
-ON intakes (approved_at DESC) 
+CREATE INDEX IF NOT EXISTS idx_intakes_approved_at
+ON intakes (approved_at DESC)
 WHERE approved_at IS NOT NULL;
 
-CREATE INDEX IF NOT EXISTS idx_intakes_declined_at 
-ON intakes (declined_at DESC) 
+CREATE INDEX IF NOT EXISTS idx_intakes_declined_at
+ON intakes (declined_at DESC)
 WHERE declined_at IS NOT NULL;
 
 -- Index for doctor review queries (reviewed_by for personal stats)
-CREATE INDEX IF NOT EXISTS idx_intakes_reviewed_by 
-ON intakes (reviewed_by, approved_at DESC) 
+CREATE INDEX IF NOT EXISTS idx_intakes_reviewed_by
+ON intakes (reviewed_by, approved_at DESC)
 WHERE reviewed_by IS NOT NULL;
 
 -- Index for SLA deadline queries (priority + sla_deadline for queue ordering)
-CREATE INDEX IF NOT EXISTS idx_intakes_sla_priority 
-ON intakes (is_priority DESC, sla_deadline ASC NULLS LAST, created_at ASC) 
+CREATE INDEX IF NOT EXISTS idx_intakes_sla_priority
+ON intakes (is_priority DESC, sla_deadline ASC NULLS LAST, created_at ASC)
 WHERE status IN ('paid', 'in_review', 'pending_info');
 
 -- Index for patient history lookup
-CREATE INDEX IF NOT EXISTS idx_intakes_patient_history 
+CREATE INDEX IF NOT EXISTS idx_intakes_patient_history
 ON intakes (patient_id, created_at DESC);
 
 -- Index for email notification status tracking
 -- NOTE: Removed - column notification_email_status does not exist on intakes table
--- CREATE INDEX IF NOT EXISTS idx_intakes_notification_status 
--- ON intakes (notification_email_status) 
+-- CREATE INDEX IF NOT EXISTS idx_intakes_notification_status
+-- ON intakes (notification_email_status)
 -- WHERE notification_email_status = 'failed';
 
 -- Composite index for monitoring stats query
-CREATE INDEX IF NOT EXISTS idx_intakes_monitoring 
+CREATE INDEX IF NOT EXISTS idx_intakes_monitoring
 ON intakes (status, payment_status, paid_at, approved_at, declined_at);
 
 -- Add comment explaining indexes
@@ -8459,27 +8615,28 @@ COMMENT ON INDEX idx_intakes_monitoring IS 'Optimizes dashboard monitoring stats
 
 CREATE TABLE IF NOT EXISTS public.email_logs (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  
+
   -- Link to request if applicable
   request_id UUID REFERENCES public.intakes(id) ON DELETE SET NULL,
-  
+
   -- Email details
   recipient_email TEXT NOT NULL,
   template_type TEXT NOT NULL,
   subject TEXT NOT NULL,
-  
+
   -- Delivery tracking (updated via Resend webhooks)
   resend_id TEXT,
   status TEXT DEFAULT 'pending', -- pending, sent, delivered, bounced, complained
   delivery_status TEXT, -- delivered, bounced, complained, opened, clicked
   delivery_status_updated_at TIMESTAMPTZ,
   last_error TEXT,
-  
+
   -- Flexible metadata (merge tags, errors, etc.)
   metadata JSONB DEFAULT '{}',
-  
+
   -- Timestamps
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  sent_at TIMESTAMPTZ,
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -8585,13 +8742,12 @@ CREATE TABLE IF NOT EXISTS security_events (
 );
 
 -- Index for querying by patient and type
-CREATE INDEX IF NOT EXISTS idx_security_events_patient 
+CREATE INDEX IF NOT EXISTS idx_security_events_patient
   ON security_events(patient_id, event_type, created_at DESC);
 
 -- Index for recent events (security monitoring)
-CREATE INDEX IF NOT EXISTS idx_security_events_recent 
-  ON security_events(created_at DESC) 
-  WHERE created_at > NOW() - INTERVAL '24 hours';
+CREATE INDEX IF NOT EXISTS idx_security_events_recent
+  ON security_events(created_at DESC);
 
 -- ============================================================================
 -- Patient Flags Table
@@ -8613,8 +8769,8 @@ CREATE TABLE IF NOT EXISTS patient_flags (
 );
 
 -- Index for active flags lookup
-CREATE INDEX IF NOT EXISTS idx_patient_flags_active 
-  ON patient_flags(patient_id, flag_type) 
+CREATE INDEX IF NOT EXISTS idx_patient_flags_active
+  ON patient_flags(patient_id, flag_type)
   WHERE is_active = true;
 
 -- ============================================================================
@@ -8637,8 +8793,8 @@ CREATE TABLE IF NOT EXISTS date_change_requests (
 );
 
 -- Index for pending requests
-CREATE INDEX IF NOT EXISTS idx_date_change_pending 
-  ON date_change_requests(status, created_at DESC) 
+CREATE INDEX IF NOT EXISTS idx_date_change_pending
+  ON date_change_requests(status, created_at DESC)
   WHERE status = 'pending';
 
 -- ============================================================================
@@ -8661,13 +8817,13 @@ CREATE TABLE IF NOT EXISTS chat_sessions (
 );
 
 -- Index for abandoned session tracking (fraud detection)
-CREATE INDEX IF NOT EXISTS idx_chat_sessions_abandoned 
-  ON chat_sessions(patient_id, status, created_at DESC) 
+CREATE INDEX IF NOT EXISTS idx_chat_sessions_abandoned
+  ON chat_sessions(patient_id, status, started_at DESC)
   WHERE status = 'abandoned';
 
 -- Index for active sessions
-CREATE INDEX IF NOT EXISTS idx_chat_sessions_active 
-  ON chat_sessions(patient_id, status) 
+CREATE INDEX IF NOT EXISTS idx_chat_sessions_active
+  ON chat_sessions(patient_id, status)
   WHERE status = 'active';
 
 -- ============================================================================
@@ -8679,7 +8835,7 @@ CREATE INDEX IF NOT EXISTS idx_chat_sessions_active
 DO $$
 BEGIN
   IF NOT EXISTS (
-    SELECT 1 FROM information_schema.columns 
+    SELECT 1 FROM information_schema.columns
     WHERE table_name = 'fraud_flags' AND column_name = 'service_type'
   ) THEN
     ALTER TABLE fraud_flags ADD COLUMN service_type TEXT;
@@ -8690,7 +8846,7 @@ END $$;
 DO $$
 BEGIN
   IF NOT EXISTS (
-    SELECT 1 FROM information_schema.columns 
+    SELECT 1 FROM information_schema.columns
     WHERE table_name = 'fraud_flags' AND column_name = 'medication_code'
   ) THEN
     ALTER TABLE fraud_flags ADD COLUMN medication_code TEXT;
@@ -8799,7 +8955,7 @@ COMMENT ON TABLE chat_sessions IS 'ADVERSARIAL_SECURITY_AUDIT: Tracks chat sessi
 
 CREATE TABLE IF NOT EXISTS request_latency (
   request_id UUID PRIMARY KEY,
-  
+
   -- Timestamps
   payment_at TIMESTAMPTZ,
   queued_at TIMESTAMPTZ,
@@ -8808,26 +8964,26 @@ CREATE TABLE IF NOT EXISTS request_latency (
   review_started_at TIMESTAMPTZ,
   decision_at TIMESTAMPTZ,
   decision_type TEXT,
-  
+
   -- Calculated latencies (milliseconds)
   payment_to_queue_ms INTEGER,
   queue_to_assign_ms INTEGER,
   queue_to_review_ms INTEGER,
   review_to_decision_ms INTEGER,
   total_latency_ms INTEGER,
-  
+
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Index for latency queries
-CREATE INDEX IF NOT EXISTS idx_request_latency_decision 
-  ON request_latency(decision_at DESC) 
+CREATE INDEX IF NOT EXISTS idx_request_latency_decision
+  ON request_latency(decision_at DESC)
   WHERE decision_at IS NOT NULL;
 
 -- Index for SLA monitoring
-CREATE INDEX IF NOT EXISTS idx_request_latency_pending 
-  ON request_latency(queued_at) 
+CREATE INDEX IF NOT EXISTS idx_request_latency_pending
+  ON request_latency(queued_at)
   WHERE decision_at IS NULL;
 
 -- ============================================================================
@@ -8844,7 +9000,7 @@ CREATE TABLE IF NOT EXISTS operational_metrics (
 );
 
 -- Index for time-series queries
-CREATE INDEX IF NOT EXISTS idx_metrics_name_time 
+CREATE INDEX IF NOT EXISTS idx_metrics_name_time
   ON operational_metrics(metric_name, recorded_at DESC);
 
 -- Partition hint (for future scaling)
@@ -8861,43 +9017,44 @@ CREATE TABLE IF NOT EXISTS delivery_tracking (
   request_id UUID,
   patient_id UUID,
   channel TEXT NOT NULL CHECK (channel IN ('email', 'sms')),
+  message_type TEXT,
   template_type TEXT NOT NULL,
   provider_id TEXT NOT NULL,
   recipient TEXT NOT NULL, -- Masked
-  
+
   -- Status
   status TEXT DEFAULT 'sent' CHECK (status IN ('sent', 'delivered', 'bounced', 'failed', 'opened')),
-  
+
   -- Timestamps
   sent_at TIMESTAMPTZ,
   delivered_at TIMESTAMPTZ,
   bounced_at TIMESTAMPTZ,
   opened_at TIMESTAMPTZ,
-  
+
   -- Error details
   bounce_type TEXT CHECK (bounce_type IN ('hard', 'soft')),
   bounce_reason TEXT,
   error_code TEXT,
   error_message TEXT,
-  
+
   -- Retry tracking
   attempt_number INTEGER DEFAULT 1,
-  
+
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Index for status queries
-CREATE INDEX IF NOT EXISTS idx_delivery_status 
+CREATE INDEX IF NOT EXISTS idx_delivery_status
   ON delivery_tracking(status, sent_at DESC);
 
 -- Index for request lookup
-CREATE INDEX IF NOT EXISTS idx_delivery_request 
-  ON delivery_tracking(request_id) 
+CREATE INDEX IF NOT EXISTS idx_delivery_request
+  ON delivery_tracking(request_id)
   WHERE request_id IS NOT NULL;
 
 -- Index for bounce monitoring
-CREATE INDEX IF NOT EXISTS idx_delivery_bounces 
-  ON delivery_tracking(sent_at DESC) 
+CREATE INDEX IF NOT EXISTS idx_delivery_bounces
+  ON delivery_tracking(sent_at DESC)
   WHERE status = 'bounced';
 
 -- ============================================================================
@@ -8914,22 +9071,22 @@ CREATE TABLE IF NOT EXISTS intake_abandonment (
   time_spent_ms INTEGER,
   message_count INTEGER DEFAULT 0,
   abandon_reason TEXT NOT NULL,
-  
+
   -- Payment context
   reached_payment BOOLEAN DEFAULT false,
   stripe_checkout_started BOOLEAN DEFAULT false,
   payment_error TEXT,
-  
+
   -- Safety context
   was_blocked_by_safety BOOLEAN DEFAULT false,
   safety_block_reason TEXT,
   safety_block_code TEXT,
-  
+
   -- Form context
   fields_completed TEXT[] DEFAULT '{}',
   last_field_edited TEXT,
   form_progress INTEGER DEFAULT 0,
-  
+
   -- Technical context
   device_type TEXT,
   browser TEXT,
@@ -8937,25 +9094,25 @@ CREATE TABLE IF NOT EXISTS intake_abandonment (
   os_name TEXT,
   has_network_error BOOLEAN DEFAULT false,
   last_network_error TEXT,
-  
+
   -- Session context
   page_view_count INTEGER DEFAULT 0,
   referrer TEXT,
   utm_source TEXT,
   utm_medium TEXT,
   utm_campaign TEXT,
-  
+
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Index for abandonment analytics
-CREATE INDEX IF NOT EXISTS idx_abandonment_time 
+CREATE INDEX IF NOT EXISTS idx_abandonment_time
   ON intake_abandonment(created_at DESC);
 
-CREATE INDEX IF NOT EXISTS idx_abandonment_reason 
+CREATE INDEX IF NOT EXISTS idx_abandonment_reason
   ON intake_abandonment(abandon_reason, created_at DESC);
 
-CREATE INDEX IF NOT EXISTS idx_abandonment_step 
+CREATE INDEX IF NOT EXISTS idx_abandonment_step
   ON intake_abandonment(last_step, created_at DESC);
 
 -- ============================================================================
@@ -8978,14 +9135,14 @@ CREATE TABLE IF NOT EXISTS ai_metrics (
 );
 
 -- Index for AI health monitoring
-CREATE INDEX IF NOT EXISTS idx_ai_metrics_time 
+CREATE INDEX IF NOT EXISTS idx_ai_metrics_time
   ON ai_metrics(recorded_at DESC);
 
-CREATE INDEX IF NOT EXISTS idx_ai_metrics_endpoint 
+CREATE INDEX IF NOT EXISTS idx_ai_metrics_endpoint
   ON ai_metrics(endpoint, recorded_at DESC);
 
-CREATE INDEX IF NOT EXISTS idx_ai_metrics_failures 
-  ON ai_metrics(recorded_at DESC) 
+CREATE INDEX IF NOT EXISTS idx_ai_metrics_failures
+  ON ai_metrics(recorded_at DESC)
   WHERE success = false;
 
 -- ============================================================================
@@ -9109,26 +9266,26 @@ COMMENT ON TABLE ai_metrics IS 'OBSERVABILITY_AUDIT P0: AI request metrics for h
 -- ============================================
 
 -- Add clerk_user_id column
-ALTER TABLE public.profiles 
+ALTER TABLE public.profiles
 ADD COLUMN IF NOT EXISTS clerk_user_id TEXT UNIQUE;
 
 -- Create index for clerk_user_id lookups
-CREATE INDEX IF NOT EXISTS idx_profiles_clerk_user_id 
-ON public.profiles(clerk_user_id) 
+CREATE INDEX IF NOT EXISTS idx_profiles_clerk_user_id
+ON public.profiles(clerk_user_id)
 WHERE clerk_user_id IS NOT NULL;
 
 -- Make auth_user_id nullable for Clerk-only users
-ALTER TABLE public.profiles 
+ALTER TABLE public.profiles
 ALTER COLUMN auth_user_id DROP NOT NULL;
 
 -- Drop the foreign key constraint temporarily for Clerk users
 -- (Clerk users won't have auth.users entries)
-ALTER TABLE public.profiles 
+ALTER TABLE public.profiles
 DROP CONSTRAINT IF EXISTS profiles_auth_user_id_fkey;
 
 -- Re-add constraint but allow NULL
-ALTER TABLE public.profiles 
-ADD CONSTRAINT profiles_auth_user_id_fkey 
+ALTER TABLE public.profiles
+ADD CONSTRAINT profiles_auth_user_id_fkey
 FOREIGN KEY (auth_user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
 
 -- ============================================
@@ -9152,20 +9309,20 @@ DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
 CREATE POLICY "Users can view own profile"
   ON public.profiles FOR SELECT
   USING (
-    auth.uid() = auth_user_id 
+    auth.uid() = auth_user_id
     OR clerk_user_id = public.requesting_clerk_user_id()
   );
 
 CREATE POLICY "Users can update own profile"
   ON public.profiles FOR UPDATE
   USING (
-    auth.uid() = auth_user_id 
+    auth.uid() = auth_user_id
     OR clerk_user_id = public.requesting_clerk_user_id()
   )
   WITH CHECK (
     (auth.uid() = auth_user_id OR clerk_user_id = public.requesting_clerk_user_id())
     AND role = (
-      SELECT role FROM public.profiles 
+      SELECT role FROM public.profiles
       WHERE auth_user_id = auth.uid() OR clerk_user_id = public.requesting_clerk_user_id()
       LIMIT 1
     )
@@ -9308,578 +9465,18 @@ CREATE POLICY "Only service role can modify encryption migration status"
 
 
 -- ── 20250122000002_atomic_certificate_approval.sql ──
-
--- ============================================================================
--- ATOMIC CERTIFICATE APPROVAL
--- Single transaction to create certificate records and update intake status
--- Ensures consistency: either all operations succeed or all fail
--- ============================================================================
-
--- Drop existing function if it exists (idempotent migration)
-DROP FUNCTION IF EXISTS public.atomic_approve_certificate;
-
--- Create the atomic approval function
-CREATE OR REPLACE FUNCTION public.atomic_approve_certificate(
-  -- Intake identification
-  p_intake_id UUID,
-
-  -- Certificate data
-  p_certificate_number TEXT,
-  p_verification_code TEXT,
-  p_idempotency_key TEXT,
-  p_certificate_type TEXT,
-  p_issue_date DATE,
-  p_start_date DATE,
-  p_end_date DATE,
-
-  -- Patient snapshot
-  p_patient_id UUID,
-  p_patient_name TEXT,
-  p_patient_dob DATE,
-
-  -- Doctor snapshot
-  p_doctor_id UUID,
-  p_doctor_name TEXT,
-  p_doctor_nominals TEXT,
-  p_doctor_provider_number TEXT,
-  p_doctor_ahpra_number TEXT,
-
-  -- Template snapshots (JSONB)
-  p_template_config_snapshot JSONB,
-  p_clinic_identity_snapshot JSONB,
-
-  -- Storage info
-  p_storage_path TEXT,
-  p_file_size_bytes INTEGER,
-
-  -- Legacy intake_documents fields
-  p_filename TEXT
-)
-RETURNS TABLE (
-  certificate_id UUID,
-  intake_document_id UUID,
-  success BOOLEAN,
-  error_message TEXT,
-  is_duplicate BOOLEAN
-)
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = 'public'
-AS $$
-DECLARE
-  v_certificate_id UUID;
-  v_intake_document_id UUID;
-  v_current_status TEXT;
-  v_existing_cert_id UUID;
-BEGIN
-  -- ============================================
-  -- STEP 1: Check for existing certificate (idempotency)
-  -- ============================================
-  SELECT id INTO v_existing_cert_id
-  FROM issued_certificates
-  WHERE idempotency_key = p_idempotency_key;
-
-  IF v_existing_cert_id IS NOT NULL THEN
-    -- Certificate already exists - return it (idempotent)
-    RETURN QUERY SELECT
-      v_existing_cert_id,
-      NULL::UUID,
-      TRUE,
-      NULL::TEXT,
-      TRUE;
-    RETURN;
-  END IF;
-
-  -- ============================================
-  -- STEP 2: Validate intake status
-  -- ============================================
-  SELECT status INTO v_current_status
-  FROM intakes
-  WHERE id = p_intake_id
-  FOR UPDATE; -- Lock the row to prevent concurrent modifications
-
-  IF v_current_status IS NULL THEN
-    RETURN QUERY SELECT NULL::UUID, NULL::UUID, FALSE, 'Intake not found'::TEXT, FALSE;
-    RETURN;
-  END IF;
-
-  -- Allow processing (set by optimistic lock) or already approved (idempotent)
-  IF v_current_status NOT IN ('processing', 'approved') THEN
-    RETURN QUERY SELECT NULL::UUID, NULL::UUID, FALSE,
-      ('Invalid intake status: ' || v_current_status)::TEXT, FALSE;
-    RETURN;
-  END IF;
-
-  -- If already approved, find the certificate
-  IF v_current_status = 'approved' THEN
-    SELECT id INTO v_existing_cert_id
-    FROM issued_certificates
-    WHERE intake_id = p_intake_id
-    AND status = 'valid'
-    LIMIT 1;
-
-    IF v_existing_cert_id IS NOT NULL THEN
-      RETURN QUERY SELECT v_existing_cert_id, NULL::UUID, TRUE, NULL::TEXT, TRUE;
-      RETURN;
-    END IF;
-  END IF;
-
-  -- ============================================
-  -- STEP 3: Create issued_certificates record
-  -- ============================================
-  INSERT INTO issued_certificates (
-    intake_id,
-    certificate_number,
-    verification_code,
-    idempotency_key,
-    certificate_type,
-    status,
-    issue_date,
-    start_date,
-    end_date,
-    patient_id,
-    patient_name,
-    patient_dob,
-    doctor_id,
-    doctor_name,
-    doctor_nominals,
-    doctor_provider_number,
-    doctor_ahpra_number,
-    template_config_snapshot,
-    clinic_identity_snapshot,
-    storage_path,
-    file_size_bytes
-  )
-  VALUES (
-    p_intake_id,
-    p_certificate_number,
-    p_verification_code,
-    p_idempotency_key,
-    p_certificate_type,
-    'valid',
-    p_issue_date,
-    p_start_date,
-    p_end_date,
-    p_patient_id,
-    p_patient_name,
-    p_patient_dob,
-    p_doctor_id,
-    p_doctor_name,
-    p_doctor_nominals,
-    p_doctor_provider_number,
-    p_doctor_ahpra_number,
-    p_template_config_snapshot,
-    p_clinic_identity_snapshot,
-    p_storage_path,
-    p_file_size_bytes
-  )
-  RETURNING id INTO v_certificate_id;
-
-  -- ============================================
-  -- STEP 4: Create intake_documents record (legacy table)
-  -- ============================================
-  INSERT INTO intake_documents (
-    intake_id,
-    document_type,
-    filename,
-    storage_path,
-    mime_type,
-    file_size_bytes,
-    certificate_number,
-    created_by,
-    metadata
-  )
-  VALUES (
-    p_intake_id,
-    'med_cert',
-    p_filename,
-    p_storage_path,
-    'application/pdf',
-    p_file_size_bytes,
-    p_certificate_number,
-    p_doctor_id,
-    jsonb_build_object(
-      'patient_name', p_patient_name,
-      'certificate_type', p_certificate_type,
-      'start_date', p_start_date,
-      'end_date', p_end_date
-    )
-  )
-  RETURNING id INTO v_intake_document_id;
-
-  -- ============================================
-  -- STEP 5: Update intake status to approved
-  -- ============================================
-  UPDATE intakes
-  SET
-    status = 'approved',
-    reviewed_by = p_doctor_id,
-    reviewed_at = NOW(),
-    decided_at = NOW(),
-    decision = 'approved',
-    approved_at = NOW(),
-    updated_at = NOW()
-  WHERE id = p_intake_id
-  AND status IN ('processing', 'approved'); -- Safety: only update from expected states
-
-  IF NOT FOUND THEN
-    -- This shouldn't happen due to the FOR UPDATE lock, but handle it gracefully
-    RAISE EXCEPTION 'Failed to update intake status - concurrent modification detected';
-  END IF;
-
-  -- ============================================
-  -- STEP 6: Log certificate issuance event
-  -- ============================================
-  INSERT INTO certificate_audit_log (
-    certificate_id,
-    event_type,
-    actor_id,
-    actor_role,
-    metadata
-  )
-  VALUES (
-    v_certificate_id,
-    'issued',
-    p_doctor_id,
-    'doctor',
-    jsonb_build_object(
-      'intake_id', p_intake_id,
-      'certificate_type', p_certificate_type,
-      'storage_path', p_storage_path
-    )
-  );
-
-  -- ============================================
-  -- Return success
-  -- ============================================
-  RETURN QUERY SELECT v_certificate_id, v_intake_document_id, TRUE, NULL::TEXT, FALSE;
-
-EXCEPTION
-  WHEN unique_violation THEN
-    -- Handle race condition where another request created the certificate
-    SELECT id INTO v_existing_cert_id
-    FROM issued_certificates
-    WHERE idempotency_key = p_idempotency_key;
-
-    IF v_existing_cert_id IS NOT NULL THEN
-      RETURN QUERY SELECT v_existing_cert_id, NULL::UUID, TRUE, NULL::TEXT, TRUE;
-    ELSE
-      RETURN QUERY SELECT NULL::UUID, NULL::UUID, FALSE,
-        'Unique constraint violation'::TEXT, FALSE;
-    END IF;
-
-  WHEN OTHERS THEN
-    RETURN QUERY SELECT NULL::UUID, NULL::UUID, FALSE, SQLERRM::TEXT, FALSE;
-END;
-$$;
-
--- Grant execute permission to authenticated users (access controlled in app layer)
-GRANT EXECUTE ON FUNCTION public.atomic_approve_certificate TO authenticated;
-GRANT EXECUTE ON FUNCTION public.atomic_approve_certificate TO service_role;
-
--- Comment for documentation
-COMMENT ON FUNCTION public.atomic_approve_certificate IS
-'Atomic function to approve a certificate: creates issued_certificates record,
-intake_documents record, and updates intake status in a single transaction.
-Includes idempotency handling for duplicate requests.';
-
--- ============================================================================
--- AUDIT LOG
--- ============================================================================
---
--- Changes made:
--- 1. Created atomic_approve_certificate() function
--- 2. Function handles: certificate creation + legacy document + status update
--- 3. Includes idempotency via idempotency_key check
--- 4. Uses FOR UPDATE to prevent concurrent modifications
--- 5. Logs certificate issuance to audit trail
---
--- Invariants enforced:
--- - Either all records are created AND status is updated, OR nothing happens
--- - Duplicate requests return existing certificate (idempotent)
--- - Only 'processing' or 'approved' intakes can be atomically approved
--- ============================================================================
-
+-- Skipped in the squashed baseline: obsolete intermediate RPC body is replaced by later definitions.
 
 -- ── 20250122000003_fix_atomic_approval_audit_column.sql ──
-
--- ============================================================================
--- FIX: Atomic Certificate Approval Audit Column
--- The original migration used 'metadata' but the table uses 'event_data'
--- ============================================================================
-
--- Drop and recreate the function with the correct column name
-CREATE OR REPLACE FUNCTION public.atomic_approve_certificate(
-  -- Intake identification
-  p_intake_id UUID,
-
-  -- Certificate data
-  p_certificate_number TEXT,
-  p_verification_code TEXT,
-  p_idempotency_key TEXT,
-  p_certificate_type TEXT,
-  p_issue_date DATE,
-  p_start_date DATE,
-  p_end_date DATE,
-
-  -- Patient snapshot
-  p_patient_id UUID,
-  p_patient_name TEXT,
-  p_patient_dob DATE,
-
-  -- Doctor snapshot
-  p_doctor_id UUID,
-  p_doctor_name TEXT,
-  p_doctor_nominals TEXT,
-  p_doctor_provider_number TEXT,
-  p_doctor_ahpra_number TEXT,
-
-  -- Template snapshots (JSONB)
-  p_template_config_snapshot JSONB,
-  p_clinic_identity_snapshot JSONB,
-
-  -- Storage info
-  p_storage_path TEXT,
-  p_file_size_bytes INTEGER,
-
-  -- Legacy intake_documents fields
-  p_filename TEXT,
-  
-  -- P1 FIX: Add pdf_hash parameter for integrity verification
-  p_pdf_hash TEXT DEFAULT NULL
-)
-RETURNS TABLE (
-  certificate_id UUID,
-  intake_document_id UUID,
-  success BOOLEAN,
-  error_message TEXT,
-  is_duplicate BOOLEAN
-)
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = 'public'
-AS $$
-DECLARE
-  v_certificate_id UUID;
-  v_intake_document_id UUID;
-  v_current_status TEXT;
-  v_existing_cert_id UUID;
-BEGIN
-  -- ============================================
-  -- STEP 1: Check for existing certificate (idempotency)
-  -- ============================================
-  SELECT id INTO v_existing_cert_id
-  FROM issued_certificates
-  WHERE idempotency_key = p_idempotency_key;
-
-  IF v_existing_cert_id IS NOT NULL THEN
-    -- Certificate already exists - return it (idempotent)
-    RETURN QUERY SELECT
-      v_existing_cert_id,
-      NULL::UUID,
-      TRUE,
-      NULL::TEXT,
-      TRUE;
-    RETURN;
-  END IF;
-
-  -- ============================================
-  -- STEP 2: Validate intake status
-  -- ============================================
-  SELECT status INTO v_current_status
-  FROM intakes
-  WHERE id = p_intake_id
-  FOR UPDATE; -- Lock the row to prevent concurrent modifications
-
-  IF v_current_status IS NULL THEN
-    RETURN QUERY SELECT NULL::UUID, NULL::UUID, FALSE, 'Intake not found'::TEXT, FALSE;
-    RETURN;
-  END IF;
-
-  -- Allow processing (set by optimistic lock) or already approved (idempotent)
-  IF v_current_status NOT IN ('processing', 'approved') THEN
-    RETURN QUERY SELECT NULL::UUID, NULL::UUID, FALSE,
-      ('Invalid intake status: ' || v_current_status)::TEXT, FALSE;
-    RETURN;
-  END IF;
-
-  -- If already approved, find the certificate
-  IF v_current_status = 'approved' THEN
-    SELECT id INTO v_existing_cert_id
-    FROM issued_certificates
-    WHERE intake_id = p_intake_id
-    AND status = 'valid'
-    LIMIT 1;
-
-    IF v_existing_cert_id IS NOT NULL THEN
-      RETURN QUERY SELECT v_existing_cert_id, NULL::UUID, TRUE, NULL::TEXT, TRUE;
-      RETURN;
-    END IF;
-  END IF;
-
-  -- ============================================
-  -- STEP 3: Create issued_certificates record
-  -- P1 FIX: Include pdf_hash for integrity verification
-  -- ============================================
-  INSERT INTO issued_certificates (
-    intake_id,
-    certificate_number,
-    verification_code,
-    idempotency_key,
-    certificate_type,
-    status,
-    issue_date,
-    start_date,
-    end_date,
-    patient_id,
-    patient_name,
-    patient_dob,
-    doctor_id,
-    doctor_name,
-    doctor_nominals,
-    doctor_provider_number,
-    doctor_ahpra_number,
-    template_config_snapshot,
-    clinic_identity_snapshot,
-    storage_path,
-    file_size_bytes,
-    pdf_hash
-  )
-  VALUES (
-    p_intake_id,
-    p_certificate_number,
-    p_verification_code,
-    p_idempotency_key,
-    p_certificate_type,
-    'valid',
-    p_issue_date,
-    p_start_date,
-    p_end_date,
-    p_patient_id,
-    p_patient_name,
-    p_patient_dob,
-    p_doctor_id,
-    p_doctor_name,
-    p_doctor_nominals,
-    p_doctor_provider_number,
-    p_doctor_ahpra_number,
-    p_template_config_snapshot,
-    p_clinic_identity_snapshot,
-    p_storage_path,
-    p_file_size_bytes,
-    p_pdf_hash
-  )
-  RETURNING id INTO v_certificate_id;
-
-  -- ============================================
-  -- STEP 4: Create intake_documents record (legacy table)
-  -- ============================================
-  INSERT INTO intake_documents (
-    intake_id,
-    document_type,
-    filename,
-    storage_path,
-    mime_type,
-    file_size_bytes,
-    certificate_number,
-    created_by,
-    metadata
-  )
-  VALUES (
-    p_intake_id,
-    'med_cert',
-    p_filename,
-    p_storage_path,
-    'application/pdf',
-    p_file_size_bytes,
-    p_certificate_number,
-    p_doctor_id,
-    jsonb_build_object(
-      'patient_name', p_patient_name,
-      'certificate_type', p_certificate_type,
-      'start_date', p_start_date,
-      'end_date', p_end_date,
-      'pdf_hash', p_pdf_hash
-    )
-  )
-  RETURNING id INTO v_intake_document_id;
-
-  -- ============================================
-  -- STEP 5: Update intake status to approved
-  -- ============================================
-  UPDATE intakes
-  SET
-    status = 'approved',
-    reviewed_by = p_doctor_id,
-    reviewed_at = NOW(),
-    decided_at = NOW(),
-    decision = 'approved',
-    approved_at = NOW(),
-    updated_at = NOW()
-  WHERE id = p_intake_id
-  AND status IN ('processing', 'approved'); -- Safety: only update from expected states
-
-  IF NOT FOUND THEN
-    -- This shouldn't happen due to the FOR UPDATE lock, but handle it gracefully
-    RAISE EXCEPTION 'Failed to update intake status - concurrent modification detected';
-  END IF;
-
-  -- ============================================
-  -- STEP 6: Log certificate issuance event
-  -- FIX: Use correct column name 'event_data' instead of 'metadata'
-  -- ============================================
-  INSERT INTO certificate_audit_log (
-    certificate_id,
-    event_type,
-    actor_id,
-    actor_role,
-    event_data
-  )
-  VALUES (
-    v_certificate_id,
-    'issued',
-    p_doctor_id,
-    'doctor',
-    jsonb_build_object(
-      'intake_id', p_intake_id,
-      'certificate_type', p_certificate_type,
-      'storage_path', p_storage_path,
-      'pdf_hash', p_pdf_hash
-    )
-  );
-
-  -- ============================================
-  -- Return success
-  -- ============================================
-  RETURN QUERY SELECT v_certificate_id, v_intake_document_id, TRUE, NULL::TEXT, FALSE;
-
-EXCEPTION
-  WHEN unique_violation THEN
-    -- Handle race condition where another request created the certificate
-    SELECT id INTO v_existing_cert_id
-    FROM issued_certificates
-    WHERE idempotency_key = p_idempotency_key;
-
-    IF v_existing_cert_id IS NOT NULL THEN
-      RETURN QUERY SELECT v_existing_cert_id, NULL::UUID, TRUE, NULL::TEXT, TRUE;
-    ELSE
-      RETURN QUERY SELECT NULL::UUID, NULL::UUID, FALSE,
-        'Unique constraint violation'::TEXT, FALSE;
-    END IF;
-
-  WHEN OTHERS THEN
-    RETURN QUERY SELECT NULL::UUID, NULL::UUID, FALSE, SQLERRM::TEXT, FALSE;
-END;
-$$;
-
+-- Skipped in the squashed baseline: obsolete intermediate RPC body is replaced by later definitions.
 
 -- ── 20250122000004_add_email_verification_fields.sql ──
 
 -- ============================================================================
 -- P1 FIX: Add email verification fields for guest profile linking security
--- 
+--
 -- When a guest checks out, their profile is created with email_verified=false.
--- When an authenticated user signs up with the same email, we should NOT 
+-- When an authenticated user signs up with the same email, we should NOT
 -- automatically link their requests unless the email has been verified.
 -- ============================================================================
 
@@ -9891,21 +9488,21 @@ ADD COLUMN IF NOT EXISTS email_verified_at TIMESTAMPTZ;
 -- Existing authenticated profiles (with auth_user_id) are considered verified
 -- since Supabase Auth handles email verification
 UPDATE public.profiles
-SET 
+SET
   email_verified = true,
   email_verified_at = created_at
 WHERE auth_user_id IS NOT NULL
 AND email_verified = false;
 
 -- Add index for guest profile lookups
-CREATE INDEX IF NOT EXISTS idx_profiles_email_verified 
-ON public.profiles(email, email_verified) 
+CREATE INDEX IF NOT EXISTS idx_profiles_email_verified
+ON public.profiles(email, email_verified)
 WHERE auth_user_id IS NULL;
 
 -- Comments
-COMMENT ON COLUMN public.profiles.email_verified IS 
+COMMENT ON COLUMN public.profiles.email_verified IS
 'Whether the email address has been verified. Guest profiles start unverified.';
-COMMENT ON COLUMN public.profiles.email_verified_at IS 
+COMMENT ON COLUMN public.profiles.email_verified_at IS
 'When the email was verified. NULL for unverified emails.';
 
 
@@ -9913,10 +9510,10 @@ COMMENT ON COLUMN public.profiles.email_verified_at IS
 
 -- ============================================================================
 -- PHI Encryption: Add Encrypted Columns
--- 
+--
 -- Phase 1 of envelope encryption implementation.
 -- Adds columns to store encrypted PHI alongside plaintext during migration.
--- 
+--
 -- NOTE: intake_answers table does not exist in this database.
 -- PHI is stored in intake_drafts and document_drafts instead.
 -- ============================================================================
@@ -9932,10 +9529,10 @@ ADD COLUMN IF NOT EXISTS data_encrypted JSONB,
 ADD COLUMN IF NOT EXISTS encryption_metadata JSONB;
 
 -- Comments for documentation
-COMMENT ON COLUMN public.intake_drafts.data_encrypted IS 
+COMMENT ON COLUMN public.intake_drafts.data_encrypted IS
 'Encrypted draft data using envelope encryption';
 
-COMMENT ON COLUMN public.document_drafts.data_encrypted IS 
+COMMENT ON COLUMN public.document_drafts.data_encrypted IS
 'Encrypted document draft data using envelope encryption';
 
 -- Index for finding unencrypted records during migration
@@ -9954,35 +9551,35 @@ WHERE data_encrypted IS NULL AND data IS NOT NULL;
 
 CREATE TABLE IF NOT EXISTS public.phi_encryption_audit (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  
+
   -- What was accessed
   table_name TEXT NOT NULL,
   record_id UUID NOT NULL,
   key_id TEXT NOT NULL,
-  
+
   -- Operation details
   operation TEXT NOT NULL CHECK (operation IN ('encrypt', 'decrypt', 'rotate')),
-  
+
   -- Who accessed it
   actor_id UUID REFERENCES public.profiles(id),
   actor_role TEXT,
-  
+
   -- Context
   request_path TEXT,
   ip_address INET,
-  
+
   -- Timestamp
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 -- Index for compliance queries
-CREATE INDEX IF NOT EXISTS idx_phi_audit_record 
+CREATE INDEX IF NOT EXISTS idx_phi_audit_record
 ON public.phi_encryption_audit(table_name, record_id);
 
-CREATE INDEX IF NOT EXISTS idx_phi_audit_actor 
+CREATE INDEX IF NOT EXISTS idx_phi_audit_actor
 ON public.phi_encryption_audit(actor_id);
 
-CREATE INDEX IF NOT EXISTS idx_phi_audit_created 
+CREATE INDEX IF NOT EXISTS idx_phi_audit_created
 ON public.phi_encryption_audit(created_at);
 
 -- RLS for audit table (service role only)
@@ -9994,7 +9591,7 @@ FOR ALL
 USING (false)
 WITH CHECK (false);
 
-COMMENT ON TABLE public.phi_encryption_audit IS 
+COMMENT ON TABLE public.phi_encryption_audit IS
 'Audit log for PHI encryption/decryption operations. Required for HIPAA compliance.';
 
 
@@ -10019,37 +9616,37 @@ COMMENT ON TABLE document_drafts IS 'Stores AI-generated draft documents (clinic
 
 CREATE TABLE IF NOT EXISTS ai_chat_transcripts (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  
+
   -- Session and user references
   session_id TEXT NOT NULL UNIQUE, -- One transcript per session
   patient_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
   intake_id UUID REFERENCES intakes(id) ON DELETE SET NULL, -- Linked after intake submission
-  
+
   -- Transcript content (JSONB array of messages)
   -- Format: [{ "role": "user"|"assistant", "content": "...", "timestamp": "..." }]
   messages JSONB NOT NULL DEFAULT '[]',
-  
+
   -- Metadata for audit
   service_type TEXT,
   model_version TEXT NOT NULL,
   prompt_version TEXT NOT NULL,
   total_turns INTEGER NOT NULL DEFAULT 0,
-  
+
   -- Completion tracking
   is_complete BOOLEAN DEFAULT FALSE,
   completion_status TEXT, -- 'submitted', 'abandoned', 'blocked'
-  
+
   -- Safety/compliance flags
   had_safety_flags BOOLEAN DEFAULT FALSE,
   safety_flags TEXT[] DEFAULT '{}',
   was_blocked BOOLEAN DEFAULT FALSE,
   block_reason TEXT,
-  
+
   -- Timestamps
   started_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   last_activity_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   completed_at TIMESTAMPTZ,
-  
+
   -- Redaction tracking (for future use)
   is_redacted BOOLEAN DEFAULT FALSE,
   redacted_at TIMESTAMPTZ,
@@ -10111,8 +9708,8 @@ ALTER TABLE public.intakes
   ADD COLUMN IF NOT EXISTS synced_clinical_note_draft_id UUID REFERENCES public.document_drafts(id) ON DELETE SET NULL;
 
 -- Index for querying which intakes have synced drafts
-CREATE INDEX IF NOT EXISTS idx_intakes_synced_draft 
-  ON public.intakes(synced_clinical_note_draft_id) 
+CREATE INDEX IF NOT EXISTS idx_intakes_synced_draft
+  ON public.intakes(synced_clinical_note_draft_id)
   WHERE synced_clinical_note_draft_id IS NOT NULL;
 
 -- Comment for documentation
@@ -10132,8 +9729,8 @@ COMMENT ON COLUMN public.intakes.synced_clinical_note_draft_id IS 'Reference to 
 -- Patients will still be able to download their documents through the dashboard
 -- which generates time-limited signed URLs
 
-UPDATE storage.buckets 
-SET public = FALSE 
+UPDATE storage.buckets
+SET public = FALSE
 WHERE id = 'documents';
 
 -- Drop the old "anyone can view" policy as it's no longer needed
@@ -10141,7 +9738,7 @@ DROP POLICY IF EXISTS "Anyone can view documents" ON storage.objects;
 
 -- Create a new policy that allows authenticated users to read their own documents
 -- Documents are stored as: med-certs/{patient_id}/{certificate_number}.pdf
-DO $$ 
+DO $$
 BEGIN
   DROP POLICY IF EXISTS "Patients can view their own documents" ON storage.objects;
   CREATE POLICY "Patients can view their own documents"
@@ -10176,7 +9773,7 @@ END $$;
 -- ============================================
 -- AUDIT LOG
 -- ============================================
--- 
+--
 -- CRITICAL SECURITY FIX APPLIED:
 -- - Changed documents bucket from PUBLIC to PRIVATE
 -- - Removed "Anyone can view documents" policy
@@ -10205,11 +9802,11 @@ CREATE TABLE IF NOT EXISTS distributed_locks (
 );
 
 -- Index for cleanup queries
-CREATE INDEX IF NOT EXISTS idx_distributed_locks_expires_at 
+CREATE INDEX IF NOT EXISTS idx_distributed_locks_expires_at
   ON distributed_locks(expires_at);
 
 -- Index for key lookups
-CREATE INDEX IF NOT EXISTS idx_distributed_locks_key 
+CREATE INDEX IF NOT EXISTS idx_distributed_locks_key
   ON distributed_locks(key);
 
 -- Auto-cleanup function for expired locks
@@ -10246,29 +9843,29 @@ BEGIN
   IF p_guest_profile_id IS NULL OR p_authenticated_profile_id IS NULL THEN
     RAISE EXCEPTION 'Both profile IDs are required';
   END IF;
-  
+
   IF p_guest_profile_id = p_authenticated_profile_id THEN
     RAISE EXCEPTION 'Cannot merge a profile with itself';
   END IF;
 
   -- Reassign intakes from guest to authenticated profile
-  UPDATE intakes 
-  SET patient_id = p_authenticated_profile_id 
+  UPDATE intakes
+  SET patient_id = p_authenticated_profile_id
   WHERE patient_id = p_guest_profile_id;
-  
+
   -- Reassign notifications
-  UPDATE notifications 
-  SET user_id = p_authenticated_profile_id 
+  UPDATE notifications
+  SET user_id = p_authenticated_profile_id
   WHERE user_id = p_guest_profile_id;
-  
+
   -- Reassign any requests (legacy table)
-  UPDATE requests 
-  SET patient_id = p_authenticated_profile_id 
+  UPDATE requests
+  SET patient_id = p_authenticated_profile_id
   WHERE patient_id = p_guest_profile_id;
-  
+
   -- Delete the guest profile
   DELETE FROM profiles WHERE id = p_guest_profile_id;
-  
+
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
@@ -10294,7 +9891,7 @@ CREATE INDEX IF NOT EXISTS idx_intakes_payment_status ON intakes(payment_status)
 CREATE INDEX IF NOT EXISTS idx_intakes_created_at ON intakes(created_at DESC);
 
 -- Composite index for doctor queue queries
-CREATE INDEX IF NOT EXISTS idx_intakes_queue ON intakes(status, payment_status, created_at DESC) 
+CREATE INDEX IF NOT EXISTS idx_intakes_queue ON intakes(status, payment_status, created_at DESC)
   WHERE status IN ('paid', 'in_review');
 
 -- Requests table (legacy): similar indexes
@@ -10352,8 +9949,8 @@ CREATE TABLE IF NOT EXISTS failed_profile_merges (
 );
 
 -- Index for admin dashboard queries
-CREATE INDEX idx_failed_profile_merges_unresolved 
-ON failed_profile_merges(created_at DESC) 
+CREATE INDEX idx_failed_profile_merges_unresolved
+ON failed_profile_merges(created_at DESC)
 WHERE resolved_at IS NULL;
 
 -- RLS: Only admins can view/manage failed merges
@@ -10364,7 +9961,7 @@ ON failed_profile_merges FOR SELECT
 TO authenticated
 USING (
   EXISTS (
-    SELECT 1 FROM profiles 
+    SELECT 1 FROM profiles
     WHERE profiles.auth_user_id = (SELECT auth.uid())
     AND profiles.role IN ('admin', 'doctor')
   )
@@ -10375,7 +9972,7 @@ ON failed_profile_merges FOR UPDATE
 TO authenticated
 USING (
   EXISTS (
-    SELECT 1 FROM profiles 
+    SELECT 1 FROM profiles
     WHERE profiles.auth_user_id = (SELECT auth.uid())
     AND profiles.role = 'admin'
   )
@@ -10424,11 +10021,11 @@ CREATE POLICY "intake_drafts_claim_guest" ON public.intake_drafts
     user_id = (select auth.uid())
   );
 
-COMMENT ON POLICY "intake_drafts_user_select" ON public.intake_drafts IS 
+COMMENT ON POLICY "intake_drafts_user_select" ON public.intake_drafts IS
   'Users can only read their own drafts. Guest drafts accessed via service role.';
-COMMENT ON POLICY "intake_drafts_user_update" ON public.intake_drafts IS 
+COMMENT ON POLICY "intake_drafts_user_update" ON public.intake_drafts IS
   'Users can only update their own drafts.';
-COMMENT ON POLICY "intake_drafts_claim_guest" ON public.intake_drafts IS 
+COMMENT ON POLICY "intake_drafts_claim_guest" ON public.intake_drafts IS
   'Authenticated users can claim guest drafts (set user_id on drafts where user_id is null).';
 
 
@@ -10461,8 +10058,8 @@ CREATE TABLE public.clinic_identity (
 );
 
 -- Ensure only one active record at a time
-CREATE UNIQUE INDEX idx_clinic_identity_active 
-  ON public.clinic_identity (is_active) 
+CREATE UNIQUE INDEX idx_clinic_identity_active
+  ON public.clinic_identity (is_active)
   WHERE is_active = true;
 
 -- Trigger for updated_at
@@ -10474,34 +10071,34 @@ CREATE TRIGGER clinic_identity_updated_at
 ALTER TABLE public.clinic_identity ENABLE ROW LEVEL SECURITY;
 
 -- Anyone authenticated can read active clinic identity (needed for certificate generation)
-CREATE POLICY "Anyone can read active clinic identity" 
+CREATE POLICY "Anyone can read active clinic identity"
   ON public.clinic_identity
-  FOR SELECT 
+  FOR SELECT
   TO authenticated
   USING (is_active = true);
 
 -- Admins can manage clinic identity
-CREATE POLICY "Admins can manage clinic identity" 
+CREATE POLICY "Admins can manage clinic identity"
   ON public.clinic_identity
-  FOR ALL 
+  FOR ALL
   USING (
     EXISTS (
-      SELECT 1 FROM profiles 
-      WHERE auth_user_id = (SELECT auth.uid()) 
+      SELECT 1 FROM profiles
+      WHERE auth_user_id = (SELECT auth.uid())
       AND role = 'admin'
     )
   );
 
 -- Seed default clinic identity
 INSERT INTO public.clinic_identity (
-  clinic_name, 
-  trading_name, 
-  address_line_1, 
-  suburb, 
-  state, 
-  postcode, 
-  abn, 
-  footer_disclaimer, 
+  clinic_name,
+  trading_name,
+  address_line_1,
+  suburb,
+  state,
+  postcode,
+  abn,
+  footer_disclaimer,
   is_active
 ) VALUES (
   'InstantMed Pty Ltd',
@@ -10536,41 +10133,41 @@ CREATE TABLE public.certificate_templates (
   activated_by UUID REFERENCES public.profiles(id),
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   created_by UUID REFERENCES public.profiles(id),
-  
+
   UNIQUE(template_type, version)
 );
 
 -- Only one active template per type
-CREATE UNIQUE INDEX idx_certificate_templates_active 
-  ON public.certificate_templates (template_type) 
+CREATE UNIQUE INDEX idx_certificate_templates_active
+  ON public.certificate_templates (template_type)
   WHERE is_active = true;
 
 -- Index for type lookups
-CREATE INDEX idx_certificate_templates_type 
+CREATE INDEX idx_certificate_templates_type
   ON public.certificate_templates(template_type);
 
 -- Index for version ordering
-CREATE INDEX idx_certificate_templates_version 
+CREATE INDEX idx_certificate_templates_version
   ON public.certificate_templates(template_type, version DESC);
 
 -- RLS
 ALTER TABLE public.certificate_templates ENABLE ROW LEVEL SECURITY;
 
 -- Anyone authenticated can read templates (doctors need this for certificate generation)
-CREATE POLICY "Anyone authenticated can read templates" 
+CREATE POLICY "Anyone authenticated can read templates"
   ON public.certificate_templates
-  FOR SELECT 
-  TO authenticated 
+  FOR SELECT
+  TO authenticated
   USING (true);
 
 -- Admins can manage templates
-CREATE POLICY "Admins can manage templates" 
+CREATE POLICY "Admins can manage templates"
   ON public.certificate_templates
-  FOR ALL 
+  FOR ALL
   USING (
     EXISTS (
-      SELECT 1 FROM profiles 
-      WHERE auth_user_id = (SELECT auth.uid()) 
+      SELECT 1 FROM profiles
+      WHERE auth_user_id = (SELECT auth.uid())
       AND role = 'admin'
     )
   );
@@ -10595,11 +10192,11 @@ CREATE POLICY "Admins can manage templates"
 
 -- Seed initial templates for each type
 INSERT INTO public.certificate_templates (template_type, version, name, config, is_active, activated_at)
-VALUES 
+VALUES
   (
-    'med_cert_work', 
-    1, 
-    'Work Certificate v1', 
+    'med_cert_work',
+    1,
+    'Work Certificate v1',
     '{
       "layout": {
         "headerStyle": "logo-left",
@@ -10615,14 +10212,14 @@ VALUES
         "showEmail": true,
         "showAddress": true
       }
-    }'::jsonb, 
-    true, 
+    }'::jsonb,
+    true,
     NOW()
   ),
   (
-    'med_cert_uni', 
-    1, 
-    'University Certificate v1', 
+    'med_cert_uni',
+    1,
+    'University Certificate v1',
     '{
       "layout": {
         "headerStyle": "logo-left",
@@ -10638,14 +10235,14 @@ VALUES
         "showEmail": true,
         "showAddress": true
       }
-    }'::jsonb, 
-    true, 
+    }'::jsonb,
+    true,
     NOW()
   ),
   (
-    'med_cert_carer', 
-    1, 
-    'Carer Certificate v1', 
+    'med_cert_carer',
+    1,
+    'Carer Certificate v1',
     '{
       "layout": {
         "headerStyle": "logo-left",
@@ -10661,8 +10258,8 @@ VALUES
         "showEmail": true,
         "showAddress": true
       }
-    }'::jsonb, 
-    true, 
+    }'::jsonb,
+    true,
     NOW()
   );
 
@@ -10678,23 +10275,23 @@ COMMENT ON COLUMN public.certificate_templates.config IS 'JSON configuration for
 -- ============================================================================
 
 -- Add provider number (Medicare provider number - 6 digits + 1 check character)
-ALTER TABLE public.profiles 
+ALTER TABLE public.profiles
 ADD COLUMN IF NOT EXISTS provider_number TEXT;
 
 -- Add nominals (e.g., "MBBS, FRACGP")
-ALTER TABLE public.profiles 
+ALTER TABLE public.profiles
 ADD COLUMN IF NOT EXISTS nominals TEXT;
 
 -- Add signature image storage path
-ALTER TABLE public.profiles 
+ALTER TABLE public.profiles
 ADD COLUMN IF NOT EXISTS signature_storage_path TEXT;
 
 -- Add flag for whether certificate identity is complete
-ALTER TABLE public.profiles 
+ALTER TABLE public.profiles
 ADD COLUMN IF NOT EXISTS certificate_identity_complete BOOLEAN DEFAULT false;
 
 -- Index for provider number lookups
-CREATE INDEX IF NOT EXISTS idx_profiles_provider_number ON public.profiles(provider_number) 
+CREATE INDEX IF NOT EXISTS idx_profiles_provider_number ON public.profiles(provider_number)
 WHERE provider_number IS NOT NULL;
 
 -- Comments
@@ -10709,9 +10306,9 @@ RETURNS TRIGGER AS $$
 BEGIN
   -- Certificate identity is complete if both provider_number and ahpra_number are set
   NEW.certificate_identity_complete := (
-    NEW.provider_number IS NOT NULL AND 
+    NEW.provider_number IS NOT NULL AND
     NEW.provider_number != '' AND
-    NEW.ahpra_number IS NOT NULL AND 
+    NEW.ahpra_number IS NOT NULL AND
     NEW.ahpra_number != ''
   );
   RETURN NEW;
@@ -10728,9 +10325,9 @@ CREATE TRIGGER trigger_check_certificate_identity
 -- Update existing doctor profiles to set the flag correctly
 UPDATE public.profiles
 SET certificate_identity_complete = (
-  provider_number IS NOT NULL AND 
+  provider_number IS NOT NULL AND
   provider_number != '' AND
-  ahpra_number IS NOT NULL AND 
+  ahpra_number IS NOT NULL AND
   ahpra_number != ''
 )
 WHERE role IN ('doctor', 'admin');
@@ -10754,68 +10351,68 @@ CREATE TYPE public.certificate_status AS ENUM (
 -- Main issued certificates table
 CREATE TABLE public.issued_certificates (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  
+
   -- Core identifiers
   intake_id UUID NOT NULL REFERENCES public.intakes(id) ON DELETE RESTRICT,
   certificate_number TEXT NOT NULL UNIQUE,
   verification_code TEXT NOT NULL,
-  
+
   -- Idempotency key: hash of intake_id + doctor_id + issue_date
   -- Prevents duplicate certificates for the same intake
   idempotency_key TEXT NOT NULL UNIQUE,
-  
+
   -- Certificate details
   certificate_type TEXT NOT NULL CHECK (certificate_type IN ('work', 'study', 'carer')),
   status public.certificate_status NOT NULL DEFAULT 'valid',
-  
+
   -- Dates
   issue_date DATE NOT NULL,
   start_date DATE NOT NULL,
   end_date DATE NOT NULL,
-  
+
   -- Patient snapshot (immutable at time of issue)
   patient_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE RESTRICT,
   patient_name TEXT NOT NULL,
   patient_dob DATE,
-  
+
   -- Doctor snapshot (immutable at time of issue)
   doctor_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE RESTRICT,
   doctor_name TEXT NOT NULL,
   doctor_nominals TEXT,
   doctor_provider_number TEXT NOT NULL,
   doctor_ahpra_number TEXT NOT NULL,
-  
+
   -- Template versioning (for locked rendering)
   template_id UUID REFERENCES public.certificate_templates(id),
   template_version INTEGER,
   template_config_snapshot JSONB NOT NULL,
   clinic_identity_snapshot JSONB NOT NULL,
-  
+
   -- Storage
   storage_path TEXT NOT NULL,
   pdf_hash TEXT, -- SHA-256 for integrity verification
   file_size_bytes INTEGER,
-  
+
   -- Email delivery tracking
   email_sent_at TIMESTAMPTZ,
   email_delivery_id TEXT, -- Resend message ID
   email_failed_at TIMESTAMPTZ,
   email_failure_reason TEXT,
   email_retry_count INTEGER DEFAULT 0,
-  
+
   -- Revocation (if applicable)
   revoked_at TIMESTAMPTZ,
   revoked_by UUID REFERENCES public.profiles(id),
   revocation_reason TEXT,
-  
+
   -- Timestamps
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  
+
   -- Constraints
   CONSTRAINT valid_date_range CHECK (end_date >= start_date),
   CONSTRAINT valid_revocation CHECK (
-    (status != 'revoked') OR 
+    (status != 'revoked') OR
     (status = 'revoked' AND revoked_at IS NOT NULL AND revocation_reason IS NOT NULL)
   )
 );
@@ -10826,7 +10423,7 @@ CREATE INDEX idx_issued_certificates_patient ON public.issued_certificates(patie
 CREATE INDEX idx_issued_certificates_doctor ON public.issued_certificates(doctor_id);
 CREATE INDEX idx_issued_certificates_status ON public.issued_certificates(status) WHERE status = 'valid';
 CREATE INDEX idx_issued_certificates_verification ON public.issued_certificates(verification_code);
-CREATE INDEX idx_issued_certificates_email_failed ON public.issued_certificates(email_failed_at) 
+CREATE INDEX idx_issued_certificates_email_failed ON public.issued_certificates(email_failed_at)
   WHERE email_failed_at IS NOT NULL AND email_sent_at IS NULL;
 
 -- RLS
@@ -10882,24 +10479,24 @@ CREATE TYPE public.certificate_event_type AS ENUM (
 
 CREATE TABLE public.certificate_audit_log (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  
+
   -- Certificate reference
   certificate_id UUID NOT NULL REFERENCES public.issued_certificates(id) ON DELETE RESTRICT,
-  
+
   -- Event details
   event_type public.certificate_event_type NOT NULL,
-  
+
   -- Actor (who triggered the event)
   actor_id UUID REFERENCES public.profiles(id),
   actor_role TEXT CHECK (actor_role IN ('patient', 'doctor', 'admin', 'system')),
-  
+
   -- Event metadata
   event_data JSONB NOT NULL DEFAULT '{}'::jsonb,
-  
+
   -- Request context
   ip_address INET,
   user_agent TEXT,
-  
+
   -- Immutable timestamp
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -10907,6 +10504,7 @@ CREATE TABLE public.certificate_audit_log (
 -- Index for certificate lookup
 CREATE INDEX idx_certificate_audit_log_cert ON public.certificate_audit_log(certificate_id);
 CREATE INDEX idx_certificate_audit_log_type ON public.certificate_audit_log(event_type);
+CREATE INDEX IF NOT EXISTS idx_certificate_audit_log_actor_id ON public.certificate_audit_log(actor_id);
 
 -- RLS
 ALTER TABLE public.certificate_audit_log ENABLE ROW LEVEL SECURITY;
@@ -10963,7 +10561,7 @@ BEGIN
     p_user_agent
   )
   RETURNING id INTO v_log_id;
-  
+
   RETURN v_log_id;
 END;
 $$;
@@ -10983,31 +10581,31 @@ CREATE TYPE public.email_status AS ENUM (
 
 CREATE TABLE public.email_delivery_log (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  
+
   -- Reference to certificate (if applicable)
   certificate_id UUID REFERENCES public.issued_certificates(id) ON DELETE SET NULL,
   intake_id UUID REFERENCES public.intakes(id) ON DELETE SET NULL,
-  
+
   -- Recipient
   recipient_id UUID REFERENCES public.profiles(id),
   recipient_email TEXT NOT NULL,
-  
+
   -- Email details
   email_type TEXT NOT NULL, -- 'certificate_issued', 'certificate_ready', etc.
   subject TEXT NOT NULL,
-  
+
   -- Delivery status
   status public.email_status NOT NULL DEFAULT 'pending',
-  
+
   -- External tracking
   resend_message_id TEXT,
-  
+
   -- Failure tracking
   failure_reason TEXT,
   retry_count INTEGER DEFAULT 0,
   max_retries INTEGER DEFAULT 3,
   next_retry_at TIMESTAMPTZ,
-  
+
   -- Timestamps
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   sent_at TIMESTAMPTZ,
@@ -11016,10 +10614,12 @@ CREATE TABLE public.email_delivery_log (
 );
 
 -- Indexes
-CREATE INDEX idx_email_delivery_log_status ON public.email_delivery_log(status) 
+CREATE INDEX idx_email_delivery_log_status ON public.email_delivery_log(status)
   WHERE status IN ('failed', 'retrying');
 CREATE INDEX idx_email_delivery_log_certificate ON public.email_delivery_log(certificate_id);
-CREATE INDEX idx_email_delivery_log_retry ON public.email_delivery_log(next_retry_at) 
+CREATE INDEX IF NOT EXISTS idx_email_delivery_log_intake_id ON public.email_delivery_log(intake_id);
+CREATE INDEX IF NOT EXISTS idx_email_delivery_log_recipient_id ON public.email_delivery_log(recipient_id);
+CREATE INDEX idx_email_delivery_log_retry ON public.email_delivery_log(next_retry_at)
   WHERE status = 'retrying' AND next_retry_at IS NOT NULL;
 
 -- RLS
@@ -11053,24 +10653,24 @@ COMMENT ON TABLE public.email_delivery_log IS 'Track email delivery attempts wit
 
 CREATE TABLE IF NOT EXISTS public.email_templates (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  
+
   -- Template identification
   slug TEXT UNIQUE NOT NULL,
   name TEXT NOT NULL,
   description TEXT,
-  
+
   -- Template content
   subject TEXT NOT NULL,
   body_html TEXT NOT NULL,
   body_text TEXT, -- Plain text fallback
-  
+
   -- Merge tags available for this template
   available_tags JSONB DEFAULT '[]',
-  
+
   -- Versioning
   version INTEGER NOT NULL DEFAULT 1,
   is_active BOOLEAN NOT NULL DEFAULT true,
-  
+
   -- Audit
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -11091,51 +10691,51 @@ CREATE TRIGGER email_templates_updated_at
 ALTER TABLE public.email_templates ENABLE ROW LEVEL SECURITY;
 
 -- Admins can manage email templates
-CREATE POLICY "Admins can manage email templates" 
+CREATE POLICY "Admins can manage email templates"
   ON public.email_templates
-  FOR ALL 
+  FOR ALL
   USING (
     EXISTS (
-      SELECT 1 FROM profiles 
-      WHERE auth_user_id = (SELECT auth.uid()) 
+      SELECT 1 FROM profiles
+      WHERE auth_user_id = (SELECT auth.uid())
       AND role = 'admin'
     )
   );
 
 -- System can read active templates (for sending emails)
-CREATE POLICY "System can read active templates" 
+CREATE POLICY "System can read active templates"
   ON public.email_templates
-  FOR SELECT 
+  FOR SELECT
   TO authenticated
   USING (is_active = true);
 
 -- Seed default templates
 INSERT INTO public.email_templates (slug, name, description, subject, body_html, available_tags) VALUES
-  ('certificate-issued', 'Certificate Issued', 'Sent when a medical certificate is issued', 
+  ('certificate-issued', 'Certificate Issued', 'Sent when a medical certificate is issued',
    'Your medical certificate is ready',
    '<h1>Hi {{patient_name}},</h1><p>Your medical certificate has been issued and is ready to download.</p><p><a href="{{certificate_link}}">Download Certificate</a></p><p>Certificate ID: {{certificate_id}}</p><p>Best regards,<br>InstantMed Team</p>',
    '["patient_name", "certificate_link", "certificate_id"]'),
-  
+
   ('request-approved', 'Request Approved', 'Sent when a request is approved by a doctor',
    'Good news - your request has been approved',
    '<h1>Hi {{patient_name}},</h1><p>Your {{service_name}} request has been reviewed and approved by Dr. {{doctor_name}}.</p><p>{{next_steps}}</p><p>Best regards,<br>InstantMed Team</p>',
    '["patient_name", "service_name", "doctor_name", "next_steps"]'),
-  
+
   ('request-declined', 'Request Declined', 'Sent when a request is declined',
    'Update on your request',
    '<h1>Hi {{patient_name}},</h1><p>Unfortunately, we were unable to approve your {{service_name}} request at this time.</p><p><strong>Reason:</strong> {{decline_reason}}</p><p>{{recommendations}}</p><p>If you have questions, please contact us.</p><p>Best regards,<br>InstantMed Team</p>',
    '["patient_name", "service_name", "decline_reason", "recommendations"]'),
-  
+
   ('prescription-ready', 'Prescription Ready', 'Sent when an eScript is ready',
    'Your eScript is ready',
    '<h1>Hi {{patient_name}},</h1><p>Your prescription has been sent to your phone via SMS.</p><p><strong>Medication:</strong> {{medication_name}}</p><p>Take your phone to any pharmacy to collect your medication.</p><p>Best regards,<br>InstantMed Team</p>',
    '["patient_name", "medication_name"]'),
-  
+
   ('payment-received', 'Payment Received', 'Sent when payment is confirmed',
    'Payment confirmed - your request is in queue',
    '<h1>Hi {{patient_name}},</h1><p>Thank you for your payment of {{amount}}.</p><p>Your {{service_name}} request is now in the doctor''s queue for review.</p><p>You''ll receive an update once your request has been reviewed.</p><p>Best regards,<br>InstantMed Team</p>',
    '["patient_name", "amount", "service_name"]'),
-  
+
   ('refund-processed', 'Refund Processed', 'Sent when a refund is processed',
    'Your refund has been processed',
    '<h1>Hi {{patient_name}},</h1><p>A refund of {{amount}} has been processed for your {{service_name}} request.</p><p><strong>Reason:</strong> {{refund_reason}}</p><p>The refund should appear in your account within 5-10 business days.</p><p>Best regards,<br>InstantMed Team</p>',
@@ -11153,21 +10753,21 @@ COMMENT ON TABLE public.email_templates IS 'Editable transactional email templat
 
 CREATE TABLE IF NOT EXISTS public.content_blocks (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  
+
   -- Content identification
   key TEXT UNIQUE NOT NULL,
   name TEXT NOT NULL,
   description TEXT,
   category TEXT NOT NULL DEFAULT 'general',
-  
+
   -- Content
   content TEXT NOT NULL,
   content_type TEXT NOT NULL DEFAULT 'text' CHECK (content_type IN ('text', 'html', 'markdown')),
-  
+
   -- Metadata
   context TEXT, -- Where this content is used
   max_length INTEGER, -- Max character limit if applicable
-  
+
   -- Audit
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -11187,54 +10787,54 @@ CREATE TRIGGER content_blocks_updated_at
 ALTER TABLE public.content_blocks ENABLE ROW LEVEL SECURITY;
 
 -- Anyone can read content blocks (public content)
-CREATE POLICY "Anyone can read content blocks" 
+CREATE POLICY "Anyone can read content blocks"
   ON public.content_blocks
-  FOR SELECT 
+  FOR SELECT
   TO authenticated
   USING (true);
 
 -- Admins can manage content blocks
-CREATE POLICY "Admins can manage content blocks" 
+CREATE POLICY "Admins can manage content blocks"
   ON public.content_blocks
-  FOR ALL 
+  FOR ALL
   USING (
     EXISTS (
-      SELECT 1 FROM profiles 
-      WHERE auth_user_id = (SELECT auth.uid()) 
+      SELECT 1 FROM profiles
+      WHERE auth_user_id = (SELECT auth.uid())
       AND role = 'admin'
     )
   );
 
 -- Seed default content blocks
 INSERT INTO public.content_blocks (key, name, description, category, content, context) VALUES
-  ('med_cert_intro', 'Medical Certificate Intro', 'Introduction text on med cert request page', 'med_cert', 
+  ('med_cert_intro', 'Medical Certificate Intro', 'Introduction text on med cert request page', 'med_cert',
    'Get a medical certificate reviewed by an Australian doctor. Most requests are reviewed within an hour during business hours.',
    'Medical certificate request page header'),
-  
+
   ('repeat_rx_intro', 'Repeat Prescription Intro', 'Introduction text on repeat rx page', 'repeat_rx',
    'Request a repeat of your regular medication. A doctor will review your request and send an eScript to your phone.',
    'Repeat prescription request page header'),
-  
+
   ('safety_warning', 'Safety Warning', 'Emergency safety warning text', 'safety',
    'If you are experiencing a medical emergency, please call 000 immediately or go to your nearest emergency department.',
    'Safety screening and emergency pages'),
-  
+
   ('payment_disclaimer', 'Payment Disclaimer', 'Disclaimer shown before payment', 'payment',
    'Payment is required before your request can be reviewed. If your request cannot be approved, you may be eligible for a refund.',
    'Payment page'),
-  
+
   ('certificate_footer', 'Certificate Footer', 'Default footer for certificates', 'certificate',
    'This certificate was issued via InstantMed telehealth services. Verify authenticity at instantmed.com.au/verify',
    'Generated certificates footer'),
-  
+
   ('review_sla', 'Review SLA Text', 'SLA promise text', 'general',
    'Most requests are reviewed within 1 hour during business hours (9am-9pm AEST, 7 days).',
    'Various pages showing expected wait time'),
-  
+
   ('privacy_notice', 'Privacy Notice', 'Short privacy notice', 'legal',
    'Your information is handled in accordance with Australian privacy laws. We never share your medical information without consent.',
    'Forms and data collection pages'),
-  
+
   ('id_verification_help', 'ID Verification Help', 'Help text for ID verification', 'help',
    'We need to verify your identity to ensure the safety of our telehealth services. Please upload a clear photo of your Australian driver''s licence or passport.',
    'ID verification step');
@@ -11536,297 +11136,19 @@ CREATE TRIGGER trg_update_cert_edit_count
   EXECUTE FUNCTION public.update_certificate_edit_count();
 
 -- Grant execute permissions
-GRANT EXECUTE ON FUNCTION public.claim_intake_for_review TO authenticated;
-GRANT EXECUTE ON FUNCTION public.release_intake_claim TO authenticated;
-GRANT EXECUTE ON FUNCTION public.release_stale_intake_claims TO service_role;
-GRANT EXECUTE ON FUNCTION public.log_certificate_edit TO service_role;
+GRANT EXECUTE ON FUNCTION public.claim_intake_for_review(uuid, uuid, boolean) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.release_intake_claim(uuid, uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.release_stale_intake_claims(integer) TO service_role;
+GRANT EXECUTE ON FUNCTION public.log_certificate_edit(uuid, uuid, uuid, text, text, text, text) TO service_role;
 
 
 -- ── 20260122000002_add_pdf_hash_to_atomic_approval.sql ──
-
--- ============================================================================
--- ADD PDF HASH TO ATOMIC CERTIFICATE APPROVAL
--- Enables integrity verification of issued certificates
--- ============================================================================
-
--- Drop and recreate the function with pdf_hash parameter
-DROP FUNCTION IF EXISTS public.atomic_approve_certificate;
-
-CREATE OR REPLACE FUNCTION public.atomic_approve_certificate(
-  -- Intake identification
-  p_intake_id UUID,
-
-  -- Certificate data
-  p_certificate_number TEXT,
-  p_verification_code TEXT,
-  p_idempotency_key TEXT,
-  p_certificate_type TEXT,
-  p_issue_date DATE,
-  p_start_date DATE,
-  p_end_date DATE,
-
-  -- Patient snapshot
-  p_patient_id UUID,
-  p_patient_name TEXT,
-  p_patient_dob DATE,
-
-  -- Doctor snapshot
-  p_doctor_id UUID,
-  p_doctor_name TEXT,
-  p_doctor_nominals TEXT,
-  p_doctor_provider_number TEXT,
-  p_doctor_ahpra_number TEXT,
-
-  -- Template snapshots (JSONB)
-  p_template_config_snapshot JSONB,
-  p_clinic_identity_snapshot JSONB,
-
-  -- Storage info
-  p_storage_path TEXT,
-  p_file_size_bytes INTEGER,
-
-  -- Legacy intake_documents fields
-  p_filename TEXT,
-
-  -- PDF integrity verification (NEW)
-  p_pdf_hash TEXT DEFAULT NULL
-)
-RETURNS TABLE (
-  certificate_id UUID,
-  intake_document_id UUID,
-  success BOOLEAN,
-  error_message TEXT,
-  is_duplicate BOOLEAN
-)
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = 'public'
-AS $$
-DECLARE
-  v_certificate_id UUID;
-  v_intake_document_id UUID;
-  v_current_status TEXT;
-  v_existing_cert_id UUID;
-BEGIN
-  -- ============================================
-  -- STEP 1: Check for existing certificate (idempotency)
-  -- ============================================
-  SELECT id INTO v_existing_cert_id
-  FROM issued_certificates
-  WHERE idempotency_key = p_idempotency_key;
-
-  IF v_existing_cert_id IS NOT NULL THEN
-    -- Certificate already exists - return it (idempotent)
-    RETURN QUERY SELECT
-      v_existing_cert_id,
-      NULL::UUID,
-      TRUE,
-      NULL::TEXT,
-      TRUE;
-    RETURN;
-  END IF;
-
-  -- ============================================
-  -- STEP 2: Validate intake status
-  -- ============================================
-  SELECT status INTO v_current_status
-  FROM intakes
-  WHERE id = p_intake_id
-  FOR UPDATE; -- Lock the row to prevent concurrent modifications
-
-  IF v_current_status IS NULL THEN
-    RETURN QUERY SELECT NULL::UUID, NULL::UUID, FALSE, 'Intake not found'::TEXT, FALSE;
-    RETURN;
-  END IF;
-
-  -- Allow processing (set by optimistic lock) or already approved (idempotent)
-  IF v_current_status NOT IN ('processing', 'approved') THEN
-    RETURN QUERY SELECT NULL::UUID, NULL::UUID, FALSE,
-      ('Invalid intake status: ' || v_current_status)::TEXT, FALSE;
-    RETURN;
-  END IF;
-
-  -- If already approved, find the certificate
-  IF v_current_status = 'approved' THEN
-    SELECT id INTO v_existing_cert_id
-    FROM issued_certificates
-    WHERE intake_id = p_intake_id
-    AND status = 'valid'
-    LIMIT 1;
-
-    IF v_existing_cert_id IS NOT NULL THEN
-      RETURN QUERY SELECT v_existing_cert_id, NULL::UUID, TRUE, NULL::TEXT, TRUE;
-      RETURN;
-    END IF;
-  END IF;
-
-  -- ============================================
-  -- STEP 3: Create issued_certificates record
-  -- ============================================
-  INSERT INTO issued_certificates (
-    intake_id,
-    certificate_number,
-    verification_code,
-    idempotency_key,
-    certificate_type,
-    status,
-    issue_date,
-    start_date,
-    end_date,
-    patient_id,
-    patient_name,
-    patient_dob,
-    doctor_id,
-    doctor_name,
-    doctor_nominals,
-    doctor_provider_number,
-    doctor_ahpra_number,
-    template_config_snapshot,
-    clinic_identity_snapshot,
-    storage_path,
-    file_size_bytes,
-    pdf_hash
-  )
-  VALUES (
-    p_intake_id,
-    p_certificate_number,
-    p_verification_code,
-    p_idempotency_key,
-    p_certificate_type,
-    'valid',
-    p_issue_date,
-    p_start_date,
-    p_end_date,
-    p_patient_id,
-    p_patient_name,
-    p_patient_dob,
-    p_doctor_id,
-    p_doctor_name,
-    p_doctor_nominals,
-    p_doctor_provider_number,
-    p_doctor_ahpra_number,
-    p_template_config_snapshot,
-    p_clinic_identity_snapshot,
-    p_storage_path,
-    p_file_size_bytes,
-    p_pdf_hash
-  )
-  RETURNING id INTO v_certificate_id;
-
-  -- ============================================
-  -- STEP 4: Create intake_documents record (legacy table)
-  -- ============================================
-  INSERT INTO intake_documents (
-    intake_id,
-    document_type,
-    filename,
-    storage_path,
-    mime_type,
-    file_size_bytes,
-    certificate_number,
-    created_by,
-    metadata
-  )
-  VALUES (
-    p_intake_id,
-    'med_cert',
-    p_filename,
-    p_storage_path,
-    'application/pdf',
-    p_file_size_bytes,
-    p_certificate_number,
-    p_doctor_id,
-    jsonb_build_object(
-      'patient_name', p_patient_name,
-      'certificate_type', p_certificate_type,
-      'start_date', p_start_date,
-      'end_date', p_end_date,
-      'pdf_hash', p_pdf_hash
-    )
-  )
-  RETURNING id INTO v_intake_document_id;
-
-  -- ============================================
-  -- STEP 5: Update intake status to approved
-  -- ============================================
-  UPDATE intakes
-  SET
-    status = 'approved',
-    reviewed_by = p_doctor_id,
-    reviewed_at = NOW(),
-    decided_at = NOW(),
-    decision = 'approved',
-    approved_at = NOW(),
-    updated_at = NOW()
-  WHERE id = p_intake_id
-  AND status IN ('processing', 'approved'); -- Safety: only update from expected states
-
-  IF NOT FOUND THEN
-    -- This shouldn't happen due to the FOR UPDATE lock, but handle it gracefully
-    RAISE EXCEPTION 'Failed to update intake status - concurrent modification detected';
-  END IF;
-
-  -- ============================================
-  -- STEP 6: Log certificate issuance event
-  -- ============================================
-  INSERT INTO certificate_audit_log (
-    certificate_id,
-    event_type,
-    actor_id,
-    actor_role,
-    metadata
-  )
-  VALUES (
-    v_certificate_id,
-    'issued',
-    p_doctor_id,
-    'doctor',
-    jsonb_build_object(
-      'intake_id', p_intake_id,
-      'certificate_type', p_certificate_type,
-      'storage_path', p_storage_path,
-      'pdf_hash', p_pdf_hash
-    )
-  );
-
-  -- ============================================
-  -- Return success
-  -- ============================================
-  RETURN QUERY SELECT v_certificate_id, v_intake_document_id, TRUE, NULL::TEXT, FALSE;
-
-EXCEPTION
-  WHEN unique_violation THEN
-    -- Handle race condition where another request created the certificate
-    SELECT id INTO v_existing_cert_id
-    FROM issued_certificates
-    WHERE idempotency_key = p_idempotency_key;
-
-    IF v_existing_cert_id IS NOT NULL THEN
-      RETURN QUERY SELECT v_existing_cert_id, NULL::UUID, TRUE, NULL::TEXT, TRUE;
-    ELSE
-      RETURN QUERY SELECT NULL::UUID, NULL::UUID, FALSE,
-        'Unique constraint violation'::TEXT, FALSE;
-    END IF;
-
-  WHEN OTHERS THEN
-    RETURN QUERY SELECT NULL::UUID, NULL::UUID, FALSE, SQLERRM::TEXT, FALSE;
-END;
-$$;
-
--- Grant execute permission
-GRANT EXECUTE ON FUNCTION public.atomic_approve_certificate TO authenticated;
-GRANT EXECUTE ON FUNCTION public.atomic_approve_certificate TO service_role;
-
-COMMENT ON FUNCTION public.atomic_approve_certificate IS
-'Atomic function to approve a certificate: creates issued_certificates record,
-intake_documents record, and updates intake status in a single transaction.
-Includes idempotency handling and PDF hash for integrity verification.';
-
+-- Skipped in the squashed baseline: obsolete intermediate RPC body is replaced by later definitions.
 
 -- ── 20260122000003_p1_p2_security_fixes.sql ──
 
 -- Migration: P1/P2 Security and Performance Fixes
--- 
+--
 -- Fixes addressed:
 -- 1. P1: Missing database indexes for queue performance
 -- 2. P2: No expiry for payment-pending intakes
@@ -11844,7 +11166,7 @@ WHERE status IN ('paid', 'in_review', 'pending_info');
 -- Index for finding stale claims quickly
 CREATE INDEX IF NOT EXISTS idx_intakes_stale_claims
 ON intakes (claimed_at)
-WHERE claimed_by IS NOT NULL 
+WHERE claimed_by IS NOT NULL
   AND status IN ('paid', 'in_review');
 
 -- Index for idempotency key lookups (checkout duplicate prevention)
@@ -11889,7 +11211,7 @@ BEGIN
   -- Find and expire intakes that have been pending_payment for too long
   WITH expired AS (
     UPDATE intakes
-    SET 
+    SET
       status = 'expired',
       updated_at = NOW(),
       expired_at = NOW(),
@@ -11908,7 +11230,7 @@ $$;
 
 GRANT EXECUTE ON FUNCTION public.expire_pending_payment_intakes TO service_role;
 
-COMMENT ON FUNCTION public.expire_pending_payment_intakes IS 
+COMMENT ON FUNCTION public.expire_pending_payment_intakes IS
 'Expires payment-pending intakes older than specified hours. Run via cron job.';
 
 -- ============================================
@@ -11930,14 +11252,14 @@ COMMENT ON COLUMN public.intakes.expiry_reason IS 'Reason for expiry (e.g., paym
 
 -- View for monitoring concurrent approvals (for alerting)
 CREATE OR REPLACE VIEW public.v_concurrent_claims AS
-SELECT 
+SELECT
   i.id as intake_id,
   i.status,
   i.claimed_by,
   p.full_name as claimed_by_name,
   i.claimed_at,
   EXTRACT(EPOCH FROM (NOW() - i.claimed_at)) / 60 as minutes_claimed,
-  CASE 
+  CASE
     WHEN i.claimed_at < NOW() - INTERVAL '30 minutes' THEN 'stale'
     WHEN i.claimed_at < NOW() - INTERVAL '15 minutes' THEN 'warning'
     ELSE 'active'
@@ -11948,7 +11270,7 @@ WHERE i.claimed_by IS NOT NULL
   AND i.status IN ('paid', 'in_review')
 ORDER BY i.claimed_at ASC;
 
-COMMENT ON VIEW public.v_concurrent_claims IS 
+COMMENT ON VIEW public.v_concurrent_claims IS
 'Monitor active intake claims for detecting stuck/stale claims';
 
 -- ============================================
@@ -11956,7 +11278,7 @@ COMMENT ON VIEW public.v_concurrent_claims IS
 -- ============================================
 
 -- Add 'expired' status if not exists (safe to run multiple times)
-DO $$ 
+DO $$
 BEGIN
   -- Check if 'expired' already exists in the check constraint or enum
   IF NOT EXISTS (
@@ -12004,12 +11326,12 @@ CREATE INDEX IF NOT EXISTS idx_stripe_disputes_status ON public.stripe_disputes(
 CREATE INDEX IF NOT EXISTS idx_stripe_disputes_created_at ON public.stripe_disputes(created_at DESC);
 
 -- Add dispute_id column to intakes if not exists
-DO $$ 
+DO $$
 BEGIN
   IF NOT EXISTS (
-    SELECT 1 FROM information_schema.columns 
-    WHERE table_schema = 'public' 
-    AND table_name = 'intakes' 
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public'
+    AND table_name = 'intakes'
     AND column_name = 'dispute_id'
   ) THEN
     ALTER TABLE public.intakes ADD COLUMN dispute_id TEXT;
@@ -12020,8 +11342,8 @@ END $$;
 DO $$
 BEGIN
   IF NOT EXISTS (
-    SELECT 1 FROM pg_enum 
-    WHERE enumlabel = 'disputed' 
+    SELECT 1 FROM pg_enum
+    WHERE enumlabel = 'disputed'
     AND enumtypid = (SELECT oid FROM pg_type WHERE typname = 'payment_status')
   ) THEN
     ALTER TYPE payment_status ADD VALUE IF NOT EXISTS 'disputed';
@@ -12033,12 +11355,12 @@ EXCEPTION
 END $$;
 
 -- Add ai_draft_status column to intakes for draft visibility (P1 fix)
-DO $$ 
+DO $$
 BEGIN
   IF NOT EXISTS (
-    SELECT 1 FROM information_schema.columns 
-    WHERE table_schema = 'public' 
-    AND table_name = 'intakes' 
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public'
+    AND table_name = 'intakes'
     AND column_name = 'ai_draft_status'
   ) THEN
     ALTER TABLE public.intakes ADD COLUMN ai_draft_status TEXT DEFAULT NULL;
@@ -12046,12 +11368,12 @@ BEGIN
 END $$;
 
 -- Add stripe_price_id column to intakes for retry pricing consistency (P3 fix)
-DO $$ 
+DO $$
 BEGIN
   IF NOT EXISTS (
-    SELECT 1 FROM information_schema.columns 
-    WHERE table_schema = 'public' 
-    AND table_name = 'intakes' 
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public'
+    AND table_name = 'intakes'
     AND column_name = 'stripe_price_id'
   ) THEN
     ALTER TABLE public.intakes ADD COLUMN stripe_price_id TEXT;
@@ -12059,12 +11381,12 @@ BEGIN
 END $$;
 
 -- Add guest_email column to intakes for abandoned checkout recovery (P1 fix)
-DO $$ 
+DO $$
 BEGIN
   IF NOT EXISTS (
-    SELECT 1 FROM information_schema.columns 
-    WHERE table_schema = 'public' 
-    AND table_name = 'intakes' 
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public'
+    AND table_name = 'intakes'
     AND column_name = 'guest_email'
   ) THEN
     ALTER TABLE public.intakes ADD COLUMN guest_email TEXT;
@@ -12072,12 +11394,12 @@ BEGIN
 END $$;
 
 -- Add confirmation_email_sent_at column to intakes for email resend deduplication (P0 fix)
-DO $$ 
+DO $$
 BEGIN
   IF NOT EXISTS (
-    SELECT 1 FROM information_schema.columns 
-    WHERE table_schema = 'public' 
-    AND table_name = 'intakes' 
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public'
+    AND table_name = 'intakes'
     AND column_name = 'confirmation_email_sent_at'
   ) THEN
     ALTER TABLE public.intakes ADD COLUMN confirmation_email_sent_at TIMESTAMPTZ;
@@ -12107,7 +11429,7 @@ COMMENT ON COLUMN public.intakes.guest_email IS 'Email for guest checkouts - use
 DO $$
 BEGIN
   IF NOT EXISTS (
-    SELECT 1 FROM information_schema.columns 
+    SELECT 1 FROM information_schema.columns
     WHERE table_name = 'email_logs' AND column_name = 'resend_id'
   ) THEN
     ALTER TABLE public.email_logs ADD COLUMN resend_id TEXT;
@@ -12118,7 +11440,7 @@ END $$;
 DO $$
 BEGIN
   IF NOT EXISTS (
-    SELECT 1 FROM information_schema.columns 
+    SELECT 1 FROM information_schema.columns
     WHERE table_name = 'email_logs' AND column_name = 'delivery_status'
   ) THEN
     ALTER TABLE public.email_logs ADD COLUMN delivery_status TEXT;
@@ -12129,7 +11451,7 @@ END $$;
 DO $$
 BEGIN
   IF NOT EXISTS (
-    SELECT 1 FROM information_schema.columns 
+    SELECT 1 FROM information_schema.columns
     WHERE table_name = 'email_logs' AND column_name = 'delivery_status_updated_at'
   ) THEN
     ALTER TABLE public.email_logs ADD COLUMN delivery_status_updated_at TIMESTAMPTZ;
@@ -12140,7 +11462,7 @@ END $$;
 DO $$
 BEGIN
   IF NOT EXISTS (
-    SELECT 1 FROM information_schema.columns 
+    SELECT 1 FROM information_schema.columns
     WHERE table_name = 'email_logs' AND column_name = 'last_error'
   ) THEN
     ALTER TABLE public.email_logs ADD COLUMN last_error TEXT;
@@ -12148,11 +11470,11 @@ BEGIN
 END $$;
 
 -- Create indexes for new columns
-CREATE INDEX IF NOT EXISTS idx_email_logs_resend_id 
-  ON public.email_logs(resend_id) 
+CREATE INDEX IF NOT EXISTS idx_email_logs_resend_id
+  ON public.email_logs(resend_id)
   WHERE resend_id IS NOT NULL;
 
-CREATE INDEX IF NOT EXISTS idx_email_logs_delivery_status 
+CREATE INDEX IF NOT EXISTS idx_email_logs_delivery_status
   ON public.email_logs(delivery_status);
 
 COMMENT ON COLUMN public.email_logs.resend_id IS 'Resend API message ID for webhook tracking';
@@ -12173,6 +11495,7 @@ CREATE INDEX IF NOT EXISTS idx_intakes_stale_claims_v2
   WHERE claimed_by IS NOT NULL AND status IN ('paid', 'in_review');
 
 -- Function to release stale claims (claims older than 30 minutes)
+DROP FUNCTION IF EXISTS public.release_stale_intake_claims(integer);
 CREATE OR REPLACE FUNCTION public.release_stale_intake_claims(
   stale_threshold_minutes INTEGER DEFAULT 30
 )
@@ -12185,7 +11508,7 @@ RETURNS TABLE(
 BEGIN
   RETURN QUERY
   WITH stale_claims AS (
-    SELECT 
+    SELECT
       i.id,
       i.claimed_by AS prev_claimed_by,
       i.claimed_at AS prev_claimed_at,
@@ -12198,14 +11521,14 @@ BEGIN
   ),
   released AS (
     UPDATE public.intakes
-    SET 
+    SET
       claimed_by = NULL,
       claimed_at = NULL,
       updated_at = NOW()
     WHERE id IN (SELECT id FROM stale_claims)
     RETURNING id
   )
-  SELECT 
+  SELECT
     sc.id,
     sc.prev_claimed_by,
     sc.prev_claimed_at,
@@ -12216,11 +11539,11 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Grant execute to service role only
-REVOKE ALL ON FUNCTION public.release_stale_intake_claims FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.release_stale_intake_claims TO service_role;
+REVOKE ALL ON FUNCTION public.release_stale_intake_claims(integer) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.release_stale_intake_claims(integer) TO service_role;
 
 -- Add comment
-COMMENT ON FUNCTION public.release_stale_intake_claims IS 
+COMMENT ON FUNCTION public.release_stale_intake_claims(integer) IS
   'Releases intake claims that have been held for longer than the threshold (default 30 min). Call from cron job to prevent queue stalls.';
 
 -- ============================================================================
@@ -12244,7 +11567,7 @@ CREATE POLICY "cron_job_runs_service_role_only"
   USING (auth.role() = 'service_role');
 
 -- Add comment
-COMMENT ON TABLE public.cron_job_runs IS 
+COMMENT ON TABLE public.cron_job_runs IS
   'Tracks cron job execution to prevent concurrent runs and enable monitoring.';
 
 
@@ -12255,7 +11578,7 @@ COMMENT ON TABLE public.cron_job_runs IS
 -- Migration: 20260122100002
 -- Purpose: NULL out plaintext PHI columns after encryption backfill is verified
 -- ============================================================================
--- 
+--
 -- PREREQUISITES:
 -- 1. Run encrypt:backfill script to populate encrypted columns
 -- 2. Verify encryption_migration_status shows 100% completion
@@ -12281,7 +11604,7 @@ CREATE POLICY "profiles_phi_backup_service_role_only"
   ON public.profiles_phi_backup FOR ALL
   USING (auth.role() = 'service_role');
 
-COMMENT ON TABLE public.profiles_phi_backup IS 
+COMMENT ON TABLE public.profiles_phi_backup IS
   'Temporary backup of plaintext PHI before cleanup. Delete after 7 days if no issues.';
 
 -- Step 2: Backup plaintext data ONLY for records that have been encrypted
@@ -12294,7 +11617,7 @@ ON CONFLICT (id) DO NOTHING;
 
 -- Step 3: NULL out plaintext columns for encrypted records only
 UPDATE public.profiles
-SET 
+SET
   medicare_number = NULL,
   date_of_birth = NULL,
   phone = NULL
@@ -12308,7 +11631,7 @@ INSERT INTO public.encryption_migration_status (
   encrypted_records,
   completed_at
 )
-SELECT 
+SELECT
   'profiles_plaintext_cleanup',
   (SELECT COUNT(*) FROM public.profiles WHERE phi_encrypted_at IS NOT NULL),
   (SELECT COUNT(*) FROM public.profiles WHERE phi_encrypted_at IS NOT NULL AND medicare_number IS NULL),
@@ -12317,9 +11640,9 @@ ON CONFLICT DO NOTHING;
 
 -- Step 5: Add constraint to prevent new plaintext writes (after confirming app is updated)
 -- Uncomment after verifying application never writes plaintext:
--- 
+--
 -- ALTER TABLE public.profiles
---   ADD CONSTRAINT chk_no_plaintext_phi 
+--   ADD CONSTRAINT chk_no_plaintext_phi
 --   CHECK (
 --     (medicare_number IS NULL OR medicare_number_encrypted IS NOT NULL) AND
 --     (date_of_birth IS NULL OR date_of_birth_encrypted IS NOT NULL) AND
@@ -12327,26 +11650,26 @@ ON CONFLICT DO NOTHING;
 --   );
 
 -- Step 6: Update column comments
-COMMENT ON COLUMN public.profiles.medicare_number IS 
+COMMENT ON COLUMN public.profiles.medicare_number IS
   'DEPRECATED: Plaintext removed. Use medicare_number_encrypted only.';
 
-COMMENT ON COLUMN public.profiles.date_of_birth IS 
+COMMENT ON COLUMN public.profiles.date_of_birth IS
   'DEPRECATED: Plaintext removed for encrypted records. Use date_of_birth_encrypted.';
 
-COMMENT ON COLUMN public.profiles.phone IS 
+COMMENT ON COLUMN public.profiles.phone IS
   'DEPRECATED: Plaintext removed for encrypted records. Use phone_encrypted.';
 
 -- ============================================================================
 -- ROLLBACK PROCEDURE (if needed):
--- 
+--
 -- UPDATE public.profiles p
--- SET 
+-- SET
 --   medicare_number = b.medicare_number,
 --   date_of_birth = b.date_of_birth,
 --   phone = b.phone
 -- FROM public.profiles_phi_backup b
 -- WHERE p.id = b.id;
--- 
+--
 -- DROP TABLE public.profiles_phi_backup;
 -- ============================================================================
 
@@ -12396,8 +11719,8 @@ CREATE POLICY "priority_upsell_conversions_user_insert" ON public.priority_upsel
 DO $$
 BEGIN
   IF NOT EXISTS (
-    SELECT 1 FROM pg_enum 
-    WHERE enumlabel = 'doctor' 
+    SELECT 1 FROM pg_enum
+    WHERE enumlabel = 'doctor'
     AND enumtypid = (SELECT oid FROM pg_type WHERE typname = 'user_role')
   ) THEN
     ALTER TYPE public.user_role ADD VALUE IF NOT EXISTS 'doctor' AFTER 'patient';
@@ -12417,14 +11740,14 @@ DROP POLICY IF EXISTS "intakes_patient_update" ON public.intakes;
 CREATE POLICY "intakes_patient_update" ON public.intakes
   FOR UPDATE USING (
     patient_id IN (
-      SELECT id FROM public.profiles 
+      SELECT id FROM public.profiles
       WHERE auth_user_id = (SELECT auth.uid())
     )
     AND status IN ('draft', 'pending_payment', 'pending_info')
   )
   WITH CHECK (
     patient_id IN (
-      SELECT id FROM public.profiles 
+      SELECT id FROM public.profiles
       WHERE auth_user_id = (SELECT auth.uid())
     )
     AND (
@@ -12472,11 +11795,11 @@ CREATE POLICY "services_admin_all" ON public.services
 -- ============================================================================
 
 -- Index for getIntakeMonitoringStats query pattern
-CREATE INDEX IF NOT EXISTS idx_intakes_monitoring_stats 
+CREATE INDEX IF NOT EXISTS idx_intakes_monitoring_stats
   ON public.intakes (status, payment_status, paid_at, approved_at, declined_at)
   WHERE status NOT IN ('draft', 'cancelled');
 
--- Index for getDoctorDashboardStats query pattern  
+-- Index for getDoctorDashboardStats query pattern
 CREATE INDEX IF NOT EXISTS idx_intakes_dashboard_stats
   ON public.intakes (status, payment_status, script_sent)
   WHERE status NOT IN ('draft', 'cancelled');
@@ -12485,10 +11808,10 @@ CREATE INDEX IF NOT EXISTS idx_intakes_dashboard_stats
 -- AUDIT: Add comment documenting PHI encryption migration status
 -- ============================================================================
 
-COMMENT ON COLUMN public.profiles.medicare_number IS 
+COMMENT ON COLUMN public.profiles.medicare_number IS
   'DEPRECATED: Use medicare_number_encrypted. Plaintext retained for migration compatibility only. Remove after backfill complete.';
 
-COMMENT ON COLUMN public.profiles.medicare_number_encrypted IS 
+COMMENT ON COLUMN public.profiles.medicare_number_encrypted IS
   'AES-256-GCM encrypted Medicare number. Primary source after PHI encryption migration.';
 
 -- Update statistics for query planner
@@ -12507,29 +11830,29 @@ ANALYZE public.services;
 CREATE TABLE IF NOT EXISTS public.email_preferences (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   profile_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-  
+
   -- Preference categories
   marketing_emails BOOLEAN NOT NULL DEFAULT true,
   abandoned_checkout_emails BOOLEAN NOT NULL DEFAULT true,
-  
+
   -- Transactional emails (always sent, shown for transparency)
   -- These cannot be disabled but we track the preference for UI display
   transactional_emails BOOLEAN NOT NULL DEFAULT true,
-  
+
   -- Unsubscribe tracking
   unsubscribed_at TIMESTAMPTZ,
   unsubscribe_reason TEXT,
-  
+
   -- Timestamps
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  
+
   -- One preference record per profile
   UNIQUE(profile_id)
 );
 
 -- Index for lookups
-CREATE INDEX IF NOT EXISTS idx_email_preferences_profile 
+CREATE INDEX IF NOT EXISTS idx_email_preferences_profile
   ON public.email_preferences(profile_id);
 
 -- Trigger for updated_at
@@ -12589,14 +11912,14 @@ BEGIN
   SELECT * INTO v_prefs
   FROM email_preferences
   WHERE profile_id = p_profile_id;
-  
+
   -- If not found, create with defaults
   IF v_prefs.id IS NULL THEN
     INSERT INTO email_preferences (profile_id)
     VALUES (p_profile_id)
     RETURNING * INTO v_prefs;
   END IF;
-  
+
   RETURN v_prefs;
 END;
 $$;
@@ -12633,33 +11956,33 @@ INSERT INTO public.email_templates (slug, name, description, subject, body_html,
     <div class="header">
       <h1>Your request is being reviewed</h1>
     </div>
-    
+
     <p>Hi {{patient_name}},</p>
-    
+
     <p>Your {{service_name}} request has been received and is now in the review queue. A doctor will review it shortly.</p>
-    
+
     <div class="info-box">
       <p style="margin: 0;"><strong>Reference:</strong> {{intake_id}}</p>
     </div>
-    
+
     <h2>Create your account</h2>
     <p>Set up your InstantMed account to:</p>
-    
+
     <ul class="benefits">
       <li>Track your request status in real-time</li>
       <li>Download your certificate instantly when ready</li>
       <li>Access your medical history</li>
       <li>Request future certificates faster</li>
     </ul>
-    
+
     <p style="text-align: center; margin: 30px 0;">
       <a href="{{complete_account_url}}" class="button">Create Your Account</a>
     </p>
-    
+
     <p class="footer">
       Don''t worry — your certificate will also be emailed to you when it''s ready, even if you don''t create an account.
     </p>
-    
+
     <p>Best regards,<br>InstantMed Team</p>
   </div>
 </body>
@@ -12741,336 +12064,10 @@ CREATE POLICY "Doctors and admins can view audit logs"
 
 
 -- ── 20260125000001_revoke_rpc_from_authenticated.sql ──
-
--- ============================================================================
--- SECURITY FIX: Revoke atomic_approve_certificate from authenticated role
--- ============================================================================
---
--- The atomic_approve_certificate RPC is SECURITY DEFINER and bypasses RLS.
--- It should ONLY be callable from server-side code via service_role.
--- Granting to 'authenticated' allows any logged-in user (including patients)
--- to potentially call this RPC directly, bypassing application-layer auth.
---
--- This migration revokes access from 'authenticated' and ensures only
--- 'service_role' can execute the function.
---
--- NOTE: claim_intake_for_review, release_intake_claim, log_certificate_edit
--- are NOT revoked here because they may be called from client-side code.
--- Only atomic_approve_certificate is revoked as it performs the critical
--- certificate issuance operation.
--- ============================================================================
-
--- Revoke from authenticated (patients and any logged-in user)
-REVOKE EXECUTE ON FUNCTION public.atomic_approve_certificate(
-  UUID, TEXT, TEXT, TEXT, TEXT, DATE, DATE, DATE,
-  UUID, TEXT, DATE, UUID, TEXT, TEXT, TEXT, TEXT,
-  JSONB, JSONB, TEXT, INTEGER, TEXT, TEXT
-) FROM authenticated;
-
--- Ensure service_role retains access (server-side only)
-GRANT EXECUTE ON FUNCTION public.atomic_approve_certificate(
-  UUID, TEXT, TEXT, TEXT, TEXT, DATE, DATE, DATE,
-  UUID, TEXT, DATE, UUID, TEXT, TEXT, TEXT, TEXT,
-  JSONB, JSONB, TEXT, INTEGER, TEXT, TEXT
-) TO service_role;
-
--- Update comment for documentation
-COMMENT ON FUNCTION public.atomic_approve_certificate IS
-'Atomic certificate approval. SECURITY DEFINER - callable only via service_role (server-side).
-Access revoked from authenticated role as of 2026-01-25 for security.
-Canonical path: app/actions/approve-cert.ts -> approveAndSendCert()';
-
+-- Skipped in the squashed baseline: final atomic approval grants are applied by the latest RPC definition.
 
 -- ── 20260125000002_update_atomic_approval_states.sql ──
-
--- ============================================================================
--- UPDATE atomic_approve_certificate TO ACCEPT paid/in_review INSTEAD OF processing
--- ============================================================================
---
--- The "processing" status was a transient state not defined in IntakeStatus type.
--- This caused type mismatches and inconsistent lifecycle.
---
--- Now the approval flow uses:
---   1. claim_intake_for_review() to acquire lock via claimed_by/claimed_at
---   2. Intake stays at 'paid' or 'in_review' during claim
---   3. atomic_approve_certificate() transitions directly to 'approved'
---
--- This eliminates the need for "processing" status entirely.
--- Using CREATE OR REPLACE to update function body without changing signature.
--- ============================================================================
-
-CREATE OR REPLACE FUNCTION public.atomic_approve_certificate(
-  -- Intake identification
-  p_intake_id UUID,
-
-  -- Certificate data
-  p_certificate_number TEXT,
-  p_verification_code TEXT,
-  p_idempotency_key TEXT,
-  p_certificate_type TEXT,
-  p_issue_date DATE,
-  p_start_date DATE,
-  p_end_date DATE,
-
-  -- Patient snapshot
-  p_patient_id UUID,
-  p_patient_name TEXT,
-  p_patient_dob DATE,
-
-  -- Doctor snapshot
-  p_doctor_id UUID,
-  p_doctor_name TEXT,
-  p_doctor_nominals TEXT,
-  p_doctor_provider_number TEXT,
-  p_doctor_ahpra_number TEXT,
-
-  -- Template snapshots (JSONB)
-  p_template_config_snapshot JSONB,
-  p_clinic_identity_snapshot JSONB,
-
-  -- Storage info
-  p_storage_path TEXT,
-  p_file_size_bytes INTEGER,
-
-  -- Legacy intake_documents fields
-  p_filename TEXT,
-
-  -- PDF integrity verification
-  p_pdf_hash TEXT DEFAULT NULL
-)
-RETURNS TABLE (
-  certificate_id UUID,
-  intake_document_id UUID,
-  success BOOLEAN,
-  error_message TEXT,
-  is_duplicate BOOLEAN
-)
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = 'public'
-AS $$
-DECLARE
-  v_certificate_id UUID;
-  v_intake_document_id UUID;
-  v_current_status TEXT;
-  v_existing_cert_id UUID;
-BEGIN
-  -- ============================================
-  -- STEP 1: Check for existing certificate (idempotency)
-  -- ============================================
-  SELECT id INTO v_existing_cert_id
-  FROM issued_certificates
-  WHERE idempotency_key = p_idempotency_key;
-
-  IF v_existing_cert_id IS NOT NULL THEN
-    -- Certificate already exists - return it (idempotent)
-    RETURN QUERY SELECT
-      v_existing_cert_id,
-      NULL::UUID,
-      TRUE,
-      NULL::TEXT,
-      TRUE;
-    RETURN;
-  END IF;
-
-  -- ============================================
-  -- STEP 2: Validate intake status
-  -- ============================================
-  SELECT status INTO v_current_status
-  FROM intakes
-  WHERE id = p_intake_id
-  FOR UPDATE; -- Lock the row to prevent concurrent modifications
-
-  IF v_current_status IS NULL THEN
-    RETURN QUERY SELECT NULL::UUID, NULL::UUID, FALSE, 'Intake not found'::TEXT, FALSE;
-    RETURN;
-  END IF;
-
-  -- CHANGED: Accept 'paid', 'in_review', or 'approved' (for idempotency)
-  -- Previously required 'processing' which was never in the IntakeStatus type.
-  -- The claim mechanism (claimed_by/claimed_at) provides the lock, not a status.
-  IF v_current_status NOT IN ('paid', 'in_review', 'approved') THEN
-    RETURN QUERY SELECT NULL::UUID, NULL::UUID, FALSE,
-      ('Invalid intake status for approval: ' || v_current_status || '. Expected: paid, in_review, or approved.')::TEXT, FALSE;
-    RETURN;
-  END IF;
-
-  -- If already approved, find the certificate
-  IF v_current_status = 'approved' THEN
-    SELECT id INTO v_existing_cert_id
-    FROM issued_certificates
-    WHERE intake_id = p_intake_id
-    AND status = 'valid'
-    LIMIT 1;
-
-    IF v_existing_cert_id IS NOT NULL THEN
-      RETURN QUERY SELECT v_existing_cert_id, NULL::UUID, TRUE, NULL::TEXT, TRUE;
-      RETURN;
-    END IF;
-  END IF;
-
-  -- ============================================
-  -- STEP 3: Create issued_certificates record
-  -- ============================================
-  INSERT INTO issued_certificates (
-    intake_id,
-    certificate_number,
-    verification_code,
-    idempotency_key,
-    certificate_type,
-    status,
-    issue_date,
-    start_date,
-    end_date,
-    patient_id,
-    patient_name,
-    patient_dob,
-    doctor_id,
-    doctor_name,
-    doctor_nominals,
-    doctor_provider_number,
-    doctor_ahpra_number,
-    template_config_snapshot,
-    clinic_identity_snapshot,
-    storage_path,
-    file_size_bytes,
-    pdf_hash
-  )
-  VALUES (
-    p_intake_id,
-    p_certificate_number,
-    p_verification_code,
-    p_idempotency_key,
-    p_certificate_type,
-    'valid',
-    p_issue_date,
-    p_start_date,
-    p_end_date,
-    p_patient_id,
-    p_patient_name,
-    p_patient_dob,
-    p_doctor_id,
-    p_doctor_name,
-    p_doctor_nominals,
-    p_doctor_provider_number,
-    p_doctor_ahpra_number,
-    p_template_config_snapshot,
-    p_clinic_identity_snapshot,
-    p_storage_path,
-    p_file_size_bytes,
-    p_pdf_hash
-  )
-  RETURNING id INTO v_certificate_id;
-
-  -- ============================================
-  -- STEP 4: Create intake_documents record (legacy table)
-  -- ============================================
-  INSERT INTO intake_documents (
-    intake_id,
-    document_type,
-    filename,
-    storage_path,
-    mime_type,
-    file_size_bytes,
-    certificate_number,
-    created_by,
-    metadata
-  )
-  VALUES (
-    p_intake_id,
-    'med_cert',
-    p_filename,
-    p_storage_path,
-    'application/pdf',
-    p_file_size_bytes,
-    p_certificate_number,
-    p_doctor_id,
-    jsonb_build_object(
-      'patient_name', p_patient_name,
-      'certificate_type', p_certificate_type,
-      'start_date', p_start_date,
-      'end_date', p_end_date,
-      'pdf_hash', p_pdf_hash
-    )
-  )
-  RETURNING id INTO v_intake_document_id;
-
-  -- ============================================
-  -- STEP 5: Update intake status to approved
-  -- CHANGED: Accept paid/in_review instead of processing
-  -- ============================================
-  UPDATE intakes
-  SET
-    status = 'approved',
-    reviewed_by = p_doctor_id,
-    reviewed_at = NOW(),
-    decided_at = NOW(),
-    decision = 'approved',
-    approved_at = NOW(),
-    updated_at = NOW()
-  WHERE id = p_intake_id
-  AND status IN ('paid', 'in_review', 'approved'); -- Safety: only update from expected states
-
-  IF NOT FOUND THEN
-    -- This shouldn't happen due to the FOR UPDATE lock, but handle it gracefully
-    RAISE EXCEPTION 'Failed to update intake status - concurrent modification detected';
-  END IF;
-
-  -- ============================================
-  -- STEP 6: Log certificate issuance event
-  -- ============================================
-  INSERT INTO certificate_audit_log (
-    certificate_id,
-    event_type,
-    actor_id,
-    actor_role,
-    metadata
-  )
-  VALUES (
-    v_certificate_id,
-    'issued',
-    p_doctor_id,
-    'doctor',
-    jsonb_build_object(
-      'intake_id', p_intake_id,
-      'certificate_type', p_certificate_type,
-      'storage_path', p_storage_path,
-      'pdf_hash', p_pdf_hash
-    )
-  );
-
-  -- ============================================
-  -- Return success
-  -- ============================================
-  RETURN QUERY SELECT v_certificate_id, v_intake_document_id, TRUE, NULL::TEXT, FALSE;
-
-EXCEPTION
-  WHEN unique_violation THEN
-    -- Handle race condition where another request created the certificate
-    SELECT id INTO v_existing_cert_id
-    FROM issued_certificates
-    WHERE idempotency_key = p_idempotency_key;
-
-    IF v_existing_cert_id IS NOT NULL THEN
-      RETURN QUERY SELECT v_existing_cert_id, NULL::UUID, TRUE, NULL::TEXT, TRUE;
-    ELSE
-      RETURN QUERY SELECT NULL::UUID, NULL::UUID, FALSE,
-        'Unique constraint violation'::TEXT, FALSE;
-    END IF;
-
-  WHEN OTHERS THEN
-    RETURN QUERY SELECT NULL::UUID, NULL::UUID, FALSE, SQLERRM::TEXT, FALSE;
-END;
-$$;
-
--- NOTE: GRANT statements handled by 20260125000001_revoke_rpc_from_authenticated.sql
--- service_role only, authenticated revoked.
-
-COMMENT ON FUNCTION public.atomic_approve_certificate IS
-'Atomic certificate approval. Accepts paid/in_review/approved states (processing removed).
-Uses claim mechanism for lock. SECURITY DEFINER - service_role only.
-Canonical path: app/actions/approve-cert.ts -> approveAndSendCert()';
-
+-- Skipped in the squashed baseline: obsolete intermediate RPC body is replaced by later definitions.
 
 -- ── 20260126000001_add_stripe_payment_tracking.sql ──
 
@@ -13078,12 +12075,12 @@ Canonical path: app/actions/approve-cert.ts -> approveAndSendCert()';
 -- P0 FIX: Enable refund traceability by storing payment_intent_id and customer_id
 
 -- Add stripe_payment_intent_id column to intakes for refund traceability
-DO $$ 
+DO $$
 BEGIN
   IF NOT EXISTS (
-    SELECT 1 FROM information_schema.columns 
-    WHERE table_schema = 'public' 
-    AND table_name = 'intakes' 
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public'
+    AND table_name = 'intakes'
     AND column_name = 'stripe_payment_intent_id'
   ) THEN
     ALTER TABLE public.intakes ADD COLUMN stripe_payment_intent_id TEXT;
@@ -13091,12 +12088,12 @@ BEGIN
 END $$;
 
 -- Add stripe_customer_id column to intakes for customer reference
-DO $$ 
+DO $$
 BEGIN
   IF NOT EXISTS (
-    SELECT 1 FROM information_schema.columns 
-    WHERE table_schema = 'public' 
-    AND table_name = 'intakes' 
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public'
+    AND table_name = 'intakes'
     AND column_name = 'stripe_customer_id'
   ) THEN
     ALTER TABLE public.intakes ADD COLUMN stripe_customer_id TEXT;
@@ -13104,13 +12101,13 @@ BEGIN
 END $$;
 
 -- Add index for payment_intent_id lookups (used in refund processing)
-CREATE INDEX IF NOT EXISTS idx_intakes_stripe_payment_intent 
-  ON public.intakes(stripe_payment_intent_id) 
+CREATE INDEX IF NOT EXISTS idx_intakes_stripe_payment_intent
+  ON public.intakes(stripe_payment_intent_id)
   WHERE stripe_payment_intent_id IS NOT NULL;
 
 -- Add index for customer_id lookups (used in customer history queries)
-CREATE INDEX IF NOT EXISTS idx_intakes_stripe_customer 
-  ON public.intakes(stripe_customer_id) 
+CREATE INDEX IF NOT EXISTS idx_intakes_stripe_customer
+  ON public.intakes(stripe_customer_id)
   WHERE stripe_customer_id IS NOT NULL;
 
 COMMENT ON COLUMN public.intakes.stripe_payment_intent_id IS 'Stripe PaymentIntent ID for refund traceability';
@@ -13145,7 +12142,7 @@ DROP POLICY IF EXISTS "Anyone can view documents" ON storage.objects;
 -- Patients can only access their own documents via signed URLs
 -- The signed URL generation happens server-side with ownership verification
 -- This policy allows the signed URL to work once generated
-DO $$ 
+DO $$
 BEGIN
   DROP POLICY IF EXISTS "Authenticated users can view documents via signed URL" ON storage.objects;
   CREATE POLICY "Authenticated users can view documents via signed URL"
@@ -13181,7 +12178,7 @@ EXCEPTION
   WHEN duplicate_object THEN NULL;
 END $$;
 
-COMMENT ON POLICY "Patients can view own safety blocks" ON public.ai_safety_blocks IS 
+COMMENT ON POLICY "Patients can view own safety blocks" ON public.ai_safety_blocks IS
   'Patients can view their own AI safety blocks for transparency';
 
 -- ============================================
@@ -13189,7 +12186,7 @@ COMMENT ON POLICY "Patients can view own safety blocks" ON public.ai_safety_bloc
 -- ============================================
 -- Migration 20260118100002_fix_intake_drafts_rls.sql already removed
 -- the session-based fallback. This is just a verification comment.
--- 
+--
 -- Current policies:
 --   - intake_drafts_user_select: user_id = auth.uid()
 --   - intake_drafts_user_update: user_id = auth.uid()
@@ -13201,7 +12198,7 @@ COMMENT ON POLICY "Patients can view own safety blocks" ON public.ai_safety_bloc
 -- ============================================
 -- AUDIT LOG
 -- ============================================
--- 
+--
 -- Changes made:
 --   1. documents bucket: public = FALSE
 --   2. Removed "Anyone can view documents" storage policy
@@ -13223,20 +12220,20 @@ COMMENT ON POLICY "Patients can view own safety blocks" ON public.ai_safety_bloc
 -- ============================================================================
 
 -- Add deleted_at column for soft delete
-ALTER TABLE public.content_blocks 
+ALTER TABLE public.content_blocks
 ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ DEFAULT NULL;
 
 -- Create index for efficient filtering of non-deleted records
-CREATE INDEX IF NOT EXISTS idx_content_blocks_deleted_at 
-ON public.content_blocks(deleted_at) 
+CREATE INDEX IF NOT EXISTS idx_content_blocks_deleted_at
+ON public.content_blocks(deleted_at)
 WHERE deleted_at IS NULL;
 
 -- Update RLS policy to exclude deleted records from reads
 DROP POLICY IF EXISTS "Anyone can read content blocks" ON public.content_blocks;
 
-CREATE POLICY "Anyone can read content blocks" 
+CREATE POLICY "Anyone can read content blocks"
   ON public.content_blocks
-  FOR SELECT 
+  FOR SELECT
   TO authenticated
   USING (deleted_at IS NULL);
 
@@ -13247,7 +12244,7 @@ COMMENT ON COLUMN public.content_blocks.deleted_at IS 'Soft delete timestamp - N
 
 -- ============================================================================
 -- PHI ENCRYPTION: ADD ENCRYPTED COLUMNS
--- 
+--
 -- Stage 2B: Add encrypted columns alongside plaintext (for gradual migration)
 -- Plaintext columns are KEPT for rollback capability until Stage 5
 -- ============================================================================
@@ -13255,45 +12252,45 @@ COMMENT ON COLUMN public.content_blocks.deleted_at IS 'Soft delete timestamp - N
 -- -----------------------------------------------------------------------------
 -- INTAKES: doctor_notes encryption
 -- -----------------------------------------------------------------------------
-ALTER TABLE public.intakes 
+ALTER TABLE public.intakes
 ADD COLUMN IF NOT EXISTS doctor_notes_enc JSONB DEFAULT NULL;
 
-COMMENT ON COLUMN public.intakes.doctor_notes_enc IS 
+COMMENT ON COLUMN public.intakes.doctor_notes_enc IS
 'Encrypted doctor_notes using AES-256-GCM envelope encryption. Structure: {ciphertext, encryptedDataKey, iv, authTag, keyId, version}';
 
 -- Index on encryption key ID for audit/rotation queries
-CREATE INDEX IF NOT EXISTS idx_intakes_doctor_notes_enc_key 
-ON public.intakes ((doctor_notes_enc->>'keyId')) 
+CREATE INDEX IF NOT EXISTS idx_intakes_doctor_notes_enc_key
+ON public.intakes ((doctor_notes_enc->>'keyId'))
 WHERE doctor_notes_enc IS NOT NULL;
 
 -- -----------------------------------------------------------------------------
 -- INTAKE_ANSWERS: answers encryption
 -- -----------------------------------------------------------------------------
-ALTER TABLE public.intake_answers 
+ALTER TABLE public.intake_answers
 ADD COLUMN IF NOT EXISTS answers_enc JSONB DEFAULT NULL;
 
-COMMENT ON COLUMN public.intake_answers.answers_enc IS 
+COMMENT ON COLUMN public.intake_answers.answers_enc IS
 'Encrypted answers using AES-256-GCM envelope encryption. Structure: {ciphertext, encryptedDataKey, iv, authTag, keyId, version}';
 
-CREATE INDEX IF NOT EXISTS idx_intake_answers_enc_key 
-ON public.intake_answers ((answers_enc->>'keyId')) 
+CREATE INDEX IF NOT EXISTS idx_intake_answers_enc_key
+ON public.intake_answers ((answers_enc->>'keyId'))
 WHERE answers_enc IS NOT NULL;
 
 -- -----------------------------------------------------------------------------
 -- AI_CHAT_TRANSCRIPTS: messages encryption
 -- -----------------------------------------------------------------------------
 -- First check if table exists (it may not in all environments)
-DO $$ 
+DO $$
 BEGIN
   IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'ai_chat_transcripts') THEN
-    ALTER TABLE public.ai_chat_transcripts 
+    ALTER TABLE public.ai_chat_transcripts
     ADD COLUMN IF NOT EXISTS messages_enc JSONB DEFAULT NULL;
-    
-    COMMENT ON COLUMN public.ai_chat_transcripts.messages_enc IS 
+
+    COMMENT ON COLUMN public.ai_chat_transcripts.messages_enc IS
     'Encrypted messages using AES-256-GCM envelope encryption. Structure: {ciphertext, encryptedDataKey, iv, authTag, keyId, version}';
-    
-    CREATE INDEX IF NOT EXISTS idx_ai_chat_transcripts_enc_key 
-    ON public.ai_chat_transcripts ((messages_enc->>'keyId')) 
+
+    CREATE INDEX IF NOT EXISTS idx_ai_chat_transcripts_enc_key
+    ON public.ai_chat_transcripts ((messages_enc->>'keyId'))
     WHERE messages_enc IS NOT NULL;
   END IF;
 END $$;
@@ -13324,7 +12321,7 @@ CREATE POLICY "Service role only for phi_encryption_keys"
   USING (true)
   WITH CHECK (true);
 
-COMMENT ON TABLE public.phi_encryption_keys IS 
+COMMENT ON TABLE public.phi_encryption_keys IS
 'Tracks PHI encryption key usage for rotation and audit purposes. Contains no actual keys.';
 
 -- -----------------------------------------------------------------------------
@@ -13335,12 +12332,12 @@ RETURNS BOOLEAN
 LANGUAGE sql
 IMMUTABLE
 AS $$
-  SELECT enc_column IS NOT NULL 
-    AND enc_column->>'ciphertext' IS NOT NULL 
+  SELECT enc_column IS NOT NULL
+    AND enc_column->>'ciphertext' IS NOT NULL
     AND enc_column->>'keyId' IS NOT NULL;
 $$;
 
-COMMENT ON FUNCTION public.is_phi_encrypted IS 
+COMMENT ON FUNCTION public.is_phi_encrypted IS
 'Check if a PHI field has been encrypted (for migration tracking)';
 
 -- -----------------------------------------------------------------------------
@@ -13363,7 +12360,7 @@ VALUES (
 
 -- ============================================================================
 -- REPEAT PRESCRIPTION: ADD SCRIPT SENT TRACKING
--- 
+--
 -- Tracks when a doctor sends a repeat prescription via Parchment
 -- Used to mark repeat_rx intakes as completed
 -- ============================================================================
@@ -13375,18 +12372,18 @@ ADD COLUMN IF NOT EXISTS prescription_sent_by UUID DEFAULT NULL REFERENCES publi
 ADD COLUMN IF NOT EXISTS prescription_sent_channel TEXT DEFAULT 'parchment';
 
 -- Index for efficient queries on sent prescriptions
-CREATE INDEX IF NOT EXISTS idx_intakes_prescription_sent 
-ON public.intakes (prescription_sent_at DESC) 
+CREATE INDEX IF NOT EXISTS idx_intakes_prescription_sent
+ON public.intakes (prescription_sent_at DESC)
 WHERE prescription_sent_at IS NOT NULL;
 
 -- Comments for documentation
-COMMENT ON COLUMN public.intakes.prescription_sent_at IS 
+COMMENT ON COLUMN public.intakes.prescription_sent_at IS
 'Timestamp when repeat prescription was sent via external system (e.g., Parchment)';
 
-COMMENT ON COLUMN public.intakes.prescription_sent_by IS 
+COMMENT ON COLUMN public.intakes.prescription_sent_by IS
 'Doctor profile ID who sent the prescription';
 
-COMMENT ON COLUMN public.intakes.prescription_sent_channel IS 
+COMMENT ON COLUMN public.intakes.prescription_sent_channel IS
 'Channel used to send prescription: parchment, email, sms, other';
 
 -- RLS is already enabled on intakes table
@@ -13401,34 +12398,34 @@ COMMENT ON COLUMN public.intakes.prescription_sent_channel IS
 
 CREATE TABLE IF NOT EXISTS email_outbox (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  
+
   -- Core email fields
   email_type text NOT NULL,  -- 'med_cert_patient' | 'med_cert_employer' | 'welcome' | 'script_sent' | 'request_declined' | etc.
   to_email text NOT NULL,
   to_name text,
   subject text NOT NULL,
-  
+
   -- Sending status
   status text NOT NULL DEFAULT 'pending',  -- 'pending' | 'sent' | 'failed' | 'skipped_e2e'
   provider text NOT NULL DEFAULT 'resend',
   provider_message_id text,  -- Resend message ID when sent
-  
+
   -- Error handling
   error_message text,
   retry_count integer NOT NULL DEFAULT 0,
-  
+
   -- Context/linking
   intake_id uuid REFERENCES intakes(id) ON DELETE SET NULL,
   patient_id uuid REFERENCES profiles(id) ON DELETE SET NULL,
   certificate_id uuid REFERENCES issued_certificates(id) ON DELETE SET NULL,
-  
+
   -- Metadata (non-sensitive only)
   metadata jsonb DEFAULT '{}'::jsonb,
-  
+
   -- Timestamps
   created_at timestamptz NOT NULL DEFAULT now(),
   sent_at timestamptz,
-  
+
   -- Rate limiting support
   CONSTRAINT email_outbox_status_check CHECK (status IN ('pending', 'sent', 'failed', 'skipped_e2e'))
 );
@@ -13442,7 +12439,7 @@ CREATE INDEX IF NOT EXISTS idx_email_outbox_created_at ON email_outbox(created_a
 CREATE INDEX IF NOT EXISTS idx_email_outbox_status ON email_outbox(status);
 
 -- Index for rate limiting: employer sends per intake in rolling window
-CREATE INDEX IF NOT EXISTS idx_email_outbox_employer_rate_limit 
+CREATE INDEX IF NOT EXISTS idx_email_outbox_employer_rate_limit
   ON email_outbox(intake_id, email_type, created_at DESC)
   WHERE email_type = 'med_cert_employer';
 
@@ -13498,15 +12495,15 @@ DECLARE
   v_window_start timestamptz;
 BEGIN
   v_window_start := now() - interval '24 hours';
-  
+
   SELECT COUNT(*)::integer INTO v_count
   FROM email_outbox
   WHERE intake_id = p_intake_id
     AND email_type = 'med_cert_employer'
     AND created_at > v_window_start
     AND status IN ('sent', 'skipped_e2e');  -- Only count successful sends
-  
-  RETURN QUERY SELECT 
+
+  RETURN QUERY SELECT
     (v_count < 3) as allowed,
     v_count as current_count,
     (
@@ -13534,7 +12531,7 @@ COMMENT ON COLUMN email_outbox.metadata IS 'Non-sensitive metadata like verifica
 -- ============================================
 -- INTAKE EVENTS: Status transition audit log
 -- ============================================
--- 
+--
 -- Tracks all intake status transitions for:
 -- 1. Audit trail / compliance
 -- 2. SLA monitoring / stuck detection
@@ -13543,14 +12540,14 @@ COMMENT ON COLUMN email_outbox.metadata IS 'Non-sensitive metadata like verifica
 
 CREATE TABLE public.intake_events (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  
+
   -- Core reference
   intake_id UUID NOT NULL REFERENCES public.intakes(id) ON DELETE CASCADE,
-  
+
   -- Actor information
   actor_role TEXT NOT NULL CHECK (actor_role IN ('patient', 'doctor', 'admin', 'system')),
   actor_id UUID REFERENCES public.profiles(id),
-  
+
   -- Transition details
   event_type TEXT NOT NULL CHECK (event_type IN (
     'status_change',
@@ -13566,10 +12563,10 @@ CREATE TABLE public.intake_events (
   )),
   from_status public.intake_status,
   to_status public.intake_status,
-  
+
   -- Additional context
   metadata JSONB DEFAULT '{}',
-  
+
   -- Timestamps
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -13647,7 +12644,7 @@ BEGIN
     p_metadata
   )
   RETURNING id INTO v_event_id;
-  
+
   RETURN v_event_id;
 END;
 $$;
@@ -13655,16 +12652,16 @@ $$;
 -- ============================================
 -- VIEW: Stuck intakes detection
 -- ============================================
--- 
+--
 -- SLA thresholds:
 -- - paid → pending_review/in_review: 5 minutes
--- - pending_review/in_review → decision: 60 minutes  
+-- - pending_review/in_review → decision: 60 minutes
 -- - approved → delivery complete: 10 minutes
 --
 
 CREATE OR REPLACE VIEW public.v_stuck_intakes AS
 WITH intake_with_timing AS (
-  SELECT 
+  SELECT
     i.id,
     i.reference_number,
     i.status,
@@ -13687,14 +12684,14 @@ WITH intake_with_timing AS (
     EXTRACT(EPOCH FROM (NOW() - COALESCE(i.approved_at, i.created_at))) / 60 AS minutes_since_approved,
     -- Check if delivery email exists
     EXISTS (
-      SELECT 1 FROM public.email_outbox eo 
-      WHERE eo.intake_id = i.id 
+      SELECT 1 FROM public.email_outbox eo
+      WHERE eo.intake_id = i.id
       AND eo.email_type IN ('request_approved', 'certificate_delivery', 'script_sent')
       AND eo.status = 'sent'
     ) AS delivery_email_sent,
     EXISTS (
-      SELECT 1 FROM public.email_outbox eo 
-      WHERE eo.intake_id = i.id 
+      SELECT 1 FROM public.email_outbox eo
+      WHERE eo.intake_id = i.id
       AND eo.email_type IN ('request_approved', 'certificate_delivery', 'script_sent')
       AND eo.status = 'failed'
     ) AS delivery_email_failed
@@ -13703,7 +12700,7 @@ WITH intake_with_timing AS (
   LEFT JOIN public.services s ON s.id = i.service_id
   WHERE i.status NOT IN ('draft', 'pending_payment', 'completed', 'declined', 'cancelled', 'expired')
 )
-SELECT 
+SELECT
   id,
   reference_number,
   status,
@@ -13727,28 +12724,28 @@ SELECT
   -- Determine stuck reason
   CASE
     -- Paid but not reviewed within 5 min
-    WHEN status = 'paid' 
+    WHEN status = 'paid'
       AND payment_status = 'paid'
-      AND minutes_since_paid > 5 
+      AND minutes_since_paid > 5
     THEN 'paid_no_review'
-    
+
     -- In review too long (60 min)
     WHEN status IN ('in_review', 'pending_info')
       AND minutes_in_review > 60
     THEN 'review_timeout'
-    
+
     -- Approved but no delivery within 10 min
     WHEN status = 'approved'
       AND minutes_since_approved > 10
       AND NOT delivery_email_sent
     THEN 'delivery_pending'
-    
+
     -- Approved but delivery failed
     WHEN status = 'approved'
       AND delivery_email_failed
       AND NOT delivery_email_sent
     THEN 'delivery_failed'
-    
+
     ELSE NULL
   END AS stuck_reason,
   -- Calculate age for display
@@ -13759,7 +12756,7 @@ SELECT
     ELSE 0
   END AS stuck_age_minutes
 FROM intake_with_timing
-WHERE 
+WHERE
   -- Only include actually stuck intakes
   (
     (status = 'paid' AND payment_status = 'paid' AND minutes_since_paid > 5)
@@ -13780,7 +12777,7 @@ COMMENT ON VIEW public.v_stuck_intakes IS 'Real-time view of intakes stuck in SL
 -- ============================================
 -- MIGRATION: Add explicit refund tracking fields
 -- ============================================
--- 
+--
 -- Purpose: Enable consistent tracking of refund status separate from payment_status
 -- This allows for better reconciliation and audit trail of refund operations.
 --
@@ -13833,8 +12830,8 @@ ADD COLUMN IF NOT EXISTS refunded_by UUID REFERENCES public.profiles(id);
 -- 3. ADD INDEX FOR REFUND RECONCILIATION
 -- ============================================
 
-CREATE INDEX IF NOT EXISTS idx_intakes_refund_status 
-ON public.intakes(refund_status) 
+CREATE INDEX IF NOT EXISTS idx_intakes_refund_status
+ON public.intakes(refund_status)
 WHERE refund_status IN ('pending', 'failed');
 
 -- Index for finding intakes with failed refunds for reconciliation
@@ -13855,7 +12852,7 @@ COMMENT ON COLUMN public.intakes.refunded_by IS 'Profile ID of who initiated the
 -- ============================================
 -- 5. MIGRATION COMPLETE
 -- ============================================
--- 
+--
 -- New fields added to intakes:
 -- - refund_status (enum)
 -- - refund_error (text)
@@ -13901,7 +12898,7 @@ CREATE POLICY "Service role can insert events" ON public.intake_events
   );
 
 -- Add a comment explaining the policy
-COMMENT ON POLICY "Service role can insert events" ON public.intake_events IS 
+COMMENT ON POLICY "Service role can insert events" ON public.intake_events IS
   'Restricts INSERT to service role only. Events should only be created by server-side operations.';
 
 
@@ -13916,8 +12913,8 @@ ADD COLUMN IF NOT EXISTS reviewing_doctor_name text,
 ADD COLUMN IF NOT EXISTS review_started_at timestamptz;
 
 -- Add index for efficient lookup of active reviews
-CREATE INDEX IF NOT EXISTS idx_intakes_reviewing_doctor 
-ON public.intakes(reviewing_doctor_id) 
+CREATE INDEX IF NOT EXISTS idx_intakes_reviewing_doctor
+ON public.intakes(reviewing_doctor_id)
 WHERE reviewing_doctor_id IS NOT NULL;
 
 COMMENT ON COLUMN public.intakes.reviewing_doctor_id IS 'ID of doctor currently reviewing this intake (soft lock)';
@@ -13935,13 +12932,13 @@ ADD COLUMN IF NOT EXISTS intake_id uuid REFERENCES public.intakes(id),
 ADD COLUMN IF NOT EXISTS is_ai_generated boolean DEFAULT false;
 
 -- Add index for efficient lookup by intake_id
-CREATE INDEX IF NOT EXISTS idx_document_drafts_intake_id 
-ON public.document_drafts(intake_id) 
+CREATE INDEX IF NOT EXISTS idx_document_drafts_intake_id
+ON public.document_drafts(intake_id)
 WHERE intake_id IS NOT NULL;
 
 -- Add index for AI-generated drafts
-CREATE INDEX IF NOT EXISTS idx_document_drafts_ai_generated 
-ON public.document_drafts(intake_id, is_ai_generated) 
+CREATE INDEX IF NOT EXISTS idx_document_drafts_ai_generated
+ON public.document_drafts(intake_id, is_ai_generated)
 WHERE is_ai_generated = true;
 
 COMMENT ON COLUMN public.document_drafts.intake_id IS 'Reference to intake for AI-generated drafts';
@@ -13976,8 +12973,8 @@ CREATE POLICY "Doctors and admins can view patient notes"
   TO authenticated
   USING (
     EXISTS (
-      SELECT 1 FROM profiles 
-      WHERE profiles.id = auth.uid() 
+      SELECT 1 FROM profiles
+      WHERE profiles.id = auth.uid()
       AND profiles.role IN ('doctor', 'admin')
     )
   );
@@ -13987,8 +12984,8 @@ CREATE POLICY "Doctors and admins can insert patient notes"
   TO authenticated
   WITH CHECK (
     EXISTS (
-      SELECT 1 FROM profiles 
-      WHERE profiles.id = auth.uid() 
+      SELECT 1 FROM profiles
+      WHERE profiles.id = auth.uid()
       AND profiles.role IN ('doctor', 'admin')
     )
   );
@@ -13998,8 +12995,8 @@ CREATE POLICY "Doctors and admins can delete patient notes"
   TO authenticated
   USING (
     EXISTS (
-      SELECT 1 FROM profiles 
-      WHERE profiles.id = auth.uid() 
+      SELECT 1 FROM profiles
+      WHERE profiles.id = auth.uid()
       AND profiles.role IN ('doctor', 'admin')
     )
   );
@@ -14066,20 +13063,20 @@ CREATE POLICY "Service role full access to info templates"
 -- ============================================
 -- 2. Email Bounce Handling - Add columns to profiles
 -- ============================================
-ALTER TABLE public.profiles 
+ALTER TABLE public.profiles
 ADD COLUMN IF NOT EXISTS email_bounced BOOLEAN DEFAULT FALSE;
 
-ALTER TABLE public.profiles 
+ALTER TABLE public.profiles
 ADD COLUMN IF NOT EXISTS email_bounce_reason TEXT;
 
-ALTER TABLE public.profiles 
+ALTER TABLE public.profiles
 ADD COLUMN IF NOT EXISTS email_bounced_at TIMESTAMPTZ;
 
-ALTER TABLE public.profiles 
+ALTER TABLE public.profiles
 ADD COLUMN IF NOT EXISTS email_delivery_failures INTEGER DEFAULT 0;
 
-CREATE INDEX IF NOT EXISTS idx_profiles_email_bounced 
-ON public.profiles(email_bounced) 
+CREATE INDEX IF NOT EXISTS idx_profiles_email_bounced
+ON public.profiles(email_bounced)
 WHERE email_bounced = true;
 
 COMMENT ON COLUMN public.profiles.email_bounced IS 'Whether emails to this patient are bouncing';
@@ -14111,19 +13108,19 @@ COMMENT ON COLUMN public.intakes.info_request_message IS 'Message sent to patien
 -- This enables migration from email_logs to email_outbox
 
 -- Add delivery tracking columns
-ALTER TABLE email_outbox 
+ALTER TABLE email_outbox
   ADD COLUMN IF NOT EXISTS delivery_status text,
   ADD COLUMN IF NOT EXISTS delivery_status_updated_at timestamptz,
   ADD COLUMN IF NOT EXISTS updated_at timestamptz NOT NULL DEFAULT now();
 
 -- Add index for webhook lookups by provider_message_id
-CREATE INDEX IF NOT EXISTS idx_email_outbox_provider_message_id 
-  ON email_outbox(provider_message_id) 
+CREATE INDEX IF NOT EXISTS idx_email_outbox_provider_message_id
+  ON email_outbox(provider_message_id)
   WHERE provider_message_id IS NOT NULL;
 
 -- Add index for delivery status queries (bounce suppression)
-CREATE INDEX IF NOT EXISTS idx_email_outbox_delivery_status 
-  ON email_outbox(to_email, delivery_status) 
+CREATE INDEX IF NOT EXISTS idx_email_outbox_delivery_status
+  ON email_outbox(to_email, delivery_status)
   WHERE delivery_status IN ('bounced', 'complained');
 
 -- Add trigger for updated_at
@@ -14174,7 +13171,7 @@ SELECT
   email_logs.sent_at
 FROM email_logs
 WHERE NOT EXISTS (
-  SELECT 1 FROM email_outbox 
+  SELECT 1 FROM email_outbox
   WHERE email_outbox.to_email = email_logs.recipient_email
     AND email_outbox.email_type = email_logs.template_type
     AND email_outbox.created_at = email_logs.sent_at
@@ -14260,16 +13257,16 @@ ALTER TYPE public.compliance_event_type ADD VALUE IF NOT EXISTS 'telehealth_limi
 -- ── 20260131062800_fix_delivery_tracking_template_type.sql ──
 
 -- Add template_type column to delivery_tracking (alias for message_type for backward compat)
-ALTER TABLE public.delivery_tracking 
+ALTER TABLE public.delivery_tracking
 ADD COLUMN IF NOT EXISTS template_type text;
 
 -- Copy existing message_type values to template_type
-UPDATE public.delivery_tracking 
-SET template_type = message_type 
+UPDATE public.delivery_tracking
+SET template_type = message_type
 WHERE template_type IS NULL AND message_type IS NOT NULL;
 
 -- Create index for template_type queries
-CREATE INDEX IF NOT EXISTS idx_delivery_tracking_template_type 
+CREATE INDEX IF NOT EXISTS idx_delivery_tracking_template_type
 ON public.delivery_tracking(template_type);
 
 
@@ -14293,7 +13290,7 @@ BEGIN
     'delivered', COUNT(*) FILTER (WHERE status = 'delivered')
   ) INTO result
   FROM public.email_outbox;
-  
+
   RETURN result;
 END;
 $$;
@@ -14365,7 +13362,7 @@ CREATE INDEX IF NOT EXISTS idx_patient_messages_sender_id ON public.patient_mess
 -- last_attempt_at: when the last send attempt was made
 -- html_body: store rendered HTML for retries (avoids re-rendering templates)
 
-ALTER TABLE email_outbox 
+ALTER TABLE email_outbox
 ADD COLUMN IF NOT EXISTS last_attempt_at timestamptz,
 ADD COLUMN IF NOT EXISTS html_body text,
 ADD COLUMN IF NOT EXISTS text_body text,
@@ -14376,7 +13373,7 @@ ADD COLUMN IF NOT EXISTS reply_to text;
 ALTER TABLE email_outbox ALTER COLUMN retry_count SET DEFAULT 0;
 
 -- Index for dispatcher query: pending/failed emails eligible for retry
-CREATE INDEX IF NOT EXISTS idx_email_outbox_dispatcher 
+CREATE INDEX IF NOT EXISTS idx_email_outbox_dispatcher
   ON email_outbox(status, last_attempt_at, retry_count)
   WHERE status IN ('pending', 'failed');
 
@@ -14389,7 +13386,7 @@ COMMENT ON COLUMN email_outbox.html_body IS 'Rendered HTML body for dispatcher r
 -- Remove email body columns from email_outbox
 -- These were added for dispatcher retry but we'll reconstruct from intake/certificate data instead
 
-ALTER TABLE email_outbox 
+ALTER TABLE email_outbox
 DROP COLUMN IF EXISTS html_body,
 DROP COLUMN IF EXISTS text_body,
 DROP COLUMN IF EXISTS from_email,
@@ -14404,11 +13401,11 @@ DROP COLUMN IF EXISTS reply_to;
 -- Add 'sending' status for atomic claim mechanism
 -- This prevents duplicate sends when cron runs twice or admin clicks resend during cron
 
-ALTER TABLE email_outbox 
+ALTER TABLE email_outbox
 DROP CONSTRAINT IF EXISTS email_outbox_status_check;
 
-ALTER TABLE email_outbox 
-ADD CONSTRAINT email_outbox_status_check 
+ALTER TABLE email_outbox
+ADD CONSTRAINT email_outbox_status_check
 CHECK (status IN ('pending', 'sending', 'sent', 'failed', 'skipped_e2e'));
 
 COMMENT ON COLUMN email_outbox.status IS 'pending=new, sending=claimed by dispatcher, sent=delivered, failed=error, skipped_e2e=test mode';
@@ -14817,6 +13814,13 @@ CREATE POLICY "Doctors can manage refill requests"
 -- 4. audit_log VIEW (maps to audit_logs table)
 -- Compliance dashboard references "audit_log" but table is "audit_logs"
 -- ============================================================================
+
+DROP TABLE IF EXISTS public.audit_log CASCADE;
+
+ALTER TABLE public.audit_logs
+ADD COLUMN IF NOT EXISTS description TEXT,
+ADD COLUMN IF NOT EXISTS profile_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+ADD COLUMN IF NOT EXISTS intake_id UUID REFERENCES public.intakes(id) ON DELETE SET NULL;
 
 CREATE OR REPLACE VIEW public.audit_log AS
 SELECT
@@ -15921,6 +14925,23 @@ BEGIN
     CREATE INDEX IF NOT EXISTS idx_audit_logs_intake
       ON public.audit_logs(intake_id)
       WHERE intake_id IS NOT NULL;
+  ELSIF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public'
+    AND table_name = 'audit_logs'
+    AND column_name = 'request_id'
+  ) AND EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public'
+    AND table_name = 'audit_logs'
+    AND column_name = 'intake_id'
+  ) THEN
+    DROP INDEX IF EXISTS idx_audit_logs_request;
+    DROP VIEW IF EXISTS public.audit_log;
+    ALTER TABLE public.audit_logs DROP COLUMN request_id;
+    CREATE INDEX IF NOT EXISTS idx_audit_logs_intake
+      ON public.audit_logs(intake_id)
+      WHERE intake_id IS NOT NULL;
   END IF;
 END $$;
 
@@ -15983,6 +15004,8 @@ BEGIN
     ALTER TABLE public.priority_upsell_conversions DROP COLUMN request_id;
   END IF;
 END $$;
+
+DROP TABLE IF EXISTS public.priority_upsell_conversions;
 
 -- 4h. email_logs: rename request_id → intake_id (if exists)
 DO $$
@@ -16091,8 +15114,8 @@ END $$;
 DO $$
 BEGIN
   IF EXISTS (
-    SELECT 1 FROM information_schema.views
-    WHERE table_schema = 'public' AND table_name = 'audit_log'
+    SELECT 1 FROM information_schema.tables
+    WHERE table_schema = 'public' AND table_name = 'audit_logs'
   ) THEN
     DROP VIEW IF EXISTS public.audit_log;
     CREATE VIEW public.audit_log AS
@@ -16243,8 +15266,20 @@ BEGIN
     WHERE table_schema = 'public'
     AND table_name = 'stripe_webhook_dead_letter'
     AND column_name = 'request_id'
+  ) AND NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public'
+    AND table_name = 'stripe_webhook_dead_letter'
+    AND column_name = 'intake_id'
   ) THEN
     ALTER TABLE public.stripe_webhook_dead_letter RENAME COLUMN request_id TO intake_id;
+  ELSIF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public'
+    AND table_name = 'stripe_webhook_dead_letter'
+    AND column_name = 'request_id'
+  ) THEN
+    ALTER TABLE public.stripe_webhook_dead_letter DROP COLUMN request_id;
   END IF;
 END $$;
 
@@ -16285,6 +15320,11 @@ BEGIN
       FOREIGN KEY (intake_id) REFERENCES public.intakes(id);
   END IF;
 END $$;
+
+-- Drop the temporary legacy table used only to replay squashed request-era
+-- migrations. The canonical runtime schema uses public.intakes.
+ALTER TABLE public.document_drafts DROP COLUMN IF EXISTS request_id;
+DROP TABLE IF EXISTS public.requests CASCADE;
 
 
 -- ── 20260216000001_fix_payment_status_and_state_machine.sql ──
@@ -16493,275 +15533,8 @@ CREATE INDEX IF NOT EXISTS idx_issued_certificates_ref
   ON issued_certificates (certificate_ref)
   WHERE certificate_ref IS NOT NULL;
 
--- 3. Update the atomic_approve_certificate RPC to accept certificate_ref
-CREATE OR REPLACE FUNCTION public.atomic_approve_certificate(
-  -- Intake identification
-  p_intake_id UUID,
-
-  -- Certificate data
-  p_certificate_number TEXT,
-  p_verification_code TEXT,
-  p_idempotency_key TEXT,
-  p_certificate_type TEXT,
-  p_issue_date DATE,
-  p_start_date DATE,
-  p_end_date DATE,
-
-  -- Patient snapshot
-  p_patient_id UUID,
-  p_patient_name TEXT,
-  p_patient_dob DATE,
-
-  -- Doctor snapshot
-  p_doctor_id UUID,
-  p_doctor_name TEXT,
-  p_doctor_nominals TEXT,
-  p_doctor_provider_number TEXT,
-  p_doctor_ahpra_number TEXT,
-
-  -- Template snapshots (JSONB)
-  p_template_config_snapshot JSONB,
-  p_clinic_identity_snapshot JSONB,
-
-  -- Storage info
-  p_storage_path TEXT,
-  p_file_size_bytes INTEGER,
-
-  -- Legacy intake_documents fields
-  p_filename TEXT,
-
-  -- PDF integrity verification
-  p_pdf_hash TEXT DEFAULT NULL,
-
-  -- NEW: Template-based certificate reference
-  p_certificate_ref TEXT DEFAULT NULL
-)
-RETURNS TABLE (
-  certificate_id UUID,
-  intake_document_id UUID,
-  success BOOLEAN,
-  error_message TEXT,
-  is_duplicate BOOLEAN
-)
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = 'public'
-AS $$
-DECLARE
-  v_certificate_id UUID;
-  v_intake_document_id UUID;
-  v_current_status TEXT;
-  v_existing_cert_id UUID;
-BEGIN
-  -- ============================================
-  -- STEP 1: Check for existing certificate (idempotency)
-  -- ============================================
-  SELECT id INTO v_existing_cert_id
-  FROM issued_certificates
-  WHERE idempotency_key = p_idempotency_key;
-
-  IF v_existing_cert_id IS NOT NULL THEN
-    RETURN QUERY SELECT
-      v_existing_cert_id,
-      NULL::UUID,
-      TRUE,
-      NULL::TEXT,
-      TRUE;
-    RETURN;
-  END IF;
-
-  -- ============================================
-  -- STEP 2: Validate intake status
-  -- ============================================
-  SELECT status INTO v_current_status
-  FROM intakes
-  WHERE id = p_intake_id
-  FOR UPDATE;
-
-  IF v_current_status IS NULL THEN
-    RETURN QUERY SELECT NULL::UUID, NULL::UUID, FALSE, 'Intake not found'::TEXT, FALSE;
-    RETURN;
-  END IF;
-
-  IF v_current_status NOT IN ('paid', 'in_review', 'approved') THEN
-    RETURN QUERY SELECT NULL::UUID, NULL::UUID, FALSE,
-      ('Invalid intake status for approval: ' || v_current_status || '. Expected: paid, in_review, or approved.')::TEXT, FALSE;
-    RETURN;
-  END IF;
-
-  IF v_current_status = 'approved' THEN
-    SELECT id INTO v_existing_cert_id
-    FROM issued_certificates
-    WHERE intake_id = p_intake_id
-    AND status = 'valid'
-    LIMIT 1;
-
-    IF v_existing_cert_id IS NOT NULL THEN
-      RETURN QUERY SELECT v_existing_cert_id, NULL::UUID, TRUE, NULL::TEXT, TRUE;
-      RETURN;
-    END IF;
-  END IF;
-
-  -- ============================================
-  -- STEP 3: Create issued_certificates record
-  -- ============================================
-  INSERT INTO issued_certificates (
-    intake_id,
-    certificate_number,
-    verification_code,
-    idempotency_key,
-    certificate_type,
-    status,
-    issue_date,
-    start_date,
-    end_date,
-    patient_id,
-    patient_name,
-    patient_dob,
-    doctor_id,
-    doctor_name,
-    doctor_nominals,
-    doctor_provider_number,
-    doctor_ahpra_number,
-    template_config_snapshot,
-    clinic_identity_snapshot,
-    storage_path,
-    file_size_bytes,
-    pdf_hash,
-    certificate_ref
-  )
-  VALUES (
-    p_intake_id,
-    p_certificate_number,
-    p_verification_code,
-    p_idempotency_key,
-    p_certificate_type,
-    'valid',
-    p_issue_date,
-    p_start_date,
-    p_end_date,
-    p_patient_id,
-    p_patient_name,
-    p_patient_dob,
-    p_doctor_id,
-    p_doctor_name,
-    p_doctor_nominals,
-    p_doctor_provider_number,
-    p_doctor_ahpra_number,
-    p_template_config_snapshot,
-    p_clinic_identity_snapshot,
-    p_storage_path,
-    p_file_size_bytes,
-    p_pdf_hash,
-    p_certificate_ref
-  )
-  RETURNING id INTO v_certificate_id;
-
-  -- ============================================
-  -- STEP 4: Create intake_documents record (legacy table)
-  -- ============================================
-  INSERT INTO intake_documents (
-    intake_id,
-    document_type,
-    filename,
-    storage_path,
-    mime_type,
-    file_size_bytes,
-    certificate_number,
-    created_by,
-    metadata
-  )
-  VALUES (
-    p_intake_id,
-    'med_cert',
-    p_filename,
-    p_storage_path,
-    'application/pdf',
-    p_file_size_bytes,
-    p_certificate_number,
-    p_doctor_id,
-    jsonb_build_object(
-      'patient_name', p_patient_name,
-      'certificate_type', p_certificate_type,
-      'start_date', p_start_date,
-      'end_date', p_end_date,
-      'pdf_hash', p_pdf_hash,
-      'certificate_ref', p_certificate_ref
-    )
-  )
-  RETURNING id INTO v_intake_document_id;
-
-  -- ============================================
-  -- STEP 5: Update intake status to approved
-  -- ============================================
-  UPDATE intakes
-  SET
-    status = 'approved',
-    reviewed_by = p_doctor_id,
-    reviewed_at = NOW(),
-    decided_at = NOW(),
-    decision = 'approved',
-    approved_at = NOW(),
-    updated_at = NOW()
-  WHERE id = p_intake_id
-  AND status IN ('paid', 'in_review', 'approved');
-
-  IF NOT FOUND THEN
-    RAISE EXCEPTION 'Failed to update intake status - concurrent modification detected';
-  END IF;
-
-  -- ============================================
-  -- STEP 6: Log certificate issuance event
-  -- ============================================
-  INSERT INTO certificate_audit_log (
-    certificate_id,
-    event_type,
-    actor_id,
-    actor_role,
-    metadata
-  )
-  VALUES (
-    v_certificate_id,
-    'issued',
-    p_doctor_id,
-    'doctor',
-    jsonb_build_object(
-      'intake_id', p_intake_id,
-      'certificate_type', p_certificate_type,
-      'storage_path', p_storage_path,
-      'pdf_hash', p_pdf_hash,
-      'certificate_ref', p_certificate_ref
-    )
-  );
-
-  -- ============================================
-  -- Return success
-  -- ============================================
-  RETURN QUERY SELECT v_certificate_id, v_intake_document_id, TRUE, NULL::TEXT, FALSE;
-
-EXCEPTION
-  WHEN unique_violation THEN
-    SELECT id INTO v_existing_cert_id
-    FROM issued_certificates
-    WHERE idempotency_key = p_idempotency_key;
-
-    IF v_existing_cert_id IS NOT NULL THEN
-      RETURN QUERY SELECT v_existing_cert_id, NULL::UUID, TRUE, NULL::TEXT, TRUE;
-    ELSE
-      RETURN QUERY SELECT NULL::UUID, NULL::UUID, FALSE,
-        'Unique constraint violation'::TEXT, FALSE;
-    END IF;
-
-  WHEN OTHERS THEN
-    RETURN QUERY SELECT NULL::UUID, NULL::UUID, FALSE, SQLERRM::TEXT, FALSE;
-END;
-$$;
-
-COMMENT ON FUNCTION public.atomic_approve_certificate IS
-'Atomic certificate approval with template-based certificate_ref support.
-Accepts paid/in_review/approved states. Uses claim mechanism for lock.
-SECURITY DEFINER - service_role only.
-Canonical path: app/actions/approve-cert.ts -> approveAndSendCert()';
+-- 3. Skipped in the squashed baseline: obsolete intermediate atomic_approve_certificate RPC.
+-- Later canonical approval RPC definitions remain below.
 
 
 -- ── 20260219000001_amt_cache_rls_policies.sql ──
@@ -16821,180 +15594,8 @@ END $$;
 
 -- ── 20260220000002_fix_audit_log_metadata_column.sql ──
 
--- Fix: atomic_approve_certificate references 'metadata' column on certificate_audit_log
--- but the actual column name is 'event_data'. This caused approval to fail with:
--- "column metadata of relation certificate_audit_log does not exist"
-
-CREATE OR REPLACE FUNCTION public.atomic_approve_certificate(
-  p_intake_id uuid,
-  p_certificate_number text,
-  p_verification_code text,
-  p_idempotency_key text,
-  p_certificate_type text,
-  p_issue_date date,
-  p_start_date date,
-  p_end_date date,
-  p_patient_id uuid,
-  p_patient_name text,
-  p_patient_dob date,
-  p_doctor_id uuid,
-  p_doctor_name text,
-  p_doctor_nominals text,
-  p_doctor_provider_number text,
-  p_doctor_ahpra_number text,
-  p_template_config_snapshot jsonb,
-  p_clinic_identity_snapshot jsonb,
-  p_storage_path text,
-  p_file_size_bytes integer,
-  p_filename text,
-  p_pdf_hash text DEFAULT NULL::text,
-  p_certificate_ref text DEFAULT NULL::text
-)
-RETURNS TABLE(certificate_id uuid, intake_document_id uuid, success boolean, error_message text, is_duplicate boolean)
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path TO 'public'
-AS $function$
-DECLARE
-  v_certificate_id UUID;
-  v_intake_document_id UUID;
-  v_current_status TEXT;
-  v_existing_cert_id UUID;
-BEGIN
-  -- 1. Idempotency check
-  SELECT id INTO v_existing_cert_id
-  FROM issued_certificates
-  WHERE idempotency_key = p_idempotency_key;
-
-  IF v_existing_cert_id IS NOT NULL THEN
-    RETURN QUERY SELECT v_existing_cert_id, NULL::UUID, TRUE, NULL::TEXT, TRUE;
-    RETURN;
-  END IF;
-
-  -- 2. Lock intake and validate status
-  SELECT status INTO v_current_status
-  FROM intakes
-  WHERE id = p_intake_id
-  FOR UPDATE;
-
-  IF v_current_status IS NULL THEN
-    RETURN QUERY SELECT NULL::UUID, NULL::UUID, FALSE, 'Intake not found'::TEXT, FALSE;
-    RETURN;
-  END IF;
-
-  IF v_current_status NOT IN ('paid', 'in_review', 'approved') THEN
-    RETURN QUERY SELECT NULL::UUID, NULL::UUID, FALSE,
-      ('Invalid intake status for approval: ' || v_current_status || '. Expected: paid, in_review, or approved.')::TEXT, FALSE;
-    RETURN;
-  END IF;
-
-  -- 3. Re-approval guard
-  IF v_current_status = 'approved' THEN
-    SELECT id INTO v_existing_cert_id
-    FROM issued_certificates
-    WHERE intake_id = p_intake_id AND status = 'valid'
-    LIMIT 1;
-
-    IF v_existing_cert_id IS NOT NULL THEN
-      RETURN QUERY SELECT v_existing_cert_id, NULL::UUID, TRUE, NULL::TEXT, TRUE;
-      RETURN;
-    END IF;
-  END IF;
-
-  -- 4. Insert issued certificate
-  INSERT INTO issued_certificates (
-    intake_id, certificate_number, verification_code, idempotency_key,
-    certificate_type, status, issue_date, start_date, end_date,
-    patient_id, patient_name, patient_dob,
-    doctor_id, doctor_name, doctor_nominals,
-    doctor_provider_number, doctor_ahpra_number,
-    template_config_snapshot, clinic_identity_snapshot,
-    storage_path, file_size_bytes, pdf_hash, certificate_ref
-  )
-  VALUES (
-    p_intake_id, p_certificate_number, p_verification_code, p_idempotency_key,
-    p_certificate_type, 'valid', p_issue_date, p_start_date, p_end_date,
-    p_patient_id, p_patient_name, p_patient_dob,
-    p_doctor_id, p_doctor_name, p_doctor_nominals,
-    p_doctor_provider_number, p_doctor_ahpra_number,
-    p_template_config_snapshot, p_clinic_identity_snapshot,
-    p_storage_path, p_file_size_bytes, p_pdf_hash, p_certificate_ref
-  )
-  RETURNING id INTO v_certificate_id;
-
-  -- 5. Insert intake document record
-  INSERT INTO intake_documents (
-    intake_id, document_type, filename, storage_path,
-    mime_type, file_size_bytes, certificate_number,
-    created_by, metadata
-  )
-  VALUES (
-    p_intake_id, 'med_cert', p_filename, p_storage_path,
-    'application/pdf', p_file_size_bytes, p_certificate_number,
-    p_doctor_id,
-    jsonb_build_object(
-      'patient_name', p_patient_name,
-      'certificate_type', p_certificate_type,
-      'start_date', p_start_date,
-      'end_date', p_end_date,
-      'pdf_hash', p_pdf_hash,
-      'certificate_ref', p_certificate_ref
-    )
-  )
-  RETURNING id INTO v_intake_document_id;
-
-  -- 6. Update intake status
-  UPDATE intakes
-  SET
-    status = 'approved',
-    reviewed_by = p_doctor_id,
-    reviewed_at = NOW(),
-    decided_at = NOW(),
-    decision = 'approved',
-    approved_at = NOW(),
-    updated_at = NOW()
-  WHERE id = p_intake_id
-  AND status IN ('paid', 'in_review', 'approved');
-
-  IF NOT FOUND THEN
-    RAISE EXCEPTION 'Failed to update intake status - concurrent modification detected';
-  END IF;
-
-  -- 7. Audit log — FIX: use event_data (not metadata)
-  INSERT INTO certificate_audit_log (
-    certificate_id, event_type, actor_id, actor_role, event_data
-  )
-  VALUES (
-    v_certificate_id, 'issued', p_doctor_id, 'doctor',
-    jsonb_build_object(
-      'intake_id', p_intake_id,
-      'certificate_type', p_certificate_type,
-      'storage_path', p_storage_path,
-      'pdf_hash', p_pdf_hash,
-      'certificate_ref', p_certificate_ref
-    )
-  );
-
-  -- 8. Return success
-  RETURN QUERY SELECT v_certificate_id, v_intake_document_id, TRUE, NULL::TEXT, FALSE;
-
-EXCEPTION
-  WHEN unique_violation THEN
-    SELECT id INTO v_existing_cert_id
-    FROM issued_certificates
-    WHERE idempotency_key = p_idempotency_key;
-
-    IF v_existing_cert_id IS NOT NULL THEN
-      RETURN QUERY SELECT v_existing_cert_id, NULL::UUID, TRUE, NULL::TEXT, TRUE;
-    ELSE
-      RETURN QUERY SELECT NULL::UUID, NULL::UUID, FALSE, 'Unique constraint violation'::TEXT, FALSE;
-    END IF;
-
-  WHEN OTHERS THEN
-    RETURN QUERY SELECT NULL::UUID, NULL::UUID, FALSE, SQLERRM::TEXT, FALSE;
-END;
-$function$;
-
+-- Skipped in the squashed baseline: obsolete intermediate atomic_approve_certificate RPC.
+-- Later canonical approval RPC definitions remain below.
 
 -- ── 20260221000001_launch_readiness.sql ──
 
@@ -17685,617 +16286,12 @@ VALUES (
 -- ============================================================================
 
 -- Must DROP because we're adding new parameters (different signature)
-DROP FUNCTION IF EXISTS public.atomic_approve_certificate;
-
-CREATE OR REPLACE FUNCTION public.atomic_approve_certificate(
-  -- Intake identification
-  p_intake_id UUID,
-
-  -- Certificate data
-  p_certificate_number TEXT,
-  p_verification_code TEXT,
-  p_idempotency_key TEXT,
-  p_certificate_type TEXT,
-  p_issue_date DATE,
-  p_start_date DATE,
-  p_end_date DATE,
-
-  -- Patient snapshot
-  p_patient_id UUID,
-  p_patient_name TEXT,
-  p_patient_dob DATE,
-
-  -- Doctor snapshot
-  p_doctor_id UUID,
-  p_doctor_name TEXT,
-  p_doctor_nominals TEXT,
-  p_doctor_provider_number TEXT,
-  p_doctor_ahpra_number TEXT,
-
-  -- Template snapshots (JSONB)
-  p_template_config_snapshot JSONB,
-  p_clinic_identity_snapshot JSONB,
-
-  -- Storage info
-  p_storage_path TEXT,
-  p_file_size_bytes INTEGER,
-
-  -- Legacy intake_documents fields
-  p_filename TEXT,
-
-  -- PDF integrity verification
-  p_pdf_hash TEXT DEFAULT NULL,
-
-  -- Certificate reference (template-based: IM-TYPE-DATE-XXXXX)
-  p_certificate_ref TEXT DEFAULT NULL,
-
-  -- PHI encryption: AES-256-GCM envelope for patient_name (dual-write)
-  p_patient_name_enc JSONB DEFAULT NULL
-)
-RETURNS TABLE (
-  certificate_id UUID,
-  intake_document_id UUID,
-  success BOOLEAN,
-  error_message TEXT,
-  is_duplicate BOOLEAN
-)
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = 'public'
-AS $$
-DECLARE
-  v_certificate_id UUID;
-  v_intake_document_id UUID;
-  v_current_status TEXT;
-  v_existing_cert_id UUID;
-BEGIN
-  -- ============================================
-  -- STEP 1: Check for existing certificate (idempotency)
-  -- ============================================
-  SELECT id INTO v_existing_cert_id
-  FROM issued_certificates
-  WHERE idempotency_key = p_idempotency_key;
-
-  IF v_existing_cert_id IS NOT NULL THEN
-    -- Certificate already exists - return it (idempotent)
-    RETURN QUERY SELECT
-      v_existing_cert_id,
-      NULL::UUID,
-      TRUE,
-      NULL::TEXT,
-      TRUE;
-    RETURN;
-  END IF;
-
-  -- ============================================
-  -- STEP 2: Validate intake status
-  -- ============================================
-  SELECT status INTO v_current_status
-  FROM intakes
-  WHERE id = p_intake_id
-  FOR UPDATE; -- Lock the row to prevent concurrent modifications
-
-  IF v_current_status IS NULL THEN
-    RETURN QUERY SELECT NULL::UUID, NULL::UUID, FALSE, 'Intake not found'::TEXT, FALSE;
-    RETURN;
-  END IF;
-
-  -- Accept paid/in_review (claim mechanism provides lock) or approved (idempotent)
-  IF v_current_status NOT IN ('paid', 'in_review', 'approved') THEN
-    RETURN QUERY SELECT NULL::UUID, NULL::UUID, FALSE,
-      ('Invalid intake status for approval: ' || v_current_status || '. Expected: paid, in_review, or approved.')::TEXT, FALSE;
-    RETURN;
-  END IF;
-
-  -- If already approved, find the certificate
-  IF v_current_status = 'approved' THEN
-    SELECT id INTO v_existing_cert_id
-    FROM issued_certificates
-    WHERE intake_id = p_intake_id
-    AND status = 'valid'
-    LIMIT 1;
-
-    IF v_existing_cert_id IS NOT NULL THEN
-      RETURN QUERY SELECT v_existing_cert_id, NULL::UUID, TRUE, NULL::TEXT, TRUE;
-      RETURN;
-    END IF;
-  END IF;
-
-  -- ============================================
-  -- STEP 3: Create issued_certificates record
-  -- Now includes patient_name_enc (PHI dual-write)
-  -- and certificate_ref
-  -- ============================================
-  INSERT INTO issued_certificates (
-    intake_id,
-    certificate_number,
-    verification_code,
-    idempotency_key,
-    certificate_type,
-    status,
-    issue_date,
-    start_date,
-    end_date,
-    patient_id,
-    patient_name,
-    patient_name_enc,
-    patient_dob,
-    doctor_id,
-    doctor_name,
-    doctor_nominals,
-    doctor_provider_number,
-    doctor_ahpra_number,
-    template_config_snapshot,
-    clinic_identity_snapshot,
-    storage_path,
-    file_size_bytes,
-    pdf_hash,
-    certificate_ref
-  )
-  VALUES (
-    p_intake_id,
-    p_certificate_number,
-    p_verification_code,
-    p_idempotency_key,
-    p_certificate_type,
-    'valid',
-    p_issue_date,
-    p_start_date,
-    p_end_date,
-    p_patient_id,
-    p_patient_name,
-    p_patient_name_enc,
-    p_patient_dob,
-    p_doctor_id,
-    p_doctor_name,
-    p_doctor_nominals,
-    p_doctor_provider_number,
-    p_doctor_ahpra_number,
-    p_template_config_snapshot,
-    p_clinic_identity_snapshot,
-    p_storage_path,
-    p_file_size_bytes,
-    p_pdf_hash,
-    p_certificate_ref
-  )
-  RETURNING id INTO v_certificate_id;
-
-  -- ============================================
-  -- STEP 4: Create intake_documents record (legacy table)
-  -- ============================================
-  INSERT INTO intake_documents (
-    intake_id,
-    document_type,
-    filename,
-    storage_path,
-    mime_type,
-    file_size_bytes,
-    certificate_number,
-    created_by,
-    metadata
-  )
-  VALUES (
-    p_intake_id,
-    'med_cert',
-    p_filename,
-    p_storage_path,
-    'application/pdf',
-    p_file_size_bytes,
-    p_certificate_number,
-    p_doctor_id,
-    jsonb_build_object(
-      'patient_name', p_patient_name,
-      'certificate_type', p_certificate_type,
-      'start_date', p_start_date,
-      'end_date', p_end_date,
-      'pdf_hash', p_pdf_hash
-    )
-  )
-  RETURNING id INTO v_intake_document_id;
-
-  -- ============================================
-  -- STEP 5: Update intake status to approved
-  -- ============================================
-  UPDATE intakes
-  SET
-    status = 'approved',
-    reviewed_by = p_doctor_id,
-    reviewed_at = NOW(),
-    decided_at = NOW(),
-    decision = 'approved',
-    approved_at = NOW(),
-    updated_at = NOW()
-  WHERE id = p_intake_id
-  AND status IN ('paid', 'in_review', 'approved'); -- Safety: only update from expected states
-
-  IF NOT FOUND THEN
-    -- This shouldn't happen due to the FOR UPDATE lock, but handle it gracefully
-    RAISE EXCEPTION 'Failed to update intake status - concurrent modification detected';
-  END IF;
-
-  -- ============================================
-  -- STEP 6: Log certificate issuance event
-  -- ============================================
-  INSERT INTO certificate_audit_log (
-    certificate_id,
-    event_type,
-    actor_id,
-    actor_role,
-    metadata
-  )
-  VALUES (
-    v_certificate_id,
-    'issued',
-    p_doctor_id,
-    'doctor',
-    jsonb_build_object(
-      'intake_id', p_intake_id,
-      'certificate_type', p_certificate_type,
-      'storage_path', p_storage_path,
-      'pdf_hash', p_pdf_hash,
-      'phi_encrypted', (p_patient_name_enc IS NOT NULL)
-    )
-  );
-
-  -- ============================================
-  -- Return success
-  -- ============================================
-  RETURN QUERY SELECT v_certificate_id, v_intake_document_id, TRUE, NULL::TEXT, FALSE;
-
-EXCEPTION
-  WHEN unique_violation THEN
-    -- Handle race condition where another request created the certificate
-    SELECT id INTO v_existing_cert_id
-    FROM issued_certificates
-    WHERE idempotency_key = p_idempotency_key;
-
-    IF v_existing_cert_id IS NOT NULL THEN
-      RETURN QUERY SELECT v_existing_cert_id, NULL::UUID, TRUE, NULL::TEXT, TRUE;
-    ELSE
-      RETURN QUERY SELECT NULL::UUID, NULL::UUID, FALSE,
-        'Unique constraint violation'::TEXT, FALSE;
-    END IF;
-
-  WHEN OTHERS THEN
-    RETURN QUERY SELECT NULL::UUID, NULL::UUID, FALSE, SQLERRM::TEXT, FALSE;
-END;
-$$;
-
--- service_role only (authenticated revoked per 20260125000001)
-GRANT EXECUTE ON FUNCTION public.atomic_approve_certificate TO service_role;
-
-COMMENT ON FUNCTION public.atomic_approve_certificate IS
-'Atomic certificate approval with PHI encryption support. Accepts paid/in_review/approved states.
-Writes patient_name_enc (AES-256-GCM envelope) alongside patient_name (dual-write pattern).
-SECURITY DEFINER - service_role only.
-Canonical path: app/actions/approve-cert.ts -> approveAndSendCert()';
-
--- Audit log
-INSERT INTO public.audit_logs (action, actor_type, metadata, created_at)
-VALUES (
-  'settings_changed',
-  'system',
-  jsonb_build_object(
-    'settingType', 'atomic_approval_phi_encryption_added',
-    'changes', ARRAY['p_patient_name_enc JSONB', 'p_certificate_ref TEXT'],
-    'reason', 'Close PHI encryption gap in atomic approval path'
-  ),
-  NOW()
-);
-
+-- Skipped in the squashed baseline: superseded PHI-encryption atomic_approve_certificate RPC.
+-- 20260311020000_fix_audit_log_metadata_column_regression.sql keeps the final RPC below.
 
 -- ── 20260311020000_fix_audit_log_metadata_column_regression.sql ──
 
--- ============================================================================
--- FIX: Revert metadata→event_data regression in atomic_approve_certificate
---
--- 20260311014239_add_phi_enc_to_atomic_approval.sql introduced a regression:
--- the INSERT into certificate_audit_log used column "metadata" instead of
--- the correct column "event_data".
---
--- This migration re-applies the full function with the correct column name.
--- ============================================================================
-
-DROP FUNCTION IF EXISTS public.atomic_approve_certificate;
-
-CREATE OR REPLACE FUNCTION public.atomic_approve_certificate(
-  -- Intake identification
-  p_intake_id UUID,
-
-  -- Certificate data
-  p_certificate_number TEXT,
-  p_verification_code TEXT,
-  p_idempotency_key TEXT,
-  p_certificate_type TEXT,
-  p_issue_date DATE,
-  p_start_date DATE,
-  p_end_date DATE,
-
-  -- Patient snapshot
-  p_patient_id UUID,
-  p_patient_name TEXT,
-  p_patient_dob DATE,
-
-  -- Doctor snapshot
-  p_doctor_id UUID,
-  p_doctor_name TEXT,
-  p_doctor_nominals TEXT,
-  p_doctor_provider_number TEXT,
-  p_doctor_ahpra_number TEXT,
-
-  -- Template snapshots (JSONB)
-  p_template_config_snapshot JSONB,
-  p_clinic_identity_snapshot JSONB,
-
-  -- Storage info
-  p_storage_path TEXT,
-  p_file_size_bytes INTEGER,
-
-  -- Legacy intake_documents fields
-  p_filename TEXT,
-
-  -- PDF integrity verification
-  p_pdf_hash TEXT DEFAULT NULL,
-
-  -- Certificate reference (template-based: IM-TYPE-DATE-XXXXX)
-  p_certificate_ref TEXT DEFAULT NULL,
-
-  -- PHI encryption: AES-256-GCM envelope for patient_name (dual-write)
-  p_patient_name_enc JSONB DEFAULT NULL
-)
-RETURNS TABLE (
-  certificate_id UUID,
-  intake_document_id UUID,
-  success BOOLEAN,
-  error_message TEXT,
-  is_duplicate BOOLEAN
-)
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = 'public'
-AS $$
-DECLARE
-  v_certificate_id UUID;
-  v_intake_document_id UUID;
-  v_current_status TEXT;
-  v_existing_cert_id UUID;
-BEGIN
-  -- ============================================
-  -- STEP 1: Check for existing certificate (idempotency)
-  -- ============================================
-  SELECT id INTO v_existing_cert_id
-  FROM issued_certificates
-  WHERE idempotency_key = p_idempotency_key;
-
-  IF v_existing_cert_id IS NOT NULL THEN
-    -- Certificate already exists - return it (idempotent)
-    RETURN QUERY SELECT
-      v_existing_cert_id,
-      NULL::UUID,
-      TRUE,
-      NULL::TEXT,
-      TRUE;
-    RETURN;
-  END IF;
-
-  -- ============================================
-  -- STEP 2: Validate intake status
-  -- ============================================
-  SELECT status INTO v_current_status
-  FROM intakes
-  WHERE id = p_intake_id
-  FOR UPDATE; -- Lock the row to prevent concurrent modifications
-
-  IF v_current_status IS NULL THEN
-    RETURN QUERY SELECT NULL::UUID, NULL::UUID, FALSE, 'Intake not found'::TEXT, FALSE;
-    RETURN;
-  END IF;
-
-  -- Accept paid/in_review (claim mechanism provides lock) or approved (idempotent)
-  IF v_current_status NOT IN ('paid', 'in_review', 'approved') THEN
-    RETURN QUERY SELECT NULL::UUID, NULL::UUID, FALSE,
-      ('Invalid intake status for approval: ' || v_current_status || '. Expected: paid, in_review, or approved.')::TEXT, FALSE;
-    RETURN;
-  END IF;
-
-  -- If already approved, find the certificate
-  IF v_current_status = 'approved' THEN
-    SELECT id INTO v_existing_cert_id
-    FROM issued_certificates
-    WHERE intake_id = p_intake_id
-    AND status = 'valid'
-    LIMIT 1;
-
-    IF v_existing_cert_id IS NOT NULL THEN
-      RETURN QUERY SELECT v_existing_cert_id, NULL::UUID, TRUE, NULL::TEXT, TRUE;
-      RETURN;
-    END IF;
-  END IF;
-
-  -- ============================================
-  -- STEP 3: Create issued_certificates record
-  -- Now includes patient_name_enc (PHI dual-write)
-  -- and certificate_ref
-  -- ============================================
-  INSERT INTO issued_certificates (
-    intake_id,
-    certificate_number,
-    verification_code,
-    idempotency_key,
-    certificate_type,
-    status,
-    issue_date,
-    start_date,
-    end_date,
-    patient_id,
-    patient_name,
-    patient_name_enc,
-    patient_dob,
-    doctor_id,
-    doctor_name,
-    doctor_nominals,
-    doctor_provider_number,
-    doctor_ahpra_number,
-    template_config_snapshot,
-    clinic_identity_snapshot,
-    storage_path,
-    file_size_bytes,
-    pdf_hash,
-    certificate_ref
-  )
-  VALUES (
-    p_intake_id,
-    p_certificate_number,
-    p_verification_code,
-    p_idempotency_key,
-    p_certificate_type,
-    'valid',
-    p_issue_date,
-    p_start_date,
-    p_end_date,
-    p_patient_id,
-    p_patient_name,
-    p_patient_name_enc,
-    p_patient_dob,
-    p_doctor_id,
-    p_doctor_name,
-    p_doctor_nominals,
-    p_doctor_provider_number,
-    p_doctor_ahpra_number,
-    p_template_config_snapshot,
-    p_clinic_identity_snapshot,
-    p_storage_path,
-    p_file_size_bytes,
-    p_pdf_hash,
-    p_certificate_ref
-  )
-  RETURNING id INTO v_certificate_id;
-
-  -- ============================================
-  -- STEP 4: Create intake_documents record (legacy table)
-  -- ============================================
-  INSERT INTO intake_documents (
-    intake_id,
-    document_type,
-    filename,
-    storage_path,
-    mime_type,
-    file_size_bytes,
-    certificate_number,
-    created_by,
-    metadata
-  )
-  VALUES (
-    p_intake_id,
-    'med_cert',
-    p_filename,
-    p_storage_path,
-    'application/pdf',
-    p_file_size_bytes,
-    p_certificate_number,
-    p_doctor_id,
-    jsonb_build_object(
-      'patient_name', p_patient_name,
-      'certificate_type', p_certificate_type,
-      'start_date', p_start_date,
-      'end_date', p_end_date,
-      'pdf_hash', p_pdf_hash
-    )
-  )
-  RETURNING id INTO v_intake_document_id;
-
-  -- ============================================
-  -- STEP 5: Update intake status to approved
-  -- ============================================
-  UPDATE intakes
-  SET
-    status = 'approved',
-    reviewed_by = p_doctor_id,
-    reviewed_at = NOW(),
-    decided_at = NOW(),
-    decision = 'approved',
-    approved_at = NOW(),
-    updated_at = NOW()
-  WHERE id = p_intake_id
-  AND status IN ('paid', 'in_review', 'approved'); -- Safety: only update from expected states
-
-  IF NOT FOUND THEN
-    -- This shouldn't happen due to the FOR UPDATE lock, but handle it gracefully
-    RAISE EXCEPTION 'Failed to update intake status - concurrent modification detected';
-  END IF;
-
-  -- ============================================
-  -- STEP 6: Log certificate issuance event
-  -- FIX: Use event_data (not metadata) — correct column name for certificate_audit_log
-  -- ============================================
-  INSERT INTO certificate_audit_log (
-    certificate_id,
-    event_type,
-    actor_id,
-    actor_role,
-    event_data
-  )
-  VALUES (
-    v_certificate_id,
-    'issued',
-    p_doctor_id,
-    'doctor',
-    jsonb_build_object(
-      'intake_id', p_intake_id,
-      'certificate_type', p_certificate_type,
-      'storage_path', p_storage_path,
-      'pdf_hash', p_pdf_hash,
-      'phi_encrypted', (p_patient_name_enc IS NOT NULL)
-    )
-  );
-
-  -- ============================================
-  -- Return success
-  -- ============================================
-  RETURN QUERY SELECT v_certificate_id, v_intake_document_id, TRUE, NULL::TEXT, FALSE;
-
-EXCEPTION
-  WHEN unique_violation THEN
-    -- Handle race condition where another request created the certificate
-    SELECT id INTO v_existing_cert_id
-    FROM issued_certificates
-    WHERE idempotency_key = p_idempotency_key;
-
-    IF v_existing_cert_id IS NOT NULL THEN
-      RETURN QUERY SELECT v_existing_cert_id, NULL::UUID, TRUE, NULL::TEXT, TRUE;
-    ELSE
-      RETURN QUERY SELECT NULL::UUID, NULL::UUID, FALSE,
-        'Unique constraint violation'::TEXT, FALSE;
-    END IF;
-
-  WHEN OTHERS THEN
-    RETURN QUERY SELECT NULL::UUID, NULL::UUID, FALSE, SQLERRM::TEXT, FALSE;
-END;
-$$;
-
--- service_role only (authenticated revoked per 20260125000001)
-GRANT EXECUTE ON FUNCTION public.atomic_approve_certificate TO service_role;
-
-COMMENT ON FUNCTION public.atomic_approve_certificate IS
-'Atomic certificate approval with PHI encryption support. Accepts paid/in_review/approved states.
-Writes patient_name_enc (AES-256-GCM envelope) alongside patient_name (dual-write pattern).
-SECURITY DEFINER - service_role only.
-Canonical path: app/actions/approve-cert.ts -> approveAndSendCert()
-Fix: 20260311020000 corrected metadata->event_data regression in certificate_audit_log INSERT.';
-
--- Audit log
-INSERT INTO public.audit_logs (action, actor_type, metadata, created_at)
-VALUES (
-  'settings_changed',
-  'system',
-  jsonb_build_object(
-    'settingType', 'atomic_approval_audit_log_column_fix',
-    'changes', ARRAY['certificate_audit_log: metadata -> event_data'],
-    'reason', 'Fix regression introduced by 20260311014239_add_phi_enc_to_atomic_approval.sql'
-  ),
-  NOW()
-);
-
+-- Skipped in the squashed baseline: final atomic_approve_certificate RPC moved to 20260502011500_restore_atomic_approve_certificate_rpc.sql.
 
 -- ── 20260313000001_operational_config_flags.sql ──
 
@@ -19272,4 +17268,3 @@ CREATE TRIGGER subscriptions_updated_at
   BEFORE UPDATE ON public.subscriptions
   FOR EACH ROW
   EXECUTE FUNCTION public.update_updated_at();
-

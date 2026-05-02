@@ -9,7 +9,7 @@
 | Layer | Framework | Location | Count |
 |-------|-----------|----------|-------|
 | Unit tests | Vitest | `lib/__tests__/**/*.test.ts` | **1,521** passing (55 files, local 2026-04-28) |
-| E2E tests | Playwright | `e2e/**/*.spec.ts` | 46 specs — **full suite runs in CI** |
+| E2E tests | Playwright | `e2e/**/*.spec.ts` | 46 specs — blocking CI currently runs the ops smoke only |
 
 **Coverage threshold:** 80% statements / 70% branches / 80% functions / 80% lines (enforced by Vitest config, scoped to `lib/clinical/` and `lib/security/`). **Note:** `lib/state-machine/` was removed from the include list 2026-04-08 because the directory no longer exists — the state-machine logic was consolidated into `lib/clinical/auto-approval-state.ts`.
 
@@ -19,9 +19,9 @@
 
 Prior to these, the canonical refund code had **zero unit coverage** — only the e2e suite exercised it, which gave slow feedback and no per-branch visibility.
 
-**CI pipeline:** `pnpm ci` runs `install → lint → test → build` in sequence (typecheck is part of `build`, not a standalone step). **Full e2e suite runs in `ci.yml`** gated by `vars.E2E_ENABLED == 'true'` (updated 2026-04-08 — previously only 4 of 47 specs ran). Also runs in `e2e-preview.yml` against Vercel preview deployments.
+**CI pipeline:** `pnpm ci` runs `install → lint → test → build` in sequence (typecheck is part of `build`, not a standalone step). The blocking PR E2E gate runs the current ops smoke (`e2e/admin.ops-index.spec.ts`) when `vars.E2E_ENABLED == 'true'`. The older broad Playwright suite is not a reliable blocking signal right now; it contains stale routes and product-state assumptions and should be repaired as a dedicated E2E cleanup pass before being restored as a merge gate. Preview deployments run `e2e/preview-smoke.spec.ts`.
 
-**Required CI secrets:** `STRIPE_WEBHOOK_SECRET` (test-mode `whsec_...`) — without this, webhook specs silently `test.skip()`. `E2E_ENABLED=true` variable required to gate the e2e job.
+**Required CI secrets:** `ENCRYPTION_KEY` for ops/admin E2E pages that decrypt PHI-backed fields. `E2E_ENABLED=true` variable required to gate the e2e job. Some non-blocking/manual E2E specs also require `STRIPE_WEBHOOK_SECRET` (test-mode `whsec_...`).
 
 ---
 
@@ -152,7 +152,7 @@ Critical paths only — every flow that touches money, auth, or clinical data:
 ### What NOT to E2E Test
 
 - Marketing pages (no auth, no data — snapshot test if needed)
-- Admin UI flows (covered by unit tests on underlying logic)
+- Broad admin UI browsing (keep E2E to critical operational recovery paths)
 - Email template rendering (use `/admin/email-test` in dev)
 
 ---
@@ -205,17 +205,17 @@ jobs:
   e2e:                                    # Gated by vars.E2E_ENABLED == 'true'
     needs: build
     steps:
-      - playwright test --project=chromium   # FULL suite, all 46 specs
+      - playwright test --project=chromium e2e/admin.ops-index.spec.ts
 
 # .github/workflows/e2e-preview.yml
-# Runs against Vercel preview deployment
+# Runs deployment smoke against Vercel preview deployment
 steps:
-  - pnpm e2e:chromium  # E2E against preview URL
+  - playwright test --config=playwright.preview.config.ts e2e/preview-smoke.spec.ts
 ```
 
-**E2E runs in two places:** (1) `ci.yml` on push/PR to main, gated by `vars.E2E_ENABLED == 'true'` (Chromium, **full 46-spec suite** — updated 2026-04-08); (2) `e2e-preview.yml` against Vercel preview deployments. Unit tests and lint run on every push to main and all PRs.
+**E2E runs in two places:** (1) `ci.yml` on push/PR to main, gated by `vars.E2E_ENABLED == 'true'` (Chromium ops smoke); (2) `e2e-preview.yml` against Vercel preview deployments for deploy health plus an active `/request` route smoke. Protected Vercel preview E2E requires the GitHub secret `VERCEL_AUTOMATION_BYPASS_SECRET`; without it, the preview readiness check fails fast on the expected `401`. Preview smoke accepts `410 Gone` from `/api/test/login` because `/api/test/*` is intentionally blocked on Vercel production/preview unless `PLAYWRIGHT=1` is configured on the deployed app itself. Unit tests and lint run on every push to main and all PRs.
 
-**Lighthouse gates** (commit `99fc1c843`): category-score assertions only, all set to "warn" severity. The `lighthouse:recommended` preset was removed because it enabled every individual audit at "error" severity and blocked on pre-existing design-system issues (color-contrast, heading-order, label-content-name-mismatch, link-text) that need a dedicated sweep to fix. Reports still upload as artifacts so issues remain visible — they just don't block the build.
+**Lighthouse gates** (commit `99fc1c843`, updated 2026-05-02): PR CI blocks on accessibility, SEO, FCP, and CLS. LCP and TBT are warning-only in PR CI because simulated throttling on GitHub runners is too noisy for untouched marketing pages. The scheduled production Lighthouse workflow remains stricter for performance, including TBT.
 
 ---
 
