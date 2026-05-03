@@ -59,7 +59,6 @@ const SUPPORTED_EMAIL_TYPES = [
   "abandoned_checkout",
   "abandoned_checkout_followup",
   "repeat_rx_reminder",
-  "subscription_nudge",
   "follow_up_reminder",
   "referral_credit",
   "review_request",

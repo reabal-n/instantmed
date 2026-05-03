@@ -38,7 +38,6 @@ gtag("consent","default",{
  */
 export function GoogleTags() {
   useEffect(() => {
-    if (!IS_PROD) return
     captureAttribution()
   }, [])
 

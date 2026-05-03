@@ -74,7 +74,7 @@ export function MagicLinkEmail({
 
       <Text small muted style={{ textAlign: "center" as const, marginTop: "4px" }}>
         Having trouble?{" "}
-        <a href={`${appUrl}/auth/login`} style={{ color: colors.accent, textDecoration: "none" }}>
+        <a href={`${appUrl}/sign-in`} style={{ color: colors.accent, textDecoration: "none" }}>
           Go to the login page
         </a>
       </Text>

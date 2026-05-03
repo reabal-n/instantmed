@@ -262,7 +262,7 @@ function ServiceComparisonSection({ isDisabled }: { isDisabled?: boolean }) {
           ))}
         </div>
 
-        {/* Subscription upsell */}
+        {/* Repeat prescription clarity */}
         <Reveal className="mt-8 rounded-xl border border-primary/20 bg-primary/5 dark:bg-primary/10 p-4 sm:p-5" delay={0.2}>
           <div className="flex items-start gap-3">
             <StickerIcon name="synchronize" size={36} className="shrink-0 mt-0.5" />
@@ -271,7 +271,7 @@ function ServiceComparisonSection({ isDisabled }: { isDisabled?: boolean }) {
                 Need repeat scripts every month?
               </p>
               <p className="text-sm text-muted-foreground">
-                Subscribe &amp; Save for <span className="font-medium text-foreground">${PRICING.REPEAT_RX_MONTHLY}/mo</span>. Your repeat script auto-renews with no forms to fill out. The option appears at checkout.
+                Use the repeat prescription pathway when you need a doctor review for medication you already take. Each request is reviewed separately and charged once.
               </p>
             </div>
           </div>

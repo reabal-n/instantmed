@@ -5,6 +5,7 @@ import * as Sentry from "@sentry/nextjs"
 import { createLogger } from "@/lib/observability/logger"
 
 const logger = createLogger("google-ads-conversion-api")
+const GOOGLE_ADS_API_VERSION = "v24"
 
 /**
  * Server-side Google Ads Conversion API client.
@@ -46,6 +47,19 @@ interface FireConversionInput {
   value: number
   /** ISO timestamp when the conversion happened. Defaults to now. */
   conversionDateTime?: Date
+}
+
+type ClickIdentifier = { gclid: string } | { gbraid: string } | { wbraid: string }
+
+interface GoogleAdsClickConversionRequest {
+  conversions: Array<{
+    conversionAction: string
+    conversionDateTime: string
+    conversionValue: number
+    currencyCode: "AUD"
+    orderId: string
+  } & ClickIdentifier>
+  partialFailureEnabled: true
 }
 
 interface AccessTokenCache {
@@ -115,6 +129,52 @@ function formatGoogleAdsDateTime(d: Date): string {
   )
 }
 
+function normalizeClickId(value?: string | null): string | null {
+  const normalized = value?.trim()
+  return normalized ? normalized : null
+}
+
+export function selectGoogleAdsClickIdentifier(input: {
+  gclid?: string | null
+  gbraid?: string | null
+  wbraid?: string | null
+}): ClickIdentifier | null {
+  const gclid = normalizeClickId(input.gclid)
+  const gbraid = normalizeClickId(input.gbraid)
+  const wbraid = normalizeClickId(input.wbraid)
+
+  if (gclid) return { gclid }
+  if (gbraid) return { gbraid }
+  if (wbraid) return { wbraid }
+  return null
+}
+
+export function getGoogleAdsUploadClickConversionsUrl(customerId: string): string {
+  return `https://googleads.googleapis.com/${GOOGLE_ADS_API_VERSION}/customers/${customerId}:uploadClickConversions`
+}
+
+export function buildGoogleAdsClickConversionRequest(
+  input: FireConversionInput,
+  config: { customerId: string; conversionActionId: string },
+): GoogleAdsClickConversionRequest | null {
+  const clickIdentifier = selectGoogleAdsClickIdentifier(input)
+  if (!clickIdentifier) return null
+
+  return {
+    conversions: [
+      {
+        conversionAction: `customers/${config.customerId}/conversionActions/${config.conversionActionId}`,
+        ...clickIdentifier,
+        conversionDateTime: formatGoogleAdsDateTime(input.conversionDateTime ?? new Date()),
+        conversionValue: input.value,
+        currencyCode: "AUD",
+        orderId: input.orderId,
+      },
+    ],
+    partialFailureEnabled: true,
+  }
+}
+
 /**
  * Fire a server-side Google Ads conversion for a completed purchase.
  *
@@ -138,7 +198,8 @@ export async function fireGoogleAdsPurchaseConversion(
     return { attempted: false }
   }
 
-  if (!input.gclid && !input.gbraid && !input.wbraid) {
+  const body = buildGoogleAdsClickConversionRequest(input, { customerId, conversionActionId })
+  if (!body) {
     // No click identifier - this conversion didn't originate from a Google ad
     // click, so there's nothing for the Conversion API to attribute to.
     return { attempted: false }
@@ -150,26 +211,8 @@ export async function fireGoogleAdsPurchaseConversion(
     return { attempted: false, error: "no_access_token" }
   }
 
-  const conversionDateTime = formatGoogleAdsDateTime(input.conversionDateTime ?? new Date())
-
-  const body = {
-    conversions: [
-      {
-        conversionAction: `customers/${customerId}/conversionActions/${conversionActionId}`,
-        ...(input.gclid ? { gclid: input.gclid } : {}),
-        ...(input.gbraid ? { gbraid: input.gbraid } : {}),
-        ...(input.wbraid ? { wbraid: input.wbraid } : {}),
-        conversionDateTime,
-        conversionValue: input.value,
-        currencyCode: "AUD",
-        orderId: input.orderId,
-      },
-    ],
-    partialFailureEnabled: true,
-  }
-
   try {
-    const url = `https://googleads.googleapis.com/v18/customers/${customerId}:uploadClickConversions`
+    const url = getGoogleAdsUploadClickConversionsUrl(customerId)
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
       Authorization: `Bearer ${accessToken}`,
@@ -188,14 +231,12 @@ export async function fireGoogleAdsPurchaseConversion(
     if (!res.ok) {
       logger.error("Google Ads Conversion API call failed", {
         status: res.status,
-        body: responseBody.slice(0, 500),
       })
       Sentry.captureMessage("Google Ads Conversion API non-200", {
         level: "warning",
         extra: {
           orderId: input.orderId,
           status: res.status,
-          body: responseBody.slice(0, 500),
         },
       })
       return { attempted: true, ok: false, error: `http_${res.status}` }

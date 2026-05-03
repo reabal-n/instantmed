@@ -1,6 +1,6 @@
 import { Suspense } from "react"
 
-import { Footer,Navbar } from "@/components/shared"
+import { Footer, Navbar } from "@/components/shared"
 import { Skeleton } from "@/components/ui/skeleton"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
@@ -30,12 +30,13 @@ export default async function CompleteAccountPage({
   let amountCents: number | undefined
   let serviceSlug: string | undefined
   let serviceName: string | undefined
+  let isNewCustomer = true
   if (intakeId) {
     try {
       const supabase = createServiceRoleClient()
       const { data: intake } = await supabase
         .from("intakes")
-        .select("amount_cents, patient:profiles!patient_id(email), service:services!service_id(slug, name)")
+        .select("amount_cents, patient_id, patient:profiles!patient_id(email), service:services!service_id(slug, name)")
         .eq("id", intakeId)
         .eq("payment_status", "paid")
         .single()
@@ -46,6 +47,17 @@ export default async function CompleteAccountPage({
       amountCents = (intake?.amount_cents as number | undefined) ?? undefined
       serviceSlug = service?.slug
       serviceName = service?.name
+
+      if (intake?.patient_id) {
+        const { count } = await supabase
+          .from("intakes")
+          .select("id", { count: "exact", head: true })
+          .eq("patient_id", intake.patient_id)
+          .not("paid_at", "is", null)
+          .neq("id", intakeId)
+
+        isNewCustomer = (count ?? 0) === 0
+      }
     } catch {
       // Silently fail - tracking is best-effort
     }
@@ -71,6 +83,7 @@ export default async function CompleteAccountPage({
               amountCents={amountCents}
               serviceSlug={serviceSlug}
               serviceName={serviceName}
+              isNewCustomer={isNewCustomer}
             />
           </Suspense>
         </div>

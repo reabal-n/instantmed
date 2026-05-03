@@ -36,7 +36,6 @@ import { ReviewFollowupEmail } from "@/lib/email/components/templates/review-fol
 import { ReviewRequestEmail } from "@/lib/email/components/templates/review-request"
 import { ScriptSentEmail } from "@/lib/email/components/templates/script-sent"
 import { StillReviewingEmail } from "@/lib/email/components/templates/still-reviewing"
-import { SubscriptionNudgeEmail } from "@/lib/email/components/templates/subscription-nudge"
 import { TreatmentFollowupEmail } from "@/lib/email/components/templates/treatment-followup"
 import { VerificationCodeEmail } from "@/lib/email/components/templates/verification-code"
 import { WeightLossApprovedEmail } from "@/lib/email/components/templates/weight-loss-approved"
@@ -425,16 +424,6 @@ const templates: Record<string, {
     subject: "Still happy with us? 😊",
     render: () => (
       <ReviewFollowupEmail
-        patientName={mock.patientName}
-        appUrl={mock.appUrl}
-      />
-    ),
-  },
-  "subscription-nudge": {
-    name: "Subscription Nudge (Day 30)",
-    subject: "Time for your next script? Save with a subscription",
-    render: () => (
-      <SubscriptionNudgeEmail
         patientName={mock.patientName}
         appUrl={mock.appUrl}
       />

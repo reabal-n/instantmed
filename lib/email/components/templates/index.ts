@@ -131,10 +131,6 @@ export { ReviewRequestEmail, reviewRequestSubject } from "./review-request"
 export type { ReviewFollowupEmailProps } from "./review-followup"
 export { ReviewFollowupEmail, reviewFollowupSubject } from "./review-followup"
 
-// --- Subscription Nudge (repeat Rx upsell) ---
-export type { SubscriptionNudgeEmailProps } from "./subscription-nudge"
-export { SubscriptionNudgeEmail, subscriptionNudgeSubject } from "./subscription-nudge"
-
 // --- Subscription Cancelled ---
 export type { SubscriptionCancelledEmailProps } from "./subscription-cancelled"
 export { SubscriptionCancelledEmail, subscriptionCancelledSubject } from "./subscription-cancelled"

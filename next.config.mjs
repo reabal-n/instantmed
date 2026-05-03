@@ -233,6 +233,16 @@ const nextConfig = {
         permanent: true
       },
       {
+        source: "/auth/login",
+        destination: "/sign-in",
+        permanent: true
+      },
+      {
+        source: "/login",
+        destination: "/sign-in",
+        permanent: true
+      },
+      {
         source: "/health/:path*",
         destination: "/conditions/:path*",
         permanent: true
@@ -254,8 +264,10 @@ const nextConfig = {
       { source: "/womens-health", destination: "/request?service=consult&subtype=womens_health", permanent: false },
       { source: "/request/med-cert", destination: "/request?service=med-cert", permanent: false },
       { source: "/request/consult", destination: "/request?service=consult", permanent: false },
+      { source: "/medical-certificate/request", destination: "/request?service=med-cert", permanent: false },
       { source: "/consult/request", destination: "/request?service=consult", permanent: false },
       { source: "/prescriptions/request", destination: "/request?service=prescription", permanent: false },
+      { source: "/prescriptions/repeat", destination: "/request?service=repeat-script", permanent: false },
       { source: "/prescriptions/new", destination: "/request?service=consult", permanent: false },
       // /flow was the deprecated parallel intake system — deleted in 2026-04-08.
       // Any bookmarks or stale external links 301 to the canonical /request flow.

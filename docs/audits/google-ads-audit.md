@@ -20,6 +20,8 @@
 
 **Code changes:** None — certification is an operational/account process. See `docs/ADVERTISING_COMPLIANCE.md` for the current source of truth.
 
+**Conversion tracking:** Technical Google Ads purchase tracking was re-audited on 2026-05-03. See `docs/audits/2026-05-03-supabase-conversion-audit.md` for the current server-side Conversion API and attribution-storage contract.
+
 ---
 
 ### 2. Healthcare and medicines: Restricted drug terms

@@ -42,7 +42,6 @@ abandonedCheckoutSubject,
   ReviewRequestEmail, reviewRequestSubject,
   ScriptSentEmail, scriptSentEmailSubject,
   StillReviewingEmail, stillReviewingSubject,
-  SubscriptionNudgeEmail, subscriptionNudgeSubject,
   TreatmentFollowupEmail, treatmentFollowupSubject,
   VerificationCodeEmail, verificationCodeSubject,
   WeightLossApprovedEmail, weightLossApprovedSubject,
@@ -1012,20 +1011,6 @@ describe("Email Templates", () => {
     })
   })
 
-  describe("SubscriptionNudgeEmail", () => {
-    it("renders content", () => {
-      const html = render(
-        <SubscriptionNudgeEmail patientName="Test Patient" appUrl={APP_URL} />
-      )
-      expectBaseEmailStructure(html)
-      expectContains(html, "Test")
-    })
-
-    it("subject is non-empty", () => {
-      expect(subscriptionNudgeSubject).toBeTruthy()
-    })
-  })
-
   describe("MagicLinkEmail", () => {
     it("magic-link renders", () => {
       const html = render(
@@ -1104,7 +1089,6 @@ describe("Email Template Cross-Checks", () => {
       <ReviewRequestEmail key="31" patientName="Test" serviceName="Medical Certificate" appUrl={APP_URL} />,
       <ReviewFollowupEmail key="32" patientName="Test" appUrl={APP_URL} />,
       <AbandonedCheckoutFollowupEmail key="33" patientName="Test" serviceName="Medical Certificate" resumeUrl="https://instantmed.com.au/request?resume=abc" appUrl={APP_URL} />,
-      <SubscriptionNudgeEmail key="34" patientName="Test" appUrl={APP_URL} />,
       <MagicLinkEmail key="35" loginUrl="https://example.com/auth/v1/verify?token=abc&type=magiclink" appUrl={APP_URL} />,
     ]
 
@@ -1383,9 +1367,6 @@ describe("Link validation", () => {
     ),
     AbandonedCheckoutFollowupEmail: (
       <AbandonedCheckoutFollowupEmail patientName="Test Patient" serviceName="Medical Certificate" resumeUrl="https://instantmed.com.au/request?resume=abc" appUrl={APP_URL} />
-    ),
-    SubscriptionNudgeEmail: (
-      <SubscriptionNudgeEmail patientName="Test Patient" appUrl={APP_URL} />
     ),
     MagicLinkEmail: (
       <MagicLinkEmail loginUrl="https://example.com/auth/v1/verify?token=abc&type=magiclink" appUrl={APP_URL} />

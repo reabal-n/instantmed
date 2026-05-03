@@ -190,12 +190,6 @@ const templates = [
     category: "engagement",
   },
   {
-    slug: "subscription-nudge",
-    name: "Subscription Nudge (Day 30)",
-    description: "Repeat Rx subscription upsell sent 30 days after approval",
-    category: "engagement",
-  },
-  {
     slug: "decline-reengagement",
     name: "Decline Re-Engagement",
     description: "Sent ~2h after decline suggesting alternative services",

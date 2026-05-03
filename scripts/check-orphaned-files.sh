@@ -40,6 +40,21 @@ if [[ -d "app/flow" ]] || [[ -d "app/(flow)" ]]; then
   orphans=$((orphans + 1))
 fi
 
+for legacy_route in \
+  "app/auth/login" \
+  "app/login" \
+  "app/consult/request" \
+  "app/medical-certificate/request" \
+  "app/prescriptions/new" \
+  "app/prescriptions/repeat" \
+  "app/prescriptions/request"
+do
+  if [[ -e "$legacy_route" ]]; then
+    echo "ORPHAN: $legacy_route still exists (handled by next.config.mjs redirects)"
+    orphans=$((orphans + 1))
+  fi
+done
+
 # ── 3. @deprecated modules with zero imports ─────────────────────────────
 # Exclude the guard tests themselves — they scan for the @deprecated literal
 # as part of their policy, so they would always self-match.

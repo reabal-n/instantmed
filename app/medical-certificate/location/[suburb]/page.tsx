@@ -350,7 +350,7 @@ export default async function SuburbMedCertPage({ params }: PageProps) {
                 Skip the waiting room. Get your medical certificate reviewed by an Australian doctor and delivered to your inbox - typically in <strong>under 30 minutes</strong>, 24/7.
               </p>
 
-              <Link href="/medical-certificate/request">
+              <Link href="/request?service=med-cert">
                 <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground text-base px-8">
                   Get Certificate Now
                   <ArrowRight className="h-4 w-4 ml-2" />
@@ -518,7 +518,7 @@ export default async function SuburbMedCertPage({ params }: PageProps) {
               <p className="text-muted-foreground mb-6">
                 Join hundreds of {data.name} residents who skip the waiting room with InstantMed.
               </p>
-              <Link href="/medical-certificate/request">
+              <Link href="/request?service=med-cert">
                 <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground">
                   Get Your Certificate
                   <ArrowRight className="h-4 w-4 ml-2" />

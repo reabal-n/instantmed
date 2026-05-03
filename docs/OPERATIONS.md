@@ -757,7 +757,7 @@ All previously identified gaps have been resolved:
 Required env vars validated at startup via Zod in `lib/env.ts`:
 
 - **Supabase**: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
-- **Stripe**: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `STRIPE_PRICE_*` (11 price IDs — includes `STRIPE_PRICE_PRIORITY_FEE`, `STRIPE_PRICE_REPEAT_RX_MONTHLY`)
+- **Stripe**: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, active one-off `STRIPE_PRICE_*` IDs, and `STRIPE_PRICE_PRIORITY_FEE`. Repeat Rx subscription acquisition is inactive and has no production price env requirement.
 - **Email**: `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, `RESEND_WEBHOOK_SECRET`
 - **Security**: `PHI_MASTER_KEY`, `ENCRYPTION_KEY`, `PHI_ENCRYPTION_ENABLED`, `INTERNAL_API_SECRET`
 - **Redis**: `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`

@@ -16,12 +16,14 @@ export function CompleteAccountForm({
   amountCents,
   serviceSlug,
   serviceName,
+  isNewCustomer,
 }: {
   intakeId?: string
   email?: string
   amountCents?: number
   serviceSlug?: string
   serviceName?: string
+  isNewCustomer?: boolean
 }) {
   const router = useRouter()
   const { isSignedIn, isLoaded } = useAuth()
@@ -45,9 +47,9 @@ export function CompleteAccountForm({
       service: serviceSlug || "unknown",
       serviceName: serviceName || "Request",
       email,
-      isNewCustomer: true,
+      isNewCustomer: isNewCustomer ?? true,
     })
-  }, [intakeId, amountCents, serviceSlug, serviceName, email])
+  }, [intakeId, amountCents, serviceSlug, serviceName, email, isNewCustomer])
 
   useEffect(() => {
     // If already signed in, redirect through post-signin to ensure profile is linked
