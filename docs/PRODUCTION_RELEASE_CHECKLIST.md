@@ -4,12 +4,9 @@ Use this checklist before promoting dashboard, payment, clinical, or patient-flo
 
 ## 1. Quality Gates
 
-- `pnpm lint`
-- `pnpm typecheck`
-- `pnpm exec vitest run`
+- `pnpm release:check`
 - `PLAYWRIGHT=1 pnpm exec playwright test e2e/dashboard-audit.spec.ts --project=chromium --workers=1 --reporter=list`
 - `PLAYWRIGHT=1 pnpm exec playwright test e2e/medical-certificate.spec.ts --project=chromium --workers=1 --reporter=list`
-- `pnpm build`
 
 ## 2. Dashboard Gates
 

@@ -1,6 +1,7 @@
 import { beforeAll, describe, expect, it, vi } from "vitest"
 
 let sanitizeLogContext: typeof import("@/lib/observability/logger").sanitizeLogContext
+let sanitizeLogMessage: typeof import("@/lib/observability/logger").sanitizeLogMessage
 
 describe("logger PHI sanitization", () => {
   beforeAll(async () => {
@@ -8,6 +9,7 @@ describe("logger PHI sanitization", () => {
       "@/lib/observability/logger",
     )
     sanitizeLogContext = loggerModule.sanitizeLogContext
+    sanitizeLogMessage = loggerModule.sanitizeLogMessage
   })
 
   it("redacts request identifiers and clinical email subjects from structured logs", () => {
@@ -43,5 +45,16 @@ describe("logger PHI sanitization", () => {
 
     expect(line).toContain("/doctor/intakes/[ID_REDACTED]")
     expect(line).not.toContain("47e24318")
+  })
+
+  it("scrubs PHI and identifiers interpolated directly into log messages", () => {
+    const sanitized = sanitizeLogMessage(
+      "[document-download] User 47e24318-089e-4658-885f-4b9049b69a35 failed for patient@example.test"
+    )
+
+    expect(sanitized).toContain("[ID_REDACTED]")
+    expect(sanitized).toContain("[EMAIL_REDACTED]")
+    expect(sanitized).not.toContain("47e24318")
+    expect(sanitized).not.toContain("patient@example.test")
   })
 })

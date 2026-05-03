@@ -68,7 +68,9 @@ const SENSITIVE_KEY_EXACT = new Set([
   "phonenumber",
   "recipientemail",
   "recipientname",
+  "subject",
   "symptoms",
+  "title",
 ])
 
 const SENSITIVE_IDENTIFIER_KEYS = new Set([
@@ -170,6 +172,12 @@ export interface SentryBreadcrumbLike {
 }
 
 export interface SentryEventLike {
+  message?: string
+  exception?: {
+    values?: Array<{
+      value?: string
+    }>
+  }
   request?: {
     headers?: Record<string, unknown>
     url?: string
@@ -192,6 +200,15 @@ export function scrubSentryBreadcrumb<T>(breadcrumb: T): T {
 
 export function scrubSentryEvent<T>(event: T): T {
   const mutable = event as SentryEventLike
+  if (mutable.message) {
+    mutable.message = scrubPHI(mutable.message)
+  }
+  if (mutable.exception?.values) {
+    mutable.exception.values = mutable.exception.values.map(value => ({
+      ...value,
+      value: value.value ? scrubPHI(value.value) : value.value,
+    }))
+  }
   if (mutable.request?.headers) {
     mutable.request.headers = scrubHeaders(mutable.request.headers)
   }

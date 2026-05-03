@@ -25,6 +25,12 @@ describe("Sentry PHI scrubber", () => {
 
   it("scrubs complete Sentry events before they leave the app", () => {
     const event = scrubSentryEvent({
+      message: "Email bounce for patient@example.test",
+      exception: {
+        values: [
+          { value: "Download failed for 47e24318-089e-4658-885f-4b9049b69a35" },
+        ],
+      },
       request: {
         headers: {
           Authorization: "Bearer secret",
@@ -47,6 +53,7 @@ describe("Sentry PHI scrubber", () => {
       extra: {
         recipientName: "Patient Name",
         message: "Patient says 0400000000",
+        subject: "Patient, your medical certificate is ready",
       },
       breadcrumbs: [
         {
@@ -62,9 +69,13 @@ describe("Sentry PHI scrubber", () => {
     expect(serialized).not.toContain("patient@example.test")
     expect(serialized).not.toContain("0400000000")
     expect(serialized).not.toContain("1990-01-01")
+    expect(serialized).not.toContain("medical certificate is ready")
     expect(serialized).not.toContain("intake-sensitive-id")
     expect(serialized).not.toContain("user-sensitive-id")
     expect(serialized).not.toContain("patient-sensitive-id")
+    expect(serialized).not.toContain("47e24318")
+    expect(event.message).toBe("Email bounce for [EMAIL_REDACTED]")
+    expect(event.exception?.values?.[0]?.value).toContain("[ID_REDACTED]")
     expect(event.request?.headers).toEqual({ "user-agent": "Vitest" })
     expect(event.tags?.service_type).toBe("certificate")
   })

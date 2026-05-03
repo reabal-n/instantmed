@@ -99,6 +99,10 @@ export function sanitizeLogContext(context: LogContext): LogContext {
   return sanitized
 }
 
+export function sanitizeLogMessage(message: string): string {
+  return scrubPHI(message)
+}
+
 function formatLogEntry(entry: LogEntry): string {
   if (process.env.NODE_ENV === 'production') {
     // JSON format for production (better for log aggregators)
@@ -121,7 +125,7 @@ function createLogEntry(
   const entry: LogEntry = {
     timestamp: new Date().toISOString(),
     level,
-    message,
+    message: sanitizeLogMessage(message),
   }
   
   if (context) {

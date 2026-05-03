@@ -945,6 +945,15 @@ export async function retryPaymentForIntakeAction(intakeId: string): Promise<Che
       subtype: intake.subtype || "",
       answers: {},
     })
+    if (!priceId) {
+      logger.error("Unable to determine retry checkout price", {
+        intakeId: intake.id,
+        category: intake.category,
+        subtype: intake.subtype,
+        serviceSlug: service?.slug,
+      })
+      return { success: false, error: "Unable to determine pricing. Please contact support." }
+    }
 
     const baseUrl = getBaseUrl()
     if (!isValidUrl(baseUrl)) {

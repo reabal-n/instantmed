@@ -136,7 +136,12 @@ interface UpdateRecord {
   payload: Record<string, unknown> | null
 }
 
-function createRetrySupabaseMock() {
+function createRetrySupabaseMock(intakeOverrides: Partial<{
+  category: string | null
+  service: { id: string; name: string; price_cents: number; slug: string; type: string } | null
+  stripe_price_id: string | null
+  subtype: string | null
+}> = {}) {
   const updateRecord: UpdateRecord = {
     filters: [],
     payload: null,
@@ -153,6 +158,7 @@ function createRetrySupabaseMock() {
     stripe_price_id: "price_med_cert",
     status: "checkout_failed",
     subtype: "work",
+    ...intakeOverrides,
   }
 
   const selectChain = {
@@ -237,6 +243,29 @@ describe("retryPaymentForIntakeAction", () => {
         }),
       }),
       { idempotencyKey: "retry_intake-1_cs_previous" },
+    )
+  })
+
+  it("fails retry checkout before Stripe when legacy pricing cannot be resolved", async () => {
+    const { supabase } = createRetrySupabaseMock({
+      category: null,
+      service: null,
+      stripe_price_id: null,
+      subtype: null,
+    })
+    mocks.createServiceRoleClient.mockReturnValue(supabase)
+    mocks.getPriceIdForRequest.mockReturnValue(undefined)
+
+    const result = await retryPaymentForIntakeAction("intake-1")
+
+    expect(result).toEqual({
+      error: "Unable to determine pricing. Please contact support.",
+      success: false,
+    })
+    expect(mocks.stripeSessionCreate).not.toHaveBeenCalled()
+    expect(mocks.logger.error).toHaveBeenCalledWith(
+      "Unable to determine retry checkout price",
+      expect.objectContaining({ intakeId: "intake-1" }),
     )
   })
 })

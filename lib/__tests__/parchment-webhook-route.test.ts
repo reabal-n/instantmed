@@ -224,4 +224,20 @@ describe("Parchment webhook route", () => {
       "no_awaiting_script_intake",
     )
   })
+
+  it("logs durable ops visibility when matched Parchment script completion fails", async () => {
+    mocks.updateScriptSent.mockResolvedValue(false)
+
+    const response = await POST(makeWebhookRequest())
+    const body = await response.json()
+
+    expect(response.status).toBe(500)
+    expect(body).toEqual({ error: "Failed to update intake" })
+    expect(mocks.logWebhookFailure).toHaveBeenCalledWith(
+      "evt_route_1",
+      "parchment:prescription.created",
+      INTAKE_ID,
+      "script_completion_failed",
+    )
+  })
 })

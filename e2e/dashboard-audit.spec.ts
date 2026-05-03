@@ -158,6 +158,30 @@ async function assertDashboardA11y(page: Page, name: string) {
   ).toHaveLength(0)
 }
 
+async function anonymizeDashboardScreenshotContent(page: Page) {
+  await page.evaluate(() => {
+    const main = document.querySelector("main")
+    if (!main) return
+
+    const walker = document.createTreeWalker(main, NodeFilter.SHOW_TEXT)
+    const nodes: Text[] = []
+    while (walker.nextNode()) {
+      nodes.push(walker.currentNode as Text)
+    }
+
+    for (const node of nodes) {
+      if (!node.textContent || !/[A-Za-z0-9]/.test(node.textContent)) continue
+      node.textContent = node.textContent.replace(/[A-Za-z0-9@._+-]/g, "X")
+    }
+
+    main.querySelectorAll("[aria-label], [title], [placeholder]").forEach((element) => {
+      if (element.hasAttribute("aria-label")) element.setAttribute("aria-label", "Masked dashboard content")
+      if (element.hasAttribute("title")) element.setAttribute("title", "Masked dashboard content")
+      if (element.hasAttribute("placeholder")) element.setAttribute("placeholder", "Masked")
+    })
+  })
+}
+
 function routePattern(href: string): RegExp {
   const escaped = href.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
   return new RegExp(`${escaped}(?:$|[?#])`)
@@ -307,6 +331,7 @@ test.describe("Dashboard Audit - Mobile screenshots", () => {
       tracker.attach(page)
 
       await assertPageLoads(page, target.path)
+      await anonymizeDashboardScreenshotContent(page)
       await expect(page).toHaveScreenshot(target.snapshot, {
         animations: "disabled",
         caret: "hide",

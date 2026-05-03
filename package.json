@@ -5,6 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "NODE_OPTIONS='--max-old-space-size=8192' next build",
+    "build:release": "pnpm build 2>&1 | tee /tmp/next-build-output.txt",
+    "release:check": "pnpm lint && pnpm typecheck && pnpm test run && pnpm build:release && bash scripts/check-bundle-size.sh",
     "start": "next start",
     "lint": "eslint --max-warnings 0",
     "typecheck": "NODE_OPTIONS='--max-old-space-size=8192' tsc --noEmit",

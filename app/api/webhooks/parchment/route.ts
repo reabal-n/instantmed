@@ -277,6 +277,7 @@ export async function POST(request: Request) {
             level: "error",
             extra: { eventId: payload.event_id, context: "parchment_webhook_resume" },
           })
+          await recordParchmentWebhookProcessingFailure("script_completion_resume_failed", payload.event_id, existing.id)
           return NextResponse.json({ error: "Failed to update intake" }, { status: 500 })
         }
         await logWebhookPrescribingBoundary(existing.id, resumePrescriberId, scid, payload.event_id)
@@ -300,6 +301,7 @@ export async function POST(request: Request) {
         level: "error",
         extra: { eventId: payload.event_id, context: "parchment_webhook_update_script_sent" },
       })
+      await recordParchmentWebhookProcessingFailure("script_completion_failed", payload.event_id, intake.id)
       return NextResponse.json({ error: "Failed to update intake" }, { status: 500 })
     }
 
@@ -389,6 +391,18 @@ async function recordParchmentWebhookMismatch(reason: string, eventId: string) {
     log.warn(
       "Failed to log durable Parchment webhook mismatch audit event",
       { eventId },
+      auditError instanceof Error ? auditError : undefined,
+    )
+  }
+}
+
+async function recordParchmentWebhookProcessingFailure(reason: string, eventId: string, intakeId: string) {
+  try {
+    await logWebhookFailure(eventId, "parchment:prescription.created", intakeId, reason)
+  } catch (auditError) {
+    log.warn(
+      "Failed to log durable Parchment webhook processing failure",
+      { eventId, intakeId },
       auditError instanceof Error ? auditError : undefined,
     )
   }
