@@ -120,7 +120,7 @@ InstantMed reaches 10/10 for this phase when:
 - no prescription drug page is used as a paid landing page
 - no service promises no doctor contact for prescribing requests
 - the med-cert automation protocol is logged, auditable, and doctor-owned
-- the business dashboard shows conversion, refund, chargeback, doctor minutes, support load, AOV, and repeat usage by service
+- the business dashboard shows 30-day conversion, refund, chargeback, doctor review turnaround, support load, AOV, and repeat usage by service
 - solo-doctor capacity is protected by triage, kill switches, support templates, and clear decline/refund flows
 - $1M/year is mathematically supported by actual service mix and order volume, not traffic assumptions
 
@@ -136,4 +136,3 @@ Do not add subscriptions, pharmacy fulfilment, staff-heavy follow-up, or broader
 - doctor queue P95 is below 2 hours during operating hours
 - clinical QA is current
 - advertising and SEO pages pass compliance checks
-

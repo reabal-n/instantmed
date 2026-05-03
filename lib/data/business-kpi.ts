@@ -40,7 +40,28 @@ export interface BusinessKPIData {
     approved: number
     conversionRate: number
   }
+  unitEconomics: {
+    aov: number
+    paidOrdersMonth: number
+    repeatPaidOrders: number
+    repeatOrderRate: number
+  }
+  risk: {
+    chargebacksMonth: number
+    chargebackRate: number
+    activeDisputes: number
+    supportTicketsMonth: number
+    supportTicketsPer100Orders: number
+    openSupportTickets: number
+    highPrioritySupportTickets: number
+  }
   referrals: Array<{ source: string; count: number }>
+  serviceRepeatUsage: Array<{
+    category: string
+    paidOrders: number
+    repeatPaidOrders: number
+    repeatRate: number
+  }>
   refunds: {
     totalMonth: number
     rate: number
@@ -68,7 +89,7 @@ export async function getBusinessKPIData(): Promise<BusinessKPIData> {
     // [0] Revenue this month (all paid intakes)
     supabase
       .from("intakes")
-      .select("amount_cents, paid_at, category")
+      .select("amount_cents, paid_at, category, patient_id")
       .not("paid_at", "is", null)
       .gte("paid_at", monthAgo.toISOString()),
 
@@ -143,11 +164,12 @@ export async function getBusinessKPIData(): Promise<BusinessKPIData> {
       .gte("created_at", monthAgo.toISOString())
       .eq("status", "approved"),
 
-    // [11] Top referral sources (UTM)
+    // [11] Top paid referral sources (UTM)
     supabase
       .from("intakes")
       .select("utm_source")
       .gte("created_at", monthAgo.toISOString())
+      .not("paid_at", "is", null)
       .not("utm_source", "is", null),
 
     // [12] Page views / sessions from audit_logs
@@ -199,6 +221,18 @@ export async function getBusinessKPIData(): Promise<BusinessKPIData> {
       .select("amount_cents")
       .not("paid_at", "is", null)
       .gte("paid_at", today.toISOString()),
+
+    // [19] Support load this month
+    supabase
+      .from("support_tickets")
+      .select("id, status, priority")
+      .gte("created_at", monthAgo.toISOString()),
+
+    // [20] Stripe disputes this month
+    supabase
+      .from("stripe_disputes")
+      .select("id, status")
+      .gte("created_at", monthAgo.toISOString()),
   ])
 
   // Helper to extract data safely
@@ -216,8 +250,9 @@ export async function getBusinessKPIData(): Promise<BusinessKPIData> {
   }
 
   // === REVENUE METRICS ===
-  const revenueData = get<Array<{ amount_cents: number; paid_at: string; category: string }>>(0, [])
+  const revenueData = get<Array<{ amount_cents: number; paid_at: string; category: string | null; patient_id?: string | null }>>(0, [])
   const totalRevenueMonth = revenueData.reduce((s, i) => s + (i.amount_cents || 0), 0) / 100
+  const paidOrdersMonth = revenueData.length
 
   const todayRevenueData = get<Array<{ amount_cents: number }>>(18, [])
   const todayRevenue = todayRevenueData.reduce((s, i) => s + (i.amount_cents || 0), 0) / 100
@@ -306,9 +341,76 @@ export async function getBusinessKPIData(): Promise<BusinessKPIData> {
   // === REFUNDS ===
   const refundData = get<Array<{ amount_cents: number }>>(17, [])
   const totalRefundsMonth = refundData.reduce((s, i) => s + (i.amount_cents || 0), 0) / 100
-  const refundRate = revenueData.length > 0
-    ? Math.round((refundData.length / revenueData.length) * 1000) / 10
+  const refundRate = paidOrdersMonth > 0
+    ? Math.round((refundData.length / paidOrdersMonth) * 1000) / 10
     : 0
+
+  // === UNIT ECONOMICS + RISK GATES ===
+  const aov = paidOrdersMonth > 0
+    ? Math.round((totalRevenueMonth / paidOrdersMonth) * 10) / 10
+    : 0
+
+  const supportTickets = get<Array<{ status: string; priority: string }>>(19, [])
+  const openSupportTickets = supportTickets.filter((ticket) =>
+    ticket.status === "open" || ticket.status === "in_progress"
+  ).length
+  const highPrioritySupportTickets = supportTickets.filter((ticket) =>
+    ticket.priority === "high" || ticket.priority === "urgent"
+  ).length
+  const supportTicketsPer100Orders = paidOrdersMonth > 0
+    ? Math.round((supportTickets.length / paidOrdersMonth) * 1000) / 10
+    : supportTickets.length > 0 ? 100 : 0
+
+  const disputes = get<Array<{ status: string }>>(20, [])
+  const activeDisputeStatuses = new Set([
+    "needs_response",
+    "warning_needs_response",
+    "warning_under_review",
+    "under_review",
+  ])
+  const activeDisputes = disputes.filter((dispute) =>
+    activeDisputeStatuses.has(dispute.status)
+  ).length
+  const chargebackRate = paidOrdersMonth > 0
+    ? Math.round((disputes.length / paidOrdersMonth) * 1000) / 10
+    : disputes.length > 0 ? 100 : 0
+
+  const paidOrdersByPatient = revenueData
+    .filter((order): order is { amount_cents: number; paid_at: string; category: string | null; patient_id: string } =>
+      Boolean(order.patient_id && order.paid_at)
+    )
+    .sort((a, b) => new Date(a.paid_at).getTime() - new Date(b.paid_at).getTime())
+  const seenPatients = new Set<string>()
+  const paidByService: Record<string, number> = {}
+  const repeatByService: Record<string, number> = {}
+  let repeatPaidOrders = 0
+
+  for (const order of paidOrdersByPatient) {
+    const category = order.category || "unknown"
+    paidByService[category] = (paidByService[category] || 0) + 1
+
+    if (seenPatients.has(order.patient_id)) {
+      repeatPaidOrders++
+      repeatByService[category] = (repeatByService[category] || 0) + 1
+    } else {
+      seenPatients.add(order.patient_id)
+    }
+  }
+
+  const repeatOrderRate = paidOrdersByPatient.length > 0
+    ? Math.round((repeatPaidOrders / paidOrdersByPatient.length) * 1000) / 10
+    : 0
+  const serviceRepeatUsage = Object.entries(paidByService)
+    .map(([category, paidOrders]) => {
+      const repeatOrders = repeatByService[category] || 0
+      return {
+        category,
+        paidOrders,
+        repeatPaidOrders: repeatOrders,
+        repeatRate: paidOrders > 0 ? Math.round((repeatOrders / paidOrders) * 1000) / 10 : 0,
+      }
+    })
+    .sort((a, b) => b.paidOrders - a.paidOrders)
 
   // === LAUNCH READINESS ===
   const checks = {
@@ -319,6 +421,8 @@ export async function getBusinessKPIData(): Promise<BusinessKPIData> {
     doctorsActive: activeDoctors > 0,
     queueManageable: activeQueueSize <= 20,
     refundRateLow: refundRate < 10,
+    chargebackRateLow: chargebackRate < 0.5,
+    supportLoadHealthy: supportTicketsPer100Orders <= 5,
   }
   const passedChecks = Object.values(checks).filter(Boolean).length
   const totalChecks = Object.values(checks).length
@@ -358,7 +462,23 @@ export async function getBusinessKPIData(): Promise<BusinessKPIData> {
       approved: intakesApproved,
       conversionRate,
     },
+    unitEconomics: {
+      aov,
+      paidOrdersMonth,
+      repeatPaidOrders,
+      repeatOrderRate,
+    },
+    risk: {
+      chargebacksMonth: disputes.length,
+      chargebackRate,
+      activeDisputes,
+      supportTicketsMonth: supportTickets.length,
+      supportTicketsPer100Orders,
+      openSupportTickets,
+      highPrioritySupportTickets,
+    },
     referrals: referralSources,
+    serviceRepeatUsage,
     refunds: {
       totalMonth: totalRefundsMonth,
       rate: refundRate,

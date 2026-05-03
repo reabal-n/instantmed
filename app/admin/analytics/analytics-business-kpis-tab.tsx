@@ -5,9 +5,12 @@ import {
   AlertTriangle,
   CheckCircle,
   Clock,
+  CreditCard,
   DollarSign,
   FileText,
+  LifeBuoy,
   Mail,
+  Repeat2,
   Shield,
   Target,
   TrendingDown,
@@ -19,7 +22,7 @@ import {
 import { DashboardCard } from "@/components/dashboard"
 import { Badge } from "@/components/ui/badge"
 import type { BusinessKPIData } from "@/lib/data/business-kpi"
-import { formatAUD, formatMinutes } from "@/lib/format"
+import { formatAUD, formatCurrency, formatMinutes } from "@/lib/format"
 import { cn } from "@/lib/utils"
 
 const readinessLabels: Record<string, string> = {
@@ -30,6 +33,8 @@ const readinessLabels: Record<string, string> = {
   doctorsActive: "Doctors active",
   queueManageable: "Queue under control",
   refundRateLow: "Refund rate < 10%",
+  chargebackRateLow: "Chargebacks < 0.5%",
+  supportLoadHealthy: "Support load <= 5/100 orders",
 }
 
 /**
@@ -85,7 +90,7 @@ export function AnalyticsBusinessKPIsTab({ data }: { data: BusinessKPIData }) {
           </span>
         </div>
         <p className="mt-1 text-sm text-muted-foreground">
-          System health aggregation across 7 key indicators
+          System health aggregation across operator scale indicators
         </p>
         <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           {Object.entries(data.launchReadiness.checks).map(([key, passed]) => (
@@ -236,6 +241,73 @@ export function AnalyticsBusinessKPIsTab({ data }: { data: BusinessKPIData }) {
         />
       </div>
 
+      {/* Unit economics + scale risk */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <KpiCard
+          label="AOV"
+          value={formatCurrency(Math.round(data.unitEconomics.aov * 100))}
+          icon={CreditCard}
+          footer={
+            <p className="text-xs text-muted-foreground">
+              {data.unitEconomics.paidOrdersMonth} paid orders in 30d
+            </p>
+          }
+        />
+
+        <KpiCard
+          label="Chargeback Rate"
+          value={`${data.risk.chargebackRate}%`}
+          icon={Shield}
+          footer={
+            <p className="text-xs text-muted-foreground">
+              {data.risk.chargebacksMonth} dispute
+              {data.risk.chargebacksMonth !== 1 ? "s" : ""} in 30d
+              {data.risk.activeDisputes > 0 && (
+                <span className="text-destructive">
+                  {" "}
+                  · {data.risk.activeDisputes} active
+                </span>
+              )}
+            </p>
+          }
+        />
+
+        <KpiCard
+          label="Support Load"
+          value={`${data.risk.supportTicketsPer100Orders}/100`}
+          icon={LifeBuoy}
+          footer={
+            <p className="text-xs text-muted-foreground">
+              {data.risk.supportTicketsMonth} tickets in 30d
+              {data.risk.openSupportTickets > 0 && (
+                <span>
+                  {" "}
+                  · {data.risk.openSupportTickets} open
+                </span>
+              )}
+              {data.risk.highPrioritySupportTickets > 0 && (
+                <span className="text-destructive">
+                  {" "}
+                  · {data.risk.highPrioritySupportTickets} high priority
+                </span>
+              )}
+            </p>
+          }
+        />
+
+        <KpiCard
+          label="Repeat Paid Orders"
+          value={`${data.unitEconomics.repeatOrderRate}%`}
+          icon={Repeat2}
+          footer={
+            <p className="text-xs text-muted-foreground">
+              {data.unitEconomics.repeatPaidOrders} repeat paid order
+              {data.unitEconomics.repeatPaidOrders !== 1 ? "s" : ""} in 30d
+            </p>
+          }
+        />
+      </div>
+
       {/* Revenue Trend + Conversion Funnel */}
       <div className="grid gap-6 lg:grid-cols-2">
         <DashboardCard tier="elevated" padding="lg">
@@ -331,48 +403,89 @@ export function AnalyticsBusinessKPIsTab({ data }: { data: BusinessKPIData }) {
       </div>
 
       {/* Top Referral Sources */}
-      <DashboardCard tier="elevated" padding="lg">
-        <div className="mb-1 flex items-center gap-2">
-          <Activity className="h-5 w-5 text-primary" />
-          <h3 className="text-base font-semibold tracking-tight text-foreground">
-            Top Referral Sources (30 days)
-          </h3>
-        </div>
-        <p className="mb-4 text-sm text-muted-foreground">
-          Where your paid intakes are coming from
-        </p>
-        {data.referrals.length === 0 ? (
-          <p className="py-4 text-center text-sm text-muted-foreground">
-            No UTM-tagged traffic recorded yet
+      <div className="grid gap-6 lg:grid-cols-2">
+        <DashboardCard tier="elevated" padding="lg">
+          <div className="mb-1 flex items-center gap-2">
+            <Activity className="h-5 w-5 text-primary" />
+            <h3 className="text-base font-semibold tracking-tight text-foreground">
+              Top Referral Sources (30 days)
+            </h3>
+          </div>
+          <p className="mb-4 text-sm text-muted-foreground">
+            Where your paid intakes are coming from
           </p>
-        ) : (
-          <div className="space-y-3">
-            {data.referrals.map((ref, idx) => {
-              const maxCount = data.referrals[0]?.count || 1
-              const pct = (ref.count / maxCount) * 100
-              return (
-                <div key={ref.source} className="flex items-center gap-3">
-                  <span className="w-6 text-right text-sm text-muted-foreground">
-                    {idx + 1}.
-                  </span>
-                  <span className="w-32 truncate text-sm font-medium text-foreground">
-                    {ref.source}
+          {data.referrals.length === 0 ? (
+            <p className="py-4 text-center text-sm text-muted-foreground">
+              No UTM-tagged traffic recorded yet
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {data.referrals.map((ref, idx) => {
+                const maxCount = data.referrals[0]?.count || 1
+                const pct = (ref.count / maxCount) * 100
+                return (
+                  <div key={ref.source} className="flex items-center gap-3">
+                    <span className="w-6 text-right text-sm text-muted-foreground">
+                      {idx + 1}.
+                    </span>
+                    <span className="w-32 truncate text-sm font-medium text-foreground">
+                      {ref.source}
+                    </span>
+                    <div className="h-2 flex-1 rounded-full bg-secondary">
+                      <div
+                        className="h-2 rounded-full bg-primary"
+                        style={{ width: `${pct}%` }}
+                      />
+                    </div>
+                    <Badge variant="secondary" className="text-xs">
+                      {ref.count}
+                    </Badge>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </DashboardCard>
+
+        <DashboardCard tier="elevated" padding="lg">
+          <div className="mb-1 flex items-center gap-2">
+            <Repeat2 className="h-5 w-5 text-primary" />
+            <h3 className="text-base font-semibold tracking-tight text-foreground">
+              Repeat Usage by Service (30 days)
+            </h3>
+          </div>
+          <p className="mb-4 text-sm text-muted-foreground">
+            Repeat paid orders inside the current 30-day window
+          </p>
+          {data.serviceRepeatUsage.length === 0 ? (
+            <p className="py-4 text-center text-sm text-muted-foreground">
+              No paid service usage recorded yet
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {data.serviceRepeatUsage.map((service) => (
+                <div key={service.category} className="flex items-center gap-3">
+                  <span className="w-36 truncate text-sm font-medium capitalize text-foreground">
+                    {service.category.replace(/_/g, " ")}
                   </span>
                   <div className="h-2 flex-1 rounded-full bg-secondary">
                     <div
                       className="h-2 rounded-full bg-primary"
-                      style={{ width: `${pct}%` }}
+                      style={{ width: `${Math.max(service.repeatRate, 2)}%` }}
                     />
                   </div>
-                  <Badge variant="secondary" className="text-xs">
-                    {ref.count}
-                  </Badge>
+                  <div className="w-28 text-right text-xs text-muted-foreground">
+                    <span className="font-medium text-foreground">
+                      {service.repeatRate}%
+                    </span>{" "}
+                    ({service.repeatPaidOrders}/{service.paidOrders})
+                  </div>
                 </div>
-              )
-            })}
-          </div>
-        )}
-      </DashboardCard>
+              ))}
+            </div>
+          )}
+        </DashboardCard>
+      </div>
     </div>
   )
 }
