@@ -1,5 +1,9 @@
 import "server-only"
 
+import {
+  type AcquisitionHealthResult,
+  getAcquisitionHealth,
+} from "@/lib/analytics/acquisition-health"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 type AttributionSourceRow = {
@@ -102,9 +106,29 @@ export interface BusinessKPIData {
     totalMonth: number
     rate: number
   }
+  acquisition: AcquisitionHealthResult
   launchReadiness: {
     score: number
     checks: Record<string, boolean>
+  }
+}
+
+function acquisitionHealthFallback(windowDays: number): AcquisitionHealthResult {
+  return {
+    windowDays,
+    paidIntakes: 0,
+    paidRevenue: 0,
+    paidWithGoogleClickId: 0,
+    paidWithUtmSource: 0,
+    unknownPaidIntakes: 0,
+    googleAds: {
+      clicks: 0,
+      impressions: 0,
+      cost: 0,
+      error: "acquisition_health_unavailable",
+    },
+    healthy: false,
+    alerts: ["acquisition_health_unavailable"],
   }
 }
 
@@ -120,8 +144,7 @@ export async function getBusinessKPIData(): Promise<BusinessKPIData> {
   const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000)
   const prevWeekStart = new Date(today.getTime() - 14 * 24 * 60 * 60 * 1000)
 
-  // Fetch all KPI data in parallel
-  const results = await Promise.allSettled([
+  const kpiQueries = [
     // [0] Revenue this month (all paid intakes)
     supabase
       .from("intakes")
@@ -268,6 +291,12 @@ export async function getBusinessKPIData(): Promise<BusinessKPIData> {
       .from("stripe_disputes")
       .select("id, status")
       .gte("created_at", monthAgo.toISOString()),
+  ]
+
+  // Fetch all KPI data in parallel
+  const [results, acquisition] = await Promise.all([
+    Promise.allSettled(kpiQueries),
+    getAcquisitionHealth(7).catch(() => acquisitionHealthFallback(7)),
   ])
 
   // Helper to extract data safely
@@ -456,6 +485,7 @@ export async function getBusinessKPIData(): Promise<BusinessKPIData> {
     doctorsActive: activeDoctors > 0,
     queueManageable: activeQueueSize <= 20,
     refundRateLow: refundRate < 10,
+    acquisitionTracked: acquisition.healthy,
     chargebackRateLow: chargebackRate < 0.5,
     supportLoadHealthy: supportTicketsPer100Orders <= 5,
   }
@@ -518,6 +548,7 @@ export async function getBusinessKPIData(): Promise<BusinessKPIData> {
       totalMonth: totalRefundsMonth,
       rate: refundRate,
     },
+    acquisition,
     launchReadiness: {
       score: readinessScore,
       checks,

@@ -4,6 +4,7 @@ import { cookies } from "next/headers"
 
 import { normalizeAttributionForStorage } from "@/lib/analytics/attribution-storage"
 import { trackIntakeFunnelStep,trackOperationalBlock, trackSafetyBlock, trackSafetyOutcome } from "@/lib/analytics/posthog-server"
+import { resolveCheckoutAttribution } from "@/lib/analytics/server-attribution"
 import {
   logAccuracyAttestationGiven,
   logRequestCreated,
@@ -118,6 +119,8 @@ function getServiceSlug(category: string, subtype: string): string {
 export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput): Promise<CheckoutResult> {
   const startTime = Date.now()
   try {
+    const resolvedAttribution = await resolveCheckoutAttribution(input.attribution)
+
     // KILL SWITCH (ENV): Fast env-var based kill switch (no DB round-trip)
     const envKillSwitch = checkCheckoutBlocked(input.category, input.subtype)
     if (envKillSwitch.blocked) {
@@ -460,7 +463,7 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
 
     const isPriority = input.answers.is_priority === true
     const priorityPriceId = isPriority ? process.env.STRIPE_PRICE_PRIORITY_FEE : null
-    const attribution = normalizeAttributionForStorage(input.attribution)
+    const attribution = normalizeAttributionForStorage(resolvedAttribution)
 
     const intakeData: Record<string, unknown> = {
       patient_id: patientId,
@@ -641,6 +644,9 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
       ...(attribution.gclid ? { gclid: attribution.gclid } : {}),
       ...(attribution.gbraid ? { gbraid: attribution.gbraid } : {}),
       ...(attribution.wbraid ? { wbraid: attribution.wbraid } : {}),
+      ...(attribution.utm_source ? { utm_source: attribution.utm_source } : {}),
+      ...(attribution.utm_medium ? { utm_medium: attribution.utm_medium } : {}),
+      ...(attribution.utm_campaign ? { utm_campaign: attribution.utm_campaign } : {}),
     }
     const paymentIntentMetadata = buildPaymentIntentMetadata(sessionMetadata)
 

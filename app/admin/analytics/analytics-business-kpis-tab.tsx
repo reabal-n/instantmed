@@ -10,6 +10,7 @@ import {
   FileText,
   LifeBuoy,
   Mail,
+  Megaphone,
   Repeat2,
   Shield,
   Target,
@@ -33,6 +34,7 @@ const readinessLabels: Record<string, string> = {
   doctorsActive: "Doctors active",
   queueManageable: "Queue under control",
   refundRateLow: "Refund rate < 10%",
+  acquisitionTracked: "Acquisition tracked",
   chargebackRateLow: "Chargebacks < 0.5%",
   supportLoadHealthy: "Support load <= 5/100 orders",
 }
@@ -111,6 +113,91 @@ export function AnalyticsBusinessKPIsTab({ data }: { data: BusinessKPIData }) {
           ))}
         </div>
       </div>
+
+      <DashboardCard tier="elevated" padding="lg">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div>
+            <div className="flex items-center gap-2">
+              <Megaphone className="h-5 w-5 text-primary" aria-hidden />
+              <h3 className="text-base font-semibold tracking-tight text-foreground">
+                Acquisition Tracking
+              </h3>
+              <Badge
+                variant={data.acquisition.healthy ? "success" : "destructive"}
+                className="ml-1"
+              >
+                {data.acquisition.healthy ? "Healthy" : "Attention"}
+              </Badge>
+            </div>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Paid conversion attribution over the last{" "}
+              {data.acquisition.windowDays} days
+            </p>
+          </div>
+
+          {data.acquisition.alerts.length > 0 && (
+            <div className="flex max-w-2xl flex-wrap gap-2">
+              {data.acquisition.alerts.map((alert) => (
+                <Badge key={alert} variant="outline" className="text-xs">
+                  {formatAcquisitionAlert(alert)}
+                </Badge>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="mt-5 grid gap-5 border-t pt-5 sm:grid-cols-2 lg:grid-cols-5">
+          <AcquisitionStat
+            label="Paid intakes"
+            value={data.acquisition.paidIntakes.toLocaleString()}
+          />
+          <AcquisitionStat
+            label="Paid revenue"
+            value={formatAUD(data.acquisition.paidRevenue)}
+          />
+          <AcquisitionStat
+            label="Google click IDs"
+            value={data.acquisition.paidWithGoogleClickId.toLocaleString()}
+          />
+          <AcquisitionStat
+            label="UTM sourced"
+            value={data.acquisition.paidWithUtmSource.toLocaleString()}
+          />
+          <AcquisitionStat
+            label="Unknown paid"
+            value={data.acquisition.unknownPaidIntakes.toLocaleString()}
+            tone={data.acquisition.unknownPaidIntakes > 0 ? "risk" : "normal"}
+          />
+        </div>
+
+        {data.acquisition.googleAds && (
+          <div className="mt-5 flex flex-wrap gap-x-6 gap-y-2 border-t pt-4 text-sm">
+            <span className="text-muted-foreground">
+              Google Ads clicks:{" "}
+              <strong className="font-semibold text-foreground">
+                {data.acquisition.googleAds.clicks.toLocaleString()}
+              </strong>
+            </span>
+            <span className="text-muted-foreground">
+              Impressions:{" "}
+              <strong className="font-semibold text-foreground">
+                {data.acquisition.googleAds.impressions.toLocaleString()}
+              </strong>
+            </span>
+            <span className="text-muted-foreground">
+              Cost:{" "}
+              <strong className="font-semibold text-foreground">
+                {formatAUD(data.acquisition.googleAds.cost)}
+              </strong>
+            </span>
+            {data.acquisition.googleAds.error && (
+              <span className="font-medium text-destructive">
+                {formatAcquisitionAlert(data.acquisition.googleAds.error)}
+              </span>
+            )}
+          </div>
+        )}
+      </DashboardCard>
 
       {/* Primary KPIs */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -510,4 +597,44 @@ function KpiCard({ label, value, icon: Icon, footer }: KpiCardProps) {
       {footer && <div className="mt-2 space-y-0.5">{footer}</div>}
     </DashboardCard>
   )
+}
+
+function AcquisitionStat({
+  label,
+  value,
+  tone = "normal",
+}: {
+  label: string
+  value: string
+  tone?: "normal" | "risk"
+}) {
+  return (
+    <div>
+      <p className="text-xs font-medium uppercase text-muted-foreground">
+        {label}
+      </p>
+      <p
+        className={cn(
+          "mt-1 text-2xl font-semibold tabular-nums tracking-tight",
+          tone === "risk" ? "text-destructive" : "text-foreground",
+        )}
+      >
+        {value}
+      </p>
+    </div>
+  )
+}
+
+function formatAcquisitionAlert(alert: string) {
+  const labels: Record<string, string> = {
+    acquisition_health_unavailable: "Acquisition health unavailable",
+    google_ads_clicks_but_no_paid_click_ids:
+      "Google Ads clicks missing paid click IDs",
+    google_ads_reporting_not_configured: "Google Ads reporting not configured",
+    google_ads_reporting_unavailable: "Google Ads reporting unavailable",
+    paid_attribution_unknown_over_50_percent:
+      "Unknown paid attribution over 50%",
+  }
+
+  return labels[alert] || alert.replaceAll("_", " ")
 }

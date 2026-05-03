@@ -58,6 +58,10 @@
       "schedule": "*/30 * * * *"
     },
     {
+      "path": "/api/cron/acquisition-health",
+      "schedule": "0 */6 * * *"
+    },
+    {
       "path": "/api/cron/data-retention",
       "schedule": "0 2 * * *"
     },

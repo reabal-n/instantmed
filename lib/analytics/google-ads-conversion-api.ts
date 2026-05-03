@@ -5,7 +5,7 @@ import * as Sentry from "@sentry/nextjs"
 import { createLogger } from "@/lib/observability/logger"
 
 const logger = createLogger("google-ads-conversion-api")
-const GOOGLE_ADS_API_VERSION = "v24"
+const DEFAULT_GOOGLE_ADS_API_VERSION = "v24"
 
 /**
  * Server-side Google Ads Conversion API client.
@@ -25,6 +25,9 @@ const GOOGLE_ADS_API_VERSION = "v24"
  *                                       OAuth grant; persist securely)
  *   GOOGLE_ADS_LOGIN_CUSTOMER_ID      - optional MCC id when the customer is
  *                                       under a manager account
+ *   GOOGLE_ADS_QUOTA_PROJECT_ID       - optional Google Cloud quota project
+ *                                       required by some user OAuth setups
+ *   GOOGLE_ADS_API_VERSION            - optional API version override
  *
  * Conversion action env vars (one per action you want to fire server-side):
  *   GOOGLE_ADS_CONVERSION_ACTION_PURCHASE        - resource name path segment
@@ -68,6 +71,8 @@ interface AccessTokenCache {
 }
 
 let tokenCache: AccessTokenCache | null = null
+
+const INSTANTMED_PURCHASE_CONVERSION_ACTION_ID = "7530736987"
 
 async function fetchAccessToken(): Promise<string | null> {
   const clientId = process.env.GOOGLE_ADS_CLIENT_ID
@@ -149,8 +154,11 @@ export function selectGoogleAdsClickIdentifier(input: {
   return null
 }
 
-export function getGoogleAdsUploadClickConversionsUrl(customerId: string): string {
-  return `https://googleads.googleapis.com/${GOOGLE_ADS_API_VERSION}/customers/${customerId}:uploadClickConversions`
+export function getGoogleAdsUploadClickConversionsUrl(
+  customerId: string,
+  apiVersion = process.env.GOOGLE_ADS_API_VERSION || DEFAULT_GOOGLE_ADS_API_VERSION,
+): string {
+  return `https://googleads.googleapis.com/${apiVersion}/customers/${customerId}:uploadClickConversions`
 }
 
 export function buildGoogleAdsClickConversionRequest(
@@ -186,8 +194,11 @@ export async function fireGoogleAdsPurchaseConversion(
 ): Promise<{ attempted: boolean; ok?: boolean; error?: string }> {
   const customerId = process.env.GOOGLE_ADS_CUSTOMER_ID
   const developerToken = process.env.GOOGLE_ADS_DEVELOPER_TOKEN
-  const conversionActionId = process.env.GOOGLE_ADS_CONVERSION_ACTION_PURCHASE
+  const conversionActionId =
+    process.env.GOOGLE_ADS_CONVERSION_ACTION_PURCHASE ||
+    (customerId === "9205010513" ? INSTANTMED_PURCHASE_CONVERSION_ACTION_ID : undefined)
   const loginCustomerId = process.env.GOOGLE_ADS_LOGIN_CUSTOMER_ID
+  const quotaProjectId = process.env.GOOGLE_ADS_QUOTA_PROJECT_ID
 
   if (!customerId || !developerToken || !conversionActionId) {
     logger.warn("Google Ads Conversion API skipped - missing env vars", {
@@ -219,6 +230,7 @@ export async function fireGoogleAdsPurchaseConversion(
       "developer-token": developerToken,
     }
     if (loginCustomerId) headers["login-customer-id"] = loginCustomerId
+    if (quotaProjectId) headers["x-goog-user-project"] = quotaProjectId
 
     const res = await fetch(url, {
       method: "POST",

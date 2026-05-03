@@ -2,6 +2,7 @@
 
 import { normalizeAttributionForStorage } from "@/lib/analytics/attribution-storage"
 import { trackIntakeFunnelStep,trackOperationalBlock, trackSafetyBlock, trackSafetyOutcome } from "@/lib/analytics/posthog-server"
+import { resolveCheckoutAttribution } from "@/lib/analytics/server-attribution"
 import {
   logAccuracyAttestationGiven,
   logRequestCreated,
@@ -142,6 +143,8 @@ function getServiceSlug(category: ServiceCategory, subtype: string): string {
  */
 export async function createGuestCheckoutAction(input: GuestCheckoutInput): Promise<CheckoutResult> {
   try {
+    const resolvedAttribution = await resolveCheckoutAttribution(input.attribution)
+
     // KILL SWITCH (ENV): Fast env-var based kill switch (no DB round-trip)
     const envKillSwitch = checkCheckoutBlocked(input.category, input.subtype)
     if (envKillSwitch.blocked) {
@@ -511,7 +514,7 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
       .update(`${normalizedEmail}:${input.category}:${input.subtype}:${Math.floor(Date.now() / 600_000)}:${JSON.stringify(input.answers)}`)
       .digest("hex")
       .slice(0, 24)}`
-    const attribution = normalizeAttributionForStorage(input.attribution)
+    const attribution = normalizeAttributionForStorage(resolvedAttribution)
     const { data: intake, error: intakeError } = await supabase
       .from("intakes")
       .insert({
@@ -666,6 +669,9 @@ export async function createGuestCheckoutAction(input: GuestCheckoutInput): Prom
         ...(attribution.gclid ? { gclid: attribution.gclid } : {}),
         ...(attribution.gbraid ? { gbraid: attribution.gbraid } : {}),
         ...(attribution.wbraid ? { wbraid: attribution.wbraid } : {}),
+        ...(attribution.utm_source ? { utm_source: attribution.utm_source } : {}),
+        ...(attribution.utm_medium ? { utm_medium: attribution.utm_medium } : {}),
+        ...(attribution.utm_campaign ? { utm_campaign: attribution.utm_campaign } : {}),
       })
       // Use intake ID as idempotency key to prevent duplicate sessions on double-click
       session = await stripe.checkout.sessions.create({
