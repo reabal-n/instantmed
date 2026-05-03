@@ -8,8 +8,8 @@
 
 | Layer | Framework | Location | Count |
 |-------|-----------|----------|-------|
-| Unit tests | Vitest | `lib/__tests__/**/*.test.ts` | **1,521** passing (55 files, local 2026-04-28) |
-| E2E tests | Playwright | `e2e/**/*.spec.ts` | 46 specs — blocking CI currently runs the ops smoke only |
+| Unit tests | Vitest | `**/*.test.ts` / `lib/__tests__/**/*.test.ts` | **1,855** passing (148 Vitest files, local 2026-05-03; 144 under `lib/__tests__`) |
+| E2E tests | Playwright | `e2e/**/*.spec.ts` | 50 specs — blocking CI currently runs ops smoke plus focused paid critical flows |
 
 **Coverage threshold:** 80% statements / 70% branches / 80% functions / 80% lines (enforced by Vitest config, scoped to `lib/clinical/` and `lib/security/`). **Note:** `lib/state-machine/` was removed from the include list 2026-04-08 because the directory no longer exists — the state-machine logic was consolidated into `lib/clinical/auto-approval-state.ts`.
 
@@ -19,9 +19,9 @@
 
 Prior to these, the canonical refund code had **zero unit coverage** — only the e2e suite exercised it, which gave slow feedback and no per-branch visibility.
 
-**CI pipeline:** `pnpm ci` runs `install → lint → test → build` in sequence (typecheck is part of `build`, not a standalone step). The blocking PR E2E gate runs the current ops smoke (`e2e/admin.ops-index.spec.ts`) when `vars.E2E_ENABLED == 'true'`. The older broad Playwright suite is not a reliable blocking signal right now; it contains stale routes and product-state assumptions and should be repaired as a dedicated E2E cleanup pass before being restored as a merge gate. Preview deployments run `e2e/preview-smoke.spec.ts`.
+**CI pipeline:** `pnpm ci` runs `install → lint → typecheck → test → build` in sequence. The blocking PR E2E gate runs the current ops smoke (`e2e/admin.ops-index.spec.ts`) plus focused paid-flow smoke coverage (`e2e/payment-smoke.spec.ts`, `e2e/stripe-webhook.spec.ts`, `e2e/parchment-webhook.spec.ts`) when `vars.E2E_ENABLED == 'true'`. The older broad Playwright suite is not a reliable blocking signal right now; it contains stale routes and product-state assumptions and should be repaired as a dedicated E2E cleanup pass before being restored as a merge gate. Preview deployments run `e2e/preview-smoke.spec.ts`.
 
-**Required CI secrets:** `ENCRYPTION_KEY` for ops/admin E2E pages that decrypt PHI-backed fields. `E2E_ENABLED=true` variable required to gate the e2e job. Some non-blocking/manual E2E specs also require `STRIPE_WEBHOOK_SECRET` (test-mode `whsec_...`).
+**Required CI secrets:** `ENCRYPTION_KEY` for ops/admin E2E pages that decrypt PHI-backed fields. `E2E_ENABLED=true` variable required to gate the e2e job. The paid-flow E2E gate requires `STRIPE_WEBHOOK_SECRET` (test-mode `whsec_...`) and `PARCHMENT_WEBHOOK_SECRET`; CI fails fast if those are missing so payment/prescribing specs cannot silently skip.
 
 ---
 
@@ -194,6 +194,7 @@ jobs:
       - bash scripts/check-stack-pins.sh  # Fails if Next/React/Tailwind/FM drift
       - pnpm audit --audit-level=high     # Was: critical (tightened 2026-04-08)
       - pnpm lint
+      - pnpm typecheck                    # Explicit TypeScript gate
       - pnpm test --run --coverage        # Unit tests + coverage check
       - bash scripts/check-route-conflicts.sh
       - pnpm build                        # Production build (includes typecheck, 8GB heap)
@@ -206,6 +207,8 @@ jobs:
     needs: build
     steps:
       - playwright test --project=chromium e2e/admin.ops-index.spec.ts
+      - verify STRIPE_WEBHOOK_SECRET + PARCHMENT_WEBHOOK_SECRET are present
+      - playwright test --project=chromium e2e/payment-smoke.spec.ts e2e/stripe-webhook.spec.ts e2e/parchment-webhook.spec.ts
 
 # .github/workflows/e2e-preview.yml
 # Runs deployment smoke against Vercel preview deployment

@@ -237,15 +237,17 @@ export async function sendRefundEmail(params: {
   patientName: string
   amount: string
   refundReason: string
+  serviceName?: string
   intakeId?: string
   patientId?: string
 }): Promise<SendResult> {
   return sendTemplateEmail({
     to: params.to,
-    templateSlug: "refund_processed",
+    templateSlug: "refund-processed",
     data: {
       patient_name: params.patientName,
       amount: params.amount,
+      service_name: params.serviceName || "your request",
       refund_reason: params.refundReason,
     },
     intakeId: params.intakeId,
@@ -267,7 +269,7 @@ export async function sendPaymentReceivedEmail(params: {
 }): Promise<SendResult> {
   return sendTemplateEmail({
     to: params.to,
-    templateSlug: "payment_received",
+    templateSlug: "payment-received",
     data: {
       patient_name: params.patientName,
       amount: params.amount,

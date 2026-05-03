@@ -261,7 +261,7 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
     const amount = `$${(amountCents / 100).toFixed(2)}`
     const serviceName = ctx.service.short_name || ctx.service.name
 
-    return renderDatabaseTemplate("payment_received", {
+    return renderDatabaseTemplate("payment-received", {
       patient_name: ctx.patient.full_name || row.to_name || "there",
       amount,
       service_name: serviceName,
@@ -269,7 +269,7 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
   }
 
   // ----------------------------------------------------------------
-  // refund_notification - database template (slug: refund_processed)
+  // refund_notification - database template (slug: refund-processed)
   // ----------------------------------------------------------------
   if (row.email_type === "refund_notification") {
     if (!row.intake_id) {
@@ -283,9 +283,12 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
     const amount = `$${(refundCents / 100).toFixed(2)}`
     const reason = ctx.intake.decline_reason || "Refund processed"
 
-    return renderDatabaseTemplate("refund_processed", {
+    const serviceName = ctx.service.short_name || ctx.service.name
+
+    return renderDatabaseTemplate("refund-processed", {
       patient_name: ctx.patient.full_name || row.to_name || "there",
       amount,
+      service_name: serviceName,
       refund_reason: reason,
     })
   }

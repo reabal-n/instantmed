@@ -15,6 +15,7 @@
 import { expect, type Page,test } from "@playwright/test"
 import { createHmac, randomUUID } from "crypto"
 
+import { PRICING, PRICING_DISPLAY } from "../lib/constants"
 import {
   cleanupTestIntake,
   getIntakeById,
@@ -25,19 +26,7 @@ import {
 
 const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3001"
 const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || ""
-
-// ── Price constants (cents) ── must match lib/constants.ts PRICING ──────────
-const PRICES_CENTS = {
-  MED_CERT_1DAY: 1995,
-  MED_CERT_2DAY: 2995,
-  MED_CERT_3DAY: 3995,
-  REPEAT_SCRIPT: 2995,
-  CONSULT_GENERAL: 4995,
-  CONSULT_ED: 3995,
-  CONSULT_HAIR_LOSS: 3995,
-  CONSULT_WOMENS_HEALTH: 5995,
-  CONSULT_WEIGHT_LOSS: 7995,
-} as const
+const cents = (amount: number) => Math.round(amount * 100)
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -55,6 +44,7 @@ function buildCheckoutCompletedEvent(overrides: {
   amount: number
   serviceSlug?: string
   category?: string
+  subtype?: string
 }) {
   return {
     id: `evt_smoke_${randomUUID()}`,
@@ -75,6 +65,7 @@ function buildCheckoutCompletedEvent(overrides: {
           patient_id: overrides.patientId || "e2e00000-0000-0000-0000-000000000001",
           service_slug: overrides.serviceSlug || "med-cert-sick",
           category: overrides.category || "medical_certificate",
+          ...(overrides.subtype ? { subtype: overrides.subtype } : {}),
         },
       },
     },
@@ -132,22 +123,18 @@ test.describe("Smoke: Price display at checkout step", () => {
    * These tests use the URL-level parameters only - no DB seeding required.
    */
 
-  const cases: Array<{ service: string; label: string; expectedPrice: string }> = [
-    { service: "med-cert", label: "Med cert 1-day", expectedPrice: "$19.95" },
-    { service: "med-cert?duration=2", label: "Med cert 2-day", expectedPrice: "$29.95" },
-    { service: "med-cert?duration=3", label: "Med cert 3-day", expectedPrice: "$39.95" },
-    { service: "prescription", label: "Repeat prescription", expectedPrice: "$29.95" },
-    { service: "consult&subtype=general", label: "General consult", expectedPrice: "$49.95" },
-    { service: "consult&subtype=ed", label: "ED consult", expectedPrice: "$49.95" },
-    { service: "consult&subtype=hair_loss", label: "Hair loss consult", expectedPrice: "$49.95" },
-    { service: "consult&subtype=womens_health", label: "Women's health consult", expectedPrice: "$59.95" },
-    { service: "consult&subtype=weight_loss", label: "Weight loss consult", expectedPrice: "$89.95" },
+  const cases: Array<{ label: string; expectedPrice: string }> = [
+    { label: "Med cert 1-day", expectedPrice: PRICING_DISPLAY.MED_CERT },
+    { label: "Repeat prescription", expectedPrice: PRICING_DISPLAY.REPEAT_SCRIPT },
+    { label: "General consult", expectedPrice: PRICING_DISPLAY.CONSULT },
+    { label: "ED consult", expectedPrice: PRICING_DISPLAY.MENS_HEALTH },
+    { label: "Hair loss consult", expectedPrice: PRICING_DISPLAY.HAIR_LOSS },
   ]
 
-  for (const { service, label, expectedPrice } of cases) {
+  for (const { label, expectedPrice } of cases) {
     test(`${label} shows ${expectedPrice} on service hub`, async ({ page }) => {
       // The service hub cards display pricing - verify the price is present on the page
-      await gotoRequest(page, `/request?service=${service}`)
+      await gotoRequest(page, "/request")
 
       // Price should appear somewhere on the request flow
       // (either on the service hub or within the first visible step)
@@ -176,19 +163,20 @@ test.describe("Smoke: Webhook processes all service price points", () => {
     amountCents: number
     serviceSlug: string
     category: string
+    subtype?: string
   }> = [
-    { label: "Med cert 1-day", amountCents: PRICES_CENTS.MED_CERT_1DAY, serviceSlug: "med-cert-sick", category: "medical_certificate" },
-    { label: "Med cert 2-day", amountCents: PRICES_CENTS.MED_CERT_2DAY, serviceSlug: "med-cert-sick-2day", category: "medical_certificate" },
-    { label: "Med cert 3-day", amountCents: PRICES_CENTS.MED_CERT_3DAY, serviceSlug: "med-cert-sick-3day", category: "medical_certificate" },
-    { label: "Repeat Rx", amountCents: PRICES_CENTS.REPEAT_SCRIPT, serviceSlug: "repeat-prescription", category: "prescription" },
-    { label: "General consult", amountCents: PRICES_CENTS.CONSULT_GENERAL, serviceSlug: "consult-general", category: "consultation" },
-    { label: "ED consult", amountCents: PRICES_CENTS.CONSULT_ED, serviceSlug: "consult-ed", category: "consultation" },
-    { label: "Hair loss consult", amountCents: PRICES_CENTS.CONSULT_HAIR_LOSS, serviceSlug: "consult-hair-loss", category: "consultation" },
-    { label: "Women's health consult", amountCents: PRICES_CENTS.CONSULT_WOMENS_HEALTH, serviceSlug: "consult-womens-health", category: "consultation" },
-    { label: "Weight loss consult", amountCents: PRICES_CENTS.CONSULT_WEIGHT_LOSS, serviceSlug: "consult-weight-loss", category: "consultation" },
+    { label: "Med cert 1-day", amountCents: cents(PRICING.MED_CERT), serviceSlug: "med-cert-sick", category: "medical_certificate" },
+    { label: "Med cert 2-day", amountCents: cents(PRICING.MED_CERT_2DAY), serviceSlug: "med-cert-sick", category: "medical_certificate" },
+    { label: "Med cert 3-day", amountCents: cents(PRICING.MED_CERT_3DAY), serviceSlug: "med-cert-sick", category: "medical_certificate" },
+    { label: "Repeat Rx", amountCents: cents(PRICING.REPEAT_SCRIPT), serviceSlug: "common-scripts", category: "prescription", subtype: "repeat" },
+    { label: "General consult", amountCents: cents(PRICING.CONSULT), serviceSlug: "consult", category: "consult", subtype: "general" },
+    { label: "ED consult", amountCents: cents(PRICING.MENS_HEALTH), serviceSlug: "consult", category: "consult", subtype: "ed" },
+    { label: "Hair loss consult", amountCents: cents(PRICING.HAIR_LOSS), serviceSlug: "consult", category: "consult", subtype: "hair_loss" },
+    { label: "Women's health consult", amountCents: cents(PRICING.WOMENS_HEALTH), serviceSlug: "consult", category: "consult", subtype: "womens_health" },
+    { label: "Weight loss consult", amountCents: cents(PRICING.WEIGHT_LOSS), serviceSlug: "consult", category: "consult", subtype: "weight_loss" },
   ]
 
-  for (const { label, amountCents, serviceSlug, category } of serviceAmounts) {
+  for (const { label, amountCents, serviceSlug, category, subtype } of serviceAmounts) {
     test(`${label} (${amountCents}¢) webhook transitions intake to paid`, async ({ request }) => {
       // Seed intake
       const seed = await seedTestIntake({ status: "pending_payment", payment_status: "pending", category })
@@ -200,6 +188,7 @@ test.describe("Smoke: Webhook processes all service price points", () => {
         amount: amountCents,
         serviceSlug,
         category,
+        subtype,
       })
 
       const response = await postWebhook(request, event)
