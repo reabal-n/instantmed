@@ -60,6 +60,18 @@ export interface Intake {
   stripe_customer_id: string | null // Customer ID at time of payment
   stripe_price_id: string | null // Stripe price ID used for checkout
   idempotency_key: string | null // Idempotency key for payment dedup
+  // First-touch attribution captured before checkout
+  utm_source: string | null
+  utm_medium: string | null
+  utm_campaign: string | null
+  utm_content: string | null
+  utm_term: string | null
+  referrer: string | null
+  landing_page: string | null
+  attribution_captured_at: string | null
+  gclid: string | null
+  gbraid: string | null
+  wbraid: string | null
   // Refund tracking
   refund_status: "none" | "pending" | "processed" | "failed" | null
   refund_stripe_id: string | null

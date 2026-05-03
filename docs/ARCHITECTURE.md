@@ -56,6 +56,12 @@ app/request/page.tsx -> RequestFlow -> step-router.tsx (lazy) -> steps/*.tsx
 
 Zustand store with `persist` middleware. Key: `instantmed-request-draft`, expiry: 24h. Partialised: `serviceType`, `currentStepId`, `safetyConfirmed`, `answers`, patient identity fields. Recovery via `DraftRestorationBanner`. Navigation guard `goToStep()` prevents forward jumps; `canCheckout` validates required fields before payment.
 
+### Attribution
+
+First-touch attribution is captured client-side by `lib/analytics/attribution.ts` into `sessionStorage` and passed through `app/actions/unified-checkout.ts` to both authenticated and guest Stripe checkout paths. The checkout actions normalize attribution via `lib/analytics/attribution-storage.ts` before persisting to `intakes`: `utm_source`, `utm_medium`, `utm_campaign`, `utm_content`, `utm_term`, sanitized `referrer`, sanitized `landing_page`, `attribution_captured_at`, `gclid`, `gbraid`, and `wbraid`.
+
+The Stripe webhook reads the persisted intake attribution when payment completes, sends click IDs to the server-side Google Ads Conversion API, and mirrors attribution to PostHog. Admin source reporting in `/admin/analytics` and Business KPIs uses UTM first, then persisted referrer, then direct landing-page fallback.
+
 ### AI Chat Intake
 
 Alternative conversational path via floating `ChatIntakeButton`. Routes to `app/api/ai/chat-intake/route.ts`.

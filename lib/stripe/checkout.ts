@@ -2,6 +2,7 @@
 
 import { cookies } from "next/headers"
 
+import { normalizeAttributionForStorage } from "@/lib/analytics/attribution-storage"
 import { trackIntakeFunnelStep,trackOperationalBlock, trackSafetyBlock, trackSafetyOutcome } from "@/lib/analytics/posthog-server"
 import {
   logAccuracyAttestationGiven,
@@ -459,6 +460,7 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
 
     const isPriority = input.answers.is_priority === true
     const priorityPriceId = isPriority ? process.env.STRIPE_PRICE_PRIORITY_FEE : null
+    const attribution = normalizeAttributionForStorage(input.attribution)
 
     const intakeData: Record<string, unknown> = {
       patient_id: patientId,
@@ -472,15 +474,20 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
       idempotency_key: input.idempotencyKey, // P1 FIX: Always required
       stripe_price_id: priceId || null, // Store for retry pricing consistency
       // Attribution: store UTM params for payment attribution in PostHog
-      utm_source: input.attribution?.utm_source || null,
-      utm_medium: input.attribution?.utm_medium || null,
-      utm_campaign: input.attribution?.utm_campaign || null,
+      utm_source: attribution.utm_source,
+      utm_medium: attribution.utm_medium,
+      utm_campaign: attribution.utm_campaign,
+      utm_content: attribution.utm_content,
+      utm_term: attribution.utm_term,
+      referrer: attribution.referrer,
+      landing_page: attribution.landing_page,
+      attribution_captured_at: attribution.attribution_captured_at,
       // Google Ads click identifiers - used by the server-side Conversion API
       // to attribute purchases back to the originating ad click. Recovers
       // ~30% of attribution lost to iOS Safari ITP.
-      gclid: input.attribution?.gclid || null,
-      gbraid: input.attribution?.gbraid || null,
-      wbraid: input.attribution?.wbraid || null,
+      gclid: attribution.gclid,
+      gbraid: attribution.gbraid,
+      wbraid: attribution.wbraid,
     }
 
     const { data: intake, error: intakeError } = await supabase
@@ -645,9 +652,9 @@ export async function createIntakeAndCheckoutAction(input: CreateCheckoutInput):
       ...(isPriority ? { is_priority: "true" } : {}),
       ...(isSubscription ? { is_subscription: "true" } : {}),
       // Google Ads click IDs for Enhanced Conversions attribution
-      ...(input.attribution?.gclid ? { gclid: input.attribution.gclid } : {}),
-      ...(input.attribution?.gbraid ? { gbraid: input.attribution.gbraid } : {}),
-      ...(input.attribution?.wbraid ? { wbraid: input.attribution.wbraid } : {}),
+      ...(attribution.gclid ? { gclid: attribution.gclid } : {}),
+      ...(attribution.gbraid ? { gbraid: attribution.gbraid } : {}),
+      ...(attribution.wbraid ? { wbraid: attribution.wbraid } : {}),
     }
     const paymentIntentMetadata = buildPaymentIntentMetadata(sessionMetadata)
 

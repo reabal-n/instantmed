@@ -2,6 +2,42 @@ import "server-only"
 
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
+type AttributionSourceRow = {
+  landing_page: string | null
+  referrer: string | null
+  utm_source: string | null
+}
+
+const AI_REFERRER_PATTERNS: Array<[string, string]> = [
+  ["chatgpt", "ai:chatgpt"],
+  ["perplexity", "ai:perplexity"],
+  ["claude", "ai:claude"],
+  ["gemini", "ai:gemini"],
+  ["copilot", "ai:copilot"],
+]
+
+export function deriveAttributionSource(row: AttributionSourceRow): string {
+  const utmSource = row.utm_source?.trim()
+  if (utmSource) return utmSource
+
+  const referrer = row.referrer?.trim()
+  if (referrer) {
+    const lowerReferrer = referrer.toLowerCase()
+    const aiSource = AI_REFERRER_PATTERNS.find(([pattern]) =>
+      lowerReferrer.includes(pattern)
+    )
+    if (aiSource) return aiSource[1]
+
+    try {
+      return new URL(referrer).hostname.replace(/^www\./, "")
+    } catch {
+      return referrer
+    }
+  }
+
+  return row.landing_page ? "direct" : "unknown"
+}
+
 // ============================================================================
 // TYPES
 // ============================================================================
@@ -164,13 +200,12 @@ export async function getBusinessKPIData(): Promise<BusinessKPIData> {
       .gte("created_at", monthAgo.toISOString())
       .eq("status", "approved"),
 
-    // [11] Top paid referral sources (UTM)
+    // [11] Top paid referral sources (UTM first, then persisted referrer/direct)
     supabase
       .from("intakes")
-      .select("utm_source")
+      .select("utm_source, referrer, landing_page")
       .gte("created_at", monthAgo.toISOString())
-      .not("paid_at", "is", null)
-      .not("utm_source", "is", null),
+      .not("paid_at", "is", null),
 
     // [12] Page views / sessions from audit_logs
     supabase
@@ -327,10 +362,10 @@ export async function getBusinessKPIData(): Promise<BusinessKPIData> {
     : 0
 
   // === REFERRAL SOURCES ===
-  const utmData = get<Array<{ utm_source: string }>>(11, [])
+  const utmData = get<AttributionSourceRow[]>(11, [])
   const sourceCounts: Record<string, number> = {}
   for (const item of utmData) {
-    const src = item.utm_source || "direct"
+    const src = deriveAttributionSource(item)
     sourceCounts[src] = (sourceCounts[src] || 0) + 1
   }
   const referralSources = Object.entries(sourceCounts)

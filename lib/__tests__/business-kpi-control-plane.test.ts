@@ -107,7 +107,14 @@ describe("business KPI control plane", () => {
       { count: 6, data: null, error: null },
       { count: 3, data: null, error: null },
       { count: 2, data: null, error: null },
-      { data: [{ utm_source: "google" }, { utm_source: "google" }], error: null },
+      {
+        data: [
+          { landing_page: "/request", referrer: null, utm_source: "google" },
+          { landing_page: "/medical-certificate", referrer: "https://chatgpt.com/c/abc", utm_source: null },
+          { landing_page: "/request", referrer: null, utm_source: null },
+        ],
+        error: null,
+      },
       { count: 100, data: null, error: null },
       { data: [{ amount_cents: 1995 }], error: null },
       { data: [{ amount_cents: 9985 }], error: null },
@@ -143,7 +150,7 @@ describe("business KPI control plane", () => {
     })
     expect(selectCalls.at(-2)).toMatchObject({ table: "support_tickets" })
     expect(selectCalls.at(-1)).toMatchObject({ table: "stripe_disputes" })
-    expect(selectCalls.find((call) => call.columns === "utm_source")).toMatchObject({
+    expect(selectCalls.find((call) => call.columns === "utm_source, referrer, landing_page")).toMatchObject({
       operations: expect.arrayContaining(["not:paid_at:is:null"]),
     })
 
@@ -168,6 +175,11 @@ describe("business KPI control plane", () => {
       repeatPaidOrders: 1,
       repeatRate: 100,
     })
+    expect(data.referrals).toEqual([
+      { source: "google", count: 1 },
+      { source: "ai:chatgpt", count: 1 },
+      { source: "direct", count: 1 },
+    ])
     expect(data.launchReadiness.checks).toMatchObject({
       chargebackRateLow: false,
       supportLoadHealthy: false,

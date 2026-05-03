@@ -63,7 +63,7 @@ export function captureAttribution(): void {
   data.landing_page = window.location.pathname
   data.captured_at = new Date().toISOString()
 
-  if (hasData || data.referrer) {
+  if (hasData || data.referrer || data.landing_page) {
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify(data))
   }
 }

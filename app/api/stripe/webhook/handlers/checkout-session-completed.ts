@@ -390,7 +390,7 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
     // Fetch attribution data stored on the intake at checkout time
     const { data: intakeAttribution } = await supabase
       .from("intakes")
-      .select("utm_source, utm_medium, utm_campaign, category, subtype, gclid, gbraid, wbraid, amount_cents")
+      .select("utm_source, utm_medium, utm_campaign, utm_content, utm_term, referrer, landing_page, attribution_captured_at, category, subtype, gclid, gbraid, wbraid, amount_cents")
       .eq("id", intakeId)
       .maybeSingle()
 
@@ -472,15 +472,26 @@ export async function handleCheckoutSessionCompleted(ctx: WebhookContext): Promi
           utm_source: intakeAttribution?.utm_source || null,
           utm_medium: intakeAttribution?.utm_medium || null,
           utm_campaign: intakeAttribution?.utm_campaign || null,
+          utm_content: intakeAttribution?.utm_content || null,
+          utm_term: intakeAttribution?.utm_term || null,
+          referrer: intakeAttribution?.referrer || null,
+          landing_page: intakeAttribution?.landing_page || null,
+          attribution_captured_at: intakeAttribution?.attribution_captured_at || null,
           // Person properties: $set_once for first-touch, $set for last-touch
           $set_once: {
             initial_utm_source: intakeAttribution?.utm_source || undefined,
             initial_utm_medium: intakeAttribution?.utm_medium || undefined,
             initial_utm_campaign: intakeAttribution?.utm_campaign || undefined,
+            initial_utm_content: intakeAttribution?.utm_content || undefined,
+            initial_utm_term: intakeAttribution?.utm_term || undefined,
+            initial_referrer: intakeAttribution?.referrer || undefined,
+            initial_landing_page: intakeAttribution?.landing_page || undefined,
             first_payment_at: new Date().toISOString(),
           },
           $set: {
             last_payment_at: new Date().toISOString(),
+            last_referrer: intakeAttribution?.referrer || undefined,
+            last_landing_page: intakeAttribution?.landing_page || undefined,
             last_service: intakeAttribution?.category || session.metadata?.category,
           },
         },

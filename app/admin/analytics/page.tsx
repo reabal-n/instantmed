@@ -1,7 +1,7 @@
 import { Suspense } from "react"
 
 import { requireRole } from "@/lib/auth/helpers"
-import { getBusinessKPIData } from "@/lib/data/business-kpi"
+import { deriveAttributionSource, getBusinessKPIData } from "@/lib/data/business-kpi"
 import { getDoctorDashboardStats, getIntakeMonitoringStats } from "@/lib/data/intakes"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
@@ -61,12 +61,12 @@ export default async function AnalyticsDashboardPage() {
       .select("category")
       .gte("created_at", monthAgo.toISOString()),
 
-    // [6] Intakes by UTM source
+    // [6] Intakes by paid source: UTM first, then persisted referrer/direct
     supabase
       .from("intakes")
-      .select("utm_source, utm_medium, utm_campaign")
+      .select("utm_source, utm_medium, utm_campaign, referrer, landing_page")
       .gte("created_at", monthAgo.toISOString())
-      .not("utm_source", "is", null),
+      .not("paid_at", "is", null),
 
     // [7] Revenue data - paid intakes with amount
     supabase
@@ -152,11 +152,15 @@ export default async function AnalyticsDashboardPage() {
     }
   }
 
-  // Process UTM source data
+  // Process paid source data
   const sourceCounts: Record<string, number> = {}
   if (intakesBySourceResult.data) {
     for (const intake of intakesBySourceResult.data) {
-      const source = intake.utm_source || "direct"
+      const source = deriveAttributionSource({
+        landing_page: intake.landing_page || null,
+        referrer: intake.referrer || null,
+        utm_source: intake.utm_source || null,
+      })
       sourceCounts[source] = (sourceCounts[source] || 0) + 1
     }
   }
