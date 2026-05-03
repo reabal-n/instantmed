@@ -38,6 +38,13 @@ function bool(answers: Answers, key: string): boolean | undefined {
   return typeof v === "boolean" ? v : undefined
 }
 
+function yes(answers: Answers, key: string): boolean {
+  const v = answers[key]
+  if (v === true) return true
+  if (typeof v !== "string") return false
+  return ["yes", "true", "1"].includes(v.toLowerCase().trim())
+}
+
 function num(answers: Answers, key: string): number | undefined {
   const v = answers[key]
   if (typeof v === "number") return v
@@ -158,14 +165,31 @@ export function validateEdConsult(answers: Answers): ConsultValidationResult {
     errors.push("Age confirmation (18+) is required for ED consultations")
   }
 
-  requireOneOf(answers, "edOnset", "Symptom onset", ED_ONSET_VALUES, errors)
-  requireOneOf(answers, "edFrequency", "Difficulty frequency", ED_FREQUENCY_VALUES, errors)
-  requireOneOf(answers, "edMorningErections", "Morning erection status", ED_MORNING_VALUES, errors)
+  const usesCurrentFlow = Boolean(
+    str(answers, "edGoal") ||
+    str(answers, "edDuration") ||
+    num(answers, "iief1") ||
+    num(answers, "iiefTotal"),
+  )
+
+  if (usesCurrentFlow) {
+    requireField(answers, "edGoal", "ED goal", errors)
+    requireField(answers, "edDuration", "Duration of concern", errors)
+    for (const key of ["iief1", "iief2", "iief3", "iief4", "iief5"]) {
+      const score = num(answers, key)
+      if (score === undefined || score < 1 || score > 5) {
+        errors.push(`${key.toUpperCase()} score is required`)
+      }
+    }
+  } else {
+    requireOneOf(answers, "edOnset", "Symptom onset", ED_ONSET_VALUES, errors)
+    requireOneOf(answers, "edFrequency", "Difficulty frequency", ED_FREQUENCY_VALUES, errors)
+    requireOneOf(answers, "edMorningErections", "Morning erection status", ED_MORNING_VALUES, errors)
+  }
   requireOneOf(answers, "edPreference", "Medication preference", ED_PREFERENCE_VALUES, errors)
 
   // Safety checks - nitrates
-  const nitrates = str(answers, "edNitrates")
-  if (nitrates === "yes") {
+  if (yes(answers, "edNitrates")) {
     flags.push({
       type: "safety_block",
       reason: "nitrate_interaction",
@@ -175,9 +199,8 @@ export function validateEdConsult(answers: Answers): ConsultValidationResult {
   }
 
   // Safety checks - recent cardiac event
-  const recentHeart = str(answers, "edRecentHeartEvent")
-  if (recentHeart === "yes") {
-    const managed = bool(answers, "edGpCleared")
+  if (yes(answers, "edRecentHeartEvent")) {
+    const managed = yes(answers, "edGpCleared")
     if (!managed) {
       flags.push({
         type: "safety_block",
@@ -196,9 +219,8 @@ export function validateEdConsult(answers: Answers): ConsultValidationResult {
   }
 
   // Safety checks - severe heart condition
-  const severeHeart = str(answers, "edSevereHeart")
-  if (severeHeart === "yes") {
-    const managed = bool(answers, "edGpCleared")
+  if (yes(answers, "edSevereHeart")) {
+    const managed = yes(answers, "edGpCleared")
     if (!managed) {
       flags.push({
         type: "safety_block",
@@ -642,7 +664,7 @@ export function validateWomensGeneralConsult(answers: Answers): ConsultValidatio
 // DISPATCHER - validate by subtype
 // ============================================================================
 
-export type ConsultSubtype =
+export type ClinicalConsultValidationSubtype =
   | "general"
   | "ed"
   | "hair_loss"
@@ -657,7 +679,7 @@ export type ConsultSubtype =
  * Returns a structured result with errors, warnings, and clinical flags.
  */
 export function validateConsultBySubtype(
-  subtype: ConsultSubtype,
+  subtype: ClinicalConsultValidationSubtype,
   answers: Answers
 ): ConsultValidationResult {
   switch (subtype) {

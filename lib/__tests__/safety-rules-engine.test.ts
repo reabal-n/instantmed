@@ -349,11 +349,12 @@ describe("Safety Rules Engine", () => {
       ).toBe(true)
     })
 
-    it("should DECLINE ED consult with recent cardiac event", () => {
+    it("should DECLINE ED consult with recent cardiac event without GP clearance", () => {
       const result = evaluateSafety("consult", {
         emergency_symptoms: [],
         consultSubtype: "ed",
         edRecentHeartEvent: true,
+        edGpCleared: false,
       })
       expect(result.outcome).toBe("DECLINE")
       expect(
@@ -363,16 +364,49 @@ describe("Safety Rules Engine", () => {
       ).toBe(true)
     })
 
-    it("should REQUIRES_CALL for ED consult with severe heart condition", () => {
+    it("should ALLOW ED consult with GP-cleared recent cardiac event for doctor review", () => {
+      const result = evaluateSafety("consult", {
+        emergency_symptoms: [],
+        consultSubtype: "ed",
+        edNitrates: false,
+        edRecentHeartEvent: true,
+        edSevereHeart: false,
+        edGpCleared: true,
+      })
+      expect(result.outcome).toBe("ALLOW")
+      expect(
+        result.triggeredRules.some(
+          (r) => r.ruleId === "ed_recent_cardiac_event"
+        )
+      ).toBe(false)
+    })
+
+    it("should REQUIRES_CALL for ED consult with severe heart condition without GP clearance", () => {
       const result = evaluateSafety("consult", {
         emergency_symptoms: [],
         consultSubtype: "ed",
         edSevereHeart: true,
+        edGpCleared: false,
       })
       expect(result.outcome).toBe("REQUIRES_CALL")
       expect(
         result.triggeredRules.some((r) => r.ruleId === "ed_uncontrolled_bp")
       ).toBe(true)
+    })
+
+    it("should ALLOW ED consult with GP-cleared severe heart condition for doctor review", () => {
+      const result = evaluateSafety("consult", {
+        emergency_symptoms: [],
+        consultSubtype: "ed",
+        edNitrates: false,
+        edRecentHeartEvent: false,
+        edSevereHeart: true,
+        edGpCleared: true,
+      })
+      expect(result.outcome).toBe("ALLOW")
+      expect(
+        result.triggeredRules.some((r) => r.ruleId === "ed_uncontrolled_bp")
+      ).toBe(false)
     })
 
     it("should DECLINE general consult with chest pain symptom", () => {

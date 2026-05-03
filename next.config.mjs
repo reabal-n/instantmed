@@ -251,7 +251,7 @@ const nextConfig = {
       // Legacy doctor repeat-rx queue retired; canonical paid intakes live in /doctor/dashboard.
       { source: "/doctor/repeat-rx", destination: "/doctor/dashboard", permanent: false },
       { source: "/doctor/repeat-rx/:path*", destination: "/doctor/dashboard", permanent: false },
-      { source: "/womens-health", destination: "/request?service=consult&subtype=womens_health", permanent: false },
+      { source: "/womens-health", destination: "/request", permanent: false },
       { source: "/request/med-cert", destination: "/request?service=med-cert", permanent: false },
       { source: "/request/consult", destination: "/request?service=consult", permanent: false },
       { source: "/consult/request", destination: "/request?service=consult", permanent: false },

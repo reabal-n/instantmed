@@ -174,6 +174,20 @@ describe("unified intake regressions", () => {
     )
   })
 
+  it("server-blocks future consult subtypes even if the client route is bypassed", () => {
+    expect(
+      validateAnswersServerSide("consult", {
+        consultSubtype: "weight_loss",
+      }, identity),
+    ).toContain("not currently available")
+
+    expect(
+      validateAnswersServerSide("consult", {
+        consultSubtype: "womens_health",
+      }, identity),
+    ).toContain("not currently available")
+  })
+
   it("normalizes legacy and current consult service types for doctor actions", () => {
     expect(isConsultServiceType("consult")).toBe(true)
     expect(isConsultServiceType("consults")).toBe(true)

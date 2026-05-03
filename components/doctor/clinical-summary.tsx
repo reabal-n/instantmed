@@ -68,6 +68,26 @@ const FIELD_LABELS: Record<string, string> = {
   is_repeat: "Repeat Prescription",
   // Consult fields
   consult_reason: "Reason for Consult",
+  consultCategory: "Consult Category",
+  consult_category: "Consult Category",
+  consultSubtype: "Consult Subtype",
+  consult_subtype: "Consult Subtype",
+  consultDetails: "Consult Details",
+  consult_details: "Consult Details",
+  consultUrgency: "Consult Urgency",
+  consult_urgency: "Consult Urgency",
+  general_associated_symptoms: "Associated Symptoms",
+  hasAllergies: "Has allergies",
+  allergies: "Allergies",
+  hasConditions: "Has conditions",
+  conditions: "Conditions",
+  hasOtherMedications: "Takes other medications",
+  otherMedications: "Other medications",
+  other_medications: "Other medications",
+  isPregnantOrBreastfeeding: "Pregnant/breastfeeding",
+  is_pregnant_or_breastfeeding: "Pregnant/breastfeeding",
+  hasAdverseMedicationReactions: "Adverse medication reactions",
+  has_adverse_medication_reactions: "Adverse medication reactions",
   // Safety fields
   emergency_symptoms: "Emergency Symptoms",
   red_flags_detected: "Red Flags",
@@ -97,6 +117,7 @@ const FIELD_LABELS: Record<string, string> = {
   edRecentHeartEvent: "Recent Heart Event",
   edSevereHeart: "Severe Heart Condition",
   edBpMedication: "Blood pressure medication",
+  edAlphaBlockers: "Alpha Blocker Use",
   previousEdMeds: "Previous ED Medication Use",
   edGpCleared: "GP Cleared Cardiac Condition",
   edPreviousTreatment: "Previous ED treatment",
@@ -112,12 +133,17 @@ const FIELD_LABELS: Record<string, string> = {
   heightCm: "Height (cm)",
   weightKg: "Weight (kg)",
   bmi: "BMI",
-  // Hair loss - camelCase keys written by hair-loss-assessment-step.tsx
+  // Hair loss - camelCase keys written by hair-loss-goals/assessment/health steps
+  hairGoal: "Hair Loss Goal",
+  hairOnset: "Hair Loss Onset",
   hairPattern: "Hair Loss Pattern",
   hairDuration: "Hair Loss Duration",
   hairFamilyHistory: "Family History",
   hairMedicationPreference: "Treatment Preference",
   hairAdditionalInfo: "Additional Context",
+  hairReproductive: "Reproductive Safety",
+  hairLowBP: "Low BP/Dizziness",
+  hairHeartConditions: "Heart Conditions/Palpitations",
   // Hair loss - previous-treatment boolean toggles
   triedMinoxidil: "Tried Minoxidil",
   triedFinasteride: "Tried Finasteride",
@@ -169,7 +195,7 @@ const CONSULT_SUBTYPE_FIELDS: Record<string, { label: string; fields: string[]; 
       "edPreference", "edAdditionalInfo",
       // Safety + medical history - ed-health-step.tsx
       "edNitrates", "edRecentHeartEvent",
-      "edSevereHeart", "edBpMedication", "previousEdMeds",
+      "edSevereHeart", "edBpMedication", "edAlphaBlockers", "previousEdMeds",
       "edGpCleared",
       "has_allergies", "known_allergies",
       "has_conditions", "existing_conditions",
@@ -181,7 +207,7 @@ const CONSULT_SUBTYPE_FIELDS: Record<string, { label: string; fields: string[]; 
     highlight: [
       "iiefTotal",
       "edNitrates",
-      "edRecentHeartEvent", "edSevereHeart",
+      "edRecentHeartEvent", "edSevereHeart", "edAlphaBlockers",
       "edGpCleared",
       "edHypertension", "edDiabetes",
     ],
@@ -189,8 +215,8 @@ const CONSULT_SUBTYPE_FIELDS: Record<string, { label: string; fields: string[]; 
   hair_loss: {
     label: "Hair Loss Assessment",
     fields: [
-      // Main assessment fields - hair-loss-assessment-step.tsx
-      "hairPattern", "hairDuration", "hairFamilyHistory",
+      // Main assessment fields - hair-loss-goals/assessment/preference steps
+      "hairGoal", "hairOnset", "hairPattern", "hairDuration", "hairFamilyHistory",
       "hairMedicationPreference", "hairAdditionalInfo",
       // Previous-treatment boolean toggles
       "triedMinoxidil", "triedFinasteride", "triedBiotin",
@@ -198,6 +224,11 @@ const CONSULT_SUBTYPE_FIELDS: Record<string, { label: string; fields: string[]; 
       // Scalp condition boolean toggles
       "scalpDandruff", "scalpPsoriasis", "scalpItching",
       "scalpFolliculitis", "scalpNone",
+      // Health screen + medical history - hair-loss-health-step.tsx
+      "hairReproductive", "hairLowBP", "hairHeartConditions",
+      "has_allergies", "known_allergies",
+      "has_conditions", "existing_conditions",
+      "takes_medications", "current_medications",
       // Reserved for planned intake rewrite (Norwood scale, expanded
       // history). Not written by today's intake - retained so the doctor
       // portal renders them correctly the moment the rewrite lands.
@@ -297,6 +328,15 @@ function getFieldIcon(key: string) {
   return <Activity className="h-4 w-4" />
 }
 
+function isConcerningHighlightValue(value: unknown): boolean {
+  if (value === false) return false
+  if (typeof value === "string") {
+    const normalized = value.toLowerCase().trim()
+    if (["no", "false", "none", "nil", "n/a", "na"].includes(normalized)) return false
+  }
+  return true
+}
+
 export function ClinicalSummary({ answers, consultSubtype, className, inline }: ClinicalSummaryProps) {
   // Extract and categorize fields
   const redFlagFields: [string, unknown][] = []
@@ -315,7 +355,7 @@ export function ClinicalSummary({ answers, consultSubtype, className, inline }: 
     "symptoms", "symptom_details", "symptom_duration",
     "certificate_type", "duration", "start_date",
     "medication_name", "drug_name", "pbs_code", "strength", "form", "medication_dosage", "last_prescribed",
-    "consult_reason",
+    "consult_reason", "consult_category", "consultCategory", "consult_details", "consultDetails", "consult_urgency", "consultUrgency", "general_associated_symptoms",
   ]
   
   // Sort entries by priority
@@ -500,7 +540,7 @@ export function ClinicalSummary({ answers, consultSubtype, className, inline }: 
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
               {subtypeFields.map(([key, value]) => {
-                const isHighlighted = subtypeHighlightSet.has(key)
+                const isHighlighted = subtypeHighlightSet.has(key) && isConcerningHighlightValue(value)
                 // Map flat ED safety keys for rationale lookup (e.g. edNitrates → nitrates)
                 const rationaleKey = key === "edNitrates" ? "nitrates" : key === "edRecentHeartEvent" ? "recentHeartEvent" : key === "edSevereHeart" ? "severeHeartCondition" : key === "edGpCleared" ? "managedCondition" : key
                 const rationale = getContraindicationRationale(rationaleKey, value)
@@ -611,7 +651,7 @@ export function ClinicalSummary({ answers, consultSubtype, className, inline }: 
         )}
         
         {/* Empty state */}
-        {primaryFields.length === 0 && secondaryFields.length === 0 && redFlagFields.length === 0 && yellowFlagFields.length === 0 && (
+        {subtypeFields.length === 0 && primaryFields.length === 0 && secondaryFields.length === 0 && redFlagFields.length === 0 && yellowFlagFields.length === 0 && (
           <p className="text-sm text-muted-foreground text-center py-4">
             No intake data available
           </p>

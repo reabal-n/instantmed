@@ -85,6 +85,21 @@ function bool(answers: Answers, key: string): boolean | undefined {
   return typeof value === "boolean" ? value : undefined
 }
 
+function isAffirmative(value: unknown): boolean {
+  if (value === true) return true
+  if (typeof value !== "string") return false
+  return ["yes", "true", "1"].includes(value.toLowerCase().trim())
+}
+
+function answerYes(answers: Answers, key: string): boolean {
+  return isAffirmative(raw(answers, key))
+}
+
+function stringArray(answers: Answers, key: string): string[] {
+  const value = raw(answers, key)
+  return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : []
+}
+
 function yesNo(value: unknown): string {
   if (typeof value === "boolean") return value ? "Yes" : "No"
   if (typeof value === "string") {
@@ -157,32 +172,63 @@ function note(subjective: string, objective: string, assessment: string, plan: s
 function edSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
   const { answers } = input
   const validation = validateEdConsult(answers)
-  const blockingFlags = validation.flags.filter((flag) => flag.type === "safety_block")
-  const cautionFlags = validation.flags.filter((flag) => flag.type !== "safety_block")
-  const hasBlock = blockingFlags.length > 0
+  const legacyClinicalFlags = validation.flags.filter((flag) => ![
+    "nitrate_interaction",
+    "recent_cardiac_event",
+    "cardiac_history_managed",
+    "severe_cardiac_condition",
+    "severe_cardiac_managed",
+  ].includes(flag.reason))
+  const hasNitrates = answerYes(answers, "edNitrates")
+  const hasRecentHeartEvent = answerYes(answers, "edRecentHeartEvent")
+  const hasSevereHeart = answerYes(answers, "edSevereHeart")
+  const hasAlphaBlockers = answerYes(answers, "edAlphaBlockers")
+  const gpCleared = answerYes(answers, "edGpCleared")
+  const hasBlock = hasNitrates || (hasRecentHeartEvent && !gpCleared) || (hasSevereHeart && !gpCleared)
+  const needsLiveReview = !hasBlock && (hasRecentHeartEvent || hasSevereHeart || hasAlphaBlockers)
   const goal = str(answers, "edGoal") || "ED treatment"
   const duration = str(answers, "edDuration") || str(answers, "duration_of_concern") || "unspecified duration"
   const preference = str(answers, "edPreference") || "doctor decides"
   const score = str(answers, "iiefTotal")
 
   const safetyItems: ClinicalSafetyItem[] = [
-    ...blockingFlags.map((flag) => ({
-      severity: "block" as const,
-      label: humanize(flag.reason),
-      detail: flag.details || "Safety block detected.",
-    })),
-    ...cautionFlags.map((flag) => ({
-      severity: "caution" as const,
-      label: humanize(flag.reason),
-      detail: flag.details || "Review before prescribing.",
-    })),
-    yesNo(raw(answers, "edAlphaBlockers")) === "Yes"
+    hasNitrates
+      ? {
+          severity: "block" as const,
+          label: "Nitrate use",
+          detail: "Nitrates are an absolute contraindication with PDE5 inhibitors due to severe hypotension risk.",
+        }
+      : null,
+    hasRecentHeartEvent
+      ? {
+          severity: (gpCleared ? "caution" : "block") as "caution" | "block",
+          label: "Recent cardiac event",
+          detail: gpCleared
+            ? "Patient reports GP clearance. Verify clearance and cardiovascular stability before considering ED medication."
+            : "Recent heart attack, stroke, or unstable angina requires GP/cardiology review before ED medication.",
+        }
+      : null,
+    hasSevereHeart
+      ? {
+          severity: (gpCleared ? "caution" : "block") as "caution" | "block",
+          label: "Severe heart condition",
+          detail: gpCleared
+            ? "Patient reports GP clearance. Confirm details before prescribing."
+            : "Severe or uncontrolled heart disease is not suitable for asynchronous ED prescribing.",
+        }
+      : null,
+    hasAlphaBlockers
       ? {
           severity: "caution" as const,
           label: "Alpha blocker use",
           detail: "Alpha blockers can increase hypotension risk with PDE5 inhibitors. Confirm medication and dosing separation.",
         }
       : null,
+    ...legacyClinicalFlags.map((flag) => ({
+      severity: "caution" as const,
+      label: humanize(flag.reason),
+      detail: flag.details || "Review before prescribing.",
+    })),
   ].filter(Boolean) as ClinicalSafetyItem[]
 
   const keyFacts = compactFacts([
@@ -195,12 +241,14 @@ function edSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
     { label: "Severe heart condition", value: yesNo(raw(answers, "edSevereHeart")) },
     { label: "Blood pressure medication", value: yesNo(raw(answers, "edBpMedication")) },
     { label: "Alpha blockers", value: yesNo(raw(answers, "edAlphaBlockers")) },
+    hasRecentHeartEvent || hasSevereHeart || hasAlphaBlockers ? { label: "GP clearance reported", value: yesNo(raw(answers, "edGpCleared")) } : null,
     { label: "Previous ED medication", value: yesNo(raw(answers, "previousEdMeds")) },
     fact("Allergies", str(answers, "known_allergies")),
+    fact("Conditions", str(answers, "existing_conditions")),
     fact("Current medications", str(answers, "current_medications")),
   ])
 
-  const action: ClinicalPlanAction = hasBlock ? "decline" : "prescribe"
+  const action: ClinicalPlanAction = hasBlock ? "decline" : needsLiveReview ? "needs_call" : "prescribe"
   const recommendedPlan: ClinicalPlan = hasBlock
     ? {
         action,
@@ -208,6 +256,13 @@ function edSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
         rationale: "A contraindication or high-risk cardiac screen was detected.",
         nextSteps: ["Decline or convert to a clinician-led consultation.", "Advise GP/cardiology review where relevant."],
       }
+    : needsLiveReview
+      ? {
+          action,
+          title: "Live review before ED prescribing",
+          rationale: "The patient reported cardiac history or alpha-blocker use that needs clinician verification before any Parchment action.",
+          nextSteps: ["Call the patient or verify GP/cardiology clearance.", "Confirm current medicines, blood pressure context, and dosing separation before prescribing."],
+        }
     : {
         action,
         title: "PDE5 inhibitor pathway if clinically appropriate",
@@ -215,7 +270,7 @@ function edSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
         nextSteps: ["Confirm current medicines and cardiovascular risk.", "Open Parchment and prescribe within Parchment if satisfied."],
       }
 
-  const prescriptionIntent = hasBlock ? undefined : makeIntent({
+  const prescriptionIntent = hasBlock || needsLiveReview ? undefined : makeIntent({
     presetLabel: "ED prescribing preset",
     medicationSearchHint: preference === "daily" ? "daily ED PDE5 option" : "as-needed ED PDE5 option",
     directionsTemplate: "Doctor to select agent, strength, directions, quantity and repeats in Parchment after final review.",
@@ -225,8 +280,12 @@ function edSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
   })
 
   const subjective = `${input.patientName || "Patient"} requests help to ${sentenceHumanize(goal)} with symptoms for ${sentenceHumanize(duration)}.`
-  const objective = `Structured ED screen reviewed${score ? `; IIEF-5 score ${score}` : ""}. Nitrate use: ${yesNo(raw(answers, "edNitrates"))}.`
-  const assessment = hasBlock ? "Not suitable for asynchronous ED prescribing based on safety screen." : "Potentially suitable for ED prescribing subject to doctor review."
+  const objective = `Structured ED screen reviewed${score ? `; IIEF-5 score ${score}` : ""}. Nitrate use: ${yesNo(raw(answers, "edNitrates"))}. GP clearance reported: ${yesNo(raw(answers, "edGpCleared"))}.`
+  const assessment = hasBlock
+    ? "Not suitable for asynchronous ED prescribing based on safety screen."
+    : needsLiveReview
+      ? "Requires live clinician review before any ED prescribing."
+      : "Potentially suitable for ED prescribing subject to doctor review."
   const planText = recommendedPlan.nextSteps.join(" ")
 
   return {
@@ -453,20 +512,57 @@ function medCertSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
   }
 }
 
+const GENERAL_EMERGENCY_SYMPTOMS = new Set([
+  "chest_pain",
+  "difficulty_breathing",
+  "sudden_weakness",
+  "severe_headache",
+  "suicidal_thoughts",
+  "self_harm",
+])
+
 function generalSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
   const { answers } = input
   const validation = validateGeneralConsult(answers)
   const details = str(answers, "consultDetails") || "No patient description provided."
   const category = str(answers, "consultCategory") || "general"
   const urgency = str(answers, "consultUrgency") || "routine"
+  const associatedSymptoms = stringArray(answers, "general_associated_symptoms")
+  const hasEmergencyRedFlag = associatedSymptoms.some((symptom) => GENERAL_EMERGENCY_SYMPTOMS.has(symptom))
+  const hasPostSurgicalConcern = associatedSymptoms.includes("post_surgical_complications")
+  const pregnancyAnswer = raw(answers, "isPregnantOrBreastfeeding") ?? raw(answers, "is_pregnant_or_breastfeeding")
+  const adverseReactionAnswer = raw(answers, "hasAdverseMedicationReactions") ?? raw(answers, "has_adverse_medication_reactions")
+  const pregnancyConcern = isAffirmative(pregnancyAnswer)
   const urgent = urgency === "urgent" || input.requiresLiveConsult || input.riskTier === "high"
+  const requiresLiveReview = urgent || pregnancyConcern || hasPostSurgicalConcern
 
   const safetyItems: ClinicalSafetyItem[] = [
+    hasEmergencyRedFlag
+      ? {
+          severity: "block" as const,
+          label: "Emergency red flag",
+          detail: "Patient selected symptoms that require emergency or urgent in-person assessment, not async completion.",
+        }
+      : null,
     ...validation.warnings.map((warning) => ({
       severity: "caution" as const,
       label: "Urgency caution",
       detail: warning,
     })),
+    pregnancyConcern
+      ? {
+          severity: "caution" as const,
+          label: "Pregnancy/breastfeeding",
+          detail: "Pregnancy or breastfeeding concerns need live clinician assessment before advice or medication.",
+        }
+      : null,
+    hasPostSurgicalConcern
+      ? {
+          severity: "caution" as const,
+          label: "Recent surgery concern",
+          detail: "Post-surgical concerns need live assessment to exclude complications.",
+        }
+      : null,
     urgent
       ? {
           severity: "caution" as const,
@@ -476,7 +572,14 @@ function generalSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
       : null,
   ].filter(Boolean) as ClinicalSafetyItem[]
 
-  const recommendedPlan: ClinicalPlan = urgent
+  const recommendedPlan: ClinicalPlan = hasEmergencyRedFlag
+    ? {
+        action: "decline",
+        title: "Do not complete asynchronously",
+        rationale: "The structured red-flag screen indicates the patient needs emergency or urgent in-person care.",
+        nextSteps: ["Direct the patient to 000, emergency care, or urgent in-person assessment as clinically appropriate."],
+      }
+    : requiresLiveReview
     ? {
         action: "needs_call",
         title: "Convert to live consultation",
@@ -494,14 +597,20 @@ function generalSummary(input: ClinicalCaseInput): ClinicalCaseSummary {
     { label: "Category", value: humanize(category) },
     { label: "Urgency", value: humanize(urgency) },
     factHumanized("Associated symptoms", raw(answers, "general_associated_symptoms")),
-    fact("Allergies", str(answers, "known_allergies")),
-    fact("Conditions", str(answers, "existing_conditions")),
-    fact("Current medications", str(answers, "current_medications")),
+    fact("Allergies", firstStr(answers, ["known_allergies", "allergies"])),
+    fact("Conditions", firstStr(answers, ["existing_conditions", "conditions"])),
+    fact("Current medications", firstStr(answers, ["current_medications", "otherMedications", "other_medications"])),
+    pregnancyAnswer !== undefined ? { label: "Pregnant/breastfeeding", value: yesNo(pregnancyAnswer) } : null,
+    adverseReactionAnswer !== undefined ? { label: "Adverse medication reactions", value: yesNo(adverseReactionAnswer) } : null,
   ])
 
   const subjective = `${input.patientName || "Patient"} reports: ${details}`
-  const objective = `Category: ${humanize(category)}. Urgency: ${humanize(urgency)}.`
-  const assessment = urgent ? "Requires live clinical review before completion." : "General consult suitable for doctor review."
+  const objective = `Category: ${humanize(category)}. Urgency: ${humanize(urgency)}. Associated symptoms: ${humanize(associatedSymptoms)}.`
+  const assessment = hasEmergencyRedFlag
+    ? "Not suitable for asynchronous completion due to emergency red flags."
+    : requiresLiveReview
+      ? "Requires live clinical review before completion."
+      : "General consult suitable for doctor review."
   const planText = recommendedPlan.nextSteps.join(" ")
 
   return {

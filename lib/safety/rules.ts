@@ -370,10 +370,11 @@ const consultRules: SafetyRule[] = [
   {
     id: 'ed_recent_cardiac_event',
     name: 'Recent Cardiac Event - ED',
-    description: 'Patient had heart attack or stroke and requesting ED medication. Defense-in-depth: ED safety step also hard-blocks.',
+    description: 'Patient had heart attack or stroke and requesting ED medication without reported GP clearance. Defense-in-depth: ED safety step also requires clearance.',
     conditions: [
       { fieldId: 'consultSubtype', operator: 'equals', value: 'ed' },
       { fieldId: 'edRecentHeartEvent', operator: 'equals', value: true },
+      { fieldId: 'edGpCleared', operator: 'not_equals', value: true },
     ],
     conditionLogic: 'AND',
     outcome: 'DECLINE',
@@ -389,10 +390,11 @@ const consultRules: SafetyRule[] = [
   {
     id: 'ed_uncontrolled_bp',
     name: 'Uncontrolled Blood Pressure - ED',
-    description: 'Patient reports severe heart condition and requesting ED medication. Defense-in-depth: ED safety step also hard-blocks.',
+    description: 'Patient reports severe heart condition and requesting ED medication without reported GP clearance. Defense-in-depth: ED safety step also requires clearance.',
     conditions: [
       { fieldId: 'consultSubtype', operator: 'equals', value: 'ed' },
       { fieldId: 'edSevereHeart', operator: 'equals', value: true },
+      { fieldId: 'edGpCleared', operator: 'not_equals', value: true },
     ],
     conditionLogic: 'AND',
     outcome: 'REQUIRES_CALL',

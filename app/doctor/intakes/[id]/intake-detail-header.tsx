@@ -84,6 +84,7 @@ interface IntakeDetailHeaderProps {
   onCertPreviewConfirm: (data: CertificatePreviewData) => void
   onOpenParchmentPrescribe?: () => void
   onApproveAndOpenParchment?: () => void
+  hasPrescriptionIntent?: boolean
   showReissueDialog: boolean
   setShowReissueDialog: (val: boolean) => void
   reissuePreviewData: CertificatePreviewData | null
@@ -116,6 +117,7 @@ export function IntakeDetailHeader({
   onCertPreviewConfirm,
   onOpenParchmentPrescribe,
   onApproveAndOpenParchment,
+  hasPrescriptionIntent,
   showReissueDialog,
   setShowReissueDialog,
   reissuePreviewData,
@@ -125,6 +127,7 @@ export function IntakeDetailHeader({
 }: IntakeDetailHeaderProps) {
   const service = intake.service as { type?: string } | undefined
   const isPrescribingConsult = intake.category === "consult" && ["ed", "hair_loss"].includes(intake.subtype || "")
+  const shouldPrescribeFromConsult = isPrescribingConsult && hasPrescriptionIntent === true
 
   const getStatusColor = (status: string) => {
     return INTAKE_STATUS[status as StatusType]?.color ?? "bg-primary/10 text-primary"
@@ -286,7 +289,7 @@ export function IntakeDetailHeader({
               </>
             )}
 
-            {isPrescribingConsult && ["paid", "in_review"].includes(intake.status) && onApproveAndOpenParchment && (
+            {shouldPrescribeFromConsult && ["paid", "in_review"].includes(intake.status) && onApproveAndOpenParchment && (
               <Button onClick={onApproveAndOpenParchment} className="bg-primary hover:bg-primary/90" disabled={isPending}>
                 {isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Send className="h-4 w-4 mr-2" />}
                 {isPending ? "Approving..." : "Approve + Prescribe"}
@@ -294,7 +297,7 @@ export function IntakeDetailHeader({
             )}
 
             {/* For consults - approve after call with notes */}
-            {isConsultServiceType(service?.type) && intake.status === "paid" && !isPrescribingConsult && (
+            {isConsultServiceType(service?.type) && intake.status === "paid" && !shouldPrescribeFromConsult && (
               <Button onClick={() => onStatusChange("approved")} className="bg-primary hover:bg-primary/90" disabled={isPending}>
                 {isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-2" />}
                 {isPending ? "Completing..." : "Complete Consultation"}

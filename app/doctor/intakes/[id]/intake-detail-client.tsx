@@ -1,7 +1,10 @@
 "use client"
 
+import { useMemo } from "react"
+
 import type { AIDraft } from "@/app/actions/draft-approval"
 import { PatientMessageThread } from "@/components/doctor/review/patient-message-thread"
+import { buildClinicalCaseSummary } from "@/lib/clinical/case-summary"
 import type { CertDeliveryStatus } from "@/lib/data/issued-certificates"
 import type { PatientThreadMessage } from "@/lib/data/patient-messages"
 import { useDoctorShortcuts } from "@/lib/hooks/use-doctor-shortcuts"
@@ -92,6 +95,28 @@ export function IntakeDetailClient({
     intake.risk_tier === "high" && "High risk tier",
     intake.requires_live_consult && "Requires live consult",
   ].filter(Boolean) as string[]
+  const caseSummary = useMemo(
+    () =>
+      buildClinicalCaseSummary({
+        category: intake.category,
+        subtype: intake.subtype,
+        serviceType: service?.type,
+        patientName: intake.patient?.full_name,
+        answers: intakeAnswers ?? {},
+        riskTier: intake.risk_tier,
+        requiresLiveConsult: intake.requires_live_consult,
+      }),
+    [
+      intake.category,
+      intake.patient?.full_name,
+      intake.requires_live_consult,
+      intake.risk_tier,
+      intake.subtype,
+      intakeAnswers,
+      service?.type,
+    ],
+  )
+  const hasPrescriptionIntent = Boolean(caseSummary.prescriptionIntent)
 
   // Keyboard shortcuts
   useDoctorShortcuts({
@@ -100,6 +125,7 @@ export function IntakeDetailClient({
         if (
           intake.category === "consult" &&
           ["ed", "hair_loss"].includes(intake.subtype || "") &&
+          hasPrescriptionIntent &&
           actions.handleApproveAndOpenParchment
         ) {
           actions.handleApproveAndOpenParchment()
@@ -153,6 +179,7 @@ export function IntakeDetailClient({
         onCertPreviewConfirm={actions.handleCertPreviewConfirm}
         onOpenParchmentPrescribe={actions.handleOpenParchmentPrescribe}
         onApproveAndOpenParchment={actions.handleApproveAndOpenParchment}
+        hasPrescriptionIntent={hasPrescriptionIntent}
         showReissueDialog={dialogs.showReissueDialog}
         setShowReissueDialog={dialogs.setShowReissueDialog}
         reissuePreviewData={dialogs.reissuePreviewData}

@@ -7,34 +7,16 @@
 
 import type { ComponentType as _ComponentType } from 'react'
 
+import {
+  BLOCKED_CONSULT_SUBTYPES,
+  CONSULT_SUBTYPE_LABELS,
+  isConsultSubtypeAvailable,
+} from '@/lib/request/consult-subtypes'
 import type { ConsultSubtype,UnifiedServiceType, UnifiedStepId } from '@/types/services'
 
 // Re-export from canonical location for backward compatibility
 export type { ConsultSubtype,UnifiedServiceType, UnifiedStepId }
-
-/**
- * Consult subtypes that are gated as "Coming Soon".
- * These have step definitions (for future use) but the intake flow
- * blocks entry. Service hub shows waitlist capture instead.
- */
-export const BLOCKED_CONSULT_SUBTYPES: ReadonlySet<ConsultSubtype> = new Set([
-  'womens_health',
-  'weight_loss',
-])
-
-/** Returns true if this consult subtype is currently accepting patients */
-export function isConsultSubtypeAvailable(subtype: ConsultSubtype): boolean {
-  return !BLOCKED_CONSULT_SUBTYPES.has(subtype)
-}
-
-// Human-readable labels for consult subtypes
-export const CONSULT_SUBTYPE_LABELS: Record<ConsultSubtype, string> = {
-  general: 'General consultation',
-  ed: 'Erectile dysfunction',
-  hair_loss: 'Hair loss treatment',
-  womens_health: "Women's health",
-  weight_loss: 'Weight management',
-}
+export { BLOCKED_CONSULT_SUBTYPES, CONSULT_SUBTYPE_LABELS, isConsultSubtypeAvailable }
 
 export interface StepDefinition {
   id: UnifiedStepId
