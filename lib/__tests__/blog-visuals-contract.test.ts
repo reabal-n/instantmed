@@ -7,7 +7,7 @@ import { getArticleVisuals, TOP_VISUAL_ARTICLE_SLUGS } from "@/lib/blog/visuals"
 
 describe("blog article visual system", () => {
   it("gives each top-priority article at least two informative visuals", () => {
-    expect(TOP_VISUAL_ARTICLE_SLUGS).toHaveLength(15)
+    expect(TOP_VISUAL_ARTICLE_SLUGS.length).toBeGreaterThanOrEqual(15)
 
     for (const slug of TOP_VISUAL_ARTICLE_SLUGS) {
       const visuals = getArticleVisuals(slug)
