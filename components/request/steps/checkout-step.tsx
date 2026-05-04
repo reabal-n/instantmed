@@ -72,6 +72,8 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
 
   const duration = answers.duration as string | undefined
   const consultSubtype = answers.consultSubtype as string | undefined
+  const isMedCertCheckout = serviceType === "med-cert"
+  const certType = answers.certType ? String(answers.certType) : undefined
 
   // Track checkout view once on mount
   useEffect(() => {
@@ -82,6 +84,8 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
 
   const price = getDisplayPrice(serviceType, answers)
   const displayLabel = getServiceDisplayLabel(serviceType, consultSubtype)
+  const certTypeLabel = certType ? certType.charAt(0).toUpperCase() + certType.slice(1) : "Certificate"
+  const durationLabel = duration ? `${duration} day${duration !== "1" ? "s" : ""}` : undefined
 
   // Single consent controls both toggles
   const handleConsentChange = (checked: boolean) => {
@@ -184,7 +188,8 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
 
       {/* Regulator badges - pinned to the top of checkout so they stay visible
           when the sticky footer is compressed on small viewports. */}
-      <motion.div variants={stagger.item}>
+      {!isMedCertCheckout && (
+        <motion.div variants={stagger.item}>
         <TrustBadgeRow
           badges={[
             { id: "ahpra", variant: "styled" },
@@ -192,43 +197,44 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
           ]}
           className="justify-center gap-3"
         />
-      </motion.div>
+        </motion.div>
+      )}
 
       {/* Summary card */}
-      <motion.div variants={stagger.item} className="p-4 rounded-2xl border border-border/50 bg-white dark:bg-card shadow-md shadow-primary/[0.06] space-y-3">
+      <motion.div
+        variants={stagger.item}
+        className={`rounded-2xl border border-border/50 bg-white shadow-md shadow-primary/[0.06] dark:bg-card ${
+          isMedCertCheckout ? "space-y-2 p-3.5" : "space-y-3 p-4"
+        }`}
+      >
         <h3 className="text-sm font-medium flex items-center gap-2">
           <Check className="w-4 h-4 text-primary" />
-          Request Summary
+          {isMedCertCheckout ? "Ready to submit" : "Request Summary"}
         </h3>
 
-        <div className="space-y-2 pt-2 border-t">
-          <ReviewItem label="Service" value={displayLabel} />
-
-          {serviceType === 'med-cert' && (
+        <div className="space-y-2 border-t pt-2">
+          {isMedCertCheckout ? (
+            <ReviewItem
+              label="Medical certificate"
+              value={[certTypeLabel, durationLabel].filter(Boolean).join(" - ")}
+            />
+          ) : (
             <>
-              {answers.certType && (
-                <ReviewItem
-                  label="Certificate type"
-                  value={String(answers.certType).charAt(0).toUpperCase() + String(answers.certType).slice(1)}
-                />
-              )}
-              {duration && (
-                <ReviewItem label="Duration" value={`${duration} day${duration !== '1' ? 's' : ''}`} />
-              )}
+              <ReviewItem label="Service" value={displayLabel} />
+
+              {(serviceType === 'prescription' || serviceType === 'repeat-script') && (() => {
+                const meds = answers.medications as Array<{ name: string }> | undefined
+                if (meds && meds.length > 1) {
+                  return meds.map((med, i) => (
+                    <ReviewItem key={i} label={`Medication ${i + 1}`} value={med.name} />
+                  ))
+                }
+                return answers.medicationName ? (
+                  <ReviewItem label="Medication" value={String(answers.medicationName)} />
+                ) : null
+              })()}
             </>
           )}
-
-          {(serviceType === 'prescription' || serviceType === 'repeat-script') && (() => {
-            const meds = answers.medications as Array<{ name: string }> | undefined
-            if (meds && meds.length > 1) {
-              return meds.map((med, i) => (
-                <ReviewItem key={i} label={`Medication ${i + 1}`} value={med.name} />
-              ))
-            }
-            return answers.medicationName ? (
-              <ReviewItem label="Medication" value={String(answers.medicationName)} />
-            ) : null
-          })()}
         </div>
 
         {/* Price section */}
@@ -254,7 +260,11 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
               </span>
             </div>
           </div>
-          <p className="text-xs text-muted-foreground">One-time fee. Your doctor reviews right after.</p>
+          <p className="text-xs text-muted-foreground">
+            {isMedCertCheckout
+              ? "Doctor review starts after payment. If approved, your certificate is emailed to you."
+              : "One-time fee. Your doctor reviews right after."}
+          </p>
         </div>
       </motion.div>
 
@@ -390,9 +400,11 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
       <div className="fixed bottom-0 left-0 right-0 z-30 bg-background border-t px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:static sm:bg-transparent sm:border-0 sm:p-0 sm:z-auto">
         <div className="max-w-lg mx-auto space-y-2">
           {/* Time-bound guarantee - sits directly above the pay button */}
-          <div className="flex justify-center pb-1">
-            <GuaranteeBadge size="md" />
-          </div>
+          {!isMedCertCheckout && (
+            <div className="flex justify-center pb-1">
+              <GuaranteeBadge size="md" />
+            </div>
+          )}
 
           <CheckoutButton
             onClick={handleCheckout}
@@ -405,20 +417,24 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
           />
 
           {/* Refund guarantee - full for med cert/Rx, partial for consults */}
-          <div className="flex items-center justify-center gap-2 text-xs text-primary">
-            <ShieldCheck className="w-3.5 h-3.5" />
-            <span className="font-medium">
-              {serviceType === 'consult'
-                ? "Refund if we can't help"
-                : "Full refund if we can't help"}
-            </span>
-          </div>
+          {!isMedCertCheckout && (
+            <div className="flex items-center justify-center gap-2 text-xs text-primary">
+              <ShieldCheck className="w-3.5 h-3.5" />
+              <span className="font-medium">
+                {serviceType === 'consult'
+                  ? "Refund if we can't help"
+                  : "Full refund if we can't help"}
+              </span>
+            </div>
+          )}
 
           {/* Stripe + payment method logos */}
-          <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
-            <Lock className="h-3 w-3 shrink-0" aria-hidden="true" />
-            <PaymentLogos />
-          </div>
+          {!isMedCertCheckout && (
+            <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
+              <Lock className="h-3 w-3 shrink-0" aria-hidden="true" />
+              <PaymentLogos />
+            </div>
+          )}
         </div>
       </div>
 

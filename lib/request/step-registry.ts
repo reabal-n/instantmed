@@ -94,13 +94,6 @@ export const STEP_REGISTRY: Record<UnifiedServiceType, StepDefinition[]> = {
       required: true,
     },
     {
-      id: 'review',
-      label: 'Review',
-      shortLabel: 'Review',
-      componentPath: 'review-step',
-      required: true,
-    },
-    {
       id: 'checkout',
       label: 'Payment',
       shortLabel: 'Pay',
@@ -132,7 +125,7 @@ export const STEP_REGISTRY: Record<UnifiedServiceType, StepDefinition[]> = {
       label: 'Notes & history',
       shortLabel: 'Notes',
       componentPath: 'medical-history-step',
-      validateFn: 'validateMedicalHistoryStep',
+      validateFn: 'validatePrescriptionMedicalHistoryStep',
       required: true,
     },
     {
@@ -150,6 +143,7 @@ export const STEP_REGISTRY: Record<UnifiedServiceType, StepDefinition[]> = {
       label: 'Review & pay',
       shortLabel: 'Pay',
       componentPath: 'review-step',
+      validateFn: 'validateCheckoutStep',
       required: true,
     },
   ],

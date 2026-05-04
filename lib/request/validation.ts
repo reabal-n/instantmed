@@ -115,7 +115,7 @@ export const certificateStepSchema = z.object({
 export const symptomsStepSchema = z.object({
   symptoms: z
     .array(z.string())
-    .min(1, "Please select at least one symptom"),
+    .optional(),
   symptomDetails: z
     .string()
     .superRefine((v, ctx) => {

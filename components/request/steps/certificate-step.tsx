@@ -401,7 +401,7 @@ export default function CertificateStep({ onNext }: CertificateStepProps) {
       <Button onClick={handleNext} className="w-full h-12" disabled={!canContinue}>
         {canContinue ? (
           <>
-            Review my certificate
+            Continue
             <ArrowRight className="w-4 h-4" />
           </>
         ) : (

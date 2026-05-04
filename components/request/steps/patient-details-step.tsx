@@ -710,7 +710,7 @@ export default function PatientDetailsStep({ serviceType, onNext }: PatientDetai
       >
         {canContinue ? (
           <>
-            Review your request
+            {serviceType === "med-cert" ? "Continue to payment" : "Review your request"}
             <ArrowRight className="w-4 h-4" />
           </>
         ) : (
