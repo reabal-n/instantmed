@@ -18,7 +18,7 @@
 - Renderer now handles tables, ordered lists, blockquotes/callouts, bold-led labels, and inline links without leaking raw Markdown syntax.
 - Desktop and mobile TOC links use the same heading slug helper as the rendered H2/H3 IDs.
 - The article template is guide-only: no mid-article consultation CTA, service CTA card, related-service acquisition panel, or location SEO cross-link block.
-- The top 15 priority articles have local WebP hero images and 2-3 article-specific visual guide panels.
+- Rewritten articles use local GPT-generated WebP visuals, with a new baseline of at least two visuals per article and ideally three for high-intent or clinical topics.
 - `pnpm content:audit` now produces the remaining backlog across all 108 articles instead of relying on screenshot-by-screenshot discovery.
 
 ## Outcome
@@ -27,7 +27,7 @@ Create a clean, trustworthy Australian health guide system where:
 
 - Tables, ordered lists, blockquotes, callouts, bold labels, and links render correctly.
 - The sidebar and mobile jump links scroll to the correct headings and track active sections.
-- Each high-value page has a specific hero image and at least one useful visual asset.
+- Each rewritten page has at least two specific GPT-generated visuals, with format diversity across infographics, explainers, posters, body maps, comparison graphics, process visuals, warning graphics, workflow graphics, and hero images.
 - Text reads like a reviewed clinical explainer, not a generic AI article.
 - Clinical safety boundaries are obvious: what telehealth can help with, what needs in-person care, what needs urgent care.
 - Guide pages stay guide-only: no mid-article consultation CTA, no service CTA card, and no "How InstantMed can help" sales block.
@@ -131,6 +131,9 @@ The rebuild should keep the existing MDX content model for now, but make the ren
 **Rewrite Standard:**
 
 - Open with the practical answer, not a generic definition.
+- Use at least six H2 sections unless the topic is genuinely narrow.
+- Target a comprehensive article length, generally 1,200+ words.
+- Include a visible sources or references section.
 - Add a clear "what telehealth can help with" section only when clinically true.
 - Add "when this is not suitable for telehealth" and urgent red flags on condition pages.
 - Replace filler with concrete Australian context: Fair Work, AHPRA, Healthdirect, RACGP, Therapeutic Guidelines, ASCIA, Monash FODMAP where relevant.
@@ -151,10 +154,27 @@ The rebuild should keep the existing MDX content model for now, but make the ren
 
 - Store assets under `public/images/blog/<slug>/`.
 - Use local `webp` for page assets and `jpg` fallback for OG where needed.
-- Do not bake text into GPT-generated images. AI image models distort labels. Generate the scene or base illustration, then add labels with React/SVG/HTML.
+- Every rewritten article needs at least two GPT-generated local visuals, ideally three for high-intent or clinical topics.
+- Controlled short text may appear inside GPT-generated visuals only when sourced from `lib/blog/visuals.ts`; never let the image model invent claims, prices, diagnoses, drug names, legal rules, or service CTAs.
+- Keep the same labels and clinical distinctions in React/HTML via `components/blog/article-visuals.tsx` so they remain accessible, reviewable, and indexable.
 - Do not generate fake doctor faces.
 - Disclose AI-generated human imagery in metadata if published.
 - Avoid graphic medical imagery. The brand should feel calm, practical, and Australian.
+
+**Accepted Visual Formats:**
+
+- Medical infographics
+- Anatomical explainers
+- Patient education posters
+- Mechanism-of-action diagrams
+- Comparison graphics
+- Step-by-step process visuals
+- Red flag warning graphics
+- Lifestyle and prevention illustrations
+- Symptom-location body maps
+- Lab result explainers
+- Telehealth workflow graphics
+- Blog hero images
 
 **Current Visual Registry Shape:**
 
@@ -217,6 +237,6 @@ visuals:
 2. Add content audit gate.
 3. Rebuild article visual primitives.
 4. Keep the article template guide-only, with no consultation or service CTAs.
-5. Rework the top 15 pages with article-specific visuals.
+5. Rework pages one by one with at least two GPT-generated article-specific visuals and source-backed comprehensive copy.
 6. Expand category by category across the remaining 93 pages.
 7. Clean `/blog` vs `/guides` routing once the page quality is no longer embarrassing.

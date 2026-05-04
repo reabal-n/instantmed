@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* global console, process */
 
 import fs from "node:fs"
 import path from "node:path"
@@ -6,6 +7,8 @@ import path from "node:path"
 import matter from "gray-matter"
 
 const CONTENT_DIR = path.join(process.cwd(), "content", "blog")
+const BLOG_IMAGE_DIR = path.join(process.cwd(), "public", "images", "blog")
+const VISUALS_FILE = path.join(process.cwd(), "lib", "blog", "visuals.ts")
 
 const SEVERITY = {
   rendering: "P0 rendering",
@@ -26,6 +29,52 @@ const CTA_PATTERNS = [
   /how instantmed can help/i,
 ]
 
+let visualRegistrySource
+
+function getVisualRegistrySource() {
+  if (visualRegistrySource !== undefined) return visualRegistrySource
+  try {
+    visualRegistrySource = fs.readFileSync(VISUALS_FILE, "utf-8")
+  } catch {
+    visualRegistrySource = ""
+  }
+  return visualRegistrySource
+}
+
+function getVisualRegistryBlock(slug) {
+  const source = getVisualRegistrySource()
+  const key = `  "${slug}": [`
+  const keyIndex = source.indexOf(key)
+  if (keyIndex < 0) return ""
+
+  const arrayStart = source.indexOf("[", keyIndex)
+  if (arrayStart < 0) return ""
+
+  let depth = 0
+  for (let index = arrayStart; index < source.length; index += 1) {
+    const char = source[index]
+    if (char === "[") depth += 1
+    if (char === "]") depth -= 1
+    if (depth === 0) return source.slice(arrayStart, index + 1)
+  }
+
+  return ""
+}
+
+function countRegisteredArticleVisuals(slug) {
+  const block = getVisualRegistryBlock(slug)
+  return (block.match(/\n\s*id:\s*"/g) || []).length
+}
+
+function countLocalArticleVisualAssets(slug) {
+  const articleDir = path.join(BLOG_IMAGE_DIR, slug)
+  try {
+    return fs.readdirSync(articleDir).filter((file) => file.endsWith(".webp")).length
+  } catch {
+    return 0
+  }
+}
+
 function getFiles() {
   return fs.readdirSync(CONTENT_DIR).filter((file) => file.endsWith(".mdx")).sort()
 }
@@ -40,6 +89,8 @@ function auditFile(file) {
   const { data, content } = matter(raw)
   const slug = data.slug || file.replace(/\.mdx$/, "")
   const issues = []
+  const h2Count = (content.match(/## /g) || []).length
+  const wordCount = content.split(/\s+/).filter(Boolean).length
 
   if (!data.title || data.title.length < 20) {
     addIssue(issues, SEVERITY.seo, "Title is missing or too thin")
@@ -55,6 +106,16 @@ function auditFile(file) {
 
   if (/images\.unsplash\.com/i.test(String(data.heroImage || ""))) {
     addIssue(issues, SEVERITY.image, "Hero still uses Unsplash")
+  }
+
+  const registeredVisuals = countRegisteredArticleVisuals(slug)
+  const localVisualAssets = countLocalArticleVisualAssets(slug)
+  if (registeredVisuals < 2 || localVisualAssets < 2) {
+    addIssue(
+      issues,
+      SEVERITY.image,
+      `Article has fewer than two registered local GPT-generated visuals (${registeredVisuals} registered, ${localVisualAssets} local assets)`,
+    )
   }
 
   if (Array.isArray(data.relatedServices) && data.relatedServices.length > 0) {
@@ -82,8 +143,16 @@ function auditFile(file) {
     addIssue(issues, SEVERITY.quality, "Article has no H2 structure")
   }
 
-  if ((content.match(/## /g) || []).length < 4) {
-    addIssue(issues, SEVERITY.quality, "Article may be too shallow for a comprehensive guide")
+  if (h2Count < 6) {
+    addIssue(issues, SEVERITY.quality, "Article has fewer than six H2 sections")
+  }
+
+  if (wordCount < 1200) {
+    addIssue(issues, SEVERITY.quality, `Article is likely too shallow for a comprehensive guide (${wordCount} words)`)
+  }
+
+  if (!/##\s+(Sources|References|Further reading)\b/i.test(content)) {
+    addIssue(issues, SEVERITY.quality, "Article is missing a visible sources or references section")
   }
 
   if ((content.match(/\b(AIHW|RACGP|AHPRA|Healthdirect|Services Australia|Fair Work|ASCIA|Therapeutic Guidelines|GESA|Monash|PBS|TGA)\b/g) || []).length === 0) {

@@ -27,6 +27,7 @@ export const TOP_VISUAL_ARTICLE_SLUGS = [
   "how-escripts-work",
   "how-long-can-medical-certificate-cover",
   "how-telehealth-consultations-work",
+  "how-to-verify-online-doctor",
   "medical-certificate-mental-health-day",
   "eczema-dermatitis",
   "telehealth-after-hours",
@@ -56,6 +57,19 @@ export interface ArticleVisual {
   title: string
   eyebrow: string
   summary: string
+  visualFormat?:
+    | "medical-infographic"
+    | "anatomical-explainer"
+    | "patient-education-poster"
+    | "mechanism-diagram"
+    | "comparison-graphic"
+    | "process-visual"
+    | "red-flag-warning"
+    | "lifestyle-illustration"
+    | "body-map"
+    | "lab-result-explainer"
+    | "telehealth-workflow"
+    | "hero-image"
   kind: "comparison" | "flow" | "timeline" | "warning" | "checklist" | "spectrum"
   accent: "blue" | "emerald" | "amber" | "rose" | "sky"
   items: ArticleVisualItem[]
@@ -1193,6 +1207,7 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
       eyebrow: "Token pathway",
       title: "How one eScript token moves from prescriber to pharmacy",
       summary: "The SMS or email token is the access key. The pharmacy retrieves the prescription record, then completes normal identity, PBS/private, stock, counselling, and safety checks.",
+      visualFormat: "process-visual",
       kind: "flow",
       accent: "blue",
       items: [
@@ -1209,6 +1224,7 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
       eyebrow: "Token vs ASL",
       title: "Tokens and Active Script Lists solve different practical problems",
       summary: "Tokens suit simple prescription access. Active Script Lists reduce lost-token friction for people with several active prescriptions, but need registration and consent.",
+      visualFormat: "comparison-graphic",
       kind: "comparison",
       accent: "emerald",
       items: [
@@ -1224,6 +1240,7 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
       eyebrow: "Checks and fixes",
       title: "Most eScript problems are access, repeat, expiry, stock, or correction issues",
       summary: "A missing token, used repeat, expired prescription, unavailable medicine, or wrong detail each needs a different next step.",
+      visualFormat: "patient-education-poster",
       kind: "checklist",
       accent: "amber",
       items: [
@@ -1242,6 +1259,7 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
       eyebrow: "Duration map",
       title: "Certificate duration follows capacity, recovery, and review needs",
       summary: "There is no universal maximum for ordinary sick leave certificates. The period should match the assessment, work demands, recovery path, and purpose of the document.",
+      visualFormat: "process-visual",
       kind: "flow",
       accent: "blue",
       items: [
@@ -1258,6 +1276,7 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
       eyebrow: "Evidence rules",
       title: "Evidence can be requested for one day or less, but it still has to be reasonable",
       summary: "Fair Work focuses on evidence that would satisfy a reasonable person. Medical certificates and statutory declarations can both be acceptable evidence depending on the circumstances.",
+      visualFormat: "comparison-graphic",
       kind: "comparison",
       accent: "emerald",
       items: [
@@ -1274,6 +1293,7 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
       eyebrow: "Ongoing absence",
       title: "Longer absences need reassessment, capacity detail, and the right certificate type",
       summary: "Extensions should explain what changed. Work-related injuries may need a certificate of capacity rather than a standard sick leave certificate.",
+      visualFormat: "patient-education-poster",
       kind: "checklist",
       accent: "amber",
       items: [
@@ -1292,6 +1312,7 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
       eyebrow: "Care models",
       title: "Telehealth is a set of care models, not one workflow",
       summary: "Phone, video, messaging, image review, and remote monitoring each fit different clinical questions and safety limits.",
+      visualFormat: "telehealth-workflow",
       kind: "comparison",
       accent: "blue",
       items: [
@@ -1308,6 +1329,7 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
       eyebrow: "Safety checks",
       title: "A safe telehealth consultation still needs clinical checks",
       summary: "The clinician has to confirm identity, privacy, history, consent, suitability, red flags, records, and follow-up before deciding what care is appropriate.",
+      visualFormat: "patient-education-poster",
       kind: "checklist",
       accent: "emerald",
       items: [
@@ -1324,6 +1346,7 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
       eyebrow: "Right channel",
       title: "The right outcome may be telehealth, in-person care, or urgent care",
       summary: "Telehealth should escalate when examination, monitoring, procedures, emergency treatment, or immediate mental health support is needed.",
+      visualFormat: "red-flag-warning",
       kind: "warning",
       accent: "rose",
       items: [
@@ -1334,6 +1357,59 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
       ],
       imagePrompt: "Detailed Australian telehealth triage pathway poster showing routine remote care, real-time phone or video consult, in-person care, and urgent care escalation without alarmist imagery. Do not show ambulances, emergency vehicles, hospital symbols, medical crosses, or official emergency service marks; use abstract warning icons and a neutral clinic doorway instead.",
       assetPath: "/images/blog/how-telehealth-consultations-work/right-channel-pathway.webp",
+    },
+  ],
+  "how-to-verify-online-doctor": [
+    {
+      id: "ahpra-verification-pathway",
+      eyebrow: "Register check",
+      title: "Verify the practitioner before trusting the online service",
+      summary: "The Ahpra public register is the strongest starting point. Match the registered name, profession, registration status, and any published limits.",
+      visualFormat: "process-visual",
+      kind: "flow",
+      accent: "blue",
+      items: [
+        { label: "Get the name", detail: "Use the practitioner's registered name or registration number when available" },
+        { label: "Search Ahpra", detail: "Use the official Register of Practitioners, not screenshots or old PDFs" },
+        { label: "Match details", detail: "Check profession, registration type, status, and any published conditions" },
+        { label: "Ask if unclear", detail: "If the service will not identify the clinician, treat that as a verification gap" },
+      ],
+      imagePrompt: "Detailed Australian online doctor verification poster showing Ahpra public register search, practitioner name matching, registration status, profession, registration limits, and verification gap pathway",
+      assetPath: "/images/blog/how-to-verify-online-doctor/ahpra-verification-pathway.webp",
+    },
+    {
+      id: "legitimate-service-signals",
+      eyebrow: "Service signals",
+      title: "Legitimate telehealth is transparent about care, privacy, fees, and accountability",
+      summary: "A real service explains who provides care, how clinical review works, when requests can be declined, and how records and complaints are handled.",
+      visualFormat: "patient-education-poster",
+      kind: "checklist",
+      accent: "emerald",
+      items: [
+        { label: "Clinical process", detail: "Assessment, follow-up questions, decline criteria, and escalation are explained" },
+        { label: "Privacy and records", detail: "Health information, images, messages, prescriptions, and records are handled securely" },
+        { label: "Clear fees", detail: "Pricing is visible before payment and not hidden behind pressure tactics" },
+        { label: "Accountability", detail: "Contact details, complaints pathway, business identity, and governance are findable" },
+      ],
+      imagePrompt: "Detailed Australian telehealth legitimacy checklist poster with clinical process, privacy and secure records, clear fees, business identity, and complaints accountability cards",
+      assetPath: "/images/blog/how-to-verify-online-doctor/legitimate-service-signals.webp",
+    },
+    {
+      id: "red-flags-and-reporting",
+      eyebrow: "Red flags",
+      title: "Suspicious online health services usually fail at identity, assessment, or accountability",
+      summary: "Guaranteed approvals, hidden clinicians, instant documents, questionnaire-only prescribing, fake badges, and unclear privacy should trigger verification before use.",
+      visualFormat: "red-flag-warning",
+      kind: "warning",
+      accent: "rose",
+      items: [
+        { label: "Hidden clinician", detail: "No identifiable practitioner or registration details are disclosed", tone: "urgent" },
+        { label: "Guaranteed outcome", detail: "Approvals, certificates, or prescriptions are promised before assessment", tone: "urgent" },
+        { label: "Weak document", detail: "Dates, issuer, contact details, or clinical purpose are missing or inconsistent", tone: "caution" },
+        { label: "Report pathway", detail: "Ahpra, health complaints bodies, ACCC, TGA, Scamwatch, or emergency services may apply", tone: "caution" },
+      ],
+      imagePrompt: "Detailed Australian online health service red flags poster showing hidden clinician, guaranteed approval, weak certificate document, privacy concern, and regulator reporting pathway. Use abstract warning symbols, not scary imagery.",
+      assetPath: "/images/blog/how-to-verify-online-doctor/red-flags-and-reporting.webp",
     },
   ],
   "medical-certificate-mental-health-day": [

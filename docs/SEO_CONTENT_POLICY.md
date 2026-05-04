@@ -91,7 +91,31 @@ Allowed inside guide articles:
 - author and reviewer details
 - safety boundaries, red flags, source notes, and neutral telehealth suitability context
 
-Article visuals must be local assets under `public/images/blog/<slug>/`. AI-generated images may be used for calm educational scenes or abstract infographic bases, but do not bake readable labels into the image. Put labels, captions, and clinical distinctions in React/HTML so they are accessible and reviewable.
+Article visuals must be local assets under `public/images/blog/<slug>/`. Every rewritten article must have at least two GPT-generated local visuals, ideally three for high-intent or clinical topics. Visuals can include controlled, short readable copy when generated from the `lib/blog/visuals.ts` registry; do not let the image model invent claims, prices, diagnoses, drug names, service CTAs, or legal rules. The same clinical distinctions and labels must also exist in React/HTML through `components/blog/article-visuals.tsx` so the page remains accessible, reviewable, and indexable.
+
+Acceptable article visual formats:
+
+- medical infographic
+- anatomical explainer
+- patient education poster
+- mechanism-of-action diagram
+- comparison graphic
+- step-by-step process visual
+- red-flag warning graphic
+- lifestyle and prevention illustration
+- symptom-location body map
+- lab result explainer
+- telehealth workflow graphic
+- blog hero image
+
+Baseline guide quality:
+
+- answer the reader's practical question in the first screen
+- use at least six H2 sections for a rewritten guide unless the topic is genuinely narrow
+- target a comprehensive guide length, generally 1,200+ words
+- include a visible sources or references section
+- include safety boundaries, red flags, in-person limits, or urgent-care limits where clinically relevant
+- keep guide bodies education-only: no consultation CTA, no service CTA card, and no related-service acquisition panel
 
 ## 5. Internal Linking Rules
 

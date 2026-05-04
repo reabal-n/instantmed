@@ -26,6 +26,7 @@ const HEIGHT = 1600
 const GPT_IMAGE_MODEL = "openai/gpt-image-2"
 
 type Renderer = "deterministic" | "gpt-image-2"
+type VisualFormat = NonNullable<ArticleVisual["visualFormat"]>
 
 const palettes: Record<ArticleVisual["accent"], Palette> = {
   amber: {
@@ -376,18 +377,65 @@ function getInfographicLayoutPrompt(kind: ArticleVisual["kind"]): string {
   }
 }
 
+function getDefaultVisualFormat(kind: ArticleVisual["kind"]): VisualFormat {
+  switch (kind) {
+    case "comparison":
+      return "comparison-graphic"
+    case "flow":
+    case "timeline":
+      return "process-visual"
+    case "warning":
+      return "red-flag-warning"
+    case "checklist":
+      return "patient-education-poster"
+    case "spectrum":
+      return "medical-infographic"
+  }
+}
+
+function getVisualFormatPrompt(format: VisualFormat): string {
+  switch (format) {
+    case "medical-infographic":
+      return "Format: medical infographic. Use dense but readable education panels, clinical icons, symptom/risk/prevention grouping, and one strong explanatory diagram."
+    case "anatomical-explainer":
+      return "Format: anatomical explainer. Use clean non-graphic anatomy, simplified body structures, callout labels, arrows, and clear spatial relationships. It should feel like premium patient education, not a textbook plate."
+    case "patient-education-poster":
+      return "Format: patient education poster. Make it feel shareable and handout-ready with practical panels, warm human context, and a clear take-home pathway."
+    case "mechanism-diagram":
+      return "Format: mechanism-of-action diagram. Show cause-effect pathways, receptor/cell/process arrows, before-and-after states, and simplified biological mechanisms without overclaiming."
+    case "comparison-graphic":
+      return "Format: comparison graphic. Use distinct sides or grouped zones, strong contrast, like-for-like criteria, and quick-scannable differences."
+    case "process-visual":
+      return "Format: step-by-step process visual. Use ordered stages, arrows, checkpoints, and clear before/during/after structure."
+    case "red-flag-warning":
+      return "Format: red flag warning graphic. Use calm urgency, clear stop/escalate hierarchy, warning zones, and safety boundaries without fearmongering."
+    case "lifestyle-illustration":
+      return "Format: lifestyle and prevention illustration. Make it softer, warmer, and relatable with practical habits, domestic detail, daylight, and restrained labels."
+    case "body-map":
+      return "Format: symptom-location body map. Use a respectful simplified body silhouette, labelled regions, pain/location zones, and clear anatomical orientation."
+    case "lab-result-explainer":
+      return "Format: lab result explainer. Use specimen-to-result pathway, report snippets, ranges shown abstractly, and plain-language callouts without fake patient data."
+    case "telehealth-workflow":
+      return "Format: telehealth workflow graphic. Use devices, intake, clinician review, escalation, records, and outcome checkpoints with a realistic digital-health process."
+    case "hero-image":
+      return "Format: blog hero image. Prioritise a premium editorial composition with minimal text, strong subject signal, and enough specificity to explain the article at a glance."
+  }
+}
+
 function buildGatewayPrompt(slug: string, visual: ArticleVisual): string {
   const itemText = visual.items.map((item, index) => `${index + 1}. ${item.label}: ${item.detail}`).join("\n")
+  const format = visual.visualFormat ?? getDefaultVisualFormat(visual.kind)
 
   return [
-    "Use case: infographic-diagram",
-    "Asset type: portrait health-guide infographic poster for a premium Australian telehealth website.",
+    `Use case: ${format}`,
+    "Asset type: portrait health-guide visual for a premium Australian digital health website.",
     `Model: ${GPT_IMAGE_MODEL}.`,
     "",
     "Primary request:",
     visual.imagePrompt,
     "",
-    "Create a detailed, polished, information-dense infographic poster, like a professionally designed patient education handout. It should have meaningful diagram structure, not a decorative stock image.",
+    getVisualFormatPrompt(format),
+    "Create a detailed, polished, information-dense visual that looks art-directed by a senior editorial designer. It should have meaningful educational structure, not a decorative stock image.",
     getInfographicLayoutPrompt(visual.kind),
     "",
     "Exact visible copy to use. Use only this copy; do not invent extra claims, legal rules, drug names, symptoms, prices, or calls to action:",
@@ -399,10 +447,12 @@ function buildGatewayPrompt(slug: string, visual: ArticleVisual): string {
     "Footer: Educational guide. Urgent symptoms need urgent care.",
     "",
     "Style:",
-    "Warm ivory background, crisp navy typography, blue/emerald/amber clinical accents, flat vector-meets-editorial medical illustration, dense but readable spacing, rounded cards, small icons, process arrows, subtle Australian digital health feel.",
+    "Premium editorial health design rather than sterile AI clinic poster. It should feel like a professionally commissioned patient-education poster from a serious Australian health publisher, not a generic AI infographic. Use warm natural off-white paper, crisp navy typography, restrained blue/emerald/amber/rose accents, subtle print grain, tactile depth, hand-finished illustration details, realistic Australian context where useful, and varied composition.",
+    "Avoid bland corporate gradients, generic hospital stock art, excessive symmetry, plastic 3D icons, over-polished AI faces, empty white-card grids, fake app screenshots, vague wellness imagery, and beige wellness mush.",
+    "Use confident visual hierarchy with a strong hero diagram or scene, then supporting panels. Add warmth through texture, realistic objects, human context, asymmetry, and small editorial details while keeping the information readable.",
     "",
     "Hard constraints:",
-    "No brand logos, no official seals, no medical crosses, no medication brand names, no pill imprints, no celebrity likenesses, no gore, no graphic symptoms, no consultation CTA, no website UI, no fake doctor-patient chat. If a person appears, make them non-identifiable and secondary.",
+    "No brand logos, no official seals, no medical crosses, no medication brand names, no pill imprints, no celebrity likenesses, no gore, no graphic symptoms, no consultation CTA, no website UI, no fake doctor-patient chat. If a person appears, make them non-identifiable, natural, and secondary.",
     `Article slug for context only: ${slug}.`,
   ].join("\n")
 }
@@ -550,7 +600,7 @@ async function main() {
       continue
     }
 
-    console.log(`Generating ${renderer} infographic ${slug}/${visual.id}...`)
+    console.log(`Generating ${renderer} visual ${slug}/${visual.id}...`)
     const saved =
       renderer === "gpt-image-2" ? await saveGatewayInfographic(slug, visual) : await saveInfographic(slug, visual)
     console.log(`Saved ${path.relative(process.cwd(), saved)}`)
