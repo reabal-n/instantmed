@@ -4,6 +4,7 @@ import Script from "next/script"
 import { useEffect } from "react"
 
 import { captureAttribution } from "@/lib/analytics/attribution"
+import { GOOGLE_ADS_ID, GOOGLE_ANALYTICS_ID } from "@/lib/analytics/google-tag-ids"
 
 // Only load Google tags on Vercel production - skip preview deployments and local dev.
 // NEXT_PUBLIC_VERCEL_ENV is set automatically by Vercel: 'production' | 'preview' | 'development'
@@ -55,11 +56,12 @@ export function GoogleTags() {
         dangerouslySetInnerHTML={{ __html: CONSENT_INIT }}
       />
       <Script
-        src="https://www.googletagmanager.com/gtag/js?id=AW-17795889471"
+        src={`https://www.googletagmanager.com/gtag/js?id=${GOOGLE_ADS_ID}`}
         strategy="afterInteractive"
         onLoad={() => {
           window.gtag?.("js", new Date())
-          window.gtag?.("config", "AW-17795889471", { allow_enhanced_conversions: true })
+          window.gtag?.("config", GOOGLE_ADS_ID, { allow_enhanced_conversions: true })
+          window.gtag?.("config", GOOGLE_ANALYTICS_ID)
         }}
       />
     </>
