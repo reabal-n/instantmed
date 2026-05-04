@@ -43,6 +43,7 @@ describe("marketing copy contracts", () => {
   it("keeps medical certificate trust copy specific instead of slogan-like", () => {
     expect(medCertPageSource).toContain("Online Medical Certificate | AHPRA GP Review | InstantMed")
     expect(medCertPageSource).not.toContain("Under 30 Minutes, No Call")
+    expect(medCertPageSource).not.toContain("in under 30 minutes")
     expect(medCertIntentSource).not.toContain("Real doctor review")
     expect(workplaceClaimSources).not.toContain("All employers")
     expect(workplaceClaimSources).not.toContain("98% AU employers accept")

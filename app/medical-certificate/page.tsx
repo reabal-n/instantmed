@@ -9,7 +9,7 @@ export const revalidate = 86400
 
 export const metadata: Metadata = {
   title: { absolute: "Online Medical Certificate | AHPRA GP Review | InstantMed" },
-  description: `Get a medical certificate for work or study in under 30 minutes. Fill out a form, no call, no appointment. From $${PRICING.MED_CERT.toFixed(2)}.`,
+  description: `Get a medical certificate for work or study online. Fill out a secure form, no call, no appointment. From $${PRICING.MED_CERT.toFixed(2)}.`,
   keywords: [
     "medical certificate online australia",
     "sick note online",
@@ -43,7 +43,7 @@ export default function Page() {
     <>
       <SpeakableSchema
         name="Online Medical Certificate Australia"
-        description={`Get a medical certificate for work or study in under 30 minutes. Reviewed by an AHPRA-registered Australian doctor. From $${PRICING.MED_CERT.toFixed(2)}. No appointment needed.`}
+        description={`Get a medical certificate for work or study online. Reviewed by an AHPRA-registered Australian doctor. From $${PRICING.MED_CERT.toFixed(2)}. No appointment needed.`}
         url="/medical-certificate"
       />
       <MedCertHowToSchema />
