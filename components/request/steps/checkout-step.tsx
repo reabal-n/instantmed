@@ -251,7 +251,7 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
           )}
           <div className="flex justify-between items-baseline pt-2 border-t border-dashed">
             <div>
-              <span className="font-medium">Total</span>
+              <span className="font-medium">Total{" "}</span>
               <span className="text-xs text-muted-foreground ml-2">one-time fee</span>
             </div>
             <div className="text-right">
@@ -411,7 +411,7 @@ export default function CheckoutStep({ serviceType }: { serviceType: UnifiedServ
             isLoading={isProcessing}
             disabled={!canCheckout}
             price={`$${(price + (isPriority ? APP_PRICING.PRIORITY_FEE : 0)).toFixed(2)}`}
-            label={`Pay $${(price + (isPriority ? APP_PRICING.PRIORITY_FEE : 0)).toFixed(2)}`}
+            label="Pay"
             loadingLabel="Processing..."
             variant="prominent"
           />

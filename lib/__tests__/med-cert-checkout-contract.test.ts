@@ -67,4 +67,15 @@ describe("medical certificate checkout contract", () => {
     expect(symptomsStepSource).not.toContain("SYMPTOM_GROUPS")
     expect(symptomsStepSource).not.toContain("Previously selected")
   })
+
+  it("keeps the final payment CTA and total row readable without duplicate price text", () => {
+    const checkoutStepSource = readFileSync(
+      join(process.cwd(), "components/request/steps/checkout-step.tsx"),
+      "utf8",
+    )
+
+    expect(checkoutStepSource).not.toContain("label={`Pay $")
+    expect(checkoutStepSource).toContain('label="Pay"')
+    expect(checkoutStepSource).toContain('Total{" "}')
+  })
 })

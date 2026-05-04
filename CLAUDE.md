@@ -227,7 +227,7 @@ All prices in `lib/constants.ts` (`PRICING`). Stripe IDs mapped in `lib/stripe/p
 
 **Phone number:** Required for prescriptions + consults + specialized pathways. NOT for med certs.
 
-**Safety consent:** Merged INTO the review step (not a standalone step).
+**Safety/payment consent:** Not a standalone step. Med cert collects final consent in `checkout`; prescription/repeat flows collect it in the combined review/pay step; consult flows use review then checkout.
 
 **Guest checkout:** Creates profile without `auth_user_id` → Stripe checkout → redirects to `/auth/complete-account` for account linking.
 
