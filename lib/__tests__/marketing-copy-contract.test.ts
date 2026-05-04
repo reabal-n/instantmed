@@ -1,11 +1,16 @@
-import { readFileSync } from "node:fs"
+import { existsSync, readFileSync } from "node:fs"
 import { join } from "node:path"
 
 import { describe, expect, it } from "vitest"
 
+import { faqItems } from "@/lib/marketing/homepage"
+
 const root = process.cwd()
 const voiceSource = readFileSync(join(root, "lib/marketing/voice.ts"), "utf8")
 const homePageSource = readFileSync(join(root, "app/page.tsx"), "utf8")
+const homepageMarketingSource = readFileSync(join(root, "lib/marketing/homepage.ts"), "utf8")
+const homeServiceCardsSource = readFileSync(join(root, "components/marketing/service-cards.tsx"), "utf8")
+const marketingIndexSource = readFileSync(join(root, "components/marketing/index.ts"), "utf8")
 const heroSource = readFileSync(join(root, "components/marketing/hero.tsx"), "utf8")
 const stickyCtaSource = readFileSync(join(root, "components/marketing/shared/sticky-cta.tsx"), "utf8")
 const waitCounterSource = readFileSync(join(root, "components/marketing/wait-counter.tsx"), "utf8")
@@ -44,6 +49,26 @@ describe("marketing copy contracts", () => {
     expect(voiceSource).toContain('export const ICONIC_HOOK = "Start with a secure form. Takes about 3 minutes."')
     expect(homePageSource).toContain("text-foreground/70")
     expect(homePageSource).not.toContain("text-[color:var(--brand-coral)]")
+  })
+
+  it("keeps homepage FAQs and coming-soon services compact", () => {
+    expect(faqItems.map((item) => item.question)).toEqual([
+      "What if the doctor says no?",
+      "How fast is it really?",
+      "Is my information private?",
+      "How much does it cost compared to a GP?",
+      "Does Medicare cover InstantMed?",
+      "How do prescriptions work?",
+    ])
+    expect(homepageMarketingSource).not.toContain('cta: "Notify me"')
+    expect(homeServiceCardsSource).not.toContain("WaitlistForm")
+    expect(homeServiceCardsSource).not.toContain("Join the waitlist")
+    expect(homeServiceCardsSource).not.toContain("Notify me")
+    expect(homeServiceCardsSource).toContain("Coming next")
+    expect(homeServiceCardsSource).toContain("Not taking requests yet")
+    expect(marketingIndexSource).not.toContain("waitlist-form")
+    expect(existsSync(join(root, "components/marketing/waitlist-form.tsx"))).toBe(false)
+    expect(existsSync(join(root, "app/actions/waitlist.ts"))).toBe(false)
   })
 
   it("keeps live reviewing indicators green instead of urgent coral", () => {

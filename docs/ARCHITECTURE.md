@@ -847,7 +847,7 @@ Models in `lib/ai/provider.ts`. Routed through Vercel AI Gateway in production (
 
 | Route | Purpose |
 |-------|---------|
-| `/` | Marketing homepage. Section order: hero (with `RegulatoryPartners` + `LastReviewedSignal` inline, trust signals at highest-anxiety moment) → lifestyle photo strip → service cards (active services only) → coming-soon strip → how-it-works → social proof → FAQ → CTA banner. `RegulatoryPartners` moved from mid-page into the hero. Coming-soon cards (Women's Health, Weight Loss) separated below active grid to prevent dead zones. |
+| `/` | Marketing homepage. Section order: hero → subdued regulatory strip → active service cards → compact coming-soon teaser → how-it-works → compact FAQ → CTA banner → compliance marquee. Coming-soon services are preview-only, with no waitlist/newsletter capture. |
 | `/medical-certificate` | Premium landing for med certs — the gold-standard `MedCertLanding` pattern. |
 | `/prescriptions` | Repeat medication landing (one-off eScript review workflow). Subscription language is dormant/future strategy unless reactivated in `docs/BUSINESS_PLAN.md`. |
 | `/erectile-dysfunction` | Bespoke ED specialty landing (`ErectileDysfunctionLanding`). Routes into `/request?service=consult&subtype=ed`. Form-first doctor review; doctor may call/message if clinically needed. Short URL `/ed` 301s here. |

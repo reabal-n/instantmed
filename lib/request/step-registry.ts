@@ -15,7 +15,7 @@ export type { ConsultSubtype,UnifiedServiceType, UnifiedStepId }
 /**
  * Consult subtypes that are gated as "Coming Soon".
  * These have step definitions (for future use) but the intake flow
- * blocks entry. Service hub shows waitlist capture instead.
+ * blocks entry. Service surfaces show a muted preview instead.
  */
 export const BLOCKED_CONSULT_SUBTYPES: ReadonlySet<ConsultSubtype> = new Set([
   'womens_health',

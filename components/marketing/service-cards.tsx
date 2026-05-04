@@ -4,7 +4,6 @@ import { AlertCircle, ArrowRight, Check, Clock } from 'lucide-react'
 import Link from 'next/link'
 
 import { ServiceIconTile } from '@/components/icons/service-icons'
-import { WaitlistForm } from '@/components/marketing/waitlist-form'
 import { type ServiceId, useServiceAvailability } from '@/components/providers/service-availability-provider'
 import { Button } from '@/components/ui/button'
 import { Heading } from '@/components/ui/heading'
@@ -123,53 +122,32 @@ interface ComingSoonCardProps {
 
 function ComingSoonCard({ service }: ComingSoonCardProps) {
   return (
-    <div className="relative h-full">
-      {/* Coming Soon badge */}
-      <div className="absolute -top-3 right-4 z-20">
-        <div className="px-2.5 py-1 rounded-lg bg-muted text-muted-foreground text-xs font-semibold">
-          Coming Soon
+    <div className={cn(
+      'rounded-xl border border-dashed border-border/50 bg-muted/25 px-4 py-3.5',
+      'dark:border-white/10 dark:bg-white/[0.03]',
+    )}>
+      <div className="flex items-start gap-3">
+        <ServiceIconTile
+          iconKey={service.icon}
+          color={service.color}
+          size="sm"
+          className="mt-0.5 opacity-55 grayscale"
+        />
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <h3 className="text-sm font-semibold text-foreground/75">
+              {service.title}
+            </h3>
+            <span className="rounded-full border border-border/50 bg-background/70 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+              Planned
+            </span>
+          </div>
+          <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+            From ${service.priceFrom.toFixed(2)}
+            <span className="mx-1.5 text-border-em">&middot;</span>
+            {service.description}
+          </p>
         </div>
-      </div>
-
-      <div className={cn(
-        'relative h-full rounded-xl flex flex-col p-5',
-        'bg-muted/30 dark:bg-card',
-        'border border-dashed border-border/60 dark:border-white/10',
-      )}>
-        {/* Icon */}
-        <ServiceIconTile iconKey={service.icon} color={service.color} size="md" className="mb-4 opacity-40 grayscale" />
-
-        {/* Title + Price */}
-        <h3 className="text-base font-semibold text-muted-foreground mb-0.5">
-          {service.title}
-        </h3>
-        <p className="text-sm text-muted-foreground mb-2">
-          From ${service.priceFrom.toFixed(2)}
-        </p>
-
-        {/* Description */}
-        <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
-          {service.description}
-        </p>
-
-        {/* Feature checkmarks (muted for coming soon) — same 2-cap as active
-            cards so coming-soon doesn't visually outweigh shippable services. */}
-        {service.benefits && (
-          <ul className="space-y-1.5 mb-4 flex-1">
-            {service.benefits.slice(0, VISIBLE_BENEFITS).map((benefit, idx) => (
-              <li
-                key={idx}
-                className="flex items-start gap-2 text-sm text-muted-foreground"
-              >
-                <Check className="h-3.5 w-3.5 text-muted-foreground/30 mt-0.5 shrink-0" />
-                <span>{benefit}</span>
-              </li>
-            ))}
-          </ul>
-        )}
-
-        {/* Waitlist CTA */}
-        <WaitlistForm serviceId={service.id} />
       </div>
     </div>
   )
@@ -221,14 +199,14 @@ export function ServiceCards() {
           Private service. No Medicare rebate, but PBS subsidies may still apply at the pharmacy.
         </p>
 
-        {/* Coming Soon — separated from active grid so they don't create dead zones */}
+        {/* Coming soon teaser: compact preview only, not a waitlist surface. */}
         {comingSoonServices.length > 0 && (
-          <div className="border-t border-border/40 pt-10">
-            <Reveal instant className="text-center mb-6">
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-[0.12em] mb-1">Launching soon</p>
-              <p className="text-sm text-muted-foreground">Join the waitlist and we'll let you know first.</p>
+          <div className="border-t border-border/40 pt-7 sm:pt-8">
+            <Reveal instant className="mx-auto mb-4 max-w-2xl text-center">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-[0.12em] mb-1">Coming next</p>
+              <p className="text-sm text-muted-foreground">Not taking requests yet. A small preview of services being prepared.</p>
             </Reveal>
-            <div className="grid sm:grid-cols-2 gap-5 max-w-2xl mx-auto">
+            <div className="grid gap-3 sm:grid-cols-2 max-w-3xl mx-auto">
               {comingSoonServices.map((service, i) => (
                 <Reveal key={service.id} delay={i * 0.05}>
                   <ComingSoonCard service={service} />

@@ -51,7 +51,6 @@ export { STAT_PRESETS } from "./total-patients-counter"
 export { BlogCTACard } from "./blog-cta-card"
 export { SampleCertificate } from "./sample-certificate"
 export { StickyCTABar } from "./sticky-cta-bar"
-export { WaitlistForm } from "./waitlist-form"
 
 // ── Subdirectory barrels ───────────────────────────────────────────
 export * from "./sections"

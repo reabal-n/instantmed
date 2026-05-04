@@ -185,7 +185,7 @@ export const serviceCategories = [
     href: "/womens-health",
     popular: false,
     comingSoon: true,
-    cta: "Notify me",
+    cta: "Coming soon",
     benefits: [
       "Contraception and hormonal health",
       "Doctor-reviewed form",
@@ -205,7 +205,7 @@ export const serviceCategories = [
     href: "/weight-loss",
     popular: false,
     comingSoon: true,
-    cta: "Notify me",
+    cta: "Coming soon",
     benefits: [
       "Evidence-based treatment plans",
       "Doctor-reviewed assessment",
@@ -307,10 +307,6 @@ export const featuredServices = [
 
 export const faqItems = [
   {
-    question: "How is this different from seeing a doctor in person?",
-    answer: "Every request is reviewed by a real Australian doctor, registered with AHPRA and actively practicing. No AI, no chatbot. Telehealth has been legal and regulated in Australia for years. The difference? No waiting rooms, no appointments, no phone tag.",
-  },
-  {
     question: "What if the doctor says no?",
     answer: "Full refund if we can't help. We'd rather be upfront than charge for something a doctor can't clinically assist with.",
   },
@@ -327,32 +323,12 @@ export const faqItems = [
     answer: `Medical certificates start from $${PRICING_DISPLAY.MED_CERT}, repeat medication from $${PRICING_DISPLAY.REPEAT_SCRIPT}, and consults from $${PRICING_DISPLAY.CONSULT}. A typical GP visit costs $60–120 before Medicare, plus the travel and wait. No Medicare rebate, but you'll likely still save, and definitely save time.`,
   },
   {
-    question: "What services does InstantMed offer?",
-    answer: "Medical certificates for sick leave and carer's leave. Repeat prescriptions for regular medication. Discreet doctor-reviewed assessments for ED and hair loss. All requests are reviewed by an AHPRA-registered Australian doctor.",
-  },
-  {
-    question: "Is there a subscription or ongoing fees?",
-    answer: "No subscriptions, no membership fees, no hidden charges. You pay a flat fee per request. If your request is declined, you get a full refund. That's it.",
-  },
-  {
     question: "Does Medicare cover InstantMed?",
     answer: "Not currently. InstantMed is a private telehealth service, so there's no Medicare rebate. The upside: no Medicare card required for medical certificates, no bulk-billing lottery, and no 45-minute wait for a 6-minute appointment.",
   },
   {
     question: "How do prescriptions work?",
     answer: "A doctor reviews your request and, if clinically appropriate, sends an electronic prescription (eScript) directly to your phone via SMS. Take it to any pharmacy in Australia. No paper scripts, no waiting for a callback.",
-  },
-  {
-    question: "Are you available on weekends and after hours?",
-    answer: "Yes. The online request flow is open 24/7, including weekends and public holidays. Submit when it suits you; doctor review follows when a doctor is available.",
-  },
-  {
-    question: "Who are the doctors?",
-    answer: "Every request is reviewed by an AHPRA-registered Australian GP, qualified, experienced, and actively practising. We don't use overseas doctors, nurse practitioners, or AI to make clinical decisions. A real doctor reviews every single request.",
-  },
-  {
-    question: "Does my employer see my diagnosis?",
-    answer: "No. Your medical certificate states the dates you're unfit for work, not why. Your employer doesn't see your diagnosis, your symptoms, or anything you told the doctor. Your health information is encrypted and stays between you and your treating doctor.",
   },
 ]
 
