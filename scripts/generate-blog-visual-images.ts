@@ -1,11 +1,15 @@
-import { openai } from "@ai-sdk/openai"
-import { generateText } from "ai"
-import type { ToolSet } from "ai"
-import dotenv from "dotenv"
+/* eslint-disable no-console */
+
 import fs from "node:fs/promises"
 import path from "node:path"
+
+import { openai } from "@ai-sdk/openai"
+import type { ToolSet } from "ai"
+import { generateText } from "ai"
+import dotenv from "dotenv"
 import sharp from "sharp"
 
+import type { ArticleVisual } from "@/lib/blog/visuals"
 import { getAllTopArticleVisuals, TOP_VISUAL_ARTICLE_SLUGS } from "@/lib/blog/visuals"
 
 dotenv.config({ path: path.join(process.cwd(), ".env.local"), override: false, quiet: true })
@@ -35,15 +39,36 @@ function assertGatewayAuth() {
   }
 }
 
-function buildPrompt(slug: string, title: string, imagePrompt: string): string {
+function getInfographicLayoutPrompt(kind: ArticleVisual["kind"]): string {
+  switch (kind) {
+    case "comparison":
+      return "Use a clear infographic comparison layout: distinct side-by-side or three-panel zones, repeated shapes for like-for-like comparison, and visible visual contrast between categories."
+    case "flow":
+      return "Use a clear infographic flow layout: sequential nodes connected by arrows or pathways, with a visible start, middle, and end."
+    case "timeline":
+      return "Use a clear infographic timeline layout: ordered milestones along a horizontal or vertical axis, with consistent spacing and progression."
+    case "warning":
+      return "Use a clear infographic warning or triage layout: decision split, caution marker, and safe-vs-urgent pathway without alarmist imagery."
+    case "checklist":
+      return "Use a clear infographic checklist layout: stacked cards, check markers, and grouped criteria rather than a decorative still life."
+    case "spectrum":
+      return "Use a clear infographic spectrum layout: graded zones, continuum, or layered stack that shows increasing intensity or categories."
+  }
+}
+
+function buildPrompt(slug: string, visual: ArticleVisual): string {
   return [
-    imagePrompt,
+    visual.imagePrompt,
     "",
     "Use InstantMed's brand direction: calm, authoritative, crisp, Australian context, morning light, warm ivory background, sky blue and restrained clinical accents.",
     "This is for a patient health guide, not advertising. It must feel educational, trustworthy, and quiet.",
-    "Do not include readable text, labels, fake app screens, fake certificates, fake doctor faces, celebrity likenesses, graphic symptoms, blood, gore, brand logos, or medication brand names.",
-    "If people appear, make them candid and non-identifiable, not looking at camera.",
-    `Article slug: ${slug}. Visual concept: ${title}.`,
+    "Make the generated asset an infographic-style diagram, not a plain stock-like photo or decorative still life.",
+    getInfographicLayoutPrompt(visual.kind),
+    `Use approximately ${visual.items.length} visual zones or nodes so the raster image matches the structured guide content.`,
+    "Do not put written labels inside the image. The website renders the real labels, captions, and explanations in HTML beside the image for accuracy and accessibility.",
+    "Do not include readable text, labels, fake app screens, fake certificates, fake doctor faces, celebrity likenesses, graphic symptoms, blood, gore, brand logos, medication brand names, pill imprints, official seals, or medical crosses.",
+    "Avoid human figures unless the article prompt explicitly requires them. If people appear, make them candid and non-identifiable, not looking at camera.",
+    `Article slug: ${slug}. Visual concept: ${visual.title}.`,
   ].join("\n")
 }
 
@@ -96,7 +121,7 @@ async function main() {
       }
     }
 
-    const prompt = buildPrompt(slug, visual.title, visual.imagePrompt)
+    const prompt = buildPrompt(slug, visual)
     if (dryRun) {
       console.log(`\n--- ${slug}/${visual.id} ---\n${prompt}`)
       continue
