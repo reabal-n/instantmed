@@ -369,6 +369,25 @@ All crons use `verifyCronRequest()` from `lib/api/cron-auth.ts` for authenticati
 
 ---
 
+## Search Indexing Triage
+
+Use the read-only Google Search Console audit before changing SEO/content code:
+
+```bash
+pnpm seo:gsc-index-audit -- --inspect-limit=20
+```
+
+This command requires Google application-default credentials with access to the `instantmed.com.au` Search Console property. It uses URL Inspection/Search Analytics data only; it does not submit pages for indexing.
+
+Operational rules:
+
+- Treat `_next/static`, font, CSS/JS, favicon, manifest, auth/account, Clerk, and redirect-only alias rows as expected noise unless they expose a broken canonical redirect.
+- For Google issues, verify live canonicals, robots, sitemap inclusion, and last crawl before changing content. IndexNow only supports Bing/Yandex discovery and does not repair Google indexing.
+- Add content depth only to public canonical pages that should rank and convert. Do not create duplicate route trees for redirect aliases.
+- For selected priority URLs, use Search Console inspection/request indexing manually after deploy and recrawl validation. Do not use Google's Indexing API for ordinary website pages; Google Search Central scopes it to `JobPosting` and livestream `BroadcastEvent` pages.
+
+---
+
 ## Production Launch Checklist
 
 ### Supabase
