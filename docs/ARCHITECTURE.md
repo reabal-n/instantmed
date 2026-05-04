@@ -733,7 +733,7 @@ See `TESTING.md` for full testing strategy, conventions, E2E patterns, auth bypa
 | `supabase/migrations/` | 57 SQL migration files (1 squashed baseline + 56 incremental). Most recent: `20260503090000_enable_rls_on_audit_logs_archive.sql` |
 | `public/templates/` | Static PDF templates for certificate generation |
 | `content/blog/` | 108 MDX health guide articles. Article bodies are guide-only; service CTAs belong on landing pages, not inside guides. Rewritten articles must be comprehensive, source-backed, and backed by at least two GPT-generated local visuals. |
-| `public/images/blog/` | Local WebP hero and article visual assets for health guides |
+| `public/images/blog/` | Local WebP hero and article visual assets for health guides. New generated guide visuals carry a deterministic `InstantMed` wordmark added after image generation. |
 | `scripts/audit-health-guides.mjs` | Content QA backlog for guide-only copy, minimum visual depth, local images, rendering defects, source depth, article depth, and safety-boundary gaps |
 
 ---

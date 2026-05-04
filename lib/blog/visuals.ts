@@ -1515,6 +1515,7 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
       eyebrow: "Triage",
       title: "After-hours care starts with urgency",
       summary: "The right path depends on danger, severity, and whether a physical exam is needed.",
+      visualFormat: "red-flag-warning",
       kind: "timeline",
       accent: "rose",
       items: [
@@ -1522,13 +1523,14 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
         { label: "Same-day urgent", detail: "Severe or worsening symptoms need urgent care", tone: "caution" },
         { label: "Routine", detail: "Stable admin or mild symptoms may wait", tone: "safe" },
       ],
-      imagePrompt: "Minimal after-hours healthcare triage ladder, phone on bedside table at night, calm not alarming, no readable text",
+      imagePrompt: "Detailed Australian after-hours urgent-care triage poster showing emergency symptoms that bypass telehealth, same-day urgent care, telehealth-suitable low-risk issues, and routine GP follow-up. Use a calm night-at-home healthcare scene, clear warning hierarchy, and non-alarmist red accents. Do not show ambulance vehicles, emergency service logos, hospital branding, official seals, medical crosses, or frightening patient imagery.",
     },
     {
       id: "after-hours-fit",
       eyebrow: "Fit check",
       title: "Some problems are not solved by an online form",
       summary: "If diagnosis depends on examination, monitoring, imaging, or emergency treatment, telehealth is the wrong first stop.",
+      visualFormat: "comparison-graphic",
       kind: "comparison",
       accent: "blue",
       items: [
@@ -1536,7 +1538,22 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
         { label: "Poor fit", detail: "Severe pain, injury, dehydration, or complex symptoms", tone: "caution" },
         { label: "Emergency", detail: "Time-critical symptoms should bypass telehealth", tone: "urgent" },
       ],
-      imagePrompt: "Calm decision-tree concept for after-hours care, Australian phone and notepad, no readable labels, warm ivory background",
+      imagePrompt: "Detailed Australian comparison graphic for after-hours care showing what telehealth can handle versus what needs in-person assessment or emergency care. Include remote history, medication records, photos, physical examination, vital-sign monitoring, imaging, wound care, and deterioration cues. Use warm ivory editorial layout, phone and notepad motifs, no official logos, no emergency service marks, no fake medical certificates.",
+    },
+    {
+      id: "after-hours-care-map",
+      eyebrow: "Care map",
+      title: "When you are unsure, use the safest next step",
+      summary: "Health advice lines, urgent care clinics, telehealth, and emergency departments each solve different after-hours problems.",
+      visualFormat: "process-visual",
+      kind: "flow",
+      accent: "emerald",
+      items: [
+        { label: "Danger signs", detail: "Call 000 or go to emergency", tone: "urgent" },
+        { label: "Unsure", detail: "Use healthdirect for 24/7 advice", tone: "caution" },
+        { label: "Not life-threatening", detail: "Choose GP, UCC, pharmacy, or telehealth by need", tone: "safe" },
+      ],
+      imagePrompt: "Detailed Australian after-hours care pathway poster showing a night-time decision map from danger signs to 000 or emergency, uncertainty to healthdirect advice, urgent non-life-threatening issues to Medicare Urgent Care Clinic or in-person GP, and low-risk information-based issues to telehealth. Use warm tactile editorial illustration, clear process arrows, home phone and clinic-door motifs. Do not use official government logos, ambulance imagery, emergency-service marks, medical crosses, Medicare card artwork, or brand names.",
     },
   ],
   "medical-certificate-food-poisoning": [

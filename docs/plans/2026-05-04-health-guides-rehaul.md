@@ -155,6 +155,7 @@ The rebuild should keep the existing MDX content model for now, but make the ren
 - Store assets under `public/images/blog/<slug>/`.
 - Use local `webp` for page assets and `jpg` fallback for OG where needed.
 - Every rewritten article needs at least two GPT-generated local visuals, ideally three for high-intent or clinical topics.
+- Add the deterministic `InstantMed` wordmark in post-processing, not in the model prompt, so the mark stays spelled correctly and consistent.
 - Controlled short text may appear inside GPT-generated visuals only when sourced from `lib/blog/visuals.ts`; never let the image model invent claims, prices, diagnoses, drug names, legal rules, or service CTAs.
 - Keep the same labels and clinical distinctions in React/HTML via `components/blog/article-visuals.tsx` so they remain accessible, reviewable, and indexable.
 - Do not generate fake doctor faces.

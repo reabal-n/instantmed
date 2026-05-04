@@ -91,7 +91,7 @@ Allowed inside guide articles:
 - author and reviewer details
 - safety boundaries, red flags, source notes, and neutral telehealth suitability context
 
-Article visuals must be local assets under `public/images/blog/<slug>/`. Every rewritten article must have at least two GPT-generated local visuals, ideally three for high-intent or clinical topics. Visuals can include controlled, short readable copy when generated from the `lib/blog/visuals.ts` registry; do not let the image model invent claims, prices, diagnoses, drug names, service CTAs, or legal rules. The same clinical distinctions and labels must also exist in React/HTML through `components/blog/article-visuals.tsx` so the page remains accessible, reviewable, and indexable.
+Article visuals must be local assets under `public/images/blog/<slug>/`. Every rewritten article must have at least two GPT-generated local visuals, ideally three for high-intent or clinical topics. Visuals can include controlled, short readable copy when generated from the `lib/blog/visuals.ts` registry; do not let the image model invent claims, prices, diagnoses, drug names, service CTAs, or legal rules. The same clinical distinctions and labels must also exist in React/HTML through `components/blog/article-visuals.tsx` so the page remains accessible, reviewable, and indexable. Generated guide visuals should carry the deterministic `InstantMed` wordmark added by `scripts/generate-blog-visual-images.ts`; do not ask GPT to draw or spell the brand mark.
 
 Acceptable article visual formats:
 

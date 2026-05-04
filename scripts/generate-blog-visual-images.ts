@@ -24,6 +24,9 @@ interface Palette {
 const WIDTH = 1280
 const HEIGHT = 1600
 const GPT_IMAGE_MODEL = "openai/gpt-image-2"
+const WORDMARK_WIDTH = 276
+const WORDMARK_HEIGHT = 54
+const WORDMARK_MARGIN = 34
 
 type Renderer = "deterministic" | "gpt-image-2"
 type VisualFormat = NonNullable<ArticleVisual["visualFormat"]>
@@ -452,9 +455,32 @@ function buildGatewayPrompt(slug: string, visual: ArticleVisual): string {
     "Use confident visual hierarchy with a strong hero diagram or scene, then supporting panels. Add warmth through texture, realistic objects, human context, asymmetry, and small editorial details while keeping the information readable.",
     "",
     "Hard constraints:",
-    "No brand logos, no official seals, no medical crosses, no medication brand names, no pill imprints, no celebrity likenesses, no gore, no graphic symptoms, no consultation CTA, no website UI, no fake doctor-patient chat. If a person appears, make them non-identifiable, natural, and secondary.",
+    "No brand logos, no official seals, no medical crosses, no medication brand names, no pill imprints, no celebrity likenesses, no gore, no graphic symptoms, no consultation CTA, no website UI, no fake doctor-patient chat. If a person appears, make them non-identifiable, natural, and secondary. Do not draw the InstantMed logo or wordmark; the production script adds the wordmark after generation.",
     `Article slug for context only: ${slug}.`,
   ].join("\n")
+}
+
+function renderWordmarkOverlaySvg(): string {
+  const x = WIDTH - WORDMARK_WIDTH - WORDMARK_MARGIN
+  const y = HEIGHT - WORDMARK_HEIGHT - WORDMARK_MARGIN
+
+  return `
+    <svg xmlns="http://www.w3.org/2000/svg" width="${WIDTH}" height="${HEIGHT}" viewBox="0 0 ${WIDTH} ${HEIGHT}">
+      <rect x="${x}" y="${y}" width="${WORDMARK_WIDTH}" height="${WORDMARK_HEIGHT}" rx="20" fill="#f8f7f4" fill-opacity="0.90" stroke="#d8e4f8" stroke-width="1.5"/>
+      <text x="${x + 34}" y="${y + 36}" font-family="Source Sans 3, Arial, sans-serif" font-size="27" font-weight="700" fill="#172033">InstantMed</text>
+    </svg>
+  `
+}
+
+async function addInstantMedWordmark(filepath: string) {
+  const tmpPath = `${filepath}.wordmark-tmp.webp`
+
+  await sharp(filepath)
+    .composite([{ input: Buffer.from(renderWordmarkOverlaySvg()), left: 0, top: 0 }])
+    .webp({ quality: 88, effort: 5 })
+    .toFile(tmpPath)
+
+  await fs.rename(tmpPath, filepath)
 }
 
 function renderArticleVisualSvg(slug: string, visual: ArticleVisual): string {
@@ -527,6 +553,7 @@ async function saveInfographic(slug: string, visual: ArticleVisual) {
   const filepath = path.join(outputDir, `${visual.id}.webp`)
   const svg = renderArticleVisualSvg(slug, visual)
   await sharp(Buffer.from(svg)).webp({ quality: 88, effort: 5 }).toFile(filepath)
+  await addInstantMedWordmark(filepath)
   return filepath
 }
 
@@ -552,6 +579,7 @@ async function saveGatewayInfographic(slug: string, visual: ArticleVisual) {
     .webp({ quality: 88, effort: 5 })
     .toFile(filepath)
 
+  await addInstantMedWordmark(filepath)
   return filepath
 }
 
