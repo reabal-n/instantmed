@@ -507,6 +507,7 @@ async function saveGatewayInfographic(slug: string, visual: ArticleVisual) {
 
 async function main() {
   const slugFilter = getArg("slug")
+  const visualFilter = getArg("visual")
   const limit = Number(getArg("limit") ?? "0")
   const dryRun = hasFlag("dry-run")
   const force = hasFlag("force")
@@ -519,11 +520,15 @@ async function main() {
   const visualsBySlug = getAllTopArticleVisuals()
   const jobs = TOP_VISUAL_ARTICLE_SLUGS
     .filter((slug) => !slugFilter || slug === slugFilter)
-    .flatMap((slug) => visualsBySlug[slug].map((visual) => ({ slug, visual })))
+    .flatMap((slug) =>
+      visualsBySlug[slug].filter((visual) => !visualFilter || visual.id === visualFilter).map((visual) => ({ slug, visual })),
+    )
     .slice(0, limit > 0 ? limit : undefined)
 
   if (jobs.length === 0) {
-    throw new Error(`No visual jobs found${slugFilter ? ` for --slug=${slugFilter}` : ""}.`)
+    throw new Error(
+      `No visual jobs found${slugFilter ? ` for --slug=${slugFilter}` : ""}${visualFilter ? ` and --visual=${visualFilter}` : ""}.`,
+    )
   }
 
   for (const { slug, visual } of jobs) {
