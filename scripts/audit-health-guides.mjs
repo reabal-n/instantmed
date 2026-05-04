@@ -43,8 +43,12 @@ function getVisualRegistrySource() {
 
 function getVisualRegistryBlock(slug) {
   const source = getVisualRegistrySource()
-  const key = `  "${slug}": [`
-  const keyIndex = source.indexOf(key)
+  const quotedKey = `  "${slug}": [`
+  const identifierKey = /^[A-Za-z_$][\w$]*$/.test(slug) ? `  ${slug}: [` : null
+  let keyIndex = source.indexOf(quotedKey)
+  if (keyIndex < 0 && identifierKey) {
+    keyIndex = source.indexOf(identifierKey)
+  }
   if (keyIndex < 0) return ""
 
   const arrayStart = source.indexOf("[", keyIndex)

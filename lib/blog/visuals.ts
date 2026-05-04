@@ -1609,6 +1609,7 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
       eyebrow: "Timeline",
       title: "Most sinus symptoms start viral",
       summary: "Duration, worsening pattern, and severity matter more than pressure alone.",
+      visualFormat: "process-visual",
       kind: "timeline",
       accent: "blue",
       items: [
@@ -1616,13 +1617,29 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
         { label: "Persistent", detail: "Symptoms beyond 10 days may need review", tone: "caution" },
         { label: "Severe or worsening", detail: "Fever, swelling, or eye symptoms need prompt care", tone: "urgent" },
       ],
-      imagePrompt: "Clean sinus pressure timeline illustration, tissue box and calendar, no readable text, soft Australian daylight",
+      imagePrompt: "Detailed Australian sinusitis timeline poster showing viral early symptoms, persistence beyond 10 days, double-worsening pattern, severe symptoms, and eye-symptom safety boundary. Use calm home recovery details, calendar, tissues, nasal rinse motif, and clear antibiotic stewardship framing. Do not include text such as antibiotics work for all, do not show antibiotics as a universal solution, do not imply green mucus alone means antibiotics, do not promote online prescriptions, and do not include consultation CTAs.",
+    },
+    {
+      id: "sinus-drainage-map",
+      eyebrow: "Anatomy",
+      title: "Sinus pressure starts with blocked drainage",
+      summary: "Swollen nasal lining narrows drainage openings, trapping mucus and creating pressure around the cheeks, forehead, and eyes.",
+      visualFormat: "anatomical-explainer",
+      kind: "flow",
+      accent: "sky",
+      items: [
+        { label: "Swollen lining", detail: "A cold or allergy can narrow drainage openings" },
+        { label: "Mucus trapped", detail: "Pressure builds in connected sinus spaces" },
+        { label: "Pattern matters", detail: "Duration and worsening guide next steps" },
+      ],
+      imagePrompt: "Detailed non-graphic sinus anatomy explainer showing frontal, maxillary, ethmoid, and sphenoid sinus areas, swollen nasal lining, narrowed drainage openings, trapped mucus, and facial pressure zones. Use simplified respectful head profile, clear callouts, warm editorial medical illustration, no gore, no scary infection imagery, no antibiotic packaging, no brand names. Do not render prompt metadata labels such as Eyebrow, Title, Summary, Cards, or Footer.",
     },
     {
       id: "sinusitis-red-flags",
       eyebrow: "Red flags",
       title: "Eye or neurological symptoms change the urgency",
       summary: "Swelling around the eye, vision changes, severe headache, confusion, or neck stiffness are not routine sinusitis.",
+      visualFormat: "red-flag-warning",
       kind: "warning",
       accent: "rose",
       items: [
@@ -1630,7 +1647,7 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
         { label: "Vision change", detail: "Do not wait for routine care", tone: "urgent" },
         { label: "Severe headache", detail: "Especially with neck stiffness or confusion", tone: "urgent" },
       ],
-      imagePrompt: "Minimal red-flag sinusitis safety illustration, abstract face outline, no readable text, no graphic symptoms",
+      imagePrompt: "Detailed non-graphic sinusitis red-flag warning poster showing eye swelling, vision change, severe headache with neck stiffness or confusion, and urgent assessment pathway. Use abstract face/head icons and a calm safety-boundary layout. Do not show distressing faces, swollen eyes close-up, hospital branding, ambulances, medical crosses, or consultation CTAs.",
     },
   ],
   "hay-fever-allergies": [
