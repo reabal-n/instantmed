@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
-import { trackConversion, trackFunnelStep, updateConsent } from "../analytics/conversion-tracking"
+import { initConsentMode, trackConversion, trackFunnelStep, updateConsent } from "../analytics/conversion-tracking"
 
 type GtagCall = [string, string, Record<string, unknown>]
 
@@ -34,6 +34,23 @@ beforeEach(() => {
 })
 
 describe("conversion tracking", () => {
+  it("defaults consent mode to granted until visitors opt out", () => {
+    const dataLayer: unknown[] = []
+    Object.assign(window, { dataLayer })
+
+    initConsentMode()
+
+    expect(dataLayer).toContainEqual(["consent", "default", {
+      ad_storage: "granted",
+      ad_user_data: "granted",
+      ad_personalization: "granted",
+      analytics_storage: "granted",
+      functionality_storage: "granted",
+      personalization_storage: "granted",
+      security_storage: "granted",
+    }])
+  })
+
   it("maps purchase conversion to the Google Ads purchase label", () => {
     trackConversion("PURCHASE", {
       transaction_id: "intake_123",
