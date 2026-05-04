@@ -81,7 +81,7 @@ export const medicalCertificatesConfig: ServiceConfig = {
   
   proofMetrics: [
     { label: 'Typical turnaround', value: '< 1 hour', icon: 'Zap' },
-    { label: 'Valid for', value: 'All employers', icon: 'Building2' },
+    { label: 'Evidence', value: 'Policies vary', icon: 'Building2' },
     { label: 'AHPRA doctors', value: 'Always', icon: 'Shield' },
     { label: 'Secure delivery', value: 'Email + portal', icon: 'Lock' },
   ],

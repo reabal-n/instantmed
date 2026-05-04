@@ -108,7 +108,7 @@ export const SA_CITIES: Record<string, DeepCityContent> = {
       paragraphs: [
         "South Australia follows national AHPRA and Medical Board of Australia guidelines for telehealth. SA Health has supported telehealth expansion as part of its strategy to improve healthcare access for regional communities like the Limestone Coast, where GP shortages are persistent and severe.",
         "Prescribing follows national TGA rules. Most PBS-listed medications can be prescribed via telehealth and dispensed via eScript at any SA or VIC pharmacy. Schedule 8 controlled substances require SA Health authority and in-person assessment. InstantMed does not prescribe Schedule 8 medications.",
-        "Medical certificates issued via telehealth carry the same legal weight in South Australia as those from in-person consultations. All employers - SA government, private sector, not-for-profit - must set their own policies for certificates from AHPRA-registered doctors under the Fair Work Act.",
+        "Medical certificates issued via telehealth carry the same legal weight in South Australia as those from in-person consultations. SA government, private sector, and not-for-profit employers each set their own policies for certificates from AHPRA-registered doctors under the Fair Work Act.",
       ],
     },
     additionalFaqs: [

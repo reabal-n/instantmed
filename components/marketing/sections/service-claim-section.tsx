@@ -31,7 +31,7 @@ interface ServiceClaimSectionProps {
  *
  * One per service page, anchoring the page's strongest trust signal in a
  * Morning Canvas warm card. Used by:
- *   - /medical-certificate → EmployerCalloutStrip (98% AU employers accept)
+ *   - /medical-certificate -> EmployerCalloutStrip (workplace evidence, policy varies)
  *   - /prescriptions → PBSCalloutStrip (PBS subsidies apply)
  *   - future service pages get a consistent superpower-section pattern.
  *

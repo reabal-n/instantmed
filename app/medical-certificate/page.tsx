@@ -8,7 +8,7 @@ import { MED_CERT_FAQ } from "@/lib/data/med-cert-faq"
 export const revalidate = 86400
 
 export const metadata: Metadata = {
-  title: { absolute: "Medical Certificate | Under 30 Minutes, No Call | InstantMed" },
+  title: { absolute: "Online Medical Certificate | AHPRA GP Review | InstantMed" },
   description: `Get a medical certificate for work or study in under 30 minutes. Fill out a form, no call, no appointment. From $${PRICING.MED_CERT.toFixed(2)}.`,
   keywords: [
     "medical certificate online australia",
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     "sick certificate australia",
   ],
   openGraph: {
-    title: "Medical Certificate | Under 30 Minutes, No Call | InstantMed",
+    title: "Online Medical Certificate | AHPRA GP Review | InstantMed",
     description:
       "Start with a secure form that takes about 3 minutes. AHPRA-registered GP review. Certificate to your inbox.",
     url: "https://instantmed.com.au/medical-certificate",
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Medical Certificate | Under 30 Minutes, No Call | InstantMed",
+    title: "Online Medical Certificate | AHPRA GP Review | InstantMed",
     description: "Start with a secure form that takes about 3 minutes. AHPRA-registered GP review. Certificate to your inbox.",
   },
   alternates: {

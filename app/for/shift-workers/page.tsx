@@ -101,7 +101,7 @@ export default function ShiftWorkersPage() {
                     </div>
                     <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border/50">
                       <Shield className="h-3.5 w-3.5 text-blue-600" />
-                      <span className="font-medium text-muted-foreground">All employers</span>
+                      <span className="font-medium text-muted-foreground">Policies vary</span>
                     </div>
                   </div>
                 </div>

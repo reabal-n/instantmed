@@ -46,17 +46,19 @@ function LogoRow({ logos, className }: { logos: typeof EMPLOYER_LOGOS; className
       <TooltipProvider delayDuration={200}>
         {logos.map((logo, i) => (
           <Tooltip key={i}>
-            <TooltipTrigger asChild>
-              <div className="shrink-0 h-8 w-24 flex items-center justify-center">
-                <Image
-                  src={logo.src}
-                  alt={logo.name}
-                  width={96}
-                  height={32}
-                  unoptimized={logo.src.endsWith('.svg')}
-                  className="object-contain h-6 w-auto opacity-40 grayscale hover:opacity-70 hover:grayscale-0 transition-[opacity,filter] duration-300 dark:brightness-150 dark:contrast-75"
-                />
-              </div>
+            <TooltipTrigger
+              type="button"
+              className="shrink-0 h-8 w-24 rounded-lg flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2"
+              aria-label={`${logo.name} workplace logo context`}
+            >
+              <Image
+                src={logo.src}
+                alt={logo.name}
+                width={96}
+                height={32}
+                unoptimized={logo.src.endsWith('.svg')}
+                className="object-contain h-6 w-auto opacity-40 grayscale transition-[opacity,filter] duration-300 hover:opacity-70 hover:grayscale-0 focus-visible:opacity-70 focus-visible:grayscale-0 dark:brightness-150 dark:contrast-75"
+              />
             </TooltipTrigger>
             <TooltipContent side="bottom" className="text-xs">
               Used by {logo.name} employees
@@ -134,7 +136,7 @@ export function EmployerLogoMarquee({ className, hideHeading }: EmployerLogoMarq
         <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-background to-transparent z-10" />
         <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-background to-transparent z-10" />
 
-        <div className="flex w-max animate-marquee-slow sm:animate-marquee group-hover/marquee:[animation-play-state:paused]">
+        <div className="flex w-max animate-marquee-slow sm:animate-marquee group-hover/marquee:[animation-play-state:paused] group-focus-within/marquee:[animation-play-state:paused]">
           <LogoRow logos={EMPLOYER_LOGOS} className="px-5" />
           <LogoRow logos={EMPLOYER_LOGOS} className="px-5" />
         </div>

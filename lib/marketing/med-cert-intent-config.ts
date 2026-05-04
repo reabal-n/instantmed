@@ -72,7 +72,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     ],
     ctaTitle: "Ready when you are",
     ctaSubtitle:
-      "Two minutes to complete the form. Real doctor review. Certificate to your inbox.",
+      "Two minutes to complete the form. A doctor reviews it. Certificate to your inbox.",
     ctaButtonText: "Get your certificate",
     metadata: {
       title: "Medical Certificate for Work | Sick Note Online $19.95",
@@ -243,7 +243,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     ],
     ctaTitle: "From your couch to your inbox",
     ctaSubtitle:
-      "Two minutes on your phone. Real doctor review. Certificate delivered. No clinic visit required.",
+      "Two minutes on your phone. A doctor reviews it. Certificate delivered. No clinic visit required.",
     ctaButtonText: "Get your certificate",
     metadata: {
       title: "Sick Leave Certificate Online | $19.95 Under 1 Hour",
@@ -570,7 +570,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     recognitionSubtitle:
       "Flu certificates include standard doctor and absence details. Employer policies may vary.",
     recognitionBadges: [
-      { label: "All employers", sub: "Legally valid" },
+      { label: "Workplace evidence", sub: "Policy dependent" },
       { label: "Fair Work compliant", sub: "Same as in-person cert" },
       { label: "Stay home", sub: "No clinic visit needed" },
     ],
@@ -694,7 +694,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     ],
     ctaTitle: "Sort your certificate before the next one hits",
     ctaSubtitle:
-      "Two minutes. Real doctor review. Certificate to your inbox.",
+      "Two minutes. A doctor reviews it. Certificate to your inbox.",
     ctaButtonText: "Get your certificate",
     metadata: {
       title: "Medical Certificate for Migraine | Sick Note Online $19.95",
@@ -742,13 +742,13 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     recognitionSubtitle:
       "Gastro certificates include standard doctor and absence details. Employer policies may vary.",
     recognitionBadges: [
-      { label: "All employers", sub: "Legally valid" },
+      { label: "Workplace evidence", sub: "Policy dependent" },
       { label: "Highly contagious", sub: "Medical reason to stay home" },
       { label: "1–3 days typical", sub: "Doctor determines duration" },
     ],
     ctaTitle: "Stay home. Get the paperwork sorted.",
     ctaSubtitle:
-      "Two-minute form. Real doctor review. Certificate to your inbox.",
+      "Two-minute form. A doctor reviews it. Certificate to your inbox.",
     ctaButtonText: "Get your certificate",
     metadata: {
       title: "Medical Certificate for Gastro | Sick Note Online $19.95",
@@ -855,7 +855,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     recognitionSubtitle:
       "COVID certificates are issued by AHPRA-registered doctors and used for workplace documentation. Mandatory isolation rules vary by state. Check your state health authority for current requirements.",
     recognitionBadges: [
-      { label: "All employers", sub: "Legally valid" },
+      { label: "Workplace evidence", sub: "Policy dependent" },
       { label: "Stay isolated", sub: "No clinic visit needed" },
       { label: "RAT or PCR positive", sub: "Accepted" },
     ],
