@@ -19,6 +19,10 @@ const detailSource = readFileSync(
   join(process.cwd(), "app/doctor/patients/[id]/patient-detail-client.tsx"),
   "utf8",
 )
+const detailPageSource = readFileSync(
+  join(process.cwd(), "app/doctor/patients/[id]/page.tsx"),
+  "utf8",
+)
 const editPatientDialogSource = readFileSync(
   join(process.cwd(), "app/doctor/patients/[id]/edit-patient-dialog.tsx"),
   "utf8",
@@ -104,5 +108,14 @@ describe("doctor add patient Parchment contract", () => {
     expect(body.indexOf(".update(updatePayload)")).toBeLessThan(
       body.indexOf("syncPatientToParchment(patient.id, doctorProfile.parchment_user_id)"),
     )
+  })
+
+  it("displays Parchment-synced prescriptions on the doctor patient record", () => {
+    expect(detailPageSource).toContain(".from(\"prescriptions\")")
+    expect(detailPageSource).toContain("parchment_reference")
+    expect(detailPageSource).toContain("prescriptions={data.prescriptions}")
+    expect(detailSource).toContain("interface PatientPrescription")
+    expect(detailSource).toContain("Active Prescriptions")
+    expect(detailSource).toContain("parchment_reference")
   })
 })

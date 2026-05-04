@@ -6,6 +6,7 @@ import { logExternalPrescribingIndicated } from "@/lib/audit/compliance-audit"
 import { updateScriptSent } from "@/lib/data/intakes"
 import { createLogger } from "@/lib/observability/logger"
 import { verifyWebhookSignature } from "@/lib/parchment/client"
+import { syncParchmentPrescriptionToPms } from "@/lib/parchment/sync-prescription"
 import { webhookPayloadSchema } from "@/lib/parchment/types"
 import { selectParchmentWebhookIntake, selectParchmentWebhookPrescriberId } from "@/lib/parchment/webhook-matching"
 import { logWebhookFailure } from "@/lib/security/audit-log"
@@ -222,6 +223,7 @@ export async function POST(request: Request) {
     const webhookPrescriberId = candidate
       ? selectParchmentWebhookPrescriberId(candidate, prescriberProfileIds)
       : null
+    const standalonePrescriberId = prescriberProfileIds.length === 1 ? prescriberProfileIds[0] : null
     let claimed: { id: string; parchment_reference: string | null } | null = null
 
     if (candidate) {
@@ -251,6 +253,42 @@ export async function POST(request: Request) {
     // Include event_id in script_notes for webhook idempotency audit trail
     const scriptNotes = `Webhook event: ${payload.event_id}`
 
+    const syncPrescription = async (
+      intakeId: string | null,
+      prescriberProfileId: string | null,
+    ): Promise<boolean> => {
+      try {
+        const result = await syncParchmentPrescriptionToPms({
+          supabase,
+          userId: user_id,
+          parchmentPatientId: patient_id,
+          patientProfileId,
+          prescriberProfileId,
+          intakeId,
+          scid,
+        })
+
+        if (!result.success) {
+          await recordParchmentPrescriptionSyncFailure(
+            result.reason || "prescription_sync_failed",
+            payload.event_id,
+            intakeId,
+          )
+          return false
+        }
+
+        return true
+      } catch (syncError) {
+        log.error(
+          "Failed to sync Parchment prescription to PMS",
+          { eventId: payload.event_id },
+          syncError instanceof Error ? syncError : new Error(String(syncError)),
+        )
+        await recordParchmentPrescriptionSyncFailure("prescription_sync_failed", payload.event_id, intakeId)
+        return false
+      }
+    }
+
     // Check if already processed (idempotency) or no intake found
     if (!claimed) {
       // Could be: (a) parchment_reference already set for this SCID, (b) manually marked sent, (c) no awaiting_script intake
@@ -262,6 +300,11 @@ export async function POST(request: Request) {
         .maybeSingle()
 
       if (existing?.script_sent) {
+        const existingPrescriberId = selectParchmentWebhookPrescriberId(existing, prescriberProfileIds)
+        const existingSyncSuccess = await syncPrescription(existing.id, existingPrescriberId)
+        if (!existingSyncSuccess) {
+          return NextResponse.json({ error: "Failed to sync prescription" }, { status: 500 })
+        }
         log.info("Webhook already fully processed (idempotent)", { eventId: payload.event_id })
         return NextResponse.json({ received: true })
       }
@@ -270,6 +313,7 @@ export async function POST(request: Request) {
         // Claimed (parchment_reference set) but updateScriptSent failed previously - resume
         log.info("Resuming partially-processed webhook", { eventId: payload.event_id })
         const resumePrescriberId = selectParchmentWebhookPrescriberId(existing, prescriberProfileIds)
+        const resumeSyncSuccess = await syncPrescription(existing.id, resumePrescriberId)
         const resumeSuccess = await updateScriptSent(existing.id, true, scriptNotes, scid, resumePrescriberId ?? undefined)
         if (!resumeSuccess) {
           log.error("Failed to mark script sent (resumed)", { eventId: payload.event_id })
@@ -281,16 +325,26 @@ export async function POST(request: Request) {
           return NextResponse.json({ error: "Failed to update intake" }, { status: 500 })
         }
         await logWebhookPrescribingBoundary(existing.id, resumePrescriberId, scid, payload.event_id)
+        if (!resumeSyncSuccess) {
+          return NextResponse.json({ error: "Failed to sync prescription" }, { status: 500 })
+        }
         log.info("Webhook resumed successfully", { eventId: payload.event_id })
         return NextResponse.json({ received: true, resumed: true })
       }
 
-      log.warn("No matching awaiting_script intake found for webhook", { eventId: payload.event_id })
+      const standaloneSyncSuccess = await syncPrescription(null, standalonePrescriberId)
+      if (standaloneSyncSuccess) {
+        log.info("Standalone Parchment prescription synced to PMS", { eventId: payload.event_id })
+        return NextResponse.json({ received: true, syncedPrescription: true })
+      }
+
+      log.warn("No matching awaiting_script intake found and prescription sync failed for webhook", { eventId: payload.event_id })
       await recordParchmentWebhookMismatch("no_awaiting_script_intake", payload.event_id)
-      return NextResponse.json({ received: true, warning: "No awaiting_script intake found" })
+      return NextResponse.json({ error: "Failed to sync prescription" }, { status: 500 })
     }
 
     const intake = claimed
+    const prescriptionSyncSuccess = await syncPrescription(intake.id, webhookPrescriberId)
 
     // Mark script as sent and transition status
     const success = await updateScriptSent(intake.id, true, scriptNotes, scid, webhookPrescriberId ?? undefined)
@@ -340,6 +394,10 @@ export async function POST(request: Request) {
         level: "warning",
         extra: { eventId: payload.event_id, context: "parchment_webhook_email" },
       })
+    }
+
+    if (!prescriptionSyncSuccess) {
+      return NextResponse.json({ error: "Failed to sync prescription" }, { status: 500 })
     }
 
     const duration = Date.now() - startTime
@@ -402,6 +460,27 @@ async function recordParchmentWebhookProcessingFailure(reason: string, eventId: 
   } catch (auditError) {
     log.warn(
       "Failed to log durable Parchment webhook processing failure",
+      { eventId, intakeId },
+      auditError instanceof Error ? auditError : undefined,
+    )
+  }
+}
+
+async function recordParchmentPrescriptionSyncFailure(reason: string, eventId: string, intakeId: string | null) {
+  Sentry.captureMessage("Parchment prescription could not be synced to PMS", {
+    level: "warning",
+    tags: {
+      source: "parchment-webhook",
+      unmatched_reason: reason,
+    },
+    extra: { eventId },
+  })
+
+  try {
+    await logWebhookFailure(eventId, "parchment:prescription.created", intakeId, reason)
+  } catch (auditError) {
+    log.warn(
+      "Failed to log durable Parchment prescription sync failure",
       { eventId, intakeId },
       auditError instanceof Error ? auditError : undefined,
     )

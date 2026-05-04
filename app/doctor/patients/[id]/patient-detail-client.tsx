@@ -17,6 +17,7 @@ import {
   MapPin,
   MessageSquare,
   Phone,
+  Pill,
   Plus,
   StickyNote,
   User,
@@ -87,6 +88,21 @@ interface PatientNote {
   created_by_name: string | null
 }
 
+interface PatientPrescription {
+  id: string
+  medication_name: string
+  medication_strength: string | null
+  dosage_instructions: string | null
+  quantity_prescribed: number | null
+  repeats_allowed: number | null
+  status: string
+  issued_date: string
+  expiry_date: string | null
+  parchment_reference: string | null
+  parchment_url: string | null
+  created_at: string
+}
+
 type PatientDetailProfile = Profile & {
   duplicate_profile_ids?: string[]
 }
@@ -94,6 +110,7 @@ type PatientDetailProfile = Profile & {
 interface PatientDetailClientProps {
   patient: PatientDetailProfile
   intakes: IntakeWithService[]
+  prescriptions: PatientPrescription[]
   stats: {
     totalRequests: number
     approvedRequests: number
@@ -108,6 +125,7 @@ interface PatientDetailClientProps {
 export function PatientDetailClient({
   patient,
   intakes,
+  prescriptions,
   stats,
   emailLogs,
   patientNotes,
@@ -365,6 +383,62 @@ export function PatientDetailClient({
           <p className="text-2xl font-semibold mt-2">{stats.certificatesIssued}</p>
         </Card>
       </div>
+
+      {/* Active Prescriptions */}
+      <Card className="rounded-xl border-border/50">
+        <CardHeader className="py-3 px-4">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Pill className="h-4 w-4" />
+            Active Prescriptions
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="px-4 py-3">
+          {prescriptions.length > 0 ? (
+            <div className="space-y-3">
+              {prescriptions.map((prescription) => (
+                <div key={prescription.id} className="rounded-lg bg-muted/50 p-4">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="min-w-0">
+                      <p className="font-medium text-foreground">
+                        {[prescription.medication_name, prescription.medication_strength].filter(Boolean).join(" ")}
+                      </p>
+                      {prescription.dosage_instructions && (
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          {prescription.dosage_instructions}
+                        </p>
+                      )}
+                      <div className="mt-2 flex flex-wrap gap-2 text-xs text-muted-foreground">
+                        {prescription.quantity_prescribed !== null && (
+                          <span>Qty {prescription.quantity_prescribed}</span>
+                        )}
+                        {prescription.repeats_allowed !== null && (
+                          <span>Repeats {prescription.repeats_allowed}</span>
+                        )}
+                        {prescription.parchment_reference && (
+                          <span className="font-mono">SCID {prescription.parchment_reference}</span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-start gap-2 sm:items-end">
+                      <Badge variant="outline" className="bg-success-light text-success border-success-border">
+                        {prescription.status}
+                      </Badge>
+                      <p className="text-xs text-muted-foreground">
+                        Issued {formatDate(prescription.issued_date)}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-muted-foreground">
+              <Pill className="h-8 w-8 mx-auto mb-2 opacity-50" />
+              <p className="text-sm">No prescriptions synced yet</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Request History */}
       <Card className="rounded-xl border-border/50">

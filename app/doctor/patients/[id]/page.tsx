@@ -81,7 +81,7 @@ async function getPatientWithHistory(patientId: string) {
     }
   }
 
-  const [intakesResult, certsResult, emailResult, notesResult] = await Promise.all([
+  const [intakesResult, certsResult, emailResult, notesResult, prescriptionsResult] = await Promise.all([
     supabase
       .from("intakes")
       .select(`
@@ -127,12 +127,33 @@ async function getPatientWithHistory(patientId: string) {
       .select("id, patient_id, note_type, content, created_by, created_by_name, created_at, updated_at")
       .in("patient_id", patientIds)
       .order("created_at", { ascending: false }),
+
+    supabase
+      .from("prescriptions")
+      .select(`
+        id,
+        medication_name,
+        medication_strength,
+        dosage_instructions,
+        quantity_prescribed,
+        repeats_allowed,
+        status,
+        issued_date,
+        expiry_date,
+        parchment_reference,
+        parchment_url,
+        created_at
+      `)
+      .in("patient_id", patientIds)
+      .order("issued_date", { ascending: false })
+      .limit(20),
   ])
 
   const { data: intakes, error: intakesError } = intakesResult
   const { count: certificatesCount } = certsResult
   const { data: emailLogs, error: emailError } = emailResult
   const { data: patientNotes, error: notesError } = notesResult
+  const { data: prescriptions, error: prescriptionsError } = prescriptionsResult
 
   if (intakesError) {
     logger.error("Error fetching intakes", { patientId }, intakesError)
@@ -142,6 +163,9 @@ async function getPatientWithHistory(patientId: string) {
   }
   if (notesError && !["42P01", "42703"].includes(notesError.code)) {
     logger.error("Error fetching patient notes", { patientId }, notesError)
+  }
+  if (prescriptionsError) {
+    logger.error("Error fetching patient prescriptions", { patientId }, prescriptionsError)
   }
 
   // Transform intakes to flatten the service relation (Supabase returns array for joins)
@@ -153,6 +177,7 @@ async function getPatientWithHistory(patientId: string) {
   return {
     patient: canonicalPatient,
     intakes: transformedIntakes,
+    prescriptions: prescriptions || [],
     emailLogs: emailLogs || [],
     patientNotes: patientNotes || [],
     stats: {
@@ -181,6 +206,7 @@ export default async function PatientDetailPage({ params }: PageProps) {
     <PatientDetailClient 
       patient={data.patient} 
       intakes={data.intakes} 
+      prescriptions={data.prescriptions}
       stats={data.stats}
       emailLogs={data.emailLogs}
       patientNotes={data.patientNotes}
