@@ -75,7 +75,7 @@ describe("SEO indexing contracts", () => {
     for (const source of retiredAliases) {
       expect(nextConfig).toMatch(
         new RegExp(
-          `source: "${source.replaceAll("/", "\\/")}",[\\s\\S]*?permanent: true`,
+          `source: "${source.replaceAll("/", "\\/")}",[^}]*permanent: true`,
         ),
       )
     }
