@@ -1,3 +1,4 @@
+import { getAuthEmailHealth } from "@/lib/data/auth-email-events"
 import {
   getDuplicatePatientProfileSummary,
   getPrescribingIdentityBlockerReport,
@@ -25,6 +26,7 @@ export default async function OpsDashboardPage() {
     systemHealthResult,
     patientIdentityResult,
     prescribingIdentityResult,
+    authEmailHealthResult,
   ] = await Promise.all([
     // Failed webhooks (DLQ)
     supabase
@@ -69,6 +71,8 @@ export default async function OpsDashboardPage() {
     getDuplicatePatientProfileSummary(supabase),
 
     getPrescribingIdentityBlockerReport(supabase),
+
+    getAuthEmailHealth(dayAgo),
   ])
 
   // Process email stats
@@ -98,6 +102,7 @@ export default async function OpsDashboardPage() {
       ...emailStats,
       successRate: parseFloat(emailSuccessRate),
     },
+    authEmails: authEmailHealthResult,
     errors: {
       count: recentErrorsResult.data?.length || 0,
       recent: recentErrorsResult.data || [],
@@ -117,6 +122,7 @@ export default async function OpsDashboardPage() {
     systemStatus: {
       webhooksHealthy: (webhookDlqResult.count || 0) < 5,
       emailsHealthy: emailStats.failed < 3,
+      authEmailsHealthy: !authEmailHealthResult.unavailable && authEmailHealthResult.failed === 0,
       intakesHealthy: staleIntakes.length < 3,
       patientIdentityHealthy: patientIdentityResult.duplicateProfileCount === 0,
       prescribingIdentityHealthy: prescribingIdentityResult.blockedCount === 0,

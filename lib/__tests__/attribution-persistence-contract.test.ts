@@ -25,8 +25,10 @@ describe("attribution persistence contract", () => {
     const authenticated = read("lib/stripe/checkout.ts")
     const guest = read("lib/stripe/guest-checkout.ts")
 
-    expect(authenticated).toContain("normalizeAttributionForStorage(input.attribution)")
-    expect(guest).toContain("normalizeAttributionForStorage(input.attribution)")
+    expect(authenticated).toContain("resolveCheckoutAttribution(input.attribution)")
+    expect(guest).toContain("resolveCheckoutAttribution(input.attribution)")
+    expect(authenticated).toContain("normalizeAttributionForStorage(resolvedAttribution)")
+    expect(guest).toContain("normalizeAttributionForStorage(resolvedAttribution)")
 
     for (const column of ATTRIBUTION_COLUMNS) {
       expect(authenticated).toContain(`${column}: attribution.`)

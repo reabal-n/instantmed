@@ -38,6 +38,21 @@ interface OpsData {
     pending: number
     successRate: number
   }
+  authEmails: {
+    total: number
+    sent: number
+    failed: number
+    successRate: number
+    unavailable: boolean
+    recentFailures: Array<{
+      id: string
+      createdAt: string
+      actionType: string
+      recipientDomain: string | null
+      httpStatus: number | null
+      errorMessage: string | null
+    }>
+  }
   errors: {
     count: number
     recent: Array<{
@@ -64,6 +79,7 @@ interface OpsData {
   systemStatus: {
     webhooksHealthy: boolean
     emailsHealthy: boolean
+    authEmailsHealthy: boolean
     intakesHealthy: boolean
     patientIdentityHealthy: boolean
     prescribingIdentityHealthy: boolean
@@ -95,10 +111,21 @@ function StatusIndicator({ healthy, label }: { healthy: boolean; label: string }
 }
 
 export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
-  const { webhooks, emails, errors, auditVolume, patientIdentity, prescribingIdentity, staleIntakes, systemStatus } = ops
+  const {
+    webhooks,
+    emails,
+    authEmails,
+    errors,
+    auditVolume,
+    patientIdentity,
+    prescribingIdentity,
+    staleIntakes,
+    systemStatus,
+  } = ops
 
   const allHealthy = systemStatus.webhooksHealthy
     && systemStatus.emailsHealthy
+    && systemStatus.authEmailsHealthy
     && systemStatus.intakesHealthy
     && systemStatus.patientIdentityHealthy
     && systemStatus.prescribingIdentityHealthy
@@ -126,9 +153,10 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
             <Server className="h-5 w-5 text-muted-foreground" />
             <h3 className="text-base font-semibold text-foreground">System Status</h3>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-6 gap-6">
             <StatusIndicator healthy={systemStatus.webhooksHealthy} label="Webhooks" />
             <StatusIndicator healthy={systemStatus.emailsHealthy} label="Email Delivery" />
+            <StatusIndicator healthy={systemStatus.authEmailsHealthy} label="Auth Email" />
             <StatusIndicator healthy={systemStatus.intakesHealthy} label="Intake Processing" />
             <StatusIndicator healthy={systemStatus.patientIdentityHealthy} label="Patient Identity" />
             <StatusIndicator healthy={systemStatus.prescribingIdentityHealthy} label="Prescribing Identity" />
@@ -286,6 +314,49 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
                       </p>
                     </div>
                     <StatusBadge status="error" size="sm">{webhook.status}</StatusBadge>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Auth Email Failures */}
+          <div className="bg-card border border-border/50 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl p-6">
+            <div className="flex items-center gap-2 mb-1">
+              <Mail className="h-5 w-5 text-muted-foreground" />
+              <h3 className="text-base font-semibold text-foreground">Auth Email Failures (24h)</h3>
+            </div>
+            <p className="text-sm text-muted-foreground mb-4">
+              {authEmails.unavailable
+                ? "Auth email event health unavailable"
+                : `${authEmails.failed} failed / ${authEmails.total} attempts (${authEmails.successRate}% success)`}
+            </p>
+            {authEmails.unavailable ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <AlertTriangle className="w-8 h-8 mx-auto mb-2 text-destructive" />
+                <p>Auth email event table is unavailable</p>
+              </div>
+            ) : authEmails.recentFailures.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <CheckCircle className="w-8 h-8 mx-auto mb-2 text-success" />
+                <p>No recent auth email failures</p>
+              </div>
+            ) : (
+              <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                {authEmails.recentFailures.map((failure) => (
+                  <div key={failure.id} className="flex items-start justify-between gap-3 p-2 rounded-lg bg-muted/50">
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium capitalize">{failure.actionType.replace("_", " ")}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {failure.recipientDomain ?? "unknown domain"} - {new Date(failure.createdAt).toLocaleString("en-AU")}
+                      </p>
+                      {failure.errorMessage && (
+                        <p className="text-xs text-muted-foreground truncate mt-1">{failure.errorMessage}</p>
+                      )}
+                    </div>
+                    <StatusBadge status="error" size="sm">
+                      {failure.httpStatus ?? "failed"}
+                    </StatusBadge>
                   </div>
                 ))}
               </div>

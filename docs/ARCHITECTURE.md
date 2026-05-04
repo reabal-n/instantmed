@@ -729,7 +729,7 @@ See `TESTING.md` for full testing strategy, conventions, E2E patterns, auth bypa
 | `types/certificate-template.ts` | PDF template field definitions |
 | `hooks/` | 5 custom hooks (use-connection-status, use-debounce, use-doctor-shortcuts, use-keyboard-navigation, use-landing-analytics) |
 | `e2e/` | 46 Playwright specs, `helpers/` (seed/teardown, auth bypass). Full suite runs in CI. |
-| `supabase/migrations/` | 57 SQL migration files (1 squashed baseline + 56 incremental). Most recent: `20260503090000_enable_rls_on_audit_logs_archive.sql` |
+| `supabase/migrations/` | 59 SQL migration files (1 squashed baseline + 58 incremental). Most recent: `20260504063000_auth_email_events.sql` |
 | `public/templates/` | Static PDF templates for certificate generation |
 
 ---

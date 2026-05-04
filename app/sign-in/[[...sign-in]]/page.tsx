@@ -147,6 +147,7 @@ function SignInForm() {
       return
     }
 
+    setFormState('idle')
     setEmailLinkSent(true)
     setEmailLinkLoading(false)
   }, [email, redirectUrl, supabase.auth])

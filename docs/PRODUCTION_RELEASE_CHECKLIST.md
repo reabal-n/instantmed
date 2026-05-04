@@ -36,6 +36,7 @@ Use this checklist before promoting dashboard, payment, clinical, or patient-flo
 
 - Sentry release is set for the deployment.
 - Dashboard degraded-read monitor is active in production.
+- `/admin/ops` shows no auth email failures for recent `magiclink` or `recovery` sends.
 - Cron jobs for stale queue, retry auto-approval, daily digest, and reconciliation are enabled.
 - Supabase backups and PITR status are confirmed.
 - Rollback target is known before promotion.

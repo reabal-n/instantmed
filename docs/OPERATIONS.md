@@ -525,7 +525,24 @@ ROLLBACK  ROLLBACK    ROLLBACK
 
 ---
 
-#### 5. Vercel env var rollback
+#### 5. Patient account access support
+
+**When:** a patient says they cannot sign in, forgot password does not arrive, or a test patient was created with a magic-link-only Supabase Auth user.
+
+**Steps:**
+
+1. **Check the user shape first** — Supabase Dashboard → Authentication → Users → search the email. If the user exists without a password provider, do not create a duplicate user or duplicate profile.
+2. **Use the lowest-friction recovery path** — direct the patient to `/sign-in`, enter their email, and use **Email me a sign-in link**. This works for existing passwordless accounts without account duplication.
+3. **If they want a password** — direct them to `/auth/forgot-password`. Recovery links must land on `/auth/callback?next=/auth/reset-password`; the reset page only updates the password after Supabase establishes the recovery session.
+4. **Check auth email health** — `/admin/ops` → **Auth Email Failures (24h)**. A failed `magiclink` or `recovery` event points to Resend/API/config delivery failure, not bad patient input.
+5. **If auth events are unavailable** — verify migration `20260504063000_auth_email_events.sql` has been applied and that the production hook has `SUPABASE_AUTH_WEBHOOK_HOOK_SECRET`, `RESEND_API_KEY`, and `RESEND_FROM_EMAIL` configured.
+6. **Do not bypass the flow** — do not manually set a patient password, email raw Supabase action links, or link multiple profiles by email match. Fix the delivery/config issue, then let Supabase issue a fresh sign-in or recovery link.
+
+**Escalate immediately** if `/admin/ops` shows any auth email failure after a deploy or if multiple patients report missing sign-in/recovery links within 15 minutes.
+
+---
+
+#### 6. Vercel env var rollback
 
 **When:** a config change (env var edit/delete) broke production.
 
