@@ -16,6 +16,9 @@
     "test:watch": "vitest --watch",
     "ci": "pnpm install --frozen-lockfile && pnpm lint && pnpm test run && pnpm build",
     "blog:images": "node scripts/update-blog-images.mjs",
+    "blog:generate-visual-images": "tsx scripts/generate-blog-visual-images.ts",
+    "blog:apply-visual-assets": "tsx scripts/apply-blog-visual-assets.ts",
+    "content:audit": "node scripts/audit-health-guides.mjs",
     "smoke:backend": "npx tsx scripts/smoke-backend.ts",
     "smoke:parchment": "npx tsx scripts/parchment-smoke.ts",
     "db:lint:linked": "supabase db lint --linked --schema public,extensions --fail-on error",
@@ -44,6 +47,7 @@
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.66",
+    "@ai-sdk/openai": "^3.0.58",
     "@number-flow/react": "^0.5.10",
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-alert-dialog": "^1.1.15",

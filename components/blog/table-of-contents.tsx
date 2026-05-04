@@ -1,8 +1,9 @@
 'use client'
 
 import { List } from 'lucide-react'
-import { useEffect,useState } from 'react'
+import { type MouseEvent, useEffect, useMemo, useState } from 'react'
 
+import { slugifyHeading } from '@/lib/blog/heading'
 import type { ArticleSection } from '@/lib/blog/types'
 import { cn } from '@/lib/utils'
 
@@ -20,13 +21,17 @@ export function TableOfContents({ content }: TableOfContentsProps) {
   const [activeId, setActiveId] = useState<string>('')
   
   // Extract headings from content
-  const headings: TOCItem[] = content
-    .filter(section => section.type === 'heading' && section.level && section.level <= 3)
-    .map((section, index) => ({
-      id: `heading-${index}-${section.content.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
-      text: section.content,
-      level: section.level || 2,
-    }))
+  const headings: TOCItem[] = useMemo(
+    () =>
+      content
+        .filter(section => section.type === 'heading' && section.level && section.level <= 3)
+        .map((section) => ({
+          id: slugifyHeading(section.content),
+          text: section.content,
+          level: section.level || 2,
+        })),
+    [content],
+  )
 
   const hasEnoughHeadings = headings.length >= 4
 
@@ -54,12 +59,14 @@ export function TableOfContents({ content }: TableOfContentsProps) {
   // Don't render if fewer than 4 headings
   if (!hasEnoughHeadings) return null
 
-  const scrollToHeading = (id: string) => {
+  const scrollToHeading = (event: MouseEvent<HTMLAnchorElement>, id: string) => {
+    event.preventDefault()
     const element = document.getElementById(id)
     if (element) {
       const offset = 100
       const top = element.getBoundingClientRect().top + window.scrollY - offset
       window.scrollTo({ top, behavior: 'smooth' })
+      window.history.replaceState(null, '', `#${id}`)
     }
   }
 
@@ -72,10 +79,11 @@ export function TableOfContents({ content }: TableOfContentsProps) {
       <ul className="space-y-2">
         {headings.map((heading) => (
           <li key={heading.id}>
-            <button
-              onClick={() => scrollToHeading(heading.id)}
+            <a
+              href={`#${heading.id}`}
+              onClick={(event) => scrollToHeading(event, heading.id)}
               className={cn(
-                'text-left text-sm transition-colors w-full hover:text-primary',
+                'block text-left text-sm transition-colors w-full hover:text-primary',
                 heading.level === 3 && 'pl-4',
                 activeId === heading.id
                   ? 'text-primary font-medium'
@@ -83,7 +91,7 @@ export function TableOfContents({ content }: TableOfContentsProps) {
               )}
             >
               {heading.text}
-            </button>
+            </a>
           </li>
         ))}
       </ul>

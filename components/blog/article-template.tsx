@@ -3,9 +3,7 @@
 import {
   AlertTriangle,
   ArrowLeft,
-  ArrowRight,
   BadgeCheck,
-  Building2,
   Calendar,
   CheckCircle2,
   ChevronDown,
@@ -13,44 +11,29 @@ import {
   FileText,
   Info,
   Lightbulb,
-  Pill,
   Shield,
-  Stethoscope} from "lucide-react"
+} from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { useEffect, useRef, useState } from "react"
 
 import { ArticleSeriesNav, SeriesBadge } from "@/components/blog/article-series"
 import { ArticleTags } from "@/components/blog/article-tags"
-import { HeroImage as _HeroImage } from "@/components/blog/hero-image"
+import { ArticleVisuals } from "@/components/blog/article-visuals"
 import { PopularArticlesCompact } from "@/components/blog/popular-articles"
 import { RelatedArticles } from "@/components/blog/related-articles"
 import { SocialShare } from "@/components/blog/social-share"
 import { TableOfContents } from "@/components/blog/table-of-contents"
-import { BlogCTACard } from "@/components/marketing/blog-cta-card"
 import { Badge } from "@/components/ui/badge"
-import type { Article, ArticleFAQ, ArticleLink,ArticleSection, RelatedService } from "@/lib/blog/types"
+import { slugifyHeading } from "@/lib/blog/heading"
+import type { Article, ArticleFAQ, ArticleLink, ArticleSection } from "@/lib/blog/types"
+import { getArticleVisuals } from "@/lib/blog/visuals"
 import { cn } from "@/lib/utils"
 
 interface ArticleTemplateProps {
   article: Article
   relatedArticles?: Article[]
   allArticles?: Article[]
-}
-
-function ServiceIcon({ icon }: { icon: RelatedService['icon'] }) {
-  switch (icon) {
-    case 'certificate':
-      return <FileText className="w-5 h-5" />
-    case 'prescription':
-      return <Pill className="w-5 h-5" />
-    case 'consult':
-      return <Stethoscope className="w-5 h-5" />
-    case 'referral':
-      return <Building2 className="w-5 h-5" />
-    default:
-      return <FileText className="w-5 h-5" />
-  }
 }
 
 const calloutConfig = {
@@ -153,10 +136,6 @@ function renderContentWithLinks(content: string, links?: ArticleLink[]): React.R
   return result
 }
 
-function slugify(text: string): string {
-  return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
-}
-
 function MobileTOC({ content }: { content: ArticleSection[] }) {
   const headings = content.filter(s => s.type === 'heading' && s.level === 2)
   if (headings.length < 3) return null
@@ -174,7 +153,7 @@ function MobileTOC({ content }: { content: ArticleSection[] }) {
           {headings.map((h, i) => (
             <a
               key={i}
-              href={`#${slugify(h.content)}`}
+              href={`#${slugifyHeading(h.content)}`}
               className="flex items-center gap-2.5 text-sm text-muted-foreground hover:text-primary transition-colors py-1"
             >
               <span className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-semibold text-primary shrink-0">{i + 1}</span>
@@ -187,51 +166,15 @@ function MobileTOC({ content }: { content: ArticleSection[] }) {
   )
 }
 
-function MidArticleCTA({ service }: { service: 'med-cert' | 'prescription' | 'consult' }) {
-  const config = {
-    'med-cert': {
-      text: 'Need a medical certificate?',
-      sub: 'Assessed by an AHPRA-registered doctor. No appointment, 24/7.',
-      href: '/medical-certificate',
-      label: 'Get your certificate',
-    },
-    'prescription': {
-      text: 'Need a repeat prescription?',
-      sub: 'A doctor reviews your request — typically within 2 hours.',
-      href: '/prescriptions',
-      label: 'Request your script',
-    },
-    'consult': {
-      text: 'Speak with a doctor online',
-      sub: 'AHPRA-registered doctors. Requests accepted 24/7.',
-      href: '/consult',
-      label: 'Start a consultation',
-    },
-  }
-  const { text, sub, href, label } = config[service]
-  return (
-    <div className="my-8 flex items-center justify-between gap-4 flex-wrap rounded-xl border border-primary/25 bg-primary/5 px-5 py-4">
-      <div className="min-w-0">
-        <p className="font-medium text-foreground text-sm">{text}</p>
-        <p className="text-xs text-muted-foreground mt-0.5">{sub}</p>
-      </div>
-      <Link
-        href={href}
-        className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline whitespace-nowrap shrink-0"
-      >
-        {label}
-        <ArrowRight className="w-3.5 h-3.5" />
-      </Link>
-    </div>
-  )
-}
-
 function ContentSection({ section }: { section: ArticleSection }) {
   switch (section.type) {
     case 'heading':
       if (section.level === 3) {
         return (
-          <h3 className="flex items-center gap-2 text-base font-semibold text-foreground mt-8 mb-3">
+          <h3
+            id={slugifyHeading(section.content)}
+            className="flex items-center gap-2 text-base font-semibold text-foreground mt-8 mb-3 scroll-mt-24"
+          >
             <span className="inline-block w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
             {section.content}
           </h3>
@@ -240,7 +183,7 @@ function ContentSection({ section }: { section: ArticleSection }) {
       return (
         <div className="mt-12 mb-5">
           <h2
-            id={slugify(section.content)}
+            id={slugifyHeading(section.content)}
             className="text-2xl font-semibold text-foreground leading-snug scroll-mt-24 tracking-tight"
           >
             {section.content}
@@ -297,7 +240,7 @@ function ContentSection({ section }: { section: ArticleSection }) {
               <thead>
                 <tr className="bg-muted/50 border-b border-border">
                   {section.headers.map((h, i) => (
-                    <th key={i} className="px-4 py-3 text-left font-semibold text-foreground whitespace-nowrap">
+                    <th key={i} scope="col" className="px-4 py-3 text-left font-semibold text-foreground whitespace-nowrap">
                       {h}
                     </th>
                   ))}
@@ -308,9 +251,15 @@ function ContentSection({ section }: { section: ArticleSection }) {
               {section.rows?.map((row, ri) => (
                 <tr key={ri} className={cn("border-b border-border/50", ri % 2 === 1 && "bg-muted/20")}>
                   {row.map((cell, ci) => (
-                    <td key={ci} className={cn("px-4 py-3 text-muted-foreground", ci === 0 && "font-medium text-foreground")}>
-                      {cell}
-                    </td>
+                    ci === 0 ? (
+                      <th key={ci} scope="row" className="px-4 py-3 text-left font-medium text-foreground">
+                        {cell}
+                      </th>
+                    ) : (
+                      <td key={ci} className="px-4 py-3 text-muted-foreground">
+                        {cell}
+                      </td>
+                    )
                   ))}
                 </tr>
               ))}
@@ -364,14 +313,6 @@ function FAQSection({ faqs }: { faqs: ArticleFAQ[] }) {
   )
 }
 
-function deriveArticleService(article: Article): 'med-cert' | 'prescription' | 'consult' {
-  const firstService = article.relatedServices[0]
-  if (!firstService) return 'med-cert'
-  if (firstService.icon === 'prescription') return 'prescription'
-  if (firstService.icon === 'consult') return 'consult'
-  return 'med-cert'
-}
-
 export function ArticleTemplate({ article, relatedArticles, allArticles = [] }: ArticleTemplateProps) {
   const [readingProgress, setReadingProgress] = useState(0)
   const articleRef = useRef<HTMLElement>(null)
@@ -399,6 +340,7 @@ export function ArticleTemplate({ article, relatedArticles, allArticles = [] }: 
   const seriesArticles = article.series
     ? allArticles.filter(a => a.series?.id === article.series?.id)
     : []
+  const articleVisuals = getArticleVisuals(article.slug)
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -521,65 +463,18 @@ export function ArticleTemplate({ article, relatedArticles, allArticles = [] }: 
       {/* Mobile jump-to-section */}
       <MobileTOC content={article.content} />
 
-      {/* Content — inject mid-article CTA after every 3rd H2 */}
+      <ArticleVisuals visuals={articleVisuals} />
+
+      {/* Content */}
       <div className="prose-content">
-        {(() => {
-          const service = deriveArticleService(article)
-          let h2Count = 0
-          return article.content.flatMap((section, i) => {
-            const el = <ContentSection key={i} section={section} />
-            if (section.type === 'heading' && section.level === 2) {
-              h2Count++
-              if (h2Count % 3 === 0) {
-                return [el, <MidArticleCTA key={`cta-${i}`} service={service} />]
-              }
-            }
-            return [el]
-          })
-        })()}
+        {article.content.map((section, i) => (
+          <ContentSection key={i} section={section} />
+        ))}
       </div>
 
       {/* FAQs */}
       {article.faqs && article.faqs.length > 0 && (
         <FAQSection faqs={article.faqs} />
-      )}
-
-      {/* Blog CTA Card — service derived from article's first relatedService */}
-      <BlogCTACard service={deriveArticleService(article)} />
-
-      {/* Related services */}
-      {article.relatedServices.length > 0 && (
-        <div className="mt-12 pt-8 border-t border-border">
-          <h2 className="text-xl font-semibold text-foreground mb-2">
-            How InstantMed Can Help
-          </h2>
-          <p className="text-muted-foreground mb-6">
-            Our AHPRA-registered doctors are available to assess your situation and provide appropriate care.
-          </p>
-
-          <div className="grid sm:grid-cols-2 gap-4">
-            {article.relatedServices.map((service, i) => (
-              <Link
-                key={i}
-                href={service.href}
-                className="group flex items-start gap-4 p-4 rounded-xl bg-white dark:bg-card border border-border/50 dark:border-white/10 hover:border-primary/30 dark:hover:border-primary/40 transition-[box-shadow,border-color]"
-              >
-                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                  <ServiceIcon icon={service.icon} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-foreground group-hover:text-primary transition-colors">
-                    {service.title}
-                  </p>
-                  <p className="text-sm text-muted-foreground mt-0.5">
-                    {service.description}
-                  </p>
-                </div>
-                <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-transform shrink-0 mt-3" />
-              </Link>
-            ))}
-          </div>
-        </div>
       )}
 
       {/* Tags */}
@@ -636,66 +531,6 @@ export function ArticleTemplate({ article, relatedArticles, allArticles = [] }: 
           currentSlug={article.slug}
         />
       )}
-
-      {/* Service & guide cross-links */}
-      <div className="mt-8 py-5 border-t">
-        <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 text-sm">
-          {article.category === "medical-certificates" && (
-            <>
-              <Link href="/medical-certificate" className="text-primary hover:underline">Medical certificates</Link>
-              <Link href="/conditions/cold-and-flu" className="text-primary hover:underline">Cold & flu</Link>
-              <Link href="/conditions/sore-throat" className="text-primary hover:underline">Sore throat</Link>
-            </>
-          )}
-          {article.category === "medications" && (
-            <>
-              <Link href="/prescriptions" className="text-primary hover:underline">Prescription service</Link>
-              <Link href="/conditions/chest-infection" className="text-primary hover:underline">Chest infection</Link>
-              <Link href="/conditions/sore-throat" className="text-primary hover:underline">Sore throat</Link>
-            </>
-          )}
-          {article.category === "telehealth" && (
-            <>
-              <Link href="/consult" className="text-primary hover:underline">Online consultations</Link>
-              <Link href="/how-it-works" className="text-primary hover:underline">How it works</Link>
-              <Link href="/conditions/cold-and-flu" className="text-primary hover:underline">Cold & flu</Link>
-            </>
-          )}
-          {article.category === "conditions" && (
-            <>
-              <Link href="/consult" className="text-primary hover:underline">Online consultations</Link>
-              <Link href="/medical-certificate" className="text-primary hover:underline">Medical certificates</Link>
-              <Link href="/prescriptions" className="text-primary hover:underline">Prescriptions</Link>
-            </>
-          )}
-          {article.category === "workplace-health" && (
-            <>
-              <Link href="/medical-certificate" className="text-primary hover:underline">Medical certificates</Link>
-              <Link href="/consult" className="text-primary hover:underline">Online consultations</Link>
-              <Link href="/conditions/mental-health-day" className="text-primary hover:underline">Mental health day</Link>
-            </>
-          )}
-        </div>
-      </div>
-
-      {/* Location cross-links for local SEO */}
-      <div className="mt-4 py-4 border-t">
-        <p className="text-xs text-muted-foreground text-center">
-          Available in{" "}
-          {["Sydney", "Melbourne", "Brisbane", "Perth", "Adelaide"].map((city, i, arr) => (
-            <span key={city}>
-              <Link href={`/locations/${city.toLowerCase()}`} className="text-primary hover:underline">
-                {city}
-              </Link>
-              {i < arr.length - 1 && ", "}
-            </span>
-          ))}
-          {" "}and{" "}
-          <Link href="/locations" className="text-primary hover:underline font-medium">
-            20+ more cities
-          </Link>
-        </p>
-      </div>
         </article>
 
         {/* Sidebar */}

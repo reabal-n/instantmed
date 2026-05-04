@@ -2,7 +2,7 @@ import fs from 'fs'
 import matter from 'gray-matter'
 import path from 'path'
 
-import type { Article, ArticleAuthor, ArticleCategory, ArticleFAQ, ArticleSection, ArticleSeries, RelatedService } from './types'
+import type { Article, ArticleAuthor, ArticleCategory, ArticleFAQ, ArticleSection, ArticleSeries } from './types'
 import { contentAuthors, defaultAuthor } from './types'
 
 const CONTENT_DIR = path.join(process.cwd(), 'content', 'blog')
@@ -27,7 +27,6 @@ interface MDXFrontmatter {
   heroImageDark?: string
   heroImageAlt: string
   faqs?: ArticleFAQ[]
-  relatedServices: RelatedService[]
   relatedArticles?: string[]
   series?: ArticleSeries
   /** Override canonical URL. When set, blog page metadata uses this instead of the default /blog/[slug]. */
@@ -64,6 +63,9 @@ function resolveAuthor(key: string): ArticleAuthor {
  * - Paragraphs (plain text separated by blank lines)
  * - ## Heading 2 / ### Heading 3
  * - Bullet lists (lines starting with "- ")
+ * - Ordered lists (lines starting with "1. ")
+ * - GitHub-flavoured Markdown tables
+ * - Blockquotes rendered as callouts
  * - <Callout variant="info">text</Callout>
  * - Inline links [text](/href "title") are converted to ArticleLink[]
  */
@@ -81,6 +83,20 @@ function parseMDXBodyToSections(body: string): ArticleSection[] {
       continue
     }
 
+    if (isMarkdownTableStart(lines, i)) {
+      const tableLines: string[] = []
+      while (i < lines.length && isTableRow(lines[i])) {
+        tableLines.push(lines[i])
+        i++
+      }
+
+      const table = parseMarkdownTable(tableLines)
+      if (table) {
+        sections.push(table)
+      }
+      continue
+    }
+
     // Callout blocks: <Callout variant="info">...</Callout>
     const calloutMatch = line.match(/^<Callout\s+variant="(info|warning|tip|emergency)">\s*$/)
     if (calloutMatch) {
@@ -95,7 +111,7 @@ function parseMDXBodyToSections(body: string): ArticleSection[] {
       sections.push({
         type: 'callout',
         variant,
-        content: contentLines.join('\n').trim(),
+        content: cleanInlineMarkdown(contentLines.join('\n').trim()),
       })
       continue
     }
@@ -106,7 +122,7 @@ function parseMDXBodyToSections(body: string): ArticleSection[] {
       sections.push({
         type: 'callout',
         variant: inlineCalloutMatch[1] as ArticleSection['variant'],
-        content: inlineCalloutMatch[2].trim(),
+        content: cleanInlineMarkdown(inlineCalloutMatch[2].trim()),
       })
       i++
       continue
@@ -134,11 +150,42 @@ function parseMDXBodyToSections(body: string): ArticleSection[] {
       continue
     }
 
+    // Blockquote notes: > text
+    if (line.startsWith('> ')) {
+      const contentLines: string[] = []
+      while (i < lines.length && lines[i].startsWith('> ')) {
+        contentLines.push(lines[i].slice(2).trim())
+        i++
+      }
+      const content = cleanInlineMarkdown(contentLines.join(' ').trim())
+      sections.push({
+        type: 'callout',
+        variant: inferBlockquoteVariant(content),
+        content,
+      })
+      continue
+    }
+
+    // Numbered list / ordered steps
+    if (/^\d+\.\s+/.test(line)) {
+      const items: string[] = []
+      while (i < lines.length && /^\d+\.\s+/.test(lines[i])) {
+        items.push(cleanInlineMarkdown(lines[i].replace(/^\d+\.\s+/, '').trim()))
+        i++
+      }
+      sections.push({
+        type: 'steps',
+        content: '',
+        items,
+      })
+      continue
+    }
+
     // Bullet list (consecutive lines starting with "- ")
     if (line.startsWith('- ')) {
       const items: string[] = []
       while (i < lines.length && lines[i].startsWith('- ')) {
-        items.push(lines[i].slice(2).trim())
+        items.push(cleanInlineMarkdown(lines[i].slice(2).trim()))
         i++
       }
       sections.push({
@@ -156,7 +203,10 @@ function parseMDXBodyToSections(body: string): ArticleSection[] {
       lines[i].trim() !== '' &&
       !lines[i].startsWith('## ') &&
       !lines[i].startsWith('### ') &&
+      !lines[i].startsWith('> ') &&
       !lines[i].startsWith('- ') &&
+      !/^\d+\.\s+/.test(lines[i]) &&
+      !isTableRow(lines[i]) &&
       !lines[i].startsWith('<Callout')
     ) {
       paraLines.push(lines[i])
@@ -166,7 +216,7 @@ function parseMDXBodyToSections(body: string): ArticleSection[] {
     if (paraLines.length > 0) {
       const text = paraLines.join(' ').trim()
       const links = extractLinks(text)
-      const cleanText = stripMarkdownLinks(text)
+      const cleanText = cleanInlineMarkdown(text)
 
       sections.push({
         type: 'paragraph',
@@ -177,6 +227,47 @@ function parseMDXBodyToSections(body: string): ArticleSection[] {
   }
 
   return sections
+}
+
+function isTableRow(line: string): boolean {
+  const trimmed = line.trim()
+  return trimmed.startsWith('|') && trimmed.endsWith('|')
+}
+
+function isTableSeparator(line: string): boolean {
+  return /^\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?$/.test(line.trim())
+}
+
+function isMarkdownTableStart(lines: string[], index: number): boolean {
+  return isTableRow(lines[index] || '') && isTableSeparator(lines[index + 1] || '')
+}
+
+function parseTableCells(line: string): string[] {
+  return line
+    .trim()
+    .replace(/^\|/, '')
+    .replace(/\|$/, '')
+    .split('|')
+    .map((cell) => cleanInlineMarkdown(cell.trim()))
+}
+
+function parseMarkdownTable(tableLines: string[]): ArticleSection | null {
+  if (tableLines.length < 3 || !isTableSeparator(tableLines[1])) return null
+
+  return {
+    type: 'table',
+    content: '',
+    headers: parseTableCells(tableLines[0]),
+    rows: tableLines.slice(2).map(parseTableCells),
+  }
+}
+
+function inferBlockquoteVariant(content: string): ArticleSection['variant'] {
+  if (/(call 000|emergency|severe pain|same day|urgent|warning)/i.test(content)) {
+    return 'warning'
+  }
+  if (/tip/i.test(content)) return 'tip'
+  return 'info'
 }
 
 /**
@@ -204,6 +295,14 @@ function extractLinks(text: string): ArticleSection['links'] & object {
  */
 function stripMarkdownLinks(text: string): string {
   return text.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+}
+
+function cleanInlineMarkdown(text: string): string {
+  return stripMarkdownLinks(text)
+    .replace(/\*\*([^*]+)\*\*/g, '$1')
+    .replace(/__([^_]+)__/g, '$1')
+    .replace(/\s+/g, ' ')
+    .trim()
 }
 
 /**
@@ -247,7 +346,6 @@ function loadMDXArticle(filePath: string): Article | null {
       heroImageAlt: fm.heroImageAlt,
       content: contentSections,
       faqs: fm.faqs,
-      relatedServices: fm.relatedServices || [],
       relatedArticles: fm.relatedArticles,
       series: fm.series,
       canonical: fm.canonical,

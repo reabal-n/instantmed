@@ -3,7 +3,7 @@
 > Canonical policy for organic educational content, prescription information pages, condition pages, symptom pages, and high-intent SEO pages.
 > Read this before creating or editing public SEO content.
 
-**Last updated:** 2026-04-28
+**Last updated:** 2026-05-05
 
 ---
 
@@ -70,6 +70,28 @@ Do not use:
 - "Buy ED medication"
 - "Get treatment today"
 - "Start treatment now" on drug-specific pages
+
+### Guide-only article pages
+
+Health guide articles (`content/blog/*.mdx`, currently rendered at `/blog/[slug]`) are stricter than service landing pages. They must read as reviewed educational guides, not acquisition pages.
+
+Do not add:
+
+- mid-article consultation CTAs
+- service CTA cards
+- "How InstantMed can help" sales sections
+- related-service acquisition panels
+- location SEO blocks such as "Available in Sydney"
+- request, prescription, consult, or medical-certificate links unless the article is explicitly explaining a service process and the link is neutral context
+
+Allowed inside guide articles:
+
+- related reading
+- FAQs
+- author and reviewer details
+- safety boundaries, red flags, source notes, and neutral telehealth suitability context
+
+Article visuals must be local assets under `public/images/blog/<slug>/`. AI-generated images may be used for calm educational scenes or abstract infographic bases, but do not bake readable labels into the image. Put labels, captions, and clinical distinctions in React/HTML so they are accessible and reviewable.
 
 ## 5. Internal Linking Rules
 
@@ -160,4 +182,3 @@ Before publishing or editing SEO content:
 - clear doctor-review caveat
 - clear redirection to urgent/in-person care where appropriate
 - aligned with `docs/ADVERTISING_COMPLIANCE.md`
-

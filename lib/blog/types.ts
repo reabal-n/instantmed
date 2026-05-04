@@ -28,13 +28,6 @@ export interface ArticleFAQ {
   answer: string
 }
 
-export interface RelatedService {
-  title: string
-  description: string
-  href: string
-  icon: 'certificate' | 'prescription' | 'consult' | 'referral'
-}
-
 export interface ArticleSeries {
   id: string
   name: string
@@ -59,7 +52,6 @@ export interface Article {
   heroImageAlt: string
   content: ArticleSection[]
   faqs?: ArticleFAQ[]
-  relatedServices: RelatedService[]
   relatedArticles?: string[]
   series?: ArticleSeries
   /** Override canonical URL. When set, the blog page metadata points here instead of the default /blog/[slug]. */

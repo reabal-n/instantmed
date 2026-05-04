@@ -657,7 +657,7 @@ See `TESTING.md` for full testing strategy, conventions, E2E patterns, auth bypa
 | `app/api/stripe/webhook/` | Stripe handlers | 9 handlers: `checkout-session-completed`, `checkout-session-expired`, `checkout-session-async-payment-succeeded/failed`, `charge-refunded`, `charge-dispute-created`, `payment-intent-payment-failed`, `invoice-payment-succeeded`, `customer-subscription-deleted`. Subscription handlers are compatibility-only while Repeat Rx subscription acquisition is inactive. Registered in `handlers/index.ts`. |
 | `app/request/` | **Sole canonical intake flow.** Single page, step-based wizard. |
 | `app/(dev)/` | Dev-only routes | Email preview, Sentry test — blocked in production by middleware |
-| `app/blog/` | Health articles | ISR 12h, `[slug]/page.tsx` |
+| `app/blog/` | Guide-only health articles | MDX content from `content/blog/`, ISR 12h, `[slug]/page.tsx` |
 | `app/conditions/[slug]/` | SEO: conditions | Programmatic from `lib/seo/data/` |
 | `app/symptoms/[slug]/` | SEO: symptoms | Programmatic from `lib/seo/data/` |
 | `app/guides/[slug]/` | SEO: guides | Programmatic from `lib/seo/data/` |
@@ -677,6 +677,7 @@ See `TESTING.md` for full testing strategy, conventions, E2E patterns, auth bypa
 | `shared/` | 39 | Header, Footer, InlineAuthStep, CheckoutButton, LazyOverlays |
 | `request/` | 32 | Intake flow: `request-flow.tsx` (orchestrator), `steps/` (per-step components), `store.ts` (Zustand) |
 | `marketing/` | 20 | Landing pages, ServiceFunnelPage, testimonials, exit intent |
+| `blog/` | 12 | Guide article template, TOC, visuals, related reading, share controls |
 | `doctor/` | — | IntakeReviewPanel, RepeatPrescriptionChecklist, clinical views |
 | `admin/` | — | Admin-specific panels and views |
 | `patient/` | — | ReferralCard, CrossSellCard, dashboard components |
@@ -710,7 +711,7 @@ See `TESTING.md` for full testing strategy, conventions, E2E patterns, auth bypa
 | `lib/security/` | Encryption | `phi-encryption.ts` (AES-256-GCM), `phi-field-wrappers.ts` (data layer wrappers) |
 | `lib/stripe/` | Payments | `checkout.ts`, `guest-checkout.ts`, `price-mapping.ts`, `client.ts` |
 | `lib/seo/data/` | SEO content | `conditions.ts`, `symptoms.ts`, `guides.ts`, `comparisons.ts`, `audience-pages.ts`, `condition-location-combos.ts`, `deep-city-content.ts` — drive programmatic pages |
-| `lib/blog/articles/` | Blog content | Article data (12,574 lines total) |
+| `lib/blog/` | Health guide content system | MDX loader/parser, article registry, shared heading slugs, visual registry |
 | `lib/notifications/` | Alerts | `telegram.ts` (ops alerts), `service.ts` (payment notifications) |
 | `lib/observability/` | Logging/monitoring | `logger.ts` (structured logger), `sentry.ts` (helpers) |
 | `lib/feature-flags.ts` | Feature flags | DB-backed via `feature_flags` table, `getFeatureFlags()` |
@@ -731,6 +732,9 @@ See `TESTING.md` for full testing strategy, conventions, E2E patterns, auth bypa
 | `e2e/` | 46 Playwright specs, `helpers/` (seed/teardown, auth bypass). Full suite runs in CI. |
 | `supabase/migrations/` | 57 SQL migration files (1 squashed baseline + 56 incremental). Most recent: `20260503090000_enable_rls_on_audit_logs_archive.sql` |
 | `public/templates/` | Static PDF templates for certificate generation |
+| `content/blog/` | 108 MDX health guide articles. Article bodies are guide-only; service CTAs belong on landing pages, not inside guides. |
+| `public/images/blog/` | Local WebP hero and article visual assets for health guides |
+| `scripts/audit-health-guides.mjs` | Content QA backlog for guide-only copy, local images, rendering defects, source depth, and safety-boundary gaps |
 
 ---
 
@@ -853,7 +857,7 @@ Models in `lib/ai/provider.ts`. Routed through Vercel AI Gateway in production (
 | `/erectile-dysfunction` | Bespoke ED specialty landing (`ErectileDysfunctionLanding`). Routes into `/request?service=consult&subtype=ed`. Form-first doctor review; doctor may call/message if clinically needed. Short URL `/ed` 301s here. |
 | `/hair-loss` | Bespoke hair loss specialty landing (`HairLossLanding`). Routes into `/request?service=consult&subtype=hair_loss`. Form-first doctor review; doctor may call/message if clinically needed. |
 | `/consult` | Canonical generic doctor-consult funnel (`ServiceFunnelPage` + 12 FAQs + HowToSchema). The `/general-consult` URL was retired in commit `542ae8119` as an SEO cannibalization fix and now 301s here. |
-| `/blog` | Doctor-reviewed health articles (12h ISR revalidation) |
+| `/blog` | Doctor-reviewed, guide-only health articles (12h ISR revalidation) |
 | `/faq` | 34 FAQs across 7 categories |
 | `/contact` | Contact form → support@instantmed.com.au |
 | `/terms` | Terms of Service (Feb 2026). §5 "Clinical Governance Model" discloses the solo AHPRA-registered Medical Director and links to `/clinical-governance`. §13 links to `/complaints`. |
