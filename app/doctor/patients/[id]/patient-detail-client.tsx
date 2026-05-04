@@ -16,6 +16,7 @@ import {
   MapPin,
   MessageSquare,
   Phone,
+  Pill,
   Plus,
   StickyNote,
   User,
@@ -83,6 +84,20 @@ interface PatientNote {
   created_by_name: string | null
 }
 
+interface PatientMedication {
+  id: string
+  source: "parchment" | "instantmed_request"
+  medication_name: string
+  medication_strength: string | null
+  dosage_instructions: string | null
+  quantity_prescribed: number | null
+  repeats_allowed: number | null
+  status: string
+  recorded_at: string
+  parchment_reference: string | null
+  request_id: string | null
+}
+
 type PatientDetailProfile = Profile & {
   duplicate_profile_ids?: string[]
 }
@@ -90,6 +105,7 @@ type PatientDetailProfile = Profile & {
 interface PatientDetailClientProps {
   patient: PatientDetailProfile
   intakes: IntakeWithService[]
+  medications: PatientMedication[]
   stats: {
     totalRequests: number
     approvedRequests: number
@@ -104,6 +120,7 @@ interface PatientDetailClientProps {
 export function PatientDetailClient({
   patient,
   intakes,
+  medications,
   stats,
   emailLogs,
   patientNotes,
@@ -335,6 +352,75 @@ export function PatientDetailClient({
           <p className="text-2xl font-semibold mt-2">{stats.certificatesIssued}</p>
         </Card>
       </div>
+
+      {/* Medication History */}
+      <Card className="rounded-xl border-border/50">
+        <CardHeader className="py-3 px-4">
+          <div>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Pill className="h-4 w-4" />
+              Medication History
+            </CardTitle>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Parchment prescriptions and previous InstantMed prescription requests
+            </p>
+          </div>
+        </CardHeader>
+        <CardContent className="px-4 py-3">
+          {medications.length > 0 ? (
+            <div className="space-y-3">
+              {medications.map((medication) => (
+                <div key={medication.id} className="rounded-lg bg-muted/50 p-4">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="min-w-0">
+                      <p className="font-medium text-foreground">
+                        {[medication.medication_name, medication.medication_strength].filter(Boolean).join(" ")}
+                      </p>
+                      {medication.dosage_instructions && (
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          {medication.dosage_instructions}
+                        </p>
+                      )}
+                      <div className="mt-2 flex flex-wrap gap-2 text-xs text-muted-foreground">
+                        {medication.quantity_prescribed !== null && (
+                          <span>Qty {medication.quantity_prescribed}</span>
+                        )}
+                        {medication.repeats_allowed !== null && (
+                          <span>Repeats {medication.repeats_allowed}</span>
+                        )}
+                        {medication.parchment_reference && (
+                          <span className="font-mono">SCID {medication.parchment_reference}</span>
+                        )}
+                        {medication.request_id && (
+                          <Link href={`/doctor/intakes/${medication.request_id}`} className="text-primary hover:underline">
+                            View request
+                          </Link>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-start gap-2 sm:items-end">
+                      <Badge variant="outline">
+                        {medication.source === "parchment" ? "Parchment" : "InstantMed request"}
+                      </Badge>
+                      <Badge variant="outline" className={medication.source === "parchment" ? "bg-success-light text-success border-success-border" : getStatusColor(medication.status)}>
+                        {formatIntakeStatus(medication.status)}
+                      </Badge>
+                      <p className="text-xs text-muted-foreground">
+                        {medication.source === "parchment" ? "Issued" : "Requested"} {formatDate(medication.recorded_at)}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-muted-foreground">
+              <Pill className="h-8 w-8 mx-auto mb-2 opacity-50" />
+              <p className="text-sm">No medication history yet</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Request History */}
       <Card className="rounded-xl border-border/50">

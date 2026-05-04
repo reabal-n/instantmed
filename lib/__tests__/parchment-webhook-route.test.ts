@@ -12,9 +12,11 @@ const mocks = vi.hoisted(() => ({
     info: vi.fn(),
     warn: vi.fn(),
   },
+  getPatientPrescriptions: vi.fn(),
   state: {
     candidateRows: [] as Array<Record<string, unknown>>,
     patientProfileFound: true,
+    prescriptionUpserts: [] as Array<Record<string, unknown>>,
     prescriberRows: [] as Array<{ id: string }>,
   },
   sendEmail: vi.fn(),
@@ -54,6 +56,7 @@ vi.mock("@/lib/observability/logger", () => ({
 }))
 
 vi.mock("@/lib/parchment/client", () => ({
+  getPatientPrescriptions: mocks.getPatientPrescriptions,
   verifyWebhookSignature: mocks.verifyWebhookSignature,
 }))
 
@@ -125,6 +128,16 @@ vi.mock("@/lib/supabase/service-role", () => ({
       return {
         select: () => createQuery(table, "select"),
         update: () => createQuery(table, "update"),
+        upsert: (payload: Record<string, unknown>) => {
+          if (table === "prescriptions") {
+            mocks.state.prescriptionUpserts.push(payload)
+          }
+          return {
+            select: () => ({
+              maybeSingle: () => Promise.resolve({ data: { id: "prescription-1" }, error: null }),
+            }),
+          }
+        },
       }
     },
   }),
@@ -163,8 +176,24 @@ describe("Parchment webhook route", () => {
     delete process.env.PARCHMENT_PARTNER_ID
     mocks.verifyWebhookSignature.mockReturnValue({ valid: true })
     mocks.updateScriptSent.mockResolvedValue(true)
+    mocks.getPatientPrescriptions.mockResolvedValue({
+      prescriptions: [
+        {
+          scid: SCID,
+          item_name: "Metformin Tablet",
+          item_strength: "1 g",
+          item_form: "Tablet",
+          quantity: "30",
+          number_of_repeats_authorised: "2",
+          patient_instructions: "Take one tablet daily",
+          created_date: "2026-05-04T09:15:00.000Z",
+          status: "active",
+        },
+      ],
+    })
     mocks.getIntakeWithDetails.mockResolvedValue(null)
     mocks.state.patientProfileFound = true
+    mocks.state.prescriptionUpserts = []
     mocks.state.prescriberRows = [{ id: PRESCRIBER_PROFILE_ID }]
     mocks.state.candidateRows = [
       {
@@ -198,22 +227,23 @@ describe("Parchment webhook route", () => {
     )
   })
 
-  it("alerts operators when a valid Parchment script event cannot be matched to an intake", async () => {
+  it("alerts operators and retries when a standalone Parchment prescription cannot be synced", async () => {
     mocks.state.candidateRows = []
+    mocks.getPatientPrescriptions.mockRejectedValue(new Error("Parchment read failed"))
 
     const response = await POST(makeWebhookRequest())
     const body = await response.json()
 
-    expect(response.status).toBe(200)
-    expect(body).toEqual({ received: true, warning: "No awaiting_script intake found" })
+    expect(response.status).toBe(500)
+    expect(body).toEqual({ error: "Failed to sync prescription" })
     expect(mocks.updateScriptSent).not.toHaveBeenCalled()
     expect(mocks.captureMessage).toHaveBeenCalledWith(
-      "Parchment webhook could not match prescription.created to an intake",
+      "Parchment prescription could not be synced to PMS",
       expect.objectContaining({
         level: "warning",
         tags: expect.objectContaining({
           source: "parchment-webhook",
-          unmatched_reason: "no_awaiting_script_intake",
+          unmatched_reason: "prescription_sync_failed",
         }),
       }),
     )
@@ -221,8 +251,39 @@ describe("Parchment webhook route", () => {
       "evt_route_1",
       "parchment:prescription.created",
       null,
+      "prescription_sync_failed",
+    )
+  })
+
+  it("syncs a standalone Parchment prescription to the PMS when no paid intake exists", async () => {
+    mocks.state.candidateRows = []
+
+    const response = await POST(makeWebhookRequest())
+    const body = await response.json()
+
+    expect(response.status).toBe(200)
+    expect(body).toEqual({ received: true, syncedPrescription: true })
+    expect(mocks.updateScriptSent).not.toHaveBeenCalled()
+    expect(mocks.logWebhookFailure).not.toHaveBeenCalledWith(
+      "evt_route_1",
+      "parchment:prescription.created",
+      null,
       "no_awaiting_script_intake",
     )
+    expect(mocks.state.prescriptionUpserts).toHaveLength(1)
+    expect(mocks.state.prescriptionUpserts[0]).toMatchObject({
+      patient_id: PATIENT_PROFILE_ID,
+      prescriber_id: PRESCRIBER_PROFILE_ID,
+      intake_id: null,
+      parchment_reference: SCID,
+      medication_name: "Metformin Tablet",
+      medication_strength: "1 g",
+      dosage_instructions: "Take one tablet daily",
+      quantity_prescribed: 30,
+      repeats_allowed: 2,
+      status: "active",
+      issued_date: "2026-05-04",
+    })
   })
 
   it("logs durable ops visibility when matched Parchment script completion fails", async () => {
