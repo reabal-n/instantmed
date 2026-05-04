@@ -1,5 +1,18 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "redirects": [
+    {
+      "source": "/(.*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.instantmed.com.au"
+        }
+      ],
+      "destination": "https://instantmed.com.au/$1",
+      "permanent": true
+    }
+  ],
   "crons": [
     {
       "path": "/api/cron/abandoned-checkouts",

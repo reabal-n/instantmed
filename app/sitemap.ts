@@ -1,6 +1,10 @@
 import type { MetadataRoute } from "next"
 
-const BUILD_DATE = new Date()
+const ROOT_SITEMAP_LAST_MODIFIED = new Date("2026-04-30")
+const SERVICE_PAGES_LAST_MODIFIED = new Date("2026-04-28")
+const MED_CERT_LOCATION_LAST_MODIFIED = new Date("2026-04-24")
+const AUDIENCE_PAGES_LAST_MODIFIED = new Date("2026-04-12")
+const EMPLOYER_PAGES_LAST_MODIFIED = new Date("2026-04-12")
 const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://instantmed.com.au"
 
 /**
@@ -105,37 +109,37 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   return [
     ...pillarPages.map((route) => ({
       url: `${baseUrl}${route}`,
-      lastModified: BUILD_DATE,
+      lastModified: ROOT_SITEMAP_LAST_MODIFIED,
       changeFrequency: "weekly" as const,
       priority: 1.0,
     })),
     ...staticPages.map((route) => ({
       url: `${baseUrl}${route}`,
-      lastModified: BUILD_DATE,
+      lastModified: ROOT_SITEMAP_LAST_MODIFIED,
       changeFrequency: route === "" ? ("daily" as const) : ("weekly" as const),
       priority: route === "" ? 1 : 0.9,
     })),
     ...servicePages.map((route) => ({
       url: `${baseUrl}${route}`,
-      lastModified: BUILD_DATE,
+      lastModified: SERVICE_PAGES_LAST_MODIFIED,
       changeFrequency: "weekly" as const,
       priority: 0.8,
     })),
     ...medCertLocationSlugs.map((slug) => ({
       url: `${baseUrl}/medical-certificate/${slug}`,
-      lastModified: BUILD_DATE,
+      lastModified: MED_CERT_LOCATION_LAST_MODIFIED,
       changeFrequency: "monthly" as const,
       priority: 0.7,
     })),
     ...audiencePages.map((route) => ({
       url: `${baseUrl}${route}`,
-      lastModified: BUILD_DATE,
+      lastModified: AUDIENCE_PAGES_LAST_MODIFIED,
       changeFrequency: "monthly" as const,
       priority: 0.7,
     })),
     ...employerPages.map((route) => ({
       url: `${baseUrl}${route}`,
-      lastModified: BUILD_DATE,
+      lastModified: EMPLOYER_PAGES_LAST_MODIFIED,
       changeFrequency: "monthly" as const,
       priority: 0.6,
     })),
