@@ -3,10 +3,15 @@
 import fs from "node:fs/promises"
 import path from "node:path"
 
+import { gateway, generateImage } from "ai"
+import dotenv from "dotenv"
 import sharp from "sharp"
 
 import type { ArticleVisual, ArticleVisualItem } from "@/lib/blog/visuals"
 import { getAllTopArticleVisuals, TOP_VISUAL_ARTICLE_SLUGS } from "@/lib/blog/visuals"
+
+dotenv.config({ path: path.join(process.cwd(), ".env.local"), override: false, quiet: true })
+dotenv.config({ path: path.join(process.cwd(), ".env"), override: false, quiet: true })
 
 interface Palette {
   dark: string
@@ -18,6 +23,9 @@ interface Palette {
 
 const WIDTH = 1280
 const HEIGHT = 1600
+const GPT_IMAGE_MODEL = "openai/gpt-image-2"
+
+type Renderer = "deterministic" | "gpt-image-2"
 
 const palettes: Record<ArticleVisual["accent"], Palette> = {
   amber: {
@@ -74,6 +82,26 @@ function getArg(name: string): string | undefined {
 
 function hasFlag(name: string): boolean {
   return process.argv.includes(`--${name}`)
+}
+
+function getRenderer(): Renderer {
+  const renderer = getArg("renderer")
+  if (!renderer) return hasFlag("gateway") ? "gpt-image-2" : "deterministic"
+  if (renderer === "deterministic" || renderer === "gpt-image-2") return renderer
+  throw new Error(`Unsupported renderer "${renderer}". Use deterministic or gpt-image-2.`)
+}
+
+function configureGatewayAuth() {
+  process.env.AI_GATEWAY_API_KEY ||= process.env.VERCEL_AI_GATEWAY_API_KEY
+}
+
+function assertGatewayAuth() {
+  configureGatewayAuth()
+  if (!process.env.AI_GATEWAY_API_KEY && !process.env.VERCEL_OIDC_TOKEN) {
+    throw new Error(
+      "Missing AI Gateway auth. Run `vercel env pull .env.local --yes` or set AI_GATEWAY_API_KEY.",
+    )
+  }
 }
 
 function escapeXml(value: string): string {
@@ -331,6 +359,54 @@ function renderMap(visual: ArticleVisual, palette: Palette) {
   }
 }
 
+function getInfographicLayoutPrompt(kind: ArticleVisual["kind"]): string {
+  switch (kind) {
+    case "comparison":
+      return "Use a comparison poster layout with clear grouped columns, repeated icons, and obvious category contrast."
+    case "flow":
+      return "Use a sequential flow poster layout with a visible start, middle, end, arrows, pathway nodes, and a clean process map."
+    case "timeline":
+      return "Use an ordered timeline poster layout with milestones, progression markers, and consistent spacing."
+    case "warning":
+      return "Use a safety-boundary poster layout with calm warning hierarchy, decision split, and safe-vs-urgent pathway."
+    case "checklist":
+      return "Use a checklist poster layout with grouped cards, check markers, practical zones, and a compact summary band."
+    case "spectrum":
+      return "Use a spectrum poster layout with graded zones, stepped intensity, or layered categories."
+  }
+}
+
+function buildGatewayPrompt(slug: string, visual: ArticleVisual): string {
+  const itemText = visual.items.map((item, index) => `${index + 1}. ${item.label}: ${item.detail}`).join("\n")
+
+  return [
+    "Use case: infographic-diagram",
+    "Asset type: portrait health-guide infographic poster for a premium Australian telehealth website.",
+    `Model: ${GPT_IMAGE_MODEL}.`,
+    "",
+    "Primary request:",
+    visual.imagePrompt,
+    "",
+    "Create a detailed, polished, information-dense infographic poster, like a professionally designed patient education handout. It should have meaningful diagram structure, not a decorative stock image.",
+    getInfographicLayoutPrompt(visual.kind),
+    "",
+    "Exact visible copy to use. Use only this copy; do not invent extra claims, legal rules, drug names, symptoms, prices, or calls to action:",
+    `Eyebrow: ${visual.eyebrow}`,
+    `Title: ${visual.title}`,
+    `Summary: ${visual.summary}`,
+    "Cards:",
+    itemText,
+    "Footer: Educational guide. Urgent symptoms need urgent care.",
+    "",
+    "Style:",
+    "Warm ivory background, crisp navy typography, blue/emerald/amber clinical accents, flat vector-meets-editorial medical illustration, dense but readable spacing, rounded cards, small icons, process arrows, subtle Australian digital health feel.",
+    "",
+    "Hard constraints:",
+    "No brand logos, no official seals, no medical crosses, no medication brand names, no pill imprints, no celebrity likenesses, no gore, no graphic symptoms, no consultation CTA, no website UI, no fake doctor-patient chat. If a person appears, make them non-identifiable and secondary.",
+    `Article slug for context only: ${slug}.`,
+  ].join("\n")
+}
+
 function renderArticleVisualSvg(slug: string, visual: ArticleVisual): string {
   const palette = palettes[visual.accent]
   const title = textBlock({
@@ -404,11 +480,41 @@ async function saveInfographic(slug: string, visual: ArticleVisual) {
   return filepath
 }
 
+async function saveGatewayInfographic(slug: string, visual: ArticleVisual) {
+  const outputDir = path.join(process.cwd(), "public", "images", "blog", slug)
+  await fs.mkdir(outputDir, { recursive: true })
+
+  const filepath = path.join(outputDir, `${visual.id}.webp`)
+  const palette = palettes[visual.accent]
+  const result = await generateImage({
+    model: gateway.image(GPT_IMAGE_MODEL),
+    prompt: buildGatewayPrompt(slug, visual),
+    size: "1024x1536",
+    providerOptions: {
+      gateway: {
+        tags: ["feature:blog-visuals", `article:${slug}`, "renderer:gpt-image-2"],
+      },
+    },
+  })
+
+  await sharp(Buffer.from(result.image.uint8Array))
+    .resize(WIDTH, HEIGHT, { fit: "contain", background: palette.wash })
+    .webp({ quality: 88, effort: 5 })
+    .toFile(filepath)
+
+  return filepath
+}
+
 async function main() {
   const slugFilter = getArg("slug")
   const limit = Number(getArg("limit") ?? "0")
   const dryRun = hasFlag("dry-run")
   const force = hasFlag("force")
+  const renderer = getRenderer()
+
+  if (renderer === "gpt-image-2") {
+    assertGatewayAuth()
+  }
 
   const visualsBySlug = getAllTopArticleVisuals()
   const jobs = TOP_VISUAL_ARTICLE_SLUGS
@@ -433,12 +539,15 @@ async function main() {
     }
 
     if (dryRun) {
-      console.log(`\n--- ${slug}/${visual.id} ---\n${renderArticleVisualSvg(slug, visual)}`)
+      const output =
+        renderer === "gpt-image-2" ? buildGatewayPrompt(slug, visual) : renderArticleVisualSvg(slug, visual)
+      console.log(`\n--- ${slug}/${visual.id} (${renderer}) ---\n${output}`)
       continue
     }
 
-    console.log(`Generating infographic ${slug}/${visual.id}...`)
-    const saved = await saveInfographic(slug, visual)
+    console.log(`Generating ${renderer} infographic ${slug}/${visual.id}...`)
+    const saved =
+      renderer === "gpt-image-2" ? await saveGatewayInfographic(slug, visual) : await saveInfographic(slug, visual)
     console.log(`Saved ${path.relative(process.cwd(), saved)}`)
   }
 }
