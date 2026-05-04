@@ -2,7 +2,7 @@
 
 import { Eye, EyeOff, Loader2 } from "lucide-react"
 import Link from "next/link"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useRouter } from "next/navigation"
 import type React from "react"
 import { useState } from "react"
 import { toast } from "sonner"
@@ -16,7 +16,6 @@ import { Label } from "@/components/ui/label"
 
 export function ResetPasswordClient() {
   const router = useRouter()
-  const searchParams = useSearchParams()
   
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
@@ -41,17 +40,14 @@ export function ResetPasswordClient() {
     setIsLoading(true)
 
     try {
-      // Get the reset code from URL (Supabase sends this via email)
-      const code = searchParams?.get("code")
-
-      if (!code) {
-        setError("Invalid or expired reset link. Please request a new one.")
-        setIsLoading(false)
-        return
-      }
-
       const { createClient } = await import("@/lib/supabase/client")
       const supabase = createClient()
+      const { data: { user }, error: userError } = await supabase.auth.getUser()
+
+      if (userError || !user) {
+        setError("Invalid or expired reset link. Please request a new one.")
+        return
+      }
 
       const { error: updateError } = await supabase.auth.updateUser({
         password,
@@ -62,6 +58,7 @@ export function ResetPasswordClient() {
         return
       }
 
+      await supabase.auth.signOut()
       toast.success("Password updated successfully")
       router.push("/sign-in")
     } catch (err) {

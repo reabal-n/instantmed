@@ -1,0 +1,2 @@
+export const GOOGLE_ADS_ID = "AW-17795889471"
+export const GOOGLE_ANALYTICS_ID = "G-X0QJQRLL2Y"

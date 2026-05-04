@@ -33,7 +33,7 @@ Four strings, four jobs. Do not mix them up.
 | **Med-cert wedge** | *No video. No call. No appointment.* | Med-cert-specific mechanism for suitable administrative documentation requests. | Medical certificate surfaces only. |
 | **Form-first wedge** | *Complete a secure clinical form. A doctor contacts you only if more information is clinically needed.* | Prescribing and specialty-service mechanism. Keeps the moat while preserving clinical discretion. | Prescriptions, ED, hair loss, women's health, weight loss. |
 | **Prop phrase** | *Telehealth without the small talk.* | Voice signature. Doubles as the homepage H2 under the tagline H1, and as the campaign sign-off on ad end-frames, email footers, and the about-page lede. | Hero H2, ad end-frames, email footers, press leads, about page lede. |
-| **Iconic hook** | *Three minutes. Done.* | The conversion-proximate kicker. Sits next to primary CTAs, runs as the headline on Google Ads, anchors the end of long-scroll marketing pages. | CTA proximity, Google Ads headlines, paid social creative, long-scroll closers. |
+| **Iconic hook** | *Start with a secure form. Takes about 3 minutes.* | The conversion-proximate kicker. Sits next to primary CTAs, runs as the headline on Google Ads, anchors the end of long-scroll marketing pages. | CTA proximity, Google Ads headlines, paid social creative, long-scroll closers. |
 
 **Plus one guarantee, always visible at conversion points:**
 
@@ -49,7 +49,7 @@ This is the merchandised promise. It lives above checkout CTAs, inline on hero C
 2. **Name the wait, then remove it.** *You used to wait three weeks for a GP. Not anymore.*
 3. **Use negation carefully.** *No appointment. No waiting room.* is broadly safe. *No call* is med-cert-specific unless a clinician has explicitly approved the service context.
 4. **Lead with the human.** A real Australian doctor reviews your request. Say that. Don't hide behind "our platform."
-5. **Price in the first breath, not the footer.** Numbers are trust signals. *Medical certificate, $19.95. Reviewed in under 30 minutes.*
+5. **Price in the first breath, not the footer.** Numbers are trust signals. *Medical certificate, $19.95. Start with a secure form.*
 
 ## 5 Don'ts
 
@@ -66,7 +66,7 @@ This is the merchandised promise. It lives above checkout CTAs, inline on hero C
 1. *Faster than your GP.*
 2. *Faster than the wait at your GP.* (paid-safe variant)
 3. *Telehealth without the small talk.*
-4. *Three minutes. Done.*
+4. *Start with a secure form. Takes about 3 minutes.*
 5. *Telehealth without the small talk. A real doctor, ready in the time it takes to make a coffee.* (brand thesis)
 6. *A real doctor, ready in the time it takes to make a coffee.*
 7. *A real doctor, online, the moment you need one.*

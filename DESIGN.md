@@ -89,7 +89,7 @@
   /* -- Brand signature coral (added DS 1.1.0 / 2026-04-29) --
      Used sparingly on brand-recognition moments only:
        - signature mark on marketing pages
-       - homepage hero kicker / "Three minutes. Done." pill
+       - homepage hero kicker / secure-form review pill
        - doctor signature underline
        - page-enter sweep accent
        - wait-counter pulse

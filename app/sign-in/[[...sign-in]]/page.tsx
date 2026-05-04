@@ -54,6 +54,8 @@ function SignInForm() {
   const [formState, setFormState] = useState<FormState>('idle')
   const [errorMessage, setErrorMessage] = useState('')
   const [googleLoading, setGoogleLoading] = useState(false)
+  const [emailLinkLoading, setEmailLinkLoading] = useState(false)
+  const [emailLinkSent, setEmailLinkSent] = useState(false)
 
   const supabase = createClient()
 
@@ -117,6 +119,38 @@ function SignInForm() {
     // On success, browser redirects - no state update needed
   }, [redirectUrl, supabase.auth])
 
+  const handleEmailLinkSignIn = useCallback(async () => {
+    const trimmed = email.trim().toLowerCase()
+    if (!trimmed || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+      setErrorMessage('Please enter a valid email address.')
+      setFormState('error')
+      return
+    }
+
+    setEmailLinkLoading(true)
+    setErrorMessage('')
+
+    const redirectTo = `${window.location.origin}/auth/callback${redirectUrl ? `?next=${encodeURIComponent(redirectUrl)}` : ''}`
+
+    const { error } = await supabase.auth.signInWithOtp({
+      email: trimmed,
+      options: {
+        emailRedirectTo: redirectTo,
+        shouldCreateUser: false,
+      },
+    })
+
+    if (error?.message?.includes('rate') || error?.status === 429) {
+      setErrorMessage('Too many attempts. Please wait a few minutes.')
+      setFormState('error')
+      setEmailLinkLoading(false)
+      return
+    }
+
+    setEmailLinkSent(true)
+    setEmailLinkLoading(false)
+  }, [email, redirectUrl, supabase.auth])
+
   return (
     <div className="w-full max-w-md">
       {/* Mobile logo */}
@@ -172,6 +206,7 @@ function SignInForm() {
                 value={email}
                 onChange={(e) => {
                   setEmail(e.target.value)
+                  setEmailLinkSent(false)
                   if (formState === 'error') {
                     setFormState('idle')
                     setErrorMessage('')
@@ -224,7 +259,7 @@ function SignInForm() {
                 type="submit"
                 size="lg"
                 className="w-full"
-                disabled={formState === 'loading' || !email.trim() || !password}
+                disabled={formState === 'loading' || emailLinkLoading || !email.trim() || !password}
               >
                 {formState === 'loading' ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -246,6 +281,30 @@ function SignInForm() {
                 <span className="bg-white dark:bg-card px-3 text-muted-foreground">or</span>
               </div>
             </div>
+
+            {emailLinkSent && (
+              <div className="mb-3 rounded-xl border border-success-border bg-success-light px-4 py-3 text-sm text-success">
+                Check your inbox for a secure sign-in link.
+              </div>
+            )}
+
+            <Button
+              type="button"
+              variant="outline"
+              size="lg"
+              className="w-full mb-3"
+              onClick={handleEmailLinkSignIn}
+              disabled={formState === 'loading' || emailLinkLoading || !email.trim()}
+            >
+              {emailLinkLoading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <>
+                  <Mail className="w-4 h-4" />
+                  Email me a sign-in link
+                </>
+              )}
+            </Button>
 
             {/* Google OAuth */}
             <Button

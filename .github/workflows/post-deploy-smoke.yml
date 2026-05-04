@@ -40,12 +40,19 @@ jobs:
           [ "$status" = "200" ] || fail "/sign-in returned $status"
           ok "/sign-in renders"
 
-          # 4. /api/auth/sign-out must accept a POST and clear the cookie.
+          # 4. Password recovery surfaces must render.
+          for path in /auth/forgot-password /auth/reset-password; do
+            status=$(curl -s -o /dev/null -w '%{http_code}' "$BASE$path")
+            [ "$status" = "200" ] || fail "$path returned $status"
+            ok "$path renders"
+          done
+
+          # 5. /api/auth/sign-out must accept a POST and clear the cookie.
           response=$(curl -s -i -X POST "$BASE/api/auth/sign-out")
           echo "$response" | grep -qi 'set-cookie:.*profile_linked=' || fail "sign-out endpoint did not clear profile_linked cookie. Response: $response"
           ok "/api/auth/sign-out clears profile_linked"
 
-          # 5. /patient must redirect or 401 when not signed in.
+          # 6. /patient must redirect or 401 when not signed in.
           status=$(curl -s -o /dev/null -w '%{http_code}' "$BASE/patient")
           [ "$status" = "302" ] || [ "$status" = "307" ] || fail "/patient should redirect when unauthenticated, got $status"
           ok "/patient gates auth"

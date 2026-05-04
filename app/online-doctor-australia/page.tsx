@@ -78,7 +78,7 @@ const SERVICES = [
   {
     icon: FileText,
     title: "Medical certificates",
-    body: "Valid for employers, universities, and Centrelink. Same-day turnaround, accepted under the Fair Work Act 2009.",
+    body: "AHPRA GP review for work, study, and other evidence needs. Employer, institution, and agency policies may vary.",
     href: "/medical-certificate",
     cta: "Request a medical certificate",
     priceLabel: `From ${PRICING_DISPLAY.MED_CERT}`,

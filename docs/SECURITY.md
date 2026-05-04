@@ -192,14 +192,14 @@ Defined in `next.config.mjs`. Key directives (production — `unsafe-eval` is **
 
 ```
 default-src 'self';
-script-src 'self' 'unsafe-inline' https://js.stripe.com https://www.googletagmanager.com https://www.google-analytics.com https://*.doubleclick.net https://challenges.cloudflare.com;
+script-src 'self' 'unsafe-inline' https://js.stripe.com https://www.googletagmanager.com https://*.googletagmanager.com https://www.google-analytics.com https://www.googleadservices.com https://www.google.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://*.doubleclick.net https://challenges.cloudflare.com;
 worker-src 'self' blob:;
 child-src 'self' blob:;
 style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
 font-src 'self' https://fonts.gstatic.com data:;
-img-src 'self' data: blob: https://*.supabase.co https://images.unsplash.com https://raw.githubusercontent.com https://svgl.app https://api.dicebear.com https://*.googleusercontent.com https://*.gravatar.com https://*.stripe.com https://pagead2.googlesyndication.com https://*.doubleclick.net https://www.google.com https://www.google.com.au;
-connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://*.google-analytics.com https://*.google.com https://*.google.com.au https://www.googletagmanager.com https://*.googleadservices.com https://*.doubleclick.net https://*.sentry.io https://api.resend.com https://challenges.cloudflare.com https://*.posthog.com https://us.i.posthog.com https://accounts.google.com https://pagead2.googlesyndication.com https://*.vercel-insights.com https://va.vercel-scripts.com;
-frame-src 'self' https://js.stripe.com https://challenges.cloudflare.com https://portal.sandbox.parchment.health https://portal.parchment.health;
+img-src 'self' data: blob: https://*.supabase.co https://images.unsplash.com https://raw.githubusercontent.com https://svgl.app https://api.dicebear.com https://*.googleusercontent.com https://*.gravatar.com https://*.stripe.com https://pagead2.googlesyndication.com https://www.googletagmanager.com https://*.googletagmanager.com https://www.google-analytics.com https://*.google-analytics.com https://googleads.g.doubleclick.net https://*.doubleclick.net https://www.googleadservices.com https://www.google.com https://google.com https://www.google.com.au;
+connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://*.google-analytics.com https://*.analytics.google.com https://*.google.com https://google.com https://*.google.com.au https://www.googletagmanager.com https://*.googletagmanager.com https://www.googleadservices.com https://*.googleadservices.com https://googleads.g.doubleclick.net https://*.doubleclick.net https://*.sentry.io https://api.resend.com https://challenges.cloudflare.com https://*.posthog.com https://us.i.posthog.com https://accounts.google.com https://pagead2.googlesyndication.com https://*.vercel-insights.com https://va.vercel-scripts.com;
+frame-src 'self' https://js.stripe.com https://www.googletagmanager.com https://challenges.cloudflare.com https://portal.sandbox.parchment.health https://portal.parchment.health;
 form-action 'self' https://*.supabase.co https://accounts.google.com;
 frame-ancestors 'self';
 object-src 'none';
@@ -258,7 +258,7 @@ All webhooks use signature verification (not CSRF).
 
 ## Authentication & Authorization
 
-**Provider:** Supabase Auth. Cookie-based sessions with JWT refresh via middleware. Auth methods: email magic link + Google OAuth. MFA: available via Supabase, optional for patients, recommended for clinicians.
+**Provider:** Supabase Auth. Cookie-based sessions with JWT refresh via middleware. Auth methods: email/password, email magic link, password recovery, and Google OAuth. MFA: available via Supabase, optional for patients, recommended for clinicians.
 
 ### CSRF Protection (`lib/security/csrf.ts`)
 
@@ -285,6 +285,8 @@ All webhooks use signature verification (not CSRF).
 | `auth()` from `@/lib/auth` | Most API routes (20+ files) |
 | `getApiAuth()` | Document download, med-cert routes |
 | `requireRole()` / `requireRoleOrNull()` | Admin/doctor layouts, server actions |
+| Passwordless sign-in | `/sign-in` supports `signInWithOtp({ shouldCreateUser: false })` so existing magic-link-only accounts can access the portal without creating duplicate auth users. |
+| Password recovery | `/auth/forgot-password` calls `resetPasswordForEmail()` and redirects recovery links through `/auth/callback?next=/auth/reset-password` so the reset page updates from an established Supabase recovery session. |
 | Guest profile linking | `/auth/post-signin`, `/api/profile/ensure`, and `handle_new_user()` link a single deterministic unlinked patient profile: return-intake profile first, then profiles with paid intake history, then newest guest profile. Never bulk-update duplicate email matches. |
 
 ### Input Validation

@@ -55,29 +55,29 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     slug: "work",
     h1: "Medical certificate for work.",
     heroSubheadline:
-      "Your employer asked for a sick note. A real Australian doctor reviews your request. No appointments, no waiting rooms. Most sorted in under an hour. From $19.95.",
+      "Your employer asked for a sick note. A real Australian doctor reviews your request. No appointments, no waiting rooms. From $19.95.",
     explainerTitle: "When you might need one",
     explainerSubtitle: "Work certificates cover most short-term absences. Here's what to know.",
     explainerParagraphs: [
-      "If you've called in sick, your employer may ask for documentation. Our certificates are issued by AHPRA-registered doctors and meet Fair Work Act requirements, the same as what you'd get from a clinic.",
+      "If you've called in sick, your employer may ask for documentation. Our certificates are issued by AHPRA-registered doctors and include standard workplace evidence details.",
       "You fill in a quick form describing your situation. A doctor reviews it and decides whether a certificate is appropriate. If approved, it lands in your inbox as a PDF. No phone call required in most cases.",
     ],
-    recognitionTitle: "Fair Work compliant",
+    recognitionTitle: "Workplace evidence",
     recognitionSubtitle:
-      "Certificates meet Fair Work Act requirements and are legally equivalent to those issued by in-person GPs. Some employers may have their own documentation requirements. Check with yours.",
+      "Certificates include standard workplace evidence details. Some employers may have their own documentation requirements. Check with yours.",
     recognitionBadges: [
-      { label: "Fair Work compliant", sub: "Legally valid" },
+      { label: "Workplace evidence", sub: "Doctor-issued" },
       { label: "Large & small businesses", sub: "Commonly used" },
       { label: "Full-time & casual", sub: "All employment types" },
     ],
     ctaTitle: "Ready when you are",
     ctaSubtitle:
-      "Two minutes to complete the form. Real doctor review. Certificate to your inbox.",
+      "Two minutes to complete the form. A doctor reviews it. Certificate to your inbox.",
     ctaButtonText: "Get your certificate",
     metadata: {
       title: "Medical Certificate for Work | Sick Note Online $19.95",
       description:
-        "Medical certificate for work absence. AHPRA-registered doctors review your request, most sorted in under an hour. From $19.95. Fair Work compliant.",
+        "Medical certificate for work absence. AHPRA-registered doctors review your request. From $19.95. Employer policies may vary.",
       keywords: [
         "medical certificate for work",
         "sick certificate work",
@@ -95,12 +95,12 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
       {
         question: "Will my employer accept an online medical certificate?",
         answer:
-          "Our certificates are issued by AHPRA-registered Australian doctors and include the usual details: doctor's name, provider number, dates of illness, and signature. They meet Fair Work Act requirements. Some employers may have their own policies. Check with yours.",
+          "Our certificates are issued by AHPRA-registered Australian doctors and include the usual details: doctor's name, provider number, dates of illness, and signature. Some employers may have their own policies. Check with yours.",
       },
       {
         question: "How quickly will I receive it?",
         answer:
-          "Medical certificates are typically reviewed within 20 minutes, available 24/7. You'll get an email when the doctor starts reviewing.",
+          "Medical certificate requests are available 24/7. You'll get an email when the doctor starts reviewing.",
       },
       {
         question: "Can I get a certificate for a day I've already missed?",
@@ -119,7 +119,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     slug: "study",
     h1: "Medical certificate for study.",
     heroSubheadline:
-      "Study absence documentation. A doctor reviews your request, typically sorted in under an hour. From $19.95.",
+      "Study absence documentation. A doctor reviews your request. From $19.95.",
     explainerTitle: "When students need documentation",
     explainerSubtitle: "Universities and TAFEs often require medical evidence for study absences.",
     explainerParagraphs: [
@@ -173,18 +173,18 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     slug: "carer",
     h1: "Carer medical certificate.",
     heroSubheadline:
-      "Time off to look after a sick family member. A doctor reviews your request, no appointments, typically sorted in under an hour. From $19.95.",
+      "Time off to look after a sick family member. A doctor reviews your request. No appointments. From $19.95.",
     explainerTitle: "When carers need documentation",
     explainerSubtitle: "Carer's leave certificates support absences when you're looking after someone who needs you.",
     explainerParagraphs: [
-      "If you've needed time off to care for a sick family member or dependant, your employer may require documentation. Carer's leave certificates are issued by AHPRA-registered doctors and meet Fair Work Act requirements.",
+      "If you've needed time off to care for a sick family member or dependant, your employer may require documentation. Carer's leave certificates are issued by AHPRA-registered doctors and include standard workplace evidence details.",
       "You describe the situation in a quick form. A doctor reviews it and decides whether a certificate is appropriate. Same process as sick leave, just select carer's leave when you start.",
     ],
     recognitionTitle: "Valid for carer's leave",
     recognitionSubtitle:
-      "Certificates meet Fair Work Act requirements for carer's leave. Commonly used for workplace documentation. Some may have their own documentation requirements.",
+      "Certificates include standard workplace evidence details for carer's leave. Some workplaces may have their own documentation requirements.",
     recognitionBadges: [
-      { label: "Fair Work compliant", sub: "Carer's leave" },
+      { label: "Workplace evidence", sub: "Carer's leave" },
       { label: "Family & dependants", sub: "Sick child, elderly parent" },
       { label: "Full-time & casual", sub: "All employment types" },
     ],
@@ -217,7 +217,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
       {
         question: "Will my employer accept it?",
         answer:
-          "Our carer's leave certificates are issued by AHPRA-registered doctors and meet Fair Work Act requirements. They're commonly used for workplace documentation. Some may have their own requirements. Check with yours.",
+          "Our carer's leave certificates are issued by AHPRA-registered doctors and include standard workplace evidence details. Some workplaces may have their own requirements. Check with yours.",
       },
     ],
   },
@@ -226,29 +226,29 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     slug: "sick-leave",
     h1: "Sick leave certificate online.",
     heroSubheadline:
-      "Too sick to visit a GP? Get a valid certificate from bed. A doctor reviews your request, most sorted in under an hour. From $19.95.",
+      "Too sick to visit a GP? Request a certificate from bed. A doctor reviews your request. From $19.95.",
     explainerTitle: "Sick leave without the waiting room",
     explainerSubtitle: "When you need documentation for time off, but leaving the house isn't an option.",
     explainerParagraphs: [
       "Sometimes the last thing you want to do when you're unwell is drag yourself to a clinic. Our certificates are issued by AHPRA-registered doctors after you complete a quick form. No appointments, no waiting rooms.",
       "You describe your symptoms and how long you need off. A doctor reviews it and makes a clinical decision. If approved, your certificate lands in your inbox as a PDF.",
     ],
-    recognitionTitle: "Fair Work compliant",
+    recognitionTitle: "Workplace evidence",
     recognitionSubtitle:
-      "Certificates meet Fair Work Act requirements and are legally equivalent to those from in-person GPs. Some employers may have their own documentation requirements.",
+      "Certificates include standard workplace evidence details. Some employers may have their own documentation requirements.",
     recognitionBadges: [
-      { label: "Fair Work compliant", sub: "Legally valid" },
+      { label: "Workplace evidence", sub: "Doctor-issued" },
       { label: "1–3 days", sub: "Acute illness" },
       { label: "Backdating", sub: "If clinically appropriate" },
     ],
     ctaTitle: "From your couch to your inbox",
     ctaSubtitle:
-      "Two minutes on your phone. Real doctor review. Certificate delivered. No clinic visit required.",
+      "Two minutes on your phone. A doctor reviews it. Certificate delivered. No clinic visit required.",
     ctaButtonText: "Get your certificate",
     metadata: {
       title: "Sick Leave Certificate Online | $19.95 Under 1 Hour",
       description:
-        "Get a sick leave certificate online. AHPRA-registered doctors review your request, most sorted in under an hour. From $19.95. No appointments, no waiting rooms.",
+        "Get a sick leave certificate online. AHPRA-registered doctors review your request. From $19.95. No appointments, no waiting rooms.",
       keywords: [
         "sick leave certificate online",
         "sick note online australia",
@@ -260,12 +260,12 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
       {
         question: "How quickly can I get a sick leave certificate?",
         answer:
-          "Medical certificates are typically reviewed within 20 minutes, available 24/7. You'll get an email when the doctor starts reviewing.",
+          "Medical certificate requests are available 24/7. You'll get an email when the doctor starts reviewing.",
       },
       {
         question: "Do I need to see a doctor in person?",
         answer:
-          "No. Telehealth medical certificates are legally equivalent to in-person consultations in Australia. Our doctors are AHPRA-registered and make the same clinical assessment.",
+          "Telehealth medical certificates are reviewed by AHPRA-registered doctors. Employer and institution policies may vary.",
       },
       {
         question: "What if I was sick yesterday?",
@@ -279,7 +279,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     slug: "university",
     h1: "Medical certificate for university.",
     heroSubheadline:
-      "Study absence documentation. A doctor reviews your request, typically under an hour. From $19.95.",
+      "Study absence documentation. A doctor reviews your request. From $19.95.",
     explainerTitle: "When uni requires medical evidence",
     explainerSubtitle: "Universities often need a medical certificate to support absence documentation.",
     explainerParagraphs: [
@@ -337,7 +337,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     slug: "school",
     h1: "Medical certificate for school.",
     heroSubheadline:
-      "Documentation for your child's school absence. A doctor reviews your request, typically sorted in under an hour. From $19.95.",
+      "Documentation for your child's school absence. A doctor reviews your request. From $19.95.",
     explainerTitle: "When schools require medical evidence",
     explainerSubtitle: "Some schools ask for a medical certificate to excuse a child's absence.",
     explainerParagraphs: [
@@ -349,7 +349,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
       "Certificates are often used for school documentation. School attendance policies vary; some may require additional documentation. Check yours before submitting.",
     recognitionBadges: [
       { label: "Primary & secondary", sub: "Public & private" },
-      { label: "AHPRA doctors", sub: "Legally valid" },
+      { label: "AHPRA doctors", sub: "Doctor-issued" },
       { label: "Parent completes form", sub: "On behalf of child" },
     ],
     ctaTitle: "Documentation for school absences",
@@ -390,7 +390,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     slug: "return-to-work",
     h1: "Return to work certificate.",
     heroSubheadline:
-      "Your employer asked for clearance before you return. A doctor reviews your request, typically sorted in under an hour. From $19.95.",
+      "Your employer asked for clearance before you return. A doctor reviews your request. From $19.95.",
     explainerTitle: "When employers ask for clearance",
     explainerSubtitle: "Some employers require a certificate before you return after sick leave.",
     explainerParagraphs: [
@@ -448,7 +448,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     slug: "centrelink",
     h1: "Medical certificate for Centrelink.",
     heroSubheadline:
-      "Centrelink requires medical evidence for certain claims. A doctor reviews your request, typically sorted in under an hour. From $19.95.",
+      "Centrelink requires medical evidence for certain claims. A doctor reviews your request. From $19.95.",
     explainerTitle: "When Centrelink needs medical evidence",
     explainerSubtitle: "Centrelink may require a medical certificate for sickness allowance, disability support, or other claims.",
     explainerParagraphs: [
@@ -461,7 +461,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     recognitionBadges: [
       { label: "Sickness Allowance", sub: "Medical evidence" },
       { label: "Mutual obligation exemptions", sub: "When unfit" },
-      { label: "AHPRA doctors", sub: "Legally valid" },
+      { label: "AHPRA doctors", sub: "Doctor-issued" },
     ],
     ctaTitle: "Documentation when you need it",
     ctaSubtitle:
@@ -500,19 +500,19 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     slug: "anxiety",
     h1: "Medical certificate for anxiety.",
     heroSubheadline:
-      "Anxiety is a legitimate medical condition. A doctor reviews your request. No judgement, no waiting rooms. Most sorted in under an hour. From $19.95.",
+      "Anxiety is a legitimate medical condition. A doctor reviews your request. No judgement, no waiting rooms. From $19.95.",
     explainerTitle: "Anxiety is a valid reason to take time off",
     explainerSubtitle: "Mental health conditions, including anxiety, are covered under sick leave laws in Australia.",
     explainerParagraphs: [
       "Anxiety, panic disorder, and stress-related conditions are legitimate medical reasons to take time off work or study. Our AHPRA-registered doctors assess your situation the same way they would any other health condition, with clinical judgement, not assumptions.",
       "You describe your symptoms in a quick form. A doctor reviews it and makes a clinical decision. If approved, your certificate lands in your inbox as a PDF. No phone call required in most cases.",
     ],
-    recognitionTitle: "Fair Work compliant",
+    recognitionTitle: "Workplace evidence",
     recognitionSubtitle:
-      "Medical certificates for anxiety and mental health conditions meet Fair Work Act requirements. They are legally equivalent to certificates issued by in-person GPs.",
+      "Medical certificates for anxiety and mental health conditions include standard workplace evidence details. Employer policies may vary.",
     recognitionBadges: [
       { label: "Mental health recognised", sub: "Same as physical illness" },
-      { label: "Fair Work compliant", sub: "Legally valid" },
+      { label: "Workplace evidence", sub: "Policy dependent" },
       { label: "No judgement", sub: "Confidential assessment" },
     ],
     ctaTitle: "Your mental health matters",
@@ -522,7 +522,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     metadata: {
       title: "Medical Certificate for Anxiety | Mental Health Days $19.95",
       description:
-        "Get a medical certificate for anxiety or mental health days. AHPRA-registered doctors review your request. Fair Work compliant. From $19.95. No waiting rooms.",
+        "Get a medical certificate for anxiety or mental health days. AHPRA-registered doctors review your request. From $19.95. No waiting rooms.",
       keywords: [
         "medical certificate for anxiety",
         "anxiety medical certificate",
@@ -540,7 +540,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
       {
         question: "Will my employer accept a mental health certificate?",
         answer:
-          "Yes. Medical certificates for mental health conditions, including anxiety, are legally valid under the Fair Work Act. Employers cannot discriminate between physical and mental health sick leave.",
+          "Medical certificates for mental health conditions, including anxiety, can support workplace evidence requirements. Employer policies and circumstances may vary.",
       },
       {
         question: "Do I need to disclose my mental health condition?",
@@ -559,19 +559,19 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     slug: "flu",
     h1: "Medical certificate for the flu.",
     heroSubheadline:
-      "Fever, aches, can't get out of bed? Get your sick note from home. A doctor reviews your request, most sorted in under an hour. From $19.95.",
+      "Fever, aches, can't get out of bed? Request your sick note from home. A doctor reviews your request. From $19.95.",
     explainerTitle: "Get your certificate without leaving the house",
     explainerSubtitle: "Influenza and flu-like illness are among the most common reasons for work absence.",
     explainerParagraphs: [
       "When you have the flu, the last thing you want to do is drive to a clinic. Our AHPRA-registered doctors review your symptoms and issue a certificate if clinically appropriate, all online, while you stay in bed.",
       "Flu certificates typically cover 1–5 days depending on symptom severity. You describe your symptoms and how long you've been unwell. The doctor determines the appropriate duration.",
     ],
-    recognitionTitle: "Fair Work compliant",
+    recognitionTitle: "Workplace evidence",
     recognitionSubtitle:
       "Flu certificates include standard doctor and absence details. Employer policies may vary.",
     recognitionBadges: [
-      { label: "All employers", sub: "Legally valid" },
-      { label: "Fair Work compliant", sub: "Same as in-person cert" },
+      { label: "Workplace evidence", sub: "Policy dependent" },
+      { label: "Workplace evidence", sub: "Policy dependent" },
       { label: "Stay home", sub: "No clinic visit needed" },
     ],
     ctaTitle: "Rest up. We'll handle the paperwork.",
@@ -594,7 +594,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
       {
         question: "Can I get a medical certificate for flu without seeing a doctor in person?",
         answer:
-          "Yes. Telehealth medical certificates are legally equivalent to in-person consultations. Our AHPRA-registered doctors assess your flu symptoms via a quick questionnaire and issue a certificate if appropriate.",
+          "Our AHPRA-registered doctors assess your flu symptoms via a quick questionnaire and issue a certificate if clinically appropriate. Employer policies may vary.",
       },
       {
         question: "How many days will my flu certificate cover?",
@@ -618,7 +618,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     slug: "work-from-home",
     h1: "Medical certificate for working from home.",
     heroSubheadline:
-      "Your employer wants documentation before approving remote work. A doctor reviews your request, typically sorted in under an hour. From $19.95.",
+      "Your employer wants documentation before approving remote work. A doctor reviews your request. From $19.95.",
     explainerTitle: "When employers need medical justification for WFH",
     explainerSubtitle: "Some employers require a medical certificate before approving temporary work from home arrangements due to illness.",
     explainerParagraphs: [
@@ -631,7 +631,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     recognitionBadges: [
       { label: "Contagious illness", sub: "Fit for WFH, not office" },
       { label: "Recovery periods", sub: "Post-illness or procedure" },
-      { label: "AHPRA doctors", sub: "Legally valid" },
+      { label: "AHPRA doctors", sub: "Doctor-issued" },
     ],
     ctaTitle: "Documentation for working remotely",
     ctaSubtitle:
@@ -684,22 +684,22 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
       "Migraines aren't just headaches. They can involve nausea, vomiting, light and sound sensitivity, and visual disturbances, making it unsafe and impossible to work. Our AHPRA-registered doctors understand this and assess migraine requests accordingly.",
       "You describe your symptoms in a quick form. A doctor reviews it and issues a certificate if clinically appropriate. Keep screen time minimal. The form takes about two minutes.",
     ],
-    recognitionTitle: "Fair Work compliant",
+    recognitionTitle: "Workplace evidence",
     recognitionSubtitle:
-      "Medical certificates for migraines meet Fair Work Act requirements. Employers cannot distinguish between migraine and other medical conditions.",
+      "Medical certificates for migraines include standard workplace evidence details. Employer policies may vary.",
     recognitionBadges: [
       { label: "Recognised condition", sub: "Neurological illness" },
-      { label: "Fair Work compliant", sub: "Legally valid" },
+      { label: "Workplace evidence", sub: "Policy dependent" },
       { label: "Minimal screen time", sub: "Quick form" },
     ],
     ctaTitle: "Sort your certificate before the next one hits",
     ctaSubtitle:
-      "Two minutes. Real doctor review. Certificate to your inbox.",
+      "Two minutes. A doctor reviews it. Certificate to your inbox.",
     ctaButtonText: "Get your certificate",
     metadata: {
       title: "Medical Certificate for Migraine | Sick Note Online $19.95",
       description:
-        "Get a medical certificate for a migraine. AHPRA-registered doctors review your request online. Fair Work compliant. From $19.95.",
+        "Get a medical certificate for a migraine. AHPRA-registered doctors review your request online. From $19.95.",
       keywords: [
         "medical certificate for migraine",
         "migraine sick certificate",
@@ -738,17 +738,17 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
       "Gastroenteritis causes vomiting, diarrhoea, cramps, and fatigue. You can't safely go to work, and you shouldn't. It spreads easily. Our AHPRA-registered doctors assess gastro requests and can issue a certificate from the information you provide.",
       "You describe your symptoms in a quick form. The doctor determines the appropriate certificate duration based on your symptoms and how long you've been unwell.",
     ],
-    recognitionTitle: "Fair Work compliant",
+    recognitionTitle: "Workplace evidence",
     recognitionSubtitle:
       "Gastro certificates include standard doctor and absence details. Employer policies may vary.",
     recognitionBadges: [
-      { label: "All employers", sub: "Legally valid" },
+      { label: "Workplace evidence", sub: "Policy dependent" },
       { label: "Highly contagious", sub: "Medical reason to stay home" },
       { label: "1–3 days typical", sub: "Doctor determines duration" },
     ],
     ctaTitle: "Stay home. Get the paperwork sorted.",
     ctaSubtitle:
-      "Two-minute form. Real doctor review. Certificate to your inbox.",
+      "Two-minute form. A doctor reviews it. Certificate to your inbox.",
     ctaButtonText: "Get your certificate",
     metadata: {
       title: "Medical Certificate for Gastro | Sick Note Online $19.95",
@@ -792,12 +792,12 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
       "Back pain can range from acute muscle strain to severe disc issues that make movement, sitting, or standing unbearable. Our AHPRA-registered doctors assess your situation and can issue a certificate if you're genuinely unable to perform your work duties.",
       "Describe your symptoms, how they started, and how they're affecting your ability to work. The doctor makes the clinical determination. For ongoing back conditions, you may need periodic certificates. Each request is assessed individually.",
     ],
-    recognitionTitle: "Fair Work compliant",
+    recognitionTitle: "Workplace evidence",
     recognitionSubtitle:
-      "Certificates for back pain meet Fair Work Act requirements. Legally equivalent to certificates issued by in-person GPs.",
+      "Certificates for back pain include standard workplace evidence details. Employer policies may vary.",
     recognitionBadges: [
       { label: "Acute & chronic", sub: "All back conditions" },
-      { label: "Fair Work compliant", sub: "Legally valid" },
+      { label: "Workplace evidence", sub: "Policy dependent" },
       { label: "No commute required", sub: "Stay home to rest" },
     ],
     ctaTitle: "Documentation while you rest",
@@ -807,7 +807,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     metadata: {
       title: "Medical Certificate for Back Pain | Sick Note Online $19.95",
       description:
-        "Get a medical certificate for back pain. AHPRA-registered doctors review your request online. No commute required. From $19.95. Fair Work compliant.",
+        "Get a medical certificate for back pain. AHPRA-registered doctors review your request online. No commute required. From $19.95.",
       keywords: [
         "medical certificate for back pain",
         "back pain sick certificate",
@@ -855,7 +855,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
     recognitionSubtitle:
       "COVID certificates are issued by AHPRA-registered doctors and used for workplace documentation. Mandatory isolation rules vary by state. Check your state health authority for current requirements.",
     recognitionBadges: [
-      { label: "All employers", sub: "Legally valid" },
+      { label: "Workplace evidence", sub: "Policy dependent" },
       { label: "Stay isolated", sub: "No clinic visit needed" },
       { label: "RAT or PCR positive", sub: "Accepted" },
     ],
@@ -879,7 +879,7 @@ export const medCertIntentConfigs: Record<MedCertIntentSlug, MedCertIntentConfig
       {
         question: "Can I get a medical certificate for COVID without seeing a doctor?",
         answer:
-          "Yes. Our AHPRA-registered doctors review your self-reported test result and symptoms and issue a certificate if appropriate. Telehealth certificates are legally equivalent to in-person ones.",
+          "Our AHPRA-registered doctors review your self-reported test result and symptoms and issue a certificate if clinically appropriate. Employer policies may vary.",
       },
       {
         question: "Does Australia still require COVID isolation?",

@@ -40,7 +40,7 @@ export default function ShiftWorkersPage() {
         name: "Can I get a medical certificate outside normal business hours?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Yes. Medical certificates are available 24/7 - submit at any time and receive your certificate within 15 minutes. Perfect for shift workers who need documentation at any hour.",
+          text: "Yes. Medical certificate requests are available 24/7. Submit when you can, and doctor review follows when available.",
         },
       },
       {
@@ -76,7 +76,7 @@ export default function ShiftWorkersPage() {
                     Medical Certificates When GPs Are Closed
                   </h1>
                   <p className="text-sm md:text-base text-muted-foreground max-w-xl mx-auto mb-4">
-                    Night shift? Early start? Weekend roster? Get your medical certificate in <strong>15 minutes</strong>, 24 hours a day, 7 days a week.
+                    Night shift? Early start? Weekend roster? Submit your medical certificate request 24 hours a day, 7 days a week.
                   </p>
                   <p className="text-xs text-muted-foreground mb-6">
                     Works around your roster • Employer policies vary • AHPRA doctors
@@ -101,7 +101,7 @@ export default function ShiftWorkersPage() {
                     </div>
                     <div className="flex items-center gap-1.5 bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-border/50">
                       <Shield className="h-3.5 w-3.5 text-blue-600" />
-                      <span className="font-medium text-muted-foreground">All employers</span>
+                      <span className="font-medium text-muted-foreground">Policies vary</span>
                     </div>
                   </div>
                 </div>
@@ -181,7 +181,7 @@ export default function ShiftWorkersPage() {
                     },
                     {
                       title: "No time to wait",
-                      desc: "You're already exhausted from your shift. Skip the waiting room and get your cert in 15 minutes from your phone.",
+                      desc: "You're already exhausted from your shift. Skip the waiting room and submit from your phone.",
                     },
                     {
                       title: "Before your next roster",
@@ -189,7 +189,7 @@ export default function ShiftWorkersPage() {
                     },
                     {
                       title: "Employer policies vary",
-                      desc: "Hospitals, retail chains, agencies - they all accept our certificates. AHPRA-registered, legally valid.",
+                      desc: "Certificates include standard workplace evidence details from an AHPRA-registered doctor.",
                     },
                   ].map((item) => (
                     <div key={item.title} className="glass-card rounded-xl p-4">
@@ -298,15 +298,15 @@ export default function ShiftWorkersPage() {
                   {[
                     {
                       q: "What are your hours?",
-                      a: "Medical certificates are available 24/7 - submit at any hour and receive your certificate within 15 minutes.",
+                      a: "Medical certificate requests are available 24/7. Submit at any hour and doctor review follows when available.",
                     },
                     {
                       q: "I work nights - can I get a cert at 3am?",
-                      a: "Yes. Medical certificates are available 24/7. Submit at 3am and your certificate will be ready within 15 minutes.",
+                      a: "Yes. Medical certificate requests are available 24/7. Submit from home and doctor review follows when available.",
                     },
                     {
                       q: "Will my employer accept this?",
-                      a: "Yes. Our certificates are issued by AHPRA-registered doctors and include standard workplace evidence details for hospitals, retail chains, agencies, everyone; employer policies may vary.",
+                      a: "Our certificates are issued by AHPRA-registered doctors and include standard workplace evidence details for hospitals, retail chains, and agencies. Employer policies may vary.",
                     },
                     {
                       q: "Can I get a cert for a shift I already missed?",
@@ -332,7 +332,7 @@ export default function ShiftWorkersPage() {
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               <div className="max-w-xl mx-auto text-center">
                 <div className="glass-card rounded-3xl p-6 lg:p-8 relative overflow-hidden border-blue-500/20 bg-blue-50/30 dark:bg-blue-950/10">
-                  <h2 className="text-2xl font-semibold mb-3">Get your certificate in 15 minutes</h2>
+                  <h2 className="text-2xl font-semibold mb-3">Request your certificate online</h2>
                   <p className="text-sm text-muted-foreground mb-6">
                     Works around your roster, not the other way around.
                   </p>

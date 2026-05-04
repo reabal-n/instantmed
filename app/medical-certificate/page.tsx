@@ -8,8 +8,8 @@ import { MED_CERT_FAQ } from "@/lib/data/med-cert-faq"
 export const revalidate = 86400
 
 export const metadata: Metadata = {
-  title: { absolute: "Medical Certificate | Under 30 Minutes, No Call | InstantMed" },
-  description: `Get a medical certificate for work or study in under 30 minutes. Fill out a form, no call, no appointment. From $${PRICING.MED_CERT.toFixed(2)}.`,
+  title: { absolute: "Online Medical Certificate | AHPRA GP Review | InstantMed" },
+  description: `Get a medical certificate for work or study online. Fill out a secure form, no call, no appointment. From $${PRICING.MED_CERT.toFixed(2)}.`,
   keywords: [
     "medical certificate online australia",
     "sick note online",
@@ -20,9 +20,9 @@ export const metadata: Metadata = {
     "sick certificate australia",
   ],
   openGraph: {
-    title: "Medical Certificate | Under 30 Minutes, No Call | InstantMed",
+    title: "Online Medical Certificate | AHPRA GP Review | InstantMed",
     description:
-      "Medical certificate for work, uni, or carer's leave in under 30 minutes. Fill out a form, no call, no appointment needed.",
+      "Start with a secure form that takes about 3 minutes. AHPRA-registered GP review. Certificate to your inbox.",
     url: "https://instantmed.com.au/medical-certificate",
     type: "website",
     locale: "en_AU",
@@ -30,8 +30,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Medical Certificate | Under 30 Minutes, No Call | InstantMed",
-    description: "Medical certificate in under 30 minutes. Just a form, no call, no video, no waiting room.",
+    title: "Online Medical Certificate | AHPRA GP Review | InstantMed",
+    description: "Start with a secure form that takes about 3 minutes. AHPRA-registered GP review. Certificate to your inbox.",
   },
   alternates: {
     canonical: "https://instantmed.com.au/medical-certificate",
@@ -43,7 +43,7 @@ export default function Page() {
     <>
       <SpeakableSchema
         name="Online Medical Certificate Australia"
-        description={`Get a medical certificate for work or study in under 30 minutes. Reviewed by an AHPRA-registered Australian doctor. From $${PRICING.MED_CERT.toFixed(2)}. No appointment needed.`}
+        description={`Get a medical certificate for work or study online. Reviewed by an AHPRA-registered Australian doctor. From $${PRICING.MED_CERT.toFixed(2)}. No appointment needed.`}
         url="/medical-certificate"
       />
       <MedCertHowToSchema />

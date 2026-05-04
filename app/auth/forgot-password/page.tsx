@@ -1,6 +1,7 @@
-import { redirect } from 'next/navigation'
+import { ForgotPasswordClient } from "./forgot-password-client"
 
-// Supabase handles password reset via magic link from the sign-in page
-export default function ForgotPasswordRedirect() {
-  redirect('/sign-in')
+export const dynamic = "force-dynamic"
+
+export default function ForgotPasswordPage() {
+  return <ForgotPasswordClient />
 }

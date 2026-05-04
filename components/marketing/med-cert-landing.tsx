@@ -24,6 +24,7 @@ import {
 } from "@/components/marketing/shared"
 import { SocialProofSection } from "@/components/marketing/social-proof-section"
 import { CTABanner, FAQSection } from "@/components/sections"
+import { EmployerLogoMarquee } from "@/components/shared/employer-logo-marquee"
 import { PRICING } from "@/lib/constants"
 import { MED_CERT_FAQ } from "@/lib/data/med-cert-faq"
 import { usePatientCount } from "@/lib/hooks/use-patient-count"
@@ -188,18 +189,21 @@ export function MedCertLanding() {
               </p>
             </Hero>
 
-            {/* 2. Employer acceptance - scrolling logos plus Fair Work citation */}
+            {/* 2. Employer logos - workplace context without endorsement claims */}
+            <EmployerLogoMarquee className="border-y border-border/30 bg-muted/20 dark:bg-white/[0.02]" />
+
+            {/* 3. Employer evidence - Fair Work citation and verification links */}
             <EmployerCalloutStrip onEmployerClick={handleEmployerClick} onVerifyClick={handleVerifyClick} />
 
-            {/* 3. Certificate type selector - cleaner version, no embedded comparison */}
+            {/* 4. Certificate type selector - cleaner version, no embedded comparison */}
             <div data-track-section="selector">
               <CertificateTypeSelector />
             </div>
 
-            {/* 4. Time comparison - anchors the value prop before explaining the process */}
+            {/* 5. Time comparison - anchors the value prop before explaining the process */}
             <CertComparisonViz />
 
-            {/* 5. How It Works */}
+            {/* 6. How It Works */}
             <div data-track-section="how_it_works">
               <HowItWorksInline
                 steps={HOW_IT_WORKS_STEPS}
@@ -211,21 +215,21 @@ export function MedCertLanding() {
               />
             </div>
 
-            {/* 6. Social proof - testimonials and stats */}
+            {/* 7. Social proof - testimonials and stats */}
             <div data-track-section="social_proof">
               <SocialProofSection />
             </div>
 
-            {/* 7. Online vs in-person GP comparison - moved out of the selector,
+            {/* 8. Online vs in-person GP comparison - moved out of the selector,
                 framed as category comparison (not against named competitors). */}
             <div data-track-section="comparison">
               <MedCertComparisonTable />
             </div>
 
-            {/* 8. What we cover / limitations */}
+            {/* 9. What we cover / limitations */}
             <LimitationsSection />
 
-            {/* 9. FAQ */}
+            {/* 10. FAQ */}
             <div data-track-section="faq">
               <FAQSection
                 pill="FAQ"
@@ -245,7 +249,7 @@ export function MedCertLanding() {
               </p>
             </div>
 
-            {/* 10. Final CTA — refund pre-pill removed in Pass 2; the
+            {/* 11. Final CTA — refund pre-pill removed in Pass 2; the
                 CTABanner auto-renders the canonical GUARANTEE line below the
                 CTA, so the dueling pre-CTA pill was redundant trust signal. */}
             <div data-track-section="final_cta">

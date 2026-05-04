@@ -1,5 +1,6 @@
 "use server"
 
+import { createClient as createSupabaseClient } from "@supabase/supabase-js"
 import { revalidatePath } from "next/cache"
 
 import { auth } from "@/lib/auth/helpers"
@@ -11,6 +12,38 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 async function getAuthUserId(): Promise<string | null> {
   const { userId } = await auth()
   return userId
+}
+
+function getAppUrl(): string {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL
+  if (appUrl?.startsWith("http")) {
+    return appUrl.replace(/\/$/, "")
+  }
+
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`
+  }
+
+  return "http://localhost:3000"
+}
+
+function createPasswordResetClient() {
+  const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
+  const anonKey = process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+  if (!supabaseUrl) {
+    throw new Error("Missing SUPABASE_URL or NEXT_PUBLIC_SUPABASE_URL environment variable")
+  }
+  if (!anonKey) {
+    throw new Error("Missing SUPABASE_ANON_KEY or NEXT_PUBLIC_SUPABASE_ANON_KEY environment variable")
+  }
+
+  return createSupabaseClient(supabaseUrl, anonKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  })
 }
 
 /**
@@ -26,18 +59,16 @@ export async function changePassword(
   }
 }
 
-/**
- * Request password reset via Supabase Auth magic link
- */
 export async function requestPasswordReset(email: string): Promise<{ success: boolean; error: string | null }> {
-  if (!email) {
+  const normalizedEmail = email.trim().toLowerCase()
+  if (!normalizedEmail) {
     return { success: false, error: "Email is required" }
   }
 
-  const supabase = createServiceRoleClient()
-  const { error } = await supabase.auth.admin.generateLink({
-    type: "magiclink",
-    email,
+  const redirectTo = `${getAppUrl()}/auth/callback?next=${encodeURIComponent("/auth/reset-password")}`
+  const supabase = createPasswordResetClient()
+  const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail, {
+    redirectTo,
   })
 
   if (error) {

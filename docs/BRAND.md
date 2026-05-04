@@ -25,7 +25,7 @@ This anchor archetype shapes voice, photography, headline tone, and which featur
 | Trait | Do | Don't |
 |---|---|---|
 | **Direct** | "Got the flu? You'll need a cert. Start here." | "Are you feeling unwell and require documentation for your employer?" |
-| **Warm but not cute** | "We've got you. Three minutes." | "Hey friend! Let's get you sorted!" |
+| **Warm but not cute** | "Start with a secure form. Takes about 3 minutes." | "Hey friend! Let's get you sorted!" |
 | **Confidently fast** | "Faster than your GP. Same training." | "Lightning-fast medical solutions powered by AI!" |
 | **Quietly clever** | "Skip the waiting room. Keep the chair." | Puns about pills, winks about ED, jokes about being sick. |
 | **Of-Australia, of-now** | Australian English. Real cities. Tuesday-arvo references. | Generic "global telehealth" copy that could be from anywhere. |
@@ -41,7 +41,7 @@ Three lines, three jobs. Repetition across surfaces locks recognition.
 | Surface / job | Line | Code constant |
 |---|---|---|
 | Brand spine (homepage H1, GBP cover, email signature) | *Faster than your GP.* | `TAGLINE` |
-| Conversion hook (CTA proximity, paid creative headlines) | *Three minutes. Done.* | `ICONIC_HOOK` |
+| Conversion hook (CTA proximity, paid creative headlines) | *Start with a secure form. Takes about 3 minutes.* | `ICONIC_HOOK` |
 | Voice signature (homepage H2, about lede, ad end-frame, footer) | *Telehealth without the small talk.* | `PROP_PHRASE` |
 | Google-Ads-safe variant (paid only) | *Faster than the wait at your GP.* | `TAGLINE_PAID_SAFE` |
 | About page lede / OG image / brand-film outro | *Telehealth without the small talk. A real doctor, ready in the time it takes to make a coffee.* | `BRAND_THESIS` |
@@ -49,7 +49,7 @@ Three lines, three jobs. Repetition across surfaces locks recognition.
 Hero stack reads:
 > # Faster than your GP.
 > ## Telehealth without the small talk.
-> [Get started — three minutes, done.]
+> [Get started - secure form, about 3 minutes.]
 
 H2 and voice signature share the same line on purpose. Saying it twice across the brand is the recognition device, not a duplicate.
 

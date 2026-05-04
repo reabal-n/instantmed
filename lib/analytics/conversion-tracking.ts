@@ -138,10 +138,10 @@ export function initConsentMode() {
   gtag('consent', 'default', {
     ad_storage: 'granted',
     ad_user_data: 'granted',
-    ad_personalization: 'denied',
+    ad_personalization: 'granted',
     analytics_storage: 'granted',
     functionality_storage: 'granted',
-    personalization_storage: 'denied',
+    personalization_storage: 'granted',
     security_storage: 'granted',
   })
 }
