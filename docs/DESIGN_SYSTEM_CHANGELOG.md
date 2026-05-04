@@ -95,10 +95,10 @@ Admin and doctor portal compatibility stylesheet imports were removed in v2.0.2 
 - Display scale extended to 60px on `lg+` (`text-6xl`) for hero impact. 48px remains the canonical `sm+` target. Locks the hero h1 at the previously-spec'd 48px on tablet and steps up to 60px on desktop, matching premium peers.
 - Home-page hero composition rationalised: GuaranteeBadge, AHPRA TrustBadgeRow pill, HeroTestimonialRotator, and the inflated patient counter removed from the hero pill. `GoogleAdsCert` (now "Telehealth Certified") + LegitScript pair retained as the trust anchor with a repositioned `LastReviewedSignal`.
 - `GoogleAdsCert` label: `Pharmacy Certified` → `Telehealth Certified`. Reflects positioning — InstantMed is a doctor-led telehealth service, not a pharmacy.
-- `GoogleReviewsBadge` simplified to stars-only display. Drops the numeric rating + review count; the badge now reads as a Google trust marker without leading with a small N. Used only inside `SocialProofSection`.
+- `GoogleReviewsBadge` simplified to stars-only display. Drops the numeric rating + review count; the badge now reads as a Google trust marker without leading with a small N. Current placement is the quiet hero trust row, not a standalone metrics section.
 - `lib/social-proof/index.ts` patient-count anchors recalibrated: ANCHOR_COUNT 3,000 → 500 (April 11 launch), TARGET_COUNT 8,000 → 2,500 (Dec 31). Defensible given current GBP review base.
 - `serviceCards` distilled: per-card testimonial removed; benefit list capped at 2 visible (3 → 2); 5-element card pattern locked.
-- Lifestyle photo relocated from full-bleed hero/services scroll-break into a 5/2 accent inside `SocialProofSection` at constrained width.
+- Standalone social-proof metrics section removed from primary marketing pages; review proof now stays condensed in the hero trust row.
 - `RegulatoryPartners` demoted from hero to a thin standalone trust strip between hero and ServiceCards.
 
 ### Fixed

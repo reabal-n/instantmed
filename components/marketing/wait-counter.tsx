@@ -11,7 +11,7 @@ interface WaitCounterProps {
   /**
    * Visual variant.
    *  - `inline`: meant to drop into an existing pill / trust line. Renders as
-   *    a single inline element with the brand-coral pulse + tight copy.
+   *    a single inline element with a green live-state pulse + tight copy.
    *  - `standalone`: meant to render on its own line above the hero. Larger
    *    type, stronger contrast, ideal for a hero accent above the H1.
    */
@@ -22,7 +22,7 @@ interface WaitCounterProps {
 /**
  * Live wait-counter — signature brand device #1 (docs/BRAND.md §6.1).
  *
- * Renders a brand-coral pulsing dot plus current-state copy. Five state
+ * Renders a green pulsing dot plus current-state copy. Five state
  * variants drive five copy lines. Returns `null` when the data source signals
  * `hidden` (no recent data), so callers can render this unconditionally.
  *
@@ -52,11 +52,11 @@ export function WaitCounter({ state, variant = "inline", className }: WaitCounte
       <span className="relative inline-flex h-2 w-2 shrink-0" aria-hidden="true">
         <span
           className={cn(
-            "absolute inline-flex h-full w-full rounded-full bg-[color:var(--brand-coral)] opacity-60",
+            "absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-60",
             reduced ? "" : "animate-wait-pulse",
           )}
         />
-        <span className="relative inline-flex h-2 w-2 rounded-full bg-[color:var(--brand-coral)]" />
+        <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
       </span>
       {text}
     </span>

@@ -82,8 +82,7 @@ function ServiceCard({ service, disabled }: ServiceCardProps) {
           </p>
 
           {/* Feature checkmarks — capped to VISIBLE_BENEFITS (2). Per-card
-              testimonials removed in Pass 2; SocialProofSection carries that
-              weight already. Distilled to the canonical 5-element card. */}
+              testimonials removed in Pass 2 so service cards stay scannable. */}
           {service.benefits && (
             <ul className="space-y-1.5 mb-4 flex-1">
               {service.benefits.slice(0, VISIBLE_BENEFITS).map((benefit, idx) => (

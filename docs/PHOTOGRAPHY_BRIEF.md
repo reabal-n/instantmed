@@ -32,7 +32,7 @@ Stock-style imagery currently caps the visual at ~9.0 on every page that uses it
 Each shot should be deliverable in two crops: **16:9 (1920×1080)** for hero/banner use, and **4:3 (1600×1200)** for accent/content-section use. Prefer originals at higher resolution so we can re-crop for OG (1200×630) and email (600×200) without quality loss.
 
 ### 1. `home-1.webp` — Person at home reading their phone (replaces existing)
-**Use:** /home (currently inside SocialProofSection accent), email headers
+**Use:** reserved for future /home editorial accents, email headers
 **Scene:** Australian, late 20s to mid 40s, in a sun-lit bedroom or living room. Sitting up in bed or on a couch, mug of tea on the side table, phone in hand. They look tired but calm — the moment they realise they don't have to leave the house. Linen sheets, eucalyptus through the window, soft.
 **Mood:** Relief. "I don't have to drive anywhere."
 
@@ -108,7 +108,7 @@ The Australian audience is genuinely diverse. Across the 8 shots, represent:
 
 | File | Pages |
 |---|---|
-| `home-1.webp` | / (SocialProofSection accent), email |
+| `home-1.webp` | Reserved for future /home editorial accents, email |
 | `consult-1.webp` | /weight-loss (above treatments), /consult (mockup fallback), ads |
 | `rx-1.webp` | /prescriptions (EScriptExplainerSection accent) |
 | `med-cert-context.webp` | /medical-certificate (NEW slot, recommended adjacent to LimitationsSection) |

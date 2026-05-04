@@ -5,6 +5,13 @@ import { describe, expect, it } from "vitest"
 
 const root = process.cwd()
 const voiceSource = readFileSync(join(root, "lib/marketing/voice.ts"), "utf8")
+const homePageSource = readFileSync(join(root, "app/page.tsx"), "utf8")
+const heroSource = readFileSync(join(root, "components/marketing/hero.tsx"), "utf8")
+const stickyCtaSource = readFileSync(join(root, "components/marketing/shared/sticky-cta.tsx"), "utf8")
+const waitCounterSource = readFileSync(join(root, "components/marketing/wait-counter.tsx"), "utf8")
+const whatHappensNextSource = readFileSync(join(root, "components/patient/what-happens-next.tsx"), "utf8")
+const designSource = readFileSync(join(root, "DESIGN.md"), "utf8")
+const brandSource = readFileSync(join(root, "docs/BRAND.md"), "utf8")
 const medCertLandingSource = readFileSync(join(root, "components/marketing/med-cert-landing.tsx"), "utf8")
 const employerMarqueeSource = readFileSync(join(root, "components/shared/employer-logo-marquee.tsx"), "utf8")
 const medCertPageSource = readFileSync(join(root, "app/medical-certificate/page.tsx"), "utf8")
@@ -35,6 +42,27 @@ describe("marketing copy contracts", () => {
   it("keeps the homepage hero kicker calm and clinically grounded", () => {
     expect(voiceSource).not.toContain("Three minutes. Done.")
     expect(voiceSource).toContain('export const ICONIC_HOOK = "Start with a secure form. Takes about 3 minutes."')
+    expect(homePageSource).toContain("text-foreground/70")
+    expect(homePageSource).not.toContain("text-[color:var(--brand-coral)]")
+  })
+
+  it("keeps live reviewing indicators green instead of urgent coral", () => {
+    expect(waitCounterSource).toContain("bg-emerald-500")
+    expect(waitCounterSource).not.toContain("var(--brand-coral)")
+    expect(whatHappensNextSource).toContain("bg-emerald-500")
+    expect(whatHappensNextSource).not.toContain("var(--brand-coral)")
+    expect(designSource).toContain("Live/reviewing indicators use success green")
+    expect(brandSource).toContain("Dot indicators use success green")
+  })
+
+  it("keeps review proof quiet and disables the desktop top sticky CTA", () => {
+    expect(homePageSource).not.toContain("SocialProofSection")
+    expect(medCertLandingSource).not.toContain("SocialProofSection")
+    expect(homePageSource).not.toContain("Real patients. Real reviews.")
+    expect(medCertLandingSource).not.toContain("Real patients. Real reviews.")
+    expect(heroSource).toContain("GoogleReviewsBadge")
+    expect(stickyCtaSource).not.toContain("hidden lg:block fixed")
+    expect(stickyCtaSource).not.toContain("top: '62px'")
   })
 
   it("renders the employer logo marquee on the medical certificate landing page", () => {

@@ -37,7 +37,6 @@ export { GUARANTEE_HREF,GuaranteeBadge } from "./guarantee-badge"
 export { LegitScriptSeal } from "./legitscript-seal"
 export { RecentReviewsTicker } from "./recent-reviews-ticker"
 export { RegulatoryPartners } from "./regulatory-partners"
-export { SocialProofSection } from "./social-proof-section"
 export { TrustBadgeSlider } from "./trust-badge-slider"
 
 // ── Stats & signals ────────────────────────────────────────────────

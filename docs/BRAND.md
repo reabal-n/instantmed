@@ -82,7 +82,7 @@ A small live counter on hero pages: *"Average med cert today: 14 minutes from fo
 - If a doctor is actively reviewing: show "Doctor reviewing now" rather than a count
 - If no data in last 24h: hide the counter entirely (don't fake a number)
 
-**Implementation:** `<WaitCounter />` component in `components/marketing/`, data via `lib/brand/wait-counter.ts`. Brand-coral pulse on the dot indicator.
+**Implementation:** `<WaitCounter />` component in `components/marketing/`, data via `lib/brand/wait-counter.ts`. Dot indicators use success green so live/reviewing reads as available, not urgent or error.
 
 ### 6.2 Doctor's handwritten signature
 

@@ -22,7 +22,6 @@ import {
   type LandingPageConfig,
   LandingPageShell,
 } from "@/components/marketing/shared"
-import { SocialProofSection } from "@/components/marketing/social-proof-section"
 import { CTABanner, FAQSection } from "@/components/sections"
 import { EmployerLogoMarquee } from "@/components/shared/employer-logo-marquee"
 import { PRICING } from "@/lib/constants"
@@ -215,21 +214,16 @@ export function MedCertLanding() {
               />
             </div>
 
-            {/* 7. Social proof - testimonials and stats */}
-            <div data-track-section="social_proof">
-              <SocialProofSection />
-            </div>
-
-            {/* 8. Online vs in-person GP comparison - moved out of the selector,
+            {/* 7. Online vs in-person GP comparison - moved out of the selector,
                 framed as category comparison (not against named competitors). */}
             <div data-track-section="comparison">
               <MedCertComparisonTable />
             </div>
 
-            {/* 9. What we cover / limitations */}
+            {/* 8. What we cover / limitations */}
             <LimitationsSection />
 
-            {/* 10. FAQ */}
+            {/* 9. FAQ */}
             <div data-track-section="faq">
               <FAQSection
                 pill="FAQ"
@@ -249,7 +243,7 @@ export function MedCertLanding() {
               </p>
             </div>
 
-            {/* 11. Final CTA — refund pre-pill removed in Pass 2; the
+            {/* 10. Final CTA — refund pre-pill removed in Pass 2; the
                 CTABanner auto-renders the canonical GUARANTEE line below the
                 CTA, so the dueling pre-CTA pill was redundant trust signal. */}
             <div data-track-section="final_cta">
@@ -261,7 +255,7 @@ export function MedCertLanding() {
               />
             </div>
 
-            {/* 12. Compliant with - regulatory logos footer closer */}
+            {/* 11. Compliant with - regulatory logos footer closer */}
             <RegulatoryPartners />
           </>
         )

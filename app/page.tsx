@@ -26,10 +26,6 @@ const HowItWorks = dynamic(
   () => import('@/components/marketing/how-it-works').then(m => ({ default: m.HowItWorks })),
   { loading: () => <div className="min-h-[500px]" /> },
 )
-const SocialProofSection = dynamic(
-  () => import('@/components/marketing/social-proof-section').then(m => ({ default: m.SocialProofSection })),
-  { loading: () => <div className="min-h-[400px]" /> },
-)
 const CTABanner = dynamic(
   () => import('@/components/sections/cta-banner').then(m => ({ default: m.CTABanner })),
 )
@@ -150,14 +146,14 @@ export default async function HomePage() {
             New brand stack (locked 2026-04-29 in docs/BRAND.md §4):
               H1 = TAGLINE ("Faster than your GP.")
               H2 = PROP_PHRASE ("Telehealth without the small talk.")
-              eyebrow above CTA = ICONIC_HOOK in brand-coral
+              reassurance above CTA = ICONIC_HOOK in calm foreground tone
               subhead body = AHPRA reassurance + WEDGE
         */}
         <Hero
           title={TAGLINE}
           liveWait={waitState}
           beforeCta={
-            <p className="text-sm sm:text-base font-semibold text-[color:var(--brand-coral)] tracking-tight">
+            <p className="text-sm sm:text-base font-medium text-foreground/70 tracking-tight">
               {ICONIC_HOOK}
             </p>
           }
@@ -183,17 +179,7 @@ export default async function HomePage() {
           <HowItWorks />
         </div>
 
-        {/* 4. Social proof — lifestyle photo lives inside this section now,
-            framed at a calmer scale next to the testimonials rather than as a
-            16:7 scroll-break. */}
-        <SocialProofSection
-          lifestyleImage={{
-            src: '/images/home-1.webp',
-            alt: 'Person relaxing at home using their phone to see an Australian doctor online',
-          }}
-        />
-
-        {/* 5. FAQs */}
+        {/* 4. FAQs */}
         <FAQSection
           pill="FAQ"
           title="Before you start"
@@ -202,7 +188,7 @@ export default async function HomePage() {
           viewAllHref="/faq"
         />
 
-        {/* 6. Final CTA */}
+        {/* 5. Final CTA */}
         <CTABanner
           title="Ready when you are"
           subtitle="Tell us what's going on, a doctor reviews it, and you're sorted. No appointments, no waiting rooms."

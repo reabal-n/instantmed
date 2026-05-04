@@ -132,10 +132,7 @@ export function WhatHappensNext({
             Check your junk or spam folder if you don't see our email within a few minutes.
           </p>
 
-          {/* Reassurance badge — brand-coral pulse (docs/BRAND.md §6.1).
-              Replaces the prior success-green pulse so the post-submit
-              experience inherits the same brand-recognition signal as the
-              homepage hero wait counter. */}
+          {/* Reassurance badge — live-status pulse (docs/BRAND.md §6.1). */}
           <motion.div
             initial={prefersReducedMotion ? {} : { opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -143,8 +140,8 @@ export function WhatHappensNext({
             className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white dark:bg-card border border-border/60 shadow-sm shadow-primary/[0.04]"
           >
             <span className="relative flex h-2 w-2" aria-hidden="true">
-              <span className="motion-safe:animate-wait-pulse absolute inline-flex h-full w-full rounded-full bg-[color:var(--brand-coral)] opacity-60" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-[color:var(--brand-coral)]" />
+              <span className="motion-safe:animate-wait-pulse absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-60" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
             </span>
             <span className="text-xs font-medium text-foreground">
               {waitState?.medianMinutes

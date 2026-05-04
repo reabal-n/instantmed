@@ -89,11 +89,10 @@
   /* -- Brand signature coral (added DS 1.1.0 / 2026-04-29) --
      Used sparingly on brand-recognition moments only:
        - signature mark on marketing pages
-       - homepage hero kicker / secure-form review pill
        - doctor signature underline
        - page-enter sweep accent
-       - wait-counter pulse
      NOT a replacement for --primary (system blue stays the CTA colour).
+     Live/reviewing indicators use success green, never brand coral.
      Distinct from --coral (#F87171), which is reserved for destructive states. */
   --brand-coral:        #FF6B5B;
   --brand-coral-light:  rgba(255,107,91,0.10);
@@ -108,7 +107,7 @@
 - **Prohibited:** purple/violet (except `--service-referral`), neon, dark navy on marketing pages.
 - Morning spectrum: marketing heroes only. Never inside the product UI.
 - **Sky-toned shadows only: `shadow-primary/[0.06]`.** Never black shadows on marketing surfaces. The global `--shadow-*` CSS tokens in `app/globals.css:175-183` are based on `rgba(59, 130, 246, ...)` (the primary blue at low alpha) — updated 2026-04-08 in commit `270e6c3a1`. Every `shadow-sm`/`shadow-md`/`shadow-lg` Tailwind utility now cascades through these sky-tinted values.
-- **Brand coral is a signature accent, not a system colour.** Use `bg-brand-coral` / `text-brand-coral` only on the brand-recognition moments listed above. Do not introduce it into intake, dashboard, or product UI. `--primary` (system blue) remains the CTA colour everywhere.
+- **Brand coral is a signature accent, not a system colour.** Use `bg-brand-coral` / `text-brand-coral` only on the brand-recognition moments listed above. Do not introduce it into intake, dashboard, live-status indicators, or product UI. `--primary` (system blue) remains the CTA colour everywhere.
 - **Dark mode card surfaces are SOLID**, not translucent. `--card` and `--popover` are `#111827` (not `rgba(17, 24, 39, 0.75)`) — updated 2026-04-08 in the same commit. Previously the translucent rgba values created an unintended glass effect on every card in dark mode.
 - Semantic colors convey status. Never use decoratively.
 

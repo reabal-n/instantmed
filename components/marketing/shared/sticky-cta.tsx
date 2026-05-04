@@ -16,7 +16,7 @@ interface StickyCTAProps {
   ctaHref: string
   /** Small summary text above the mobile CTA button */
   mobileSummary: string
-  /** Desktop left-side label text */
+  /** Legacy desktop config retained for existing landing-page configs. Desktop sticky CTA is intentionally disabled. */
   desktopLabel?: string
   /** Price display text (e.g. "From $29.95") */
   priceLabel?: string
@@ -39,20 +39,15 @@ export function StickyCTA({
   ctaText,
   ctaHref,
   mobileSummary,
-  desktopLabel,
-  priceLabel,
-  desktopCtaText,
   isDisabled,
   onCTAClick,
   mobileFooter,
-  pricingScrollTarget,
   responseTime,
 }: StickyCTAProps) {
   const prefersReducedMotion = useReducedMotion()
 
   const resolvedHref = isDisabled ? "/contact" : ctaHref
   const resolvedCtaText = isDisabled ? "Contact us" : ctaText
-  const resolvedDesktopCtaText = isDisabled ? "Contact us" : (desktopCtaText ?? ctaText)
 
   return (
     <>
@@ -94,66 +89,6 @@ export function StickyCTA({
             </Link>
           </Button>
           {mobileFooter}
-        </div>
-      </motion.div>
-
-      {/* Sticky desktop CTA - slides in below navbar. Same `inert` pattern as
-          mobile (see comment above): aria-hidden+focusable=axe failure. */}
-      <motion.div
-        role="region"
-        aria-label="Quick purchase"
-        className="hidden lg:block fixed left-0 right-0 z-40"
-        style={{ top: '62px' }}
-        initial={prefersReducedMotion ? {} : { y: -80, opacity: 0 }}
-        animate={prefersReducedMotion
-          ? { opacity: show ? 1 : 0 }
-          : { y: show ? 0 : -80, opacity: show ? 1 : 0 }
-        }
-        transition={{ duration: 0.3, ease: "easeOut" }}
-        inert={!show ? true : undefined}
-      >
-        <div className="bg-white dark:bg-card border-b border-border/50 shadow-sm">
-          <div className="mx-auto max-w-5xl px-6 h-14 flex items-center justify-between gap-6">
-            {desktopLabel && (
-              <p className="text-sm text-muted-foreground hidden xl:block">
-                {desktopLabel}
-              </p>
-            )}
-            <div className="flex items-center gap-3 ml-auto">
-              {priceLabel && (
-                <span className="text-sm text-muted-foreground">
-                  {priceLabel}
-                </span>
-              )}
-              {responseTime && (
-                <span className="text-xs text-muted-foreground">
-                  {responseTime}
-                </span>
-              )}
-              {pricingScrollTarget && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-9 text-sm text-muted-foreground hover:text-foreground"
-                  onClick={() => document.getElementById(pricingScrollTarget)?.scrollIntoView({ behavior: "smooth" })}
-                >
-                  See pricing
-                </Button>
-              )}
-              <Button
-                asChild
-                size="sm"
-                className="h-9 px-5 font-semibold shadow-sm shadow-primary/20"
-                disabled={isDisabled}
-                onClick={onCTAClick}
-              >
-                <Link href={resolvedHref}>
-                  {resolvedDesktopCtaText}
-                  <ArrowRight className="ml-1.5 h-3.5 w-3.5" aria-hidden="true" />
-                </Link>
-              </Button>
-            </div>
-          </div>
         </div>
       </motion.div>
     </>

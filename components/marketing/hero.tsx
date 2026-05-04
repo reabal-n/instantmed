@@ -6,6 +6,7 @@ import Link from 'next/link'
 import type { ReactNode } from 'react'
 
 import { GoogleAdsCert } from '@/components/marketing/google-ads-cert'
+import { GoogleReviewsBadge } from '@/components/marketing/google-reviews-badge'
 import { LastReviewedSignal } from '@/components/marketing/last-reviewed-signal'
 import { LegitScriptSeal } from '@/components/marketing/legitscript-seal'
 import { WaitCounter } from '@/components/marketing/wait-counter'
@@ -143,6 +144,7 @@ const DEFAULT_SECONDARY: SecondaryCtaConfig = { text: 'How it works', href: '#ho
 const DEFAULT_TRUST_ROW = (
   <>
     <GoogleAdsCert size="sm" />
+    <GoogleReviewsBadge />
     <LegitScriptSeal size="sm" />
     <LastReviewedSignal className="ml-1" />
   </>
