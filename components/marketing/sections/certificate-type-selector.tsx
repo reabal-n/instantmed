@@ -3,70 +3,85 @@
 import { motion } from "framer-motion"
 import {
   ArrowRight,
-  Check,
   CheckCircle2,
   Sparkles,
 } from "lucide-react"
 import Link from "next/link"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 
 import { StickerIcon } from "@/components/icons/stickers"
 import { usePostHog } from "@/components/providers/posthog-provider"
 import { Button } from "@/components/ui/button"
 import { Heading } from "@/components/ui/heading"
 import { useReducedMotion } from "@/components/ui/motion"
-import { MED_CERT_DURATIONS, PRICING } from "@/lib/constants"
+import { MED_CERT_DURATIONS } from "@/lib/constants"
 import {
+  buildMedCertRequestHref,
   CERT_CATEGORIES,
+  CERT_DURATION_POSTHOG_EVENT,
+  CERT_DURATION_POSTHOG_PROPERTY,
+  CERT_SELECTOR_CTA_POSTHOG_EVENT,
   CERT_TYPE_POSTHOG_EVENT,
   CERT_TYPE_POSTHOG_PROPERTY,
   type CertCategory,
+  type CertDuration,
+  isValidCertDuration,
 } from "@/lib/marketing/med-cert-selector"
-import { SOCIAL_PROOF } from "@/lib/social-proof"
 import { cn } from "@/lib/utils"
 
 // ---------------------------------------------------------------------------
-// DATA
+// Data
 // ---------------------------------------------------------------------------
 
 const CATEGORY_STICKERS: Record<CertCategory, import("@/components/icons/stickers").StickerIconName> = {
-  work:  "briefcase",
+  work: "briefcase",
   study: "graduation-cap",
   carer: "heart-with-pulse",
 }
 
-const CATEGORY_FEATURES: Record<CertCategory, string[]> = {
+const CATEGORY_FEATURES: Record<CertCategory, readonly string[]> = {
   work: [
-    "Recognised under the Fair Work Act",
-    "Same-day PDF to your inbox",
-    "AHPRA doctor on every certificate",
+    "For ordinary sick leave or personal leave",
+    "Standard workplace evidence details",
   ],
   study: [
-    "For uni and TAFE absences",
-    "Same-day PDF to your inbox",
-    "AHPRA doctor on every certificate",
+    "For uni, TAFE, or course absence",
+    "Study documentation without clinic travel",
   ],
   carer: [
-    "Recognised under Fair Work Act s 107",
-    "Covers any immediate family member",
-    "Full refund if we cannot help",
+    "For caring for a sick dependent",
+    "Use when your leave is about someone else",
   ],
 }
 
+const REASSURANCE_POINTS = [
+  "AHPRA-registered Australian doctor review",
+  "1-3 day certificate options",
+  "Refund if online review is not suitable",
+] as const
+
 // ---------------------------------------------------------------------------
-// SearchParam auto-select
+// Search param auto-select
 // ---------------------------------------------------------------------------
 
 function SearchParamsAutoSelect({
   onAutoSelect,
+  onDurationSelect,
 }: {
   onAutoSelect: (cat: CertCategory) => void
+  onDurationSelect: (duration: CertDuration) => void
 }) {
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search)
     const certType = searchParams.get("certType") || searchParams.get("utm_content")
+    const duration = searchParams.get("duration")
+
     if (certType && ["work", "study", "carer"].includes(certType)) {
       onAutoSelect(certType as CertCategory)
+    }
+
+    if (duration && isValidCertDuration(duration)) {
+      onDurationSelect(duration)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -74,7 +89,7 @@ function SearchParamsAutoSelect({
 }
 
 // ---------------------------------------------------------------------------
-// COMPONENT
+// Component
 // ---------------------------------------------------------------------------
 
 export function CertificateTypeSelector({
@@ -88,323 +103,224 @@ export function CertificateTypeSelector({
   const [selected, setSelected] = useState<CertCategory | null>(null)
   const [selectedDays, setSelectedDays] = useState<number>(MED_CERT_DURATIONS.options[0])
 
+  const selectedDuration = String(selectedDays) as CertDuration
+  const selectedCategory = CERT_CATEGORIES.find((cat) => cat.id === selected) ?? null
+  const selectedPrice = MED_CERT_DURATIONS.prices[selectedDays as keyof typeof MED_CERT_DURATIONS.prices]
+  const selectedLabel = MED_CERT_DURATIONS.labels[selectedDays as keyof typeof MED_CERT_DURATIONS.labels]
+  const ctaHref = buildMedCertRequestHref({
+    category: selected,
+    duration: selectedDuration,
+  })
+
   const handleAutoSelect = (cat: CertCategory) => {
     setSelected((prev) => prev ?? cat)
   }
 
-  const handleSelect = (category: CertCategory) => {
-    setSelected(category)
-    posthog?.capture(CERT_TYPE_POSTHOG_EVENT, { [CERT_TYPE_POSTHOG_PROPERTY]: category })
+  const handleAutoDurationSelect = (duration: CertDuration) => {
+    setSelectedDays(Number(duration))
   }
 
-  const selectedPrice = MED_CERT_DURATIONS.prices[selectedDays as keyof typeof MED_CERT_DURATIONS.prices]
-  const selectedLabel = MED_CERT_DURATIONS.labels[selectedDays as keyof typeof MED_CERT_DURATIONS.labels]
+  const handleSelect = (category: CertCategory) => {
+    setSelected(category)
+    posthog?.capture(CERT_TYPE_POSTHOG_EVENT, {
+      [CERT_TYPE_POSTHOG_PROPERTY]: category,
+      [CERT_DURATION_POSTHOG_PROPERTY]: selectedDuration,
+    })
+  }
+
+  const handleDurationSelect = (duration: CertDuration) => {
+    setSelectedDays(Number(duration))
+    posthog?.capture(CERT_DURATION_POSTHOG_EVENT, {
+      [CERT_DURATION_POSTHOG_PROPERTY]: duration,
+      [CERT_TYPE_POSTHOG_PROPERTY]: selected,
+    })
+  }
+
+  const handleCtaClick = () => {
+    posthog?.capture(CERT_SELECTOR_CTA_POSTHOG_EVENT, {
+      action: selected ? "category_selected" : "choose_in_form",
+      [CERT_TYPE_POSTHOG_PROPERTY]: selected,
+      [CERT_DURATION_POSTHOG_PROPERTY]: selectedDuration,
+    })
+  }
 
   return (
     <section
       id="certificate-type"
       aria-label="Choose your certificate type"
-      className={cn("py-12 lg:py-16 scroll-mt-20", className)}
+      className={cn("py-10 lg:py-14 scroll-mt-20", className)}
     >
-      <SearchParamsAutoSelect onAutoSelect={handleAutoSelect} />
+      <SearchParamsAutoSelect
+        onAutoSelect={handleAutoSelect}
+        onDurationSelect={handleAutoDurationSelect}
+      />
 
-      <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-        {/* Header */}
+      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <motion.div
-          className="text-center mb-8"
+          className="overflow-hidden rounded-[1.75rem] border border-border/50 bg-white shadow-lg shadow-primary/[0.08] dark:border-white/15 dark:bg-card dark:shadow-none"
           initial={animate ? { opacity: 0, y: 8 } : {}}
           whileInView={animate ? { opacity: 1, y: 0 } : undefined}
           viewport={{ once: true }}
-          transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
+          transition={{ duration: 0.25, ease: [0.23, 1, 0.32, 1] }}
         >
-          <Heading level="h2" className="mb-3">
-            Which certificate do you need?
-          </Heading>
-          <p className="text-sm text-muted-foreground max-w-lg mx-auto">
-            Pick a category to tailor the form, or skip ahead and choose during the intake.
-          </p>
-        </motion.div>
+          <div className="grid lg:grid-cols-[0.86fr_1.14fr]">
+            <div className="border-b border-border/40 bg-muted/35 p-5 sm:p-7 lg:border-b-0 lg:border-r lg:p-8 dark:bg-white/[0.04]">
+              <p className="mb-3 inline-flex items-center gap-2 rounded-full border border-primary/15 bg-primary/5 px-3 py-1 text-xs font-semibold text-primary">
+                <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
+                Faster setup
+              </p>
+              <Heading level="h2" className="mb-3 text-balance">
+                Choose now, or choose inside the form.
+              </Heading>
+              <p className="max-w-md text-sm leading-relaxed text-muted-foreground">
+                If you already know what you need, we can pre-fill the first step.
+                If not, start anyway and decide during intake.
+              </p>
 
-        {/* Category cards - solid white surfaces, no gradients */}
-        <div className="grid sm:grid-cols-3 gap-4">
-          {CERT_CATEGORIES.map((cat, i) => {
-            const isSelected = selected === cat.id
-            const isMostChosen = cat.id === "work"
-            return (
-              <motion.button
-                key={cat.id}
-                type="button"
-                onClick={() => handleSelect(cat.id)}
-                aria-pressed={isSelected}
-                className={cn(
-                  "group relative rounded-2xl border p-5 text-left cursor-pointer",
-                  "bg-white dark:bg-card",
-                  "shadow-sm shadow-primary/[0.04]",
-                  "transition-[transform,box-shadow,border-color] duration-200",
-                  isSelected
-                    ? "border-primary ring-2 ring-primary/20 shadow-md shadow-primary/[0.08]"
-                    : "border-border/60 hover:border-primary/40 hover:shadow-md hover:shadow-primary/[0.08] hover:-translate-y-0.5",
-                )}
-                initial={animate ? { opacity: 0, y: 8 } : {}}
-                whileInView={animate ? { opacity: 1, y: 0 } : undefined}
-                viewport={{ once: true }}
-                transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1], delay: i * 0.07 }}
-              >
-                {/* Most chosen badge - real-data positioning signal */}
-                {isMostChosen && !isSelected && (
-                  <div className="absolute -top-2 left-4">
-                    <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 border border-primary/25 px-2 py-0.5 text-[10px] font-semibold text-primary">
-                      <Sparkles className="w-2.5 h-2.5" aria-hidden="true" />
-                      Most chosen
-                    </span>
-                  </div>
-                )}
-
-                {/* Selected check */}
-                {isSelected && (
-                  <div className="absolute top-3 right-3">
-                    <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
-                      <Check className="h-3 w-3 text-white" strokeWidth={3} aria-hidden="true" />
-                    </div>
-                  </div>
-                )}
-
-                <div className="mb-3">
-                  <StickerIcon name={CATEGORY_STICKERS[cat.id]} size={40} />
-                </div>
-
-                <Heading level="h3" className="mb-1">
-                  {cat.label}
-                </Heading>
-                <p className="text-xs text-muted-foreground leading-relaxed mb-3">
-                  {cat.description}
-                </p>
-
-                <ul className="space-y-1.5 mb-3">
-                  {CATEGORY_FEATURES[cat.id].map((feat) => (
-                    <li key={feat} className="flex items-start gap-2">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-success shrink-0 mt-0.5" aria-hidden="true" />
-                      <span className="text-xs text-muted-foreground leading-tight">{feat}</span>
-                    </li>
-                  ))}
-                </ul>
-
-                <div className="flex flex-wrap gap-1.5">
-                  {cat.reasons.map((reason) => (
-                    <span
-                      key={reason}
-                      className="text-[11px] font-medium text-muted-foreground px-2 py-0.5 rounded-full border border-border/40 bg-muted/30"
-                    >
-                      {reason}
-                    </span>
-                  ))}
-                </div>
-              </motion.button>
-            )
-          })}
-        </div>
-
-        {/* Pricing ladder + CTA - shown after a selection */}
-        <motion.div
-          className="mt-6 text-center"
-          animate={
-            selected
-              ? { opacity: 1, y: 0, height: "auto" }
-              : { opacity: 0, y: 8, height: 0 }
-          }
-          transition={{ duration: 0.35, ease: [0.23, 1, 0.32, 1] }}
-          style={{ overflow: "hidden" }}
-        >
-          {/* Duration tiles */}
-          <div className="inline-flex items-center gap-2 sm:gap-3 mb-5 p-1 rounded-xl bg-muted/40 border border-border/30">
-            {MED_CERT_DURATIONS.options.map((days) => {
-              const isActive = selectedDays === days
-              return (
-                <button
-                  key={days}
-                  type="button"
-                  onClick={() => setSelectedDays(days)}
-                  className={cn(
-                    "relative px-4 py-2 rounded-lg text-center cursor-pointer min-w-[80px]",
-                    "transition-[transform,box-shadow,background-color,border-color] duration-150",
-                    isActive
-                      ? "bg-white dark:bg-card shadow-sm border border-border/50 ring-1 ring-primary/20"
-                      : "hover:bg-white/60 dark:hover:bg-white/5",
-                  )}
-                >
-                  <p className={cn("text-xs mb-0.5", isActive ? "text-primary font-medium" : "text-muted-foreground")}>
-                    {MED_CERT_DURATIONS.labels[days as keyof typeof MED_CERT_DURATIONS.labels]}
-                  </p>
-                  <p className={cn("text-sm font-semibold", isActive ? "text-foreground" : "text-muted-foreground")}>
-                    ${MED_CERT_DURATIONS.prices[days as keyof typeof MED_CERT_DURATIONS.prices].toFixed(2)}
-                  </p>
-                </button>
-              )
-            })}
-          </div>
-          <div>
-            <Button
-              asChild
-              size="lg"
-              className="px-8 h-11 font-semibold shadow-md shadow-primary/20 hover:shadow-xl hover:shadow-primary/25 hover:-translate-y-0.5"
-            >
-              <Link
-                href={`/request?service=med-cert${selected ? `&certType=${selected}` : ""}`}
-                onClick={() => posthog?.capture("cta_clicked", { location: "cert_selector", cert_type: selected, days: selectedDays })}
-              >
-                Get your {selectedLabel} certificate &middot; ${selectedPrice.toFixed(2)}
-                <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
-              </Link>
-            </Button>
-            <p className="text-xs text-muted-foreground mt-2">
-              Takes about 2 minutes. Full refund if we cannot help.
-            </p>
-          </div>
-        </motion.div>
-
-        {/* Secondary action - only when nothing selected.
-            Promoted from a near-invisible ghost link to a proper outline button
-            so users who don't want to pre-select have a real path. */}
-        {!selected && (
-          <div className="mt-7 flex flex-col items-center gap-2">
-            <Button
-              asChild
-              variant="outline"
-              size="lg"
-              className="px-7 h-11 font-medium border-border/70 hover:border-primary/40 hover:bg-primary/[0.03]"
-            >
-              <Link
-                href="/request?service=med-cert"
-                onClick={() => posthog?.capture("cta_clicked", { location: "cert_selector_skip", cert_type: null })}
-              >
-                Skip ahead, choose during the form
-                <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
-              </Link>
-            </Button>
-            <p className="text-xs text-muted-foreground">
-              From <span className="font-semibold text-foreground">${PRICING.MED_CERT.toFixed(2)}</span> &middot; Most patients finish in under 2 minutes
-            </p>
-          </div>
-        )}
-      </div>
-    </section>
-  )
-}
-
-// ---------------------------------------------------------------------------
-// Comparison Table - exported standalone so the landing page can place it in
-// its own section (after social proof) instead of inside the selector. Drops
-// the "Other Telehealth" column because anchoring competitor prices in the
-// patient's mental model hurts more than it helps.
-// ---------------------------------------------------------------------------
-
-const comparisonRows: Array<{
-  label: string
-  instant: string | boolean
-  gp: string | boolean
-  instantWins?: boolean
-}> = [
-  { label: 'Price',           instant: `$${PRICING.MED_CERT.toFixed(2)}`,           gp: SOCIAL_PROOF.gpPriceStandard, instantWins: true },
-  { label: 'Turnaround',      instant: `~${SOCIAL_PROOF.certTurnaroundMinutes} min`, gp: 'Hours of waiting',           instantWins: true },
-  { label: 'Open 24/7',       instant: true,                                         gp: false,                        instantWins: true },
-  { label: 'No appointment',  instant: true,                                         gp: false,                        instantWins: true },
-  { label: 'Same-day cert',   instant: true,                                         gp: false,                        instantWins: true },
-  { label: 'AHPRA doctor',    instant: true,                                         gp: true },
-]
-
-function renderCell(value: string | boolean, isInstant = false, wins = false) {
-  if (value === true)
-    return <CheckCircle2 className={cn("w-4 h-4 mx-auto", isInstant && wins ? "text-primary" : "text-success")} />
-  if (value === false)
-    return <span className="text-muted-foreground/30" aria-hidden="true">&times;</span>
-  return <span className={cn(isInstant && wins ? "font-semibold text-foreground" : "")}>{value}</span>
-}
-
-export function MedCertComparisonTable({ className }: { className?: string }) {
-  const prefersReducedMotion = useReducedMotion()
-  const tableRef = useRef<HTMLDivElement>(null)
-  const posthog = usePostHog()
-  const tracked = useRef(false)
-
-  useEffect(() => {
-    const el = tableRef.current
-    if (!el) return
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && !tracked.current) {
-          tracked.current = true
-          posthog?.capture("comparison_table_viewed", { page: "med-cert" })
-        }
-      },
-      { threshold: 0.5 }
-    )
-    observer.observe(el)
-    return () => observer.disconnect()
-  }, [posthog])
-
-  return (
-    <section
-      aria-label="How online medical certificates compare to a GP visit"
-      className={cn("py-10 sm:py-14", className)}
-    >
-      <div className="mx-auto max-w-3xl px-4 sm:px-6">
-        <motion.div
-          ref={tableRef}
-          initial={prefersReducedMotion ? {} : { opacity: 0, y: 8 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
-        >
-          <div className="text-center mb-6">
-            <Heading level="h2">
-              Online vs in-person GP, side by side
-            </Heading>
-            <p className="text-sm text-muted-foreground mt-2">
-              Same Fair Work Act validity. Different experience, price, and turnaround. The race-track above shows the time gap; this table shows what else differs.
-            </p>
-          </div>
-
-          <div className="overflow-x-auto rounded-xl border border-border/50 dark:border-white/10 shadow-md shadow-primary/[0.06] dark:shadow-none">
-            <table className="w-full text-sm border-collapse bg-white dark:bg-card rounded-xl overflow-hidden">
-              <thead>
-                <tr className="border-b border-border/40">
-                  <th scope="col" className="text-left py-3 px-4 text-muted-foreground font-medium text-xs w-[40%] bg-white dark:bg-card sticky left-0 z-10">
-                    <span className="sr-only">Feature</span>
-                  </th>
-                  <th scope="col" className="text-center py-0 px-4 w-[30%] bg-primary/5 dark:bg-primary/10">
-                    <div className="flex flex-col items-center gap-0.5 py-3">
-                      <span className="text-xs font-semibold text-primary">InstantMed</span>
-                      <span className="text-[10px] text-muted-foreground">Online</span>
-                    </div>
-                  </th>
-                  <th scope="col" className="text-center py-3 px-4 text-muted-foreground font-medium text-xs w-[30%]">
-                    <div className="flex flex-col items-center gap-0.5">
-                      <span className="text-xs font-semibold">GP Clinic</span>
-                      <span className="text-[10px] text-muted-foreground/70">In-person</span>
-                    </div>
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border/25">
-                {comparisonRows.map((row, i) => (
-                  <tr key={i} className="hover:bg-muted/20 transition-colors">
-                    <th scope="row" className="py-2.5 px-4 text-left text-muted-foreground font-medium text-xs bg-white dark:bg-card sticky left-0 z-10">
-                      {row.label}
-                    </th>
-                    <td className="py-2.5 px-4 text-center text-xs bg-primary/5 dark:bg-primary/10">
-                      {renderCell(row.instant, true, row.instantWins)}
-                    </td>
-                    <td className="py-2.5 px-4 text-center text-xs text-muted-foreground">
-                      {renderCell(row.gp)}
-                    </td>
-                  </tr>
+              <ul className="mt-6 space-y-2.5">
+                {REASSURANCE_POINTS.map((point) => (
+                  <li key={point} className="flex items-start gap-2 text-sm text-foreground">
+                    <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-success" aria-hidden="true" />
+                    <span>{point}</span>
+                  </li>
                 ))}
-              </tbody>
-            </table>
+              </ul>
+            </div>
+
+            <div className="p-4 sm:p-5 lg:p-6">
+              <div
+                role="group"
+                aria-label="Certificate category"
+                className="grid gap-3 sm:grid-cols-3"
+              >
+                {CERT_CATEGORIES.map((cat) => {
+                  const isSelected = selected === cat.id
+                  const isMostChosen = cat.id === "work"
+                  return (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      onClick={() => handleSelect(cat.id)}
+                      aria-pressed={isSelected}
+                      aria-describedby={`cert-${cat.id}-description`}
+                      className={cn(
+                        "group relative flex min-h-[104px] items-start gap-3 rounded-2xl border p-3.5 text-left",
+                        "transition-[transform,box-shadow,border-color,background-color] duration-200",
+                        isSelected
+                          ? "border-primary bg-primary/[0.04] shadow-md shadow-primary/[0.08] ring-2 ring-primary/15"
+                          : "border-border/60 bg-white hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md hover:shadow-primary/[0.08] dark:bg-card",
+                      )}
+                    >
+                      <StickerIcon name={CATEGORY_STICKERS[cat.id]} size={36} className="shrink-0" />
+                      <span className="min-w-0">
+                        <span className="flex items-center gap-2 text-base font-semibold text-foreground">
+                          {cat.label}
+                          {isMostChosen && !isSelected && (
+                            <span className="rounded-full border border-primary/20 bg-primary/5 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                              Most chosen
+                            </span>
+                          )}
+                        </span>
+                        <span
+                          id={`cert-${cat.id}-description`}
+                          className="mt-1 block text-xs leading-relaxed text-muted-foreground"
+                        >
+                          {cat.description}
+                        </span>
+                      </span>
+                      {isSelected && (
+                        <CheckCircle2 className="absolute right-3 top-3 h-4 w-4 text-primary" aria-hidden="true" />
+                      )}
+                    </button>
+                  )
+                })}
+              </div>
+
+              <div className="mt-4 rounded-2xl border border-border/45 bg-muted/30 p-3.5 dark:bg-white/[0.04]">
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <p className="text-sm font-semibold text-foreground">How many days?</p>
+                  <p className="text-xs text-muted-foreground">Max 3 days</p>
+                </div>
+                <div
+                  role="group"
+                  aria-label="Certificate duration"
+                  className="grid grid-cols-3 gap-2"
+                >
+                  {MED_CERT_DURATIONS.options.map((days) => {
+                    const duration = String(days) as CertDuration
+                    const isActive = selectedDays === days
+                    return (
+                      <button
+                        key={days}
+                        type="button"
+                        onClick={() => handleDurationSelect(duration)}
+                        aria-pressed={isActive}
+                        className={cn(
+                          "min-h-14 rounded-xl border px-3 py-2 text-center transition-[transform,box-shadow,background-color,border-color] duration-150",
+                          isActive
+                            ? "border-primary bg-white text-foreground shadow-sm shadow-primary/[0.06] ring-1 ring-primary/15 dark:bg-card"
+                            : "border-border/50 bg-white/60 text-muted-foreground hover:-translate-y-0.5 hover:border-primary/35 dark:bg-card/70",
+                        )}
+                      >
+                        <span className={cn("block text-sm font-semibold", isActive && "text-primary")}>
+                          {MED_CERT_DURATIONS.labels[days as keyof typeof MED_CERT_DURATIONS.labels]}
+                        </span>
+                        <span className="mt-0.5 block text-xs">
+                          ${MED_CERT_DURATIONS.prices[days as keyof typeof MED_CERT_DURATIONS.prices].toFixed(2)}
+                        </span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              <motion.div
+                key={`${selected ?? "none"}-${selectedDays}`}
+                className="mt-4 rounded-2xl border border-primary/15 bg-primary/[0.035] p-4"
+                initial={animate ? { opacity: 0, y: 6 } : {}}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
+              >
+                <div className="grid gap-4 md:grid-cols-[1fr_auto] md:items-end">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary">
+                      {selectedCategory ? selectedCategory.label : "Choose during the form"}
+                    </p>
+                    <Heading level="h3" className="mt-1">
+                      {selectedCategory
+                        ? `${selectedLabel} certificate, ready to start.`
+                        : `${selectedLabel} certificate from $${selectedPrice.toFixed(2)}.`}
+                    </Heading>
+                    <ul className="mt-3 grid gap-1.5 sm:grid-cols-2">
+                      {(selectedCategory ? CATEGORY_FEATURES[selectedCategory.id] : REASSURANCE_POINTS.slice(0, 2)).map((item) => (
+                        <li key={item} className="flex items-start gap-2 text-xs leading-relaxed text-muted-foreground">
+                          <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-success" aria-hidden="true" />
+                          <span>{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div className="md:min-w-[230px]">
+                    <Button
+                      asChild
+                      size="lg"
+                      className="h-12 w-full px-5 font-semibold shadow-md shadow-primary/20 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-primary/25"
+                    >
+                      <Link href={ctaHref} onClick={handleCtaClick}>
+                        {selectedCategory ? "Get this certificate" : "Start request"}
+                        <span className="text-primary-foreground/80">· ${selectedPrice.toFixed(2)}</span>
+                        <ArrowRight className="ml-1 h-4 w-4" aria-hidden="true" />
+                      </Link>
+                    </Button>
+                    <p className="mt-2 text-center text-xs text-muted-foreground">
+                      You can change this inside the form.
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
           </div>
-          <p className="mt-3 text-[11px] text-muted-foreground text-center leading-relaxed">
-            GP cost estimated from MBS item 23 fee. Both certificate types are equally valid under Fair Work Act s 107.
-          </p>
         </motion.div>
       </div>
     </section>

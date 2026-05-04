@@ -44,6 +44,7 @@ interface StepComponentProps {
   onNext: () => void
   onBack: () => void
   onComplete: () => void
+  initialDuration?: string
 }
 
 const stepComponents = {
@@ -81,6 +82,7 @@ export interface StepRouterProps {
   onNext: () => void
   onBack: () => void
   onComplete: () => void
+  initialDuration?: string
 }
 
 function StepNotFound({ componentPath }: { componentPath: string }) {
@@ -100,6 +102,7 @@ export function StepRouter({
   onNext,
   onBack,
   onComplete,
+  initialDuration,
 }: StepRouterProps) {
   const StepComponent = useMemo(() => {
     const key = componentPath as StepComponentKey
@@ -117,6 +120,7 @@ export function StepRouter({
         onNext={onNext}
         onBack={onBack}
         onComplete={onComplete}
+        initialDuration={initialDuration}
       />
     </StepErrorBoundary>
   )
