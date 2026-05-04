@@ -23,21 +23,26 @@ export interface PriceIdInput {
 
 /**
  * Calculate number of absence days from answers
- * Supports both unified flow (duration: "1" | "2") and legacy flow (absence_dates)
+ * Supports both unified duration values and legacy absence_dates answers.
  */
 export function getAbsenceDays(answers?: Record<string, unknown>): number {
   if (!answers) return 1
   
-  // Unified flow uses 'duration' directly as "1", "2", or "3"
-  const duration = answers.duration as string | undefined
-  if (duration === '3') {
-    return 3
+  // Unified flow uses duration directly. Keep this in sync with
+  // validateMedCertPayload so server-accepted legacy labels price correctly.
+  const duration = typeof answers.duration === "string"
+    ? answers.duration.trim().toLowerCase()
+    : undefined
+  const durationDaysByValue: Record<string, number> = {
+    "1": 1,
+    "1 day": 1,
+    "2": 2,
+    "2 days": 2,
+    "3": 3,
+    "3 days": 3,
   }
-  if (duration === '2') {
-    return 2
-  }
-  if (duration === '1') {
-    return 1
+  if (duration && durationDaysByValue[duration]) {
+    return durationDaysByValue[duration]
   }
   
   // Legacy flow uses absence_dates

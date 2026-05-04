@@ -56,13 +56,23 @@ describe('getAbsenceDays - unified duration flow', () => {
     expect(getAbsenceDays({ duration: '3' })).toBe(3)
   })
 
+  it('returns 2 for legacy duration label "2 days"', async () => {
+    const { getAbsenceDays } = await import('@/lib/stripe/price-mapping')
+    expect(getAbsenceDays({ duration: '2 days' })).toBe(2)
+  })
+
+  it('returns 3 for legacy duration label "3 days"', async () => {
+    const { getAbsenceDays } = await import('@/lib/stripe/price-mapping')
+    expect(getAbsenceDays({ duration: '3 days' })).toBe(3)
+  })
+
   it('duration takes precedence over legacy absence_dates', async () => {
     const { getAbsenceDays } = await import('@/lib/stripe/price-mapping')
     // If both duration and absence_dates are present, duration wins (checked first)
     expect(getAbsenceDays({ duration: '2', absence_dates: 'today' })).toBe(2)
   })
 
-  it('falls through to legacy flow when duration is not "1"/"2"/"3"', async () => {
+  it('falls through to legacy flow when duration is not supported', async () => {
     const { getAbsenceDays } = await import('@/lib/stripe/price-mapping')
     // duration is some unexpected value, absence_dates = 'today' => 1
     expect(getAbsenceDays({ duration: '5', absence_dates: 'today' })).toBe(1)
@@ -245,6 +255,15 @@ describe('getPriceIdForRequest - 3-day tier', () => {
       category: 'medical_certificate',
       subtype: 'work',
       answers: { duration: '3' },
+    })).toBe('price_medcert_3day')
+  })
+
+  it('returns 3-day price for legacy duration label "3 days"', async () => {
+    const { getPriceIdForRequest } = await import('@/lib/stripe/price-mapping')
+    expect(getPriceIdForRequest({
+      category: 'medical_certificate',
+      subtype: 'work',
+      answers: { duration: '3 days' },
     })).toBe('price_medcert_3day')
   })
 
