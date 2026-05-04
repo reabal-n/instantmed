@@ -1703,6 +1703,7 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
       eyebrow: "Pattern check",
       title: "Pain pattern determines whether it needs investigation",
       summary: "Severe, worsening, one-sided, or new pain deserves more than a routine certificate.",
+      visualFormat: "comparison-graphic",
       kind: "comparison",
       accent: "rose",
       items: [
@@ -1710,13 +1711,14 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
         { label: "Concerning pattern", detail: "Worsening, one-sided, new, or disabling", tone: "caution" },
         { label: "Urgent symptoms", detail: "Fever, fainting, pregnancy concern, or severe pain", tone: "urgent" },
       ],
-      imagePrompt: "Calm period pain guide illustration, heat pack and calendar, warm respectful style, no readable text",
+      imagePrompt: "Detailed respectful period-pain pattern comparison graphic showing common cramps versus concerning patterns versus urgent symptoms. Include lower abdomen and lower back pain zones, cycle calendar, heat pack, symptom tracker, and calm warning hierarchy. Keep urgent examples limited to fever, fainting, pregnancy concern, and severe pain. Do not include shoulder-tip pain, breathing difficulty, diagnosis claims, blood, gore, pregnancy test brands, sexual imagery, medication brands, consultation CTAs, or workplace logos.",
     },
     {
       id: "period-work-documentation",
       eyebrow: "Documentation",
       title: "The work note should focus on capacity",
       summary: "A certificate can support absence without disclosing private gynaecological details to an employer.",
+      visualFormat: "patient-education-poster",
       kind: "checklist",
       accent: "blue",
       items: [
@@ -1724,7 +1726,22 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
         { label: "Privacy", detail: "Diagnosis detail is usually not needed" },
         { label: "Follow-up", detail: "Recurring severe pain should be assessed" },
       ],
-      imagePrompt: "Australian work-from-home sick day scene with calendar and heat pack, no readable text, calm privacy-focused mood",
+      imagePrompt: "Detailed privacy-focused patient education poster about period pain work documentation. Show a neutral certificate sheet with no fake signatures, calendar dates, work laptop closed, heat pack, privacy shield motif, and capacity-focused checklist. Make clear the note focuses on unfit-for-work dates, privacy, and follow-up for recurrent severe pain. No employer logos, no legal seals, no brand names, no online certificate CTA.",
+    },
+    {
+      id: "period-pain-review-map",
+      eyebrow: "Review map",
+      title: "Track the pattern before the next appointment",
+      summary: "Timing, bleeding, pain location, medicines tried, and daily impact help separate routine cramps from pelvic pain that needs review.",
+      visualFormat: "process-visual",
+      kind: "flow",
+      accent: "emerald",
+      items: [
+        { label: "Timing", detail: "First two days, longer duration, or pain outside bleeding" },
+        { label: "Impact", detail: "Work, study, sleep, movement, nausea, or fainting" },
+        { label: "Escalation", detail: "Worsening or recurrent disabling pain needs review", tone: "caution" },
+      ],
+      imagePrompt: "Detailed non-graphic period pain review map showing a cycle tracker, pain-location body map for lower abdomen, back, pelvis and one-sided pain, bleeding heaviness scale shown abstractly, medicines or heat tried without brand names, and daily impact on work/study/sleep. Warm editorial patient handout style, inclusive but non-identifiable human context, no blood, no explicit anatomy, no pregnancy test branding, no consultation CTA.",
     },
   ],
   "university-medical-certificates": [

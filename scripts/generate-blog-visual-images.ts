@@ -24,9 +24,14 @@ interface Palette {
 const WIDTH = 1280
 const HEIGHT = 1600
 const GPT_IMAGE_MODEL = "openai/gpt-image-2"
-const WORDMARK_WIDTH = 220
-const WORDMARK_HEIGHT = 44
-const WORDMARK_MARGIN = 24
+const BRAND_BADGE_WIDTH = 248
+const BRAND_BADGE_HEIGHT = 50
+const BRAND_BADGE_MARGIN = 24
+const BRAND_LOGO_SIZE = 30
+const BRAND_WORDMARK_WIDTH = 152
+const BRAND_WORDMARK_HEIGHT = 24
+const BRAND_LOGO_PATH = path.join(process.cwd(), "public", "branding", "logo.png")
+const BRAND_WORDMARK_PATH = path.join(process.cwd(), "public", "branding", "wordmark.png")
 
 type Renderer = "deterministic" | "gpt-image-2"
 type VisualFormat = NonNullable<ArticleVisual["visualFormat"]>
@@ -455,28 +460,41 @@ function buildGatewayPrompt(slug: string, visual: ArticleVisual): string {
     "Use confident visual hierarchy with a strong hero diagram or scene, then supporting panels. Add warmth through texture, realistic objects, human context, asymmetry, and small editorial details while keeping the information readable.",
     "",
     "Hard constraints:",
-    "No brand logos, no official seals, no medical crosses, no medication brand names, no pill imprints, no celebrity likenesses, no gore, no graphic symptoms, no consultation CTA, no website UI, no fake doctor-patient chat. If a person appears, make them non-identifiable, natural, and secondary. Do not draw the InstantMed logo or wordmark; the production script adds the wordmark after generation.",
+    "No brand logos, no official seals, no medical crosses, no medication brand names, no pill imprints, no celebrity likenesses, no gore, no graphic symptoms, no consultation CTA, no website UI, no fake doctor-patient chat. If a person appears, make them non-identifiable, natural, and secondary. Do not draw the InstantMed logo or wordmark; the production script adds the official brand assets after generation.",
     `Article slug for context only: ${slug}.`,
   ].join("\n")
 }
 
-function renderWordmarkOverlaySvg(): string {
-  const x = WIDTH - WORDMARK_WIDTH - WORDMARK_MARGIN
-  const y = HEIGHT - WORDMARK_HEIGHT - WORDMARK_MARGIN
+function renderBrandBadgeBackgroundSvg(): string {
+  const x = WIDTH - BRAND_BADGE_WIDTH - BRAND_BADGE_MARGIN
+  const y = HEIGHT - BRAND_BADGE_HEIGHT - BRAND_BADGE_MARGIN
 
   return `
     <svg xmlns="http://www.w3.org/2000/svg" width="${WIDTH}" height="${HEIGHT}" viewBox="0 0 ${WIDTH} ${HEIGHT}">
-      <rect x="${x}" y="${y}" width="${WORDMARK_WIDTH}" height="${WORDMARK_HEIGHT}" rx="18" fill="#f8f7f4" fill-opacity="0.82" stroke="#d8e4f8" stroke-width="1.25"/>
-      <text x="${x + 28}" y="${y + 30}" font-family="Source Sans 3, Arial, sans-serif" font-size="22" font-weight="700" fill="#172033">InstantMed</text>
+      <rect x="${x}" y="${y}" width="${BRAND_BADGE_WIDTH}" height="${BRAND_BADGE_HEIGHT}" rx="18" fill="#f8f7f4" fill-opacity="0.84" stroke="#d8e4f8" stroke-width="1.25"/>
     </svg>
   `
 }
 
 async function addInstantMedWordmark(filepath: string) {
   const tmpPath = `${filepath}.wordmark-tmp.webp`
+  const x = WIDTH - BRAND_BADGE_WIDTH - BRAND_BADGE_MARGIN
+  const y = HEIGHT - BRAND_BADGE_HEIGHT - BRAND_BADGE_MARGIN
+  const logo = await sharp(BRAND_LOGO_PATH)
+    .resize(BRAND_LOGO_SIZE, BRAND_LOGO_SIZE, { fit: "contain" })
+    .png()
+    .toBuffer()
+  const wordmark = await sharp(BRAND_WORDMARK_PATH)
+    .resize(BRAND_WORDMARK_WIDTH, BRAND_WORDMARK_HEIGHT, { fit: "inside", withoutEnlargement: true })
+    .png()
+    .toBuffer()
 
   await sharp(filepath)
-    .composite([{ input: Buffer.from(renderWordmarkOverlaySvg()), left: 0, top: 0 }])
+    .composite([
+      { input: Buffer.from(renderBrandBadgeBackgroundSvg()), left: 0, top: 0 },
+      { input: logo, left: x + 14, top: y + 10 },
+      { input: wordmark, left: x + 54, top: y + 14 },
+    ])
     .webp({ quality: 88, effort: 5 })
     .toFile(tmpPath)
 
