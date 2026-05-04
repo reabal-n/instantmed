@@ -115,12 +115,12 @@ function ArticleVisualPanel({ visual }: { visual: ArticleVisual }) {
       </div>
 
       {visual.assetPath && (
-        <div className="relative mt-5 aspect-[16/9] overflow-hidden rounded-xl border border-border/50 bg-white/70 dark:bg-card">
+        <div className="relative mt-5 aspect-[4/5] overflow-hidden rounded-xl border border-border/50 bg-white dark:bg-card">
           <Image
             src={visual.assetPath}
             alt={`${visual.title}: ${visual.summary}`}
             fill
-            className="object-cover"
+            className="object-contain"
             sizes="(max-width: 768px) 100vw, 760px"
           />
         </div>
