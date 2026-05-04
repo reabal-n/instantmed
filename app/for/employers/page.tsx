@@ -75,14 +75,14 @@ export default function EmployersPage() {
 
   const faqs = [
     {
-      question: "Are online medical certificates legally valid?",
+      question: "Can online medical certificates support workplace evidence requirements?",
       answer:
-        "Yes. Certificates issued by AHPRA-registered doctors via telehealth carry the same legal weight as those from in-person GP visits. The Medical Board of Australia recognises telehealth as a legitimate healthcare delivery method.",
+        "Certificates issued by AHPRA-registered doctors via telehealth can support workplace evidence requirements. The Medical Board of Australia recognises telehealth as a legitimate healthcare delivery method.",
     },
     {
       question: "Can I reject an online medical certificate?",
       answer:
-        "Under the Fair Work Act, employers can request 'reasonable evidence' of illness. A certificate from an AHPRA-registered doctor meets this standard. Rejecting a valid certificate could constitute a breach.",
+        "Under Fair Work guidance, employers can request evidence that would satisfy a reasonable person. Specific workplace policies and circumstances may vary.",
     },
     {
       question: "How do I verify an InstantMed certificate?",
@@ -105,9 +105,9 @@ export default function EmployersPage() {
         `Use our verification portal. If the certificate ID doesn't verify, contact us at ${CONTACT_EMAIL}. We take fraudulent use seriously and cooperate with workplace investigations.`,
     },
     {
-      question: "Do your certificates meet Fair Work requirements?",
+      question: "What details do your certificates include?",
       answer:
-        "Yes. They contain all elements required under the Fair Work Act: registered practitioner details, dates of unfitness, practitioner signature, and AHPRA registration number.",
+        "They include registered practitioner details, dates of unfitness, practitioner signature, and AHPRA registration number. Workplace policies and circumstances may vary.",
     },
     {
       question: "Can employees get backdated certificates?",
@@ -117,7 +117,7 @@ export default function EmployersPage() {
     {
       question: "How quickly can employees get a certificate?",
       answer:
-        "Most certificates are issued in under 30 minutes, available 24/7. This means employees can produce a certificate whenever they need one.",
+        "Employees can submit medical certificate requests 24/7. Review timing depends on clinical suitability and doctor availability.",
     },
     {
       question: "Can we set up a corporate account?",
@@ -392,17 +392,17 @@ export default function EmployersPage() {
                   <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                     <Scale className="w-5 h-5 text-primary" />
                   </div>
-                  <h3 className="text-lg font-semibold text-foreground">The legal standing of telehealth certificates</h3>
+                  <h3 className="text-lg font-semibold text-foreground">How telehealth certificates are assessed</h3>
                 </div>
                 <div className="space-y-3 text-sm text-muted-foreground">
                   <p>
-                    Since the expansion of telehealth during 2020, the Medical Board of Australia has formally recognised telehealth as a legitimate healthcare delivery method. Certificates issued via telehealth by AHPRA-registered practitioners carry identical legal weight to those from in-person consultations.
+                    Since the expansion of telehealth during 2020, the Medical Board of Australia has recognised telehealth as a legitimate healthcare delivery method when clinically appropriate.
                   </p>
                   <p>
-                    The Fair Work Act requires &quot;a medical certificate or statutory declaration&quot; as evidence of illness - it does not specify the mode of consultation. Multiple Fair Work Commission decisions have upheld telehealth certificates as valid evidence, and no distinction is drawn between certificates issued following a face-to-face appointment versus a telehealth assessment.
+                    Fair Work guidance lets employers request evidence that would satisfy a reasonable person. Certificates from AHPRA-registered doctors can support that evidence requirement, including when the assessment was completed via telehealth.
                   </p>
                   <p>
-                    For employers, this means a medical certificate from InstantMed carries the same obligations and protections as one from any other registered medical practice in Australia.
+                    For employers, the practical assessment is whether the certificate includes clear practitioner details, dates, and verification information, alongside your workplace policy.
                   </p>
                 </div>
               </div>
@@ -438,14 +438,14 @@ export default function EmployersPage() {
                   <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                     <BadgeCheck className="w-5 h-5 text-primary" />
                   </div>
-                  <h3 className="text-lg font-semibold text-foreground">Your obligations under the Fair Work Act</h3>
+                  <h3 className="text-lg font-semibold text-foreground">Set a clear evidence policy</h3>
                 </div>
                 <div className="space-y-3 text-sm text-muted-foreground">
                   <p>
-                    Employers can request a medical certificate for any period of personal/carer&apos;s leave. However, this must be applied consistently - you cannot require certificates from some employees and not others for the same absence duration. Policies that single out individuals or apply different thresholds may constitute adverse action.
+                    Employers can set evidence requirements for personal/carer&apos;s leave. Apply your policy consistently and keep it easy for staff to understand before they need it.
                   </p>
                   <p>
-                    Assess certificates from registered medical practitioners, not just a specific clinic or your preferred provider. You cannot require the employee to disclose their diagnosis - the certificate confirms unfitness for work, and that is the extent of the information you are entitled to receive. Sick leave policies should be clearly communicated to all employees in advance, ideally in writing.
+                    Assess the certificate details, including the registered practitioner, absence dates, and verification information. Avoid asking for diagnosis details unless you have a specific, lawful basis to do so.
                   </p>
                 </div>
               </div>

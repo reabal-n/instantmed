@@ -36,17 +36,17 @@ export const intentPages: IntentPage[] = [
     description: 'Need a medical certificate today? Reviewed by Australian doctors, valid for employers and universities. From $19.95.',
     h1: 'Same Day Medical Certificate - Reviewed & Valid',
     content: {
-      intro: 'Feeling unwell and need a medical certificate for work or uni today? Our Australian doctors typically issue valid medical certificates in under 30 minutes, 24/7, delivered straight to your email. Submit from home - no waiting rooms.',
+      intro: 'Feeling unwell and need a medical certificate for work or uni today? Submit from home, get reviewed by an Australian doctor, and receive your certificate by email after approval. No waiting rooms.',
       uniqueBlocks: [
         {
           id: 'how-fast',
           type: 'text',
-          content: 'Most medical certificates are issued in under 30 minutes, available 24/7. Your certificate is emailed as a PDF and is immediately valid.',
+          content: 'Medical certificate requests are available 24/7. Your certificate is emailed as a PDF after doctor approval.',
         },
         {
           id: 'what-employers-accept',
           type: 'text',
-          content: 'Our medical certificates are issued by AHPRA-registered GPs and are legally valid for Australian workplaces and educational institutions. They meet Fair Work requirements and include all necessary details: your name, dates of absence, doctor details with AHPRA number, and clinic information.',
+          content: 'Our medical certificates are issued by AHPRA-registered GPs and include standard workplace and study evidence details: your name, dates of absence, doctor details with AHPRA number, and clinic information. Employer and institution policies may vary.',
         },
         {
           id: 'process',
@@ -55,7 +55,7 @@ export const intentPages: IntentPage[] = [
             'Answer a few questions about your symptoms (takes 2-3 minutes)',
             'Pay $19.95 via secure payment',
             'Australian doctor reviews your case',
-            'Certificate emailed to you - typically in under 30 minutes',
+            'Certificate emailed to you after doctor approval',
             'Forward to your employer or upload to your HR system',
           ],
         },
@@ -67,7 +67,7 @@ export const intentPages: IntentPage[] = [
         {
           id: 'employer-acceptance',
           type: 'text',
-          content: 'Under the Fair Work Act 2009, employers can request medical certificates as evidence of illness or injury for personal/carer\'s leave. There is no legal distinction between a certificate issued via telehealth and one from a walk-in clinic - both carry the same legal weight when issued by an AHPRA-registered medical practitioner. The Fair Work Ombudsman has confirmed that telehealth certificates meet the definition of "medical certificate" under section 107 of the Act. If your employer refuses a valid telehealth certificate, they may be in breach of their obligations.',
+          content: 'Under the Fair Work Act 2009, employers can request evidence of illness or injury for personal/carer\'s leave. Certificates issued by AHPRA-registered doctors via telehealth can support those evidence requirements. Specific workplace policies and circumstances may vary.',
         },
         {
           id: 'what-doctors-assess',
@@ -111,11 +111,11 @@ export const intentPages: IntentPage[] = [
       faqs: [
         {
           question: 'How quickly can I get a medical certificate?',
-          answer: 'Most certificates are issued in under 30 minutes, available 24/7. Your certificate is emailed as a PDF as soon as it\u0027s approved.',
+          answer: 'Medical certificate requests are available 24/7. Your certificate is emailed as a PDF as soon as it\u0027s approved.',
         },
         {
           question: 'Will my employer accept an online medical certificate?',
-          answer: 'Yes - our certificates are issued by AHPRA-registered Australian GPs and meet all Fair Work requirements. They\'re legally equivalent to certificates from a physical clinic.',
+          answer: 'Our certificates are issued by AHPRA-registered Australian GPs and include standard workplace evidence details. Employer policies may vary.',
         },
         {
           question: 'Can I backdate a medical certificate?',
@@ -518,7 +518,7 @@ export const intentPages: IntentPage[] = [
         {
           id: 'legal-validity',
           type: 'text',
-          content: 'The legal validity of online medical certificates in Australia is well-established. Under the Fair Work Act 2009, a medical certificate is defined as a certificate from a "medical practitioner" - there is no requirement for the consultation to be in person. The Medical Board of Australia (part of AHPRA) recognises telehealth as a legitimate mode of healthcare delivery, and certificates issued via telehealth carry identical legal standing to those from a face-to-face consultation. If an employer questions the validity of your certificate, they should be directed to the Fair Work Ombudsman\'s guidance on evidence requirements for personal leave.',
+          content: 'Online medical certificates can support workplace evidence requirements when issued by an AHPRA-registered doctor. The Medical Board of Australia recognises telehealth as a legitimate mode of healthcare delivery when clinically appropriate. Employer policies and circumstances may vary.',
         },
         {
           id: 'enterprise-agreements',
@@ -532,8 +532,8 @@ export const intentPages: IntentPage[] = [
             'Employers can assess medical certificates from AHPRA-registered medical practitioners under their workplace evidence policy',
             'Employers cannot contact your doctor for more information without your written consent (Privacy Act 1988, Australian Privacy Principle 3)',
             'Employers must provide paid personal/carer\'s leave - 10 days per year for full-time employees under the National Employment Standards',
-            'Employers can request "reasonable evidence" for leave but cannot unreasonably refuse a valid medical certificate',
-            'Dismissing an employee for taking legitimate sick leave with valid medical evidence may constitute unfair dismissal under the Fair Work Act',
+            'Employers can request evidence for leave under their workplace policy',
+            'Employees should check their workplace policy, award, enterprise agreement, or HR guidance',
           ],
         },
         {
@@ -557,7 +557,7 @@ export const intentPages: IntentPage[] = [
       faqs: [
         {
           question: 'Will my employer accept an online medical certificate?',
-          answer: 'Yes - our certificates are issued by AHPRA-registered Australian doctors and meet all Fair Work requirements. They are legally valid for sick leave.',
+          answer: 'Our certificates are issued by AHPRA-registered Australian doctors and include standard workplace evidence details. Employer policies may vary.',
         },
         {
           question: 'Can I get a certificate for today?',
@@ -815,7 +815,7 @@ export const intentPages: IntentPage[] = [
     slug: 'flu-certificate-online',
     type: 'intent',
     title: 'Flu Certificate Online Australia | Medical Certificate',
-    description: 'Need a medical certificate for flu or cold? Get one online in under 30 minutes, 24/7. Australian doctors. Employer-ready. From $19.95.',
+    description: 'Need a medical certificate for flu or cold? Request one online, 24/7. Australian doctors. Employer evidence details included. From $19.95.',
     h1: 'Flu & Cold Certificate Online - Too Sick to Work',
     content: {
       intro: 'Got the flu or a bad cold and need to stay home? Get a medical certificate online without dragging yourself to a clinic. Our AHPRA-registered doctors issue valid certificates for work or uni, delivered straight to your email.',

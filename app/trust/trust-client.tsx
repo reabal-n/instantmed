@@ -46,7 +46,7 @@ const trustFAQs = [
   },
   {
     question: "Will my employer accept certificates from InstantMed?",
-    answer: "Yes. Our medical certificates are issued by AHPRA-registered Australian doctors and are legally equivalent to certificates from any in-person clinic. They include the doctor's name, registration number, and all required details.",
+    answer: "InstantMed certificates are issued by AHPRA-registered Australian doctors and include standard workplace evidence details, including the doctor's name and registration number. Employer policies may vary.",
   },
   {
     question: "What happens to my personal health information?",
@@ -376,4 +376,3 @@ export default function TrustPage() {
     </div>
   )
 }
-

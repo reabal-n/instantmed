@@ -20,11 +20,11 @@ import { PRICING_DISPLAY } from '@/lib/constants'
 const baseUrl = 'https://instantmed.com.au'
 
 export const metadata: Metadata = {
-  title: "Are Online Medical Certificates Valid? | Employer Acceptance",
-  description: "Learn how Australian employers assess online medical certificates from AHPRA-registered doctors, and what makes a certificate legitimate.",
+  title: "Online Medical Certificate Evidence | InstantMed",
+  description: "Learn how Australian employers assess online medical certificates from AHPRA-registered doctors, and what makes a certificate useful as workplace evidence.",
   openGraph: {
-    title: "Are Online Medical Certificates Valid? | InstantMed",
-    description: "Online medical certificates from registered doctors are legally valid for Australian employers.",
+    title: "Online Medical Certificate Evidence | InstantMed",
+    description: "How AHPRA-registered telehealth certificates can support workplace evidence requirements.",
     type: 'website',
     url: `${baseUrl}/medical-certificate/employer-acceptance`,
   },
@@ -35,8 +35,8 @@ export const metadata: Metadata = {
 
 const faqs = [
   {
-    question: "Are online medical certificates legally valid in Australia?",
-    answer: "Yes. Medical certificates issued by AHPRA-registered doctors via telehealth are legally equivalent to in-person certificates. The Medical Board of Australia recognises telehealth consultations as a legitimate form of healthcare delivery.",
+    question: "Can online medical certificates be used as workplace evidence?",
+    answer: "Yes. Medical certificates issued by AHPRA-registered doctors via telehealth can support workplace evidence requirements. Employer policies may vary.",
   },
   {
     question: "What makes a medical certificate valid for employers?",
@@ -56,6 +56,12 @@ const faqs = [
   },
 ]
 
+const cardClass =
+  "rounded-xl border border-border/50 bg-white p-5 shadow-sm shadow-primary/[0.04] dark:border-white/15 dark:bg-card dark:shadow-none"
+const iconClass = "h-6 w-6 shrink-0 text-primary mt-0.5"
+const checkClass = "h-5 w-5 text-primary"
+const linkClass = "text-primary hover:underline"
+
 export default function EmployerAcceptancePage() {
   return (
     <>
@@ -63,7 +69,7 @@ export default function EmployerAcceptancePage() {
         items={[
           { name: 'Home', url: baseUrl },
           { name: 'Medical Certificate', url: `${baseUrl}/medical-certificate` },
-          { name: 'Employer Acceptance', url: `${baseUrl}/medical-certificate/employer-acceptance` }
+          { name: 'Employer Evidence', url: `${baseUrl}/medical-certificate/employer-acceptance` }
         ]}
       />
       <FAQSchema faqs={faqs} />
@@ -80,7 +86,7 @@ export default function EmployerAcceptancePage() {
               </div>
 
               <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl mb-4">
-                How employer certificate evidence works
+                How workplace certificate evidence works
               </h1>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
                 Online medical certificates from AHPRA-registered doctors can be used as
@@ -104,19 +110,19 @@ export default function EmployerAcceptancePage() {
           </section>
 
           {/* What Makes It Valid */}
-          <section className="px-4 py-16 bg-card/50 dark:bg-white/5">
+          <section className="px-4 py-16 bg-muted/30 dark:bg-card/40">
             <div className="mx-auto max-w-4xl">
               <h2 className="text-2xl font-semibold text-center mb-4">What makes a certificate legitimate</h2>
               <p className="text-center text-muted-foreground mb-10 max-w-2xl mx-auto">
-                Our certificates meet all legal requirements for Australian employers.
+                InstantMed certificates include the details workplaces commonly review.
               </p>
 
               <div className="grid gap-4 sm:grid-cols-2">
-                <div className="p-5 rounded-xl bg-card/80 dark:bg-white/5 backdrop-blur-xl border border-border/50 dark:border-white/10">
+                <div className={cardClass}>
                   <div className="flex items-start gap-3">
-                    <BadgeCheck className="h-6 w-6 text-emerald-600 shrink-0 mt-0.5" />
+                    <BadgeCheck className={iconClass} />
                     <div>
-                      <h3 className="font-semibold mb-1">AHPRA Registered Doctor</h3>
+                      <h3 className="font-semibold mb-1">AHPRA-registered doctor</h3>
                       <p className="text-sm text-muted-foreground">
                         Every certificate is issued by a doctor registered with the Australian Health Practitioner Regulation Agency. Their registration number is included on the certificate.
                       </p>
@@ -124,11 +130,11 @@ export default function EmployerAcceptancePage() {
                   </div>
                 </div>
 
-                <div className="p-5 rounded-xl bg-card/80 dark:bg-white/5 backdrop-blur-xl border border-border/50 dark:border-white/10">
+                <div className={cardClass}>
                   <div className="flex items-start gap-3">
-                    <FileCheck className="h-6 w-6 text-emerald-600 shrink-0 mt-0.5" />
+                    <FileCheck className={iconClass} />
                     <div>
-                      <h3 className="font-semibold mb-1">Medicare Provider Number</h3>
+                      <h3 className="font-semibold mb-1">Medicare provider number</h3>
                       <p className="text-sm text-muted-foreground">
                         The doctor&apos;s Medicare provider number is printed on every certificate. This is a unique identifier that can be verified.
                       </p>
@@ -136,11 +142,11 @@ export default function EmployerAcceptancePage() {
                   </div>
                 </div>
 
-                <div className="p-5 rounded-xl bg-card/80 dark:bg-white/5 backdrop-blur-xl border border-border/50 dark:border-white/10">
+                <div className={cardClass}>
                   <div className="flex items-start gap-3">
-                    <Building2 className="h-6 w-6 text-emerald-600 shrink-0 mt-0.5" />
+                    <Building2 className={iconClass} />
                     <div>
-                      <h3 className="font-semibold mb-1">Australian-Based Practice</h3>
+                      <h3 className="font-semibold mb-1">Australian-based practice</h3>
                       <p className="text-sm text-muted-foreground">
                         Our clinicians and operations are 100% based in Australia. We&apos;re not an offshore service or certificate mill.
                       </p>
@@ -148,9 +154,9 @@ export default function EmployerAcceptancePage() {
                   </div>
                 </div>
 
-                <div className="p-5 rounded-xl bg-card/80 dark:bg-white/5 backdrop-blur-xl border border-border/50 dark:border-white/10">
+                <div className={cardClass}>
                   <div className="flex items-start gap-3">
-                    <Shield className="h-6 w-6 text-emerald-600 shrink-0 mt-0.5" />
+                    <Shield className={iconClass} />
                     <div>
                       <h3 className="font-semibold mb-1">Doctor&apos;s Signature</h3>
                       <p className="text-sm text-muted-foreground">
@@ -171,9 +177,9 @@ export default function EmployerAcceptancePage() {
                 Australian workplace law supports the use of medical certificates from registered practitioners.
               </p>
 
-              <div className="p-6 rounded-xl bg-card/60 dark:bg-white/5 backdrop-blur-xl border border-border/40 dark:border-white/10">
+              <div className="rounded-xl border border-border/50 bg-white p-6 shadow-sm shadow-primary/[0.04] dark:border-white/15 dark:bg-card dark:shadow-none">
                 <div className="flex items-start gap-4">
-                  <Scale className="h-6 w-6 text-emerald-600 shrink-0 mt-1" />
+                  <Scale className="h-6 w-6 text-primary shrink-0 mt-1" />
                   <div className="space-y-4">
                     <p className="text-sm">
                       Under the <strong>Fair Work Act 2009</strong>, employees are entitled to paid personal/carer&apos;s leave.
@@ -181,7 +187,7 @@ export default function EmployerAcceptancePage() {
                       satisfy a reasonable person, such as a medical certificate from a registered health practitioner.
                     </p>
                     <p className="text-sm">
-                      A certificate from an AHPRA-registered doctor - whether issued in-person or via telehealth -
+                      A certificate from an AHPRA-registered doctor, whether issued in person or via telehealth,
                       can be used for this purpose. The <strong>Medical Board of Australia</strong> recognises telehealth as a
                       legitimate mode of healthcare delivery when clinically appropriate.
                     </p>
@@ -195,40 +201,40 @@ export default function EmployerAcceptancePage() {
           </section>
 
           {/* Certificate Preview */}
-          <section className="px-4 py-16 bg-card/50 dark:bg-white/5">
+          <section className="px-4 py-16 bg-muted/30 dark:bg-card/40">
             <div className="mx-auto max-w-3xl">
               <h2 className="text-2xl font-semibold text-center mb-4">What your certificate includes</h2>
               <p className="text-center text-muted-foreground mb-10">
                 Every certificate contains the information employers need.
               </p>
 
-              <div className="bg-card/80 dark:bg-white/5 backdrop-blur-xl rounded-xl border border-border/50 dark:border-white/10 p-6 space-y-4">
+              <div className="rounded-xl border border-border/50 bg-white p-6 shadow-sm shadow-primary/[0.04] space-y-4 dark:border-white/15 dark:bg-card dark:shadow-none">
                 <div className="flex items-center gap-3">
-                  <Check className="h-5 w-5 text-emerald-600" />
+                  <Check className={checkClass} />
                   <span className="text-sm">Patient&apos;s full name</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <Check className="h-5 w-5 text-emerald-600" />
+                  <Check className={checkClass} />
                   <span className="text-sm">Dates the patient was unfit for work</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <Check className="h-5 w-5 text-emerald-600" />
+                  <Check className={checkClass} />
                   <span className="text-sm">Doctor&apos;s full name and signature</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <Check className="h-5 w-5 text-emerald-600" />
+                  <Check className={checkClass} />
                   <span className="text-sm">AHPRA registration number</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <Check className="h-5 w-5 text-emerald-600" />
+                  <Check className={checkClass} />
                   <span className="text-sm">Medicare provider number</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <Check className="h-5 w-5 text-emerald-600" />
+                  <Check className={checkClass} />
                   <span className="text-sm">Date of issue</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <Check className="h-5 w-5 text-emerald-600" />
+                  <Check className={checkClass} />
                   <span className="text-sm">Practice contact details</span>
                 </div>
               </div>
@@ -240,11 +246,11 @@ export default function EmployerAcceptancePage() {
             <div className="mx-auto max-w-3xl">
               <h2 className="text-2xl font-semibold text-center mb-4">If your employer questions it</h2>
               <p className="text-center text-muted-foreground mb-10">
-                Most employers accept online certificates without issue. If questions arise, here&apos;s what to know.
+                If questions arise, the certificate gives your workplace clear information to review.
               </p>
 
               <div className="space-y-4">
-                <div className="p-5 rounded-xl bg-card/60 dark:bg-white/5 backdrop-blur-xl border border-border/40 dark:border-white/10">
+                <div className={cardClass}>
                   <h3 className="font-semibold mb-2">Point to the doctor&apos;s credentials</h3>
                   <p className="text-sm text-muted-foreground">
                     The certificate includes the doctor&apos;s AHPRA registration number. Anyone can verify this is a real,
@@ -252,19 +258,19 @@ export default function EmployerAcceptancePage() {
                   </p>
                 </div>
 
-                <div className="p-5 rounded-xl bg-card/60 dark:bg-white/5 backdrop-blur-xl border border-border/40 dark:border-white/10">
+                <div className={cardClass}>
                   <h3 className="font-semibold mb-2">Telehealth is recognised healthcare</h3>
                   <p className="text-sm text-muted-foreground">
                     The Medical Board of Australia and Medicare both recognise telehealth consultations.
-                    Certificates from telehealth are no less valid than those from in-person visits.
+                    The important point for workplaces is that the certificate is issued by an AHPRA-registered doctor.
                   </p>
                 </div>
 
-                <div className="p-5 rounded-xl bg-card/60 dark:bg-white/5 backdrop-blur-xl border border-border/40 dark:border-white/10">
+                <div className={cardClass}>
                   <h3 className="font-semibold mb-2">Check workplace policy timing</h3>
                   <p className="text-sm text-muted-foreground">
-                    If an employer has specific requirements about medical certificates, they must communicate
-                    these in advance - not after you&apos;ve submitted evidence.
+                    If your workplace has specific evidence requirements, check the relevant policy,
+                    award, enterprise agreement, or HR guidance.
                   </p>
                 </div>
               </div>
@@ -272,13 +278,13 @@ export default function EmployerAcceptancePage() {
           </section>
 
           {/* FAQs */}
-          <section className="px-4 py-16 bg-card/50 dark:bg-white/5">
+          <section className="px-4 py-16 bg-muted/30 dark:bg-card/40">
             <div className="mx-auto max-w-3xl">
               <h2 className="text-2xl font-semibold text-center mb-10">Frequently asked questions</h2>
 
               <div className="space-y-4">
                 {faqs.map((faq, i) => (
-                  <div key={i} className="p-5 rounded-xl bg-card/80 dark:bg-white/5 backdrop-blur-xl border border-border/50 dark:border-white/10">
+                  <div key={i} className={cardClass}>
                     <h3 className="font-semibold mb-2">{faq.question}</h3>
                     <p className="text-sm text-muted-foreground">{faq.answer}</p>
                   </div>
@@ -288,16 +294,16 @@ export default function EmployerAcceptancePage() {
           </section>
 
           {/* Final CTA */}
-          <section className="px-4 py-16 bg-emerald-50 dark:bg-emerald-950/30">
+          <section className="px-4 py-16 bg-primary/5 dark:bg-primary/10">
             <div className="mx-auto max-w-2xl text-center">
               <h2 className="text-2xl font-semibold mb-4">Ready to get your certificate?</h2>
               <p className="text-muted-foreground mb-8">
-                Complete the questionnaire in about 2 minutes. A doctor reviews your request within an hour.
+                Complete the questionnaire in about 2 minutes. A doctor reviews your request.
               </p>
               <Button
                 asChild
                 size="lg"
-                className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-full px-8"
+                className="rounded-full px-8"
               >
                 <Link href="/request?service=med-cert">
                   Get started
@@ -312,15 +318,15 @@ export default function EmployerAcceptancePage() {
           <section className="px-4 py-8 border-t">
             <div className="mx-auto max-w-3xl text-center">
               <p className="text-sm text-muted-foreground">
-                <Link href="/medical-certificate/work" className="text-emerald-600 hover:underline">
+                <Link href="/medical-certificate/work" className={linkClass}>
                   Certificates for work
                 </Link>
                 {' • '}
-                <Link href="/medical-certificate/study" className="text-emerald-600 hover:underline">
+                <Link href="/medical-certificate/study" className={linkClass}>
                   Certificates for study
                 </Link>
                 {' • '}
-                <Link href="/medical-certificate" className="text-emerald-600 hover:underline">
+                <Link href="/medical-certificate" className={linkClass}>
                   All certificate types
                 </Link>
               </p>

@@ -18,7 +18,7 @@ export const dynamic = "force-dynamic"
 export const metadata: Metadata = {
   title: "Get Started",
   description:
-    `Medical certificates from $19 - issued in under 30 minutes, 24/7. Repeat medication from ${PRICING_DISPLAY.REPEAT_SCRIPT}, doctor consultations from ${PRICING_DISPLAY.CONSULT}. Reviewed by Australian doctors.`,
+    `Medical certificates from $19. Repeat medication from ${PRICING_DISPLAY.REPEAT_SCRIPT}, doctor consultations from ${PRICING_DISPLAY.CONSULT}. Reviewed by Australian doctors.`,
   openGraph: {
     title: "Get Started | InstantMed",
     description: "Medical certificates, medication renewals, and consultations online. Reviewed by Australian doctors.",

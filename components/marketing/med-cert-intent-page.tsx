@@ -57,7 +57,7 @@ const doctorAvatars = [
 
 const recognitionIcons: Record<string, typeof Briefcase> = {
   'Workplace evidence': Briefcase,
-  'Fair Work compliant': Shield,
+  'Policy dependent': Shield,
   'Large & small businesses': Briefcase,
   'Full-time & casual': Users,
   'Universities': School,

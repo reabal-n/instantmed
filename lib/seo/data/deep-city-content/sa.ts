@@ -52,7 +52,7 @@ export const SA_CITIES: Record<string, DeepCityContent> = {
       paragraphs: [
         "South Australia follows national AHPRA and Medical Board of Australia guidelines for telehealth services. SA Health has supported telehealth expansion as part of its strategy to improve healthcare access, particularly for the state's regional and remote populations. The SA Government recognises telehealth as a legitimate and important healthcare delivery method.",
         "Prescribing regulations in SA follow the national TGA framework. Most medications can be prescribed via telehealth, with eScripts accepted at all South Australian pharmacies. Controlled substances (Schedule 8) require SA Health authority and typically an in-person assessment. InstantMed does not prescribe Schedule 8 medications.",
-        "Medical certificates issued via telehealth in South Australia carry the same legal weight as those from in-person consultations. SA employers - government, private, and not-for-profit - are legally required to set their own policies for certificates from AHPRA-registered doctors under the Fair Work Act. There is no provision in the Act that requires certificates to come from face-to-face consultations.",
+        "Medical certificates issued via telehealth in South Australia can support workplace evidence requirements. SA employers, including government, private, and not-for-profit workplaces, set their own policies for certificates from AHPRA-registered doctors under the Fair Work Act.",
       ],
     },
     additionalFaqs: [
@@ -108,13 +108,13 @@ export const SA_CITIES: Record<string, DeepCityContent> = {
       paragraphs: [
         "South Australia follows national AHPRA and Medical Board of Australia guidelines for telehealth. SA Health has supported telehealth expansion as part of its strategy to improve healthcare access for regional communities like the Limestone Coast, where GP shortages are persistent and severe.",
         "Prescribing follows national TGA rules. Most PBS-listed medications can be prescribed via telehealth and dispensed via eScript at any SA or VIC pharmacy. Schedule 8 controlled substances require SA Health authority and in-person assessment. InstantMed does not prescribe Schedule 8 medications.",
-        "Medical certificates issued via telehealth carry the same legal weight in South Australia as those from in-person consultations. SA government, private sector, and not-for-profit employers each set their own policies for certificates from AHPRA-registered doctors under the Fair Work Act.",
+        "Medical certificates issued via telehealth can support workplace evidence requirements in South Australia. SA government, private sector, and not-for-profit employers each set their own policies for certificates from AHPRA-registered doctors under the Fair Work Act.",
       ],
     },
     additionalFaqs: [
       { q: "Does InstantMed cover the whole Limestone Coast?", a: "Yes. Mount Gambier, Millicent, Penola, Naracoorte, Bordertown, Robe, Kingston SE, and all surrounding communities. Anywhere on the Limestone Coast with internet access." },
       { q: "Can forestry and mill workers use InstantMed?", a: "Yes. Green Triangle forestry and timber processing workers can get certificates via telehealth. Certificates are subject to employer policies, including those under forestry enterprise agreements." },
-      { q: "Does the certificate work in both SA and VIC?", a: "Yes. AHPRA registration is national, and certificates from InstantMed are valid in every Australian state and territory. For the cross-border Limestone Coast community, this means one certificate works everywhere." },
+      { q: "Does the certificate work in both SA and VIC?", a: "AHPRA registration is national, and certificates from InstantMed include standard evidence details. Employer and institution policies may vary across state borders." },
       { q: "Is InstantMed cheaper than a Mount Gambier GP?", a: `Medical certificates start from ${PRICING_DISPLAY.MED_CERT}. With Mount Gambier bulk-billing around 50% and typical gap fees of $40–$70, InstantMed is often more affordable for straightforward certificates and scripts.` },
     ],
   },

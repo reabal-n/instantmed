@@ -8,14 +8,24 @@ const voiceSource = readFileSync(join(root, "lib/marketing/voice.ts"), "utf8")
 const medCertLandingSource = readFileSync(join(root, "components/marketing/med-cert-landing.tsx"), "utf8")
 const employerMarqueeSource = readFileSync(join(root, "components/shared/employer-logo-marquee.tsx"), "utf8")
 const medCertPageSource = readFileSync(join(root, "app/medical-certificate/page.tsx"), "utf8")
+const employerEvidenceSource = readFileSync(join(root, "app/medical-certificate/employer-acceptance/page.tsx"), "utf8")
 const medCertIntentSource = readFileSync(join(root, "lib/marketing/med-cert-intent-config.ts"), "utf8")
 const trustBadgesSource = readFileSync(join(root, "lib/marketing/trust-badges.ts"), "utf8")
 const workplaceClaimSources = [
   medCertIntentSource,
+  employerEvidenceSource,
   readFileSync(join(root, "components/marketing/med-cert-intent-page.tsx"), "utf8"),
   readFileSync(join(root, "lib/marketing/services.ts"), "utf8"),
+  readFileSync(join(root, "lib/seo/intents.ts"), "utf8"),
+  readFileSync(join(root, "lib/seo/service-metadata.ts"), "utf8"),
+  readFileSync(join(root, "lib/data/general-faq.ts"), "utf8"),
   readFileSync(join(root, "app/for/[audience]/page.tsx"), "utf8"),
   readFileSync(join(root, "app/for/shift-workers/page.tsx"), "utf8"),
+  readFileSync(join(root, "app/for/corporate/page.tsx"), "utf8"),
+  readFileSync(join(root, "app/for/employers/page.tsx"), "utf8"),
+  readFileSync(join(root, "app/online-doctor-australia/page.tsx"), "utf8"),
+  readFileSync(join(root, "app/request/page.tsx"), "utf8"),
+  readFileSync(join(root, "app/trust/trust-client.tsx"), "utf8"),
   readFileSync(join(root, "lib/seo/data/deep-city-content/sa.ts"), "utf8"),
 ].join("\n")
 
@@ -47,6 +57,24 @@ describe("marketing copy contracts", () => {
     expect(medCertIntentSource).not.toContain("Real doctor review")
     expect(workplaceClaimSources).not.toContain("All employers")
     expect(workplaceClaimSources).not.toContain("98% AU employers accept")
+    expect(workplaceClaimSources).not.toContain("in under 30 minutes")
+    expect(workplaceClaimSources).not.toContain("legally equivalent")
+    expect(workplaceClaimSources).not.toContain("legally valid")
+    expect(workplaceClaimSources).not.toContain("carry the same legal weight")
+    expect(workplaceClaimSources).not.toContain("could constitute a breach")
+    expect(workplaceClaimSources).not.toContain("within 15 minutes")
+    expect(workplaceClaimSources).not.toContain("everything HR needs")
+    expect(workplaceClaimSources).not.toContain("Fair Work compliant")
+    expect(workplaceClaimSources).not.toContain("legal validity")
+    expect(workplaceClaimSources).not.toContain("identical legal")
     expect(trustBadgesSource).toContain("AHPRA GP review")
+  })
+
+  it("keeps the employer evidence page aligned to the solid card system", () => {
+    expect(employerEvidenceSource).toContain("Online Medical Certificate Evidence | InstantMed")
+    expect(employerEvidenceSource).toContain("bg-white p-5 shadow-sm shadow-primary/[0.04]")
+    expect(employerEvidenceSource).not.toContain("backdrop-blur")
+    expect(employerEvidenceSource).not.toContain("bg-emerald")
+    expect(employerEvidenceSource).not.toContain("text-emerald")
   })
 })

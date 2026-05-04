@@ -27,12 +27,12 @@ export const serviceSEO: Record<string, ServiceSEO> = {
       {
         question: "How quickly can I get a medical certificate?",
         answer:
-          "Most certificates are issued in under 30 minutes, available 24/7. You'll receive it via email as a PDF.",
+          "You can submit a request 24/7. After approval, you'll receive the certificate via email as a PDF.",
       },
       {
         question: "Is an online medical certificate valid for work?",
         answer:
-          "Yes. Online medical certificates issued by AHPRA-registered doctors are legally valid for employers, universities, and other institutions in Australia.",
+          "Certificates issued by AHPRA-registered doctors can support workplace, university, and institution evidence requirements. Employer and institution policies may vary.",
       },
       {
         question: "Do I need to make a phone call?",
