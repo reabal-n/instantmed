@@ -1421,6 +1421,7 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
       eyebrow: "Work evidence",
       title: "Mental health absence is still sick leave",
       summary: "The certificate should confirm fitness for work, not disclose private diagnosis details to an employer.",
+      visualFormat: "patient-education-poster",
       kind: "checklist",
       accent: "blue",
       items: [
@@ -1428,13 +1429,14 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
         { label: "Private diagnosis", detail: "Usually not required by an employer" },
         { label: "Review plan", detail: "Recurring episodes deserve proper follow-up" },
       ],
-      imagePrompt: "Quiet Australian bedroom morning scene, phone and workplace leave form on laptop, calm mental health day mood, no readable text, no faces looking at camera",
+      imagePrompt: "Detailed Australian patient education poster about mental health sick leave evidence, showing a calm morning work setup, private certificate boundary, fitness-for-work language, diagnosis privacy, and review planning. Avoid sad stock imagery, fake employer dashboards, official seals, and identifiable faces.",
     },
     {
       id: "support-escalation",
       eyebrow: "Escalation ladder",
       title: "When a bad day needs more support",
       summary: "Occasional stress leave and crisis symptoms are different problems and need different pathways.",
+      visualFormat: "red-flag-warning",
       kind: "timeline",
       accent: "rose",
       items: [
@@ -1442,7 +1444,22 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
         { label: "Recurring episodes", detail: "Arrange regular GP review", tone: "caution" },
         { label: "Self-harm thoughts", detail: "Use crisis support or call 000", tone: "urgent" },
       ],
-      imagePrompt: "Abstract calm support ladder for mental wellbeing, warm ivory and soft blue, no readable text, no distressing imagery",
+      imagePrompt: "Detailed calm support escalation graphic for mental wellbeing, showing occasional stress leave, recurring episodes needing GP review, and self-harm thoughts needing crisis support or 000. Use warm editorial illustration, non-identifiable people if any, no distressing imagery, no therapy cliches, no official emergency-service branding.",
+    },
+    {
+      id: "certificate-vs-care-plan",
+      eyebrow: "Next step",
+      title: "A certificate covers absence; a care plan supports treatment",
+      summary: "One handles work evidence for a short absence. Recurring symptoms need GP review, treatment planning, and follow-up.",
+      visualFormat: "comparison-graphic",
+      kind: "comparison",
+      accent: "emerald",
+      items: [
+        { label: "Work evidence", detail: "Documents fitness for work without naming a private diagnosis" },
+        { label: "GP review", detail: "Looks for patterns, risk, treatment needs, and whether more leave is appropriate" },
+        { label: "Treatment plan", detail: "May support Medicare-rebated sessions and ongoing care" },
+      ],
+      imagePrompt: "Detailed Australian comparison graphic showing medical certificate versus Mental Health Treatment Plan, with privacy boundary, work evidence, clinical assessment, GP review, Medicare-rebated session pathway, and follow-up. Do not show a Medicare card, Medicare logo, official government branding, or any official-looking seals. Do not say no review is required; a certificate still requires clinical assessment. Phrase the certificate side as short-absence evidence after assessment, not treatment planning. Keep the tone calm, practical, and non-promotional.",
     },
   ],
   "eczema-dermatitis": [
