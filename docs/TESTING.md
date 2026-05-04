@@ -99,6 +99,8 @@ await page.request.post(`${BASE_URL}/api/test/login`, {
 
 **Never** use real auth credentials in E2E. The auth bypass is the only supported pattern.
 
+Do not use public inboxes such as Mailinator for staff, admin, privileged, or PHI-like test accounts. Manual patient smoke accounts may use disposable addresses only when they contain fabricated data and no privileged role; otherwise use the seeded E2E auth bypass or a controlled private test inbox.
+
 ### Test Data
 
 E2E tests auto-seed and teardown test data. Seed/teardown scripts in `scripts/e2e/`, invoked by `e2e/global-setup.ts` and `e2e/global-teardown.ts`. Helpers in `e2e/helpers/`:

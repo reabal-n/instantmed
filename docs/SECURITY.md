@@ -258,7 +258,7 @@ All webhooks use signature verification (not CSRF).
 
 ## Authentication & Authorization
 
-**Provider:** Supabase Auth. Cookie-based sessions with JWT refresh via middleware. Auth methods: email magic link + Google OAuth. MFA: available via Supabase, optional for patients, recommended for clinicians.
+**Provider:** Supabase Auth. Cookie-based sessions with JWT refresh via middleware. Auth methods: email/password, email magic link, password recovery, and Google OAuth. MFA: available via Supabase, optional for patients, recommended for clinicians.
 
 ### CSRF Protection (`lib/security/csrf.ts`)
 
@@ -285,6 +285,8 @@ All webhooks use signature verification (not CSRF).
 | `auth()` from `@/lib/auth` | Most API routes (20+ files) |
 | `getApiAuth()` | Document download, med-cert routes |
 | `requireRole()` / `requireRoleOrNull()` | Admin/doctor layouts, server actions |
+| Passwordless sign-in | `/sign-in` supports `signInWithOtp({ shouldCreateUser: false })` so existing magic-link-only accounts can access the portal without creating duplicate auth users. |
+| Password recovery | `/auth/forgot-password` calls `resetPasswordForEmail()` and redirects recovery links through `/auth/callback?next=/auth/reset-password` so the reset page updates from an established Supabase recovery session. |
 | Guest profile linking | `/auth/post-signin`, `/api/profile/ensure`, and `handle_new_user()` link a single deterministic unlinked patient profile: return-intake profile first, then profiles with paid intake history, then newest guest profile. Never bulk-update duplicate email matches. |
 
 ### Input Validation
