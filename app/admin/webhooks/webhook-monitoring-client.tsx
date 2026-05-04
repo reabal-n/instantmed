@@ -84,7 +84,7 @@ export function WebhookMonitoringClient({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "retry", id: item.id }),
       })
-      
+
       if (response.ok) {
         toast.success("Webhook queued for retry")
         setDlqItems(prev => prev.filter(i => i.id !== item.id))
@@ -105,7 +105,7 @@ export function WebhookMonitoringClient({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "delete", id: item.id }),
       })
-      
+
       if (response.ok) {
         toast.success("DLQ item deleted")
         setDlqItems(prev => prev.filter(i => i.id !== item.id))
@@ -158,7 +158,7 @@ export function WebhookMonitoringClient({
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
@@ -170,7 +170,7 @@ export function WebhookMonitoringClient({
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
@@ -182,7 +182,7 @@ export function WebhookMonitoringClient({
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">

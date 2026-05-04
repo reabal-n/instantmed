@@ -148,8 +148,12 @@ describe("business KPI control plane", () => {
       columns: "amount_cents, paid_at, category, patient_id",
       table: "intakes",
     })
-    expect(selectCalls.at(-2)).toMatchObject({ table: "support_tickets" })
-    expect(selectCalls.at(-1)).toMatchObject({ table: "stripe_disputes" })
+    expect(selectCalls.find((call) => call.table === "support_tickets")).toMatchObject({
+      columns: "id, status, priority",
+    })
+    expect(selectCalls.find((call) => call.table === "stripe_disputes")).toMatchObject({
+      columns: "id, status",
+    })
     expect(selectCalls.find((call) => call.columns === "utm_source, referrer, landing_page")).toMatchObject({
       operations: expect.arrayContaining(["not:paid_at:is:null"]),
     })
