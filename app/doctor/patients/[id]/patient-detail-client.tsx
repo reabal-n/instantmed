@@ -9,6 +9,7 @@ import {
   ChevronRight,
   Clock,
   CreditCard,
+  ExternalLink,
   FileText,
   GitMerge,
   Loader2,
@@ -28,6 +29,7 @@ import { toast } from "sonner"
 
 import { addPatientNoteAction } from "@/app/actions/patient-notes"
 import { mergePatientProfilesAction } from "@/app/actions/patient-profile-merge"
+import { openPatientInParchmentAction } from "@/app/doctor/patients/actions"
 import { PatientCommunicationHistory } from "@/components/doctor"
 import {
   AlertDialog,
@@ -48,6 +50,8 @@ import { buildPatientSnapshot } from "@/lib/doctor/patient-snapshot"
 import { formatDate, formatDateLong, formatDateTime } from "@/lib/format"
 import { formatIntakeStatus } from "@/lib/format/intake"
 import type { Profile } from "@/types/db"
+
+import { EditPatientDialog } from "./edit-patient-dialog"
 
 interface IntakeWithService {
   id: string
@@ -112,6 +116,7 @@ export function PatientDetailClient({
   const router = useRouter()
   const [isNotePending, startNoteTransition] = useTransition()
   const [isMergePending, startMergeTransition] = useTransition()
+  const [isParchmentPending, startParchmentTransition] = useTransition()
   const [newNote, setNewNote] = useState("")
   const [notes, setNotes] = useState<PatientNote[]>(patientNotes)
   const [showNoteForm, setShowNoteForm] = useState(false)
@@ -153,6 +158,20 @@ export function PatientDetailClient({
     })
   }
 
+  const handleOpenParchment = () => {
+    startParchmentTransition(async () => {
+      const result = await openPatientInParchmentAction(patient.id)
+
+      if (!result.success || !result.ssoUrl) {
+        toast.error(result.error || "Could not open Parchment")
+        return
+      }
+
+      toast.success("Opening Parchment")
+      window.location.assign(result.ssoUrl)
+    })
+  }
+
   const snapshot = buildPatientSnapshot(patient, {
     requireStructuredAddress: true,
     requireSex: true,
@@ -174,17 +193,28 @@ export function PatientDetailClient({
             Back to Patients
           </Link>
         </Button>
-        {patient.onboarding_completed ? (
-          <Badge variant="outline" className="bg-success-light text-success border-success-border">
-            <CheckCircle className="mr-1 h-3 w-3" />
-            Onboarded
-          </Badge>
-        ) : (
-          <Badge variant="outline" className="bg-warning-light text-warning border-warning-border">
-            <XCircle className="mr-1 h-3 w-3" />
-            Incomplete Profile
-          </Badge>
-        )}
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <EditPatientDialog patient={patient} />
+          <Button onClick={handleOpenParchment} disabled={isParchmentPending}>
+            {isParchmentPending ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <ExternalLink className="mr-2 h-4 w-4" />
+            )}
+            Prescribe in Parchment
+          </Button>
+          {patient.onboarding_completed ? (
+            <Badge variant="outline" className="bg-success-light text-success border-success-border">
+              <CheckCircle className="mr-1 h-3 w-3" />
+              Onboarded
+            </Badge>
+          ) : (
+            <Badge variant="outline" className="bg-warning-light text-warning border-warning-border">
+              <XCircle className="mr-1 h-3 w-3" />
+              Incomplete Profile
+            </Badge>
+          )}
+        </div>
       </div>
 
       {/* Patient Profile Card */}

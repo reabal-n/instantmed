@@ -1,9 +1,9 @@
 "use client"
 
-import { AlertTriangle, Calendar, CheckCircle, ChevronLeft,ChevronRight, MapPin, Phone, Search, Users, XCircle } from "lucide-react"
+import { AlertTriangle, Calendar, CheckCircle, ChevronLeft, ChevronRight, MapPin, Phone, Search, Users, XCircle } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useMemo,useState } from "react"
+import { useMemo, useState } from "react"
 
 import { DashboardPageHeader } from "@/components/dashboard"
 import { Badge } from "@/components/ui/badge"
@@ -16,6 +16,8 @@ import { UserCard } from "@/components/uix"
 import { findPotentialDuplicatePatients } from "@/lib/doctor/patient-snapshot"
 import { calculateAge,formatDate } from "@/lib/format"
 import type { Profile } from "@/types/db"
+
+import { AddPatientDialog } from "./add-patient-dialog"
 
 type PatientDirectoryProfile = Profile & {
   duplicate_profile_ids?: string[]
@@ -77,6 +79,7 @@ export function PatientsListClient({
       <DashboardPageHeader
         title="Patient Directory"
         description="View and manage all registered patients"
+        actions={<AddPatientDialog />}
       />
 
       {/* Stats */}
@@ -229,6 +232,11 @@ export function PatientsListClient({
                           {linkedProfileCount > 0 && (
                             <Badge variant="secondary" size="sm" className="mt-1">
                               {linkedProfileCount} linked profile{linkedProfileCount === 1 ? "" : "s"}
+                            </Badge>
+                          )}
+                          {patient.parchment_patient_id && (
+                            <Badge variant="outline" size="sm" className="mt-1 bg-info-light text-info border-info-border">
+                              Parchment synced
                             </Badge>
                           )}
                         </Link>

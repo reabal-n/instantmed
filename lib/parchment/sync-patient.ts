@@ -15,7 +15,7 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { validateMedicareExpiry, validateMedicareNumber } from "@/lib/validation/medicare"
 import type { AustralianState } from "@/types/db"
 
-import { createPatient, updatePatient } from "./client"
+import { createPatient, ParchmentApiError, updatePatient } from "./client"
 import type { CreatePatientRequest, UpdatePatientRequest } from "./types"
 
 const log = createLogger("parchment-sync")
@@ -372,6 +372,8 @@ export async function syncPatientToParchment(
       .eq("id", patientProfileId)
   }
 
+  let staleParchmentPatientId: string | null = null
+
   if (existing?.parchment_patient_id) {
     try {
       await updatePatient(
@@ -380,19 +382,44 @@ export async function syncPatientToParchment(
         buildUpdatePatientRequest(profile, intakeAnswers),
       )
     } catch (error) {
-      // Conformance requires the PMS update flow to actually update Parchment.
-      // Continuing here can put the doctor on stale demographics.
-      log.warn("Patient refresh in Parchment failed; blocking prescribing")
-      Sentry.captureException(error, {
-        extra: {
-          context: "parchment_patient_refresh",
-        },
-      })
-      throw new ParchmentPatientSyncError("Failed to refresh patient details in Parchment", error)
+      if (error instanceof ParchmentApiError && error.status === 404) {
+        const { error: clearError } = await supabase
+          .from("profiles")
+          .update({
+            parchment_patient_id: null,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", patientProfileId)
+          .eq("parchment_patient_id", existing.parchment_patient_id)
+
+        if (clearError) {
+          log.error(
+            "Failed to clear stale parchment_patient_id on profile",
+            {},
+            clearError instanceof Error ? clearError : new Error(String(clearError)),
+          )
+          throw new ParchmentPatientSyncError("Failed to clear stale patient mapping", clearError)
+        }
+
+        log.warn("Stored Parchment patient ID was stale; recreating patient")
+        staleParchmentPatientId = existing.parchment_patient_id
+      } else {
+        // Conformance requires the PMS update flow to actually update Parchment.
+        // Continuing here can put the doctor on stale demographics.
+        log.warn("Patient refresh in Parchment failed; blocking prescribing")
+        Sentry.captureException(error, {
+          extra: {
+            context: "parchment_patient_refresh",
+          },
+        })
+        throw new ParchmentPatientSyncError("Failed to refresh patient details in Parchment", error)
+      }
     }
 
-    log.info("Patient already synced to Parchment; using existing record")
-    return existing.parchment_patient_id
+    if (!staleParchmentPatientId) {
+      log.info("Patient already synced to Parchment; using existing record")
+      return existing.parchment_patient_id
+    }
   }
 
   const patientData = buildCreatePatientRequest(profile, patientProfileId, intakeAnswers)
