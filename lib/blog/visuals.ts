@@ -1468,6 +1468,7 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
       eyebrow: "Flare cycle",
       title: "Dryness, itch, scratching, and inflammation reinforce each other",
       summary: "Good eczema care focuses on breaking the cycle and rebuilding the skin barrier.",
+      visualFormat: "anatomical-explainer",
       kind: "flow",
       accent: "amber",
       items: [
@@ -1475,13 +1476,14 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
         { label: "Itch", detail: "Inflammation increases the urge to scratch" },
         { label: "Scratch damage", detail: "More barrier injury can restart the flare" },
       ],
-      imagePrompt: "Clean non-graphic eczema skin barrier illustration, soft warm clinical colours, no readable text, no close-up wounds",
+      imagePrompt: "Detailed Australian anatomical explainer for eczema showing the skin barrier, moisture loss, irritants entering, inflammation, itch, scratching, and barrier damage loop. Use simplified non-graphic skin layers, callout panels, and warm editorial patient-education style. No close-up wounds, no gore, no official medical marks, no prescription brand names.",
     },
     {
       id: "eczema-routine",
       eyebrow: "Care routine",
       title: "Barrier care is the daily baseline",
       summary: "Most plans combine trigger reduction, regular moisturiser, and short targeted treatment during flares.",
+      visualFormat: "patient-education-poster",
       kind: "checklist",
       accent: "emerald",
       items: [
@@ -1489,7 +1491,22 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
         { label: "Avoid irritants", detail: "Fragrance, harsh soaps, heat, and friction" },
         { label: "Treat flares early", detail: "Use clinician-directed treatment when needed" },
       ],
-      imagePrompt: "Australian bathroom counter with moisturiser pump, soft towel, gentle skincare, warm morning light, no readable brand names",
+      imagePrompt: "Detailed eczema daily care patient education poster showing fragrance-free moisturiser, gentle cleanser, lukewarm shower, cotton clothing, trigger diary, and clinician-directed flare treatment. Warm Australian bathroom and bedroom details, tactile print texture, no product logos, no readable brand names, no prescription-only medicine brand promotion.",
+    },
+    {
+      id: "eczema-infection-warning",
+      eyebrow: "Safety boundary",
+      title: "Infection signs change the plan",
+      summary: "Weeping, crusting, spreading redness, fever, or painful blisters need medical review before treating it as a routine flare.",
+      visualFormat: "red-flag-warning",
+      kind: "warning",
+      accent: "rose",
+      items: [
+        { label: "Weeping or crusting", detail: "May mean bacterial infection is present", tone: "caution" },
+        { label: "Spreading redness or fever", detail: "Needs prompt medical review", tone: "urgent" },
+        { label: "Painful punched-out blisters", detail: "Possible eczema herpeticum; seek urgent care", tone: "urgent" },
+      ],
+      imagePrompt: "Detailed non-graphic eczema red-flag warning graphic showing infection warning signs: weeping or crusting, spreading redness or fever, and painful punched-out blisters. Do not show gore, close-up wounds, graphic skin lesions, or frightening imagery. Use calm warning hierarchy, abstract skin-barrier icons, and a neutral clinic-note motif. Clearly distinguish prompt medical review from urgent care for possible eczema herpeticum.",
     },
   ],
   "telehealth-after-hours": [
