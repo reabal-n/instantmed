@@ -33,7 +33,7 @@ Four strings, four jobs. Do not mix them up.
 | **Med-cert wedge** | *No video. No call. No appointment.* | Med-cert-specific mechanism for suitable administrative documentation requests. | Medical certificate surfaces only. |
 | **Form-first wedge** | *Complete a secure clinical form. A doctor contacts you only if more information is clinically needed.* | Prescribing and specialty-service mechanism. Keeps the moat while preserving clinical discretion. | Prescriptions, ED, hair loss, women's health, weight loss. |
 | **Prop phrase** | *Telehealth without the small talk.* | Voice signature. Doubles as the homepage H2 under the tagline H1, and as the campaign sign-off on ad end-frames, email footers, and the about-page lede. | Hero H2, ad end-frames, email footers, press leads, about page lede. |
-| **Iconic hook** | *Three minutes. Done.* | The conversion-proximate kicker. Sits next to primary CTAs, runs as the headline on Google Ads, anchors the end of long-scroll marketing pages. | CTA proximity, Google Ads headlines, paid social creative, long-scroll closers. |
+| **Iconic hook** | *Secure form in 3 minutes. Real doctor review.* | The conversion-proximate kicker. Sits next to primary CTAs, runs as the headline on Google Ads, anchors the end of long-scroll marketing pages. | CTA proximity, Google Ads headlines, paid social creative, long-scroll closers. |
 
 **Plus one guarantee, always visible at conversion points:**
 
@@ -66,7 +66,7 @@ This is the merchandised promise. It lives above checkout CTAs, inline on hero C
 1. *Faster than your GP.*
 2. *Faster than the wait at your GP.* (paid-safe variant)
 3. *Telehealth without the small talk.*
-4. *Three minutes. Done.*
+4. *Secure form in 3 minutes. Real doctor review.*
 5. *Telehealth without the small talk. A real doctor, ready in the time it takes to make a coffee.* (brand thesis)
 6. *A real doctor, ready in the time it takes to make a coffee.*
 7. *A real doctor, online, the moment you need one.*

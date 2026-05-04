@@ -242,7 +242,7 @@ body {
   --accent-peach-foreground: #1E293B;
 
   /* Brand signature coral — used sparingly on brand-recognition moments
-     only (signature mark, hero kicker, "Three minutes. Done." pill, doctor
+     only (signature mark, secure-form review pill, doctor
      signature underline, page-enter sweep accent). NOT a replacement for
      --primary, which remains the system CTA blue. Distinct from --coral
      (#F87171), which is reserved for destructive states. */

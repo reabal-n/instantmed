@@ -150,7 +150,7 @@ export default async function HomePage() {
             New brand stack (locked 2026-04-29 in docs/BRAND.md §4):
               H1 = TAGLINE ("Faster than your GP.")
               H2 = PROP_PHRASE ("Telehealth without the small talk.")
-              eyebrow above CTA = ICONIC_HOOK ("Three minutes. Done.") in brand-coral
+              eyebrow above CTA = ICONIC_HOOK in brand-coral
               subhead body = AHPRA reassurance + WEDGE
         */}
         <Hero

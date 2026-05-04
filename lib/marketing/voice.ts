@@ -78,12 +78,12 @@ export const PROP_PHRASE = "Telehealth without the small talk."
  * on Google Ads headlines, on paid social creative, and as the ending beat
  * on long-scroll marketing pages.
  *
- * Refreshed 2026-04-29 from "The doctor is in." to "Three minutes. Done."
- * because the speed hook is the strongest paid-creative performer and the
- * one patients say back to us. The original line is preserved in
- * OWNED_PHRASES for legacy/alternative use.
+ * Refreshed 2026-05-04 from the prior clipped speed line because anxious
+ * patients need calm clinical certainty near the CTA, not pressure.
+ * The original doctor-is-in line is preserved in OWNED_PHRASES for
+ * legacy/alternative use.
  */
-export const ICONIC_HOOK = "Three minutes. Done."
+export const ICONIC_HOOK = "Secure form in 3 minutes. Real doctor review."
 
 /**
  * Outcome guarantee. Above checkout CTA, inline on heros, on /guarantee.

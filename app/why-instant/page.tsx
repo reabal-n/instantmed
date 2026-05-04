@@ -224,7 +224,7 @@ export default function WhyInstantPage() {
 
           <CTABanner
             title="Ready when you are."
-            subtitle="Three minutes. Done. Full refund if our doctor can't help."
+            subtitle="Secure form in 3 minutes. Real doctor review. Full refund if our doctor can't help."
             ctaText="Get started"
             ctaHref="/request"
             secondaryText="See our guarantee"

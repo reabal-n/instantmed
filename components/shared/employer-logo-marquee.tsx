@@ -36,7 +36,7 @@ const EMPLOYER_LOGOS = [
 
 interface EmployerLogoMarqueeProps {
   className?: string
-  /** Hide the "Accepted by employees at" heading */
+  /** Hide the "Used by employees at" heading */
   hideHeading?: boolean
 }
 
@@ -53,12 +53,13 @@ function LogoRow({ logos, className }: { logos: typeof EMPLOYER_LOGOS; className
                   alt={logo.name}
                   width={96}
                   height={32}
+                  unoptimized={logo.src.endsWith('.svg')}
                   className="object-contain h-6 w-auto opacity-40 grayscale hover:opacity-70 hover:grayscale-0 transition-[opacity,filter] duration-300 dark:brightness-150 dark:contrast-75"
                 />
               </div>
             </TooltipTrigger>
             <TooltipContent side="bottom" className="text-xs">
-              Accepted by {logo.name} employees
+              Used by {logo.name} employees
             </TooltipContent>
           </Tooltip>
         ))}
@@ -97,7 +98,7 @@ export function EmployerLogoMarquee({ className, hideHeading }: EmployerLogoMarq
       <div ref={sectionRef} className={cn('py-8', className)}>
         {!hideHeading && (
           <p className="text-center text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-6">
-            Accepted by employees at
+            Used by employees at
           </p>
         )}
         <div className="flex flex-wrap justify-center items-center gap-6 px-4 max-w-4xl mx-auto">
@@ -108,6 +109,7 @@ export function EmployerLogoMarquee({ className, hideHeading }: EmployerLogoMarq
                 alt={logo.name}
                 width={96}
                 height={32}
+                unoptimized={logo.src.endsWith('.svg')}
                 className="object-contain h-6 w-auto opacity-40 grayscale dark:brightness-150 dark:contrast-75"
               />
             </div>
@@ -121,11 +123,11 @@ export function EmployerLogoMarquee({ className, hideHeading }: EmployerLogoMarq
     <div ref={sectionRef} className={cn('py-8', className)}>
       {!hideHeading && (
         <p className="text-center text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-6">
-          Accepted by employees at
+          Used by employees at
         </p>
       )}
       {/* #1 - Two parallel tracks for seamless infinite loop */}
-      <div className="relative overflow-hidden group/marquee" role="marquee" aria-label="Logos of employers who accept InstantMed certificates">
+      <div className="relative overflow-hidden group/marquee" role="marquee" aria-label="Workplace logo marquee">
         <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-background to-transparent z-10" />
         <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-background to-transparent z-10" />
 

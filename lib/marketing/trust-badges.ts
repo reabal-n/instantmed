@@ -172,7 +172,7 @@ export const BADGE_REGISTRY: Record<BadgeId, BadgeConfig> = {
     tooltip: 'Medicare card optional for medical certificates - pay privately',
   },
   real_gp: {
-    id: 'real_gp', label: 'Reviewed by a real GP', icon: BadgeCheck,
+    id: 'real_gp', label: 'Real doctor review', icon: BadgeCheck,
     iconColor: 'text-teal-600',
     pillClass: 'bg-teal-50 border-teal-200 text-teal-800 dark:bg-teal-950/40 dark:border-teal-800 dark:text-teal-300',
     hasStyledTier: true,
