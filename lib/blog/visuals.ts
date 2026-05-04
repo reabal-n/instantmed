@@ -1656,6 +1656,7 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
       eyebrow: "Technique",
       title: "Spray angle matters",
       summary: "Aiming slightly outward can improve effect and reduce irritation compared with spraying straight up the septum.",
+      visualFormat: "patient-education-poster",
       kind: "flow",
       accent: "emerald",
       items: [
@@ -1663,13 +1664,14 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
         { label: "Aim outward", detail: "Point away from the nasal septum" },
         { label: "Use consistently", detail: "Steroid sprays often need regular use" },
       ],
-      imagePrompt: "Clean hay fever nasal spray technique illustration, soft botanical background, no readable text",
+      imagePrompt: "Detailed patient-education poster showing correct nasal spray technique for allergic rhinitis: gently clear the nose, tilt head slightly forward, aim the nozzle outward away from the nasal septum, breathe gently, and use consistently when advised. Use respectful side-profile diagrams, small step panels, pollen-season context, and warm editorial texture. Do not show brand labels, dosage claims, prescription CTAs, or metadata labels.",
     },
     {
       id: "hay-fever-control-stack",
       eyebrow: "Control stack",
       title: "Hay fever control is layered",
       summary: "Exposure reduction, correct spray use, and allergy medicines each solve a different part of the problem.",
+      visualFormat: "medical-infographic",
       kind: "spectrum",
       accent: "sky",
       items: [
@@ -1677,7 +1679,22 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
         { label: "Nose", detail: "Congestion and inflammation" },
         { label: "Eyes", detail: "Itch, watering, and irritation" },
       ],
-      imagePrompt: "Textless Australian spring allergy still life, tissue box, closed window, soft pollen shapes outside, blank medicine packaging with no letters, no readable text, no people, calm daylight",
+      imagePrompt: "Detailed Australian allergic rhinitis control-stack infographic showing exposure reduction, nasal inflammation control, eye symptom support, and trigger tracking across pollen, dust mites, pets, and mould. Use spring pollen forecast motif, home windows, bedding, sunglasses, saline rinse, nasal spray technique icon, and eye irritation panel. Do not show medication brands, official seals, consultation CTAs, or exact prices.",
+    },
+    {
+      id: "thunderstorm-asthma-boundary",
+      eyebrow: "Red flags",
+      title: "Breathing symptoms are not routine hay fever",
+      summary: "Wheeze, chest tightness, shortness of breath, or persistent cough during pollen season need an asthma safety plan.",
+      visualFormat: "red-flag-warning",
+      kind: "warning",
+      accent: "rose",
+      items: [
+        { label: "Storm plus pollen", detail: "Tiny particles can reach deeper airways", tone: "caution" },
+        { label: "Breathing symptoms", detail: "Wheeze, chest tightness, shortness of breath, or cough", tone: "urgent" },
+        { label: "Act early", detail: "Follow an asthma plan or seek urgent help if severe", tone: "urgent" },
+      ],
+      imagePrompt: "Detailed non-graphic thunderstorm asthma safety poster for Australian pollen season. Show storm clouds, grass pollen grains splitting into tiny particles, nose-to-lung airway pathway, and breathing red flags: wheeze, chest tightness, shortness of breath, persistent cough. Use calm urgent hierarchy, no ambulance, no medical crosses, no fake government warnings, no official weather-service marks, no consultation CTA, no frightening faces.",
     },
   ],
   "medical-certificate-period-pain": [

@@ -24,9 +24,9 @@ interface Palette {
 const WIDTH = 1280
 const HEIGHT = 1600
 const GPT_IMAGE_MODEL = "openai/gpt-image-2"
-const WORDMARK_WIDTH = 276
-const WORDMARK_HEIGHT = 54
-const WORDMARK_MARGIN = 34
+const WORDMARK_WIDTH = 220
+const WORDMARK_HEIGHT = 44
+const WORDMARK_MARGIN = 24
 
 type Renderer = "deterministic" | "gpt-image-2"
 type VisualFormat = NonNullable<ArticleVisual["visualFormat"]>
@@ -466,8 +466,8 @@ function renderWordmarkOverlaySvg(): string {
 
   return `
     <svg xmlns="http://www.w3.org/2000/svg" width="${WIDTH}" height="${HEIGHT}" viewBox="0 0 ${WIDTH} ${HEIGHT}">
-      <rect x="${x}" y="${y}" width="${WORDMARK_WIDTH}" height="${WORDMARK_HEIGHT}" rx="20" fill="#f8f7f4" fill-opacity="0.90" stroke="#d8e4f8" stroke-width="1.5"/>
-      <text x="${x + 34}" y="${y + 36}" font-family="Source Sans 3, Arial, sans-serif" font-size="27" font-weight="700" fill="#172033">InstantMed</text>
+      <rect x="${x}" y="${y}" width="${WORDMARK_WIDTH}" height="${WORDMARK_HEIGHT}" rx="18" fill="#f8f7f4" fill-opacity="0.82" stroke="#d8e4f8" stroke-width="1.25"/>
+      <text x="${x + 28}" y="${y + 30}" font-family="Source Sans 3, Arial, sans-serif" font-size="22" font-weight="700" fill="#172033">InstantMed</text>
     </svg>
   `
 }
