@@ -70,7 +70,7 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: 'Faster than your GP. Telehealth without the small talk. | InstantMed',
-    description: 'A real Australian doctor, ready in the time it takes to make a coffee. Medical certificates, repeat medication, and online doctor consults. No appointment, no waiting room. AHPRA-registered.',
+    description: 'Start with a secure form that takes about 3 minutes. AHPRA-registered Australian doctors review medical certificates, repeat medication, and online consults.',
     type: 'website',
     locale: 'en_AU',
     url: 'https://instantmed.com.au',
@@ -80,7 +80,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'InstantMed | Faster than your GP. Telehealth without the small talk.',
-    description: 'A real Australian doctor, ready in the time it takes to make a coffee. AHPRA-registered. No appointment, no waiting room.',
+    description: 'Start with a secure form that takes about 3 minutes. AHPRA-registered Australian doctors review every request.',
     // Twitter image handled by app/opengraph-image.tsx convention file
   },
   alternates: {

@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Medical Certificate | Under 30 Minutes, No Call | InstantMed",
     description:
-      "Medical certificate for work, uni, or carer's leave in under 30 minutes. Fill out a form, no call, no appointment needed.",
+      "Start with a secure form that takes about 3 minutes. AHPRA-registered GP review. Certificate to your inbox.",
     url: "https://instantmed.com.au/medical-certificate",
     type: "website",
     locale: "en_AU",
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Medical Certificate | Under 30 Minutes, No Call | InstantMed",
-    description: "Medical certificate in under 30 minutes. Just a form, no call, no video, no waiting room.",
+    description: "Start with a secure form that takes about 3 minutes. AHPRA-registered GP review. Certificate to your inbox.",
   },
   alternates: {
     canonical: "https://instantmed.com.au/medical-certificate",

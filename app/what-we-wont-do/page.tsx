@@ -192,7 +192,7 @@ export default function WhatWeWontDoPage() {
 
           <CTABanner
             title="Ready when you are."
-            subtitle="Secure form in 3 minutes. Real doctor review. If our doctor can't help, you pay nothing."
+            subtitle="Start with a secure form. Takes about 3 minutes. If our doctor can't help, you pay nothing."
             ctaText="Get started"
             ctaHref="/request"
             secondaryText="Read the guarantee"

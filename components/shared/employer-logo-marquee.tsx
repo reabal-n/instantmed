@@ -115,6 +115,9 @@ export function EmployerLogoMarquee({ className, hideHeading }: EmployerLogoMarq
             </div>
           ))}
         </div>
+        <p className="mt-5 text-center text-xs text-muted-foreground">
+          Employer and institution policies may vary.
+        </p>
       </div>
     )
   }
@@ -136,6 +139,9 @@ export function EmployerLogoMarquee({ className, hideHeading }: EmployerLogoMarq
           <LogoRow logos={EMPLOYER_LOGOS} className="px-5" />
         </div>
       </div>
+      <p className="mt-5 text-center text-xs text-muted-foreground">
+        Employer and institution policies may vary.
+      </p>
     </div>
   )
 }

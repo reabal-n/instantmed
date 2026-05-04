@@ -83,7 +83,7 @@ export const PROP_PHRASE = "Telehealth without the small talk."
  * The original doctor-is-in line is preserved in OWNED_PHRASES for
  * legacy/alternative use.
  */
-export const ICONIC_HOOK = "Secure form in 3 minutes. Real doctor review."
+export const ICONIC_HOOK = "Start with a secure form. Takes about 3 minutes."
 
 /**
  * Outcome guarantee. Above checkout CTA, inline on heros, on /guarantee.

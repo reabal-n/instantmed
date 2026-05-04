@@ -11,7 +11,7 @@ const employerMarqueeSource = readFileSync(join(root, "components/shared/employe
 describe("marketing copy contracts", () => {
   it("keeps the homepage hero kicker calm and clinically grounded", () => {
     expect(voiceSource).not.toContain("Three minutes. Done.")
-    expect(voiceSource).toContain('export const ICONIC_HOOK = "Secure form in 3 minutes. Real doctor review."')
+    expect(voiceSource).toContain('export const ICONIC_HOOK = "Start with a secure form. Takes about 3 minutes."')
   })
 
   it("renders the employer logo marquee on the medical certificate landing page", () => {
@@ -25,5 +25,6 @@ describe("marketing copy contracts", () => {
     expect(employerMarqueeSource).not.toMatch(/\baccept(?:ed|s)?\b/i)
     expect(employerMarqueeSource).not.toMatch(/\bendors(?:ed|ement)\b/i)
     expect(employerMarqueeSource).toContain("Used by employees at")
+    expect(employerMarqueeSource).toContain("Employer and institution policies may vary.")
   })
 })
