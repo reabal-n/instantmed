@@ -11,6 +11,8 @@ const medCertPageSource = readFileSync(join(root, "app/medical-certificate/page.
 const employerEvidenceSource = readFileSync(join(root, "app/medical-certificate/employer-acceptance/page.tsx"), "utf8")
 const medCertIntentSource = readFileSync(join(root, "lib/marketing/med-cert-intent-config.ts"), "utf8")
 const trustBadgesSource = readFileSync(join(root, "lib/marketing/trust-badges.ts"), "utf8")
+const howItWorksContentSource = readFileSync(join(root, "components/marketing/how-it-works-content.tsx"), "utf8")
+const edGuideSource = readFileSync(join(root, "components/marketing/sections/ed-guide-section.tsx"), "utf8")
 const workplaceClaimSources = [
   medCertIntentSource,
   employerEvidenceSource,
@@ -76,5 +78,18 @@ describe("marketing copy contracts", () => {
     expect(employerEvidenceSource).not.toContain("backdrop-blur")
     expect(employerEvidenceSource).not.toContain("bg-emerald")
     expect(employerEvidenceSource).not.toContain("text-emerald")
+  })
+
+  it("keeps index-depth copy specific, safe, and internally linked", () => {
+    expect(howItWorksContentSource).toContain("Service pathway detail")
+    expect(howItWorksContentSource).toContain("/medical-certificate")
+    expect(howItWorksContentSource).toContain("/prescriptions")
+    expect(howItWorksContentSource).toContain("/consult")
+    expect(howItWorksContentSource).not.toContain("fully async")
+    expect(howItWorksContentSource).not.toContain("legally valid under the Fair Work Act")
+
+    expect(edGuideSource).toContain("What the doctor checks before deciding")
+    expect(edGuideSource).toContain("Related ED resources")
+    expect(edGuideSource).not.toContain("scalp")
   })
 })

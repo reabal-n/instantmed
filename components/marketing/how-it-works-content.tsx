@@ -1,5 +1,7 @@
 "use client"
 
+import Link from "next/link"
+
 import { CenteredHero } from "@/components/heroes"
 import { StickerIcon } from "@/components/icons/stickers"
 import { DoctorCredibility } from "@/components/marketing/doctor-credibility"
@@ -57,6 +59,30 @@ const features = [
   },
 ]
 
+const servicePathways = [
+  {
+    title: "Medical certificates",
+    href: "/medical-certificate",
+    summary: "For short-term illness, carer's leave, work, study, or employer evidence when a doctor can assess the request safely online.",
+    doctorChecks: "Symptoms, dates, red flags, whether the request fits telehealth, and whether the period requested is clinically reasonable.",
+    outcome: "PDF certificate by email and dashboard if approved. Full refund if the doctor cannot issue one safely.",
+  },
+  {
+    title: "Online prescriptions",
+    href: "/prescriptions",
+    summary: "For medication renewals and selected treatment requests where the doctor can verify identity, safety, and prescribing suitability.",
+    doctorChecks: "Current medication, dose, allergies, contraindications, recent review history, and whether follow-up or in-person care is safer.",
+    outcome: "eScript by SMS if approved. If it is not appropriate, the doctor explains the next step and the request is refunded.",
+  },
+  {
+    title: "General consults",
+    href: "/consult",
+    summary: "For health questions that need GP judgement but do not obviously require urgent examination, imaging, or emergency care.",
+    doctorChecks: "Symptoms, duration, medical history, risk factors, photos if relevant, and whether written advice, prescription, referral, or in-person review is safest.",
+    outcome: "A written doctor response, prescription or referral if clinically appropriate, or clear guidance to seek in-person care.",
+  },
+]
+
 const howItWorksGuide: GuideSectionData[] = [
   {
     id: "submission",
@@ -72,8 +98,8 @@ const howItWorksGuide: GuideSectionData[] = [
     icon: "stethoscope",
     title: "The clinical standards behind the screen",
     paragraphs: [
-      "Every doctor on InstantMed is registered with the Australian Health Practitioner Regulation Agency (AHPRA) and holds a current medical registration. They follow the same clinical standards as any GP clinic, because they are GPs. The Medical Board of Australia's guidelines on telehealth require the same duty of care, record-keeping, and clinical decision-making as in-person consultations.",
-      "Our clinical governance framework includes regular auditing, peer review, and adherence to RACGP clinical guidelines. Doctors can decline to issue a certificate or prescription if it's not clinically appropriate, and they do. An approval rate below 100% is a feature, not a bug. It means the clinical judgement is genuine.",
+      "Every doctor on InstantMed is registered with the Australian Health Practitioner Regulation Agency (AHPRA) and holds current medical registration. Telehealth changes the channel, not the professional duty: the doctor still needs enough information to make a safe decision, keep appropriate records, and decline requests that are not suitable for online care.",
+      "Our clinical governance framework includes auditing, peer review, and documented service limits. Doctors can decline to issue a certificate or prescription if it is not clinically appropriate, and they do. An approval rate below 100% is a feature, not a bug. It means the clinical judgement is genuine.",
     ],
   },
   {
@@ -108,8 +134,8 @@ const howItWorksGuide: GuideSectionData[] = [
 const HOW_IT_WORKS_FAQ = [
   { question: "Is this a real doctor?", answer: "Yes. Every request is reviewed by an AHPRA-registered Australian GP. They're real doctors with real medical degrees and current registration, the same doctors who work in clinics and hospitals." },
   { question: "How long does it take?", answer: "Requests can be submitted any time. Medical certificates are typically issued quickly, and prescriptions or consultations are reviewed when a doctor is available." },
-  { question: "Will my employer accept an online medical certificate?", answer: "Yes. Certificates from AHPRA-registered doctors are legally valid under the Fair Work Act. They carry the same weight as certificates from in-person GP visits." },
-  { question: "Do I need to be available for a call?", answer: "No. InstantMed is fully async. You submit your form, the doctor reviews it, and you get a written response. No need to be free at a specific time." },
+  { question: "Will my employer accept an online medical certificate?", answer: "Certificates from AHPRA-registered doctors can support workplace evidence requirements. Employer policies and individual circumstances may vary." },
+  { question: "Do I need to be available for a call?", answer: "Usually no booked appointment is needed. You submit your form, the doctor reviews it, and they may message or call if more information is clinically needed." },
   { question: "Do I need a Medicare card?", answer: "For medical certificates, no. For prescriptions and consultations, Medicare details are requested for identity and prescribing history verification, but this is a private service." },
   { question: "What if the doctor can't help me?", answer: "You get a full refund. If your situation requires in-person care or falls outside telehealth scope, the doctor will recommend appropriate next steps." },
   { question: "Is my information private?", answer: "Completely. Your health data is encrypted with bank-level security and never shared with employers, insurers, or anyone else without your consent." },
@@ -161,6 +187,63 @@ export function HowItWorksContent() {
           subtitle="No hidden steps, no surprises, no catch."
           steps={processSteps}
         />
+
+        {/* Service pathway detail */}
+        <section aria-label="Service pathway detail" className="py-16 lg:py-20 px-4 bg-muted/30 dark:bg-white/[0.02]">
+          <div className="mx-auto max-w-5xl">
+            <div className="mx-auto max-w-2xl text-center mb-10">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary mb-3">
+                Service pathway detail
+              </p>
+              <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">
+                What the doctor checks depends on what you ask for
+              </h2>
+              <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
+                Each service has a different clinical threshold. The important detail is what information the doctor reviews, what outcome you receive, and when online care is not the right channel.
+              </p>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-3">
+              {servicePathways.map((pathway) => (
+                <article
+                  key={pathway.title}
+                  className="rounded-xl border border-border/50 bg-white p-5 shadow-sm shadow-primary/[0.04] dark:bg-card"
+                >
+                  <h3 className="text-base font-semibold text-foreground mb-2">
+                    <Link href={pathway.href} className="hover:text-primary transition-colors">
+                      {pathway.title}
+                    </Link>
+                  </h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed mb-4">
+                    {pathway.summary}
+                  </p>
+                  <div className="space-y-3 border-t border-border/50 pt-4">
+                    <div>
+                      <p className="text-xs font-semibold text-foreground mb-1">Doctor checks</p>
+                      <p className="text-xs text-muted-foreground leading-relaxed">{pathway.doctorChecks}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold text-foreground mb-1">Likely outcome</p>
+                      <p className="text-xs text-muted-foreground leading-relaxed">{pathway.outcome}</p>
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+
+            <div className="mt-6 flex flex-wrap justify-center gap-3 text-sm">
+              <Link href="/our-doctors" className="text-primary underline underline-offset-4 hover:text-primary/80">
+                Check our clinical team
+              </Link>
+              <Link href="/clinical-governance" className="text-primary underline underline-offset-4 hover:text-primary/80">
+                Read clinical governance
+              </Link>
+              <Link href="/what-we-wont-do" className="text-primary underline underline-offset-4 hover:text-primary/80">
+                See what we will not do online
+              </Link>
+            </div>
+          </div>
+        </section>
 
         {/* Doctor Credibility */}
         <DoctorCredibility

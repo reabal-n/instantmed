@@ -148,8 +148,8 @@ export function EDGuideSection() {
             <div className="pt-1">
               <div className="space-y-4">
                 {[
-                  { n: "1", title: "Short health form (~2 min)", text: "Questions about your symptoms, medical history, and current medications, the same ones a GP would ask. Doctor contact only if clinically needed." },
-                  { n: "2", title: "Doctor review (typically 1–2 hours)", text: "An AHPRA-registered Australian doctor reviews your submission. If they need clarification, they'll message you. If appropriate, they approve and prescribe." },
+                  { n: "1", title: "Short health form (~2 min)", text: "Questions about your symptoms, medical history, and current medications, the same ones a GP would ask. The doctor may message or call if more information is clinically needed." },
+                  { n: "2", title: "Doctor review (typically 1-2 hours)", text: "An AHPRA-registered Australian doctor reviews your submission. If they need clarification, they follow up. If treatment is clinically appropriate, they approve and prescribe." },
                   { n: "3", title: "eScript to your phone", text: "Prescription sent by SMS. Take it to any Australian pharmacy. If treatment isn't appropriate, we tell you directly and refund in full." },
                 ].map((step, i, arr) => (
                   <div key={step.n} className="flex gap-3">
@@ -163,6 +163,27 @@ export function EDGuideSection() {
                       <p className="text-sm font-semibold text-foreground mb-0.5">{step.title}</p>
                       <p className="text-xs text-muted-foreground leading-relaxed">{step.text}</p>
                     </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </GuideItem>
+
+          <GuideItem value="decision-checks" sticker="medical-history" title="What the doctor checks before deciding">
+            <div className="space-y-3 pt-1">
+              <p className="text-sm text-muted-foreground">
+                ED prescribing is not just a preference question. The doctor needs enough clinical information to decide whether online care is suitable and whether treatment can be used safely.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                {[
+                  { title: "Heart and blood pressure risk", text: "New chest pain, recent heart attack or stroke, severe heart failure, uncontrolled blood pressure, or exertional symptoms can make online ED treatment unsafe." },
+                  { title: "Medication interactions", text: "Nitrate medicines are a hard stop. The doctor also checks alpha-blockers, some antifungals, HIV medicines, and other medicines that can change blood pressure or drug levels." },
+                  { title: "Cause and pattern", text: "Gradual ED with known risk factors is assessed differently from sudden ED, pain, penile curvature, low libido, or symptoms suggesting a hormone or neurological cause." },
+                  { title: "Follow-up needs", text: "If ED may be a marker of diabetes, cholesterol, sleep apnoea, or cardiovascular disease, the doctor can recommend GP follow-up even when treatment is otherwise appropriate." },
+                ].map((check) => (
+                  <div key={check.title} className="rounded-lg border border-border/50 bg-muted/30 dark:bg-white/[0.03] p-3.5">
+                    <p className="text-xs font-semibold text-foreground mb-1">{check.title}</p>
+                    <p className="text-xs text-muted-foreground leading-relaxed">{check.text}</p>
                   </div>
                 ))}
               </div>
@@ -216,7 +237,7 @@ export function EDGuideSection() {
                 "ED started suddenly alongside new chest pain, shortness of breath, leg swelling, neurological symptoms, or unexplained weight loss.",
                 "You've never had a cardiovascular check and have multiple risk factors (age, smoking, family history, high blood pressure, diabetes).",
                 "The main contributor looks psychological, persistent low mood, significant anxiety, relationship difficulties, or trauma.",
-                "You notice visibly scarred or inflamed patches of scalp that could suggest a different condition requiring examination.",
+                "You have penile pain, marked curvature, trauma, testicular symptoms, or genital changes that need physical examination.",
               ]} />
             </div>
           </GuideItem>
@@ -239,6 +260,29 @@ export function EDGuideSection() {
             </div>
           </GuideItem>
         </Accordion>
+
+        <div className="mt-6 rounded-xl border border-border/50 bg-muted/30 p-4 dark:bg-white/[0.03]">
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary mb-3">
+            Related ED resources
+          </p>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {[
+              { href: "/how-it-works", title: "How InstantMed works", text: "See how form-first doctor review, follow-up, payment, and refunds work." },
+              { href: "/our-doctors", title: "Who reviews your request", text: "Learn how our AHPRA-registered doctors are verified and governed." },
+              { href: "/clinical-governance", title: "Clinical governance", text: "Read how service limits, safety blocks, and doctor decisions are handled." },
+              { href: "/what-we-wont-do", title: "What we will not do online", text: "Understand when we decline online care and direct patients to in-person review." },
+            ].map((resource) => (
+              <Link
+                key={resource.href}
+                href={resource.href}
+                className="rounded-lg border border-border/50 bg-white p-3 transition-colors hover:border-primary/30 hover:bg-primary/5 dark:bg-card"
+              >
+                <span className="block text-sm font-semibold text-foreground">{resource.title}</span>
+                <span className="mt-1 block text-xs text-muted-foreground leading-relaxed">{resource.text}</span>
+              </Link>
+            ))}
+          </div>
+        </div>
 
         {/* Footer note */}
         <p className="text-xs text-muted-foreground text-center mt-6">
