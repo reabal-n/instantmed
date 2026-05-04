@@ -1562,6 +1562,7 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
       eyebrow: "Recovery window",
       title: "Food poisoning is usually short, but dehydration changes the risk",
       summary: "Most uncomplicated cases improve over one to three days. Worsening symptoms need review.",
+      visualFormat: "process-visual",
       kind: "timeline",
       accent: "sky",
       items: [
@@ -1569,13 +1570,14 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
         { label: "1-3 days", detail: "Most uncomplicated cases settle" },
         { label: "Worsening", detail: "Fever, blood, severe pain, or dehydration needs care", tone: "urgent" },
       ],
-      imagePrompt: "Australian kitchen bench with water glass, oral rehydration sachet, phone, calm illness recovery scene, no readable text",
+      imagePrompt: "Detailed Australian gastro recovery-window poster showing first 24 hours, one to three day recovery, hydration, oral rehydration solution, gradual return to food, and worsening symptoms needing review. Use warm kitchen/home recovery details. Do not include homemade oral rehydration recipes, exact sugar or salt quantities, medicine brand names, product logos, fake medical certificates, or consultation CTAs. Use only the registry copy for clinical instructions.",
     },
     {
       id: "food-handler-boundary",
       eyebrow: "Work safety",
       title: "Food handlers need a stricter return-to-work boundary",
       summary: "Work involving food service or vulnerable people may need longer exclusion after symptoms stop.",
+      visualFormat: "patient-education-poster",
       kind: "warning",
       accent: "amber",
       items: [
@@ -1583,7 +1585,22 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
         { label: "Food handling", detail: "Often requires at least 48 hours symptom-free", tone: "caution" },
         { label: "Document the absence", detail: "Use evidence without oversharing details" },
       ],
-      imagePrompt: "Subtle food service return-to-work safety illustration, apron and calendar, no readable text, warm clinical palette",
+      imagePrompt: "Detailed Australian food-handler return-to-work safety poster showing last vomiting or diarrhoea, symptom-free waiting period, food-handling duties, hand hygiene, vulnerable customers, and absence evidence privacy. Use apron, closed kitchen, calendar, and hygiene icons. Do not use urgent-care or emergency-care wording for the 48-hour work exclusion; frame it as do not return to food handling while symptomatic and follow workplace or role requirements. Do not show restaurant logos, official food authority marks, fake legal seals, or consultation CTAs.",
+    },
+    {
+      id: "gastro-urgent-care-boundary",
+      eyebrow: "Red flags",
+      title: "Some gastro symptoms need medical care",
+      summary: "Blood, severe dehydration, pregnancy, high-risk age, or symptoms not improving should not be treated as routine food poisoning.",
+      visualFormat: "red-flag-warning",
+      kind: "warning",
+      accent: "rose",
+      items: [
+        { label: "Blood or severe pain", detail: "Needs prompt in-person medical review", tone: "urgent" },
+        { label: "Dehydration signs", detail: "Dizziness, confusion, dark urine, or no urination", tone: "urgent" },
+        { label: "Higher-risk person", detail: "Pregnancy, very young, older adult, or immune suppression", tone: "caution" },
+      ],
+      imagePrompt: "Detailed non-graphic gastro red-flag warning poster showing blood or severe pain, dehydration signs, pregnancy or very young or older adult risk, and symptoms not improving. Use calm safety-boundary hierarchy with water glass, thermometer without numbers, bathroom door motif, phone, and clinic doorway. Do not show vomit, stool, gore, distressed faces, official emergency-service marks, or brand names.",
     },
   ],
   sinusitis: [
