@@ -84,6 +84,7 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
       eyebrow: "Subtype map",
       title: "IBS patterns change the management conversation",
       summary: "The same diagnosis can present as constipation, diarrhoea, mixed bowel habits, or an unclassified pattern.",
+      visualFormat: "medical-infographic",
       kind: "comparison",
       accent: "blue",
       items: [
@@ -92,7 +93,7 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
         { label: "IBS-M", detail: "Hard and loose stools occur in the same week" },
         { label: "IBS-U", detail: "Symptoms do not fit the main patterns" },
       ],
-      imagePrompt: "Australian editorial health infographic, abstract gut-brain and bowel pattern mapping, calm warm ivory background, no readable text, no anatomy gore, premium clinical style",
+      imagePrompt: "Detailed Australian IBS medical infographic showing subtype patterns, Bristol stool-form cues, gut sensitivity, symptom tracking, and management implications. Use a clear educational poster structure with tasteful simplified digestive anatomy and bowel-pattern comparison panels.",
       assetPath: "/images/blog/ibs-digestive-issues/ibs-subtype-map.webp",
     },
     {
@@ -100,6 +101,7 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
       eyebrow: "Diet pathway",
       title: "Low FODMAP is a three-phase process",
       summary: "The goal is not permanent restriction. The useful endpoint is a personalised diet that identifies specific triggers.",
+      visualFormat: "process-visual",
       kind: "flow",
       accent: "emerald",
       items: [
@@ -107,7 +109,7 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
         { label: "Reintroduction", detail: "Test categories one at a time" },
         { label: "Personalisation", detail: "Keep variety while avoiding proven triggers" },
       ],
-      imagePrompt: "Calm Australian kitchen health visual with food diary, phone, tea, and fresh low FODMAP ingredients, no readable labels, warm daylight, premium editorial photo style",
+      imagePrompt: "Detailed Low FODMAP step-by-step process visual showing elimination, reintroduction challenges, personalisation, dietitian guidance, symptom diary, and balanced food variety. Use warm Australian kitchen details without looking like a generic wellness stock image.",
       assetPath: "/images/blog/ibs-digestive-issues/fodmap-three-phase.webp",
     },
     {
@@ -115,6 +117,7 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
       eyebrow: "Safety boundary",
       title: "Symptoms that do not fit simple IBS",
       summary: "Blood, weight loss, night symptoms, fever, anaemia, and new symptoms after 50 need investigation before assuming IBS.",
+      visualFormat: "red-flag-warning",
       kind: "warning",
       accent: "rose",
       items: [
@@ -122,7 +125,7 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
         { label: "Unintentional weight loss", detail: "Do not treat as routine IBS", tone: "urgent" },
         { label: "Symptoms waking you", detail: "More concerning than daytime-only symptoms", tone: "caution" },
       ],
-      imagePrompt: "Minimal medical warning still-life for digestive red flags, no people, no clinicians, no faces, calm red accent, abstract checklist shapes, phone and paper note only, no readable text, no graphic body imagery",
+      imagePrompt: "Detailed calm red-flag warning graphic for IBS showing symptoms that need medical review or investigation, including blood, weight loss, night symptoms, fever, anaemia, family history, and new symptoms after 50. Do not say all red flags need urgent care or emergency care; use phrases like medical review, investigation, or do not assume routine IBS. Reserve urgent-care wording only for the footer safety note. Use non-graphic safety-boundary design with abstract warning icons and a neutral clinic-note motif.",
       assetPath: "/images/blog/ibs-digestive-issues/ibs-red-flags.webp",
     },
   ],
