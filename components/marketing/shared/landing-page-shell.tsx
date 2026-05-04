@@ -26,11 +26,7 @@ export interface LandingPageConfig {
     ctaText: string
     ctaHref: string
     mobileSummary: string
-    desktopLabel?: string
-    priceLabel?: string
-    desktopCtaText?: string
     mobileFooter?: React.ReactNode
-    pricingScrollTarget?: string
     responseTime?: string
   }
 }
@@ -115,13 +111,9 @@ export function LandingPageShell({ config, children, afterFooter }: LandingPageS
           ctaText={stickyCtaText}
           ctaHref={stickyHref}
           mobileSummary={config.sticky.mobileSummary}
-          desktopLabel={config.sticky.desktopLabel}
-          priceLabel={isDisabled ? undefined : config.sticky.priceLabel}
-          desktopCtaText={isDisabled ? "Contact us" : config.sticky.desktopCtaText}
           isDisabled={isDisabled}
           onCTAClick={handleStickyCTA}
           mobileFooter={config.sticky.mobileFooter}
-          pricingScrollTarget={config.sticky.pricingScrollTarget}
           responseTime={config.sticky.responseTime}
         />
       </div>

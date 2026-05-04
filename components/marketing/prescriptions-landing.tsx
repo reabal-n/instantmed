@@ -132,9 +132,6 @@ const LANDING_CONFIG: LandingPageConfig = {
     ctaText: `Renew your medication · $${PRICING.REPEAT_SCRIPT.toFixed(2)}`,
     ctaHref: "/request?service=prescription",
     mobileSummary: `Need your medication? Open ${SOCIAL_PROOF_DISPLAY.operatingHours} AEST.`,
-    desktopLabel: `Repeat Medication · Open ${SOCIAL_PROOF_DISPLAY.operatingHours} AEST · 7 days`,
-    priceLabel: `From $${PRICING.REPEAT_SCRIPT.toFixed(2)}`,
-    desktopCtaText: "Renew your medication",
     responseTime: `Avg response: ${SOCIAL_PROOF_DISPLAY.responseTime}`,
   },
 }

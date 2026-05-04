@@ -16,20 +16,12 @@ interface StickyCTAProps {
   ctaHref: string
   /** Small summary text above the mobile CTA button */
   mobileSummary: string
-  /** Legacy desktop config retained for existing landing-page configs. Desktop sticky CTA is intentionally disabled. */
-  desktopLabel?: string
-  /** Price display text (e.g. "From $29.95") */
-  priceLabel?: string
-  /** Desktop CTA text (shorter version for top bar) */
-  desktopCtaText?: string
   /** Whether the service is disabled */
   isDisabled?: boolean
   /** Click handler for analytics */
   onCTAClick?: () => void
   /** Extra mobile content (e.g. payment icons) */
   mobileFooter?: React.ReactNode
-  /** Optional "See pricing" scroll button */
-  pricingScrollTarget?: string
   /** Optional response time text (e.g. "Avg response: ~44 min") */
   responseTime?: string
 }

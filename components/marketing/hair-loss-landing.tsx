@@ -133,9 +133,6 @@ const LANDING_CONFIG: LandingPageConfig = {
     ctaText: `Start assessment · $${PRICING.HAIR_LOSS.toFixed(2)}`,
     ctaHref: "/request?service=consult&subtype=hair_loss",
     mobileSummary: "2-min form · Doctor-reviewed · No waiting room",
-    desktopLabel: "Hair loss treatment · Doctor-reviewed",
-    priceLabel: `From $${PRICING.HAIR_LOSS.toFixed(2)}`,
-    desktopCtaText: "Start assessment",
     responseTime: `Avg response: ${SOCIAL_PROOF.averageResponseMinutes} min`,
   },
 }

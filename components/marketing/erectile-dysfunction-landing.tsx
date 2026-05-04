@@ -93,9 +93,6 @@ const LANDING_CONFIG: LandingPageConfig = {
     ctaText: `Start assessment · $${PRICING.MENS_HEALTH.toFixed(2)}`,
     ctaHref: "/request?service=consult&subtype=ed",
     mobileSummary: "2-min form · Doctor-reviewed · No waiting room",
-    desktopLabel: "ED Treatment · Discreet & doctor-reviewed",
-    priceLabel: `From $${PRICING.MENS_HEALTH.toFixed(2)}`,
-    desktopCtaText: "Start assessment",
     responseTime: `Avg response: ${SOCIAL_PROOF_DISPLAY.responseTime}`,
   },
 }

@@ -21,9 +21,6 @@ export interface InformationalPageConfig {
     ctaText: string
     ctaHref: string
     mobileSummary: string
-    desktopLabel?: string
-    priceLabel?: string
-    desktopCtaText?: string
     mobileFooter?: React.ReactNode
   } | false
 }
@@ -92,9 +89,6 @@ export function InformationalPageShell({ config, children, afterFooter }: Inform
             ctaText={config.sticky.ctaText}
             ctaHref={config.sticky.ctaHref}
             mobileSummary={config.sticky.mobileSummary}
-            desktopLabel={config.sticky.desktopLabel}
-            priceLabel={config.sticky.priceLabel}
-            desktopCtaText={config.sticky.desktopCtaText}
             onCTAClick={() => analytics.trackCTAClick("sticky_mobile")}
             mobileFooter={config.sticky.mobileFooter}
           />
