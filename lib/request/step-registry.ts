@@ -199,16 +199,7 @@ export const STEP_REGISTRY: Record<UnifiedServiceType, StepDefinition[]> = {
 // repeat-script uses the same flow as prescription
 STEP_REGISTRY['repeat-script'] = STEP_REGISTRY['prescription']
 
-// Shared tail steps for all consult subtypes
-const CONSULT_COMMON_TAIL: StepDefinition[] = [
-  {
-    id: 'medical-history',
-    label: 'Medical history',
-    shortLabel: 'Health',
-    componentPath: 'medical-history-step',
-    validateFn: 'validateMedicalHistoryStep',
-    required: true,
-  },
+const CONSULT_REVIEW_TAIL: StepDefinition[] = [
   {
     id: 'details',
     label: 'Your details',
@@ -233,6 +224,19 @@ const CONSULT_COMMON_TAIL: StepDefinition[] = [
     validateFn: 'validateCheckoutStep',
     required: true,
   },
+]
+
+// Shared tail for generic consult paths that do not collect medical history in a subtype screen.
+const CONSULT_COMMON_TAIL: StepDefinition[] = [
+  {
+    id: 'medical-history',
+    label: 'Medical history',
+    shortLabel: 'Health',
+    componentPath: 'medical-history-step',
+    validateFn: 'validateMedicalHistoryStep',
+    required: true,
+  },
+  ...CONSULT_REVIEW_TAIL,
 ]
 
 // Consult subtype-specific step sequences
@@ -283,7 +287,7 @@ const CONSULT_SUBTYPE_STEPS: Record<ConsultSubtype, StepDefinition[]> = {
       validateFn: 'validateEdPreferencesStep',
       required: true,
     },
-    ...CONSULT_COMMON_TAIL,
+    ...CONSULT_REVIEW_TAIL,
   ],
   
   hair_loss: [
@@ -319,7 +323,7 @@ const CONSULT_SUBTYPE_STEPS: Record<ConsultSubtype, StepDefinition[]> = {
       validateFn: 'validateHairLossPreferencesStep',
       required: true,
     },
-    ...CONSULT_COMMON_TAIL,
+    ...CONSULT_REVIEW_TAIL,
   ],
   
   womens_health: [

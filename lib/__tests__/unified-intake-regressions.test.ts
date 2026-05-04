@@ -44,10 +44,14 @@ describe("unified intake regressions", () => {
       iief4: 3,
       iief5: 3,
       edNitrates: false,
+      edAlphaBlockers: false,
       edRecentHeartEvent: false,
       edSevereHeart: false,
+      takes_medications: "no",
+      has_allergies: "no",
+      has_conditions: "no",
+      previousEdMeds: false,
       edPreference: "doctor_recommendation",
-      ...sharedMedicalHistory,
     }
 
     expect(validateAnswersServerSide("consult", answers, identity)).toBeNull()
@@ -69,11 +73,40 @@ describe("unified intake regressions", () => {
       has_conditions: "no",
       takes_medications: "no",
       hairMedicationPreference: "doctor_recommendation",
-      ...sharedMedicalHistory,
     }
 
     expect(validateAnswersServerSide("consult", answers, identity)).toBeNull()
     expect(resolveCheckoutSubtype("consult", answers, "general")).toBe("hair_loss")
+  })
+
+  it("does not ask ED and hair loss patients for duplicate generic medical history", () => {
+    const baseContext: StepContext = {
+      isAuthenticated: false,
+      hasProfile: false,
+      hasCompleteIdentity: false,
+      hasMedicare: false,
+      hasAddress: false,
+      hasPhone: false,
+      serviceType: "consult",
+      answers: {},
+    }
+
+    const edSteps = getStepsForService("consult", {
+      ...baseContext,
+      answers: { consultSubtype: "ed" },
+    }).map((step) => step.id)
+    const hairLossSteps = getStepsForService("consult", {
+      ...baseContext,
+      answers: { consultSubtype: "hair_loss" },
+    }).map((step) => step.id)
+    const generalSteps = getStepsForService("consult", {
+      ...baseContext,
+      answers: { consultSubtype: "general" },
+    }).map((step) => step.id)
+
+    expect(edSteps).not.toContain("medical-history")
+    expect(hairLossSteps).not.toContain("medical-history")
+    expect(generalSteps).toContain("medical-history")
   })
 
   it("requires phone for authenticated consult step skipping", () => {

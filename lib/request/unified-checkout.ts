@@ -283,7 +283,6 @@ export function validateAnswersServerSide(
         validateEdAssessmentStep(answers),
         validateEdHealthStep(answers),
         validateEdPreferencesStep(answers),
-        validateMedicalHistoryStep(answers),
       )
     }
 
@@ -293,7 +292,6 @@ export function validateAnswersServerSide(
         validateHairLossAssessmentStep(answers),
         validateHairLossHealthStep(answers),
         validateHairLossPreferencesStep(answers),
-        validateMedicalHistoryStep(answers),
       )
     }
 

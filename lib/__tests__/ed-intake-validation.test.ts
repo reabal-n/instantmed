@@ -114,14 +114,34 @@ describe("edAssessmentStepSchema", () => {
 describe("edHealthStepSchema", () => {
   const validMinimum = {
     edNitrates: false,
+    edAlphaBlockers: false,
     edRecentHeartEvent: false,
     edSevereHeart: false,
+    takes_medications: "no",
+    has_allergies: "no",
+    has_conditions: "no",
+    previousEdMeds: false,
   }
 
-  it("passes with minimum required fields", () => {
+  it("passes when the consolidated health screen is complete", () => {
     const result = validateEdHealthStep(validMinimum)
     expect(result.isValid).toBe(true)
     expect(result.errors).toEqual({})
+  })
+
+  it("requires the full consolidated health screen before continuing", () => {
+    const result = validateEdHealthStep({
+      edNitrates: false,
+      edRecentHeartEvent: false,
+      edSevereHeart: false,
+    })
+
+    expect(result.isValid).toBe(false)
+    expect(result.errors.edAlphaBlockers).toBeDefined()
+    expect(result.errors.takes_medications).toBeDefined()
+    expect(result.errors.has_allergies).toBeDefined()
+    expect(result.errors.has_conditions).toBeDefined()
+    expect(result.errors.previousEdMeds).toBeDefined()
   })
 
   it("fails (hard block) when nitrates is true", () => {
@@ -166,6 +186,16 @@ describe("edHealthStepSchema", () => {
     expect(result.isValid).toBe(true)
   })
 
+  it("fails when alpha blocker use is reported without GP clearance", () => {
+    const result = validateEdHealthStep({
+      ...validMinimum,
+      edAlphaBlockers: true,
+    })
+
+    expect(result.isValid).toBe(false)
+    expect(result.errors.edGpCleared).toBeDefined()
+  })
+
   it("requires allergy details when has_allergies is 'yes'", () => {
     const result = validateEdHealthStep({
       ...validMinimum,
@@ -200,6 +230,17 @@ describe("edHealthStepSchema", () => {
       current_medications: "Metformin 500mg",
     })
     expect(result.isValid).toBe(true)
+  })
+
+  it("requires previous ED treatment details when the patient has used ED medication before", () => {
+    const result = validateEdHealthStep({
+      ...validMinimum,
+      previousEdMeds: true,
+    })
+
+    expect(result.isValid).toBe(false)
+    expect(result.errors.edPreviousTreatment).toBeDefined()
+    expect(result.errors.edPreviousEffectiveness).toBeDefined()
   })
 
   it("requires condition details when has_conditions is 'yes'", () => {

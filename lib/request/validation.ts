@@ -281,6 +281,7 @@ export const edAssessmentStepSchema = z.object({
 export const edHealthStepSchema = z
   .object({
     edNitrates: z.boolean({ error: "Please answer this safety question" }),
+    edAlphaBlockers: z.boolean().optional(),
     edRecentHeartEvent: z.boolean({ error: "Please answer this safety question" }),
     edSevereHeart: z.boolean({ error: "Please answer this safety question" }),
     edGpCleared: z.boolean().optional(),
@@ -305,6 +306,12 @@ export const edHealthStepSchema = z
         message: "This service is not suitable for patients taking nitrates",
       })
     }
+    if (data.edAlphaBlockers === undefined) {
+      ctx.addIssue({ code: "custom", path: ["edAlphaBlockers"], message: "Please answer this safety question" })
+    }
+    if (data.previousEdMeds === undefined) {
+      ctx.addIssue({ code: "custom", path: ["previousEdMeds"], message: "Please answer previous treatment question" })
+    }
     if (data.edRecentHeartEvent === true && !data.edGpCleared) {
       ctx.addIssue({
         code: "custom",
@@ -318,6 +325,22 @@ export const edHealthStepSchema = z
         path: ["edGpCleared"],
         message: "Please confirm your GP has cleared you",
       })
+    }
+    if (data.edAlphaBlockers === true && !data.edGpCleared) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["edGpCleared"],
+        message: "Please confirm your GP has cleared you",
+      })
+    }
+    if (data.takes_medications === undefined) {
+      ctx.addIssue({ code: "custom", path: ["takes_medications"], message: "Please answer medication question" })
+    }
+    if (data.has_allergies === undefined) {
+      ctx.addIssue({ code: "custom", path: ["has_allergies"], message: "Please answer allergies question" })
+    }
+    if (data.has_conditions === undefined) {
+      ctx.addIssue({ code: "custom", path: ["has_conditions"], message: "Please answer conditions question" })
     }
     if (data.has_allergies === "yes" && !data.known_allergies?.trim()) {
       ctx.addIssue({
@@ -338,6 +361,20 @@ export const edHealthStepSchema = z
         code: "custom",
         path: ["current_medications"],
         message: "Please list your medications",
+      })
+    }
+    if (data.previousEdMeds === true && !data.edPreviousTreatment?.trim()) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["edPreviousTreatment"],
+        message: "Please tell us what you have used before",
+      })
+    }
+    if (data.previousEdMeds === true && !data.edPreviousEffectiveness?.trim()) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["edPreviousEffectiveness"],
+        message: "Please tell us how well it worked",
       })
     }
   })
