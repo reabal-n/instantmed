@@ -260,7 +260,6 @@ export function validateAnswersServerSide(
     return firstValidationError(
       validateCertificateStep(answers),
       validateSymptomsStep(answers),
-      validateMedicalHistoryStep(answers),
     )
   }
 
