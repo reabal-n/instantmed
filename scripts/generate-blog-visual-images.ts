@@ -457,7 +457,7 @@ function buildGatewayPrompt(slug: string, visual: ArticleVisual): string {
     "Style:",
     "Premium editorial health design rather than sterile AI clinic poster. It should feel like a professionally commissioned patient-education poster from a serious Australian health publisher, not a generic AI infographic. Use warm natural off-white paper, crisp navy typography, restrained blue/emerald/amber/rose accents, subtle print grain, tactile depth, hand-finished illustration details, realistic Australian context where useful, and varied composition.",
     "Avoid bland corporate gradients, generic hospital stock art, excessive symmetry, plastic 3D icons, over-polished AI faces, empty white-card grids, fake app screenshots, vague wellness imagery, and beige wellness mush.",
-    "Use confident visual hierarchy with a strong hero diagram or scene, then supporting panels. Add warmth through texture, realistic objects, human context, asymmetry, and small editorial details while keeping the information readable.",
+    "Use confident visual hierarchy with a strong hero diagram or scene, then supporting panels. Add warmth through texture, realistic objects, human context, asymmetry, and small editorial details while keeping the information readable. Australian context should appear through practical healthcare/workplace details, not tourist landmarks, wildlife, flags, novelty mascots, or postcard cues.",
     "Leave the bottom-right corner free of essential text, icons, faces, or diagrams because the production script overlays the official InstantMed brand badge there after generation.",
     "",
     "Hard constraints:",
