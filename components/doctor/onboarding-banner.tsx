@@ -138,7 +138,7 @@ export function DoctorOnboardingBanner() {
 
           <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-muted">
             <div
-              className="h-full rounded-full bg-primary transition-[width] duration-500"
+              className="h-full rounded-full bg-primary"
               style={{ width: `${Math.max(pct, 4)}%` }}
               aria-hidden
             />

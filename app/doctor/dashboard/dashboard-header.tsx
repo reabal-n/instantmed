@@ -31,8 +31,8 @@ export function DashboardHeader({ initialAvailable }: DashboardHeaderProps) {
   return (
     <>
       <DashboardPageHeader
-        title="Review Queue"
-        description="Patient requests awaiting your review"
+        title="Queue"
+        description="Clinical cases awaiting review"
         actions={
           <div className="flex items-center gap-2 rounded-xl border border-border/60 bg-card px-3 py-2">
             <Switch

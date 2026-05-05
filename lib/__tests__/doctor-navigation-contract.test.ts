@@ -43,6 +43,18 @@ const scriptsPageSource = readFileSync(
   join(process.cwd(), "app/doctor/scripts/page.tsx"),
   "utf8",
 )
+const doctorAnalyticsSource = readFileSync(
+  join(process.cwd(), "app/doctor/analytics/analytics-client.tsx"),
+  "utf8",
+)
+const onboardingBannerSource = readFileSync(
+  join(process.cwd(), "components/doctor/onboarding-banner.tsx"),
+  "utf8",
+)
+const clinicalNotesEditorSource = readFileSync(
+  join(process.cwd(), "components/doctor/review/clinical-notes-editor.tsx"),
+  "utf8",
+)
 const doctorIntakeDetailSource = readFileSync(
   join(process.cwd(), "app/doctor/intakes/[id]/page.tsx"),
   "utf8",
@@ -53,6 +65,10 @@ const doctorPatientDetailSource = readFileSync(
 )
 const reissueCertificateSource = readFileSync(
   join(process.cwd(), "app/actions/reissue-cert.ts"),
+  "utf8",
+)
+const legacyDoctorEmailSuppressionSource = readFileSync(
+  join(process.cwd(), "app/doctor/email-suppression/page.tsx"),
   "utf8",
 )
 
@@ -101,6 +117,9 @@ describe("doctor navigation contract", () => {
   })
 
   it("keeps the dashboard header focused on queue state, not duplicated sidebar routes", () => {
+    expect(dashboardHeaderSource).toContain('title="Queue"')
+    expect(dashboardHeaderSource).toContain('description="Clinical cases awaiting review"')
+    expect(dashboardHeaderSource).not.toContain('title="Review Queue"')
     expect(dashboardHeaderSource).not.toContain('href="/doctor/scripts"')
     expect(dashboardHeaderSource).not.toContain('href="/doctor/patients"')
     expect(dashboardHeaderSource).not.toContain('href="/doctor/settings/identity"')
@@ -129,6 +148,9 @@ describe("doctor navigation contract", () => {
   })
 
   it("keeps the scripts screen quiet when there are no tasks", () => {
+    expect(scriptsClientSource).toContain('title="Scripts"')
+    expect(scriptsClientSource).toContain('description="Prescriptions waiting for Parchment send confirmation"')
+    expect(scriptsClientSource).not.toContain('title="Script To-Do"')
     expect(scriptsPageSource).toContain("pageSize: 25")
     expect(scriptsClientSource).toContain("const PAGE_SIZE = 25")
     expect(scriptsClientSource).toContain("hasScriptActivity")
@@ -138,6 +160,20 @@ describe("doctor navigation contract", () => {
   it("keeps legacy doctor routes as redirects to canonical surfaces", () => {
     expect(doctorQueuePageSource).toContain("buildDoctorQueueRedirectHref")
     expect(doctorSettingsPageSource).toContain('redirect("/doctor/settings/identity")')
+    expect(legacyDoctorEmailSuppressionSource).toContain('redirect("/admin/emails/suppression")')
+    expect(legacyDoctorEmailSuppressionSource).not.toContain("Email Suppression | InstantMed")
+  })
+
+  it("keeps portal surfaces free of decorative progress motion", () => {
+    const portalSource = [
+      doctorAnalyticsSource,
+      onboardingBannerSource,
+      clinicalNotesEditorSource,
+    ].join("\n")
+
+    expect(portalSource).not.toContain("transition-[width] duration-500")
+    expect(portalSource).not.toContain("transition-[width] duration-300")
+    expect(portalSource).not.toContain("bg-amber-400 animate-pulse")
   })
 
   it("requires doctor or admin role for clinical detail pages", () => {

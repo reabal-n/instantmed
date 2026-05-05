@@ -102,8 +102,8 @@ export function ScriptsClient({ initialTasks, initialCounts, initialTotal }: Scr
   return (
     <div className="space-y-6">
       <DashboardPageHeader
-        title="Script To-Do"
-        description="Prescriptions to send via Parchment"
+        title="Scripts"
+        description="Prescriptions waiting for Parchment send confirmation"
         actions={
           <button
             onClick={() => fetchPage(page)}

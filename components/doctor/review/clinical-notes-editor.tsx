@@ -193,7 +193,7 @@ export function ClinicalNotesEditor() {
                 {noteSaved && <span className="text-xs text-emerald-600">Saved!</span>}
                 {!noteSaved && noteDirty && !isPending && (
                   <span className="flex items-center gap-1 text-xs text-muted-foreground" aria-live="polite">
-                    <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />
+                    <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
                     Auto-saving…
                   </span>
                 )}
@@ -202,7 +202,7 @@ export function ClinicalNotesEditor() {
                     <div className="w-20 h-1.5 rounded-full bg-muted overflow-hidden">
                       <div
                         className={cn(
-                          "h-full rounded-full transition-[width] duration-300",
+                          "h-full rounded-full",
                           doctorNotes.trim().length === 0
                             ? "w-0"
                             : doctorNotes.trim().length < MIN_CLINICAL_NOTES_LENGTH * 0.5
