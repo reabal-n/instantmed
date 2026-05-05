@@ -245,7 +245,7 @@ function buildParchmentActivityFromRows(
 
   const prescriptionActivity = prescriptions
     .filter((prescription) => typeof prescription.parchment_reference === "string")
-    .slice(0, 5)
+    .slice(0, 1)
     .map((prescription) => ({
       id: `prescription-${String(prescription.id)}`,
       status: "success" as const,

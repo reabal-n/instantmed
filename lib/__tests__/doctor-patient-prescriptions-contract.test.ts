@@ -55,6 +55,14 @@ describe("doctor patient medication history contract", () => {
     expect(detailSource).toContain("Waiting for webhook")
   })
 
+  it("keeps the Parchment delivery panel consolidated instead of duplicating prescription history rows", () => {
+    expect(detailPageSource).toContain(".slice(0, 1)")
+    expect(detailSource).toContain("Latest delivery update")
+    expect(detailSource).toContain("secondaryParchmentActivity")
+    expect(detailSource).toContain("Other recent events")
+    expect(detailSource).not.toContain("parchmentActivity.slice(1, 5)")
+  })
+
   it("does not pass raw intake answers into the client props", () => {
     expect(detailPageSource).toContain("intakeWithoutAnswers")
     expect(detailSource).not.toContain("answers:")

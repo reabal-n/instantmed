@@ -269,6 +269,20 @@ export function PatientDetailClient({
     ? [latestMedication.medication_name, latestMedication.medication_strength].filter(Boolean).join(" ")
     : "No prescriptions yet"
   const latestParchmentActivity = parchmentActivity[0] ?? null
+  const secondaryParchmentActivity = parchmentActivity
+    .slice(1)
+    .filter((activity, index, activities) => {
+      if (latestParchmentActivity && activity.label === latestParchmentActivity.label && activity.detail === latestParchmentActivity.detail) {
+        return false
+      }
+
+      return activities.findIndex((candidate) => (
+        candidate.label === activity.label &&
+        candidate.detail === activity.detail &&
+        candidate.status === activity.status
+      )) === index
+    })
+    .slice(0, 4)
 
   return (
     <div className="space-y-5">
@@ -416,11 +430,12 @@ export function PatientDetailClient({
         <CardContent className="px-4 py-3">
           {latestParchmentActivity ? (
             <div className="space-y-3">
-              <div className="rounded-lg bg-muted/40 p-3">
+              <div className="rounded-lg border border-border/60 bg-muted/30 p-3">
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-foreground">{latestParchmentActivity.label}</p>
-                    <p className="mt-1 text-sm text-muted-foreground">{latestParchmentActivity.detail}</p>
+                  <div className="min-w-0">
+                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Latest delivery update</p>
+                    <p className="mt-1 text-sm font-semibold text-foreground">{latestParchmentActivity.label}</p>
+                    <p className="mt-1 max-w-4xl text-sm text-muted-foreground">{latestParchmentActivity.detail}</p>
                   </div>
                   <p className="shrink-0 text-xs text-muted-foreground">
                     {formatDateTime(latestParchmentActivity.occurred_at)}
@@ -440,17 +455,20 @@ export function PatientDetailClient({
                   )}
                 </div>
               </div>
-              {parchmentActivity.length > 1 && (
-                <div className="grid gap-2 lg:grid-cols-2">
-                  {parchmentActivity.slice(1, 5).map((activity) => (
-                    <div key={activity.id} className="rounded-lg border border-border/60 px-3 py-2">
-                      <div className="flex items-center justify-between gap-2">
-                        <p className="truncate text-sm font-medium text-foreground">{activity.label}</p>
-                        <Badge variant={activity.status} size="sm">{activity.status}</Badge>
+              {secondaryParchmentActivity.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Other recent events</p>
+                  <div className="grid gap-2 lg:grid-cols-2">
+                    {secondaryParchmentActivity.map((activity) => (
+                      <div key={activity.id} className="rounded-lg border border-border/60 px-3 py-2">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="truncate text-sm font-medium text-foreground">{activity.label}</p>
+                          <Badge variant={activity.status} size="sm">{activity.status}</Badge>
+                        </div>
+                        <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{activity.detail}</p>
                       </div>
-                      <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{activity.detail}</p>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
