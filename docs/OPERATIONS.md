@@ -358,7 +358,7 @@ All crons use `verifyCronRequest()` from `lib/api/cron-auth.ts` for authenticati
 | Exit Intent Nurture | `/api/cron/exit-intent-nurture` | Hourly (:30) | Send nurture emails (emails 2 & 3) to exit-intent captured visitors |
 | Follow-Up Reminder | `/api/cron/follow-up-reminder` | Daily (1 AM UTC) | Day-3 follow-up emails to med cert patients |
 | Treatment Follow-Up | `/api/cron/treatment-followup` | Daily (23:00 UTC = 09:00 AEST) | ED/hair-loss treatment follow-up reminder emails (max 3 per milestone, ≥3 days apart) |
-| IndexNow | `/api/cron/indexnow` | Daily (6 AM UTC) | Submit sitemap URLs to IndexNow for Bing/Yandex indexing |
+| IndexNow | `/api/cron/indexnow` | Daily (6 AM UTC) | Submit every robots-advertised sitemap URL to IndexNow for Bing/Yandex indexing |
 | Retry Auto-Approval | `/api/cron/retry-auto-approval` | Every 3 min | Retry auto-approval via `auto_approval_state` enum (pending/failed_retrying). Includes timeout recovery for stale `attempting` intakes (>10 min). Feature-flagged. |
 | Decline Re-engagement | `/api/cron/decline-reengagement` | Hourly | Send re-engagement email 2-3h after intake decline; deduped via email_log |
 | Cleanup Orphaned Storage | `/api/cron/cleanup-orphaned-storage` | Weekly (Sun 3 AM UTC) | Delete storage files with no DB record after 7-day grace period (max 50/run) |
@@ -382,7 +382,7 @@ This command requires Google application-default credentials with access to the 
 Operational rules:
 
 - Treat `_next/static`, font, CSS/JS, favicon, manifest, auth/account, Clerk, and redirect-only alias rows as expected noise unless they expose a broken canonical redirect.
-- For Google issues, verify live canonicals, robots, sitemap inclusion, and last crawl before changing content. IndexNow only supports Bing/Yandex discovery and does not repair Google indexing.
+- For Google issues, verify live canonicals, robots, sitemap inclusion, and last crawl before changing content. IndexNow submits every sitemap listed in `robots.txt`, but only supports Bing/Yandex discovery and does not repair Google indexing.
 - Add content depth only to public canonical pages that should rank and convert. Do not create duplicate route trees for redirect aliases.
 - For selected priority URLs, use Search Console inspection/request indexing manually after deploy and recrawl validation. Do not use Google's Indexing API for ordinary website pages; Google Search Central scopes it to `JobPosting` and livestream `BroadcastEvent` pages.
 

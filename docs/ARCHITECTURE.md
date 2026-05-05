@@ -590,7 +590,7 @@ Use when: the page is not a standard service funnel — it has a unique layout, 
 
 **Sitemap/robots:** `app/sitemap.ts` and `app/robots.ts` auto-update from the page data layer. No manual updates needed.
 
-**IndexNow:** Automatic real-time index submission to Bing (and Yandex/other IndexNow participants) on new/updated content. Implementation: `/api/indexnow/route.ts` (endpoint) and `/api/cron/indexnow/route.ts` (scheduled). Key: stored in `INDEXNOW_KEY` env var. No Google support — Google has its own crawl pipeline.
+**IndexNow:** Daily scheduled and on-demand submission to Bing (and Yandex/other IndexNow participants). `lib/seo/indexnow.ts` reads every sitemap listed in `robots.txt`, dedupes URLs, and is used by `/api/indexnow/route.ts` (protected manual endpoint) plus `/api/cron/indexnow/route.ts` (scheduled). `INDEXNOW_KEY` is optional only while it matches the public verification file fallback. No Google support — Google has its own crawl pipeline.
 
 **Internal linking:** Use explicit, page-owned links or `ContentHubLinks` for service-to-content cross-linking. Do not reintroduce null-rendering SEO compatibility wrappers.
 
