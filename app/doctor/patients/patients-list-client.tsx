@@ -17,6 +17,8 @@ import { findPotentialDuplicatePatients } from "@/lib/doctor/patient-snapshot"
 import { calculateAge,formatDate } from "@/lib/format"
 import type { Profile } from "@/types/db"
 
+import { ManualPatientDialog } from "./manual-patient-dialog"
+
 type PatientDirectoryProfile = Profile & {
   duplicate_profile_ids?: string[]
 }
@@ -77,6 +79,7 @@ export function PatientsListClient({
       <DashboardPageHeader
         title="Patient Directory"
         description="View and manage all registered patients"
+        actions={<ManualPatientDialog />}
       />
 
       {/* Stats */}

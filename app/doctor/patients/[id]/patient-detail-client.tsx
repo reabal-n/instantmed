@@ -1,14 +1,11 @@
 "use client"
 
 import {
-  Activity,
   AlertTriangle,
   ArrowLeft,
-  Calendar,
   CheckCircle,
   ChevronRight,
   Clock,
-  CreditCard,
   FileText,
   GitMerge,
   Loader2,
@@ -18,6 +15,7 @@ import {
   Phone,
   Pill,
   Plus,
+  RefreshCw,
   StickyNote,
   User,
   XCircle,
@@ -27,9 +25,14 @@ import { useRouter } from "next/navigation"
 import { useState, useTransition } from "react"
 import { toast } from "sonner"
 
+import {
+  refreshPatientParchmentPrescriptionsAction,
+  syncPatientParchmentProfileAction,
+} from "@/app/actions/manual-patient"
 import { addPatientNoteAction } from "@/app/actions/patient-notes"
 import { mergePatientProfilesAction } from "@/app/actions/patient-profile-merge"
-import { PatientCommunicationHistory } from "@/components/doctor"
+import { ParchmentPrescribePanel, PatientCommunicationHistory } from "@/components/doctor"
+import { usePanel } from "@/components/panels/panel-provider"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -115,6 +118,8 @@ interface PatientDetailClientProps {
   emailLogs: EmailLog[]
   patientNotes: PatientNote[]
   canMergePatientProfiles: boolean
+  parchmentEnabled: boolean
+  parchmentUserLinked: boolean
 }
 
 export function PatientDetailClient({
@@ -125,16 +130,68 @@ export function PatientDetailClient({
   emailLogs,
   patientNotes,
   canMergePatientProfiles,
+  parchmentEnabled,
+  parchmentUserLinked,
 }: PatientDetailClientProps) {
   const router = useRouter()
+  const { openPanel } = usePanel()
   const [isNotePending, startNoteTransition] = useTransition()
   const [isMergePending, startMergeTransition] = useTransition()
+  const [isParchmentSyncPending, startParchmentSyncTransition] = useTransition()
+  const [isPrescriptionRefreshPending, startPrescriptionRefreshTransition] = useTransition()
   const [newNote, setNewNote] = useState("")
   const [notes, setNotes] = useState<PatientNote[]>(patientNotes)
   const [showNoteForm, setShowNoteForm] = useState(false)
   const [showMergeDialog, setShowMergeDialog] = useState(false)
   const duplicateProfileIds = patient.duplicate_profile_ids ?? []
   const canMergeLinkedProfiles = canMergePatientProfiles && duplicateProfileIds.length > 0
+
+  const handleOpenParchmentPrescribe = () => {
+    openPanel({
+      id: `patient-parchment-${patient.id}`,
+      type: "sheet",
+      component: (
+        <ParchmentPrescribePanel
+          patientId={patient.id}
+          patientName={patient.full_name}
+          onPrescriptionsRefresh={handleRefreshParchmentPrescriptions}
+          prescriptionsRefreshPending={isPrescriptionRefreshPending}
+        />
+      ),
+    })
+  }
+
+  const handleSyncPatientToParchment = () => {
+    startParchmentSyncTransition(async () => {
+      const result = await syncPatientParchmentProfileAction(patient.id)
+      if (result.success) {
+        toast.success("Patient synced to Parchment")
+        router.refresh()
+        return
+      }
+
+      toast.error(result.error || "Could not sync patient to Parchment")
+    })
+  }
+
+  const handleRefreshParchmentPrescriptions = () => {
+    startPrescriptionRefreshTransition(async () => {
+      const result = await refreshPatientParchmentPrescriptionsAction(patient.id)
+      if (result.success) {
+        const syncedCount = result.syncedCount ?? 0
+        toast.success(
+          syncedCount === 0
+            ? "No Parchment prescriptions found"
+            : `Refreshed ${syncedCount} Parchment prescription${syncedCount === 1 ? "" : "s"}`,
+        )
+        router.refresh()
+        return
+      }
+
+      if ((result.syncedCount ?? 0) > 0) router.refresh()
+      toast.error(result.error || "Could not refresh prescriptions from Parchment")
+    })
+  }
 
   const handleAddNote = () => {
     if (!newNote.trim()) return
@@ -181,41 +238,154 @@ export function PatientDetailClient({
     return INTAKE_STATUS[status as IntakeStatus]?.color ?? "bg-muted text-muted-foreground"
   }
 
+  const canUseParchment = parchmentEnabled && parchmentUserLinked
+  const latestMedication = medications[0] ?? null
+  const latestRequest = intakes[0] ?? null
+  const parchmentStatusLabel = !parchmentEnabled
+    ? "Parchment integration disabled"
+    : !parchmentUserLinked
+      ? "Parchment connection required"
+      : patient.parchment_patient_id
+        ? "Ready in Parchment"
+        : "Sync required"
+  const parchmentStatusTone = canUseParchment
+    ? patient.parchment_patient_id ? "success" : "warning"
+    : "destructive"
+  const latestMedicationName = latestMedication
+    ? [latestMedication.medication_name, latestMedication.medication_strength].filter(Boolean).join(" ")
+    : "No prescriptions yet"
+
   return (
-    <div className="space-y-4">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <Button variant="ghost" asChild>
-          <Link href="/doctor/patients">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Patients
-          </Link>
-        </Button>
-        {patient.onboarding_completed ? (
-          <Badge variant="outline" className="bg-success-light text-success border-success-border">
-            <CheckCircle className="mr-1 h-3 w-3" />
-            Onboarded
-          </Badge>
-        ) : (
-          <Badge variant="outline" className="bg-warning-light text-warning border-warning-border">
-            <XCircle className="mr-1 h-3 w-3" />
-            Incomplete Profile
-          </Badge>
-        )}
+    <div className="space-y-5">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+        <div className="space-y-3">
+          <Button variant="ghost" className="px-0 text-muted-foreground hover:bg-transparent hover:text-foreground" asChild>
+            <Link href="/doctor/patients">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Patients
+            </Link>
+          </Button>
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+                {snapshot.name}
+              </h1>
+              <Badge
+                variant={snapshot.completenessTone === "complete" ? "success" : snapshot.completenessTone === "partial" ? "warning" : "destructive"}
+                size="sm"
+              >
+                {snapshot.completenessTone === "complete" ? "Details complete" : snapshot.completenessLabel}
+              </Badge>
+            </div>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {snapshot.ageDobLabel} · {snapshot.sex.label} · {snapshot.address.label}
+            </p>
+          </div>
+        </div>
+        <div className="flex flex-wrap items-center gap-2 lg:justify-end">
+          {patient.onboarding_completed ? (
+            <Badge variant="outline" className="bg-success-light text-success border-success-border">
+              <CheckCircle className="mr-1 h-3 w-3" />
+              Onboarded
+            </Badge>
+          ) : (
+            <Badge variant="outline" className="bg-warning-light text-warning border-warning-border">
+              <XCircle className="mr-1 h-3 w-3" />
+              Incomplete Profile
+            </Badge>
+          )}
+        </div>
       </div>
 
-      {/* Patient Profile Card */}
+      <Card className="rounded-xl border-primary/15 bg-primary/5 shadow-sm shadow-primary/[0.04]">
+        <CardContent className="p-4">
+          <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="text-sm font-semibold text-foreground">Prescribing workspace</p>
+                <Badge variant={parchmentStatusTone} size="sm">
+                  {parchmentStatusLabel}
+                </Badge>
+              </div>
+              <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
+                Create the prescription in Parchment from this patient profile. InstantMed keeps the patient record, Parchment handles prescribing, and prescriptions sync back into medication history.
+              </p>
+              <div className="mt-3 grid gap-2 text-sm sm:grid-cols-3">
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Parchment patient</p>
+                  <p className="mt-1 truncate font-mono text-xs text-foreground">
+                    {patient.parchment_patient_id || "Not synced yet"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Last prescription</p>
+                  <p className="mt-1 truncate text-foreground">{latestMedicationName}</p>
+                </div>
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Last request</p>
+                  <p className="mt-1 truncate text-foreground">
+                    {latestRequest
+                      ? `${latestRequest.service?.short_name || latestRequest.service?.name || latestRequest.category || "Request"} · ${formatIntakeStatus(latestRequest.status)}`
+                      : "No InstantMed requests"}
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="flex shrink-0 flex-col gap-2 sm:flex-row xl:items-center">
+              <Button
+                type="button"
+                disabled={!canUseParchment}
+                onClick={handleOpenParchmentPrescribe}
+                className="sm:min-w-[190px]"
+              >
+                <Pill className="h-4 w-4" />
+                Prescribe in Parchment
+              </Button>
+              {parchmentEnabled && !parchmentUserLinked && (
+                <Button type="button" variant="outline" asChild>
+                  <Link href="/doctor/settings/identity">Link Parchment user</Link>
+                </Button>
+              )}
+              {canUseParchment && (
+                <>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={isParchmentSyncPending}
+                    onClick={handleSyncPatientToParchment}
+                  >
+                    {isParchmentSyncPending ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <RefreshCw className="h-4 w-4" />
+                    )}
+                    Sync patient
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={isPrescriptionRefreshPending}
+                    onClick={handleRefreshParchmentPrescriptions}
+                  >
+                    {isPrescriptionRefreshPending ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <RefreshCw className="h-4 w-4" />
+                    )}
+                    Refresh prescriptions
+                  </Button>
+                </>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       <Card className="rounded-xl border-border/50">
         <CardHeader className="py-3 px-4">
           <CardTitle className="flex flex-wrap items-center gap-2 text-base">
             <User className="h-4 w-4" />
-            Patient Profile
-            <Badge
-              variant={snapshot.completenessTone === "complete" ? "success" : snapshot.completenessTone === "partial" ? "warning" : "destructive"}
-              size="sm"
-            >
-              {snapshot.completenessTone === "complete" ? "Details complete" : snapshot.completenessLabel}
-            </Badge>
+            Clinical snapshot
           </CardTitle>
         </CardHeader>
         <CardContent className="px-4 py-3">
@@ -246,124 +416,139 @@ export function PatientDetailClient({
               </div>
             </div>
           )}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Left column - Basic info */}
-            <div className="space-y-4">
-              <div>
-                <h2 className="text-2xl font-semibold">{snapshot.name}</h2>
-                <p className="text-muted-foreground">{snapshot.ageDobLabel}</p>
-              </div>
-
-              <div className="space-y-3">
-                <div className="flex items-center gap-2 text-sm">
-                  <Mail className="h-4 w-4 text-muted-foreground" />
-                  <span>{snapshot.email.label}</span>
+          {parchmentEnabled && !parchmentUserLinked && (
+            <div className="mb-4 rounded-lg border border-warning-border bg-warning-light px-3 py-2 text-sm text-warning">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-start gap-2">
+                  <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                  <span>Parchment account not linked. Link your Parchment user before syncing patients or prescribing from this profile.</span>
                 </div>
-                <div className="flex items-center gap-2 text-sm">
+                <Button type="button" size="sm" variant="outline" asChild>
+                  <Link href="/doctor/settings/identity">Link account</Link>
+                </Button>
+              </div>
+            </div>
+          )}
+          <div className="grid gap-4 xl:grid-cols-4">
+            <div className="space-y-3 rounded-lg bg-muted/35 p-3">
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Identity</p>
+              <div>
+                <p className="text-sm font-medium text-foreground">{snapshot.name}</p>
+                <p className="text-sm text-muted-foreground">{snapshot.ageDobLabel}</p>
+              </div>
+              <div className="space-y-2 text-sm">
+                <div className="flex items-center gap-2">
+                  <Mail className="h-4 w-4 text-muted-foreground" />
+                  <span className="truncate">{snapshot.email.label}</span>
+                </div>
+                <div className="flex items-center gap-2">
                   <Phone className="h-4 w-4 text-muted-foreground" />
                   <span>{snapshot.phone.label}</span>
                 </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <MapPin className="h-4 w-4 text-muted-foreground" />
+                <div className="flex items-start gap-2">
+                  <MapPin className="mt-0.5 h-4 w-4 text-muted-foreground" />
                   <span>{snapshot.address.label}</span>
                 </div>
               </div>
             </div>
 
-            {/* Right column - Additional details */}
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="p-3 bg-muted/50 rounded-lg">
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
-                    <Calendar className="h-3 w-3" />
-                    Date of Birth
-                  </div>
-                  <p className="font-medium">
-                    {patient.date_of_birth
-                      ? formatDateLong(patient.date_of_birth)
-                      : "DOB not collected"}
+            <div className="space-y-3 rounded-lg bg-muted/35 p-3">
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Prescribing identity</p>
+              <div className="grid grid-cols-2 gap-3 text-sm xl:grid-cols-1">
+                <div>
+                  <p className="text-xs text-muted-foreground">Date of birth</p>
+                  <p className="font-medium text-foreground">
+                    {patient.date_of_birth ? formatDateLong(patient.date_of_birth) : "Not collected"}
                   </p>
                 </div>
-                <div className="p-3 bg-muted/50 rounded-lg">
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
-                    <CreditCard className="h-3 w-3" />
-                    Medicare
-                  </div>
-                  <p className="font-medium font-mono">
-                    {snapshot.medicare.present ? snapshot.medicare.label : "Medicare not collected"}
+                <div>
+                  <p className="text-xs text-muted-foreground">Sex</p>
+                  <p className="font-medium text-foreground">{snapshot.sex.label}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Medicare</p>
+                  <p className="font-mono text-sm font-medium text-foreground">
+                    {snapshot.medicare.present ? snapshot.medicare.label : "Not collected"}
                   </p>
                   {snapshot.medicare.detailsLabel && (
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      {snapshot.medicare.detailsLabel}
-                    </p>
+                    <p className="text-xs text-muted-foreground">{snapshot.medicare.detailsLabel}</p>
                   )}
                 </div>
-                <div className="p-3 bg-muted/50 rounded-lg">
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
-                    <User className="h-3 w-3" />
-                    Sex
-                  </div>
-                  <p className="font-medium">{snapshot.sex.label}</p>
-                </div>
-                <div className="p-3 bg-muted/50 rounded-lg">
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
-                    <FileText className="h-3 w-3" />
-                    Parchment
-                  </div>
-                  <p className="font-medium">
-                    {patient.parchment_patient_id ? "Synced" : "Not synced"}
+              </div>
+            </div>
+
+            <div className="space-y-3 rounded-lg bg-muted/35 p-3">
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Parchment</p>
+              <div className="space-y-2">
+                <Badge variant={parchmentStatusTone} size="sm">
+                  {parchmentStatusLabel}
+                </Badge>
+                <div>
+                  <p className="text-xs text-muted-foreground">Patient ID</p>
+                  <p className="break-all font-mono text-xs text-foreground">
+                    {patient.parchment_patient_id || "Will be created on sync"}
                   </p>
                 </div>
+                <p className="text-xs text-muted-foreground">
+                  Member since {formatDate(patient.created_at)}
+                </p>
               </div>
+            </div>
 
-              <div className="p-3 bg-muted/50 rounded-lg">
-                <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
-                  <Calendar className="h-3 w-3" />
-                  Member Since
+            <div className="space-y-3 rounded-lg bg-muted/35 p-3">
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Latest activity</p>
+              <div className="grid grid-cols-3 gap-2">
+                <div>
+                  <p className="text-xl font-semibold text-foreground">{stats.totalRequests}</p>
+                  <p className="text-xs text-muted-foreground">Requests</p>
                 </div>
-                <p className="font-medium">{formatDate(patient.created_at)}</p>
+                <div>
+                  <p className="text-xl font-semibold text-foreground">{medications.length}</p>
+                  <p className="text-xs text-muted-foreground">Scripts</p>
+                </div>
+                <div>
+                  <p className="text-xl font-semibold text-foreground">{notes.length}</p>
+                  <p className="text-xs text-muted-foreground">Notes</p>
+                </div>
+              </div>
+              <div className="border-t border-border/50 pt-2">
+                <p className="text-xs text-muted-foreground">Last prescription</p>
+                <p className="truncate text-sm font-medium text-foreground">{latestMedicationName}</p>
               </div>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-3 gap-3">
-        <Card className="rounded-xl border-border/50 p-3">
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Total Requests</span>
-            <FileText className="h-4 w-4 text-primary" />
-          </div>
-          <p className="text-2xl font-semibold mt-2">{stats.totalRequests}</p>
-        </Card>
-        <Card className="rounded-xl border-border/50 p-3">
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Approved</span>
-            <CheckCircle className="h-4 w-4 text-success" />
-          </div>
-          <p className="text-2xl font-semibold mt-2">{stats.approvedRequests}</p>
-        </Card>
-        <Card className="rounded-xl border-border/50 p-3">
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Certificates</span>
-            <Activity className="h-4 w-4 text-info" />
-          </div>
-          <p className="text-2xl font-semibold mt-2">{stats.certificatesIssued}</p>
-        </Card>
-      </div>
-
       {/* Medication History */}
       <Card className="rounded-xl border-border/50">
         <CardHeader className="py-3 px-4">
-          <div>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Pill className="h-4 w-4" />
-              Medication History
-            </CardTitle>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Parchment prescriptions and previous InstantMed prescription requests
-            </p>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Pill className="h-4 w-4" />
+                Medication History
+              </CardTitle>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Parchment prescriptions and previous InstantMed prescription requests
+              </p>
+            </div>
+            {parchmentEnabled && parchmentUserLinked && (
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                disabled={isPrescriptionRefreshPending}
+                onClick={handleRefreshParchmentPrescriptions}
+              >
+                {isPrescriptionRefreshPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <RefreshCw className="h-4 w-4" />
+                )}
+                Refresh prescriptions
+              </Button>
+            )}
           </div>
         </CardHeader>
         <CardContent className="px-4 py-3">
@@ -469,7 +654,7 @@ export function PatientDetailClient({
             </div>
           ) : (
             <div className="text-center py-8 text-muted-foreground">
-              <span className="text-2xl block mb-2" aria-hidden>🗂️</span>
+              <FileText className="mx-auto mb-2 h-8 w-8 opacity-50" />
               <p className="text-sm">No requests from this patient yet</p>
             </div>
           )}

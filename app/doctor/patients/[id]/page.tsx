@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation"
 import { requireRole } from "@/lib/auth/helpers"
 import { decryptProfilePhi } from "@/lib/data/profiles"
 import { collapseDuplicatePatientProfiles } from "@/lib/doctor/patient-snapshot"
+import { getFeatureFlags } from "@/lib/feature-flags"
 import { logger } from "@/lib/observability/logger"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { extractMedicationFromAnswers } from "@/lib/validation/repeat-script-schema"
@@ -280,7 +281,10 @@ export const dynamic = "force-dynamic"
 export default async function PatientDetailPage({ params }: PageProps) {
   const authResult = await requireRole(["doctor", "admin"], { redirectTo: "/doctor/dashboard" })
   const { id } = await params
-  const data = await getPatientWithHistory(id)
+  const [data, flags] = await Promise.all([
+    getPatientWithHistory(id),
+    getFeatureFlags(),
+  ])
 
   if (!data) {
     notFound()
@@ -295,6 +299,8 @@ export default async function PatientDetailPage({ params }: PageProps) {
       emailLogs={data.emailLogs}
       patientNotes={data.patientNotes}
       canMergePatientProfiles={authResult.profile.role === "admin"}
+      parchmentEnabled={flags.parchment_embedded_prescribing}
+      parchmentUserLinked={Boolean(authResult.profile.parchment_user_id)}
     />
   )
 }
