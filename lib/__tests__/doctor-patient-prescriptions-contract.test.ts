@@ -44,6 +44,7 @@ describe("doctor patient medication history contract", () => {
     expect(detailSource).toContain("Last prescription")
     expect(detailSource).toContain("Parchment delivery status")
     expect(detailSource).toContain("Webhook confirmed script sent")
+    expect(detailPageSource).toContain("Prescription synced to PMS")
   })
 
   it("surfaces Parchment webhook and sync activity without exposing raw PHI", () => {

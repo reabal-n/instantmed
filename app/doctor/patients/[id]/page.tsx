@@ -249,7 +249,7 @@ function buildParchmentActivityFromRows(
     .map((prescription) => ({
       id: `prescription-${String(prescription.id)}`,
       status: "success" as const,
-      label: "Prescription in medication history",
+      label: "Prescription synced to PMS",
       detail: "InstantMed has a synced Parchment prescription record for this patient.",
       occurred_at: typeof prescription.issued_date === "string"
         ? prescription.issued_date

@@ -375,35 +375,35 @@ export function PatientDetailClient({
                   <Link href="/doctor/settings/identity#parchment-account">Link prescriber</Link>
                 </Button>
               )}
+              {canUseParchment && !patient.parchment_patient_id && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={isParchmentSyncPending}
+                  onClick={handleSyncPatientToParchment}
+                >
+                  {isParchmentSyncPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <RefreshCw className="h-4 w-4" />
+                  )}
+                  Sync patient
+                </Button>
+              )}
               {canUseParchment && (
-                <>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    disabled={isParchmentSyncPending}
-                    onClick={handleSyncPatientToParchment}
-                  >
-                    {isParchmentSyncPending ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <RefreshCw className="h-4 w-4" />
-                    )}
-                    Sync patient
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    disabled={isPrescriptionRefreshPending}
-                    onClick={handleRefreshParchmentPrescriptions}
-                  >
-                    {isPrescriptionRefreshPending ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <RefreshCw className="h-4 w-4" />
-                    )}
-                    Refresh prescriptions
-                  </Button>
-                </>
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={isPrescriptionRefreshPending}
+                  onClick={handleRefreshParchmentPrescriptions}
+                >
+                  {isPrescriptionRefreshPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <RefreshCw className="h-4 w-4" />
+                  )}
+                  Refresh prescriptions
+                </Button>
               )}
             </div>
           </div>
@@ -419,7 +419,7 @@ export function PatientDetailClient({
                 Parchment delivery status
               </CardTitle>
               <p className="mt-1 text-sm text-muted-foreground">
-                Shows whether the Parchment prescription event reached InstantMed and synced back to the PMS.
+                Latest webhook and PMS sync evidence for this patient.
               </p>
             </div>
             <Badge variant={latestParchmentActivity?.status ?? "warning"} size="sm">
