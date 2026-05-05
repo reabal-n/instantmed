@@ -373,6 +373,7 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
       eyebrow: "Fit check",
       title: "Amoxicillin only helps when the target is bacterial",
       summary: "Colds, flu, COVID, most coughs, and many sore throats are viral, so antibiotics do not treat the cause.",
+      visualFormat: "comparison-graphic",
       kind: "comparison",
       accent: "blue",
       items: [
@@ -380,13 +381,14 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
         { label: "Viral pattern", detail: "Antibiotics add risk without benefit", tone: "caution" },
         { label: "Unclear pattern", detail: "Assessment matters before prescribing", tone: "caution" },
       ],
-      imagePrompt: "Textless antibiotic fit-check infographic base, abstract bacteria and virus shapes separated into two simple panels, blank medicine box, warm ivory background, restrained blue and amber accents, no readable text, no brand names, no pills spilling, no people",
+      imagePrompt: "Detailed comparison graphic showing when amoxicillin fits and when it does not. Use three distinct zones: bacterial pattern, viral pattern, unclear pattern. Show bacteria as cell-wall shapes, viruses as geometric viral particles, and assessment as a decision checkpoint. Make the key point clear: antibiotics do not treat viral causes. Use a modern technical reference style with crisp diagrams and no scenic or desk background. No brand names, no pill bottles, no pill spilling, no pharmacy shelf, no fake prescription, no official logos, no medical cross except the production-added InstantMed badge, no consultation CTA, and no service marketing.",
     },
     {
       id: "penicillin-allergy-boundary",
       eyebrow: "Allergy boundary",
       title: "A penicillin allergy label needs careful history",
       summary: "A childhood rash is different from hives, throat swelling, breathing trouble, or anaphylaxis.",
+      visualFormat: "red-flag-warning",
       kind: "warning",
       accent: "rose",
       items: [
@@ -394,13 +396,14 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
         { label: "Rash history", detail: "Timing and features matter", tone: "caution" },
         { label: "Delabelling", detail: "Formal assessment may clarify uncertain labels" },
       ],
-      imagePrompt: "Minimal textless penicillin allergy safety still life, blank allergy card, soft rose warning shape, neutral medicine box with no letters, warm clinical desk, no readable text, no brand names, no people, no hives or graphic skin",
+      imagePrompt: "Detailed red-flag warning graphic about penicillin allergy history. Show a calm safety boundary between urgent allergy symptoms, uncertain rash history, and formal allergy assessment. Use abstract airway/breathing, swelling, rash-timeline, and assessment pathway icons without showing graphic skin or distressed faces. Include an emergency branch for breathing trouble or swelling and a non-urgent clarification path for childhood rash history. No hives close-up, no skin disease photos, no face swelling illustration, no fake allergy card, no signature, no brand names, no pill bottles, no consultation CTA, and no service marketing.",
     },
     {
       id: "antibiotic-stewardship",
       eyebrow: "Stewardship",
       title: "The narrowest effective antibiotic protects future treatment",
       summary: "Antibiotic stewardship means using the right drug, for the right infection, at the right dose and duration.",
+      visualFormat: "process-visual",
       kind: "flow",
       accent: "emerald",
       items: [
@@ -408,7 +411,7 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
         { label: "Choose narrow", detail: "Avoid broader cover when plain amoxicillin is enough" },
         { label: "Review response", detail: "Escalate only when the clinical picture warrants it" },
       ],
-      imagePrompt: "Textless antibiotic stewardship pathway still life, blank guideline sheet, neutral medicine box, clean green shield shape, warm ivory background, no readable text, no official logos, no people, no pharmacy branding",
+      imagePrompt: "Detailed antibiotic stewardship process visual. Show the pathway: confirm whether an antibiotic is likely to help, choose the narrowest effective option, use the right dose and duration, review response, and avoid leftover or shared antibiotics. Represent future treatment protection with abstract shield and resistance-pressure icons, not medicine advertising. Use a clean technical blueprint or public-health operations map with every panel intentionally filled by useful labels, diagrams, comparison rows, or icon callouts. No empty placeholder boxes, no blank grid panels, no decorative white space blocks, no brand names, no pill bottles, no fake guideline sheet, no pharmacy branding, no official logos, no people, no scenery, no consultation CTA, and no service marketing.",
     },
   ],
   "antibiotic-prescription-online-australia": [
