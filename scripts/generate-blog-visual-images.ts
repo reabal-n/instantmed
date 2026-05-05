@@ -430,6 +430,14 @@ function getVisualFormatPrompt(format: VisualFormat): string {
   }
 }
 
+function getFooterCopy(visual: ArticleVisual): string {
+  if (visual.visualFormat === "red-flag-warning" || visual.kind === "warning") {
+    return "Educational guide. Urgent symptoms need urgent care."
+  }
+
+  return "Educational guide."
+}
+
 function buildGatewayPrompt(slug: string, visual: ArticleVisual): string {
   const itemText = visual.items.map((item, index) => `${index + 1}. ${item.label}: ${item.detail}`).join("\n")
   const format = visual.visualFormat ?? getDefaultVisualFormat(visual.kind)
@@ -452,13 +460,13 @@ function buildGatewayPrompt(slug: string, visual: ArticleVisual): string {
     `Supporting summary should read: ${visual.summary}`,
     "Cards:",
     itemText,
-    "Footer: Educational guide. Urgent symptoms need urgent care.",
+    `Footer: ${getFooterCopy(visual)}`,
     "",
     "Style:",
     "Premium editorial health design rather than sterile AI clinic poster. It should feel like a professionally commissioned patient-education poster from a serious Australian health publisher, not a generic AI infographic. Use warm natural off-white paper, crisp navy typography, restrained blue/emerald/amber/rose accents, subtle print grain, tactile depth, hand-finished illustration details, realistic Australian context where useful, and varied composition.",
     "Avoid bland corporate gradients, generic hospital stock art, excessive symmetry, plastic 3D icons, over-polished AI faces, empty white-card grids, fake app screenshots, vague wellness imagery, and beige wellness mush.",
     "Use confident visual hierarchy with a strong hero diagram or scene, then supporting panels. Add warmth through texture, realistic objects, human context, asymmetry, and small editorial details while keeping the information readable. Australian context should appear through practical healthcare/workplace details, not tourist landmarks, wildlife, flags, novelty mascots, or postcard cues.",
-    "Leave the bottom-right corner free of essential text, icons, faces, or diagrams because the production script overlays the official InstantMed brand badge there after generation.",
+    "Leave the bottom-right 320 by 110 pixel area as background-only negative space because the production script overlays the official InstantMed brand badge there after generation. Do not place table cells, footer copy, arrows, faces, icons, prices, or any essential detail in that badge-safe zone.",
     "",
     "Hard constraints:",
     "No brand logos, no official seals, no medical crosses, no medication brand names, no pill imprints, no celebrity likenesses, no gore, no graphic symptoms, no consultation CTA, no website UI, no fake doctor-patient chat. If a person appears, make them non-identifiable, natural, and secondary. Do not draw the InstantMed logo or wordmark; the production script adds the official brand assets after generation.",
