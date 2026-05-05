@@ -63,6 +63,19 @@ export interface ParchmentFailedWebhook {
   retryable: boolean
 }
 
+export interface ParchmentOpsEvent {
+  id: string
+  status: "success" | "warning" | "destructive" | "info"
+  label: string
+  detail: string
+  createdAt: string
+  eventId: string | null
+  scid: string | null
+  intakeId: string | null
+  patientProfileId: string | null
+  prescriberProfileId: string | null
+}
+
 export interface ParchmentOpsDashboard {
   stats: {
     linkedPrescribers: number
@@ -81,6 +94,7 @@ export interface ParchmentOpsDashboard {
     parchmentUserId: string
   }>
   failedWebhooks: ParchmentFailedWebhook[]
+  recentEvents: ParchmentOpsEvent[]
   recentPrescriptions: Array<{
     id: string
     patientId: string
@@ -156,6 +170,110 @@ export function mapParchmentFailedWebhook(row: AuditFailureRow): ParchmentFailed
   }
 }
 
+function mapParchmentOpsEvent(row: AuditFailureRow): ParchmentOpsEvent | null {
+  const actionType = getString(row.metadata, "action_type")
+  const eventId = getString(row.metadata, "event_id") || getString(row.metadata, "eventId")
+  const scid = getString(row.metadata, "scid") || getString(row.metadata, "parchmentReference")
+  const patientProfileId = getString(row.metadata, "patient_profile_id") || getString(row.metadata, "partner_patient_id")
+  const prescriberProfileId = getString(row.metadata, "prescriber_profile_id")
+
+  if (row.action === "webhook_failed" && isParchmentPrescriptionFailure(row.metadata)) {
+    const reason = getString(row.metadata, "error") || "unknown_error"
+    return {
+      id: row.id,
+      status: "destructive",
+      label: "Webhook failed",
+      detail: buildFailureDescription(row, reason, eventId),
+      createdAt: row.created_at,
+      eventId,
+      scid,
+      intakeId: row.intake_id,
+      patientProfileId,
+      prescriberProfileId,
+    }
+  }
+
+  if (actionType === "parchment_webhook_script_sent") {
+    return {
+      id: row.id,
+      status: "success",
+      label: "Webhook confirmed script sent",
+      detail: "Parchment fired prescription.created, InstantMed synced the script, and the PMS marked it sent.",
+      createdAt: row.created_at,
+      eventId,
+      scid,
+      intakeId: row.intake_id,
+      patientProfileId,
+      prescriberProfileId,
+    }
+  }
+
+  if (actionType === "parchment_webhook_prescription_synced") {
+    return {
+      id: row.id,
+      status: "success",
+      label: "Webhook synced prescription",
+      detail: "Parchment fired prescription.created and InstantMed stored the prescription on the patient profile.",
+      createdAt: row.created_at,
+      eventId,
+      scid,
+      intakeId: row.intake_id,
+      patientProfileId,
+      prescriberProfileId,
+    }
+  }
+
+  if (actionType === "parchment_webhook_already_processed") {
+    return {
+      id: row.id,
+      status: "info",
+      label: "Duplicate webhook ignored",
+      detail: "InstantMed received a duplicate Parchment event and kept the existing synced record.",
+      createdAt: row.created_at,
+      eventId,
+      scid,
+      intakeId: row.intake_id,
+      patientProfileId,
+      prescriberProfileId,
+    }
+  }
+
+  if (actionType === "parchment_webhook_retry") {
+    const result = getString(row.metadata, "result") || "unknown"
+    return {
+      id: row.id,
+      status: result === "success" ? "success" : "warning",
+      label: result === "success" ? "Manual retry succeeded" : "Manual retry failed",
+      detail: result === "success"
+        ? "An admin manually re-fetched the Parchment prescription and synced it to the PMS."
+        : `Manual Parchment retry did not complete: ${getString(row.metadata, "reason") || "unknown reason"}.`,
+      createdAt: row.created_at,
+      eventId,
+      scid,
+      intakeId: row.intake_id,
+      patientProfileId,
+      prescriberProfileId,
+    }
+  }
+
+  if (actionType === "patient_profile_parchment_prescriptions_refreshed") {
+    return {
+      id: row.id,
+      status: "info",
+      label: "Patient prescriptions refreshed",
+      detail: "A doctor manually refreshed this patient's Parchment prescription list from the PMS.",
+      createdAt: row.created_at,
+      eventId,
+      scid,
+      intakeId: row.intake_id,
+      patientProfileId,
+      prescriberProfileId,
+    }
+  }
+
+  return null
+}
+
 function compactIds(values: Array<string | null | undefined>): string[] {
   return Array.from(new Set(values.filter((value): value is string => Boolean(value))))
 }
@@ -189,6 +307,7 @@ export async function getParchmentOpsDashboard(
     syncedPatientsResult,
     unsyncedPatientsResult,
     failedWebhooksResult,
+    recentEventsResult,
     recentPrescriptionsResult,
     syncedPrescriptions7dResult,
   ] = await Promise.all([
@@ -228,6 +347,14 @@ export async function getParchmentOpsDashboard(
       .limit(50),
 
     supabase
+      .from("audit_logs")
+      .select("id, action, intake_id, created_at, description, metadata")
+      .in("action", ["admin_action", "webhook_failed"])
+      .gte("created_at", weekAgo)
+      .order("created_at", { ascending: false })
+      .limit(50),
+
+    supabase
       .from("prescriptions")
       .select("id, patient_id, prescriber_id, intake_id, medication_name, status, issued_date, updated_at, created_at, parchment_reference")
       .not("parchment_reference", "is", null)
@@ -244,6 +371,10 @@ export async function getParchmentOpsDashboard(
   const failedWebhooks = ((failedWebhooksResult.data || []) as AuditFailureRow[])
     .map(mapParchmentFailedWebhook)
     .filter((failure): failure is ParchmentFailedWebhook => failure !== null)
+  const recentEvents = ((recentEventsResult.data || []) as AuditFailureRow[])
+    .map(mapParchmentOpsEvent)
+    .filter((event): event is ParchmentOpsEvent => event !== null)
+    .slice(0, 12)
 
   const prescriptions = (recentPrescriptionsResult.data || []) as PrescriptionRow[]
   const profileNames = await getProfilesById(
@@ -276,6 +407,7 @@ export async function getParchmentOpsDashboard(
     },
     linkedPrescribers,
     failedWebhooks,
+    recentEvents,
     recentPrescriptions: prescriptions.map((prescription) => ({
       id: prescription.id,
       patientId: prescription.patient_id,

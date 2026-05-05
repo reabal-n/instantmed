@@ -1,6 +1,6 @@
 "use client"
 
-import { AlertTriangle, Calendar, CheckCircle, ChevronLeft,ChevronRight, MapPin, Phone, Search, Users, XCircle } from "lucide-react"
+import { AlertTriangle, Calendar, CheckCircle, ChevronLeft,ChevronRight, MapPin, Phone, Pill, Search, Users, XCircle } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useMemo,useState } from "react"
@@ -67,6 +67,7 @@ export function PatientsListClient({
 
 
   const states = ["ACT", "NSW", "NT", "QLD", "SA", "TAS", "VIC", "WA"]
+  const parchmentSyncedPatients = patients.filter((p) => p.parchment_patient_id).length
   const duplicateGroups = useMemo(() => findPotentialDuplicatePatients(patients), [patients])
   const duplicatePatientIds = useMemo(() => {
     const ids = new Set<string>()
@@ -83,7 +84,7 @@ export function PatientsListClient({
       />
 
       {/* Stats */}
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <Card className="rounded-xl border-border/50">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
@@ -120,6 +121,19 @@ export function PatientsListClient({
             <div className="mt-1.5 text-2xl font-semibold tabular-nums text-foreground">
               {patients.filter((p) => !p.onboarding_completed).length}
             </div>
+          </CardContent>
+        </Card>
+
+        <Card className="rounded-xl border-border/50">
+          <CardContent className="p-5">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Parchment sync</span>
+              <Pill className="h-5 w-5 text-success shrink-0" />
+            </div>
+            <div className="mt-1.5 text-2xl font-semibold tabular-nums text-foreground">{parchmentSyncedPatients}</div>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {patients.length - parchmentSyncedPatients} not synced on this page
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -201,6 +215,7 @@ export function PatientsListClient({
                 <TableHead scope="col">Contact</TableHead>
                 <TableHead scope="col">Location</TableHead>
                 <TableHead scope="col">Status</TableHead>
+                <TableHead scope="col">Parchment</TableHead>
                 <TableHead scope="col">Joined</TableHead>
                 <TableHead scope="col" className="w-10"></TableHead>
               </TableRow>
@@ -268,6 +283,19 @@ export function PatientsListClient({
                           <Badge variant="outline" className="bg-warning-light text-warning border-warning-border">
                             <XCircle className="mr-1 h-3 w-3" />
                             Incomplete
+                          </Badge>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {patient.parchment_patient_id ? (
+                          <Badge variant="success" size="sm">
+                            <CheckCircle className="h-3 w-3" />
+                            Ready in Parchment
+                          </Badge>
+                        ) : (
+                          <Badge variant="warning" size="sm">
+                            <XCircle className="h-3 w-3" />
+                            Not synced
                           </Badge>
                         )}
                       </TableCell>

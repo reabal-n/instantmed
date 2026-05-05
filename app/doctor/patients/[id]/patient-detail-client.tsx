@@ -188,15 +188,19 @@ export function PatientDetailClient({
     })
   }
 
-  const handleRefreshParchmentPrescriptions = () => {
+  const refreshParchmentDeliveryEvidence = (mode: "refresh" | "verify" = "refresh") => {
     startPrescriptionRefreshTransition(async () => {
       const result = await refreshPatientParchmentPrescriptionsAction(patient.id)
       if (result.success) {
         const syncedCount = result.syncedCount ?? 0
         toast.success(
           syncedCount === 0
-            ? "No Parchment prescriptions found"
-            : `Refreshed ${syncedCount} Parchment prescription${syncedCount === 1 ? "" : "s"}`,
+            ? mode === "verify"
+              ? "Parchment delivery evidence refreshed. No new prescription yet."
+              : "No Parchment prescriptions found"
+            : mode === "verify"
+              ? `Verified ${syncedCount} Parchment prescription${syncedCount === 1 ? "" : "s"} in the PMS`
+              : `Refreshed ${syncedCount} Parchment prescription${syncedCount === 1 ? "" : "s"}`,
         )
         router.refresh()
         return
@@ -205,6 +209,14 @@ export function PatientDetailClient({
       if ((result.syncedCount ?? 0) > 0) router.refresh()
       toast.error(result.error || "Could not refresh prescriptions from Parchment")
     })
+  }
+
+  const handleRefreshParchmentPrescriptions = () => {
+    refreshParchmentDeliveryEvidence("refresh")
+  }
+
+  const handleVerifyParchmentDelivery = () => {
+    refreshParchmentDeliveryEvidence("verify")
   }
 
   const handleAddNote = () => {
@@ -422,9 +434,27 @@ export function PatientDetailClient({
                 Latest webhook and PMS sync evidence for this patient.
               </p>
             </div>
-            <Badge variant={latestParchmentActivity?.status ?? "warning"} size="sm">
-              {latestParchmentActivity ? latestParchmentActivity.label : "Waiting for webhook"}
-            </Badge>
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge variant={latestParchmentActivity?.status ?? "warning"} size="sm">
+                {latestParchmentActivity ? latestParchmentActivity.label : "Waiting for webhook"}
+              </Badge>
+              {canUseParchment && (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  disabled={isPrescriptionRefreshPending}
+                  onClick={handleVerifyParchmentDelivery}
+                >
+                  {isPrescriptionRefreshPending ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <RefreshCw className="h-3.5 w-3.5" />
+                  )}
+                  {isPrescriptionRefreshPending ? "Verifying Parchment delivery evidence" : "Verify delivery"}
+                </Button>
+              )}
+            </div>
           </div>
         </CardHeader>
         <CardContent className="px-4 py-3">

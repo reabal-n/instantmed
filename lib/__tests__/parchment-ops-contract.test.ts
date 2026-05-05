@@ -20,17 +20,26 @@ describe("Parchment ops dashboard and retry contract", () => {
   it("exposes a focused admin Parchment ops page with retryable webhook failures", () => {
     const pageSource = readProjectFile("app/admin/ops/parchment/page.tsx")
     const retryButtonSource = readProjectFile("app/admin/ops/parchment/retry-webhook-button.tsx")
+    const copyTokenSource = readProjectFile("app/admin/ops/parchment/copy-token-button.tsx")
     const opsSource = readProjectFile("lib/parchment/ops.ts")
 
     expect(pageSource).toContain("getParchmentOpsDashboard")
     expect(pageSource).toContain("Parchment Ops")
     expect(pageSource).toContain("Failed prescription webhooks")
     expect(pageSource).toContain("RetryParchmentWebhookButton")
+    expect(pageSource).toContain("Recent webhook evidence")
+    expect(pageSource).toContain("CopyTokenButton")
 
     expect(retryButtonSource).toContain("retryParchmentWebhookFailureAction")
     expect(retryButtonSource).toContain("Retry sync")
 
+    expect(copyTokenSource).toContain("navigator.clipboard.writeText")
+    expect(copyTokenSource).toContain("Copy")
+
     expect(opsSource).toContain("getParchmentOpsDashboard")
+    expect(opsSource).toContain("ParchmentOpsEvent")
+    expect(opsSource).toContain("recentEvents")
+    expect(opsSource).toContain("parchment_webhook_prescription_synced")
     expect(opsSource).toContain("retryable")
     expect(opsSource).toContain("prescription_sync_failed")
     expect(opsSource).toContain("prescriber_not_linked")

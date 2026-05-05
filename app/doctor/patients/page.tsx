@@ -25,7 +25,7 @@ async function getPatients(page: number) {
       medicare_number, medicare_number_encrypted, medicare_irn, medicare_expiry,
       onboarding_completed,
       email_verified, email_verified_at,
-      avatar_url, stripe_customer_id,
+      avatar_url, stripe_customer_id, parchment_patient_id,
       merged_into_profile_id, merged_at, merged_by, merge_reason,
       created_at, updated_at
     `, { count: "exact" })

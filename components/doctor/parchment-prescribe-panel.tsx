@@ -52,6 +52,13 @@ export function ParchmentPrescribePanel({
   const [_ssoExpired, setSsoExpired] = useState(false)
   const ssoExpiryTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
+  const closeAndRefresh = useCallback(() => {
+    if (patientId && iframeLoaded && onPrescriptionsRefresh) {
+      onPrescriptionsRefresh()
+    }
+    closePanel()
+  }, [closePanel, iframeLoaded, onPrescriptionsRefresh, patientId])
+
   const loadFreshParchmentUrl = useCallback(async (): Promise<{ success: boolean; error?: string; ssoUrl?: string }> => {
     if (intakeId) return getParchmentPrescribeUrlAction(intakeId)
     if (patientId) return getPatientParchmentPrescribeUrlAction(patientId)
@@ -126,11 +133,11 @@ export function ParchmentPrescribePanel({
   // Handle escape key
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape") closePanel()
+      if (e.key === "Escape") closeAndRefresh()
     }
     window.addEventListener("keydown", handleEscape)
     return () => window.removeEventListener("keydown", handleEscape)
-  }, [closePanel])
+  }, [closeAndRefresh])
 
   return (
     <div className="fixed inset-0 z-50">
@@ -141,7 +148,7 @@ export function ParchmentPrescribePanel({
         animate="visible"
         exit="hidden"
         className="absolute inset-0 bg-foreground/40"
-        onClick={closePanel}
+        onClick={closeAndRefresh}
         aria-hidden="true"
       />
 
@@ -206,7 +213,7 @@ export function ParchmentPrescribePanel({
                 </Button>
               )}
               <button
-                onClick={closePanel}
+                onClick={closeAndRefresh}
                 className="p-2 rounded-full hover:bg-muted transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                 aria-label="Close panel"
                 type="button"

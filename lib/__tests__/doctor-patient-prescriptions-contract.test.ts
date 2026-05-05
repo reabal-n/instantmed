@@ -31,6 +31,7 @@ describe("doctor patient medication history contract", () => {
     expect(detailSource).toContain("Prescribing workspace")
     expect(detailSource).toContain("Prescribe in Parchment")
     expect(detailSource).toContain("Add prescription")
+    expect(detailSource).toContain("Verify delivery")
     expect(detailSource).toContain("Prescriber not linked")
     expect(detailSource).toContain("/doctor/settings/identity#parchment-account")
     expect(detailSource).toContain("Parchment integration disabled")
@@ -54,6 +55,7 @@ describe("doctor patient medication history contract", () => {
     expect(detailPageSource).toContain("metadata->>partner_patient_id")
     expect(detailSource).toContain("parchmentActivity")
     expect(detailSource).toContain("Waiting for webhook")
+    expect(detailSource).toContain("Verifying Parchment delivery evidence")
   })
 
   it("keeps the Parchment delivery panel consolidated instead of duplicating prescription history rows", () => {
@@ -62,6 +64,32 @@ describe("doctor patient medication history contract", () => {
     expect(detailSource).toContain("secondaryParchmentActivity")
     expect(detailSource).toContain("Other recent events")
     expect(detailSource).not.toContain("parchmentActivity.slice(1, 5)")
+  })
+
+  it("shows Parchment sync health in the doctor patient list", () => {
+    const patientsPageSource = readFileSync(
+      join(process.cwd(), "app/doctor/patients/page.tsx"),
+      "utf8",
+    )
+    const patientsListSource = readFileSync(
+      join(process.cwd(), "app/doctor/patients/patients-list-client.tsx"),
+      "utf8",
+    )
+
+    expect(patientsPageSource).toContain("parchment_patient_id")
+    expect(patientsListSource).toContain("Parchment sync")
+    expect(patientsListSource).toContain("Ready in Parchment")
+    expect(patientsListSource).toContain("Not synced")
+  })
+
+  it("refreshes patient prescriptions when the embedded Parchment panel closes", () => {
+    const panelSource = readFileSync(
+      join(process.cwd(), "components/doctor/parchment-prescribe-panel.tsx"),
+      "utf8",
+    )
+
+    expect(panelSource).toContain("closeAndRefresh")
+    expect(panelSource).toContain("onPrescriptionsRefresh()")
   })
 
   it("does not pass raw intake answers into the client props", () => {

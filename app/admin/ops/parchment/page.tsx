@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { getParchmentOpsDashboard } from "@/lib/parchment/ops"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
+import { CopyTokenButton } from "./copy-token-button"
 import { RetryParchmentWebhookButton } from "./retry-webhook-button"
 
 export const dynamic = "force-dynamic"
@@ -111,6 +112,68 @@ export default async function ParchmentOpsPage() {
           tone="neutral"
           icon={Pill}
         />
+      </div>
+
+      <div className="rounded-xl border border-border/50 bg-card shadow-sm shadow-primary/[0.04] dark:shadow-none">
+        <div className="flex flex-col gap-3 border-b border-border/60 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-base font-semibold">Recent webhook evidence</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Copy event IDs or SCIDs when Parchment asks for proof of delivery, retries, or sync status.
+            </p>
+          </div>
+          <Badge variant={dashboard.recentEvents.length > 0 ? "info" : "outline"} size="sm">
+            {dashboard.recentEvents.length} event{dashboard.recentEvents.length === 1 ? "" : "s"}
+          </Badge>
+        </div>
+
+        {dashboard.recentEvents.length === 0 ? (
+          <div className="px-5 py-10 text-center text-muted-foreground">
+            <Webhook className="mx-auto mb-2 h-8 w-8 opacity-50" />
+            <p>No Parchment webhook evidence in the last 7 days.</p>
+          </div>
+        ) : (
+          <div className="divide-y divide-border/60">
+            {dashboard.recentEvents.map((event) => (
+              <div key={event.id} className="grid gap-4 px-5 py-4 lg:grid-cols-[1.2fr_1fr_auto] lg:items-center">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="font-medium">{event.label}</p>
+                    <Badge variant={event.status} size="sm">{event.status}</Badge>
+                  </div>
+                  <p className="mt-1 text-sm text-muted-foreground">{event.detail}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{formatDateTime(event.createdAt)}</p>
+                </div>
+
+                <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+                  {event.scid && <Badge variant="outline" size="sm">SCID {event.scid}</Badge>}
+                  {event.eventId && <Badge variant="outline" size="sm">Event {event.eventId}</Badge>}
+                  {event.intakeId && (
+                    <Button variant="link" size="sm" className="h-auto p-0 text-xs" asChild>
+                      <Link href={`/doctor/intakes/${event.intakeId}`}>
+                        <ExternalLink className="h-3 w-3" />
+                        Intake
+                      </Link>
+                    </Button>
+                  )}
+                  {event.patientProfileId && (
+                    <Button variant="link" size="sm" className="h-auto p-0 text-xs" asChild>
+                      <Link href={`/doctor/patients/${event.patientProfileId}`}>
+                        <ExternalLink className="h-3 w-3" />
+                        Patient
+                      </Link>
+                    </Button>
+                  )}
+                </div>
+
+                <div className="flex flex-wrap justify-start gap-2 lg:justify-end">
+                  {event.eventId && <CopyTokenButton label="Event" value={event.eventId} />}
+                  {event.scid && <CopyTokenButton label="SCID" value={event.scid} />}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="rounded-xl border border-border/50 bg-card shadow-sm shadow-primary/[0.04] dark:shadow-none">
