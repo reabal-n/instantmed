@@ -21,6 +21,7 @@ import {
   createUser,
   disableUser,
   enableUser,
+  getParchmentEnvironment,
   getSsoUrl,
   listUsers,
   updateUser,
@@ -380,22 +381,26 @@ export async function retryParchmentPatientSyncAction(
 export async function listParchmentUsersAction(): Promise<{
   success: boolean
   error?: string
+  environment?: ReturnType<typeof getParchmentEnvironment>
   users?: Array<{ user_id: string; full_name: string }>
 }> {
   const authResult = await requireRoleOrNull(["doctor", "admin"])
   if (!authResult) {
-    return { success: false, error: "Unauthorized" }
+    return { success: false, error: "Unauthorized", environment: getParchmentEnvironment() }
   }
+
+  const environment = getParchmentEnvironment()
 
   try {
     const data = await listUsers(authResult.profile.parchment_user_id ?? undefined)
     return {
       success: true,
+      environment,
       users: data.users.map((u) => ({ user_id: u.user_id, full_name: u.full_name })),
     }
   } catch (error) {
     log.error("Failed to list Parchment users", {}, error instanceof Error ? error : new Error(String(error)))
-    return { success: false, error: "Failed to fetch users from Parchment" }
+    return { success: false, error: `Failed to fetch ${environment.label} users from Parchment`, environment }
   }
 }
 
@@ -415,13 +420,46 @@ export async function linkParchmentUserAction(
   }
 
   try {
-    // Validate the pasted user ID by generating a user-scoped token and calling
-    // /validate. This avoids making account linking depend on read:users, which
-    // is non-essential and can be disabled in some Parchment sandbox tenants.
     const trimmedUserId = parchmentUserId.trim()
-    await validateIntegration(trimmedUserId)
+    const environment = getParchmentEnvironment()
+    const environmentLabel = environment.environment === "unknown" ? "configured Parchment" : `${environment.label} Parchment`
+    const expectedEnvironment = environment.environment === "unknown" ? "configured" : environment.label
 
     const supabase = createServiceRoleClient()
+    const { data: existingLink, error: existingLinkError } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("parchment_user_id", trimmedUserId)
+      .neq("id", authResult.profile.id)
+      .maybeSingle()
+
+    if (existingLinkError) {
+      throw existingLinkError
+    }
+
+    if (existingLink) {
+      return {
+        success: false,
+        error: `This ${environmentLabel} user_id is already linked to another InstantMed profile. Sign in with that InstantMed account or ask an admin to transfer the link before recording.`,
+      }
+    }
+
+    try {
+      // Validate the pasted user ID by generating a user-scoped token and calling
+      // /validate. This avoids making account linking depend on read:users, which
+      // is non-essential and can be disabled in some Parchment sandbox tenants.
+      await validateIntegration(trimmedUserId)
+    } catch (validationError) {
+      log.warn("Parchment account link validation failed", {
+        environment: environment.environment,
+        apiHost: environment.apiHost,
+      }, validationError instanceof Error ? validationError : new Error(String(validationError)))
+
+      return {
+        success: false,
+        error: `Could not validate this user_id in the ${environmentLabel} environment. Check that you are using the ${expectedEnvironment} Parchment user_id, not the other Parchment environment.`,
+      }
+    }
 
     const { error } = await supabase
       .from("profiles")

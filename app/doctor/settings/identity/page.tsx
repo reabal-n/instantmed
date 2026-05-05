@@ -3,6 +3,7 @@ import { Suspense } from "react"
 
 import { loadDoctorIdentityAction } from "@/app/actions/doctor-identity"
 import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
+import { getParchmentEnvironment } from "@/lib/parchment/client"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 import { IdentitySettingsClient } from "./identity-settings-client"
@@ -45,7 +46,13 @@ async function IdentitySettingsLoader() {
     // Non-fatal - just won't show linked status
   }
 
-  return <IdentitySettingsClient initialData={result.data} parchmentUserId={parchmentUserId} />
+  return (
+    <IdentitySettingsClient
+      initialData={result.data}
+      parchmentUserId={parchmentUserId}
+      parchmentEnvironment={getParchmentEnvironment()}
+    />
+  )
 }
 
 export default function IdentitySettingsPage() {

@@ -62,6 +62,39 @@ function getConfig() {
   return { apiUrl, partnerId, partnerSecret, organizationId, organizationSecret }
 }
 
+export type ParchmentEnvironmentKind = "sandbox" | "production" | "unknown"
+
+export type ParchmentEnvironmentDescriptor = {
+  environment: ParchmentEnvironmentKind
+  label: "Sandbox" | "Production" | "Unknown"
+  apiHost: string
+  isSandbox: boolean
+  isProduction: boolean
+}
+
+export function getParchmentEnvironment(): ParchmentEnvironmentDescriptor {
+  const apiUrl = process.env.PARCHMENT_API_URL || ""
+  let apiHost = "not configured"
+
+  try {
+    apiHost = new URL(apiUrl).hostname.toLowerCase()
+  } catch {
+    apiHost = apiUrl || "not configured"
+  }
+
+  const isSandbox = apiHost.includes("sandbox")
+  const isProduction = !isSandbox && apiHost.includes("parchment")
+  const environment: ParchmentEnvironmentKind = isSandbox ? "sandbox" : isProduction ? "production" : "unknown"
+
+  return {
+    environment,
+    label: environment === "sandbox" ? "Sandbox" : environment === "production" ? "Production" : "Unknown",
+    apiHost,
+    isSandbox,
+    isProduction,
+  }
+}
+
 // ============================================================================
 // TOKEN CACHE
 // ============================================================================

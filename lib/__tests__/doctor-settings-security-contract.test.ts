@@ -29,4 +29,13 @@ describe("doctor settings security contract", () => {
     expect(identitySettingsSource).toContain("supabase.auth.linkIdentity")
     expect(identitySettingsSource).toContain("Link Google")
   })
+
+  it("makes sandbox versus production Parchment linking explicit before recording", () => {
+    expect(identityPageSource).toContain("getParchmentEnvironment")
+    expect(identitySettingsSource).toContain("{parchmentEnvironment.label} environment")
+    expect(identitySettingsSource).toContain("production website is configured for sandbox testing")
+    expect(identitySettingsSource).toContain("Production and Sandbox Parchment user IDs are separate")
+    expect(identitySettingsSource).toContain("Paste ${parchmentEnvironment.label} Parchment user_id")
+    expect(identitySettingsSource).toContain("Validate {parchmentEnvironmentDisplayLabel} Integration")
+  })
 })

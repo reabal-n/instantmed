@@ -7,6 +7,10 @@ const parchmentSource = readFileSync(
   join(process.cwd(), "app/actions/parchment.ts"),
   "utf8",
 )
+const parchmentClientSource = readFileSync(
+  join(process.cwd(), "lib/parchment/client.ts"),
+  "utf8",
+)
 const prescribingIdentityReportSource = readFileSync(
   join(process.cwd(), "lib/doctor/patient-identity-report.ts"),
   "utf8",
@@ -83,5 +87,28 @@ describe("Parchment action production contract", () => {
     expect(body.indexOf("checkServerActionRateLimit(")).toBeLessThan(
       body.indexOf("const callerParchmentUserId"),
     )
+  })
+
+  it("labels the active Parchment environment without exposing credentials", () => {
+    const start = parchmentClientSource.indexOf("export function getParchmentEnvironment()")
+    const end = parchmentClientSource.indexOf("// ============================================================================\n// TOKEN CACHE", start)
+    const body = parchmentClientSource.slice(start, end)
+
+    expect(parchmentClientSource).toContain("export function getParchmentEnvironment()")
+    expect(body).toContain('apiHost.includes("sandbox")')
+    expect(body).toContain('label: environment === "sandbox" ? "Sandbox"')
+    expect(body).not.toContain("partnerSecret")
+    expect(body).not.toContain("organizationSecret")
+  })
+
+  it("blocks linking one sandbox or production Parchment user to multiple InstantMed profiles", () => {
+    const body = functionBody("linkParchmentUserAction")
+
+    expect(body).toContain("getParchmentEnvironment()")
+    expect(body).toContain('.eq("parchment_user_id", trimmedUserId)')
+    expect(body).toContain('.neq("id", authResult.profile.id)')
+    expect(body).toContain(".maybeSingle()")
+    expect(body).toContain("already linked to another InstantMed profile")
+    expect(body).toContain("Could not validate this user_id")
   })
 })

@@ -58,6 +58,15 @@ import { createClient } from "@/lib/supabase/client"
 interface IdentitySettingsClientProps {
   initialData: DoctorIdentity
   parchmentUserId?: string | null
+  parchmentEnvironment: ParchmentEnvironmentDescriptor
+}
+
+type ParchmentEnvironmentDescriptor = {
+  environment: "sandbox" | "production" | "unknown"
+  label: "Sandbox" | "Production" | "Unknown"
+  apiHost: string
+  isSandbox: boolean
+  isProduction: boolean
 }
 
 type MfaFactorSummary = {
@@ -73,7 +82,11 @@ type MfaEnrollment = {
   secret: string
 }
 
-export function IdentitySettingsClient({ initialData, parchmentUserId: initialParchmentUserId }: IdentitySettingsClientProps) {
+export function IdentitySettingsClient({
+  initialData,
+  parchmentUserId: initialParchmentUserId,
+  parchmentEnvironment: initialParchmentEnvironment,
+}: IdentitySettingsClientProps) {
   const { user } = useAuth()
   const supabase = useMemo(() => createClient(), [])
   const [isPending, startTransition] = useTransition()
@@ -120,6 +133,7 @@ export function IdentitySettingsClient({ initialData, parchmentUserId: initialPa
   const [parchmentValidating, setParchmentValidating] = useState(false)
   const [parchmentValidated, setParchmentValidated] = useState(false)
   const [selectedParchmentUser, setSelectedParchmentUser] = useState("")
+  const [parchmentEnvironment, setParchmentEnvironment] = useState(initialParchmentEnvironment)
 
   // Track changes
   const hasChanges =
@@ -145,6 +159,21 @@ export function IdentitySettingsClient({ initialData, parchmentUserId: initialPa
   }, [user?.app_metadata?.providers, user?.identities])
   const googleLinked = linkedProviders.has("google")
   const verifiedMfaFactors = mfaFactors.filter((factor) => factor.status === "verified")
+  const parchmentEnvironmentLabel =
+    parchmentEnvironment.environment === "unknown" ? "configured Parchment" : `${parchmentEnvironment.label} Parchment`
+  const parchmentEnvironmentDisplayLabel =
+    parchmentEnvironment.environment === "unknown" ? "Configured" : parchmentEnvironment.label
+  const parchmentUserIdPlaceholder =
+    parchmentEnvironment.environment === "unknown"
+      ? "Paste user_id from the configured Parchment environment"
+      : `Paste ${parchmentEnvironment.label} Parchment user_id`
+  const parchmentEnvironmentInstruction = parchmentEnvironment.isSandbox
+    ? "Use only the Sandbox Parchment user_id while this production website is configured for sandbox testing."
+    : parchmentEnvironment.isProduction
+      ? "Use only the Production Parchment user_id after production credentials are issued and the environment is switched."
+      : "Confirm the configured Parchment environment before linking a prescriber user_id."
+  const parchmentEnvironmentBadgeVariant: "warning" | "info" | "secondary" =
+    parchmentEnvironment.isSandbox ? "warning" : parchmentEnvironment.isProduction ? "info" : "secondary"
 
   const getAccountRedirectUrl = useCallback(() => {
     if (typeof window === "undefined") return undefined
@@ -390,16 +419,19 @@ export function IdentitySettingsClient({ initialData, parchmentUserId: initialPa
     setParchmentLoading(true)
     const result = await listParchmentUsersAction()
     setParchmentLoading(false)
+    if (result.environment) {
+      setParchmentEnvironment(result.environment)
+    }
     if (result.success && result.users) {
       setParchmentUsers(result.users)
-      setMessage({ type: "success", text: "Parchment users loaded" })
+      setMessage({ type: "success", text: `${result.environment?.label || parchmentEnvironment.label} Parchment users loaded` })
     } else {
       setMessage({
         type: "error",
         text: `${result.error || "Failed to load Parchment users"}. Paste the Parchment user ID below instead.`,
       })
     }
-  }, [])
+  }, [parchmentEnvironment.label])
 
   // Link Parchment account
   const handleLinkParchment = useCallback(async () => {
@@ -408,13 +440,13 @@ export function IdentitySettingsClient({ initialData, parchmentUserId: initialPa
     const result = await linkParchmentUserAction(selectedParchmentUser)
     setParchmentLinking(false)
     if (result.success) {
-      setParchmentUserId(selectedParchmentUser)
-      setMessage({ type: "success", text: "Parchment account linked successfully" })
+      setParchmentUserId(selectedParchmentUser.trim())
+      setMessage({ type: "success", text: `${parchmentEnvironmentLabel} account linked successfully` })
       setTimeout(() => setMessage(null), 5000)
     } else {
       setMessage({ type: "error", text: result.error || "Failed to link account" })
     }
-  }, [selectedParchmentUser])
+  }, [parchmentEnvironmentLabel, selectedParchmentUser])
 
   const handleValidateParchment = useCallback(async () => {
     setParchmentValidating(true)
@@ -426,14 +458,14 @@ export function IdentitySettingsClient({ initialData, parchmentUserId: initialPa
       setMessage({
         type: "success",
         text: result.requestId
-          ? `Parchment integration validated (${result.requestId})`
-          : result.message || "Parchment integration validated",
+          ? `${parchmentEnvironmentLabel} integration validated (${result.requestId})`
+          : result.message || `${parchmentEnvironmentLabel} integration validated`,
       })
       setTimeout(() => setMessage(null), 5000)
     } else {
       setMessage({ type: "error", text: result.error || "Parchment validation failed" })
     }
-  }, [])
+  }, [parchmentEnvironmentLabel])
 
   const handleAvailabilityChange = useCallback(async (checked: boolean) => {
     setDoctorAvailable(checked)
@@ -894,12 +926,26 @@ export function IdentitySettingsClient({ initialData, parchmentUserId: initialPa
                 Link this logged-in doctor once. Patients sync automatically when you prescribe or refresh them.
               </CardDescription>
             </div>
-            <Badge variant={parchmentUserId ? "success" : "warning"}>
-              {parchmentUserId ? "Prescriber linked" : "Link required"}
-            </Badge>
+            <div className="flex flex-wrap gap-2 sm:justify-end">
+              <Badge variant={parchmentEnvironmentBadgeVariant}>
+                {parchmentEnvironment.label} environment
+              </Badge>
+              <Badge variant={parchmentUserId ? "success" : "warning"}>
+                {parchmentUserId ? "Prescriber linked" : "Link required"}
+              </Badge>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="px-4 py-3 space-y-4">
+          <div className="rounded-lg border border-warning-border bg-warning-light/30 p-3 text-sm">
+            <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+              <p className="font-medium">{parchmentEnvironmentLabel} is active for this production website.</p>
+              <span className="font-mono text-xs text-muted-foreground">{parchmentEnvironment.apiHost}</span>
+            </div>
+            <p className="mt-1 text-muted-foreground">
+              {parchmentEnvironmentInstruction} Production and Sandbox Parchment user IDs are separate and cannot be swapped.
+            </p>
+          </div>
           {parchmentUserId ? (
             <div className="space-y-3">
               <div className="flex items-center gap-2">
@@ -915,7 +961,7 @@ export function IdentitySettingsClient({ initialData, parchmentUserId: initialPa
                 )}
               </div>
               <div className="space-y-1">
-                <Label className="text-muted-foreground text-xs">Linked Parchment User ID</Label>
+                <Label className="text-muted-foreground text-xs">Linked {parchmentEnvironmentDisplayLabel} Parchment User ID</Label>
                 <p className="text-sm font-mono">{parchmentUserId}</p>
               </div>
               <Button
@@ -929,7 +975,7 @@ export function IdentitySettingsClient({ initialData, parchmentUserId: initialPa
                 ) : (
                   <CheckCircle className="h-4 w-4 mr-2" />
                 )}
-                Validate Sandbox Integration
+                Validate {parchmentEnvironmentDisplayLabel} Integration
               </Button>
             </div>
           ) : (
@@ -940,14 +986,14 @@ export function IdentitySettingsClient({ initialData, parchmentUserId: initialPa
                 </Badge>
               </div>
               <p className="text-sm text-muted-foreground">
-                Link the Parchment prescriber user for this InstantMed doctor account. This is not a per-patient step.
+                Link the {parchmentEnvironmentLabel} prescriber user for this InstantMed doctor account. This is not a per-patient step.
               </p>
               <div className="space-y-2">
                 <Label>Parchment User ID</Label>
                 <Input
                   value={selectedParchmentUser}
                   onChange={(event) => setSelectedParchmentUser(event.target.value)}
-                  placeholder="Paste user_id from the current Parchment environment"
+                  placeholder={parchmentUserIdPlaceholder}
                   className="font-mono"
                 />
               </div>
