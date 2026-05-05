@@ -561,6 +561,7 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
       eyebrow: "Validity checklist",
       title: "A certificate depends on issuer, assessment, dates, and clarity",
       summary: "The useful question is not paper versus online; it is whether the evidence would satisfy a reasonable person.",
+      visualFormat: "patient-education-poster",
       kind: "checklist",
       accent: "blue",
       items: [
@@ -568,13 +569,14 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
         { label: "Clinical assessment", detail: "A genuine fitness-for-work judgement" },
         { label: "Clear dates", detail: "Consultation date and incapacity period" },
       ],
-      imagePrompt: "Textless medical certificate validity checklist still life, blank certificate document, blank verification card, soft blue check shapes, warm ivory desk, no readable text, no logos, no names, no people",
+      imagePrompt: "Detailed patient education poster explaining what makes an online medical certificate credible in Australia. Show key checks: identifiable registered practitioner, genuine clinical assessment, patient name, consultation date, incapacity period, clear work-capacity statement, issuer contact details, and privacy boundary around diagnosis. Use generic certificate shapes with placeholder blocks only, not fake details. Make it a premium workplace-health evidence checklist with useful labels and visual hierarchy. No fake certificate numbers, no fake doctor signature, no patient identifiers, no official logos, no legal seal, no employer logo, no medical cross except the production-added InstantMed badge, no desk flat lay, no scenery, no CTA, and no service marketing.",
     },
     {
       id: "reasonable-evidence-standard",
       eyebrow: "Fair Work standard",
       title: "Fair Work focuses on reasonable evidence",
       summary: "A valid telehealth certificate should not be rejected simply because it was online, but employers can ask reasonable evidence questions.",
+      visualFormat: "comparison-graphic",
       kind: "comparison",
       accent: "emerald",
       items: [
@@ -582,13 +584,14 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
         { label: "May raise questions", detail: "Missing details, inconsistent dates, or no assessment", tone: "caution" },
         { label: "Escalate calmly", detail: "Ask for the reason in writing and seek Fair Work advice" },
       ],
-      imagePrompt: "Completely textless workplace sick-leave evidence balance visual, blank employer policy page with no letters or words, blank certificate with no title or words, balanced scale shapes, warm ivory background, emerald accent, no readable text, no logos, no people, no silhouettes, no hands",
+      imagePrompt: "Detailed comparison graphic for the Fair Work reasonable evidence standard. Show two columns: strong evidence and questions to clarify. Strong evidence includes registered practitioner, genuine assessment, clear dates, and work-capacity statement. Questions to clarify include missing details, inconsistent dates, unclear issuer, or no real assessment. Include a calm escalation path: ask for reason in writing, check workplace instrument, seek Fair Work or union advice. Use balanced evidence scales, document-quality check panels, and clean workplace-information design. No fake legal document, no official government logos, no court imagery, no employer branding, no patient details, no medical cross except the production-added InstantMed badge, no scenery, no CTA, and no service marketing.",
     },
     {
       id: "telehealth-assessment-quality",
       eyebrow: "Assessment quality",
       title: "Telehealth validity still depends on clinical quality",
       summary: "A certificate issued after an adequate remote assessment is different from a document generated without real review.",
+      visualFormat: "telehealth-workflow",
       kind: "warning",
       accent: "amber",
       items: [
@@ -596,7 +599,7 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
         { label: "Clinician judgement", detail: "Fitness for work is assessed, not assumed" },
         { label: "Record keeping", detail: "The consultation should be documented" },
       ],
-      imagePrompt: "Completely textless telehealth medical certificate quality visual, blank phone, blank notes, blank certificate with no title or words, warm ivory clinical desk, amber verification accent, no readable text, no letters, no faces, no doctors, no people, no hands, no brand marks",
+      imagePrompt: "Detailed telehealth workflow graphic showing why certificate validity depends on clinical quality. Show a clear split between adequate remote assessment and weak document generation. Adequate path: symptom history, function impact, timing, risk screen, clinician judgement, medical record, certificate issued if appropriate. Weak path: checkbox-only form, missing review, unclear issuer, inconsistent dates. Use workflow diagrams, quality gates, and warning hierarchy with humane but non-identifiable cues. No fake app UI, no fake doctor chat, no fake certificate details, no patient identifiers, no official logos, no medical cross except the production-added InstantMed badge, no desk flat lay, no scenery, no CTA, and no service marketing.",
     },
   ],
   "asthma-treatment-online-australia": [
