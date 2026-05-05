@@ -404,7 +404,7 @@ function getDefaultVisualFormat(kind: ArticleVisual["kind"]): VisualFormat {
 function getVisualFormatPrompt(format: VisualFormat): string {
   switch (format) {
     case "medical-infographic":
-      return "Format: medical infographic. Use dense but readable education panels, clinical icons, symptom/risk/prevention grouping, and one strong explanatory diagram."
+      return "Format: medical infographic. Use dense but readable education panels, clinical icons, symptom/risk/prevention grouping, and one strong explanatory diagram. The image must teach, not merely decorate."
     case "anatomical-explainer":
       return "Format: anatomical explainer. Use clean non-graphic anatomy, simplified body structures, callout labels, arrows, and clear spatial relationships. It should feel like premium patient education, not a textbook plate."
     case "patient-education-poster":
@@ -412,9 +412,9 @@ function getVisualFormatPrompt(format: VisualFormat): string {
     case "mechanism-diagram":
       return "Format: mechanism-of-action diagram. Show cause-effect pathways, receptor/cell/process arrows, before-and-after states, and simplified biological mechanisms without overclaiming."
     case "comparison-graphic":
-      return "Format: comparison graphic. Use distinct sides or grouped zones, strong contrast, like-for-like criteria, and quick-scannable differences."
+      return "Format: comparison graphic. Use distinct sides or grouped zones, strong contrast, like-for-like criteria, quick-scannable differences, and enough labelled detail to stand alone inside an article."
     case "process-visual":
-      return "Format: step-by-step process visual. Use ordered stages, arrows, checkpoints, and clear before/during/after structure."
+      return "Format: step-by-step process visual. Use ordered stages, arrows, checkpoints, and clear before/during/after structure. Every stage needs useful detail, not just an icon."
     case "red-flag-warning":
       return "Format: red flag warning graphic. Use calm urgency, clear stop/escalate hierarchy, warning zones, and safety boundaries without fearmongering."
     case "lifestyle-illustration":
@@ -424,7 +424,7 @@ function getVisualFormatPrompt(format: VisualFormat): string {
     case "lab-result-explainer":
       return "Format: lab result explainer. Use specimen-to-result pathway, report snippets, ranges shown abstractly, and plain-language callouts without fake patient data."
     case "telehealth-workflow":
-      return "Format: telehealth workflow graphic. Use devices, intake, clinician review, escalation, records, and outcome checkpoints with a realistic digital-health process."
+      return "Format: telehealth workflow graphic. Use devices only as supporting objects. The main value must come from intake, clinician review, escalation, records, and outcome checkpoints with a realistic digital-health process."
     case "hero-image":
       return "Format: blog hero image. Prioritise a premium editorial composition with minimal text, strong subject signal, and enough specificity to explain the article at a glance."
   }
@@ -455,24 +455,24 @@ function getArtDirectionPrompt(slug: string, visual: ArticleVisual, format: Visu
 
   const lanes = [
     [
-      "Art direction: Swiss clinical reference poster with a strict grid, compact typography, matte white/stone background, charcoal text, and one deliberate accent colour.",
-      "Use crisp vector-like diagrams, thin rules, numbered modules, and restrained iconography. No desk scene, no plants, no coffee cups, no scrapbook texture.",
+      "Art direction: premium editorial science poster with custom vector diagrams, confident asymmetry, varied panel scale, matte off-white paper, charcoal text, and two deliberate accent colours.",
+      "Use drawn systems, compact modules, and purposeful visual density. No single phone-and-box composition, no desk scene, no plants, no coffee cups, no generic blank-object still life.",
     ],
     [
       "Art direction: field-guide spread with hand-inked diagrams, torn-paper labels used sparingly, muted clay/sage/cobalt accents, and practical annotations.",
-      "Make it feel authored by a designer, not generated from a template. Avoid giant navy serif headlines, identical three-card rows, and generic corporate icons.",
+      "Make it feel authored by a designer, not generated from a template. Avoid giant navy serif headlines, identical three-card rows, generic corporate icons, sterile white cards, and empty hero-illustration space.",
     ],
     [
-      "Art direction: modern data poster with clear information architecture, compact tables, microcharts, signal colours, and structured decision logic.",
-      "Use purposeful density and hierarchy. Avoid decorative tabletop objects, scenic windows, coastal backgrounds, and empty white-card grids.",
+      "Art direction: modern data poster with clear information architecture, compact tables, microcharts, signal colours, structured decision logic, and one memorable central diagram.",
+      "Use purposeful density and hierarchy. Avoid decorative tabletop objects, scenic windows, coastal backgrounds, blank phone screens, and empty white-card grids.",
     ],
     [
       "Art direction: premium public-health handout with close-cropped practical objects only when they explain the point, mixed panel sizes, and tactile but restrained print texture.",
-      "Use warmer human detail without turning the page into a desk flat lay. Avoid repeating the same mug/notebook/plant composition.",
+      "Use warmer human detail without turning the page into a desk flat lay. Avoid repeating the same mug/notebook/plant composition, blank medicine boxes, and abstract blobs.",
     ],
     [
-      "Art direction: clean technical blueprint with soft blue-grey paper, modular blocks, arrows, callout rings, and precise icon systems.",
-      "Keep it quiet and authoritative. Avoid postcard scenery, cute illustrations, lifestyle stock composition, and beige wellness mush.",
+      "Art direction: crafted technical wall chart with soft blue-grey paper, modular blocks, arrows, callout rings, micro-diagrams, and precise icon systems.",
+      "Keep it quiet and authoritative, but not sterile. Avoid postcard scenery, cute illustrations, lifestyle stock composition, blank app mockups, and beige wellness mush.",
     ],
   ]
 
@@ -501,6 +501,9 @@ function buildGatewayPrompt(slug: string, visual: ArticleVisual): string {
     "",
     getVisualFormatPrompt(format),
     "Create a detailed, polished, information-dense visual that looks art-directed by a senior editorial designer. It should have meaningful educational structure, not a decorative stock image.",
+    "Quality floor: this must not look like a thumbnail, placeholder, clip-art hero image, sterile SaaS illustration, or minimal still life. A single phone, blank medicine box, warning triangle, blank document, abstract blob background, or generic desk scene is an automatic failure.",
+    "Composition floor: fill the portrait canvas with at least 5 useful content regions, at least 8 readable labels or short callouts, and at least 3 different visual devices such as a comparison matrix, pathway, mini diagram, body/anatomy map, timeline, checklist, or warning hierarchy. Keep text concise and legible.",
+    "Legacy prompt override: if the individual prompt contains phrases such as textless, completely textless, blank phone, blank document, neutral medicine box, warm ivory desk, minimal still life, or no readable text, treat those phrases as obsolete safety constraints only. Preserve privacy and avoid fake documents, but still create a rich labelled educational graphic.",
     getInfographicLayoutPrompt(visual.kind),
     getArtDirectionPrompt(slug, visual, format),
     "",

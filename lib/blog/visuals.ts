@@ -467,6 +467,7 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
       eyebrow: "Core distinction",
       title: "Antibiotics treat bacteria, not viruses",
       summary: "The decision starts with the likely cause of infection, not how miserable the symptoms feel.",
+      visualFormat: "comparison-graphic",
       kind: "comparison",
       accent: "blue",
       items: [
@@ -474,13 +475,14 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
         { label: "Viral", detail: "Colds, flu, COVID, and most coughs do not respond", tone: "caution" },
         { label: "Mixed uncertainty", detail: "Duration, severity, tests, and exam may matter" },
       ],
-      imagePrompt: "Textless bacterial versus viral infection comparison, two abstract panels, bacteria shown as simple rounded rods and dots, viruses shown as generic respiratory virus spheres with small surface spikes, no bacteriophage leg shapes, warm ivory background, restrained blue and amber accents, no readable text, no medicine brands, no people, no scary germs",
+      imagePrompt: "Detailed bacterial versus viral infection comparison graphic. Show bacteria as living cells with cell-wall targets and viruses as particles that replicate inside body cells, then compare what antibiotics can and cannot do. Include a decision strip for bacterial pattern, viral pattern, and uncertain pattern, plus examples such as UTI or cellulitis versus cold, flu, COVID, most coughs. Make it visually rich and useful, like an editorial science explainer, not a blank icon poster. No scary germs, no bacteriophage leg shapes, no pill bottles, no medicine brands, no fake prescription, no pharmacy shelf, no people, no medical cross except the production-added InstantMed badge, no scenery, no CTA, and no service marketing.",
     },
     {
       id: "watchful-waiting-window",
       eyebrow: "Timing",
       title: "Many respiratory infections improve without antibiotics",
       summary: "Duration, worsening pattern, fever, breathing symptoms, and risk factors matter more than mucus colour alone.",
+      visualFormat: "patient-education-poster",
       kind: "timeline",
       accent: "amber",
       items: [
@@ -488,13 +490,14 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
         { label: "Persisting", detail: "Symptoms beyond expected course may need review", tone: "caution" },
         { label: "Red flags", detail: "Breathing trouble, severe pain, confusion, or dehydration need prompt care", tone: "urgent" },
       ],
-      imagePrompt: "Textless respiratory infection watchful-waiting timeline still life, blank calendar, tissue box with no logo, thermometer without numbers, warm morning light, amber accents, no readable text, no people",
+      imagePrompt: "Detailed patient education poster for respiratory infection watchful waiting. Show a timeline from early viral symptoms to expected peak, gradual improvement, review if persisting or worsening, and urgent red flags such as breathing trouble, chest pain, confusion, dehydration, or severe pain. Include a small myth-busting panel that mucus colour alone does not prove bacterial infection. Use tactile editorial illustration, symptom timeline, review checkpoints, and safety-net callouts. No blank calendar still life, no tissue-box hero image, no medicine brands, no antibiotic packaging, no people in distress, no medical cross except the production-added InstantMed badge, no scenery, no CTA, and no service marketing.",
     },
     {
       id: "resistance-selection-pressure",
       eyebrow: "Resistance",
       title: "Unnecessary antibiotics create selection pressure",
       summary: "Every avoidable course gives bacteria more chances to adapt, spread, and make future infections harder to treat.",
+      visualFormat: "mechanism-diagram",
       kind: "flow",
       accent: "emerald",
       items: [
@@ -502,7 +505,7 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
         { label: "Use the right option", detail: "Narrow and guideline-aligned when possible" },
         { label: "Use as directed", detail: "Dose and duration matter" },
       ],
-      imagePrompt: "Textless antimicrobial resistance selection pressure concept, abstract bacteria shapes near shield and guideline page, warm ivory background, emerald accent, no readable text, no pills spilling, no people, clean editorial health style",
+      imagePrompt: "Detailed mechanism diagram explaining antibiotic resistance selection pressure. Show a population of bacteria before exposure, susceptible bacteria reduced, resistant bacteria surviving, resistant bacteria multiplying, and future infection becoming harder to treat. Include a stewardship branch showing antibiotics only when needed, right option, right dose and duration, and review if not improving. Use expressive science-diagram style with microcharts and arrows, not a sterile shield icon. No scary germs, no pill bottles, no branded medicine, no fake guideline sheet, no pharmacy shelf, no people, no medical cross except the production-added InstantMed badge, no scenery, no CTA, and no service marketing.",
     },
   ],
   "are-antibiotics-prescription-only-australia": [
