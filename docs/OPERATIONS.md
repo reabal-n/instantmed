@@ -383,6 +383,7 @@ Operational rules:
 
 - Treat `_next/static`, font, CSS/JS, favicon, manifest, auth/account, Clerk, and redirect-only alias rows as expected noise unless they expose a broken canonical redirect.
 - For Google issues, verify live canonicals, robots, sitemap inclusion, and last crawl before changing content. IndexNow submits every sitemap listed in `robots.txt`, but only supports Bing/Yandex discovery and does not repair Google indexing.
+- `/api/cron/indexnow` is the primary production path. `/api/indexnow` is only for manual/on-demand submissions when `INDEXNOW_SECRET` is deliberately configured.
 - Add content depth only to public canonical pages that should rank and convert. Do not create duplicate route trees for redirect aliases.
 - For selected priority URLs, use Search Console inspection/request indexing manually after deploy and recrawl validation. Do not use Google's Indexing API for ordinary website pages; Google Search Central scopes it to `JobPosting` and livestream `BroadcastEvent` pages.
 

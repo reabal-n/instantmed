@@ -590,7 +590,7 @@ Use when: the page is not a standard service funnel — it has a unique layout, 
 
 **Sitemap/robots:** `app/sitemap.ts` and `app/robots.ts` auto-update from the page data layer. No manual updates needed.
 
-**IndexNow:** Daily scheduled and on-demand submission to Bing (and Yandex/other IndexNow participants). `lib/seo/indexnow.ts` reads every sitemap listed in `robots.txt`, dedupes URLs, and is used by `/api/indexnow/route.ts` (protected manual endpoint) plus `/api/cron/indexnow/route.ts` (scheduled). `INDEXNOW_KEY` is optional only while it matches the public verification file fallback. No Google support — Google has its own crawl pipeline.
+**IndexNow:** Daily scheduled submission to Bing (and Yandex/other IndexNow participants), with an optional protected manual endpoint. `lib/seo/indexnow.ts` reads every sitemap listed in `robots.txt`, dedupes URLs, and is used by `/api/cron/indexnow/route.ts` (scheduled) plus `/api/indexnow/route.ts` (manual only when `INDEXNOW_SECRET` is configured). `INDEXNOW_KEY` is optional only while it matches the public verification file fallback. No Google support — Google has its own crawl pipeline.
 
 **Internal linking:** Use explicit, page-owned links or `ContentHubLinks` for service-to-content cross-linking. Do not reintroduce null-rendering SEO compatibility wrappers.
 
