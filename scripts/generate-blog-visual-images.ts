@@ -443,38 +443,38 @@ function promptHash(value: string): number {
 function getArtDirectionPrompt(slug: string, visual: ArticleVisual, format: VisualFormat, styleShift = 0): string {
   if (format === "anatomical-explainer" || format === "body-map" || format === "mechanism-diagram") {
     return [
-      "Art direction: premium medical atlas plate with precise linework, restrained colour-coded callouts, generous negative space, and one dominant explanatory diagram.",
-      "Use anatomical clarity over decorative lifestyle props. Avoid desk still lifes, plants, mugs, scenic backgrounds, big serif poster headlines, and repeated card-grid filler.",
+      "Art direction: high-end medical atlas collage with close-cropped anatomy, translucent cutaway layers, magnified inset plates, diagnostic colour washes, precise linework, and tactile print texture.",
+      "Use anatomical clarity with visual energy: overlapping panels, depth, asymmetry, and concrete clinical cues. Avoid sparse body icons, blank cream backgrounds, desk still lifes, plants, mugs, scenic backgrounds, and repeated card-grid filler.",
     ].join(" ")
   }
 
   if (format === "red-flag-warning") {
     return [
-      "Art direction: modern safety reference card, like a serious airport emergency instruction panel redesigned for healthcare.",
-      "Use firm contrast, concise warning zones, directional arrows, and calm urgency. Avoid picturesque scenes, dramatic bodies, lifestyle photography, decorative stationery, and soft wellness styling.",
+      "Art direction: premium emergency-triage editorial poster with full-bleed risk zoning, strong diagonal flow, layered silhouettes, luminous anatomical overlays, and sharp stop/escalate visual hierarchy.",
+      "Use firm contrast, kinetic arrows, close-cropped warning insets, and calm urgency. Avoid sparse red-flag icons, single warning triangles, picturesque scenes, dramatic identifiable bodies, lifestyle photography, decorative stationery, and soft wellness styling.",
     ].join(" ")
   }
 
   const lanes = [
     [
-      "Art direction: premium editorial science poster with custom vector diagrams, confident asymmetry, varied panel scale, matte off-white paper, charcoal text, and two deliberate accent colours.",
-      "Use drawn systems, compact modules, and purposeful visual density. No single phone-and-box composition, no desk scene, no plants, no coffee cups, no generic blank-object still life.",
+      "Art direction: premium editorial science collage, like a serious magazine explainer: full-bleed clinical texture, bold asymmetric composition, layered anatomy, scan-like fragments, directional ribbons, and compact evidence modules.",
+      "Use purposeful visual density and a strong subject signal. No single phone-and-box composition, no isolated lung icon, no clinic-door metaphor, no desk scene, no plants, no coffee cups, no generic blank-object still life.",
     ],
     [
-      "Art direction: field-guide spread with hand-inked diagrams, torn-paper labels used sparingly, muted clay/sage/cobalt accents, and practical annotations.",
-      "Make it feel authored by a designer, not generated from a template. Avoid giant navy serif headlines, identical three-card rows, generic corporate icons, sterile white cards, and empty hero-illustration space.",
+      "Art direction: investigative field-guide wall with hand-inked medical diagrams, pinned specimen-style panels, colour-coded pathways, micro-illustrations, and layered paper texture.",
+      "Make it feel authored and specific, with many visual discoveries across the canvas. Avoid identical card rows, generic corporate icons, sterile white cards, empty hero-illustration space, and soft pastel minimalism.",
     ],
     [
-      "Art direction: modern data poster with clear information architecture, compact tables, microcharts, signal colours, structured decision logic, and one memorable central diagram.",
-      "Use purposeful density and hierarchy. Avoid decorative tabletop objects, scenic windows, coastal backgrounds, blank phone screens, and empty white-card grids.",
+      "Art direction: high-contrast data-visualisation poster with layered decision lanes, signal-colour heat zones, scan overlays, micro-diagrams, flow arrows, and one memorable central medical map.",
+      "Use purposeful density, hierarchy, and visual motion. Avoid decorative tabletop objects, scenic windows, coastal backgrounds, blank phone screens, empty white-card grids, and simple icon rows.",
     ],
     [
-      "Art direction: premium public-health handout with close-cropped practical objects only when they explain the point, mixed panel sizes, and tactile but restrained print texture.",
-      "Use warmer human detail without turning the page into a desk flat lay. Avoid repeating the same mug/notebook/plant composition, blank medicine boxes, and abstract blobs.",
+      "Art direction: premium public-health campaign poster with close-cropped practical cues, dramatic cropping, layered process maps, saturated accent blocks, mixed panel sizes, and tactile print grain.",
+      "Use human context only as anonymous silhouettes or partial gestures. Avoid desk flat lays, mug/notebook/plant compositions, blank medicine boxes, product packaging, and abstract blobs.",
     ],
     [
-      "Art direction: crafted technical wall chart with soft blue-grey paper, modular blocks, arrows, callout rings, micro-diagrams, and precise icon systems.",
-      "Keep it quiet and authoritative, but not sterile. Avoid postcard scenery, cute illustrations, lifestyle stock composition, blank app mockups, and beige wellness mush.",
+      "Art direction: crafted technical wall chart with blueprint depth, modular blocks, thick route lines, callout rings, macro anatomy plates, shadowed layers, and precise icon systems.",
+      "Keep it authoritative but visually alive. Avoid postcard scenery, cute illustrations, lifestyle stock composition, blank app mockups, beige wellness mush, and flat two-object compositions.",
     ],
   ]
 
@@ -600,8 +600,11 @@ function buildGatewayCompositeUnderlayPrompt(slug: string, visual: ArticleVisual
     "",
     "Your job is the image field only. A production script will overlay all approved article copy, cards, footer text, and the official brand badge after generation.",
     "Create an article-specific educational visual underlay using unlabeled diagrams, body/anatomy shapes, process arrows, comparison zones, warning hierarchy, texture, clinical iconography, and practical objects only when they teach the topic.",
+    "Boring-output rejection rule: a simple phone, simple lung, door, checklist card, flag, single warning icon, isolated body silhouette, soft pastel blob, or two-to-three-symbol composition is an automatic failure. Do not make polite health-tech clip art.",
+    "Composition requirement: fill the portrait canvas with at least 7 distinct visual clusters, strong foreground/midground/background depth, diagonal or radial movement, and dense article-specific clinical cues around the overlay-safe areas. The viewer should feel there is useful visual information at the edges, behind the title area, and between the copy cards.",
+    "Style requirement: premium editorial, tactile, layered, specific, and memorable. Use richer contrast, controlled saturation, print grain, scan texture, cutaway anatomy, route lines, risk zones, and overlapping panels. Avoid beige emptiness and washed-out minimalism.",
     "Hard visible-text rule: no readable words, letters, numbers, tables, fake UI, fake forms, captions, labels, badges, stamps, signatures, handwriting, prescription text, chart labels, or signage. The final asset must contain zero generated text.",
-    "Avoid generic stock art, blank phone hero, blank document hero, medicine-box hero, desk flat lay, balance-scale metaphors, scenic landscapes, road/path metaphors, mountains, beaches, city skylines, and decorative abstract blobs. The underlay still needs to be specific to the article.",
+    "Avoid generic stock art, blank phone hero, blank document hero, medicine-box hero, desk flat lay, balance-scale metaphors, scenic landscapes, road/path metaphors, clinic-door metaphors, mountains, beaches, city skylines, and decorative abstract blobs. The underlay still needs to be specific to the article.",
     "No identifiable people, no fake doctor faces, no doctor-patient consultation scene, no medical crosses, no pharmacy cross signs, no plus-sign shop signs, no pill blister packs, no medicine bottles as focal objects, no official seals, no logos, no medication brand names, no pill imprints, no gore, no graphic symptoms, no consultation CTA.",
     "Leave the bottom-right 320 by 110 pixel area calm and low-detail for the production badge overlay.",
     `Article slug for context only: ${slug}.`,
