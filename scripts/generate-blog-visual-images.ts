@@ -487,9 +487,54 @@ function getFooterCopy(visual: ArticleVisual): string {
   return "Educational guide."
 }
 
+function sanitizeImagePrompt(prompt: string): string {
+  const obsoleteFragments = [
+    /\bcompletely textless\b/gi,
+    /\btextless\b/gi,
+    /\bno readable text\b/gi,
+    /\bno words?\b/gi,
+    /\bno letters?\b/gi,
+    /\bwithout labels?\b/gi,
+    /\bblank phone(?: screen)?\b/gi,
+    /\bblank (?:screen|screens|app|apps|ui|interface|interfaces|device|devices)\b/gi,
+    /\bblank (?:document|documents|certificate|certificates|form|forms|card|cards|credential card|pricing card|privacy document|notebook|page|pages|paper|papers|rounded tiles?)\b/gi,
+    /\bneutral medicine box\b/gi,
+    /\bblank medicine (?:box|boxes|packet|packets|package|packages)\b/gi,
+    /\bsimple abstract branches\b/gi,
+    /\bfaint abstract lines\b/gi,
+    /\babstract urgency marker\b/gi,
+    /\bsoft checkmark shapes\b/gi,
+    /\bsoft blue and amber accents\b/gi,
+    /\bwarm ivory (?:desk|clinical background|background)\b/gi,
+    /\bminimal still life\b/gi,
+    /\bstill life\b/gi,
+    /\bdesk flat lay\b/gi,
+    /\bflat lay\b/gi,
+    /\btea cup\b/gi,
+    /\bcoffee cup\b/gi,
+    /\bmug\b/gi,
+    /\bplant\b/gi,
+  ]
+
+  let cleaned = prompt
+  for (const fragment of obsoleteFragments) {
+    cleaned = cleaned.replace(fragment, "")
+  }
+
+  return cleaned
+    .replace(/\s+,/g, ",")
+    .replace(/,\s*,+/g, ",")
+    .replace(/(?:,\s*){2,}/g, ", ")
+    .replace(/\s{2,}/g, " ")
+    .replace(/^\s*,\s*/, "")
+    .replace(/\s*,\s*$/, "")
+    .trim()
+}
+
 function buildGatewayPrompt(slug: string, visual: ArticleVisual): string {
   const itemText = visual.items.map((item, index) => `${index + 1}. ${item.label}: ${item.detail}`).join("\n")
   const format = visual.visualFormat ?? getDefaultVisualFormat(visual.kind)
+  const cleanedPrimaryRequest = sanitizeImagePrompt(visual.imagePrompt)
 
   return [
     `Use case: ${format}`,
@@ -497,13 +542,16 @@ function buildGatewayPrompt(slug: string, visual: ArticleVisual): string {
     `Model: ${GPT_IMAGE_MODEL}.`,
     "",
     "Primary request:",
-    visual.imagePrompt,
+    cleanedPrimaryRequest,
     "",
     getVisualFormatPrompt(format),
-    "Create a detailed, polished, information-dense visual that looks art-directed by a senior editorial designer. It should have meaningful educational structure, not a decorative stock image.",
-    "Quality floor: this must not look like a thumbnail, placeholder, clip-art hero image, sterile SaaS illustration, or minimal still life. A single phone, blank medicine box, warning triangle, blank document, abstract blob background, or generic desk scene is an automatic failure.",
-    "Composition floor: fill the portrait canvas with at least 5 useful content regions, at least 8 readable labels or short callouts, and at least 3 different visual devices such as a comparison matrix, pathway, mini diagram, body/anatomy map, timeline, checklist, or warning hierarchy. Keep text concise and legible.",
-    "Legacy prompt override: if the individual prompt contains phrases such as textless, completely textless, blank phone, blank document, neutral medicine box, warm ivory desk, minimal still life, or no readable text, treat those phrases as obsolete safety constraints only. Preserve privacy and avoid fake documents, but still create a rich labelled educational graphic.",
+    "Create a detailed, polished, information-dense visual that looks art-directed by a senior editorial designer. It must be a standalone explainer, not a decorative stock image.",
+    "Teaching-value floor: the viewer should learn at least 5 concrete facts, distinctions, warning signs, steps, or decision criteria from the image without reading the article. If the image does not add information beyond mood, it has failed.",
+    "Quality floor: this must not look like a thumbnail, placeholder, clip-art hero image, sterile SaaS illustration, minimal still life, stock-photo desk scene, or low-information metaphor. A single phone, inhaler, document, medicine box, warning triangle, shield, scale, checklist, blank card, abstract blob cluster, or generic icon row is an automatic failure.",
+    "Composition floor: fill the portrait canvas with at least 5 useful content regions, at least 10 readable labels or short callouts, and at least 3 different visual devices such as a comparison matrix, pathway, mini diagram, body/anatomy map, timeline, checklist, data marker, red-flag hierarchy, or practical action strip. Keep text concise and legible.",
+    "Premium floor: make the composition feel designed and specific to this article. Use varied panel scale, hierarchy, callout arrows, diagrams, labelled sub-sections, and a clear reading path. Do not use empty space as the main design move.",
+    "Legacy prompt override: obsolete low-information prompt fragments were removed before this request. Preserve privacy and avoid fake documents, but do not obey any implied instruction to make the visual textless, blank, minimal, symbolic-only, or object-only.",
+    "Banned visual archetypes: blank desk scene, plain object arrangement, soft beige tabletop, isolated phone mockup, blank certificate or document, empty checklist, box plus card, balance scale metaphor, shield-plus-pill cards, generic safety icon row, oversized abstract shapes, empty app cards, simple corporate vector mascot, or any image where most of the canvas could be swapped into another article unchanged.",
     getInfographicLayoutPrompt(visual.kind),
     getArtDirectionPrompt(slug, visual, format),
     "",

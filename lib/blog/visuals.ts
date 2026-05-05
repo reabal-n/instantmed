@@ -608,6 +608,7 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
       eyebrow: "Control check",
       title: "Asthma care starts with control, not just a refill",
       summary: "Reliever use, night symptoms, activity limits, and recent attacks show whether the current plan is still working.",
+      visualFormat: "medical-infographic",
       kind: "checklist",
       accent: "blue",
       items: [
@@ -615,13 +616,14 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
         { label: "Night waking", detail: "Symptoms overnight need review", tone: "caution" },
         { label: "Recent flare", detail: "Attack or oral steroid use changes the risk", tone: "urgent" },
       ],
-      imagePrompt: "Completely textless asthma control checklist still life, blank asthma action plan with no title and no words, blank checklist boxes only, inhaler-shaped object with no brand text, phone with blank screen, warm ivory background, blue accents, no readable text, no letters, no logos, no people, no hands",
+      imagePrompt: "Detailed asthma control-check medical infographic. Show the control review signals: reliever use more than 2 days per week, night waking, activity limitation, recent flare or oral steroid use, preventer adherence, inhaler technique, triggers, and action-plan confidence. Include a small airway inflammation diagram and a decision boundary between stable review and needs in-person care. Use premium patient-education design with useful labels, not an inhaler still life. No medication brand names, no dose instructions, no fake asthma action plan, no fake prescription, no distressed patient, no medical cross except the production-added InstantMed badge, no desk flat lay, no scenery, no CTA, and no service marketing.",
     },
     {
       id: "telehealth-asthma-boundary",
       eyebrow: "Telehealth boundary",
       title: "Stable asthma and worsening asthma need different pathways",
       summary: "Repeat medicine review can be remote for some established patients; diagnosis, deterioration, and children need in-person care.",
+      visualFormat: "comparison-graphic",
       kind: "comparison",
       accent: "emerald",
       items: [
@@ -629,13 +631,14 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
         { label: "Worsening control", detail: "Needs GP review and often examination", tone: "caution" },
         { label: "First diagnosis or child", detail: "Requires in-person assessment", tone: "urgent" },
       ],
-      imagePrompt: "Textless asthma telehealth suitability visual, split path with blank phone on one side and blank clinic assessment card on the other, inhaler silhouette, warm clinical palette, emerald and amber accents, no readable text, no people, no medical logos",
+      imagePrompt: "Detailed comparison graphic showing asthma telehealth boundaries. Use three pathways: stable established asthma may suit remote medication review, worsening control needs GP or in-person review, and first diagnosis or child asthma symptoms need in-person assessment. Show spirometry or lung-function testing as an in-person-only cue, action plan review, inhaler technique check, and red-flag escalation. Use structured pathway design and airway icons, not a phone mockup. No medicine brand names, no fake app screen, no dose instructions, no distressed child, no medical cross except the production-added InstantMed badge, no scenery, no CTA, and no service marketing.",
     },
     {
       id: "asthma-emergency-signs",
       eyebrow: "Emergency signs",
       title: "Some asthma symptoms should bypass telehealth",
       summary: "Reliever not helping, trouble speaking, blue lips, exhaustion, or rapidly worsening breathing needs emergency care.",
+      visualFormat: "red-flag-warning",
       kind: "warning",
       accent: "rose",
       items: [
@@ -643,7 +646,7 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
         { label: "Reliever not working", detail: "Follow asthma first aid and call 000", tone: "urgent" },
         { label: "Blue lips or exhaustion", detail: "Do not wait for online review", tone: "urgent" },
       ],
-      imagePrompt: "Minimal textless asthma emergency warning visual, blank phone, soft rose warning triangle, inhaler silhouette, warm ivory clinical surface, no readable text, no people, no distressing patient imagery, no brand names",
+      imagePrompt: "Detailed red-flag warning graphic for asthma symptoms that should bypass telehealth. Show emergency signs: reliever not helping, cannot speak normally, blue lips or fingertips, exhaustion, rapidly worsening breathing, confusion, and severe chest tightness. Include an asthma first-aid cue and call Triple Zero (000) for emergency symptoms, without giving detailed dosing instructions. Use strong but calm urgent hierarchy, lung/airway icons, and escalation arrows. No distressed patient close-up, no medicine brands, no dose instructions, no ambulance logo, no medical cross except the production-added InstantMed badge, no scenery, no CTA, and no service marketing.",
     },
   ],
   "best-online-doctor-australia-comparison": [
