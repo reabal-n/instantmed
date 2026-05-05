@@ -190,7 +190,7 @@ export async function createManualPatientAction(
       if (!callerParchmentUserId) {
         return {
           success: false,
-          error: "Parchment account not linked. Link your Parchment account in Settings > Identity, or create the patient without immediate sync.",
+          error: "Prescriber account not linked. Link your Parchment user in Doctor Settings > Parchment Prescribing Account, or create the patient without immediate sync.",
         }
       }
     }
@@ -301,7 +301,7 @@ export async function getPatientParchmentPrescribeUrlAction(
     if (!callerParchmentUserId) {
       return {
         success: false,
-        error: "Parchment account not linked. Go to Settings > Identity to connect your Parchment account.",
+        error: "Prescriber account not linked. Go to Doctor Settings > Parchment Prescribing Account to link your Parchment user.",
       }
     }
 
@@ -386,7 +386,7 @@ export async function syncPatientParchmentProfileAction(
     if (!callerParchmentUserId) {
       return {
         success: false,
-        error: "Parchment account not linked. Go to Settings > Identity to connect your Parchment account.",
+        error: "Prescriber account not linked. Go to Doctor Settings > Parchment Prescribing Account to link your Parchment user.",
       }
     }
 
@@ -460,7 +460,7 @@ export async function refreshPatientParchmentPrescriptionsAction(
     if (!callerParchmentUserId) {
       return {
         success: false,
-        error: "Parchment account not linked. Go to Settings > Identity to connect your Parchment account.",
+        error: "Prescriber account not linked. Go to Doctor Settings > Parchment Prescribing Account to link your Parchment user.",
       }
     }
 

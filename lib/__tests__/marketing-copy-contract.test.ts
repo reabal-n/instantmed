@@ -18,6 +18,10 @@ const whatHappensNextSource = readFileSync(join(root, "components/patient/what-h
 const designSource = readFileSync(join(root, "DESIGN.md"), "utf8")
 const brandSource = readFileSync(join(root, "docs/BRAND.md"), "utf8")
 const medCertLandingSource = readFileSync(join(root, "components/marketing/med-cert-landing.tsx"), "utf8")
+const requestPageSource = readFileSync(join(root, "app/request/page.tsx"), "utf8")
+const requestFlowSource = readFileSync(join(root, "components/request/request-flow.tsx"), "utf8")
+const requestStepRouterSource = readFileSync(join(root, "components/request/step-router.tsx"), "utf8")
+const certificateStepSource = readFileSync(join(root, "components/request/steps/certificate-step.tsx"), "utf8")
 const employerMarqueeSource = readFileSync(join(root, "components/shared/employer-logo-marquee.tsx"), "utf8")
 const medCertPageSource = readFileSync(join(root, "app/medical-certificate/page.tsx"), "utf8")
 const employerEvidenceSource = readFileSync(join(root, "app/medical-certificate/employer-acceptance/page.tsx"), "utf8")
@@ -92,8 +96,9 @@ describe("marketing copy contracts", () => {
 
   it("renders the employer logo marquee on the medical certificate landing page", () => {
     expect(medCertLandingSource).toContain("EmployerLogoMarquee")
-    expect(medCertLandingSource.indexOf("<EmployerLogoMarquee")).toBeLessThan(
-      medCertLandingSource.indexOf("<EmployerCalloutStrip"),
+    expect(medCertLandingSource).toContain("WorkplaceProofPanel")
+    expect(medCertLandingSource.indexOf("<WorkplaceProofPanel")).toBeLessThan(
+      medCertLandingSource.indexOf("<CertificateTypeSelector"),
     )
   })
 
@@ -108,6 +113,7 @@ describe("marketing copy contracts", () => {
   it("keeps medical certificate trust copy specific instead of slogan-like", () => {
     expect(medCertPageSource).toContain("Online Medical Certificate | AHPRA GP Review | InstantMed")
     expect(medCertPageSource).not.toContain("Under 30 Minutes, No Call")
+    expect(medCertPageSource).not.toContain("no call, no appointment")
     expect(medCertPageSource).not.toContain("in under 30 minutes")
     expect(medCertIntentSource).not.toContain("Real doctor review")
     expect(workplaceClaimSources).not.toContain("All employers")
@@ -123,6 +129,21 @@ describe("marketing copy contracts", () => {
     expect(workplaceClaimSources).not.toContain("legal validity")
     expect(workplaceClaimSources).not.toContain("identical legal")
     expect(trustBadgesSource).toContain("AHPRA GP review")
+  })
+
+  it("keeps the medical certificate landing flow compact and price-consistent", () => {
+    expect(medCertLandingSource).toContain("MED_CERT_START_HREF")
+    expect(medCertLandingSource).toContain("duration: \"1\"")
+    expect(medCertLandingSource).toContain("Clear fee. Clear fallback.")
+    expect(medCertLandingSource).toContain("What your fee covers")
+    expect(medCertLandingSource).not.toContain("MedCertComparisonTable")
+    expect(requestPageSource).toContain("duration?: string")
+    expect(requestPageSource).toContain("initialDuration={params.duration}")
+    expect(requestFlowSource).toContain("initialDuration={initialDuration}")
+    expect(requestStepRouterSource).toContain("initialDuration?: string")
+    expect(requestStepRouterSource).toContain("initialDuration={initialDuration}")
+    expect(certificateStepSource).toContain("initialUrlDurationRef")
+    expect(certificateStepSource).toContain("parseDuration(initialDuration)")
   })
 
   it("keeps the employer evidence page aligned to the solid card system", () => {

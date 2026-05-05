@@ -18,6 +18,7 @@ import {
   RefreshCw,
   StickyNote,
   User,
+  Webhook,
   XCircle,
 } from "lucide-react"
 import Link from "next/link"
@@ -101,6 +102,17 @@ interface PatientMedication {
   request_id: string | null
 }
 
+interface ParchmentActivity {
+  id: string
+  status: "success" | "warning" | "destructive" | "info"
+  label: string
+  detail: string
+  occurred_at: string
+  event_id: string | null
+  scid: string | null
+  request_id: string | null
+}
+
 type PatientDetailProfile = Profile & {
   duplicate_profile_ids?: string[]
 }
@@ -117,6 +129,7 @@ interface PatientDetailClientProps {
   }
   emailLogs: EmailLog[]
   patientNotes: PatientNote[]
+  parchmentActivity: ParchmentActivity[]
   canMergePatientProfiles: boolean
   parchmentEnabled: boolean
   parchmentUserLinked: boolean
@@ -129,6 +142,7 @@ export function PatientDetailClient({
   stats,
   emailLogs,
   patientNotes,
+  parchmentActivity,
   canMergePatientProfiles,
   parchmentEnabled,
   parchmentUserLinked,
@@ -244,7 +258,7 @@ export function PatientDetailClient({
   const parchmentStatusLabel = !parchmentEnabled
     ? "Parchment integration disabled"
     : !parchmentUserLinked
-      ? "Parchment connection required"
+      ? "Prescriber not linked"
       : patient.parchment_patient_id
         ? "Ready in Parchment"
         : "Sync required"
@@ -254,6 +268,7 @@ export function PatientDetailClient({
   const latestMedicationName = latestMedication
     ? [latestMedication.medication_name, latestMedication.medication_strength].filter(Boolean).join(" ")
     : "No prescriptions yet"
+  const latestParchmentActivity = parchmentActivity[0] ?? null
 
   return (
     <div className="space-y-5">
@@ -343,7 +358,7 @@ export function PatientDetailClient({
               </Button>
               {parchmentEnabled && !parchmentUserLinked && (
                 <Button type="button" variant="outline" asChild>
-                  <Link href="/doctor/settings/identity">Link Parchment user</Link>
+                  <Link href="/doctor/settings/identity#parchment-account">Link prescriber</Link>
                 </Button>
               )}
               {canUseParchment && (
@@ -381,6 +396,71 @@ export function PatientDetailClient({
         </CardContent>
       </Card>
 
+      <Card className="rounded-xl border-border/50">
+        <CardHeader className="px-4 py-3">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Webhook className="h-4 w-4" />
+                Parchment delivery status
+              </CardTitle>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Shows whether the Parchment prescription event reached InstantMed and synced back to the PMS.
+              </p>
+            </div>
+            <Badge variant={latestParchmentActivity?.status ?? "warning"} size="sm">
+              {latestParchmentActivity ? latestParchmentActivity.label : "Waiting for webhook"}
+            </Badge>
+          </div>
+        </CardHeader>
+        <CardContent className="px-4 py-3">
+          {latestParchmentActivity ? (
+            <div className="space-y-3">
+              <div className="rounded-lg bg-muted/40 p-3">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-foreground">{latestParchmentActivity.label}</p>
+                    <p className="mt-1 text-sm text-muted-foreground">{latestParchmentActivity.detail}</p>
+                  </div>
+                  <p className="shrink-0 text-xs text-muted-foreground">
+                    {formatDateTime(latestParchmentActivity.occurred_at)}
+                  </p>
+                </div>
+                <div className="mt-2 flex flex-wrap gap-2 text-xs text-muted-foreground">
+                  {latestParchmentActivity.scid && (
+                    <span className="font-mono">SCID {latestParchmentActivity.scid}</span>
+                  )}
+                  {latestParchmentActivity.event_id && (
+                    <span className="font-mono">Event {latestParchmentActivity.event_id}</span>
+                  )}
+                  {latestParchmentActivity.request_id && (
+                    <Link href={`/doctor/intakes/${latestParchmentActivity.request_id}`} className="text-primary hover:underline">
+                      View request
+                    </Link>
+                  )}
+                </div>
+              </div>
+              {parchmentActivity.length > 1 && (
+                <div className="grid gap-2 lg:grid-cols-2">
+                  {parchmentActivity.slice(1, 5).map((activity) => (
+                    <div key={activity.id} className="rounded-lg border border-border/60 px-3 py-2">
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="truncate text-sm font-medium text-foreground">{activity.label}</p>
+                        <Badge variant={activity.status} size="sm">{activity.status}</Badge>
+                      </div>
+                      <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{activity.detail}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="rounded-lg border border-warning-border bg-warning-light px-3 py-3 text-sm text-warning">
+              No Parchment webhook has been recorded for this patient yet. After you submit a prescription in the iframe, this panel should change to “Webhook confirmed script sent” or “Webhook synced prescription”.
+            </div>
+          )}
+        </CardContent>
+      </Card>
       <Card className="rounded-xl border-border/50">
         <CardHeader className="py-3 px-4">
           <CardTitle className="flex flex-wrap items-center gap-2 text-base">
@@ -421,10 +501,10 @@ export function PatientDetailClient({
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-start gap-2">
                   <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-                  <span>Parchment account not linked. Link your Parchment user before syncing patients or prescribing from this profile.</span>
+                  <span>Prescriber account not linked. Link your Parchment user once, then synced patients can be prescribed from this profile.</span>
                 </div>
                 <Button type="button" size="sm" variant="outline" asChild>
-                  <Link href="/doctor/settings/identity">Link account</Link>
+                  <Link href="/doctor/settings/identity#parchment-account">Link prescriber</Link>
                 </Button>
               </div>
             </div>
@@ -533,22 +613,33 @@ export function PatientDetailClient({
                 Parchment prescriptions and previous InstantMed prescription requests
               </p>
             </div>
-            {parchmentEnabled && parchmentUserLinked && (
+            <div className="flex flex-wrap gap-2">
               <Button
                 type="button"
                 size="sm"
-                variant="outline"
-                disabled={isPrescriptionRefreshPending}
-                onClick={handleRefreshParchmentPrescriptions}
+                disabled={!canUseParchment}
+                onClick={handleOpenParchmentPrescribe}
               >
-                {isPrescriptionRefreshPending ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <RefreshCw className="h-4 w-4" />
-                )}
-                Refresh prescriptions
+                <Pill className="h-4 w-4" />
+                Add prescription
               </Button>
-            )}
+              {parchmentEnabled && parchmentUserLinked && (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  disabled={isPrescriptionRefreshPending}
+                  onClick={handleRefreshParchmentPrescriptions}
+                >
+                  {isPrescriptionRefreshPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <RefreshCw className="h-4 w-4" />
+                  )}
+                  Refresh prescriptions
+                </Button>
+              )}
+            </div>
           </div>
         </CardHeader>
         <CardContent className="px-4 py-3">

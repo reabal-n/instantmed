@@ -5,18 +5,24 @@ import {
   AlertTriangle,
   ArrowLeft,
   CheckCircle,
+  Eye,
+  EyeOff,
   FileSignature,
+  KeyRound,
   Link2,
   Loader2,
+  Mail,
   Pause,
   Pill,
   Play,
   Save,
+  ShieldCheck,
+  Smartphone,
   Upload,
   User,
 } from "lucide-react"
 import Link from "next/link"
-import { useCallback, useState, useTransition } from "react"
+import { useCallback, useEffect, useMemo, useState, useTransition } from "react"
 
 import { setDoctorAvailabilityAction } from "@/app/actions/doctor-availability"
 import {
@@ -46,13 +52,30 @@ import {
   validateAhpraNumber,
   validateProviderNumber,
 } from "@/lib/data/doctor-identity.shared"
+import { useAuth } from "@/lib/supabase/auth-provider"
+import { createClient } from "@/lib/supabase/client"
 
 interface IdentitySettingsClientProps {
   initialData: DoctorIdentity
   parchmentUserId?: string | null
 }
 
+type MfaFactorSummary = {
+  id: string
+  factor_type: string
+  status: string
+  friendly_name?: string | null
+}
+
+type MfaEnrollment = {
+  factorId: string
+  qrCode: string
+  secret: string
+}
+
 export function IdentitySettingsClient({ initialData, parchmentUserId: initialParchmentUserId }: IdentitySettingsClientProps) {
+  const { user } = useAuth()
+  const supabase = useMemo(() => createClient(), [])
   const [isPending, startTransition] = useTransition()
   const [message, setMessage] = useState<{
     type: "success" | "error"
@@ -72,6 +95,23 @@ export function IdentitySettingsClient({ initialData, parchmentUserId: initialPa
   const [doctorAvailable, setDoctorAvailable] = useState(initialData.doctor_available !== false)
   const [availabilitySaving, setAvailabilitySaving] = useState(false)
 
+  // Account security state
+  const [accountEmail, setAccountEmail] = useState(user?.email || "")
+  const [emailSaving, setEmailSaving] = useState(false)
+  const [passwordSaving, setPasswordSaving] = useState(false)
+  const [passwordForm, setPasswordForm] = useState({
+    newPassword: "",
+    confirmPassword: "",
+  })
+  const [showNewPassword, setShowNewPassword] = useState(false)
+  const [mfaFactors, setMfaFactors] = useState<MfaFactorSummary[]>([])
+  const [mfaLoading, setMfaLoading] = useState(false)
+  const [mfaEnrolling, setMfaEnrolling] = useState(false)
+  const [mfaVerifying, setMfaVerifying] = useState(false)
+  const [mfaEnrollment, setMfaEnrollment] = useState<MfaEnrollment | null>(null)
+  const [mfaCode, setMfaCode] = useState("")
+  const [googleLinking, setGoogleLinking] = useState(false)
+
   // Parchment linking state
   const [parchmentUserId, setParchmentUserId] = useState(initialParchmentUserId || "")
   const [parchmentUsers, setParchmentUsers] = useState<Array<{ user_id: string; full_name: string }>>([])
@@ -90,6 +130,52 @@ export function IdentitySettingsClient({ initialData, parchmentUserId: initialPa
 
   // Check if identity is complete
   const isComplete = providerNumber.trim() !== "" && ahpraNumber.trim() !== ""
+  const linkedProviders = useMemo(() => {
+    const providers = new Set<string>()
+    const appProviders = user?.app_metadata?.providers
+    if (Array.isArray(appProviders)) {
+      appProviders.forEach((provider) => {
+        if (typeof provider === "string") providers.add(provider)
+      })
+    }
+    user?.identities?.forEach((identity) => {
+      if (identity.provider) providers.add(identity.provider)
+    })
+    return providers
+  }, [user?.app_metadata?.providers, user?.identities])
+  const googleLinked = linkedProviders.has("google")
+  const verifiedMfaFactors = mfaFactors.filter((factor) => factor.status === "verified")
+
+  const getAccountRedirectUrl = useCallback(() => {
+    if (typeof window === "undefined") return undefined
+    return `${window.location.origin}/auth/callback?next=${encodeURIComponent("/doctor/settings/identity#account-security")}`
+  }, [])
+
+  const loadMfaFactors = useCallback(async (showLoading = true) => {
+    if (showLoading) setMfaLoading(true)
+    const { data, error } = await supabase.auth.mfa.listFactors()
+    if (showLoading) setMfaLoading(false)
+    if (error) {
+      setMessage({ type: "error", text: error.message || "Could not load MFA factors" })
+      return
+    }
+    setMfaFactors(
+      (data?.all || []).map((factor) => ({
+        id: factor.id,
+        factor_type: factor.factor_type,
+        status: factor.status,
+        friendly_name: factor.friendly_name,
+      })),
+    )
+  }, [supabase.auth])
+
+  useEffect(() => {
+    setAccountEmail(user?.email || "")
+  }, [user?.email])
+
+  useEffect(() => {
+    if (user?.id) void loadMfaFactors(false)
+  }, [loadMfaFactors, user?.id])
 
   // Validate provider number on blur
   const handleProviderBlur = useCallback(() => {
@@ -110,6 +196,133 @@ export function IdentitySettingsClient({ initialData, parchmentUserId: initialPa
     const result = validateAhpraNumber(ahpraNumber)
     setAhpraError(result.valid ? null : result.error || "Invalid format")
   }, [ahpraNumber])
+
+  const handleEmailChange = useCallback(async () => {
+    const nextEmail = accountEmail.trim().toLowerCase()
+    if (!nextEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(nextEmail)) {
+      setMessage({ type: "error", text: "Enter a valid email address." })
+      return
+    }
+    if (nextEmail === user?.email) {
+      setMessage({ type: "success", text: "Email is already up to date." })
+      return
+    }
+
+    setEmailSaving(true)
+    const { error } = await supabase.auth.updateUser(
+      { email: nextEmail },
+      { emailRedirectTo: getAccountRedirectUrl() },
+    )
+    setEmailSaving(false)
+
+    if (error) {
+      setMessage({ type: "error", text: error.message || "Could not start email change." })
+      return
+    }
+
+    setMessage({
+      type: "success",
+      text: "Email change started. Confirm the verification email to finish updating this login.",
+    })
+  }, [accountEmail, getAccountRedirectUrl, supabase.auth, user?.email])
+
+  const handlePasswordChange = useCallback(async () => {
+    if (passwordForm.newPassword.length < 12) {
+      setMessage({ type: "error", text: "Use at least 12 characters for doctor account passwords." })
+      return
+    }
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      setMessage({ type: "error", text: "Password confirmation does not match." })
+      return
+    }
+
+    setPasswordSaving(true)
+    const { error } = await supabase.auth.updateUser({ password: passwordForm.newPassword })
+    setPasswordSaving(false)
+
+    if (error) {
+      setMessage({ type: "error", text: error.message || "Could not update password." })
+      return
+    }
+
+    setPasswordForm({ newPassword: "", confirmPassword: "" })
+    setMessage({ type: "success", text: "Password updated successfully." })
+  }, [passwordForm.confirmPassword, passwordForm.newPassword, supabase.auth])
+
+  const handleStartMfaEnrollment = useCallback(async () => {
+    setMfaEnrolling(true)
+    const { data, error } = await supabase.auth.mfa.enroll({
+      factorType: "totp",
+      friendlyName: "InstantMed doctor login",
+    })
+    setMfaEnrolling(false)
+
+    if (error || !data || data.type !== "totp") {
+      setMessage({ type: "error", text: error?.message || "Could not start MFA setup." })
+      return
+    }
+
+    setMfaEnrollment({
+      factorId: data.id,
+      qrCode: data.totp.qr_code,
+      secret: data.totp.secret,
+    })
+    setMfaCode("")
+    setMessage({ type: "success", text: "Scan the QR code, then enter the 6-digit authenticator code." })
+  }, [supabase.auth])
+
+  const handleVerifyMfaEnrollment = useCallback(async () => {
+    if (!mfaEnrollment) return
+    const code = mfaCode.trim().replace(/\s/g, "")
+    if (!/^\d{6}$/.test(code)) {
+      setMessage({ type: "error", text: "Enter the 6-digit authenticator code." })
+      return
+    }
+
+    setMfaVerifying(true)
+    const { error } = await supabase.auth.mfa.challengeAndVerify({
+      factorId: mfaEnrollment.factorId,
+      code,
+    })
+    setMfaVerifying(false)
+
+    if (error) {
+      setMessage({ type: "error", text: error.message || "Could not verify MFA code." })
+      return
+    }
+
+    setMfaEnrollment(null)
+    setMfaCode("")
+    await loadMfaFactors(false)
+    setMessage({ type: "success", text: "Two-factor authentication is enabled." })
+  }, [loadMfaFactors, mfaCode, mfaEnrollment, supabase.auth])
+
+  const handleRemoveMfaFactor = useCallback(async (factorId: string) => {
+    setMfaLoading(true)
+    const { error } = await supabase.auth.mfa.unenroll({ factorId })
+    setMfaLoading(false)
+    if (error) {
+      setMessage({
+        type: "error",
+        text: error.message || "Could not remove MFA. Re-authenticate with MFA and try again.",
+      })
+      return
+    }
+    await loadMfaFactors(false)
+    setMessage({ type: "success", text: "MFA factor removed." })
+  }, [loadMfaFactors, supabase.auth])
+
+  const handleLinkGoogle = useCallback(async () => {
+    setGoogleLinking(true)
+    const { error } = await supabase.auth.linkIdentity({
+      provider: "google",
+      options: { redirectTo: getAccountRedirectUrl() },
+    })
+    if (error) {
+      setGoogleLinking(false)
+      setMessage({ type: "error", text: error.message || "Could not start Google linking." })
+    }
+  }, [getAccountRedirectUrl, supabase.auth])
 
   // Save handler
   const handleSave = useCallback(() => {
@@ -238,6 +451,34 @@ export function IdentitySettingsClient({ initialData, parchmentUserId: initialPa
 
   return (
     <div className="space-y-4">
+      {/* Header */}
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div className="flex items-start gap-4">
+          <Button variant="ghost" size="icon" asChild>
+            <Link href="/doctor/dashboard" aria-label="Back to doctor dashboard">
+              <ArrowLeft className="h-4 w-4" />
+            </Link>
+          </Button>
+          <div>
+            <h1 className="text-2xl font-semibold">Doctor Settings</h1>
+            <p className="text-sm text-muted-foreground">
+              Manage account security, Parchment prescribing, and certificate identity.
+            </p>
+          </div>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" size="sm" asChild>
+            <Link href="#account-security">Account security</Link>
+          </Button>
+          <Button variant="outline" size="sm" asChild>
+            <Link href="#parchment-account">Parchment prescribing</Link>
+          </Button>
+          <Button variant="outline" size="sm" asChild>
+            <Link href="#certificate-identity">Certificate identity</Link>
+          </Button>
+        </div>
+      </div>
+
       {/* Availability */}
       <Card>
         <CardHeader>
@@ -262,21 +503,6 @@ export function IdentitySettingsClient({ initialData, parchmentUserId: initialPa
           </div>
         </CardContent>
       </Card>
-
-      {/* Header */}
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild>
-          <Link href="/doctor/dashboard">
-            <ArrowLeft className="h-4 w-4" />
-          </Link>
-        </Button>
-        <div>
-          <h1 className="text-2xl font-semibold">Certificate Identity</h1>
-          <p className="text-sm text-muted-foreground">
-            Configure your details for medical certificates
-          </p>
-        </div>
-      </div>
 
       {/* Incomplete Warning */}
       {!isComplete && (
@@ -316,7 +542,209 @@ export function IdentitySettingsClient({ initialData, parchmentUserId: initialPa
         </div>
       )}
 
+      {/* Account Security */}
+      <div id="account-security" className="scroll-mt-24">
+      <Card className="rounded-xl border-border/50">
+        <CardHeader className="py-3 px-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <CardTitle className="text-base flex items-center gap-2">
+                <ShieldCheck className="h-4 w-4" />
+                Account Security
+              </CardTitle>
+              <CardDescription>
+                Control login, MFA, and connected sign-in methods for this doctor account.
+              </CardDescription>
+            </div>
+            <Badge variant={verifiedMfaFactors.length > 0 ? "success" : "warning"}>
+              {verifiedMfaFactors.length > 0 ? "MFA enabled" : "MFA not enabled"}
+            </Badge>
+          </div>
+        </CardHeader>
+        <CardContent className="px-4 py-3 space-y-5">
+          <div className="grid gap-4 lg:grid-cols-2">
+            <div className="space-y-3 rounded-lg bg-muted/35 p-3">
+              <div className="flex items-center gap-2">
+                <Mail className="h-4 w-4 text-muted-foreground" />
+                <p className="text-sm font-medium text-foreground">Email login</p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="doctor-account-email">Email address</Label>
+                <Input
+                  id="doctor-account-email"
+                  type="email"
+                  value={accountEmail}
+                  onChange={(event) => setAccountEmail(event.target.value)}
+                  placeholder="doctor@example.com"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Email changes require confirmation from the new address before the login changes.
+                </p>
+              </div>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={handleEmailChange}
+                disabled={emailSaving || accountEmail.trim().toLowerCase() === (user?.email || "").toLowerCase()}
+              >
+                {emailSaving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Mail className="h-4 w-4 mr-2" />}
+                Update Email
+              </Button>
+            </div>
+
+            <div className="space-y-3 rounded-lg bg-muted/35 p-3">
+              <div className="flex items-center gap-2">
+                <KeyRound className="h-4 w-4 text-muted-foreground" />
+                <p className="text-sm font-medium text-foreground">Password</p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="doctor-new-password">New password</Label>
+                <Input
+                  id="doctor-new-password"
+                  type={showNewPassword ? "text" : "password"}
+                  value={passwordForm.newPassword}
+                  onChange={(event) => setPasswordForm((prev) => ({ ...prev, newPassword: event.target.value }))}
+                  placeholder="At least 12 characters"
+                  endContent={
+                    <button
+                      type="button"
+                      onClick={() => setShowNewPassword((value) => !value)}
+                      className="text-muted-foreground hover:text-foreground"
+                      aria-label={showNewPassword ? "Hide password" : "Show password"}
+                    >
+                      {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="doctor-confirm-password">Confirm password</Label>
+                <Input
+                  id="doctor-confirm-password"
+                  type="password"
+                  value={passwordForm.confirmPassword}
+                  onChange={(event) => setPasswordForm((prev) => ({ ...prev, confirmPassword: event.target.value }))}
+                />
+              </div>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={handlePasswordChange}
+                disabled={passwordSaving || !passwordForm.newPassword || !passwordForm.confirmPassword}
+              >
+                {passwordSaving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <KeyRound className="h-4 w-4 mr-2" />}
+                Change Password
+              </Button>
+            </div>
+          </div>
+
+          <div className="grid gap-4 lg:grid-cols-2">
+            <div className="space-y-3 rounded-lg bg-muted/35 p-3">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <Smartphone className="h-4 w-4 text-muted-foreground" />
+                  <p className="text-sm font-medium text-foreground">Two-factor authentication</p>
+                </div>
+                <Badge variant={verifiedMfaFactors.length > 0 ? "success" : "warning"} size="sm">
+                  {verifiedMfaFactors.length > 0 ? `${verifiedMfaFactors.length} active` : "Off"}
+                </Badge>
+              </div>
+
+              {mfaFactors.length > 0 && (
+                <div className="space-y-2">
+                  {mfaFactors.map((factor) => (
+                    <div key={factor.id} className="flex items-center justify-between gap-3 rounded-md border border-border/60 bg-background px-3 py-2">
+                      <div>
+                        <p className="text-sm font-medium text-foreground">
+                          {factor.friendly_name || `${factor.factor_type.toUpperCase()} factor`}
+                        </p>
+                        <p className="text-xs text-muted-foreground">{factor.status}</p>
+                      </div>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={() => void handleRemoveMfaFactor(factor.id)}
+                        disabled={mfaLoading}
+                      >
+                        Remove
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {mfaEnrollment ? (
+                <div className="space-y-3 rounded-md border border-primary/20 bg-background p-3">
+                  <div className="grid gap-3 sm:grid-cols-[140px_1fr]">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={mfaEnrollment.qrCode}
+                      alt="Authenticator QR code"
+                      className="h-32 w-32 rounded-md border border-border bg-white p-2"
+                    />
+                    <div className="space-y-2">
+                      <p className="text-sm text-muted-foreground">
+                        Scan this QR code in an authenticator app, or enter the setup key manually.
+                      </p>
+                      <p className="break-all rounded bg-muted px-2 py-1 font-mono text-xs">{mfaEnrollment.secret}</p>
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-2 sm:flex-row">
+                    <Input
+                      inputMode="numeric"
+                      value={mfaCode}
+                      onChange={(event) => setMfaCode(event.target.value)}
+                      placeholder="6-digit code"
+                      className="sm:max-w-[180px]"
+                    />
+                    <Button type="button" size="sm" onClick={handleVerifyMfaEnrollment} disabled={mfaVerifying}>
+                      {mfaVerifying ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-2" />}
+                      Verify MFA
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <Button type="button" size="sm" variant="outline" onClick={handleStartMfaEnrollment} disabled={mfaEnrolling}>
+                  {mfaEnrolling ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <ShieldCheck className="h-4 w-4 mr-2" />}
+                  Add Authenticator App
+                </Button>
+              )}
+            </div>
+
+            <div className="space-y-3 rounded-lg bg-muted/35 p-3">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <Link2 className="h-4 w-4 text-muted-foreground" />
+                  <p className="text-sm font-medium text-foreground">Connected login providers</p>
+                </div>
+                <Badge variant={googleLinked ? "success" : "outline"} size="sm">
+                  {googleLinked ? "Google linked" : "Google not linked"}
+                </Badge>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Link Google so the same doctor account can sign in with Google or email without creating duplicate profiles.
+              </p>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={handleLinkGoogle}
+                disabled={googleLinked || googleLinking}
+              >
+                {googleLinking ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Link2 className="h-4 w-4 mr-2" />}
+                {googleLinked ? "Google Connected" : "Link Google"}
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+      </div>
+
       {/* Professional Details */}
+      <div id="certificate-identity" className="scroll-mt-24">
       <Card className="rounded-xl border-border/50">
         <CardHeader className="py-3 px-4">
           <CardTitle className="text-base flex items-center gap-2">
@@ -406,6 +834,7 @@ export function IdentitySettingsClient({ initialData, parchmentUserId: initialPa
           </div>
         </CardContent>
       </Card>
+      </div>
 
       {/* Signature */}
       <Card className="rounded-xl border-border/50">
@@ -452,15 +881,23 @@ export function IdentitySettingsClient({ initialData, parchmentUserId: initialPa
       </Card>
 
       {/* Parchment Integration */}
+      <div id="parchment-account" className="scroll-mt-24">
       <Card className="rounded-xl border-border/50">
         <CardHeader className="py-3 px-4">
-          <CardTitle className="text-base flex items-center gap-2">
-            <Pill className="h-4 w-4" />
-            Parchment ePrescribing
-          </CardTitle>
-          <CardDescription>
-            Link your Parchment Health account for embedded prescribing
-          </CardDescription>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <CardTitle className="text-base flex items-center gap-2">
+                <Pill className="h-4 w-4" />
+                Parchment Prescribing Account
+              </CardTitle>
+              <CardDescription>
+                Link this logged-in doctor once. Patients sync automatically when you prescribe or refresh them.
+              </CardDescription>
+            </div>
+            <Badge variant={parchmentUserId ? "success" : "warning"}>
+              {parchmentUserId ? "Prescriber linked" : "Link required"}
+            </Badge>
+          </div>
         </CardHeader>
         <CardContent className="px-4 py-3 space-y-4">
           {parchmentUserId ? (
@@ -478,7 +915,7 @@ export function IdentitySettingsClient({ initialData, parchmentUserId: initialPa
                 )}
               </div>
               <div className="space-y-1">
-                <Label className="text-muted-foreground text-xs">Parchment User ID</Label>
+                <Label className="text-muted-foreground text-xs">Linked Parchment User ID</Label>
                 <p className="text-sm font-mono">{parchmentUserId}</p>
               </div>
               <Button
@@ -503,14 +940,14 @@ export function IdentitySettingsClient({ initialData, parchmentUserId: initialPa
                 </Badge>
               </div>
               <p className="text-sm text-muted-foreground">
-                Link your account to prescribe directly from the intake review panel.
+                Link the Parchment prescriber user for this InstantMed doctor account. This is not a per-patient step.
               </p>
               <div className="space-y-2">
                 <Label>Parchment User ID</Label>
                 <Input
                   value={selectedParchmentUser}
                   onChange={(event) => setSelectedParchmentUser(event.target.value)}
-                  placeholder="Paste user_id from Parchment"
+                  placeholder="Paste user_id from the current Parchment environment"
                   className="font-mono"
                 />
               </div>
@@ -562,6 +999,7 @@ export function IdentitySettingsClient({ initialData, parchmentUserId: initialPa
           )}
         </CardContent>
       </Card>
+      </div>
 
       {/* Save Button */}
       <div className="flex justify-end gap-3">

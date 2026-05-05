@@ -5,6 +5,7 @@ import { POST } from "@/app/api/webhooks/parchment/route"
 const mocks = vi.hoisted(() => ({
   captureMessage: vi.fn(),
   getIntakeWithDetails: vi.fn(),
+  logAuditEvent: vi.fn(),
   logWebhookFailure: vi.fn(),
   logExternalPrescribingIndicated: vi.fn(),
   logger: {
@@ -34,6 +35,7 @@ vi.mock("@/lib/audit/compliance-audit", () => ({
 }))
 
 vi.mock("@/lib/security/audit-log", () => ({
+  logAuditEvent: mocks.logAuditEvent,
   logWebhookFailure: mocks.logWebhookFailure,
 }))
 
@@ -225,6 +227,22 @@ describe("Parchment webhook route", () => {
       PRESCRIBER_PROFILE_ID,
       SCID,
     )
+    expect(mocks.logAuditEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: "admin_action",
+        actorId: PRESCRIBER_PROFILE_ID,
+        actorType: "system",
+        intakeId: INTAKE_ID,
+        metadata: expect.objectContaining({
+          action_type: "parchment_webhook_script_sent",
+          event_id: "evt_route_1",
+          patient_id: PATIENT_PROFILE_ID,
+          prescription_synced: true,
+          scid: SCID,
+          script_sent: true,
+        }),
+      }),
+    )
   })
 
   it("alerts operators and retries when a standalone Parchment prescription cannot be synced", async () => {
@@ -252,6 +270,10 @@ describe("Parchment webhook route", () => {
       "parchment:prescription.created",
       null,
       "prescription_sync_failed",
+      expect.objectContaining({
+        patient_id: PATIENT_PROFILE_ID,
+        scid: SCID,
+      }),
     )
   })
 
@@ -284,6 +306,19 @@ describe("Parchment webhook route", () => {
       status: "active",
       issued_date: "2026-05-04",
     })
+    expect(mocks.logAuditEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: "admin_action",
+        actorId: PRESCRIBER_PROFILE_ID,
+        actorType: "system",
+        metadata: expect.objectContaining({
+          action_type: "parchment_webhook_prescription_synced",
+          patient_id: PATIENT_PROFILE_ID,
+          scid: SCID,
+          script_sent: false,
+        }),
+      }),
+    )
   })
 
   it("logs durable ops visibility when matched Parchment script completion fails", async () => {
@@ -299,6 +334,10 @@ describe("Parchment webhook route", () => {
       "parchment:prescription.created",
       INTAKE_ID,
       "script_completion_failed",
+      expect.objectContaining({
+        patient_id: PATIENT_PROFILE_ID,
+        scid: SCID,
+      }),
     )
   })
 })

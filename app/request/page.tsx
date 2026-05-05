@@ -33,6 +33,7 @@ export default async function RequestPage({
     subtype?: string
     medication?: string
     certType?: string
+    duration?: string
   }>
 }) {
   const params = await searchParams
@@ -214,6 +215,7 @@ export default async function RequestPage({
       initialSubtype={initialSubtype}
       initialMedication={params.medication}
       initialCertType={params.certType}
+      initialDuration={params.duration}
       isAuthenticated={!!user}
       hasProfile={!!profile}
       hasCompleteIdentity={hasCompleteIdentity}

@@ -29,6 +29,7 @@ interface CertificateStepProps {
   onNext: () => void
   onBack: () => void
   onComplete: () => void
+  initialDuration?: string
 }
 
 const CERT_TYPES = [
@@ -41,6 +42,14 @@ type CertType = "work" | "study" | "carer"
 type Duration = 1 | 2 | 3
 
 const DURATION_OPTIONS: Duration[] = [1, 2, 3]
+
+function parseDuration(value: unknown): Duration | null {
+  const numericValue = typeof value === "number" ? value : Number(value)
+  if (DURATION_OPTIONS.includes(numericValue as Duration)) {
+    return numericValue as Duration
+  }
+  return null
+}
 
 // ─── Date helpers ─────────────────────────────────────────────────────────
 
@@ -89,14 +98,17 @@ function summaryLabel(offset: number): string {
 
 // ─── Component ────────────────────────────────────────────────────────────
 
-export default function CertificateStep({ onNext }: CertificateStepProps) {
+export default function CertificateStep({ onNext, initialDuration }: CertificateStepProps) {
   const { answers, setAnswer } = useRequestStore()
   const posthog = usePostHog()
+  const initialUrlDurationRef = useRef<Duration | null>(parseDuration(initialDuration))
+  const urlDurationAppliedRef = useRef(false)
 
   const certType = answers.certType as CertType | undefined
   // Default to 2 days - most common selection, pre-checked per UX intent.
-  // Restore effect below overrides this for users navigating back.
+  // URL/store duration is applied after hydration to avoid SSR/client drift.
   const [selectedDays, setSelectedDays] = useState<Duration | null>(2)
+  const [canSyncSelection, setCanSyncSelection] = useState(false)
   // Default start offset to 0 (today). Most patients start the same day.
   // Restore effect overrides for users navigating back to this step.
   const [startOffset, setStartOffset] = useState<number | null>(0)
@@ -107,17 +119,39 @@ export default function CertificateStep({ onNext }: CertificateStepProps) {
   const durationRef = useRef<HTMLDivElement>(null)
   const startDateRef = useRef<HTMLDivElement>(null)
 
-  // Restore from store on mount (user navigating back)
+  // Apply a landing-page duration prefill after hydration. The user can still
+  // change this inside the form after the initial price-specific handoff.
   useEffect(() => {
-    if (answers.startDate && answers.duration) {
+    const urlDuration = initialUrlDurationRef.current
+    if (urlDuration && !urlDurationAppliedRef.current) {
+      urlDurationAppliedRef.current = true
+      setSelectedDays(urlDuration)
+      setAnswer("duration", String(urlDuration))
+    }
+    setCanSyncSelection(true)
+  }, [setAnswer])
+
+  // Restore persisted duration after store hydration when there is no explicit
+  // URL duration. Price-specific CTA params should win the initial handoff.
+  useEffect(() => {
+    if (!canSyncSelection || initialUrlDurationRef.current) {
+      return
+    }
+
+    const storedDuration = parseDuration(answers.duration)
+    if (storedDuration && storedDuration !== selectedDays) {
+      setSelectedDays(storedDuration)
+    }
+  }, [answers.duration, canSyncSelection, selectedDays])
+
+  useEffect(() => {
+    if (answers.startDate) {
       const offset = isoToOffset(answers.startDate as string)
-      const dur = Number(answers.duration) as Duration
-      if (offset !== null && [1, 2, 3].includes(dur)) {
+      if (offset !== null) {
         setStartOffset(offset)
-        setSelectedDays(dur)
       }
     }
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [answers.startDate])
 
   // Load smart defaults for certType
   useEffect(() => {
@@ -129,11 +163,12 @@ export default function CertificateStep({ onNext }: CertificateStepProps) {
 
   // Sync to store on every selection change
   useEffect(() => {
+    if (!canSyncSelection) return
     if (startOffset !== null && selectedDays !== null) {
       setAnswer("startDate", offsetToISO(startOffset))
       setAnswer("duration", String(selectedDays))
     }
-  }, [startOffset, selectedDays, setAnswer])
+  }, [canSyncSelection, startOffset, selectedDays, setAnswer])
 
   // Derived
   const price = selectedDays ? MED_CERT_DURATIONS.prices[selectedDays] : null

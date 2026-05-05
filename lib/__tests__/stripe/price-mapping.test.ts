@@ -76,12 +76,22 @@ describe("getAbsenceDays", () => {
     expect(getAbsenceDays({ duration: "3" })).toBe(3)
   })
 
+  it('returns 2 for legacy duration label "2 days"', async () => {
+    const { getAbsenceDays } = await importModule()
+    expect(getAbsenceDays({ duration: "2 days" })).toBe(2)
+  })
+
+  it('returns 3 for legacy duration label "3 days"', async () => {
+    const { getAbsenceDays } = await importModule()
+    expect(getAbsenceDays({ duration: "3 days" })).toBe(3)
+  })
+
   it("duration takes precedence over legacy absence_dates", async () => {
     const { getAbsenceDays } = await importModule()
     expect(getAbsenceDays({ duration: "2", absence_dates: "today" })).toBe(2)
   })
 
-  it("falls through to legacy flow for unexpected duration value", async () => {
+  it("falls through to legacy flow for unsupported duration value", async () => {
     const { getAbsenceDays } = await importModule()
     expect(getAbsenceDays({ duration: "5", absence_dates: "today" })).toBe(1)
   })
@@ -318,6 +328,17 @@ describe("getPriceIdForRequest", () => {
         category: "medical_certificate",
         subtype: "work",
         answers: { duration: "3" },
+      }),
+    ).toBe("price_medcert_3day")
+  })
+
+  it('returns 3-day med cert price for legacy duration label "3 days"', async () => {
+    const { getPriceIdForRequest } = await importModule()
+    expect(
+      getPriceIdForRequest({
+        category: "medical_certificate",
+        subtype: "work",
+        answers: { duration: "3 days" },
       }),
     ).toBe("price_medcert_3day")
   })
@@ -603,6 +624,15 @@ describe("getAmountCentsForRequest", () => {
       category: "medical_certificate",
       subtype: "work",
       answers: { duration: "3" },
+    })).toBe(3995)
+  })
+
+  it("stores tiered med cert amount from legacy duration labels", async () => {
+    const { getAmountCentsForRequest } = await importModule()
+    expect(getAmountCentsForRequest({
+      category: "medical_certificate",
+      subtype: "work",
+      answers: { duration: "3 days" },
     })).toBe(3995)
   })
 

@@ -32,7 +32,7 @@ import { TimeRemaining } from "@/components/request/time-remaining"
 import { Button } from "@/components/ui/button"
 import { useReducedMotion } from "@/components/ui/motion"
 import { useKeyboardNavigation } from "@/lib/hooks/use-keyboard-navigation"
-import { isValidCertCategory } from "@/lib/marketing/med-cert-selector"
+import { isValidCertCategory, isValidCertDuration } from "@/lib/marketing/med-cert-selector"
 import {
   type ConsultSubtype,
   getStepDefinitionById,
@@ -72,6 +72,8 @@ interface RequestFlowProps {
   initialMedication?: string
   /** Certificate type from URL (pre-seeded from landing page selector) */
   initialCertType?: string
+  /** Certificate duration from URL (pre-seeded from landing page selector) */
+  initialDuration?: string
   isAuthenticated: boolean
   hasProfile: boolean
   /** Profile has complete identity (incl. date_of_birth) - details step can be skipped */
@@ -109,6 +111,7 @@ export function RequestFlow({
   initialSubtype,
   initialMedication,
   initialCertType,
+  initialDuration,
   isAuthenticated,
   hasProfile,
   hasCompleteIdentity,
@@ -273,6 +276,18 @@ export function RequestFlow({
     if (initialService === 'med-cert' && initialCertType && !answers.certType) {
       if (isValidCertCategory(initialCertType)) {
         setAnswer('certType', initialCertType)
+      }
+    }
+  // Only run on mount
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Pre-seed certificate duration from URL param when a landing CTA displays
+  // a specific price. Direct /request entries still keep the flow default.
+  useEffect(() => {
+    if (initialService === 'med-cert' && initialDuration && !answers.duration) {
+      if (isValidCertDuration(initialDuration)) {
+        setAnswer('duration', initialDuration)
       }
     }
   // Only run on mount
@@ -606,6 +621,7 @@ export function RequestFlow({
               serviceType={effectiveService}
               currentStepId={currentStepId}
               componentPath={currentStep.componentPath}
+              initialDuration={initialDuration}
               onNext={handleNext}
               onBack={handleBack}
               onComplete={handleComplete}

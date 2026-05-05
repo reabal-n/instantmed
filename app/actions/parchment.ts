@@ -98,7 +98,7 @@ export async function getParchmentPrescribeUrlAction(
     if (!doctorProfile?.parchment_user_id) {
       return {
         success: false,
-        error: "Parchment account not linked. Go to Settings → Identity to connect your Parchment account.",
+        error: "Prescriber account not linked. Go to Doctor Settings > Parchment Prescribing Account to link your Parchment user.",
       }
     }
 
@@ -463,7 +463,7 @@ export async function validateParchmentIntegrationAction(): Promise<{
     if (!doctorProfile?.parchment_user_id) {
       return {
         success: false,
-        error: "Parchment account not linked. Link your user before validating the integration.",
+        error: "Prescriber account not linked. Link your Parchment user before validating the integration.",
       }
     }
 

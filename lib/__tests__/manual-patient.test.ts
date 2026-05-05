@@ -113,7 +113,8 @@ describe("manual patient creation", () => {
   it("surfaces patient-profile Parchment sync and refresh controls", () => {
     expect(patientDetailClientSource).toContain("syncPatientParchmentProfileAction")
     expect(patientDetailClientSource).toContain("refreshPatientParchmentPrescriptionsAction")
-    expect(patientDetailClientSource).toContain("Parchment account not linked")
+    expect(patientDetailClientSource).toContain("Prescriber account not linked")
+    expect(patientDetailClientSource).toContain("/doctor/settings/identity#parchment-account")
     expect(patientDetailClientSource).toContain("Refresh prescriptions")
   })
 })

@@ -852,7 +852,7 @@ Models in `lib/ai/provider.ts`. Routed through Vercel AI Gateway in production (
 | Route | Purpose |
 |-------|---------|
 | `/` | Marketing homepage. Section order: hero → subdued regulatory strip → active service cards → compact coming-soon teaser → how-it-works → compact FAQ → CTA banner → compliance marquee. Coming-soon services are preview-only, with no waitlist/newsletter capture. |
-| `/medical-certificate` | Premium landing for med certs — the gold-standard `MedCertLanding` pattern. |
+| `/medical-certificate` | Premium landing for med certs. Current structure: hero -> consolidated workplace proof with employer-logo context -> compact certificate selector -> time comparison -> how-it-works -> fee/refund suitability -> scope limits -> compact FAQ -> CTA. CTAs that advertise the 1-day price carry `duration=1` into `/request`. |
 | `/prescriptions` | Repeat medication landing (one-off eScript review workflow). Subscription language is dormant/future strategy unless reactivated in `docs/BUSINESS_PLAN.md`. |
 | `/erectile-dysfunction` | Bespoke ED specialty landing (`ErectileDysfunctionLanding`). Routes into `/request?service=consult&subtype=ed`. Form-first doctor review; doctor may call/message if clinically needed. Short URL `/ed` 301s here. |
 | `/hair-loss` | Bespoke hair loss specialty landing (`HairLossLanding`). Routes into `/request?service=consult&subtype=hair_loss`. Form-first doctor review; doctor may call/message if clinically needed. |
