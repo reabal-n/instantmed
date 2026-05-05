@@ -13,7 +13,7 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 export type { AuditLog, AuditLogFilters, AuditLogStats } from "@/lib/data/types/audit-logs"
 export { formatActorType,formatEventType, getAuditEventTypes } from "@/lib/data/types/audit-logs"
 
-import type { AuditLog, AuditLogFilters } from "@/lib/data/types/audit-logs"
+import { type AuditLog, type AuditLogFilters,buildAuditLogDescription } from "@/lib/data/types/audit-logs"
 
 const log = createLogger("audit-logs")
 
@@ -99,7 +99,10 @@ export async function getAuditLogs(
 
   if (actorIds.length === 0) {
     return {
-      data: rows,
+      data: rows.map((row) => ({
+        ...row,
+        description: buildAuditLogDescription(row),
+      })),
       total: result.total,
     }
   }
@@ -122,6 +125,7 @@ export async function getAuditLogs(
   return {
     data: rows.map((row) => ({
       ...row,
+      description: buildAuditLogDescription(row),
       actor: row.actor_id ? actorById.get(row.actor_id) : undefined,
     })),
     total: result.total,

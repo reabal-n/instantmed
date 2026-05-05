@@ -38,7 +38,7 @@ export interface RecentEmailActivity {
  */
 export async function getEmailStats(): Promise<{ stats: EmailStats; error?: string }> {
   try {
-    await requireRole(["admin", "doctor"])
+    await requireRole(["admin"])
     const supabase = createServiceRoleClient()
 
     // Get today's date range (UTC)
@@ -118,12 +118,12 @@ export async function getEmailStats(): Promise<{ stats: EmailStats; error?: stri
 /**
  * Fetch recent email activity from email_outbox table
  */
-export async function getRecentEmailActivity(limit = 10): Promise<{ 
+export async function getRecentEmailActivity(limit = 10): Promise<{
   activity: RecentEmailActivity[]
-  error?: string 
+  error?: string
 }> {
   try {
-    await requireRole(["admin", "doctor"])
+    await requireRole(["admin"])
     const supabase = createServiceRoleClient()
 
     const { data, error } = await supabase

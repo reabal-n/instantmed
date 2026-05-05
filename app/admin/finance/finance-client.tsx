@@ -12,6 +12,7 @@ import {
   TrendingDown,
   TrendingUp,
 } from "lucide-react"
+import Link from "next/link"
 
 import {
   Area,
@@ -120,12 +121,20 @@ export function FinanceDashboardClient({ finance }: FinanceDashboardClientProps)
           backHref="/admin"
           backLabel="Admin"
           actions={
-            <Button variant="outline" asChild>
-              <a href="https://dashboard.stripe.com" target="_blank" rel="noopener noreferrer">
-                <ExternalLink className="w-4 h-4 mr-2" />
-                Open Stripe
-              </a>
-            </Button>
+            <>
+              <Button variant="outline" asChild>
+                <Link href="/admin/refunds">
+                  <RotateCcw className="h-4 w-4" />
+                  Refunds
+                </Link>
+              </Button>
+              <Button variant="outline" asChild>
+                <a href="https://dashboard.stripe.com" target="_blank" rel="noopener noreferrer">
+                  <ExternalLink className="h-4 w-4" />
+                  Open Stripe
+                </a>
+              </Button>
+            </>
           }
         />
 

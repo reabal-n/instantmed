@@ -41,7 +41,7 @@ const PROFILE_COLUMNS = `
   consent_myhr, onboarding_completed,
   email_verified, email_verified_at, email_bounced, email_bounced_at,
   email_bounce_reason, email_delivery_failures,
-  avatar_url, stripe_customer_id, parchment_patient_id, certificate_identity_complete,
+  avatar_url, stripe_customer_id, parchment_user_id, parchment_patient_id, certificate_identity_complete,
   signature_storage_path, created_at, updated_at
 ` as const
 

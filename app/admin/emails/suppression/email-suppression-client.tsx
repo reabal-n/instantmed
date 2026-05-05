@@ -1,15 +1,38 @@
 "use client"
 
-import { AlertTriangle, CheckCircle, Mail,RefreshCw, ShieldAlert } from "lucide-react"
+import {
+  AlertTriangle,
+  CheckCircle,
+  Mail,
+  RefreshCw,
+  ShieldAlert,
+} from "lucide-react"
 import { useState, useTransition } from "react"
 import { toast } from "sonner"
 
-import { clearBounceFlag, getSuppressedEmails, type SuppressedEmail } from "@/app/actions/email-suppression"
-import { DashboardPageHeader } from "@/components/dashboard"
+import {
+  clearBounceFlag,
+  getSuppressedEmails,
+  type SuppressedEmail,
+} from "@/app/actions/email-suppression"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription,CardHeader, CardTitle } from "@/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import { Heading } from "@/components/ui/heading"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 import { formatDateTime } from "@/lib/format"
 
 interface EmailSuppressionClientProps {
@@ -17,7 +40,10 @@ interface EmailSuppressionClientProps {
   error?: string
 }
 
-export function EmailSuppressionClient({ initialData, error }: EmailSuppressionClientProps) {
+export function EmailSuppressionClient({
+  initialData,
+  error,
+}: EmailSuppressionClientProps) {
   const [data, setData] = useState(initialData)
   const [isPending, startTransition] = useTransition()
   const [clearingId, setClearingId] = useState<string | null>(null)
@@ -27,10 +53,11 @@ export function EmailSuppressionClient({ initialData, error }: EmailSuppressionC
       const result = await getSuppressedEmails()
       if (result.error) {
         toast.error(result.error)
-      } else {
-        setData(result.data)
-        toast.success("Refreshed")
+        return
       }
+
+      setData(result.data)
+      toast.success("Refreshed")
     })
   }
 
@@ -39,27 +66,40 @@ export function EmailSuppressionClient({ initialData, error }: EmailSuppressionC
     startTransition(async () => {
       const result = await clearBounceFlag(profileId)
       if (result.success) {
-        setData((prev) => prev.filter((d) => d.profileId !== profileId))
+        setData((prev) => prev.filter((row) => row.profileId !== profileId))
         toast.success(`Cleared bounce for ${email}`)
       } else {
         toast.error(result.error || "Failed to clear bounce")
       }
+
       setClearingId(null)
     })
   }
 
+  const hardBounces = data.filter((row) => row.source === "bounce").length
+  const complaints = data.filter((row) => row.source === "complaint").length
+
   return (
     <div className="space-y-6">
-      <DashboardPageHeader
-        title="Email suppression list"
-        description="Emails blocked from delivery due to bounces or spam complaints."
-        actions={
-          <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isPending}>
-            <RefreshCw className={`h-4 w-4 mr-2 ${isPending ? "animate-spin" : ""}`} />
-            Refresh
-          </Button>
-        }
-      />
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
+          <Heading level="h2" className="!text-xl">
+            Suppression
+          </Heading>
+          <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
+            Addresses blocked from patient email delivery after bounces or spam complaints.
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleRefresh}
+          disabled={isPending}
+        >
+          <RefreshCw className={`mr-2 h-4 w-4 ${isPending ? "animate-spin" : ""}`} />
+          Refresh
+        </Button>
+      </div>
 
       {error && (
         <Card className="border-destructive">
@@ -79,17 +119,13 @@ export function EmailSuppressionClient({ initialData, error }: EmailSuppressionC
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Hard Bounces</CardDescription>
-            <CardTitle className="text-3xl">
-              {data.filter((d) => d.source === "bounce").length}
-            </CardTitle>
+            <CardTitle className="text-3xl">{hardBounces}</CardTitle>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Spam Complaints</CardDescription>
-            <CardTitle className="text-3xl">
-              {data.filter((d) => d.source === "complaint").length}
-            </CardTitle>
+            <CardTitle className="text-3xl">{complaints}</CardTitle>
           </CardHeader>
         </Card>
       </div>
@@ -101,15 +137,17 @@ export function EmailSuppressionClient({ initialData, error }: EmailSuppressionC
             Suppressed Addresses
           </CardTitle>
           <CardDescription>
-            Clear a bounce flag to re-enable delivery. Only do this if the recipient has confirmed their mailbox is working.
+            Clear a bounce flag only after the recipient confirms their mailbox is working.
           </CardDescription>
         </CardHeader>
         <CardContent>
           {data.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
-              <CheckCircle className="h-12 w-12 text-green-500 mb-3" />
+              <CheckCircle className="mb-3 h-12 w-12 text-green-500" />
               <p className="text-sm font-medium">No suppressed emails</p>
-              <p className="text-xs text-muted-foreground mt-1">All recipient addresses are deliverable.</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                All recipient addresses are deliverable.
+              </p>
             </div>
           ) : (
             <Table>
@@ -127,18 +165,31 @@ export function EmailSuppressionClient({ initialData, error }: EmailSuppressionC
                 {data.map((row) => (
                   <TableRow key={row.profileId}>
                     <TableCell className="font-mono text-xs">{row.email}</TableCell>
-                    <TableCell className="text-sm">{row.fullName || "—"}</TableCell>
+                    <TableCell className="text-sm">
+                      {row.fullName || "No patient"}
+                    </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        <Badge variant={row.source === "complaint" ? "destructive" : "secondary"}>
+                        <Badge
+                          variant={row.source === "complaint" ? "destructive" : "secondary"}
+                        >
                           {row.source === "complaint" ? (
-                            <><AlertTriangle className="h-3 w-3 mr-1" />Complaint</>
+                            <>
+                              <AlertTriangle className="mr-1 h-3 w-3" />
+                              Complaint
+                            </>
                           ) : (
-                            <><Mail className="h-3 w-3 mr-1" />Bounce</>
+                            <>
+                              <Mail className="mr-1 h-3 w-3" />
+                              Bounce
+                            </>
                           )}
                         </Badge>
                         {row.bounceReason && (
-                          <span className="text-xs text-muted-foreground max-w-[200px] truncate" title={row.bounceReason}>
+                          <span
+                            className="max-w-[200px] truncate text-xs text-muted-foreground"
+                            title={row.bounceReason}
+                          >
                             {row.bounceReason}
                           </span>
                         )}
@@ -146,7 +197,7 @@ export function EmailSuppressionClient({ initialData, error }: EmailSuppressionC
                     </TableCell>
                     <TableCell className="text-sm">{row.deliveryFailures}</TableCell>
                     <TableCell className="text-xs text-muted-foreground">
-                      {row.bouncedAt ? formatDateTime(row.bouncedAt) : "—"}
+                      {row.bouncedAt ? formatDateTime(row.bouncedAt) : "Unknown"}
                     </TableCell>
                     <TableCell className="text-right">
                       <Button
@@ -156,7 +207,7 @@ export function EmailSuppressionClient({ initialData, error }: EmailSuppressionC
                         disabled={isPending || clearingId === row.profileId}
                       >
                         {clearingId === row.profileId ? (
-                          <RefreshCw className="h-3 w-3 animate-spin mr-1" />
+                          <RefreshCw className="mr-1 h-3 w-3 animate-spin" />
                         ) : null}
                         Clear
                       </Button>

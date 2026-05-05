@@ -272,6 +272,11 @@ describe("Parchment webhook route", () => {
       "prescription_sync_failed",
       expect.objectContaining({
         patient_id: PATIENT_PROFILE_ID,
+        parchment_patient_id: "parchment-patient-1",
+        partner_patient_id: PATIENT_PROFILE_ID,
+        patient_profile_id: PATIENT_PROFILE_ID,
+        prescriber_profile_id: PRESCRIBER_PROFILE_ID,
+        prescriber_user_id: "parchment-user-1",
         scid: SCID,
       }),
     )
@@ -336,6 +341,11 @@ describe("Parchment webhook route", () => {
       "script_completion_failed",
       expect.objectContaining({
         patient_id: PATIENT_PROFILE_ID,
+        parchment_patient_id: "parchment-patient-1",
+        partner_patient_id: PATIENT_PROFILE_ID,
+        patient_profile_id: PATIENT_PROFILE_ID,
+        prescriber_profile_id: PRESCRIBER_PROFILE_ID,
+        prescriber_user_id: "parchment-user-1",
         scid: SCID,
       }),
     )

@@ -1,0 +1,65 @@
+import { existsSync, readFileSync } from "node:fs"
+import { join } from "node:path"
+
+import { describe, expect, it } from "vitest"
+
+function readProjectFile(path: string): string {
+  const fullPath = join(process.cwd(), path)
+  expect(existsSync(fullPath), `${path} should exist`).toBe(true)
+  return readFileSync(fullPath, "utf8")
+}
+
+function exportedActionBody(source: string, name: string): string {
+  const start = source.indexOf(`export async function ${name}`)
+  expect(start).toBeGreaterThanOrEqual(0)
+  const nextExport = source.indexOf("\nexport async function ", start + 1)
+  return source.slice(start, nextExport === -1 ? source.length : nextExport)
+}
+
+describe("Parchment ops dashboard and retry contract", () => {
+  it("exposes a focused admin Parchment ops page with retryable webhook failures", () => {
+    const pageSource = readProjectFile("app/admin/ops/parchment/page.tsx")
+    const retryButtonSource = readProjectFile("app/admin/ops/parchment/retry-webhook-button.tsx")
+    const opsSource = readProjectFile("lib/parchment/ops.ts")
+
+    expect(pageSource).toContain("getParchmentOpsDashboard")
+    expect(pageSource).toContain("Parchment Ops")
+    expect(pageSource).toContain("Failed prescription webhooks")
+    expect(pageSource).toContain("RetryParchmentWebhookButton")
+
+    expect(retryButtonSource).toContain("retryParchmentWebhookFailureAction")
+    expect(retryButtonSource).toContain("Retry sync")
+
+    expect(opsSource).toContain("getParchmentOpsDashboard")
+    expect(opsSource).toContain("retryable")
+    expect(opsSource).toContain("prescription_sync_failed")
+    expect(opsSource).toContain("prescriber_not_linked")
+  })
+
+  it("keeps failed Parchment webhook retry as an admin-only, rate-limited recovery action", () => {
+    const actionSource = readProjectFile("app/actions/parchment-ops.ts")
+    const body = exportedActionBody(actionSource, "retryParchmentWebhookFailureAction")
+
+    expect(body).toContain('requireRoleOrNull(["admin"])')
+    expect(body).toContain("checkServerActionRateLimit(")
+    expect(body).toContain("`parchment:webhook-retry:${authResult.profile.id}`")
+    expect(body.indexOf("checkServerActionRateLimit(")).toBeLessThan(
+      body.indexOf("const supabase = createServiceRoleClient()"),
+    )
+    expect(body).toContain("syncParchmentPrescriptionToPms(")
+    expect(body).toContain('action_type: "parchment_webhook_retry"')
+    expect(body).toContain("revalidatePath(\"/admin/ops/parchment\")")
+  })
+
+  it("stores enough non-PHI webhook metadata for future Parchment prescription retries", () => {
+    const webhookSource = readProjectFile("app/api/webhooks/parchment/route.ts")
+    const auditSource = readProjectFile("lib/security/audit-log.ts")
+
+    expect(auditSource).toContain("extraMetadata")
+    expect(webhookSource).toContain("buildParchmentWebhookFailureMetadata")
+    expect(webhookSource).toContain("scid")
+    expect(webhookSource).toContain("parchment_patient_id")
+    expect(webhookSource).toContain("prescriber_user_id")
+    expect(webhookSource).toContain("patient_profile_id")
+  })
+})

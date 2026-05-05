@@ -167,11 +167,11 @@ export async function POST(request: Request) {
       await recordParchmentWebhookMismatch(
         "patient_not_found",
         payload.event_id,
-        buildParchmentWebhookMetadata({
-          partnerPatientId: partner_patient_id,
-          parchmentPatientId: patient_id,
-          prescriberUserId: user_id,
+        buildParchmentWebhookFailureMetadata({
           scid,
+          parchmentPatientId: patient_id,
+          partnerPatientId: partner_patient_id,
+          prescriberUserId: user_id,
         }),
       )
       // Return 200 to prevent retries - patient genuinely doesn't exist in our system
@@ -198,12 +198,12 @@ export async function POST(request: Request) {
       await recordParchmentWebhookMismatch(
         "prescriber_not_linked",
         payload.event_id,
-        buildParchmentWebhookMetadata({
-          partnerPatientId: partner_patient_id,
-          parchmentPatientId: patient_id,
-          patientProfileId,
-          prescriberUserId: user_id,
+        buildParchmentWebhookFailureMetadata({
           scid,
+          parchmentPatientId: patient_id,
+          partnerPatientId: partner_patient_id,
+          prescriberUserId: user_id,
+          patientProfileId,
         }),
       )
       return NextResponse.json({ received: true, warning: "Prescriber not linked" })
@@ -292,13 +292,13 @@ export async function POST(request: Request) {
             result.reason || "prescription_sync_failed",
             payload.event_id,
             intakeId,
-            buildParchmentWebhookMetadata({
-              partnerPatientId: partner_patient_id,
+            buildParchmentWebhookFailureMetadata({
+              scid,
               parchmentPatientId: patient_id,
+              partnerPatientId: partner_patient_id,
+              prescriberUserId: user_id,
               patientProfileId,
               prescriberProfileId,
-              prescriberUserId: user_id,
-              scid,
             }),
           )
           return false
@@ -315,13 +315,13 @@ export async function POST(request: Request) {
           "prescription_sync_failed",
           payload.event_id,
           intakeId,
-          buildParchmentWebhookMetadata({
-            partnerPatientId: partner_patient_id,
+          buildParchmentWebhookFailureMetadata({
+            scid,
             parchmentPatientId: patient_id,
+            partnerPatientId: partner_patient_id,
+            prescriberUserId: user_id,
             patientProfileId,
             prescriberProfileId,
-            prescriberUserId: user_id,
-            scid,
           }),
         )
         return false
@@ -377,13 +377,13 @@ export async function POST(request: Request) {
             "script_completion_resume_failed",
             payload.event_id,
             existing.id,
-            buildParchmentWebhookMetadata({
-              partnerPatientId: partner_patient_id,
+            buildParchmentWebhookFailureMetadata({
+              scid,
               parchmentPatientId: patient_id,
+              partnerPatientId: partner_patient_id,
+              prescriberUserId: user_id,
               patientProfileId,
               prescriberProfileId: resumePrescriberId,
-              prescriberUserId: user_id,
-              scid,
             }),
           )
           return NextResponse.json({ error: "Failed to update intake" }, { status: 500 })
@@ -432,13 +432,13 @@ export async function POST(request: Request) {
       await recordParchmentWebhookMismatch(
         "no_awaiting_script_intake",
         payload.event_id,
-        buildParchmentWebhookMetadata({
-          partnerPatientId: partner_patient_id,
+        buildParchmentWebhookFailureMetadata({
+          scid,
           parchmentPatientId: patient_id,
+          partnerPatientId: partner_patient_id,
+          prescriberUserId: user_id,
           patientProfileId,
           prescriberProfileId: standalonePrescriberId,
-          prescriberUserId: user_id,
-          scid,
         }),
       )
       return NextResponse.json({ error: "Failed to sync prescription" }, { status: 500 })
@@ -460,13 +460,13 @@ export async function POST(request: Request) {
         "script_completion_failed",
         payload.event_id,
         intake.id,
-        buildParchmentWebhookMetadata({
-          partnerPatientId: partner_patient_id,
+        buildParchmentWebhookFailureMetadata({
+          scid,
           parchmentPatientId: patient_id,
+          partnerPatientId: partner_patient_id,
+          prescriberUserId: user_id,
           patientProfileId,
           prescriberProfileId: webhookPrescriberId,
-          prescriberUserId: user_id,
-          scid,
         }),
       )
       return NextResponse.json({ error: "Failed to update intake" }, { status: 500 })
@@ -603,21 +603,24 @@ async function recordParchmentWebhookSuccess(input: {
   }
 }
 
-function buildParchmentWebhookMetadata(input: {
+interface ParchmentWebhookFailureMetadataInput {
   scid: string
   parchmentPatientId: string
   partnerPatientId: string
   prescriberUserId: string
   patientProfileId?: string | null
   prescriberProfileId?: string | null
-}): Record<string, unknown> {
+}
+
+function buildParchmentWebhookFailureMetadata(input: ParchmentWebhookFailureMetadataInput): Record<string, unknown> {
   return {
-    partner_patient_id: input.partnerPatientId,
-    parchment_patient_id: input.parchmentPatientId,
-    patient_id: input.patientProfileId ?? input.partnerPatientId,
-    prescriber_profile_id: input.prescriberProfileId,
-    prescriber_user_id: input.prescriberUserId,
     scid: input.scid,
+    parchment_patient_id: input.parchmentPatientId,
+    partner_patient_id: input.partnerPatientId,
+    patient_id: input.patientProfileId ?? input.partnerPatientId,
+    prescriber_user_id: input.prescriberUserId,
+    ...(input.patientProfileId ? { patient_profile_id: input.patientProfileId } : {}),
+    ...(input.prescriberProfileId ? { prescriber_profile_id: input.prescriberProfileId } : {}),
   }
 }
 

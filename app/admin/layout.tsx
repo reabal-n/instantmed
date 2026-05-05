@@ -17,10 +17,9 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode
 }) {
-  // Admin-only. Doctors previously had access (yesterday-widget renders
-  // Stripe revenue + open disputes via createServiceRoleClient — RLS-bypassing,
-  // PHI-adjacent). Tightened in Phase 0 hotfix 2026-04-29; doctors with a real
-  // need can use /doctor/analytics + /doctor/email-suppression instead.
+  // Admin-only. Doctors previously had access to revenue and exception data via
+  // createServiceRoleClient-backed widgets. Clinical users stay in the doctor
+  // portal; delivery and recovery surfaces are admin-owned under /admin.
   const authUser = await requireRole(["admin"], { redirectTo: "/" })
 
   return (

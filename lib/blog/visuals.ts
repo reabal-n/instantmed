@@ -699,6 +699,7 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
       eyebrow: "Recovery pattern",
       title: "Stress and burnout separate most clearly after rest",
       summary: "Stress often eases when pressure drops. Burnout tends to persist until the work pattern changes.",
+      visualFormat: "comparison-graphic",
       kind: "comparison",
       accent: "blue",
       items: [
@@ -706,13 +707,14 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
         { label: "Burnout", detail: "Rest helps less when the system is unchanged", tone: "caution" },
         { label: "Next step", detail: "Look for workload, control, fairness, and support drivers" },
       ],
-      imagePrompt: "Completely textless burnout versus stress recovery visual, two abstract energy curves shown without labels on a blank page, warm ivory desk, blank notebook, soft blue and amber accents, no calendar, no numbers, no readable text, no words, no letters, no people, no faces, no hands, no workplace logos",
+      imagePrompt: "Detailed burnout versus stress recovery comparison graphic showing two labelled recovery curves: stress improving when pressure drops and burnout persisting when the work system remains unchanged. Include workload, control, fairness, support, recovery time, and recurring-demand callouts. Use a premium workplace mental health poster style with practical charts, not a desk still life. No sad stock imagery, no workplace logos, no fake employer dashboards, no therapy cliches, no consultation CTA.",
     },
     {
       id: "burnout-three-domains",
       eyebrow: "Core pattern",
       title: "Burnout usually has three connected features",
       summary: "Exhaustion, mental distance, and reduced effectiveness are more useful than vague tiredness alone.",
+      visualFormat: "medical-infographic",
       kind: "spectrum",
       accent: "amber",
       items: [
@@ -720,13 +722,14 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
         { label: "Distance", detail: "Detached, cynical, or emotionally numb" },
         { label: "Effectiveness", detail: "Performance and confidence feel reduced" },
       ],
-      imagePrompt: "Textless mental wellbeing triad visual, three calm abstract circles around blank notebook and tea cup, warm ivory background, amber and sky accents, no readable text, no people, no sad faces, no medical symbols",
+      imagePrompt: "Detailed mental wellbeing infographic explaining the three burnout domains: exhaustion, mental distance or cynicism, and reduced effectiveness. Show how they connect to chronic workplace stress, sleep disruption, concentration, detachment, and performance strain. Use a calm clinical workplace-health design with labelled modules, signal arrows, and one central triad diagram. No generic circles-only graphic, no blank notebook, no sad faces, no medical symbols, no diagnosis claims, no consultation CTA.",
     },
     {
       id: "workplace-psychosocial-drivers",
       eyebrow: "Work drivers",
       title: "Recovery depends on changing the stressors that keep repeating",
       summary: "Workload, control, clarity, support, fairness, and conflict shape whether leave becomes recovery or only a pause.",
+      visualFormat: "patient-education-poster",
       kind: "checklist",
       accent: "emerald",
       items: [
@@ -734,7 +737,7 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
         { label: "Control", detail: "Low autonomy or unclear priorities" },
         { label: "Support", detail: "Poor management, conflict, or no recovery space", tone: "caution" },
       ],
-      imagePrompt: "Completely textless workplace psychosocial driver visual, blank task board with empty cards, blank calendar, soft desk lamp, warm ivory and emerald accents, no readable text, no office brand marks, no people, no hands",
+      imagePrompt: "Detailed workplace psychosocial drivers education poster showing six labelled drivers: workload, low control, unclear role, poor support, unfairness, conflict, and no recovery time. Include a practical action strip for documenting drivers, asking for priority changes, and seeking clinical support when symptoms persist. Use mature Australian workplace-health design with task-flow diagrams and compact check panels. No blank task board, no employer logo, no legal advice stamp, no fake HR portal, no consultation CTA.",
     },
   ],
   "can-employer-reject-medical-certificate": [
@@ -787,6 +790,7 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
       eyebrow: "Suitability check",
       title: "Online antibiotic prescribing starts with clinical fit",
       summary: "The prescriber needs a bacterial pattern, low-risk symptoms, allergy history, and no red flags before considering antibiotics.",
+      visualFormat: "medical-infographic",
       kind: "checklist",
       accent: "blue",
       items: [
@@ -794,13 +798,14 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
         { label: "Low-risk history", detail: "No pregnancy, immune risk, or severe illness", tone: "caution" },
         { label: "Safe medicine choice", detail: "Allergy and interaction checks are clear" },
       ],
-      imagePrompt: "Completely textless antibiotic online suitability visual, blank phone screen, neutral medicine box with no text, abstract bacteria shapes, soft blue check shapes, warm ivory clinical desk, no readable text, no letters, no brand names, no pills spilling, no people, no hands",
+      imagePrompt: "Detailed Australian antibiotic suitability infographic showing the decision screen before prescribing: infection site, likely bacterial pattern, symptom severity, allergy history, pregnancy or immune risk, recent antibiotic use, interaction check, and red-flag exclusion. Use visually distinct panels, icons, and safety checkpoints while keeping all visible text limited to the registry copy supplied by the script. Do not show a medicine box as the main subject, no pill spilling, no antibiotic brand names, no prescription CTA, no fake app UI.",
     },
     {
       id: "antibiotic-red-flag-boundary",
       eyebrow: "Red flags",
       title: "Some infection symptoms should bypass telehealth",
       summary: "Severe illness, pregnancy, immune risk, children, eye symptoms, and spreading infection usually need in-person care.",
+      visualFormat: "red-flag-warning",
       kind: "warning",
       accent: "rose",
       items: [
@@ -808,13 +813,14 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
         { label: "Needs examination", detail: "Eye, ear, deep wounds, abscesses", tone: "urgent" },
         { label: "Higher-risk patient", detail: "Pregnancy, child, immune risk", tone: "caution" },
       ],
-      imagePrompt: "Completely textless infection red-flag boundary visual, blank phone set aside beside abstract clinic doorway and rose caution marker, warm ivory background, no readable text, no words, no medical crosses, no graphic symptoms, no people, no hands",
+      imagePrompt: "Detailed infection red-flag warning graphic for online antibiotic requests. Show severe or fast-worsening illness, pregnancy, child, immune risk, symptoms needing examination, and spreading infection as visual escalation zones. Use calm urgent-care hierarchy and clear telehealth boundary arrows while keeping all visible text limited to the registry copy supplied by the script. No graphic symptoms, no frightening faces, no medical crosses, no ambulance imagery, no consultation CTA.",
     },
     {
       id: "prescription-only-pathway",
       eyebrow: "Prescription pathway",
       title: "Antibiotics require assessment before pharmacy dispensing",
       summary: "A valid prescription connects clinical assessment to pharmacy supply. Websites bypassing that step are unsafe.",
+      visualFormat: "process-visual",
       kind: "flow",
       accent: "emerald",
       items: [
@@ -822,7 +828,7 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
         { label: "Prescription if appropriate", detail: "Prescriber decides, not the patient" },
         { label: "Pharmacy dispensing", detail: "eScript token is only the supply mechanism" },
       ],
-      imagePrompt: "Completely textless prescription-only antibiotic pathway visual, three abstract blank cards connected to blank phone and neutral pharmacy shelf shapes, emerald and blue accents, warm ivory background, no readable text, no words, no Rx symbols, no crosses, no logos, no people, no hands",
+      imagePrompt: "Detailed prescription-only antibiotic pathway visual showing assessment, prescription only if appropriate, pharmacy dispensing, and the unsafe shortcut of websites bypassing assessment as an abstract clinical flowchart underlay. Use arrows, shields, token shapes, doorway silhouettes, decision nodes, and community-protection dots only; do not use physical supply objects. Keep all visible text limited to the registry copy supplied by the script. No balance scales, justice scales, weighing scales, pills, tablets, capsules, blister packs, medicine bottles, medicine boxes, paper bags, parcels, envelopes, package delivery imagery, pharmacy counters, wastewater or drain metaphors, Rx symbol, pharmacy cross sign, brand logos, fake prescription, prices, or consultation CTA.",
     },
   ],
   "chest-infection-antibiotics-online": [
@@ -831,6 +837,7 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
       eyebrow: "Assessment boundary",
       title: "Chest infection symptoms need channel triage first",
       summary: "A cough can be viral bronchitis, pneumonia, COPD flare, asthma deterioration, or another breathing problem.",
+      visualFormat: "comparison-graphic",
       kind: "comparison",
       accent: "blue",
       items: [
@@ -838,13 +845,14 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
         { label: "Possible pneumonia", detail: "Needs in-person observations and sometimes X-ray", tone: "urgent" },
         { label: "Known lung disease", detail: "COPD or asthma changes the threshold", tone: "caution" },
       ],
-      imagePrompt: "Completely textless chest infection telehealth boundary visual, blank phone, abstract lungs made of soft simple shapes, branching path to neutral clinic doorway, warm ivory clinical background, blue and amber accents, no readable text, no words, no medical crosses, no people, no faces, no distressing symptoms",
+      imagePrompt: "Detailed chest infection assessment-boundary comparison graphic showing viral bronchitis, possible pneumonia, known lung disease, and other breathing-risk pathways. Use non-graphic lungs, airway diagrams, triage lanes, and examination/X-ray symbolism while keeping all visible text limited to the registry copy supplied by the script. No blank phone, no distressed patient, no medical crosses, no antibiotic promotion, no consultation CTA.",
     },
     {
       id: "sputum-colour-myth",
       eyebrow: "Common myth",
       title: "Coloured phlegm alone does not prove bacteria",
       summary: "Doctors look at the full pattern: fever, breathlessness, severity, duration, risk factors, and deterioration.",
+      visualFormat: "medical-infographic",
       kind: "warning",
       accent: "amber",
       items: [
@@ -852,13 +860,14 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
         { label: "Whole pattern", detail: "Severity and risk factors matter" },
         { label: "Worsening symptoms", detail: "Review the diagnosis", tone: "urgent" },
       ],
-      imagePrompt: "Completely textless sputum-colour myth visual, abstract airway and cough droplets shown as soft non-graphic shapes, blank checklist card, warm ivory background, amber and blue accents, no readable text, no words, no body close-up, no mucus realism, no people",
+      imagePrompt: "Detailed patient education infographic correcting the sputum-colour myth. Show visually that colour alone is weaker evidence than the whole symptom pattern, using non-graphic airway diagrams, an evidence-weight scale, and deterioration arrows while keeping all visible text limited to the registry copy supplied by the script. No mucus realism, no body close-up, no medicine boxes, no antibiotic guarantee, no consultation CTA.",
     },
     {
       id: "breathing-red-flags",
       eyebrow: "Urgent signs",
       title: "Breathing red flags should bypass online assessment",
       summary: "Severe breathlessness, blue lips, confusion, collapse, severe chest pain, or rapid deterioration need emergency care.",
+      visualFormat: "red-flag-warning",
       kind: "warning",
       accent: "rose",
       items: [
@@ -866,7 +875,7 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
         { label: "Confusion or blue lips", detail: "Emergency signs", tone: "urgent" },
         { label: "Severe chest pain", detail: "Do not assume infection", tone: "urgent" },
       ],
-      imagePrompt: "Completely textless breathing red-flag visual, blank phone placed aside, abstract rose urgency marker, soft outline of lungs as simple shapes, warm ivory clinical background, no readable text, no words, no medical crosses, no distressed person, no graphic symptoms",
+      imagePrompt: "Detailed non-graphic breathing red-flag warning poster showing severe breathlessness, confusion, blue-lip risk, collapse, chest pain, and rapid deterioration as visual emergency cues. Use calm escalation hierarchy, simplified lungs, oxygen-signal motifs, and urgent-care pathway arrows while keeping all visible text limited to the registry copy supplied by the script. No distressed person, no ambulance, no emergency-service logo, no medical crosses, no antibiotic CTA.",
     },
   ],
   "contraceptive-prescription-online": [
@@ -875,6 +884,7 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
       eyebrow: "Method fit",
       title: "Some contraception is prescription-based, some is procedure-based",
       summary: "Pills, patch, and ring may suit remote review. IUDs, implants, and injections need in-person planning or administration.",
+      visualFormat: "comparison-graphic",
       kind: "comparison",
       accent: "blue",
       items: [
@@ -882,13 +892,14 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
         { label: "Procedure needed", detail: "IUDs and implants need trained insertion", tone: "caution" },
         { label: "Complex symptoms", detail: "Pain, abnormal bleeding, or pregnancy concern needs review", tone: "urgent" },
       ],
-      imagePrompt: "Completely textless contraception method-fit visual, blank phone, abstract pill packet with no markings, simple neutral device silhouettes for procedure-based methods, warm ivory background, blue and emerald accents, no readable text, no words, no letters, no brand names, no people, no hands",
+      imagePrompt: "Detailed contraception method-fit comparison graphic showing prescription-based methods, procedure-based methods, and situations needing in-person assessment. Include respectful method symbols and clear pathway structure while keeping all visible text limited to the registry copy supplied by the script. Use reproductive-health design, not product advertising. No brand names, no explicit anatomy, no blank phone, no consultation CTA.",
     },
     {
       id: "combined-pill-risk-check",
       eyebrow: "Risk screen",
       title: "Combined hormonal contraception needs a risk check",
       summary: "Blood pressure, migraine with aura, clot history, smoking over 35, and medicines can change suitability.",
+      visualFormat: "patient-education-poster",
       kind: "checklist",
       accent: "amber",
       items: [
@@ -896,13 +907,14 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
         { label: "Migraine with aura", detail: "Important safety detail", tone: "urgent" },
         { label: "Clot or smoking risk", detail: "Can make oestrogen unsuitable", tone: "caution" },
       ],
-      imagePrompt: "Completely textless combined contraception risk-check still life, blank blood pressure cuff shape, blank checklist card, neutral pill pack with no markings, warm ivory clinical desk, amber and blue accents, no readable text, no letters, no brand names, no people, no hands",
+      imagePrompt: "Detailed combined hormonal contraception risk-check poster showing blood pressure, migraine with aura, clot or smoking risk, interacting medicines, and warning symptoms through visual panels and pathway arrows while keeping all visible text limited to the registry copy supplied by the script. Use a generic blood pressure motif without exact numbers. No brand names, no pill-pack hero, no official seals, no diagnosis promises, no consultation CTA.",
     },
     {
       id: "contraception-privacy-pathway",
       eyebrow: "Privacy planning",
       title: "Safe contact details matter before the prescription",
       summary: "Phone, email, pharmacy pickup, bank statements, and shared accounts can all affect contraception privacy.",
+      visualFormat: "process-visual",
       kind: "flow",
       accent: "emerald",
       items: [
@@ -910,7 +922,7 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
         { label: "Collection plan", detail: "Pharmacy and payment privacy" },
         { label: "Support pathway", detail: "Extra help if privacy creates risk", tone: "caution" },
       ],
-      imagePrompt: "Completely textless contraception privacy pathway visual, blank phone screen, blank envelope, soft privacy shield shape, warm ivory background, emerald and blue accents, no readable text, no words, no letters, no lock keyhole, no people, no hands, no logos",
+      imagePrompt: "Detailed contraception privacy planning pathway visual showing safe contact, pharmacy collection, payment privacy, shared-device risk, shared account risk, and support pathway through practical privacy panels and calm process arrows while keeping all visible text limited to the registry copy supplied by the script. No lock-keyhole cliches, no identifiable people, no brand logos, no fake app screen, no consultation CTA.",
     },
   ],
   "doctors-certificate-university-extension": [

@@ -1,8 +1,7 @@
 import {
   Activity,
   ArrowUpRight,
-  Cog,
-  ShieldCheck,
+  ListOrdered,
   Users,
 } from "lucide-react"
 import Link from "next/link"
@@ -16,14 +15,12 @@ interface ZoneStat {
   label: string
   value: number
   href: string
-  /** Highlight the stat in destructive red when value > 0. */
   attentionWhenNonZero?: boolean
 }
 
 interface ZoneLink {
   label: string
   href: string
-  description?: string
 }
 
 interface ZoneProps {
@@ -41,25 +38,6 @@ interface AdminHubZonesProps {
   pendingInfo: number
 }
 
-/**
- * 4-zone navigation hub for the /admin landing.
- *
- * Phase 3 of the doctor + admin portal rebuild (2026-04-29). Replaces
- * the implicit "scan the sidebar" navigation pattern with an explicit
- * orientation surface that surfaces today's operational pulse + deep
- * links into the most-used adjacent surfaces.
- *
- * Zones map to the four operator mental models:
- *
- *   - Today        operational pulse (queue, scripts, finance)
- *   - Patients     records & intake history
- *   - Operations   refunds, errors, webhooks, ops health
- *   - Settings     services, feature flags, content, emails
- *
- * Stats reuse the values already fetched by /admin/page.tsx so no
- * additional DB calls are introduced. All other shortcuts are
- * link-only.
- */
 export function AdminHubZones({
   inQueue,
   scriptsPending,
@@ -68,9 +46,9 @@ export function AdminHubZones({
 }: AdminHubZonesProps) {
   const zones: ZoneProps[] = [
     {
-      title: "Today",
-      subtitle: "Operational pulse",
-      icon: Activity,
+      title: "Review work",
+      subtitle: "Cases that need clinical attention",
+      icon: ListOrdered,
       stats: [
         { label: "In queue", value: inQueue, href: DOCTOR_QUEUE_REVIEW_HREF },
         {
@@ -81,13 +59,13 @@ export function AdminHubZones({
         },
       ],
       links: [
-        { label: "Finance dashboard", href: "/admin/finance" },
-        { label: "Doctor analytics", href: "/admin/analytics" },
+        { label: "Open review queue", href: DOCTOR_QUEUE_REVIEW_HREF },
+        { label: "Open scripts", href: "/doctor/scripts" },
       ],
     },
     {
-      title: "Patients",
-      subtitle: "Records & intake history",
+      title: "Patient work",
+      subtitle: "Records and intake follow-up",
       icon: Users,
       stats: [
         { label: "All intakes", value: totalIntakes, href: "/admin#intakes" },
@@ -99,32 +77,19 @@ export function AdminHubZones({
         },
       ],
       links: [
-        { label: "Patient list", href: "/doctor/patients" },
-        { label: "Audit log", href: "/admin/audit" },
+        { label: "Open patient list", href: "/doctor/patients" },
+        { label: "Search intake ledger", href: "/admin#intakes" },
       ],
     },
     {
-      title: "Operations",
-      subtitle: "Health & exceptions",
-      icon: ShieldCheck,
+      title: "Recovery work",
+      subtitle: "Vendor, webhook, and communication exceptions",
+      icon: Activity,
       links: [
-        { label: "Refunds", href: "/admin/refunds" },
-        { label: "Errors", href: "/admin/errors" },
-        { label: "Webhooks", href: "/admin/webhook-dlq" },
-        { label: "Ops health", href: "/admin/ops" },
-        { label: "Compliance", href: "/admin/compliance" },
-      ],
-    },
-    {
-      title: "Settings",
-      subtitle: "Configuration & content",
-      icon: Cog,
-      links: [
-        { label: "Services", href: "/admin/services" },
-        { label: "Feature flags", href: "/admin/features" },
-        { label: "Email templates", href: "/admin/emails" },
-        { label: "Content", href: "/admin/content" },
-        { label: "Doctors", href: "/admin/doctors" },
+        { label: "Open operations", href: "/admin/ops" },
+        { label: "Parchment ops", href: "/admin/ops/parchment" },
+        { label: "Webhook DLQ", href: "/admin/webhook-dlq" },
+        { label: "Email queue", href: "/admin/emails/hub" },
       ],
     },
   ]
@@ -133,13 +98,13 @@ export function AdminHubZones({
     <div>
       <div className="mb-4 flex items-baseline justify-between gap-3">
         <h2 className="text-base font-semibold tracking-tight text-foreground">
-          Quick navigation
+          Operational focus
         </h2>
         <p className="text-xs text-muted-foreground">
-          Jump straight into the surface you need
+          The few places worth opening mid-shift
         </p>
       </div>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
         {zones.map((zone) => (
           <Zone key={zone.title} {...zone} />
         ))}
@@ -169,8 +134,7 @@ function Zone({ title, subtitle, icon: Icon, stats, links }: ZoneProps) {
       {stats && stats.length > 0 && (
         <div className="mt-3 grid grid-cols-2 gap-2">
           {stats.map((stat) => {
-            const isAttention =
-              stat.attentionWhenNonZero && stat.value > 0
+            const isAttention = stat.attentionWhenNonZero && stat.value > 0
             return (
               <Link
                 key={stat.label}
@@ -202,7 +166,7 @@ function Zone({ title, subtitle, icon: Icon, stats, links }: ZoneProps) {
           <li key={link.href}>
             <Link
               href={link.href}
-              className="group flex items-center justify-between rounded-md px-2 py-1.5 text-sm text-muted-foreground transition-[color,background-color] hover:bg-muted/50 hover:text-foreground"
+              className="group flex items-center justify-between rounded-md px-2 py-1.5 text-sm text-muted-foreground transition-[background-color,color] hover:bg-muted/50 hover:text-foreground"
             >
               <span>{link.label}</span>
               <ArrowUpRight className="h-3.5 w-3.5 opacity-0 transition-opacity group-hover:opacity-100" />

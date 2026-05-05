@@ -26,12 +26,16 @@ const TABS: EmailTab[] = [
     href: "/admin/emails/analytics",
     label: "Analytics",
   },
+  {
+    href: "/admin/emails/suppression",
+    label: "Suppression",
+  },
 ]
 
 /**
  * Tab strip for the /admin/emails section. Active state is derived
- * from the current pathname so the strip works for all three sub-
- * routes plus their nested editor screens (e.g. /admin/emails/edit/[id]).
+ * from the current pathname so the strip works for the email sub-routes
+ * plus their nested editor screens (e.g. /admin/emails/edit/[id]).
  */
 export function EmailTabsNav() {
   const pathname = usePathname() ?? ""

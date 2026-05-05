@@ -15,6 +15,10 @@ const adminSidebarSource = readFileSync(
   join(process.cwd(), "components/admin/admin-sidebar.tsx"),
   "utf8",
 )
+const opsClientSource = readFileSync(
+  join(process.cwd(), "app/admin/ops/ops-client.tsx"),
+  "utf8",
+)
 const legacyWebhooksPageSource = readFileSync(
   join(process.cwd(), "app/admin/webhooks/page.tsx"),
   "utf8",
@@ -38,11 +42,12 @@ describe("ops dashboard data contract", () => {
     )
   })
 
-  it("keeps webhook admin navigation on the canonical Stripe DLQ surface", () => {
+  it("keeps webhook recovery on the canonical Stripe DLQ surface", () => {
     expect(adminHubZonesSource).toContain('href: "/admin/webhook-dlq"')
-    expect(adminSidebarSource).toContain('href: "/admin/webhook-dlq"')
+    expect(opsClientSource).toContain('href="/admin/webhook-dlq"')
     expect(adminHubZonesSource).not.toContain('href: "/admin/webhooks"')
     expect(adminSidebarSource).not.toContain('href: "/admin/webhooks"')
+    expect(adminSidebarSource).not.toContain('href: "/admin/webhook-dlq"')
 
     expect(legacyWebhooksPageSource).toContain('redirect("/admin/webhook-dlq")')
     expect(legacyWebhooksPageSource).not.toContain('.from("webhook_events")')

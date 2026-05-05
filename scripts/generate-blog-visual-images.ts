@@ -788,7 +788,7 @@ async function saveInfographic(slug: string, visual: ArticleVisual) {
   return filepath
 }
 
-async function saveGatewayInfographic(slug: string, visual: ArticleVisual) {
+async function saveGatewayInfographic(slug: string, visual: ArticleVisual, styleShift = 0) {
   const outputDir = path.join(process.cwd(), "public", "images", "blog", slug)
   await fs.mkdir(outputDir, { recursive: true })
 
@@ -796,11 +796,11 @@ async function saveGatewayInfographic(slug: string, visual: ArticleVisual) {
   const palette = palettes[visual.accent]
   const result = await generateImage({
     model: gateway.image(GPT_IMAGE_MODEL),
-    prompt: buildGatewayPrompt(slug, visual),
+    prompt: buildGatewayPrompt(slug, visual, styleShift),
     size: "1024x1536",
     providerOptions: {
       gateway: {
-        tags: ["feature:blog-visuals", `article:${slug}`, "renderer:gpt-image-2"],
+        tags: ["feature:blog-visuals", `article:${slug}`, "renderer:gpt-image-2", `style-shift:${styleShift}`],
       },
     },
   })
@@ -894,7 +894,7 @@ async function main() {
     console.log(`Generating ${renderer} visual ${slug}/${visual.id}...`)
     const saved =
       renderer === "gpt-image-2"
-        ? await saveGatewayInfographic(slug, visual)
+        ? await saveGatewayInfographic(slug, visual, styleShift)
         : renderer === "gpt-image-2-composite"
           ? await saveGatewayCompositeInfographic(slug, visual, styleShift)
           : await saveInfographic(slug, visual)

@@ -1,11 +1,13 @@
 "use client"
 
-import { AlertTriangle } from "lucide-react"
+import { AlertTriangle, ClipboardList, Settings, Users } from "lucide-react"
+import Link from "next/link"
 import { useState, useTransition } from "react"
 import { toast } from "sonner"
 
 import { setDoctorAvailabilityAction } from "@/app/actions/doctor-availability"
 import { DashboardPageHeader } from "@/components/dashboard"
+import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 
@@ -34,7 +36,25 @@ export function DashboardHeader({ initialAvailable }: DashboardHeaderProps) {
         title="Review Queue"
         description="Patient requests awaiting your review"
         actions={
-          <>
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/doctor/scripts">
+                <ClipboardList className="h-4 w-4" />
+                Scripts
+              </Link>
+            </Button>
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/doctor/patients">
+                <Users className="h-4 w-4" />
+                Patients
+              </Link>
+            </Button>
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/doctor/settings/identity">
+                <Settings className="h-4 w-4" />
+                Identity
+              </Link>
+            </Button>
             <div className="flex items-center gap-2">
               <Switch
                 id="availability"
@@ -49,18 +69,7 @@ export function DashboardHeader({ initialAvailable }: DashboardHeaderProps) {
                 {available ? "Available" : "Unavailable"}
               </Label>
             </div>
-            <div className="hidden sm:flex items-center gap-1.5 text-xs text-muted-foreground font-mono">
-              <kbd className="px-1.5 py-0.5 rounded border border-border/40 bg-muted/40">j</kbd>
-              <kbd className="px-1.5 py-0.5 rounded border border-border/40 bg-muted/40">k</kbd>
-              <span className="text-muted-foreground">navigate</span>
-              <span className="mx-1 text-muted-foreground/40">·</span>
-              <kbd className="px-1.5 py-0.5 rounded border border-border/40 bg-muted/40">a</kbd>
-              <span className="text-muted-foreground">approve</span>
-              <span className="mx-1 text-muted-foreground/40">·</span>
-              <kbd className="px-1.5 py-0.5 rounded border border-border/40 bg-muted/40">d</kbd>
-              <span className="text-muted-foreground">decline</span>
-            </div>
-          </>
+          </div>
         }
       />
 

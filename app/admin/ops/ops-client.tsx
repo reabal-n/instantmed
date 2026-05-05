@@ -74,6 +74,35 @@ interface OpsDashboardClientProps {
   ops: OpsData
 }
 
+const opsActionGroups = [
+  {
+    title: "Clinical ops",
+    actions: [
+      { label: "Clinical queue", href: DOCTOR_QUEUE_REVIEW_HREF },
+      { label: "SLA monitor", href: "/admin/ops/sla" },
+      { label: "Stuck intakes", href: "/admin/ops/intakes-stuck" },
+      { label: "Doctor coverage", href: "/admin/ops/doctors" },
+    ],
+  },
+  {
+    title: "Integration recovery",
+    actions: [
+      { label: "Stripe DLQ", href: "/admin/webhook-dlq" },
+      { label: "Parchment ops", href: "/admin/ops/parchment" },
+      { label: "Rx identity blocks", href: "/admin/ops/prescribing-identity" },
+      { label: "Reconciliation", href: "/admin/ops/reconciliation" },
+    ],
+  },
+  {
+    title: "Audit and identity",
+    actions: [
+      { label: "Audit logs", href: "/admin/audit" },
+      { label: "Email queue", href: "/admin/emails/hub" },
+      { label: "Merge audit", href: "/admin/ops/patient-merge-audit" },
+    ],
+  },
+] as const
+
 function StatusIndicator({ healthy, label }: { healthy: boolean; label: string }) {
   return (
     <div className="flex items-center gap-2">
@@ -127,7 +156,7 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
             <h3 className="text-base font-semibold text-foreground">System Status</h3>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-            <StatusIndicator healthy={systemStatus.webhooksHealthy} label="Webhooks" />
+            <StatusIndicator healthy={systemStatus.webhooksHealthy} label="Stripe Webhooks" />
             <StatusIndicator healthy={systemStatus.emailsHealthy} label="Email Delivery" />
             <StatusIndicator healthy={systemStatus.intakesHealthy} label="Intake Processing" />
             <StatusIndicator healthy={systemStatus.patientIdentityHealthy} label="Patient Identity" />
@@ -143,7 +172,7 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
                 <Webhook className={cn("h-5 w-5", webhooks.failedCount > 0 ? "text-destructive" : "text-success")} />
               </div>
               <div className="min-w-0">
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Failed Webhooks</p>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Stripe DLQ</p>
                 <p className={cn("text-2xl font-semibold tabular-nums mt-0.5", webhooks.failedCount > 0 && "text-destructive")}>
                   {webhooks.failedCount}
                 </p>
@@ -151,7 +180,7 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
             </div>
             {webhooks.failedCount > 0 && (
               <Button variant="link" size="sm" className="mt-3 p-0 h-auto text-xs" asChild>
-                <Link href="/admin/webhook-dlq">View DLQ →</Link>
+                <Link href="/admin/webhook-dlq">Open DLQ →</Link>
               </Button>
             )}
           </div>
@@ -256,17 +285,17 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
 
         {/* Details Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Recent Webhook Failures */}
+          {/* Recent Stripe DLQ events */}
           <div className="bg-card border border-border/50 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <Webhook className="h-5 w-5 text-muted-foreground" />
-                <h3 className="text-base font-semibold text-foreground">Recent Webhook Failures</h3>
+                <h3 className="text-base font-semibold text-foreground">Recent Stripe DLQ Events</h3>
               </div>
               <Button variant="outline" size="sm" asChild>
                 <Link href="/admin/webhook-dlq">
                   <RefreshCw className="w-4 h-4 mr-2" />
-                  Retry All
+                  Open DLQ
                 </Link>
               </Button>
             </div>
@@ -322,37 +351,27 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
           </div>
         </div>
 
-        {/* Quick Actions */}
+        {/* Recovery Paths */}
         <div className="bg-card border border-border/50 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl p-6">
           <div className="flex items-center gap-2 mb-4">
             <Zap className="h-5 w-5 text-muted-foreground" />
-            <h3 className="text-base font-semibold text-foreground">Quick Actions</h3>
+            <h3 className="text-base font-semibold text-foreground">Recovery Paths</h3>
           </div>
-          <div className="flex flex-wrap gap-3">
-            <Button variant="outline" asChild>
-              <Link href="/admin/webhook-dlq">Webhook DLQ</Link>
-            </Button>
-            <Button variant="outline" asChild>
-              <Link href="/admin/emails/hub">Email Queue</Link>
-            </Button>
-            <Button variant="outline" asChild>
-              <Link href="/admin/audit">Audit Logs</Link>
-            </Button>
-            <Button variant="outline" asChild>
-              <Link href={DOCTOR_QUEUE_REVIEW_HREF}>Doctor Queue</Link>
-            </Button>
-            <Button variant="outline" asChild>
-              <Link href="/admin/ops/sla">SLA Monitor</Link>
-            </Button>
-            <Button variant="outline" asChild>
-              <Link href="/admin/ops/prescribing-identity">Rx Identity Blocks</Link>
-            </Button>
-            <Button variant="outline" asChild>
-              <Link href="/admin/ops/patient-merge-audit">Merge Audit</Link>
-            </Button>
-            <Button variant="outline" asChild>
-              <Link href="/admin/refunds">Refunds</Link>
-            </Button>
+          <div className="grid gap-4 lg:grid-cols-3">
+            {opsActionGroups.map((group) => (
+              <div key={group.title} className="rounded-lg border border-border/50 p-3">
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  {group.title}
+                </h4>
+                <div className="grid gap-2">
+                  {group.actions.map((action) => (
+                    <Button key={action.href} variant="outline" size="sm" className="justify-start" asChild>
+                      <Link href={action.href}>{action.label}</Link>
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
