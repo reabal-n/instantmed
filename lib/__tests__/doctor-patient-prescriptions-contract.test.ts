@@ -27,6 +27,21 @@ describe("doctor patient medication history contract", () => {
     expect(detailSource).toContain("SCID")
   })
 
+  it("keeps patient-profile prescribing actions visible with clear blocked states", () => {
+    expect(detailSource).toContain("Prescribing workspace")
+    expect(detailSource).toContain("Prescribe in Parchment")
+    expect(detailSource).toContain("Parchment connection required")
+    expect(detailSource).toContain("Parchment integration disabled")
+    expect(detailSource).toContain("Sync patient")
+  })
+
+  it("organizes the profile around clinically relevant sections", () => {
+    expect(detailSource).toContain("Clinical snapshot")
+    expect(detailSource).toContain("Prescribing identity")
+    expect(detailSource).toContain("Latest activity")
+    expect(detailSource).toContain("Last prescription")
+  })
+
   it("does not pass raw intake answers into the client props", () => {
     expect(detailPageSource).toContain("intakeWithoutAnswers")
     expect(detailSource).not.toContain("answers:")

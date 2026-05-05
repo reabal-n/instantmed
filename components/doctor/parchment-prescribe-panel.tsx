@@ -1,10 +1,11 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { AlertTriangle, CheckCircle, Clipboard, ExternalLink, Loader2, X } from "lucide-react"
+import { AlertTriangle, CheckCircle, Clipboard, ExternalLink, Loader2, RefreshCw, X } from "lucide-react"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
 
+import { getPatientParchmentPrescribeUrlAction } from "@/app/actions/manual-patient"
 import { getParchmentPrescribeUrlAction } from "@/app/actions/parchment"
 import { usePanel } from "@/components/panels/panel-provider"
 import { Button } from "@/components/ui/button"
@@ -13,12 +14,16 @@ import type { ParchmentPrescriptionContext } from "@/lib/doctor/parchment-prescr
 import { backdropVariants, sheetVariants } from "@/lib/motion/panel-variants"
 import { canEmbedParchmentForHost } from "@/lib/parchment/embed-policy"
 
-interface ParchmentPrescribePanelProps {
-  intakeId: string
+type ParchmentPrescribePanelProps = {
   patientName: string
   prescriptionContext?: ParchmentPrescriptionContext | null
   onScriptSent?: () => void
-}
+  onPrescriptionsRefresh?: () => void
+  prescriptionsRefreshPending?: boolean
+} & (
+  | { intakeId: string; patientId?: never }
+  | { patientId: string; intakeId?: never }
+)
 
 /**
  * Embedded Parchment prescribing panel.
@@ -30,9 +35,12 @@ interface ParchmentPrescribePanelProps {
  */
 export function ParchmentPrescribePanel({
   intakeId,
+  patientId,
   patientName,
   prescriptionContext,
   onScriptSent,
+  onPrescriptionsRefresh,
+  prescriptionsRefreshPending = false,
 }: ParchmentPrescribePanelProps) {
   const { closePanel } = usePanel()
   const prefersReducedMotion = useReducedMotion()
@@ -44,14 +52,20 @@ export function ParchmentPrescribePanel({
   const [_ssoExpired, setSsoExpired] = useState(false)
   const ssoExpiryTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
+  const loadFreshParchmentUrl = useCallback(async (): Promise<{ success: boolean; error?: string; ssoUrl?: string }> => {
+    if (intakeId) return getParchmentPrescribeUrlAction(intakeId)
+    if (patientId) return getPatientParchmentPrescribeUrlAction(patientId)
+    return { success: false, error: "Missing patient context" }
+  }, [intakeId, patientId])
+
   const openInNewTab = useCallback(async () => {
-    const freshResult = await getParchmentPrescribeUrlAction(intakeId)
+    const freshResult = await loadFreshParchmentUrl()
     if (freshResult.success && freshResult.ssoUrl) {
       window.open(freshResult.ssoUrl, "_blank", "noopener,noreferrer")
     } else {
       toast.error(freshResult.error || "Failed to generate new Parchment session")
     }
-  }, [intakeId])
+  }, [loadFreshParchmentUrl])
 
   const copyPrescriptionContext = useCallback(async () => {
     if (!prescriptionContext?.clipboardText) return
@@ -68,7 +82,7 @@ export function ParchmentPrescribePanel({
     setError(null)
     setSsoExpired(false)
 
-    const result = await getParchmentPrescribeUrlAction(intakeId)
+    const result = await loadFreshParchmentUrl()
 
     if (result.success && result.ssoUrl) {
       setSsoUrl(result.ssoUrl)
@@ -87,7 +101,7 @@ export function ParchmentPrescribePanel({
     }
 
     setLoading(false)
-  }, [intakeId])
+  }, [loadFreshParchmentUrl])
 
   // Auto-load on mount + cleanup timer
   useEffect(() => {
@@ -151,7 +165,9 @@ export function ParchmentPrescribePanel({
                 Prescribe for {patientName}
               </h2>
               <p className="text-sm text-muted-foreground mt-0.5">
-                Write the prescription in Parchment below. It will be confirmed automatically.
+                {intakeId
+                  ? "Write the prescription in Parchment below. It will be confirmed automatically."
+                  : "Write the prescription in Parchment below. It will sync back to this patient profile."}
               </p>
               {prescriptionContext && (
                 <div className="mt-3 rounded-md border border-border bg-muted/35 px-3 py-2">
@@ -279,7 +295,11 @@ export function ParchmentPrescribePanel({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <CheckCircle className="h-3.5 w-3.5" />
-              <span>Script will be confirmed automatically via webhook when completed in Parchment</span>
+              <span>
+                {intakeId
+                  ? "Script will be confirmed automatically via webhook when completed in Parchment"
+                  : "Prescription will sync back to the PMS via Parchment webhook"}
+              </span>
             </div>
             {onScriptSent && (
               <Button
@@ -289,6 +309,22 @@ export function ParchmentPrescribePanel({
                 onClick={onScriptSent}
               >
                 Mark sent manually
+              </Button>
+            )}
+            {patientId && onPrescriptionsRefresh && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-xs"
+                disabled={prescriptionsRefreshPending}
+                onClick={onPrescriptionsRefresh}
+              >
+                {prescriptionsRefreshPending ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <RefreshCw className="h-3.5 w-3.5" />
+                )}
+                Refresh prescriptions
               </Button>
             )}
           </div>
