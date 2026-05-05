@@ -845,7 +845,7 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
         { label: "Possible pneumonia", detail: "Needs in-person observations and sometimes X-ray", tone: "urgent" },
         { label: "Known lung disease", detail: "COPD or asthma changes the threshold", tone: "caution" },
       ],
-      imagePrompt: "Detailed chest infection assessment-boundary comparison graphic showing viral bronchitis, possible pneumonia, known lung disease, and other breathing-risk pathways. Use non-graphic lungs, airway diagrams, triage lanes, and examination/X-ray symbolism while keeping all visible text limited to the registry copy supplied by the script. No blank phone, no distressed patient, no medical crosses, no antibiotic promotion, no consultation CTA.",
+      imagePrompt: "Detailed chest infection assessment-boundary comparison graphic showing viral bronchitis, possible pneumonia, known lung disease, and other breathing-risk pathways. Use non-graphic lungs, airway diagrams, triage lanes, and examination/X-ray symbolism while keeping all visible text limited to the registry copy supplied by the script. No standalone smartphone hero, no distressed patient, no medical crosses, no antibiotic promotion, no consultation CTA.",
     },
     {
       id: "sputum-colour-myth",
@@ -892,7 +892,7 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
         { label: "Procedure needed", detail: "IUDs and implants need trained insertion", tone: "caution" },
         { label: "Complex symptoms", detail: "Pain, abnormal bleeding, or pregnancy concern needs review", tone: "urgent" },
       ],
-      imagePrompt: "Detailed contraception method-fit comparison graphic showing prescription-based methods, procedure-based methods, and situations needing in-person assessment. Include respectful abstract method symbols, care-setting zones, and clear pathway structure while keeping all visible text limited to the registry copy supplied by the script. Use reproductive-health design, not product advertising. No product packaging, no pill blister packs, no brand names, no explicit anatomy, no blank phone, no consultation CTA.",
+      imagePrompt: "Detailed contraception method-fit comparison graphic showing prescription-based methods, procedure-based methods, and situations needing in-person assessment. Include respectful abstract method symbols, care-setting zones, and clear pathway structure while keeping all visible text limited to the registry copy supplied by the script. Use reproductive-health design, not product advertising. No product packaging, no pill blister packs, no brand names, no explicit anatomy, no standalone smartphone hero, no consultation CTA.",
     },
     {
       id: "combined-pill-risk-check",
