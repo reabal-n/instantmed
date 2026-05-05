@@ -420,6 +420,7 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
       eyebrow: "Telehealth fit",
       title: "Remote antibiotic prescribing needs a clear clinical pattern",
       summary: "A structured history can be enough for some low-risk infections, but uncertainty or severity changes the pathway.",
+      visualFormat: "comparison-graphic",
       kind: "comparison",
       accent: "blue",
       items: [
@@ -427,13 +428,14 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
         { label: "Needs examination", detail: "Ear, eye, deep skin, children, pregnancy, or unclear diagnosis", tone: "caution" },
         { label: "Emergency", detail: "Sepsis signs, severe pain, or rapidly spreading infection", tone: "urgent" },
       ],
-      imagePrompt: "Textless telehealth antibiotic suitability visual, blank phone, abstract decision split, neutral medicine box, warm ivory background, blue and rose accents, no readable text, no brand names, no people, no pills spilling",
+      imagePrompt: "Detailed comparison graphic for online antibiotic suitability. Use three clear zones: may suit telehealth, needs examination first, urgent or emergency care. The may-suit-telehealth examples must be low-risk adult patterns such as uncomplicated lower urinary symptoms without fever or flank pain, mild localised skin infection with clear photos, or follow-up of a previously assessed infection. Do not list runny nose, cold, flu, cough, or sore throat as good antibiotic-fit examples. Show remote assessment as clinical decision nodes, symptom history, risk screen, and safety escalation, not a shopping flow. Include concise readable labels and useful icons for low-risk adult symptoms, uncertainty, pregnancy or child or immune risk, rapid spread, severe illness, and emergency signs. Use a clean clinical decision-board style, visually different from desk posters. No pill bottles, no pharmacy shelf, no fake app screen, no fake prescription, no official logos, no medical cross except the production-added InstantMed badge, no Australia map, no scenery, no consultation CTA, and no service marketing.",
     },
     {
       id: "antibiotic-red-flags",
       eyebrow: "Safety boundary",
       title: "Some infection symptoms should bypass telehealth",
       summary: "Fever with systemic illness, confusion, rapid spread, severe pain, pregnancy, immune risk, or children usually need in-person assessment.",
+      visualFormat: "red-flag-warning",
       kind: "warning",
       accent: "rose",
       items: [
@@ -441,13 +443,14 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
         { label: "Rapid spread", detail: "Redness or swelling expanding quickly", tone: "urgent" },
         { label: "Higher-risk patient", detail: "Pregnancy, child, diabetes, immunosuppression", tone: "caution" },
       ],
-      imagePrompt: "Minimal textless infection red-flag safety still life, blank phone screen, soft rose warning triangle, thermometer shape without numbers, warm clinical surface, no readable text, no people, no graphic wounds, no gore",
+      imagePrompt: "Detailed red-flag warning graphic for infection symptoms that should bypass online antibiotic prescribing. Show urgent branches for confusion or collapse, fever with serious illness, rapidly spreading redness, severe pain, flank pain with vomiting, pregnancy with urinary symptoms, immune risk, and children. Use abstract human-safe icons and triage arrows, not graphic wounds. Make it feel like a premium emergency reference poster with strong contrast and no sterile stock-photo feel. No gore, no graphic skin, no distressed faces, no fake hospital signage, no fake prescription, no official logos, no pill bottles, no Australia map, no scenery, no consultation CTA, and no service marketing.",
     },
     {
       id: "escript-pharmacy-pathway",
       eyebrow: "Prescription pathway",
       title: "An eScript is only the dispensing step",
       summary: "The clinical decision comes first; the pharmacy token only matters after an antibiotic is judged appropriate.",
+      visualFormat: "process-visual",
       kind: "flow",
       accent: "emerald",
       items: [
@@ -455,7 +458,7 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
         { label: "Choose medicine", detail: "Guideline, allergy, pregnancy, and resistance factors" },
         { label: "Dispense safely", detail: "Pharmacist checks and counselling still apply" },
       ],
-      imagePrompt: "Textless eScript and pharmacy pathway still life, blank phone token shape, neutral medicine box, small green check shape, no pharmacy logos, no readable text, no people, warm ivory desk",
+      imagePrompt: "Detailed step-by-step process visual explaining that an eScript is only the dispensing step after a clinical antibiotic decision. Show the sequence: clinical assessment, prescribing decision, secure electronic token, pharmacist checks, counselling and safe use, review or escalation if symptoms worsen. Include a small side panel separating clinical decision from pharmacy token. Use structured workflow graphics, crisp device-token icon, pharmacy check icons, and safety checkpoints. No fake QR code, no readable patient details, no fake prescription, no pharmacy branding, no pill advertising, no desk flat lay, no plant, no mug, no Australia map, no scenery, no consultation CTA, and no service marketing.",
     },
   ],
   "antibiotics-when-appropriate": [
