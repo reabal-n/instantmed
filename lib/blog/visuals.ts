@@ -232,6 +232,7 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
       eyebrow: "Timing",
       title: "The antiviral window is measured from rash onset",
       summary: "Assessment is most useful early because antiviral benefit falls as the rash progresses.",
+      visualFormat: "process-visual",
       kind: "timeline",
       accent: "rose",
       items: [
@@ -239,13 +240,14 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
         { label: "Rash appears", detail: "Same-day assessment is the safest target", tone: "caution" },
         { label: "Around 72 hours", detail: "Benefit can decline for uncomplicated cases", tone: "urgent" },
       ],
-      imagePrompt: "Textless shingles treatment timing visual, blank calendar, phone with blank screen, soft rose timing arc, no pills, no medicine brands, no readable text, no people, no graphic rash, warm ivory clinical background",
+      imagePrompt: "Detailed shingles treatment-window timeline visual for Australian patient education. Show prodrome symptoms before rash, rash onset as the key clock start, same-day assessment target, around 72 hours as the main early antiviral window for uncomplicated shingles, and exceptions where prompt care still matters after 72 hours such as eye, ear, face, immunocompromised, severe, or ongoing new blisters. Use a non-graphic nerve-to-skin pathway, calendar, clock, rash-location card without realistic blister detail, and warm rose/navy editorial style. Do not show graphic rash photos, open blisters, medication brand names, pill imprints, exact drug dosing, fake prescription, fake app UI, consultation CTA, or service marketing.",
     },
     {
       id: "shingles-urgent-locations",
       eyebrow: "Urgent locations",
       title: "Face, eye, ear, and immune-risk shingles need faster care",
       summary: "Eye symptoms, forehead rash, ear pain, facial weakness, pregnancy, or immunosuppression change the urgency.",
+      visualFormat: "red-flag-warning",
       kind: "warning",
       accent: "rose",
       items: [
@@ -253,13 +255,14 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
         { label: "Ear or facial weakness", detail: "Do not manage as routine shingles", tone: "urgent" },
         { label: "Immune risk", detail: "In-person or urgent care may be needed", tone: "caution" },
       ],
-      imagePrompt: "Minimal textless shingles urgent-location safety illustration, abstract head outline with eye and ear zones shown as simple shapes, warm ivory background, restrained rose accents, no readable text, no rash detail, no faces, no clinicians",
+      imagePrompt: "Detailed shingles urgent-location warning graphic. Show a respectful head-and-torso location map with non-graphic zones for forehead, eye area, nose tip, ear, face, trunk, and widespread rash. Emphasise that eye symptoms, forehead or nose-tip rash, ear pain, facial weakness, pregnancy, immunocompromise, severe pain, fever, or widespread rash need faster care. Use calm urgent rose/navy hierarchy, simplified anatomy, and callout cards. No graphic blisters, realistic rash photography, facial paralysis photo, exposed body, scary emergency scene, fake phone UI, medication brands, consultation CTA, or service marketing.",
     },
     {
       id: "shingles-contagion-boundary",
       eyebrow: "Spread boundary",
       title: "Cover blisters until they crust",
       summary: "Shingles is spread through blister fluid to people who are not immune to chickenpox, not by casual proximity alone.",
+      visualFormat: "patient-education-poster",
       kind: "checklist",
       accent: "amber",
       items: [
@@ -267,7 +270,7 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
         { label: "Avoid vulnerable people", detail: "Infants, pregnant people, and immunocompromised contacts", tone: "caution" },
         { label: "Wait for crusting", detail: "Transmission risk falls once blisters have crusted" },
       ],
-      imagePrompt: "Textless shingles contagion boundary still life, folded clothing, covered bandage packet with no text, clean towel, warm morning light, amber caution accent, no skin close-up, no rash, no readable text, no people",
+      imagePrompt: "Detailed shingles spread-boundary patient education poster. Explain that shingles itself is not caught as shingles, but active blister fluid can transmit varicella-zoster virus to a non-immune person and cause chickenpox. Show practical steps: cover the rash, wash hands, avoid direct blister contact, do not share towels or clothing touching rash, avoid infants pregnant non-immune people and immunocompromised contacts, wait until blisters crust. Use warm amber/navy editorial design with indoor home-health details, clothing, covered dressing, handwashing, calendar/crusting marker, and vulnerable-contact icons. Represent crusting with abstract dry-dot icons or a calendar marker only. No beach, coastline, ocean, scenic window, tourist hat, Australian map, postcard cue, realistic crusted lesion close-up, graphic rash photos, open blisters, fearmongering, official logos, fake public health order, consultation CTA, or service marketing.",
     },
   ],
   "acid-reflux-gerd": [
