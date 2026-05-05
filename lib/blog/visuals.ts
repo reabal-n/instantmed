@@ -326,6 +326,7 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
       eyebrow: "Verification",
       title: "The public register is the source of truth",
       summary: "A real check confirms the practitioner, profession, registration status, type, conditions, and renewal details.",
+      visualFormat: "process-visual",
       kind: "checklist",
       accent: "blue",
       items: [
@@ -333,13 +334,14 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
         { label: "Registration status", detail: "Current status matters more than a logo claim" },
         { label: "Conditions", detail: "Public restrictions or supervision requirements may appear" },
       ],
-      imagePrompt: "Textless Australian health practitioner register verification still life, blank laptop screen, blank ID-style card, soft blue checkmark shapes, warm ivory desk, no readable text, no logos, no names, no people, premium editorial style",
+      imagePrompt: "Detailed Australian practitioner registration verification infographic. Show a step-by-step public register check without copying any real Ahpra page or official interface: get the practitioner's registered name, search the public register, confirm profession, confirm current status, check registration type, check public conditions or undertakings, and note renewal/expiry details. Use abstract browser-window shapes with placeholder blocks only, magnifying glass, verification checklist, status chips, and a careful blue/navy editorial design on warm ivory paper. Include the exact visible copy from the prompt only. No official Ahpra logo, no government crest, no real names, no registration numbers, no fake certificate, no signature, no legal seal, no medical cross except the production-added InstantMed badge, no CTA, no service marketing, and no fake app screenshot that looks like a real account.",
     },
     {
       id: "medical-registration-types",
       eyebrow: "Registration types",
       title: "Registration type explains the scope of practice",
       summary: "General, specialist, provisional, limited, and non-practising registration do not mean the same thing.",
+      visualFormat: "comparison-graphic",
       kind: "comparison",
       accent: "emerald",
       items: [
@@ -347,13 +349,14 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
         { label: "Provisional or limited", detail: "Often includes supervision or specific limits", tone: "caution" },
         { label: "Non-practising", detail: "Does not permit clinical practice", tone: "urgent" },
       ],
-      imagePrompt: "Textless medical registration type comparison visual, organised blank credential cards in distinct groups on a clean desk, restrained emerald and blue accents, no readable text, no official logos, no people, no faces, no clinicians, no human silhouettes, no shadows resembling people",
+      imagePrompt: "Detailed comparison graphic explaining Australian medical registration types using three large abstract comparison panels only, not a detailed row-column matrix. Panel 1: General or specialist, usually permits independent practice within scope. Panel 2: Provisional or limited, often includes supervision or specific limits. Panel 3: Non-practising, does not permit clinical practice. Use abstract scope rings, lock/unlock symbols, supervision arrows, and a simple boundary strip that says scope matters. Do not show licence cards, ID cards, certificates, signatures, registration numbers, official forms, or anything that looks like a credential document. Do not add extra regulatory claims, row labels, invented matrix details, or phrases such as full scope of practice. Make it feel like a serious patient education reference spread, not a bureaucratic form. Use subtle emerald/navy/rose accents. Do not draw government seals, Ahpra logos, medical board logos, clinician portraits, stethoscope stock art, CTA buttons, or service marketing.",
     },
     {
       id: "telehealth-accountability",
       eyebrow: "Accountability",
       title: "Telehealth does not lower the professional standard",
       summary: "The Medical Board's expectations still apply: adequate assessment, clinical judgement, records, privacy, and follow-up where needed.",
+      visualFormat: "process-visual",
       kind: "flow",
       accent: "amber",
       items: [
@@ -361,7 +364,7 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
         { label: "Decide", detail: "Exercise clinical judgement for the individual patient" },
         { label: "Document", detail: "Keep records and arrange follow-up where appropriate" },
       ],
-      imagePrompt: "Textless telehealth accountability workflow still life, blank phone, blank notes, abstract clinical decision nodes, warm ivory background, amber accents, no readable text, no people, no doctors, no brand marks",
+      imagePrompt: "Detailed telehealth accountability workflow board for Australian medical care. Show that remote care still requires assessment, clinical judgement, records, privacy, escalation, and follow-up where appropriate. Use abstract workflow nodes, branching decision paths, privacy shield, secure-record icon, follow-up loop, and escalation branch to in-person or urgent care when remote assessment is not enough. Make it feel like a precise operations map, not a desk poster. No Australia map, no country outline, no geography cue, no coastline, no desk, no plant, no mug, no lamp, no notebook, no stationery flat lay, no handwritten sticky notes, no fake doctor chat, no real patient details, no faces, no visible patient photos, no fake app interface, no official logos, no medical crosses except the production-added InstantMed badge, no consultation CTA, no prescription sales language, and no service marketing.",
     },
   ],
   "amoxicillin-guide-australia": [

@@ -430,6 +430,55 @@ function getVisualFormatPrompt(format: VisualFormat): string {
   }
 }
 
+function promptHash(value: string): number {
+  let hash = 0
+  for (let index = 0; index < value.length; index += 1) {
+    hash = (hash * 31 + value.charCodeAt(index)) >>> 0
+  }
+  return hash
+}
+
+function getArtDirectionPrompt(slug: string, visual: ArticleVisual, format: VisualFormat): string {
+  if (format === "anatomical-explainer" || format === "body-map" || format === "mechanism-diagram") {
+    return [
+      "Art direction: premium medical atlas plate with precise linework, restrained colour-coded callouts, generous negative space, and one dominant explanatory diagram.",
+      "Use anatomical clarity over decorative lifestyle props. Avoid desk still lifes, plants, mugs, scenic backgrounds, big serif poster headlines, and repeated card-grid filler.",
+    ].join(" ")
+  }
+
+  if (format === "red-flag-warning") {
+    return [
+      "Art direction: modern safety reference card, like a serious airport emergency instruction panel redesigned for healthcare.",
+      "Use firm contrast, concise warning zones, directional arrows, and calm urgency. Avoid picturesque scenes, dramatic bodies, lifestyle photography, decorative stationery, and soft wellness styling.",
+    ].join(" ")
+  }
+
+  const lanes = [
+    [
+      "Art direction: Swiss clinical reference poster with a strict grid, compact typography, matte white/stone background, charcoal text, and one deliberate accent colour.",
+      "Use crisp vector-like diagrams, thin rules, numbered modules, and restrained iconography. No desk scene, no plants, no coffee cups, no scrapbook texture.",
+    ],
+    [
+      "Art direction: field-guide spread with hand-inked diagrams, torn-paper labels used sparingly, muted clay/sage/cobalt accents, and practical annotations.",
+      "Make it feel authored by a designer, not generated from a template. Avoid giant navy serif headlines, identical three-card rows, and generic corporate icons.",
+    ],
+    [
+      "Art direction: modern data poster with clear information architecture, compact tables, microcharts, signal colours, and structured decision logic.",
+      "Use purposeful density and hierarchy. Avoid decorative tabletop objects, scenic windows, coastal backgrounds, and empty white-card grids.",
+    ],
+    [
+      "Art direction: premium public-health handout with close-cropped practical objects only when they explain the point, mixed panel sizes, and tactile but restrained print texture.",
+      "Use warmer human detail without turning the page into a desk flat lay. Avoid repeating the same mug/notebook/plant composition.",
+    ],
+    [
+      "Art direction: clean technical blueprint with soft blue-grey paper, modular blocks, arrows, callout rings, and precise icon systems.",
+      "Keep it quiet and authoritative. Avoid postcard scenery, cute illustrations, lifestyle stock composition, and beige wellness mush.",
+    ],
+  ]
+
+  return lanes[promptHash(`${slug}:${visual.id}`) % lanes.length].join(" ")
+}
+
 function getFooterCopy(visual: ArticleVisual): string {
   if (visual.visualFormat === "red-flag-warning" || visual.kind === "warning") {
     return "Educational guide. Urgent symptoms need urgent care."
@@ -453,6 +502,7 @@ function buildGatewayPrompt(slug: string, visual: ArticleVisual): string {
     getVisualFormatPrompt(format),
     "Create a detailed, polished, information-dense visual that looks art-directed by a senior editorial designer. It should have meaningful educational structure, not a decorative stock image.",
     getInfographicLayoutPrompt(visual.kind),
+    getArtDirectionPrompt(slug, visual, format),
     "",
     "Exact visible copy to use. Use only these values; do not invent extra claims, legal rules, drug names, symptoms, prices, or calls to action. Render the values naturally, but never render metadata field names such as Eyebrow, Title, Summary, Cards, Footer, or Article slug.",
     `Small top label should read: ${visual.eyebrow}`,
@@ -463,13 +513,15 @@ function buildGatewayPrompt(slug: string, visual: ArticleVisual): string {
     `Footer: ${getFooterCopy(visual)}`,
     "",
     "Style:",
-    "Premium editorial health design rather than sterile AI clinic poster. It should feel like a professionally commissioned patient-education poster from a serious Australian health publisher, not a generic AI infographic. Use warm natural off-white paper, crisp navy typography, restrained blue/emerald/amber/rose accents, subtle print grain, tactile depth, hand-finished illustration details, realistic Australian context where useful, and varied composition.",
-    "Avoid bland corporate gradients, generic hospital stock art, excessive symmetry, plastic 3D icons, over-polished AI faces, empty white-card grids, fake app screenshots, vague wellness imagery, and beige wellness mush.",
-    "Use confident visual hierarchy with a strong hero diagram or scene, then supporting panels. Add warmth through texture, realistic objects, human context, asymmetry, and small editorial details while keeping the information readable. Australian context should appear through practical healthcare/workplace details, not tourist landmarks, wildlife, flags, novelty mascots, or postcard cues.",
+    "Premium educational design, but vary the visual language from article to article. Do not default to the same ivory paper, navy serif headline, three-card row, mug, plant, notebook, and coastline composition.",
+    "Typography should match the selected art direction: clean sans-led systems for process, comparison, regulatory, workflow, and lab visuals; atlas labels for anatomy; only occasional hand lettering for small annotations. Do not use the repeated giant navy display-serif headline treatment unless the individual prompt explicitly asks for an editorial poster.",
+    "Use the selected art direction above as the main style contract. Keep the information readable, structured, and specific, but make each visual feel art-directed for its own topic.",
+    "Avoid bland corporate gradients, generic hospital stock art, excessive symmetry, plastic 3D icons, over-polished AI faces, fake app screenshots, vague wellness imagery, and beige wellness mush.",
     "Leave the bottom-right 320 by 110 pixel area as background-only negative space because the production script overlays the official InstantMed brand badge there after generation. Do not place table cells, footer copy, arrows, faces, icons, prices, or any essential detail in that badge-safe zone.",
     "",
     "Hard constraints:",
     "No brand logos, no official seals, no medical crosses, no medication brand names, no pill imprints, no celebrity likenesses, no gore, no graphic symptoms, no consultation CTA, no website UI, no fake doctor-patient chat. If a person appears, make them non-identifiable, natural, and secondary. Do not draw the InstantMed logo or wordmark; the production script adds the official brand assets after generation.",
+    "No Australian tourist scenery unless the article itself is specifically about travel, location, or geography. Do not include beaches, coastline, ocean views, harbour bridges, city skylines, gum trees as filler, kangaroos, flags, Australian maps, lifeguard towers, postcard footers, or scenic lookout paths.",
     `Article slug for context only: ${slug}.`,
   ].join("\n")
 }
@@ -489,6 +541,11 @@ async function addInstantMedWordmark(filepath: string) {
   const tmpPath = `${filepath}.wordmark-tmp.webp`
   const x = WIDTH - BRAND_BADGE_WIDTH - BRAND_BADGE_MARGIN
   const y = HEIGHT - BRAND_BADGE_HEIGHT - BRAND_BADGE_MARGIN
+  const contentGap = 10
+  const contentWidth = BRAND_LOGO_SIZE + contentGap + BRAND_WORDMARK_WIDTH
+  const contentX = x + Math.round((BRAND_BADGE_WIDTH - contentWidth) / 2)
+  const logoY = y + Math.round((BRAND_BADGE_HEIGHT - BRAND_LOGO_SIZE) / 2)
+  const wordmarkY = y + Math.round((BRAND_BADGE_HEIGHT - BRAND_WORDMARK_HEIGHT) / 2)
   const logo = await sharp(BRAND_LOGO_PATH)
     .resize(BRAND_LOGO_SIZE, BRAND_LOGO_SIZE, { fit: "contain" })
     .png()
@@ -501,8 +558,8 @@ async function addInstantMedWordmark(filepath: string) {
   await sharp(filepath)
     .composite([
       { input: Buffer.from(renderBrandBadgeBackgroundSvg()), left: 0, top: 0 },
-      { input: logo, left: x + 14, top: y + 10 },
-      { input: wordmark, left: x + 54, top: y + 14 },
+      { input: logo, left: contentX, top: logoY },
+      { input: wordmark, left: contentX + BRAND_LOGO_SIZE + contentGap, top: wordmarkY },
     ])
     .webp({ quality: 88, effort: 5 })
     .toFile(tmpPath)
