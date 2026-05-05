@@ -745,7 +745,45 @@ Dark mode: `rounded dark:bg-white/90 dark:p-0.5` — adds white backing for PNGs
 
 ---
 
-## 16. Voice & Copy Rules
+## 16. Health Guide Educational Visuals
+
+Health-guide images are part of the article template, not decoration. They must look like premium patient-education assets that could sit inside a serious clinical handout, not generated stock placeholders.
+
+### Required Standard
+
+- Each visual must teach something specific through labelled structure: panels, arrows, pathway stages, anatomical callouts, comparison matrices, red-flag hierarchies, body maps, lab-result explainers, mechanism diagrams, or practical action strips.
+- Use dense but readable information architecture. A good visual should have a headline, subheading or framing note, multiple labelled modules, and a clear takeaway.
+- Vary the art direction by topic. Do not converge on the same warm-ivory poster, three-card row, blue/green palette, or Australian scenery treatment.
+- Keep the bottom-right badge-safe zone visually quiet because `scripts/generate-blog-visual-images.ts` overlays the official InstantMed wordmark there after generation.
+- Visuals may feel tactile and human, but only when the objects explain the article. Props are supporting detail, never the concept.
+
+### Rejection Rules
+
+Reject and regenerate anything that looks like:
+
+- a blank phone, laptop, document, certificate, form, checklist, or app mockup
+- a medicine box, inhaler, shield, warning triangle, balance scale, pill icon, or other single-object metaphor
+- a beige desk flat lay with stethoscope, notepad, mug, plant, pen, folder, or empty paper
+- generic abstract blobs, empty cards, soft corporate icon rows, sterile SaaS illustration, or placeholder hero art
+- scenery used as filler: beaches, skylines, maps, flags, postcard-style footers, scenic paths, or gum trees unless the article itself is about location
+- any composition that could be reused on a different article with no loss of meaning
+
+### Format Guidance
+
+- **Medical infographic:** symptom clusters, risk factors, prevention steps, control checks, or safety boundaries.
+- **Anatomical explainer:** simplified anatomy with labels and cause-effect callouts.
+- **Patient education poster:** shareable practical guide with actions, red flags, and plain-language notes.
+- **Mechanism diagram:** pathway, interaction, before/after state, or cause-effect sequence.
+- **Comparison graphic:** like-for-like criteria, not two generic sides.
+- **Process visual:** step-by-step flow with checkpoints and failure boundaries.
+- **Red-flag warning:** calm urgency, escalation logic, and clear stop/seek-care criteria.
+- **Body map:** symptom location, laterality, referral patterns, or anatomical landmarks.
+- **Lab explainer:** specimen-to-result pathway and plain-language interpretation boundaries.
+- **Telehealth workflow:** intake, clinician review, escalation, records, and outcome checkpoints. Devices are supporting objects only.
+
+---
+
+## 17. Voice & Copy Rules
 
 | Write this | Not this |
 |------------|----------|
@@ -756,7 +794,7 @@ Dark mode: `rounded dark:bg-white/90 dark:p-0.5` — adds white backing for PNGs
 
 ---
 
-## 17. Do / Don't
+## 18. Do / Don't
 
 | Do | Don't |
 |----|-------|

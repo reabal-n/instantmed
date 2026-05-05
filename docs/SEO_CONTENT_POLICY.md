@@ -93,6 +93,26 @@ Allowed inside guide articles:
 
 Article visuals must be local assets under `public/images/blog/<slug>/`. Every rewritten article must have at least two GPT-generated local visuals, ideally three for high-intent or clinical topics. Visuals can include controlled, short readable copy when generated from the `lib/blog/visuals.ts` registry; do not let the image model invent claims, prices, diagnoses, drug names, service CTAs, or legal rules. The same clinical distinctions and labels must also exist in React/HTML through `components/blog/article-visuals.tsx` so the page remains accessible, reviewable, and indexable. Generated guide visuals should carry the deterministic `InstantMed` wordmark added by `scripts/generate-blog-visual-images.ts`; do not ask GPT to draw or spell the brand mark.
 
+Article images are educational assets, not mood boards. A generated image is acceptable only if it adds standalone patient value. The reader should learn concrete distinctions, steps, anatomy, warning signs, decision criteria, process details, risk factors, or prevention actions from the image itself. This applies to every visual format: infographic, anatomical explainer, patient poster, mechanism diagram, comparison graphic, process visual, warning graphic, body map, lab explainer, telehealth workflow, or hero image.
+
+Reject and regenerate any article image that is mostly:
+
+- a blank phone, laptop, app screen, document, certificate, checklist, or card
+- a medicine box, inhaler, pill packet, warning triangle, shield, balance scale, or single symbolic object
+- a beige tabletop, desk flat lay, notepad, stethoscope, mug, plant, empty folder, or sterile stock-photo prop set
+- generic abstract blobs, icon rows, three empty cards, corporate SaaS illustration, or clip-art metaphor
+- a scenic Australian filler image such as beaches, skylines, maps, flags, postcard footers, or gum trees unless geography is central to the article
+- any image where most of the canvas could be swapped into another article without losing meaning
+
+Acceptance floor for generated article visuals:
+
+- at least five useful content regions
+- at least ten readable labels or short callouts when the format supports text
+- at least three instructional devices, such as pathway arrows, comparison columns, mini diagrams, body/anatomy callouts, timeline markers, checklist zones, warning hierarchy, data markers, or practical action strips
+- one clear reading path from headline to takeaway
+- no essential detail in the bottom-right badge-safe zone reserved for the post-processed InstantMed wordmark
+- no fake official forms, fake certificates, fake app screenshots, fake doctor chats, patient identifiers, prescription details, medication brand promotion, or service CTA
+
 Acceptable article visual formats:
 
 - medical infographic

@@ -150,6 +150,8 @@ The rebuild should keep the existing MDX content model for now, but make the ren
 
 ## Phase 5: Article-Specific Images And Infographics
 
+**Verdict on visual quality:** The acceptable bar is a premium educational graphic, not "an image related to the article." Blank phones, documents, inhalers, medicine boxes, abstract icons, and beige desk still lifes are failures even if they are cleanly rendered. They do not add indexable or patient-education value.
+
 **Asset Rules:**
 
 - Store assets under `public/images/blog/<slug>/`.
@@ -158,24 +160,39 @@ The rebuild should keep the existing MDX content model for now, but make the ren
 - Add the deterministic `InstantMed` wordmark in post-processing, not in the model prompt, so the mark stays spelled correctly and consistent.
 - Controlled short text may appear inside GPT-generated visuals only when sourced from `lib/blog/visuals.ts`; never let the image model invent claims, prices, diagnoses, drug names, legal rules, or service CTAs.
 - Keep the same labels and clinical distinctions in React/HTML via `components/blog/article-visuals.tsx` so they remain accessible, reviewable, and indexable.
+- Every accepted image must teach through structure: labelled panels, anatomical callouts, comparison matrices, pathway arrows, red-flag hierarchy, symptom/body map, lab pathway, mechanism diagram, or a practical action strip.
+- Use at least five useful content regions and at least ten readable labels or short callouts when the format supports text.
+- Inspect every generated asset before accepting it. If it fails the teaching-value bar, regenerate immediately rather than trying to justify it.
 - Do not generate fake doctor faces.
 - Disclose AI-generated human imagery in metadata if published.
 - Avoid graphic medical imagery. The brand should feel calm, practical, and Australian.
+- Keep the bottom-right badge area quiet for the post-processed InstantMed wordmark.
+
+**Rejected Visual Archetypes:**
+
+- blank phone, blank laptop, blank app screen, blank document, blank certificate, blank form, blank checklist, or blank card
+- medicine box, inhaler, pill packet, warning triangle, shield, balance scale, or any single-object metaphor
+- stethoscope/pen/notepad/mug/plant/folder desk flat lay
+- soft beige tabletop with empty props
+- generic abstract blobs, empty cards, corporate SaaS icons, or clip-art hero illustrations
+- repeated blue/green three-card layouts that do not carry article-specific detail
+- Australian scenery, beaches, coastlines, city skylines, maps, flags, gum trees, postcard footers, or scenic walking paths unless location is the actual subject
+- any image where most of the composition could be dropped into a different article unchanged
 
 **Accepted Visual Formats:**
 
-- Medical infographics
-- Anatomical explainers
-- Patient education posters
-- Mechanism-of-action diagrams
-- Comparison graphics
-- Step-by-step process visuals
-- Red flag warning graphics
-- Lifestyle and prevention illustrations
-- Symptom-location body maps
-- Lab result explainers
-- Telehealth workflow graphics
-- Blog hero images
+- Medical infographics: condition patterns, symptom clusters, risk factors, prevention steps, or safety boundaries.
+- Anatomical explainers: simplified anatomy with labels, callouts, and cause-effect relationships.
+- Patient education posters: practical handout-style guides with actions, warnings, and a clear takeaway.
+- Mechanism-of-action diagrams: pathway, interaction, before/after state, or simplified biological mechanism.
+- Comparison graphics: like-for-like criteria, not two generic sides.
+- Step-by-step process visuals: ordered flow with checkpoints and failure boundaries.
+- Red flag warning graphics: calm escalation logic, stop criteria, and care-seeking threshold.
+- Lifestyle and prevention illustrations: practical habits with labels and specific actions, not wellness mood art.
+- Symptom-location body maps: labelled regions, pain patterns, anatomical landmarks, or location-based triage.
+- Lab result explainers: specimen-to-result pathway, report components, and interpretation boundaries.
+- Telehealth workflow graphics: intake, clinician review, escalation, records, and outcome checkpoints.
+- Blog hero images: allowed only when they are still article-specific and informative; never blank props or decorative mood imagery.
 
 **Current Visual Registry Shape:**
 
