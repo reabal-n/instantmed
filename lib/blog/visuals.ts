@@ -860,7 +860,7 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
         { label: "Whole pattern", detail: "Severity and risk factors matter" },
         { label: "Worsening symptoms", detail: "Review the diagnosis", tone: "urgent" },
       ],
-      imagePrompt: "Detailed patient education infographic correcting the sputum-colour myth. Show visually that colour alone is weaker evidence than the whole symptom pattern, using non-graphic airway diagrams, an evidence-weight scale, and deterioration arrows while keeping all visible text limited to the registry copy supplied by the script. No mucus realism, no body close-up, no medicine boxes, no antibiotic guarantee, no consultation CTA.",
+      imagePrompt: "Detailed patient education infographic correcting the sputum-colour myth. Show visually that colour alone is weaker evidence than the whole symptom pattern, using non-graphic airway diagrams, evidence-strength zones, and deterioration arrows while keeping all visible text limited to the registry copy supplied by the script. No scales or weighing metaphors, no mucus realism, no body close-up, no medicine boxes, no antibiotic guarantee, no consultation CTA.",
     },
     {
       id: "breathing-red-flags",
@@ -892,7 +892,7 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
         { label: "Procedure needed", detail: "IUDs and implants need trained insertion", tone: "caution" },
         { label: "Complex symptoms", detail: "Pain, abnormal bleeding, or pregnancy concern needs review", tone: "urgent" },
       ],
-      imagePrompt: "Detailed contraception method-fit comparison graphic showing prescription-based methods, procedure-based methods, and situations needing in-person assessment. Include respectful method symbols and clear pathway structure while keeping all visible text limited to the registry copy supplied by the script. Use reproductive-health design, not product advertising. No brand names, no explicit anatomy, no blank phone, no consultation CTA.",
+      imagePrompt: "Detailed contraception method-fit comparison graphic showing prescription-based methods, procedure-based methods, and situations needing in-person assessment. Include respectful abstract method symbols, care-setting zones, and clear pathway structure while keeping all visible text limited to the registry copy supplied by the script. Use reproductive-health design, not product advertising. No product packaging, no pill blister packs, no brand names, no explicit anatomy, no blank phone, no consultation CTA.",
     },
     {
       id: "combined-pill-risk-check",
@@ -907,7 +907,7 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
         { label: "Migraine with aura", detail: "Important safety detail", tone: "urgent" },
         { label: "Clot or smoking risk", detail: "Can make oestrogen unsuitable", tone: "caution" },
       ],
-      imagePrompt: "Detailed combined hormonal contraception risk-check poster showing blood pressure, migraine with aura, clot or smoking risk, interacting medicines, and warning symptoms through visual panels and pathway arrows while keeping all visible text limited to the registry copy supplied by the script. Use a generic blood pressure motif without exact numbers. No brand names, no pill-pack hero, no official seals, no diagnosis promises, no consultation CTA.",
+      imagePrompt: "Detailed combined hormonal contraception risk-check poster showing blood pressure, migraine with aura, clot or smoking risk, interacting medicines, and warning symptoms through visual panels and pathway arrows while keeping all visible text limited to the registry copy supplied by the script. Use a generic blood pressure motif without exact numbers. No brand names, no pill packs or blister packs, no official seals, no diagnosis promises, no consultation CTA.",
     },
     {
       id: "contraception-privacy-pathway",
@@ -922,7 +922,7 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
         { label: "Collection plan", detail: "Pharmacy and payment privacy" },
         { label: "Support pathway", detail: "Extra help if privacy creates risk", tone: "caution" },
       ],
-      imagePrompt: "Detailed contraception privacy planning pathway visual showing safe contact, pharmacy collection, payment privacy, shared-device risk, shared account risk, and support pathway through practical privacy panels and calm process arrows while keeping all visible text limited to the registry copy supplied by the script. No lock-keyhole cliches, no identifiable people, no brand logos, no fake app screen, no consultation CTA.",
+      imagePrompt: "Detailed contraception privacy planning pathway visual showing safe contact, pharmacy collection planning, payment privacy, shared-device risk, shared account risk, and support pathway through practical privacy panels and calm process arrows while keeping all visible text limited to the registry copy supplied by the script. No product packaging, no delivery parcels, no pharmacy cross signs, no lock-keyhole cliches, no identifiable people, no brand logos, no fake app screen, no consultation CTA.",
     },
   ],
   "doctors-certificate-university-extension": [
