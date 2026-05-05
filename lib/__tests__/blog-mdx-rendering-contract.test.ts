@@ -3,23 +3,28 @@ import { describe, expect, it } from "vitest"
 import { getArticleBySlug } from "@/lib/blog/articles"
 
 describe("blog MDX rendering contract", () => {
-  it("parses Markdown tables into structured table sections", () => {
+  it("keeps IBS subtype comparisons in mobile-safe list sections", () => {
     const article = getArticleBySlug("ibs-digestive-issues")
 
     expect(article).toBeDefined()
-    const subtypeTable = article?.content.find(
+    const subtypeTables = article?.content.filter(
       (section) => section.type === "table" && section.headers?.includes("Subtype"),
     )
 
-    expect(subtypeTable).toMatchObject({
-      type: "table",
-      headers: ["Subtype", "Predominant bowel pattern", "Notes"],
-    })
-    expect(subtypeTable?.rows?.[0]).toEqual([
-      "IBS-C (constipation-predominant)",
-      "Infrequent, hard, or lumpy stools",
-      "Bristol Stool Chart types 1-2 predominate",
-    ])
+    expect(subtypeTables).toEqual([])
+
+    const subtypeList = article?.content.find(
+      (section) => section.type === "list" && section.items?.some((item) => item.startsWith("IBS-C")),
+    )
+
+    expect(subtypeList?.items).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining("IBS-C (constipation-predominant)"),
+        expect.stringContaining("IBS-D (diarrhoea-predominant)"),
+        expect.stringContaining("IBS-M (mixed)"),
+        expect.stringContaining("IBS-U (unclassified)"),
+      ]),
+    )
   })
 
   it("parses numbered lists as ordered step sections", () => {
