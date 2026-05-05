@@ -130,8 +130,8 @@ function auditFile(file) {
     addIssue(issues, SEVERITY.clinical, "Condition guide may be missing a visible safety boundary")
   }
 
-  if (/^\|.*\|$/m.test(content) && !/^\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?$/m.test(content)) {
-    addIssue(issues, SEVERITY.rendering, "Possible malformed Markdown table")
+  if (/^\|.*\|$/m.test(content)) {
+    addIssue(issues, SEVERITY.rendering, "Markdown table syntax can render as raw text in the article template")
   }
 
   if (/<(?!\/?Callout\b)[A-Z][A-Za-z]*(\s|>)/.test(content)) {
