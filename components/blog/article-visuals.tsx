@@ -103,6 +103,30 @@ function VisualItemRow({ item, index, visual }: { item: ArticleVisualItem; index
 function ArticleVisualPanel({ visual }: { visual: ArticleVisual }) {
   const styles = accentStyles[visual.accent]
 
+  if (visual.assetPath) {
+    return (
+      <figure className="my-10">
+        <div className="mb-3 flex items-center gap-3">
+          <VisualGlyph visual={visual} />
+          <div className="min-w-0">
+            <p className={cn("text-xs font-semibold uppercase tracking-[0.08em]", styles.text)}>{visual.eyebrow}</p>
+            <figcaption className="mt-1 text-base font-semibold leading-snug text-foreground">{visual.title}</figcaption>
+          </div>
+        </div>
+        <div className="relative mx-auto aspect-[2/3] w-full max-w-[480px] overflow-hidden rounded-xl border border-border/50 bg-white dark:bg-card">
+          <Image
+            src={visual.assetPath}
+            alt={`${visual.title}: ${visual.summary}`}
+            fill
+            className="object-contain"
+            sizes="(max-width: 640px) 100vw, 480px"
+          />
+        </div>
+        <p className="mx-auto mt-3 max-w-[480px] text-sm leading-relaxed text-muted-foreground">{visual.summary}</p>
+      </figure>
+    )
+  }
+
   return (
     <figure className={cn("rounded-2xl border p-5 shadow-md shadow-primary/[0.04] dark:shadow-none", styles.bg, styles.border)}>
       <div className="flex items-start gap-4">
@@ -113,18 +137,6 @@ function ArticleVisualPanel({ visual }: { visual: ArticleVisual }) {
           <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{visual.summary}</p>
         </div>
       </div>
-
-      {visual.assetPath && (
-        <div className="relative mt-5 aspect-[4/5] overflow-hidden rounded-xl border border-border/50 bg-white dark:bg-card">
-          <Image
-            src={visual.assetPath}
-            alt={`${visual.title}: ${visual.summary}`}
-            fill
-            className="object-contain"
-            sizes="(max-width: 768px) 100vw, 760px"
-          />
-        </div>
-      )}
 
       <ul
         className={cn(

@@ -15,7 +15,9 @@ describe("blog article visual system", () => {
       expect(visuals.length, slug).toBeGreaterThanOrEqual(2)
       expect(visuals.length, slug).toBeLessThanOrEqual(3)
       for (const visual of visuals) {
-        expect(visual.assetPath, `${slug}/${visual.id}`).toBe(`/images/blog/${slug}/${visual.id}.webp`)
+        expect(visual.assetPath, `${slug}/${visual.id}`).toMatch(
+          new RegExp(`^/images/blog/${slug}/${visual.id}(?:-[a-z0-9-]+)?\\.webp$`),
+        )
       }
     }
   })

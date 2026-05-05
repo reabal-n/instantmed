@@ -24,6 +24,9 @@ interface Palette {
 const WIDTH = 1280
 const HEIGHT = 1600
 const GPT_IMAGE_MODEL = "openai/gpt-image-2"
+const DEFAULT_GATEWAY_SIZE = "1024x1536"
+const supportedGatewaySizes = ["1024x1024", "1024x1536", "1536x1024"] as const
+type GatewayImageSize = (typeof supportedGatewaySizes)[number]
 const BRAND_BADGE_WIDTH = 248
 const BRAND_BADGE_HEIGHT = 50
 const BRAND_BADGE_MARGIN = 24
@@ -100,6 +103,13 @@ function getRenderer(): Renderer {
     return renderer
   }
   throw new Error(`Unsupported renderer "${renderer}". Use deterministic, gpt-image-2, or gpt-image-2-composite.`)
+}
+
+function getGatewayImageSize(): GatewayImageSize {
+  const size = getArg("size")
+  if (!size) return DEFAULT_GATEWAY_SIZE
+  if (supportedGatewaySizes.includes(size as GatewayImageSize)) return size as GatewayImageSize
+  throw new Error(`Unsupported --size "${size}". Use ${supportedGatewaySizes.join(", ")}.`)
 }
 
 function configureGatewayAuth() {
@@ -406,7 +416,7 @@ function getDefaultVisualFormat(kind: ArticleVisual["kind"]): VisualFormat {
 function getVisualFormatPrompt(format: VisualFormat): string {
   switch (format) {
     case "medical-infographic":
-      return "Format: medical infographic. Use dense but readable education panels, clinical icons, symptom/risk/prevention grouping, and one strong explanatory diagram. The image must teach, not merely decorate."
+      return "Format: medical infographic. Use structured but readable education panels, clinical icons, symptom/risk/prevention grouping, and one strong explanatory diagram. The image must teach one point clearly, not try to carry the full article."
     case "anatomical-explainer":
       return "Format: anatomical explainer. Use clean non-graphic anatomy, simplified body structures, callout labels, arrows, and clear spatial relationships. It should feel like premium patient education, not a textbook plate."
     case "patient-education-poster":
@@ -458,15 +468,15 @@ function getArtDirectionPrompt(slug: string, visual: ArticleVisual, format: Visu
   const lanes = [
     [
       "Art direction: premium editorial science collage, like a serious magazine explainer: full-bleed clinical texture, bold asymmetric composition, layered anatomy, scan-like fragments, directional ribbons, and compact evidence modules.",
-      "Use purposeful visual density and a strong subject signal. No single phone-and-box composition, no isolated lung icon, no clinic-door metaphor, no desk scene, no plants, no coffee cups, no generic blank-object still life.",
+      "Use purposeful visual detail and a strong subject signal, while keeping generous blank space around the focal diagram. No single phone-and-box composition, no isolated lung icon, no clinic-door metaphor, no desk scene, no plants, no coffee cups, no generic blank-object still life.",
     ],
     [
       "Art direction: investigative field-guide wall with hand-inked medical diagrams, pinned specimen-style panels, colour-coded pathways, micro-illustrations, and layered paper texture.",
-      "Make it feel authored and specific, with many visual discoveries across the canvas. Avoid identical card rows, generic corporate icons, sterile white cards, empty hero-illustration space, and soft pastel minimalism.",
+      "Make it feel authored and specific, with a few strong visual discoveries across the canvas. Avoid identical card rows, generic corporate icons, sterile white cards, empty hero-illustration space, and soft pastel minimalism.",
     ],
     [
-      "Art direction: high-contrast data-visualisation poster with layered decision lanes, signal-colour heat zones, scan overlays, micro-diagrams, flow arrows, and one memorable central medical map.",
-      "Use purposeful density, hierarchy, and visual motion. Avoid decorative tabletop objects, scenic windows, coastal backgrounds, blank phone screens, empty white-card grids, and simple icon rows.",
+      "Art direction: high-contrast data-visualisation poster with layered decision lanes, signal-colour heat zones, scan overlays, micro-diagrams, flow arrows, and one memorable central medical system diagram.",
+      "Use hierarchy and visual motion without cramming the canvas. Avoid decorative tabletop objects, scenic windows, coastal backgrounds, blank phone screens, empty white-card grids, and simple icon rows.",
     ],
     [
       "Art direction: premium public-health campaign poster with close-cropped practical cues, dramatic cropping, layered process maps, saturated accent blocks, mixed panel sizes, and tactile print grain.",
@@ -533,51 +543,114 @@ function sanitizeImagePrompt(prompt: string): string {
     .trim()
 }
 
-function buildGatewayPrompt(slug: string, visual: ArticleVisual, styleShift = 0): string {
-  const itemText = visual.items.map((item, index) => `${index + 1}. ${item.label}: ${item.detail}`).join("\n")
+function getAssetOrientation(size: GatewayImageSize): string {
+  if (size === "1536x1024") return "landscape"
+  if (size === "1024x1024") return "square"
+  return "portrait"
+}
+
+function getDefaultTextMode(visual: ArticleVisual, format: VisualFormat): NonNullable<ArticleVisual["textMode"]> {
+  if (format === "lifestyle-illustration" || format === "hero-image") return "none"
+  if (format === "anatomical-explainer" || format === "body-map" || format === "mechanism-diagram") {
+    return "diagram-callouts"
+  }
+  if (visual.kind === "comparison" || visual.kind === "flow" || visual.kind === "timeline") return "labels"
+  return "diagram-callouts"
+}
+
+function getTextPlanPrompt(visual: ArticleVisual, format: VisualFormat): string {
+  const mode = visual.textMode ?? getDefaultTextMode(visual, format)
+  const maxItems = mode === "title-and-labels" ? 3 : 4
+  const textItems = (visual.textItems && visual.textItems.length > 0 ? visual.textItems : visual.items.map((item) => item.label))
+    .slice(0, maxItems)
+  const exactTextList = textItems.map((item) => `- ${item}`).join("\n")
+
+  if (mode === "none") {
+    return [
+      "Visible text plan: no readable text is needed for this image.",
+      "Do not render headings, labels, captions, numbers, tables, buttons, UI copy, fake document copy, chart labels, annotations, footers, field names, legal copy, signatures, or logo-like marks. Use visual structure instead.",
+      `Composition cue only, not visible copy: ${visual.eyebrow}; ${visual.title}; ${textItems.join(", ")}.`,
+    ].join("\n")
+  }
+
+  if (mode === "title-and-labels") {
+    return [
+      "Visible text plan: use a small amount of exact text because this visual benefits from orientation copy.",
+      "Maximum visible text elements: 4 total.",
+      "Use ONLY the exact text below. Do not invent extra headings, explanatory copy, legal claims, symptoms, fake UI text, numbers, captions, source labels, footers, or calls to action.",
+      `Optional short title: ${visual.title}`,
+      "Optional labels, use only if they fit cleanly:",
+      exactTextList,
+      "If any word is hard to fit or spell correctly, omit that text element rather than invent or distort it.",
+    ].join("\n")
+  }
+
+  if (mode === "diagram-callouts") {
+    return [
+      "Visible text plan: use short diagram callouts only where they make the visual easier to understand.",
+      "Maximum visible text elements: 4 total.",
+      "Use ONLY these exact callout labels:",
+      exactTextList,
+      "Do not add a title, paragraph, caption, table, legal claim, fake document copy, fake UI text, source label, footer, number, or call to action. Use unlabeled diagrams and abstract line placeholders for everything else.",
+      "If any label is misspelled or cramped, omit it rather than adding more copy.",
+    ].join("\n")
+  }
+
+  return [
+    "Visible text plan: use short labels only, because labels clarify this diagram without turning it into a poster.",
+    "Maximum visible text elements: 4 total.",
+    "Use ONLY these exact labels:",
+    exactTextList,
+    "Do not add a title, paragraph, caption, table, legal claim, fake document copy, fake UI text, source label, footer, number, or call to action. Use visual diagrams for the rest.",
+    "If any label is misspelled or cramped, omit it rather than adding more copy.",
+  ].join("\n")
+}
+
+function buildGatewayPrompt(
+  slug: string,
+  visual: ArticleVisual,
+  styleShift = 0,
+  size: GatewayImageSize = DEFAULT_GATEWAY_SIZE,
+): string {
   const format = visual.visualFormat ?? getDefaultVisualFormat(visual.kind)
   const cleanedPrimaryRequest = sanitizeImagePrompt(visual.imagePrompt)
+  const orientation = getAssetOrientation(size)
 
   return [
     `Use case: ${format}`,
-    "Asset type: portrait health-guide visual for a premium Australian digital health website.",
+    `Asset type: ${orientation} health-guide visual for a premium Australian digital health website.`,
     `Model: ${GPT_IMAGE_MODEL}.`,
     "",
     "Primary request:",
     cleanedPrimaryRequest,
     "",
     getVisualFormatPrompt(format),
-    "Create a detailed, polished, information-dense visual that looks art-directed by a senior editorial designer. It must be a standalone explainer, not a decorative stock image.",
-    "Teaching-value floor: the viewer should learn at least 5 concrete facts, distinctions, warning signs, steps, or decision criteria from the image without reading the article. If the image does not add information beyond mood, it has failed.",
+    "Create a polished visual teaching asset that looks art-directed by a senior editorial designer. It should support the article, not try to replace the article.",
+    "Teaching-value floor: the viewer should understand one clear idea, distinction, warning boundary, or process from the image. The full explanation lives in the HTML article, so do not cram the image with copy.",
     "Quality floor: this must not look like a thumbnail, placeholder, clip-art hero image, sterile SaaS illustration, minimal still life, stock-photo desk scene, or low-information metaphor. A single phone, inhaler, document, medicine box, warning triangle, shield, scale, checklist, blank card, abstract blob cluster, or generic icon row is an automatic failure.",
-    "Composition floor: fill the portrait canvas with at least 5 useful content regions and at least 3 different visual devices such as a comparison matrix, pathway, mini diagram, body/anatomy map, timeline, checklist zone, data marker, red-flag hierarchy, or practical action strip. Use icons, arrows, colour zones, shapes, anatomical callouts, and layout structure to create density.",
-    "Premium floor: make the composition feel designed and specific to this article. Use varied panel scale, hierarchy, callout arrows, diagrams, labelled sub-sections, and a clear reading path. Do not use empty space as the main design move.",
+    "Composition floor: use 2 to 4 strong visual regions, one clear focal diagram, and generous breathing room. Prefer a memorable central scene or diagram with a few supporting callouts over a dense poster grid.",
+    "Premium floor: make the composition feel designed and specific to this article. Use hierarchy, restrained callout arrows, diagrams, and a clear reading path. Leave enough negative space that the image feels premium, not cluttered.",
     "Legacy prompt override: obsolete low-information prompt fragments were removed before this request. Preserve privacy and avoid fake documents, but do not obey any implied instruction to make the visual textless, blank, minimal, symbolic-only, or object-only.",
     "Banned visual archetypes: blank desk scene, plain object arrangement, soft beige tabletop, isolated phone mockup, blank certificate or document, empty checklist, box plus card, balance scale metaphor, shield-plus-pill cards, generic safety icon row, oversized abstract shapes, empty app cards, simple corporate vector mascot, or any image where most of the canvas could be swapped into another article unchanged.",
     getInfographicLayoutPrompt(visual.kind),
     getArtDirectionPrompt(slug, visual, format, styleShift),
     "",
-    "Visible text contract: the image may contain ONLY the text listed in the exact-copy block below. Do not add secondary headings, tables, captions, thresholds, time windows, symptom lists, clinical criteria, explanatory paragraphs, source labels, chart labels, button labels, fake UI text, or legal copy. If you need more visual density, use unlabeled diagrams, icons, colour zones, arrows, and abstract shapes.",
-    "Exact visible copy to use. Use only these values; do not invent extra claims, legal rules, drug names, symptoms, thresholds, timeframes, percentages, prices, or calls to action. Render the values naturally, but never render metadata field names such as Eyebrow, Title, Summary, Cards, Footer, or Article slug.",
-    `Small top label should read: ${visual.eyebrow}`,
-    `Main heading should read: ${visual.title}`,
-    `Supporting summary should read: ${visual.summary}`,
-    "Cards:",
-    itemText,
-    `Footer: ${getFooterCopy(visual)}`,
-    "This exact-copy list overrides any previous request for more readable labels. Additional visual regions must be non-textual or use only the exact card labels already provided above.",
+    getTextPlanPrompt(visual, format),
+    "Text quality rule: visible text must be crisp, correctly spelled, and sparse. No more than one short label per visual region. Document/forms may use abstract grey line placeholders only, with no legible fake document wording.",
+    "Use visual diagrams for the rest of the meaning: route lines, icons, colour zones, magnified document regions, abstract verification nodes, privacy locks, decision branches, and safe/uncertain/escalate pathways.",
     "",
     "Style:",
     "Premium educational design, but vary the visual language from article to article. Do not default to the same ivory paper, navy serif headline, three-card row, mug, plant, notebook, and coastline composition.",
     "Typography should match the selected art direction: clean sans-led systems for process, comparison, regulatory, workflow, and lab visuals; atlas labels for anatomy; only occasional hand lettering for small annotations. Do not use the repeated giant navy display-serif headline treatment unless the individual prompt explicitly asks for an editorial poster.",
     "Use the selected art direction above as the main style contract. Keep the information readable, structured, and specific, but make each visual feel art-directed for its own topic.",
     "Avoid bland corporate gradients, generic hospital stock art, excessive symmetry, plastic 3D icons, over-polished AI faces, fake app screenshots, vague wellness imagery, and beige wellness mush.",
-    "Leave the bottom-right 320 by 110 pixel area as background-only negative space because the production script overlays the official InstantMed brand badge there after generation. Do not place table cells, footer copy, arrows, faces, icons, prices, or any essential detail in that badge-safe zone.",
+    "Create the complete final poster inside the generated image. No deterministic copy layer, brand badge, logo, wordmark, or layout overlay will be added after generation.",
     "",
     "Hard constraints:",
-    "No brand logos, no official seals, no medical crosses, no medication brand names, no pill imprints, no celebrity likenesses, no gore, no graphic symptoms, no consultation CTA, no website UI, no fake doctor-patient chat. If a person appears, make them non-identifiable, natural, and secondary. Do not draw the InstantMed logo or wordmark; the production script adds the official brand assets after generation.",
-    "No Australian tourist scenery unless the article itself is specifically about travel, location, or geography. Do not include beaches, coastline, ocean views, harbour bridges, city skylines, gum trees as filler, kangaroos, flags, Australian maps, lifeguard towers, postcard footers, or scenic lookout paths.",
-    `Article slug for context only: ${slug}.`,
+    "No brand logos, no official seals, no medical crosses, no plus-sign medical symbols, no balance scales, no medication brand names, no pill imprints, no celebrity likenesses, no gore, no graphic symptoms, no consultation CTA, no website UI, no fake doctor-patient chat. If a person appears, make them non-identifiable, natural, and secondary. Do not draw the InstantMed logo or wordmark.",
+    "No decorative office or lifestyle props: no plants, mugs, coffee cups, notebooks, pens, desk flat lays, paper scraps, masking tape, clipboards, envelopes, or stationery filler unless the exact article prompt explicitly requires that object as the main teaching subject.",
+    "No Australian tourist scenery unless the article itself is specifically about travel, location, or geography. Do not include beaches, coastline, ocean views, harbour bridges, city skylines, gum trees as filler, kangaroos, flags, Australian maps, country outlines, lifeguard towers, postcard footers, or scenic lookout paths.",
+    "Article context: patient education visual. Do not render or infer website names, slug text, or article metadata.",
     `Style retry seed for context only: ${styleShift}.`,
   ].join("\n")
 }
@@ -604,10 +677,10 @@ function buildGatewayCompositeUnderlayPrompt(slug: string, visual: ArticleVisual
     "Composition requirement: fill the portrait canvas with at least 7 distinct visual clusters, strong foreground/midground/background depth, diagonal or radial movement, and dense article-specific clinical cues around the overlay-safe areas. The viewer should feel there is useful visual information at the edges, behind the title area, and between the copy cards.",
     "Style requirement: premium editorial, tactile, layered, specific, and memorable. Use richer contrast, controlled saturation, print grain, scan texture, cutaway anatomy, route lines, risk zones, and overlapping panels. Avoid beige emptiness and washed-out minimalism.",
     "Hard visible-text rule: no readable words, letters, numbers, tables, fake UI, fake forms, captions, labels, badges, stamps, signatures, handwriting, prescription text, chart labels, or signage. The final asset must contain zero generated text.",
-    "Avoid generic stock art, blank phone hero, blank document hero, medicine-box hero, desk flat lay, balance-scale metaphors, scenic landscapes, road/path metaphors, clinic-door metaphors, mountains, beaches, city skylines, and decorative abstract blobs. The underlay still needs to be specific to the article.",
-    "No identifiable people, no fake doctor faces, no doctor-patient consultation scene, no medical crosses, no pharmacy cross signs, no plus-sign shop signs, no pill blister packs, no medicine bottles as focal objects, no official seals, no logos, no medication brand names, no pill imprints, no gore, no graphic symptoms, no consultation CTA.",
+    "Avoid generic stock art, blank phone hero, blank document hero, medicine-box hero, desk flat lay, balance-scale metaphors, scenic landscapes, road/path metaphors, clinic-door metaphors, mountains, beaches, coastlines, ocean, city skylines, Australian maps, flags, landmarks, and decorative abstract blobs. The underlay still needs to be specific to the article.",
+    "No identifiable people, no fake doctor faces, no doctor-patient consultation scene, no medical crosses, no pharmacy cross signs, no plus-sign shop signs, no pills, no tablets, no capsules, no pill blister packs, no medicine bottles as focal objects, no official seals, no logos, no medication brand names, no pill imprints, no gore, no graphic symptoms, no consultation CTA.",
     "Leave the bottom-right 320 by 110 pixel area calm and low-detail for the production badge overlay.",
-    `Article slug for context only: ${slug}.`,
+    "Article context: patient education visual. Do not render or infer website names, slug text, or article metadata.",
     `Style retry seed for context only: ${styleShift}.`,
   ].join("\n")
 }
@@ -791,16 +864,20 @@ async function saveInfographic(slug: string, visual: ArticleVisual) {
   return filepath
 }
 
-async function saveGatewayInfographic(slug: string, visual: ArticleVisual, styleShift = 0) {
+async function saveGatewayInfographic(
+  slug: string,
+  visual: ArticleVisual,
+  styleShift = 0,
+  size: GatewayImageSize = DEFAULT_GATEWAY_SIZE,
+) {
   const outputDir = path.join(process.cwd(), "public", "images", "blog", slug)
   await fs.mkdir(outputDir, { recursive: true })
 
   const filepath = path.join(outputDir, `${visual.id}.webp`)
-  const palette = palettes[visual.accent]
   const result = await generateImage({
     model: gateway.image(GPT_IMAGE_MODEL),
-    prompt: buildGatewayPrompt(slug, visual, styleShift),
-    size: "1024x1536",
+    prompt: buildGatewayPrompt(slug, visual, styleShift, size),
+    size,
     providerOptions: {
       gateway: {
         tags: ["feature:blog-visuals", `article:${slug}`, "renderer:gpt-image-2", `style-shift:${styleShift}`],
@@ -809,15 +886,18 @@ async function saveGatewayInfographic(slug: string, visual: ArticleVisual, style
   })
 
   await sharp(Buffer.from(result.image.uint8Array))
-    .resize(WIDTH, HEIGHT, { fit: "contain", background: palette.wash })
     .webp({ quality: 88, effort: 5 })
     .toFile(filepath)
 
-  await addInstantMedWordmark(filepath)
   return filepath
 }
 
-async function saveGatewayCompositeInfographic(slug: string, visual: ArticleVisual, styleShift = 0) {
+async function saveGatewayCompositeInfographic(
+  slug: string,
+  visual: ArticleVisual,
+  styleShift = 0,
+  size: GatewayImageSize = DEFAULT_GATEWAY_SIZE,
+) {
   const outputDir = path.join(process.cwd(), "public", "images", "blog", slug)
   await fs.mkdir(outputDir, { recursive: true })
 
@@ -826,7 +906,7 @@ async function saveGatewayCompositeInfographic(slug: string, visual: ArticleVisu
   const result = await generateImage({
     model: gateway.image(GPT_IMAGE_MODEL),
     prompt: buildGatewayCompositeUnderlayPrompt(slug, visual, styleShift),
-    size: "1024x1536",
+    size,
     providerOptions: {
       gateway: {
         tags: ["feature:blog-visuals", `article:${slug}`, "renderer:gpt-image-2-composite", `style-shift:${styleShift}`],
@@ -849,6 +929,7 @@ async function main() {
   const visualFilter = getArg("visual")
   const limit = Number(getArg("limit") ?? "0")
   const styleShift = Number(getArg("style-shift") ?? "0")
+  const gatewayImageSize = getGatewayImageSize()
   const dryRun = hasFlag("dry-run")
   const force = hasFlag("force")
   const renderer = getRenderer()
@@ -886,7 +967,7 @@ async function main() {
     if (dryRun) {
       const output =
         renderer === "gpt-image-2"
-          ? buildGatewayPrompt(slug, visual, styleShift)
+          ? buildGatewayPrompt(slug, visual, styleShift, gatewayImageSize)
           : renderer === "gpt-image-2-composite"
             ? buildGatewayCompositeUnderlayPrompt(slug, visual, styleShift)
             : renderArticleVisualSvg(slug, visual)
@@ -897,9 +978,9 @@ async function main() {
     console.log(`Generating ${renderer} visual ${slug}/${visual.id}...`)
     const saved =
       renderer === "gpt-image-2"
-        ? await saveGatewayInfographic(slug, visual, styleShift)
+        ? await saveGatewayInfographic(slug, visual, styleShift, gatewayImageSize)
         : renderer === "gpt-image-2-composite"
-          ? await saveGatewayCompositeInfographic(slug, visual, styleShift)
+          ? await saveGatewayCompositeInfographic(slug, visual, styleShift, gatewayImageSize)
           : await saveInfographic(slug, visual)
     console.log(`Saved ${path.relative(process.cwd(), saved)}`)
   }

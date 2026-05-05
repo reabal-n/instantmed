@@ -36,6 +36,39 @@ interface ArticleTemplateProps {
   allArticles?: Article[]
 }
 
+function getBodyArticleVisuals(article: Article) {
+  return getArticleVisuals(article.slug).filter((visual) => visual.assetPath !== article.heroImage)
+}
+
+function getVisualPlacements(content: ArticleSection[], visualCount: number) {
+  if (visualCount === 0) return new Map<number, number[]>()
+
+  const headingIndexes = content
+    .map((section, index) => ({ section, index }))
+    .filter(({ section }) => section.type === "heading" && section.level === 2)
+    .map(({ index }) => index)
+
+  const placements = new Map<number, number[]>()
+  const fallbackIndexes = content.map((_, index) => index)
+  const anchors = headingIndexes.length > 0 ? headingIndexes : fallbackIndexes
+
+  for (let visualIndex = 0; visualIndex < visualCount; visualIndex += 1) {
+    const anchorPosition = Math.min(
+      anchors.length - 1,
+      Math.max(0, Math.round(((visualIndex + 1) * anchors.length) / (visualCount + 1))),
+    )
+    const anchorIndex = anchors[anchorPosition]
+    const nextHeadingIndex = content.findIndex(
+      (section, index) => index > anchorIndex && section.type === "heading" && section.level === 2,
+    )
+    const maxIndex = nextHeadingIndex === -1 ? content.length - 1 : Math.max(anchorIndex, nextHeadingIndex - 1)
+    const contentIndex = Math.min(anchorIndex + 2, maxIndex)
+    placements.set(contentIndex, [...(placements.get(contentIndex) ?? []), visualIndex])
+  }
+
+  return placements
+}
+
 const calloutConfig = {
   info: {
     icon: Info,
@@ -340,7 +373,8 @@ export function ArticleTemplate({ article, relatedArticles, allArticles = [] }: 
   const seriesArticles = article.series
     ? allArticles.filter(a => a.series?.id === article.series?.id)
     : []
-  const articleVisuals = getArticleVisuals(article.slug)
+  const articleVisuals = getBodyArticleVisuals(article)
+  const visualPlacements = getVisualPlacements(article.content, articleVisuals.length)
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -463,12 +497,18 @@ export function ArticleTemplate({ article, relatedArticles, allArticles = [] }: 
       {/* Mobile jump-to-section */}
       <MobileTOC content={article.content} />
 
-      <ArticleVisuals visuals={articleVisuals} />
-
       {/* Content */}
       <div className="prose-content">
         {article.content.map((section, i) => (
-          <ContentSection key={i} section={section} />
+          <div key={i}>
+            <ContentSection section={section} />
+            {visualPlacements.get(i)?.map((visualIndex) => (
+              <ArticleVisuals
+                key={articleVisuals[visualIndex].id}
+                visuals={[articleVisuals[visualIndex]]}
+              />
+            ))}
+          </div>
         ))}
       </div>
 
