@@ -173,7 +173,7 @@ export function AdminDashboardClient({
                   return (
                     <Link
                       key={intake.id}
-                      href={`/doctor/intakes/${intake.id}`}
+                      href={`/admin/intakes/${intake.id}`}
                       className="block bg-card p-3 transition-colors hover:bg-muted/35"
                     >
                       <div className="flex items-start justify-between gap-3">
@@ -257,7 +257,7 @@ export function AdminDashboardClient({
                         </TableCell>
                         <TableCell className="text-right">
                           <Button variant="ghost" size="sm" asChild>
-                            <Link href={`/doctor/intakes/${intake.id}`}>
+                            <Link href={`/admin/intakes/${intake.id}`}>
                               <Eye className="h-4 w-4 mr-1" />
                               View
                             </Link>

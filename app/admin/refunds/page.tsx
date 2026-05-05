@@ -6,7 +6,7 @@ import { RefundsClient } from "./refunds-client"
 export const dynamic = "force-dynamic"
 
 export default async function RefundsPage() {
-  await requireRole(["admin"], { redirectTo: "/doctor/dashboard" })
+  await requireRole(["admin"], { redirectTo: "/admin" })
 
   const results = await Promise.allSettled([
     getPaymentsWithRefundsAction({}, 1, 50),

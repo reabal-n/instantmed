@@ -30,6 +30,13 @@ describe("doctor settings security contract", () => {
     expect(identitySettingsSource).toContain("Link Google")
   })
 
+  it("keeps certificate identity and signature in one certificate workflow", () => {
+    expect(identitySettingsSource).toContain("Professional Details")
+    expect(identitySettingsSource).toContain("Signature")
+    expect(identitySettingsSource).toContain("certificate-identity")
+    expect(identitySettingsSource).not.toContain("{/* Signature */}")
+  })
+
   it("makes sandbox versus production Parchment linking explicit before recording", () => {
     expect(identityPageSource).toContain("getParchmentEnvironment")
     expect(identitySettingsSource).toContain("{parchmentEnvironment.label} environment")

@@ -5,7 +5,7 @@ import { WebhookDlqClient } from "./webhook-dlq-client"
 export const dynamic = "force-dynamic"
 
 export default async function WebhookDlqPage() {
-  await requireRole(["admin"], { redirectTo: "/doctor/dashboard" })
+  await requireRole(["admin"], { redirectTo: "/admin" })
 
   return (
     <div className="space-y-6">

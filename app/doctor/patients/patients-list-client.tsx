@@ -83,60 +83,47 @@ export function PatientsListClient({
         actions={<ManualPatientDialog />}
       />
 
-      {/* Stats */}
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <Card className="rounded-xl border-border/50">
-          <CardContent className="p-5">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Total Patients</span>
-              <Users className="h-5 w-5 text-primary shrink-0" />
+      {/* Overview */}
+      <Card className="rounded-xl border-border/50">
+        <CardContent className="grid gap-4 p-4 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="flex items-center gap-3">
+            <Users className="h-4 w-4 text-primary" />
+            <div>
+              <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Total patients</p>
+              <p className="text-xl font-semibold tabular-nums text-foreground">{totalPatients}</p>
+              {collapsedDuplicateProfiles > 0 && (
+                <p className="text-xs text-muted-foreground">{rawPatientProfiles} raw profiles</p>
+              )}
             </div>
-            <div className="mt-1.5 text-2xl font-semibold tabular-nums text-foreground">{totalPatients}</div>
-            {collapsedDuplicateProfiles > 0 && (
-              <p className="mt-1 text-xs text-muted-foreground">
-                {rawPatientProfiles} raw profiles
+          </div>
+          <div className="flex items-center gap-3">
+            <CheckCircle className="h-4 w-4 text-success" />
+            <div>
+              <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Onboarded</p>
+              <p className="text-xl font-semibold tabular-nums text-foreground">
+                {patients.filter((p) => p.onboarding_completed).length}
               </p>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card className="rounded-xl border-border/50">
-          <CardContent className="p-5">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Onboarded</span>
-              <CheckCircle className="h-5 w-5 text-success shrink-0" />
             </div>
-            <div className="mt-1.5 text-2xl font-semibold tabular-nums text-foreground">
-              {patients.filter((p) => p.onboarding_completed).length}
+          </div>
+          <div className="flex items-center gap-3">
+            <XCircle className="h-4 w-4 text-warning" />
+            <div>
+              <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Incomplete</p>
+              <p className="text-xl font-semibold tabular-nums text-foreground">
+                {patients.filter((p) => !p.onboarding_completed).length}
+              </p>
             </div>
-          </CardContent>
-        </Card>
-
-        <Card className="rounded-xl border-border/50">
-          <CardContent className="p-5">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Incomplete</span>
-              <XCircle className="h-5 w-5 text-warning shrink-0" />
+          </div>
+          <div className="flex items-center gap-3">
+            <Pill className="h-4 w-4 text-success" />
+            <div>
+              <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Parchment sync</p>
+              <p className="text-xl font-semibold tabular-nums text-foreground">{parchmentSyncedPatients}</p>
+              <p className="text-xs text-muted-foreground">{patients.length - parchmentSyncedPatients} not synced on this page</p>
             </div>
-            <div className="mt-1.5 text-2xl font-semibold tabular-nums text-foreground">
-              {patients.filter((p) => !p.onboarding_completed).length}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="rounded-xl border-border/50">
-          <CardContent className="p-5">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Parchment sync</span>
-              <Pill className="h-5 w-5 text-success shrink-0" />
-            </div>
-            <div className="mt-1.5 text-2xl font-semibold tabular-nums text-foreground">{parchmentSyncedPatients}</div>
-            <p className="mt-1 text-xs text-muted-foreground">
-              {patients.length - parchmentSyncedPatients} not synced on this page
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Filters */}
       <Card className="rounded-xl border-border/50">

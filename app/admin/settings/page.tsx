@@ -92,7 +92,7 @@ const settingsGroups: SettingsGroup[] = [
 ]
 
 export default async function AdminSettingsPage() {
-  await requireRole(["admin"], { redirectTo: "/doctor/dashboard" })
+  await requireRole(["admin"], { redirectTo: "/admin" })
 
   return (
     <div className="space-y-6">

@@ -39,13 +39,14 @@ describe("doctor patient medication history contract", () => {
   })
 
   it("organizes the profile around clinically relevant sections", () => {
-    expect(detailSource).toContain("Clinical snapshot")
+    expect(detailSource).toContain("Patient summary")
     expect(detailSource).toContain("Prescribing identity")
-    expect(detailSource).toContain("Latest activity")
     expect(detailSource).toContain("Last prescription")
-    expect(detailSource).toContain("Parchment delivery status")
+    expect(detailSource).toContain("Delivery evidence")
     expect(detailSource).toContain("Webhook confirmed script sent")
     expect(detailPageSource).toContain("Prescription synced to PMS")
+    expect(detailSource).toContain("visibleMedications")
+    expect(detailSource).toContain("hiddenMedicationCount")
   })
 
   it("surfaces Parchment webhook and sync activity without exposing raw PHI", () => {
@@ -62,8 +63,17 @@ describe("doctor patient medication history contract", () => {
     expect(detailPageSource).toContain(".slice(0, 1)")
     expect(detailSource).toContain("Latest delivery update")
     expect(detailSource).toContain("secondaryParchmentActivity")
-    expect(detailSource).toContain("Other recent events")
+    expect(detailSource).toContain("earlier delivery event")
     expect(detailSource).not.toContain("parchmentActivity.slice(1, 5)")
+  })
+
+  it("hides empty secondary patient sections instead of rendering full empty cards", () => {
+    expect(detailSource).toContain("{intakes.length > 0 && (")
+    expect(detailSource).toContain("{(showNoteForm || notes.length > 0) && (")
+    expect(detailSource).toContain("{emailLogs.length > 0 && (")
+    expect(detailSource).not.toContain("No requests from this patient yet")
+    expect(detailSource).not.toContain("No emails sent to this patient yet")
+    expect(detailSource).not.toContain("No notes yet")
   })
 
   it("shows Parchment sync health in the doctor patient list", () => {
@@ -80,6 +90,8 @@ describe("doctor patient medication history contract", () => {
     expect(patientsListSource).toContain("Parchment sync")
     expect(patientsListSource).toContain("Ready in Parchment")
     expect(patientsListSource).toContain("Not synced")
+    expect(patientsListSource).toContain("Overview")
+    expect(patientsListSource).toContain("sm:grid-cols-2 xl:grid-cols-4")
   })
 
   it("refreshes patient prescriptions when the embedded Parchment panel closes", () => {

@@ -10,7 +10,7 @@ export const metadata = {
 }
 
 export default async function EmailSuppressionPage() {
-  await requireRole(["admin"], { redirectTo: "/doctor/dashboard" })
+  await requireRole(["admin"], { redirectTo: "/admin" })
   const { data, error } = await getSuppressedEmails()
 
   return <EmailSuppressionClient initialData={data} error={error} />

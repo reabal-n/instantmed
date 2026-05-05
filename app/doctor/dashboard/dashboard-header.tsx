@@ -1,13 +1,11 @@
 "use client"
 
-import { AlertTriangle, ClipboardList, Settings, Users } from "lucide-react"
-import Link from "next/link"
+import { AlertTriangle } from "lucide-react"
 import { useState, useTransition } from "react"
 import { toast } from "sonner"
 
 import { setDoctorAvailabilityAction } from "@/app/actions/doctor-availability"
 import { DashboardPageHeader } from "@/components/dashboard"
-import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 
@@ -36,39 +34,19 @@ export function DashboardHeader({ initialAvailable }: DashboardHeaderProps) {
         title="Review Queue"
         description="Patient requests awaiting your review"
         actions={
-          <div className="flex flex-wrap items-center justify-end gap-2">
-            <Button variant="outline" size="sm" asChild>
-              <Link href="/doctor/scripts">
-                <ClipboardList className="h-4 w-4" />
-                Scripts
-              </Link>
-            </Button>
-            <Button variant="outline" size="sm" asChild>
-              <Link href="/doctor/patients">
-                <Users className="h-4 w-4" />
-                Patients
-              </Link>
-            </Button>
-            <Button variant="outline" size="sm" asChild>
-              <Link href="/doctor/settings/identity">
-                <Settings className="h-4 w-4" />
-                Identity
-              </Link>
-            </Button>
-            <div className="flex items-center gap-2">
-              <Switch
-                id="availability"
-                checked={available}
-                onCheckedChange={handleToggle}
-                disabled={isPending}
-              />
-              <Label
-                htmlFor="availability"
-                className={`text-sm ${available ? "text-success" : "text-muted-foreground"}`}
-              >
-                {available ? "Available" : "Unavailable"}
-              </Label>
-            </div>
+          <div className="flex items-center gap-2 rounded-xl border border-border/60 bg-card px-3 py-2">
+            <Switch
+              id="availability"
+              checked={available}
+              onCheckedChange={handleToggle}
+              disabled={isPending}
+            />
+            <Label
+              htmlFor="availability"
+              className={`text-sm ${available ? "text-success" : "text-muted-foreground"}`}
+            >
+              {available ? "Available" : "Unavailable"}
+            </Label>
           </div>
         }
       />

@@ -22,8 +22,8 @@ import {
   X,
 } from "lucide-react"
 import Link from "next/link"
-import { usePathname, useRouter } from "next/navigation"
-import { useCallback, useEffect, useState } from "react"
+import { usePathname } from "next/navigation"
+import { useEffect, useState } from "react"
 
 import { KeyboardShortcutsModal } from "@/components/doctor"
 import { Button } from "@/components/ui/button"
@@ -97,16 +97,10 @@ function NavLink({
   badgeCount?: number
   onClick?: () => void
 }) {
-  const router = useRouter()
-  const handleMouseEnter = useCallback(() => {
-    router.prefetch(item.href)
-  }, [router, item.href])
-
   return (
     <Link
       href={item.href}
-      prefetch={true}
-      onMouseEnter={handleMouseEnter}
+      prefetch={false}
       onClick={onClick}
       className={cn(
         "group flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition-[background-color,color] duration-200",

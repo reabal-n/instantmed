@@ -1,5 +1,9 @@
 export const PATIENT_DASHBOARD_HREF = "/patient" as const
 export const DOCTOR_DASHBOARD_HREF = "/doctor/dashboard" as const
+export const ADMIN_DASHBOARD_HREF = "/admin" as const
+export const ADMIN_INTAKE_LEDGER_HREF = "/admin#intakes" as const
+export const ADMIN_STALE_INTAKES_HREF = "/admin/ops/intakes-stuck" as const
+export const ADMIN_PATIENT_MERGE_AUDIT_HREF = "/admin/ops/patient-merge-audit" as const
 
 export const QUEUE_STATUS_FILTERS = ["all", "review", "pending_info", "scripts"] as const
 export type QueueStatusFilter = (typeof QUEUE_STATUS_FILTERS)[number]

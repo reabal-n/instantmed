@@ -152,7 +152,7 @@ export default async function SLAMonitoringPage() {
                     </p>
                   </div>
                   <Button size="sm" variant="outline" asChild>
-                    <Link href={`/doctor/intakes/${intake.id}`}>
+                    <Link href={`/admin/intakes/${intake.id}`}>
                       Open
                       <ArrowUpRight className="ml-1 h-3.5 w-3.5" />
                     </Link>
@@ -195,7 +195,7 @@ export default async function SLAMonitoringPage() {
                     </p>
                   </div>
                   <Button size="sm" variant="outline" asChild>
-                    <Link href={`/doctor/intakes/${intake.id}`}>
+                    <Link href={`/admin/intakes/${intake.id}`}>
                       Open
                       <ArrowUpRight className="ml-1 h-3.5 w-3.5" />
                     </Link>

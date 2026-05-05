@@ -12,13 +12,12 @@ import {
   Users,
   Webhook,
   XCircle,
-  Zap,
 } from "lucide-react"
 import Link from "next/link"
 
 import { DashboardPageHeader, StatusBadge } from "@/components/dashboard"
 import { Button } from "@/components/ui/button"
-import { DOCTOR_QUEUE_REVIEW_HREF } from "@/lib/dashboard/routes"
+import { ADMIN_PATIENT_MERGE_AUDIT_HREF, ADMIN_STALE_INTAKES_HREF } from "@/lib/dashboard/routes"
 import { cn } from "@/lib/utils"
 
 interface OpsData {
@@ -74,35 +73,6 @@ interface OpsDashboardClientProps {
   ops: OpsData
 }
 
-const opsActionGroups = [
-  {
-    title: "Clinical ops",
-    actions: [
-      { label: "Clinical queue", href: DOCTOR_QUEUE_REVIEW_HREF },
-      { label: "SLA monitor", href: "/admin/ops/sla" },
-      { label: "Stuck intakes", href: "/admin/ops/intakes-stuck" },
-      { label: "Doctor coverage", href: "/admin/ops/doctors" },
-    ],
-  },
-  {
-    title: "Integration recovery",
-    actions: [
-      { label: "Stripe DLQ", href: "/admin/webhook-dlq" },
-      { label: "Parchment ops", href: "/admin/ops/parchment" },
-      { label: "Rx identity blocks", href: "/admin/ops/prescribing-identity" },
-      { label: "Reconciliation", href: "/admin/ops/reconciliation" },
-    ],
-  },
-  {
-    title: "Audit and identity",
-    actions: [
-      { label: "Audit logs", href: "/admin/audit" },
-      { label: "Email queue", href: "/admin/emails/hub" },
-      { label: "Merge audit", href: "/admin/ops/patient-merge-audit" },
-    ],
-  },
-] as const
-
 function StatusIndicator({ healthy, label }: { healthy: boolean; label: string }) {
   return (
     <div className="flex items-center gap-2">
@@ -131,7 +101,7 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
     && systemStatus.intakesHealthy
     && systemStatus.patientIdentityHealthy
     && systemStatus.prescribingIdentityHealthy
-  const overallStatus = allHealthy ? "healthy" : "degraded"
+  const overallStatus = allHealthy ? "healthy" : "needs review"
 
   return (
     <div className="min-h-full">
@@ -143,7 +113,7 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
           backHref="/admin"
           backLabel="Admin"
           actions={
-            <StatusBadge status={allHealthy ? "success" : "error"}>
+            <StatusBadge status={allHealthy ? "success" : "warning"}>
               System {overallStatus}
             </StatusBadge>
           }
@@ -218,7 +188,7 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
             </div>
             {staleIntakes > 0 && (
               <Button variant="link" size="sm" className="mt-3 p-0 h-auto text-xs" asChild>
-                <Link href={DOCTOR_QUEUE_REVIEW_HREF}>View Queue →</Link>
+                <Link href={ADMIN_STALE_INTAKES_HREF}>Review stale intakes →</Link>
               </Button>
             )}
           </div>
@@ -255,7 +225,7 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
             </div>
             {patientIdentity.duplicateProfileCount > 0 && (
               <Button variant="link" size="sm" className="mt-3 p-0 h-auto text-xs" asChild>
-                <Link href="/doctor/patients">Review Patients →</Link>
+                <Link href={ADMIN_PATIENT_MERGE_AUDIT_HREF}>Review merge audit →</Link>
               </Button>
             )}
           </div>
@@ -351,29 +321,6 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
           </div>
         </div>
 
-        {/* Recovery Paths */}
-        <div className="bg-card border border-border/50 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <Zap className="h-5 w-5 text-muted-foreground" />
-            <h3 className="text-base font-semibold text-foreground">Recovery Paths</h3>
-          </div>
-          <div className="grid gap-4 lg:grid-cols-3">
-            {opsActionGroups.map((group) => (
-              <div key={group.title} className="rounded-lg border border-border/50 p-3">
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  {group.title}
-                </h4>
-                <div className="grid gap-2">
-                  {group.actions.map((action) => (
-                    <Button key={action.href} variant="outline" size="sm" className="justify-start" asChild>
-                      <Link href={action.href}>{action.label}</Link>
-                    </Button>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
       </div>
     </div>
   )

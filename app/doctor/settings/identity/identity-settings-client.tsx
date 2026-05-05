@@ -864,53 +864,44 @@ export function IdentitySettingsClient({
               </p>
             )}
           </div>
-        </CardContent>
-      </Card>
-      </div>
 
-      {/* Signature */}
-      <Card className="rounded-xl border-border/50">
-        <CardHeader className="py-3 px-4">
-          <CardTitle className="text-base flex items-center gap-2">
-            <FileSignature className="h-4 w-4" />
-            Signature
-          </CardTitle>
-          <CardDescription>
-            Upload your signature image for certificates (optional)
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="px-4 py-3">
-          <div className="flex items-center gap-4">
-            <div className="w-40 h-16 bg-muted flex items-center justify-center text-xs text-muted-foreground border rounded">
-              {signaturePath ? (
-                <span className="text-success">Signature uploaded</span>
-              ) : (
-                "No signature"
-              )}
+          <div className="border-t border-border/50 pt-4">
+            <div className="mb-3 flex items-center gap-2">
+              <FileSignature className="h-4 w-4 text-muted-foreground" />
+              <p className="text-sm font-medium text-foreground">Signature</p>
             </div>
-            <div>
-              <Label
-                htmlFor="signature-upload"
-                className="cursor-pointer inline-flex items-center gap-2 px-3 py-2 text-sm border rounded-md hover:bg-muted"
-              >
-                <Upload className="h-4 w-4" />
-                {signaturePath ? "Replace Signature" : "Upload Signature"}
-              </Label>
-              <Input
-                id="signature-upload"
-                type="file"
-                accept="image/png,image/jpeg"
-                className="hidden"
-                onChange={handleSignatureUpload}
-              />
-              <p className="text-xs text-muted-foreground mt-2">
-                PNG or JPG, max 1MB. If not provided, certificates will show
-                &ldquo;Electronically signed&rdquo;.
-              </p>
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+              <div className="flex h-16 w-40 items-center justify-center rounded-md border bg-muted text-xs text-muted-foreground">
+                {signaturePath ? (
+                  <span className="text-success">Signature uploaded</span>
+                ) : (
+                  "No signature"
+                )}
+              </div>
+              <div>
+                <Label
+                  htmlFor="signature-upload"
+                  className="inline-flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 text-sm hover:bg-muted"
+                >
+                  <Upload className="h-4 w-4" />
+                  {signaturePath ? "Replace Signature" : "Upload Signature"}
+                </Label>
+                <Input
+                  id="signature-upload"
+                  type="file"
+                  accept="image/png,image/jpeg"
+                  className="hidden"
+                  onChange={handleSignatureUpload}
+                />
+                <p className="mt-2 text-xs text-muted-foreground">
+                  PNG or JPG, max 1MB. If not provided, certificates show &ldquo;Electronically signed&rdquo;.
+                </p>
+              </div>
             </div>
           </div>
         </CardContent>
       </Card>
+      </div>
 
       {/* Parchment Integration */}
       <div id="parchment-account" className="scroll-mt-24">

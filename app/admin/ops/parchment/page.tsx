@@ -61,9 +61,7 @@ function StatCard({
 
 export default async function ParchmentOpsPage() {
   const dashboard = await getParchmentOpsDashboard(createServiceRoleClient())
-  const degraded = dashboard.stats.failedWebhooks7d > 0
-    || dashboard.stats.unlinkedPrescribers > 0
-    || dashboard.stats.unsyncedPatients > 0
+  const degraded = dashboard.stats.retryableFailures > 0 || dashboard.stats.unlinkedPrescribers > 0
 
   return (
     <div className="space-y-6">
@@ -95,15 +93,15 @@ export default async function ParchmentOpsPage() {
           icon={UserCheck}
         />
         <StatCard
-          label="Unsynced patients"
+          label="Not synced yet"
           value={dashboard.stats.unsyncedPatients}
-          tone={dashboard.stats.unsyncedPatients > 0 ? "warning" : "success"}
+          tone="neutral"
           icon={Users}
         />
         <StatCard
-          label="Failed webhooks 7d"
+          label="Actionable failures 7d"
           value={dashboard.stats.failedWebhooks7d}
-          tone={dashboard.stats.failedWebhooks7d > 0 ? "destructive" : "success"}
+          tone={dashboard.stats.retryableFailures > 0 ? "destructive" : "success"}
           icon={Webhook}
         />
         <StatCard
@@ -150,7 +148,7 @@ export default async function ParchmentOpsPage() {
                   {event.eventId && <Badge variant="outline" size="sm">Event {event.eventId}</Badge>}
                   {event.intakeId && (
                     <Button variant="link" size="sm" className="h-auto p-0 text-xs" asChild>
-                      <Link href={`/doctor/intakes/${event.intakeId}`}>
+                      <Link href={`/admin/intakes/${event.intakeId}`}>
                         <ExternalLink className="h-3 w-3" />
                         Intake
                       </Link>
@@ -158,7 +156,7 @@ export default async function ParchmentOpsPage() {
                   )}
                   {event.patientProfileId && (
                     <Button variant="link" size="sm" className="h-auto p-0 text-xs" asChild>
-                      <Link href={`/doctor/patients/${event.patientProfileId}`}>
+                      <Link href={`/admin/patients/${event.patientProfileId}`}>
                         <ExternalLink className="h-3 w-3" />
                         Patient
                       </Link>
@@ -179,9 +177,9 @@ export default async function ParchmentOpsPage() {
       <div className="rounded-xl border border-border/50 bg-card shadow-sm shadow-primary/[0.04] dark:shadow-none">
         <div className="flex flex-col gap-3 border-b border-border/60 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="text-base font-semibold">Failed prescription webhooks</h2>
+            <h2 className="text-base font-semibold">Actionable webhook failures</h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              Retryable rows contain the Parchment patient, prescriber, and SCID metadata needed to re-fetch the prescription.
+              Current failures that still need admin review or retry metadata.
             </p>
           </div>
           <Badge variant={dashboard.stats.retryableFailures > 0 ? "warning" : "success"} size="sm">
@@ -192,7 +190,7 @@ export default async function ParchmentOpsPage() {
         {dashboard.failedWebhooks.length === 0 ? (
           <div className="px-5 py-10 text-center text-muted-foreground">
             <CheckCircle className="mx-auto mb-2 h-8 w-8 text-success" />
-            <p>No Parchment webhook failures in the last 7 days.</p>
+            <p>No actionable Parchment webhook failures in the last 7 days.</p>
           </div>
         ) : (
           <div className="divide-y divide-border/60">
@@ -214,7 +212,7 @@ export default async function ParchmentOpsPage() {
                   {failure.eventId && <Badge variant="outline" size="sm">Event {failure.eventId}</Badge>}
                   {failure.intakeId && (
                     <Button variant="link" size="sm" className="h-auto p-0 text-xs" asChild>
-                      <Link href={`/doctor/intakes/${failure.intakeId}`}>
+                      <Link href={`/admin/intakes/${failure.intakeId}`}>
                         <ExternalLink className="h-3 w-3" />
                         Intake
                       </Link>
@@ -222,7 +220,7 @@ export default async function ParchmentOpsPage() {
                   )}
                   {failure.patientProfileId && (
                     <Button variant="link" size="sm" className="h-auto p-0 text-xs" asChild>
-                      <Link href={`/doctor/patients/${failure.patientProfileId}`}>
+                      <Link href={`/admin/patients/${failure.patientProfileId}`}>
                         <ExternalLink className="h-3 w-3" />
                         Patient
                       </Link>
@@ -238,6 +236,36 @@ export default async function ParchmentOpsPage() {
           </div>
         )}
       </div>
+
+      {dashboard.historicalWebhookFailures.length > 0 && (
+        <div className="rounded-xl border border-border/50 bg-card shadow-sm shadow-primary/[0.04] dark:shadow-none">
+          <div className="flex flex-col gap-3 border-b border-border/60 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-base font-semibold">Historical sandbox webhook failures</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Kept for audit history only. These do not block recording when current webhook evidence is successful.
+              </p>
+            </div>
+            <Badge variant="outline" size="sm">
+              {dashboard.stats.historicalWebhookFailures7d} archived
+            </Badge>
+          </div>
+          <div className="divide-y divide-border/60">
+            {dashboard.historicalWebhookFailures.slice(0, 4).map((failure) => (
+              <div key={failure.id} className="grid gap-3 px-5 py-3 sm:grid-cols-[1fr_auto] sm:items-center">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-foreground">{failure.reason}</p>
+                  <p className="mt-1 truncate text-xs text-muted-foreground">{failure.description}</p>
+                </div>
+                <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+                  <Badge variant="outline" size="sm">{formatDateTime(failure.createdAt)}</Badge>
+                  {failure.eventId && <CopyTokenButton label="Event" value={failure.eventId} />}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="grid gap-6 lg:grid-cols-2">
         <div className="rounded-xl border border-border/50 bg-card shadow-sm shadow-primary/[0.04] dark:shadow-none">
@@ -298,7 +326,7 @@ export default async function ParchmentOpsPage() {
                     {prescription.parchmentReference && <span>SCID {prescription.parchmentReference}</span>}
                     <span>{formatDateTime(prescription.updatedAt)}</span>
                     {prescription.intakeId && (
-                      <Link href={`/doctor/intakes/${prescription.intakeId}`} className="text-primary hover:underline">
+                      <Link href={`/admin/intakes/${prescription.intakeId}`} className="text-primary hover:underline">
                         Intake
                       </Link>
                     )}

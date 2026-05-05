@@ -11,7 +11,6 @@ import {
   Loader2,
   Mail,
   MapPin,
-  MessageSquare,
   Phone,
   Pill,
   Plus,
@@ -280,6 +279,8 @@ export function PatientDetailClient({
   const latestMedicationName = latestMedication
     ? [latestMedication.medication_name, latestMedication.medication_strength].filter(Boolean).join(" ")
     : "No prescriptions yet"
+  const visibleMedications = medications.slice(0, 6)
+  const hiddenMedicationCount = Math.max(0, medications.length - visibleMedications.length)
   const latestParchmentActivity = parchmentActivity[0] ?? null
   const secondaryParchmentActivity = parchmentActivity
     .slice(1)
@@ -324,6 +325,15 @@ export function PatientDetailClient({
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2 lg:justify-end">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setShowNoteForm((value) => !value)}
+          >
+            <Plus className="h-3.5 w-3.5" />
+            Add note
+          </Button>
           {patient.onboarding_completed ? (
             <Badge variant="outline" className="bg-success-light text-success border-success-border">
               <CheckCircle className="mr-1 h-3 w-3" />
@@ -428,10 +438,10 @@ export function PatientDetailClient({
             <div>
               <CardTitle className="flex items-center gap-2 text-base">
                 <Webhook className="h-4 w-4" />
-                Parchment delivery status
+                Delivery evidence
               </CardTitle>
               <p className="mt-1 text-sm text-muted-foreground">
-                Latest webhook and PMS sync evidence for this patient.
+                Latest Parchment webhook or manual prescription refresh.
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
@@ -486,9 +496,11 @@ export function PatientDetailClient({
                 </div>
               </div>
               {secondaryParchmentActivity.length > 0 && (
-                <div className="space-y-2">
-                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Other recent events</p>
-                  <div className="grid gap-2 lg:grid-cols-2">
+                <details className="rounded-lg border border-border/60 bg-background px-3 py-2">
+                  <summary className="cursor-pointer text-sm font-medium text-muted-foreground">
+                    Show {secondaryParchmentActivity.length} earlier delivery event{secondaryParchmentActivity.length === 1 ? "" : "s"}
+                  </summary>
+                  <div className="mt-3 grid gap-2 lg:grid-cols-2">
                     {secondaryParchmentActivity.map((activity) => (
                       <div key={activity.id} className="rounded-lg border border-border/60 px-3 py-2">
                         <div className="flex items-center justify-between gap-2">
@@ -499,7 +511,7 @@ export function PatientDetailClient({
                       </div>
                     ))}
                   </div>
-                </div>
+                </details>
               )}
             </div>
           ) : (
@@ -513,7 +525,7 @@ export function PatientDetailClient({
         <CardHeader className="py-3 px-4">
           <CardTitle className="flex flex-wrap items-center gap-2 text-base">
             <User className="h-4 w-4" />
-            Clinical snapshot
+            Patient summary
           </CardTitle>
         </CardHeader>
         <CardContent className="px-4 py-3">
@@ -557,7 +569,7 @@ export function PatientDetailClient({
               </div>
             </div>
           )}
-          <div className="grid gap-4 xl:grid-cols-4">
+          <div className="grid gap-4 xl:grid-cols-3">
             <div className="space-y-3 rounded-lg bg-muted/35 p-3">
               <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Identity</p>
               <div>
@@ -622,28 +634,6 @@ export function PatientDetailClient({
                 </p>
               </div>
             </div>
-
-            <div className="space-y-3 rounded-lg bg-muted/35 p-3">
-              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Latest activity</p>
-              <div className="grid grid-cols-3 gap-2">
-                <div>
-                  <p className="text-xl font-semibold text-foreground">{stats.totalRequests}</p>
-                  <p className="text-xs text-muted-foreground">Requests</p>
-                </div>
-                <div>
-                  <p className="text-xl font-semibold text-foreground">{medications.length}</p>
-                  <p className="text-xs text-muted-foreground">Scripts</p>
-                </div>
-                <div>
-                  <p className="text-xl font-semibold text-foreground">{notes.length}</p>
-                  <p className="text-xs text-muted-foreground">Notes</p>
-                </div>
-              </div>
-              <div className="border-t border-border/50 pt-2">
-                <p className="text-xs text-muted-foreground">Last prescription</p>
-                <p className="truncate text-sm font-medium text-foreground">{latestMedicationName}</p>
-              </div>
-            </div>
           </div>
         </CardContent>
       </Card>
@@ -693,8 +683,8 @@ export function PatientDetailClient({
         <CardContent className="px-4 py-3">
           {medications.length > 0 ? (
             <div className="space-y-3">
-              {medications.map((medication) => (
-                <div key={medication.id} className="rounded-lg bg-muted/50 p-4">
+              {visibleMedications.map((medication) => (
+                <div key={medication.id} className="rounded-lg bg-muted/35 px-3 py-3">
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div className="min-w-0">
                       <p className="font-medium text-foreground">
@@ -736,6 +726,11 @@ export function PatientDetailClient({
                   </div>
                 </div>
               ))}
+              {hiddenMedicationCount > 0 && (
+                <p className="text-sm text-muted-foreground">
+                  Showing the latest {visibleMedications.length} prescriptions. {hiddenMedicationCount} older record{hiddenMedicationCount === 1 ? "" : "s"} hidden to keep this profile readable.
+                </p>
+              )}
             </div>
           ) : (
             <div className="text-center py-8 text-muted-foreground">
@@ -747,15 +742,15 @@ export function PatientDetailClient({
       </Card>
 
       {/* Request History */}
-      <Card className="rounded-xl border-border/50">
-        <CardHeader className="py-3 px-4">
-          <CardTitle className="flex items-center gap-2 text-base">
-            <Clock className="h-4 w-4" />
-            Request History
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="px-4 py-3">
-          {intakes.length > 0 ? (
+      {intakes.length > 0 && (
+        <Card className="rounded-xl border-border/50">
+          <CardHeader className="py-3 px-4">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Clock className="h-4 w-4" />
+              Request History
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="px-4 py-3">
             <div className="space-y-3">
               {intakes.map((intake) => (
                 <Link
@@ -791,93 +786,86 @@ export function PatientDetailClient({
                 </Link>
               ))}
             </div>
-          ) : (
-            <div className="text-center py-8 text-muted-foreground">
-              <FileText className="mx-auto mb-2 h-8 w-8 opacity-50" />
-              <p className="text-sm">No requests from this patient yet</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Patient Notes */}
-      <Card className="rounded-xl border-border/50">
-        <CardHeader className="py-3 px-4">
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <StickyNote className="h-4 w-4" />
-              Patient Notes
-            </CardTitle>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowNoteForm(!showNoteForm)}
-            >
-              <Plus className="h-4 w-4 mr-1" />
-              Add Note
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent className="px-4 py-3">
-          {showNoteForm && (
-            <div className="mb-4 p-4 bg-muted/50 rounded-lg space-y-3">
-              <Textarea
-                placeholder="Add a note about this patient (internal only, not visible to patient)..."
-                value={newNote}
-                onChange={(e) => setNewNote(e.target.value)}
-                className="min-h-[80px]"
-              />
-              <div className="flex justify-end gap-2">
-                <Button variant="ghost" size="sm" onClick={() => { setShowNoteForm(false); setNewNote("") }}>
-                  Cancel
-                </Button>
-                <Button size="sm" onClick={handleAddNote} disabled={isNotePending || !newNote.trim()}>
-                  {isNotePending && <Loader2 className="h-4 w-4 mr-1 animate-spin" />}
-                  Save Note
-                </Button>
-              </div>
+      {(showNoteForm || notes.length > 0) && (
+        <Card className="rounded-xl border-border/50">
+          <CardHeader className="py-3 px-4">
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <StickyNote className="h-4 w-4" />
+                Patient Notes
+              </CardTitle>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowNoteForm(!showNoteForm)}
+              >
+                <Plus className="h-4 w-4 mr-1" />
+                Add Note
+              </Button>
             </div>
-          )}
-          {notes.length > 0 ? (
-            <div className="space-y-3">
-              {notes.map((note) => (
-                <div key={note.id} className="p-3 bg-muted/50 rounded-lg">
-                  <p className="text-sm whitespace-pre-wrap">{note.content}</p>
-                  <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
-                    <span>{note.created_by_name || "Staff"}</span>
-                    <span>•</span>
-                    <span>{formatDateTime(note.created_at)}</span>
-                  </div>
+          </CardHeader>
+          <CardContent className="px-4 py-3">
+            {showNoteForm && (
+              <div className="mb-4 p-4 bg-muted/50 rounded-lg space-y-3">
+                <Textarea
+                  placeholder="Add a note about this patient (internal only, not visible to patient)..."
+                  value={newNote}
+                  onChange={(e) => setNewNote(e.target.value)}
+                  className="min-h-[80px]"
+                />
+                <div className="flex justify-end gap-2">
+                  <Button variant="ghost" size="sm" onClick={() => { setShowNoteForm(false); setNewNote("") }}>
+                    Cancel
+                  </Button>
+                  <Button size="sm" onClick={handleAddNote} disabled={isNotePending || !newNote.trim()}>
+                    {isNotePending && <Loader2 className="h-4 w-4 mr-1 animate-spin" />}
+                    Save Note
+                  </Button>
                 </div>
-              ))}
-            </div>
-          ) : !showNoteForm && (
-            <div className="text-center py-6 text-muted-foreground">
-              <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-50" />
-              <p>No notes yet</p>
-              <p className="text-xs mt-1">Add notes to track important patient information</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+              </div>
+            )}
+            {notes.length > 0 && (
+              <div className="space-y-3">
+                {notes.map((note) => (
+                  <div key={note.id} className="p-3 bg-muted/50 rounded-lg">
+                    <p className="text-sm whitespace-pre-wrap">{note.content}</p>
+                    <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
+                      <span>{note.created_by_name || "Staff"}</span>
+                      <span>•</span>
+                      <span>{formatDateTime(note.created_at)}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
-      {/* Communication History - Enhanced Component */}
-      <PatientCommunicationHistory 
-        emails={emailLogs.map(log => ({
-          id: log.id,
-          email_type: log.email_type,
-          recipient_email: log.to_email,
-          subject: log.subject,
-          status: log.status,
-          sent_at: log.sent_at,
-          delivered_at: log.delivery_status === "delivered" ? log.sent_at : null,
-          opened_at: null,
-          clicked_at: null,
-          bounced_at: log.delivery_status === "bounced" ? log.sent_at : null,
-          error_message: null,
-          metadata: null,
-        }))}
-      />
+      {/* Communication History */}
+      {emailLogs.length > 0 && (
+        <PatientCommunicationHistory
+          emails={emailLogs.map(log => ({
+            id: log.id,
+            email_type: log.email_type,
+            recipient_email: log.to_email,
+            subject: log.subject,
+            status: log.status,
+            sent_at: log.sent_at,
+            delivered_at: log.delivery_status === "delivered" ? log.sent_at : null,
+            opened_at: null,
+            clicked_at: null,
+            bounced_at: log.delivery_status === "bounced" ? log.sent_at : null,
+            error_message: null,
+            metadata: null,
+          }))}
+        />
+      )}
 
       <AlertDialog open={showMergeDialog} onOpenChange={setShowMergeDialog}>
         <AlertDialogContent>

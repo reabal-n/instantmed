@@ -6,7 +6,7 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 export const dynamic = "force-dynamic"
 
 export default async function EncryptionDashboardPage() {
-  await requireRole(["admin"], { redirectTo: "/doctor/dashboard" })
+  await requireRole(["admin"], { redirectTo: "/admin" })
 
   const supabase = createServiceRoleClient()
 

@@ -8,7 +8,7 @@ import Link from "next/link"
 import type { ComponentType } from "react"
 
 import { DashboardCard } from "@/components/dashboard"
-import { DOCTOR_QUEUE_REVIEW_HREF } from "@/lib/dashboard/routes"
+import { ADMIN_INTAKE_LEDGER_HREF } from "@/lib/dashboard/routes"
 import { cn } from "@/lib/utils"
 
 interface ZoneStat {
@@ -50,17 +50,16 @@ export function AdminHubZones({
       subtitle: "Cases that need clinical attention",
       icon: ListOrdered,
       stats: [
-        { label: "In queue", value: inQueue, href: DOCTOR_QUEUE_REVIEW_HREF },
+        { label: "In queue", value: inQueue, href: ADMIN_INTAKE_LEDGER_HREF },
         {
           label: "Scripts pending",
           value: scriptsPending,
-          href: "/doctor/scripts",
+          href: ADMIN_INTAKE_LEDGER_HREF,
           attentionWhenNonZero: true,
         },
       ],
       links: [
-        { label: "Open review queue", href: DOCTOR_QUEUE_REVIEW_HREF },
-        { label: "Open scripts", href: "/doctor/scripts" },
+        { label: "Open intake ledger", href: ADMIN_INTAKE_LEDGER_HREF },
       ],
     },
     {
@@ -68,17 +67,16 @@ export function AdminHubZones({
       subtitle: "Records and intake follow-up",
       icon: Users,
       stats: [
-        { label: "All intakes", value: totalIntakes, href: "/admin#intakes" },
+        { label: "All intakes", value: totalIntakes, href: ADMIN_INTAKE_LEDGER_HREF },
         {
           label: "Needs info",
           value: pendingInfo,
-          href: "/admin#intakes",
+          href: ADMIN_INTAKE_LEDGER_HREF,
           attentionWhenNonZero: true,
         },
       ],
       links: [
-        { label: "Open patient list", href: "/doctor/patients" },
-        { label: "Search intake ledger", href: "/admin#intakes" },
+        { label: "Search intake ledger", href: ADMIN_INTAKE_LEDGER_HREF },
       ],
     },
     {

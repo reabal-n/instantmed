@@ -9,7 +9,6 @@ import {
   ListOrdered,
   Menu,
   Settings,
-  Users,
   X,
 } from "lucide-react"
 import Link from "next/link"
@@ -17,6 +16,7 @@ import { usePathname } from "next/navigation"
 import type { ComponentType } from "react"
 import { useEffect, useState } from "react"
 
+import { ADMIN_DASHBOARD_HREF, ADMIN_INTAKE_LEDGER_HREF } from "@/lib/dashboard/routes"
 import { cn } from "@/lib/utils"
 
 interface AdminSidebarProps {
@@ -33,9 +33,8 @@ interface NavItem {
 }
 
 const workNavItems: NavItem[] = [
-  { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/doctor/dashboard", label: "Clinical queue", icon: ListOrdered },
-  { href: "/doctor/patients", label: "Patients", icon: Users },
+  { href: ADMIN_DASHBOARD_HREF, label: "Dashboard", icon: LayoutDashboard },
+  { href: ADMIN_INTAKE_LEDGER_HREF, label: "Intake ledger", icon: ListOrdered },
 ]
 
 const businessNavItems: NavItem[] = [
@@ -53,8 +52,6 @@ const ACTIVE_NAV_ICON = "text-blue-700 dark:text-blue-200"
 
 function getIsActive(pathname: string | null, href: string) {
   if (href === "/admin") return pathname === "/admin"
-  if (href === "/doctor/dashboard") return pathname === "/doctor/dashboard"
-  if (href.startsWith("/doctor/")) return pathname === href || Boolean(pathname?.startsWith(`${href}/`))
   return pathname === href || Boolean(pathname?.startsWith(`${href}/`))
 }
 
@@ -70,6 +67,7 @@ function NavLink({
   return (
     <Link
       href={item.href}
+      prefetch={false}
       onClick={onClick}
       className={cn(
         "group flex items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium transition-[background-color,color] duration-150",

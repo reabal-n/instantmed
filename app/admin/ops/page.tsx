@@ -8,6 +8,28 @@ import { OpsDashboardClient } from "./ops-client"
 
 export const dynamic = "force-dynamic"
 
+type AuditErrorRow = {
+  id: string
+  action: string
+  created_at: string
+  metadata: Record<string, unknown> | null
+}
+
+function getMetadataString(metadata: Record<string, unknown> | null, key: string): string | null {
+  const value = metadata?.[key]
+  return typeof value === "string" && value.trim() ? value.trim() : null
+}
+
+function isNonActionableParchmentSandboxError(row: AuditErrorRow): boolean {
+  return row.action === "webhook_failed"
+    && getMetadataString(row.metadata, "eventType") === "parchment:prescription.created"
+    && getMetadataString(row.metadata, "error") === "no_awaiting_script_intake"
+}
+
+function filterNonActionableOpsErrors(rows: AuditErrorRow[]): AuditErrorRow[] {
+  return rows.filter((row) => !isNonActionableParchmentSandboxError(row))
+}
+
 export default async function OpsDashboardPage() {
   const supabase = createServiceRoleClient()
 
@@ -85,6 +107,7 @@ export default async function OpsDashboardPage() {
 
   // Stale intakes (paid but not reviewed in 2+ hours)
   const staleIntakes = systemHealthResult.data || []
+  const recentErrors = filterNonActionableOpsErrors((recentErrorsResult.data || []) as AuditErrorRow[])
 
   const ops = {
     webhooks: {
@@ -99,8 +122,8 @@ export default async function OpsDashboardPage() {
       successRate: parseFloat(emailSuccessRate),
     },
     errors: {
-      count: recentErrorsResult.data?.length || 0,
-      recent: recentErrorsResult.data || [],
+      count: recentErrors.length,
+      recent: recentErrors,
     },
     auditVolume: auditLogsResult.count || 0,
     patientIdentity: patientIdentityResult,

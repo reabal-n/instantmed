@@ -23,6 +23,14 @@ const doctorSettingsPageSource = readFileSync(
   join(process.cwd(), "app/doctor/settings/page.tsx"),
   "utf8",
 )
+const scriptsClientSource = readFileSync(
+  join(process.cwd(), "app/doctor/scripts/scripts-client.tsx"),
+  "utf8",
+)
+const scriptsPageSource = readFileSync(
+  join(process.cwd(), "app/doctor/scripts/page.tsx"),
+  "utf8",
+)
 
 function navLabels(source: string): string[] {
   return Array.from(source.matchAll(/label:\s*"([^"]+)"/g)).map((match) => match[1])
@@ -52,14 +60,29 @@ describe("doctor navigation contract", () => {
     expect(mobileNavSource).not.toContain('label: "Settings"')
   })
 
-  it("puts the highest-frequency doctor destinations in the dashboard header", () => {
-    expect(dashboardHeaderSource).toContain('href="/doctor/scripts"')
-    expect(dashboardHeaderSource).toContain('href="/doctor/patients"')
-    expect(dashboardHeaderSource).toContain('href="/doctor/settings/identity"')
+  it("keeps the dashboard header focused on queue state, not duplicated sidebar routes", () => {
+    expect(dashboardHeaderSource).not.toContain('href="/doctor/scripts"')
+    expect(dashboardHeaderSource).not.toContain('href="/doctor/patients"')
+    expect(dashboardHeaderSource).not.toContain('href="/doctor/settings/identity"')
+    expect(dashboardHeaderSource).toContain("setDoctorAvailabilityAction")
+    expect(dashboardHeaderSource).toContain("Available")
     expect(dashboardHeaderSource).not.toContain("<kbd")
     expect(dashboardHeaderSource).not.toContain("navigate")
     expect(dashboardHeaderSource).not.toContain("approve")
     expect(dashboardHeaderSource).not.toContain("decline")
+  })
+
+  it("does not eagerly prefetch every dashboard route from the persistent sidebar", () => {
+    expect(sidebarSource).toContain("prefetch={false}")
+    expect(sidebarSource).not.toContain("router.prefetch")
+    expect(sidebarSource).not.toContain("prefetch={true}")
+  })
+
+  it("keeps the scripts screen quiet when there are no tasks", () => {
+    expect(scriptsPageSource).toContain("pageSize: 25")
+    expect(scriptsClientSource).toContain("const PAGE_SIZE = 25")
+    expect(scriptsClientSource).toContain("hasScriptActivity")
+    expect(scriptsClientSource).toContain("{hasScriptActivity && (")
   })
 
   it("keeps legacy doctor routes as redirects to canonical surfaces", () => {

@@ -12,7 +12,7 @@ import type { ScriptTask, ScriptTaskStatus } from "@/lib/data/script-tasks"
 import { formatDateTime } from "@/lib/format"
 import { fetchWithCsrf } from "@/lib/security/csrf-client"
 
-const PAGE_SIZE = 50
+const PAGE_SIZE = 25
 
 interface ScriptsClientProps {
   initialTasks: ScriptTask[]
@@ -42,6 +42,7 @@ export function ScriptsClient({ initialTasks, initialCounts, initialTotal }: Scr
 
   const totalPages = Math.ceil(total / PAGE_SIZE)
   const filteredTasks = filter === "all" ? tasks : tasks.filter((t) => t.status === filter)
+  const hasScriptActivity = counts.total > 0
 
   function fetchPage(newPage: number, statusFilter?: ScriptTaskStatus | "all") {
     const activeFilter = statusFilter ?? filter
@@ -116,6 +117,7 @@ export function ScriptsClient({ initialTasks, initialCounts, initialTotal }: Scr
       />
 
       {/* Status summary cards */}
+      {hasScriptActivity && (
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         {(["pending_send", "sent", "confirmed"] as const).map((status) => {
           const config = STATUS_CONFIG[status]
@@ -146,6 +148,7 @@ export function ScriptsClient({ initialTasks, initialCounts, initialTotal }: Scr
           )
         })}
       </div>
+      )}
 
       {/* Filter indicator */}
       {filter !== "all" && (

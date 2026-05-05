@@ -10,9 +10,12 @@ const RETRYABLE_REASONS = new Set([
   "prescription_upsert_failed",
   "prescriber_not_linked",
   "patient_not_found",
-  "no_awaiting_script_intake",
   "script_completion_failed",
   "script_completion_resume_failed",
+])
+
+const NON_ACTIONABLE_SANDBOX_FAILURE_REASONS = new Set([
+  "no_awaiting_script_intake",
 ])
 
 type Metadata = Record<string, unknown> | null
@@ -84,6 +87,7 @@ export interface ParchmentOpsDashboard {
     unsyncedPatients: number
     failedWebhooks7d: number
     retryableFailures: number
+    historicalWebhookFailures7d: number
     syncedPrescriptions7d: number
   }
   linkedPrescribers: Array<{
@@ -94,6 +98,7 @@ export interface ParchmentOpsDashboard {
     parchmentUserId: string
   }>
   failedWebhooks: ParchmentFailedWebhook[]
+  historicalWebhookFailures: ParchmentFailedWebhook[]
   recentEvents: ParchmentOpsEvent[]
   recentPrescriptions: Array<{
     id: string
@@ -139,6 +144,10 @@ function isRetryableParchmentFailure(failure: {
     && Boolean(failure.parchmentPatientId)
     && Boolean(failure.prescriberUserId)
     && Boolean(failure.patientProfileId || failure.partnerPatientId)
+}
+
+function isNonActionableSandboxFailure(failure: ParchmentFailedWebhook): boolean {
+  return NON_ACTIONABLE_SANDBOX_FAILURE_REASONS.has(failure.reason) && !failure.intakeId
 }
 
 export function mapParchmentFailedWebhook(row: AuditFailureRow): ParchmentFailedWebhook | null {
@@ -371,9 +380,11 @@ export async function getParchmentOpsDashboard(
   const failedWebhooks = ((failedWebhooksResult.data || []) as AuditFailureRow[])
     .map(mapParchmentFailedWebhook)
     .filter((failure): failure is ParchmentFailedWebhook => failure !== null)
+  const historicalWebhookFailures = failedWebhooks.filter(isNonActionableSandboxFailure)
+  const actionableFailures = failedWebhooks.filter((failure) => !isNonActionableSandboxFailure(failure))
   const recentEvents = ((recentEventsResult.data || []) as AuditFailureRow[])
     .map(mapParchmentOpsEvent)
-    .filter((event): event is ParchmentOpsEvent => event !== null)
+    .filter((event): event is ParchmentOpsEvent => event !== null && event.status !== "destructive")
     .slice(0, 12)
 
   const prescriptions = (recentPrescriptionsResult.data || []) as PrescriptionRow[]
@@ -401,12 +412,14 @@ export async function getParchmentOpsDashboard(
       unlinkedPrescribers: unlinkedPrescribersResult.count || 0,
       syncedPatients: syncedPatientsResult.count || 0,
       unsyncedPatients: unsyncedPatientsResult.count || 0,
-      failedWebhooks7d: failedWebhooks.length,
-      retryableFailures: failedWebhooks.filter((failure) => failure.retryable).length,
+      failedWebhooks7d: actionableFailures.length,
+      retryableFailures: actionableFailures.filter((failure) => failure.retryable).length,
+      historicalWebhookFailures7d: historicalWebhookFailures.length,
       syncedPrescriptions7d: syncedPrescriptions7dResult.count || 0,
     },
     linkedPrescribers,
-    failedWebhooks,
+    failedWebhooks: actionableFailures,
+    historicalWebhookFailures,
     recentEvents,
     recentPrescriptions: prescriptions.map((prescription) => ({
       id: prescription.id,

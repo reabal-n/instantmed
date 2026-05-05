@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic"
 export default async function ScriptsPage() {
   const auth = await requireRole(["doctor", "admin"])
   const doctorId = auth.profile.role === "admin" ? undefined : auth.profile.id
-  const filters = doctorId ? { doctorId, page: 1, pageSize: 50 } : { page: 1, pageSize: 50 }
+  const filters = doctorId ? { doctorId, page: 1, pageSize: 25 } : { page: 1, pageSize: 25 }
 
   const [{ tasks, total }, counts] = await Promise.all([
     getScriptTasks(filters),

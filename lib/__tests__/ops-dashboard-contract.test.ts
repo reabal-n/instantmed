@@ -40,6 +40,16 @@ describe("ops dashboard data contract", () => {
     expect(opsPageSource.indexOf('action.ilike.%error%,action.eq.webhook_failed')).toBeLessThan(
       opsPageSource.indexOf('.gte("created_at", weekAgo.toISOString())'),
     )
+    expect(opsPageSource).toContain("filterNonActionableOpsErrors")
+    expect(opsPageSource).toContain("no_awaiting_script_intake")
+  })
+
+  it("does not render a second navigation menu at the bottom of ops", () => {
+    expect(opsClientSource).not.toContain("opsActionGroups")
+    expect(opsClientSource).not.toContain("Recovery Paths")
+    expect(opsClientSource).not.toContain("Clinical ops")
+    expect(opsClientSource).not.toContain("Integration recovery")
+    expect(opsClientSource).not.toContain("Audit and identity")
   })
 
   it("keeps webhook recovery on the canonical Stripe DLQ surface", () => {
