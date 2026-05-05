@@ -514,6 +514,7 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
       eyebrow: "Schedule 4",
       title: "Systemic antibiotics sit behind a prescribing checkpoint",
       summary: "Prescription-only status exists because diagnosis, allergy risk, interactions, and resistance all matter.",
+      visualFormat: "process-visual",
       kind: "checklist",
       accent: "blue",
       items: [
@@ -521,13 +522,14 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
         { label: "Pharmacy dispensing", detail: "The prescription is checked before supply" },
         { label: "No self-supply", detail: "Leftovers and offshore sellers bypass safety checks", tone: "urgent" },
       ],
-      imagePrompt: "Textless Schedule 4 prescription checkpoint still life, blank prescription document, neutral medicine box, blue gate or checkpoint shape, warm ivory desk, no readable text, no official logos, no brand names, no people",
+      imagePrompt: "Detailed process visual explaining the Schedule 4 prescribing checkpoint for systemic antibiotics in Australia. Show a pathway from symptoms to prescriber assessment, diagnosis and safety checks, valid prescription concept, pharmacist dispensing, and safe-use instructions. Include side callouts for allergy risk, interactions, pregnancy or kidney function, and antimicrobial resistance. The phrase for safe use must be take exactly as prescribed, not complete the course. Make it a premium regulatory healthcare explainer, not a blank prescription still life. Use an abstract checkpoint motif only, never a literal roadside gate or landscape. No fake prescription paper, no Rx document, no signatures, no fake patient details, no official government logos, no legal seal, no medication brand names, no pill advertising, no medical cross except the production-added InstantMed badge, no desk flat lay, no people as main subjects, no road, no scenery, no plants as filler, no CTA, and no service marketing.",
     },
     {
       id: "why-prescription-only",
       eyebrow: "Why controlled",
       title: "The rule protects diagnosis, safety, and antibiotic effectiveness",
       summary: "The same symptom can be viral, bacterial, allergic, inflammatory, or urgent, so the medicine cannot be treated like a commodity.",
+      visualFormat: "comparison-graphic",
       kind: "comparison",
       accent: "emerald",
       items: [
@@ -535,13 +537,14 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
         { label: "Safety checks", detail: "Allergy, pregnancy, kidney function, and interactions" },
         { label: "Resistance control", detail: "Avoidable use makes future infections harder to treat" },
       ],
-      imagePrompt: "Textless antibiotic prescription-only rationale visual, three clean abstract panels for diagnosis, safety, and resistance, warm ivory background, emerald and amber accents, no readable text, no people, no official marks",
+      imagePrompt: "Detailed comparison graphic showing why antibiotics are prescription-only. Use three major zones: diagnosis, safety, and antibiotic effectiveness. Show that the same symptom can be viral, bacterial, allergic, inflammatory, or urgent, and that choosing the medicine needs allergy, pregnancy, kidney, interaction, recent antibiotic, and resistance checks. Include a small wrong-path versus safe-path comparison without fearmongering. Use custom diagrams and dense editorial information design. No fake official documents, no medication brand names, no pill bottles, no pharmacy shelf, no people, no medical cross except the production-added InstantMed badge, no scenery, no CTA, and no service marketing.",
     },
     {
       id: "unsafe-antibiotic-sources",
       eyebrow: "Unsafe sources",
       title: "Leftovers and offshore sellers remove the clinical safety layer",
       summary: "Old, partial, counterfeit, degraded, or mismatched antibiotics can delay the right care and increase harm.",
+      visualFormat: "red-flag-warning",
       kind: "warning",
       accent: "rose",
       items: [
@@ -549,7 +552,7 @@ const visualLibrary: Record<TopVisualArticleSlug, ArticleVisual[]> = {
         { label: "Offshore seller", detail: "Counterfeit or poorly stored medicine risk", tone: "urgent" },
         { label: "Wrong diagnosis", detail: "Symptoms may need urgent assessment", tone: "urgent" },
       ],
-      imagePrompt: "Minimal textless unsafe antibiotic source warning still life, closed unlabelled medicine box, blank warning card, soft rose caution shape, warm clinical desk, no readable text, no pills, no people, no website screens",
+      imagePrompt: "Detailed red-flag warning graphic about unsafe antibiotic sources. Show three unsafe paths: leftover antibiotics, shared antibiotics, and offshore or unregulated sellers, then show what safety layers are missing: diagnosis, allergy check, interaction check, correct dose and duration, pharmacy verification, and urgent-care escalation. Use serious but tasteful information design with warning hierarchy, package silhouettes only as small supporting icons, and a clear safe-path correction. Use this exact safe-use copy if a safe-use panel appears: Take exactly as prescribed. Do not save or share leftovers. Ask before changing dose or duration. Do not render the phrase complete the full course anywhere. No website screenshots, no fake online pharmacy, no pill advertising, no fake prescription, no counterfeit brand labels, no people, no gore, no official logos, no medical cross except the production-added InstantMed badge, no scenery, no CTA, and no service marketing.",
     },
   ],
   "are-online-medical-certificates-valid-australia": [
