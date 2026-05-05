@@ -814,15 +814,43 @@ async function saveGatewayInfographic(slug: string, visual: ArticleVisual) {
   return filepath
 }
 
+async function saveGatewayCompositeInfographic(slug: string, visual: ArticleVisual, styleShift = 0) {
+  const outputDir = path.join(process.cwd(), "public", "images", "blog", slug)
+  await fs.mkdir(outputDir, { recursive: true })
+
+  const filepath = path.join(outputDir, `${visual.id}.webp`)
+  const palette = palettes[visual.accent]
+  const result = await generateImage({
+    model: gateway.image(GPT_IMAGE_MODEL),
+    prompt: buildGatewayCompositeUnderlayPrompt(slug, visual, styleShift),
+    size: "1024x1536",
+    providerOptions: {
+      gateway: {
+        tags: ["feature:blog-visuals", `article:${slug}`, "renderer:gpt-image-2-composite", `style-shift:${styleShift}`],
+      },
+    },
+  })
+
+  await sharp(Buffer.from(result.image.uint8Array))
+    .resize(WIDTH, HEIGHT, { fit: "cover", background: palette.wash })
+    .composite([{ input: Buffer.from(renderCompositeOverlaySvg(visual)), left: 0, top: 0 }])
+    .webp({ quality: 88, effort: 5 })
+    .toFile(filepath)
+
+  await addInstantMedWordmark(filepath)
+  return filepath
+}
+
 async function main() {
   const slugFilter = getArg("slug")
   const visualFilter = getArg("visual")
   const limit = Number(getArg("limit") ?? "0")
+  const styleShift = Number(getArg("style-shift") ?? "0")
   const dryRun = hasFlag("dry-run")
   const force = hasFlag("force")
   const renderer = getRenderer()
 
-  if (renderer === "gpt-image-2") {
+  if (renderer === "gpt-image-2" || renderer === "gpt-image-2-composite") {
     assertGatewayAuth()
   }
 
@@ -854,14 +882,22 @@ async function main() {
 
     if (dryRun) {
       const output =
-        renderer === "gpt-image-2" ? buildGatewayPrompt(slug, visual) : renderArticleVisualSvg(slug, visual)
+        renderer === "gpt-image-2"
+          ? buildGatewayPrompt(slug, visual, styleShift)
+          : renderer === "gpt-image-2-composite"
+            ? buildGatewayCompositeUnderlayPrompt(slug, visual, styleShift)
+            : renderArticleVisualSvg(slug, visual)
       console.log(`\n--- ${slug}/${visual.id} (${renderer}) ---\n${output}`)
       continue
     }
 
     console.log(`Generating ${renderer} visual ${slug}/${visual.id}...`)
     const saved =
-      renderer === "gpt-image-2" ? await saveGatewayInfographic(slug, visual) : await saveInfographic(slug, visual)
+      renderer === "gpt-image-2"
+        ? await saveGatewayInfographic(slug, visual)
+        : renderer === "gpt-image-2-composite"
+          ? await saveGatewayCompositeInfographic(slug, visual, styleShift)
+          : await saveInfographic(slug, visual)
     console.log(`Saved ${path.relative(process.cwd(), saved)}`)
   }
 }
