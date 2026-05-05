@@ -29,7 +29,26 @@ interface MedicationHistoryItem {
   request_id: string | null
 }
 
+interface ParchmentActivityItem {
+  id: string
+  status: "success" | "warning" | "destructive" | "info"
+  label: string
+  detail: string
+  occurred_at: string
+  event_id: string | null
+  scid: string | null
+  request_id: string | null
+}
+
 type IntakeAnswerJoin = { answers: Record<string, unknown> } | Array<{ answers: Record<string, unknown> }> | null
+type AuditLogRow = {
+  id: string
+  action: string
+  actor_type: string | null
+  intake_id: string | null
+  metadata: Record<string, unknown> | null
+  created_at: string
+}
 
 function firstStringAnswer(answers: Record<string, unknown>, keys: string[]): string | null {
   for (const key of keys) {
@@ -73,6 +92,236 @@ function buildRequestedMedicationHistory(intakes: Array<Record<string, unknown>>
       return item
     })
     .filter((item): item is MedicationHistoryItem => item !== null)
+}
+
+function metadataString(metadata: Record<string, unknown> | null, keys: string[]): string | null {
+  if (!metadata) return null
+  for (const key of keys) {
+    const value = metadata[key]
+    if (typeof value === "string" && value.trim()) return value.trim()
+    if (typeof value === "number" && Number.isFinite(value)) return String(value)
+    if (typeof value === "boolean") return value ? "true" : "false"
+  }
+  return null
+}
+
+function metadataNumber(metadata: Record<string, unknown> | null, key: string): number | null {
+  const value = metadata?.[key]
+  if (typeof value === "number" && Number.isFinite(value)) return value
+  if (typeof value === "string" && value.trim()) {
+    const parsed = Number(value)
+    return Number.isFinite(parsed) ? parsed : null
+  }
+  return null
+}
+
+function mapParchmentAuditActivity(row: AuditLogRow): ParchmentActivityItem | null {
+  const metadata = row.metadata
+  const actionType = metadataString(metadata, ["action_type"])
+  const eventType = metadataString(metadata, ["eventType", "event_type"])
+  const eventId = metadataString(metadata, ["event_id", "eventId"])
+  const scid = metadataString(metadata, ["scid", "parchmentReference", "parchment_reference"])
+
+  if (row.action === "webhook_failed") {
+    const error = metadataString(metadata, ["error", "reason"]) || "processing failed"
+    return {
+      id: `audit-${row.id}`,
+      status: "destructive",
+      label: "Webhook failed",
+      detail: `Parchment sent prescription.created, but InstantMed could not complete processing: ${error}.`,
+      occurred_at: row.created_at,
+      event_id: eventId,
+      scid,
+      request_id: row.intake_id,
+    }
+  }
+
+  if (actionType === "patient_profile_parchment_prescribe_opened") {
+    return {
+      id: `audit-${row.id}`,
+      status: "info",
+      label: "Parchment opened",
+      detail: "The embedded prescribing session was opened from this patient file.",
+      occurred_at: row.created_at,
+      event_id: eventId,
+      scid,
+      request_id: row.intake_id,
+    }
+  }
+
+  if (actionType === "patient_profile_parchment_sync") {
+    return {
+      id: `audit-${row.id}`,
+      status: "success",
+      label: "Patient synced",
+      detail: "InstantMed sent the current patient identity and contact details to Parchment.",
+      occurred_at: row.created_at,
+      event_id: eventId,
+      scid,
+      request_id: row.intake_id,
+    }
+  }
+
+  if (actionType === "patient_profile_parchment_prescriptions_refreshed") {
+    const synced = metadataNumber(metadata, "synced_count") ?? 0
+    const failed = metadataNumber(metadata, "failed_count") ?? 0
+    return {
+      id: `audit-${row.id}`,
+      status: failed > 0 ? "warning" : "success",
+      label: "Prescription refresh",
+      detail: `Manual refresh pulled ${synced} Parchment prescription${synced === 1 ? "" : "s"} into InstantMed${failed > 0 ? `; ${failed} failed` : ""}.`,
+      occurred_at: row.created_at,
+      event_id: eventId,
+      scid,
+      request_id: row.intake_id,
+    }
+  }
+
+  if (actionType === "parchment_webhook_script_sent" || actionType === "parchment_webhook_already_processed") {
+    return {
+      id: `audit-${row.id}`,
+      status: "success",
+      label: "Webhook confirmed script sent",
+      detail: "Parchment sent prescription.created, InstantMed synced the prescription, and the script was marked sent.",
+      occurred_at: row.created_at,
+      event_id: eventId,
+      scid,
+      request_id: row.intake_id,
+    }
+  }
+
+  if (actionType === "parchment_webhook_prescription_synced") {
+    return {
+      id: `audit-${row.id}`,
+      status: "success",
+      label: "Webhook synced prescription",
+      detail: "Parchment sent prescription.created and InstantMed stored it on this patient profile.",
+      occurred_at: row.created_at,
+      event_id: eventId,
+      scid,
+      request_id: row.intake_id,
+    }
+  }
+
+  if (eventType === "parchment:prescription.created") {
+    return {
+      id: `audit-${row.id}`,
+      status: "info",
+      label: "Parchment event recorded",
+      detail: "A Parchment prescription event is present in the audit trail.",
+      occurred_at: row.created_at,
+      event_id: eventId,
+      scid,
+      request_id: row.intake_id,
+    }
+  }
+
+  return null
+}
+
+function buildParchmentActivityFromRows(
+  intakes: Array<Record<string, unknown>>,
+  prescriptions: Array<Record<string, unknown>>,
+  auditRows: AuditLogRow[],
+): ParchmentActivityItem[] {
+  const intakeActivity = intakes
+    .filter((intake) => intake.script_sent === true && typeof intake.parchment_reference === "string")
+    .map((intake) => ({
+      id: `intake-${String(intake.id)}-${String(intake.parchment_reference)}`,
+      status: "success" as const,
+      label: "Script marked sent",
+      detail: "InstantMed has the script_sent flag and Parchment reference recorded for this request.",
+      occurred_at: typeof intake.script_sent_at === "string"
+        ? intake.script_sent_at
+        : typeof intake.updated_at === "string"
+          ? intake.updated_at
+          : typeof intake.created_at === "string"
+            ? intake.created_at
+            : new Date(0).toISOString(),
+      event_id: null,
+      scid: String(intake.parchment_reference),
+      request_id: typeof intake.id === "string" ? intake.id : null,
+    }))
+
+  const prescriptionActivity = prescriptions
+    .filter((prescription) => typeof prescription.parchment_reference === "string")
+    .slice(0, 5)
+    .map((prescription) => ({
+      id: `prescription-${String(prescription.id)}`,
+      status: "success" as const,
+      label: "Prescription in medication history",
+      detail: "InstantMed has a synced Parchment prescription record for this patient.",
+      occurred_at: typeof prescription.issued_date === "string"
+        ? prescription.issued_date
+        : typeof prescription.created_at === "string"
+          ? prescription.created_at
+          : new Date(0).toISOString(),
+      event_id: null,
+      scid: String(prescription.parchment_reference),
+      request_id: typeof prescription.intake_id === "string" ? prescription.intake_id : null,
+    }))
+
+  const auditActivity = auditRows
+    .map(mapParchmentAuditActivity)
+    .filter((item): item is ParchmentActivityItem => item !== null)
+
+  const deduped = new Map<string, ParchmentActivityItem>()
+  for (const item of [...auditActivity, ...intakeActivity, ...prescriptionActivity]) {
+    const key = `${item.label}:${item.scid || item.event_id || item.id}`
+    if (!deduped.has(key)) deduped.set(key, item)
+  }
+
+  return Array.from(deduped.values())
+    .sort((a, b) => new Date(b.occurred_at).getTime() - new Date(a.occurred_at).getTime())
+    .slice(0, 8)
+}
+
+async function getPatientParchmentAuditRows(
+  supabase: ReturnType<typeof createServiceRoleClient>,
+  patientIds: string[],
+  intakeIds: string[],
+): Promise<AuditLogRow[]> {
+  const selectColumns = "id, action, actor_type, intake_id, metadata, created_at"
+  const queries = [
+    supabase
+      .from("audit_logs")
+      .select(selectColumns)
+      .in("metadata->>patient_id", patientIds)
+      .order("created_at", { ascending: false })
+      .limit(20),
+    supabase
+      .from("audit_logs")
+      .select(selectColumns)
+      .in("metadata->>partner_patient_id", patientIds)
+      .order("created_at", { ascending: false })
+      .limit(20),
+  ]
+
+  if (intakeIds.length > 0) {
+    queries.push(
+      supabase
+        .from("audit_logs")
+        .select(selectColumns)
+        .in("intake_id", intakeIds)
+        .order("created_at", { ascending: false })
+        .limit(20),
+    )
+  }
+
+  const results = await Promise.all(queries)
+  const rows = new Map<string, AuditLogRow>()
+
+  for (const result of results) {
+    if (result.error) {
+      logger.warn("Could not fetch Parchment patient audit rows", { patientIds }, result.error)
+      continue
+    }
+    for (const row of result.data || []) {
+      rows.set(row.id, row as AuditLogRow)
+    }
+  }
+
+  return Array.from(rows.values())
 }
 
 async function getPatientWithHistory(patientId: string) {
@@ -157,7 +406,9 @@ async function getPatientWithHistory(patientId: string) {
         reviewed_by,
         payment_status,
         script_sent,
+        script_sent_at,
         parchment_reference,
+        updated_at,
         service:services(name, short_name, type),
         answers:intake_answers(answers)
       `)
@@ -207,6 +458,7 @@ async function getPatientWithHistory(patientId: string) {
         expiry_date,
         parchment_reference,
         parchment_url,
+        intake_id,
         created_at
       `)
       .in("patient_id", patientIds)
@@ -258,11 +510,21 @@ async function getPatientWithHistory(patientId: string) {
     })),
     ...buildRequestedMedicationHistory((intakes || []) as Array<Record<string, unknown>>),
   ].sort((a, b) => new Date(b.recorded_at).getTime() - new Date(a.recorded_at).getTime())
+  const intakeIds = (intakes || [])
+    .map((intake) => intake.id)
+    .filter((id): id is string => typeof id === "string")
+  const parchmentAuditRows = await getPatientParchmentAuditRows(supabase, patientIds, intakeIds)
+  const parchmentActivity = buildParchmentActivityFromRows(
+    (intakes || []) as Array<Record<string, unknown>>,
+    (prescriptions || []) as Array<Record<string, unknown>>,
+    parchmentAuditRows,
+  )
 
   return {
     patient: canonicalPatient,
     intakes: transformedIntakes,
     medications: medicationHistory,
+    parchmentActivity,
     emailLogs: emailLogs || [],
     patientNotes: patientNotes || [],
     stats: {
@@ -298,6 +560,7 @@ export default async function PatientDetailPage({ params }: PageProps) {
       stats={data.stats}
       emailLogs={data.emailLogs}
       patientNotes={data.patientNotes}
+      parchmentActivity={data.parchmentActivity}
       canMergePatientProfiles={authResult.profile.role === "admin"}
       parchmentEnabled={flags.parchment_embedded_prescribing}
       parchmentUserLinked={Boolean(authResult.profile.parchment_user_id)}

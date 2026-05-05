@@ -10,8 +10,8 @@ import { IdentitySettingsClient } from "./identity-settings-client"
 export const dynamic = "force-dynamic"
 
 export const metadata = {
-  title: "Certificate Identity | Settings",
-  description: "Configure your certificate identity settings",
+  title: "Doctor Settings | InstantMed",
+  description: "Manage doctor account security, Parchment prescribing, and certificate identity settings",
 }
 
 async function IdentitySettingsLoader() {
@@ -50,7 +50,7 @@ async function IdentitySettingsLoader() {
 
 export default function IdentitySettingsPage() {
   return (
-    <div className="max-w-2xl mx-auto py-8">
+    <div className="max-w-5xl mx-auto py-8 px-4">
       <Suspense
         fallback={
           <div className="flex items-center justify-center min-h-[300px]">

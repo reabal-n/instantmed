@@ -30,7 +30,9 @@ describe("doctor patient medication history contract", () => {
   it("keeps patient-profile prescribing actions visible with clear blocked states", () => {
     expect(detailSource).toContain("Prescribing workspace")
     expect(detailSource).toContain("Prescribe in Parchment")
-    expect(detailSource).toContain("Parchment connection required")
+    expect(detailSource).toContain("Add prescription")
+    expect(detailSource).toContain("Prescriber not linked")
+    expect(detailSource).toContain("/doctor/settings/identity#parchment-account")
     expect(detailSource).toContain("Parchment integration disabled")
     expect(detailSource).toContain("Sync patient")
   })
@@ -40,6 +42,17 @@ describe("doctor patient medication history contract", () => {
     expect(detailSource).toContain("Prescribing identity")
     expect(detailSource).toContain("Latest activity")
     expect(detailSource).toContain("Last prescription")
+    expect(detailSource).toContain("Parchment delivery status")
+    expect(detailSource).toContain("Webhook confirmed script sent")
+  })
+
+  it("surfaces Parchment webhook and sync activity without exposing raw PHI", () => {
+    expect(detailPageSource).toContain("getPatientParchmentAuditRows")
+    expect(detailPageSource).toContain("parchment_webhook_script_sent")
+    expect(detailPageSource).toContain("metadata->>patient_id")
+    expect(detailPageSource).toContain("metadata->>partner_patient_id")
+    expect(detailSource).toContain("parchmentActivity")
+    expect(detailSource).toContain("Waiting for webhook")
   })
 
   it("does not pass raw intake answers into the client props", () => {
