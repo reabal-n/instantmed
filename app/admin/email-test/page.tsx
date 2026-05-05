@@ -2,6 +2,7 @@ import { notFound } from "next/navigation"
 import { Suspense } from "react"
 
 import { Skeleton } from "@/components/ui/skeleton"
+import { requireRole } from "@/lib/auth/helpers"
 
 import { EmailTestClient } from "./email-test-client"
 
@@ -20,6 +21,8 @@ export const dynamic = "force-dynamic"
  * Resend dashboard or the deploy-preview environment instead.
  */
 export default async function EmailTestPage() {
+  await requireRole(["admin"], { redirectTo: "/admin" })
+
   const env = process.env.VERCEL_ENV ?? "development"
   if (env === "production") {
     notFound()

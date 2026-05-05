@@ -2,6 +2,7 @@ import { Suspense } from "react"
 
 import { getEmailStats, getRecentEmailActivity } from "@/app/actions/email-stats"
 import { Skeleton } from "@/components/ui/skeleton"
+import { requireRole } from "@/lib/auth/helpers"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 import { EmailHubClient } from "./email-hub-client"
@@ -19,6 +20,8 @@ export const dynamic = "force-dynamic"
  * digest links.
  */
 export default async function EmailHubPage() {
+  await requireRole(["admin"], { redirectTo: "/admin" })
+
   const supabase = createServiceRoleClient()
 
   // Fetch real email stats, activity, template counts, and yesterday's volume in parallel

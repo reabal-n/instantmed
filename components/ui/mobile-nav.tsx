@@ -1,6 +1,6 @@
 "use client"
 
-import { Activity, BarChart3, Bell, ClipboardList, CreditCard, FileCheck, FileText, FolderOpen, Home, LogOut, MessageSquare, MoreHorizontal, Settings, User, X } from "lucide-react"
+import { Activity, BarChart3, Bell, ClipboardList, CreditCard, FileText, FolderOpen, Home, LogOut, MessageSquare, MoreHorizontal, Settings, Shield, User, X } from "lucide-react"
 import { usePathname, useRouter } from "next/navigation"
 import { useState } from "react"
 
@@ -103,11 +103,6 @@ const doctorItems: NavItem[] = [
 
 const doctorMoreItems: NavItem[] = [
   {
-    label: "Certificates",
-    icon: FileCheck,
-    href: "/doctor/certificates",
-  },
-  {
     label: "Analytics",
     icon: BarChart3,
     href: "/doctor/analytics",
@@ -120,8 +115,19 @@ const doctorMoreItems: NavItem[] = [
 ]
 
 /** Doctor-specific mobile navigation with doctor routes pre-configured */
-export function DoctorMobileNav({ className }: { className?: string }) {
-  return <MobileNav items={doctorItems} moreMenuItems={doctorMoreItems} className={className} />
+export function DoctorMobileNav({ className, isAdmin = false }: { className?: string; isAdmin?: boolean }) {
+  const moreMenuItems = isAdmin
+    ? [
+        ...doctorMoreItems,
+        {
+          label: "Admin dashboard",
+          icon: Shield,
+          href: "/admin",
+        },
+      ]
+    : doctorMoreItems
+
+  return <MobileNav items={doctorItems} moreMenuItems={moreMenuItems} className={className} />
 }
 
 export function MobileNav({ items = defaultItems, moreMenuItems = moreItems, className }: MobileNavProps) {

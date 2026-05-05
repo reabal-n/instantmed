@@ -392,7 +392,7 @@ export function IntakesStuckClient({
                       </div>
                     </TableCell>
                     <TableCell className="text-right">
-                      <Link href={`/doctor/intakes/${intake.id}`}>
+                      <Link href={`/admin/intakes/${intake.id}`}>
                         <Button variant="ghost" size="sm">
                           <ExternalLink className="h-4 w-4 mr-1" />
                           Open

@@ -4,28 +4,22 @@ import {
   BarChart3,
   ChevronRight,
   ClipboardList,
-  Download,
   FileText,
   FolderOpen,
   Heart,
-  Keyboard,
   LayoutDashboard,
   ListOrdered,
   LogOut,
-  Menu,
   MessageSquare,
   Pill,
-  Plus,
   Settings,
   Shield,
   Users,
-  X,
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 
-import { KeyboardShortcutsModal } from "@/components/doctor"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/lib/supabase/auth-provider"
 import { cn } from "@/lib/utils"
@@ -203,10 +197,6 @@ export function DashboardSidebar({
     await signOut()
   }
 
-  const handleExport = () => {
-    window.location.href = "/api/doctor/export?format=csv"
-  }
-
   const initials = userName
     .split(" ")
     .map(n => n.charAt(0))
@@ -278,36 +268,6 @@ export function DashboardSidebar({
           </div>
         )}
 
-        {/* Tools - Doctor only */}
-        {variant === "doctor" && (
-          <div className="px-4 mt-2 flex flex-col gap-1.5">
-            <KeyboardShortcutsModal 
-              trigger={
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="w-full h-8 text-xs text-muted-foreground hover:text-foreground justify-between px-3"
-                >
-                  <span className="flex items-center gap-2">
-                    <Keyboard className="w-3.5 h-3.5" />
-                    Shortcuts
-                  </span>
-                  <kbd className="text-xs font-mono bg-muted/80 px-1.5 py-0.5 rounded text-muted-foreground">?</kbd>
-                </Button>
-              }
-            />
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="w-full h-8 text-xs text-muted-foreground hover:text-foreground justify-start gap-2 px-3" 
-              onClick={handleExport}
-            >
-              <Download className="w-3.5 h-3.5" />
-              Export CSV
-            </Button>
-          </div>
-        )}
-
         {/* Spacer to push user card down */}
         <div className="flex-1 min-h-4" />
 
@@ -333,129 +293,5 @@ export function DashboardSidebar({
         </div>
       </div>
     </aside>
-  )
-}
-
-// ── Mobile Dashboard Navigation (slide-in drawer) ──────────
-export function MobileDashboardNav({
-  variant,
-  pendingCount = 0,
-  requestCount = 0,
-}: {
-  variant: "patient" | "doctor"
-  pendingCount?: number
-  requestCount?: number
-}) {
-  const [open, setOpen] = useState(false)
-  const [isSigningOut, setIsSigningOut] = useState(false)
-  const pathname = usePathname()
-  const { signOut } = useAuth()
-  const navSections = variant === "patient"
-    ? [{ title: "Navigation", items: patientNavItems }]
-    : doctorNavSections
-  const baseHref = variant === "patient" ? "/patient" : "/doctor/dashboard"
-
-  const handleSignOut = async () => {
-    setIsSigningOut(true)
-    setOpen(false)
-    await signOut()
-  }
-
-  // Close drawer on route change
-  useEffect(() => {
-    setOpen(false)
-  }, [pathname])
-
-  return (
-    <div className="lg:hidden">
-      <button
-        onClick={() => setOpen(true)}
-        className="flex h-9 w-9 items-center justify-center rounded-lg border border-border/50 bg-background text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
-        aria-label="Open navigation"
-        type="button"
-      >
-        <Menu className="h-5 w-5" />
-      </button>
-
-      {/* Backdrop */}
-      {open && (
-        <div
-          className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm animate-in fade-in-0 duration-200"
-          onClick={() => setOpen(false)}
-          aria-hidden="true"
-        />
-      )}
-
-      {/* Drawer */}
-      <nav
-        className={cn(
-          "fixed inset-y-0 left-0 z-50 w-[280px] flex flex-col bg-background border-r border-border shadow-xl",
-          "transition-transform duration-300 ease-out",
-          open ? "translate-x-0" : "-translate-x-full"
-        )}
-        aria-label={`${variant} navigation`}
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between px-4 py-4 border-b border-border/40">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <span className="text-sm font-semibold tracking-tight">IM</span>
-            </div>
-            <div>
-              <span className="text-base font-semibold tracking-tight text-foreground">
-                InstantMed
-              </span>
-              <p className="text-xs text-muted-foreground capitalize leading-none mt-0.5">{variant} Portal</p>
-            </div>
-          </div>
-          <button
-            onClick={() => setOpen(false)}
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
-            aria-label="Close navigation"
-            type="button"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-
-        {/* Nav items */}
-        <div className="flex-1 space-y-4 overflow-y-auto px-3 py-3">
-          {navSections.map((section) => (
-            <NavigationSection
-              key={section.title}
-              title={section.title}
-              items={section.items}
-              pathname={pathname}
-              baseHref={baseHref}
-              pendingCount={pendingCount}
-              requestCount={requestCount}
-              variant={variant}
-              onNavigate={() => setOpen(false)}
-            />
-          ))}
-        </div>
-
-        {/* Footer: quick action + sign out */}
-        <div className="px-4 py-3 border-t border-border/40 space-y-2">
-          {variant === "patient" && (
-            <Button asChild className="w-full h-9 text-sm">
-              <Link href="/request" onClick={() => setOpen(false)}>
-                <Plus className="w-4 h-4 mr-2" />
-                New Request
-              </Link>
-            </Button>
-          )}
-          <button
-            onClick={handleSignOut}
-            disabled={isSigningOut}
-            className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-50"
-            type="button"
-          >
-            <LogOut className="w-4 h-4" />
-            {isSigningOut ? "Signing out…" : "Sign out"}
-          </button>
-        </div>
-      </nav>
-    </div>
   )
 }

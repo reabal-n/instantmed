@@ -80,7 +80,6 @@ function StatusIndicator({ healthy, label }: { healthy: boolean; label: string }
         className={cn(
           "w-3 h-3 rounded-full",
           healthy ? "bg-emerald-500" : "bg-red-500",
-          healthy ? "" : "animate-pulse"
         )}
       />
       <span className="text-sm">{label}</span>
@@ -126,7 +125,7 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
             <h3 className="text-base font-semibold text-foreground">System Status</h3>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-            <StatusIndicator healthy={systemStatus.webhooksHealthy} label="Stripe Webhooks" />
+            <StatusIndicator healthy={systemStatus.webhooksHealthy} label="Payment webhooks" />
             <StatusIndicator healthy={systemStatus.emailsHealthy} label="Email Delivery" />
             <StatusIndicator healthy={systemStatus.intakesHealthy} label="Intake Processing" />
             <StatusIndicator healthy={systemStatus.patientIdentityHealthy} label="Patient Identity" />
@@ -142,7 +141,7 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
                 <Webhook className={cn("h-5 w-5", webhooks.failedCount > 0 ? "text-destructive" : "text-success")} />
               </div>
               <div className="min-w-0">
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Stripe DLQ</p>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Payment DLQ</p>
                 <p className={cn("text-2xl font-semibold tabular-nums mt-0.5", webhooks.failedCount > 0 && "text-destructive")}>
                   {webhooks.failedCount}
                 </p>
@@ -255,12 +254,12 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
 
         {/* Details Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Recent Stripe DLQ events */}
+          {/* Recent payment DLQ events */}
           <div className="bg-card border border-border/50 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <Webhook className="h-5 w-5 text-muted-foreground" />
-                <h3 className="text-base font-semibold text-foreground">Recent Stripe DLQ Events</h3>
+                <h3 className="text-base font-semibold text-foreground">Recent payment DLQ events</h3>
               </div>
               <Button variant="outline" size="sm" asChild>
                 <Link href="/admin/webhook-dlq">

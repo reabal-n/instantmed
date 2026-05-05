@@ -1,7 +1,11 @@
+import { requireRole } from "@/lib/auth/helpers"
+
 import { ErrorMonitoringClient } from "./errors-client"
 
 export const dynamic = "force-dynamic"
 
-export default function ErrorMonitoringPage() {
+export default async function ErrorMonitoringPage() {
+  await requireRole(["admin"], { redirectTo: "/admin" })
+
   return <ErrorMonitoringClient />
 }

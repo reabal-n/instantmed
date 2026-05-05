@@ -385,7 +385,7 @@ export function ReconciliationClient({
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
-                          <Link href={`/doctor/intakes/${record.intake_id}`}>
+                          <Link href={`/admin/intakes/${record.intake_id}`}>
                             <Button variant="ghost" size="sm">
                               <ExternalLink className="h-4 w-4 mr-1" />
                               Intake

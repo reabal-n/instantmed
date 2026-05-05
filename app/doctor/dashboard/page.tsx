@@ -1,12 +1,11 @@
-import { redirect } from "next/navigation"
 import { Suspense } from "react"
 
-import { IdentityIncompleteBanner,IntakeMonitor, SlaBreachHero } from "@/components/doctor"
+import { IdentityIncompleteBanner, IntakeMonitor, SlaBreachHero } from "@/components/doctor"
 import { DashboardErrorBoundary } from "@/components/doctor/dashboard-error-boundary"
 import { Skeleton } from "@/components/ui/skeleton"
-import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
+import { requireRole } from "@/lib/auth/helpers"
 import { parseQueueStatusFilter, type QueueStatusFilter } from "@/lib/dashboard/routes"
-import { type DoctorIdentity,getDoctorIdentity, isDoctorIdentityComplete } from "@/lib/data/doctor-identity"
+import { type DoctorIdentity, getDoctorIdentity, isDoctorIdentityComplete } from "@/lib/data/doctor-identity"
 import { getAIApprovedIntakes, getAutoApprovalMetrics, getDoctorQueue, getIntakeMonitoringStats, getRecentlyCompletedIntakes, getSlaBreachIntakes, getTodayEarnings } from "@/lib/data/intakes"
 import { createLogger } from "@/lib/observability/logger"
 
@@ -217,8 +216,7 @@ export default async function DoctorDashboardPage({
 }: {
   searchParams: Promise<{ page?: string; pageSize?: string; status?: string | string[] }>
 }) {
-  const auth = await getAuthenticatedUserWithProfile()
-  if (!auth) redirect("/sign-in?next=/doctor/dashboard")
+  const auth = await requireRole(["doctor", "admin"])
   const { profile } = auth
 
   const params = await searchParams

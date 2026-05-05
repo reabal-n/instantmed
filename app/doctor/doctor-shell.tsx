@@ -21,9 +21,10 @@ import { useAuth } from '@/lib/supabase/auth-provider'
 
 interface DoctorShellProps {
   children: ReactNode
+  isAdmin?: boolean
 }
 
-export function DoctorShell({ children }: DoctorShellProps) {
+export function DoctorShell({ children, isAdmin = false }: DoctorShellProps) {
   const { user } = useAuth()
 
   return (
@@ -31,7 +32,7 @@ export function DoctorShell({ children }: DoctorShellProps) {
       <ShortcutDiscoveryHint />
       {user && <IntakeNotificationListener />}
       {children}
-      <DoctorMobileNav />
+      <DoctorMobileNav isAdmin={isAdmin} />
     </PanelProvider>
   )
 }

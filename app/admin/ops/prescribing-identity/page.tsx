@@ -4,6 +4,7 @@ import Link from "next/link"
 import { DashboardPageHeader, StatusBadge } from "@/components/dashboard"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { requireRole } from "@/lib/auth/helpers"
 import { getPrescribingIdentityBlockerReport } from "@/lib/doctor/patient-identity-report"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
@@ -27,6 +28,8 @@ function formatDateTime(value: string | null): string {
 }
 
 export default async function PrescribingIdentityOpsPage() {
+  await requireRole(["admin"], { redirectTo: "/admin" })
+
   const report = await getPrescribingIdentityBlockerReport(createServiceRoleClient())
   const topBlockers = Object.entries(report.blockerCounts)
     .sort((a, b) => b[1] - a[1])

@@ -1,3 +1,4 @@
+import { requireRole } from "@/lib/auth/helpers"
 import {
   type CertificateStatus,
   getAllIssuedCertificates,
@@ -24,7 +25,8 @@ export default async function CertificatesPage({
     q?: string
   }>
 }) {
-  // Layout enforces doctor/admin role
+  await requireRole(["doctor", "admin"])
+
   const params = await searchParams
   const page = Math.max(1, parseInt(params.page || "1", 10) || 1)
   const offset = (page - 1) * PAGE_SIZE

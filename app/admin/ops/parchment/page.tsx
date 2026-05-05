@@ -4,6 +4,7 @@ import Link from "next/link"
 import { DashboardPageHeader, StatusBadge } from "@/components/dashboard"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { requireRole } from "@/lib/auth/helpers"
 import { getParchmentOpsDashboard } from "@/lib/parchment/ops"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
@@ -60,6 +61,8 @@ function StatCard({
 }
 
 export default async function ParchmentOpsPage() {
+  await requireRole(["admin"], { redirectTo: "/admin" })
+
   const dashboard = await getParchmentOpsDashboard(createServiceRoleClient())
   const degraded = dashboard.stats.retryableFailures > 0 || dashboard.stats.unlinkedPrescribers > 0
 

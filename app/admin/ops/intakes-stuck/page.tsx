@@ -14,8 +14,7 @@ interface PageProps {
 }
 
 export default async function IntakesStuckPage({ searchParams }: PageProps) {
-  // Require doctor or admin role
-  await requireRole(["doctor", "admin"])
+  await requireRole(["admin"], { redirectTo: "/admin" })
 
   const params = await searchParams
 

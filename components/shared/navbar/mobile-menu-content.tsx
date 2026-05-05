@@ -145,13 +145,18 @@ export function MobileMenuContent({ variant, onClose }: MobileMenuContentProps) 
           onClose={onClose}
         />
         <AnimatedMobileMenu.Item
-          item={{ label: "Patients", href: "/doctor/patients", icon: <User className="h-5 w-5" /> }}
+          item={{ label: "Scripts", href: "/doctor/scripts", icon: <ClipboardList className="h-5 w-5" /> }}
           index={1}
           onClose={onClose}
         />
         <AnimatedMobileMenu.Item
-          item={{ label: "Admin", href: "/admin", icon: <Settings className="h-5 w-5" /> }}
+          item={{ label: "Patients", href: "/doctor/patients", icon: <User className="h-5 w-5" /> }}
           index={2}
+          onClose={onClose}
+        />
+        <AnimatedMobileMenu.Item
+          item={{ label: "Identity", href: "/doctor/settings/identity", icon: <Settings className="h-5 w-5" /> }}
+          index={3}
           onClose={onClose}
         />
       </>

@@ -1,6 +1,7 @@
 import { Suspense } from "react"
 
 import { Skeleton } from "@/components/ui/skeleton"
+import { requireRole } from "@/lib/auth/helpers"
 
 import { EmailPreviewReactClient } from "./email-preview-react-client"
 
@@ -9,7 +10,9 @@ export const metadata = {
   description: "Preview and test email templates",
 }
 
-export default function EmailPreviewPage() {
+export default async function EmailPreviewPage() {
+  await requireRole(["admin"], { redirectTo: "/admin" })
+
   return (
     <div className="space-y-6">
       <div>

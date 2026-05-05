@@ -2,6 +2,7 @@ import { Loader2 } from "lucide-react"
 import { Suspense } from "react"
 
 import { loadTemplateStudioData } from "@/app/actions/template-studio"
+import { requireRole } from "@/lib/auth/helpers"
 
 import { TemplateStudioClient } from "./template-studio-client"
 
@@ -29,7 +30,9 @@ async function TemplateStudioLoader() {
   return <TemplateStudioClient initialData={result.data} />
 }
 
-export default function TemplateStudioPage() {
+export default async function TemplateStudioPage() {
+  await requireRole(["admin"], { redirectTo: "/admin" })
+
   return (
     <Suspense
       fallback={

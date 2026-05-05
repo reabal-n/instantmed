@@ -8,7 +8,7 @@
  * updated, new PDF is generated, old PDF is replaced in storage, and the change
  * is logged to certificate_audit_log.
  *
- * Doctors only (not admin-only). Max 3 reissues per intake.
+ * Doctor workflow only (doctor or admin acting clinically). Max 3 reissues per intake.
  * Optional patient notification (defaults off).
  */
 
@@ -53,8 +53,8 @@ export async function reissueCertificateAction(
 ): Promise<ReissueCertResult> {
   const { intakeId } = input
 
-  // 1. AUTH CHECK - doctors only, not admin
-  const user = await requireRoleOrNull(["doctor"])
+  // 1. AUTH CHECK - doctor workflow, with admin allowed when acting clinically
+  const user = await requireRoleOrNull(["doctor", "admin"])
   if (!user) {
     return { success: false, error: "Unauthorized" }
   }

@@ -1,10 +1,22 @@
-import { readFileSync } from "node:fs"
+import { readdirSync, readFileSync } from "node:fs"
 import { join } from "node:path"
 
 import { describe, expect, it } from "vitest"
 
 const sidebarSource = readFileSync(
   join(process.cwd(), "components/shared/dashboard-sidebar.tsx"),
+  "utf8",
+)
+const sharedIndexSource = readFileSync(
+  join(process.cwd(), "components/shared/index.ts"),
+  "utf8",
+)
+const sharedUserMenuSource = readFileSync(
+  join(process.cwd(), "components/shared/navbar/user-menu.tsx"),
+  "utf8",
+)
+const sharedMobileMenuSource = readFileSync(
+  join(process.cwd(), "components/shared/navbar/mobile-menu-content.tsx"),
   "utf8",
 )
 const mobileNavSource = readFileSync(
@@ -31,9 +43,29 @@ const scriptsPageSource = readFileSync(
   join(process.cwd(), "app/doctor/scripts/page.tsx"),
   "utf8",
 )
+const doctorIntakeDetailSource = readFileSync(
+  join(process.cwd(), "app/doctor/intakes/[id]/page.tsx"),
+  "utf8",
+)
+const doctorPatientDetailSource = readFileSync(
+  join(process.cwd(), "app/doctor/patients/[id]/page.tsx"),
+  "utf8",
+)
+const reissueCertificateSource = readFileSync(
+  join(process.cwd(), "app/actions/reissue-cert.ts"),
+  "utf8",
+)
 
 function navLabels(source: string): string[] {
   return Array.from(source.matchAll(/label:\s*"([^"]+)"/g)).map((match) => match[1])
+}
+
+function findDoctorPageFiles(dir = join(process.cwd(), "app/doctor")): string[] {
+  return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+    const fullPath = join(dir, entry.name)
+    if (entry.isDirectory()) return findDoctorPageFiles(fullPath)
+    return entry.name === "page.tsx" ? [fullPath] : []
+  })
 }
 
 describe("doctor navigation contract", () => {
@@ -49,7 +81,12 @@ describe("doctor navigation contract", () => {
     expect(labels).toContain("Admin dashboard")
     expect(labels).not.toContain("Review Queue")
     expect(labels).not.toContain("Email Suppression")
+    expect(labels).not.toContain("Shortcuts")
+    expect(labels).not.toContain("Export CSV")
     expect(sidebarSource).not.toContain('href: "/doctor/email-suppression"')
+    expect(sidebarSource).not.toContain("/api/doctor/export")
+    expect(sidebarSource).not.toContain("KeyboardShortcutsModal")
+    expect(sharedIndexSource).not.toContain("MobileDashboardNav")
   })
 
   it("uses the same doctor labels on mobile", () => {
@@ -57,6 +94,9 @@ describe("doctor navigation contract", () => {
     expect(mobileNavSource).toContain('label: "Scripts"')
     expect(mobileNavSource).toContain('label: "Patients"')
     expect(mobileNavSource).toContain('label: "Identity"')
+    expect(mobileNavSource).toContain('label: "Admin dashboard"')
+    expect(mobileNavSource).toContain("isAdmin")
+    expect(mobileNavSource).not.toContain('label: "Certificates"')
     expect(mobileNavSource).not.toContain('label: "Settings"')
   })
 
@@ -70,6 +110,16 @@ describe("doctor navigation contract", () => {
     expect(dashboardHeaderSource).not.toContain("navigate")
     expect(dashboardHeaderSource).not.toContain("approve")
     expect(dashboardHeaderSource).not.toContain("decline")
+  })
+
+  it("keeps legacy shared doctor menus aligned with the current doctor sitemap", () => {
+    const sharedDoctorNav = [sharedUserMenuSource, sharedMobileMenuSource].join("\n")
+
+    expect(sharedDoctorNav).toContain("/doctor/scripts")
+    expect(sharedDoctorNav).toContain("/doctor/patients")
+    expect(sharedDoctorNav).toContain("/doctor/settings/identity")
+    expect(sharedDoctorNav).not.toContain("/doctor/intakes")
+    expect(sharedMobileMenuSource).not.toContain('label: "Admin"')
   })
 
   it("does not eagerly prefetch every dashboard route from the persistent sidebar", () => {
@@ -88,5 +138,30 @@ describe("doctor navigation contract", () => {
   it("keeps legacy doctor routes as redirects to canonical surfaces", () => {
     expect(doctorQueuePageSource).toContain("buildDoctorQueueRedirectHref")
     expect(doctorSettingsPageSource).toContain('redirect("/doctor/settings/identity")')
+  })
+
+  it("requires doctor or admin role for clinical detail pages", () => {
+    expect(doctorIntakeDetailSource).toContain('requireRole(["doctor", "admin"]')
+    expect(doctorIntakeDetailSource).not.toContain("getAuthenticatedUserWithProfile")
+    expect(doctorPatientDetailSource).toContain('requireRole(["doctor", "admin"]')
+    expect(doctorPatientDetailSource).not.toContain('redirectTo: "/doctor/dashboard"')
+    expect(reissueCertificateSource).toContain('requireRoleOrNull(["doctor", "admin"]')
+  })
+
+  it("keeps doctor data pages explicitly gated for doctor or admin users", () => {
+    const redirectOnlyPages = new Set([
+      join(process.cwd(), "app/doctor/page.tsx"),
+      join(process.cwd(), "app/doctor/queue/page.tsx"),
+      join(process.cwd(), "app/doctor/settings/page.tsx"),
+      join(process.cwd(), "app/doctor/email-suppression/page.tsx"),
+    ])
+
+    for (const pageFile of findDoctorPageFiles()) {
+      if (redirectOnlyPages.has(pageFile)) continue
+
+      const source = readFileSync(pageFile, "utf8")
+      expect(source, pageFile).toContain('requireRole(["doctor", "admin"]')
+      expect(source, pageFile).not.toContain("getAuthenticatedUserWithProfile")
+    }
   })
 })

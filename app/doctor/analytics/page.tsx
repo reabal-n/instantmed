@@ -1,6 +1,4 @@
-import { redirect } from "next/navigation"
-
-import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
+import { requireRole } from "@/lib/auth/helpers"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 import { AnalyticsClient } from "./analytics-client"
@@ -226,8 +224,7 @@ interface PageProps {
 }
 
 export default async function AnalyticsPage({ searchParams }: PageProps) {
-  const auth = await getAuthenticatedUserWithProfile()
-  if (!auth) redirect("/sign-in?next=/doctor/analytics")
+  const auth = await requireRole(["doctor", "admin"])
   const { profile } = auth
   const params = await searchParams
 

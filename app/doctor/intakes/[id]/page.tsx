@@ -1,9 +1,9 @@
-import { notFound, redirect } from "next/navigation"
+import { notFound } from "next/navigation"
 
 import { getAIDraftsForIntake } from "@/app/actions/drafts/draft-retrieval"
 import { getPendingDateCorrection } from "@/app/actions/request-date-correction"
 import { logClinicianOpenedRequest } from "@/lib/audit/compliance-audit"
-import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
+import { requireRole } from "@/lib/auth/helpers"
 import { getOrCreateMedCertDraftForIntake } from "@/lib/data/documents"
 import { getIntakeWithDetails, getNextQueueIntakeId,getPatientIntakes } from "@/lib/data/intakes"
 import { getCertDeliveryStatus } from "@/lib/data/issued-certificates"
@@ -30,8 +30,7 @@ export default async function DoctorIntakeDetailPage({
   const { id } = await params
   const { action } = await searchParams
 
-  const auth = await getAuthenticatedUserWithProfile()
-  if (!auth) redirect(`/sign-in?next=/doctor/intakes/${id}`)
+  const auth = await requireRole(["doctor", "admin"])
   const { profile } = auth
 
   const intake = await getIntakeWithDetails(id)

@@ -68,12 +68,45 @@ export function PatientsListClient({
 
   const states = ["ACT", "NSW", "NT", "QLD", "SA", "TAS", "VIC", "WA"]
   const parchmentSyncedPatients = patients.filter((p) => p.parchment_patient_id).length
+  const onboardedPatients = patients.filter((p) => p.onboarding_completed).length
+  const incompletePatients = patients.length - onboardedPatients
+  const notSyncedOnPage = patients.length - parchmentSyncedPatients
   const duplicateGroups = useMemo(() => findPotentialDuplicatePatients(patients), [patients])
   const duplicatePatientIds = useMemo(() => {
     const ids = new Set<string>()
     duplicateGroups.forEach((group) => group.patientIds.forEach((id) => ids.add(id)))
     return ids
   }, [duplicateGroups])
+  const summaryItems = [
+    {
+      label: "Patients",
+      value: totalPatients,
+      detail: collapsedDuplicateProfiles > 0 ? `${rawPatientProfiles} raw profiles` : `${patients.length} on this page`,
+      icon: Users,
+      tone: "text-primary",
+    },
+    {
+      label: "Onboarded",
+      value: onboardedPatients,
+      detail: "Ready for clinical workflow",
+      icon: CheckCircle,
+      tone: "text-success",
+    },
+    {
+      label: "Incomplete",
+      value: incompletePatients,
+      detail: "Needs patient details",
+      icon: XCircle,
+      tone: "text-warning",
+    },
+    {
+      label: "Parchment sync",
+      value: parchmentSyncedPatients,
+      detail: notSyncedOnPage > 0 ? `${notSyncedOnPage} not synced on this page` : "All visible patients synced",
+      icon: Pill,
+      tone: "text-success",
+    },
+  ]
 
   return (
     <div className="space-y-6">
@@ -83,49 +116,7 @@ export function PatientsListClient({
         actions={<ManualPatientDialog />}
       />
 
-      {/* Overview */}
-      <Card className="rounded-xl border-border/50">
-        <CardContent className="grid gap-4 p-4 sm:grid-cols-2 xl:grid-cols-4">
-          <div className="flex items-center gap-3">
-            <Users className="h-4 w-4 text-primary" />
-            <div>
-              <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Total patients</p>
-              <p className="text-xl font-semibold tabular-nums text-foreground">{totalPatients}</p>
-              {collapsedDuplicateProfiles > 0 && (
-                <p className="text-xs text-muted-foreground">{rawPatientProfiles} raw profiles</p>
-              )}
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <CheckCircle className="h-4 w-4 text-success" />
-            <div>
-              <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Onboarded</p>
-              <p className="text-xl font-semibold tabular-nums text-foreground">
-                {patients.filter((p) => p.onboarding_completed).length}
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <XCircle className="h-4 w-4 text-warning" />
-            <div>
-              <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Incomplete</p>
-              <p className="text-xl font-semibold tabular-nums text-foreground">
-                {patients.filter((p) => !p.onboarding_completed).length}
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <Pill className="h-4 w-4 text-success" />
-            <div>
-              <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Parchment sync</p>
-              <p className="text-xl font-semibold tabular-nums text-foreground">{parchmentSyncedPatients}</p>
-              <p className="text-xs text-muted-foreground">{patients.length - parchmentSyncedPatients} not synced on this page</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Filters */}
+      {/* Directory controls */}
       <Card className="rounded-xl border-border/50">
         <CardContent className="p-5">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -166,30 +157,43 @@ export function PatientsListClient({
             </div>
           </div>
 
+          <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-4" aria-label="Directory summary">
+            {summaryItems.map((item) => (
+              <div key={item.label} className="rounded-lg border border-border/50 bg-muted/25 px-3 py-2">
+                <div className="flex items-center gap-2">
+                  <item.icon className={`h-4 w-4 ${item.tone}`} />
+                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{item.label}</p>
+                </div>
+                <p className="mt-1 text-xl font-semibold tabular-nums text-foreground">{item.value}</p>
+                <p className="text-xs text-muted-foreground">{item.detail}</p>
+              </div>
+            ))}
+          </div>
+
           <div className="mt-4 text-sm text-muted-foreground">
             Showing {filteredPatients.length} of {patients.length} on this page ({totalPatients} unique total)
             {collapsedDuplicateProfiles > 0 && (
               <span> · {collapsedDuplicateProfiles} duplicate profile {collapsedDuplicateProfiles === 1 ? "record" : "records"} collapsed</span>
             )}
           </div>
+
+          {duplicateGroups.length > 0 && (
+            <div className="mt-4 rounded-lg border border-warning-border bg-warning-light px-3 py-2 text-sm text-warning">
+              <div className="flex items-start gap-2">
+                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                <div>
+                  <p className="font-medium">
+                    {duplicateGroups.length} possible duplicate patient {duplicateGroups.length === 1 ? "group" : "groups"} on this page
+                  </p>
+                  <p className="mt-0.5 text-xs">
+                    Match source: {duplicateGroups.map((group) => group.reason.replace("_", " + ")).join(", ")}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
-
-      {duplicateGroups.length > 0 && (
-        <div className="rounded-lg border border-warning-border bg-warning-light px-4 py-3 text-sm text-warning">
-          <div className="flex items-start gap-2">
-            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-            <div>
-              <p className="font-medium">
-                {duplicateGroups.length} possible duplicate patient {duplicateGroups.length === 1 ? "group" : "groups"} on this page
-              </p>
-              <p className="mt-0.5 text-xs">
-                Match source: {duplicateGroups.map((group) => group.reason.replace("_", " + ")).join(", ")}
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Table */}
       <Card className="rounded-xl border-border/50 overflow-hidden">

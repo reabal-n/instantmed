@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs"
+import { readdirSync, readFileSync } from "node:fs"
 import { join } from "node:path"
 
 import { describe, expect, it } from "vitest"
@@ -19,6 +19,10 @@ const adminDashboardClientSource = readFileSync(
   join(process.cwd(), "app/admin/admin-dashboard-client.tsx"),
   "utf8",
 )
+const adminPageSource = readFileSync(
+  join(process.cwd(), "app/admin/page.tsx"),
+  "utf8",
+)
 const opsParchmentSource = readFileSync(
   join(process.cwd(), "app/admin/ops/parchment/page.tsx"),
   "utf8",
@@ -35,9 +39,21 @@ const dashboardRoutesSource = readFileSync(
   join(process.cwd(), "lib/dashboard/routes.ts"),
   "utf8",
 )
+const dashboardRedirectSource = readFileSync(
+  join(process.cwd(), "app/dashboard/page.tsx"),
+  "utf8",
+)
 
 function navLabels(source: string): string[] {
   return Array.from(source.matchAll(/label:\s*"([^"]+)"/g)).map((match) => match[1])
+}
+
+function findAdminPageFiles(dir = join(process.cwd(), "app/admin")): string[] {
+  return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+    const fullPath = join(dir, entry.name)
+    if (entry.isDirectory()) return findAdminPageFiles(fullPath)
+    return entry.name === "page.tsx" ? [fullPath] : []
+  })
 }
 
 describe("admin navigation contract", () => {
@@ -109,19 +125,40 @@ describe("admin navigation contract", () => {
       opsParchmentSource,
       readFileSync(join(process.cwd(), "app/admin/ops/sla/page.tsx"), "utf8"),
       readFileSync(join(process.cwd(), "app/admin/ops/patient-merge-audit/page.tsx"), "utf8"),
+      readFileSync(join(process.cwd(), "components/shared/ops/reconciliation-client.tsx"), "utf8"),
+      readFileSync(join(process.cwd(), "components/shared/ops/intakes-stuck-client.tsx"), "utf8"),
     ].join("\n")
 
     expect(adminRouteSources).toContain("/admin/intakes")
     expect(adminRouteSources).toContain("/admin/patients")
     expect(adminRouteSources).not.toContain("/doctor/intakes")
     expect(adminRouteSources).not.toContain("/doctor/patients")
-    expect(readFileSync(join(process.cwd(), "app/admin/intakes/[id]/page.tsx"), "utf8")).toContain("DoctorIntakeDetailPage")
-    expect(readFileSync(join(process.cwd(), "app/admin/patients/[id]/page.tsx"), "utf8")).toContain("DoctorPatientDetailPage")
+    const adminIntakeDetailSource = readFileSync(join(process.cwd(), "app/admin/intakes/[id]/page.tsx"), "utf8")
+    const adminPatientDetailSource = readFileSync(join(process.cwd(), "app/admin/patients/[id]/page.tsx"), "utf8")
+
+    expect(adminIntakeDetailSource).not.toContain("DoctorIntakeDetailPage")
+    expect(adminPatientDetailSource).not.toContain("DoctorPatientDetailPage")
+    expect(adminIntakeDetailSource).toContain("Open doctor workflow")
+    expect(adminPatientDetailSource).toContain("Open doctor file")
+    expect(adminIntakeDetailSource).toContain('requireRole(["admin"]')
+    expect(adminPatientDetailSource).toContain('requireRole(["admin"]')
+  })
+
+  it("keeps nested admin ops pages admin-only", () => {
+    const nestedOpsSources = [
+      readFileSync(join(process.cwd(), "app/admin/ops/reconciliation/page.tsx"), "utf8"),
+      readFileSync(join(process.cwd(), "app/admin/ops/intakes-stuck/page.tsx"), "utf8"),
+      readFileSync(join(process.cwd(), "app/admin/ops/doctors/page.tsx"), "utf8"),
+    ].join("\n")
+
+    expect(nestedOpsSources).toContain('requireRole(["admin"]')
+    expect(nestedOpsSources).not.toContain('requireRole(["doctor", "admin"]')
   })
 
   it("does not send failed admin role checks back into the doctor portal", () => {
     const adminPageSources = [
       "app/admin/audit/page.tsx",
+      "app/admin/page.tsx",
       "app/admin/compliance/page.tsx",
       "app/admin/emails/suppression/page.tsx",
       "app/admin/features/page.tsx",
@@ -135,11 +172,51 @@ describe("admin navigation contract", () => {
 
     expect(adminPageSources).not.toContain('redirectTo: "/doctor/dashboard"')
     expect(adminPageSources).toContain('redirectTo: "/admin"')
+    expect(adminPageSource).toContain('requireRole(["admin"]')
+    expect(adminPageSource).not.toContain("getAuthenticatedUserWithProfile")
+  })
+
+  it("routes the generic dashboard entrypoint to the admin dashboard for admin users", () => {
+    expect(dashboardRedirectSource).toContain('role === "admin"')
+    expect(dashboardRedirectSource).toContain('redirect("/admin")')
+    expect(dashboardRedirectSource).toContain("role === 'doctor'")
+    expect(dashboardRedirectSource).toContain("redirect('/doctor/dashboard')")
+  })
+
+  it("keeps admin data pages explicitly admin-gated at page level", () => {
+    const redirectOnlyPages = new Set([
+      join(process.cwd(), "app/admin/business-kpi/page.tsx"),
+      join(process.cwd(), "app/admin/email-hub/page.tsx"),
+      join(process.cwd(), "app/admin/studio/page.tsx"),
+      join(process.cwd(), "app/admin/webhooks/page.tsx"),
+    ])
+
+    for (const pageFile of findAdminPageFiles()) {
+      if (redirectOnlyPages.has(pageFile)) continue
+
+      const source = readFileSync(pageFile, "utf8")
+      expect(source, pageFile).toContain('requireRole(["admin"]')
+      expect(source, pageFile).not.toContain('requireRole(["doctor", "admin"]')
+    }
   })
 
   it("routes vendor and money recovery links through their owning dashboards", () => {
     expect(opsParchmentSource).toContain('href="/admin/parchment-conformance"')
     expect(financeClientSource).toContain('href="/admin/refunds"')
+  })
+
+  it("keeps payment webhook recovery copy separate from Parchment recovery copy", () => {
+    const opsClientSource = readFileSync(
+      join(process.cwd(), "app/admin/ops/ops-client.tsx"),
+      "utf8",
+    )
+
+    expect(opsClientSource).toContain("Payment webhooks")
+    expect(opsClientSource).toContain("Payment DLQ")
+    expect(opsClientSource).toContain("Recent payment DLQ events")
+    expect(opsClientSource).not.toContain("Stripe Webhooks")
+    expect(opsClientSource).not.toContain("Stripe DLQ")
+    expect(opsClientSource).not.toContain("animate-pulse")
   })
 
   it("makes Parchment recording evidence boundaries explicit", () => {

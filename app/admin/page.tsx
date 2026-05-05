@@ -1,4 +1,3 @@
-import { redirect } from "next/navigation"
 import { Suspense } from "react"
 
 import { AdminDashboardClient } from "@/app/admin/admin-dashboard-client"
@@ -6,7 +5,7 @@ import { AdminHubZones } from "@/components/admin/admin-hub-zones"
 import { YesterdayWidget } from "@/components/admin/yesterday-widget"
 import { DashboardPageHeader } from "@/components/dashboard"
 import { Card, CardContent } from "@/components/ui/card"
-import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
+import { requireRole } from "@/lib/auth/helpers"
 import { getAllIntakesForAdmin, getDoctorDashboardStats } from "@/lib/data/intakes"
 import type { IntakeWithPatient } from "@/types/db"
 
@@ -17,8 +16,7 @@ export default async function AdminPage({
 }: {
   searchParams?: Promise<{ window?: string }>
 }) {
-  const auth = await getAuthenticatedUserWithProfile()
-  if (!auth) redirect("/sign-in?next=/admin")
+  await requireRole(["admin"], { redirectTo: "/" })
   const params = (await searchParams) ?? {}
   const digestWindow = params.window === "today" ? "today" : "yesterday"
 

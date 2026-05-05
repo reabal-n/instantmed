@@ -1,3 +1,4 @@
+import { requireRole } from "@/lib/auth/helpers"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
 import { DoctorPerformanceClient } from "./performance-client"
@@ -5,6 +6,8 @@ import { DoctorPerformanceClient } from "./performance-client"
 export const dynamic = "force-dynamic"
 
 export default async function DoctorPerformancePage() {
+  await requireRole(["admin"], { redirectTo: "/admin" })
+
   const supabase = createServiceRoleClient()
 
   const now = new Date()

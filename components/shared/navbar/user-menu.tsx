@@ -4,7 +4,6 @@ import type { User as SupabaseUser } from "@supabase/supabase-js"
 import {
   ChevronDown,
   ClipboardList,
-  FileText,
   LayoutDashboard,
   User,
 } from "lucide-react"
@@ -163,18 +162,18 @@ export function UserMenu({
           Queue
         </AnimatedNavLink>
         <AnimatedNavLink
+          href="/doctor/scripts"
+          icon={<ClipboardList className="h-4 w-4" aria-hidden="true" />}
+          isActive={isActivePath("/doctor/scripts")}
+        >
+          Scripts
+        </AnimatedNavLink>
+        <AnimatedNavLink
           href="/doctor/patients"
           icon={<User className="h-4 w-4" aria-hidden="true" />}
           isActive={isActivePath("/doctor/patients")}
         >
           Patients
-        </AnimatedNavLink>
-        <AnimatedNavLink
-          href="/doctor/intakes"
-          icon={<FileText className="h-4 w-4" aria-hidden="true" />}
-          isActive={isActivePath("/doctor/intakes")}
-        >
-          Intakes
         </AnimatedNavLink>
 
         {/* Static avatar - settings & sign out live in the sidebar */}

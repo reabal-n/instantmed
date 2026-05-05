@@ -21,7 +21,7 @@ describe("doctor patient medication history contract", () => {
     expect(detailPageSource).toContain("medications={data.medications}")
 
     expect(detailSource).toContain("interface PatientMedication")
-    expect(detailSource).toContain("Medication History")
+    expect(detailSource).toContain("Medication history")
     expect(detailSource).toContain("Parchment prescriptions and previous InstantMed prescription requests")
     expect(detailSource).toContain("InstantMed request")
     expect(detailSource).toContain("SCID")
@@ -30,7 +30,8 @@ describe("doctor patient medication history contract", () => {
   it("keeps patient-profile prescribing actions visible with clear blocked states", () => {
     expect(detailSource).toContain("Prescribing workspace")
     expect(detailSource).toContain("Prescribe in Parchment")
-    expect(detailSource).toContain("Add prescription")
+    expect(detailSource).not.toContain("Add prescription")
+    expect(detailSource.match(/Refresh prescriptions/g)?.length ?? 0).toBe(1)
     expect(detailSource).toContain("Verify delivery")
     expect(detailSource).toContain("Prescriber not linked")
     expect(detailSource).toContain("/doctor/settings/identity#parchment-account")
@@ -90,8 +91,9 @@ describe("doctor patient medication history contract", () => {
     expect(patientsListSource).toContain("Parchment sync")
     expect(patientsListSource).toContain("Ready in Parchment")
     expect(patientsListSource).toContain("Not synced")
-    expect(patientsListSource).toContain("Overview")
+    expect(patientsListSource).toContain("Directory summary")
     expect(patientsListSource).toContain("sm:grid-cols-2 xl:grid-cols-4")
+    expect(patientsListSource).not.toContain("{/* Overview */}")
   })
 
   it("refreshes patient prescriptions when the embedded Parchment panel closes", () => {

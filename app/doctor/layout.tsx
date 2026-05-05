@@ -56,7 +56,7 @@ export default async function DoctorLayout({
   const isAdmin = authUser.profile.role === "admin"
 
   return (
-    <DoctorShell>
+    <DoctorShell isAdmin={isAdmin}>
       <div className="flex min-h-screen bg-background">
         {/* Suspense for async stats - invisible fallback preserves layout width without skeleton flash */}
         <Suspense fallback={<div className="hidden lg:block w-[260px] shrink-0" />}>

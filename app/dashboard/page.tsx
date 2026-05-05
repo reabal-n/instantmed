@@ -18,7 +18,11 @@ export default async function DashboardRedirect() {
   }
 
   const role = authUser.profile.role
-  if (role === 'doctor' || role === 'admin') {
+  if (role === "admin") {
+    redirect("/admin")
+  }
+
+  if (role === 'doctor') {
     redirect('/doctor/dashboard')
   }
 

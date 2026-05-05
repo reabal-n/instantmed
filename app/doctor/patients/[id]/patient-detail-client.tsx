@@ -638,47 +638,15 @@ export function PatientDetailClient({
         </CardContent>
       </Card>
 
-      {/* Medication History */}
       <Card className="rounded-xl border-border/50">
         <CardHeader className="py-3 px-4">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Pill className="h-4 w-4" />
-                Medication History
-              </CardTitle>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Parchment prescriptions and previous InstantMed prescription requests
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <Button
-                type="button"
-                size="sm"
-                disabled={!canUseParchment}
-                onClick={handleOpenParchmentPrescribe}
-              >
-                <Pill className="h-4 w-4" />
-                Add prescription
-              </Button>
-              {parchmentEnabled && parchmentUserLinked && (
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  disabled={isPrescriptionRefreshPending}
-                  onClick={handleRefreshParchmentPrescriptions}
-                >
-                  {isPrescriptionRefreshPending ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <RefreshCw className="h-4 w-4" />
-                  )}
-                  Refresh prescriptions
-                </Button>
-              )}
-            </div>
-          </div>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Pill className="h-4 w-4" />
+            Medication history
+          </CardTitle>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Parchment prescriptions and previous InstantMed prescription requests.
+          </p>
         </CardHeader>
         <CardContent className="px-4 py-3">
           {medications.length > 0 ? (

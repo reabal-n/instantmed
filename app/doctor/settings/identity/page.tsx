@@ -2,7 +2,7 @@ import { Loader2 } from "lucide-react"
 import { Suspense } from "react"
 
 import { loadDoctorIdentityAction } from "@/app/actions/doctor-identity"
-import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
+import { requireRole } from "@/lib/auth/helpers"
 import { getParchmentEnvironment } from "@/lib/parchment/client"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
@@ -16,6 +16,7 @@ export const metadata = {
 }
 
 async function IdentitySettingsLoader() {
+  const authUser = await requireRole(["doctor", "admin"])
   const result = await loadDoctorIdentityAction()
 
   if (!result.success || !result.data) {
@@ -32,16 +33,13 @@ async function IdentitySettingsLoader() {
   // Fetch parchment_user_id for integration section
   let parchmentUserId: string | null = null
   try {
-    const authUser = await getAuthenticatedUserWithProfile()
-    if (authUser) {
-      const supabase = createServiceRoleClient()
-      const { data } = await supabase
-        .from("profiles")
-        .select("parchment_user_id")
-        .eq("id", authUser.profile.id)
-        .single()
-      parchmentUserId = data?.parchment_user_id ?? null
-    }
+    const supabase = createServiceRoleClient()
+    const { data } = await supabase
+      .from("profiles")
+      .select("parchment_user_id")
+      .eq("id", authUser.profile.id)
+      .single()
+    parchmentUserId = data?.parchment_user_id ?? null
   } catch {
     // Non-fatal - just won't show linked status
   }

@@ -541,7 +541,7 @@ export const metadata = { title: "Patient Detail" }
 export const dynamic = "force-dynamic"
 
 export default async function PatientDetailPage({ params }: PageProps) {
-  const authResult = await requireRole(["doctor", "admin"], { redirectTo: "/doctor/dashboard" })
+  const authResult = await requireRole(["doctor", "admin"])
   const { id } = await params
   const [data, flags] = await Promise.all([
     getPatientWithHistory(id),

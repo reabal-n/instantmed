@@ -1,3 +1,4 @@
+import { requireRole } from "@/lib/auth/helpers"
 import { buildEmailAnalytics, type EmailAnalyticsRow } from "@/lib/email/analytics"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 
@@ -6,6 +7,8 @@ import { EmailAnalyticsClient } from "./email-analytics-client"
 export const dynamic = "force-dynamic"
 
 export default async function EmailAnalyticsPage() {
+  await requireRole(["admin"], { redirectTo: "/admin" })
+
   const supabase = createServiceRoleClient()
   const now = new Date()
   const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)

@@ -1,3 +1,4 @@
+import { requireRole } from "@/lib/auth/helpers"
 import {
   getDuplicatePatientProfileSummary,
   getPrescribingIdentityBlockerReport,
@@ -31,6 +32,8 @@ function filterNonActionableOpsErrors(rows: AuditErrorRow[]): AuditErrorRow[] {
 }
 
 export default async function OpsDashboardPage() {
+  await requireRole(["admin"], { redirectTo: "/admin" })
+
   const supabase = createServiceRoleClient()
 
   const now = new Date()

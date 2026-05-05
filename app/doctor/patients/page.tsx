@@ -1,3 +1,4 @@
+import { requireRole } from "@/lib/auth/helpers"
 import { decryptProfilePhi } from "@/lib/data/profiles"
 import { collapseDuplicatePatientProfiles } from "@/lib/doctor/patient-snapshot"
 import { createLogger } from "@/lib/observability/logger"
@@ -59,7 +60,8 @@ export default async function PatientsPage({
 }: {
   searchParams: Promise<{ page?: string }>
 }) {
-  // Layout enforces doctor/admin role
+  await requireRole(["doctor", "admin"])
+
   const params = await searchParams
   const page = Math.max(1, parseInt(params.page || "1", 10) || 1)
   const { patients, total, rawTotal, collapsedCount } = await getPatients(page)

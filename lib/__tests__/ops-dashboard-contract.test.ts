@@ -52,7 +52,7 @@ describe("ops dashboard data contract", () => {
     expect(opsClientSource).not.toContain("Audit and identity")
   })
 
-  it("keeps webhook recovery on the canonical Stripe DLQ surface", () => {
+  it("keeps payment webhook recovery on the canonical DLQ surface", () => {
     expect(adminHubZonesSource).toContain('href: "/admin/webhook-dlq"')
     expect(opsClientSource).toContain('href="/admin/webhook-dlq"')
     expect(adminHubZonesSource).not.toContain('href: "/admin/webhooks"')

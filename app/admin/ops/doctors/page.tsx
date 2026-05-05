@@ -1,5 +1,5 @@
 import { requireRole } from "@/lib/auth/helpers"
-import type { DateRange, SortDirection,SortField } from "@/lib/data/doctor-ops"
+import type { DateRange, SortDirection, SortField } from "@/lib/data/doctor-ops"
 import { getDoctorMetrics } from "@/lib/data/doctor-ops"
 
 import { DoctorOpsClient } from "./doctor-ops-client"
@@ -15,7 +15,7 @@ interface PageProps {
 }
 
 export default async function DoctorOpsPage({ searchParams }: PageProps) {
-  await requireRole(["doctor", "admin"])
+  await requireRole(["admin"], { redirectTo: "/admin" })
 
   const params = await searchParams
 
