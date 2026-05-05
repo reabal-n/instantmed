@@ -94,3 +94,32 @@ export function formatActorType(type: string): string {
   }
   return labels[type] || type
 }
+
+export function buildAuditLogDescription(log: {
+  action: string
+  description?: string | null
+  metadata?: Record<string, unknown> | null
+}): string | null {
+  if (log.description?.trim()) return log.description.trim()
+
+  if (log.action === "webhook_failed") {
+    const eventType = typeof log.metadata?.eventType === "string" ? log.metadata.eventType : null
+    const error = typeof log.metadata?.error === "string" ? log.metadata.error : "unknown_error"
+    const eventId = typeof log.metadata?.eventId === "string" ? log.metadata.eventId : null
+
+    if (eventType === "parchment:prescription.created") {
+      return [
+        `Parchment prescription webhook failed: ${error}`,
+        eventId ? `(${eventId})` : null,
+      ].filter(Boolean).join(" ")
+    }
+
+    return [
+      eventType ? `Webhook failed: ${eventType}` : "Webhook failed",
+      error,
+      eventId ? `(${eventId})` : null,
+    ].filter(Boolean).join(" ")
+  }
+
+  return null
+}

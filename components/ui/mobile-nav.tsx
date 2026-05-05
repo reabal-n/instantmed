@@ -1,6 +1,6 @@
 "use client"
 
-import { Activity, BarChart3, Bell, ClipboardList, CreditCard, FileCheck,FileText, FolderOpen, Home, LogOut, MessageSquare, MoreHorizontal, Settings, User, X } from "lucide-react"
+import { Activity, BarChart3, Bell, ClipboardList, CreditCard, FileCheck, FileText, FolderOpen, Home, LogOut, MessageSquare, MoreHorizontal, Settings, User, X } from "lucide-react"
 import { usePathname, useRouter } from "next/navigation"
 import { useState } from "react"
 
@@ -113,7 +113,7 @@ const doctorMoreItems: NavItem[] = [
     href: "/doctor/analytics",
   },
   {
-    label: "Settings",
+    label: "Identity",
     icon: Settings,
     href: "/doctor/settings/identity",
   },

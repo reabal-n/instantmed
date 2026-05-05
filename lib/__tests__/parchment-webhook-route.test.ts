@@ -252,6 +252,14 @@ describe("Parchment webhook route", () => {
       "parchment:prescription.created",
       null,
       "prescription_sync_failed",
+      expect.objectContaining({
+        parchment_patient_id: "parchment-patient-1",
+        partner_patient_id: PATIENT_PROFILE_ID,
+        patient_profile_id: PATIENT_PROFILE_ID,
+        prescriber_profile_id: PRESCRIBER_PROFILE_ID,
+        prescriber_user_id: "parchment-user-1",
+        scid: SCID,
+      }),
     )
   })
 
@@ -299,6 +307,14 @@ describe("Parchment webhook route", () => {
       "parchment:prescription.created",
       INTAKE_ID,
       "script_completion_failed",
+      expect.objectContaining({
+        parchment_patient_id: "parchment-patient-1",
+        partner_patient_id: PATIENT_PROFILE_ID,
+        patient_profile_id: PATIENT_PROFILE_ID,
+        prescriber_profile_id: PRESCRIBER_PROFILE_ID,
+        prescriber_user_id: "parchment-user-1",
+        scid: SCID,
+      }),
     )
   })
 })

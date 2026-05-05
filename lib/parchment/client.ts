@@ -18,9 +18,11 @@ import {
   type CreatePatientRequest,
   type CreatePatientResponse,
   createPatientResponseSchema,
+  type CreateUserRequest,
   type ListUsersResponse,
   listUsersResponseSchema,
   PARCHMENT_SCOPES,
+  type ParchmentAccessRole,
   type ParchmentSsoResponse,
   parchmentSsoResponseSchema,
   parchmentTokenResponseSchema,
@@ -30,6 +32,9 @@ import {
   type UpdatePatientRequest,
   type UpdatePatientResponse,
   updatePatientResponseSchema,
+  type UpdateUserRequest,
+  type UserMutationResponse,
+  userMutationResponseSchema,
   type ValidateIntegrationResponse,
   validateIntegrationResponseSchema,
 } from "./types"
@@ -437,6 +442,145 @@ export async function listUsers(callerUserId?: string): Promise<ListUsersRespons
     users: allUsers,
     pagination: { total: allUsers.length, limit: PAGE_LIMIT, lastKey: null },
   }
+}
+
+type UserMutationData = UserMutationResponse["data"] & {
+  user_id: string
+  message?: string
+  requestId?: string
+  statusCode: number
+}
+
+function normalizeUserMutationResponse(parsed: UserMutationResponse): UserMutationData {
+  const userId = parsed.data.user_id || parsed.data.parchment_user_id
+  if (!userId) {
+    throw new Error("Parchment user mutation response missing user_id")
+  }
+
+  return {
+    ...parsed.data,
+    user_id: userId,
+    message: parsed.message,
+    requestId: parsed.requestId,
+    statusCode: parsed.statusCode,
+  }
+}
+
+async function mutateUser({
+  callerUserId,
+  scopes,
+  path,
+  method,
+  body,
+  operation,
+}: {
+  callerUserId: string
+  scopes: string[]
+  path: string
+  method: "POST" | "PUT"
+  body?: unknown
+  operation: string
+}): Promise<UserMutationData> {
+  const config = getConfig()
+  const token = await getToken(callerUserId, scopes)
+
+  const res = await fetch(`${config.apiUrl}/v1/organizations/${config.organizationId}${path}`, {
+    method,
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`,
+      "x-organization-secret": config.organizationSecret,
+    },
+    ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+  })
+
+  if (!res.ok) {
+    if (res.status === 401) clearTokenCache(callerUserId)
+    const responseBody = await res.text().catch(() => "")
+    const err = new Error(`Parchment ${operation} failed: ${res.status}`)
+    log.error("User mutation failed", { operation, status: res.status, responseBytes: responseBody.length }, err)
+    Sentry.captureException(err, {
+      extra: { operation, status: res.status, responseBytes: responseBody.length },
+    })
+    throw err
+  }
+
+  const json = await res.json()
+  const parsed = userMutationResponseSchema.parse(json)
+  const normalized = normalizeUserMutationResponse(parsed)
+
+  log.info("User mutation completed", { operation, requestId: normalized.requestId })
+  return normalized
+}
+
+export async function createUser(
+  callerUserId: string,
+  user: CreateUserRequest,
+): Promise<UserMutationData> {
+  return mutateUser({
+    callerUserId,
+    scopes: [PARCHMENT_SCOPES.CREATE_USER],
+    path: "/users",
+    method: "POST",
+    body: user,
+    operation: "create user",
+  })
+}
+
+export async function updateUser(
+  callerUserId: string,
+  userId: string,
+  user: UpdateUserRequest,
+): Promise<UserMutationData> {
+  return mutateUser({
+    callerUserId,
+    scopes: [PARCHMENT_SCOPES.UPDATE_USER],
+    path: `/users/${userId}`,
+    method: "PUT",
+    body: user,
+    operation: "update user",
+  })
+}
+
+export async function updateUserRoles(
+  callerUserId: string,
+  userId: string,
+  accessRoles: ParchmentAccessRole[],
+): Promise<UserMutationData> {
+  return mutateUser({
+    callerUserId,
+    scopes: [PARCHMENT_SCOPES.UPDATE_USER],
+    path: `/users/${userId}/roles`,
+    method: "PUT",
+    body: { access_roles: accessRoles },
+    operation: "update user roles",
+  })
+}
+
+export async function disableUser(
+  callerUserId: string,
+  userId: string,
+): Promise<UserMutationData> {
+  return mutateUser({
+    callerUserId,
+    scopes: [PARCHMENT_SCOPES.UPDATE_USER],
+    path: `/users/${userId}/disable`,
+    method: "PUT",
+    operation: "disable user",
+  })
+}
+
+export async function enableUser(
+  callerUserId: string,
+  userId: string,
+): Promise<UserMutationData> {
+  return mutateUser({
+    callerUserId,
+    scopes: [PARCHMENT_SCOPES.UPDATE_USER],
+    path: `/users/${userId}/enable`,
+    method: "PUT",
+    operation: "enable user",
+  })
 }
 
 // ============================================================================

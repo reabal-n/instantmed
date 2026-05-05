@@ -180,6 +180,62 @@ export const listUsersResponseSchema = z.object({
 
 export type ListUsersResponse = z.infer<typeof listUsersResponseSchema>
 
+export const parchmentAccessRoleSchema = z.enum([
+  "admin",
+  "provider",
+  "receptionist",
+  "rx_reader",
+  "rx_queue_manager",
+])
+
+export type ParchmentAccessRole = z.infer<typeof parchmentAccessRoleSchema>
+
+export const createUserRequestSchema = z.object({
+  given_name: z.string().min(1).max(255),
+  family_name: z.string().min(1).max(255),
+  email: z.string().email(),
+  partner_user_id: z.string().min(1),
+  access_roles: z.array(parchmentAccessRoleSchema).min(1),
+  date_of_birth: z.string().optional(),
+  sex: z.enum(["M", "F", "I", "N", "O"]).optional(),
+  phone: z.string().optional(),
+  hpii_number: z.string().optional(),
+  prescriber_type: z.string().optional(),
+  prescriber_number: z.string().optional(),
+  qualifications: z.string().optional(),
+  title: z.string().optional(),
+  provider_number: z.string().optional(),
+  ahpra_number: z.string().optional(),
+  hospital_provider_number: z.string().optional(),
+})
+
+export type CreateUserRequest = z.infer<typeof createUserRequestSchema>
+
+export const updateUserRequestSchema = createUserRequestSchema.partial().extend({
+  provider_details: z.record(z.string(), z.unknown()).optional(),
+})
+
+export type UpdateUserRequest = z.infer<typeof updateUserRequestSchema>
+
+export const userMutationResponseSchema = z.object({
+  success: z.literal(true),
+  statusCode: z.number(),
+  message: z.string().optional(),
+  code: z.string().optional(),
+  data: z.object({
+    user_id: z.string().optional(),
+    parchment_user_id: z.string().optional(),
+    external_user_id: z.string().optional(),
+    url: z.string().optional(),
+    warning: z.string().optional(),
+    access_roles: z.array(parchmentAccessRoleSchema).optional(),
+  }).passthrough(),
+  timestamp: z.string().optional(),
+  requestId: z.string().optional(),
+})
+
+export type UserMutationResponse = z.infer<typeof userMutationResponseSchema>
+
 // ============================================================================
 // PRESCRIPTIONS
 // ============================================================================

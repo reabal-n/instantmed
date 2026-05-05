@@ -5,7 +5,6 @@ import {
   ChevronRight,
   ClipboardList,
   Download,
-  FileCheck,
   FileText,
   FolderOpen,
   Heart,
@@ -19,13 +18,12 @@ import {
   Plus,
   Settings,
   Shield,
-  ShieldAlert,
   Users,
   X,
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { useCallback,useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 
 import { KeyboardShortcutsModal } from "@/components/doctor"
 import { Button } from "@/components/ui/button"
@@ -39,6 +37,11 @@ interface NavItem {
   badge?: boolean
 }
 
+interface NavSection {
+  title: string
+  items: NavItem[]
+}
+
 interface DashboardSidebarProps {
   variant: "patient" | "doctor"
   userName?: string
@@ -48,13 +51,22 @@ interface DashboardSidebarProps {
   requestCount?: number
 }
 
-const doctorNavItems: NavItem[] = [
-  { href: "/doctor/dashboard", label: "Review Queue", icon: ListOrdered, badge: true },
-  { href: "/doctor/scripts", label: "Scripts", icon: ClipboardList },
-  { href: "/doctor/certificates", label: "Certificates", icon: FileCheck },
-  { href: "/doctor/patients", label: "Patients", icon: Users },
-  { href: "/doctor/analytics", label: "Analytics", icon: BarChart3 },
-  { href: "/doctor/settings/identity", label: "Settings", icon: Settings },
+const doctorNavSections: NavSection[] = [
+  {
+    title: "Work",
+    items: [
+      { href: "/doctor/dashboard", label: "Queue", icon: ListOrdered, badge: true },
+      { href: "/doctor/scripts", label: "Scripts", icon: ClipboardList },
+      { href: "/doctor/patients", label: "Patients", icon: Users },
+    ],
+  },
+  {
+    title: "Practice",
+    items: [
+      { href: "/doctor/analytics", label: "Analytics", icon: BarChart3 },
+      { href: "/doctor/settings/identity", label: "Identity", icon: Settings },
+    ],
+  },
 ]
 
 const patientNavItems: NavItem[] = [
@@ -68,14 +80,23 @@ const patientNavItems: NavItem[] = [
 ]
 
 const adminNavItems: NavItem[] = [
-  { href: "/admin", label: "Admin Panel", icon: Shield },
-  { href: "/doctor/email-suppression", label: "Email Suppression", icon: ShieldAlert },
+  { href: "/admin", label: "Admin dashboard", icon: Shield },
 ]
 
 const ACTIVE_NAV_LINK = "bg-primary/5 text-blue-700 dark:bg-primary/20 dark:text-blue-200"
 const ACTIVE_NAV_ICON = "text-blue-700 dark:text-blue-200"
 
-function NavLink({ item, isActive, badgeCount }: { item: NavItem; isActive: boolean; badgeCount?: number }) {
+function NavLink({
+  item,
+  isActive,
+  badgeCount,
+  onClick,
+}: {
+  item: NavItem
+  isActive: boolean
+  badgeCount?: number
+  onClick?: () => void
+}) {
   const router = useRouter()
   const handleMouseEnter = useCallback(() => {
     router.prefetch(item.href)
@@ -86,6 +107,7 @@ function NavLink({ item, isActive, badgeCount }: { item: NavItem; isActive: bool
       href={item.href}
       prefetch={true}
       onMouseEnter={handleMouseEnter}
+      onClick={onClick}
       className={cn(
         "group flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition-[background-color,color] duration-200",
         isActive
@@ -119,6 +141,53 @@ function NavLink({ item, isActive, badgeCount }: { item: NavItem; isActive: bool
   )
 }
 
+function getIsNavItemActive(pathname: string | null, href: string, baseHref: string) {
+  return pathname === href || (href !== baseHref && Boolean(pathname?.startsWith(href)))
+}
+
+function NavigationSection({
+  title,
+  items,
+  pathname,
+  baseHref,
+  pendingCount,
+  requestCount,
+  variant,
+  onNavigate,
+}: {
+  title: string
+  items: NavItem[]
+  pathname: string | null
+  baseHref: string
+  pendingCount: number
+  requestCount: number
+  variant: "patient" | "doctor"
+  onNavigate?: () => void
+}) {
+  return (
+    <div className="space-y-0.5">
+      <p className="px-3 mb-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+        {title}
+      </p>
+      {items.map((item) => {
+        const isActive = getIsNavItemActive(pathname, item.href, baseHref)
+        const showBadge = item.badge && (variant === "doctor" ? pendingCount > 0 : requestCount > 0)
+        const badgeCount = showBadge ? (variant === "doctor" ? pendingCount : requestCount) : undefined
+
+        return (
+          <NavLink
+            key={item.href}
+            item={item}
+            isActive={!!isActive}
+            badgeCount={badgeCount}
+            onClick={onNavigate}
+          />
+        )
+      })}
+    </div>
+  )
+}
+
 export function DashboardSidebar({
   variant,
   userName = "User",
@@ -130,7 +199,9 @@ export function DashboardSidebar({
   const pathname = usePathname()
   const { signOut } = useAuth()
   const [isSigningOut, setIsSigningOut] = useState(false)
-  const navItems = variant === "patient" ? patientNavItems : doctorNavItems
+  const navSections = variant === "patient"
+    ? [{ title: "Navigation", items: patientNavItems }]
+    : doctorNavSections
   const baseHref = variant === "patient" ? "/patient" : "/doctor/dashboard"
 
   const handleSignOut = async () => {
@@ -168,22 +239,19 @@ export function DashboardSidebar({
         </div>
 
         {/* Main Navigation */}
-        <nav className="flex flex-col gap-0.5 px-3">
-          <p className="px-3 mb-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider">Navigation</p>
-          {navItems.map((item) => {
-            const isActive = pathname === item.href || (item.href !== baseHref && pathname?.startsWith(item.href))
-            const showBadge = item.badge && (variant === "doctor" ? pendingCount > 0 : requestCount > 0)
-            const badgeCount = showBadge ? (variant === "doctor" ? pendingCount : requestCount) : undefined
-            
-            return (
-              <NavLink
-                key={item.href}
-                item={item}
-                isActive={!!isActive}
-                badgeCount={badgeCount}
-              />
-            )
-          })}
+        <nav className="flex flex-col gap-4 px-3">
+          {navSections.map((section) => (
+            <NavigationSection
+              key={section.title}
+              title={section.title}
+              items={section.items}
+              pathname={pathname}
+              baseHref={baseHref}
+              pendingCount={pendingCount}
+              requestCount={requestCount}
+              variant={variant}
+            />
+          ))}
         </nav>
 
         {/* Admin Navigation */}
@@ -191,7 +259,7 @@ export function DashboardSidebar({
           <nav className="flex flex-col gap-0.5 px-3 mt-4">
             <p className="px-3 mb-1.5 text-xs font-medium text-warning uppercase tracking-wider">Admin</p>
             {adminNavItems.map((item) => {
-              const isActive = pathname === item.href || (item.href !== "/admin" && pathname?.startsWith(item.href))
+              const isActive = getIsNavItemActive(pathname, item.href, "/admin")
               return (
                 <NavLink key={item.href} item={item} isActive={!!isActive} />
               )
@@ -288,7 +356,9 @@ export function MobileDashboardNav({
   const [isSigningOut, setIsSigningOut] = useState(false)
   const pathname = usePathname()
   const { signOut } = useAuth()
-  const navItems = variant === "patient" ? patientNavItems : doctorNavItems
+  const navSections = variant === "patient"
+    ? [{ title: "Navigation", items: patientNavItems }]
+    : doctorNavSections
   const baseHref = variant === "patient" ? "/patient" : "/doctor/dashboard"
 
   const handleSignOut = async () => {
@@ -308,6 +378,7 @@ export function MobileDashboardNav({
         onClick={() => setOpen(true)}
         className="flex h-9 w-9 items-center justify-center rounded-lg border border-border/50 bg-background text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
         aria-label="Open navigation"
+        type="button"
       >
         <Menu className="h-5 w-5" />
       </button>
@@ -347,54 +418,27 @@ export function MobileDashboardNav({
             onClick={() => setOpen(false)}
             className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
             aria-label="Close navigation"
+            type="button"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
         {/* Nav items */}
-        <div className="flex-1 overflow-y-auto px-3 py-3">
-          <p className="px-3 mb-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider">Navigation</p>
-          <div className="space-y-0.5">
-            {navItems.map((item) => {
-              const isActive = pathname === item.href || (item.href !== baseHref && pathname?.startsWith(item.href))
-              const showBadge = item.badge && (variant === "doctor" ? pendingCount > 0 : requestCount > 0)
-              const badgeCount = showBadge ? (variant === "doctor" ? pendingCount : requestCount) : undefined
-
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setOpen(false)}
-                  className={cn(
-                    "group flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition-[background-color,color] duration-200",
-                    isActive
-                      ? "bg-primary/10 text-primary"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
-                  )}
-                >
-                  <span className="flex items-center gap-2.5">
-                    <item.icon className={cn(
-                      "w-[18px] h-[18px]",
-                      isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
-                    )} />
-                    {item.label}
-                  </span>
-                  {badgeCount !== undefined && badgeCount > 0 && (
-                    <span className={cn(
-                      "min-w-[20px] h-5 flex items-center justify-center px-1.5 rounded-full text-xs font-semibold",
-                      isActive ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
-                    )}>
-                      {badgeCount}
-                    </span>
-                  )}
-                  {!badgeCount && isActive && (
-                    <ChevronRight className="w-3.5 h-3.5 text-primary/50" />
-                  )}
-                </Link>
-              )
-            })}
-          </div>
+        <div className="flex-1 space-y-4 overflow-y-auto px-3 py-3">
+          {navSections.map((section) => (
+            <NavigationSection
+              key={section.title}
+              title={section.title}
+              items={section.items}
+              pathname={pathname}
+              baseHref={baseHref}
+              pendingCount={pendingCount}
+              requestCount={requestCount}
+              variant={variant}
+              onNavigate={() => setOpen(false)}
+            />
+          ))}
         </div>
 
         {/* Footer: quick action + sign out */}
@@ -411,6 +455,7 @@ export function MobileDashboardNav({
             onClick={handleSignOut}
             disabled={isSigningOut}
             className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-50"
+            type="button"
           >
             <LogOut className="w-4 h-4" />
             {isSigningOut ? "Signing out…" : "Sign out"}

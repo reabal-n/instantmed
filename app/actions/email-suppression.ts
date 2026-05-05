@@ -18,14 +18,14 @@ export interface SuppressedEmail {
 
 /**
  * Fetch all suppressed email addresses (bounced or complained profiles).
- * Doctor/admin only.
+ * Admin only.
  */
 export async function getSuppressedEmails(): Promise<{
   data: SuppressedEmail[]
   error?: string
 }> {
   try {
-    await requireRole(["admin", "doctor"])
+    await requireRole(["admin"])
     const supabase = createServiceRoleClient()
 
     const { data, error } = await supabase
@@ -59,14 +59,14 @@ export async function getSuppressedEmails(): Promise<{
 
 /**
  * Clear bounce flag for a specific profile, re-enabling email delivery.
- * Doctor/admin only.
+ * Admin only.
  */
 export async function clearBounceFlag(profileId: string): Promise<{
   success: boolean
   error?: string
 }> {
   try {
-    await requireRole(["admin", "doctor"])
+    await requireRole(["admin"])
     const supabase = createServiceRoleClient()
 
     const { error } = await supabase

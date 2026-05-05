@@ -29,6 +29,7 @@ const REQUIRED_SCHEMA = {
     "suburb",
     "state",
     "postcode",
+    "parchment_user_id",
     "parchment_patient_id",
   ],
   intakes: ["id", "patient_id", "service_id", "status", "claimed_by", "claimed_at"],

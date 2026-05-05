@@ -164,7 +164,16 @@ export async function POST(request: Request) {
 
     if (!patientProfileId) {
       log.warn("Patient not found for webhook", { eventId: payload.event_id })
-      await recordParchmentWebhookMismatch("patient_not_found", payload.event_id)
+      await recordParchmentWebhookMismatch(
+        "patient_not_found",
+        payload.event_id,
+        buildParchmentWebhookFailureMetadata({
+          scid,
+          parchmentPatientId: patient_id,
+          partnerPatientId: partner_patient_id,
+          prescriberUserId: user_id,
+        }),
+      )
       // Return 200 to prevent retries - patient genuinely doesn't exist in our system
       return NextResponse.json({ received: true, warning: "Patient not found" })
     }
@@ -186,7 +195,17 @@ export async function POST(request: Request) {
 
     if (!prescriberProfiles || prescriberProfiles.length === 0) {
       log.warn("No linked prescriber found for Parchment webhook", { eventId: payload.event_id })
-      await recordParchmentWebhookMismatch("prescriber_not_linked", payload.event_id)
+      await recordParchmentWebhookMismatch(
+        "prescriber_not_linked",
+        payload.event_id,
+        buildParchmentWebhookFailureMetadata({
+          scid,
+          parchmentPatientId: patient_id,
+          partnerPatientId: partner_patient_id,
+          prescriberUserId: user_id,
+          patientProfileId,
+        }),
+      )
       return NextResponse.json({ received: true, warning: "Prescriber not linked" })
     }
 
@@ -273,6 +292,14 @@ export async function POST(request: Request) {
             result.reason || "prescription_sync_failed",
             payload.event_id,
             intakeId,
+            buildParchmentWebhookFailureMetadata({
+              scid,
+              parchmentPatientId: patient_id,
+              partnerPatientId: partner_patient_id,
+              prescriberUserId: user_id,
+              patientProfileId,
+              prescriberProfileId,
+            }),
           )
           return false
         }
@@ -284,7 +311,19 @@ export async function POST(request: Request) {
           { eventId: payload.event_id },
           syncError instanceof Error ? syncError : new Error(String(syncError)),
         )
-        await recordParchmentPrescriptionSyncFailure("prescription_sync_failed", payload.event_id, intakeId)
+        await recordParchmentPrescriptionSyncFailure(
+          "prescription_sync_failed",
+          payload.event_id,
+          intakeId,
+          buildParchmentWebhookFailureMetadata({
+            scid,
+            parchmentPatientId: patient_id,
+            partnerPatientId: partner_patient_id,
+            prescriberUserId: user_id,
+            patientProfileId,
+            prescriberProfileId,
+          }),
+        )
         return false
       }
     }
@@ -321,7 +360,19 @@ export async function POST(request: Request) {
             level: "error",
             extra: { eventId: payload.event_id, context: "parchment_webhook_resume" },
           })
-          await recordParchmentWebhookProcessingFailure("script_completion_resume_failed", payload.event_id, existing.id)
+          await recordParchmentWebhookProcessingFailure(
+            "script_completion_resume_failed",
+            payload.event_id,
+            existing.id,
+            buildParchmentWebhookFailureMetadata({
+              scid,
+              parchmentPatientId: patient_id,
+              partnerPatientId: partner_patient_id,
+              prescriberUserId: user_id,
+              patientProfileId,
+              prescriberProfileId: resumePrescriberId,
+            }),
+          )
           return NextResponse.json({ error: "Failed to update intake" }, { status: 500 })
         }
         await logWebhookPrescribingBoundary(existing.id, resumePrescriberId, scid, payload.event_id)
@@ -339,7 +390,18 @@ export async function POST(request: Request) {
       }
 
       log.warn("No matching awaiting_script intake found and prescription sync failed for webhook", { eventId: payload.event_id })
-      await recordParchmentWebhookMismatch("no_awaiting_script_intake", payload.event_id)
+      await recordParchmentWebhookMismatch(
+        "no_awaiting_script_intake",
+        payload.event_id,
+        buildParchmentWebhookFailureMetadata({
+          scid,
+          parchmentPatientId: patient_id,
+          partnerPatientId: partner_patient_id,
+          prescriberUserId: user_id,
+          patientProfileId,
+          prescriberProfileId: standalonePrescriberId,
+        }),
+      )
       return NextResponse.json({ error: "Failed to sync prescription" }, { status: 500 })
     }
 
@@ -355,7 +417,19 @@ export async function POST(request: Request) {
         level: "error",
         extra: { eventId: payload.event_id, context: "parchment_webhook_update_script_sent" },
       })
-      await recordParchmentWebhookProcessingFailure("script_completion_failed", payload.event_id, intake.id)
+      await recordParchmentWebhookProcessingFailure(
+        "script_completion_failed",
+        payload.event_id,
+        intake.id,
+        buildParchmentWebhookFailureMetadata({
+          scid,
+          parchmentPatientId: patient_id,
+          partnerPatientId: partner_patient_id,
+          prescriberUserId: user_id,
+          patientProfileId,
+          prescriberProfileId: webhookPrescriberId,
+        }),
+      )
       return NextResponse.json({ error: "Failed to update intake" }, { status: 500 })
     }
 
@@ -433,7 +507,31 @@ async function logWebhookPrescribingBoundary(
   }
 }
 
-async function recordParchmentWebhookMismatch(reason: string, eventId: string) {
+interface ParchmentWebhookFailureMetadataInput {
+  scid: string
+  parchmentPatientId: string
+  partnerPatientId: string
+  prescriberUserId: string
+  patientProfileId?: string | null
+  prescriberProfileId?: string | null
+}
+
+function buildParchmentWebhookFailureMetadata(input: ParchmentWebhookFailureMetadataInput): Record<string, unknown> {
+  return {
+    scid: input.scid,
+    parchment_patient_id: input.parchmentPatientId,
+    partner_patient_id: input.partnerPatientId,
+    prescriber_user_id: input.prescriberUserId,
+    ...(input.patientProfileId ? { patient_profile_id: input.patientProfileId } : {}),
+    ...(input.prescriberProfileId ? { prescriber_profile_id: input.prescriberProfileId } : {}),
+  }
+}
+
+async function recordParchmentWebhookMismatch(
+  reason: string,
+  eventId: string,
+  metadata: Record<string, unknown> = {},
+) {
   Sentry.captureMessage("Parchment webhook could not match prescription.created to an intake", {
     level: "warning",
     tags: {
@@ -444,7 +542,7 @@ async function recordParchmentWebhookMismatch(reason: string, eventId: string) {
   })
 
   try {
-    await logWebhookFailure(eventId, "parchment:prescription.created", null, reason)
+    await logWebhookFailure(eventId, "parchment:prescription.created", null, reason, metadata)
   } catch (auditError) {
     log.warn(
       "Failed to log durable Parchment webhook mismatch audit event",
@@ -454,9 +552,14 @@ async function recordParchmentWebhookMismatch(reason: string, eventId: string) {
   }
 }
 
-async function recordParchmentWebhookProcessingFailure(reason: string, eventId: string, intakeId: string) {
+async function recordParchmentWebhookProcessingFailure(
+  reason: string,
+  eventId: string,
+  intakeId: string,
+  metadata: Record<string, unknown> = {},
+) {
   try {
-    await logWebhookFailure(eventId, "parchment:prescription.created", intakeId, reason)
+    await logWebhookFailure(eventId, "parchment:prescription.created", intakeId, reason, metadata)
   } catch (auditError) {
     log.warn(
       "Failed to log durable Parchment webhook processing failure",
@@ -466,7 +569,12 @@ async function recordParchmentWebhookProcessingFailure(reason: string, eventId: 
   }
 }
 
-async function recordParchmentPrescriptionSyncFailure(reason: string, eventId: string, intakeId: string | null) {
+async function recordParchmentPrescriptionSyncFailure(
+  reason: string,
+  eventId: string,
+  intakeId: string | null,
+  metadata: Record<string, unknown> = {},
+) {
   Sentry.captureMessage("Parchment prescription could not be synced to PMS", {
     level: "warning",
     tags: {
@@ -477,7 +585,7 @@ async function recordParchmentPrescriptionSyncFailure(reason: string, eventId: s
   })
 
   try {
-    await logWebhookFailure(eventId, "parchment:prescription.created", intakeId, reason)
+    await logWebhookFailure(eventId, "parchment:prescription.created", intakeId, reason, metadata)
   } catch (auditError) {
     log.warn(
       "Failed to log durable Parchment prescription sync failure",

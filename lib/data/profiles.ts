@@ -82,7 +82,7 @@ export function decryptProfilePhi<T extends Record<string, unknown>>(profile: T)
  * Encrypt PHI fields before writing to database
  * Only encrypts if ENCRYPTION_KEY is available
  */
-function encryptProfilePhi<T extends Record<string, unknown>>(
+export function encryptProfilePhi<T extends Record<string, unknown>>(
   data: T
 ): T & {
   medicare_number_encrypted?: string

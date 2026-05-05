@@ -110,7 +110,7 @@ ${topTypes.length > 0 ? `<h2 style="font-size:16px;margin:0 0 8px 0;">Top Email 
 ${(bouncedAddresses || []).length > 0 ? `<h2 style="font-size:16px;margin:0 0 8px 0;">Bounced Addresses</h2>
 <table style="border-collapse:collapse;margin-bottom:24px;">${bounceRows}</table>` : "<p style='font-size:14px;color:#22C55E;margin-bottom:24px;'>No bounces this week.</p>"}
 
-<p style="font-size:12px;color:#A8A29E;">Automated digest from InstantMed email system. <a href="${process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au"}/doctor/email-suppression">View suppression list</a></p>
+<p style="font-size:12px;color:#A8A29E;">Automated digest from InstantMed email system. <a href="${process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au"}/admin/emails/suppression">View suppression list</a></p>
 </body></html>`
 
     await sendViaResend({

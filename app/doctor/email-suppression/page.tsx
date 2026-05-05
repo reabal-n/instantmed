@@ -1,17 +1,11 @@
-import { getSuppressedEmails } from "@/app/actions/email-suppression"
-import { getAuthenticatedUserWithProfile } from "@/lib/auth/helpers"
-
-import { EmailSuppressionClient } from "./email-suppression-client"
+import { redirect } from "next/navigation"
 
 export const dynamic = "force-dynamic"
 
 export const metadata = {
-  title: { absolute: "Email Suppression | InstantMed Doctor Portal" },
+  title: { absolute: "Email Suppression | InstantMed" },
 }
 
-export default async function EmailSuppressionPage() {
-  await getAuthenticatedUserWithProfile()
-  const { data, error } = await getSuppressedEmails()
-
-  return <EmailSuppressionClient initialData={data} error={error} />
+export default function LegacyDoctorEmailSuppressionPage() {
+  redirect("/admin/emails/suppression")
 }

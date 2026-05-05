@@ -36,6 +36,7 @@ describe("schema validation", () => {
     expect(profileSelect).toContain("suburb")
     expect(profileSelect).toContain("state")
     expect(profileSelect).toContain("postcode")
+    expect(profileSelect).toContain("parchment_user_id")
     expect(profileSelect).toContain("parchment_patient_id")
   })
 })

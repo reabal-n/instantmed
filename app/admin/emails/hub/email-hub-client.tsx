@@ -6,7 +6,6 @@ import {
   BarChart3,
   CheckCircle,
   Clock,
-  Database,
   Edit,
   Eye,
   Loader2,
@@ -15,8 +14,7 @@ import {
   MailOpen,
   RefreshCw,
   Send,
-  Settings,
-  TrendingUp,
+  ShieldAlert,
 } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
@@ -133,12 +131,9 @@ export function EmailHubClient({ initialStats, initialActivity, templateCounts, 
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="templates">Templates</TabsTrigger>
           <TabsTrigger value="queue">Queue</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
-          <TabsTrigger value="settings">Settings</TabsTrigger>
         </TabsList>
 
         {/* Overview Tab */}
@@ -244,22 +239,22 @@ export function EmailHubClient({ initialStats, initialActivity, templateCounts, 
             </Card>
 
             <Card className="hover:shadow-md transition-shadow cursor-pointer">
-              <Link href="/admin/emails/hub">
+              <Link href="/admin/emails/suppression">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <Database className="h-5 w-5" />
-                    Email Queue
+                    <ShieldAlert className="h-5 w-5" />
+                    Suppression List
                   </CardTitle>
                   <CardDescription>
-                    Monitor email sending queue
+                    Recover blocked patient addresses
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-muted-foreground">
-                      {stats.pendingEmails} pending
+                      Bounces and complaints
                     </span>
-                    <Badge variant="secondary">Monitor</Badge>
+                    <Badge variant="secondary">Review</Badge>
                   </div>
                 </CardContent>
               </Link>
@@ -287,49 +282,6 @@ export function EmailHubClient({ initialStats, initialActivity, templateCounts, 
               </Link>
             </Card>
 
-            <Card className="hover:shadow-md transition-shadow cursor-pointer">
-              <Link href="/admin/emails/hub">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <MailOpen className="h-5 w-5" />
-                    Email Outbox
-                  </CardTitle>
-                  <CardDescription>
-                    View sent email history
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">
-                      Full email log
-                    </span>
-                    <Badge variant="secondary">History</Badge>
-                  </div>
-                </CardContent>
-              </Link>
-            </Card>
-
-            <Card className="hover:shadow-md transition-shadow cursor-pointer">
-              <Link href="/admin/settings/templates">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Settings className="h-5 w-5" />
-                    Template Settings
-                  </CardTitle>
-                  <CardDescription>
-                    Configure email settings
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">
-                      SMTP & delivery settings
-                    </span>
-                    <Badge variant="secondary">Configure</Badge>
-                  </div>
-                </CardContent>
-              </Link>
-            </Card>
           </div>
 
           {/* Recent Activity */}
@@ -367,7 +319,7 @@ export function EmailHubClient({ initialStats, initialActivity, templateCounts, 
                         <div>
                           <p className="font-medium text-sm">{emailTypeLabels[item.emailType] || item.emailType}</p>
                           <p className="text-xs text-muted-foreground">
-                            {sanitizeEmail(item.toEmail)} • {formatTimeAgo(item.createdAt)}
+                            {sanitizeEmail(item.toEmail)} - {formatTimeAgo(item.createdAt)}
                           </p>
                           {item.deliveryStatus && (
                             <p className="text-xs text-muted-foreground mt-1 capitalize">
@@ -415,39 +367,15 @@ export function EmailHubClient({ initialStats, initialActivity, templateCounts, 
                   ))
                 )}
               </div>
-              <div className="mt-4 pt-4 border-t">
-                <Link href="/admin/emails/hub">
-                  <Button variant="outline" size="sm" className="w-full">
-                    View All Activity
-                  </Button>
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Templates Tab */}
-        <TabsContent value="templates" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Email Templates Management</CardTitle>
-              <CardDescription>
-                Edit, preview, and manage all email templates
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8">
-                <Mail className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-medium mb-2">Template Management</h3>
-                <p className="text-muted-foreground mb-4">
-                  Full template management interface
-                </p>
-                <Link href="/admin/emails">
-                  <Button>
-                    <Edit className="h-4 w-4 mr-2" />
-                    Manage Templates
-                  </Button>
-                </Link>
+              <div className="mt-4 border-t pt-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  onClick={() => setActiveTab("queue")}
+                >
+                  View Delivery Queue
+                </Button>
               </div>
             </CardContent>
           </Card>
@@ -557,75 +485,18 @@ export function EmailHubClient({ initialStats, initialActivity, templateCounts, 
             </CardContent>
           </Card>
 
-          {/* Links to detailed views */}
           <div className="flex gap-3">
-            <Link href="/admin/emails/hub">
+            <Button variant="outline" onClick={() => setActiveTab("overview")}>
+              <MailOpen className="mr-2 h-4 w-4" />
+              Full Email Outbox
+            </Button>
+            <Link href="/admin/emails/suppression">
               <Button variant="outline">
-                <Clock className="h-4 w-4 mr-2" />
-                Failed Certificate Queue
-              </Button>
-            </Link>
-            <Link href="/admin/emails/hub">
-              <Button variant="outline">
-                <MailOpen className="h-4 w-4 mr-2" />
-                Full Email Outbox
+                <ShieldAlert className="mr-2 h-4 w-4" />
+                Suppression List
               </Button>
             </Link>
           </div>
-        </TabsContent>
-
-        {/* Analytics Tab */}
-        <TabsContent value="analytics" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Email Analytics</CardTitle>
-              <CardDescription>
-                Comprehensive email performance metrics and insights
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8">
-                <BarChart3 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-medium mb-2">Email Analytics</h3>
-                <p className="text-muted-foreground mb-4">
-                  Detailed email performance analysis
-                </p>
-                <Link href="/admin/emails/analytics">
-                  <Button>
-                    <TrendingUp className="h-4 w-4 mr-2" />
-                    View Analytics
-                  </Button>
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Settings Tab */}
-        <TabsContent value="settings" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Email Settings</CardTitle>
-              <CardDescription>
-                Configure email delivery, SMTP, and template settings
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8">
-                <Settings className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-medium mb-2">Email Configuration</h3>
-                <p className="text-muted-foreground mb-4">
-                  Manage email settings and preferences
-                </p>
-                <Link href="/admin/settings/templates">
-                  <Button>
-                    <Settings className="h-4 w-4 mr-2" />
-                    Email Settings
-                  </Button>
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
         </TabsContent>
       </Tabs>
     </div>

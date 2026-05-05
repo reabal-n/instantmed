@@ -4,8 +4,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import {
   clearTokenCache,
   createPatient,
+  createUser,
+  disableUser,
+  enableUser,
   getPatientPrescriptions,
   updatePatient,
+  updateUser,
+  updateUserRoles,
   validateIntegration,
 } from "@/lib/parchment/client"
 
@@ -265,5 +270,137 @@ describe("Parchment client workflows", () => {
     expect(JSON.stringify(captured)).not.toContain("parchment-patient-secret")
     expect(JSON.stringify(captured)).not.toContain("profile-secret")
     expect(JSON.stringify(captured)).toContain("responseBytes")
+  })
+
+  it("runs a user lifecycle through create, update, role update, disable, and enable endpoints", async () => {
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify({
+        success: true,
+        statusCode: 200,
+        data: { accessToken: "token-for-create-user", expiresIn: 21600 },
+      }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({
+        success: true,
+        statusCode: 201,
+        message: "User created successfully",
+        data: { user_id: "parchment-user-new" },
+        requestId: "req_create_user",
+      }), { status: 201 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({
+        success: true,
+        statusCode: 200,
+        data: { accessToken: "token-for-update-user", expiresIn: 21600 },
+      }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({
+        success: true,
+        statusCode: 200,
+        message: "User updated successfully",
+        data: { user_id: "parchment-user-new" },
+        requestId: "req_update_user",
+      }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({
+        success: true,
+        statusCode: 200,
+        message: "User roles updated successfully",
+        data: { user_id: "parchment-user-new", access_roles: ["admin", "provider"] },
+        requestId: "req_update_roles",
+      }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({
+        success: true,
+        statusCode: 200,
+        message: "User disabled successfully",
+        data: { user_id: "parchment-user-new" },
+        requestId: "req_disable_user",
+      }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({
+        success: true,
+        statusCode: 200,
+        message: "User enabled successfully",
+        data: { user_id: "parchment-user-new" },
+        requestId: "req_enable_user",
+      }), { status: 200 }))
+
+    vi.stubGlobal("fetch", fetchMock)
+
+    const created = await createUser("parchment-admin-user", {
+      given_name: "Conformance",
+      family_name: "Prescriber",
+      email: "conformance.prescriber@example.test",
+      partner_user_id: "instantmed-conformance-prescriber-1",
+      access_roles: ["provider"],
+      date_of_birth: "1980-03-15",
+      sex: "F",
+      phone: "0412345678",
+      hpii_number: "8003614900029560",
+      prescriber_type: "M",
+      prescriber_number: "1234567",
+      qualifications: "MBBS",
+      title: "Dr",
+    })
+    const updated = await updateUser("parchment-admin-user", created.user_id, {
+      given_name: "Conformance Updated",
+      family_name: "Prescriber",
+      phone: "0412345679",
+    })
+    const roles = await updateUserRoles("parchment-admin-user", created.user_id, ["admin", "provider"])
+    const disabled = await disableUser("parchment-admin-user", created.user_id)
+    const enabled = await enableUser("parchment-admin-user", created.user_id)
+
+    expect(created.requestId).toBe("req_create_user")
+    expect(updated.requestId).toBe("req_update_user")
+    expect(roles.access_roles).toEqual(["admin", "provider"])
+    expect(disabled.message).toBe("User disabled successfully")
+    expect(enabled.message).toBe("User enabled successfully")
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      1,
+      `${env.PARCHMENT_API_URL}/v1/token`,
+      expect.objectContaining({
+        body: JSON.stringify({
+          grantType: "client_credentials",
+          scope: ["create:user"],
+        }),
+      }),
+    )
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      2,
+      `${env.PARCHMENT_API_URL}/v1/organizations/${env.PARCHMENT_ORGANIZATION_ID}/users`,
+      expect.objectContaining({
+        method: "POST",
+        headers: expect.objectContaining({
+          Authorization: "Bearer token-for-create-user",
+          "x-organization-secret": env.PARCHMENT_ORGANIZATION_SECRET,
+        }),
+      }),
+    )
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      3,
+      `${env.PARCHMENT_API_URL}/v1/token`,
+      expect.objectContaining({
+        body: JSON.stringify({
+          grantType: "client_credentials",
+          scope: ["update:user"],
+        }),
+      }),
+    )
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      4,
+      `${env.PARCHMENT_API_URL}/v1/organizations/${env.PARCHMENT_ORGANIZATION_ID}/users/parchment-user-new`,
+      expect.objectContaining({ method: "PUT" }),
+    )
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      5,
+      `${env.PARCHMENT_API_URL}/v1/organizations/${env.PARCHMENT_ORGANIZATION_ID}/users/parchment-user-new/roles`,
+      expect.objectContaining({ method: "PUT" }),
+    )
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      6,
+      `${env.PARCHMENT_API_URL}/v1/organizations/${env.PARCHMENT_ORGANIZATION_ID}/users/parchment-user-new/disable`,
+      expect.objectContaining({ method: "PUT" }),
+    )
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      7,
+      `${env.PARCHMENT_API_URL}/v1/organizations/${env.PARCHMENT_ORGANIZATION_ID}/users/parchment-user-new/enable`,
+      expect.objectContaining({ method: "PUT" }),
+    )
   })
 })

@@ -73,4 +73,15 @@ describe("Parchment action production contract", () => {
     expect(prescribingIdentityReportSource).toContain(".or(")
     expect(prescribingIdentityReportSource).not.toContain('.eq("category", "prescription")')
   })
+
+  it("keeps Parchment user lifecycle conformance as an admin-only, rate-limited action", () => {
+    const body = functionBody("runParchmentConformanceUserStepAction")
+
+    expect(body).toContain('requireRoleOrNull(["admin"])')
+    expect(body).toContain("checkServerActionRateLimit(")
+    expect(body).toContain("`parchment:user-lifecycle:${authResult.profile.id}`")
+    expect(body.indexOf("checkServerActionRateLimit(")).toBeLessThan(
+      body.indexOf("const callerParchmentUserId"),
+    )
+  })
 })

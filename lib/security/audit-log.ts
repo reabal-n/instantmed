@@ -320,13 +320,14 @@ export async function logWebhookFailure(
   eventId: string,
   eventType: string,
   intakeId: string | null,
-  error: string
+  error: string,
+  extraMetadata: Record<string, unknown> = {},
 ) {
   await logAuditEvent({
     action: "webhook_failed",
     actorType: "system",
     intakeId: intakeId || undefined,
-    metadata: { eventId, eventType, error },
+    metadata: { ...extraMetadata, eventId, eventType, error },
   })
 }
 
