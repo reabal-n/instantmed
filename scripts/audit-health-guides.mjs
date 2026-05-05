@@ -29,6 +29,35 @@ const CTA_PATTERNS = [
   /how instantmed can help/i,
 ]
 
+function isTableRow(line) {
+  const trimmed = line.trim()
+  return trimmed.startsWith("|") && trimmed.endsWith("|")
+}
+
+function isTableSeparator(line) {
+  return /^\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?$/.test(line.trim())
+}
+
+function findUnsupportedPipeTable(content) {
+  const lines = content.split("\n")
+
+  for (let index = 0; index < lines.length; index += 1) {
+    if (!isTableRow(lines[index])) continue
+
+    const tableBlock = []
+    while (index < lines.length && isTableRow(lines[index])) {
+      tableBlock.push(lines[index])
+      index += 1
+    }
+
+    if (tableBlock.length > 0 && !isTableSeparator(tableBlock[1] || "")) {
+      return true
+    }
+  }
+
+  return false
+}
+
 let visualRegistrySource
 
 function getVisualRegistrySource() {
@@ -130,8 +159,8 @@ function auditFile(file) {
     addIssue(issues, SEVERITY.clinical, "Condition guide may be missing a visible safety boundary")
   }
 
-  if (/^\|.*\|$/m.test(content)) {
-    addIssue(issues, SEVERITY.rendering, "Markdown table syntax can render as raw text in the article template")
+  if (findUnsupportedPipeTable(content)) {
+    addIssue(issues, SEVERITY.rendering, "Pipe-table syntax is missing a valid Markdown header separator")
   }
 
   if (/<(?!\/?Callout\b)[A-Z][A-Za-z]*(\s|>)/.test(content)) {

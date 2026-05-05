@@ -33,7 +33,7 @@ const BRAND_WORDMARK_HEIGHT = 24
 const BRAND_LOGO_PATH = path.join(process.cwd(), "public", "branding", "logo.png")
 const BRAND_WORDMARK_PATH = path.join(process.cwd(), "public", "branding", "wordmark.png")
 
-type Renderer = "deterministic" | "gpt-image-2"
+type Renderer = "deterministic" | "gpt-image-2" | "gpt-image-2-composite"
 type VisualFormat = NonNullable<ArticleVisual["visualFormat"]>
 
 const palettes: Record<ArticleVisual["accent"], Palette> = {
@@ -96,8 +96,10 @@ function hasFlag(name: string): boolean {
 function getRenderer(): Renderer {
   const renderer = getArg("renderer")
   if (!renderer) return hasFlag("gateway") ? "gpt-image-2" : "deterministic"
-  if (renderer === "deterministic" || renderer === "gpt-image-2") return renderer
-  throw new Error(`Unsupported renderer "${renderer}". Use deterministic or gpt-image-2.`)
+  if (renderer === "deterministic" || renderer === "gpt-image-2" || renderer === "gpt-image-2-composite") {
+    return renderer
+  }
+  throw new Error(`Unsupported renderer "${renderer}". Use deterministic, gpt-image-2, or gpt-image-2-composite.`)
 }
 
 function configureGatewayAuth() {
@@ -438,7 +440,7 @@ function promptHash(value: string): number {
   return hash
 }
 
-function getArtDirectionPrompt(slug: string, visual: ArticleVisual, format: VisualFormat): string {
+function getArtDirectionPrompt(slug: string, visual: ArticleVisual, format: VisualFormat, styleShift = 0): string {
   if (format === "anatomical-explainer" || format === "body-map" || format === "mechanism-diagram") {
     return [
       "Art direction: premium medical atlas plate with precise linework, restrained colour-coded callouts, generous negative space, and one dominant explanatory diagram.",
@@ -476,7 +478,7 @@ function getArtDirectionPrompt(slug: string, visual: ArticleVisual, format: Visu
     ],
   ]
 
-  return lanes[promptHash(`${slug}:${visual.id}`) % lanes.length].join(" ")
+  return lanes[promptHash(`${slug}:${visual.id}:${styleShift}`) % lanes.length].join(" ")
 }
 
 function getFooterCopy(visual: ArticleVisual): string {
@@ -531,7 +533,7 @@ function sanitizeImagePrompt(prompt: string): string {
     .trim()
 }
 
-function buildGatewayPrompt(slug: string, visual: ArticleVisual): string {
+function buildGatewayPrompt(slug: string, visual: ArticleVisual, styleShift = 0): string {
   const itemText = visual.items.map((item, index) => `${index + 1}. ${item.label}: ${item.detail}`).join("\n")
   const format = visual.visualFormat ?? getDefaultVisualFormat(visual.kind)
   const cleanedPrimaryRequest = sanitizeImagePrompt(visual.imagePrompt)
@@ -548,20 +550,22 @@ function buildGatewayPrompt(slug: string, visual: ArticleVisual): string {
     "Create a detailed, polished, information-dense visual that looks art-directed by a senior editorial designer. It must be a standalone explainer, not a decorative stock image.",
     "Teaching-value floor: the viewer should learn at least 5 concrete facts, distinctions, warning signs, steps, or decision criteria from the image without reading the article. If the image does not add information beyond mood, it has failed.",
     "Quality floor: this must not look like a thumbnail, placeholder, clip-art hero image, sterile SaaS illustration, minimal still life, stock-photo desk scene, or low-information metaphor. A single phone, inhaler, document, medicine box, warning triangle, shield, scale, checklist, blank card, abstract blob cluster, or generic icon row is an automatic failure.",
-    "Composition floor: fill the portrait canvas with at least 5 useful content regions, at least 10 readable labels or short callouts, and at least 3 different visual devices such as a comparison matrix, pathway, mini diagram, body/anatomy map, timeline, checklist, data marker, red-flag hierarchy, or practical action strip. Keep text concise and legible.",
+    "Composition floor: fill the portrait canvas with at least 5 useful content regions and at least 3 different visual devices such as a comparison matrix, pathway, mini diagram, body/anatomy map, timeline, checklist zone, data marker, red-flag hierarchy, or practical action strip. Use icons, arrows, colour zones, shapes, anatomical callouts, and layout structure to create density.",
     "Premium floor: make the composition feel designed and specific to this article. Use varied panel scale, hierarchy, callout arrows, diagrams, labelled sub-sections, and a clear reading path. Do not use empty space as the main design move.",
     "Legacy prompt override: obsolete low-information prompt fragments were removed before this request. Preserve privacy and avoid fake documents, but do not obey any implied instruction to make the visual textless, blank, minimal, symbolic-only, or object-only.",
     "Banned visual archetypes: blank desk scene, plain object arrangement, soft beige tabletop, isolated phone mockup, blank certificate or document, empty checklist, box plus card, balance scale metaphor, shield-plus-pill cards, generic safety icon row, oversized abstract shapes, empty app cards, simple corporate vector mascot, or any image where most of the canvas could be swapped into another article unchanged.",
     getInfographicLayoutPrompt(visual.kind),
-    getArtDirectionPrompt(slug, visual, format),
+    getArtDirectionPrompt(slug, visual, format, styleShift),
     "",
-    "Exact visible copy to use. Use only these values; do not invent extra claims, legal rules, drug names, symptoms, prices, or calls to action. Render the values naturally, but never render metadata field names such as Eyebrow, Title, Summary, Cards, Footer, or Article slug.",
+    "Visible text contract: the image may contain ONLY the text listed in the exact-copy block below. Do not add secondary headings, tables, captions, thresholds, time windows, symptom lists, clinical criteria, explanatory paragraphs, source labels, chart labels, button labels, fake UI text, or legal copy. If you need more visual density, use unlabeled diagrams, icons, colour zones, arrows, and abstract shapes.",
+    "Exact visible copy to use. Use only these values; do not invent extra claims, legal rules, drug names, symptoms, thresholds, timeframes, percentages, prices, or calls to action. Render the values naturally, but never render metadata field names such as Eyebrow, Title, Summary, Cards, Footer, or Article slug.",
     `Small top label should read: ${visual.eyebrow}`,
     `Main heading should read: ${visual.title}`,
     `Supporting summary should read: ${visual.summary}`,
     "Cards:",
     itemText,
     `Footer: ${getFooterCopy(visual)}`,
+    "This exact-copy list overrides any previous request for more readable labels. Additional visual regions must be non-textual or use only the exact card labels already provided above.",
     "",
     "Style:",
     "Premium educational design, but vary the visual language from article to article. Do not default to the same ivory paper, navy serif headline, three-card row, mug, plant, notebook, and coastline composition.",
@@ -574,6 +578,34 @@ function buildGatewayPrompt(slug: string, visual: ArticleVisual): string {
     "No brand logos, no official seals, no medical crosses, no medication brand names, no pill imprints, no celebrity likenesses, no gore, no graphic symptoms, no consultation CTA, no website UI, no fake doctor-patient chat. If a person appears, make them non-identifiable, natural, and secondary. Do not draw the InstantMed logo or wordmark; the production script adds the official brand assets after generation.",
     "No Australian tourist scenery unless the article itself is specifically about travel, location, or geography. Do not include beaches, coastline, ocean views, harbour bridges, city skylines, gum trees as filler, kangaroos, flags, Australian maps, lifeguard towers, postcard footers, or scenic lookout paths.",
     `Article slug for context only: ${slug}.`,
+    `Style retry seed for context only: ${styleShift}.`,
+  ].join("\n")
+}
+
+function buildGatewayCompositeUnderlayPrompt(slug: string, visual: ArticleVisual, styleShift = 0): string {
+  const format = visual.visualFormat ?? getDefaultVisualFormat(visual.kind)
+  const cleanedPrimaryRequest = sanitizeImagePrompt(visual.imagePrompt)
+
+  return [
+    `Use case: ${format}`,
+    "Asset type: text-free underlay for a portrait health-guide visual on a premium Australian digital health website.",
+    `Model: ${GPT_IMAGE_MODEL}.`,
+    "",
+    "Primary visual subject:",
+    cleanedPrimaryRequest,
+    "",
+    getVisualFormatPrompt(format),
+    getInfographicLayoutPrompt(visual.kind),
+    getArtDirectionPrompt(slug, visual, format, styleShift),
+    "",
+    "Your job is the image field only. A production script will overlay all approved article copy, cards, footer text, and the official brand badge after generation.",
+    "Create an article-specific educational visual underlay using unlabeled diagrams, body/anatomy shapes, process arrows, comparison zones, warning hierarchy, texture, clinical iconography, and practical objects only when they teach the topic.",
+    "Hard visible-text rule: no readable words, letters, numbers, tables, fake UI, fake forms, captions, labels, badges, stamps, signatures, handwriting, prescription text, chart labels, or signage. The final asset must contain zero generated text.",
+    "Avoid generic stock art, blank phone hero, blank document hero, medicine-box hero, desk flat lay, balance-scale metaphors, scenic landscapes, road/path metaphors, mountains, beaches, city skylines, and decorative abstract blobs. The underlay still needs to be specific to the article.",
+    "No identifiable people, no fake doctor faces, no doctor-patient consultation scene, no medical crosses, no pharmacy cross signs, no plus-sign shop signs, no pill blister packs, no medicine bottles as focal objects, no official seals, no logos, no medication brand names, no pill imprints, no gore, no graphic symptoms, no consultation CTA.",
+    "Leave the bottom-right 320 by 110 pixel area calm and low-detail for the production badge overlay.",
+    `Article slug for context only: ${slug}.`,
+    `Style retry seed for context only: ${styleShift}.`,
   ].join("\n")
 }
 
@@ -681,6 +713,70 @@ function renderArticleVisualSvg(slug: string, visual: ArticleVisual): string {
   `
 }
 
+function renderCompositeOverlaySvg(visual: ArticleVisual): string {
+  const palette = palettes[visual.accent]
+  const title = textBlock({
+    text: visual.title,
+    x: 112,
+    y: 168,
+    width: 760,
+    size: 50,
+    weight: 900,
+    color: palette.dark,
+    lineHeight: 60,
+    maxLines: 4,
+  })
+  const summary = textBlock({
+    text: visual.summary,
+    x: 116,
+    y: 168 + title.height + 30,
+    width: 770,
+    size: 27,
+    weight: 550,
+    color: "#334155",
+    lineHeight: 38,
+    maxLines: 3,
+  })
+  const itemCards = visual.items
+    .slice(0, 4)
+    .map((item, index) => renderItemCard(item, index, 96, 770 + index * 170, 820, 148, palette))
+    .join("")
+  const footer = textBlock({
+    text: getFooterCopy(visual),
+    x: 164,
+    y: 1502,
+    width: 680,
+    size: 23,
+    weight: 700,
+    color: "#ffffff",
+    maxLines: 1,
+  })
+
+  return `
+    <svg xmlns="http://www.w3.org/2000/svg" width="${WIDTH}" height="${HEIGHT}" viewBox="0 0 ${WIDTH} ${HEIGHT}">
+      <defs>
+        <filter id="panelShadow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#0f172a" flood-opacity="0.15"/>
+        </filter>
+      </defs>
+      <rect width="${WIDTH}" height="${HEIGHT}" fill="${palette.wash}" fill-opacity="0.28"/>
+      <g filter="url(#panelShadow)">
+        <rect x="80" y="70" width="860" height="405" rx="30" fill="#ffffff" fill-opacity="0.88" stroke="${palette.light}" stroke-width="2"/>
+      </g>
+      ${badge(112, 102, visual.eyebrow, palette)}
+      ${title.svg}
+      ${summary.svg}
+      <g filter="url(#panelShadow)">
+        ${itemCards}
+      </g>
+      <rect x="80" y="1430" width="820" height="104" rx="30" fill="${palette.dark}" fill-opacity="0.92"/>
+      <circle cx="128" cy="1482" r="26" fill="#ffffff" opacity="0.16"/>
+      <path d="M116 1483 L128 1495 L148 1468" fill="none" stroke="#ffffff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+      ${footer.svg}
+    </svg>
+  `
+}
+
 async function saveInfographic(slug: string, visual: ArticleVisual) {
   const outputDir = path.join(process.cwd(), "public", "images", "blog", slug)
   await fs.mkdir(outputDir, { recursive: true })
@@ -692,7 +788,7 @@ async function saveInfographic(slug: string, visual: ArticleVisual) {
   return filepath
 }
 
-async function saveGatewayInfographic(slug: string, visual: ArticleVisual) {
+async function saveGatewayInfographic(slug: string, visual: ArticleVisual, styleShift = 0) {
   const outputDir = path.join(process.cwd(), "public", "images", "blog", slug)
   await fs.mkdir(outputDir, { recursive: true })
 
@@ -700,11 +796,11 @@ async function saveGatewayInfographic(slug: string, visual: ArticleVisual) {
   const palette = palettes[visual.accent]
   const result = await generateImage({
     model: gateway.image(GPT_IMAGE_MODEL),
-    prompt: buildGatewayPrompt(slug, visual),
+    prompt: buildGatewayPrompt(slug, visual, styleShift),
     size: "1024x1536",
     providerOptions: {
       gateway: {
-        tags: ["feature:blog-visuals", `article:${slug}`, "renderer:gpt-image-2"],
+        tags: ["feature:blog-visuals", `article:${slug}`, "renderer:gpt-image-2", `style-shift:${styleShift}`],
       },
     },
   })
@@ -718,15 +814,43 @@ async function saveGatewayInfographic(slug: string, visual: ArticleVisual) {
   return filepath
 }
 
+async function saveGatewayCompositeInfographic(slug: string, visual: ArticleVisual, styleShift = 0) {
+  const outputDir = path.join(process.cwd(), "public", "images", "blog", slug)
+  await fs.mkdir(outputDir, { recursive: true })
+
+  const filepath = path.join(outputDir, `${visual.id}.webp`)
+  const palette = palettes[visual.accent]
+  const result = await generateImage({
+    model: gateway.image(GPT_IMAGE_MODEL),
+    prompt: buildGatewayCompositeUnderlayPrompt(slug, visual, styleShift),
+    size: "1024x1536",
+    providerOptions: {
+      gateway: {
+        tags: ["feature:blog-visuals", `article:${slug}`, "renderer:gpt-image-2-composite", `style-shift:${styleShift}`],
+      },
+    },
+  })
+
+  await sharp(Buffer.from(result.image.uint8Array))
+    .resize(WIDTH, HEIGHT, { fit: "cover", background: palette.wash })
+    .composite([{ input: Buffer.from(renderCompositeOverlaySvg(visual)), left: 0, top: 0 }])
+    .webp({ quality: 88, effort: 5 })
+    .toFile(filepath)
+
+  await addInstantMedWordmark(filepath)
+  return filepath
+}
+
 async function main() {
   const slugFilter = getArg("slug")
   const visualFilter = getArg("visual")
   const limit = Number(getArg("limit") ?? "0")
+  const styleShift = Number(getArg("style-shift") ?? "0")
   const dryRun = hasFlag("dry-run")
   const force = hasFlag("force")
   const renderer = getRenderer()
 
-  if (renderer === "gpt-image-2") {
+  if (renderer === "gpt-image-2" || renderer === "gpt-image-2-composite") {
     assertGatewayAuth()
   }
 
@@ -758,14 +882,22 @@ async function main() {
 
     if (dryRun) {
       const output =
-        renderer === "gpt-image-2" ? buildGatewayPrompt(slug, visual) : renderArticleVisualSvg(slug, visual)
+        renderer === "gpt-image-2"
+          ? buildGatewayPrompt(slug, visual, styleShift)
+          : renderer === "gpt-image-2-composite"
+            ? buildGatewayCompositeUnderlayPrompt(slug, visual, styleShift)
+            : renderArticleVisualSvg(slug, visual)
       console.log(`\n--- ${slug}/${visual.id} (${renderer}) ---\n${output}`)
       continue
     }
 
     console.log(`Generating ${renderer} visual ${slug}/${visual.id}...`)
     const saved =
-      renderer === "gpt-image-2" ? await saveGatewayInfographic(slug, visual) : await saveInfographic(slug, visual)
+      renderer === "gpt-image-2"
+        ? await saveGatewayInfographic(slug, visual, styleShift)
+        : renderer === "gpt-image-2-composite"
+          ? await saveGatewayCompositeInfographic(slug, visual, styleShift)
+          : await saveInfographic(slug, visual)
     console.log(`Saved ${path.relative(process.cwd(), saved)}`)
   }
 }
