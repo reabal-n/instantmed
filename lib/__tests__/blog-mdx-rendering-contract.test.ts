@@ -33,10 +33,10 @@ describe("blog MDX rendering contract", () => {
     const selfCareSteps = article?.content.find(
       (section) =>
         section.type === "steps" &&
-        section.items?.[0]?.startsWith("Apply a cool compress"),
+        section.items?.[0]?.startsWith("Wash hands before"),
     )
 
-    expect(selfCareSteps?.items).toHaveLength(6)
+    expect(selfCareSteps?.items).toHaveLength(8)
   })
 
   it("does not leak unsupported Markdown syntax into visible paragraph text", () => {
