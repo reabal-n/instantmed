@@ -19,8 +19,11 @@ import {
   XCircle,
 } from "lucide-react"
 import Link from "next/link"
-import type { ReactNode } from "react"
+import { useRouter } from "next/navigation"
+import { type ReactNode, useState, useTransition } from "react"
+import { toast } from "sonner"
 
+import { sendTelegramTestAlertAction } from "@/app/actions/telegram-ops"
 import { DashboardPageHeader, StatusBadge } from "@/components/dashboard"
 import { Button } from "@/components/ui/button"
 import {
@@ -232,6 +235,7 @@ function OpsSignalCard({
   tone = "neutral",
   href,
   actionLabel,
+  children,
 }: {
   icon: LucideIcon
   label: string
@@ -240,6 +244,7 @@ function OpsSignalCard({
   tone?: OpsSignalTone
   href?: string
   actionLabel?: string
+  children?: ReactNode
 }) {
   const toneClasses = getOpsSignalToneClasses(tone)
 
@@ -262,6 +267,64 @@ function OpsSignalCard({
             <ArrowRight className="ml-1 h-3 w-3" />
           </Link>
         </Button>
+      ) : null}
+      {children ? <div className="mt-4">{children}</div> : null}
+    </div>
+  )
+}
+
+function TelegramTestAlertControl({
+  configured,
+  missingVars,
+}: {
+  configured: boolean
+  missingVars: string[]
+}) {
+  const router = useRouter()
+  const [isPending, startTransition] = useTransition()
+  const [lastResult, setLastResult] = useState<{
+    tone: "success" | "critical"
+    label: string
+  } | null>(null)
+
+  return (
+    <div className="flex flex-col gap-2 rounded-lg border border-border/60 bg-muted/30 p-3">
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-xs font-medium text-foreground">Live alert check</p>
+          <p className="truncate text-[11px] text-muted-foreground">
+            {configured ? "Sends a real ops test to Telegram." : `Missing ${missingVars.join(", ")}`}
+          </p>
+        </div>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="h-8 shrink-0 gap-1.5 px-2.5 text-xs"
+          disabled={!configured || isPending}
+          onClick={() => {
+            startTransition(async () => {
+              const result = await sendTelegramTestAlertAction()
+              if (result.success) {
+                setLastResult({ tone: "success", label: "Delivered" })
+                toast.success("Telegram test alert sent")
+                router.refresh()
+                return
+              }
+
+              setLastResult({ tone: "critical", label: "Failed" })
+              toast.error(result.error || "Telegram test alert failed")
+            })
+          }}
+        >
+          <RefreshCw className={cn("h-3.5 w-3.5", isPending && "animate-spin")} />
+          {isPending ? "Sending" : "Send test"}
+        </Button>
+      </div>
+      {lastResult ? (
+        <SignalPill tone={lastResult.tone} className="w-fit">
+          {lastResult.label}
+        </SignalPill>
       ) : null}
     </div>
   )
@@ -603,7 +666,12 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
                   : `Missing ${alerting.missingTelegramVars.join(", ")}`
               }
               tone={alerting.telegramConfigured ? "success" : "warning"}
-            />
+            >
+              <TelegramTestAlertControl
+                configured={alerting.telegramConfigured}
+                missingVars={alerting.missingTelegramVars}
+              />
+            </OpsSignalCard>
           </div>
         </section>
 

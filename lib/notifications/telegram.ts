@@ -308,3 +308,71 @@ export async function sendTelegramAlert(
     log.error("Telegram alert failed", {}, error instanceof Error ? error : new Error(String(error)))
   }
 }
+
+export interface TelegramTestAlertOptions {
+  eventId: string
+  issuedAt: string
+  signature: string
+  appUrl?: string
+}
+
+export interface TelegramTestAlertResult {
+  sentAt: string
+  messageId?: number
+}
+
+export async function sendTelegramTestAlert(
+  opts: TelegramTestAlertOptions,
+): Promise<TelegramTestAlertResult> {
+  const token = getToken()
+  const chatId = getChatId()
+  if (!token || !chatId) {
+    const missing = [
+      !token ? "TELEGRAM_BOT_TOKEN" : null,
+      !chatId ? "TELEGRAM_CHAT_ID" : null,
+    ].filter(Boolean).join(", ")
+    throw new TelegramSendError(`Telegram test alert is not configured: missing ${missing}`)
+  }
+
+  const appUrl = opts.appUrl || process.env.NEXT_PUBLIC_APP_URL || "https://instantmed.com.au"
+  const text = [
+    "InstantMed ops test alert",
+    "",
+    `Event: ${opts.eventId}`,
+    `Issued: ${opts.issuedAt}`,
+    `Signature: ${opts.signature}`,
+    `Source: ${appUrl}`,
+  ].join("\n")
+
+  const response = await fetch(`${TELEGRAM_API}/bot${token}/sendMessage`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      chat_id: chatId,
+      text,
+      disable_web_page_preview: true,
+    }),
+  })
+
+  if (!response.ok) {
+    const body = await response.text()
+    log.error("Telegram test alert failed", { status: response.status, body })
+    throw new TelegramSendError(`Telegram test alert failed: ${response.status}`)
+  }
+
+  const responseJson = (await response.json().catch(() => null)) as {
+    result?: { message_id?: unknown }
+  } | null
+  const rawMessageId = responseJson?.result?.message_id
+  const messageId = typeof rawMessageId === "number" ? rawMessageId : undefined
+
+  log.info("Telegram test alert sent", {
+    eventId: opts.eventId,
+    messageId,
+  })
+
+  return {
+    sentAt: opts.issuedAt,
+    messageId,
+  }
+}
