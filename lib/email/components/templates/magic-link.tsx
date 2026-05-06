@@ -7,7 +7,9 @@
 
 import * as React from "react"
 
-import { BaseEmail, Button, colors,HeroBlock, Text } from "../base-email"
+import { TAGLINE } from "@/lib/marketing/voice"
+
+import { BaseEmail, Box, Button, colors, fontFamily, NameFirstGreeting, Text } from "../base-email"
 
 export interface MagicLinkEmailProps {
   loginUrl: string
@@ -17,7 +19,40 @@ export interface MagicLinkEmailProps {
   firstName?: string
 }
 
-export const magicLinkEmailSubject = "Your InstantMed login link"
+export const magicLinkEmailSubject = "Your InstantMed sign-in link is ready"
+
+const actionCopy = {
+  signup: {
+    headline: "Confirm your InstantMed account",
+    eyebrow: "Account setup",
+    subtitle: "One secure click, then back to your request.",
+    body: "Confirm your account and keep going. This link works once and expires in 60 minutes.",
+    buttonLabel: "Confirm account",
+    previewText: "Confirm your InstantMed account and continue to your request.",
+  },
+  recovery: {
+    headline: "Reset your InstantMed access",
+    eyebrow: "Account recovery",
+    subtitle: "A secure one-time reset link.",
+    body: "Use the button below to reset your access. This link works once and expires in 60 minutes.",
+    buttonLabel: "Reset access",
+    previewText: "Use this secure link to reset access to InstantMed.",
+  },
+  magiclink: {
+    headline: "Your sign-in link is ready",
+    eyebrow: "Secure sign-in",
+    subtitle: "No password. No waiting room.",
+    body: "Tap the button below and you will be signed in. This link works once and expires in 60 minutes.",
+    buttonLabel: "Open InstantMed",
+    previewText: "Your secure InstantMed sign-in link is ready. Expires in 60 minutes.",
+  },
+}
+
+function getCopy(actionType: MagicLinkEmailProps["actionType"]) {
+  if (actionType === "signup") return actionCopy.signup
+  if (actionType === "recovery") return actionCopy.recovery
+  return actionCopy.magiclink
+}
 
 export function MagicLinkEmail({
   loginUrl,
@@ -25,57 +60,85 @@ export function MagicLinkEmail({
   actionType = "magiclink",
   firstName,
 }: MagicLinkEmailProps) {
-  const isSignup = actionType === "signup"
-  const isRecovery = actionType === "recovery"
-  const headline = isSignup
-    ? "Confirm your account"
-    : isRecovery
-      ? "Reset your access"
-      : "Continue to InstantMed"
-  const subtitle = isSignup
-    ? "Your request is ready in your account"
-    : isRecovery
-      ? "Secure one-time link"
-      : "Secure one-time sign-in link"
-  const buttonLabel = isSignup
-    ? "Confirm account"
-    : isRecovery
-      ? "Reset access"
-      : "Continue to InstantMed"
-  const previewText = isSignup
-    ? "Confirm your InstantMed account and continue to your request."
-    : isRecovery
-      ? "Use this secure link to reset access to InstantMed."
-      : "Use this secure link to continue to InstantMed. Expires in 60 minutes."
+  const copy = getCopy(actionType)
 
   return (
     <BaseEmail
-      previewText={previewText}
+      previewText={copy.previewText}
       appUrl={appUrl}
     >
-      <HeroBlock
-        icon="IM"
-        headline={headline}
-        subtitle={subtitle}
-        variant="info"
-      />
+      <div
+        style={{
+          backgroundColor: colors.surfaceWarm,
+          border: `1px solid ${colors.borderLight}`,
+          borderRadius: "16px",
+          padding: "22px",
+          margin: "0 0 20px 0",
+        }}
+      >
+        <p
+          style={{
+            margin: "0 0 8px 0",
+            fontSize: "11px",
+            fontWeight: 600,
+            letterSpacing: "0.08em",
+            textTransform: "uppercase" as const,
+            color: colors.accent,
+          }}
+        >
+          {copy.eyebrow}
+        </p>
+        <h1
+          style={{
+            margin: "0 0 8px 0",
+            fontSize: "24px",
+            fontWeight: 600,
+            color: colors.text,
+            fontFamily,
+            letterSpacing: "-0.5px",
+            lineHeight: "1.25",
+          }}
+        >
+          {copy.headline}
+        </h1>
+        <p
+          style={{
+            margin: "0",
+            fontSize: "14px",
+            color: colors.textSecondary,
+            lineHeight: "1.5",
+          }}
+        >
+          {copy.subtitle}
+        </p>
+      </div>
 
-      <Text>
-        {firstName
-          ? `${firstName}, use the secure button below to continue.`
-          : "Use the secure button below to continue."} This link expires in 60 minutes and works once only.
-      </Text>
+      <NameFirstGreeting name={firstName} />
+      <Text>{copy.body}</Text>
 
-      <Button href={loginUrl}>{buttonLabel}</Button>
+      <Button href={loginUrl}>{copy.buttonLabel}</Button>
+
+      <Box variant="info">
+        <p
+          style={{
+            margin: "0",
+            fontSize: "13px",
+            color: colors.infoText,
+            lineHeight: "1.6",
+          }}
+        >
+          {TAGLINE} If this link has expired, request a fresh one from the sign-in page.
+        </p>
+      </Box>
 
       <Text small muted style={{ textAlign: "center" as const }}>
-        Didn't request this? You can safely ignore this email. Your account is secure.
+        Didn't ask for this? No stress. Ignore this email and nothing changes on your account.
       </Text>
 
       <Text small muted style={{ textAlign: "center" as const, marginTop: "4px" }}>
-        Having trouble?{" "}
+        Button playing up?{" "}
         <a href={`${appUrl}/sign-in`} style={{ color: colors.accent, textDecoration: "none" }}>
-          Go to the login page
+          Open the sign-in page
         </a>
       </Text>
     </BaseEmail>

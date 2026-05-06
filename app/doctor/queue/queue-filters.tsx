@@ -23,6 +23,8 @@ export interface QueueFiltersProps {
   filteredCount: number
   isStale: boolean
   isReconnecting: boolean
+  isRefreshing?: boolean
+  lastUpdatedLabel?: string
 }
 
 const SEARCH_TOKENS = [
@@ -45,6 +47,8 @@ export function QueueFilters({
   filteredCount,
   isStale,
   isReconnecting,
+  isRefreshing = false,
+  lastUpdatedLabel,
 }: QueueFiltersProps) {
   const searchRef = useRef<HTMLInputElement>(null)
 
@@ -76,6 +80,11 @@ export function QueueFilters({
                 <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
               </span>
               Live
+            </span>
+          )}
+          {lastUpdatedLabel && (
+            <span className="text-xs text-muted-foreground tabular-nums">
+              {isRefreshing ? "Refreshing..." : lastUpdatedLabel}
             </span>
           )}
         </div>
@@ -127,8 +136,16 @@ export function QueueFilters({
           >
             {soundMuted ? <VolumeOff className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5" />}
           </Button>
-          <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={onRefresh} title="Refresh queue">
-            <RefreshCw className="h-3.5 w-3.5" />
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 shrink-0"
+            onClick={onRefresh}
+            disabled={isRefreshing}
+            title={isRefreshing ? "Refreshing queue" : "Refresh queue"}
+            aria-label={isRefreshing ? "Refreshing queue" : "Refresh queue"}
+          >
+            <RefreshCw className={cn("h-3.5 w-3.5", isRefreshing && "animate-spin")} />
           </Button>
           <KeyboardShortcutsModal
             trigger={

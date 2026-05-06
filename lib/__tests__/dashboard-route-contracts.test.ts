@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest"
 
 import {
+  ADMIN_AUDIT_HREF,
+  ADMIN_EMAIL_HUB_HREF,
+  ADMIN_PARCHMENT_OPS_HREF,
+  ADMIN_PATIENT_MERGE_AUDIT_HREF,
+  ADMIN_PRESCRIBING_IDENTITY_HREF,
+  ADMIN_STALE_INTAKES_HREF,
+  ADMIN_WEBHOOK_DLQ_HREF,
   buildAdminIntakeHref,
   buildDoctorDashboardHref,
   buildDoctorQueueRedirectHref,
@@ -25,6 +32,16 @@ describe("dashboard route contracts", () => {
   it("builds admin intake detail links from the shared route helper", () => {
     expect(buildAdminIntakeHref("intake-123")).toBe("/admin/intakes/intake-123")
     expect(buildAdminIntakeHref("intake 123")).toBe("/admin/intakes/intake%20123")
+  })
+
+  it("keeps ops recovery links on shared admin route constants", () => {
+    expect(ADMIN_AUDIT_HREF).toBe("/admin/audit")
+    expect(ADMIN_EMAIL_HUB_HREF).toBe("/admin/emails/hub")
+    expect(ADMIN_WEBHOOK_DLQ_HREF).toBe("/admin/webhook-dlq")
+    expect(ADMIN_PARCHMENT_OPS_HREF).toBe("/admin/ops/parchment")
+    expect(ADMIN_STALE_INTAKES_HREF).toBe("/admin/ops/intakes-stuck")
+    expect(ADMIN_PATIENT_MERGE_AUDIT_HREF).toBe("/admin/ops/patient-merge-audit")
+    expect(ADMIN_PRESCRIBING_IDENTITY_HREF).toBe("/admin/ops/prescribing-identity")
   })
 
   it("preserves queue redirect intent and allowed pagination params", () => {

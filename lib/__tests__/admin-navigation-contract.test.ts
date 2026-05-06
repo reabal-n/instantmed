@@ -116,6 +116,8 @@ describe("admin navigation contract", () => {
 
     expect(opsClientSource).not.toContain('href="/doctor')
     expect(opsClientSource).not.toContain("DOCTOR_QUEUE_REVIEW_HREF")
+    expect(opsClientSource).toContain("ADMIN_WEBHOOK_DLQ_HREF")
+    expect(opsClientSource).toContain("ADMIN_EMAIL_HUB_HREF")
     expect(opsClientSource).toContain("ADMIN_STALE_INTAKES_HREF")
     expect(opsClientSource).toContain("ADMIN_PATIENT_MERGE_AUDIT_HREF")
     expect(dashboardRoutesSource).toContain('ADMIN_STALE_INTAKES_HREF = "/admin/ops/intakes-stuck"')

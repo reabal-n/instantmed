@@ -1,3 +1,12 @@
+import {
+  ADMIN_EMAIL_HUB_HREF,
+  ADMIN_INTAKE_LEDGER_HREF,
+  ADMIN_PARCHMENT_OPS_HREF,
+  ADMIN_STALE_INTAKES_HREF,
+  ADMIN_WEBHOOK_DLQ_HREF,
+  buildAdminIntakeHref,
+} from "@/lib/dashboard/routes"
+
 type Severity = "critical" | "warning"
 
 type StripeDlqRow = {
@@ -110,17 +119,17 @@ export function buildOperationalFailureOverview(input: OperationalFailureOvervie
   const categories: OperationalFailureCategory[] = [
     {
       id: "stripe_webhooks",
-      label: "Stripe webhooks",
+      label: "Payment webhooks",
       count: input.stripeDlq.length,
-      href: "/admin/webhook-dlq",
+      href: ADMIN_WEBHOOK_DLQ_HREF,
       severity: "critical",
-      emptyLabel: "No open Stripe webhook failures",
+      emptyLabel: "No open payment webhook failures",
     },
     {
       id: "email_delivery",
       label: "Email delivery",
       count: input.emailFailures.length,
-      href: "/admin/emails/hub",
+      href: ADMIN_EMAIL_HUB_HREF,
       severity: "warning",
       emptyLabel: "No failed or bounced emails",
     },
@@ -128,7 +137,7 @@ export function buildOperationalFailureOverview(input: OperationalFailureOvervie
       id: "checkout",
       label: "Checkout",
       count: input.checkoutFailures.length,
-      href: "/admin#intakes",
+      href: ADMIN_INTAKE_LEDGER_HREF,
       severity: "critical",
       emptyLabel: "No failed checkout sessions",
     },
@@ -136,7 +145,7 @@ export function buildOperationalFailureOverview(input: OperationalFailureOvervie
       id: "incomplete_requests",
       label: "Incomplete requests",
       count: input.incompleteRequests.length,
-      href: "/admin#intakes",
+      href: ADMIN_INTAKE_LEDGER_HREF,
       severity: "warning",
       emptyLabel: "No abandoned checkout requests",
     },
@@ -152,7 +161,7 @@ export function buildOperationalFailureOverview(input: OperationalFailureOvervie
       id: "prescription_delivery",
       label: "Prescription delivery",
       count: input.prescriptionWebhookFailures.length,
-      href: "/admin/ops/parchment",
+      href: ADMIN_PARCHMENT_OPS_HREF,
       severity: "critical",
       emptyLabel: "No prescription webhook failures",
     },
@@ -160,7 +169,7 @@ export function buildOperationalFailureOverview(input: OperationalFailureOvervie
       id: "stale_scripts",
       label: "Scripts waiting",
       count: input.staleScriptIntakes.length,
-      href: "/doctor/scripts",
+      href: ADMIN_STALE_INTAKES_HREF,
       severity: "warning",
       emptyLabel: "No stale script tasks",
     },
@@ -170,10 +179,10 @@ export function buildOperationalFailureOverview(input: OperationalFailureOvervie
     ...input.stripeDlq.map((row) => ({
       id: row.id,
       categoryId: "stripe_webhooks" as const,
-      title: "Stripe webhook failed",
+      title: "Payment webhook failed",
       detail: row.event_type || "Unknown event",
       occurredAt: row.created_at,
-      href: "/admin/webhook-dlq",
+      href: ADMIN_WEBHOOK_DLQ_HREF,
       severity: "critical" as const,
     })),
     ...input.emailFailures.map((row) => ({
@@ -182,7 +191,7 @@ export function buildOperationalFailureOverview(input: OperationalFailureOvervie
       title: "Email delivery failed",
       detail: row.error_message || row.delivery_status || row.email_type || row.status || "Email needs review",
       occurredAt: row.created_at,
-      href: "/admin/emails/hub",
+      href: ADMIN_EMAIL_HUB_HREF,
       severity: "warning" as const,
     })),
     ...input.checkoutFailures.map((row) => ({
@@ -191,7 +200,7 @@ export function buildOperationalFailureOverview(input: OperationalFailureOvervie
       title: "Checkout failed",
       detail: row.checkout_error || [row.category, row.subtype].filter(Boolean).join(" / ") || "Payment session failed",
       occurredAt: row.updated_at || row.created_at,
-      href: `/admin/intakes/${row.id}`,
+      href: buildAdminIntakeHref(row.id),
       severity: "critical" as const,
     })),
     ...input.incompleteRequests.map((row) => ({
@@ -200,7 +209,7 @@ export function buildOperationalFailureOverview(input: OperationalFailureOvervie
       title: "Request left incomplete",
       detail: [row.category, row.subtype].filter(Boolean).join(" / ") || "Awaiting checkout completion",
       occurredAt: row.updated_at || row.created_at,
-      href: `/admin/intakes/${row.id}`,
+      href: buildAdminIntakeHref(row.id),
       severity: "warning" as const,
     })),
     ...input.certificateFailures.map((row) => ({
@@ -209,7 +218,7 @@ export function buildOperationalFailureOverview(input: OperationalFailureOvervie
       title: "Certificate send failed",
       detail: row.email_failure_reason || "Certificate email needs retry",
       occurredAt: row.email_failed_at || row.updated_at || "",
-      href: row.intake_id ? `/admin/intakes/${row.intake_id}` : "/admin/intakes?status=approved",
+      href: row.intake_id ? buildAdminIntakeHref(row.intake_id) : "/admin/intakes?status=approved",
       severity: "critical" as const,
     })),
     ...input.prescriptionWebhookFailures.map((row) => ({
@@ -218,7 +227,7 @@ export function buildOperationalFailureOverview(input: OperationalFailureOvervie
       title: "Prescription webhook failed",
       detail: metadataString(row.metadata, "error") || row.action,
       occurredAt: row.created_at,
-      href: "/admin/ops/parchment",
+      href: ADMIN_PARCHMENT_OPS_HREF,
       severity: "critical" as const,
     })),
     ...input.staleScriptIntakes.map((row) => ({
@@ -227,7 +236,7 @@ export function buildOperationalFailureOverview(input: OperationalFailureOvervie
       title: "Script still waiting",
       detail: [row.category, row.subtype].filter(Boolean).join(" / ") || "Awaiting script completion",
       occurredAt: row.updated_at || row.created_at,
-      href: `/admin/intakes/${row.id}`,
+      href: buildAdminIntakeHref(row.id),
       severity: "warning" as const,
     })),
   ]

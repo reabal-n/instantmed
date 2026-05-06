@@ -3,10 +3,11 @@
 import {
   AlertTriangle,
   ArrowRight,
+  BellRing,
   CheckCircle,
   Clock,
-  CreditCard,
   FileWarning,
+  type LucideIcon,
   Mail,
   Pill,
   ReceiptText,
@@ -22,7 +23,14 @@ import type { ReactNode } from "react"
 
 import { DashboardPageHeader, StatusBadge } from "@/components/dashboard"
 import { Button } from "@/components/ui/button"
-import { ADMIN_PATIENT_MERGE_AUDIT_HREF, ADMIN_STALE_INTAKES_HREF } from "@/lib/dashboard/routes"
+import {
+  ADMIN_AUDIT_HREF,
+  ADMIN_EMAIL_HUB_HREF,
+  ADMIN_PATIENT_MERGE_AUDIT_HREF,
+  ADMIN_PRESCRIBING_IDENTITY_HREF,
+  ADMIN_STALE_INTAKES_HREF,
+  ADMIN_WEBHOOK_DLQ_HREF,
+} from "@/lib/dashboard/routes"
 import { cn } from "@/lib/utils"
 
 interface OpsData {
@@ -65,6 +73,10 @@ interface OpsData {
     topBlockers: Array<{ label: string; count: number }>
   }
   staleIntakes: number
+  alerting: {
+    telegramConfigured: boolean
+    missingTelegramVars: string[]
+  }
   failureOverview: {
     openCount: number
     categories: Array<{
@@ -92,6 +104,7 @@ interface OpsData {
     patientIdentityHealthy: boolean
     prescribingIdentityHealthy: boolean
     failureOverviewHealthy: boolean
+    telegramAlertsHealthy: boolean
   }
 }
 
@@ -102,6 +115,7 @@ interface OpsDashboardClientProps {
 type FailureCategory = OpsData["failureOverview"]["categories"][number]
 type FailureItem = OpsData["failureOverview"]["recent"][number]
 type FailureSeverity = FailureCategory["severity"]
+type OpsSignalTone = "success" | "warning" | "critical" | "info" | "neutral"
 
 const categoryActionById: Record<string, string> = {
   stripe_webhooks: "Retry webhook",
@@ -162,7 +176,7 @@ function StatusIndicator({ healthy, label }: { healthy: boolean; label: string }
   return (
     <div
       className={cn(
-        "flex items-center justify-between gap-2 rounded-full border px-3 py-2 transition-colors",
+        "flex items-center justify-between gap-2 rounded-lg border px-3 py-2 transition-colors",
         healthy
           ? "border-emerald-200 bg-emerald-50/70 text-emerald-800 dark:border-emerald-500/25 dark:bg-emerald-950/20 dark:text-emerald-200"
           : "border-red-200 bg-red-50 text-red-800 dark:border-red-500/30 dark:bg-red-950/30 dark:text-red-200",
@@ -175,6 +189,80 @@ function StatusIndicator({ healthy, label }: { healthy: boolean; label: string }
           healthy ? "bg-emerald-500" : "bg-red-500",
         )}
       />
+    </div>
+  )
+}
+
+function getOpsSignalToneClasses(tone: OpsSignalTone) {
+  switch (tone) {
+    case "success":
+      return {
+        icon: "bg-success-light text-success",
+        value: "text-foreground",
+      }
+    case "warning":
+      return {
+        icon: "bg-warning-light text-warning",
+        value: "text-warning",
+      }
+    case "critical":
+      return {
+        icon: "bg-destructive-light text-destructive",
+        value: "text-destructive",
+      }
+    case "info":
+      return {
+        icon: "bg-info-light text-info",
+        value: "text-foreground",
+      }
+    case "neutral":
+    default:
+      return {
+        icon: "bg-muted text-muted-foreground",
+        value: "text-foreground",
+      }
+  }
+}
+
+function OpsSignalCard({
+  icon: Icon,
+  label,
+  value,
+  detail,
+  tone = "neutral",
+  href,
+  actionLabel,
+}: {
+  icon: LucideIcon
+  label: string
+  value: ReactNode
+  detail?: ReactNode
+  tone?: OpsSignalTone
+  href?: string
+  actionLabel?: string
+}) {
+  const toneClasses = getOpsSignalToneClasses(tone)
+
+  return (
+    <div className="rounded-xl border border-border/50 bg-card p-5 shadow-sm shadow-primary/[0.04] dark:shadow-none">
+      <div className="flex items-start gap-4">
+        <div className={cn("flex h-11 w-11 shrink-0 items-center justify-center rounded-lg", toneClasses.icon)}>
+          <Icon className="h-5 w-5" />
+        </div>
+        <div className="min-w-0">
+          <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{label}</p>
+          <p className={cn("mt-1 text-2xl font-semibold tabular-nums", toneClasses.value)}>{value}</p>
+          {detail ? <p className="mt-1 text-xs text-muted-foreground">{detail}</p> : null}
+        </div>
+      </div>
+      {href && actionLabel ? (
+        <Button variant="link" size="sm" className="mt-3 h-auto p-0 text-xs" asChild>
+          <Link href={href}>
+            {actionLabel}
+            <ArrowRight className="ml-1 h-3 w-3" />
+          </Link>
+        </Button>
+      ) : null}
     </div>
   )
 }
@@ -221,7 +309,18 @@ function FailureActionPill({
 }
 
 export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
-  const { webhooks, emails, errors, auditVolume, patientIdentity, prescribingIdentity, staleIntakes, failureOverview, systemStatus } = ops
+  const {
+    webhooks,
+    emails,
+    errors,
+    auditVolume,
+    patientIdentity,
+    prescribingIdentity,
+    staleIntakes,
+    alerting,
+    failureOverview,
+    systemStatus,
+  } = ops
 
   const allHealthy = systemStatus.webhooksHealthy
     && systemStatus.emailsHealthy
@@ -229,8 +328,9 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
     && systemStatus.patientIdentityHealthy
     && systemStatus.prescribingIdentityHealthy
     && systemStatus.failureOverviewHealthy
+    && systemStatus.telegramAlertsHealthy
   const overallStatus = allHealthy ? "healthy" : "needs review"
-  const categoryIconById: Record<string, typeof Webhook> = {
+  const categoryIconById: Record<string, LucideIcon> = {
     stripe_webhooks: Webhook,
     email_delivery: Mail,
     checkout: ReceiptText,
@@ -239,14 +339,14 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
     prescription_delivery: Pill,
     stale_scripts: Clock,
   }
+  const attentionCategories = failureOverview.categories.filter((category) => category.count > 0)
 
   return (
     <div className="min-h-full">
       <div className="p-6 space-y-6">
-        {/* Header */}
         <DashboardPageHeader
           title="Operations Dashboard"
-          description="System health and monitoring"
+          description="Operational recovery, delivery health, and the few blockers worth opening."
           backHref="/admin"
           backLabel="Admin"
           actions={
@@ -256,32 +356,87 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
           }
         />
 
-        {/* System Status */}
-        <div className="bg-card border border-border/50 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <Server className="h-5 w-5 text-muted-foreground" />
-            <h3 className="text-base font-semibold text-foreground">System Status</h3>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-6 gap-6">
-            <StatusIndicator healthy={systemStatus.webhooksHealthy} label="Payment webhooks" />
-            <StatusIndicator healthy={systemStatus.emailsHealthy} label="Email Delivery" />
-            <StatusIndicator healthy={systemStatus.intakesHealthy} label="Intake Processing" />
-            <StatusIndicator healthy={systemStatus.patientIdentityHealthy} label="Patient Identity" />
-            <StatusIndicator healthy={systemStatus.prescribingIdentityHealthy} label="Prescribing Identity" />
-            <StatusIndicator healthy={systemStatus.failureOverviewHealthy} label="Failure Inbox" />
-          </div>
-        </div>
+        <section className="grid gap-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(360px,0.85fr)]">
+          <div className="rounded-xl border border-border/50 bg-card p-6 shadow-sm shadow-primary/[0.04] dark:shadow-none">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className={cn("h-5 w-5", attentionCategories.length > 0 ? "text-warning" : "text-success")} />
+                  <h3 className="text-base font-semibold text-foreground">Needs attention</h3>
+                </div>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  The short list of work that can block payment, delivery, or patient care.
+                </p>
+              </div>
+              <SignalPill tone={attentionCategories.length > 0 ? "warning" : "success"} className="px-3 py-1.5">
+                {failureOverview.openCount} open
+              </SignalPill>
+            </div>
 
-        {/* Failure Inbox */}
-        <div className="bg-card border border-border/50 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl p-6">
+            {attentionCategories.length === 0 ? (
+              <div className="mt-5 flex items-center gap-2 rounded-lg bg-success-light px-3 py-3 text-sm text-success">
+                <CheckCircle className="h-4 w-4" />
+                No payment, delivery, identity, or intake recovery work right now.
+              </div>
+            ) : (
+              <div className="mt-5 space-y-2">
+                {attentionCategories.slice(0, 5).map((category) => {
+                  const tone = getSeverityTone(category.severity)
+                  return (
+                    <Link
+                      key={category.id}
+                      href={category.href}
+                      className={cn(
+                        "group flex items-center justify-between gap-3 rounded-lg border px-3 py-3 transition-colors",
+                        tone.card,
+                      )}
+                    >
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium text-foreground">{category.label}</p>
+                        <p className={cn("text-xs", tone.text)}>{category.count} open</p>
+                      </div>
+                      <FailureActionPill category={category} />
+                    </Link>
+                  )
+                })}
+                {attentionCategories.length > 5 ? (
+                  <p className="px-1 pt-1 text-xs text-muted-foreground">
+                    {attentionCategories.length - 5} more recovery groups are listed below.
+                  </p>
+                ) : null}
+              </div>
+            )}
+          </div>
+
+          <div className="rounded-xl border border-border/50 bg-card p-6 shadow-sm shadow-primary/[0.04] dark:shadow-none">
+            <div className="flex items-center gap-2">
+              <Server className="h-5 w-5 text-muted-foreground" />
+              <h3 className="text-base font-semibold text-foreground">Health checks</h3>
+            </div>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Green means there is no admin action to open from this dashboard.
+            </p>
+            <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-1">
+              <StatusIndicator healthy={systemStatus.webhooksHealthy} label="Payment webhooks" />
+              <StatusIndicator healthy={systemStatus.emailsHealthy} label="Email delivery" />
+              <StatusIndicator healthy={systemStatus.intakesHealthy} label="Intake processing" />
+              <StatusIndicator healthy={systemStatus.patientIdentityHealthy} label="Patient identity" />
+              <StatusIndicator healthy={systemStatus.prescribingIdentityHealthy} label="Prescribing identity" />
+              <StatusIndicator healthy={systemStatus.failureOverviewHealthy} label="Recovery inbox" />
+              <StatusIndicator healthy={systemStatus.telegramAlertsHealthy} label="Telegram alerts" />
+            </div>
+          </div>
+        </section>
+
+        <section className="rounded-xl border border-border/50 bg-card p-6 shadow-sm shadow-primary/[0.04] dark:shadow-none">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <div className="flex items-center gap-2">
                 <AlertTriangle className={cn("h-5 w-5", failureOverview.openCount > 0 ? "text-warning" : "text-success")} />
-                <h3 className="text-base font-semibold text-foreground">Operational Failure Inbox</h3>
+                <h3 className="text-base font-semibold text-foreground">Recovery inbox</h3>
               </div>
               <p className="mt-1 text-sm text-muted-foreground">
-                One place for payment, webhook, email, certificate, and script delivery failures.
+                One canonical place for payment, webhook, email, certificate, and script delivery failures.
               </p>
             </div>
             <SignalPill tone={failureOverview.openCount > 0 ? "warning" : "success"} className="px-3 py-1.5">
@@ -289,7 +444,7 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
             </SignalPill>
           </div>
 
-          <div className="mt-5 grid gap-3 md:grid-cols-3 xl:grid-cols-7">
+          <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {failureOverview.categories.map((category) => {
               const Icon = categoryIconById[category.id] || AlertTriangle
               const hasFailures = category.count > 0
@@ -374,195 +529,156 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
               </div>
             )}
           </div>
-        </div>
+        </section>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
-          <div className="bg-card border border-border/50 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl p-5">
-            <div className="flex items-center gap-4">
-              <div className={cn("p-3 rounded-lg shrink-0", webhooks.failedCount > 0 ? "bg-destructive-light" : "bg-success-light")}>
-                <Webhook className={cn("h-5 w-5", webhooks.failedCount > 0 ? "text-destructive" : "text-success")} />
-              </div>
-              <div className="min-w-0">
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Payment DLQ</p>
-                <p className={cn("text-2xl font-semibold tabular-nums mt-0.5", webhooks.failedCount > 0 && "text-destructive")}>
-                  {webhooks.failedCount}
-                </p>
-              </div>
-            </div>
-            {webhooks.failedCount > 0 && (
-              <Button variant="link" size="sm" className="mt-3 p-0 h-auto text-xs" asChild>
-                <Link href="/admin/webhook-dlq">Open DLQ →</Link>
-              </Button>
-            )}
+        <section>
+          <div className="mb-3">
+            <h3 className="text-base font-semibold text-foreground">Signals</h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Small operating indicators for today. Open a card only when it has work attached.
+            </p>
           </div>
-
-          <div className="bg-card border border-border/50 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl p-5">
-            <div className="flex items-center gap-4">
-              <div className={cn("p-3 rounded-lg shrink-0", emails.failed > 0 ? "bg-warning-light" : "bg-success-light")}>
-                <Mail className={cn("h-5 w-5", emails.failed > 0 ? "text-warning" : "text-success")} />
-              </div>
-              <div className="min-w-0">
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Email Success</p>
-                <p className="text-2xl font-semibold tabular-nums mt-0.5">{emails.successRate}%</p>
-                <p className="text-xs text-muted-foreground mt-0.5">{emails.total} sent today</p>
-              </div>
-            </div>
-            {emails.failed > 0 && (
-              <Button variant="link" size="sm" className="mt-3 p-0 h-auto text-xs" asChild>
-                <Link href="/admin/emails/hub">View Queue →</Link>
-              </Button>
-            )}
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <OpsSignalCard
+              icon={Webhook}
+              label="Payment DLQ"
+              value={webhooks.failedCount}
+              detail="Dead-lettered checkout webhooks"
+              tone={webhooks.failedCount > 0 ? "critical" : "success"}
+              href={webhooks.failedCount > 0 ? ADMIN_WEBHOOK_DLQ_HREF : undefined}
+              actionLabel={webhooks.failedCount > 0 ? "Open DLQ" : undefined}
+            />
+            <OpsSignalCard
+              icon={Mail}
+              label="Email success"
+              value={`${emails.successRate}%`}
+              detail={`${emails.total} sent today / ${emails.failed} failed / ${emails.pending} pending`}
+              tone={emails.failed > 0 ? "warning" : "success"}
+              href={emails.failed > 0 ? ADMIN_EMAIL_HUB_HREF : undefined}
+              actionLabel={emails.failed > 0 ? "View queue" : undefined}
+            />
+            <OpsSignalCard
+              icon={Clock}
+              label="Stale intakes"
+              value={staleIntakes}
+              detail="Paid requests waiting 2h+"
+              tone={staleIntakes > 0 ? "warning" : "success"}
+              href={staleIntakes > 0 ? ADMIN_STALE_INTAKES_HREF : undefined}
+              actionLabel={staleIntakes > 0 ? "Review stale intakes" : undefined}
+            />
+            <OpsSignalCard
+              icon={ScrollText}
+              label="Audit logs (24h)"
+              value={auditVolume.toLocaleString()}
+              detail="Operational audit events"
+              tone="info"
+              href={ADMIN_AUDIT_HREF}
+              actionLabel="View logs"
+            />
+            <OpsSignalCard
+              icon={Users}
+              label="Patient identity"
+              value={patientIdentity.duplicateProfileCount}
+              detail={`${patientIdentity.duplicateGroupCount} groups / ${patientIdentity.rawProfileCount} raw profiles`}
+              tone={patientIdentity.duplicateProfileCount > 0 ? "warning" : "success"}
+              href={patientIdentity.duplicateProfileCount > 0 ? ADMIN_PATIENT_MERGE_AUDIT_HREF : undefined}
+              actionLabel={patientIdentity.duplicateProfileCount > 0 ? "Review duplicate profiles" : undefined}
+            />
+            <OpsSignalCard
+              icon={Pill}
+              label="Rx Identity Blocks"
+              value={prescribingIdentity.blockedCount}
+              detail={`${prescribingIdentity.readyCount} ready / ${prescribingIdentity.totalActive} active`}
+              tone={prescribingIdentity.blockedCount > 0 ? "warning" : "success"}
+              href={prescribingIdentity.blockedCount > 0 ? ADMIN_PRESCRIBING_IDENTITY_HREF : undefined}
+              actionLabel={prescribingIdentity.blockedCount > 0 ? "Review blocks" : undefined}
+            />
+            <OpsSignalCard
+              icon={BellRing}
+              label="Telegram alerts"
+              value={alerting.telegramConfigured ? "Ready" : "Missing"}
+              detail={
+                alerting.telegramConfigured
+                  ? "Paid request alerts are configured"
+                  : `Missing ${alerting.missingTelegramVars.join(", ")}`
+              }
+              tone={alerting.telegramConfigured ? "success" : "warning"}
+            />
           </div>
+        </section>
 
-          <div className="bg-card border border-border/50 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl p-5">
-            <div className="flex items-center gap-4">
-              <div className={cn("p-3 rounded-lg shrink-0", staleIntakes > 0 ? "bg-warning-light" : "bg-success-light")}>
-                <Clock className={cn("h-5 w-5", staleIntakes > 0 ? "text-warning" : "text-success")} />
-              </div>
-              <div className="min-w-0">
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Stale Intakes</p>
-                <p className={cn("text-2xl font-semibold tabular-nums mt-0.5", staleIntakes > 0 && "text-warning")}>
-                  {staleIntakes}
-                </p>
-                <p className="text-xs text-muted-foreground">Awaiting 2h+</p>
-              </div>
-            </div>
-            {staleIntakes > 0 && (
-              <Button variant="link" size="sm" className="mt-3 p-0 h-auto text-xs" asChild>
-                <Link href={ADMIN_STALE_INTAKES_HREF}>Review stale intakes →</Link>
-              </Button>
-            )}
+        <section>
+          <div className="mb-3">
+            <h3 className="text-base font-semibold text-foreground">Background detail</h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Keep these lower on the page so the dashboard does not become a log reader.
+            </p>
           </div>
-
-          <div className="bg-card border border-border/50 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl p-5">
-            <div className="flex items-center gap-4">
-              <div className="p-3 rounded-lg bg-info-light shrink-0">
-                <ScrollText className="h-5 w-5 text-info" />
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <div className="rounded-xl border border-border/50 bg-card p-6 shadow-sm shadow-primary/[0.04] dark:shadow-none">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Webhook className="h-5 w-5 text-muted-foreground" />
+                  <h3 className="text-base font-semibold text-foreground">Recent payment DLQ events</h3>
+                </div>
+                <Button variant="outline" size="sm" asChild>
+                  <Link href={ADMIN_WEBHOOK_DLQ_HREF}>
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    Open DLQ
+                  </Link>
+                </Button>
               </div>
-              <div className="min-w-0">
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Audit Logs (24h)</p>
-                <p className="text-2xl font-semibold tabular-nums mt-0.5">{auditVolume.toLocaleString()}</p>
-              </div>
-            </div>
-            <Button variant="link" size="sm" className="mt-3 p-0 h-auto text-xs" asChild>
-              <Link href="/admin/audit">View Logs →</Link>
-            </Button>
-          </div>
-
-          <div className="bg-card border border-border/50 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl p-5">
-            <div className="flex items-center gap-4">
-              <div className={cn("p-3 rounded-lg shrink-0", patientIdentity.duplicateProfileCount > 0 ? "bg-warning-light" : "bg-success-light")}>
-                <Users className={cn("h-5 w-5", patientIdentity.duplicateProfileCount > 0 ? "text-warning" : "text-success")} />
-              </div>
-              <div className="min-w-0">
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Patient Identity</p>
-                <p className={cn("text-2xl font-semibold tabular-nums mt-0.5", patientIdentity.duplicateProfileCount > 0 && "text-warning")}>
-                  {patientIdentity.duplicateProfileCount}
-                </p>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  {patientIdentity.duplicateGroupCount} groups / {patientIdentity.rawProfileCount} raw
-                </p>
-              </div>
-            </div>
-            {patientIdentity.duplicateProfileCount > 0 && (
-              <Button variant="link" size="sm" className="mt-3 p-0 h-auto text-xs" asChild>
-                <Link href={ADMIN_PATIENT_MERGE_AUDIT_HREF}>Review duplicate profiles →</Link>
-              </Button>
-            )}
-          </div>
-
-          <div className="bg-card border border-border/50 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl p-5">
-            <div className="flex items-center gap-4">
-              <div className={cn("p-3 rounded-lg shrink-0", prescribingIdentity.blockedCount > 0 ? "bg-warning-light" : "bg-success-light")}>
-                <CreditCard className={cn("h-5 w-5", prescribingIdentity.blockedCount > 0 ? "text-warning" : "text-success")} />
-              </div>
-              <div className="min-w-0">
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Rx Identity Blocks</p>
-                <p className={cn("text-2xl font-semibold tabular-nums mt-0.5", prescribingIdentity.blockedCount > 0 && "text-warning")}>
-                  {prescribingIdentity.blockedCount}
-                </p>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  {prescribingIdentity.readyCount} ready / {prescribingIdentity.totalActive} active
-                </p>
-              </div>
-            </div>
-            {prescribingIdentity.blockedCount > 0 && (
-              <Button variant="link" size="sm" className="mt-3 p-0 h-auto text-xs" asChild>
-                <Link href="/admin/ops/prescribing-identity">Review Blocks →</Link>
-              </Button>
-            )}
-          </div>
-        </div>
-
-        {/* Details Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Recent payment DLQ events */}
-          <div className="bg-card border border-border/50 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <Webhook className="h-5 w-5 text-muted-foreground" />
-                <h3 className="text-base font-semibold text-foreground">Recent payment DLQ events</h3>
-              </div>
-              <Button variant="outline" size="sm" asChild>
-                <Link href="/admin/webhook-dlq">
-                  <RefreshCw className="w-4 h-4 mr-2" />
-                  Open DLQ
-                </Link>
-              </Button>
-            </div>
-            {webhooks.recentFailed.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                <CheckCircle className="w-8 h-8 mx-auto mb-2 text-success" />
-                <p>No failed webhooks</p>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {webhooks.recentFailed.map((webhook) => (
-                  <div key={webhook.id} className="flex items-center justify-between p-2 rounded-lg bg-muted/50">
-                    <div>
-                      <p className="text-sm font-medium">{webhook.event_type}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(webhook.created_at).toLocaleString("en-AU")}
-                      </p>
+              {webhooks.recentFailed.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <CheckCircle className="w-8 h-8 mx-auto mb-2 text-success" />
+                  <p>No failed webhooks</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {webhooks.recentFailed.map((webhook) => (
+                    <div key={webhook.id} className="flex items-center justify-between p-2 rounded-lg bg-muted/50">
+                      <div>
+                        <p className="text-sm font-medium">{webhook.event_type}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(webhook.created_at).toLocaleString("en-AU")}
+                        </p>
+                      </div>
+                      <StatusBadge status="error" size="sm">{webhook.status}</StatusBadge>
                     </div>
-                    <StatusBadge status="error" size="sm">{webhook.status}</StatusBadge>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Recent Errors */}
-          <div className="bg-card border border-border/50 shadow-sm shadow-primary/[0.04] dark:shadow-none rounded-xl p-6">
-            <div className="flex items-center gap-2 mb-1">
-              <AlertTriangle className="h-5 w-5 text-muted-foreground" />
-              <h3 className="text-base font-semibold text-foreground">Recent Errors (7 days)</h3>
+                  ))}
+                </div>
+              )}
             </div>
-            <p className="text-sm text-muted-foreground mb-4">{errors.count} errors logged</p>
-            {errors.recent.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                <CheckCircle className="w-8 h-8 mx-auto mb-2 text-success" />
-                <p>No recent errors</p>
-              </div>
-            ) : (
-              <div className="space-y-2 max-h-[300px] overflow-y-auto">
-                {errors.recent.slice(0, 10).map((error) => (
-                  <div key={error.id} className="flex items-center justify-between p-2 rounded-lg bg-muted/50">
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium truncate">{error.action}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(error.created_at).toLocaleString("en-AU")}
-                      </p>
-                    </div>
-                    <XCircle className="w-4 h-4 text-destructive shrink-0 ml-2" />
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
 
+            <div className="rounded-xl border border-border/50 bg-card p-6 shadow-sm shadow-primary/[0.04] dark:shadow-none">
+              <div className="flex items-center gap-2 mb-1">
+                <AlertTriangle className="h-5 w-5 text-muted-foreground" />
+                <h3 className="text-base font-semibold text-foreground">Recent Errors (7 days)</h3>
+              </div>
+              <p className="text-sm text-muted-foreground mb-4">{errors.count} errors logged</p>
+              {errors.recent.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <CheckCircle className="w-8 h-8 mx-auto mb-2 text-success" />
+                  <p>No recent errors</p>
+                </div>
+              ) : (
+                <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                  {errors.recent.slice(0, 10).map((error) => (
+                    <div key={error.id} className="flex items-center justify-between p-2 rounded-lg bg-muted/50">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium truncate">{error.action}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(error.created_at).toLocaleString("en-AU")}
+                        </p>
+                      </div>
+                      <XCircle className="w-4 h-4 text-destructive shrink-0 ml-2" />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
       </div>
     </div>
   )

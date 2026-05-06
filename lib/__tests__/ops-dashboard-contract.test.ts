@@ -59,7 +59,7 @@ describe("ops dashboard data contract", () => {
   it("keeps webhook recovery on the canonical Stripe DLQ surface", () => {
     expect(adminHubZonesSource).toContain("ADMIN_WEBHOOK_DLQ_HREF")
     expect(dashboardRoutesSource).toContain('ADMIN_WEBHOOK_DLQ_HREF = "/admin/webhook-dlq"')
-    expect(opsClientSource).toContain('href="/admin/webhook-dlq"')
+    expect(opsClientSource).toContain("ADMIN_WEBHOOK_DLQ_HREF")
     expect(adminHubZonesSource).not.toContain('href: "/admin/webhooks"')
     expect(adminSidebarSource).not.toContain('href: "/admin/webhooks"')
     expect(adminSidebarSource).not.toContain('href: "/admin/webhook-dlq"')
@@ -67,5 +67,14 @@ describe("ops dashboard data contract", () => {
     expect(legacyWebhooksPageSource).toContain('redirect("/admin/webhook-dlq")')
     expect(legacyWebhooksPageSource).not.toContain('.from("webhook_events")')
     expect(legacyWebhooksPageSource).not.toContain('.from("webhook_dlq")')
+  })
+
+  it("surfaces Telegram alert configuration without exposing secret values", () => {
+    expect(opsPageSource).toContain("getMissingTelegramAlertEnv")
+    expect(opsPageSource).toContain("telegramAlertsHealthy")
+    expect(opsClientSource).toContain("Telegram alerts")
+    expect(opsClientSource).toContain("missingTelegramVars")
+    expect(opsClientSource).not.toContain("process.env.TELEGRAM_BOT_TOKEN")
+    expect(opsClientSource).not.toContain("process.env.TELEGRAM_CHAT_ID")
   })
 })

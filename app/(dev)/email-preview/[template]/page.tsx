@@ -19,6 +19,7 @@ import { FollowUpReminderEmail } from "@/lib/email/components/templates/follow-u
 import { GuestCompleteAccountEmail } from "@/lib/email/components/templates/guest-complete-account"
 import { HairLossApprovedEmail } from "@/lib/email/components/templates/hair-loss-approved"
 import { IntakeSubmittedEmail } from "@/lib/email/components/templates/intake-submitted"
+import { MagicLinkEmail, magicLinkEmailSubject } from "@/lib/email/components/templates/magic-link"
 import { MedCertEmployerEmail } from "@/lib/email/components/templates/med-cert-employer"
 import { MedCertPatientEmail } from "@/lib/email/components/templates/med-cert-patient"
 import { NeedsMoreInfoEmail } from "@/lib/email/components/templates/needs-more-info"
@@ -100,6 +101,17 @@ const templates: Record<string, {
         requestedFrom="Chrome on macOS"
         requestedAt="30 March 2026, 2:15 PM AEST"
         appUrl={mock.appUrl}
+      />
+    ),
+  },
+  "magic-link": {
+    name: "Magic Link",
+    subject: magicLinkEmailSubject,
+    render: () => (
+      <MagicLinkEmail
+        loginUrl={`${mock.appUrl}/auth/callback?next=%2Fadmin`}
+        appUrl={mock.appUrl}
+        firstName="Sarah"
       />
     ),
   },

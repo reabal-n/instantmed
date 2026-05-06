@@ -16,7 +16,7 @@ import { NextResponse } from "next/server"
 import React from "react"
 import { Webhook } from "svix"
 
-import { MagicLinkEmail } from "@/lib/email/components/templates/magic-link"
+import { MagicLinkEmail, magicLinkEmailSubject } from "@/lib/email/components/templates/magic-link"
 import { renderEmailToHtml } from "@/lib/email/react-renderer-server"
 import { toError } from "@/lib/errors"
 import { createLogger } from "@/lib/observability/logger"
@@ -68,11 +68,11 @@ function buildVerifyUrl(
 
 function getSubject(actionType: string, firstName?: string): string {
   const subjectMap: Record<string, string> = {
-    magiclink: "Your InstantMed login link",
+    magiclink: magicLinkEmailSubject,
     signup: firstName
       ? `Welcome, ${firstName}! Confirm your email`
       : "Confirm your InstantMed email",
-    recovery: "Reset your InstantMed password",
+    recovery: "Reset your InstantMed access",
     invite: "You've been invited to InstantMed",
     email_change: "Confirm your new email address",
     reauthentication: "Confirm your InstantMed identity",

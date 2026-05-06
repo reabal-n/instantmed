@@ -9,7 +9,6 @@ import { Suspense, useCallback,useState } from "react"
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { PATIENT_DASHBOARD_HREF } from '@/lib/dashboard/routes'
 import { getPatientCount } from '@/lib/social-proof'
 import { createClient } from '@/lib/supabase/client'
 
@@ -43,9 +42,21 @@ function GoogleIcon({ className }: { className?: string }) {
 
 type FormState = 'idle' | 'loading' | 'success' | 'error'
 
+function buildPostSignInHref(redirectUrl: string) {
+  if (redirectUrl.startsWith("/auth/post-signin") && !redirectUrl.startsWith("//")) {
+    return redirectUrl
+  }
+  if (redirectUrl.startsWith("/") && !redirectUrl.startsWith("//")) {
+    return `/auth/post-signin?redirect=${encodeURIComponent(redirectUrl)}`
+  }
+  return "/auth/post-signin"
+}
+
 function SignInForm() {
   const searchParams = useSearchParams()
   const redirectUrl = searchParams.get('redirect_url') || searchParams.get('redirect') || ''
+  const authError = searchParams.get('auth_error')
+  const linkExpired = authError === 'link_expired'
   const shouldReduceMotion = useReducedMotion()
 
   const [email, setEmail] = useState('')
@@ -95,9 +106,7 @@ function SignInForm() {
       return
     }
 
-    // Redirect on success
-    const next = redirectUrl || PATIENT_DASHBOARD_HREF
-    window.location.href = next
+    window.location.assign(buildPostSignInHref(redirectUrl))
   }, [email, password, redirectUrl, supabase.auth])
 
   const handleGoogleSignIn = useCallback(async () => {
@@ -200,6 +209,14 @@ function SignInForm() {
             </div>
 
             <form onSubmit={handleSignIn} className="space-y-3">
+              {linkExpired && (
+                <div className="flex items-start gap-3 rounded-xl border border-warning-border bg-warning-light px-4 py-3 text-sm text-warning">
+                  <Mail className="mt-0.5 h-4 w-4 shrink-0" />
+                  <p>
+                    That sign-in link expired. Enter your email and we&apos;ll send a fresh one.
+                  </p>
+                </div>
+              )}
               <Input
                 type="email"
                 placeholder="your@email.com"

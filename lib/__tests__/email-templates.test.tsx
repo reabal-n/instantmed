@@ -1020,7 +1020,8 @@ describe("Email Templates", () => {
         />
       )
       expectBaseEmailStructure(html)
-      expectContains(html, "Continue to InstantMed", "Secure one-time sign-in link", "60 minutes")
+      expectContains(html, "Your sign-in link is ready", "No password. No waiting room.", "Open InstantMed", "60 minutes")
+      expectContains(html, "Faster than your GP.", "Button playing up?", "No stress.")
     })
 
     it("renders signup confirmation copy", () => {
@@ -1033,11 +1034,11 @@ describe("Email Templates", () => {
         />
       )
       expectBaseEmailStructure(html)
-      expectContains(html, "Confirm your account", "Pat", "Confirm account")
+      expectContains(html, "Confirm your InstantMed account", "Pat", "Confirm account")
     })
 
     it("magic-link subject", () => {
-      expect(magicLinkEmailSubject).toBeTruthy()
+      expect(magicLinkEmailSubject).toBe("Your InstantMed sign-in link is ready")
     })
 
     it("matches snapshot", () => {

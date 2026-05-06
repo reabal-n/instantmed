@@ -160,7 +160,9 @@ export function AdminDashboardClient({
   stats,
 }: AdminDashboardClientProps) {
   const [searchQuery, setSearchQuery] = useState("")
-  const [workLaneFilter, setWorkLaneFilter] = useState<AdminWorkLaneFilterValue>("all")
+  const [workLaneFilter, setWorkLaneFilter] = useState<AdminWorkLaneFilterValue>(() =>
+    allIntakes.some((intake) => getAdminWorkLaneForStatus(intake.status) === "doctor") ? "doctor" : "all",
+  )
   const [statusFilter, setStatusFilter] = useState<AdminIntakeStatusFilterValue>("all")
   const [serviceFilter, setServiceFilter] = useState<string>("all")
 
@@ -232,7 +234,7 @@ export function AdminDashboardClient({
         <CardHeader className="border-b border-border/40 px-4 py-3">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <CardTitle className="text-base font-semibold tracking-tight">
-              Intake ledger ({filteredIntakes.length})
+              Requests ({filteredIntakes.length})
             </CardTitle>
             <div className="flex flex-wrap gap-1.5">
               {summary.map((item) => (

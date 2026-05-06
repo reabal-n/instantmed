@@ -31,6 +31,12 @@ const templates = [
     description: "One-time verification code for identity confirmation",
     category: "lifecycle",
   },
+  {
+    slug: "magic-link",
+    name: "Magic Link",
+    description: "Passwordless sign-in email sent from the Supabase auth hook",
+    category: "lifecycle",
+  },
 
   // ── Request Flow ──
   {

@@ -147,6 +147,32 @@ const productionRequirements = z.object({
  * This ensures builds fail fast on missing required vars
  */
 let prodEnvWarned = false
+
+export function isVercelProductionEnvironment(): boolean {
+  return process.env.VERCEL === "1" && process.env.VERCEL_ENV === "production" && process.env.CI === "1"
+}
+
+export function shouldRunProductionEnvPreflight(nodeEnv: string): boolean {
+  if (nodeEnv !== "production") return false
+  if (process.env.INSTANTMED_VALIDATE_PRODUCTION_ENV === "true") return true
+  return isVercelProductionEnvironment()
+}
+
+type TelegramAlertEnvSource =
+  | NodeJS.ProcessEnv
+  | Partial<Record<"TELEGRAM_BOT_TOKEN" | "TELEGRAM_CHAT_ID", string | undefined>>
+
+export function getMissingTelegramAlertEnv(envSource: TelegramAlertEnvSource = process.env): string[] {
+  return [
+    envSource.TELEGRAM_BOT_TOKEN ? null : "TELEGRAM_BOT_TOKEN",
+    envSource.TELEGRAM_CHAT_ID ? null : "TELEGRAM_CHAT_ID",
+  ].filter((value): value is string => Boolean(value))
+}
+
+export function hasTelegramAlertEnv(envSource: TelegramAlertEnvSource = process.env): boolean {
+  return getMissingTelegramAlertEnv(envSource).length === 0
+}
+
 function validateServerEnv() {
   const parsed = serverEnvSchema.safeParse(process.env)
 
@@ -163,7 +189,7 @@ function validateServerEnv() {
   // convenience that surfaces all missing vars at once in logs -- not a build gate.
   // Throwing here breaks `next build` because Next.js sets NODE_ENV=production
   // during builds and evaluates server modules for page data collection.
-  if (parsed.data.NODE_ENV === "production" && !process.env.CI && !prodEnvWarned) {
+  if (shouldRunProductionEnvPreflight(parsed.data.NODE_ENV) && !prodEnvWarned) {
     prodEnvWarned = true
     const prodParsed = productionRequirements.safeParse(process.env)
     if (!prodParsed.success) {
@@ -194,11 +220,6 @@ function validateServerEnv() {
 
 // Validate on module load (fails build if invalid)
 const validatedEnv = validateServerEnv()
-
-if (!validatedEnv.TELEGRAM_BOT_TOKEN || !validatedEnv.TELEGRAM_CHAT_ID) {
-  // eslint-disable-next-line no-console
-  console.warn("[env] TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID not set - real-time alerts disabled")
-}
 
 // ============================================
 // SERVER-ONLY ENVIRONMENT VARIABLES

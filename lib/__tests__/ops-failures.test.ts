@@ -84,6 +84,14 @@ describe("operational failure overview", () => {
       href: "/admin/ops/parchment",
       severity: "critical",
     })
+    expect(overview.categories.find((category) => category.id === "stripe_webhooks")).toMatchObject({
+      label: "Payment webhooks",
+      href: "/admin/webhook-dlq",
+    })
+    expect(overview.categories.find((category) => category.id === "stale_scripts")).toMatchObject({
+      href: "/admin/ops/intakes-stuck",
+    })
+    expect(overview.recent.every((item) => !item.href.startsWith("/doctor"))).toBe(true)
   })
 
   it("reports a clean state without inventing failures", () => {

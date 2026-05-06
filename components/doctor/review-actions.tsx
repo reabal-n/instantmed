@@ -165,7 +165,10 @@ export function useReviewActions({
 
   const closeAndRefresh = useCallback(() => {
     closePanel()
-    onActionComplete?.({ advance: true })
+    if (onActionComplete) {
+      onActionComplete({ advance: true })
+      return
+    }
     router.refresh()
   }, [closePanel, onActionComplete, router])
 
@@ -364,7 +367,7 @@ export function useReviewActions({
         playApprovalSound()
         toast.success("Approved. Opening Parchment.")
         onActionComplete?.({ advance: false })
-        router.refresh()
+        if (!onActionComplete) router.refresh()
         openParchmentPanel()
       } else {
         toast.error(result.error || "Failed to approve script")

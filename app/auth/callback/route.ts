@@ -49,7 +49,15 @@ export async function GET(request: NextRequest) {
 
   if (error) {
     log.error("Supabase code exchange failed", { error: error.message })
-    return NextResponse.redirect(`${origin}/auth/error?message=${encodeURIComponent(error.message)}`)
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) {
+      const destination = resolvePostAuthDestination(next)
+      log.info("Code exchange failed but session exists, continuing", {
+        destinationKind: destinationKind(destination),
+      })
+      return NextResponse.redirect(`${origin}${destination}`)
+    }
+    return NextResponse.redirect(`${origin}/sign-in?auth_error=link_expired`)
   }
 
   // Successful auth - redirect through post-signin for profile linking

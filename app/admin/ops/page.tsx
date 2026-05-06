@@ -1,5 +1,6 @@
 import { buildOperationalFailureOverview } from "@/lib/admin/ops-failures"
 import { requireRole } from "@/lib/auth/helpers"
+import { getMissingTelegramAlertEnv } from "@/lib/config/env"
 import {
   getDuplicatePatientProfileSummary,
   getPrescribingIdentityBlockerReport,
@@ -178,6 +179,7 @@ export default async function OpsDashboardPage() {
   const prescriptionWebhookFailures = filterNonActionableOpsErrors(
     (prescriptionWebhookFailuresResult.data || []) as AuditErrorRow[],
   ).filter((row) => getMetadataString(row.metadata, "eventType") === "parchment:prescription.created")
+  const missingTelegramAlertEnv = getMissingTelegramAlertEnv()
   const failureOverview = buildOperationalFailureOverview({
     stripeDlq: webhookDlqResult.data || [],
     emailFailures: emailFailuresResult.data || [],
@@ -217,6 +219,10 @@ export default async function OpsDashboardPage() {
     },
     staleIntakes: staleIntakes.length,
     failureOverview,
+    alerting: {
+      telegramConfigured: missingTelegramAlertEnv.length === 0,
+      missingTelegramVars: missingTelegramAlertEnv,
+    },
     systemStatus: {
       webhooksHealthy: (webhookDlqResult.count || 0) < 5,
       emailsHealthy: emailStats.failed < 3,
@@ -224,6 +230,7 @@ export default async function OpsDashboardPage() {
       patientIdentityHealthy: patientIdentityResult.duplicateProfileCount === 0,
       prescribingIdentityHealthy: prescribingIdentityResult.blockedCount === 0,
       failureOverviewHealthy: failureOverview.openCount === 0,
+      telegramAlertsHealthy: missingTelegramAlertEnv.length === 0,
     },
   }
 

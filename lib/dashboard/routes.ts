@@ -6,12 +6,14 @@ export const ADMIN_ANALYTICS_HREF = "/admin/analytics" as const
 export const ADMIN_FINANCE_HREF = "/admin/finance" as const
 export const ADMIN_OPS_HREF = "/admin/ops" as const
 export const ADMIN_SETTINGS_HREF = "/admin/settings" as const
+export const ADMIN_AUDIT_HREF = "/admin/audit" as const
 export const ADMIN_EMAIL_HUB_HREF = "/admin/emails/hub" as const
 export const ADMIN_REFUNDS_HREF = "/admin/refunds" as const
 export const ADMIN_WEBHOOK_DLQ_HREF = "/admin/webhook-dlq" as const
 export const ADMIN_PARCHMENT_OPS_HREF = "/admin/ops/parchment" as const
 export const ADMIN_STALE_INTAKES_HREF = "/admin/ops/intakes-stuck" as const
 export const ADMIN_PATIENT_MERGE_AUDIT_HREF = "/admin/ops/patient-merge-audit" as const
+export const ADMIN_PRESCRIBING_IDENTITY_HREF = "/admin/ops/prescribing-identity" as const
 
 export function buildAdminIntakeHref(intakeId: string): string {
   return `/admin/intakes/${encodeURIComponent(intakeId)}`

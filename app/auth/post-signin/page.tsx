@@ -329,7 +329,9 @@ export default async function PostSignInPage({
   } else if (params.intake_id) {
     destination = `/patient/intakes/success?intake_id=${params.intake_id}`
   } else {
-    if (profile.role === "doctor" || profile.role === "admin") {
+    if (profile.role === "admin") {
+      destination = "/admin"
+    } else if (profile.role === "doctor") {
       destination = "/doctor/dashboard"
     } else {
       destination = profile.onboarding_completed ? "/patient" : "/patient/onboarding"

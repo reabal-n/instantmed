@@ -26,13 +26,16 @@ function readProjectFile(relativePath: string): string {
 }
 
 describe("admin pulse dashboard", () => {
-  it("keeps the default admin page focused on the lightweight pulse, not the heavy KPI tab", () => {
+  it("keeps the default admin page request-first, with the pulse as secondary context", () => {
     const page = readProjectFile("app/admin/page.tsx")
     const pulseSource = readProjectFile("lib/data/admin-pulse.ts")
 
     expect(page).toContain("getAdminPulseData")
     expect(page).toContain("<AdminPulse pulse={pulse} />")
-    expect(page).toContain("A light founder/doctor control room")
+    expect(page).toContain("Requests first")
+    expect(page.indexOf("<AdminDashboardClient")).toBeLessThan(page.indexOf("<AdminPulse"))
+    expect(page).not.toContain("<AdminHubZones")
+    expect(page).not.toContain("<YesterdayWidget")
     expect(pulseSource).toContain("getIntakeMonitoringStats")
     expect(pulseSource).toContain("getDoctorDashboardStats")
     expect(pulseSource).not.toContain("getBusinessKPIData")
@@ -68,6 +71,8 @@ describe("admin pulse dashboard", () => {
     expect(ledger).toContain("matchesAdminServiceFilter")
     expect(ledger).toContain("Doctor work")
     expect(ledger).toContain("Admin work")
+    expect(ledger).toContain('AdminWorkLaneFilterValue>(() =>')
+    expect(ledger).toContain('"doctor" : "all"')
     expect(ledger.indexOf("Doctor work")).toBeLessThan(ledger.indexOf("Search by name"))
   })
 

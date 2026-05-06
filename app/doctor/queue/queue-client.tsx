@@ -15,6 +15,7 @@ import { SERVICE_TYPES } from "@/lib/doctor/service-types"
 import { useQueueRealtime } from "@/lib/doctor/use-queue-realtime"
 import { formatServiceType } from "@/lib/format/intake"
 import { useDebounce } from "@/lib/hooks/use-debounce"
+import { cn } from "@/lib/utils"
 import type { IntakeStatus, IntakeWithPatient } from "@/types/db"
 
 import { updateStatusAction } from "./actions"
@@ -78,6 +79,9 @@ export function QueueClient({
   const [statusFilter, setStatusFilter] = useState<QueueStatusFilter>(initialStatusFilter)
   const [priorityModeActive, setPriorityModeActive] = useState(false)
   const [isApprovePending, startTransition] = useTransition()
+  const [isQueueRefreshPending, startQueueRefreshTransition] = useTransition()
+  const lastQueueRefreshAtRef = useRef(0)
+  const [lastQueueRefreshAt, setLastQueueRefreshAt] = useState<Date | null>(null)
   const dialogs = useQueueDialogs({ intakes, setIntakes })
   const [clockNow, setClockNow] = useState<Date | null>(null)
   const [soundMuted, setSoundMuted] = useState(() => {
@@ -92,6 +96,36 @@ export function QueueClient({
     explicitStatusFilterRef.current = searchParams.has("status") && nextStatus !== "all"
     setStatusFilter(nextStatus)
   }, [searchParams])
+
+  const refreshQueue = useCallback((force = false) => {
+    const now = Date.now()
+    if (!force && now - lastQueueRefreshAtRef.current < 5000) return
+    lastQueueRefreshAtRef.current = now
+    setLastQueueRefreshAt(new Date(now))
+    startQueueRefreshTransition(() => {
+      router.refresh()
+    })
+  }, [router])
+
+  useEffect(() => {
+    setLastQueueRefreshAt(new Date())
+  }, [])
+
+  useEffect(() => {
+    const refreshIfVisible = () => {
+      if (document.visibilityState === "visible") refreshQueue()
+    }
+
+    const interval = window.setInterval(refreshIfVisible, 45000)
+    window.addEventListener("focus", refreshIfVisible)
+    document.addEventListener("visibilitychange", refreshIfVisible)
+
+    return () => {
+      window.clearInterval(interval)
+      window.removeEventListener("focus", refreshIfVisible)
+      document.removeEventListener("visibilitychange", refreshIfVisible)
+    }
+  }, [refreshQueue])
 
   const handleStatusFilterChange = useCallback((value: QueueStatusFilter) => {
     setStatusFilter(value)
@@ -148,6 +182,11 @@ export function QueueClient({
     if (!clockNow) return null
     return calculateSlaCountdown(slaDeadline, clockNow)
   }, [clockNow])
+
+  const lastQueueRefreshLabel = useMemo(() => {
+    if (!lastQueueRefreshAt) return "Auto refresh on"
+    return `Updated ${lastQueueRefreshAt.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}`
+  }, [lastQueueRefreshAt])
 
   // Play a subtle notification sound when a new intake arrives
   const playNotificationSound = useCallback(() => {
@@ -214,11 +253,11 @@ export function QueueClient({
           caseIndex={caseIndex >= 0 ? caseIndex : undefined}
           totalCases={list.length > 0 ? list.length : undefined}
           onActionComplete={(options) => {
-            router.refresh()
             const { nextIntake } = removeCompletedIntakeFromQueue(filteredIntakesRef.current, intakeId)
             setIntakes((prev) => {
               return removeCompletedIntakeFromQueue(prev, intakeId).remaining
             })
+            refreshQueue(true)
             if (options?.advance !== false && nextIntake) {
               setTimeout(() => openReviewPanel(nextIntake.id), 150)
             }
@@ -234,7 +273,7 @@ export function QueueClient({
         />
       ),
     })
-  }, [openPanel, router, markAsRead])
+  }, [openPanel, refreshQueue, markAsRead])
 
   const handleApprove = useCallback(async (intakeId: string, serviceType?: string | null) => {
     if (serviceType === SERVICE_TYPES.MED_CERTS) {
@@ -250,6 +289,7 @@ export function QueueClient({
       if (result.success) {
         const removedIntake = intakes.find((r) => r.id === intakeId)
         setIntakes((prev) => prev.filter((r) => r.id !== intakeId))
+        refreshQueue(true)
         if (serviceType === SERVICE_TYPES.COMMON_SCRIPTS || serviceType === SERVICE_TYPES.REPEAT_RX) {
           openReviewPanel(intakeId)
         } else {
@@ -260,6 +300,7 @@ export function QueueClient({
                 const revert = await updateStatusAction(intakeId, "paid")
                 if (revert.success) {
                   setIntakes((prev) => [removedIntake, ...prev])
+                  refreshQueue(true)
                   toast.success("Approval undone")
                 } else {
                   toast.error("Couldn't undo approval")
@@ -278,7 +319,7 @@ export function QueueClient({
         toast.error(result.error || "Failed to approve")
       }
     })
-  }, [openReviewPanel, startTransition, intakes])
+  }, [openReviewPanel, startTransition, intakes, refreshQueue])
 
 
   const hasRedFlags = useCallback((intake: IntakeWithPatient): boolean => {
@@ -478,10 +519,11 @@ export function QueueClient({
           <Button
             variant="outline"
             size="sm"
-            onClick={() => router.refresh()}
+            onClick={() => refreshQueue(true)}
+            disabled={isQueueRefreshPending}
             className="h-7 shrink-0 text-xs"
           >
-            <RefreshCw className="mr-1 h-3 w-3" />
+            <RefreshCw className={cn("mr-1 h-3 w-3", isQueueRefreshPending && "animate-spin")} />
             Refresh
           </Button>
         </div>
@@ -501,10 +543,11 @@ export function QueueClient({
           <Button
             variant="outline"
             size="sm"
-            onClick={() => router.refresh()}
+            onClick={() => refreshQueue(true)}
+            disabled={isQueueRefreshPending}
             className="shrink-0 h-7 text-xs"
           >
-            <RefreshCw className="h-3 w-3 mr-1" />
+            <RefreshCw className={cn("h-3 w-3 mr-1", isQueueRefreshPending && "animate-spin")} />
             Refresh
           </Button>
         </div>
@@ -520,13 +563,15 @@ export function QueueClient({
             setSoundMuted(newMuted)
             localStorage.setItem("instantmed:queue-sound-muted", String(newMuted))
           }}
-          onRefresh={() => router.refresh()}
+          onRefresh={() => refreshQueue(true)}
           statusFilter={statusFilter}
           onStatusFilterChange={handleStatusFilterChange}
           intakes={intakes}
           filteredCount={filteredIntakes.length}
           isStale={isStale}
           isReconnecting={isReconnecting}
+          isRefreshing={isQueueRefreshPending}
+          lastUpdatedLabel={lastQueueRefreshLabel}
         />
       </div>
 

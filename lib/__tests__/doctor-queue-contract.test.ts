@@ -32,6 +32,10 @@ const queueActionsSource = readFileSync(
   join(process.cwd(), "app/doctor/queue/actions.ts"),
   "utf8",
 )
+const reviewActionsSource = readFileSync(
+  join(process.cwd(), "components/doctor/review-actions.tsx"),
+  "utf8",
+)
 
 const queueHealthSource = readFileSync(
   join(process.cwd(), "lib/monitoring/queue-health.ts"),
@@ -65,6 +69,19 @@ describe("doctor queue production contract", () => {
   it("does not inject raw Supabase realtime INSERT rows into the hydrated queue list", () => {
     expect(realtimeSource).toContain("isHydratedQueueRealtimeInsert")
     expect(realtimeSource).toContain("router.refresh()")
+  })
+
+  it("keeps queue refreshes throttled and runs a refresh after successful decisions", () => {
+    expect(queueClientSource).toContain("lastQueueRefreshAtRef")
+    expect(queueClientSource).toContain("lastQueueRefreshLabel")
+    expect(queueClientSource).toContain("window.setInterval(refreshIfVisible, 45000)")
+    expect(queueClientSource).toContain("refreshQueue(true)")
+    expect(queueClientSource).toContain("setLastQueueRefreshAt(new Date(now))")
+    expect(queueClientSource).toContain("lastUpdatedLabel={lastQueueRefreshLabel}")
+    expect(queueClientSource).toContain("onActionComplete={(options)")
+    expect(queueClientSource).not.toContain("onActionComplete={(options) => {\n            router.refresh()")
+    expect(reviewActionsSource).toContain("if (onActionComplete)")
+    expect(reviewActionsSource).toContain("if (!onActionComplete) router.refresh()")
   })
 
   it("does not write patient email addresses into decline logs", () => {

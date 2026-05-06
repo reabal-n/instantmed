@@ -1,5 +1,10 @@
-import { describe, expect,it } from 'vitest'
-import { z } from 'zod'
+import { readFileSync } from "node:fs"
+import { join } from "node:path"
+
+import { describe, expect, it } from "vitest"
+import { z } from "zod"
+
+const envConfigSource = readFileSync(join(process.cwd(), "lib/config/env.ts"), "utf8")
 
 /**
  * Tests for environment validation schemas
@@ -160,6 +165,27 @@ describe('Environment Validation Schema', () => {
       if (result.success) {
         expect(result.data.NODE_ENV).toBe('development')
       }
+    })
+  })
+
+  describe("Telegram alert preflight contract", () => {
+    it("keeps paid-request Telegram alerts required for deployed production", () => {
+      expect(envConfigSource).toContain(
+        'TELEGRAM_BOT_TOKEN: z.string().min(1, "Production requires TELEGRAM_BOT_TOKEN for paid request alerts")',
+      )
+      expect(envConfigSource).toContain(
+        'TELEGRAM_CHAT_ID: z.string().min(1, "Production requires TELEGRAM_CHAT_ID for paid request alerts")',
+      )
+    })
+
+    it("does not emit false Telegram warnings during local Next production builds", () => {
+      expect(envConfigSource).toContain("shouldRunProductionEnvPreflight")
+      expect(envConfigSource).toContain('process.env.VERCEL_ENV === "production"')
+      expect(envConfigSource).toContain('process.env.CI === "1"')
+      expect(envConfigSource).toContain("INSTANTMED_VALIDATE_PRODUCTION_ENV")
+      expect(envConfigSource).toContain("getMissingTelegramAlertEnv")
+      expect(envConfigSource).not.toContain("real-time alerts disabled")
+      expect(envConfigSource).not.toContain("TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID not set")
     })
   })
 })
