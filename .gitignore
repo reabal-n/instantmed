@@ -87,9 +87,16 @@ DAILY_AUDIT_PROMPT.md
 # Claude Code session state (scheduled_tasks.lock etc)
 .claude/
 
+# Codex/agent local tooling state
+.agents/
+.codex/
+
 # MCP config (contains absolute paths)
 .mcp.json
 
 # Tool server dependencies
 tools/*/node_modules
 .lighthouseci/
+
+# Local UI scratch/reference exports
+Uiverse-Component-MuhammadHasann.md
