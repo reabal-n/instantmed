@@ -138,3 +138,7 @@ export { SubscriptionCancelledEmail, subscriptionCancelledSubject } from "./subs
 // --- Magic Link (Supabase auth hook) ---
 export type { MagicLinkEmailProps } from "./magic-link"
 export { MagicLinkEmail, magicLinkEmailSubject } from "./magic-link"
+
+// --- Ops Test Email ---
+export type { OpsTestEmailProps } from "./ops-test"
+export { OpsTestEmail, opsTestEmailSubject } from "./ops-test"

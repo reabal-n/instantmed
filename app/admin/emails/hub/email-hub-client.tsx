@@ -3,6 +3,7 @@
 import {
   Activity,
   AlertTriangle,
+  ArrowRight,
   BarChart3,
   CheckCircle,
   Clock,
@@ -13,22 +14,26 @@ import {
   MailCheck,
   MailOpen,
   RefreshCw,
+  Search,
   Send,
   ShieldAlert,
 } from "lucide-react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { useState, useTransition } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
+import { useMemo, useState, useTransition } from "react"
 import { toast } from "sonner"
 
+import { sendOpsTestEmailAction } from "@/app/actions/email-ops"
 import { retryOutboxEmail } from "@/app/actions/email-retry"
 import type { EmailStats, RecentEmailActivity } from "@/app/actions/email-stats"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Heading } from "@/components/ui/heading"
+import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { formatTimeAgo } from "@/lib/format"
+import { cn } from "@/lib/utils"
 
 // Email type display names
 const emailTypeLabels: Record<string, string> = {
@@ -51,6 +56,7 @@ const emailTypeLabels: Record<string, string> = {
   consult_approved: "Consult Approved",
   guest_complete_account: "Complete Account (Guest)",
   generic: "Generic Email",
+  ops_test: "Ops Test",
 }
 
 // Sanitize email for display
@@ -63,14 +69,72 @@ function sanitizeEmail(email: string): string {
 interface EmailHubClientProps {
   initialStats: EmailStats
   initialActivity: RecentEmailActivity[]
+  outboxRows: EmailOutboxLedgerRow[]
+  outboxTotal: number
   templateCounts: { active: number; total: number }
   yesterdayEmailCount: number
 }
 
-export function EmailHubClient({ initialStats, initialActivity, templateCounts, yesterdayEmailCount }: EmailHubClientProps) {
-  const [activeTab, setActiveTab] = useState("overview")
+interface EmailOutboxLedgerRow {
+  id: string
+  email_type: string
+  to_email: string
+  subject: string
+  status: "pending" | "sending" | "sent" | "failed" | "skipped_e2e"
+  provider_message_id: string | null
+  error_message: string | null
+  retry_count: number
+  last_attempt_at: string | null
+  delivery_status: string | null
+  delivery_status_updated_at: string | null
+  intake_id: string | null
+  created_at: string
+  sent_at: string | null
+}
+
+function EmailStatusPill({
+  status,
+  deliveryStatus,
+}: {
+  status: EmailOutboxLedgerRow["status"] | string
+  deliveryStatus?: string | null
+}) {
+  const resolvedStatus = deliveryStatus === "bounced" || deliveryStatus === "complained"
+    ? deliveryStatus
+    : status
+
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-medium leading-none capitalize",
+        ["sent", "skipped_e2e", "delivered", "opened", "clicked"].includes(resolvedStatus)
+          && "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-950/30 dark:text-emerald-300",
+        ["pending", "sending"].includes(resolvedStatus)
+          && "border-orange-200 bg-orange-100 text-orange-800 dark:border-orange-500/30 dark:bg-orange-950/40 dark:text-orange-200",
+        ["failed", "bounced", "complained"].includes(resolvedStatus)
+          && "border-red-200 bg-red-100 text-red-800 dark:border-red-500/30 dark:bg-red-950/40 dark:text-red-200",
+      )}
+    >
+      {resolvedStatus === "skipped_e2e" ? "sent (test)" : resolvedStatus.replace("_", " ")}
+    </span>
+  )
+}
+
+export function EmailHubClient({
+  initialStats,
+  initialActivity,
+  outboxRows,
+  outboxTotal,
+  templateCounts,
+  yesterdayEmailCount,
+}: EmailHubClientProps) {
+  const searchParams = useSearchParams()
+  const [activeTab, setActiveTab] = useState(searchParams.get("tab") === "queue" ? "queue" : "overview")
   const [retryingId, setRetryingId] = useState<string | null>(null)
+  const [outboxQuery, setOutboxQuery] = useState("")
+  const [outboxStatus, setOutboxStatus] = useState<"all" | EmailOutboxLedgerRow["status"]>("all")
   const [isRefreshing, startRefresh] = useTransition()
+  const [isSendingTest, startTestEmail] = useTransition()
   const router = useRouter()
   const stats = initialStats
   const activity = initialActivity
@@ -78,6 +142,30 @@ export function EmailHubClient({ initialStats, initialActivity, templateCounts, 
   const handleRefresh = () => {
     startRefresh(() => {
       router.refresh()
+    })
+  }
+
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab)
+    const params = new URLSearchParams(searchParams.toString())
+    if (tab === "queue") {
+      params.set("tab", "queue")
+    } else {
+      params.delete("tab")
+    }
+    router.replace(params.toString() ? `/admin/emails/hub?${params}` : "/admin/emails/hub", { scroll: false })
+  }
+
+  const handleSendOpsTestEmail = () => {
+    startTestEmail(async () => {
+      const result = await sendOpsTestEmailAction()
+      if (result.success) {
+        toast.success("Test email sent to your admin address")
+        router.refresh()
+        return
+      }
+
+      toast.error(result.error || "Test email failed")
     })
   }
 
@@ -103,6 +191,23 @@ export function EmailHubClient({ initialStats, initialActivity, templateCounts, 
     ? Math.round(((stats.emailsSentToday - yesterdayEmailCount) / yesterdayEmailCount) * 100)
     : stats.emailsSentToday > 0 ? 100 : 0
 
+  const filteredOutboxRows = useMemo(() => {
+    const normalizedQuery = outboxQuery.trim().toLowerCase()
+    return outboxRows.filter((row) => {
+      const matchesStatus = outboxStatus === "all" || row.status === outboxStatus
+      if (!matchesStatus) return false
+      if (!normalizedQuery) return true
+
+      return [
+        row.email_type,
+        row.subject,
+        row.to_email,
+        row.intake_id || "",
+        row.provider_message_id || "",
+      ].some((value) => value.toLowerCase().includes(normalizedQuery))
+    })
+  }, [outboxQuery, outboxRows, outboxStatus])
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -117,6 +222,10 @@ export function EmailHubClient({ initialStats, initialActivity, templateCounts, 
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={handleSendOpsTestEmail} disabled={isSendingTest}>
+            {isSendingTest ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Send className="h-4 w-4 mr-2" />}
+            Send test
+          </Button>
           <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isRefreshing}>
             {isRefreshing ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
             Refresh
@@ -130,7 +239,7 @@ export function EmailHubClient({ initialStats, initialActivity, templateCounts, 
         </div>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="queue">Queue</TabsTrigger>
@@ -372,7 +481,7 @@ export function EmailHubClient({ initialStats, initialActivity, templateCounts, 
                   variant="outline"
                   size="sm"
                   className="w-full"
-                  onClick={() => setActiveTab("queue")}
+                  onClick={() => handleTabChange("queue")}
                 >
                   View Delivery Queue
                 </Button>
@@ -424,6 +533,113 @@ export function EmailHubClient({ initialStats, initialActivity, templateCounts, 
               </CardContent>
             </Card>
           </div>
+
+          <Card>
+            <CardHeader>
+              <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <MailOpen className="h-5 w-5" />
+                    Outgoing email ledger
+                  </CardTitle>
+                  <CardDescription>
+                    Latest {outboxRows.length} of {outboxTotal.toLocaleString()} outbox rows with send, delivery, and retry state.
+                  </CardDescription>
+                </div>
+                <div className="flex flex-col gap-2 sm:flex-row">
+                  <Input
+                    size="sm"
+                    value={outboxQuery}
+                    onChange={(event) => setOutboxQuery(event.target.value)}
+                    placeholder="Search recipient, subject, intake..."
+                    startContent={<Search className="h-3.5 w-3.5" />}
+                    className="w-full sm:w-72"
+                  />
+                  <div className="flex flex-wrap gap-1.5">
+                    {(["all", "failed", "pending", "sending", "sent"] as const).map((status) => (
+                      <Button
+                        key={status}
+                        type="button"
+                        variant={outboxStatus === status ? "default" : "outline"}
+                        size="sm"
+                        className="h-9 px-2.5 text-xs capitalize"
+                        onClick={() => setOutboxStatus(status)}
+                      >
+                        {status}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {filteredOutboxRows.length === 0 ? (
+                <div className="rounded-lg border border-border/60 bg-muted/30 px-3 py-6 text-center text-sm text-muted-foreground">
+                  No outgoing emails match this view.
+                </div>
+              ) : (
+                <div className="divide-y divide-border/50 rounded-lg border border-border/50">
+                  {filteredOutboxRows.slice(0, 50).map((row) => {
+                    const canRetry = ["failed", "pending"].includes(row.status)
+                    return (
+                      <div
+                        key={row.id}
+                        className="grid gap-3 px-3 py-3 lg:grid-cols-[minmax(0,1.35fr)_minmax(180px,0.7fr)_minmax(170px,0.55fr)_auto] lg:items-center"
+                      >
+                        <div className="min-w-0">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <p className="truncate text-sm font-medium text-foreground">
+                              {emailTypeLabels[row.email_type] || row.email_type}
+                            </p>
+                            <EmailStatusPill status={row.status} deliveryStatus={row.delivery_status} />
+                          </div>
+                          <p className="mt-1 truncate text-xs text-muted-foreground">{row.subject}</p>
+                          {row.error_message ? (
+                            <p className="mt-1 truncate text-xs text-destructive">{row.error_message}</p>
+                          ) : null}
+                        </div>
+                        <div className="min-w-0 text-xs text-muted-foreground">
+                          <p className="truncate">{sanitizeEmail(row.to_email)}</p>
+                          <p className="truncate">
+                            {row.intake_id ? `Intake ${row.intake_id.slice(0, 8)}` : "No linked intake"}
+                          </p>
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          <p>{formatTimeAgo(row.sent_at || row.last_attempt_at || row.created_at)}</p>
+                          <p>{row.retry_count} retries</p>
+                        </div>
+                        <div className="flex justify-start lg:justify-end">
+                          {canRetry ? (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-8 gap-1.5 px-2.5 text-xs"
+                              onClick={() => handleRetry(row.id)}
+                              disabled={retryingId === row.id}
+                            >
+                              {retryingId === row.id ? (
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                              ) : (
+                                <RefreshCw className="h-3.5 w-3.5" />
+                              )}
+                              Retry
+                            </Button>
+                          ) : row.intake_id ? (
+                            <Button size="sm" variant="ghost" className="h-8 gap-1.5 px-2.5 text-xs" asChild>
+                              <Link href={`/admin/intakes/${row.intake_id}`}>
+                                Open
+                                <ArrowRight className="h-3.5 w-3.5" />
+                              </Link>
+                            </Button>
+                          ) : null}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
           {/* Recent failed emails from activity feed */}
           <Card>
@@ -486,9 +702,9 @@ export function EmailHubClient({ initialStats, initialActivity, templateCounts, 
           </Card>
 
           <div className="flex gap-3">
-            <Button variant="outline" onClick={() => setActiveTab("overview")}>
+            <Button variant="outline" onClick={() => handleTabChange("overview")}>
               <MailOpen className="mr-2 h-4 w-4" />
-              Full Email Outbox
+              Back to overview
             </Button>
             <Link href="/admin/emails/suppression">
               <Button variant="outline">

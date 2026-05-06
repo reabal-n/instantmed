@@ -2,6 +2,13 @@ import { buildOperationalFailureOverview } from "@/lib/admin/ops-failures"
 import { requireRole } from "@/lib/auth/helpers"
 import { getMissingTelegramAlertEnv } from "@/lib/config/env"
 import {
+  ADMIN_AUDIT_HREF,
+  ADMIN_EMAIL_HUB_HREF,
+  ADMIN_PARCHMENT_OPS_HREF,
+  ADMIN_WEBHOOK_DLQ_HREF,
+  buildAdminIntakeHref,
+} from "@/lib/dashboard/routes"
+import {
   getDuplicatePatientProfileSummary,
   getPrescribingIdentityBlockerReport,
 } from "@/lib/doctor/patient-identity-report"
@@ -33,6 +40,14 @@ function filterNonActionableOpsErrors(rows: AuditErrorRow[]): AuditErrorRow[] {
   return rows.filter((row) => !isNonActionableParchmentSandboxError(row))
 }
 
+function metadataEquals(row: AuditErrorRow, key: string, expected: string): boolean {
+  return getMetadataString(row.metadata, key) === expected
+}
+
+function metadataStartsWith(row: AuditErrorRow, key: string, prefix: string): boolean {
+  return getMetadataString(row.metadata, key)?.startsWith(prefix) || false
+}
+
 export default async function OpsDashboardPage() {
   await requireRole(["admin"], { redirectTo: "/admin" })
 
@@ -58,6 +73,10 @@ export default async function OpsDashboardPage() {
     certificateFailuresResult,
     prescriptionWebhookFailuresResult,
     staleScriptIntakesResult,
+    opsAuditActionsResult,
+    recentOutgoingEmailsResult,
+    latestPaidIntakeResult,
+    latestSentEmailResult,
   ] = await Promise.all([
     // Failed webhooks (DLQ)
     supabase
@@ -159,6 +178,39 @@ export default async function OpsDashboardPage() {
       .order("updated_at", { ascending: true })
       .limit(20)
       .then(r => r.error ? { data: [] } : r),
+
+    supabase
+      .from("audit_logs")
+      .select("id, action, created_at, metadata")
+      .eq("action", "admin_action")
+      .gte("created_at", weekAgo.toISOString())
+      .order("created_at", { ascending: false })
+      .limit(100)
+      .then(r => r.error ? { data: [] } : r),
+
+    supabase
+      .from("email_outbox")
+      .select("id, email_type, subject, status, delivery_status, error_message, retry_count, intake_id, created_at, sent_at, last_attempt_at")
+      .order("created_at", { ascending: false })
+      .limit(8)
+      .then(r => r.error ? { data: [] } : r),
+
+    supabase
+      .from("intakes")
+      .select("id, paid_at, category, subtype")
+      .not("paid_at", "is", null)
+      .order("paid_at", { ascending: false })
+      .limit(1)
+      .then(r => r.error ? { data: [] } : r),
+
+    supabase
+      .from("email_outbox")
+      .select("id, email_type, status, delivery_status, sent_at, created_at, intake_id")
+      .in("status", ["sent", "skipped_e2e"])
+      .not("sent_at", "is", null)
+      .order("sent_at", { ascending: false })
+      .limit(1)
+      .then(r => r.error ? { data: [] } : r),
   ])
 
   // Process email stats
@@ -180,6 +232,22 @@ export default async function OpsDashboardPage() {
     (prescriptionWebhookFailuresResult.data || []) as AuditErrorRow[],
   ).filter((row) => getMetadataString(row.metadata, "eventType") === "parchment:prescription.created")
   const missingTelegramAlertEnv = getMissingTelegramAlertEnv()
+  const missingEmailDeliveryEnv = [
+    process.env.RESEND_API_KEY ? null : "RESEND_API_KEY",
+  ].filter((value): value is string => Boolean(value))
+  const opsAuditActions = ((opsAuditActionsResult.data || []) as AuditErrorRow[])
+  const lastTelegramTest = opsAuditActions.find((row) =>
+    metadataEquals(row, "action_type", "telegram_test_alert") && metadataEquals(row, "status", "sent")
+  )
+  const lastOpsEmailTest = opsAuditActions.find((row) =>
+    metadataEquals(row, "action_type", "ops_test_email") && metadataEquals(row, "status", "sent")
+  )
+  const lastParchmentSuccess = opsAuditActions.find((row) =>
+    metadataStartsWith(row, "action_type", "parchment_webhook_")
+      || (metadataEquals(row, "action_type", "parchment_webhook_retry") && metadataEquals(row, "result", "success"))
+  )
+  const latestPaidIntake = latestPaidIntakeResult.data?.[0] || null
+  const latestSentEmail = latestSentEmailResult.data?.[0] || null
   const failureOverview = buildOperationalFailureOverview({
     stripeDlq: webhookDlqResult.data || [],
     emailFailures: emailFailuresResult.data || [],
@@ -201,6 +269,21 @@ export default async function OpsDashboardPage() {
     emails: {
       ...emailStats,
       successRate: parseFloat(emailSuccessRate),
+      configured: missingEmailDeliveryEnv.length === 0,
+      missingVars: missingEmailDeliveryEnv,
+      lastTestedAt: lastOpsEmailTest?.created_at || null,
+      recentOutgoing: (recentOutgoingEmailsResult.data || []).map((row) => ({
+        id: row.id,
+        emailType: row.email_type || "unknown",
+        subject: row.subject || "No subject",
+        status: row.status || "unknown",
+        deliveryStatus: row.delivery_status || null,
+        errorMessage: row.error_message || null,
+        retryCount: row.retry_count ?? 0,
+        intakeId: row.intake_id || null,
+        occurredAt: row.sent_at || row.last_attempt_at || row.created_at,
+        href: row.intake_id ? buildAdminIntakeHref(row.intake_id) : `${ADMIN_EMAIL_HUB_HREF}?tab=queue`,
+      })),
     },
     errors: {
       count: recentErrors.length,
@@ -222,10 +305,53 @@ export default async function OpsDashboardPage() {
     alerting: {
       telegramConfigured: missingTelegramAlertEnv.length === 0,
       missingTelegramVars: missingTelegramAlertEnv,
+      telegramLastTestedAt: lastTelegramTest?.created_at || null,
     },
+    productionTimeline: [
+      {
+        id: "payment_webhook",
+        label: "Payment webhook",
+        status: latestPaidIntake ? "ok" as const : "missing" as const,
+        detail: latestPaidIntake
+          ? [latestPaidIntake.category, latestPaidIntake.subtype].filter(Boolean).join(" / ") || "Paid request recorded"
+          : "No paid request recorded yet",
+        occurredAt: latestPaidIntake?.paid_at || null,
+        href: latestPaidIntake ? buildAdminIntakeHref(latestPaidIntake.id) : ADMIN_WEBHOOK_DLQ_HREF,
+      },
+      {
+        id: "email_delivery",
+        label: "Email delivery",
+        status: latestSentEmail ? "ok" as const : "missing" as const,
+        detail: latestSentEmail
+          ? `${latestSentEmail.email_type || "email"} / ${latestSentEmail.delivery_status || latestSentEmail.status}`
+          : "No sent email recorded yet",
+        occurredAt: latestSentEmail?.sent_at || latestSentEmail?.created_at || null,
+        href: `${ADMIN_EMAIL_HUB_HREF}?tab=queue`,
+      },
+      {
+        id: "telegram_alert",
+        label: "Telegram alert",
+        status: lastTelegramTest ? "ok" as const : "missing" as const,
+        detail: lastTelegramTest
+          ? `Test event ${getMetadataString(lastTelegramTest.metadata, "event_id")?.slice(0, 8) || "sent"}`
+          : "No successful test alert this week",
+        occurredAt: lastTelegramTest?.created_at || null,
+        href: ADMIN_AUDIT_HREF,
+      },
+      {
+        id: "parchment_sync",
+        label: "Parchment sync",
+        status: lastParchmentSuccess ? "ok" as const : "missing" as const,
+        detail: lastParchmentSuccess
+          ? getMetadataString(lastParchmentSuccess.metadata, "action_type") || "Parchment success"
+          : "No sync success recorded this week",
+        occurredAt: lastParchmentSuccess?.created_at || null,
+        href: ADMIN_PARCHMENT_OPS_HREF,
+      },
+    ],
     systemStatus: {
       webhooksHealthy: (webhookDlqResult.count || 0) < 5,
-      emailsHealthy: emailStats.failed < 3,
+      emailsHealthy: emailStats.failed < 3 && missingEmailDeliveryEnv.length === 0,
       intakesHealthy: staleIntakes.length < 3,
       patientIdentityHealthy: patientIdentityResult.duplicateProfileCount === 0,
       prescribingIdentityHealthy: prescribingIdentityResult.blockedCount === 0,

@@ -27,11 +27,14 @@ export interface EmailOutboxRow {
   to_email: string
   to_name: string | null
   subject: string
-  status: "pending" | "sent" | "failed" | "skipped_e2e"
+  status: "pending" | "sending" | "sent" | "failed" | "skipped_e2e"
   provider: string
   provider_message_id: string | null
   error_message: string | null
   retry_count: number
+  last_attempt_at: string | null
+  delivery_status: string | null
+  delivery_status_updated_at: string | null
   intake_id: string | null
   patient_id: string | null
   certificate_id: string | null
@@ -89,6 +92,9 @@ export async function getEmailOutboxList(options: {
         provider_message_id,
         error_message,
         retry_count,
+        last_attempt_at,
+        delivery_status,
+        delivery_status_updated_at,
         intake_id,
         patient_id,
         certificate_id,
@@ -167,7 +173,7 @@ export async function getEmailOutboxById(
 
     const { data, error } = await supabase
       .from("email_outbox")
-      .select("id, email_type, to_email, to_name, subject, status, provider, provider_message_id, error_message, retry_count, intake_id, patient_id, certificate_id, metadata, created_at, sent_at")
+      .select("id, email_type, to_email, to_name, subject, status, provider, provider_message_id, error_message, retry_count, last_attempt_at, delivery_status, delivery_status_updated_at, intake_id, patient_id, certificate_id, metadata, created_at, sent_at")
       .eq("id", id)
       .single()
 

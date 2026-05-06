@@ -167,6 +167,23 @@ export async function reconstructEmailContent(row: OutboxRow): Promise<{
   }
 
   // ----------------------------------------------------------------
+  // ops_test - PHI-free operational email delivery test
+  // ----------------------------------------------------------------
+  if (row.email_type === "ops_test") {
+    const metadata = row.metadata as { event_id?: string; issued_at?: string } | null
+
+    const { OpsTestEmail } = await import("@/lib/email/components/templates")
+    const template = OpsTestEmail({
+      eventId: metadata?.event_id || row.id,
+      issuedAt: metadata?.issued_at || new Date().toISOString(),
+      appUrl: env.appUrl,
+    })
+
+    const html = await renderEmailToHtml(template)
+    return { success: true, html }
+  }
+
+  // ----------------------------------------------------------------
   // script_sent - React template, needs intake data
   // ----------------------------------------------------------------
   if (row.email_type === "script_sent") {

@@ -23,8 +23,32 @@ const telegramOpsActionsSource = readFileSync(
   join(process.cwd(), "app/actions/telegram-ops.ts"),
   "utf8",
 )
+const emailOpsActionsSource = readFileSync(
+  join(process.cwd(), "app/actions/email-ops.ts"),
+  "utf8",
+)
 const telegramNotificationsSource = readFileSync(
   join(process.cwd(), "lib/notifications/telegram.ts"),
+  "utf8",
+)
+const opsTestEmailSource = readFileSync(
+  join(process.cwd(), "lib/email/components/templates/ops-test.tsx"),
+  "utf8",
+)
+const emailHubClientSource = readFileSync(
+  join(process.cwd(), "app/admin/emails/hub/email-hub-client.tsx"),
+  "utf8",
+)
+const emailHubPageSource = readFileSync(
+  join(process.cwd(), "app/admin/emails/hub/page.tsx"),
+  "utf8",
+)
+const emailSendTypesSource = readFileSync(
+  join(process.cwd(), "lib/email/send/types.ts"),
+  "utf8",
+)
+const emailReconstructSource = readFileSync(
+  join(process.cwd(), "lib/email/send/reconstruct.ts"),
   "utf8",
 )
 const legacyWebhooksPageSource = readFileSync(
@@ -113,5 +137,48 @@ describe("ops dashboard data contract", () => {
     expect(functionSource).toContain("Telegram test alert failed")
     expect(functionSource).not.toContain("patientName")
     expect(functionSource).not.toContain("intakeId")
+  })
+
+  it("lets admins send an audited PHI-free email delivery test", () => {
+    expect(opsClientSource).toContain("sendOpsTestEmailAction")
+    expect(opsClientSource).toContain("Live email check")
+    expect(opsClientSource).toContain("Test email sent")
+    expect(emailHubClientSource).toContain("sendOpsTestEmailAction")
+    expect(emailHubClientSource).toContain("Send test")
+
+    expect(emailOpsActionsSource).toContain('requireRoleOrNull(["admin"])')
+    expect(emailOpsActionsSource).toContain("checkServerActionRateLimit")
+    expect(emailOpsActionsSource).toContain("sendEmail")
+    expect(emailOpsActionsSource).toContain('emailType: "ops_test"')
+    expect(emailOpsActionsSource).toContain("logAuditEvent")
+    expect(emailOpsActionsSource).toContain('action_type: "ops_test_email"')
+    expect(emailOpsActionsSource).toContain('status: "blocked"')
+    expect(emailOpsActionsSource).toContain('result.success ? "sent" : "failed"')
+    expect(emailOpsActionsSource).toContain('status: "failed"')
+
+    expect(opsTestEmailSource).toContain("InstantMed email delivery test")
+    expect(opsTestEmailSource).toContain("PHI-free")
+    expect(opsTestEmailSource).not.toContain("patientName")
+    expect(opsTestEmailSource).not.toContain("intakeId")
+  })
+
+  it("keeps ops test emails reconstructable from the outbox", () => {
+    expect(emailSendTypesSource).toContain('"ops_test"')
+    expect(emailReconstructSource).toContain('row.email_type === "ops_test"')
+    expect(emailReconstructSource).toContain("OpsTestEmail")
+    expect(emailReconstructSource).toContain("metadata?.event_id")
+  })
+
+  it("surfaces outgoing email status and recovery actions in admin", () => {
+    expect(emailHubPageSource).toContain("getEmailOutboxList")
+    expect(emailHubPageSource).toContain("outboxRows")
+    expect(emailHubClientSource).toContain("Outgoing email ledger")
+    expect(emailHubClientSource).toContain("EmailStatusPill")
+    expect(emailHubClientSource).toContain("retryOutboxEmail")
+    expect(emailHubClientSource).toContain('params.set("tab", "queue")')
+    expect(opsClientSource).toContain("Outgoing emails")
+    expect(opsClientSource).toContain("Production health timeline")
+    expect(opsClientSource).toContain("Recovery palette")
+    expect(opsClientSource).toContain("ADMIN_PARCHMENT_OPS_HREF")
   })
 })

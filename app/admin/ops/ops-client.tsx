@@ -7,12 +7,16 @@ import {
   CheckCircle,
   Clock,
   FileWarning,
+  Keyboard,
   type LucideIcon,
   Mail,
+  MailOpen,
   Pill,
   ReceiptText,
   RefreshCw,
   ScrollText,
+  Search,
+  Send,
   Server,
   Users,
   Webhook,
@@ -20,15 +24,25 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { type ReactNode, useState, useTransition } from "react"
+import { type KeyboardEvent, type ReactNode, useEffect, useMemo, useState, useTransition } from "react"
 import { toast } from "sonner"
 
+import { sendOpsTestEmailAction } from "@/app/actions/email-ops"
 import { sendTelegramTestAlertAction } from "@/app/actions/telegram-ops"
 import { DashboardPageHeader, StatusBadge } from "@/components/dashboard"
 import { Button } from "@/components/ui/button"
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import {
   ADMIN_AUDIT_HREF,
   ADMIN_EMAIL_HUB_HREF,
+  ADMIN_PARCHMENT_OPS_HREF,
   ADMIN_PATIENT_MERGE_AUDIT_HREF,
   ADMIN_PRESCRIBING_IDENTITY_HREF,
   ADMIN_STALE_INTAKES_HREF,
@@ -52,6 +66,21 @@ interface OpsData {
     failed: number
     pending: number
     successRate: number
+    configured: boolean
+    missingVars: string[]
+    lastTestedAt: string | null
+    recentOutgoing: Array<{
+      id: string
+      emailType: string
+      subject: string
+      status: string
+      deliveryStatus: string | null
+      errorMessage: string | null
+      retryCount: number
+      intakeId: string | null
+      occurredAt: string
+      href: string
+    }>
   }
   errors: {
     count: number
@@ -79,7 +108,16 @@ interface OpsData {
   alerting: {
     telegramConfigured: boolean
     missingTelegramVars: string[]
+    telegramLastTestedAt: string | null
   }
+  productionTimeline: Array<{
+    id: string
+    label: string
+    status: "ok" | "missing"
+    detail: string
+    occurredAt: string | null
+    href: string
+  }>
   failureOverview: {
     openCount: number
     categories: Array<{
@@ -330,6 +368,240 @@ function TelegramTestAlertControl({
   )
 }
 
+function EmailTestControl({
+  configured,
+  missingVars,
+}: {
+  configured: boolean
+  missingVars: string[]
+}) {
+  const router = useRouter()
+  const [isPending, startTransition] = useTransition()
+  const [lastResult, setLastResult] = useState<{
+    tone: "success" | "critical"
+    label: string
+  } | null>(null)
+
+  return (
+    <div className="flex flex-col gap-2 rounded-lg border border-border/60 bg-muted/30 p-3">
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-xs font-medium text-foreground">Live email check</p>
+          <p className="truncate text-[11px] text-muted-foreground">
+            {configured ? "Sends a real test to your admin email." : `Missing ${missingVars.join(", ")}`}
+          </p>
+        </div>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="h-8 shrink-0 gap-1.5 px-2.5 text-xs"
+          disabled={!configured || isPending}
+          onClick={() => {
+            startTransition(async () => {
+              const result = await sendOpsTestEmailAction()
+              if (result.success) {
+                setLastResult({ tone: "success", label: "Sent" })
+                toast.success("Test email sent")
+                router.refresh()
+                return
+              }
+
+              setLastResult({ tone: "critical", label: "Failed" })
+              toast.error(result.error || "Test email failed")
+            })
+          }}
+        >
+          <Send className={cn("h-3.5 w-3.5", isPending && "animate-spin")} />
+          {isPending ? "Sending" : "Send test"}
+        </Button>
+      </div>
+      {lastResult ? (
+        <SignalPill tone={lastResult.tone} className="w-fit">
+          {lastResult.label}
+        </SignalPill>
+      ) : null}
+    </div>
+  )
+}
+
+function formatOpsTime(value: string | null): string {
+  if (!value) return "No signal"
+  return new Date(value).toLocaleString("en-AU", {
+    day: "2-digit",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  })
+}
+
+function ProductionHealthTimeline({
+  items,
+}: {
+  items: OpsData["productionTimeline"]
+}) {
+  return (
+    <section className="rounded-xl border border-border/50 bg-card p-6 shadow-sm shadow-primary/[0.04] dark:shadow-none">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <div className="flex items-center gap-2">
+            <Server className="h-5 w-5 text-muted-foreground" />
+            <h3 className="text-base font-semibold text-foreground">Production health timeline</h3>
+          </div>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Last successful signal for the paths that make a paid request actually move.
+          </p>
+        </div>
+        <SignalPill tone={items.every((item) => item.status === "ok") ? "success" : "warning"} className="px-3 py-1.5">
+          {items.filter((item) => item.status === "ok").length}/{items.length} live
+        </SignalPill>
+      </div>
+
+      <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+        {items.map((item) => (
+          <Link
+            key={item.id}
+            href={item.href}
+            className={cn(
+              "group rounded-lg border p-3 transition-colors",
+              item.status === "ok"
+                ? "border-emerald-200 bg-emerald-50/50 hover:border-emerald-300 dark:border-emerald-500/25 dark:bg-emerald-950/15"
+                : "border-orange-200 bg-orange-50/70 hover:border-orange-300 dark:border-orange-500/25 dark:bg-orange-950/20",
+            )}
+          >
+            <div className="flex items-center justify-between gap-2">
+              <p className="truncate text-sm font-medium text-foreground">{item.label}</p>
+              <div className={cn("h-2.5 w-2.5 rounded-full", item.status === "ok" ? "bg-emerald-500" : "bg-orange-500")} />
+            </div>
+            <p className="mt-2 truncate text-xs text-muted-foreground">{item.detail}</p>
+            <p className="mt-1 text-xs font-medium text-foreground">{formatOpsTime(item.occurredAt)}</p>
+          </Link>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+interface OpsCommandItem {
+  id: string
+  title: string
+  detail: string
+  href: string
+  tone: "critical" | "warning" | "neutral"
+  keywords: string
+}
+
+function OpsCommandPalette({ commands }: { commands: OpsCommandItem[] }) {
+  const router = useRouter()
+  const [open, setOpen] = useState(false)
+  const [query, setQuery] = useState("")
+  const [selectedIndex, setSelectedIndex] = useState(0)
+
+  useEffect(() => {
+    function handleGlobalKeydown(event: globalThis.KeyboardEvent) {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault()
+        setOpen(true)
+      }
+    }
+
+    window.addEventListener("keydown", handleGlobalKeydown)
+    return () => window.removeEventListener("keydown", handleGlobalKeydown)
+  }, [])
+
+  const filteredCommands = useMemo(() => {
+    const normalizedQuery = query.trim().toLowerCase()
+    if (!normalizedQuery) return commands
+    return commands.filter((command) =>
+      [command.title, command.detail, command.keywords].join(" ").toLowerCase().includes(normalizedQuery)
+    )
+  }, [commands, query])
+
+  useEffect(() => {
+    setSelectedIndex(0)
+  }, [query])
+
+  function openCommand(command: OpsCommandItem) {
+    setOpen(false)
+    setQuery("")
+    router.push(command.href)
+  }
+
+  function handleListKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    if (event.key === "ArrowDown") {
+      event.preventDefault()
+      setSelectedIndex((index) => Math.min(index + 1, filteredCommands.length - 1))
+    }
+    if (event.key === "ArrowUp") {
+      event.preventDefault()
+      setSelectedIndex((index) => Math.max(index - 1, 0))
+    }
+    if (event.key === "Enter" && filteredCommands[selectedIndex]) {
+      event.preventDefault()
+      openCommand(filteredCommands[selectedIndex])
+    }
+  }
+
+  return (
+    <>
+      <Button type="button" variant="outline" size="sm" className="gap-2" onClick={() => setOpen(true)}>
+        <Keyboard className="h-4 w-4" />
+        Recovery palette
+      </Button>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Recovery palette</DialogTitle>
+            <DialogDescription>
+              Search the operational fix paths. Use arrow keys and Enter to open.
+            </DialogDescription>
+          </DialogHeader>
+          <div onKeyDown={handleListKeyDown}>
+            <Input
+              autoFocus
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Retry webhook, resend email, stale intake, sync script..."
+              startContent={<Search className="h-4 w-4" />}
+            />
+            <div className="mt-3 max-h-[360px] overflow-y-auto rounded-lg border border-border/60">
+              {filteredCommands.length === 0 ? (
+                <div className="px-3 py-6 text-center text-sm text-muted-foreground">
+                  No recovery action matches that search.
+                </div>
+              ) : (
+                filteredCommands.map((command, index) => (
+                  <button
+                    key={command.id}
+                    type="button"
+                    className={cn(
+                      "flex w-full items-center justify-between gap-3 border-b border-border/50 px-3 py-3 text-left last:border-b-0",
+                      index === selectedIndex ? "bg-muted/70" : "hover:bg-muted/40",
+                    )}
+                    onMouseEnter={() => setSelectedIndex(index)}
+                    onClick={() => openCommand(command)}
+                  >
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="truncate text-sm font-medium text-foreground">{command.title}</p>
+                        <SignalPill tone={command.tone === "critical" ? "critical" : command.tone === "warning" ? "warning" : "neutral"}>
+                          {command.tone === "neutral" ? "Open" : command.tone}
+                        </SignalPill>
+                      </div>
+                      <p className="mt-1 truncate text-xs text-muted-foreground">{command.detail}</p>
+                    </div>
+                    <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                  </button>
+                ))
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
+  )
+}
+
 function FailureStatusPill({ category }: { category: FailureCategory }) {
   if (category.count === 0) {
     return <SignalPill tone="success">Clear</SignalPill>
@@ -381,6 +653,7 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
     prescribingIdentity,
     staleIntakes,
     alerting,
+    productionTimeline,
     failureOverview,
     systemStatus,
   } = ops
@@ -403,6 +676,43 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
     stale_scripts: Clock,
   }
   const attentionCategories = failureOverview.categories.filter((category) => category.count > 0)
+  const prescriptionFailures = failureOverview.categories.find(
+    (category) => category.id === "prescription_delivery",
+  )?.count || 0
+  const commandItems = useMemo<OpsCommandItem[]>(() => [
+    {
+      id: "retry-webhook",
+      title: "Retry failed webhook",
+      detail: `${webhooks.failedCount} unresolved payment webhook${webhooks.failedCount === 1 ? "" : "s"}`,
+      href: ADMIN_WEBHOOK_DLQ_HREF,
+      tone: webhooks.failedCount > 0 ? "critical" : "neutral",
+      keywords: "stripe webhook payment checkout dead letter retry",
+    },
+    {
+      id: "resend-email",
+      title: "Resend failed email",
+      detail: `${emails.failed} failed / ${emails.pending} pending`,
+      href: `${ADMIN_EMAIL_HUB_HREF}?tab=queue`,
+      tone: emails.failed > 0 || emails.pending > 0 ? "warning" : "neutral",
+      keywords: "email outbox delivery resend retry pending failed",
+    },
+    {
+      id: "open-stale-intake",
+      title: "Open stale intake queue",
+      detail: `${staleIntakes} paid request${staleIntakes === 1 ? "" : "s"} waiting 2h+`,
+      href: ADMIN_STALE_INTAKES_HREF,
+      tone: staleIntakes > 0 ? "warning" : "neutral",
+      keywords: "stale intake paid request recovery queue",
+    },
+    {
+      id: "sync-script",
+      title: "Sync prescription script",
+      detail: `${prescriptionFailures} prescription webhook failure${prescriptionFailures === 1 ? "" : "s"}`,
+      href: ADMIN_PARCHMENT_OPS_HREF,
+      tone: prescriptionFailures > 0 ? "critical" : "neutral",
+      keywords: "parchment prescription script webhook sync retry",
+    },
+  ], [emails.failed, emails.pending, prescriptionFailures, staleIntakes, webhooks.failedCount])
 
   return (
     <div className="min-h-full">
@@ -413,9 +723,12 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
           backHref="/admin"
           backLabel="Admin"
           actions={
-            <SignalPill tone={allHealthy ? "success" : "warning"} className="px-3 py-1.5">
-              System {overallStatus}
-            </SignalPill>
+            <div className="flex flex-wrap items-center gap-2">
+              <OpsCommandPalette commands={commandItems} />
+              <SignalPill tone={allHealthy ? "success" : "warning"} className="px-3 py-1.5">
+                System {overallStatus}
+              </SignalPill>
+            </div>
           }
         />
 
@@ -490,6 +803,8 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
             </div>
           </div>
         </section>
+
+        <ProductionHealthTimeline items={productionTimeline} />
 
         <section className="rounded-xl border border-border/50 bg-card p-6 shadow-sm shadow-primary/[0.04] dark:shadow-none">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -615,11 +930,17 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
               icon={Mail}
               label="Email success"
               value={`${emails.successRate}%`}
-              detail={`${emails.total} sent today / ${emails.failed} failed / ${emails.pending} pending`}
-              tone={emails.failed > 0 ? "warning" : "success"}
-              href={emails.failed > 0 ? ADMIN_EMAIL_HUB_HREF : undefined}
-              actionLabel={emails.failed > 0 ? "View queue" : undefined}
-            />
+              detail={
+                emails.configured
+                  ? `${emails.total} today / ${emails.failed} failed / ${emails.pending} pending`
+                  : `Missing ${emails.missingVars.join(", ")}`
+              }
+              tone={!emails.configured || emails.failed > 0 ? "warning" : "success"}
+              href={`${ADMIN_EMAIL_HUB_HREF}?tab=queue`}
+              actionLabel="Open outbox"
+            >
+              <EmailTestControl configured={emails.configured} missingVars={emails.missingVars} />
+            </OpsSignalCard>
             <OpsSignalCard
               icon={Clock}
               label="Stale intakes"
@@ -662,7 +983,7 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
               value={alerting.telegramConfigured ? "Ready" : "Missing"}
               detail={
                 alerting.telegramConfigured
-                  ? "Paid request alerts are configured"
+                  ? `Last test ${formatOpsTime(alerting.telegramLastTestedAt)}`
                   : `Missing ${alerting.missingTelegramVars.join(", ")}`
               }
               tone={alerting.telegramConfigured ? "success" : "warning"}
@@ -673,6 +994,73 @@ export function OpsDashboardClient({ ops }: OpsDashboardClientProps) {
               />
             </OpsSignalCard>
           </div>
+        </section>
+
+        <section className="rounded-xl border border-border/50 bg-card p-6 shadow-sm shadow-primary/[0.04] dark:shadow-none">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <div className="flex items-center gap-2">
+                <MailOpen className="h-5 w-5 text-muted-foreground" />
+                <h3 className="text-base font-semibold text-foreground">Outgoing emails</h3>
+              </div>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Latest send, retry, and delivery states without opening a log table.
+              </p>
+            </div>
+            <Button variant="outline" size="sm" asChild>
+              <Link href={`${ADMIN_EMAIL_HUB_HREF}?tab=queue`}>
+                Open outbox
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+
+          {emails.recentOutgoing.length === 0 ? (
+            <div className="mt-5 flex items-center gap-2 rounded-lg bg-success-light px-3 py-3 text-sm text-success">
+              <CheckCircle className="h-4 w-4" />
+              No outgoing email rows found.
+            </div>
+          ) : (
+            <div className="mt-5 divide-y divide-border/50 rounded-lg border border-border/50">
+              {emails.recentOutgoing.slice(0, 6).map((row) => {
+                const resolvedStatus = row.deliveryStatus === "bounced" || row.deliveryStatus === "complained"
+                  ? row.deliveryStatus
+                  : row.status
+                const tone = ["failed", "bounced", "complained"].includes(resolvedStatus)
+                  ? "critical"
+                  : ["pending", "sending"].includes(resolvedStatus)
+                    ? "warning"
+                    : "success"
+
+                return (
+                  <Link
+                    key={row.id}
+                    href={row.href}
+                    className="group grid gap-3 px-3 py-3 transition-colors hover:bg-muted/40 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
+                  >
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="truncate text-sm font-medium text-foreground">{row.subject}</p>
+                        <SignalPill tone={tone}>
+                          {resolvedStatus === "skipped_e2e" ? "sent test" : resolvedStatus.replace("_", " ")}
+                        </SignalPill>
+                      </div>
+                      <p className="mt-1 truncate text-xs text-muted-foreground">
+                        {row.emailType} / {row.intakeId ? `Intake ${row.intakeId.slice(0, 8)}` : "No linked intake"} / {row.retryCount} retries
+                      </p>
+                      {row.errorMessage ? (
+                        <p className="mt-1 truncate text-xs text-destructive">{row.errorMessage}</p>
+                      ) : null}
+                    </div>
+                    <div className="flex items-center justify-between gap-2 sm:justify-end">
+                      <span className="text-xs text-muted-foreground">{formatOpsTime(row.occurredAt)}</span>
+                      <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+                    </div>
+                  </Link>
+                )
+              })}
+            </div>
+          )}
         </section>
 
         <section>
